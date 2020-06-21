@@ -18,3 +18,8 @@ From Unity 2020.1, Cookie on light are not taken into account for the lightmaps 
 
 From Unity 2020.1, the default Volume Profile Asset has the [Exposure](Override-Exposure.md) override's **Compensation** set to 0. This may cause a decrease in brightness of 1[EV](Physical-Light-Units.md#EV) in scene's that have not changed the default settings and do not override them.
 
+## Custom Pass Volume
+
+From Unity 2020.1, the Custom Pass System executes all the custom passes in the scene even if you have more than one **Custom Pass Volume** configured with the same injection point. Prior to this version, having two or more **Custom Pass Volume** with the same injection point resulted in an execution of only one **Custom Pass Volume**. This was an undefined behavior as you couldn't predict which **Custom Pass Volume** would be executed.
+
+There is now a priority in the **Custom Pass Volume** which can be used to modify the execution order between custom passes that uses the same injection point.

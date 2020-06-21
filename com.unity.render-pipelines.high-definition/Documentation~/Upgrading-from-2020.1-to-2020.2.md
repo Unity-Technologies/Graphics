@@ -22,6 +22,13 @@ From Unity 2020.2, if you create a new [HDRP Asset](HDRP-Asset.md), the **MSAA W
 
 From Unity 2020.2, if you disable the sky override used as the **Static Lighting Sky** in the **Lighting** window, the sky no longer affects the baked lighting. Previously, the sky affected the baked lighting even when it was disabled.
 
+From Unity 2020.2, HDRP has removed the Cubemap Array for Point [Light](Light-Component.md) cookies and now uses octahedral projection with a regular 2D-Cookie atlas. This is to allow for a single path for light cookies and IES, but it may produce visual artifacts when using a low-resolution cube-cookie. For example, projecting pixel art data.
+
+As the **Cubemap cookie atlas no longer exists**, it is possible that HDRP does not have enough space on the current 2D atlas for the cookies. If this is the case, HDRP displays an error in the Console window. To fix this, increase the size of the 2D cookie atlas. To do this:
+Select your [HDRP Asset](HDRP-Asset.md).
+In the Inspector, go to Lighting > Cookies.
+In the 2D Atlas Size drop-down, select a larger cookie resolution.
+
 ## Shadows
 
 From Unity 2020.2, it is no longer necessary to change the [HDRP Config package](HDRP-Config-Package.md) to set the [shadow filtering quality](HDRP-Asset.md#FilteringQualities) for deferred rendering. Instead, you can now change the filtering quality directly on the [HDRP Asset](HDRP-Asset.md#FilteringQualities). Note if you previously had not set the shadow filtering quality to **Medium** on the HDRP Asset, the automatic project upgrade process changes the shadow quality which means you may need to manually change it back to its original value.
@@ -29,6 +36,14 @@ From Unity 2020.2, it is no longer necessary to change the [HDRP Config package]
 HDRP now stores OnEnable and OnDemand shadows in a separate atlas and more API is available to handle them. For more information, see [Shadows in HDRP](Shadows-in-HDRP.md).
 
 The shader function `SampleShadow_PCSS` now requires you to pass in an additional float2 parameter which contains the shadow atlas resolution in x and the inverse of the atlas resolution in y.
+
+## Shader config file
+
+From Unity 2020.2, due to the change of shadow map, the enum HDShadowFilteringQuality have been moved to HDShadowManager.cs and the variables ShaderConfig.s_DeferredShadowFiltering as well as the option ShaderOptions.DeferredShadowFiltering have been removed from the code as they have no impact anymore.
+
+From Unity 2020.2, a new option is available named ColoredShadow. It allows you to control whether a shadow is chromatic or monochrome. ColoredShadow is enabled by default and currently only works with [Ray-traced shadows](Ray-Traced-Shadows.md). Note that colored shadows are more resource-intensive to process than standard shadows.
+
+From Unity 2020.2, the Raytracing option and equivalent generated shader macro SHADEROPTIONS_RAYTRACING have been removed. It is not longer require to edit shader config file to use Raytracing features of HDRP.
 
 ## Shader code
 
@@ -59,6 +74,10 @@ BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceDat
 
 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 ```
+
+From Unity 2020.2, HDRP includes a new rectangular area shadow evaluation function, EvaluateShadow_RectArea. The GetAreaLightAttenuation() function has been renamed to GetRectAreaShadowAttenuation(). Also the type DirectionalShadowType have been renamed SHADOW_TYPE.
+
+From Unity 2020.2, the macro ENABLE_RAYTRACING, SHADEROPTIONS_RAYTRACING, and RAYTRACING_ENABLED have been removed. A new multicompile is introduce for forward pass: SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON. This allow to enable raytracing effect without requiring edition of shader config file.
 
 ## Custom pass API
 

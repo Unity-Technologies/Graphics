@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [10.0.0] - 2019-06-10
 ### Added
 - Added the option to strip Terrain hole Shader variants.
 - Added support for additional Directional Lights. The amount of additional Directional Lights is limited by the maximum Per-object Lights in the Render Pipeline Asset.
@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added additional steps to the 2D Renderer setup page for quality and platform settings.
 - Added support for clear coat material feature in the Lit shader.
 - Added option to disable XR autotests on test settings.
+- Shader Preprocessor strips gbuffer shader variants if DeferredRenderer is not in the list of renderers in any Scriptable Pipeline Assets.
 - Added option to enable/disable Adaptive Performance when it's package is available.
 - Added support for 3DsMax's 2021 Simplified Physical Material from FBX files in the Model Importer.
 - Added support for DXT5nm-style normal maps on Android, iOS and tvOS
@@ -202,6 +203,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with Model Importer materials using the Legacy standard shader instead of URP's Lit shader when import happens at Editor startup.
 - Fixed an issue where only unique names of cameras could be added to the camera stack.
 - Fixed issue that caused shaders to fail to compile in OpenGL 4.1 or below.
+- Fixed an issue where camera stacking with MSAA on OpenGL resulted in a black screen. [case 1250602](https://issuetracker.unity3d.com/issues/urp-camera-stacking-results-in-black-screen-when-msaa-and-opengl-graphics-api-are-used)
+- Optimized shader compilation times by compiling different variant sets for vertex and fragment shaders.
+- Fixed shadows for additional lights by limiting MAX_VISIBLE_LIGHTS to 16 for OpenGL ES 2.0 and 3.0 on mobile platforms. [case 1244391](https://issuetracker.unity3d.com/issues/android-urp-spotlight-shadows-are-not-being-rendered-on-adreno-330-and-320-when-built)
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide

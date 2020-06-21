@@ -101,6 +101,8 @@ namespace UnityEditor.Rendering.HighDefinition
             // SSR
             public static GUIContent receivesSSRText = new GUIContent("Receive SSR", "When enabled, this Material can receive screen space reflections.");
             public static GUIContent receivesSSRTransparentText = new GUIContent("Receive SSR Transparent", "When enabled, this Material can receive screen space reflections.");
+            
+            public static GUIContent opaqueCullModeText = new GUIContent("Cull Mode", "For opaque objects, change the cull mode of the object.");
 
             public static string afterPostProcessZTestInfoBox = "After post-process material wont be ZTested. Enable the \"ZTest For After PostProcess\" checkbox in the Frame Settings to force the depth-test if the TAA is disabled.";
         }
@@ -217,6 +219,7 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty stencilRef = null;
         MaterialProperty zTest = null;
         MaterialProperty transparentCullMode = null;
+        MaterialProperty opaqueCullMode = null;
         MaterialProperty rayTracing = null;
 
         SurfaceType defaultSurfaceType { get { return SurfaceType.Opaque; } }
@@ -356,6 +359,7 @@ namespace UnityEditor.Rendering.HighDefinition
             stencilRef = FindProperty(kStencilRef);
             zTest = FindProperty(kZTestTransparent);
             transparentCullMode = FindProperty(kTransparentCullMode);
+            opaqueCullMode = FindProperty(kOpaqueCullMode);
             rayTracing = FindProperty(kRayTracing);
 
             refractionModel = FindProperty(kRefractionModel);
@@ -422,12 +426,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     if (transparentDepthPrepassEnable != null && transparentDepthPrepassEnable.floatValue == 1.0f)
                     {
-                        materialEditor.ShaderProperty(alphaCutoffPrepass, Styles.alphaCutoffPrepassText);
+                        if (alphaCutoffPrepass != null)
+                            materialEditor.ShaderProperty(alphaCutoffPrepass, Styles.alphaCutoffPrepassText);
                     }
 
                     if (transparentDepthPostpassEnable != null && transparentDepthPostpassEnable.floatValue == 1.0f)
                     {
-                        materialEditor.ShaderProperty(alphaCutoffPostpass, Styles.alphaCutoffPostpassText);
+                        if (alphaCutoffPostpass != null)
+                            materialEditor.ShaderProperty(alphaCutoffPostpass, Styles.alphaCutoffPostpassText);
                     }
                 }
                 EditorGUI.indentLevel--;
@@ -538,6 +544,10 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else // SurfaceType.Opaque
             {
+                EditorGUI.indentLevel++;
+                if (doubleSidedEnable != null && doubleSidedEnable.floatValue == 0 && opaqueCullMode != null)
+                    materialEditor.ShaderProperty(opaqueCullMode, Styles.opaqueCullModeText);
+                EditorGUI.indentLevel--;
                 if (HDRenderQueue.k_RenderQueue_AfterPostProcessOpaque.Contains(renderQueue))
                 {
                     ShowAfterPostProcessZTestInfoBox();
@@ -737,7 +747,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.ShaderProperty(supportDecals, Styles.supportDecalsText);
             }
 
-            if (receivesSSR != null)
+            if (receivesSSR != null && receivesSSRTransparent != null)
             {
                 // Based on the surface type, display the right recieveSSR option
                 if (surfaceTypeValue == SurfaceType.Transparent)

@@ -981,8 +981,20 @@ namespace UnityEngine.Rendering.HighDefinition
                             setter = value => data.lightingDebugSettings.centerHistogramAroundMiddleGrey = value
                         });
                 }
+                if (data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView)
+                {
+                    exposureFoldout.children.Add(
+                        new DebugUI.BoolField()
+                        {
+                            displayName = "Display RGB Histogram",
+                            getter = () => data.lightingDebugSettings.displayFinalImageHistogramAsRGB,
+                            setter = value => data.lightingDebugSettings.displayFinalImageHistogramAsRGB = value
+                        });
 
-            exposureFoldout.children.Add(
+                }
+
+
+                exposureFoldout.children.Add(
                     new DebugUI.FloatField
                     {
                         displayName = "Debug Lens Attenuation",
@@ -1225,18 +1237,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         new DebugUI.UIntField { displayName = "Mip Level", getter = () => data.lightingDebugSettings.cookieAtlasMipLevel, setter = value => data.lightingDebugSettings.cookieAtlasMipLevel = value, min = () => 0, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetCookieAtlasMipCount()},
                         new DebugUI.BoolField { displayName = "Clear Cookie Atlas", getter = () => data.lightingDebugSettings.clearCookieAtlas, setter = value => data.lightingDebugSettings.clearCookieAtlas = value}
-                    }
-                });
-            }
-
-            list.Add(new DebugUI.BoolField { displayName = "Display Point Light Cookie Array", getter = () => data.lightingDebugSettings.displayCookieCubeArray, setter = value => data.lightingDebugSettings.displayCookieCubeArray = value, onValueChanged = RefreshLightingDebug});
-            if (data.lightingDebugSettings.displayCookieCubeArray)
-            {
-                list.Add(new DebugUI.Container
-                {
-                    children =
-                    {
-                        new DebugUI.UIntField { displayName = "Slice Index", getter = () => data.lightingDebugSettings.cookieCubeArraySliceIndex, setter = value => data.lightingDebugSettings.cookieCubeArraySliceIndex = value, min = () => 0, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetCookieCubeArraySize() - 1},
                     }
                 });
             }

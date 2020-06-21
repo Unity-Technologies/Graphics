@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // The target denoising kernel
         static int m_KernelFilter;
+        static int m_RTAOApplyIntensityKernel;
 
         // Intermediate buffer that stores the ambient occlusion pre-denoising
         RTHandle m_AOIntermediateBuffer0 = null;
@@ -35,6 +36,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // keep track of the render pipeline
             m_RenderPipeline = renderPipeline;
+
+            // Grab the kernels we need
+            m_RTAOApplyIntensityKernel = m_PipelineRayTracingResources.aoRaytracingCS.FindKernel("RTAOApplyIntensity");
 
             // Allocate the intermediate textures
             m_AOIntermediateBuffer0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "AOIntermediateBuffer0");
@@ -69,7 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
-            RayTracingShader aoShader = m_PipelineRayTracingResources.aoRaytracing;
+            RayTracingShader aoShaderRT = m_PipelineRayTracingResources.aoRaytracingRT;
             var aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
             RayCountManager rayCountManager = m_RenderPipeline.GetRayCountManager();
 
@@ -79,10 +83,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 RayTracingAccelerationStructure accelerationStructure = m_RenderPipeline.RequestAccelerationStructure();
 
                 // Define the shader pass to use for the reflection pass
-                cmd.SetRayTracingShaderPass(aoShader, "VisibilityDXR");
+                cmd.SetRayTracingShaderPass(aoShaderRT, "VisibilityDXR");
 
                 // Set the acceleration structure for the pass
-                cmd.SetRayTracingAccelerationStructure(aoShader, HDShaderIDs._RaytracingAccelerationStructureName, accelerationStructure);
+                cmd.SetRayTracingAccelerationStructure(aoShaderRT, HDShaderIDs._RaytracingAccelerationStructureName, accelerationStructure);
 
                 // Inject the ray generation data (be careful of the global constant buffer limitation)
                 globalCB._RaytracingRayMaxLength = aoSettings.rayLength;
@@ -90,22 +94,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 ConstantBuffer.PushGlobal(cmd, globalCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                 // Set the data for the ray generation
-                cmd.SetRayTracingTextureParam(aoShader, HDShaderIDs._DepthTexture, m_RenderPipeline.sharedRTManager.GetDepthStencilBuffer());
-                cmd.SetRayTracingTextureParam(aoShader, HDShaderIDs._NormalBufferTexture, m_RenderPipeline.sharedRTManager.GetNormalBuffer());
+                cmd.SetRayTracingTextureParam(aoShaderRT, HDShaderIDs._DepthTexture, m_RenderPipeline.sharedRTManager.GetDepthStencilBuffer());
+                cmd.SetRayTracingTextureParam(aoShaderRT, HDShaderIDs._NormalBufferTexture, m_RenderPipeline.sharedRTManager.GetNormalBuffer());
 
                 // Inject the ray-tracing sampling data
                 BlueNoise blueNoise = m_RenderPipeline.GetBlueNoiseManager();
                 blueNoise.BindDitheredRNGData8SPP(cmd);
 
-                // Value used to scale the ao intensity
-                cmd.SetRayTracingFloatParam(aoShader, HDShaderIDs._RaytracingAOIntensity, aoSettings.intensity.value);
 
                 // Set the output textures
-                cmd.SetRayTracingTextureParam(aoShader, HDShaderIDs._RayCountTexture, rayCountManager.GetRayCountTexture());
-                cmd.SetRayTracingTextureParam(aoShader, HDShaderIDs._AmbientOcclusionTextureRW, m_AOIntermediateBuffer0);
+                cmd.SetRayTracingTextureParam(aoShaderRT, HDShaderIDs._RayCountTexture, rayCountManager.GetRayCountTexture());
+                cmd.SetRayTracingTextureParam(aoShaderRT, HDShaderIDs._AmbientOcclusionTextureRW, m_AOIntermediateBuffer0);
 
                 // Run the computation
-                cmd.DispatchRays(aoShader, m_RayGenShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, (uint)hdCamera.viewCount);
+                cmd.DispatchRays(aoShaderRT, m_RayGenShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, (uint)hdCamera.viewCount);
             }
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingFilterAmbientOcclusion)))
@@ -137,6 +139,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     HDUtils.BlitCameraTexture(cmd, m_AOIntermediateBuffer0, outputTexture);
                 }
+
+                ComputeShader aoShaderCS = m_PipelineRayTracingResources.aoRaytracingCS;
+                cmd.SetComputeFloatParam(aoShaderCS, HDShaderIDs._RaytracingAOIntensity, aoSettings.intensity.value);
+                cmd.SetComputeTextureParam(aoShaderCS, m_RTAOApplyIntensityKernel, HDShaderIDs._AmbientOcclusionTextureRW, outputTexture);
+                int texWidth = hdCamera.actualWidth;
+                int texHeight = hdCamera.actualHeight;
+                int areaTileSize = 8;
+                int numTilesXHR = (texWidth + (areaTileSize - 1)) / areaTileSize;
+                int numTilesYHR = (texHeight + (areaTileSize - 1)) / areaTileSize;
+                cmd.DispatchCompute(aoShaderCS, m_RTAOApplyIntensityKernel, numTilesXHR, numTilesYHR, hdCamera.viewCount);
             }
 
             // Bind the textures and the params

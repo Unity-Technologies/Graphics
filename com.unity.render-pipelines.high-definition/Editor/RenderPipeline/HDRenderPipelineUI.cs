@@ -234,26 +234,6 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.cookieFormat, Styles.cookieAtlasFormatContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.pointCookieSize, Styles.pointCoockieSizeContent);
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.lightLoopSettings.cubeCookieTexArraySize, Styles.pointCookieTextureArraySizeContent);
-            if (EditorGUI.EndChangeCheck())
-                serialized.renderPipelineSettings.lightLoopSettings.cubeCookieTexArraySize.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.cubeCookieTexArraySize.intValue, 1, TextureCache.k_MaxSupported);
-            if (serialized.renderPipelineSettings.lightLoopSettings.cubeCookieTexArraySize.hasMultipleDifferentValues)
-                EditorGUILayout.HelpBox(Styles.multipleDifferenteValueMessage, MessageType.Info);
-            else
-            {
-                long currentCache = TextureCacheCubemap.GetApproxCacheSizeInByte(serialized.renderPipelineSettings.lightLoopSettings.cubeCookieTexArraySize.intValue, serialized.renderPipelineSettings.lightLoopSettings.pointCookieSize.intValue, 1);
-                if (currentCache > HDRenderPipeline.k_MaxCacheSize)
-                {
-                    int reserved = TextureCacheCubemap.GetMaxCacheSizeForWeightInByte(HDRenderPipeline.k_MaxCacheSize, serialized.renderPipelineSettings.lightLoopSettings.pointCookieSize.intValue, 1);
-                    string message = string.Format(Styles.cacheErrorFormat, HDEditorUtils.HumanizeWeight(currentCache), reserved);
-                    EditorGUILayout.HelpBox(message, MessageType.Error);
-                }
-                else
-                {
-                    string message = string.Format(Styles.cacheInfoFormat, HDEditorUtils.HumanizeWeight(currentCache));
-                    EditorGUILayout.HelpBox(message, MessageType.Info);
-                }
-            }
         }
 
         static void Drawer_SectionReflection(SerializedHDRenderPipelineAsset serialized, Editor owner)
@@ -869,79 +849,82 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportVolumetrics, Styles.supportVolumetricContent);
 
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
-            using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportProbeVolume.boolValue))
+            if (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled)
             {
-                ++EditorGUI.indentLevel;
-
-                if (serialized.renderPipelineSettings.supportProbeVolume.boolValue)
-                    EditorGUILayout.HelpBox(Styles.probeVolumeInfo, MessageType.Warning);
-
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasResolution, Styles.probeVolumeAtlasResolution);
-                if (EditorGUI.EndChangeCheck())
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
+                using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportProbeVolume.boolValue))
                 {
-                    serialized.renderPipelineSettings.probeVolumeSettings.atlasResolution.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasResolution.intValue, 0);
-                }
-                else
-                {
-                    long currentCache = HDRenderPipeline.GetApproxProbeVolumeAtlasSizeInByte(serialized.renderPipelineSettings.probeVolumeSettings.atlasResolution.intValue);
-                    if (currentCache > HDRenderPipeline.k_MaxCacheSize)
+                    ++EditorGUI.indentLevel;
+
+                    if (serialized.renderPipelineSettings.supportProbeVolume.boolValue)
+                        EditorGUILayout.HelpBox(Styles.probeVolumeInfo, MessageType.Warning);
+
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasResolution, Styles.probeVolumeAtlasResolution);
+                    if (EditorGUI.EndChangeCheck())
                     {
-                        int reserved = HDRenderPipeline.GetMaxProbeVolumeAtlasSizeForWeightInByte(HDRenderPipeline.k_MaxCacheSize);
-                        string message = string.Format(Styles.cacheErrorFormat, HDEditorUtils.HumanizeWeight(currentCache), reserved);
-                        EditorGUILayout.HelpBox(message, MessageType.Error);
+                        serialized.renderPipelineSettings.probeVolumeSettings.atlasResolution.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasResolution.intValue, 0);
                     }
                     else
                     {
-                        string message = string.Format(Styles.cacheInfoFormat, HDEditorUtils.HumanizeWeight(currentCache));
-                        EditorGUILayout.HelpBox(message, MessageType.Info);
+                        long currentCache = HDRenderPipeline.GetApproxProbeVolumeAtlasSizeInByte(serialized.renderPipelineSettings.probeVolumeSettings.atlasResolution.intValue);
+                        if (currentCache > HDRenderPipeline.k_MaxCacheSize)
+                        {
+                            int reserved = HDRenderPipeline.GetMaxProbeVolumeAtlasSizeForWeightInByte(HDRenderPipeline.k_MaxCacheSize);
+                            string message = string.Format(Styles.cacheErrorFormat, HDEditorUtils.HumanizeWeight(currentCache), reserved);
+                            EditorGUILayout.HelpBox(message, MessageType.Error);
+                        }
+                        else
+                        {
+                            string message = string.Format(Styles.cacheInfoFormat, HDEditorUtils.HumanizeWeight(currentCache));
+                            EditorGUILayout.HelpBox(message, MessageType.Info);
+                        }
                     }
-                }
 
-                EditorGUI.BeginDisabledGroup(ShaderConfig.s_ProbeVolumesBilateralFilteringMode != ProbeVolumesBilateralFilteringModes.OctahedralDepth);
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution, Styles.probeVolumeAtlasOctahedralDepthResolution);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution.intValue, 0);
-                }
-                else if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth)
-                {
-                    // Only display memory allocation info if octahedral depth feature is actually enabled. Only then will memory be allocated.
-                    long currentCache = HDRenderPipeline.GetApproxProbeVolumeOctahedralDepthAtlasSizeInByte(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution.intValue);
-                    if (currentCache > HDRenderPipeline.k_MaxCacheSize)
+                    EditorGUI.BeginDisabledGroup(ShaderConfig.s_ProbeVolumesBilateralFilteringMode != ProbeVolumesBilateralFilteringModes.OctahedralDepth);
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution, Styles.probeVolumeAtlasOctahedralDepthResolution);
+                    if (EditorGUI.EndChangeCheck())
                     {
-                        int reserved = HDRenderPipeline.GetMaxProbeVolumeOctahedralDepthAtlasSizeForWeightInByte(HDRenderPipeline.k_MaxCacheSize);
-                        string message = string.Format(Styles.cacheErrorFormat, HDEditorUtils.HumanizeWeight(currentCache), reserved);
-                        EditorGUILayout.HelpBox(message, MessageType.Error);
+                        serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution.intValue, 0);
                     }
-                    else
+                    else if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth)
                     {
-                        string message = string.Format(Styles.cacheInfoFormat, HDEditorUtils.HumanizeWeight(currentCache));
-                        EditorGUILayout.HelpBox(message, MessageType.Info);
+                        // Only display memory allocation info if octahedral depth feature is actually enabled. Only then will memory be allocated.
+                        long currentCache = HDRenderPipeline.GetApproxProbeVolumeOctahedralDepthAtlasSizeInByte(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution.intValue);
+                        if (currentCache > HDRenderPipeline.k_MaxCacheSize)
+                        {
+                            int reserved = HDRenderPipeline.GetMaxProbeVolumeOctahedralDepthAtlasSizeForWeightInByte(HDRenderPipeline.k_MaxCacheSize);
+                            string message = string.Format(Styles.cacheErrorFormat, HDEditorUtils.HumanizeWeight(currentCache), reserved);
+                            EditorGUILayout.HelpBox(message, MessageType.Error);
+                        }
+                        else
+                        {
+                            string message = string.Format(Styles.cacheInfoFormat, HDEditorUtils.HumanizeWeight(currentCache));
+                            EditorGUILayout.HelpBox(message, MessageType.Info);
+                        }
                     }
-                }
-                EditorGUI.EndDisabledGroup();
+                    EditorGUI.EndDisabledGroup();
 
-                if (serialized.renderPipelineSettings.probeVolumeSettings.atlasResolution.intValue <= 0)
-                {
-                    // Detected legacy probe volume atlas (atlasResolution did not exist. Was explicitly defined by atlasWidth, atlasHeight, atlasDepth).
-                    // Initialize with default values.
-                    // TODO: (Nick) This can be removed in release. It's currently here to reduce user pain on internal projects actively using this WIP tech.
-                    serialized.renderPipelineSettings.probeVolumeSettings.atlasResolution.intValue = GlobalProbeVolumeSettings.@default.atlasResolution;
-                }
+                    if (serialized.renderPipelineSettings.probeVolumeSettings.atlasResolution.intValue <= 0)
+                    {
+                        // Detected legacy probe volume atlas (atlasResolution did not exist. Was explicitly defined by atlasWidth, atlasHeight, atlasDepth).
+                        // Initialize with default values.
+                        // TODO: (Nick) This can be removed in release. It's currently here to reduce user pain on internal projects actively using this WIP tech.
+                        serialized.renderPipelineSettings.probeVolumeSettings.atlasResolution.intValue = GlobalProbeVolumeSettings.@default.atlasResolution;
+                    }
 
-                if (serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution.intValue <= 0)
-                {
-                    // Detected legacy probe volume atlas (atlasOctahedralDepthResolution did not exist. Was explicitly defined by atlasWidth, atlasHeight, atlasDepth).
-                    // Initialize with default values.
-                    // TODO: (Nick) This can be removed in release. It's currently here to reduce user pain on internal projects actively using this WIP tech.
-                    serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution.intValue = GlobalProbeVolumeSettings.@default.atlasOctahedralDepthResolution;
-                }
+                    if (serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution.intValue <= 0)
+                    {
+                        // Detected legacy probe volume atlas (atlasOctahedralDepthResolution did not exist. Was explicitly defined by atlasWidth, atlasHeight, atlasDepth).
+                        // Initialize with default values.
+                        // TODO: (Nick) This can be removed in release. It's currently here to reduce user pain on internal projects actively using this WIP tech.
+                        serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution.intValue = GlobalProbeVolumeSettings.@default.atlasOctahedralDepthResolution;
+                    }
 
-                --EditorGUI.indentLevel;
-            }
+                    --EditorGUI.indentLevel;
+                }
+            } // s_ProbeVolumesEvaluationMode
 
             EditorGUILayout.Space(); //to separate with following sub sections
         }
@@ -1037,7 +1020,8 @@ namespace UnityEditor.Rendering.HighDefinition
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentDepthPrepass, Styles.supportTransparentDepthPrepass);
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentDepthPostpass, Styles.supportTransparentDepthPostpass);
             AppendSupport(builder, serialized.renderPipelineSettings.supportRayTracing, Styles.supportRaytracing);
-            AppendSupport(builder, serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
+            if (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled)
+                AppendSupport(builder, serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportedRayTracingMode, Styles.supportedRayTracingMode);
 
             EditorGUILayout.HelpBox(builder.ToString(), MessageType.Info, wide: true);
