@@ -142,6 +142,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed transparent motion vector framesetting not sanitized.
 - Fix reflection probe frame settings override
 - Fixed wrong order of post process frame settings.
+- Force to rebake probe with missing baked texture. (1253367)
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
