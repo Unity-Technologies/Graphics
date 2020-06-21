@@ -138,6 +138,8 @@ namespace UnityEditor.VFX.UI
             }
 
 
+            targetModelContext.Invalidate(VFXModel.InvalidationCause.kStructureChanged);
+
             var targetContextController = viewController.GetRootNodeController(targetModelContext, 0) as VFXContextController;
             targetContextController.ApplyChanges();
 

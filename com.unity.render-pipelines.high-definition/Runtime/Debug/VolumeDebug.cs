@@ -123,15 +123,21 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        static List<Type> s_ComponentTypes;
+
         /// <summary>List of Volume component types.</summary>
         static public List<Type> componentTypes
         {
             get
             {
-                return VolumeManager.instance.baseComponentTypes
+                if (s_ComponentTypes == null)
+                {
+                    s_ComponentTypes = VolumeManager.instance.baseComponentTypes
                     .Where(t => !t.IsDefined(typeof(VolumeComponentDeprecated), false))
                     .OrderBy(t => ComponentDisplayName(t))
                     .ToList();
+                }
+                return s_ComponentTypes;
             }
         }
 
@@ -200,7 +206,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         float[] weights = null;
-        float ComputeWeight(Volume volume)
+        float ComputeWeight(Volume volume, Vector3 triggerPos)
         {
             var profile = volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile;
 
@@ -212,7 +218,6 @@ namespace UnityEngine.Rendering.HighDefinition
             float weight = Mathf.Clamp01(volume.weight);
             if (!volume.isGlobal)
             {
-                var triggerPos = selectedCameraPosition;
                 var colliders = volume.GetComponents<Collider>();
 
                 // Find closest distance to volume, 0 means it's inside it
@@ -307,9 +312,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            var triggerPos = selectedCameraPosition;
             weights = new float[volumes.Length];
             for (int i = 0; i < volumes.Length; i++)
-                weights[i] = ComputeWeight(volumes[i]);
+                weights[i] = ComputeWeight(volumes[i], triggerPos);
 
             return ret;
         }

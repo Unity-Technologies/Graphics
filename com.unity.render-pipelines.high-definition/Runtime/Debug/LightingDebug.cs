@@ -162,11 +162,33 @@ namespace UnityEngine.Rendering.HighDefinition
         VisualizeDirectionalLightAtlas,
         /// <summary>Display area lights shadow atlas as an overlay.</summary>
         VisualizeAreaLightAtlas,
+        /// <summary>Display punctual lights cached shadow atlas as an overlay.</summary>
+        VisualizeCachedPunctualLightAtlas,
+        /// <summary>Display area lights cached shadow atlas as an overlay.</summary>
+        VisualizeCachedAreaLightAtlas,
         /// <summary>Display a single light shadow map as an overlay.</summary>
         VisualizeShadowMap,
         /// <summary>Replace rendering with a black and white view of the shadow of a single light in the scene.</summary>
         SingleShadow,
     }
+
+    /// <summary>
+    /// Exposure debug mode.
+    /// </summary>
+    [GenerateHLSL]
+    public enum ExposureDebugMode
+    {
+        /// <summary>No exposure debug.</summary>
+        None,
+        /// <summary>Display the EV100 values of the scene, color-coded.</summary>
+        SceneEV100Values,
+        /// <summary>Display the Histogram used for exposure.</summary>
+        HistogramView,
+        /// <summary>Visualize the scene color weighted as the metering mode selected.</summary>
+        MeteringWeighted,
+
+    }
+
 
     /// <summary>
     /// Probe Volume Debug Modes.
@@ -291,15 +313,23 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Maximum number of lights against which the light overdraw gradient is displayed.</summary>
         public uint                 maxDebugLightCount = 24;
 
+        /// <summary>Exposure debug mode.</summary>
+        public ExposureDebugMode    exposureDebugMode = ExposureDebugMode.None;
         /// <summary>Exposure compensation to apply on current scene exposure.</summary>
         public float                debugExposure = 0.0f;
+        /// <summary>Debug lens attenuation factor for the virtual camera.</summary>
+        public float                debugLensAttenuation = 0.65f;
+        /// <summary>Whether to show tonemap curve in the histogram debug view or not.</summary>
+        public bool                 showTonemapCurveAlongHistogramView = true;
+        /// <summary>Whether to center the histogram debug view around the middle-grey point or not.</summary>
+        public bool                 centerHistogramAroundMiddleGrey = false;
 
         /// <summary>Display the light cookies atlas.</summary>
         public bool                 displayCookieAtlas = false;
         /// <summary>Display the light cookies cubemap array.</summary>
         public bool                 displayCookieCubeArray = false;
-        /// <summary>Index of the light cookie cubemap to display.</summary>
-        public uint                 cookieCubeArraySliceIndex = 0;
+        /// <summary>Index of the light cubemap to display.</summary>
+        public uint                 cubeArraySliceIndex = 0;
         /// <summary>Mip level of the cookie cubemap display.</summary>
         public uint                 cookieAtlasMipLevel = 0;
         /// <summary>Clear cookie atlas each frame.</summary>

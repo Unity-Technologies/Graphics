@@ -196,23 +196,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return Matrix4x4.Transpose(worldToViewMatrix.transpose * viewSpaceRasterTransform);
         }
 
-        // Scale and bias to transform unnormalized viewport/pixel coordinates to normalized device coordinates
-        internal static Vector4 ComputeInverseViewportScaleBias(HDCamera hdCamera)
-        {
-            float verticalFoV = hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
-            Vector2 lensShift = hdCamera.camera.GetGateFittedLensShift();
-
-            float aspectRatio = hdCamera.camera.aspect < 0 ? hdCamera.screenSize.x * hdCamera.screenSize.w : hdCamera.camera.aspect;
-            float tanHalfVertFoV = Mathf.Tan(0.5f * verticalFoV);
-
-            // See the comment in ComputePixelCoordToWorldSpaceViewDirectionMatrix for the derivation
-            return new Vector4(
-                -2.0f * hdCamera.screenSize.z * tanHalfVertFoV * aspectRatio,
-                -2.0f * hdCamera.screenSize.w * tanHalfVertFoV,
-                (1.0f - 2.0f * lensShift.x) * tanHalfVertFoV * aspectRatio,
-                (1.0f - 2.0f * lensShift.y) * tanHalfVertFoV);
-        }
-
         internal static float ComputZPlaneTexelSpacing(float planeDepth, float verticalFoV, float resolutionY)
         {
             float tanHalfVertFoV = Mathf.Tan(0.5f * verticalFoV);
@@ -260,6 +243,75 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 7 : 6, MeshTopology.Quads, 4, 1, s_PropertyBlock);
             else
                 cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 5 : 4, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+        }
+
+        /// <summary>
+        /// Blit a texture using a quad in the current render target, by performing an alpha blend with the existing content on the render target.
+        /// </summary>
+        /// <param name="cmd">Command buffer used for rendering.</param>
+        /// <param name="source">Source texture.</param>
+        /// <param name="textureSize">Source texture size.</param>
+        /// <param name="scaleBiasTex">Scale and bias for sampling the input texture.</param>
+        /// <param name="scaleBiasRT">Scale and bias for the output texture.</param>
+        /// <param name="mipLevelTex">Mip level to blit.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
+        /// <param name="paddingInPixels">Padding in pixels.</param>
+        public static void BlitQuadWithPaddingMultiply(CommandBuffer cmd, Texture source, Vector2 textureSize, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int paddingInPixels)
+        {
+            s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBiasTex);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
+            s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitTextureSize, textureSize);
+            s_PropertyBlock.SetInt(HDShaderIDs._BlitPaddingSize, paddingInPixels);
+            if (source.wrapMode == TextureWrapMode.Repeat)
+                cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 12 : 11, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+            else
+                cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 10 : 9, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+        }
+
+        /// <summary>
+        /// Blit a texture (which is a Octahedral projection) using a quad in the current render target.
+        /// </summary>
+        /// <param name="cmd">Command buffer used for rendering.</param>
+        /// <param name="source">Source texture.</param>
+        /// <param name="textureSize">Source texture size.</param>
+        /// <param name="scaleBiasTex">Scale and bias for sampling the input texture.</param>
+        /// <param name="scaleBiasRT">Scale and bias for the output texture.</param>
+        /// <param name="mipLevelTex">Mip level to blit.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
+        /// <param name="paddingInPixels">Padding in pixels.</param>
+        public static void BlitOctahedralWithPadding(CommandBuffer cmd, Texture source, Vector2 textureSize, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int paddingInPixels)
+        {
+            s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBiasTex);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
+            s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitTextureSize, textureSize);
+            s_PropertyBlock.SetInt(HDShaderIDs._BlitPaddingSize, paddingInPixels);
+            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), 8, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+        }
+
+        /// <summary>
+        /// Blit a texture (which is a Octahedral projection) using a quad in the current render target, by performing an alpha blend with the existing content on the render target.
+        /// </summary>
+        /// <param name="cmd">Command buffer used for rendering.</param>
+        /// <param name="source">Source texture.</param>
+        /// <param name="textureSize">Source texture size.</param>
+        /// <param name="scaleBiasTex">Scale and bias for sampling the input texture.</param>
+        /// <param name="scaleBiasRT">Scale and bias for the output texture.</param>
+        /// <param name="mipLevelTex">Mip level to blit.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
+        /// <param name="paddingInPixels">Padding in pixels.</param>
+        public static void BlitOctahedralWithPaddingMultiply(CommandBuffer cmd, Texture source, Vector2 textureSize, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int paddingInPixels)
+        {
+            s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBiasTex);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
+            s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitTextureSize, textureSize);
+            s_PropertyBlock.SetInt(HDShaderIDs._BlitPaddingSize, paddingInPixels);
+            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), 13, MeshTopology.Quads, 4, 1, s_PropertyBlock);
         }
 
         /// <summary>
@@ -522,6 +574,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // This function is NOT fast, but it is illustrative, and can be optimized later.
             public void ComputePackedMipChainInfo(Vector2Int viewportSize)
             {
+                // No work needed.
+                if (viewportSize == mipLevelSizes[0])
+                    return;
+
                 textureSize = viewportSize;
                 mipLevelSizes[0] = viewportSize;
                 mipLevelOffsets[0] = Vector2Int.zero;
@@ -954,6 +1010,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return 0;
 #endif
 
+        }
+
+        internal static ulong GetSceneCullingMaskFromGameObject(GameObject go)
+        {
+#if UNITY_EDITOR
+            return (go.scene == null) ? ~(ulong)0 : EditorSceneManager.GetSceneCullingMask(go.scene);
+#else
+            return 0;
+#endif
         }
 
         internal static HDAdditionalCameraData TryGetAdditionalCameraDataOrDefault(Camera camera)

@@ -43,6 +43,7 @@ namespace UnityEditor.Rendering.HighDefinition
             Editor m_CachedDefaultVolumeProfileEditor;
             Editor m_CachedLookDevVolumeProfileEditor;
             ReorderableList m_BeforeTransparentCustomPostProcesses;
+            ReorderableList m_BeforeTAACustomPostProcesses;
             ReorderableList m_BeforePostProcessCustomPostProcesses;
             ReorderableList m_AfterPostProcessCustomPostProcesses;
             int m_CurrentVolumeProfileInstanceID;
@@ -75,6 +76,13 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 m_ScrollViewPosition = Vector2.zero;
                 InitializeCustomPostProcessesLists();
+
+                var editorResources = HDRenderPipeline.defaultAsset.renderPipelineEditorResources;
+                if (!EditorUtility.IsPersistent(editorResources))
+                {
+                    var editorResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset";
+                    HDRenderPipeline.defaultAsset.renderPipelineEditorResources = AssetDatabase.LoadAssetAtPath<HDRenderPipelineEditorResources>(editorResourcesPath);
+                }
             }
 
             void InitializeCustomPostProcessesLists()
@@ -96,6 +104,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 InitList(ref m_BeforeTransparentCustomPostProcesses, hdrpAsset.beforeTransparentCustomPostProcesses, "After Opaque And Sky", CustomPostProcessInjectionPoint.AfterOpaqueAndSky);
+                InitList(ref m_BeforeTAACustomPostProcesses, hdrpAsset.beforeTAACustomPostProcesses, "Before TAA", CustomPostProcessInjectionPoint.BeforeTAA);
                 InitList(ref m_BeforePostProcessCustomPostProcesses, hdrpAsset.beforePostProcessCustomPostProcesses, "Before Post Process", CustomPostProcessInjectionPoint.BeforePostProcess);
                 InitList(ref m_AfterPostProcessCustomPostProcesses, hdrpAsset.afterPostProcessCustomPostProcesses, "After Post Process", CustomPostProcessInjectionPoint.AfterPostProcess);
 
@@ -150,6 +159,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     return;
 
                 m_BeforeTransparentCustomPostProcesses.DoLayoutList();
+                m_BeforeTAACustomPostProcesses.DoLayoutList();
                 m_BeforePostProcessCustomPostProcesses.DoLayoutList();
                 m_AfterPostProcessCustomPostProcesses.DoLayoutList();
             }
