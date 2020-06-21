@@ -154,7 +154,7 @@ Pass
             $DoAlphaTestPostpass: alphaCutoff = surfaceDescription.AlphaClipThresholdDepthPostpass;
 
             #if SHADERPASS == SHADERPASS_SHADOWS
-                alphaCutoff = _UseShadowThreshold ? surfaceDescription.AlphaClipThresholdShadow : alphaCutoff;
+                $DoAlphaTestShadow: alphaCutoff = _UseShadowThreshold ? surfaceDescription.AlphaClipThresholdShadow : alphaCutoff;
             #endif
 
             GENERIC_ALPHA_TEST(surfaceDescription.Alpha, alphaCutoff);
