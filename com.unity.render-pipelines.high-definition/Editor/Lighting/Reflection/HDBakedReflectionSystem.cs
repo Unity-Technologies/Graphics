@@ -11,6 +11,7 @@ using UnityEngine.Assertions;
 using UnityEngine.SceneManagement;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -198,7 +199,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     var instanceId = states[index].instanceID;
                     var probe = (HDProbe)EditorUtility.InstanceIDToObject(instanceId);
                     var cacheFile = GetGICacheFileForHDProbe(states[index].probeBakingHash);
-                    var planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget((int)probe.resolution);
+                    var planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget((int)probe.resolution, (GraphicsFormat)hdPipeline.currentPlatformRenderPipelineSettings.colorBufferFormat);
 
                     // Get from cache or render the probe
                     if (!File.Exists(cacheFile))
@@ -330,7 +331,7 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var probe in bakedProbes)
             {
                 var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
-                var planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget((int)probe.resolution);
+                var planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget((int)probe.resolution, (GraphicsFormat)hdPipeline.currentPlatformRenderPipelineSettings.colorBufferFormat);
                 RenderAndWriteToFile(probe, bakedTexturePath, cubeRT, planarRT);
                 planarRT.Release();
             }

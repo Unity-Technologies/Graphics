@@ -1,7 +1,6 @@
 #pragma kernel FilterPlanarReflection
 #pragma kernel DownScale
 #pragma kernel DepthConversion
-#pragma kernel CopyTexture
 
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 // #pragma enable_d3d11_debug_symbols
@@ -194,14 +193,4 @@ void DepthConversion(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     // Re-do the projection, but this time without the oblique part and export it
     float4 hClip = mul(_CaptureCameraVP_NO, float4(centralPosInput.positionWS, 1.0));
     _DepthTextureNonOblique[currentCoord] = saturate(hClip.z / hClip.w);
-}
-
-[numthreads(PLANAR_REFLECTION_TILE_SIZE, PLANAR_REFLECTION_TILE_SIZE, 1)]
-void CopyTexture(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
-{
-    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-
-    // Compute the pixel position to process
-    int2 currentCoord = (int2)(groupId * PLANAR_REFLECTION_TILE_SIZE + groupThreadId);
-    _FilteredPlanarReflectionBuffer[currentCoord] = LOAD_TEXTURE2D_LOD(_ReflectionColorMipChain, currentCoord, 0).xyz;
 }

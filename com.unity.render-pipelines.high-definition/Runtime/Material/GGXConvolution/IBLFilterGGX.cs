@@ -18,7 +18,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Planar reflection filtering
         ComputeShader m_PlanarReflectionFilteringCS;
         int           m_PlanarReflectionDepthConversionKernel = -1;
-        int           m_PlanarReflectionCopyTextureKernel = -1;
         int           m_PlanarReflectionDownScaleKernel = -1;
         int           m_PlanarReflectionFilteringKernel = -1;
         RTHandle      m_PlanarReflectionFilterTex0;
@@ -80,7 +79,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_PlanarReflectionDepthConversionKernel = m_PlanarReflectionFilteringCS.FindKernel("DepthConversion");
                 m_PlanarReflectionDownScaleKernel = m_PlanarReflectionFilteringCS.FindKernel("DownScale");
                 m_PlanarReflectionFilteringKernel = m_PlanarReflectionFilteringCS.FindKernel("FilterPlanarReflection");
-                m_PlanarReflectionCopyTextureKernel = m_PlanarReflectionFilteringCS.FindKernel("CopyTexture");
             }
 
             for (int i = 0; i < 6; ++i)
@@ -216,12 +214,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int currentTexHeight = sourceColor.height;
 
             // The first color level can be copied straight away in the mip chain. Unfortunately due to a format incompatibility, we have to go through a compute shader copy.
-            int tileSize = 8;
-            int numTilesXHR = (currentTexWidth + (tileSize - 1)) / tileSize;
-            int numTilesYHR = (currentTexHeight + (tileSize - 1)) / tileSize;
-            cmd.SetComputeTextureParam(m_PlanarReflectionFilteringCS, m_PlanarReflectionCopyTextureKernel, HDShaderIDs._ReflectionColorMipChain, sourceColor);
-            cmd.SetComputeTextureParam(m_PlanarReflectionFilteringCS, m_PlanarReflectionCopyTextureKernel, HDShaderIDs._FilteredPlanarReflectionBuffer, m_PlanarReflectionFilterTex0);
-            cmd.DispatchCompute(m_PlanarReflectionFilteringCS, m_PlanarReflectionCopyTextureKernel, numTilesXHR, numTilesYHR, 1);
+            cmd.CopyTexture(sourceColor, 0, 0, 0, 0, sourceColor.width, sourceColor.height, m_PlanarReflectionFilterTex0, 0, 0, 0, 0);
 
             // For depth it is a bit trickier, we want to convert the depth from oblique space to non-oblique space due to the poor interpolation properties of the oblique matrix
             cmd.SetComputeVectorParam(m_PlanarReflectionFilteringCS, HDShaderIDs._CaptureCameraPositon, planarTextureFilteringParameters.captureCameraPosition);
@@ -238,7 +231,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(m_PlanarReflectionFilteringCS, m_PlanarReflectionDepthConversionKernel, HDShaderIDs._DepthTextureNonOblique, m_PlanarReflectionFilterDepthTex0);
 
             // Compute the dispatch parameters and evaluate the new mip
-
+            int tileSize = 8;
+            int numTilesXHR = (currentTexWidth + (tileSize - 1)) / tileSize;
+            int numTilesYHR = (currentTexHeight + (tileSize - 1)) / tileSize;
             cmd.DispatchCompute(m_PlanarReflectionFilteringCS, m_PlanarReflectionDepthConversionKernel, numTilesXHR, numTilesYHR, 1);
 
             // Move to the next mip and build the chain
