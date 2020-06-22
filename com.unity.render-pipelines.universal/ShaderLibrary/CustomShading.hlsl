@@ -5,6 +5,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/BSDF.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
 struct Attributes
 {
@@ -62,6 +63,14 @@ struct LightingData
 
 // Forward declaration of SurfaceFunction. This function must be implemented in the shader
 void SurfaceFunction(Varyings IN, out CustomSurfaceData surfaceData);
+
+#ifdef CUSTOM_VERTEX_FUNCTION
+// Forward declaration of SurfaceFunction. This function must be implemented in the shader
+void CUSTOM_VERTEX_FUNCTION(inout Attributes IN);
+#else
+void CUSTOM_VERTEX_FUNCTION(inout Attributes IN)
+{}
+#endif
 
 // Convert normal from tangent space to space of TBN matrix
 // f.ex, if normal and tangent are passed in world space, per-pixel normal will return in world space.
@@ -127,6 +136,15 @@ half3 EnvironmentBRDF(half3 f0, half roughness, half NdotV)
 #endif
 }
 
+#ifdef CUSTOM_FINAL_COLOR
+    half4 CUSTOM_FINAL_COLOR(half4 inColor);
+#else
+    half4 CUSTOM_FINAL_COLOR(half4 inColor)
+    {
+        return inColor;        
+    }
+#endif
+
 #ifdef CUSTOM_LIGHTING_FUNCTION
     half4 CUSTOM_LIGHTING_FUNCTION(CustomSurfaceData surfaceData, LightingData lightingData);
 #else
@@ -160,6 +178,8 @@ half3 EnvironmentBRDF(half3 f0, half roughness, half NdotV)
 Varyings SurfaceVertex(Attributes IN)
 {
     Varyings OUT;
+    
+    CUSTOM_VERTEX_FUNCTION(IN);
 
     // VertexPositionInputs contains position in multiple spaces (world, view, homogeneous clip space)
     // The compiler will strip all unused references.
@@ -189,7 +209,31 @@ Varyings SurfaceVertex(Attributes IN)
     return OUT;
 }
 
-half4 SurfaceFragment(Varyings IN) : SV_Target
+float3 _LightDirection;
+float4 GetShadowPositionHClip(Attributes input)
+{
+    float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
+    float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
+
+    float4 positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, _LightDirection));
+
+#if UNITY_REVERSED_Z
+    positionCS.z = min(positionCS.z, positionCS.w * UNITY_NEAR_CLIP_VALUE);
+#else
+    positionCS.z = max(positionCS.z, positionCS.w * UNITY_NEAR_CLIP_VALUE);
+#endif
+
+    return positionCS;
+}
+
+Varyings SurfaceVertexShadowCaster(Attributes IN)
+{
+    Varyings OUT = SurfaceVertex(IN);
+    OUT.positionCS = GetShadowPositionHClip(IN);
+    return OUT;    
+}
+
+half4 CalculateColor(Varyings IN)
 {
     CustomSurfaceData surfaceData;
     SurfaceFunction(IN, surfaceData);
@@ -214,7 +258,19 @@ half4 SurfaceFragment(Varyings IN) : SV_Target
     lightingData.NdotH = saturate(dot(surfaceData.normalWS, lightingData.halfDirectionWS));
     lightingData.LdotH = saturate(dot(lightingData.light.direction, lightingData.halfDirectionWS));
 
-    return CUSTOM_LIGHTING_FUNCTION(surfaceData, lightingData);
+    half4 finalColor = CUSTOM_LIGHTING_FUNCTION(surfaceData, lightingData);
+    return CUSTOM_FINAL_COLOR(finalColor);
+}
+
+half4 SurfaceFragment(Varyings IN) : SV_Target
+{
+    return CalculateColor(IN);
+}
+
+half4 SurfaceFragmentDepthOnly(Varyings IN) : SV_Target
+{
+    CalculateColor(IN);
+    return 0;
 }
 
 #endif
