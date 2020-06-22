@@ -5,6 +5,15 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    [GenerateHLSL]
+    internal struct EllipsoidOccluderData
+    {
+        public Vector3 position;
+        public float radius;
+        public Vector3 direction;
+        public float scaling;
+    }
+
     /// <summary>
     /// </summary>
     public class EllipsoidOccluder : MonoBehaviour
