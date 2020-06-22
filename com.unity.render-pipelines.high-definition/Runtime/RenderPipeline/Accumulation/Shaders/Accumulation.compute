@@ -4,7 +4,7 @@
 
 #pragma kernel KMain
 
-#pragma multi_compile FILTER_BOX FILTER_GAUSSIAN FILTER_TRIANGLE FILTER_CATMULLROM
+#pragma multi_compile FILTER_BOX FILTER_GAUSSIAN FILTER_TRIANGLE FILTER_CATMULLROM FILTER_SINC
 
 // Inputs
 TEXTURE2D_X(_RadianceTexture);
@@ -65,6 +65,12 @@ float GetSubPixelWeight(float2 offset, float2 filterSize)
     float r2 = sqrt(r);
     return (r >= 2.0f) ? 0.0f :
         (r < 1.0f) ? (3.0f * r * r2 - 5.0f * r2 + 2.0f) : (-r * r2 + 5.0f * r2 - 8.0f * r + 4.0f);
+#endif
+
+#ifdef FILTER_SINC
+    float s = (abs(offset.x) < 0.001f) ? 1.0f : sin(offset.x) / offset.x;
+    float t = (abs(offset.y) < 0.001f) ? 1.0f : sin(offset.y) / offset.y;
+    return s * t;
 #endif
 
     return 1.0;

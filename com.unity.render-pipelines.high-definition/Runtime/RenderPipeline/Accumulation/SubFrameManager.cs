@@ -286,6 +286,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 case ReconstructionFilter.CatmullRom:
                     accumulationShader.EnableKeyword("FILTER_CATMULLROM");
                     break;
+                case ReconstructionFilter.Sinc:
+                    accumulationShader.EnableKeyword("FILTER_SINC");
+                    break;
+
             }
 
             // Grab the history buffer (hijack the reflections one)

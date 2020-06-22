@@ -13,7 +13,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Box,
         Triangle,
         Gaussian,
-        CatmullRom
+        CatmullRom,
+        Sinc
     }
 
     /// <summary>
