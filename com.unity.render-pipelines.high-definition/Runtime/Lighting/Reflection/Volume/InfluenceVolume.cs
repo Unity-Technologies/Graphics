@@ -43,10 +43,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         Vector3 m_ConvexSize = Vector3.one * 10;
         [SerializeField]
-        bool m_IsInfinite = false;
+        bool m_ConvexIsInfinite = false;
 #if UNITY_EDITOR
         [SerializeField]
-        internal int selected = -1;
+        internal int convexSelection = -1;
 #endif
 
         // Public API
@@ -108,12 +108,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public float sphereBlendNormalDistance { get => m_SphereBlendNormalDistance; set => m_SphereBlendNormalDistance = value; }
 
 
-        /// <summary>The list of planes of the proxy if it as a shape Convex</summary>
+        /// <summary>The list of planes of the shape in Convex Mode.</summary>
         public Vector4[] convexPlanes { get => m_ConvexPlanes; set => m_ConvexPlanes = value; }
         /// <summary>Size of the InfluenceVolume in Convex Mode.</summary>
         public Vector3 convexSize { get => m_ConvexSize; set => m_ConvexSize = value; }
-        /// <summary>Size of the InfluenceVolume in Convex Mode.</summary>
-        public bool isInfinite { get => m_IsInfinite; set => m_IsInfinite = value; }
+        /// <summary>True if the InfluenceVolume is infinite in Convex Mode.</summary>
+        public bool convexIsInfinite { get => m_ConvexIsInfinite; set => m_ConvexIsInfinite = value; }
 
         /// <summary>Compute a hash of the influence properties.</summary>
         /// <returns></returns>
@@ -224,7 +224,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.m_SphereBlendNormalDistance = m_SphereBlendNormalDistance;
             data.m_ConvexPlanes = m_ConvexPlanes;
             data.m_ConvexSize = m_ConvexSize;
-            data.m_IsInfinite = m_IsInfinite;
+            data.m_ConvexIsInfinite = m_ConvexIsInfinite;
 
 #if UNITY_EDITOR
             data.m_EditorAdvancedModeBlendDistancePositive = m_EditorAdvancedModeBlendDistancePositive;
@@ -236,6 +236,8 @@ namespace UnityEngine.Rendering.HighDefinition
             data.m_EditorAdvancedModeEnabled = m_EditorAdvancedModeEnabled;
             data.m_EditorAdvancedModeFaceFadePositive = m_EditorAdvancedModeFaceFadePositive;
             data.m_EditorAdvancedModeFaceFadeNegative = m_EditorAdvancedModeFaceFadeNegative;
+
+            data.convexSelection = convexSelection;
 #endif
         }
 
@@ -281,10 +283,10 @@ namespace UnityEngine.Rendering.HighDefinition
             float fov = 0;
 
 
-            switch (shape)
+            switch (envShape)
             {
                 default:
-                case InfluenceShape.Box:
+                case EnvShapeType.Box:
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(+boxSize.x, -boxSize.y, -boxSize.z)));
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(+boxSize.x, -boxSize.y, +boxSize.z)));
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(+boxSize.x, +boxSize.y, -boxSize.z)));
@@ -294,7 +296,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(-boxSize.x, +boxSize.y, -boxSize.z)));
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(-boxSize.x, +boxSize.y, +boxSize.z)));
                     break;
-                case InfluenceShape.Sphere:
+                case EnvShapeType.Sphere:
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(+sphereRadius * 2, 0, 0)));
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(-sphereRadius * 2, 0, 0)));
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(0, +sphereRadius * 2, 0)));
@@ -302,7 +304,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(0, 0, +sphereRadius * 2)));
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(0, 0, -sphereRadius * 2)));
                     break;
-                case InfluenceShape.Convex:
+                case EnvShapeType.Convex:
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(+convexSize.x, -convexSize.y, -convexSize.z)));
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(+convexSize.x, -convexSize.y, +convexSize.z)));
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(+convexSize.x, +convexSize.y, -convexSize.z)));

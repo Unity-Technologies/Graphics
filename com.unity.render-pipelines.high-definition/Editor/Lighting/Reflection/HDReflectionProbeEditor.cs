@@ -69,6 +69,15 @@ namespace UnityEditor.Rendering.HighDefinition
             else
                 base.DrawToolbar(serialized, owner);
         }
+
+        protected override void DoToolbarShortcutKey()
+        {
+            HDProbe probe = ((ReflectionProbe)target).GetComponent<HDAdditionalReflectionData>() as HDProbe;
+            if (probe.influenceVolume.shape == InfluenceShape.Convex)
+                HDProbeUI.Drawer<HDConvexProbeSettingsProvider>.DoToolbarShortcutKey(this);
+            else
+                base.DoToolbarShortcutKey();
+        }
     }
 
     struct HDProbeSettingsProvider : HDProbeUI.IProbeUISettingsProvider, InfluenceVolumeUI.IInfluenceUISettingsProvider

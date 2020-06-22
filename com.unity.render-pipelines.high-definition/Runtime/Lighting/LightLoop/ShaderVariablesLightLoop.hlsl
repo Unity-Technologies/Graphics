@@ -14,7 +14,7 @@ StructuredBuffer<float> g_logBaseBuffer;
 StructuredBuffer<DirectionalLightData> _DirectionalLightDatas;
 StructuredBuffer<LightData>            _LightDatas;
 StructuredBuffer<EnvLightData>         _EnvLightDatas;
-StructuredBuffer<float4>               _ProxyPlaneDatas;
+StructuredBuffer<float4>               _ConvexShapePlanes;
 
 // Used by directional and spot lights
 TEXTURE2D(_CookieAtlas);

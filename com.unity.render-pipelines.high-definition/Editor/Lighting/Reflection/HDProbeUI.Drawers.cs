@@ -243,12 +243,10 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 var influenceShape = serialized.probeSettings.influence.shape;
                 bool influenceIsConvex = influenceShape.GetEnumValue<InfluenceShape>() == InfluenceShape.Convex;
-                if (influenceIsConvex)
-                    serialized.probeSettings.proxyUseInfluenceVolumeAsProxyVolume.boolValue = true;
 
                 EditorGUI.BeginDisabledGroup(influenceIsConvex);
-
                 EditorGUILayout.PropertyField(serialized.proxyVolume, k_ProxyVolumeContent);
+                EditorGUI.EndDisabledGroup();
 
                 if (serialized.target.proxyVolume == null || influenceIsConvex)
                 {
@@ -257,8 +255,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (EditorGUI.EndChangeCheck())
                         serialized.Apply();
                 }
-
-                EditorGUI.EndDisabledGroup();
 
                 if (serialized.proxyVolume.objectReferenceValue != null && !influenceIsConvex)
                 {

@@ -237,6 +237,7 @@ namespace UnityEditor.Rendering
 
         /// <summary>Constructor. Used to setup colors.</summary>
         /// <param name="baseColor">The color of the hull. Other colors are deduced from it.</param>
+        /// <param name="selectedColor">The color of the selected handle.</param>
         public ConvexVolume(Color baseColor, Color selectedColor)
         {
             this.baseColor = baseColor;

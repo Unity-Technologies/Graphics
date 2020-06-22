@@ -315,12 +315,20 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected override void DrawToolbar(SerializedPlanarReflectionProbe serialized, Editor owner)
         {
-            //Debug.Log(typeof(target));
-            //HDProbe probe = ((PlanarReflectionProbe)target).GetComponent<HDAdditionalReflectionData>() as HDProbe;
-            //if (probe.influenceVolume.shape == InfluenceShape.Convex)
-            //    HDProbeUI.Drawer<ConvexPlanarReflectionProbeUISettingsProvider>.DrawToolbars(serialized, owner);
-            //else
+            HDProbe probe = target as PlanarReflectionProbe;
+            if (probe.influenceVolume.shape == InfluenceShape.Convex)
+                HDProbeUI.Drawer<ConvexPlanarReflectionProbeUISettingsProvider>.DrawToolbars(serialized, owner);
+            else
                 base.DrawToolbar(serialized, owner);
+        }
+
+        protected override void DoToolbarShortcutKey()
+        {
+            HDProbe probe = target as PlanarReflectionProbe;
+            if (probe.influenceVolume.shape == InfluenceShape.Convex)
+                HDProbeUI.Drawer<ConvexPlanarReflectionProbeUISettingsProvider>.DoToolbarShortcutKey(this);
+            else
+                base.DoToolbarShortcutKey();
         }
     }
 

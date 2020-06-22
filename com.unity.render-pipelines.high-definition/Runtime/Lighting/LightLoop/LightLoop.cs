@@ -363,7 +363,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer    lightData { get; private set; }
             public ComputeBuffer    envLightData { get; private set; }
             public ComputeBuffer    decalData { get; private set; }
-            public ComputeBuffer    proxyPlaneData { get; private set; }
+            public ComputeBuffer    convexShapePlanes { get; private set; }
 
             public void Initialize(int directionalCount, int punctualCount, int areaLightCount, int envLightCount, int decalCount, int proxyPlaneCount)
             {
@@ -372,7 +372,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 envLightData = new ComputeBuffer(envLightCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
                 decalData = new ComputeBuffer(decalCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DecalData)));
 
-                proxyPlaneData = new ComputeBuffer(proxyPlaneCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(Vector4)));
+                convexShapePlanes = new ComputeBuffer(proxyPlaneCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(Vector4)));
             }
 
             public void Cleanup()
@@ -381,7 +381,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SafeRelease(lightData);
                 CoreUtils.SafeRelease(envLightData);
                 CoreUtils.SafeRelease(decalData);
-                CoreUtils.SafeRelease(proxyPlaneData);
+                CoreUtils.SafeRelease(convexShapePlanes);
             }
         }
 
@@ -555,7 +555,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public List<DirectionalLightData> directionalLights;
             public List<LightData> lights;
             public List<EnvLightData> envLights;
-            public List<Vector4> proxyPlanes;
+            public List<Vector4> convexShapePlanes;
             public int punctualLightCount;
             public int areaLightCount;
 
@@ -574,7 +574,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 directionalLights.Clear();
                 lights.Clear();
                 envLights.Clear();
-                proxyPlanes.Clear();
+                convexShapePlanes.Clear();
                 punctualLightCount = 0;
                 areaLightCount = 0;
 
@@ -592,7 +592,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 directionalLights = new List<DirectionalLightData>();
                 lights = new List<LightData>();
                 envLights = new List<EnvLightData>();
-                proxyPlanes = new List<Vector4>();
+                convexShapePlanes = new List<Vector4>();
 
                 lightsPerView = new List<LightsPerView>();
                 for (int i = 0; i < TextureXR.slices; ++i)
@@ -1209,12 +1209,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void FillConvexProxyPlanes(Vector4[] planes)
         {
-            int maxIndex = Math.Min(planes.Length, m_MaxProxyPlanesOnScreen - m_lightList.proxyPlanes.Count);
+            int maxIndex = Math.Min(planes.Length, m_MaxProxyPlanesOnScreen - m_lightList.convexShapePlanes.Count);
             for (int i = 0; i < maxIndex; i++)
             {
                 Vector3 n = planes[i];
                 n = n.normalized;
-                m_lightList.proxyPlanes.Add(new Vector4(n.x, n.y, n.z, planes[i].w));
+                m_lightList.convexShapePlanes.Add(new Vector4(n.x, n.y, n.z, planes[i].w));
             }
         }
 
@@ -1957,9 +1957,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     envLightData.influenceExtents = influence.extents;
                     break;
                 case EnvShapeType.Convex:
-                    int startOffset = m_lightList.proxyPlanes.Count;
+                    int startOffset = m_lightList.convexShapePlanes.Count;
                     FillConvexProxyPlanes(influence.convexPlanes);
-                    envLightData.influenceExtents = new Vector3(startOffset, m_lightList.proxyPlanes.Count, 0);
+                    envLightData.influenceExtents = new Vector3(startOffset, m_lightList.convexShapePlanes.Count, 0);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("Unknown EnvShapeType");
@@ -1974,9 +1974,9 @@ namespace UnityEngine.Rendering.HighDefinition
             envLightData.envIndex = envIndex;
 
             // Proxy data
-            var proxyToWorld = probe.proxyToWorld;
+            var proxyToWorld = influence.shape == InfluenceShape.Convex ? influenceToWorld : probe.proxyToWorld;
+            envLightData.proxyExtents = influence.shape == InfluenceShape.Convex ? influence.extents : probe.proxyExtents;
             envLightData.minProjectionDistance = probe.isProjectionInfinite ? 65504f : 0;
-            envLightData.proxyExtents = probe.proxyExtents;
             envLightData.proxyRight = proxyToWorld.GetColumn(0).normalized;
             envLightData.proxyUp = proxyToWorld.GetColumn(1).normalized;
             envLightData.proxyForward = proxyToWorld.GetColumn(2).normalized;
@@ -3598,7 +3598,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LightLoopLightData.lightData.SetData(m_lightList.lights);
             m_LightLoopLightData.envLightData.SetData(m_lightList.envLights);
             m_LightLoopLightData.decalData.SetData(DecalSystem.m_DecalDatas, 0, 0, Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen)); // don't add more than the size of the buffer
-            m_LightLoopLightData.proxyPlaneData.SetData(m_lightList.proxyPlanes);
+            m_LightLoopLightData.convexShapePlanes.SetData(m_lightList.convexShapePlanes);
 
             // These two buffers have been set in Rebuild(). At this point, view 0 contains combined data from all views
             m_TileAndClusterData.convexBoundsBuffer.SetData(m_lightList.lightsPerView[0].bounds);
@@ -3618,7 +3618,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalBuffer(HDShaderIDs._EnvLightDatas, m_LightLoopLightData.envLightData);
             cmd.SetGlobalBuffer(HDShaderIDs._DecalDatas, m_LightLoopLightData.decalData);
             cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, m_LightLoopLightData.directionalLightData);
-            cmd.SetGlobalBuffer(HDShaderIDs._ProxyPlaneDatas, m_LightLoopLightData.proxyPlaneData);
+            cmd.SetGlobalBuffer(HDShaderIDs._ConvexShapePlanes, m_LightLoopLightData.convexShapePlanes);
         }
 
         void PushShadowGlobalParams(CommandBuffer cmd)

@@ -255,7 +255,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_SectionShapeConvex(SerializedInfluenceVolume serialized, Editor owner)
         {
             var planes = serialized.convexPlanes;
-            int selected = serialized.selected.intValue;
+            int selected = serialized.convexSelection.intValue;
 
             if (planes.hasMultipleDifferentValues)
                 return;
@@ -278,7 +278,7 @@ namespace UnityEditor.Rendering.HighDefinition
             HDProbeUI.Drawer_ToolBarButton(HDProbeUI.ToolBar.BaseShapePlanes, owner, GUILayout.Width(28f), GUILayout.MinHeight(22f));
             EditorGUILayout.EndHorizontal();
 
-            if (serialized.isInfinite.boolValue)
+            if (serialized.convexIsInfinite.boolValue)
                 EditorGUILayout.HelpBox(infiniteVolumeHelpBoxText, MessageType.Warning);
 
             EditorGUILayout.HelpBox(shiftToSnapHelpBoxText, MessageType.Info);
@@ -293,7 +293,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 int idx = planes.arraySize;
                 planes.InsertArrayElementAtIndex(idx);
                 planes.GetArrayElementAtIndex(idx).vector4Value = new Vector4(1, 0, 0, 0.0f);
-                serialized.selected.intValue = idx;
+                serialized.convexSelection.intValue = idx;
                 changed = true;
             }
 
@@ -301,7 +301,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (GUILayout.Button(deleteLastContent))
             {
                 planes.DeleteArrayElementAtIndex(selected);
-                serialized.selected.intValue = -1;
+                serialized.convexSelection.intValue = -1;
                 changed = true;
             }
             EditorGUI.EndDisabledGroup();
@@ -315,8 +315,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 Vector3 extents;
                 ConvexVolume.RemoveUselessPlanes(planes, out extents, out isInfinite);
                 serialized.convexSize.vector3Value = extents;
-                serialized.isInfinite.boolValue = isInfinite;
-                serialized.selected.intValue = -1;
+                serialized.convexIsInfinite.boolValue = isInfinite;
+                serialized.convexSelection.intValue = -1;
             }
 
             EditorGUI.BeginDisabledGroup(selected == -1);
@@ -326,7 +326,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 Vector4 plane = planes.GetArrayElementAtIndex(selected).vector4Value;
                 planes.InsertArrayElementAtIndex(idx);
                 planes.GetArrayElementAtIndex(idx).vector4Value = plane;
-                serialized.selected.intValue = idx;
+                serialized.convexSelection.intValue = idx;
                 changed = true;
             }
             EditorGUI.EndDisabledGroup();
@@ -336,10 +336,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (changed)
             {
-                s_ConvexVolume.SetPlanes(serialized.convexPlanes);
                 bool isInfinite;
+                s_ConvexVolume.SetPlanes(serialized.convexPlanes);
                 serialized.convexSize.vector3Value = s_ConvexVolume.GetExtents(out isInfinite);
-                serialized.isInfinite.boolValue = isInfinite;
+                serialized.convexIsInfinite.boolValue = isInfinite;
                 GUI.changed = true;
             }
         }

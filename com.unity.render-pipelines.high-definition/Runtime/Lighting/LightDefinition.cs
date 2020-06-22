@@ -227,7 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 influenceUp;
         public Vector3 influenceRight;
 
-        // For a convex shape: x = first plane index in _ProxyPlaneDatas, y = last plane
+        // For a convex shape: x = first plane index in _ConvexShapePlanes, y = last plane
         public Vector3 influenceExtents;
         public float unused00;
 

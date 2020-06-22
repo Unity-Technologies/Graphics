@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     case InfluenceShape.Convex:
                         s_ConvexVolume.center = Vector3.zero;
                         s_ConvexVolume.planes = serialized.convexPlanes;
-                        s_ConvexVolume.selected = serialized.selected;
+                        s_ConvexVolume.selected = serialized.convexSelection;
                         s_ConvexVolume.DrawHull(false);
                         break;
                 }

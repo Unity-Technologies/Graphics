@@ -40,6 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void OnSceneGUI()
         {
+
             for (int i = 0; i < m_TypedTargets.Length; ++i)
             {
                 var comp = m_TypedTargets[i];
