@@ -90,6 +90,24 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
+        AddressMode m_AddressMode = AddressMode.VtAddressMode_Wrap;
+        public AddressMode addressMode
+        {
+            get
+            {
+                return m_AddressMode;
+            }
+            set
+            {
+                if (m_AddressMode == value)
+                    return;
+
+                m_AddressMode = value;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
         LodCalculation m_LodCalculation = LodCalculation.VtLevel_Automatic;
         public LodCalculation lodCalculation
         {
@@ -103,7 +121,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_LodCalculation = value;
-                UpdateNodeAfterDeserialization();       // rebuilds all slots
+                RebuildAllSlots(true);       // LOD calculation may have associated slots that need to be updated
                 Dirty(ModificationScope.Topological);   // slots ShaderStageCapability could have changed, so trigger Topo change
             }
         }
@@ -154,23 +172,29 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        private int outputLayerSlotCount = 0;
         public override void Setup()
         {
-            // the default is to show all 4 slots, so we don't lose any existing connections
-            int layerCount = kMaxLayers;
-            var vtProperty = GetSlotProperty(VirtualTextureInputId) as VirtualTextureShaderProperty;
-            if (vtProperty != null)
-            {
-                layerCount = vtProperty?.value?.layers?.Count ?? kMaxLayers;
-            }
-            if (outputLayerSlotCount != layerCount)
-                UpdateLayerOutputSlots(layerCount);
+            UpdateLayerOutputSlots(true);
         }
 
         // rebuilds the number of output slots, and also updates their ShaderStageCapability
-        void UpdateLayerOutputSlots(int layerCount, List<int> usedSlots = null)
+        private int outputLayerSlotCount = 0;
+        void UpdateLayerOutputSlots(bool inspectProperty, List<int> usedSlots = null)
         {
+            // the default is to show all 4 slots, so we don't lose any existing connections
+            int layerCount = kMaxLayers;
+
+            if (inspectProperty)
+            {
+                var vtProperty = GetSlotProperty(VirtualTextureInputId) as VirtualTextureShaderProperty;
+                if (vtProperty != null)
+                {
+                    layerCount = vtProperty?.value?.layers?.Count ?? kMaxLayers;
+                }
+                if (outputLayerSlotCount == layerCount)
+                    return;
+            }
+
             for (int i = 0; i < kMaxLayers; i++)
             {
                 int outputID = OutputSlotIds[i];
@@ -201,7 +225,7 @@ namespace UnityEditor.ShaderGraph
             outputLayerSlotCount = layerCount;
         }
 
-        public override void UpdateNodeAfterDeserialization()
+        public void RebuildAllSlots(bool inspectProperty)
         {
             List<int> usedSlots = new List<int>();
 
@@ -214,7 +238,7 @@ namespace UnityEditor.ShaderGraph
             // at this point we can't tell how many output slots we will have (because we can't find the VT property yet)
             // so, we create all of the possible output slots, so any edges created will connect properly
             // then we can trim down the set of slots later..
-            UpdateLayerOutputSlots(kMaxLayers, usedSlots);
+            UpdateLayerOutputSlots(inspectProperty, usedSlots);
 
             // Create slots
 
@@ -243,6 +267,11 @@ namespace UnityEditor.ShaderGraph
             }
 
             RemoveSlotsNameNotMatching(usedSlots, true);
+        }
+
+        public override void UpdateNodeAfterDeserialization()
+        {
+            RebuildAllSlots(false);
         }
 
         const string k_NoPropertyConnected = "A VirtualTexture property must be connected to the VT slot";
@@ -298,7 +327,7 @@ namespace UnityEditor.ShaderGraph
         // Node generations
         string GetFunctionName(out List<int> layerIndices)
         {
-            string name = "SampleVirtualTexture_" + lodCalculation + "_" + m_SampleQuality;
+            string name = "SampleVirtualTexture_" + addressMode + "_" + lodCalculation + "_" + m_SampleQuality;
             layerIndices = new List<int>();
 
             if (IsSlotConnected(VirtualTextureInputId))
@@ -372,7 +401,7 @@ namespace UnityEditor.ShaderGraph
                         lodExpr,
                         dxExpr,
                         dyExpr,
-                        AddressMode.VtAddressMode_Wrap,
+                        m_AddressMode,
                         FilterMode.VtFilter_Anisotropic,
                         m_LodCalculation,
                         UvSpace.VtUvSpace_Regular,

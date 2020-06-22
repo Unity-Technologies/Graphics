@@ -26,6 +26,19 @@ namespace Drawing.Inspector.PropertyDrawers
             var enumPropertyDrawer = new EnumPropertyDrawer();
             propertySheet.Add(enumPropertyDrawer.CreateGUI((newValue) =>
                 {
+                    if (node.addressMode == (SampleVirtualTextureNode.AddressMode) newValue)
+                        return;
+
+                    node.owner.owner.RegisterCompleteObjectUndo("Address Mode Change");
+                    node.addressMode = (SampleVirtualTextureNode.AddressMode) newValue;
+                },
+                node.addressMode,
+                "Address Mode",
+                SampleVirtualTextureNode.AddressMode.VtAddressMode_Wrap,
+                out var addressModeVisualElement));
+
+            propertySheet.Add(enumPropertyDrawer.CreateGUI((newValue) =>
+                {
                     if (node.lodCalculation == (SampleVirtualTextureNode.LodCalculation) newValue)
                         return;
 
