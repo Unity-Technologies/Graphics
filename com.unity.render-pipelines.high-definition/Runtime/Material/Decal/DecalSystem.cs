@@ -496,6 +496,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_CachedDrawDistances = newCachedDrawDistances;
                     m_CachedUVScaleBias = newCachedUVScaleBias;
                     m_CachedAffectsTransparency = newCachedAffectsTransparency;
+                    m_CachedLayerMask = newCachedLayerMask;
                     m_CachedSceneLayerMask = newCachedSceneLayerMask;
                     m_CachedFadeFactor = newCachedFadeFactor;
                 }

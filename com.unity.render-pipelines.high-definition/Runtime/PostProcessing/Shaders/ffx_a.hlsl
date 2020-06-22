@@ -255,23 +255,24 @@
 //
 //==============================================================================================================================
 #if defined(A_GLSL) && defined(A_GPU)
+ // Unity preprocessor complain about #extension
  #ifndef A_SKIP_EXT
   #ifdef A_HALF
-   #extension GL_EXT_shader_16bit_storage:require
-   #extension GL_EXT_shader_explicit_arithmetic_types:require 
+   //#extension GL_EXT_shader_16bit_storage:require
+   //#extension GL_EXT_shader_explicit_arithmetic_types:require 
   #endif
 //------------------------------------------------------------------------------------------------------------------------------
   #ifdef A_LONG
-   #extension GL_ARB_gpu_shader_int64:require
+   //#extension GL_ARB_gpu_shader_int64:require
    // TODO: Fixme to more portable extension!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   #extension GL_NV_shader_atomic_int64:require
+   //#extension GL_NV_shader_atomic_int64:require
   #endif
 //------------------------------------------------------------------------------------------------------------------------------
   #ifdef A_WAVE
-   #extension GL_KHR_shader_subgroup_arithmetic:require
-   #extension GL_KHR_shader_subgroup_ballot:require
-   #extension GL_KHR_shader_subgroup_quad:require
-   #extension GL_KHR_shader_subgroup_shuffle:require
+   //#extension GL_KHR_shader_subgroup_arithmetic:require
+   //#extension GL_KHR_shader_subgroup_ballot:require
+   //#extension GL_KHR_shader_subgroup_quad:require
+   //#extension GL_KHR_shader_subgroup_shuffle:require
   #endif
  #endif
 //==============================================================================================================================

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering.VirtualTexturing;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
