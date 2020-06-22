@@ -118,17 +118,14 @@ namespace UnityEngine.Rendering.HighDefinition
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
             bool clearMotionVectors = hdCamera.camera.cameraType == CameraType.SceneView && !hdCamera.animateMaterials;
 
-
             // TODO: See how to clean this. Some buffers are created outside, some inside functions...
             result.motionVectorsBuffer = CreateMotionVectorBuffer(renderGraph, msaa, clearMotionVectors);
             result.depthBuffer = CreateDepthBuffer(renderGraph, msaa);
 
-            // TODO RENDERGRAPH : XR occlusion mesh also need to write to color buffer
-            //RenderXROcclusionMeshes(renderGraph, hdCamera, result.depthBuffer);
+            RenderXROcclusionMeshes(renderGraph, hdCamera, colorbuffer, result.depthBuffer);
 
             using (new XRSinglePassScope(renderGraph, hdCamera))
             {
-                // TODO RENDERGRAPH
                 //// Bind the custom color/depth before the first custom pass
                 //if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
                 //{
@@ -137,7 +134,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 //    if (m_CustomPassDepthBuffer.IsValueCreated)
                 //        cmd.SetGlobalTexture(HDShaderIDs._CustomDepthTexture, m_CustomPassDepthBuffer.Value);
                 //}
-                //RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforeRendering);
+
+                //RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforeRendering, aovRequest, aovCustomPassBuffers);
+
+                //RenderRayTracingPrepass(cullingResults, hdCamera, renderContext, cmd, false);
+
+                // When evaluating probe volumes in material pass, we build a custom probe volume light list.
+                // When evaluating probe volumes in light loop, probe volumes are folded into the standard light loop data.
+                BuildGPULightListOutput probeVolumeListOutput = new BuildGPULightListOutput();
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
+                {
+                    probeVolumeListOutput = BuildGPULightList(m_RenderGraph, hdCamera, m_ProbeVolumeClusterData, m_ProbeVolumeCount, ref m_ShaderVariablesProbeVolumeLightListCB, result.depthBuffer, result.stencilBuffer, result.gbuffer);
+                }
 
                 bool shouldRenderMotionVectorAfterGBuffer = RenderDepthPrepass(renderGraph, cullingResults, hdCamera, ref result);
 
@@ -162,14 +170,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 ResolvePrepassBuffers(renderGraph, hdCamera, ref result);
 
                 RenderDBuffer(renderGraph, hdCamera, ref result, cullingResults);
-
-                // When evaluating probe volumes in material pass, we build a custom probe volume light list.
-                // When evaluating probe volumes in light loop, probe volumes are folded into the standard light loop data.
-                BuildGPULightListOutput probeVolumeListOutput = new BuildGPULightListOutput();
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
-                {
-                    probeVolumeListOutput = BuildGPULightList(m_RenderGraph, hdCamera, m_ProbeVolumeClusterData, m_ProbeVolumeCount, ref m_ShaderVariablesProbeVolumeLightListCB, result.depthBuffer, result.stencilBuffer, result.gbuffer);
-                }
 
                 RenderGBuffer(renderGraph, sssBuffer, ref result, probeVolumeListOutput, cullingResults, hdCamera);
 
