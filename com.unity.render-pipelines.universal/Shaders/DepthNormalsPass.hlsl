@@ -68,18 +68,7 @@ float4 DepthNormalsFragment(Varyings input) : SV_TARGET
 
     Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)).a, _BaseColor, _Cutoff);
 
-    // Retrieve the normal from the bump map or mesh normal
-    #if defined(_NORMALMAP)
-        #if BUMP_SCALE_NOT_SUPPORTED
-            float3 normalTS = SampleNormal(input.uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
-        #else
-            float3 normalTS = SampleNormal(input.uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), _BumpScale);
-        #endif
-        float3 normal = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
-    #else
-        float3 normal = input.normalWS;
-    #endif
-
+    float3 normal = input.normalWS;
     return float4(PackNormalOctRectEncode(TransformWorldToViewDir(normal, true)), 0.0, 0.0);
 }
 #endif

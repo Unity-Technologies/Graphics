@@ -21,9 +21,9 @@ float4 _BaseMap_TexelSize;
 float4 _CameraDepthTexture_TexelSize;
 
 // SSAO Settings
-#define DOWNSAMPLE _SSAOParams.x
-#define INTENSITY _SSAOParams.y
-#define RADIUS _SSAOParams.z
+#define INTENSITY _SSAOParams.x
+#define RADIUS _SSAOParams.y
+#define DOWNSAMPLE _SSAOParams.z
 
 // GLES2: In many cases, dynamic looping is not supported.
 #if defined(SHADER_API_GLES) && !defined(SHADER_API_GLES3)
@@ -42,10 +42,6 @@ float4 _CameraDepthTexture_TexelSize;
 // kContrast determines the contrast of occlusion. This allows users to control over/under
 // occlusion. At the moment, this is not exposed to the editor because it's rarely useful.
 static const float kContrast = 0.6;
-
-// kColorBits is used for the endcoding of the depth buffer into the SSAO texture for use
-// later in the KawaseBlur for bi-lateral blurring.
-static const float kColorBits = 256.0;
 
 // The constant below controls the geometry-awareness of the bilateral
 // filter. The higher value, the more sensitive it is.
@@ -141,24 +137,6 @@ float3 ReconstructViewPos(float2 uv, float depth, float2 p11_22, float2 p13_31)
     return viewPos;
 }
 
-// Float packing from https://skytiger.wordpress.com/2010/12/01/packing-depth-into-color/
-float3 UnitToColor24(in float unit)
-{
-    const float3 factor = float3(1, 255, 65025);
-    const float mask = 1.0 / kColorBits;
-    float3 color = unit * factor.rgb;
-    color.gb = frac(color.gb);
-    color.rg -= color.gb * mask;
-    return saturate(color);
-}
-
-// Float packing from https://skytiger.wordpress.com/2010/12/01/packing-depth-into-color/
-float ColorToUnit24(in float3 color)
-{
-    const float3 factorinv = 1.0 / float3(1, 255, 65025);
-    return dot(color, factorinv);
-}
-
 // Try reconstructing normal accurately from depth buffer.
 // Low:    DDX/DDY on the current pixel
 // Medium: 3 taps on each direction | x | * | y |
@@ -250,6 +228,10 @@ float4 SSAO(Varyings input) : SV_Target
 
     // Parameters used in coordinate conversion
     float3x3 camProj = (float3x3)unity_CameraProjection;
+    #ifdef UNITY_STEREO_INSTANCING_ENABLED
+        camProj._22 = -camProj._22;
+        camProj._23 = -camProj._23;
+    #endif
     float2 p11_22 = float2(camProj._11, camProj._22);
     float2 p13_31 = float2(camProj._13, camProj._23);
 
@@ -307,34 +289,24 @@ float4 SSAO(Varyings input) : SV_Target
     // Apply contrast
     ao = PositivePow(ao * INTENSITY * rcpSampleCount, kContrast);
 
-    // Pack depth for bi-lateral blur
-    float3 packedDepth = UnitToColor24(SampleSceneDepth(uv.xy).r);
-
     return PackAONormal(ao, norm_o);
-    return float4(1.0 - ao, packedDepth);
 }
 
-float _LastKawasePass;
-half4 KawaseBlur(Varyings input) : SV_Target
+half4 Blur(float2 uv, float2 delta) : SV_Target
 {
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-    float2 uv = input.uv;
-    float4 baseValue = SAMPLE_BASEMAP(uv);
-
     float4 p0 = SAMPLE_BASEMAP(uv                 );
-    float4 p1a = SAMPLE_BASEMAP(uv + _BlurOffset.xy);
-    float4 p1b = SAMPLE_BASEMAP(uv + _BlurOffset.xw);
-    float4 p2a = SAMPLE_BASEMAP(uv + _BlurOffset.zy);
-    float4 p2b = SAMPLE_BASEMAP(uv + _BlurOffset.zw);
+    float4 p1a = SAMPLE_BASEMAP(uv - delta * 1.3846153846);
+    float4 p1b = SAMPLE_BASEMAP(uv + delta * 1.3846153846);
+    float4 p2a = SAMPLE_BASEMAP(uv - delta * 3.2307692308);
+    float4 p2b = SAMPLE_BASEMAP(uv + delta * 3.2307692308);
 
     float3 n0 = GetPackedNormal(p0);
 
-    float w0 = 0.2;
-    float w1a = CompareNormal(n0, GetPackedNormal(p1a)) * 0.2;
-    float w1b = CompareNormal(n0, GetPackedNormal(p1b)) * 0.2;
-    float w2a = CompareNormal(n0, GetPackedNormal(p2a)) * 0.2;
-    float w2b = CompareNormal(n0, GetPackedNormal(p2b)) * 0.2;
+    float w0  =                                           0.2270270270;
+    float w1a = CompareNormal(n0, GetPackedNormal(p1a)) * 0.3162162162;
+    float w1b = CompareNormal(n0, GetPackedNormal(p1b)) * 0.3162162162;
+    float w2a = CompareNormal(n0, GetPackedNormal(p2a)) * 0.0702702703;
+    float w2b = CompareNormal(n0, GetPackedNormal(p2b)) * 0.0702702703;
 
     float s;
     s  = GetPackedAO(p0)  * w0;
@@ -345,7 +317,62 @@ half4 KawaseBlur(Varyings input) : SV_Target
 
     s *= rcp(w0 + w1a + w1b + w2a + w2b);
 
-    return _LastKawasePass == 0 ? half4(s, baseValue.gba) : (1.0 - s);
+    return PackAONormal(s, n0);
+}
+
+
+// Geometry-aware bilateral filter (single pass/small kernel)
+float BlurSmall(float2 uv, float2 delta)
+{
+    float4 p0 = SAMPLE_BASEMAP(uv                             );
+    float4 p1 = SAMPLE_BASEMAP(uv + float2(-delta.x, -delta.y));
+    float4 p2 = SAMPLE_BASEMAP(uv + float2( delta.x, -delta.y));
+    float4 p3 = SAMPLE_BASEMAP(uv + float2(-delta.x,  delta.y));
+    float4 p4 = SAMPLE_BASEMAP(uv + float2( delta.x,  delta.y));
+
+    float3 n0 = GetPackedNormal(p0);
+
+    float w0 = 1.0;
+    float w1 = CompareNormal(n0, GetPackedNormal(p1));
+    float w2 = CompareNormal(n0, GetPackedNormal(p2));
+    float w3 = CompareNormal(n0, GetPackedNormal(p3));
+    float w4 = CompareNormal(n0, GetPackedNormal(p4));
+
+    float s;
+    s  = GetPackedAO(p0) * w0;
+    s += GetPackedAO(p1) * w1;
+    s += GetPackedAO(p2) * w2;
+    s += GetPackedAO(p3) * w3;
+    s += GetPackedAO(p4) * w4;
+
+    return s *= rcp(w0 + w1 + w2 + w3 + w4);
+}
+
+half4 HorizontalBlur(Varyings input) : SV_Target
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+    float2 uv = input.uv;
+    float2 delta = float2(_BaseMap_TexelSize.x * 2.0, 0.0);
+    return Blur(uv, delta);
+}
+
+half4 VerticalBlur(Varyings input) : SV_Target
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+    float2 uv = input.uv;
+    float2 delta = float2(0.0, _BaseMap_TexelSize.y * rcp(DOWNSAMPLE));
+    return Blur(uv, delta);
+}
+
+half4 FinalBlur(Varyings input) : SV_Target
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+    float2 uv = input.uv;
+    float2 delta = _BaseMap_TexelSize.xy * rcp(DOWNSAMPLE);
+    return 1.0 - BlurSmall(uv, delta );
 }
 
 #endif //UNIVERSAL_SSAO_INCLUDED

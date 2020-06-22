@@ -14,7 +14,6 @@ namespace UnityEditor.Rendering.Universal
         private SerializedProperty m_DirectLightingStrength;
         private SerializedProperty m_Radius;
         private SerializedProperty m_SampleCount;
-        private SerializedProperty m_BlurPasses;
 
 		#endregion
 
@@ -30,7 +29,6 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent DirectLightingStrength = EditorGUIUtility.TrTextContent("Direct Lighting Strength", "Controls how much the ambient occlusion affects direct lighting.");
             public static GUIContent Radius = EditorGUIUtility.TrTextContent("Radius", "The radius around a given point, where Unity calculates and applies the effect.");
             public static GUIContent SampleCount = EditorGUIUtility.TrTextContent("Sample Count", "The number of samples that Unity takes when calculating the obscurance value. Higher values have high performance impact.");
-            public static GUIContent BlurPasses = EditorGUIUtility.TrTextContent("Blur Passes", "The number of render passes for blurring the SSAO effect texture.");
         }
 
         private void Init()
@@ -43,7 +41,6 @@ namespace UnityEditor.Rendering.Universal
             m_DirectLightingStrength = settings.FindPropertyRelative("DirectLightingStrength");
             m_Radius = settings.FindPropertyRelative("Radius");
             m_SampleCount = settings.FindPropertyRelative("SampleCount");
-            m_BlurPasses = settings.FindPropertyRelative("BlurPasses");
             m_IsInitialized = true;
         }
 
@@ -67,7 +64,6 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(m_Radius, Styles.Radius);
             m_Radius.floatValue = Mathf.Clamp(m_Radius.floatValue, 0f, m_Radius.floatValue);
             m_SampleCount.intValue = EditorGUILayout.IntSlider(Styles.SampleCount,m_SampleCount.intValue, 4, 20);
-            m_BlurPasses.intValue = EditorGUILayout.IntSlider(Styles.BlurPasses,m_BlurPasses.intValue, 1, 12);
         }
     }
 }

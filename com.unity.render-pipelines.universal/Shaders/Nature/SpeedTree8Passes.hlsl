@@ -512,34 +512,7 @@ half4 SpeedTree8FragDepthNormal(SpeedTreeDepthNormalFragmentInput input) : SV_Ta
     half alpha = diffuse.a * input.interpolated.color.a;
     AlphaDiscard(alpha - 0.3333, 0.0);
 
-    // normal
-    #ifdef EFFECT_BUMP
-        half3 normalTs = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
-    #else
-        half3 normalTs = half3(0, 0, 1);
-    #endif
-
-    // flip normal on backsides
-    #ifdef EFFECT_BACKSIDE_NORMALS
-        if (input.facing < 0.5)
-        {
-            normalTs.z = -normalTs.z;
-        }
-    #endif
-
-    // adjust billboard normals to improve GI and matching
-    #ifdef EFFECT_BILLBOARD
-        normalTs.z *= 0.5;
-        normalTs = normalize(normalTs);
-    #endif
-
-    #ifdef EFFECT_BUMP
-        float3 normalWS = TransformTangentToWorld(normalTs, half3x3(input.interpolated.tangentWS.xyz, input.interpolated.bitangentWS.xyz, input.interpolated.normalWS.xyz));
-        normalWS = NormalizeNormalPerPixel(normalWS);
-    #else
-        float3 normalWS = NormalizeNormalPerPixel(input.interpolated.normalWS);
-    #endif
-
+    float3 normalWS = NormalizeNormalPerPixel(input.interpolated.normalWS);
     return float4(PackNormalOctRectEncode(TransformWorldToViewDir(normalWS, true)), 0.0, 0.0);
 }
 

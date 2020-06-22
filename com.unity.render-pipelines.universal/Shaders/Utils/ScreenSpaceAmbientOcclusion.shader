@@ -106,14 +106,38 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             ENDHLSL
         }
 
-        // 3 - KawaseBlur
+        // 3 - Horizontal Blur
         Pass
         {
-            Name "KawaseBlur"
+            Name "Horizontal Blur"
 
             HLSLPROGRAM
                 #pragma vertex VertDefault
-                #pragma fragment KawaseBlur
+                #pragma fragment HorizontalBlur
+                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
+            ENDHLSL
+        }
+
+        // 4 - Vertical Blur
+        Pass
+        {
+            Name "Vertical Blur"
+
+            HLSLPROGRAM
+                #pragma vertex VertDefault
+                #pragma fragment VerticalBlur
+                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
+            ENDHLSL
+        }
+
+        // 5 - Final Blur
+        Pass
+        {
+            Name "Final Blur"
+
+            HLSLPROGRAM
+                #pragma vertex VertDefault
+                #pragma fragment FinalBlur
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
             ENDHLSL
         }

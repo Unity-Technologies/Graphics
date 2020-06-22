@@ -14,16 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   m_Shader: {fileID: 4800000, guid: 0849e84e3d62649e8882e9d6f056a017, type: 3}
-  m_BlueNoise: {fileID: 2800000, guid: cbdfedcb32329429aae80014a0d36ad9, type: 3}
   m_Settings:
     Downsample: 0
     Source: 0
     NormalSamples: 2
     Intensity: 5
-    DirectLightingStrength: 0.5
-    Radius: 0.035
+    DirectLightingStrength: 1
+    Radius: 0.04
     SampleCount: 6
-    BlurPasses: 3
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
