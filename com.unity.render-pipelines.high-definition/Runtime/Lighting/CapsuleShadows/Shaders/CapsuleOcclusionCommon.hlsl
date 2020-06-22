@@ -4,7 +4,7 @@
 #if !defined(USE_FPTL_LIGHTLIST) && !defined(USE_CLUSTERED_LIGHTLIST)
     #define USE_FPTL_LIGHTLIST // Use light tiles for contact shadows
 #endif
-
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/EllipsoidOccluder.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 
 // TODO Make these generated via C#
@@ -14,14 +14,10 @@
 #define CAPSULE_OCCLUSION_SPECULAR 2
 #define CAPSULE_OCCLUSION_SHADOW 3
 
-// NOTE: THIS IS TEMP UNTIL WE DON'T HAVE THE REAL STRUCTURE
-struct CapsuleData
-{};
-
 // --------------------------------------------
 // Data preparation functions
 // --------------------------------------------
-float4 GetDataForSphereIntersection(CapsuleData data)
+float4 GetDataForSphereIntersection(EllipsoidOccluderData data)
 {
     // TODO : Fill with transformations needed so the rest of the code deals with simple spheres.
     // xyz should be un-normalized direction, w should contain the length.
@@ -33,21 +29,21 @@ float4 GetDataForSphereIntersection(CapsuleData data)
 // --------------------------------------------
 // Evaluation functions
 // --------------------------------------------
-// These functions should evaluate the occlusion types. Note that all of these functions take CapsuleData containing the shape to evaluate against
+// These functions should evaluate the occlusion types. Note that all of these functions take EllipsoidOccluderData containing the shape to evaluate against
 // and a dirAndLength containing the data output by the function GetDataForSphereIntersection()
 
-float EvaluateCapsuleAmbientOcclusion(CapsuleData data, float3 positionWS, float3 N, float4 dirAndLength)
+float EvaluateCapsuleAmbientOcclusion(EllipsoidOccluderData data, float3 positionWS, float3 N, float4 dirAndLength)
 {
     // IMPORTANT: Remember to modify by intensity modifier here and not after.
     return 1.0f;
 }
 
-float EvaluateCapsuleSpecularOcclusion(CapsuleData data, float3 positionWS, float3 N, float roughness, float4 dirAndLength)
+float EvaluateCapsuleSpecularOcclusion(EllipsoidOccluderData data, float3 positionWS, float3 N, float roughness, float4 dirAndLength)
 {
     return 1.0f;
 }
 
-float EvaluateCapsuleShadow(CapsuleData data, float3 positionWS, float3 N, float4 dirAndLength)
+float EvaluateCapsuleShadow(EllipsoidOccluderData data, float3 positionWS, float3 N, float4 dirAndLength)
 {
     return 1.0f;
 }
@@ -123,7 +119,7 @@ void EvaluateCapsuleOcclusion(uint evaluationFlags,
             break;
 
         // TODO! Sample from the right data structure here whenever we have it available. 
-        CapsuleData s_capsuleData = /* FetchCapsuleData(s_sphereIdx); */ (CapsuleData)0;
+        EllipsoidOccluderData s_capsuleData = /* FetchEllipsoidOccluderData(s_sphereIdx); */ (EllipsoidOccluderData)0;
 
         // If current scalar and vector sphere index match, we process the sphere. The v_sphereListOffset for current thread is increased.
         // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
