@@ -17,9 +17,10 @@ HDRP_Hybrid_Linux_OpenGLCore_playmode_trunk:
     commands:
       -  sudo -H pip install --upgrade pip
       -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/HDRP_HybridTests/utr
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
+      -  chmod +x TestProjects/HDRP_HybridTests/utr
       -  cd TestProjects/HDRP_HybridTests && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && DISPLAY=:0.0 utr/utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
+      -  cd TestProjects/HDRP_HybridTests && DISPLAY=:0.0 utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
     artifacts:
         logs:
             paths:
@@ -38,9 +39,10 @@ HDRP_Hybrid_Linux_OpenGLCore_playmode_fast-trunk:
     commands:
       -  sudo -H pip install --upgrade pip
       -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/HDRP_HybridTests/utr
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
+      -  chmod +x TestProjects/HDRP_HybridTests/utr
       -  cd TestProjects/HDRP_HybridTests && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && DISPLAY=:0.0 utr/utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
+      -  cd TestProjects/HDRP_HybridTests && DISPLAY=:0.0 utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
     artifacts:
         logs:
             paths:
@@ -60,9 +62,10 @@ HDRP_Hybrid_Linux_OpenGLCore_playmode_CUSTOM-REVISION:
     commands:
       -  sudo -H pip install --upgrade pip
       -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/HDRP_HybridTests/utr
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
+      -  chmod +x TestProjects/HDRP_HybridTests/utr
       -  cd TestProjects/HDRP_HybridTests && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && DISPLAY=:0.0 utr/utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
+      -  cd TestProjects/HDRP_HybridTests && DISPLAY=:0.0 utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
     artifacts:
         logs:
             paths:

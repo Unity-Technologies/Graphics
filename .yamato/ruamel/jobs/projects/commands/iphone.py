@@ -10,7 +10,7 @@ def cmd_not_standalone(project_folder, platform, api, test_platform_args):
 
 def cmd_standalone(project_folder, platform, api, test_platform_args):
     return [
-        f'curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr',
+        f'curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr',        
         f'chmod +x ./utr',
         f'./utr --suite=playmode --platform=iOS --player-load-path={PATH_PLAYERS} --artifacts_path={PATH_TEST_RESULTS}'
     ]
