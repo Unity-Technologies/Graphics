@@ -76,6 +76,7 @@ namespace UnityEngine.Rendering.HighDefinition
         HDDiffuseDenoiser m_DiffuseDenoiser;
         HDReflectionDenoiser m_ReflectionDenoiser;
         HDDiffuseShadowDenoiser m_DiffuseShadowDenoiser;
+        HDIndirectDiffuseDenoiser m_IndirectDiffuseDenoiser;
         SSGIDenoiser m_SSGIDenoiser;
         
 
@@ -165,6 +166,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DiffuseShadowDenoiser.Release();
             if (m_DiffuseDenoiser != null)
                 m_DiffuseDenoiser.Release();
+            if (m_IndirectDiffuseDenoiser != null)
+                m_IndirectDiffuseDenoiser.Release();
         }
 
         AccelerationStructureStatus AddInstanceToRAS(Renderer currentRenderer,
@@ -537,7 +540,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return 0;
             else
         #endif
-            return hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 8;
+            return m_FrameCount % 16;
         }
 
         internal bool RayTracingLightClusterRequired(HDCamera hdCamera)
@@ -675,6 +678,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DiffuseDenoiser.Init(m_Asset.renderPipelineResources, m_Asset.renderPipelineRayTracingResources, sharedRTManager, this);
             }
             return m_DiffuseDenoiser;
+        }
+        internal HDIndirectDiffuseDenoiser GetIndirectDiffuseDenoiser()
+        {
+            if (m_IndirectDiffuseDenoiser == null)
+            {
+                m_IndirectDiffuseDenoiser = new HDIndirectDiffuseDenoiser();
+                m_IndirectDiffuseDenoiser.Init(m_Asset.renderPipelineResources, m_Asset.renderPipelineRayTracingResources, sharedRTManager, this);
+            }
+            return m_IndirectDiffuseDenoiser;
         }
 
         internal HDReflectionDenoiser GetReflectionDenoiser()

@@ -200,7 +200,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Denoise if required
                 if (settings.denoise)
                 {
-                    DenoiseIndirectDiffuseBuffer(hdCamera, cmd, settings);
+                    DenoiseIndirectDiffuseBuffer(hdCamera, cmd, settings, m_IndirectDiffuseBuffer0, directionBuffer);
                 }
             }
         }
@@ -283,19 +283,26 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (giSettings.denoise)
                 {
-                    DenoiseIndirectDiffuseBuffer(hdCamera, cmd, giSettings);
+                    // DenoiseIndirectDiffuseBuffer(hdCamera, cmd, giSettings);
                 }
             }
         }
 
-        void DenoiseIndirectDiffuseBuffer(HDCamera hdCamera, CommandBuffer cmd, GlobalIllumination settings)
+        void DenoiseIndirectDiffuseBuffer(HDCamera hdCamera, CommandBuffer cmd, GlobalIllumination settings, RTHandle indirectDiffuseBuffer, RTHandle directionBuffer)
         {
             // Grab the high frequency history buffer
-            RTHandle indirectDiffuseHistoryHF = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF)
-                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF, IndirectDiffuseHistoryBufferAllocatorFunction, 1);
+            RTHandle indirectDiffuseHistoryHF0 = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF0)
+                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF0, IndirectDiffuseHistoryBufferAllocatorFunction, 1);
+            RTHandle indirectDiffuseHistoryLF0 = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseLF0)
+                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseLF0, IndirectDiffuseHistoryBufferAllocatorFunction, 1);
+            // Grab the high frequency history buffer
+            RTHandle indirectDiffuseHistoryHF1 = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF1)
+                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF1, IndirectDiffuseHistoryBufferAllocatorFunction, 1);
+            RTHandle indirectDiffuseHistoryLF1 = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseLF1)
+                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseLF1, IndirectDiffuseHistoryBufferAllocatorFunction, 1);
 
             // Request the intermediate texture we will be using
-            RTHandle intermediateBuffer1 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA1);
+            //RTHandle intermediateBuffer1 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA1);
 
             float historyValidity = 1.0f;
 #if UNITY_HDRP_DXR_TESTS_DEFINE
@@ -306,6 +313,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 // We need to check if something invalidated the history buffers
                 historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
 
+            HDIndirectDiffuseDenoiser indirectDiffuseDenoiser = GetIndirectDiffuseDenoiser();
+            indirectDiffuseDenoiser.DenoiseBuffer(cmd, hdCamera, indirectDiffuseBuffer, directionBuffer,
+                            indirectDiffuseHistoryHF0, indirectDiffuseHistoryLF0, indirectDiffuseHistoryHF1, indirectDiffuseHistoryLF1,
+                            m_IndirectDiffuseBuffer1,
+                            historyValidity, settings.denoiserRadius, settings.secondDenoiserRadius);
+            HDUtils.BlitCameraTexture(cmd, m_IndirectDiffuseBuffer1, indirectDiffuseBuffer);
+
+            /*
             // Apply the temporal denoiser
             HDTemporalFilter temporalFilter = GetTemporalFilter();
             temporalFilter.DenoiseBuffer(cmd, hdCamera, m_IndirectDiffuseBuffer0, indirectDiffuseHistoryHF, intermediateBuffer1, singleChannel: false, historyValidity: historyValidity);
@@ -324,6 +339,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 temporalFilter.DenoiseBuffer(cmd, hdCamera, m_IndirectDiffuseBuffer0, indirectDiffuseHistoryLF, intermediateBuffer1, singleChannel: false, historyValidity: historyValidity);
                 diffuseDenoiser.DenoiseBuffer(cmd, hdCamera, intermediateBuffer1, m_IndirectDiffuseBuffer0, settings.secondDenoiserRadius, singleChannel: false, halfResolutionFilter: settings.halfResolutionDenoiser);
             }
+            */
         }
     }
 }

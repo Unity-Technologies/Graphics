@@ -60,6 +60,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public ComputeShader simpleDenoiserCS;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/DiffuseDenoiser.compute")]
         public ComputeShader diffuseDenoiserCS;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/IndirectDiffuseDenoiser.compute")]
+        public ComputeShader indirectDiffuseDenoiserCS;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/ReflectionDenoiser.compute")]
         public ComputeShader reflectionDenoiserCS;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/DiffuseShadowDenoiser.compute")]

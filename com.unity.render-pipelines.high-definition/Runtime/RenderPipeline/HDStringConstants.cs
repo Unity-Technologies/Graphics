@@ -511,7 +511,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RaytracingLightClusterRW        = Shader.PropertyToID("_RaytracingLightClusterRW");
 
         // Denoising
-        public static readonly int _HistoryBuffer                   = Shader.PropertyToID("_HistoryBuffer");
+        public static readonly int _HistoryBuffer                   = Shader.PropertyToID("_HistoryBuffer"); 
+        public static readonly int _HistoryBuffer0                  = Shader.PropertyToID("_HistoryBuffer0");
+        public static readonly int _HistoryBuffer1                  = Shader.PropertyToID("_HistoryBuffer1");
         public static readonly int _ValidationBuffer                = Shader.PropertyToID("_ValidationBuffer");
         public static readonly int _ValidationBufferRW              = Shader.PropertyToID("_ValidationBufferRW");
         public static readonly int _HistoryDepthTexture             = Shader.PropertyToID("_HistoryDepthTexture");
@@ -520,7 +522,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DenoiserFilterRadius            = Shader.PropertyToID("_DenoiserFilterRadius");
         public static readonly int _NormalHistoryCriterion          = Shader.PropertyToID("_NormalHistoryCriterion");
         public static readonly int _DenoiseInputTexture             = Shader.PropertyToID("_DenoiseInputTexture");
+        public static readonly int _DenoiseInputTexture0            = Shader.PropertyToID("_DenoiseInputTexture0");
+        public static readonly int _DenoiseInputTexture1            = Shader.PropertyToID("_DenoiseInputTexture1");
         public static readonly int _DenoiseOutputTextureRW          = Shader.PropertyToID("_DenoiseOutputTextureRW");
+        public static readonly int _DenoiseOutputTexture0RW         = Shader.PropertyToID("_DenoiseOutputTexture0RW");
+        public static readonly int _DenoiseOutputTexture1RW         = Shader.PropertyToID("_DenoiseOutputTexture1RW");
         public static readonly int _HalfResolutionFilter            = Shader.PropertyToID("_HalfResolutionFilter");
         public static readonly int _DenoisingHistorySlot            = Shader.PropertyToID("_DenoisingHistorySlot");
         public static readonly int _HistoryValidity                 = Shader.PropertyToID("_HistoryValidity");
@@ -619,6 +625,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Sub Surface
         public static readonly int _ThroughputTextureRW             = Shader.PropertyToID("_ThroughputTextureRW");
         public static readonly int _NormalTextureRW                 = Shader.PropertyToID("_NormalTextureRW");
+        public static readonly int _DirectionTexture                = Shader.PropertyToID("_DirectionTexture");
         public static readonly int _DirectionTextureRW              = Shader.PropertyToID("_DirectionTextureRW");
         public static readonly int _PositionTextureRW               = Shader.PropertyToID("_PositionTextureRW");
         public static readonly int _DiffuseLightingTextureRW        = Shader.PropertyToID("_DiffuseLightingTextureRW");
