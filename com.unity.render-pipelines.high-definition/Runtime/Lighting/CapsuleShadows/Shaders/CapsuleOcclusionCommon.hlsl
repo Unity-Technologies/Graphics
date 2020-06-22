@@ -4,15 +4,9 @@
 #if !defined(USE_FPTL_LIGHTLIST) && !defined(USE_CLUSTERED_LIGHTLIST)
     #define USE_FPTL_LIGHTLIST // Use light tiles for contact shadows
 #endif
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/CapsuleOcclusionManager.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/EllipsoidOccluder.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
-
-// TODO Make these generated via C#
-// Note these needs to be defines here and not just multi_compile to allow the on-the-fly computation of these features in lightloop. 
-#define CAPSULE_OCCLUSION_NONE 0
-#define CAPSULE_OCCLUSION_AMBIENT 1
-#define CAPSULE_OCCLUSION_SPECULAR 2
-#define CAPSULE_OCCLUSION_SHADOW 3
 
 // --------------------------------------------
 // Occluder data helpers
@@ -96,7 +90,7 @@ float AccumulateCapsuleShadow(float prevShadow, float capsuleShadow)
 // Main evaluation function
 // --------------------------------------------
 // This is the main loop through the capsule data. To change the intersection behaviour just modify the functions above.
-// Should be responsability of the caller to avoid calling this when evaluationFlags == CAPSULE_OCCLUSION_NONE
+// Should be responsability of the caller to avoid calling this when evaluationFlags == CAPSULEOCCLUSIONTYPE_NONE
 
 void EvaluateCapsuleOcclusion(uint evaluationFlags,
                               PositionInputs posInput,
@@ -153,19 +147,19 @@ void EvaluateCapsuleOcclusion(uint evaluationFlags,
 
             float4 dirAndLen = GetDataForSphereIntersection(s_capsuleData);
 
-            if (evaluationFlags & CAPSULE_OCCLUSION_AMBIENT)
+            if (evaluationFlags & CAPSULEOCCLUSIONTYPE_AMBIENT_OCCLUSION)
             {
                 float capsuleAO = EvaluateCapsuleAmbientOcclusion(s_capsuleData, posInput.positionWS, N, dirAndLen);
                 ambientOcclusion = AccumulateCapsuleAmbientOcclusion(ambientOcclusion, capsuleAO);
             }
 
-            if (evaluationFlags & CAPSULE_OCCLUSION_SPECULAR)
+            if (evaluationFlags & CAPSULEOCCLUSIONTYPE_SPECULAR_OCCLUSION)
             {
                 float capsuleSpecOcc = EvaluateCapsuleSpecularOcclusion(s_capsuleData, posInput.positionWS, N, roughness, dirAndLen);
                 specularOcclusion = AccumulateCapsuleSpecularOcclusion(specularOcclusion, capsuleSpecOcc);
             }
 
-            if (evaluationFlags & CAPSULE_OCCLUSION_SHADOW)
+            if (evaluationFlags & CAPSULEOCCLUSIONTYPE_DIRECTIONAL_SHADOWS)
             {
                 float capsuleShadow = EvaluateCapsuleShadow(s_capsuleData, posInput.positionWS, N, dirAndLen);
                 shadow = AccumulateCapsuleShadow(shadow, capsuleShadow);

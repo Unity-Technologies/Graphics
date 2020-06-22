@@ -3,6 +3,16 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+
+    [GenerateHLSL]
+    enum CapsuleOcclusionType
+    {
+        None,
+        AmbientOcclusion = (1 << 0),
+        SpecularOcclusion = (1 << 1),
+        DirectionalShadows = (1 << 2)
+    }
+
     class CapsuleOcclusionManager
     {
         const int k_LUTWidth = 128;

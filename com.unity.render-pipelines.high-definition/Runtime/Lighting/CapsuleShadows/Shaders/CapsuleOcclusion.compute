@@ -45,13 +45,13 @@ void CapsuleOcclusion(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupI
     uint capsuleFeatureFlags = 0;
 #ifdef AMBIENT_OCCLUSION
     ao = _OcclusionTexture[COORD_TEXTURE2D_X(pixelCoord.xy)];
-    capsuleFeatureFlags = capsuleFeatureFlags | CAPSULE_OCCLUSION_AMBIENT;
+    capsuleFeatureFlags = capsuleFeatureFlags | CAPSULEOCCLUSIONTYPE_AMBIENT_OCCLUSION;
 #endif
 #ifdef SPECULAR_OCCLUSION
-    capsuleFeatureFlags = capsuleFeatureFlags | CAPSULE_OCCLUSION_SPECULAR;
+    capsuleFeatureFlags = capsuleFeatureFlags | CAPSULEOCCLUSIONTYPE_SPECULAR_OCCLUSION;
 #endif
 #ifdef DIRECTIONAL_SHADOW
-    capsuleFeatureFlags = capsuleFeatureFlags | CAPSULE_OCCLUSION_SHADOW;
+    capsuleFeatureFlags = capsuleFeatureFlags | CAPSULEOCCLUSIONTYPE_DIRECTIONAL_SHADOWS;
 #endif
 
     if (capsuleFeatureFlags != 0) // Should never happen
