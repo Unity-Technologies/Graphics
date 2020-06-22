@@ -95,7 +95,8 @@ namespace UnityEditor.ShaderGraph
                 typeof(TangentVectorNode ),
                 typeof(UVNode ),
                 typeof(VertexColorNode ),
-                typeof(ViewDirectionNode )
+                typeof(ViewDirectionNode ),
+                typeof(BarycentricCoordinatesNode )
             };
 
             public static NodeTypeCollection Gradient = new NodeTypeCollection()

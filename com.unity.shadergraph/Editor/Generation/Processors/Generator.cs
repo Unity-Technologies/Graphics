@@ -410,6 +410,11 @@ namespace UnityEditor.ShaderGraph
                             passPragmaBuilder.AppendLine(pragma.value);
                     }
                 }
+                if(graphRequirements.baseInstance.requirements.requiresBarycentricCoordinates)
+                {
+                    // TODO: Refactor and place this string somewhere else
+                    passPragmaBuilder.AppendLine("#pragma geometry geom");
+                }
 
                 string command = GenerationUtils.GetSpliceCommand(passPragmaBuilder.ToCodeBlock(), "PassPragmas");
                 spliceCommands.Add("PassPragmas", command);

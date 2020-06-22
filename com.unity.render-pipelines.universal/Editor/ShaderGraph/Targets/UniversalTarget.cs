@@ -599,6 +599,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kDepthOnlyPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl";
         const string kShadowCasterPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl";
         const string kTextureStack = "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl";
+        const string kBaryCentricGeometry = "Packages/com.unity.render-pipelines.core/ShaderLibrary/BaryCentric.hlsl";
 
         public static IncludeCollection CorePregraph = new IncludeCollection
         {
@@ -617,6 +618,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             { kShaderPass, IncludeLocation.Postgraph },
             { kVaryings, IncludeLocation.Postgraph },
+            { kBaryCentricGeometry, IncludeLocation.Postgraph },    // TODO: put this on a conditional
         };
 
         public static IncludeCollection DepthOnly = new IncludeCollection

@@ -15,6 +15,7 @@ namespace UnityEditor.ShaderGraph
         public const string BoneWeights = "BoneWeights";
         public const string BoneIndices = "BoneIndices";
         public const string VertexID = "VertexID";
+        public const string BarycentricCoordinates = "BarycentricCoordinates";
 
         public static string GetUVName(this UVChannel channel)
         {

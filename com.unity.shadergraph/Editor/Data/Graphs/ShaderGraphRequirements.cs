@@ -22,6 +22,7 @@ namespace UnityEditor.ShaderGraph.Internal
         [SerializeField] bool m_RequiresTime;
         [SerializeField] bool m_RequiresVertexSkinning;
         [SerializeField] bool m_RequiresVertexID;
+        [SerializeField] bool m_RequiresBarycentricCoordinates;
 
         internal static ShaderGraphRequirements none
         {
@@ -118,6 +119,12 @@ namespace UnityEditor.ShaderGraph.Internal
             internal set { m_RequiresVertexID = value; }
         }
 
+        public bool requiresBarycentricCoordinates
+        {
+            get { return m_RequiresBarycentricCoordinates; }
+            internal set { m_RequiresBarycentricCoordinates = value; }
+        }
+
         internal bool NeedsTangentSpace()
         {
             var compoundSpaces = m_RequiresBitangent | m_RequiresNormal | m_RequiresPosition
@@ -143,6 +150,7 @@ namespace UnityEditor.ShaderGraph.Internal
             newReqs.m_RequiresTime = other.m_RequiresTime | m_RequiresTime;
             newReqs.m_RequiresVertexSkinning = other.m_RequiresVertexSkinning | m_RequiresVertexSkinning;
             newReqs.m_RequiresVertexID = other.m_RequiresVertexID | m_RequiresVertexID;
+            newReqs.m_RequiresBarycentricCoordinates = other.m_RequiresBarycentricCoordinates | m_RequiresBarycentricCoordinates;
 
             newReqs.m_RequiresMeshUVs = new List<UVChannel>();
             if (m_RequiresMeshUVs != null)
@@ -168,6 +176,7 @@ namespace UnityEditor.ShaderGraph.Internal
             bool requiresTime = nodes.Any(x => x.RequiresTime());
             bool requiresVertexSkinning = nodes.OfType<IMayRequireVertexSkinning>().Any(x => x.RequiresVertexSkinning(stageCapability));
             bool requiresVertexID = nodes.OfType<IMayRequireVertexID>().Any(x => x.RequiresVertexID(stageCapability));
+            bool requiresBarycentricCoordinates = nodes.OfType<IMayRequireBarycentricCoordinates>().Any(x => x.RequiresBarycentricCoordinates(stageCapability));
 
             var meshUV = new List<UVChannel>();
             for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UVCount; ++uvIndex)
@@ -210,6 +219,7 @@ namespace UnityEditor.ShaderGraph.Internal
                 m_RequiresTime = requiresTime,
                 m_RequiresVertexSkinning = requiresVertexSkinning,
                 m_RequiresVertexID = requiresVertexID,
+                m_RequiresBarycentricCoordinates = requiresBarycentricCoordinates,
             };
 
             return reqs;
