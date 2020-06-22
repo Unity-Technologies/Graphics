@@ -209,20 +209,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // returns the accumulation weights for the current sub-frame
-        // x: weight for the current frame
-        // y: sum of weights until now, without the current frame
-        // z: one over the sum of weights until now, including the current frame
-        // w: unused
-        internal Vector4 ComputeFrameWeights(int camID)
+        // returns the weight of the current sub-frame
+        internal float ComputeFrameWeight(int camID)
         {
             CameraData camData = GetCameraData(camID);
 
             float time = m_AccumulationSamples > 0 ? (float) camData.currentIteration / m_AccumulationSamples : 0.0f;
 
-            float weight = isRecording ? ShutterProfile(time) : 1.0f;
-
-            return new Vector4(weight, 1.0f, 1.0f, 0.0f);
+            return isRecording ? ShutterProfile(time) : 1.0f;
         }
     }
 
@@ -279,6 +273,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Pick a reconstruction filter
             accumulationShader.EnableKeyword("FILTER_GAUSSIAN");
+            //accumulationShader.EnableKeyword("FILTER_BOX"); 
 
             // Grab the history buffer (hijack the reflections one)
             RTHandle history = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing)
@@ -290,7 +285,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Get the per-camera data
             int camID = hdCamera.camera.GetInstanceID();
-            Vector4 frameWeights = m_SubFrameManager.ComputeFrameWeights(camID);
+            Vector4 frameWeights = new Vector4(m_SubFrameManager.ComputeFrameWeight(camID), 2.0f, 2.0f, 0.0f);
             CameraData camData = m_SubFrameManager.GetCameraData(camID);
 
             // Accumulate the path tracing results

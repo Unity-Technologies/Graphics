@@ -42,10 +42,8 @@ void AddConvergenceCue(uint2 pixelCoord, uint sampleCount, inout float3 color)
     }
 }
 
-float GetSubPixelWeight(float2 offset)
+float GetSubPixelWeight(float2 offset, float2 filterSize)
 {
-    const float2 filterSize = _AccumulationWeights.yz;
-
 #ifdef FILTER_GAUSSIAN
     offset *= 2.0f / filterSize;
     return exp(-2.0 * dot(offset, offset));
@@ -87,26 +85,42 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         _CameraColorTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(_AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)].xyz * exposureMultiplier, 1.0);
     }
     else
-    {    
-        float4 color = _RadianceTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
-        float2 subPixelOffset = UnpackFloat2(color.a);
-
-        float totalWeight = sampleCount > 0 ? _AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)].w : 0.0f;
+    {
         float subFrameWeight = _AccumulationWeights.x;
-        float sampleWeight = subFrameWeight * GetSubPixelWeight(subPixelOffset);
-        float newTotalWeight = totalWeight + sampleWeight;
+        float4 accColor = sampleCount > 0 ? _AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)] : 0.0f;
 
-        if (sampleCount++)
-            color.xyz = (_AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)].xyz * totalWeight + sampleWeight * color.xyz) / newTotalWeight;
+        // Gather contribution from all samples in the pixel's footprint
+        // TODO: This can be heavily optimized by using shader local storage
+        const float2 filterSize = _AccumulationWeights.yz;
+        for (int i = -filterSize.x + 1; i < filterSize.x; ++i)
+        {
+            for (int j = -filterSize.y + 1; j < filterSize.y; ++j)
+            {
+                int2 pixelCoords = currentPixelCoord + int2(i, j);
+                pixelCoords = clamp(pixelCoords, 0, _ScreenSize.xy - float2(1, 1));
 
-        _AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(color.xyz, newTotalWeight);
+                float4 sampleColor = _RadianceTexture[COORD_TEXTURE2D_X(pixelCoords)];
+                float2 sampleOffset = UnpackFloat2(sampleColor.w);
+                float sampleWeight = GetSubPixelWeight(sampleOffset + float2(i, j) - float2(0.5f, 0.5f), 2 * filterSize);
+                sampleWeight *= subFrameWeight; // take inbto account motion blur (global subframe weights)
+
+                float newAccWeight = accColor.w + sampleWeight;
+
+                if (newAccWeight > 0)
+                    sampleColor.xyz = (accColor.xyz * accColor.w + sampleWeight * sampleColor.xyz) / newAccWeight;
+
+                accColor = float4(sampleColor.xyz, newAccWeight);
+            }
+        }
+
+        _AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)] = accColor;
 
         // Apply exposure modifier
-        color *= exposureMultiplier;
+        accColor.xyz *= exposureMultiplier;
 
         // Add a little convergence cue to our result
-        AddConvergenceCue(currentPixelCoord, sampleCount, color.xyz);
+        AddConvergenceCue(currentPixelCoord, sampleCount, accColor.xyz);
 
-        _CameraColorTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(color.xyz, 1.0);
+        _CameraColorTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(accColor.xyz, 1.0);
     }
 }
