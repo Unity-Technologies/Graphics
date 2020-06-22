@@ -13,9 +13,9 @@ ShaderGraph_Win_DX11_Standalone_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/shadergraph-win-dx11.yml#Build_ShaderGraph_Win_DX11_Player_trunk
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -36,7 +36,7 @@ Build_ShaderGraph_Win_DX11_Player_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -59,7 +59,7 @@ ShaderGraph_Win_DX11_playmode_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -79,7 +79,7 @@ ShaderGraph_Win_DX11_editmode_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -99,9 +99,9 @@ ShaderGraph_Win_DX11_Standalone_fast-trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/shadergraph-win-dx11.yml#Build_ShaderGraph_Win_DX11_Player_fast-trunk
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -122,7 +122,7 @@ Build_ShaderGraph_Win_DX11_Player_fast-trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -145,7 +145,7 @@ ShaderGraph_Win_DX11_playmode_fast-trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -165,7 +165,7 @@ ShaderGraph_Win_DX11_editmode_fast-trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
