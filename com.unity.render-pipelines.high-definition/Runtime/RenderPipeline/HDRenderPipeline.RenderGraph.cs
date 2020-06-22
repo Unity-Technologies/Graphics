@@ -197,11 +197,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 PushFullScreenDebugTexture(m_RenderGraph, colorBuffer, FullScreenDebugMode.NanTracker);
                 PushFullScreenLightingDebugTexture(m_RenderGraph, colorBuffer);
 
-                // TODO RENDERGRAPH
-                //if (m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1)
-                //{
-                //    RenderAccumulation(hdCamera, cmd, m_CameraColorBuffer, m_CameraColorBuffer, false);
-                //}
+                if (m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1)
+                {
+                    RenderAccumulation(m_RenderGraph, hdCamera, colorBuffer, colorBuffer, false);
+                }
 
                 // Render gizmos that should be affected by post processes
                 RenderGizmos(m_RenderGraph, hdCamera, colorBuffer, GizmoSubset.PreImageEffects);
@@ -1257,6 +1256,38 @@ namespace UnityEngine.Rendering.HighDefinition
                 return input;
             }
         }
+
+        class RenderAccumulationPassData
+        {
+            public RenderAccumulationParameters parameters;
+            public TextureHandle input;
+            public TextureHandle output;
+            public TextureHandle history;
+        }
+
+        void RenderAccumulation(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputTexture, TextureHandle outputTexture, bool needExposure)
+        {
+            using (var builder = renderGraph.AddRenderPass<RenderAccumulationPassData>("Render Accumulation", out var passData))
+            {
+                // Grab the history buffer (hijack the reflections one)
+                TextureHandle history = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing)
+                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.PathTracing, PathTracingHistoryBufferAllocatorFunction, 1));
+
+
+                passData.parameters = PrepareRenderAccumulationParameters(hdCamera, needExposure);
+                passData.input = builder.ReadTexture(inputTexture);
+                passData.output = builder.WriteTexture(inputTexture);
+                passData.history = builder.WriteTexture(history);
+
+                builder.SetRenderFunc(
+                (RenderAccumulationPassData data, RenderGraphContext ctx) =>
+                {
+                    RenderAccumulation(data.parameters, ctx.resources.GetTexture(data.input), ctx.resources.GetTexture(data.output), ctx.resources.GetTexture(data.history), ctx.cmd);
+                });
+
+            }
+        }
+
 #if UNITY_EDITOR
         class RenderGizmosPassData
         {
