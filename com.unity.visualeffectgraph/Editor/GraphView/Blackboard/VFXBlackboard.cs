@@ -358,6 +358,8 @@ namespace  UnityEditor.VFX.UI
             VFXParameter newParam = m_Controller.AddVFXParameter(Vector2.zero, (VFXModelDescriptorParameters)parameter);
             if (selectedCategory != null && newParam != null)
                 newParam.category = selectedCategory.title;
+
+            newParam.SetSettingValue("m_Exposed", true);
         }
 
         void OnAddItem(Blackboard bb)

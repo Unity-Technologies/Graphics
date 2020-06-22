@@ -647,6 +647,9 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             // This value is what we store in specularFGD, so reuse it
             lighting.specular += preLightData.specularFGD * ltcValue;
 
+            SHADOW_TYPE shadow = EvaluateShadow_RectArea(lightLoopContext, posInput, lightData, builtinData, bsdfData.normalWS, normalize(lightData.positionRWS), length(lightData.positionRWS));
+            lightData.color.rgb *= ComputeShadowColor(shadow, lightData.shadowTint, lightData.penumbraTint);
+
              // Save ALU by applying 'lightData.color' only once.
             lighting.diffuse *= lightData.color;
             lighting.specular *= lightData.color;
@@ -663,41 +666,6 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
         }
 
     }
-
-    float shadow = 1.0;
-    float shadowMask = 1.0;
-#ifdef SHADOWS_SHADOWMASK
-    // shadowMaskSelector.x is -1 if there is no shadow mask
-    // Note that we override shadow value (in case we don't have any dynamic shadow)
-    shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, lightData.shadowMaskSelector) : 1.0;
-#endif
-
- #if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT)
-    if (lightData.screenSpaceShadowIndex >= 0)
-    {
-        shadow = GetScreenSpaceShadow(posInput, lightData.screenSpaceShadowIndex);
-    }
-    else
-#endif // ENABLE_RAYTRACING
-    if (lightData.shadowIndex != -1)
-    {
-#if RASTERIZED_AREA_LIGHT_SHADOWS
-        // lightData.positionRWS now contains the Light vector.
-        shadow = GetAreaLightAttenuation(lightLoopContext.shadowContext, posInput.positionSS, posInput.positionWS, bsdfData.normalWS, lightData.shadowIndex, normalize(lightData.positionRWS), length(lightData.positionRWS));
-#ifdef SHADOWS_SHADOWMASK
-        // See comment for punctual light shadow mask
-        shadow = lightData.nonLightMappedOnly ? min(shadowMask, shadow) : shadow;
-#endif
-        shadow = lerp(shadowMask, shadow, lightData.shadowDimmer);
-
- #endif
-    }
-
- #if RASTERIZED_AREA_LIGHT_SHADOWS || SUPPORTS_RAYTRACED_AREA_SHADOWS
-    float3 shadowColor = ComputeShadowColor(shadow, lightData.shadowTint, lightData.penumbraTint);
-    lighting.diffuse *= shadowColor;
-    lighting.specular *= shadowColor;
-#endif
 
      return lighting;
 }

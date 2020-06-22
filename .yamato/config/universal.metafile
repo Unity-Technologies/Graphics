@@ -45,4 +45,8 @@ all:
     - platform: OSX
       api: OpenGLCore
       test_platforms:
-        - editmode    
+        - editmode  
+    - project: Universal_Stereo
+      all: true
+    - project: Universal_Hybrid
+      all: true  

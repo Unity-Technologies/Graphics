@@ -94,7 +94,10 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _ContactShadowOpacity;
     float _ReplaceDiffuseForIndirect;
     float4 _AmbientOcclusionParam;
-    float4 _IndirectLightingMultiplier;
+    float _IndirectDiffuseLightingMultiplier;
+    uint _IndirectDiffuseLightingLayers;
+    float _ReflectionLightingMultiplier;
+    uint _ReflectionLightingLayers;
     float _MicroShadowOpacity;
     uint _EnableProbeVolumes;
     uint _ProbeVolumeCount;
@@ -130,8 +133,8 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     uint _XRViewCount;
     int _FrameCount;
     float4 _CoarseStencilBufferSize;
-    int _UseIndirectDiffuse;
-    int _UseRayTracedReflections;
+    int _IndirectDiffuseMode;
+    int _EnableRayTracedReflections;
     int _RaytracingFrameIndex;
     uint _EnableRecursiveRayTracing;
     float4 _ProbeVolumeAtlasResolutionAndSliceCount;
