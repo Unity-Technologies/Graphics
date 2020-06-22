@@ -5523,7 +5523,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_VIRTUALTEXTURES
         RTHandle GetVTFeedbackBufferForForward(HDCamera hdCamera)
         {
-            bool msEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+            bool msaaEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
             if (msaaEnabled) return m_VtBufferManager.FeedbackBufferMsaa;
 
             var res =  m_GbufferManager.GetVTFeedbackBuffer();
