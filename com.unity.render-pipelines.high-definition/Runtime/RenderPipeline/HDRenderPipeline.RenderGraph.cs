@@ -319,12 +319,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.source = builder.ReadTexture(source);
                 passData.destination = builder.WriteTexture(destination);
 
-                // TODO RENDERGRAPH REMOVE: Dummy read to avoid early release before render graph is full implemented.
-                bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors))
-                    builder.ReadTexture(motionVectors);
-                builder.ReadTexture(normalBuffer);
-
                 builder.SetRenderFunc(
                 (FinalBlitPassData data, RenderGraphContext context) =>
                 {

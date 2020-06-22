@@ -410,7 +410,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // TODO RENDERGRAPH: pass and bind properly those texture (once auto setglobal is gone)
                     builder.ReadTexture(prepassOutput.resolvedNormalBuffer);
-                    builder.ReadTexture(prepassOutput.resolvedMotionVectorsBuffer);
+                    // TODO RENDERGRAPH: SSR does not work without movecs... should we disable the feature altogether when not available?
+                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors))
+                        builder.ReadTexture(prepassOutput.resolvedMotionVectorsBuffer);
 
                     // In practice, these textures are sparse (mostly black). Therefore, clearing them is fast (due to CMASK),
                     // and much faster than fully overwriting them from within SSR shaders.

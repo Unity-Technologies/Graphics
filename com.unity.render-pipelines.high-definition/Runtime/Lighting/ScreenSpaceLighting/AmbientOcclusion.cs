@@ -442,7 +442,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.bilateralUpsample = settings.bilateralUpsample;
             parameters.gtaoCS = m_Resources.shaders.GTAOCS;
             parameters.gtaoCS.shaderKeywords = null;
-            parameters.temporalAccumulation = settings.temporalAccumulation.value;
+            parameters.temporalAccumulation = settings.temporalAccumulation.value && camera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors);
 
             if (parameters.temporalAccumulation)
             {

@@ -101,11 +101,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.parameters = parameters;
                 passData.packedData = builder.ReadTexture(aoPackedData);
-                passData.motionVectors = builder.ReadTexture(motionVectors);
+                if (parameters.temporalAccumulation)
+                {
+                    passData.motionVectors = builder.ReadTexture(motionVectors);
+                    passData.currentHistory = builder.ReadTexture(currentHistory); // can also be written on first frame, but since it's an imported resource, it doesn't matter in term of lifetime.
+                    passData.outputHistory = builder.WriteTexture(outputHistory);
+                }
+
                 passData.packedDataBlurred = builder.CreateTransientTexture(
-                    new TextureDesc(Vector2.one * scaleFactor, true, true) { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, name = "AO Packed blurred data" } );
-                passData.currentHistory = builder.ReadTexture(currentHistory); // can also be written on first frame, but since it's an imported resource, it doesn't matter in term of lifetime.
-                passData.outputHistory = builder.WriteTexture(outputHistory);
+                    new TextureDesc(Vector2.one * scaleFactor, true, true) { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, name = "AO Packed blurred data" });
 
                 var format = parameters.fullResolution ? GraphicsFormat.R8_UNorm : GraphicsFormat.R32_UInt;
                 if (parameters.fullResolution)
