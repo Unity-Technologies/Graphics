@@ -61,13 +61,13 @@ float3 GetDistordedCloudColor(float3 dir, float3 sky)
         float3 color2 = sampleCloud(normalize(dir - alpha.y * dd), sky);
 
         // Blend color samples
-        return lerp(color1, color2, abs(2.0 * alpha.x));
+        sky = lerp(color1, color2, abs(2.0 * alpha.x));
     }
-#else
-    sky = sampleCloud(dir, sky);
-#endif
-
     return sky;
+
+#else
+    return sampleCloud(dir, sky);
+#endif
 }
 
 float3 ApplyCloudLayer(float3 dir, float3 sky)
