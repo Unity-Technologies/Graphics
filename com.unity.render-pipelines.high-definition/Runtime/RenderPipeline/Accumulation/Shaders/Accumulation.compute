@@ -100,7 +100,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         const float2 filterRadius = _AccumulationWeights.yz;
 
         // Compute how many pixels we should traverse for the given radius: with a radius of 0.6, we already have to touch the neightboring pixels
-        int2 filterExtent = floor(filterRadius + 0.5f); 
+        int2 filterExtent = floor(filterRadius + 0.5f) + float2(1, 1); 
         for (int i = -filterExtent.x + 1; i < filterExtent.x; ++i)
         {
             for (int j = -filterExtent.y + 1; j < filterExtent.y; ++j)
