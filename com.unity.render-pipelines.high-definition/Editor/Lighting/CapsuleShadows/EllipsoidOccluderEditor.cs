@@ -25,16 +25,17 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (k_Material == null || k_Material.Equals(null))
                     k_Material = new Material(Shader.Find("Hidden/UnlitTransparentColored"));
-                k_Material.color = new Color(143.0f/255.0f, 134.0f/255.0f, 186.0f/255.0f);
+                k_Material.color = new Color(127.0f/255.0f, 121.0f/255.0f, 156.0f/255.0f, 0.7f);
                 return k_Material;
             }
         }
 
-        SerializedProperty center, direction, scaling;
+        SerializedProperty center, radius, direction, scaling;
 
         void OnEnable()
         {
             center = serializedObject.FindProperty("center");
+            radius = serializedObject.FindProperty("radius");
             direction = serializedObject.FindProperty("direction");
             scaling = serializedObject.FindProperty("scaling");
 
@@ -95,10 +96,10 @@ namespace UnityEngine.Rendering.HighDefinition
             else if (EditMode.editMode == k_EditModes[2])
             {
                 EditorGUI.BeginChangeCheck();
-                Vector3 scale = Handles.ScaleHandle(scaling.vector3Value, Vector3.zero, rot, 1.0f);
+                float scale = Handles.ScaleSlider(scaling.floatValue, Vector3.zero, rot * Vector3.forward, rot, 0.5f, 1.0f);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    scaling.vector3Value = scale;
+                    scaling.floatValue = scale;
                 }
             }
 
@@ -109,8 +110,9 @@ namespace UnityEngine.Rendering.HighDefinition
             material.SetPass(0);
 
             GL.wireframe = true;
-            //Vector3 scale = Quaternion.Euler(direction.vector3Value).normalized * Vector3.forward * scaling.floatValue;
-            Graphics.DrawMeshNow(sphere, Matrix4x4.TRS(tr.position + center.vector3Value, tr.rotation * rot, scaling.vector3Value));
+            Vector3 scalev = Vector3.one * radius.floatValue;
+            scalev.z *= scaling.floatValue;
+            Graphics.DrawMeshNow(sphere, Matrix4x4.TRS(tr.position + center.vector3Value, tr.rotation * rot, scalev));
             GL.wireframe = false;
         }
     }

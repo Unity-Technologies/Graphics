@@ -13,10 +13,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 center = Vector3.zero;
 
         /// <summary></summary>
+        public float radius = 1.0f;
+
+        /// <summary></summary>
         public Vector3 direction = Vector3.zero;
 
         /// <summary></summary>
-        public Vector3 scaling = Vector3.forward;
+        public float scaling = 1.0f;
 
         /*
         [SerializeField]
