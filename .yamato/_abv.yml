@@ -12,7 +12,7 @@ smoke_test_Standalone_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/SRP_SmokeTest/utr
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor --wait --published-only
       -  cd TestProjects/SRP_SmokeTest && utr\utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200
@@ -32,7 +32,7 @@ smoke_test_playmode_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/SRP_SmokeTest/utr
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor --wait --published-only
       -  cd TestProjects/SRP_SmokeTest && utr\utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
@@ -52,7 +52,7 @@ smoke_test_editmode_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/SRP_SmokeTest/utr
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor --wait --published-only
       -  cd TestProjects/SRP_SmokeTest && utr\utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
@@ -146,7 +146,7 @@ smoke_test_Standalone_fast-trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/SRP_SmokeTest/utr
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor --wait --published-only
       -  cd TestProjects/SRP_SmokeTest && utr\utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200
@@ -166,7 +166,7 @@ smoke_test_playmode_fast-trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/SRP_SmokeTest/utr
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor --wait --published-only
       -  cd TestProjects/SRP_SmokeTest && utr\utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
@@ -186,7 +186,7 @@ smoke_test_editmode_fast-trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/SRP_SmokeTest/utr
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor --wait --published-only
       -  cd TestProjects/SRP_SmokeTest && utr\utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
@@ -258,7 +258,7 @@ smoke_test_Standalone_CUSTOM-REVISION:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/SRP_SmokeTest/utr
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor --wait --published-only
       -  cd TestProjects/SRP_SmokeTest && utr\utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200
@@ -279,7 +279,7 @@ smoke_test_playmode_CUSTOM-REVISION:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/SRP_SmokeTest/utr
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor --wait --published-only
       -  cd TestProjects/SRP_SmokeTest && utr\utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
@@ -300,7 +300,7 @@ smoke_test_editmode_CUSTOM-REVISION:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/SRP_SmokeTest/utr
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor --wait --published-only
       -  cd TestProjects/SRP_SmokeTest && utr\utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
