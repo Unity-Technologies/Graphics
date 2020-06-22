@@ -14,7 +14,6 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public void ResetIteration()
         {
-            accumulatedWeight = 0.0f;
             currentIteration = 0;
         }
 
@@ -23,7 +22,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool skyEnabled;
         public bool fogEnabled;
 
-        public float accumulatedWeight;
         public uint  currentIteration;
     }
 
@@ -220,19 +218,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             CameraData camData = GetCameraData(camID);
 
-            float totalWeight = camData.accumulatedWeight;
             float time = m_AccumulationSamples > 0 ? (float) camData.currentIteration / m_AccumulationSamples : 0.0f;
 
             float weight = isRecording ? ShutterProfile(time) : 1.0f;
 
-            if (camData.currentIteration < m_AccumulationSamples)
-                camData.accumulatedWeight += weight;
-
-            SetCameraData(camID, camData);
-
-            return (camData.accumulatedWeight > 0) ?
-                new Vector4(weight, totalWeight, 1.0f / camData.accumulatedWeight, 0.0f) :
-                new Vector4(weight, totalWeight, 0.0f, 0.0f);
+            return new Vector4(weight, 0.0f, 0.0f, 0.0f);
         }
     }
 

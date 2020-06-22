@@ -58,10 +58,14 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     {    
         float4 color = _RadianceTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
 
-        if (sampleCount++)
-            color.xyz = (_AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)].xyz * _AccumulationWeights.y + _AccumulationWeights.x * color.xyz) * _AccumulationWeights.z;
+        float totalWeight = sampleCount > 0 ? _AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)].w : 0.0f;
+        float subFrameWeight = _AccumulationWeights.x;
+        float newTotalWeight = totalWeight + subFrameWeight;
 
-        _AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(color.xyz, 1.0);
+        if (sampleCount++)
+            color.xyz = (_AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)].xyz * totalWeight + subFrameWeight * color.xyz) / newTotalWeight;
+
+        _AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(color.xyz, newTotalWeight);
 
         // Apply exposure modifier
         color *= exposureMultiplier;
