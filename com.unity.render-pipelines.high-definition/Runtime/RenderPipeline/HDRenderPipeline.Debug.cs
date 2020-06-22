@@ -75,15 +75,20 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle colorBuffer;
             public TextureHandle depthBuffer;
             public TextureHandle depthPyramidTexture;
+            public ComputeBufferHandle tileList;
+            public ComputeBufferHandle lightList;
+            public ComputeBufferHandle perVoxelLightList;
+            public ComputeBufferHandle dispatchIndirect;
             public ShadowResult shadowTextures;
         }
 
-        void RenderDebugOverlays(   RenderGraph renderGraph,
-                                    in DebugParameters debugParameters,
-                                    TextureHandle colorBuffer,
-                                    TextureHandle depthBuffer,
-                                    TextureHandle depthPyramidTexture,
-                                    in ShadowResult shadowResult)
+        void RenderDebugOverlays(   RenderGraph                 renderGraph,
+                                    in DebugParameters          debugParameters,
+                                    TextureHandle               colorBuffer,
+                                    TextureHandle               depthBuffer,
+                                    TextureHandle               depthPyramidTexture,
+                                    in BuildGPULightListOutput  lightLists,
+                                    in ShadowResult             shadowResult)
         {
             using (var builder = renderGraph.AddRenderPass<RenderDebugOverlayPassData>("DebugOverlay", out var passData))
             {
@@ -92,6 +97,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
                 passData.depthPyramidTexture = builder.ReadTexture(depthPyramidTexture);
                 passData.shadowTextures = HDShadowManager.ReadShadowResult(shadowResult, builder);
+                passData.tileList = builder.ReadComputeBuffer(lightLists.tileList);
+                passData.lightList = builder.ReadComputeBuffer(lightLists.lightList);
+                passData.perVoxelLightList = builder.ReadComputeBuffer(lightLists.perVoxelLightLists);
+                passData.dispatchIndirect = builder.ReadComputeBuffer(lightLists.dispatchIndirectBuffer);
 
                 builder.SetRenderFunc(
                 (RenderDebugOverlayPassData data, RenderGraphContext ctx) =>
@@ -111,9 +120,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     shadowAtlases.cachedPunctualShadowAtlas = data.shadowTextures.cachedPunctualShadowResult.IsValid() ? ctx.resources.GetTexture(data.shadowTextures.cachedPunctualShadowResult) : null;
                     shadowAtlases.cachedAreaShadowAtlas = data.shadowTextures.cachedAreaShadowResult.IsValid() ? ctx.resources.GetTexture(data.shadowTextures.cachedAreaShadowResult) : null;
 
+                    ComputeBuffer tileBuffer = ctx.resources.GetComputeBuffer(data.tileList);
+                    ComputeBuffer lightListBuffer = ctx.resources.GetComputeBuffer(data.lightList);
+                    ComputeBuffer perVoxelLightListBuffer = ctx.resources.GetComputeBuffer(data.perVoxelLightList);
+                    ComputeBuffer dispatchIndirectBuffer = ctx.resources.GetComputeBuffer(data.dispatchIndirect);
+
                     RenderSkyReflectionOverlay(debugParams, ctx.cmd, ctx.renderGraphPool.GetTempMaterialPropertyBlock(), ref x, ref y, overlaySize);
                     RenderRayCountOverlay(debugParams, ctx.cmd, ref x, ref y, overlaySize);
-                    RenderLightLoopDebugOverlay(debugParams, ctx.cmd, ref x, ref y, overlaySize, ctx.resources.GetTexture(data.depthPyramidTexture));
+                    RenderLightLoopDebugOverlay(debugParams, ctx.cmd, ref x, ref y, overlaySize, tileBuffer, lightListBuffer, perVoxelLightListBuffer, dispatchIndirectBuffer, ctx.resources.GetTexture(data.depthPyramidTexture));
                     RenderShadowsDebugOverlay(debugParams, shadowAtlases, ctx.cmd, ref x, ref y, overlaySize, ctx.renderGraphPool.GetTempMaterialPropertyBlock());
                     DecalSystem.instance.RenderDebugOverlay(debugParams.hdCamera, ctx.cmd, debugParams.debugDisplaySettings, ref x, ref y, overlaySize, debugParams.hdCamera.actualWidth);
                 });
@@ -169,15 +183,16 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        TextureHandle RenderDebug(  RenderGraph     renderGraph,
-                                    HDCamera        hdCamera,
-                                    TextureHandle   colorBuffer,
-                                    TextureHandle   depthBuffer,
-                                    TextureHandle   depthPyramidTexture,
-                                    TextureHandle   fullScreenDebugTexture,
-                                    TextureHandle   colorPickerDebugTexture,
-                                    in ShadowResult shadowResult,
-                                    CullingResults  cullResults)
+        TextureHandle RenderDebug(  RenderGraph                 renderGraph,
+                                    HDCamera                    hdCamera,
+                                    TextureHandle               colorBuffer,
+                                    TextureHandle               depthBuffer,
+                                    TextureHandle               depthPyramidTexture,
+                                    TextureHandle               fullScreenDebugTexture,
+                                    TextureHandle               colorPickerDebugTexture,
+                                    in BuildGPULightListOutput  lightLists,
+                                    in ShadowResult             shadowResult,
+                                    CullingResults              cullResults)
         {
             // We don't want any overlay for these kind of rendering
             if (hdCamera.camera.cameraType == CameraType.Reflection || hdCamera.camera.cameraType == CameraType.Preview)
@@ -212,7 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderLightVolumes(renderGraph, debugParameters, output, depthBuffer, cullResults);
             }
 
-            RenderDebugOverlays(renderGraph, debugParameters, output, depthBuffer, depthPyramidTexture, shadowResult);
+            RenderDebugOverlays(renderGraph, debugParameters, output, depthBuffer, depthPyramidTexture, lightLists, shadowResult);
 
             return output;
         }
@@ -291,7 +306,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void PushFullScreenDebugTexture(RenderGraph renderGraph, TextureHandle input, FullScreenDebugMode debugMode)
+        internal void PushFullScreenDebugTexture(RenderGraph renderGraph, TextureHandle input, FullScreenDebugMode debugMode)
         {
             if (debugMode == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
             {
@@ -346,7 +361,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (PushFullScreenDebugPassData data, RenderGraphContext ctx) =>
                 {
-                    HDUtils.BlitCameraTexture(ctx.cmd, ctx.resources.GetTexture(passData.input), ctx.resources.GetTexture(passData.output));
+                    HDUtils.BlitCameraTexture(ctx.cmd, ctx.resources.GetTexture(data.input), ctx.resources.GetTexture(data.output));
                 });
 
                 return passData.output;

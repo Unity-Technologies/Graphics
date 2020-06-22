@@ -48,6 +48,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Defines the maximum intensity value computed for a path segment.")]
         public ClampedFloatParameter maximumIntensity = new ClampedFloatParameter(10f, 0f, 100f);
+
+        PathTracing()
+        {
+            displayName = "Path Tracing (Preview)";
+        }
     }
 
     public partial class HDRenderPipeline
@@ -221,6 +226,12 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!pathTracingShader || !m_PathTracingSettings.enable.value)
                 return;
 
+            if (hdCamera.viewCount > 1)
+            {
+                Debug.LogError("Path Tracing is not supported when using XR single-pass rendering.");
+                return;
+            }
+
             CheckDirtiness(hdCamera);
 
             // Inject the ray-tracing sampling data
@@ -277,7 +288,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetRayTracingTextureParam(pathTracingShader, HDShaderIDs._RadianceTexture, m_RadianceTexture);
                 cmd.SetRayTracingMatrixParam(pathTracingShader, HDShaderIDs._PixelCoordToViewDirWS, hdCamera.mainViewConstants.pixelCoordToViewDirWS);
                 cmd.SetRayTracingVectorParam(pathTracingShader, HDShaderIDs._PathTracedDoFConstants, ComputeDoFConstants(hdCamera, m_PathTracingSettings));
-                cmd.SetRayTracingVectorParam(pathTracingShader, HDShaderIDs._InvViewportScaleBias, HDUtils.ComputeInverseViewportScaleBias(hdCamera));
 
                 // Run the computation
                 cmd.DispatchRays(pathTracingShader, "RayGen", (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);

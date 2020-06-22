@@ -80,12 +80,35 @@ namespace UnityEngine.Rendering.HighDefinition
             public float    anisotropyAngle;
 
             // Car Paint Variables
-            [SurfaceDataAttributes("Flakes UV")]
-            public Vector2  flakesUV;
+            [SurfaceDataAttributes("Flakes UV (or PlanarZY)")]
+            public Vector2  flakesUVZY;
+            [SurfaceDataAttributes("Flakes PlanarXZ")]
+            public Vector2  flakesUVXZ;
+            [SurfaceDataAttributes("Flakes PlanarXY")]
+            public Vector2  flakesUVXY;
 
-            [SurfaceDataAttributes("Flakes Mip")]
-            public float    flakesMipLevel;
+            [SurfaceDataAttributes("Flakes Mip (and for PlanarZY)")]
+            public float    flakesMipLevelZY;
+            [SurfaceDataAttributes("Flakes Mip for PlanarXZ")]
+            public float    flakesMipLevelXZ;
+            [SurfaceDataAttributes("Flakes Mip for PlanarXY")]
+            public float    flakesMipLevelXY;
+            [SurfaceDataAttributes("Flakes Triplanar Weights")]
+            public Vector3  flakesTriplanarWeights;
 
+            // if non null, we will prefer gradients (to be used statically only!)
+            [SurfaceDataAttributes("Flakes ddx (and for PlanarZY)")]
+            public Vector2  flakesDdxZY;
+            [SurfaceDataAttributes("Flakes ddy (and for PlanarZY)")]
+            public Vector2  flakesDdyZY;
+            [SurfaceDataAttributes("Flakes ddx for PlanarXZ")]
+            public Vector2  flakesDdxXZ;
+            [SurfaceDataAttributes("Flakes ddy for PlanarXZ")]
+            public Vector2  flakesDdyXZ;
+            [SurfaceDataAttributes("Flakes ddx for PlanarXY")]
+            public Vector2  flakesDdxXY;
+            [SurfaceDataAttributes("Flakes ddy for PlanarXY")]
+            public Vector2  flakesDdyXY;
             // BTF Variables
 
             // Clearcoat
@@ -127,11 +150,19 @@ namespace UnityEngine.Rendering.HighDefinition
             public float    height_mm;
 
             // Car Paint Variables
-            [SurfaceDataAttributes("")]
-            public Vector2  flakesUV;
-
-            [SurfaceDataAttributes("Flakes Mip")]
-            public float    flakesMipLevel;
+            public Vector2  flakesUVZY;
+            public Vector2  flakesUVXZ;
+            public Vector2  flakesUVXY;
+            public float    flakesMipLevelZY;
+            public float    flakesMipLevelXZ;
+            public float    flakesMipLevelXY;
+            public Vector3  flakesTriplanarWeights;
+            public Vector2  flakesDdxZY; // if non null, we will prefer gradients (to be used statically only!)
+            public Vector2  flakesDdyZY;
+            public Vector2  flakesDdxXZ;
+            public Vector2  flakesDdyXZ;
+            public Vector2  flakesDdxXY;
+            public Vector2  flakesDdyXY;
 
             // BTF Variables
 

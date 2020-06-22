@@ -13,6 +13,8 @@ using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.ShaderGraph.Serialization;
 using Edge = UnityEditor.Graphing.Edge;
 
+using UnityEngine.UIElements;
+
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
@@ -21,7 +23,7 @@ namespace UnityEditor.ShaderGraph
     [FormerName("UnityEditor.ShaderGraph.AbstractMaterialGraph")]
     sealed partial class GraphData : JsonObject
     {
-        const int k_CurrentVersion = 1;
+        const int k_CurrentVersion = 2;
 
         [SerializeField]
         int m_Version;
@@ -64,6 +66,10 @@ namespace UnityEditor.ShaderGraph
             get { return m_MovedInputs; }
         }
 
+        [NonSerialized]
+        bool m_MovedContexts = false;
+        public bool movedContexts => m_MovedContexts;
+
         public string assetGuid { get; set; }
 
         #endregion
@@ -75,6 +81,9 @@ namespace UnityEditor.ShaderGraph
 
         [NonSerialized]
         Dictionary<string, AbstractMaterialNode> m_NodeDictionary = new Dictionary<string, AbstractMaterialNode>();
+
+        [NonSerialized]
+        Dictionary<string, AbstractMaterialNode> m_LegacyUpdateDictionary = new Dictionary<string, AbstractMaterialNode>();
 
         public IEnumerable<T> GetNodes<T>()
         {
@@ -218,6 +227,26 @@ namespace UnityEditor.ShaderGraph
 
         #endregion
 
+        #region Context Data
+
+        [SerializeField]
+        ContextData m_VertexContext;
+
+        [SerializeField]
+        ContextData m_FragmentContext;
+
+        // We build this once and cache it as it uses reflection
+        // This list is used to build the Create Node menu entries for Blocks
+        // as well as when deserializing descriptor fields on serialized Blocks
+        [NonSerialized]
+        List<BlockFieldDescriptor> m_BlockFieldDescriptors;
+
+        public ContextData vertexContext => m_VertexContext;
+        public ContextData fragmentContext => m_FragmentContext;
+        public List<BlockFieldDescriptor> blockFieldDescriptors => m_BlockFieldDescriptors;
+
+        #endregion
+
         [SerializeField]
         InspectorPreviewData m_PreviewData = new InspectorPreviewData();
 
@@ -264,21 +293,151 @@ namespace UnityEditor.ShaderGraph
             set => m_OutputNode = value;
         }
 
+        internal delegate void SaveGraphDelegate(Shader shader, object context);
+        internal static SaveGraphDelegate onSaveGraph;
+
         #region Targets
+        [SerializeField]
+        List<JsonData<Target>> m_ActiveTargets = new List<JsonData<Target>>();
+
         [NonSerialized]
         List<Target> m_ValidTargets = new List<Target>();
 
+        [NonSerialized]
+        List<Target> m_UnsupportedTargets = new List<Target>();
+
+        public List<Target> unsupportedTargets { get => m_UnsupportedTargets; }
+
+        int m_ActiveTargetBitmask;
+        public int activeTargetBitmask
+        {
+            get => m_ActiveTargetBitmask;
+            set => m_ActiveTargetBitmask = value;
+        }
+
         public List<Target> validTargets => m_ValidTargets;
+        public DataValueEnumerable<Target> activeTargets => m_ActiveTargets.SelectValue();
+
+        // TODO: Need a better way to handle this
+        public bool isVFXTarget => !isSubGraph && activeTargets.Count() > 0 && activeTargets.ElementAt(0).GetType() == typeof(VFXTarget);
         #endregion
 
-        public bool didActiveOutputNodeChange { get; set; }
-
-        internal delegate void SaveGraphDelegate(Shader shader, object context);
-        internal static SaveGraphDelegate onSaveGraph;
+        private Comparison<Target> targetComparison = new Comparison<Target>((a, b) => string.Compare(a.displayName, b.displayName));
 
         public GraphData()
         {
             m_GroupItems[null] = new List<IGroupItem>();
+            GetBlockFieldDescriptors();
+            GetTargets();
+        }
+
+        public void InitializeOutputs(Target[] targets, BlockFieldDescriptor[] blockDescriptors)
+        {
+            if(targets == null)
+                return;
+
+            foreach(var target in targets)
+            {
+                if(m_ValidTargets.Any(x => x.GetType().Equals(target.GetType())))
+                {
+                    m_ActiveTargets.Add(target);
+                }
+            }
+
+            if(blockDescriptors != null)
+            {
+                foreach(var descriptor in blockDescriptors)
+                {
+                    var contextData = descriptor.shaderStage == ShaderStage.Fragment ? m_FragmentContext : m_VertexContext;
+                    var block = (BlockNode)Activator.CreateInstance(typeof(BlockNode));
+                    block.Init(descriptor);
+                    AddBlockNoValidate(block, contextData, contextData.blocks.Count);
+                }
+            }
+
+            ValidateGraph();
+            var activeBlocks = GetActiveBlocksForAllActiveTargets();
+            UpdateActiveBlocks(activeBlocks);
+        }
+
+        void GetBlockFieldDescriptors()
+        {
+            m_BlockFieldDescriptors = new List<BlockFieldDescriptor>();
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (var nestedType in assembly.GetTypes().SelectMany(t => t.GetNestedTypes()))
+                {
+                    var attrs = nestedType.GetCustomAttributes(typeof(GenerateBlocksAttribute), false);
+                    if (attrs == null || attrs.Length <= 0)
+                        continue;
+
+                    var attribute = attrs[0] as GenerateBlocksAttribute;
+
+                    // Get all fields that are BlockFieldDescriptor
+                    // If field and context stages match add to list
+                    foreach (var fieldInfo in nestedType.GetFields())
+                    {
+                        if(fieldInfo.GetValue(nestedType) is BlockFieldDescriptor blockFieldDescriptor)
+                        {
+                            blockFieldDescriptor.path = attribute.path;
+                            m_BlockFieldDescriptors.Add(blockFieldDescriptor);
+                        }
+                    }
+                }
+            }
+        }
+
+        void GetTargets()
+        {
+            // Find all valid Targets
+            var typeCollection = TypeCache.GetTypesDerivedFrom<Target>();
+            foreach(var type in typeCollection)
+            {
+                if(type.IsAbstract || type.IsGenericType || !type.IsClass)
+                    continue;
+
+                var target = (Target)Activator.CreateInstance(type);
+                if(!target.isHidden)
+                {
+                    m_ValidTargets.Add(target);
+                }
+            }
+        }
+
+        public void UpdateActiveTargets(bool reevaluateActivity = true)
+        {
+            // Update active TargetImplementation list
+            if(m_ActiveTargets != null)
+            {
+                m_ActiveTargets.Clear();
+                var invalidTargetsToRemove = ListPool<Target>.Get();
+                var targetCount = m_ValidTargets.Count;
+                for(int i = 0; i < targetCount; i++)
+                {
+                    if(((1 << i) & m_ActiveTargetBitmask) == (1 << i))
+                    {
+                        m_ActiveTargets.Add(m_ValidTargets[i]);
+                    }
+                    //if we no longer have an unknown target as active, remove it
+                    else if(m_ValidTargets[i] is MultiJsonInternal.UnknownTargetType)
+                    {
+                        invalidTargetsToRemove.Add(m_ValidTargets[i]);
+                    }
+                }
+
+                foreach(var invalidTarget in invalidTargetsToRemove)
+                {
+                    m_ValidTargets.Remove(invalidTarget);
+                }
+                ListPool<Target>.Release(invalidTargetsToRemove);
+            }
+            if (reevaluateActivity)
+            {
+                ValidateGraph();
+                NodeUtils.ReevaluateActivityOfNodeList(m_Nodes.SelectValue());
+            }
+            //deal with the fact that target order might switch if unknown targets are collected
+            activeTargets.Sort(targetComparison);
         }
 
         public void ClearChanges()
@@ -299,7 +458,7 @@ namespace UnityEditor.ShaderGraph
             m_RemovedNotes.Clear();
             m_PastedStickyNotes.Clear();
             m_MostRecentlyCreatedGroup = null;
-            didActiveOutputNodeChange = false;
+            m_MovedContexts = false;
         }
 
         public void AddNode(AbstractMaterialNode node)
@@ -433,6 +592,139 @@ namespace UnityEditor.ShaderGraph
             m_ParentGroupChanges.Add(groupChange);
         }
 
+        public void AddContexts()
+        {
+            m_VertexContext = new ContextData();
+            m_VertexContext.shaderStage = ShaderStage.Vertex;
+            m_VertexContext.position = new Vector2(0, 0);
+            m_FragmentContext = new ContextData();
+            m_FragmentContext.shaderStage = ShaderStage.Fragment;
+            m_FragmentContext.position = new Vector2(0, 200);
+        }
+
+        public void AddBlock(BlockNode blockNode, ContextData contextData, int index)
+        {
+            AddBlockNoValidate(blockNode, contextData, index);
+            ValidateGraph();
+
+            var activeBlocks = GetActiveBlocksForAllActiveTargets();
+            UpdateActiveBlocks(activeBlocks);
+        }
+
+        void AddBlockNoValidate(BlockNode blockNode, ContextData contextData, int index)
+        {
+            // Regular AddNode path
+            AddNodeNoValidate(blockNode);
+
+            // Set BlockNode properties
+            blockNode.contextData = contextData;
+
+            // Add to ContextData
+            if(index == -1 || index >= contextData.blocks.Count())
+            {
+                contextData.blocks.Add(blockNode);
+            }
+            else
+            {
+                contextData.blocks.Insert(index, blockNode);
+            }
+        }
+
+        public List<BlockFieldDescriptor> GetActiveBlocksForAllActiveTargets()
+        {
+            // Get list of active Block types
+            var currentBlocks = GetNodes<BlockNode>();
+            var context = new TargetActiveBlockContext(currentBlocks.Select(x => x.descriptor).ToList(), null);
+            foreach(var target in activeTargets)
+            {
+                target.GetActiveBlocks(ref context);
+            }
+
+            return context.activeBlocks;
+        }
+
+        public void UpdateActiveBlocks(List<BlockFieldDescriptor> activeBlockDescriptors)
+        {
+            // Set Blocks as active based on supported Block list
+            //Note: we never want unknown blocks to be active, so explicitly set them to inactive always
+            foreach(var vertexBlock in vertexContext.blocks)
+            {
+                if (vertexBlock.value?.descriptor?.isUnknown == true)
+                {
+                    vertexBlock.value.SetOverrideActiveState(AbstractMaterialNode.ActiveState.ExplicitInactive);
+                }
+                else
+                {
+                    vertexBlock.value.SetOverrideActiveState(activeBlockDescriptors.Contains(vertexBlock.value.descriptor) ? AbstractMaterialNode.ActiveState.ExplicitActive
+                                                                                                                           : AbstractMaterialNode.ActiveState.ExplicitInactive);
+                }
+            }
+            foreach(var fragmentBlock in fragmentContext.blocks)
+            {
+                if (fragmentBlock.value?.descriptor?.isUnknown == true)
+                {
+                    fragmentBlock.value.SetOverrideActiveState(AbstractMaterialNode.ActiveState.ExplicitInactive);
+                }
+                else
+                {
+                    fragmentBlock.value.SetOverrideActiveState(activeBlockDescriptors.Contains(fragmentBlock.value.descriptor) ? AbstractMaterialNode.ActiveState.ExplicitActive
+                                                                                                                               : AbstractMaterialNode.ActiveState.ExplicitInactive);
+                }
+            }
+        }
+
+        public void AddRemoveBlocksFromActiveList(List<BlockFieldDescriptor> activeBlockDescriptors)
+        {
+            var blocksToRemove = ListPool<BlockNode>.Get();
+
+            void GetBlocksToRemoveForContext(ContextData contextData)
+            {
+                for(int i = 0; i < contextData.blocks.Count; i++)
+                {
+                    var block = contextData.blocks[i];
+                    if(!activeBlockDescriptors.Contains(block.value.descriptor))
+                    {
+                        var slot = block.value.FindSlot<MaterialSlot>(0);
+                        //Need to check if a slot is not default value OR is an untracked unknown block type
+                        if(slot.IsUsingDefaultValue() || block.value.descriptor.isUnknown) // TODO: How to check default value
+                        {
+                            blocksToRemove.Add(block);
+                        }
+                    }
+                }
+            }
+
+            void TryAddBlockToContext(BlockFieldDescriptor descriptor, ContextData contextData)
+            {
+                if(descriptor.shaderStage != contextData.shaderStage)
+                    return;
+
+                if(contextData.blocks.Any(x => x.value.descriptor.Equals(descriptor)))
+                    return;
+
+                var node = (BlockNode)Activator.CreateInstance(typeof(BlockNode));
+                node.Init(descriptor);
+                AddBlockNoValidate(node, contextData, contextData.blocks.Count);
+            }
+
+            // Get inactive Blocks to remove
+            GetBlocksToRemoveForContext(vertexContext);
+            GetBlocksToRemoveForContext(fragmentContext);
+
+            // Remove blocks
+            foreach(var block in blocksToRemove)
+            {
+                RemoveNodeNoValidate(block);
+            }
+
+            // Add active Blocks not currently in Contexts
+            foreach(var descriptor in activeBlockDescriptors)
+            {
+                TryAddBlockToContext(descriptor, vertexContext);
+                TryAddBlockToContext(descriptor, fragmentContext);
+            }
+        }
+
         void AddNodeNoValidate(AbstractMaterialNode node)
         {
             if (node.group !=null && !m_GroupItems.ContainsKey(node.group))
@@ -454,6 +746,13 @@ namespace UnityEditor.ShaderGraph
             }
             RemoveNodeNoValidate(node);
             ValidateGraph();
+
+            if(node is BlockNode blockNode)
+            {
+                var activeBlocks = GetActiveBlocksForAllActiveTargets();
+                UpdateActiveBlocks(activeBlocks);
+                blockNode.Dirty(ModificationScope.Graph);
+            }
         }
 
         void RemoveNodeNoValidate(AbstractMaterialNode node)
@@ -471,6 +770,12 @@ namespace UnityEditor.ShaderGraph
             if (m_GroupItems.TryGetValue(node.group, out var groupItems))
             {
                 groupItems.Remove(node);
+            }
+
+            if(node is BlockNode blockNode && blockNode.contextData != null)
+            {
+                // Remove from ContextData
+                blockNode.contextData.blocks.Remove(blockNode);
             }
         }
 
@@ -529,6 +834,7 @@ namespace UnityEditor.ShaderGraph
             m_Edges.Add(newEdge);
             m_AddedEdges.Add(newEdge);
             AddEdgeToNodeEdges(newEdge);
+            NodeUtils.ReevaluateActivityOfConnectedNodes(toNode);
 
             //Debug.LogFormat("Connected edge: {0} -> {1} ({2} -> {3})\n{4}", newEdge.outputSlot.nodeGuid, newEdge.inputSlot.nodeGuid, fromNode.name, toNode.name, Environment.StackTrace);
             return newEdge;
@@ -592,24 +898,64 @@ namespace UnityEditor.ShaderGraph
             }
 
             ValidateGraph();
+
+            if(nodes.Any(x => x is BlockNode))
+            {
+                var activeBlocks = GetActiveBlocksForAllActiveTargets();
+                UpdateActiveBlocks(activeBlocks);
+            }
         }
 
-        void RemoveEdgeNoValidate(IEdge e)
+        void RemoveEdgeNoValidate(IEdge e, bool reevaluateActivity = true)
         {
             e = m_Edges.FirstOrDefault(x => x.Equals(e));
             if (e == null)
                 throw new ArgumentException("Trying to remove an edge that does not exist.", "e");
             m_Edges.Remove(e as Edge);
 
+            BlockNode b = null;
+            AbstractMaterialNode input = e.inputSlot.node, output = e.outputSlot.node;
+            if(input != null && ShaderGraphPreferences.autoAddRemoveBlocks)
+            {
+                b = input as BlockNode;
+            }
+
             List<IEdge> inputNodeEdges;
-            if (m_NodeEdges.TryGetValue(e.inputSlot.node.objectId, out inputNodeEdges))
+            if (m_NodeEdges.TryGetValue(input.objectId, out inputNodeEdges))
                 inputNodeEdges.Remove(e);
 
             List<IEdge> outputNodeEdges;
-            if (m_NodeEdges.TryGetValue(e.outputSlot.node.objectId, out outputNodeEdges))
+            if (m_NodeEdges.TryGetValue(output.objectId, out outputNodeEdges))
                 outputNodeEdges.Remove(e);
 
             m_RemovedEdges.Add(e);
+            if(b != null)
+            {
+                var activeBlockDescriptors = GetActiveBlocksForAllActiveTargets();
+                if(!activeBlockDescriptors.Contains(b.descriptor))
+                {
+                    var slot = b.FindSlot<MaterialSlot>(0);
+                    if(slot.IsUsingDefaultValue()) // TODO: How to check default value
+                    {
+                        RemoveNodeNoValidate(b);
+                        input = null;
+                    }
+                }
+            }
+
+            if (reevaluateActivity)
+            {
+                if (input != null)
+                {
+                    NodeUtils.ReevaluateActivityOfConnectedNodes(input);
+                }
+
+                if (output != null)
+                {
+                    NodeUtils.ReevaluateActivityOfConnectedNodes(output);
+                }
+            }
+
         }
 
         public AbstractMaterialNode GetNodeFromId(string nodeId)
@@ -626,6 +972,9 @@ namespace UnityEditor.ShaderGraph
 
         public bool ContainsNode(AbstractMaterialNode node)
         {
+            if(node == null)
+                return false;
+
             return m_NodeDictionary.TryGetValue(node.objectId, out var foundNode) && node == foundNode;
         }
 
@@ -964,7 +1313,7 @@ namespace UnityEditor.ShaderGraph
                     || inputSlot == null)
                 {
                     //orphaned edge
-                    RemoveEdgeNoValidate(edge);
+                    RemoveEdgeNoValidate(edge, false);
                 }
             }
         }
@@ -1030,6 +1379,14 @@ namespace UnityEditor.ShaderGraph
 
             concretePrecision = other.concretePrecision;
             m_OutputNode = other.m_OutputNode;
+
+            if ((this.vertexContext.position != other.vertexContext.position) ||
+                (this.fragmentContext.position != other.fragmentContext.position))
+            {
+                this.vertexContext.position = other.vertexContext.position;
+                this.fragmentContext.position = other.fragmentContext.position;
+                m_MovedContexts = true;
+            }
 
             using (var inputsToRemove = PooledList<ShaderInput>.Get())
             {
@@ -1101,7 +1458,17 @@ namespace UnityEditor.ShaderGraph
             }
 
             foreach (var node in other.GetNodes<AbstractMaterialNode>())
-                AddNodeNoValidate(node);
+            {
+                if(node is BlockNode blockNode)
+                {
+                    var contextData = blockNode.descriptor.shaderStage == ShaderStage.Vertex ? vertexContext : fragmentContext;
+                    AddBlockNoValidate(blockNode, contextData, blockNode.index);
+                }
+                else
+                {
+                    AddNodeNoValidate(node);
+                }
+            }
 
             foreach (var edge in other.edges)
             {
@@ -1110,6 +1477,19 @@ namespace UnityEditor.ShaderGraph
 
             outputNode = other.outputNode;
 
+            // Copy all targets
+            m_ActiveTargets.Clear();
+            foreach(var target in other.activeTargets)
+            {
+                // Ensure target inits correctly
+                var context = new TargetSetupContext();
+                target.Setup(ref context);
+                m_ActiveTargets.Add(target);
+            }
+
+            // Active blocks
+            var activeBlocks = GetActiveBlocksForAllActiveTargets();
+            UpdateActiveBlocks(activeBlocks);
             ValidateGraph();
         }
 
@@ -1151,6 +1531,11 @@ namespace UnityEditor.ShaderGraph
             var nodeList = graphToPaste.GetNodes<AbstractMaterialNode>();
             foreach (var node in nodeList)
             {
+                if(node is BlockNode blockNode)
+                {
+                    continue;
+                }
+
                 AbstractMaterialNode pastedNode = node;
 
                 // Check if the property nodes need to be made into a concrete node.
@@ -1249,18 +1634,36 @@ namespace UnityEditor.ShaderGraph
             m_Version = k_CurrentVersion;
         }
 
-        static JsonObject DeserializeLegacy(string typeString, string json)
+        static T DeserializeLegacy<T>(string typeString, string json) where T : JsonObject
         {
-            var value = MultiJsonInternal.CreateInstance(typeString);
+            var jsonObj = MultiJsonInternal.CreateInstance(typeString);
+            var value = jsonObj as T;
             if (value == null)
             {
                 Debug.Log($"Cannot create instance for {typeString}");
                 return null;
             }
-
             MultiJsonInternal.Enqueue(value, json);
+            return value as T;
+        }
 
-            return value;
+        static AbstractMaterialNode DeserializeLegacy(string typeString, string json)
+        {
+            var jsonObj = MultiJsonInternal.CreateInstance(typeString);
+            var value = jsonObj as AbstractMaterialNode;
+            if (value == null)
+            {
+                //Special case - want to support nodes of unknwon type for cross pipeline compatability 
+                value = new LegacyUnknownTypeNode(typeString, json);
+                MultiJsonInternal.Enqueue(value, json);
+                return value as AbstractMaterialNode;
+            }
+            else
+            {
+                MultiJsonInternal.Enqueue(value, json);
+                return value as AbstractMaterialNode;
+            }
+
         }
 
         public override void OnAfterDeserialize(string json)
@@ -1297,7 +1700,7 @@ namespace UnityEditor.ShaderGraph
 
                 foreach (var serializedProperty in graphData0.m_SerializedProperties)
                 {
-                    var property = (AbstractShaderProperty)DeserializeLegacy(serializedProperty.typeInfo.fullName, serializedProperty.JSONnodeData);
+                    var property = DeserializeLegacy<AbstractShaderProperty>(serializedProperty.typeInfo.fullName, serializedProperty.JSONnodeData);
                     if (property == null)
                     {
                         continue;
@@ -1327,7 +1730,7 @@ namespace UnityEditor.ShaderGraph
 
                 foreach (var serializedKeyword in graphData0.m_SerializedKeywords)
                 {
-                    var keyword = (ShaderKeyword)DeserializeLegacy(serializedKeyword.typeInfo.fullName, serializedKeyword.JSONnodeData);
+                    var keyword = DeserializeLegacy<ShaderKeyword>(serializedKeyword.typeInfo.fullName, serializedKeyword.JSONnodeData);
                     if (keyword == null)
                     {
                         continue;
@@ -1343,7 +1746,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     var node0 = JsonUtility.FromJson<AbstractMaterialNode0>(serializedNode.JSONnodeData);
 
-                    var node = (AbstractMaterialNode)DeserializeLegacy(serializedNode.typeInfo.fullName, serializedNode.JSONnodeData);
+                    var node = DeserializeLegacy(serializedNode.typeInfo.fullName, serializedNode.JSONnodeData);
                     if (node == null)
                     {
                         continue;
@@ -1367,7 +1770,7 @@ namespace UnityEditor.ShaderGraph
 
                     foreach (var serializedSlot in node0.m_SerializableSlots)
                     {
-                        var slot = (MaterialSlot)DeserializeLegacy(serializedSlot.typeInfo.fullName, serializedSlot.JSONnodeData);
+                        var slot = DeserializeLegacy<MaterialSlot>(serializedSlot.typeInfo.fullName, serializedSlot.JSONnodeData);
                         if (slot == null)
                         {
                             continue;
@@ -1413,7 +1816,7 @@ namespace UnityEditor.ShaderGraph
                 }
                 else
                 {
-                    m_OutputNode = (AbstractMaterialNode)GetNodes<IMasterNode>().FirstOrDefault();
+                    m_OutputNode = (AbstractMaterialNode)GetNodes<IMasterNode1>().FirstOrDefault();
                 }
 
                 foreach (var serializedElement in graphData0.m_SerializableEdges)
@@ -1429,11 +1832,160 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            m_Version = k_CurrentVersion;
+
+            // In V2 we need to defer version set to in OnAfterMultiDeserialize
+            // This is because we need access to m_OutputNode to convert it to Targets and Stacks
+            // The JsonObject will not be fully deserialized until OnAfterMultiDeserialize
+            bool deferredUpgrades = m_Version < 2;
+            if(!deferredUpgrades)
+            {
+                m_Version = k_CurrentVersion;
+            }
         }
 
         public override void OnAfterMultiDeserialize(string json)
         {
+            // Deferred upgrades
+            if(m_Version != k_CurrentVersion)
+            {
+                if(m_Version < 2)
+                {
+                    var addedBlocks = ListPool<BlockFieldDescriptor>.Get();
+
+                    void UpgradeFromBlockMap(Dictionary<BlockFieldDescriptor, int> blockMap)
+                    {
+                        // Map master node ports to blocks
+                        if(blockMap != null)
+                        {
+                            foreach(var blockMapping in blockMap)
+                            {
+                                // Create a new BlockNode for each unique map entry
+                                var descriptor = blockMapping.Key;
+                                if(addedBlocks.Contains(descriptor))
+                                    continue;
+
+                                addedBlocks.Add(descriptor);
+
+                                var contextData = descriptor.shaderStage == ShaderStage.Fragment ? m_FragmentContext : m_VertexContext;
+                                var block = (BlockNode)Activator.CreateInstance(typeof(BlockNode));
+                                block.Init(descriptor);
+                                AddBlockNoValidate(block, contextData, contextData.blocks.Count);
+
+                                // To avoid having to go around the following deserialization code
+                                // We simply run OnBeforeSerialization here to ensure m_SerializedDescriptor is set
+                                block.OnBeforeSerialize();
+
+                                // Now remap the incoming edges to blocks
+                                var slotId = blockMapping.Value;
+                                var oldSlot = m_OutputNode.value.FindSlot<MaterialSlot>(slotId);
+                                var newSlot = block.FindSlot<MaterialSlot>(0);
+                                if(oldSlot == null)
+                                    continue;
+
+                                var oldInputSlotRef = m_OutputNode.value.GetSlotReference(slotId);
+                                var newInputSlotRef = block.GetSlotReference(0);
+
+                                // Always copy the value over for convenience
+                                newSlot.CopyValuesFrom(oldSlot);
+
+                                for(int i = 0; i < m_Edges.Count; i++)
+                                {
+                                    // Find all edges connected to the master node using slot ID from the block map
+                                    // Remove them and replace them with new edges connected to the block nodes
+                                    var edge = m_Edges[i];
+                                    if(edge.inputSlot.Equals(oldInputSlotRef))
+                                    {
+                                        var outputSlot = edge.outputSlot;
+                                        m_Edges.Remove(edge);
+                                        m_Edges.Add(new Edge(outputSlot, newInputSlotRef));
+                                    }
+                                }
+                            }
+
+                            // We need to call AddBlockNoValidate but this adds to m_AddedNodes resulting in duplicates
+                            // Therefore we need to clear this list before the view is created
+                            m_AddedNodes.Clear();
+                        }
+                    }
+
+                    var masterNode = m_OutputNode.value as IMasterNode1;
+
+                    // This is required for edge lookup during Target upgrade
+                    if (m_OutputNode.value != null)
+                    {
+                        m_OutputNode.value.owner = this;
+                    }
+                    foreach (var edge in m_Edges)
+                    {
+                        AddEdgeToNodeEdges(edge);
+                    }
+
+                    // Ensure correct initialization of Contexts
+                    AddContexts();
+
+                    // Position Contexts to the match master node
+                    var oldPosition = Vector2.zero;
+                    if (m_OutputNode.value != null)
+                    {
+                        oldPosition = m_OutputNode.value.drawState.position.position;
+                    }
+                    m_VertexContext.position = oldPosition;
+                    m_FragmentContext.position = new Vector2(oldPosition.x, oldPosition.y + 200);
+
+                    // Try to upgrade all valid targets from master node
+                    // On ShaderGraph side we dont know what Targets exist so make no assumptions
+                    if(masterNode != null)
+                    {
+                        foreach(var target in m_ValidTargets)
+                        {
+                            if(!(target is ILegacyTarget legacyTarget))
+                                continue;
+
+                            if(!legacyTarget.TryUpgradeFromMasterNode(masterNode, out var newBlockMap))
+                                continue;
+
+                            m_ActiveTargets.Add(target);
+                            UpgradeFromBlockMap(newBlockMap);
+                        }
+                    }
+
+                    // Clean up after upgrade
+                    if(!isSubGraph)
+                    {
+                        m_OutputNode = null;
+                    }
+
+                    var masterNodes = GetNodes<IMasterNode1>().ToArray();
+                    for(int i = 0; i < masterNodes.Length; i++)
+                    {
+                        var node = masterNodes.ElementAt(i) as AbstractMaterialNode;
+                        m_Nodes.Remove(node);
+                    }
+
+                    m_NodeEdges.Clear();
+                }
+
+                m_Version = k_CurrentVersion;
+            }
+
+            PooledList<(LegacyUnknownTypeNode, AbstractMaterialNode)> updatedNodes = PooledList<(LegacyUnknownTypeNode,AbstractMaterialNode)>.Get();
+            foreach(var node in m_Nodes.SelectValue())
+            {
+                if(node is LegacyUnknownTypeNode lNode && lNode.foundType != null)
+                {
+                    AbstractMaterialNode legacyNode = (AbstractMaterialNode)Activator.CreateInstance(lNode.foundType);
+                    JsonUtility.FromJsonOverwrite(lNode.serializedData, legacyNode);
+                    legacyNode.group = lNode.group;
+                    updatedNodes.Add((lNode, legacyNode));
+                }
+            }
+            foreach(var nodePair in updatedNodes)
+            {
+                m_Nodes.Add(nodePair.Item2);
+                ReplaceNodeWithNode(nodePair.Item1, nodePair.Item2);
+            }
+            updatedNodes.Dispose();
+
             m_NodeDictionary = new Dictionary<string, AbstractMaterialNode>(m_Nodes.Count);
 
             foreach (var group in m_GroupDatas.SelectValue())
@@ -1445,6 +1997,7 @@ namespace UnityEditor.ShaderGraph
             {
                 node.owner = this;
                 node.UpdateNodeAfterDeserialization();
+                node.SetupSlots();
                 m_NodeDictionary.Add(node.objectId, node);
                 if (m_GroupItems.TryGetValue(node.group, out var groupItems))
                 {
@@ -1470,6 +2023,96 @@ namespace UnityEditor.ShaderGraph
 
             foreach (var edge in m_Edges)
                 AddEdgeToNodeEdges(edge);
+
+            // --------------------------------------------------
+            // Deserialize Contexts & Blocks
+
+            void DeserializeContextData(ContextData contextData, ShaderStage stage)
+            {
+                // Because Vertex/Fragment Contexts are serialized explicitly
+                // we do not need to serialize the Stage value on the ContextData
+                contextData.shaderStage = stage;
+
+                var blocks = contextData.blocks.SelectValue().ToList();
+                var blockCount = blocks.Count;
+                for(int i = 0; i < blockCount; i++)
+                {
+                    // Update NonSerialized data on the BlockNode
+                    var block = blocks[i];
+                    block.descriptor = m_BlockFieldDescriptors.FirstOrDefault(x => $"{x.tag}.{x.name}" == block.serializedDescriptor);
+                    if(block.descriptor == null)
+                    {
+                        //Hit a descriptor that was not recognized from the assembly (likely from a different SRP)
+                        //create a new entry for it and continue on
+                        if(string.IsNullOrEmpty(block.serializedDescriptor))
+                        {
+                            throw new Exception($"Block {block} had no serialized descriptor");
+                        }
+
+                        var tmp = block.serializedDescriptor.Split('.');
+                        if(tmp.Length != 2)
+                        {
+                            throw new Exception($"Block {block}'s serialized descriptor {block.serializedDescriptor} did not match expected format {{x.tag}}.{{x.name}}");
+                        }
+                        //right thing to do?
+                        block.descriptor = new BlockFieldDescriptor(tmp[0], tmp[1], null, null, stage, true, true);
+                        m_BlockFieldDescriptors.Add(block.descriptor);
+                    }
+                    block.contextData = contextData;
+                }
+            }
+
+            // First deserialize the ContextDatas
+            DeserializeContextData(m_VertexContext, ShaderStage.Vertex);
+            DeserializeContextData(m_FragmentContext, ShaderStage.Fragment);
+
+            foreach(var target in m_ActiveTargets.SelectValue())
+            {
+                //need to mark the target as valid just so other logic doesnt break
+                if(target.GetType() == typeof(MultiJsonInternal.UnknownTargetType))
+                {
+                    m_ValidTargets.Add(target);
+                }
+                var activeTargetCurrent = m_ValidTargets.FirstOrDefault(x => x.GetType() == target.GetType());
+                var targetIndex = m_ValidTargets.IndexOf(activeTargetCurrent);
+                m_ActiveTargetBitmask = m_ActiveTargetBitmask | (1 << targetIndex);
+                m_ValidTargets[targetIndex] = target;
+            }
+
+            UpdateActiveTargets(false);
+
+        }
+
+        private void ReplaceNodeWithNode(LegacyUnknownTypeNode nodeToReplace, AbstractMaterialNode nodeReplacement)
+        {
+            var oldSlots = new List<MaterialSlot>();
+            nodeToReplace.GetSlots(oldSlots);
+            var newSlots = new List<MaterialSlot>();
+            nodeReplacement.GetSlots(newSlots);
+
+            for(int i = 0; i < oldSlots.Count; i++)
+            {
+                newSlots[i].CopyValuesFrom(oldSlots[i]);
+                var oldSlotRef = nodeToReplace.GetSlotReference(oldSlots[i].id);
+                var newSlotRef = nodeReplacement.GetSlotReference(newSlots[i].id);
+
+                for(int x = 0; x < m_Edges.Count; x++)
+                {
+                    var edge = m_Edges[x];
+                    if (edge.inputSlot.Equals(oldSlotRef))
+                    {
+                        var outputSlot = edge.outputSlot;
+                        m_Edges.Remove(edge);
+                        m_Edges.Add(new Edge(outputSlot, newSlotRef));
+                    }
+                    else if (edge.outputSlot.Equals(oldSlotRef))
+                    {
+                        var inputSlot = edge.inputSlot;
+                        m_Edges.Remove(edge);
+                        m_Edges.Add(new Edge(newSlotRef, inputSlot));
+                    }
+                }
+            }
         }
 
         public void OnEnable()
@@ -1479,45 +2122,12 @@ namespace UnityEditor.ShaderGraph
                 node.OnEnable();
             }
 
-            UpdateTargets();
-
             ShaderGraphPreferences.onVariantLimitChanged += OnKeywordChanged;
         }
 
         public void OnDisable()
         {
             ShaderGraphPreferences.onVariantLimitChanged -= OnKeywordChanged;
-        }
-
-        public void UpdateTargets()
-        {
-            if(outputNode == null)
-                return;
-
-            // Clear current Targets
-            m_ValidTargets.Clear();
-
-            // SubGraph Target is always PreviewTarget
-            if(outputNode is SubGraphOutputNode)
-            {
-                m_ValidTargets.Add(new PreviewTarget());
-                return;
-            }
-
-            // Find all valid Targets
-            var typeCollection = TypeCache.GetTypesDerivedFrom<Target>();
-            foreach(var type in typeCollection)
-            {
-                if(type.IsAbstract || type.IsGenericType || !type.IsClass)
-                    continue;
-
-                var masterNode = outputNode as IMasterNode;
-                var target = (Target)Activator.CreateInstance(type);
-                if(!target.isHidden && target.IsValid(masterNode))
-                {
-                    m_ValidTargets.Add(target);
-                }
-            }
         }
     }
 

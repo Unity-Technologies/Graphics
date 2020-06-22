@@ -2,6 +2,15 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    [GenerateHLSL]
+    // Define if we use SSGI, RTGI or none
+    enum IndirectDiffuseMode
+    {
+        Off,
+        ScreenSpace,
+        Raytrace
+    }
+
     public partial class HDRenderPipeline
     {
         // Buffers used for the evaluation
@@ -52,13 +61,21 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // This is shared between SSGI and RTGI
-        bool ValidIndirectDiffuseState(HDCamera hdCamera)
+        IndirectDiffuseMode GetIndirectDiffuseMode(HDCamera hdCamera)
         {
-            var settings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
-            return m_Asset.currentPlatformRenderPipelineSettings.supportSSGI
-                    && hdCamera.camera.cameraType != CameraType.Reflection
-                    && hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSGI)
-                    && settings.enable.value;
+            IndirectDiffuseMode mode = IndirectDiffuseMode.Off;
+
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSGI))
+            {
+                var settings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
+                if (settings.enable.value)
+                {
+                    // RTGI is only valid if raytracing is enabled
+                    bool raytracing = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value;
+                    mode = raytracing ? IndirectDiffuseMode.Raytrace : IndirectDiffuseMode.ScreenSpace;
+                }
+            }
+            return mode;
         }
 
         // Bind the indirect diffuse texture for the lightloop to read from it
@@ -68,7 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // If there is no SSGI, bind a black 1x1 texture
-        void BindBlackIndirectDiffuseTexture(CommandBuffer cmd)
+        static void BindBlackIndirectDiffuseTexture(CommandBuffer cmd)
         {
             cmd.SetGlobalTexture(HDShaderIDs._IndirectDiffuseTexture, TextureXR.GetBlackTexture());
         }

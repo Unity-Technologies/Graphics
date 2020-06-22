@@ -8,6 +8,7 @@ using UnityEngine.VFX;
 
 using Object = UnityEngine.Object;
 using System.Text.RegularExpressions;
+using System.Globalization;
 
 namespace UnityEditor.VFX
 {
@@ -418,9 +419,9 @@ namespace UnityEditor.VFX
             globalIncludeContent.WriteLine("#define VFX_PASSDEPTH_SELECTION (2)");
 
             foreach (var attribute in allCurrentAttributes)
-                globalIncludeContent.WriteLineFormat("#define VFX_USE_{0}_{1} 1", attribute.attrib.name.ToUpper(), "CURRENT");
+                globalIncludeContent.WriteLineFormat("#define VFX_USE_{0}_{1} 1", attribute.attrib.name.ToUpper(CultureInfo.InvariantCulture), "CURRENT");
             foreach (var attribute in allSourceAttributes)
-                globalIncludeContent.WriteLineFormat("#define VFX_USE_{0}_{1} 1", attribute.attrib.name.ToUpper(), "SOURCE");
+                globalIncludeContent.WriteLineFormat("#define VFX_USE_{0}_{1} 1", attribute.attrib.name.ToUpper(CultureInfo.InvariantCulture), "SOURCE");
 
             foreach (var additionnalHeader in context.additionalDataHeaders)
                 globalIncludeContent.WriteLine(additionnalHeader);
