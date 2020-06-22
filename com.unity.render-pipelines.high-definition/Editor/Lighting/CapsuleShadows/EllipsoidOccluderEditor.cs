@@ -24,8 +24,10 @@ namespace UnityEngine.Rendering.HighDefinition
             get
             {
                 if (k_Material == null || k_Material.Equals(null))
+                {
                     k_Material = new Material(Shader.Find("Hidden/UnlitTransparentColored"));
-                k_Material.color = new Color(127.0f/255.0f, 121.0f/255.0f, 156.0f/255.0f, 0.7f);
+                    k_Material.color = new Color(127.0f/255.0f, 121.0f/255.0f, 156.0f/255.0f, 0.7f);
+                }
                 return k_Material;
             }
         }
@@ -61,7 +63,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
             EditMode.DoInspectorToolbar(k_EditModes, k_ModesContent, GetBoundsGetter(this), this);
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+
             DrawDefaultInspector();
         }
 

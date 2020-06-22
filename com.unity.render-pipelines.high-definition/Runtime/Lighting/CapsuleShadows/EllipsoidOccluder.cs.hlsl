@@ -8,30 +8,9 @@
 // PackingRules = Exact
 struct EllipsoidOccluderData
 {
-    float3 position;
-    float radius;
-    float3 direction;
-    float scaling;
+    float4 positionRWS_radius;
+    float4 directionWS_scaling;
 };
 
-//
-// Accessors for UnityEngine.Rendering.HighDefinition.EllipsoidOccluderData
-//
-float3 GetPosition(EllipsoidOccluderData value)
-{
-    return value.position;
-}
-float GetRadius(EllipsoidOccluderData value)
-{
-    return value.radius;
-}
-float3 GetDirection(EllipsoidOccluderData value)
-{
-    return value.direction;
-}
-float GetScaling(EllipsoidOccluderData value)
-{
-    return value.scaling;
-}
 
 #endif

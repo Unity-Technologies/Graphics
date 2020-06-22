@@ -5,13 +5,11 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [GenerateHLSL]
+    [GenerateHLSL(needAccessors = false)]
     internal struct EllipsoidOccluderData
     {
-        public Vector3 position;
-        public float radius;
-        public Vector3 direction;
-        public float scaling;
+        public Vector4 positionRWS_radius;
+        public Vector4 directionWS_scaling;
     }
 
     /// <summary>

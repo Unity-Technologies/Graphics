@@ -15,6 +15,29 @@
 #define CAPSULE_OCCLUSION_SHADOW 3
 
 // --------------------------------------------
+// Occluder data helpers
+// --------------------------------------------
+float3 GetOccluderPositionRWS(EllipsoidOccluderData data)
+{
+    return data.positionRWS_radius.xyz;
+}
+
+float GetOccluderRadius(EllipsoidOccluderData data)
+{
+    return data.positionRWS_radius.w;
+}
+
+float3 GetOccluderDirectionWS(EllipsoidOccluderData data)
+{
+    return data.directionWS_scaling.xyz;
+}
+
+float GetOccluderScaling(EllipsoidOccluderData data)
+{
+    return data.directionWS_scaling.w;
+}
+
+// --------------------------------------------
 // Data preparation functions
 // --------------------------------------------
 float4 GetDataForSphereIntersection(EllipsoidOccluderData data)
