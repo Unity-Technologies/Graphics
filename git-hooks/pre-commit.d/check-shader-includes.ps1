@@ -23,7 +23,7 @@ function Get-CanonicalPath
     param($Path)
 
     if ($Path -is [string]) {
-        $Path = (Resolve-Path $Path).Path
+        $Path = (Resolve-Path $Path -erroraction 'silentlycontinue').Path 
     }
 
     $pathInfo = [System.IO.DirectoryInfo]$Path
@@ -107,9 +107,14 @@ function Find-MatchesInFile {
         foreach ($match in $searchResult.Matches) {
             $strippedFilePath = $match.Value.Replace("Packages/", "")
             $caseInsensitivePath = Join-Path $srpRoot $strippedFilePath
-            $caseSensitivePath = Get-CanonicalPath -Path "$caseInsensitivePath"
             [hashtable]$shaderIncludeProperty = @{}
             $shaderIncludeProperty.Add('PathToShader', $caseInsensitivePath)
+            try {
+                $caseSensitivePath = Get-CanonicalPath -Path "$caseInsensitivePath"
+            } catch {
+                $shaderIncludeProperty.Add('ShaderStatus', [ShaderStatus]::NotFound)
+                continue
+            }
             if (!($caseInsensitivePath -ceq $caseSensitivePath)) {
                 # Case sensitive-d path does not match case insensitive path on disk
                 $shaderIncludeProperty.Add('ShaderStatus', [ShaderStatus]::NotFound)
@@ -182,7 +187,7 @@ function Main
 }
 
 # Make sure we're still in the repository in case of custom powershell
-# configuration on the client. (e.g. profile.ps1 that cd's to as specific dir. at startup)
+# configuration on the client. (e.g. profile.ps1 that cd's to a specific dir. at startup)
 if ($null -ne $args[0]) {
     # If comming from the git hook, just take the argument sent by the shell script
     Set-Location -Path $args[0]
