@@ -12132,6 +12132,16 @@ PrefabInstance:
       propertyPath: ImageComparisonSettings.TargetHeight
       value: 729
       objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: renderGraphCompatible
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 704450088499825821, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: Metal
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
 --- !u!20 &2109746541 stripped
