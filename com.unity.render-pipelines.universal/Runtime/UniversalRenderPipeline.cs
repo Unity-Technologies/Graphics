@@ -131,28 +131,27 @@ namespace UnityEngine.Rendering.Universal
             CameraCaptureBridge.enabled = false;
         }
 
-
-        protected override void SubmitRenderRequests(ScriptableRenderContext context, Camera camera, List<Camera.RenderRequest> renderRequests)
+        protected override void ProcessRenderRequests(ScriptableRenderContext context, Camera camera, List<Camera.RenderRequest> renderRequests)
         {
             var cameraTarget = camera.targetTexture;
             foreach (var renderRequest in renderRequests)
             {
-                if (!renderRequest.isValid())
+                if (!renderRequest.isValid)
                     continue;
 
                 switch (renderRequest.mode)
                 {
-                    case Camera.RenderRequestModes.ObjectId:
+                    case Camera.RenderRequestMode.ObjectId:
                         Shader.EnableKeyword("RENDER_OBJECT_ID");
                         break;
-                    case Camera.RenderRequestModes.Depth:
+                    case Camera.RenderRequestMode.Depth:
                         break;
-                    case Camera.RenderRequestModes.Normals:
+                    case Camera.RenderRequestMode.Normals:
                         Shader.EnableKeyword("RENDER_NORMALS");
                         break;
-                    case Camera.RenderRequestModes.EntityId:
+                    case Camera.RenderRequestMode.EntityId:
                         break;
-                    case Camera.RenderRequestModes.WorldPosition:
+                    case Camera.RenderRequestMode.WorldPosition:
                         Shader.EnableKeyword("RENDER_WORLD_POS");
                         break;
                     default:
@@ -165,17 +164,17 @@ namespace UnityEngine.Rendering.Universal
 
                 switch (renderRequest.mode)
                 {
-                    case Camera.RenderRequestModes.ObjectId:
+                    case Camera.RenderRequestMode.ObjectId:
                         Shader.DisableKeyword("RENDER_OBJECT_ID");
                         break;
-                    case Camera.RenderRequestModes.Depth:
+                    case Camera.RenderRequestMode.Depth:
                         break;
-                    case Camera.RenderRequestModes.Normals:
+                    case Camera.RenderRequestMode.Normals:
                         Shader.DisableKeyword("RENDER_NORMALS");
                         break;
-                    case Camera.RenderRequestModes.EntityId:
+                    case Camera.RenderRequestMode.EntityId:
                         break;
-                    case Camera.RenderRequestModes.WorldPosition:
+                    case Camera.RenderRequestMode.WorldPosition:
                         Shader.DisableKeyword("RENDER_WORLD_POS");
                         break;
                     default:
