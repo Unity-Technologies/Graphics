@@ -66,6 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Area,
         Env,
         ProbeVolume,
+        SphereOccluder,
         Decal,
         DensityVolume, // WARNING: Currently lightlistbuild.compute assumes density volume is the last element in the LightCategory enum. Do not append new LightCategory types after DensityVolume. TODO: Fix .compute code.
         Count
