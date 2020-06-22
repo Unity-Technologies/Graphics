@@ -12,25 +12,12 @@ namespace UnityEngine.Rendering.HighDefinition
     [CustomEditor(typeof(EllipsoidOccluder))]
     public class EllipsoidOccluderEditor : Editor
     {
-        static Mesh sphere = null;
-        static Material k_Material = null;
+        static Color color = new Color(127.0f/255.0f, 121.0f/255.0f, 156.0f/255.0f, 0.7f);
 
         static EditMode.SceneViewEditMode[] k_EditModes = new EditMode.SceneViewEditMode[]{
             (EditMode.SceneViewEditMode)100, (EditMode.SceneViewEditMode)101, (EditMode.SceneViewEditMode)102
         };
         static GUIContent[] k_ModesContent;
-        Material material
-        {
-            get
-            {
-                if (k_Material == null || k_Material.Equals(null))
-                {
-                    k_Material = new Material(Shader.Find("Hidden/UnlitTransparentColored"));
-                    k_Material.color = new Color(127.0f/255.0f, 121.0f/255.0f, 156.0f/255.0f, 0.7f);
-                }
-                return k_Material;
-            }
-        }
 
         SerializedProperty center, radius, direction, scaling;
 
@@ -76,8 +63,18 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Transform tr = (target as MonoBehaviour).transform;
             Quaternion rot = Quaternion.Euler(direction.vector3Value);
-            Handles.matrix = Matrix4x4.TRS(tr.position + center.vector3Value, tr.rotation, Vector3.one);
 
+            Vector3 scalev = Vector3.one * radius.floatValue;
+            scalev.z *= scaling.floatValue;
+
+            Handles.color = color;
+            Handles.matrix = Matrix4x4.TRS(tr.position + center.vector3Value, tr.rotation * rot, scalev);
+            Handles.DrawWireDisc(Vector3.zero, Vector3.forward, 0.5f);
+            Handles.DrawWireDisc(Vector3.zero, Vector3.up, 0.5f);
+            Handles.DrawWireDisc(Vector3.zero, Vector3.right, 0.5f);
+
+            Handles.color = Color.white;
+            Handles.matrix = Matrix4x4.TRS(tr.position + center.vector3Value, tr.rotation, Vector3.one);
             serializedObject.Update();
 
             var mode = ArrayUtility.IndexOf(k_EditModes, EditMode.editMode);
@@ -111,16 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             serializedObject.ApplyModifiedProperties();
-
-            if (sphere == null)
-                sphere = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
-            material.SetPass(0);
-
-            GL.wireframe = true;
-            Vector3 scalev = Vector3.one * radius.floatValue;
-            scalev.z *= scaling.floatValue;
-            Graphics.DrawMeshNow(sphere, Matrix4x4.TRS(tr.position + center.vector3Value, tr.rotation * rot, scalev));
-            GL.wireframe = false;
+            Handles.matrix = Matrix4x4.identity;
         }
     }
 }
