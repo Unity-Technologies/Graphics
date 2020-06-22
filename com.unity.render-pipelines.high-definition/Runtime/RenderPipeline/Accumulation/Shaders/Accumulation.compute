@@ -44,6 +44,12 @@ void AddConvergenceCue(uint2 pixelCoord, uint sampleCount, inout float3 color)
 
 float GetSubPixelWeight(float2 offset, float2 filterSize)
 {
+    // Note: when using fractional filter widths some samples should contribute zero. 
+    if (any(abs(offset) > filterSize))
+    {
+        return 0.0f;
+    }
+
 #ifdef FILTER_GAUSSIAN
     offset *= 2.0f / filterSize;
     return exp(-2.0 * dot(offset, offset));
@@ -89,20 +95,25 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         float subFrameWeight = _AccumulationWeights.x;
         float4 accColor = sampleCount > 0 ? _AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)] : 0.0f;
 
-        // Gather contribution from all samples in the pixel's footprint
-        // TODO: This can be heavily optimized by using shader local storage
-        const float2 filterSize = _AccumulationWeights.yz;
-        for (int i = -filterSize.x + 1; i < filterSize.x; ++i)
+        // Gather the contribution from all samples in the footprint of the reconstruction kernel
+        // TODO: This loop can be easily optimized by using shader local storage
+        const float2 filterRadius = _AccumulationWeights.yz;
+
+        // Compute how many pixels we should traverse for the given radius: with a radius of 0.6, we already have to touch the neightboring pixels
+        int2 filterExtent = floor(filterRadius + 0.5f); 
+        for (int i = -filterExtent.x + 1; i < filterExtent.x; ++i)
         {
-            for (int j = -filterSize.y + 1; j < filterSize.y; ++j)
+            for (int j = -filterExtent.y + 1; j < filterExtent.y; ++j)
             {
                 int2 pixelCoords = currentPixelCoord + int2(i, j);
                 pixelCoords = clamp(pixelCoords, 0, _ScreenSize.xy - float2(1, 1));
 
                 float4 sampleColor = _RadianceTexture[COORD_TEXTURE2D_X(pixelCoords)];
                 float2 sampleOffset = UnpackFloat2(sampleColor.w);
-                float sampleWeight = GetSubPixelWeight(sampleOffset + float2(i, j) - float2(0.5f, 0.5f), 2 * filterSize);
-                sampleWeight *= subFrameWeight; // take into account motion blur (global subframe weights)
+                float sampleWeight = GetSubPixelWeight(sampleOffset + float2(i, j) - float2(0.5f, 0.5f), 2 * filterRadius);
+
+                // Also take into account motion blur (global subframe weights)
+                sampleWeight *= subFrameWeight;
 
                 float newAccWeight = accColor.w + sampleWeight;
 

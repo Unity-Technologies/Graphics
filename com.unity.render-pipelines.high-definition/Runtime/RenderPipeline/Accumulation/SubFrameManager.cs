@@ -298,7 +298,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Get the per-camera data
             int camID = hdCamera.camera.GetInstanceID();
-            Vector4 frameWeights = new Vector4(m_SubFrameManager.ComputeFrameWeight(camID), filterWidth, filterHeight, 0.0f);
+            Vector4 frameWeights = new Vector4(m_SubFrameManager.ComputeFrameWeight(camID), filterWidth / 2.0f, filterHeight / 2.0f, 0.0f);
             CameraData camData = m_SubFrameManager.GetCameraData(camID);
 
             // Accumulate the path tracing results
