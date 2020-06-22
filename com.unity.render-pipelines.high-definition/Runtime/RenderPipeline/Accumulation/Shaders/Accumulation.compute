@@ -102,7 +102,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
                 float4 sampleColor = _RadianceTexture[COORD_TEXTURE2D_X(pixelCoords)];
                 float2 sampleOffset = UnpackFloat2(sampleColor.w);
                 float sampleWeight = GetSubPixelWeight(sampleOffset + float2(i, j) - float2(0.5f, 0.5f), 2 * filterSize);
-                sampleWeight *= subFrameWeight; // take inbto account motion blur (global subframe weights)
+                sampleWeight *= subFrameWeight; // take into account motion blur (global subframe weights)
 
                 float newAccWeight = accColor.w + sampleWeight;
 

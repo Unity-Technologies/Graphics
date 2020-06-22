@@ -266,14 +266,27 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SubFrameManager.PrepareNewSubFrame();
         }
 
-        void RenderAccumulation(HDCamera hdCamera, CommandBuffer cmd, RTHandle inputTexture, RTHandle outputTexture, bool needsExposure = false)
+        void RenderAccumulation(HDCamera hdCamera, CommandBuffer cmd, RTHandle inputTexture, RTHandle outputTexture, bool needsExposure = false, ReconstructionFilter filter = ReconstructionFilter.Box, float filterWidth = 1, float filterHeight = 1)
         {
             ComputeShader accumulationShader = m_Asset.renderPipelineResources.shaders.accumulationCS;
             accumulationShader.shaderKeywords = null;
 
             // Pick a reconstruction filter
-            accumulationShader.EnableKeyword("FILTER_GAUSSIAN");
-            //accumulationShader.EnableKeyword("FILTER_BOX"); 
+            switch (filter)
+            {
+                case ReconstructionFilter.Box:
+                    accumulationShader.EnableKeyword("FILTER_BOX");
+                    break;
+                case ReconstructionFilter.Triangle:
+                    accumulationShader.EnableKeyword("FILTER_TRIANGLE");
+                    break;
+                case ReconstructionFilter.Gaussian:
+                    accumulationShader.EnableKeyword("FILTER_GAUSSIAN");
+                    break;
+                case ReconstructionFilter.CatmullRom:
+                    accumulationShader.EnableKeyword("FILTER_CATMULLROM");
+                    break;
+            }
 
             // Grab the history buffer (hijack the reflections one)
             RTHandle history = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing)
@@ -285,7 +298,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Get the per-camera data
             int camID = hdCamera.camera.GetInstanceID();
-            Vector4 frameWeights = new Vector4(m_SubFrameManager.ComputeFrameWeight(camID), 2.0f, 2.0f, 0.0f);
+            Vector4 frameWeights = new Vector4(m_SubFrameManager.ComputeFrameWeight(camID), filterWidth, filterHeight, 0.0f);
             CameraData camData = m_SubFrameManager.GetCameraData(camID);
 
             // Accumulate the path tracing results

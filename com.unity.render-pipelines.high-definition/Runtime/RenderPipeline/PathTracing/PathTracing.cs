@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 
 #if UNITY_EDITOR
@@ -7,6 +8,14 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    public enum ReconstructionFilter
+    {
+        Box,
+        Triangle,
+        Gaussian,
+        CatmullRom
+    }
+
     /// <summary>
     /// A volume component that holds settings for the Path Tracing effect.
     /// </summary>
@@ -48,6 +57,20 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Defines the maximum intensity value computed for a path segment.")]
         public ClampedFloatParameter maximumIntensity = new ClampedFloatParameter(10f, 0f, 100f);
+
+        public PathTracingFilterParameter filter = new PathTracingFilterParameter(ReconstructionFilter.Box);
+
+        /// <summary>
+        /// Defines the reconstruction filter width  in pixels.
+        /// </summary>
+        [Tooltip("Defines the reconstruction filter width in pixels.")]
+        public ClampedFloatParameter filterWidth = new ClampedFloatParameter(1f, 1f, 5f);
+
+        /// <summary>
+        /// Defines the reconstruction filter height in pixels.
+        /// </summary>
+        [Tooltip("Defines the reconstruction filter height in pixels.")]
+        public ClampedFloatParameter filterHeight = new ClampedFloatParameter(1f, 1f, 5f);
 
         PathTracing()
         {
@@ -292,7 +315,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Run the computation
                 cmd.DispatchRays(pathTracingShader, "RayGen", (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
             }
-            RenderAccumulation(hdCamera, cmd, m_RadianceTexture, outputTexture, true);
+            RenderAccumulation(hdCamera, cmd, m_RadianceTexture, outputTexture, true, m_PathTracingSettings.filter.value, m_PathTracingSettings.filterWidth.value, m_PathTracingSettings.filterHeight.value);
         }
     }
+
+    [Serializable]
+    public sealed class PathTracingFilterParameter : VolumeParameter<ReconstructionFilter>
+    {
+        /// <summary>
+        /// Creates a new <see cref="PathTracingFilterParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public PathTracingFilterParameter(ReconstructionFilter value, bool overrideState = false) : base(value, overrideState) { }
+    }
+
 }

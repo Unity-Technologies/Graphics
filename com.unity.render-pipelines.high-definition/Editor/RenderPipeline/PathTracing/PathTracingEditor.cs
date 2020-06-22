@@ -17,6 +17,9 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
         SerializedDataParameter m_MinDepth;
         SerializedDataParameter m_MaxDepth;
         SerializedDataParameter m_MaxIntensity;
+        SerializedDataParameter m_Filter;
+        SerializedDataParameter m_FilterWidth;
+        SerializedDataParameter m_FilterHeight;
 
         public override void OnEnable()
         {
@@ -28,6 +31,9 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             m_MinDepth = Unpack(o.Find(x => x.minimumDepth));
             m_MaxDepth = Unpack(o.Find(x => x.maximumDepth));
             m_MaxIntensity = Unpack(o.Find(x => x.maximumIntensity));
+            m_Filter = Unpack(o.Find(x => x.filter));
+            m_FilterWidth = Unpack(o.Find(x => x.filterWidth));
+            m_FilterHeight = Unpack(o.Find(x => x.filterHeight));
         }
 
         public override void OnInspectorGUI()
@@ -53,6 +59,12 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                     PropertyField(m_MinDepth);
                     PropertyField(m_MaxDepth);
                     PropertyField(m_MaxIntensity);
+
+                    EditorGUILayout.LabelField("Antialiasing", EditorStyles.miniLabel);
+                    PropertyField(m_Filter);
+                    PropertyField(m_FilterWidth);
+                    PropertyField(m_FilterHeight);
+
                     EditorGUI.indentLevel--;
 
                     // Make sure MaxDepth is always greater or equal than MinDepth
