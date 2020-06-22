@@ -92,6 +92,7 @@ namespace UnityEditor.ShaderGraph
             new FieldDependency(StructFields.SurfaceDescriptionInputs.uv3,                          StructFields.Varyings.texCoord3),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.VertexColor,                  StructFields.Varyings.color),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.FaceSign,                     StructFields.Varyings.cullFace),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.BarycentricCoordinates,       StructFields.Varyings.barycentricCoordinates),
         };
 
         public static DependencyCollection Default = new DependencyCollection

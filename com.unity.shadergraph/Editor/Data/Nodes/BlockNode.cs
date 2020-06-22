@@ -14,6 +14,7 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireViewDirection
         , IMayRequirePosition
         , IMayRequireVertexColor
+        , IMayRequireBarycentricCoordinates
     {
         [SerializeField]
         string m_SerializedDescriptor;
@@ -205,6 +206,18 @@ namespace UnityEditor.ShaderGraph
             
             var requirements = m_Descriptor.control.GetRequirements();
             return requirements.requiresVertexColor;
+        }
+
+        public bool RequiresBarycentricCoordinates(ShaderStageCapability stageCapability)
+        {
+            if (stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+                return false;
+
+            if (m_Descriptor.control == null)
+                return false;
+
+            var requirements = m_Descriptor.control.GetRequirements();
+            return requirements.requiresBarycentricCoordinates;
         }
 
         public override void OnBeforeSerialize()

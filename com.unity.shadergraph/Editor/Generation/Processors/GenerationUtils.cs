@@ -392,6 +392,7 @@ namespace UnityEditor.ShaderGraph
                 new ConditionalField(StructFields.VertexDescriptionInputs.BoneWeights,              requirements.requiresVertexSkinning),
                 new ConditionalField(StructFields.VertexDescriptionInputs.BoneIndices,              requirements.requiresVertexSkinning),
                 new ConditionalField(StructFields.VertexDescriptionInputs.VertexID,                 requirements.requiresVertexID),
+                new ConditionalField(StructFields.VertexDescriptionInputs.BarycentricCoordinates,   requirements.requiresBarycentricCoordinates),
             };
         }
 
@@ -439,6 +440,7 @@ namespace UnityEditor.ShaderGraph
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.BoneWeights,             requirements.requiresVertexSkinning),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.BoneIndices,             requirements.requiresVertexSkinning),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.VertexID,                requirements.requiresVertexID),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.BarycentricCoordinates,  requirements.requiresBarycentricCoordinates),
             };
         }
 
@@ -674,6 +676,10 @@ namespace UnityEditor.ShaderGraph
                 {
                     sb.AppendLine("uint {0};", ShaderGeneratorNames.VertexID);
                 }
+                if (requirements.requiresBarycentricCoordinates)
+                {
+                    sb.AppendLine("float3 {0};", ShaderGeneratorNames.BarycentricCoordinates);
+                }
             }
         }
 
@@ -713,6 +719,11 @@ namespace UnityEditor.ShaderGraph
             if (requirements.requiresVertexID)
             {
                 sb.AppendLine($"{variableName}.{ShaderGeneratorNames.VertexID} = IN.{ShaderGeneratorNames.VertexID};");
+            }
+
+            if (requirements.requiresBarycentricCoordinates)
+            {
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.BarycentricCoordinates} = IN.{ShaderGeneratorNames.BarycentricCoordinates};");
             }
         }
 

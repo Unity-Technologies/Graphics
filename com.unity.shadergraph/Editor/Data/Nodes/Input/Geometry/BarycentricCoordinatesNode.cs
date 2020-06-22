@@ -25,16 +25,15 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new Vector4MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
+            AddSlot(new Vector3MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector3.zero));
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            //sb.AppendLine(string.Format("$precision4 {0} = {1};", GetVariableNameForSlot(kOutputSlotId), string.Format("IN.{0}", ShaderGeneratorNames.BarycentricCoordinates)));
-            sb.AppendLine(string.Format("$precision4 {0} = {1};", GetVariableNameForSlot(kOutputSlotId), "float4(1, 0, 0, 1)"));
+            sb.AppendLine(string.Format("$precision3 {0} = {1};", GetVariableNameForSlot(kOutputSlotId), string.Format("IN.{0}", ShaderGeneratorNames.BarycentricCoordinates)));
         
-    }
+        }
 
         public bool RequiresBarycentricCoordinates(ShaderStageCapability stageCapability)
         {

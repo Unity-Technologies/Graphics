@@ -1,4 +1,4 @@
-﻿using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
@@ -21,6 +21,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Varyings.color,
                 StructFields.Varyings.viewDirectionWS,
                 StructFields.Varyings.screenPosition,
+                StructFields.Varyings.barycentricCoordinates,
                 UniversalStructFields.Varyings.lightmapUV,
                 UniversalStructFields.Varyings.sh,
                 UniversalStructFields.Varyings.fogFactorAndVertexLight,

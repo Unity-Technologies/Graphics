@@ -57,6 +57,7 @@ Pass
     $Varyings.screenPosition:           #define VARYINGS_NEED_SCREENPOSITION
     $Varyings.fogFactorAndVertexLight:  #define VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
     $Varyings.cullFace:                 #define VARYINGS_NEED_CULLFACE
+    $Varyings.barycentric:              #define VARYINGS_NEED_BARYCENTRIC
     $features.graphVertex:              #define FEATURES_GRAPH_VERTEX
     $Universal.UseLegacySpriteBlocks:   #define UNIVERSAL_USELEGACYSPRITEBLOCKS
     $splice(PassInstancing)

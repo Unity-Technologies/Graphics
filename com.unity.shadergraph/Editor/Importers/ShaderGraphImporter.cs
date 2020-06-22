@@ -479,6 +479,7 @@ Shader ""Hidden/GraphErrorShader2""
             AddRequirementsSnippet(r => r.requiresVertexColor, $"float4 {ShaderGeneratorNames.VertexColor}");
             AddRequirementsSnippet(r => r.requiresScreenPosition, $"float4 {ShaderGeneratorNames.ScreenPosition}");
             AddRequirementsSnippet(r => r.requiresFaceSign, $"float4 {ShaderGeneratorNames.FaceSign}");
+            AddRequirementsSnippet(r => r.requiresBarycentricCoordinates, $"float3 {ShaderGeneratorNames.BarycentricCoordinates}");
 
             foreach (var uvChannel in EnumInfo<UVChannel>.values)
             {

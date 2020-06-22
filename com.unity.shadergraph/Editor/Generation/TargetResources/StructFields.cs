@@ -55,6 +55,8 @@ namespace UnityEditor.ShaderGraph
                 subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor screenPosition = new FieldDescriptor(Varyings.name, "screenPosition", "VARYINGS_NEED_SCREENPOSITION", ShaderValueType.Float4,
                 subscriptOptions : StructFieldOptions.Optional);
+            public static FieldDescriptor barycentricCoordinates = new FieldDescriptor(Varyings.name, "barycentric", "VARYINGS_NEED_BARYCENTRIC", ShaderValueType.Float3,
+                semantic: "BARYCENTRIC_COORDINATES", subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor instanceID = new FieldDescriptor(Varyings.name, "instanceID", "", ShaderValueType.Uint,
                 "CUSTOM_INSTANCE_ID", "UNITY_ANY_INSTANCING_ENABLED");
             public static FieldDescriptor cullFace = new FieldDescriptor(Varyings.name, "cullFace", "VARYINGS_NEED_CULLFACE", "FRONT_FACE_TYPE",
@@ -133,6 +135,9 @@ namespace UnityEditor.ShaderGraph
 
             public static FieldDescriptor VertexID = new FieldDescriptor(VertexDescriptionInputs.name, "VertexID", "", ShaderValueType.Uint,
                 subscriptOptions: StructFieldOptions.Optional);
+
+            public static FieldDescriptor BarycentricCoordinates = new FieldDescriptor(SurfaceDescriptionInputs.name, "BarycentricCoordinates", "", ShaderValueType.Float3,
+                subscriptOptions: StructFieldOptions.Optional);
         }
 
         public struct SurfaceDescriptionInputs
@@ -208,6 +213,9 @@ namespace UnityEditor.ShaderGraph
                 subscriptOptions: StructFieldOptions.Optional);
 
             public static FieldDescriptor VertexID = new FieldDescriptor(SurfaceDescriptionInputs.name, "VertexID", "", ShaderValueType.Uint,
+                subscriptOptions: StructFieldOptions.Optional);
+
+            public static FieldDescriptor BarycentricCoordinates = new FieldDescriptor(SurfaceDescriptionInputs.name, "BarycentricCoordinates", "", ShaderValueType.Float3,
                 subscriptOptions: StructFieldOptions.Optional);
         }
     }

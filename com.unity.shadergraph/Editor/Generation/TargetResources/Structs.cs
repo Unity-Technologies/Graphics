@@ -66,6 +66,7 @@ namespace UnityEditor.ShaderGraph
                 StructFields.VertexDescriptionInputs.BoneWeights,
                 StructFields.VertexDescriptionInputs.BoneIndices,
                 StructFields.VertexDescriptionInputs.VertexID,
+                StructFields.VertexDescriptionInputs.BarycentricCoordinates,
             }
         };
 
@@ -112,6 +113,7 @@ namespace UnityEditor.ShaderGraph
                 StructFields.SurfaceDescriptionInputs.BoneWeights,
                 StructFields.SurfaceDescriptionInputs.BoneIndices,
                 StructFields.SurfaceDescriptionInputs.VertexID,
+                StructFields.SurfaceDescriptionInputs.BarycentricCoordinates,
             }
         };
     }

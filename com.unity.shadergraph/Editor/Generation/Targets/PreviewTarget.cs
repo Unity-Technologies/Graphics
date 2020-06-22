@@ -94,6 +94,7 @@ namespace UnityEditor.ShaderGraph
                     // Post-graph
                     { "Packages/com.unity.shadergraph/ShaderGraphLibrary/PreviewVaryings.hlsl", IncludeLocation.Postgraph },
                     { "Packages/com.unity.shadergraph/ShaderGraphLibrary/PreviewPass.hlsl", IncludeLocation.Postgraph },
+                    { "Packages/com.unity.render-pipelines.core/ShaderLibrary/BarycentricCoordinates.hlsl", IncludeLocation.Postgraph }, // TODO: put this on a conditional
                 }
             };
         }
@@ -119,6 +120,7 @@ namespace UnityEditor.ShaderGraph
                     StructFields.Varyings.screenPosition,
                     StructFields.Varyings.instanceID,
                     StructFields.Varyings.cullFace,
+                    StructFields.Varyings.barycentricCoordinates,
                 }
             };
         }
