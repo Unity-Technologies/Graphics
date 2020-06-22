@@ -17,7 +17,7 @@ Universal_Stereo_Win_Standalone_trunk:
       -  path: .yamato/universal_stereo-win.yml#Build_Universal_Stereo_Win_Player_trunk
          rerun: on-new-revision
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGfxTestStereo/utr
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGfxTestStereo/utr/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalGfxTestStereo && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalGfxTestStereo && utr\utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
@@ -38,7 +38,7 @@ Build_Universal_Stereo_Win_Player_trunk:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
          rerun: on-new-revision
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGfxTestStereo/utr
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGfxTestStereo/utr/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalGfxTestStereo && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalGfxTestStereo && utr\utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
@@ -61,7 +61,7 @@ Universal_Stereo_Win_editmode_trunk:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
          rerun: on-new-revision
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGfxTestStereo/utr
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGfxTestStereo/utr/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalGfxTestStereo && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalGfxTestStereo && utr\utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
@@ -83,7 +83,7 @@ Universal_Stereo_Win_Standalone_fast-trunk:
       -  path: .yamato/universal_stereo-win.yml#Build_Universal_Stereo_Win_Player_fast-trunk
          rerun: on-new-revision
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGfxTestStereo/utr
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGfxTestStereo/utr/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalGfxTestStereo && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalGfxTestStereo && utr\utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
@@ -104,7 +104,7 @@ Build_Universal_Stereo_Win_Player_fast-trunk:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
          rerun: on-new-revision
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGfxTestStereo/utr
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGfxTestStereo/utr/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalGfxTestStereo && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalGfxTestStereo && utr\utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
@@ -127,7 +127,7 @@ Universal_Stereo_Win_editmode_fast-trunk:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
          rerun: on-new-revision
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGfxTestStereo/utr
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGfxTestStereo/utr/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalGfxTestStereo && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalGfxTestStereo && utr\utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
@@ -150,7 +150,7 @@ Universal_Stereo_Win_Standalone_CUSTOM-REVISION:
       -  path: .yamato/universal_stereo-win.yml#Build_Universal_Stereo_Win_Player_CUSTOM-REVISION
          rerun: always
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGfxTestStereo/utr
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGfxTestStereo/utr/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalGfxTestStereo && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalGfxTestStereo && utr\utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
@@ -172,7 +172,7 @@ Build_Universal_Stereo_Win_Player_CUSTOM-REVISION:
       -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGfxTestStereo/utr
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGfxTestStereo/utr/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalGfxTestStereo && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalGfxTestStereo && utr\utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
@@ -196,7 +196,7 @@ Universal_Stereo_Win_editmode_CUSTOM-REVISION:
       -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGfxTestStereo/utr
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGfxTestStereo/utr/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalGfxTestStereo && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalGfxTestStereo && utr\utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
