@@ -20,12 +20,12 @@ float IQSphereAO(float3 positionWS, float3 normalWS, float3 sphereCenter, float 
     {
 #if 1
         // TODO: Test with fast acos. 
-        res = NdotPosToSphere * acos(-NdotPosToSphere * sqrt((h2 - 1.0) / (1.0 - NdotPosToSphere2))) - sqrt(k2*(h2 - 1.0));
-        res = res / h2 + atan(sqrt(k2 / (h2 - 1.0)));
-        res /= PI;
+        result = NdotPosToSphere * acos(-NdotPosToSphere * sqrt((h2 - 1.0) / (1.0 - NdotPosToSphere2))) - sqrt(k2*(h2 - 1.0));
+        result = res / h2 + atan(sqrt(k2 / (h2 - 1.0)));
+        result /= PI;
 #else
         // cheap approximation: Quilez
-        res = PositivePow(clamp(0.5*(nl*h + 1.0) / h2, 0.0, 1.0), 1.5);
+        result = PositivePow(saturate(0.5f * (NdotPosToSphere * h + 1.0f) / h2), 1.5f);
 #endif
     }
 
