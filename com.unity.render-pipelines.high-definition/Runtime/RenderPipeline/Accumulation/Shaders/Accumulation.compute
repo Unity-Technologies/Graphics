@@ -61,8 +61,8 @@ float GetSubPixelWeight(float2 offset, float2 filterSize)
 #endif
 
 #ifdef FILTER_CATMULLROM
-    float2 r = dot(offset, offset);
-    float2 r2 = sqrt(r);
+    float r = dot(offset, offset);
+    float r2 = sqrt(r);
     return (r >= 2.0f) ? 0.0f :
         (r < 1.0f) ? (3.0f * r * r2 - 5.0f * r2 + 2.0f) : (-r * r2 + 5.0f * r2 - 8.0f * r + 4.0f);
 #endif
@@ -99,7 +99,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         // TODO: This loop can be easily optimized by using shader local storage
         const float2 filterRadius = _AccumulationWeights.yz;
 
-        // Compute how many pixels we should traverse for the given radius: with a radius of 0.6, we already have to touch the neightboring pixels
+        // Compute how many pixels we should traverse for the given radius: with a radius of 0.6, we already have to touch neightboring pixels
         int2 filterExtent = floor(filterRadius + 0.5f) + float2(1, 1); 
         for (int i = -filterExtent.x + 1; i < filterExtent.x; ++i)
         {
