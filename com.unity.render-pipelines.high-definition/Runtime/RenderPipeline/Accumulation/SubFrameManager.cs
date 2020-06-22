@@ -222,7 +222,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float weight = isRecording ? ShutterProfile(time) : 1.0f;
 
-            return new Vector4(weight, 0.0f, 0.0f, 0.0f);
+            return new Vector4(weight, 1.0f, 1.0f, 0.0f);
         }
     }
 
@@ -275,6 +275,10 @@ namespace UnityEngine.Rendering.HighDefinition
         void RenderAccumulation(HDCamera hdCamera, CommandBuffer cmd, RTHandle inputTexture, RTHandle outputTexture, bool needsExposure = false)
         {
             ComputeShader accumulationShader = m_Asset.renderPipelineResources.shaders.accumulationCS;
+            accumulationShader.shaderKeywords = null;
+
+            // Pick a reconstruction filter
+            accumulationShader.EnableKeyword("FILTER_GAUSSIAN");
 
             // Grab the history buffer (hijack the reflections one)
             RTHandle history = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing)

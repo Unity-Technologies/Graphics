@@ -57,6 +57,14 @@ void MissMaterial(inout PathIntersection pathIntersection : SV_RayPayload)
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.value);
 }
 
+// Packs a float2 in the [0, 1] range into one 32-bit float using 16 bits of precision per element 
+float PackFloat2(float2 r)
+{
+    uint lowBits = r.x * 65535u;
+    uint highBits = r.y * 65535u;
+    return asfloat(lowBits + 65536u * highBits);
+}
+
 [shader("raygeneration")]
 void RayGen()
 {
@@ -67,8 +75,8 @@ void RayGen()
 
     // Jitter them (we use 4x10 dimensions of our sequence during path tracing atm, so pick the next available ones)
     float3 jitteredPixelCoord = float3(currentPixelCoord, 1.0);
-    jitteredPixelCoord.x += GetSample(currentPixelCoord, _RaytracingSampleIndex, 40);
-    jitteredPixelCoord.y += GetSample(currentPixelCoord, _RaytracingSampleIndex, 41);
+    float2 subPixelOffset = float2(GetSample(currentPixelCoord, _RaytracingSampleIndex, 40), GetSample(currentPixelCoord, _RaytracingSampleIndex, 41));
+    jitteredPixelCoord.xy += subPixelOffset;
 
     // Compute the ray direction from those coordinates (for zero aperture)
     float3 directionWS = -normalize(mul(jitteredPixelCoord, (float3x3)_PixelCoordToViewDirWS));
@@ -117,7 +125,7 @@ void RayGen()
     // Evaluate the ray intersection
     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 0, rayDescriptor, pathIntersection);
 
-    _RadianceTexture[currentPixelCoord] = float4(pathIntersection.value, 1.0);
+    _RadianceTexture[currentPixelCoord] = float4(pathIntersection.value, PackFloat2(subPixelOffset));
 }
 
 // This should never be called, return magenta just in case

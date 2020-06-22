@@ -4,6 +4,8 @@
 
 #pragma kernel KMain
 
+#pragma multi_compile FILTER_BOX FILTER_GAUSSIAN FILTER_TRIANGLE FILTER_CATMULLROM
+
 // Inputs
 TEXTURE2D_X(_RadianceTexture);
 float4      _AccumulationWeights;
@@ -40,6 +42,36 @@ void AddConvergenceCue(uint2 pixelCoord, uint sampleCount, inout float3 color)
     }
 }
 
+float GetSubPixelWeight(float2 offset)
+{
+    const float2 filterSize = _AccumulationWeights.yz;
+
+#ifdef FILTER_GAUSSIAN
+    offset *= 2.0f / filterSize;
+    return exp(-2.0 * dot(offset, offset));
+#endif
+
+#ifdef FILTER_TRIANGLE
+    float2 r = (1.0f - abs(offset)) / (0.5 * filterSize);
+    return r.x * r.y;
+#endif
+
+#ifdef FILTER_CATMULLROM
+    float2 r = dot(offset, offset);
+    float2 r2 = sqrt(r);
+    return (r >= 2.0f) ? 0.0f :
+        (r < 1.0f) ? (3.0f * r * r2 - 5.0f * r2 + 2.0f) : (-r * r2 + 5.0f * r2 - 8.0f * r + 4.0f);
+#endif
+
+    return 1.0;
+}
+
+float2 UnpackFloat2(float r)
+{
+    uint bits = asuint(r);
+    return float2(bits & 0xFFFF, bits >> 16) / 65535.0f;
+}
+
 [numthreads(8, 8, 1)]
 void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
@@ -57,13 +89,15 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     else
     {    
         float4 color = _RadianceTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+        float2 subPixelOffset = UnpackFloat2(color.a);
 
         float totalWeight = sampleCount > 0 ? _AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)].w : 0.0f;
         float subFrameWeight = _AccumulationWeights.x;
-        float newTotalWeight = totalWeight + subFrameWeight;
+        float sampleWeight = subFrameWeight * GetSubPixelWeight(subPixelOffset);
+        float newTotalWeight = totalWeight + sampleWeight;
 
         if (sampleCount++)
-            color.xyz = (_AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)].xyz * totalWeight + subFrameWeight * color.xyz) / newTotalWeight;
+            color.xyz = (_AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)].xyz * totalWeight + sampleWeight * color.xyz) / newTotalWeight;
 
         _AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(color.xyz, newTotalWeight);
 
