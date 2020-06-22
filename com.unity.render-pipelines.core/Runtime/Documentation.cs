@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering
         internal const string endURL = ".html";
 
 
-        internal const string releaseVersion = "7.4";
+        internal const string releaseVersion = "7.5";
 
         //Temporary for now, there is several part of the Core documentation that are misplaced in HDRP documentation.
         //use this base url for them:

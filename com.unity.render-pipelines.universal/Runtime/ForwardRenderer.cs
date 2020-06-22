@@ -200,6 +200,15 @@ namespace UnityEngine.Rendering.Universal
             bool createDepthTexture = cameraData.requiresDepthTexture && !requiresDepthPrepass;
             createDepthTexture |= (cameraData.renderType == CameraRenderType.Base && !cameraData.resolveFinalTarget);
 
+#if UNITY_ANDROID
+            if (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan)
+            {
+                // GLES can not use render texture's depth buffer with the color buffer of the backbuffer
+                // in such case we create a color texture for it too.
+                createColorTexture |= createDepthTexture;
+            }
+#endif
+
             // Configure all settings require to start a new camera stack (base camera only)
             if (cameraData.renderType == CameraRenderType.Base)
             {

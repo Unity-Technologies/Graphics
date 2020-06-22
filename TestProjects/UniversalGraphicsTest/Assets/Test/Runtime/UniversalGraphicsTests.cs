@@ -28,7 +28,7 @@ public class UniversalGraphicsTests
 
         var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x=>x.GetComponent<Camera>());
         var settings = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
-        Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
+        Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");        
 
         Scene scene = SceneManager.GetActiveScene();
 
@@ -60,8 +60,14 @@ public class UniversalGraphicsTests
             yield return null;
         }
 
-        for (int i = 0; i < settings.WaitFrames; i++)
-            yield return null;
+        int waitFrames = settings.WaitFrames;
+
+        if (settings.ImageComparisonSettings.UseBackBuffer && settings.WaitFrames < 1)
+        {
+            waitFrames = 1;
+        }
+        for (int i = 0; i < waitFrames; i++)
+            yield return new WaitForEndOfFrame();
 
         ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), settings.ImageComparisonSettings);
 

@@ -4,13 +4,22 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [7.5.0] - 2020-06-08
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [7.4.1] - 2020-06-03
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [7.4.0] - 2020-05-22
 
 ### Added
 - Add XR setting to control camera jitter for temporal effects #6259
 - Added an error message in the DrawRenderers custom pass when rendering opaque objects with an HDRP asset in DeferredOnly mode.
 - Added Light decomposition lighting debugging modes and support in AOV
-- Added exposure compensation to Fixed exposure mode
 - Added an info box to warn about depth test artifacts when rendering object twice in custom passes with MSAA.
 - Added Layer parameter on Area Light to modify Layer of generated Emissive Mesh
 
@@ -67,7 +76,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a performance issue with stochastic ray traced area shadows.
 - Made more explicit the warning about raytracing and asynchronous compute. Also fixed the condition in which it appears.
 - Fixed a null ref exception in static sky when the default volume profile is invalid.
-- Fixed an error about procedural sky being logged by mistake.
 - Fixed flickering of the game/scene view when lookdev is running.
 - Fixed some GCAlloc in the debug window.
 - Removed logic in the UI to disable parameters for contact shadows and fog volume components as it was going against the concept of the volume system.
@@ -86,6 +94,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - VFX: Removed irrelevant queues in render queue selection from HDRP outputs
 - VFX: Motion Vector are correctly renderered with MSAA [Case 1240754](https://issuetracker.unity3d.com/product/unity/issues/guid/1240754/)
 - Fixed a cause of NaN when a normal of 0-length is generated (usually via shadergraph).
+- Fixed error when undo a Reflection Probe removal in a prefab instance. (case 1244047)
+- Fixed various multi-editing issues when changing Emission parameters.
+- Fixed issue that prevented cubemap thumbnails from rendering (only on D3D11 and Metal).
+- Fixed Microshadow not working correctly in deferred with LightLayers
+- Tentative fix for missing include in depth of field shaders.
+- Fix an issue in reading the gbuffer for ray traced subsurface scattering (case 1248358).
+- Cloned volume profile from read only assets are created in the root of the project. (case 1154961)
+- Fixed Wizard check on default volume profile to also check it is not the default one in package.
+- Fixed a bug where not all entries were generated for the Attributes Struct in Shader Graph shaders. (case 1250275)
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
@@ -312,6 +329,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with MipRatio debug mode showing _DebugMatCapTexture not being set.
 - Fixed missing initialization of input params in Blit for VR.
 - Fix Inf source in LTC for area lights.
+- Fixed light layers not correctly disabled when the lightlayers is set to Nothing and Lightlayers isn't enabled in HDRP Asset
+- Fixed a wrong condition in CameraSwitcher, potentially causing out of bound exceptions.
+- Fixed an issue where editing the Look Dev default profile would not reflect directly in the Look Dev window.
 
 ### Changed
 - Hide unused LOD settings in Quality Settings legacy window.

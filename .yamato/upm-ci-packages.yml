@@ -75,7 +75,7 @@ platforms:
       - il2cpp
       agent:
         type: Unity::VM::osx
-        image: buildfarm/mac:stable
+        image: package-ci/mac:stable
         flavor: m1.mac
       copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
@@ -157,8 +157,9 @@ test_{{ package.id }}_{{ platform.name }}_{{ editor.version }}_dependencies:
 {% endfor %}
 {% endfor %}
 
-all_package_ci:
-  name: Pack and test all packages
+{% for editor in editors %}
+all_package_ci_{{ editor.version }}:
+  name: Pack and test all packages - {{ editor.version }}
   agent:
     type: Unity::VM
     image: package-ci/win10:stable
@@ -168,7 +169,6 @@ all_package_ci:
     - upm-ci package izon -t
     - upm-ci package izon -d
   dependencies:
-{% for editor in editors %}
 {% for platform in platforms %}
 {% for package in packages %}
     - .yamato/upm-ci-packages.yml#test_{{ package.id}}_{{ platform.name }}_{{ editor.version }}

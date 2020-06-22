@@ -4,17 +4,37 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+
+
+## [7.5.0] - 2020-06-08
+
+### Added
+- Added option to enable/disable Adaptive Performance when it's package is available.
+
+### Fixed
+- Fixed an issue where URP Simple Lit shader had attributes swapped incorrectly for BaseMap and BaseColor properties.
+- Fixed issue with Model Importer materials using the Legacy standard shader instead of URP's Lit shader when import happens at Editor startup.
+
+## [7.4.1] - 2020-06-03
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [7.4.0] - 2020-05-22
 
 ### Added
 - Added the option to specify the maximum number of visible lights. If you set a value, lights are sorted based on their distance from the Camera.
 
 ### Changed
-- The maximum number of visible lights is now set to 32 if the platform is mobile or if the graphics API is OpenGLCore, otherwise it is set to 256.
+- The number of maximum visible lights is now set to 32 if the platform is mobile or if the graphics API is OpenGLCore, otherwise it is set to 256.
+- UniversalRenderPipelineAsset no longer supports presets [case 1197020](https://issuetracker.unity3d.com/issues/urp-reset-functionality-does-not-work-on-preset-of-universalrenderpipelineassets)
+- The Metallic property value of a Material is now linear, which is the correct behavior for the PBR approach. In the previous URP package version, those values were interpreted as gamma values. This change might affect the look of Materials that use this property after upgrading from the previous package version.
+- The pipeline is now computing tangent space in per fragment.
 - Optimized the 2D Renderer to skip rendering into certain internal buffers when not necessary.
 - The 2D Renderer now supports camera stacking.
 
 ### Fixed
+- Fixed an issue with the editor where pausing during play mode causes the Scene View to be greyed out [case 1241239](https://issuetracker.unity3d.com/issues/urp-scene-window-is-rendered-gray-and-game-window-is-rendered-black-when-using-xr-plugin-management-and-universal-rp-7-dot-3-1)
 - Fixed an issue with shadows not appearing on terrains when no cascades are selected [case 1226530](https://issuetracker.unity3d.com/issues/urp-no-shadows-on-terrain-when-cascades-is-set-to-no-cascades-in-render-pipeline-asset-settings).
 - Fixed an issue that caused the anti-aliasing value in QualitySettings change without user interaction. [case 1195272](https://issuetracker.unity3d.com/issues/lwrp-the-anti-alias-quality-settings-value-is-changing-without-user-interaction).
 - Fixed a shader issue that caused the Color in Sprite Shape to work improperly.
@@ -37,10 +57,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SceneView Draw Modes not being updated properly after opening new Scene view panels or changing the Editor layout.
 - Fixed an issue that caused viewport to work incorrectly when rendering to textures. [case 1225103](https://issuetracker.unity3d.com/issues/urp-the-viewport-rect-isnt-correctly-applied-when-the-camera-is-outputting-into-a-rendertexture).
 - Fixed an issue that caused incorrect sampling of HDR reflection probe textures.
+- Fixed an issue that caused the inverse view and projection matrix to output wrong values in some platforms. [case 1243990](https://issuetracker.unity3d.com/issues/urp-8-dot-1-breaks-unity-matrix-i-vp)
 - Fixed UI text of RenderObjects feature to display LightMode tag instead of Shader Pass Name. [case 1201696](https://issuetracker.unity3d.com/issues/render-feature-slash-pass-ui-has-a-field-for-shader-pass-name-when-it-actually-expects-shader-pass-lightmode).
 - Fixed an issue that caused memory allocations when sorting cameras. [case 1226448](https://issuetracker.unity3d.com/issues/2d-renderer-using-more-than-one-camera-that-renders-out-to-a-render-texture-creates-gc-alloc-every-frame).
-- Fixed an issue that caused the inverse view and projection matrix to output wrong values on some platforms. [case 1243990](https://issuetracker.unity3d.com/issues/urp-8-dot-1-breaks-unity-matrix-i-vp).
-- Fixed issue with Model Importer materials using the Legacy standard shader instead of URP's Lit shader when import happens at Editor startup.
+- Fixed GLES shaders compilation failing on Windows platform (not a mobile platform) due to uniform count limit.
+- Fixed an issue where preset button could still be used, when it is not supposed to. [case 1246261](https://issuetracker.unity3d.com/issues/urp-reset-functionality-does-not-work-for-renderobject-preset-asset)
+- Fixed an issue with URP switching such that every avaiable URP makes a total set of supported features such that all URPs are taken into consideration. [case 1157420](https://issuetracker.unity3d.com/issues/lwrp-srp-switching-doesnt-work-even-with-manually-adding-shadervariants-per-scene)
+- Fixed an issue that causes viewport to not work correctly when rendering to textures. [case 1225103](https://issuetracker.unity3d.com/issues/urp-the-viewport-rect-isnt-correctly-applied-when-the-camera-is-outputting-into-a-rendertexture)
+- Fixed an issue that caused incorrect sampling of HDR reflection probe textures.
+- Fixed an issue that caused Android GLES to render blank screen when Depth texture was enabled without Opaque texture [case 1219325](https://issuetracker.unity3d.com/issues/scene-is-not-rendered-on-android-8-and-9-when-depth-texture-is-enabled-in-urp-asset)
+- Metallic slider on the Lit shader is now linear meaning correct values are used for PBR.
+- URP shaders that contain a priority slider now no longer have an offset of 50 by default.
+- Fixed issue where using DOF at the same time as Dynamic Scaling, the depth buffer was smapled with incorrect UVs. [case 1225467](https://issuetracker.unity3d.com/product/unity/issues/guid/1225467/)
+- Fixed a performance problem with ShaderPreprocessor with large amount of active shader variants in the project.
 
 ## [7.3.0] - 2020-03-11
 
@@ -131,7 +160,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed incorrect light attenuation on Nintendo Switch.
 - Fixed XR SDK single-pass incorrectly switching to multipass issue. Add query for XR SDK single-pass availability using XR SDK renderpass descriptors.
 - Fixed a performance issue in Hololens when using renderer with custom render passes.
-
+-
 ## [7.1.8] - 2020-01-20
 
 ### Fixed
