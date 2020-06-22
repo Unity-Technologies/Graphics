@@ -680,8 +680,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             RTHandles.ResetReferenceSize(width, height);
             HDCamera.ResetAllHistoryRTHandleSystems(width, height);
-            if (m_RenderGraph != null)
-                m_RenderGraph.ResetRTHandleReferenceSize(width, height);
         }
 
         void InitializeRenderTextures()
@@ -1248,12 +1246,6 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateShaderVariablesGlobalLightLoop(ref m_ShaderVariablesGlobalCB, hdCamera);
             UpdateShaderVariablesGlobalProbeVolumes(ref m_ShaderVariablesGlobalCB, hdCamera);
             m_AmbientOcclusionSystem.UpdateShaderVariableGlobalCB(ref m_ShaderVariablesGlobalCB, hdCamera);
-
-            // RTHandleScale
-            if (m_EnableRenderGraph)
-                m_ShaderVariablesGlobalCB._RTHandleScale = m_RenderGraph.rtHandleProperties.rtHandleScale;
-            else
-                m_ShaderVariablesGlobalCB._RTHandleScale = RTHandles.rtHandleProperties.rtHandleScale;
 
             // Misc
             MicroShadowing microShadowingSettings = hdCamera.volumeStack.GetComponent<MicroShadowing>();
