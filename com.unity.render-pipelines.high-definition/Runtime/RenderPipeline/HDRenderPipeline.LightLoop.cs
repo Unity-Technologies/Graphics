@@ -95,7 +95,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                                     HDCamera                        hdCamera,
                                                     TileAndClusterData              tileAndClusterData,
                                                     int                             totalLightCount,
-                                                    int                             maxLightOnScreen,
                                                     ref ShaderVariablesLightList    constantBuffer,
                                                     TextureHandle                   depthStencilBuffer,
                                                     TextureHandle                   stencilBufferCopy,
@@ -123,7 +122,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.lightVolumeDataBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(tileAndClusterData.lightVolumeDataBuffer));
 
                 passData.globalLightListAtomic = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(1, sizeof(uint)) { name = "LightListAtomic"});
-                passData.AABBBoundsBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(m_MaxViewCount * 2 * maxLightOnScreen, 4 * sizeof(float)) { name = "AABBBoundBuffer" });
+                passData.AABBBoundsBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(m_MaxViewCount * 2 * tileAndClusterData.maxLightCount, 4 * sizeof(float)) { name = "AABBBoundBuffer" });
 
                 var nrTilesX = (m_MaxCameraWidth + LightDefinitions.s_TileSizeFptl - 1) / LightDefinitions.s_TileSizeFptl;
                 var nrTilesY = (m_MaxCameraHeight + LightDefinitions.s_TileSizeFptl - 1) / LightDefinitions.s_TileSizeFptl;

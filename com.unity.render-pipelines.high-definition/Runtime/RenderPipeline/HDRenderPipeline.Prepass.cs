@@ -163,32 +163,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderDBuffer(renderGraph, hdCamera, ref result, cullingResults);
 
-                // TODO RENDERGRAPH
-                //// When evaluating probe volumes in material pass, we build a custom probe volume light list.
-                //// When evaluating probe volumes in light loop, probe volumes are folded into the standard light loop data.
-                //if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
-                //{
-                //    if (hdCamera.frameSettings.BuildLightListRunsAsync())
-                //    {
-                //        buildProbeVolumeLightListTask.EndWithPostWork(cmd, hdCamera, Callback);
+                // When evaluating probe volumes in material pass, we build a custom probe volume light list.
+                // When evaluating probe volumes in light loop, probe volumes are folded into the standard light loop data.
+                BuildGPULightListOutput probeVolumeListOutput = new BuildGPULightListOutput();
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
+                {
+                    probeVolumeListOutput = BuildGPULightList(m_RenderGraph, hdCamera, m_ProbeVolumeClusterData, m_ProbeVolumeCount, ref m_ShaderVariablesProbeVolumeLightListCB, result.depthBuffer, result.stencilBuffer, result.gbuffer);
+                }
 
-                //        void Callback(CommandBuffer c, HDCamera cam)
-                //        {
-                //            var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-                //            var globalParams = hdrp.PrepareLightLoopGlobalParameters(cam, m_ProbeVolumeClusterData);
-                //            PushProbeVolumeLightListGlobalParams(globalParams, c);
-                //        }
-                //    }
-                //    else
-                //    {
-                //        BuildGPULightListProbeVolumesCommon(hdCamera, cmd);
-                //        var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-                //        var globalParams = hdrp.PrepareLightLoopGlobalParameters(hdCamera, m_ProbeVolumeClusterData);
-                //        PushProbeVolumeLightListGlobalParams(globalParams, cmd);
-                //    }
-                //}
-
-                RenderGBuffer(renderGraph, sssBuffer, ref result, cullingResults, hdCamera);
+                RenderGBuffer(renderGraph, sssBuffer, ref result, probeVolumeListOutput, cullingResults, hdCamera);
 
                 DecalNormalPatch(renderGraph, hdCamera, ref result);
 
@@ -346,6 +329,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle[]      gbufferRT = new TextureHandle[RenderGraph.kMaxMRTCount];
             public TextureHandle        depthBuffer;
             public DBufferOutput        dBuffer;
+            public bool                 needProbeVolumeLightLists;
+            public ComputeBufferHandle  probeVolumeBigTile;
+            public ComputeBufferHandle  probeVolumePerVoxelOffset;
+            public ComputeBufferHandle  probeVolumePerVoxelLightList;
         }
 
         struct GBufferOutput
@@ -418,9 +405,22 @@ namespace UnityEngine.Rendering.HighDefinition
             ctx.cmd.SetGlobalBuffer(HDShaderIDs._DecalPropertyMaskBufferSRV, ctx.resources.GetComputeBuffer(dBufferOutput.decalPropertyMaskBuffer));
         }
 
+        static void BindProbeVolumeGlobalData(in FrameSettings frameSettings, GBufferPassData data, in RenderGraphContext ctx)
+        {
+            if (!data.needProbeVolumeLightLists)
+                return;
+
+            if (frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
+                ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, ctx.resources.GetComputeBuffer(data.probeVolumeBigTile));
+            ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vProbeVolumesLayeredOffsetsBuffer, ctx.resources.GetComputeBuffer(data.probeVolumePerVoxelOffset));
+            ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vProbeVolumesLightListGlobal, ctx.resources.GetComputeBuffer(data.probeVolumePerVoxelLightList));
+            // int useDepthBuffer = 0;
+            // cmd.SetGlobalInt(HDShaderIDs.g_isLogBaseBufferEnabled, useDepthBuffer);
+        }
+
         // RenderGBuffer do the gbuffer pass. This is only called with deferred. If we use a depth prepass, then the depth prepass will perform the alpha testing for opaque alpha tested and we don't need to do it anymore
         // during Gbuffer pass. This is handled in the shader and the depth test (equal and no depth write) is done here.
-        void RenderGBuffer(RenderGraph renderGraph, TextureHandle sssBuffer, ref PrepassOutput prepassOutput, CullingResults cull, HDCamera hdCamera)
+        void RenderGBuffer(RenderGraph renderGraph, TextureHandle sssBuffer, ref PrepassOutput prepassOutput, in BuildGPULightListOutput probeVolumeLightList, CullingResults cull, HDCamera hdCamera)
         {
             if (hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred)
             {
@@ -439,9 +439,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.dBuffer = ReadDBuffer(prepassOutput.dbuffer, builder);
 
+                passData.needProbeVolumeLightLists = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass;
+                if (passData.needProbeVolumeLightLists)
+                {
+                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
+                        passData.probeVolumeBigTile = builder.ReadComputeBuffer(probeVolumeLightList.bigTileLightList);
+                    passData.probeVolumePerVoxelLightList = builder.ReadComputeBuffer(probeVolumeLightList.perVoxelLightLists);
+                    passData.probeVolumePerVoxelOffset = builder.ReadComputeBuffer(probeVolumeLightList.perVoxelOffset);
+                }
+
                 builder.SetRenderFunc(
                 (GBufferPassData data, RenderGraphContext context) =>
                 {
+                    BindProbeVolumeGlobalData(frameSettings, data, context);
                     BindDBufferGlobalData(data.dBuffer, context);
                     DrawOpaqueRendererList(context, data.frameSettings, context.resources.GetRendererList(data.rendererList));
                 });
