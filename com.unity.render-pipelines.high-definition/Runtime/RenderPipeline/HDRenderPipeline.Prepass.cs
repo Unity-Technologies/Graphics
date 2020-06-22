@@ -198,9 +198,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderCameraMotionVectors(renderGraph, hdCamera, result.depthPyramidTexture, result.resolvedMotionVectorsBuffer);
                 }
 
-                // TODO RENDERGRAPH / Probably need to move this somewhere else.
-                //RenderTransparencyOverdraw(cullingResults, hdCamera, renderContext, cmd);
-
                 BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, ref result);
             }
 

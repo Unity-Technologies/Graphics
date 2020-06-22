@@ -41,6 +41,8 @@ namespace UnityEngine.Rendering.HighDefinition
             ShadowResult shadowResult = new ShadowResult();
             BuildGPULightListOutput gpuLightListOutput = new BuildGPULightListOutput();
 
+            RenderTransparencyOverdraw(m_RenderGraph, prepassOutput.depthBuffer, cullingResults, hdCamera);
+
             if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled() || m_CurrentDebugDisplaySettings.IsMaterialValidationEnabled() || CoreUtils.IsSceneLightingDisabled(hdCamera.camera))
             {
                 using (new XRSinglePassScope(m_RenderGraph, hdCamera))
