@@ -5313,6 +5313,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool needDepthBuffer;
             public VFXCameraBufferTypes neededVFXBuffers;
             public HDUtils.PackedMipChainInfo packedMipChainInfo;
+
+            public bool NeedSendBuffers()
+            {
+                return needNormalBuffer || needDepthBuffer || neededVFXBuffers != VFXCameraBufferTypes.None;
+            }
         }
 
         SendGeometryGraphcisBuffersParameters PrepareSendGeometryBuffersParameters(HDCamera hdCamera, in HDUtils.PackedMipChainInfo packedMipInfo)
@@ -5352,6 +5357,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                                 RTHandle mainDepthBuffer,
                                                 CommandBuffer cmd)
         {
+
             var hdCamera = parameters.hdCamera;
 
             Texture normalBuffer = null;
@@ -5517,7 +5523,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_VIRTUALTEXTURES
         RTHandle GetVTFeedbackBufferForForward(HDCamera hdCamera)
         {
-            bool msaaEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+            bool msEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
             if (msaaEnabled) return m_VtBufferManager.FeedbackBufferMsaa;
 
             var res =  m_GbufferManager.GetVTFeedbackBuffer();

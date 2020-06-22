@@ -860,11 +860,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void SendGeometryGraphicsBuffers(RenderGraph renderGraph, TextureHandle normalBuffer, TextureHandle depthBuffer, HDCamera hdCamera)
         {
+            var parameters = PrepareSendGeometryBuffersParameters(hdCamera, m_DepthBufferMipChainInfo);
+
+            if (!parameters.NeedSendBuffers())
+                return;
+
             using (var builder = renderGraph.AddRenderPass<SendGeometryBuffersPassData>("Send Geometry Buffers", out var passData))
             {
                 builder.AllowPassPruning(false);
 
-                passData.parameters = PrepareSendGeometryBuffersParameters(hdCamera, m_DepthBufferMipChainInfo);
+                passData.parameters = parameters;
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.depthBuffer = builder.ReadTexture(depthBuffer);
 

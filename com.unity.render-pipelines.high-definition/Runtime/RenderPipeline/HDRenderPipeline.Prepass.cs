@@ -18,6 +18,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_DepthBufferMipChainInfo.textureSize;
         }
 
+        // Avoid GCAlloc by capturing functor...
+        TextureDesc m_DepthPyramidDesc;
+
         void InitializePrepass(HDRenderPipelineAsset hdAsset)
         {
             m_DepthResolveMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.depthValuesPS);
@@ -30,6 +33,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_DepthBufferMipChainInfo = new HDUtils.PackedMipChainInfo();
             m_DepthBufferMipChainInfo.Allocate();
+
+            m_DepthPyramidDesc = new TextureDesc(ComputeDepthBufferMipChainSize, true, true)
+                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "CameraDepthBufferMipChain" };
+
         }
 
         void CleanupPrepass()
@@ -522,8 +529,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (var builder = renderGraph.AddRenderPass<CopyDepthPassData>("Copy depth buffer", out var passData, ProfilingSampler.Get(HDProfileId.CopyDepthBuffer)))
                 {
                     passData.inputDepth = builder.ReadTexture(output.resolvedDepthBuffer);
-                    passData.outputDepth = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(ComputeDepthBufferMipChainSize, true, true)
-                        { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "CameraDepthBufferMipChain" }, HDShaderIDs._CameraDepthTexture));
+                    passData.outputDepth = builder.WriteTexture(renderGraph.CreateTexture(m_DepthPyramidDesc, HDShaderIDs._CameraDepthTexture));
                     passData.GPUCopy = m_GPUCopy;
                     passData.width = hdCamera.actualWidth;
                     passData.height = hdCamera.actualHeight;
