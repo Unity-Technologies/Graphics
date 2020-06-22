@@ -105,7 +105,7 @@ function Find-MatchesInFile {
     if ($null -ne $searchResult)
     {
         foreach ($match in $searchResult.Matches) {
-            $strippedFilePath = $match.Value.Replace("Packages/", "")
+            $strippedFilePath = $match.Value.Replace('"', "").Replace("Packages/", "")
             $caseInsensitivePath = Join-Path $srpRoot $strippedFilePath
             [hashtable]$shaderIncludeProperty = @{}
             $shaderIncludeProperty.Add('PathToShader', $caseInsensitivePath)
