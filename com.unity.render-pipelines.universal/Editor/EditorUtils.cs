@@ -13,6 +13,11 @@ namespace UnityEditor.Rendering.Universal.Internal
         /// GUId for the <c>ScriptableRendererFeature</c> template file.
         /// </summary>
         public static readonly string rendererTemplate = "51493ed8d97d3c24b94c6cffe834630b";
+
+        /// <summary>
+        /// GUId for surface shader template file.
+        /// </summary>
+        public static readonly string surfaceShaderTemplate = "84222cb8d3fb1443b9bc05f5ffe7f1e4";
     }
 }
 
