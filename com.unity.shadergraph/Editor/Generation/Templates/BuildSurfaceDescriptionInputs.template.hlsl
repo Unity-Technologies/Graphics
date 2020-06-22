@@ -45,6 +45,7 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     $SurfaceDescriptionInputs.uv3:                       output.uv3 =                         input.texCoord3;
     $SurfaceDescriptionInputs.VertexColor:               output.VertexColor =                 input.color;
     $SurfaceDescriptionInputs.TimeParameters:            output.TimeParameters =              _TimeParameters.xyz; // This is mainly for LW as HD overwrite this value
+    $SurfaceDescriptionInputs.BarycentricCoordinates:    output.BarycentricCoordinates =      input.barycentric;
 #if defined(SHADER_STAGE_FRAGMENT) && defined(VARYINGS_NEED_CULLFACE)
 #define BUILD_SURFACE_DESCRIPTION_INPUTS_OUTPUT_FACESIGN output.FaceSign =                    IS_FRONT_VFACE(input.cullFace, true, false);
 #else

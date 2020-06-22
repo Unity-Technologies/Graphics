@@ -27,6 +27,7 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireDepthTexture
         , IMayRequireVertexSkinning
         , IMayRequireVertexID
+        , IMayRequireBarycentricCoordinates
     {
         [Serializable]
         public class MinimalSubGraphNode : IHasDependencies
@@ -661,6 +662,15 @@ namespace UnityEditor.ShaderGraph
                 return false;
 
             return asset.requirements.requiresVertexID;
+        }
+
+
+        public bool RequiresBarycentricCoordinates(ShaderStageCapability stageCapability)
+        {
+            if (asset == null)
+                return false;
+
+            return asset.requirements.requiresBarycentricCoordinates;
         }
     }
 }
