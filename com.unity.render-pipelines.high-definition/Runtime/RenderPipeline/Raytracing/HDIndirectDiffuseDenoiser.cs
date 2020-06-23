@@ -106,7 +106,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTexture1RW, historySignal1_0);
             cmd.DispatchCompute(m_IndirectDiffuseDenoiseCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
 
-            m_KernelFilter = m_IndirectDiffuseDenoiseCS.FindKernel("BilateralFilter");
+            m_KernelFilter = m_IndirectDiffuseDenoiseCS.FindKernel("BilateralFilterNoNormal");
             cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledRGTexture, m_OwenScrambleRGBA);
             cmd.SetComputeFloatParam(m_IndirectDiffuseDenoiseCS, HDShaderIDs._DenoiserFilterRadius, kernelSize);
             cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture0, outputBuffer2);

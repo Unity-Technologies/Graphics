@@ -3,7 +3,8 @@
 #pragma kernel ValidateHistory
 #pragma kernel TemporalAccumulation
 #pragma kernel CopyHistory
-#pragma kernel BilateralFilter
+#pragma kernel BilateralFilterNoNormal BILATERAL_FILTER=BilateralFilterNoNormal IGNORE_NORMAL
+#pragma kernel BilateralFilter BILATERAL_FILTER=BilateralFilter
 
 // Common includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -204,7 +205,7 @@ void ConvertYCoCgToRGBUtil(float4 inYSH, float2 inCoCg, float3 inNormal, out flo
                 + 2.094395 * Y11 * inYSH.y;
 
     // Compute the output color
-    outColor = y > 0.00001 ? YCoCgToRGB(float3(y, inCoCg.xy)) : 0.0;
+    outColor = y != 0.0 ? YCoCgToRGB(float3(y, inCoCg.xy)) : 0.0;
     outColor = max(outColor, 0.0);
 }
 
@@ -306,7 +307,7 @@ void CopyHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
 }
 
 [numthreads(TEMPORAL_FILTER_TILE_SIZE, TEMPORAL_FILTER_TILE_SIZE, 1)]
-void BilateralFilter(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
@@ -332,7 +333,7 @@ void BilateralFilter(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     float wSum = 0.0;
 
     // Define the sample count for this pixel. 16 samples per pixels if it is a full res or 4 if half resolution
-    int numSamples = 32;
+    int numSamples = 48;
 
     // Compute the radius of the filter. This is evaluated as the max between a fixed radius value and an approximation of the footprint of the pixel
     const float parallelPixelFootPrint = _PixelSpreadAngleTangent * length(center.position);

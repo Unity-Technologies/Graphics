@@ -16,7 +16,11 @@ float gaussian(float radius, float sigma)
 }
 
 // Bilateral filter parameters
+#ifndef IGNORE_NORMAL
 #define NORMAL_WEIGHT   1.0
+#else
+#define NORMAL_WEIGHT   0.0
+#endif
 #define PLANE_WEIGHT    1.0
 #define DEPTH_WEIGHT    1.0
 
