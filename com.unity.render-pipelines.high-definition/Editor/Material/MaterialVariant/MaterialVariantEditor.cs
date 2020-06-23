@@ -8,22 +8,33 @@ using Object = UnityEngine.Object;
 
 namespace Unity.Assets.MaterialVariant.Editor
 {
-    [CustomEditor(typeof(MaterialVariant))]
-    public class MaterialVariantEditor : AssetImporterEditor
+    [CustomEditor(typeof(MaterialVariantImporter))]
+    public class MaterialVariantEditor : ScriptedImporterEditor
     {
         private static Color k_OverrideMarginColor = new Color(1f / 255f, 153f / 255f, 235f / 255f, 0.75f);
 
         private UnityEditor.Editor targetEditor = null;
+        private Object aTarget = null;
 
-       // Editor editor;
+        private void InitEditor()
+        {
+            targetEditor = CreateEditor(aTarget);
+            //targetEditor.firstInspectedEditor = true;
+            //targetEditor.rootOverride = ((AssetVariant)extraDataTarget).root;
+            //targetEditor.onHeaderControlsGUIOverride += MyControlGUI;
+        }
 
         public override void OnEnable()
         {
             base.OnEnable();
 
-          //  CreateEditor();
+            aTarget = AssetDatabase.LoadAssetAtPath<AssetImporter>(((AssetImporter)target).assetPath);
+
+            Debug.Log("MaterialVariantImporter");
+            InitEditor();
         }
 
+        /*
         private void EditorGuiUtilityOnBeginProperty(Rect position, SerializedProperty property)
         {
             if (Event.current.type == EventType.Repaint && property.prefabOverride)
@@ -45,6 +56,7 @@ namespace Unity.Assets.MaterialVariant.Editor
                 //EditorGUIUtility.SetBoldDefaultFont(true);
             }
         }
+        */
 
         public override void OnDisable()
         {
@@ -59,7 +71,7 @@ namespace Unity.Assets.MaterialVariant.Editor
 
         public override void OnInspectorGUI()
         {
-           // editor.OnInspectorGUI();
+            targetEditor.OnInspectorGUI();
         }
     }
 }
