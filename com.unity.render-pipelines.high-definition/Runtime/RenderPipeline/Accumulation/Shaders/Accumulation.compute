@@ -105,7 +105,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         // TODO: This loop can be easily optimized by using shader local storage
         const float2 filterRadius = _AccumulationWeights.yz;
 
-        // Compute how many pixels we should traverse for the given radius: with a radius of 0.6, we already have to touch neightboring pixels
+        // Compute how many pixels we should traverse for the given radius: when radius >0.5 we have to read neightboring pixels
         int2 filterExtent = floor(filterRadius + 0.5f) + float2(1, 1); 
         for (int i = -filterExtent.x + 1; i < filterExtent.x; ++i)
         {
