@@ -71,6 +71,8 @@ namespace Unity.Assets.MaterialVariant.Editor
         public override void OnInspectorGUI()
         {
             targetEditor.OnInspectorGUI();
+
+            ApplyRevertGUI();
         }
     }
 }
