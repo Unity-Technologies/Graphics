@@ -2063,6 +2063,47 @@ namespace UnityEngine.Rendering.HighDefinition
             m_lightList.lightsPerView[viewIndex].lightVolumes.Add(lightVolumeData);
         }
 
+        void CreateSphereVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, float normalBiasDilation, out LightVolumeData volumeData, out SFiniteLightBound bound)
+        {
+            volumeData = new LightVolumeData();
+            bound = new SFiniteLightBound();
+
+            // Used in Probe Volumes:
+            // Conservatively dilate bounds used for tile / cluster assignment by normal bias.
+            // Otherwise, surfaces could bias outside of valid data within a tile.
+            var extentConservativeX = obb.extentX + normalBiasDilation;
+            var extentConservativeY = obb.extentY + normalBiasDilation;
+            var extentConservativeZ = obb.extentZ + normalBiasDilation;
+            var extentConservativeMagnitude = Mathf.Sqrt(extentConservativeX * extentConservativeX + extentConservativeY * extentConservativeY + extentConservativeZ * extentConservativeZ);
+
+            // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
+            var positionVS = worldToView.MultiplyPoint(obb.center);
+            var rightVS    = worldToView.MultiplyVector(obb.right);
+            var upVS       = worldToView.MultiplyVector(obb.up);
+            var forwardVS  = Vector3.Cross(upVS, rightVS);
+            var extents    = new Vector3(extentConservativeX, extentConservativeY, extentConservativeZ);
+
+            volumeData.lightVolume   = (uint)LightVolumeType.Sphere;
+            volumeData.lightCategory = (uint)category;
+            volumeData.featureFlags  = (uint)featureFlags;
+
+            bound.center   = positionVS;
+            bound.boxAxisX = extentConservativeX * rightVS;
+            bound.boxAxisY = extentConservativeY * upVS;
+            bound.boxAxisZ = extentConservativeZ * forwardVS;
+            bound.radius   = extentConservativeMagnitude;
+            bound.scaleXY.Set(1.0f, 1.0f);
+
+            // The culling system culls pixels that are further
+            //   than a threshold to the box influence extents.
+            // So we use an arbitrary threshold here (k_BoxCullingExtentOffset)
+            volumeData.lightPos     = positionVS;
+            volumeData.lightAxisX   = rightVS;
+            volumeData.lightAxisY   = upVS;
+            volumeData.lightAxisZ   = forwardVS;
+            volumeData.radiusSq = extentConservativeMagnitude * extentConservativeMagnitude;
+        }
+
         void CreateBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, float normalBiasDilation, out LightVolumeData volumeData, out SFiniteLightBound bound)
         {
             volumeData = new LightVolumeData();
@@ -2800,7 +2841,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         // Capsule Occluders volumes are not lights and therefore should not affect light classification.
                         LightFeatureFlags featureFlags = 0;
-                        CreateBoxVolumeDataAndBound(capsuleOccluders.bounds[i], LightCategory.CapsuleOccluder, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
+                        CreateSphereVolumeDataAndBound(capsuleOccluders.bounds[i], LightCategory.CapsuleOccluder, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
                         m_lightList.lightsPerView[viewIndex].lightVolumes.Add(volumeData);
                         m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
                     }
