@@ -1,5 +1,5 @@
 #define CONVERGED_ALPHA asfloat(1073741824)
-#define FILTER_RADIUS 0
+#define FILTER_RADIUS 3
 
 // Storage format:
 // x: the mean value
@@ -39,13 +39,13 @@ bool UpdatePerPixelVariance(uint2 pixelCoords, uint iteration, float exposureMul
 
 float GetVariance(uint2 pixelCoords, uint iteration)
 {
-    float4 accVariance = _AccumulatedVariance[COORD_TEXTURE2D_X(pixelCoords)];
+    float4 accVariance = (iteration > 0) ? _AccumulatedVariance[COORD_TEXTURE2D_X(pixelCoords)] : 0;
     return (accVariance.z > 0) ? accVariance.y / accVariance.z : 0;
 }
 
 bool CheckVariance(uint2 pixelCoords, uint iteration, float2 threshold)
 {
-    float maxVariance = 0;
+    float totalVariance = 0;
 
     if (iteration > 0)
     {
@@ -55,13 +55,15 @@ bool CheckVariance(uint2 pixelCoords, uint iteration, float2 threshold)
         {
             for (uint j = start.y; j <= end.y; ++j)
             {
-                // Note: max filter creates block artifacts 
-                maxVariance = max(maxVariance, GetVariance(uint2(i,j), iteration));
+                totalVariance = max(totalVariance, GetVariance(uint2(i,j), iteration));
+                //totalVariance += GetVariance(uint2(i,j), iteration);
             }
         }
+        //totalVariance /= ((1 + 2 * FILTER_RADIUS) * (1 + 2 * FILTER_RADIUS));
     }
 
-    if (maxVariance < threshold.x)
+
+    if (totalVariance < threshold.x)
     {
         // update history
         // accVariance.w += 1.0;

@@ -49,7 +49,7 @@ void AddConvergenceCue(uint2 pixelCoord, uint sampleCount, inout float3 color)
 
 float GetSubPixelWeight(float2 offset, float2 filterSize)
 {
-    // Note: when using fractional filter widths some samples should contribute zero. 
+    // first cull any samples outside of the filter size 
     if (any(abs(offset) > filterSize))
     {
         return 0.0f;
@@ -83,6 +83,11 @@ float GetSubPixelWeight(float2 offset, float2 filterSize)
 
 float2 UnpackFloat2(float r)
 {
+#ifdef COMPUTE_VARIANCE
+    // converged pixels should not contribute in filtering operations, so return a large offset (> filter radius) and we will cull them 
+    if (r == CONVERGED_ALPHA) return float2(100, 100);
+#endif
+
     uint bits = asuint(r);
     return float2(bits & 0x7FFF, bits >> 15) / 32767.0f;
 }
@@ -119,10 +124,10 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         const float2 filterRadius = _AccumulationWeights.yz;
 
         // Compute how many pixels we should traverse for the given radius: when radius >0.5 we have to read neightboring pixels
-        int2 filterExtent = floor(filterRadius + 0.5f) + float2(1, 1); 
-        for (int i = -filterExtent.x + 1; i < filterExtent.x; ++i)
+        int2 filterExtent = floor(filterRadius + 0.4999999f); 
+        for (int i = -filterExtent.x; i <= filterExtent.x; ++i)
         {
-            for (int j = -filterExtent.y + 1; j < filterExtent.y; ++j)
+            for (int j = -filterExtent.y; j <= filterExtent.y; ++j)
             {
                 int2 pixelCoords = currentPixelCoord + int2(i, j);
                 pixelCoords = clamp(pixelCoords, 0, _ScreenSize.xy - float2(1, 1));
