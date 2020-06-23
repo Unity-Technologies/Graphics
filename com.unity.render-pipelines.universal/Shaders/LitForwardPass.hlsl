@@ -165,6 +165,16 @@ float4 LitPassFragment(Varyings input) : SV_Target
     return float4(inputData.positionWS, 1.0);
     #elif defined(RENDER_ENTITY_ID)
     return 0;
+    #elif defined(RENDER_ALBEDO)
+    return float4(surfaceData.albedo, 1.0);
+    #elif defined(RENDER_METALLIC_SMOOTHNESS)
+    return float4(surfaceData.metallic, surfaceData.smoothness, 0.0, 1.0);
+    #elif defined(RENDER_SPECULAR)
+    return float4(surfaceData.specular, 1.0);
+    #elif defined(RENDER_EMISSION)
+    return float4(surfaceData.emission, 1.0);
+    #elif defined(RENDER_OCCLUSION)
+    return float4(surfaceData.occlusion, surfaceData.occlusion, surfaceData.occlusion, 1.0)
     #else
     return color;
     #endif

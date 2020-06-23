@@ -154,6 +154,21 @@ namespace UnityEngine.Rendering.Universal
                     case Camera.RenderRequestMode.WorldPosition:
                         Shader.EnableKeyword("RENDER_WORLD_POS");
                         break;
+                    case Camera.RenderRequestMode.Albedo:
+                        Shader.EnableKeyword("RENDER_ALBEDO");
+                        break;
+                    case Camera.RenderRequestMode.Emission:
+                        Shader.EnableKeyword("RENDER_EMISSION");
+                        break;
+                    case Camera.RenderRequestMode.MetallicSmoothness:
+                        Shader.EnableKeyword("RENDER_METALLIC_SMOOTHNESS");
+                        break;
+                    case Camera.RenderRequestMode.Occlusion:
+                        Shader.EnableKeyword("RENDER_OCCLUSION");
+                        break;
+                    case Camera.RenderRequestMode.Specular:
+                        Shader.EnableKeyword("RENDER_SPECULAR");
+                        break;
                     default:
                         Debug.LogWarning(string.Format("Requested camera render mode {0} is not supported by UniversalRenderPipeline", renderRequest.mode));
                         break;
@@ -176,6 +191,21 @@ namespace UnityEngine.Rendering.Universal
                         break;
                     case Camera.RenderRequestMode.WorldPosition:
                         Shader.DisableKeyword("RENDER_WORLD_POS");
+                        break;
+                    case Camera.RenderRequestMode.Albedo:
+                        Shader.DisableKeyword("RENDER_ALBEDO");
+                        break;
+                    case Camera.RenderRequestMode.Emission:
+                        Shader.DisableKeyword("RENDER_EMISSION");
+                        break;
+                    case Camera.RenderRequestMode.MetallicSmoothness:
+                        Shader.DisableKeyword("RENDER_METALLIC_SMOOTHNESS");
+                        break;
+                    case Camera.RenderRequestMode.Occlusion:
+                        Shader.DisableKeyword("RENDER_OCCLUSION");
+                        break;
+                    case Camera.RenderRequestMode.Specular:
+                        Shader.DisableKeyword("RENDER_SPECULAR");
                         break;
                     default:
                         Debug.LogWarning(string.Format("Requested camera render mode {0} is not supported by UniversalRenderPipeline", renderRequest.mode));

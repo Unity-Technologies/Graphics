@@ -113,7 +113,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
 
-            #pragma multi_compile _ RENDER_OBJECT_ID RENDER_DEPTH RENDER_NORMALS RENDER_WORLD_POS RENDER_ENTITY_ID
+            #pragma multi_compile _ RENDER_OBJECT_ID RENDER_DEPTH RENDER_NORMALS RENDER_WORLD_POS RENDER_ENTITY_ID RENDER_ALBEDO RENDER_METALLIC_SMOOTHNESS RENDER_SPECULAR RENDER_OCCLUSION RENDER_EMISSION
 
             //--------------------------------------
             // GPU Instancing
