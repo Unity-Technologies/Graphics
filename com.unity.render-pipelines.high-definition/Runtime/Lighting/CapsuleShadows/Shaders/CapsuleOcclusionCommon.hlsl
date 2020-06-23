@@ -41,12 +41,17 @@ float GetOccluderRadius(EllipsoidOccluderData data)
 
 float3 GetOccluderDirectionWS(EllipsoidOccluderData data)
 {
-    return data.directionWS_scaling.xyz;
+    return normalize(data.directionWS_influence.xyz);
 }
 
-float GetOccluderScaling(EllipsoidOccluderData data)
+float3 GetOccluderScaling(EllipsoidOccluderData data)
 {
-    return data.directionWS_scaling.w;
+    return length(data.directionWS_influence.xyz);
+}
+
+float GetOccluderInfluenceRadiusScale(EllipsoidOccluderData data)
+{
+    return data.directionWS_influence.w;
 }
 
 // --------------------------------------------

@@ -46,10 +46,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     EllipsoidOccluderData data = occluder.ConvertToEngineData(camOffset);
 
                     Vector3 positionRWS = new Vector3(data.positionRWS_radius.x, data.positionRWS_radius.y, data.positionRWS_radius.z);
-                    Vector3 directionWS = new Vector3(data.directionWS_scaling.x, data.directionWS_scaling.y, data.directionWS_scaling.z);
-                    Quaternion rotationWS = Quaternion.FromToRotation(Vector3.forward, directionWS);
-                    Vector3 scaleWS = Vector3.one * data.positionRWS_radius.w * 2.0f * occluder.influenceRadiusScale;
-                    scaleWS.z *= data.directionWS_scaling.w;
+                    Vector3 directionWS = new Vector3(data.directionWS_influence.x, data.directionWS_influence.y, data.directionWS_influence.z);
+                    Quaternion rotationWS = Quaternion.FromToRotation(Vector3.forward, directionWS.normalized);
+                    Vector3 scaleWS = Vector3.one * data.positionRWS_radius.w * 2.0f * data.directionWS_influence.w;
+                    scaleWS.z *= occluder.scalingOS;
 
                     // TODO: cache these?
                     var obb = new OrientedBBox(Matrix4x4.TRS(positionRWS, rotationWS, scaleWS));
