@@ -66,9 +66,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Handles.color = color;
             Handles.matrix = (target as EllipsoidOccluder).TRS;
-            Handles.DrawWireDisc(Vector3.zero, Vector3.forward, 0.5f);
-            Handles.DrawWireDisc(Vector3.zero, Vector3.up, 0.5f);
-            Handles.DrawWireDisc(Vector3.zero, Vector3.right, 0.5f);
+            Handles.DrawWireDisc(Vector3.zero, Vector3.forward, 1.0f);
+            Handles.DrawWireDisc(Vector3.zero, Vector3.up, 1.0f);
+            Handles.DrawWireDisc(Vector3.zero, Vector3.right, 1.0f);
 
             Handles.color = Color.white;
             Handles.matrix = Matrix4x4.TRS(tr.position, tr.rotation, Vector3.one);

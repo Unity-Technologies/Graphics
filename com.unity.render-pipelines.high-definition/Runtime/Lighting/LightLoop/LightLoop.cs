@@ -643,6 +643,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeShader clearDispatchIndirectShader { get { return defaultResources.shaders.clearDispatchIndirectCS; } }
         ComputeShader deferredComputeShader { get { return defaultResources.shaders.deferredCS; } }
         ComputeShader contactShadowComputeShader { get { return defaultResources.shaders.contactShadowCS; } }
+        ComputeShader capsuleOcclusionComputeShader { get { return defaultResources.shaders.capsuleOcclusionCS; } }
         Shader screenSpaceShadowsShader { get { return defaultResources.shaders.screenSpaceShadowPS; } }
 
         Shader deferredTilePixelShader { get { return defaultResources.shaders.deferredTilePS; } }
@@ -696,6 +697,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static int[] s_shadeOpaqueIndirectFptlKernels = new int[LightDefinitions.s_NumFeatureVariants];
 
         static int s_deferredContactShadowKernel;
+        static int s_capsuleOcclusionKernel;
 
         static int s_GenListPerBigTileKernel;
 
@@ -891,6 +893,7 @@ namespace UnityEngine.Rendering.HighDefinition
             s_shadeOpaqueDirectFptlDebugDisplayKernel = deferredComputeShader.FindKernel("Deferred_Direct_Fptl_DebugDisplay");
 
             s_deferredContactShadowKernel = contactShadowComputeShader.FindKernel("DeferredContactShadow");
+            s_capsuleOcclusionKernel = capsuleOcclusionComputeShader.FindKernel("CapsuleOcclusion");
 
             for (int variant = 0; variant < LightDefinitions.s_NumFeatureVariants; variant++)
             {
@@ -3888,6 +3891,29 @@ namespace UnityEngine.Rendering.HighDefinition
                 int firstMipOffsetY = m_SharedRTManager.GetDepthBufferMipChainInfo().mipLevelOffsets[1].y;
                 var parameters = PrepareContactShadowsParameters(hdCamera, firstMipOffsetY);
                 RenderContactShadows(parameters, m_ContactShadowBuffer, depthTexture, m_LightLoopLightData, m_TileAndClusterData.lightList, cmd);
+            }
+        }
+
+        void RenderCapsuleOcclusion(HDCamera hdCamera, RTHandle occlusionTexture, CommandBuffer cmd)
+        {
+            var settings = hdCamera.volumeStack.GetComponent<CapsuleAmbientOcclusion>();
+            if (settings.intensity.value > 0f)
+            {
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CapsuleOcclusion)))
+                {
+                    capsuleOcclusionComputeShader.EnableKeyword("AMBIENT_OCCLUSION");
+                    capsuleOcclusionComputeShader.DisableKeyword("SPECULAR_OCCLUSION");
+                    capsuleOcclusionComputeShader.DisableKeyword("DIRECTIONAL_SHADOW");
+                    cmd.SetComputeTextureParam(capsuleOcclusionComputeShader, s_capsuleOcclusionKernel, HDShaderIDs._OcclusionTexture, occlusionTexture);
+                    cmd.SetComputeBufferParam(capsuleOcclusionComputeShader, s_capsuleOcclusionKernel, HDShaderIDs._CapsuleOccludersDatas, m_VisibleCapsuleOccludersDataBuffer);
+                    cmd.SetComputeBufferParam(capsuleOcclusionComputeShader, s_capsuleOcclusionKernel, HDShaderIDs.g_vLightListGlobal, m_TileAndClusterData.lightList);
+
+                    const int groupSizeX = 8;
+                    const int groupSizeY = 8;
+                    int threadGroupX = ((int)(hdCamera.actualWidth) + (groupSizeX - 1)) / groupSizeX;
+                    int threadGroupY = ((int)(hdCamera.actualHeight) + (groupSizeY - 1)) / groupSizeY;
+                    cmd.DispatchCompute(capsuleOcclusionComputeShader, s_capsuleOcclusionKernel, threadGroupX, threadGroupY, hdCamera.viewCount);
+                }
             }
         }
 

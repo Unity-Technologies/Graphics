@@ -215,7 +215,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
     partial class AmbientOcclusionSystem
     {
-        public RenderPipelineResources m_Resources;
+        RenderPipelineResources m_Resources;
         RenderPipelineSettings m_Settings;
 
         private bool m_HistoryReady = false;

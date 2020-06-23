@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 1823.1613, g: 1910.7943, b: 2786.7158, a: 1}
+  m_IndirectSpecularColor: {r: 1823.2609, g: 1910.8761, b: 2786.928, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -159,7 +159,7 @@ Light:
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 2
+    m_Type: 1
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -423,8 +423,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 160109297}
-  m_LocalRotation: {x: -0, y: -0.18986662, z: -0, w: 0.98181}
-  m_LocalPosition: {x: 0.2803891, y: 1.371, z: -0.65334266}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.2803891, y: 1.476, z: -0.65334266}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -443,7 +443,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   centerOS: {x: 0, y: 0, z: 0}
-  radiusOS: 1
+  radiusOS: 0.5
   directionOS: {x: 270, y: 0, z: 0}
   scalingOS: 2
 --- !u!1 &432432459
@@ -877,7 +877,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1855117999}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.75, y: 1.9086583, z: -1.052}
+  m_LocalPosition: {x: 1.75, y: 0.881, z: -1.052}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -896,7 +896,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   centerOS: {x: 0, y: 0, z: 0}
-  radiusOS: 1
+  radiusOS: 0.5
   directionOS: {x: 0, y: 0, z: 0}
   scalingOS: 1
 --- !u!1 &1886585490
@@ -1071,7 +1071,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   centerOS: {x: -0.10968423, y: 0.54143596, z: 0.017687857}
-  radiusOS: 0.15
+  radiusOS: 0.075
   directionOS: {x: 270, y: 180, z: 180}
   scalingOS: 7.05
 --- !u!114 &2104595143
@@ -1087,7 +1087,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   centerOS: {x: 0.10515547, y: 0.54143596, z: 0.017687857}
-  radiusOS: 0.15
+  radiusOS: 0.075
   directionOS: {x: 270, y: 180, z: 180}
   scalingOS: 7.05
 --- !u!114 &2104595144
@@ -1103,7 +1103,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   centerOS: {x: 0.4391513, y: 1.4265151, z: 0.0068818927}
-  radiusOS: 0.12
+  radiusOS: 0.06
   directionOS: {x: 357.14374, y: 270.88818, z: 358.6111}
   scalingOS: 6.12
 --- !u!114 &2104595145
@@ -1119,7 +1119,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   centerOS: {x: -0.451854, y: 1.4235857, z: 0.008795381}
-  radiusOS: 0.12
+  radiusOS: 0.06
   directionOS: {x: 3.801694, y: 270, z: -0.00000042782827}
   scalingOS: 6.12
 --- !u!114 &2104595146
@@ -1135,7 +1135,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   centerOS: {x: 0.0071513653, y: 1.6768053, z: 0.05748719}
-  radiusOS: 0.21
+  radiusOS: 0.11
   directionOS: {x: 270, y: 0, z: 0}
   scalingOS: 1.24
 --- !u!114 &2104595147
@@ -1151,6 +1151,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   centerOS: {x: 0, y: 1.218561, z: 0.017687857}
-  radiusOS: 0.33
+  radiusOS: 0.16
   directionOS: {x: 270, y: 180, z: 180}
   scalingOS: 2.2490966
