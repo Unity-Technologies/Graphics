@@ -62,7 +62,7 @@ float GetSubPixelWeight(float2 offset, float2 filterSize)
 
 #ifdef FILTER_CATMULLROM
     float r2 = dot(offset, offset);
-    float r = sqrt(r);
+    float r = sqrt(r2);
     return (r >= 2.0f) ? 0.0f :
         (r < 1.0f) ? (3.0f * r * r2 - 5.0f * r2 + 2.0f) : (-r * r2 + 5.0f * r2 - 8.0f * r + 4.0f);
 #endif
