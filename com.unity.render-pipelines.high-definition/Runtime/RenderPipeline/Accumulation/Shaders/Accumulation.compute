@@ -102,7 +102,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 #ifdef COMPUTE_VARIANCE
     // Note: reconstruction filters are not taken into account when computing variance, because we only want to compute temporal variation. Otherwire, 
     // if for example a very wide 10x10 reconstruction filter is used, the smoothed-out radiance will generate lower variance due to spatial filtering.
-    convergedPixel = convergedPixel || UpdatePerPixelVariance(currentPixelCoord, sampleCount, _RadianceTexture[COORD_TEXTURE2D_X(currentPixelCoord)]);
+    convergedPixel = convergedPixel || UpdatePerPixelVariance(currentPixelCoord, sampleCount, exposureMultiplier, _RadianceTexture[COORD_TEXTURE2D_X(currentPixelCoord)]);
 #endif
 
     if (convergedPixel)
@@ -149,7 +149,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         accColor.xyz *= exposureMultiplier;
 
 #ifdef COMPUTE_VARIANCE
-        accColor.xyz = VisualizeVariance(currentPixelCoord, 0, 100.0);
+        accColor.xyz = VisualizeVariance(currentPixelCoord, 0, 1.0);
 #endif
         // Add a little convergence cue to our result
         AddConvergenceCue(currentPixelCoord, sampleCount, accColor.xyz);

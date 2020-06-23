@@ -7,14 +7,14 @@
 // w: counts how many successive times this pixel passed the variance test
 RW_TEXTURE2D_X(float4, _AccumulatedVariance);
 
-bool UpdatePerPixelVariance(uint2 pixelCoords, uint iteration, float4 radiance)
+bool UpdatePerPixelVariance(uint2 pixelCoords, uint iteration, float exposure, float4 radiance)
 {
     if (radiance.w == CONVERGED_ALPHA)
     {
         return true;
     }
 
-    float L = Luminance(radiance.xyz);
+    float L = exposure * Luminance(radiance.xyz);
 
     // Welford's online algorithm
     float4 accVariance = (iteration > 0) ? _AccumulatedVariance[COORD_TEXTURE2D_X(pixelCoords)] : 0;
