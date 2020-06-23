@@ -500,7 +500,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializeVolumetricLighting();
             InitializeSubsurfaceScattering();
-            InitializeCapsuleOccluders();
+            m_CapsuleOcclusionSystem.InitializeCapsuleOccluders();
 
             m_DebugDisplaySettings.RegisterDebug();
 #if UNITY_EDITOR
@@ -1120,7 +1120,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_XRSystem.Cleanup();
             m_SkyManager.Cleanup();
             CleanupVolumetricLighting();
-            CleanupCapsuleOccluders();
+            m_CapsuleOcclusionSystem.CleanupCapsuleOccluders();
             CleanupProbeVolumes();
 
             for(int bsdfIdx = 0; bsdfIdx < m_IBLFilterArray.Length; ++bsdfIdx)
@@ -2333,7 +2333,7 @@ namespace UnityEngine.Rendering.HighDefinition
             SetProbeVolumeList(probeVolumes);
 
             // Capsule Occluders
-            CapsuleOccluderList capsuleOccluderList = PrepareVisibleCapsuleOccludersList(hdCamera, cmd, hdCamera.time);
+            CapsuleOccluderList capsuleOccluderList = m_CapsuleOcclusionSystem.PrepareVisibleCapsuleOccludersList(hdCamera, cmd, hdCamera.time);
 
             // Note: Legacy Unity behave like this for ShadowMask
             // When you select ShadowMask in Lighting panel it recompile shaders on the fly with the SHADOW_MASK keyword.
@@ -2612,8 +2612,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     void AsyncSSAODispatch(CommandBuffer c, HDGPUAsyncTaskParams a)
                     {
-                        m_AmbientOcclusionSystem.Dispatch(c, a.hdCamera, a.frameCount, m_VisibleCapsuleOccludersDataBuffer);
-                        RenderCapsuleOcclusion(a.hdCamera, m_AmbientOcclusionSystem.m_AmbientOcclusionTex, c);
+                        m_AmbientOcclusionSystem.Dispatch(c, a.hdCamera, a.frameCount);
                     }
                 }
 
@@ -2679,9 +2678,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (!hdCamera.frameSettings.SSAORunsAsync())
                 {
-                    m_AmbientOcclusionSystem.Render(cmd, hdCamera, renderContext, m_ShaderVariablesRayTracingCB, m_FrameCount, m_VisibleCapsuleOccludersDataBuffer);
-                    RenderCapsuleOcclusion(hdCamera, m_AmbientOcclusionSystem.m_AmbientOcclusionTex, cmd);
+                    m_AmbientOcclusionSystem.Render(cmd, hdCamera, renderContext, m_ShaderVariablesRayTracingCB, m_FrameCount);
                 }
+
+                // TODO: For now not async, but should be an option.
+                // TODO: This global set should probably be done once as multiple passes might need it set (e.g. contact shadows)
+                cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, m_TileAndClusterData.lightList);
+                m_CapsuleOcclusionSystem.RenderCapsuleOcclusions(cmd, hdCamera, m_AmbientOcclusionSystem.m_AmbientOcclusionTex, GetCurrentSunLight());
+                m_CapsuleOcclusionSystem.PushDebugTextures(cmd, hdCamera, m_AmbientOcclusionSystem.m_AmbientOcclusionTex);
 
                 // Run the contact shadows here as they need the light list
                 HDUtils.CheckRTCreated(m_ContactShadowBuffer);

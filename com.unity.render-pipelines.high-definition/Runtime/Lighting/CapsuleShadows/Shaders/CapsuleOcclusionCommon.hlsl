@@ -11,6 +11,13 @@
 // --------------------------------------------
 // Shader variables
 // --------------------------------------------
+CBUFFER_START(CapsuleOcclusionConstantBuffer)
+    float4 _CapsuleShadowParameters;    // xyz: direction w: cone width to use.      // Soon to be subjected to changes!
+CBUFFER_END
+
+TEXTURE3D(_CapsuleShadowLUT);
+
+
 // StructuredBuffer<OrientedBBox> _CapsuleOccludersBounds;
 StructuredBuffer<EllipsoidOccluderData> _CapsuleOccludersDatas;
 
@@ -73,6 +80,7 @@ float EvaluateCapsuleSpecularOcclusion(EllipsoidOccluderData data, float3 positi
 
 float EvaluateCapsuleShadow(EllipsoidOccluderData data, float3 positionWS, float3 N, float4 dirAndLength)
 {
+    // For now assuming just directional light.
     return 1.0f;
 }
 

@@ -5,34 +5,27 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class HDRenderPipeline
+    partial class CapsuleOcclusionSystem
     {
-        struct CapsuleOccluderList
-        {
-            public List<OrientedBBox>            bounds;
-            public List<EllipsoidOccluderData>   occluders;
-        }
-        
-        // Static keyword is required here else we get a "DestroyBuffer can only be called from the main thread"
-        ComputeBuffer                 m_VisibleCapsuleOccludersBuffer           = null;
-        ComputeBuffer                 m_VisibleCapsuleOccludersDataBuffer       = null;
-        
-        private const int k_MaxVisibleCapsuleOccludersCount                     = 256;
-        List<OrientedBBox>            m_VisibleCapsuleOccludersBounds           = null;
-        List<EllipsoidOccluderData>   m_VisibleCapsuleOccludersData             = null;
-        
-        
-        CapsuleOccluderList PrepareVisibleCapsuleOccludersList(HDCamera hdCamera, CommandBuffer cmd, float time)
+        // Culling resources
+        ComputeBuffer m_VisibleCapsuleOccludersBuffer = null;
+        ComputeBuffer m_VisibleCapsuleOccludersDataBuffer = null;
+
+        private const int k_MaxVisibleCapsuleOccludersCount = 256;
+        List<OrientedBBox> m_VisibleCapsuleOccludersBounds = null;
+        List<EllipsoidOccluderData> m_VisibleCapsuleOccludersData = null;
+
+        internal CapsuleOccluderList PrepareVisibleCapsuleOccludersList(HDCamera hdCamera, CommandBuffer cmd, float time)
         {
             CapsuleOccluderList capsuleOccluderVolumes = new CapsuleOccluderList();
             //if (!Fog.IsVolumetricFogEnabled(hdCamera))
             //    return capsuleOccluderVolumes; 
             //TODO: add a flag to enable and disable this.
 
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareVisibleCapsuleOccludersList))) 
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareVisibleCapsuleOccludersList)))
             {
                 Vector3 camPosition = hdCamera.camera.transform.position;
-                Vector3 camOffset   = Vector3.zero;// World-origin-relative
+                Vector3 camOffset = Vector3.zero;// World-origin-relative
 
                 if (ShaderConfig.s_CameraRelativeRendering != 0)
                 {
@@ -75,14 +68,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_VisibleCapsuleOccludersDataBuffer.SetData(m_VisibleCapsuleOccludersData);
 
                 // Fill the struct with pointers in order to share the data with the light loop.
-                capsuleOccluderVolumes.bounds  = m_VisibleCapsuleOccludersBounds;
+                capsuleOccluderVolumes.bounds = m_VisibleCapsuleOccludersBounds;
                 capsuleOccluderVolumes.occluders = m_VisibleCapsuleOccludersData;
 
                 return capsuleOccluderVolumes;
             }
         }
-        
-        void InitializeCapsuleOccluders()
+
+        internal void InitializeCapsuleOccluders()
         {
             /*m_SupportVolumetrics = asset.currentPlatformRenderPipelineSettings.supportVolumetrics;
 
@@ -93,18 +86,18 @@ namespace UnityEngine.Rendering.HighDefinition
             //m_VolumeVoxelizationCS = defaultResources.shaders.volumeVoxelizationCS;
             CreateCapsuleOccluderBuffers();
         }
-        
-        void CleanupCapsuleOccluders()
+
+        internal void CleanupCapsuleOccluders()
         {
             DestroyCapsuleOccluderBuffers();
         }
 
         internal void CreateCapsuleOccluderBuffers()
         {
-            m_VisibleCapsuleOccludersBounds       = new List<OrientedBBox>();
-            m_VisibleCapsuleOccludersData         = new List<EllipsoidOccluderData>();
-            m_VisibleCapsuleOccludersBuffer       = new ComputeBuffer(k_MaxVisibleCapsuleOccludersCount, Marshal.SizeOf(typeof(OrientedBBox)));
-            m_VisibleCapsuleOccludersDataBuffer   = new ComputeBuffer(k_MaxVisibleCapsuleOccludersCount, Marshal.SizeOf(typeof(EllipsoidOccluderData)));
+            m_VisibleCapsuleOccludersBounds = new List<OrientedBBox>();
+            m_VisibleCapsuleOccludersData = new List<EllipsoidOccluderData>();
+            m_VisibleCapsuleOccludersBuffer = new ComputeBuffer(k_MaxVisibleCapsuleOccludersCount, Marshal.SizeOf(typeof(OrientedBBox)));
+            m_VisibleCapsuleOccludersDataBuffer = new ComputeBuffer(k_MaxVisibleCapsuleOccludersCount, Marshal.SizeOf(typeof(EllipsoidOccluderData)));
         }
 
         internal void DestroyCapsuleOccluderBuffers()
@@ -112,8 +105,9 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(m_VisibleCapsuleOccludersBuffer);
             CoreUtils.SafeRelease(m_VisibleCapsuleOccludersDataBuffer);
 
-            m_VisibleCapsuleOccludersData   = null; // free()
+            m_VisibleCapsuleOccludersData = null; // free()
             m_VisibleCapsuleOccludersBounds = null; // free()
         }
+
     }
 }

@@ -3894,30 +3894,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderCapsuleOcclusion(HDCamera hdCamera, RTHandle occlusionTexture, CommandBuffer cmd)
-        {
-            var settings = hdCamera.volumeStack.GetComponent<CapsuleAmbientOcclusion>();
-            if (settings.intensity.value > 0f)
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CapsuleOcclusion)))
-                {
-                    capsuleOcclusionComputeShader.EnableKeyword("AMBIENT_OCCLUSION");
-                    capsuleOcclusionComputeShader.DisableKeyword("SPECULAR_OCCLUSION");
-                    capsuleOcclusionComputeShader.DisableKeyword("DIRECTIONAL_SHADOW");
-                    cmd.SetComputeTextureParam(capsuleOcclusionComputeShader, s_capsuleOcclusionKernel, HDShaderIDs._OcclusionTexture, occlusionTexture);
-                    cmd.SetComputeBufferParam(capsuleOcclusionComputeShader, s_capsuleOcclusionKernel, HDShaderIDs._CapsuleOccludersDatas, m_VisibleCapsuleOccludersDataBuffer);
-                    cmd.SetComputeBufferParam(capsuleOcclusionComputeShader, s_capsuleOcclusionKernel, HDShaderIDs.g_vLightListGlobal, m_TileAndClusterData.lightList);
-
-                    // WARNING: groupSize must stay in sync with numthreads declared in CapsuleOcclusion.compute.
-                    const int groupSizeX = 16;
-                    const int groupSizeY = 16;
-                    int threadGroupX = ((int)(hdCamera.actualWidth) + (groupSizeX - 1)) / groupSizeX;
-                    int threadGroupY = ((int)(hdCamera.actualHeight) + (groupSizeY - 1)) / groupSizeY;
-                    cmd.DispatchCompute(capsuleOcclusionComputeShader, s_capsuleOcclusionKernel, threadGroupX, threadGroupY, hdCamera.viewCount);
-                }
-            }
-        }
-
         struct DeferredLightingParameters
         {
             public int                  numTilesX;
