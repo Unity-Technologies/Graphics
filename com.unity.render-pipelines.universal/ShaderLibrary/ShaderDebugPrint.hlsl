@@ -1,9 +1,13 @@
-﻿#ifndef SHADER_DEBUG_PRINT_INCLUDED
+#ifndef SHADER_DEBUG_PRINT_INCLUDED
 #define SHADER_DEBUG_PRINT_INCLUDED
 
 RWStructuredBuffer<uint> shaderDebugOutputData : register(u7);
 
 static const int MaxShaderDebugOutputElements = 1024 * 1024; // 1M - must match the C# side buffer size
+
+// Input Constants
+float4 _ShaderDebugPrintInputMouse;
+float4 _ShaderDebugPrintInputExtras;
 
 static const int ValueTypeUint   = 1;
 static const int ValueTypeInt    = 2;

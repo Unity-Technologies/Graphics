@@ -708,6 +708,8 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
+            ShaderDebugPrintManager.Instance.SetShaderDebugPrintInputConstants(cmd);
+            // TODO: Binding doesn't seem to work on Mac/Metal
             ShaderDebugPrintManager.Instance.SetShaderDebugPrintBindings(cmd);
 
             // Also, we execute the commands recorded at this point to ensure SetRenderTarget is called before RenderPass.Execute

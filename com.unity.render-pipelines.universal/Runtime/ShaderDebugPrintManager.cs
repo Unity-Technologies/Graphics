@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
@@ -21,6 +21,9 @@ namespace UnityEngine.Rendering.Universal
 
         private int m_FrameCounter = 0;
         private bool m_FrameCleared = false;
+
+        private static readonly int m_ShaderPropertyIDInputMouse  = Shader.PropertyToID("_ShaderDebugPrintInputMouse");
+        private static readonly int m_ShaderPropertyIDInputExtras = Shader.PropertyToID("_ShaderDebugPrintInputExtras");
 
         enum DebugValueType
         {
@@ -54,6 +57,16 @@ namespace UnityEngine.Rendering.Universal
         public static ShaderDebugPrintManager Instance
         {
             get { return instance; }
+        }
+
+        public void SetShaderDebugPrintInputConstants(CommandBuffer cmd)
+        {
+            var input = ShaderDebugPrintInput.Get();
+
+            var mouse = new Vector4(input.Pos.x, input.Pos.y, input.LeftDown ? 1 : 0, input.RightDown ? 1 : 0);
+            var extras = new Vector4(m_FrameCounter, 0, 0, 0);
+            cmd.SetGlobalVector(m_ShaderPropertyIDInputMouse, mouse);
+            cmd.SetGlobalVector(m_ShaderPropertyIDInputExtras, extras);
         }
 
         public void SetShaderDebugPrintBindings(CommandBuffer cmd)
