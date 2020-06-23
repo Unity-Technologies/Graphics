@@ -170,7 +170,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool needCameraMVBeforeResolve = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
                 if (needCameraMVBeforeResolve)
                 {
-                    RenderCameraMotionVectors(renderGraph, hdCamera, result.depthPyramidTexture, result.motionVectorsBuffer);
+                    RenderCameraMotionVectors(renderGraph, hdCamera, result.depthBuffer, result.motionVectorsBuffer);
                 }
 
                 PreRenderSky(renderGraph, hdCamera, colorbuffer, result.depthBuffer, result.normalBuffer);
@@ -204,7 +204,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // In case we don't have MSAA, we always run camera motion vectors when is safe to assume Object MV are rendered
                 if (!needCameraMVBeforeResolve)
                 {
-                    RenderCameraMotionVectors(renderGraph, hdCamera, result.depthPyramidTexture, result.resolvedMotionVectorsBuffer);
+                    RenderCameraMotionVectors(renderGraph, hdCamera, result.depthBuffer, result.resolvedMotionVectorsBuffer);
                 }
 
                 BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, ref result);
@@ -268,9 +268,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 (DepthPrepassData data, RenderGraphContext context) =>
                 {
                     var mrt = context.renderGraphPool.GetTempArray<RenderTargetIdentifier>(data.msaaEnabled ? 2 : 1);
-                    mrt[0] = context.resources.GetTexture(data.normalBuffer);
                     if (data.msaaEnabled)
-                        mrt[1] = context.resources.GetTexture(data.depthAsColorBuffer);
+                    {
+                        mrt[0] = context.resources.GetTexture(data.depthAsColorBuffer);
+                        mrt[1] = context.resources.GetTexture(data.normalBuffer);
+                    }
+                    else
+                    {
+                        mrt[0] = context.resources.GetTexture(data.normalBuffer);
+                    }
 
                     bool useRayTracing = data.frameSettings.IsEnabled(FrameSettingsField.RayTracing);
 
@@ -795,10 +801,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public Material cameraMotionVectorsMaterial;
             public TextureHandle motionVectorsBuffer;
-            public TextureHandle depthTexture;
+            public TextureHandle depthBuffer;
         }
 
-        void RenderCameraMotionVectors(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, TextureHandle motionVectorsBuffer)
+        void RenderCameraMotionVectors(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectorsBuffer)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors))
                 return;
@@ -809,15 +815,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
                 hdCamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
+                m_CameraMotionVectorsMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ObjectMotionVector);
+                m_CameraMotionVectorsMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ObjectMotionVector);
                 passData.cameraMotionVectorsMaterial = m_CameraMotionVectorsMaterial;
-                passData.depthTexture = builder.ReadTexture(depthTexture);
+                passData.depthBuffer = builder.ReadTexture(depthBuffer);
                 passData.motionVectorsBuffer = builder.WriteTexture(motionVectorsBuffer);
 
                 builder.SetRenderFunc(
                 (CameraMotionVectorsPassData data, RenderGraphContext context) =>
                 {
                     var res = context.resources;
-                    HDUtils.DrawFullScreen(context.cmd, data.cameraMotionVectorsMaterial, res.GetTexture(data.motionVectorsBuffer));
+                    HDUtils.DrawFullScreen(context.cmd, data.cameraMotionVectorsMaterial, res.GetTexture(data.motionVectorsBuffer), res.GetTexture(data.depthBuffer), null, 0);
                 });
             }
         }
