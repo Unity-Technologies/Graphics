@@ -1190,7 +1190,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     outputDesc.enableMSAA = false;
                     outputDesc.enableRandomWrite = true;
                     outputDesc.bindTextureMS = false;
-                    outputDesc.name = string.Format("{0}Resolved", outputDesc.name);
+                    // Can't do that because there is NO way to concatenate strings without allocating.
+                    // We're stuck with subpar debug name in the meantime...
+                    //outputDesc.name = string.Format("{0}Resolved", outputDesc.name);
 
                     passData.input = builder.ReadTexture(input);
                     passData.output = builder.UseColorBuffer(renderGraph.CreateTexture(outputDesc), 0);
@@ -1229,14 +1231,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (var builder = renderGraph.AddRenderPass<ResolveMotionVectorData>("ResolveMotionVector", out var passData))
                 {
-                    var outputDesc = renderGraph.GetTextureDesc(input);
-                    outputDesc.enableMSAA = false;
-                    outputDesc.enableRandomWrite = true;
-                    outputDesc.bindTextureMS = false;
-                    outputDesc.name = string.Format("{0}Resolved", outputDesc.name);
-
                     passData.input = builder.ReadTexture(input);
-                    passData.output = builder.UseColorBuffer(renderGraph.CreateTexture(outputDesc), 0);
+                    passData.output = builder.UseColorBuffer(CreateMotionVectorBuffer(renderGraph, false, false), 0);
                     passData.resolveMaterial = m_MotionVectorResolve;
                     passData.passIndex = SampleCountToPassIndex(m_MSAASamples);
 
