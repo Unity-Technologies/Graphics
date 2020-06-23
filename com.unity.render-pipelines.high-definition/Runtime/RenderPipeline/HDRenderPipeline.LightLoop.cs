@@ -564,13 +564,14 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public VolumetricLightingParameters parameters;
             public TextureHandle                densityBuffer;
+            public TextureHandle                depthTexture;
             public TextureHandle                lightingBuffer;
             public TextureHandle                historyBuffer;
             public TextureHandle                feedbackBuffer;
             public ComputeBufferHandle          bigTileLightListBuffer;
         }
 
-        TextureHandle VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle densityBuffer, ComputeBufferHandle bigTileLightListBuffer, ShadowResult shadowResult, int frameIndex)
+        TextureHandle VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, TextureHandle densityBuffer, ComputeBufferHandle bigTileLightListBuffer, ShadowResult shadowResult, int frameIndex)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
@@ -584,6 +585,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.parameters = parameters;
                     passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightListBuffer);
                     passData.densityBuffer = builder.ReadTexture(densityBuffer);
+                    passData.depthTexture = builder.ReadTexture(depthTexture);
 
                     float tileSize = 0;
                     Vector3Int viewportSize = ComputeVolumetricViewportSize(hdCamera, ref tileSize);
@@ -607,8 +609,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         RTHandle densityBufferRT = ctx.resources.GetTexture(data.densityBuffer);
                         RTHandle lightinBufferRT = ctx.resources.GetTexture(data.lightingBuffer);
+                        RTHandle depthTextureRT = ctx.resources.GetTexture(data.depthTexture);
 
                         VolumetricLightingPass( data.parameters,
+                                                depthTextureRT,
                                                 densityBufferRT,
                                                 lightinBufferRT,
                                                 data.parameters.enableReprojection ? ctx.resources.GetTexture(data.historyBuffer)  : null,
