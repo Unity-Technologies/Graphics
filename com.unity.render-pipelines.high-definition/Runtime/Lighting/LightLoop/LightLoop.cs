@@ -204,10 +204,12 @@ namespace UnityEngine.Rendering.HighDefinition
         EnvironmentAndAreaAndPunctual = 7,
 		/// <summary>Probe Volumes.</summary>
         ProbeVolumes = 8,
+        /// <summary>Capsule Occluders.</summary>
+        CapsuleOccluder = 16,
         /// <summary>Decals.</summary>
-        Decal = 16,
+        Decal = 32,
         /// <summary>Density Volumes.</summary>
-        DensityVolumes = 32
+        DensityVolumes = 64
     };
 
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
