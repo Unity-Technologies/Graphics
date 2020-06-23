@@ -2611,7 +2611,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     haveAsyncTaskWithShadows = true;
 
                     void AsyncSSAODispatch(CommandBuffer c, HDGPUAsyncTaskParams a)
-                        => m_AmbientOcclusionSystem.Dispatch(c, a.hdCamera, a.frameCount);
+                        {
+                            m_AmbientOcclusionSystem.Dispatch(c, a.hdCamera, a.frameCount, m_VisibleCapsuleOccludersDataBuffer);
+                        }
                 }
 
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderShadowMaps)))
@@ -2675,7 +2677,32 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 if (!hdCamera.frameSettings.SSAORunsAsync())
-                    m_AmbientOcclusionSystem.Render(cmd, hdCamera, renderContext, m_ShaderVariablesRayTracingCB, m_FrameCount);
+                {
+                    m_AmbientOcclusionSystem.Render(cmd, hdCamera, renderContext, m_ShaderVariablesRayTracingCB, m_FrameCount, m_VisibleCapsuleOccludersDataBuffer);
+
+                    var capsuleSettings = hdCamera.volumeStack.GetComponent<CapsuleAmbientOcclusion>();
+                    if (capsuleSettings.intensity.value > 0f)
+                    {
+                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CapsuleOcclusion)))
+                        {
+                            ComputeShader capsuleOcclusionCS = m_AmbientOcclusionSystem.m_Resources.shaders.capsuleOcclusionCS;
+                            int capsuleOcclusionKernel = capsuleOcclusionCS.FindKernel("CapsuleOcclusion");
+
+                            capsuleOcclusionCS.EnableKeyword("AMBIENT_OCCLUSION");
+                            capsuleOcclusionCS.DisableKeyword("SPECULAR_OCCLUSION");
+                            capsuleOcclusionCS.DisableKeyword("DIRECTIONAL_SHADOW");
+                            cmd.SetComputeTextureParam(capsuleOcclusionCS, capsuleOcclusionKernel, HDShaderIDs._OcclusionTexture, m_AmbientOcclusionSystem.m_AmbientOcclusionTex);
+                            cmd.SetComputeBufferParam(capsuleOcclusionCS, capsuleOcclusionKernel, HDShaderIDs._CapsuleOccludersDatas, m_VisibleCapsuleOccludersDataBuffer);
+                            cmd.SetComputeBufferParam(capsuleOcclusionCS, capsuleOcclusionKernel, HDShaderIDs.g_vLightListGlobal, m_TileAndClusterData.lightList);
+
+                            const int groupSizeX = 8;
+                            const int groupSizeY = 8;
+                            int threadGroupX = ((int)(hdCamera.actualWidth) + (groupSizeX - 1)) / groupSizeX;
+                            int threadGroupY = ((int)(hdCamera.actualHeight) + (groupSizeY - 1)) / groupSizeY;
+                            cmd.DispatchCompute(capsuleOcclusionCS, capsuleOcclusionKernel, threadGroupX, threadGroupY, hdCamera.viewCount);
+                        }
+                    }
+                }
 
                 // Run the contact shadows here as they need the light list
                 HDUtils.CheckRTCreated(m_ContactShadowBuffer);

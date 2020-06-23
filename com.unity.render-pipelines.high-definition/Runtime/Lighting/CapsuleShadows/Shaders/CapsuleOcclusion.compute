@@ -32,7 +32,7 @@ void CapsuleOcclusion(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupI
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     uint2 pixelCoord = dispatchThreadId.xy;
-    uint2 tileCoord = groupId;
+    uint2 tileCoord = groupId / 2;
 
     float depth = LoadCameraDepth(pixelCoord.xy);
 

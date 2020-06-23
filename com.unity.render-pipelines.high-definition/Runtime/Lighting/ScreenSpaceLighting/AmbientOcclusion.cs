@@ -215,13 +215,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
     partial class AmbientOcclusionSystem
     {
-        RenderPipelineResources m_Resources;
+        public RenderPipelineResources m_Resources;
         RenderPipelineSettings m_Settings;
 
         private bool m_HistoryReady = false;
         private RTHandle m_PackedDataTex;
         private RTHandle m_PackedDataBlurred;
-        private RTHandle m_AmbientOcclusionTex;
+        public RTHandle m_AmbientOcclusionTex;
         private RTHandle m_FinalHalfRes;
 
         private bool m_RunningFullRes = false;
@@ -299,7 +299,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
 
-        internal void Render(CommandBuffer cmd, HDCamera camera, ScriptableRenderContext renderContext, in ShaderVariablesRaytracing globalRTCB, int frameCount)
+        internal void Render(CommandBuffer cmd, HDCamera camera, ScriptableRenderContext renderContext, in ShaderVariablesRaytracing globalRTCB, int frameCount, ComputeBuffer visibleCapsules)
         {
             var settings = camera.volumeStack.GetComponent<AmbientOcclusion>();
 
@@ -314,7 +314,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, globalRTCB, renderContext, frameCount);
                 else
                 {
-                    Dispatch(cmd, camera, frameCount);
+                    Dispatch(cmd, camera, frameCount, visibleCapsules);
                     PostDispatchWork(cmd, camera);
                 }
             }
@@ -598,7 +598,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void Dispatch(CommandBuffer cmd, HDCamera camera, int frameCount)
+        internal void Dispatch(CommandBuffer cmd, HDCamera camera, int frameCount, ComputeBuffer visibleCapsules)
         {
             var settings = camera.volumeStack.GetComponent<AmbientOcclusion>();
             if (IsActive(camera, settings))

@@ -199,6 +199,7 @@ namespace UnityEngine.Rendering.HighDefinition
         VTFeedbackClear,
 #endif
         //this is capsule occluders section
-        PrepareVisibleCapsuleOccludersList
+        PrepareVisibleCapsuleOccludersList,
+        CapsuleOcclusion,
     }
 }
