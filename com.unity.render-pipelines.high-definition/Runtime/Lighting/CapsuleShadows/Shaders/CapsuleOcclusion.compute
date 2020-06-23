@@ -26,13 +26,13 @@ RW_TEXTURE2D_X(unorm float2, _CapsuleOcclusions);   // R: Specular Occlusion G: 
 // #define HALF_RES 0 
 
 
-[numthreads(8, 8, 1)]
+[numthreads(16, 16, 1)]
 void CapsuleOcclusion(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupId : SV_GroupID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     uint2 pixelCoord = dispatchThreadId.xy;
-    uint2 tileCoord = groupId / 2;
+    uint2 tileCoord = groupId;
 
     float depth = LoadCameraDepth(pixelCoord.xy);
 

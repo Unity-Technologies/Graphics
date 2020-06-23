@@ -9,7 +9,7 @@
 struct EllipsoidOccluderData
 {
     float4 positionRWS_radius;
-    float4 directionWS_scaling;
+    float4 scaleddirectionWS_influenceRadius;
 };
 
 
