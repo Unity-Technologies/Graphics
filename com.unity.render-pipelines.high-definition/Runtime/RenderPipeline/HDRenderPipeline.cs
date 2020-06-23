@@ -2321,13 +2321,13 @@ namespace UnityEngine.Rendering.HighDefinition
             // Frustum cull density volumes on the CPU. Can be performed as soon as the camera is set up.
             DensityVolumeList densityVolumes = PrepareVisibleDensityVolumeList(hdCamera, cmd, hdCamera.time);
 
-            // Capsule Occluders
-            CapsuleOccluderList capsuleOccluderList = PrepareVisibleCapsuleOccludersList(hdCamera, cmd, hdCamera.time);
-
             // Frustum cull probe volumes on the CPU. Can be performed as soon as the camera is set up.
             ProbeVolumeList probeVolumes = PrepareVisibleProbeVolumeList(renderContext, hdCamera, cmd);
             // Cache probe volume list as a member variable so it can be accessed inside of async compute tasks.
             SetProbeVolumeList(probeVolumes);
+
+            // Capsule Occluders
+            CapsuleOccluderList capsuleOccluderList = PrepareVisibleCapsuleOccludersList(hdCamera, cmd, hdCamera.time);
 
             // Note: Legacy Unity behave like this for ShadowMask
             // When you select ShadowMask in Lighting panel it recompile shaders on the fly with the SHADOW_MASK keyword.
@@ -2335,7 +2335,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Currently to know if you need shadow mask you need to go through all visible lights (of CullResult), check the LightBakingOutput struct and look at lightmapBakeType/mixedLightingMode. If one light have shadow mask bake mode, then you need shadow mask features (i.e extra Gbuffer).
             // It mean that when we build a standalone player, if we detect a light with bake shadow mask, we generate all shader variant (with and without shadow mask) and at runtime, when a bake shadow mask light is visible, we dynamically allocate an extra GBuffer and switch the shader.
             // So the first thing to do is to go through all the light: PrepareLightsForGPU
-            bool enableBakeShadowMask = PrepareLightsForGPU(cmd, hdCamera, cullingResults, hdProbeCullingResults, densityVolumes, probeVolumes, m_CurrentDebugDisplaySettings, aovRequest);
+            bool enableBakeShadowMask = PrepareLightsForGPU(cmd, hdCamera, cullingResults, hdProbeCullingResults, densityVolumes, probeVolumes, capsuleOccluderList, m_CurrentDebugDisplaySettings, aovRequest);
 
             UpdateGlobalConstantBuffers(hdCamera, cmd);
 

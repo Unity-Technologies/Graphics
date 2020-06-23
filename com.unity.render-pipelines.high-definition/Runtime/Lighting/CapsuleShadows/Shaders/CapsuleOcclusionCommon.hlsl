@@ -9,6 +9,17 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 
 // --------------------------------------------
+// Shader variables
+// --------------------------------------------
+// StructuredBuffer<OrientedBBox> _CapsuleOccludersBounds;
+StructuredBuffer<EllipsoidOccluderData> _CapsuleOccludersDatas;
+
+EllipsoidOccluderData FetchEllipsoidOccluderData(uint index)
+{
+    return _CapsuleOccludersDatas[i];
+}
+
+// --------------------------------------------
 // Occluder data helpers
 // --------------------------------------------
 float3 GetOccluderPositionRWS(EllipsoidOccluderData data)
@@ -103,7 +114,7 @@ void EvaluateCapsuleOcclusion(uint evaluationFlags,
     uint sphereCount, sphereStart;
 
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-    GetCountAndStart(posInput, LIGHTCATEGORY_SPHERE_OCCLUDER, sphereStart, sphereCount);
+    GetCountAndStart(posInput, LIGHTCATEGORY_CAPSULE_OCCLUDER, sphereStart, sphereCount);
 #else   // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
     sphereCount = /* TO ADD FIXED COUNT */ ; 
     sphereStart = 0;
@@ -135,8 +146,7 @@ void EvaluateCapsuleOcclusion(uint evaluationFlags,
         if (s_sphereIdx == -1)
             break;
 
-        // TODO! Sample from the right data structure here whenever we have it available. 
-        EllipsoidOccluderData s_capsuleData = /* FetchEllipsoidOccluderData(s_sphereIdx); */ (EllipsoidOccluderData)0;
+        EllipsoidOccluderData s_capsuleData = FetchEllipsoidOccluderData(s_sphereIdx);
 
         // If current scalar and vector sphere index match, we process the sphere. The v_sphereListOffset for current thread is increased.
         // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could

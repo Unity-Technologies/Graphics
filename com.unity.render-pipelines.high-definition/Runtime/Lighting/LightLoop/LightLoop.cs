@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Area,
         Env,
         ProbeVolume,
-        SphereOccluder,
+        CapsuleOccluder,
         Decal,
         DensityVolume, // WARNING: Currently lightlistbuild.compute assumes density volume is the last element in the LightCategory enum. Do not append new LightCategory types after DensityVolume. TODO: Fix .compute code.
         Count
@@ -235,8 +235,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public uint         _DensityVolumeIndexShift;
         public uint         _ProbeVolumeIndexShift;
+        public uint         _CapsuleOccluderIndexShift;
         public uint         _Pad0_SVLL;
-        public uint         _Pad1_SVLL;
     }
 
     internal struct ProcessedLightData
@@ -628,6 +628,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_TotalLightCount = 0;
         int m_DensityVolumeCount = 0;
         int m_ProbeVolumeCount = 0;
+        int m_CapsuleOccluderCount = 0;
         bool m_EnableBakeShadowMask = false; // Track if any light require shadow mask. In this case we will need to enable the keyword shadow mask
 
         ComputeShader buildScreenAABBShader { get { return defaultResources.shaders.buildScreenAABBCS; } }
@@ -2660,7 +2661,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Return true if BakedShadowMask are enabled
         bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults,
-        HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, ProbeVolumeList probeVolumes, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
+        HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, ProbeVolumeList probeVolumes, CapsuleOccluderList capsuleOccluders, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
         {
             var debugLightFilter = debugDisplaySettings.GetDebugLightFilterMode();
             var hasDebugLightFilter = debugLightFilter != DebugLightFilterMode.None;
@@ -2744,6 +2745,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Inject density volumes into the clustered data structure for efficient look up.
                 m_DensityVolumeCount = densityVolumes.bounds != null ? densityVolumes.bounds.Count : 0;
                 m_ProbeVolumeCount = probeVolumes.bounds != null ? probeVolumes.bounds.Count : 0;
+                m_CapsuleOccluderCount = capsuleOccluders.bounds != null ? capsuleOccluders.bounds.Count : 0;
 
                 bool probeVolumeNormalBiasEnabled = false;
                 if (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled)
@@ -2791,6 +2793,15 @@ namespace UnityEngine.Rendering.HighDefinition
                             m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
                         }
                     }
+
+                    for (int i = 0, n = m_CapsuleOccluderCount; i < n; i++)
+                    {
+                        // Capsule Occluders volumes are not lights and therefore should not affect light classification.
+                        LightFeatureFlags featureFlags = 0;
+                        CreateBoxVolumeDataAndBound(capsuleOccluders.bounds[i], LightCategory.CapsuleOccluder, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
+                        m_lightList.lightsPerView[viewIndex].lightVolumes.Add(volumeData);
+                        m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
+                    }
                 }
 
                 m_TotalLightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_DensityVolumeCount;
@@ -2798,6 +2809,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     m_TotalLightCount += m_ProbeVolumeCount;
                 }
+                m_TotalLightCount += m_CapsuleOccluderCount;
 
                 Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].bounds.Count);
                 Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].lightVolumes.Count);
@@ -3327,6 +3339,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     ? (m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_DensityVolumeCount)
                     : 0;
             cb._ProbeVolumeIndexShift = (uint)probeVolumeIndexShift;
+
+            int capsuleOccluderIndexShift = probeVolumeIndexShift + m_ProbeVolumeCount;
+            cb._CapsuleOccluderIndexShift = (uint)capsuleOccluderIndexShift;
 
             // Copy the constant buffer into the parameter struct.
             parameters.lightListCB = cb;

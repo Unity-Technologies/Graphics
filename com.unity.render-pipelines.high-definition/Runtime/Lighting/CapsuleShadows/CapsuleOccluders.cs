@@ -100,8 +100,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_VisibleCapsuleOccludersBounds       = new List<OrientedBBox>();
             m_VisibleCapsuleOccludersData         = new List<EllipsoidOccluderData>();
-            m_VisibleCapsuleOccludersBuffer       = new ComputeBuffer(k_MaxCapsuleOccludersCount, Marshal.SizeOf(typeof(OrientedBBox)));
-            m_VisibleCapsuleOccludersDataBuffer   = new ComputeBuffer(k_MaxCapsuleOccludersCount, Marshal.SizeOf(typeof(EllipsoidOccluderData)));
+            m_VisibleCapsuleOccludersBuffer       = new ComputeBuffer(k_MaxVisibleCapsuleOccludersCount, Marshal.SizeOf(typeof(OrientedBBox)));
+            m_VisibleCapsuleOccludersDataBuffer   = new ComputeBuffer(k_MaxVisibleCapsuleOccludersCount, Marshal.SizeOf(typeof(EllipsoidOccluderData)));
         }
 
         internal void DestroyCapsuleOccluderBuffers()
