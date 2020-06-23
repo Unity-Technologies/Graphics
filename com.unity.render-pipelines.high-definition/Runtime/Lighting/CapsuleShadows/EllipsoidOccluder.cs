@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
     internal struct EllipsoidOccluderData
     {
         public Vector4 positionRWS_radius;
-        public Vector4 scaleddirectionWS_influenceRadius;
+        public Vector4 directionWS_scaling;
     }
 
     /// <summary>
@@ -40,10 +40,9 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector3 directionWS = (tr.rotation * Quaternion.Euler(directionOS) * Vector3.forward).normalized;
             float radiusWS = radiusOS; // TODO: Handle scale transform.
             float scalingWS = scalingOS; // TODO: Handle scale transform.
-            Vector3 scaledDirectionWS = directionWS * scalingWS;
             return new EllipsoidOccluderData {
                 positionRWS_radius = new Vector4(centerRWS.x, centerRWS.y, centerRWS.z, radiusWS),
-                scaleddirectionWS_influenceRadius = new Vector4(scaledDirectionWS.x, scaledDirectionWS.y, scaledDirectionWS.z, radiusWS * influenceRadiusScale * scalingWS)
+                directionWS_scaling = new Vector4(directionWS.x, directionWS.y, directionWS.z, scalingWS)
             };
         }
 

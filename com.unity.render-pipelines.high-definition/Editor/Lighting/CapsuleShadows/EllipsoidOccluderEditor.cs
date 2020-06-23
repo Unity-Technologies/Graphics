@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
         };
         static GUIContent[] k_ModesContent;
 
-        SerializedProperty centerOS, radiusOS, directionOS, scalingOS;
+        SerializedProperty centerOS, radiusOS, directionOS, scalingOS, influenceRadiusScale;
 
         void OnEnable()
         {
@@ -27,6 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
             radiusOS = serializedObject.FindProperty("radiusOS");
             directionOS = serializedObject.FindProperty("directionOS");
             scalingOS = serializedObject.FindProperty("scalingOS");
+            influenceRadiusScale = serializedObject.FindProperty("influenceRadiusScale");
 
             if (k_ModesContent == null)
                 k_ModesContent = new GUIContent[]{
@@ -59,16 +60,22 @@ namespace UnityEngine.Rendering.HighDefinition
             DrawDefaultInspector();
         }
 
+        private void DrawEllipsoid(float radiusMultiplier, Color color)
+        {
+            Handles.color = color;
+            Handles.DrawWireDisc(Vector3.zero, Vector3.forward, radiusMultiplier);
+            Handles.DrawWireDisc(Vector3.zero, Vector3.up, radiusMultiplier);
+            Handles.DrawWireDisc(Vector3.zero, Vector3.right, radiusMultiplier);
+        }
+
         public void OnSceneGUI()
         {
             Transform tr = (target as MonoBehaviour).transform;
             serializedObject.Update();
 
-            Handles.color = color;
             Handles.matrix = (target as EllipsoidOccluder).TRS;
-            Handles.DrawWireDisc(Vector3.zero, Vector3.forward, 1.0f);
-            Handles.DrawWireDisc(Vector3.zero, Vector3.up, 1.0f);
-            Handles.DrawWireDisc(Vector3.zero, Vector3.right, 1.0f);
+            DrawEllipsoid(1.0f, color);
+            DrawEllipsoid(influenceRadiusScale.floatValue, Color.blue);
 
             Handles.color = Color.white;
             Handles.matrix = Matrix4x4.TRS(tr.position, tr.rotation, Vector3.one);

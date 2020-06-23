@@ -34,12 +34,12 @@ float GetOccluderRadius(EllipsoidOccluderData data)
 
 float3 GetOccluderDirectionWS(EllipsoidOccluderData data)
 {
-    return data.scaleddirectionWS_influenceRadius.xyz;
+    return data.directionWS_scaling.xyz;
 }
 
-float GetOccluderInfluenceRadius(EllipsoidOccluderData data)
+float GetOccluderScaling(EllipsoidOccluderData data)
 {
-    return data.scaleddirectionWS_influenceRadius.w;
+    return data.directionWS_scaling.w;
 }
 
 // --------------------------------------------
