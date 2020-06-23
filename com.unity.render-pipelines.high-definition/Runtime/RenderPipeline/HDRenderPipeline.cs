@@ -283,6 +283,7 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly SkyManager m_SkyManager = new SkyManager();
         internal SkyManager skyManager { get { return m_SkyManager; } }
         readonly AmbientOcclusionSystem m_AmbientOcclusionSystem;
+        readonly CapsuleOcclusionSystem m_CapsuleOcclusionSystem;
 
         // Debugging
         MaterialPropertyBlock m_SharedPropertyBlock = new MaterialPropertyBlock();
@@ -459,6 +460,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SharedRTManager.Build(asset);
             m_PostProcessSystem = new PostProcessSystem(asset, defaultResources);
             m_AmbientOcclusionSystem = new AmbientOcclusionSystem(asset, defaultResources);
+            m_CapsuleOcclusionSystem = new CapsuleOcclusionSystem(asset, defaultResources);
 
             // Initialize various compute shader resources
             m_SsrTracingKernel      = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsTracing");
@@ -1129,6 +1131,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PostProcessSystem.Cleanup();
             m_AmbientOcclusionSystem.Cleanup();
             m_BlueNoise.Cleanup();
+            m_CapsuleOcclusionSystem.Cleanup();
 
             HDCamera.ClearAll();
 
@@ -2302,6 +2305,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Do anything we need to do upon a new frame.
             // The NewFrame must be after the VolumeManager update and before Resize because it uses properties set in NewFrame
             LightLoopNewFrame(cmd, hdCamera);
+
+            // Init the required resources for capsule occlusion (if needed)
+            m_CapsuleOcclusionSystem.GenerateCapsuleSoftShadowsLUT(cmd);
 
             // Apparently scissor states can leak from editor code. As it is not used currently in HDRP (apart from VR). We disable scissor at the beginning of the frame.
             cmd.DisableScissorRect();

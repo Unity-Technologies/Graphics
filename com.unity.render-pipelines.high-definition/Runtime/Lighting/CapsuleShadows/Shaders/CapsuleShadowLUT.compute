@@ -1,0 +1,60 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+
+
+#pragma kernel CapsuleShadowLUTGeneration
+
+#define CONES_COUNT 256 // Looks ok, but 1024 looks better, profile to decide.
+
+float3 GetRandomConeAxis(float cosHalfAperture, float2 randVals)
+{
+    float cosTheta = randVals.x * (1.0f - cosHalfAperture) + cosHalfAperture;
+    float sinTheta = sqrt(1.0f - cosTheta * cosTheta);
+
+    float phi = TWO_PI * randVals.y;
+    float cosPhi = cos(phi);
+    float sinPhi = sin(phi);
+
+    return float3(cosPhi * sinTheta, sinPhi * sinTheta, cosTheta);
+}
+
+RW_TEXTURE3D(float, _CapsuleShadowLUT);
+
+
+// Note here we assume that we always have 4 angles to select from
+CBUFFER_START(CapsuleShadowsLUTGenerationCB)
+    float4 _LUTGenParameters;     // xyz: LUT size
+    float4 _LUTConeCosAngles;     
+CBUFFER_END
+
+#define _LUTWidth   _LUTGenParameters.x
+#define _LUTHeight  _LUTGenParameters.y
+#define _LUTDepth   _LUTGenParameters.z
+
+
+// Ref: The Lighting technology of "The Last of Us"
+// http://miciwan.com/SIGGRAPH2013/Lighting%20Technology%20of%20The%20Last%20Of%20Us.pdf
+
+[numthreads(8, 8, 4)]
+void CapsuleShadowLUTGeneration(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupId : SV_GroupID)
+{
+    // Phi is the angle between the cone axis and the vector pointing towards the occluder center.
+    float cosPhi = 2.0f * (dispatchThreadId.x * rcp(_LUTWidth - 1.0f)) - 1.0f;
+    float sinPhi = sqrt(1.0f - sqrt(cosPhi * cosPhi));
+    // Theta is the angle subtended by the occluder 
+    float sinTheta = dispatchThreadId.y * rcp(_LUTHeight - 1.0f);
+    float cosTheta = sqrt(1.0f - sinTheta * sinTheta);
+
+    float3 occluderVec = float3(sinPhi, 0, cosPhi);
+
+    int hits = 0;
+    for (int i = 0; i < CONES_COUNT; ++i)
+    {
+        float2 randVals = Golden2dSeq(i, CONES_COUNT);
+
+        float3 coneDir = GetRandomConeAxis(_LUTConeCosAngles[dispatchThreadId.z], randVals);
+        if (dot(coneDir, occluderVec) > cosTheta) hits++;
+    }
+
+    _CapsuleShadowLUT[uint3(dispatchThreadId.x, dispatchThreadId.y, dispatchThreadId.z)] = 1.0f - (hits * rcp(CONES_COUNT));
+}

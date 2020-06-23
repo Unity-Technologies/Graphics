@@ -211,6 +211,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DecalPropertyMaskBuffer = Shader.PropertyToID("_DecalPropertyMaskBuffer");
         public static readonly int _DecalPropertyMaskBufferSRV = Shader.PropertyToID("_DecalPropertyMaskBufferSRV");
 
+        // Capsule occlusions
+        public static readonly int _LUTGenParameters = Shader.PropertyToID("_LUTGenParameters");
+        public static readonly int _LUTConeCosAngles = Shader.PropertyToID("_LUTConeCosAngles");
+        public static readonly int _CapsuleShadowLUT = Shader.PropertyToID("_CapsuleShadowLUT");
 
         public static readonly int _WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
         public static readonly int _PrevCamPosRWS = Shader.PropertyToID("_PrevCamPosRWS");
