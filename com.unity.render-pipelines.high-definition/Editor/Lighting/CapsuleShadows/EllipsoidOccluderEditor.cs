@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [CustomEditor(typeof(EllipsoidOccluder))]
     public class EllipsoidOccluderEditor : Editor
     {
-        static Color color = new Color(127.0f/255.0f, 121.0f/255.0f, 156.0f/255.0f, 0.7f);
+        static Color color = new Color(127.0f/255.0f, 121.0f/255.0f, 156.0f/255.0f);
 
         static EditMode.SceneViewEditMode[] k_EditModes = new EditMode.SceneViewEditMode[]{
             (EditMode.SceneViewEditMode)100, (EditMode.SceneViewEditMode)101, (EditMode.SceneViewEditMode)102
@@ -60,27 +60,30 @@ namespace UnityEngine.Rendering.HighDefinition
             DrawDefaultInspector();
         }
 
-        private void DrawEllipsoid(float radiusMultiplier, Color color)
+        private void DrawEllipsoid(float radius, Color color)
         {
             Handles.color = color;
-            Handles.DrawWireDisc(Vector3.zero, Vector3.forward, radiusMultiplier);
-            Handles.DrawWireDisc(Vector3.zero, Vector3.up, radiusMultiplier);
-            Handles.DrawWireDisc(Vector3.zero, Vector3.right, radiusMultiplier);
+            Handles.DrawWireDisc(Vector3.zero, Vector3.forward, radius);
+            Handles.DrawWireDisc(Vector3.zero, Vector3.up, radius);
+            Handles.DrawWireDisc(Vector3.zero, Vector3.right, radius);
         }
 
         public void OnSceneGUI()
         {
             Transform tr = (target as MonoBehaviour).transform;
+            Quaternion rot = Quaternion.Euler(directionOS.vector3Value);
+
             serializedObject.Update();
 
             Handles.matrix = (target as EllipsoidOccluder).TRS;
             DrawEllipsoid(1.0f, color);
+
+            Handles.matrix = Matrix4x4.TRS(tr.position + tr.rotation * centerOS.vector3Value, (tr.rotation * rot).normalized, Vector3.one * radiusOS.floatValue * scalingOS.floatValue);
             DrawEllipsoid(influenceRadiusScale.floatValue, Color.blue);
 
             Handles.color = Color.white;
             Handles.matrix = Matrix4x4.TRS(tr.position, tr.rotation, Vector3.one);
 
-            Quaternion rot = Quaternion.Euler(directionOS.vector3Value);
             var mode = ArrayUtility.IndexOf(k_EditModes, EditMode.editMode);
             if (EditMode.editMode == k_EditModes[0])
             {

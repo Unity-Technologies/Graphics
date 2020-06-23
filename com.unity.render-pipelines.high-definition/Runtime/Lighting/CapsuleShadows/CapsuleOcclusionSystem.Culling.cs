@@ -48,8 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     Vector3 positionRWS = new Vector3(data.positionRWS_radius.x, data.positionRWS_radius.y, data.positionRWS_radius.z);
                     Vector3 directionWS = new Vector3(data.directionWS_influence.x, data.directionWS_influence.y, data.directionWS_influence.z);
                     Quaternion rotationWS = Quaternion.FromToRotation(Vector3.forward, directionWS.normalized);
-                    Vector3 scaleWS = Vector3.one * data.positionRWS_radius.w * 2.0f * data.directionWS_influence.w;
-                    scaleWS.z *= occluder.scalingOS;
+                    Vector3 scaleWS = Vector3.one * data.directionWS_influence.w * 2.0f;
 
                     // TODO: cache these?
                     var obb = new OrientedBBox(Matrix4x4.TRS(positionRWS, rotationWS, scaleWS));

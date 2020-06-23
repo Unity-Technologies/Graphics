@@ -38,9 +38,10 @@ namespace UnityEngine.Rendering.HighDefinition
             Transform tr = transform;
             Vector3 centerRWS = tr.position + tr.rotation * centerOS - camOffset;
             Vector3 directionWS = (tr.rotation * Quaternion.Euler(directionOS) * Vector3.forward).normalized * scalingOS;
+            float influenceRadius = radiusOS * scalingOS * influenceRadiusScale;
             return new EllipsoidOccluderData {
                 positionRWS_radius = new Vector4(centerRWS.x, centerRWS.y, centerRWS.z, radiusOS),
-                directionWS_influence = new Vector4(directionWS.x, directionWS.y, directionWS.z, influenceRadiusScale)
+                directionWS_influence = new Vector4(directionWS.x, directionWS.y, directionWS.z, influenceRadius)
             };
         }
 
