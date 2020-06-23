@@ -105,8 +105,20 @@ function Find-MatchesInFile {
     if ($null -ne $searchResult)
     {
         foreach ($match in $searchResult.Matches) {
-            $strippedFilePath = $match.Value.Replace('"', "").Replace("Packages/", "")
-            $caseInsensitivePath = Join-Path $srpRoot $strippedFilePath
+            $strippedFilePath = $match.Value.Replace('"', "")
+            $matchAsbolutePathPreffix = $strippedFilePath | Select-String -Pattern 'Packages'
+            if ($matchAsbolutePathPreffix.Matches.Count -gt 0) {
+                # The include is "absolute", e.g. "Packages/com.unity.some-package/some-shader.hlsl"
+                # Concat repository root to the filename to find the file (stripping "Packages")
+                $caseInsensitivePath = Join-Path $srpRoot $strippedFilePath.Replace("Packages", "")
+            } else {
+                # The include is "relative", e.g "./some-shader.hlsl"
+                # Concat the location of the file to the filename to find the file
+                $fileObject = [System.IO.FileInfo]$File
+                $fileLocation = $fileObject.FullName.Replace($fileObject.Name, "")
+                $caseInsensitivePath = Join-Path $fileLocation $strippedFilePath
+            }
+
             [hashtable]$shaderIncludeProperty = @{}
             $shaderIncludeProperty.Add('PathToShader', $caseInsensitivePath)
             try {
