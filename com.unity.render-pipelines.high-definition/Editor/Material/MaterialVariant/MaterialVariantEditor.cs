@@ -28,9 +28,8 @@ namespace Unity.Assets.MaterialVariant.Editor
         {
             base.OnEnable();
 
-            aTarget = AssetDatabase.LoadAssetAtPath<AssetImporter>(((AssetImporter)target).assetPath);
+            aTarget = AssetDatabase.LoadAssetAtPath<Material>(((AssetImporter)target).assetPath);
 
-            Debug.Log("MaterialVariantImporter");
             InitEditor();
         }
 
