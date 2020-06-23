@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using Microsoft.SqlServer.Server;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
+using Unity.Mathematics;
 using UnityEngine.Assertions;
 
 namespace UnityEngine.Rendering.Universal
@@ -20,6 +22,22 @@ namespace UnityEngine.Rendering.Universal
 
         private int m_FrameCounter = 0;
         private bool m_FrameCleared = false;
+
+        enum DebugValueType
+        {
+            TypeUint = 1,
+            TypeInt = 2,
+            TypeFloat = 3,
+            TypeUint2 = 4,
+            TypeInt2 = 5,
+            TypeFloat2 = 6,
+            TypeUint3 = 7,
+            TypeInt3 = 8,
+            TypeFloat3 = 9,
+            TypeUint4 = 10,
+            TypeInt4 = 11,
+            TypeFloat4 = 12,
+        };
 
         static ShaderDebugPrintManager()
         {
@@ -73,13 +91,83 @@ namespace UnityEngine.Rendering.Universal
             if (!request.hasError)
             {
                 NativeArray<uint> data = request.GetData<uint>(0);
-                string msg = "Frame #" + m_FrameCounter + " (" + m_FrameCounter % FramesInFlight + "): ";
-                // TODO: This is just for testing...
-                for (int i = 0; i < 10; i++)
+
+                Debug.Log("Frame #" + m_FrameCounter + ": ");
+
+                unsafe // Need to do ugly casts via pointers
                 {
-                    msg += data[i] + ", ";
+                    uint *ptr = (uint*)data.GetUnsafePtr();
+                    uint count = data[0];
+                    for (int i = 1; i < count;)
+                    {
+                        DebugValueType type = (DebugValueType) data[i];
+                        switch (type)
+                        {
+                            case DebugValueType.TypeUint:
+                                Debug.Log(data[i + 1]);
+                                i += 2;
+                                break;
+                            case DebugValueType.TypeInt:
+                                int valueInt = *(int*) &ptr[i + 1];
+                                Debug.Log(valueInt);
+                                i += 2;
+                                break;
+                            case DebugValueType.TypeFloat:
+                                float valueFloat = *(float*)&ptr[i + 1];
+                                Debug.Log(valueFloat);
+                                i += 2;
+                                break;
+                            case DebugValueType.TypeUint2:
+                                uint2 valueUint2 = *(uint2*)&ptr[i + 1];
+                                Debug.Log(valueUint2);
+                                i += 3;
+                                break;
+                            case DebugValueType.TypeInt2:
+                                int2 valueInt2 = *(int2*)&ptr[i + 1];
+                                Debug.Log(valueInt2);
+                                i += 3;
+                                break;
+                            case DebugValueType.TypeFloat2:
+                                float2 valueFloat2 = *(float2*)&ptr[i + 1];
+                                Debug.Log(valueFloat2);
+                                i += 3;
+                                break;
+                            case DebugValueType.TypeUint3:
+                                uint3 valueUint3 = *(uint3*)&ptr[i + 1];
+                                Debug.Log(valueUint3);
+                                i += 4;
+                                break;
+                            case DebugValueType.TypeInt3:
+                                int3 valueInt3 = *(int3*)&ptr[i + 1];
+                                Debug.Log(valueInt3);
+                                i += 4;
+                                break;
+                            case DebugValueType.TypeFloat3:
+                                float3 valueFloat3 = *(float3*)&ptr[i + 1];
+                                Debug.Log(valueFloat3);
+                                i += 4;
+                                break;
+                            case DebugValueType.TypeUint4:
+                                uint4 valueUint4 = *(uint4*)&ptr[i + 1];
+                                Debug.Log(valueUint4);
+                                i += 5;
+                                break;
+                            case DebugValueType.TypeInt4:
+                                int4 valueInt4 = *(int4*)&ptr[i + 1];
+                                Debug.Log(valueInt4);
+                                i += 5;
+                                break;
+                            case DebugValueType.TypeFloat4:
+                                float4 valueFloat4 = *(float4*)&ptr[i + 1];
+                                Debug.Log(valueFloat4);
+                                i += 5;
+                                break;
+                            default:
+                                i = (int)count; // Cannot handle the rest if there is an unknown type
+                                break;
+                        }
+                    }
                 }
-                Debug.Log(msg);
             }
             else
             {
