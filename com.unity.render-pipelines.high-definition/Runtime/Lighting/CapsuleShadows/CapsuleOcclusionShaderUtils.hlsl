@@ -5,7 +5,7 @@ float IQSphereAO(float3 positionWS, float3 normalWS, float3 sphereCenter, float 
 {
     float3 posToSphere = sphereCenter - positionWS; // Or L in some var names for brevity
     float posToSphereLen = length(posToSphere);
-    float posToSphereNorm = (posToSphere / posToSphereLen);
+    float3 posToSphereNorm = (posToSphere / posToSphereLen);
 
     float NdotPosToSphere = dot(normalWS, posToSphereNorm);
 
@@ -21,7 +21,7 @@ float IQSphereAO(float3 positionWS, float3 normalWS, float3 sphereCenter, float 
 #if 1
         // TODO: Test with fast acos. 
         result = NdotPosToSphere * acos(-NdotPosToSphere * sqrt((h2 - 1.0) / (1.0 - NdotPosToSphere2))) - sqrt(k2*(h2 - 1.0));
-        result = res / h2 + atan(sqrt(k2 / (h2 - 1.0)));
+        result = result / h2 + atan(sqrt(k2 / (h2 - 1.0)));
         result /= PI;
 #else
         // cheap approximation: Quilez

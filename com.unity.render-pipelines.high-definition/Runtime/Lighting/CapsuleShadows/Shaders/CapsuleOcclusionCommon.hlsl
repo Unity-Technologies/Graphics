@@ -6,6 +6,7 @@
 #endif
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/CapsuleOcclusionSystem.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/EllipsoidOccluder.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/CapsuleOcclusionShaderUtils.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 
 // --------------------------------------------
@@ -44,7 +45,7 @@ float3 GetOccluderDirectionWS(EllipsoidOccluderData data)
     return normalize(data.directionWS_influence.xyz);
 }
 
-float3 GetOccluderScaling(EllipsoidOccluderData data)
+float GetOccluderScaling(EllipsoidOccluderData data)
 {
     return length(data.directionWS_influence.xyz);
 }
@@ -74,8 +75,15 @@ float4 GetDataForSphereIntersection(EllipsoidOccluderData data)
 
 float EvaluateCapsuleAmbientOcclusion(EllipsoidOccluderData data, float3 positionWS, float3 N, float4 dirAndLength)
 {
+    float3 dir = GetOccluderDirectionWS(data);
+    float proj = dot(positionWS, dir);
+    float3 positionCS = positionWS - (proj * dir) + proj * dir / GetOccluderScaling(data);
+    proj = dot(GetOccluderPositionRWS(data), dir);
+    float3 centerCS = GetOccluderPositionRWS(data) - (proj * dir) + proj * dir / GetOccluderScaling(data);
+
+    // TODO: should also transform the normal
     // IMPORTANT: Remember to modify by intensity modifier here and not after.
-    return 1.0f;
+    return IQSphereAO(positionCS, N, centerCS, GetOccluderRadius(data));
 }
 
 float EvaluateCapsuleSpecularOcclusion(EllipsoidOccluderData data, float3 positionWS, float3 N, float roughness, float4 dirAndLength)
@@ -97,6 +105,7 @@ float EvaluateCapsuleShadow(EllipsoidOccluderData data, float3 positionWS, float
 
 float AccumulateCapsuleAmbientOcclusion(float prevAO, float capsuleAO)
 {
+    return max(prevAO, capsuleAO);
     return min(prevAO, capsuleAO);
 }
 
