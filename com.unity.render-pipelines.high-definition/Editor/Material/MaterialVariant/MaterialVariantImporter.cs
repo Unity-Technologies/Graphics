@@ -9,7 +9,7 @@ namespace Unity.Assets.MaterialVariant.Editor
     public class MaterialVariantImporter : ScriptedImporter
     {
         public override void OnImportAsset(AssetImportContext ctx)
-        {/*
+        {
             var assets = InternalEditorUtility.LoadSerializedFileAndForget(ctx.assetPath);
             if (assets != null && assets.Length == 1)
             {
@@ -44,7 +44,6 @@ namespace Unity.Assets.MaterialVariant.Editor
                     ctx.SetMainObject(material);
                 }
             }
-            */
         }
     }
 }
