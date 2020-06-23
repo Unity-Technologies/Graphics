@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Microsoft.SqlServer.Server;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
@@ -182,6 +181,32 @@ namespace UnityEngine.Rendering.Universal
 
             m_FrameCounter++;
             m_FrameCleared = false;
+        }
+    }
+
+    public struct ShaderDebugPrintInput
+    {
+        // Mouse input
+        // GameView bottom-left == (0,0) top-right == (surface.width, surface.height) where surface == game display surface/rendertarget
+        // For screen pixel coordinates, game-view should be set to "Free Aspect".
+        // Works only in PlayMode
+        public Vector2 Pos { get; set; }
+        public bool LeftDown { get; set; }
+        public bool RightDown { get; set; }
+        public bool MiddleDown { get; set; }
+
+        static public ShaderDebugPrintInput Get()
+        {
+            var r = new ShaderDebugPrintInput();
+            r.Pos = Input.mousePosition;
+            r.LeftDown = Input.GetAxis("Fire1") > 0.5f;
+            r.RightDown = Input.GetAxis("Fire2") > 0.5f;
+            r.MiddleDown = Input.GetAxis("Fire3") > 0.5f;
+            return r;
+        }
+        public string Log()
+        {
+            return $"Mouse: {Pos.x}x{Pos.y}  Btns: Left:{LeftDown} Right:{RightDown} Middle:{MiddleDown} ";
         }
     }
 }
