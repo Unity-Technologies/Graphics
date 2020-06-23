@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.Graphing
 {
     [Serializable]
-    struct SlotReference : ISerializationCallbackReceiver, IEquatable<SlotReference>
+    struct SlotReference : ISerializationCallbackReceiver, IEquatable<SlotReference>, IComparable<SlotReference>
     {
         [SerializeField]
         private int m_SlotId;
@@ -63,6 +63,13 @@ namespace UnityEditor.Graphing
             {
                 return (m_SlotId * 397) ^ m_NodeGUID.GetHashCode();
             }
+        }
+        
+        public int CompareTo(SlotReference other)
+        {
+            var nodeGUIDComparison = m_NodeGUID.CompareTo(other.m_NodeGUID);
+            if (nodeGUIDComparison != 0) return nodeGUIDComparison;
+            return m_SlotId.CompareTo(other.m_SlotId);
         }
     }
 }

@@ -87,7 +87,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         public string selectedGuid
         {
             get { return m_Selected; }
-            private set { m_Selected = value; }
+            private set
+            {
+                    m_Selected = value;
+            }
         }
 
         public string assetName
@@ -97,6 +100,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 titleContent.text = value;
                 graphEditorView.assetName = value;
+            }
+        }
+
+        void DisplayChangedOnDiskDialog()
+        {
+            if (EditorUtility.DisplayDialog("Graph has changed on disk, do you want to reload?", AssetDatabase.GUIDToAssetPath(selectedGuid), "Reload", "Don't Reload"))
+            {
+                graphObject = null;
             }
         }
 
@@ -127,6 +138,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                     titleContent = EditorGUIUtility.TrTextContentWithIcon(assetName, icon);
                     m_ProTheme = EditorGUIUtility.isProSkin;
                 }
+            }
+            
+            if (m_PromptChangedOnDisk)
+            {
+                m_PromptChangedOnDisk = false;
+                DisplayChangedOnDiskDialog();
             }
 
             try
@@ -184,12 +201,19 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     m_ChangedFileDependencies.Clear();
                 }
-
-                if (graphObject.wasUndoRedoPerformed)
+                
+                var wasUndoRedoPerformed = graphObject.wasUndoRedoPerformed;
+                if (wasUndoRedoPerformed)
                 {
                     graphEditorView.HandleGraphChanges();
                     graphObject.graph.ClearChanges();
                     graphObject.HandleUndoRedo();
+                }
+                
+                if (graphObject.isDirty || wasUndoRedoPerformed)
+                {
+                    UpdateTitle();
+                    graphObject.isDirty = false;
                 }
 
                 graphEditorView.HandleGraphChanges();
@@ -223,13 +247,44 @@ namespace UnityEditor.ShaderGraph.Drawing
             graphEditorView = null;
             messageManager.ClearAll();
         }
+        
+        bool IsDirty()
+        {
+            var currentJson = EditorJsonUtility.ToJson(graphObject.graph, true);
+            var fileJson = File.ReadAllText(AssetDatabase.GUIDToAssetPath(selectedGuid));
+            return !string.Equals(currentJson, fileJson, StringComparison.Ordinal);
+        }
+        
+        [SerializeField]
+        bool m_PromptChangedOnDisk;
 
+        public void CheckForChanges()
+        {
+            var isDirty = IsDirty();
+            if (isDirty)
+            {
+                m_PromptChangedOnDisk = true;
+            }
+            UpdateTitle(isDirty);
+        }
+
+        void UpdateTitle()
+        {
+            UpdateTitle(IsDirty());
+        }
+
+        void UpdateTitle(bool isDirty)
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));
+            titleContent.text = asset.name.Split('/').Last() + (isDirty ? "*" : "");
+        }
+        
         void OnDestroy()
         {
             if (graphObject != null)
             {
                 string nameOfFile = AssetDatabase.GUIDToAssetPath(selectedGuid);
-                if (graphObject.isDirty && EditorUtility.DisplayDialog("Shader Graph Has Been Modified", "Do you want to save the changes you made in the Shader Graph?\n" + nameOfFile + "\n\nYour changes will be lost if you don't save them.", "Save", "Don't Save"))
+                if (IsDirty() && EditorUtility.DisplayDialog("Shader Graph Has Been Modified", "Do you want to save the changes you made in the Shader Graph?\n" + nameOfFile + "\n\nYour changes will be lost if you don't save them.", "Save", "Don't Save"))
                     UpdateAsset();
                 Undo.ClearUndo(graphObject);
                 graphObject = null;
@@ -299,7 +354,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
 
-                graphObject.isDirty = false;
+                UpdateTitle();
             }
         }
 
@@ -685,8 +740,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 Texture2D icon = GetThemeIcon(graphObject.graph);
 
                 // This is adding the icon at the front of the tab
-                titleContent = EditorGUIUtility.TrTextContentWithIcon(asset.name.Split('/').Last(), icon);
-
+                titleContent = EditorGUIUtility.TrTextContentWithIcon(selectedGuid, icon);
+                UpdateTitle();
+                
                 Repaint();
             }
             catch (Exception)
