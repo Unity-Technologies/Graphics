@@ -14,11 +14,10 @@ namespace Unity.Assets.MaterialVariant.Editor
         private static Color k_OverrideMarginColor = new Color(1f / 255f, 153f / 255f, 235f / 255f, 0.75f);
 
         private UnityEditor.Editor targetEditor = null;
-        private Object aTarget = null;
 
         private void InitEditor()
         {
-            targetEditor = CreateEditor(aTarget);
+            targetEditor = CreateEditor(assetTarget);
             //targetEditor.firstInspectedEditor = true;
             //targetEditor.rootOverride = ((AssetVariant)extraDataTarget).root;
             //targetEditor.onHeaderControlsGUIOverride += MyControlGUI;
@@ -27,8 +26,6 @@ namespace Unity.Assets.MaterialVariant.Editor
         public override void OnEnable()
         {
             base.OnEnable();
-
-            aTarget = AssetDatabase.LoadAssetAtPath<Material>(((AssetImporter)target).assetPath);
 
             InitEditor();
         }
