@@ -44,6 +44,7 @@ bool CheckVariance(uint2 pixelCoords, uint iteration, float2 threshold)
         {
             return true;
         }
+        return false;
     }
     // reset history
     accVariance.w = 0;
