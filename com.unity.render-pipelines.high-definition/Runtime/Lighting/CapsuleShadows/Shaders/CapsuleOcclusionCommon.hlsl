@@ -120,9 +120,6 @@ void EvaluateCapsuleOcclusion(uint evaluationFlags,
     sphereStart = 0;
 #endif
 
-        ambientOcclusion = posInput.positionNDC.x;
-        return;
-
     bool fastPath = false;
 #if SCALARIZE_LIGHT_LOOP
     uint sphereStartLane0;
