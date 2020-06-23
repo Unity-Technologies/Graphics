@@ -16,7 +16,7 @@ StructuredBuffer<EllipsoidOccluderData> _CapsuleOccludersDatas;
 
 EllipsoidOccluderData FetchEllipsoidOccluderData(uint index)
 {
-    return _CapsuleOccludersDatas[i];
+    return _CapsuleOccludersDatas[index];
 }
 
 // --------------------------------------------
