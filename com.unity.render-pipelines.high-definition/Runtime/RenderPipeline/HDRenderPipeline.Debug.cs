@@ -394,11 +394,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (PushFullScreenDebugPassData data, RenderGraphContext ctx) =>
                 {
-                    var texture = ctx.resources.GetTexture(passData.input);
+                    var texture = ctx.resources.GetTexture(data.input);
                     if (data.mipIndex != -1)
-                        HDUtils.BlitCameraTexture(ctx.cmd, texture, ctx.resources.GetTexture(passData.output), data.mipIndex);
+                        HDUtils.BlitCameraTexture(ctx.cmd, texture, ctx.resources.GetTexture(data.output), data.mipIndex);
                     else
-                        HDUtils.BlitCameraTexture(ctx.cmd, texture, ctx.resources.GetTexture(passData.output));
+                        HDUtils.BlitCameraTexture(ctx.cmd, texture, ctx.resources.GetTexture(data.output));
                 });
 
                 m_DebugFullScreenTexture = passData.output;
