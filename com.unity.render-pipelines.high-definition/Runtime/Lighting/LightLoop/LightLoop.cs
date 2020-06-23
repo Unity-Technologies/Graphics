@@ -3901,8 +3901,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CapsuleOcclusion)))
                 {
-                    capsuleOcclusionComputeShader.DisableKeyword("AMBIENT_OCCLUSION");
-                    capsuleOcclusionComputeShader.EnableKeyword("SPECULAR_OCCLUSION");
+                    capsuleOcclusionComputeShader.EnableKeyword("AMBIENT_OCCLUSION");
+                    capsuleOcclusionComputeShader.DisableKeyword("SPECULAR_OCCLUSION");
                     capsuleOcclusionComputeShader.DisableKeyword("DIRECTIONAL_SHADOW");
                     cmd.SetComputeTextureParam(capsuleOcclusionComputeShader, s_capsuleOcclusionKernel, HDShaderIDs._OcclusionTexture, occlusionTexture);
                     cmd.SetComputeBufferParam(capsuleOcclusionComputeShader, s_capsuleOcclusionKernel, HDShaderIDs._CapsuleOccludersDatas, m_VisibleCapsuleOccludersDataBuffer);
