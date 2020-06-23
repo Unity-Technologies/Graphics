@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // If the luxmeter is enabled, the sky isn't rendered so we clear the background color
                 m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter ||
                 // If the matcap view is enabled, the sky isn't updated so we clear the background color
-                m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera) ||
+                m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera) ||
                 // If we want the sky but the sky don't exist, still clear with background color
                 (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky && !m_SkyManager.IsVisualSkyValid(hdCamera)) ||
                 // Special handling for Preview we force to clear with background color (i.e black)
@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // We set the background color to black when the luxmeter is enabled to avoid picking the sky color
             if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter ||
-                m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera))
+                m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
                 clearColor = Color.black;
 
             return clearColor;
@@ -143,7 +143,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                     (RenderOcclusionMeshesPassData data, RenderGraphContext ctx) =>
                     {
-                        data.hdCamera.xr.RenderOcclusionMeshes(ctx.cmd, ctx.resources.GetTexture(data.depthBuffer));
+                        // TODO RENDERGRAPH : XR occlusion mesh also need to write to color buffer
+                        //data.hdCamera.xr.RenderOcclusionMeshes(ctx.cmd, ctx.resources.GetTexture(data.depthBuffer));
                     });
                 }
             }

@@ -7,8 +7,28 @@ Shader "HDRP/AxF"
 
         /////////////////////////////////////////////////////////////////////////////
         // General Parameters
-        _MaterialTilingU( "Material U Tiling", Float ) = 1
-        _MaterialTilingV( "Material V Tiling", Float ) = 1
+        // UI Only: transfered to _MappingMask
+        // BUG! 6 values work, not 7 -_-
+        //[Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, PlanarXY, 4, PlanarYZ, 5, PlanarZX, 6, Triplanar, 7)] _MappingMode("Mapping Mode", Float) = 0
+        [HideInInspector] _MappingMode("Mapping Mode", Float) = 0
+        [HideInInspector] _MappingMask("MappingMask", Vector) = (1, 0, 0, 0)
+        // UI Only:
+        [Enum(World, 0, Local, 1)] _PlanarSpace("Planar/Triplanar space", Float) = 0
+
+        // Tilings and offsets
+        _Material_SO( "Main Material Tiling & Offset", Vector) = (1, 1, 0, 0)
+        _SVBRDF_DiffuseColorMap_SO( "_SVBRDF_DiffuseColorMap Tiling & Offset", Vector) = (1, 1, 0, 0)
+        _SVBRDF_SpecularColorMap_SO( "_SVBRDF_SpecularColorMap Tiling & Offset", Vector) = (1, 1, 0, 0)
+        _SVBRDF_NormalMap_SO( "_SVBRDF_NormalMap Tiling & Offset", Vector) = (1, 1, 0, 0)
+        _SVBRDF_SpecularLobeMap_SO( "_SVBRDF_SpecularLobeMap Tiling & Offset", Vector) = (1, 1, 0, 0)
+        _SVBRDF_AlphaMap_SO( "_SVBRDF_AlphaMap Tiling & Offset", Vector) = (1, 1, 0, 0)
+        _SVBRDF_FresnelMap_SO( "_SVBRDF_FresnelMap Tiling & Offset", Vector) = (1, 1, 0, 0)
+        _SVBRDF_AnisoRotationMap_SO( "_SVBRDF_AnisoRotationMap Tiling & Offset", Vector) = (1, 1, 0, 0)
+        _SVBRDF_HeightMap_SO( "_SVBRDF_HeightMap Tiling & Offset", Vector) = (1, 1, 0, 0)
+        _SVBRDF_ClearcoatColorMap_SO( "_SVBRDF_ClearcoatColorMap Tiling & Offset", Vector) = (1, 1, 0, 0)
+        _ClearcoatNormalMap_SO( "_ClearcoatNormalMap Tiling & Offset", Vector) = (1, 1, 0, 0)
+        _SVBRDF_ClearcoatIORMap_SO( "_SVBRDF_ClearcoatIORMap Tiling & Offset", Vector) = (1, 1, 0, 0)
+        _CarPaint2_BTFFlakeMap_SO( "_CarPaint2_BTFFlakeMap Tiling & Offset", Vector) = (1, 1, 0, 0)
 
         [Enum(SVBRDF, 0, CarPaint, 1, BTF, 2)] _AxF_BRDFType("_AxF_BRDFType", Float) = 0
 
@@ -48,7 +68,6 @@ Shader "HDRP/AxF"
         _CarPaint2_BRDFColorMapUVScale("_CarPaint2_BRDFColorMapUVScale", Vector) = (1,1,0,0)  // To be used when we have the bit BRDFColorUseDiagonalClamp set in _Flags
 
         // Flakes
-        _CarPaint2_FlakeTiling("_CarPaint2_FlakeTiling", Float) = 1
         _CarPaint2_BTFFlakeMapScale("_CarPaint2_BTFFlakeMapScale", Float) = 1         // Scale is useless if we're directly provided a RGBA16F format
         _CarPaint2_BTFFlakeMap("_CarPaint2_BTFFlakeMap", 2DArray) = "black" {}
         _CarPaint2_FlakeThetaFISliceLUTMap( "_CarPaint2_FlakeThetaFISliceLUTMap", 2D ) = "black" {}
@@ -62,6 +81,10 @@ Shader "HDRP/AxF"
         _CarPaint2_CTF0s("_CarPaint2_CTF0s", Vector) = (1,1,1,1)
         _CarPaint2_CTCoeffs("_CarPaint2_CTCoeffs", Vector) = (1,1,1,1)
         _CarPaint2_CTSpreads("_CarPaint2_CTSpreads", Vector) = (1,1,1,1)
+
+        // GUI inspector only - saves state in material meta, read back from SetupMaterialKeywordsAndPass
+        //[Enum(Off, 0, From Ambient Occlusion, 1, From Bent Normals, 2)]  _SpecularOcclusionMode("Specular Occlusion Mode", Int) = 1
+        [Enum(Off, 0, From Ambient Occlusion, 1)]  _SpecularOcclusionMode("Specular Occlusion Mode", Int) = 1
 
         [ToggleUI]  _UseShadowThreshold("_UseShadowThreshold", Float) = 0.0
         [ToggleUI]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
@@ -102,6 +125,10 @@ Shader "HDRP/AxF"
         [Enum(Flip, 0, Mirror, 1, None, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1 // This is for the editor only, see BaseLitUI.cs: _DoubleSidedConstants will be set based on the mode.
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
+        [ToggleUI] _EnableGeometricSpecularAA("EnableGeometricSpecularAA", Float) = 0.0
+        _SpecularAAScreenSpaceVariance("SpecularAAScreenSpaceVariance", Range(0.0, 1.0)) = 0.1
+        _SpecularAAThreshold("SpecularAAThreshold", Range(0.0, 1.0)) = 0.2
+
         // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
         // value that exist to identify if the GI emission need to be enabled.
         // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
@@ -115,7 +142,7 @@ Shader "HDRP/AxF"
 
         [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
-
+        [ToggleUI] _ReceivesSSRTransparent("Receives SSR Transparent", Float) = 0.0
         [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
 
     }
@@ -130,12 +157,20 @@ Shader "HDRP/AxF"
     //-------------------------------------------------------------------------------------
     #pragma shader_feature_local _AXF_BRDF_TYPE_SVBRDF _AXF_BRDF_TYPE_CAR_PAINT _AXF_BRDF_TYPE_BTF
 
+    #pragma shader_feature_local _ _SPECULAR_OCCLUSION_NONE //_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
+
+    #pragma shader_feature_local _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
+    #pragma shader_feature_local _ _REQUIRE_UV1 _REQUIRE_UV2 _REQUIRE_UV3
+    #pragma shader_feature_local _ _PLANAR_LOCAL
+
     #pragma shader_feature_local _ALPHATEST_ON
     #pragma shader_feature_local _ALPHATOMASK_ON
     #pragma shader_feature_local _DOUBLESIDED_ON
 
     #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local _DISABLE_SSR
+    #pragma shader_feature_local _DISABLE_SSR_TRANSPARENT
+    #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
 
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
 
@@ -362,6 +397,7 @@ Shader "HDRP/AxF"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
+            #pragma multi_compile SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
 

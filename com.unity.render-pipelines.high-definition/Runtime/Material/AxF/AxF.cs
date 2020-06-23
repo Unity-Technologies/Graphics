@@ -44,6 +44,13 @@ namespace UnityEngine.Rendering.HighDefinition
         [GenerateHLSL(PackingRules.Exact, false, false, true, 1200)]
         public struct SurfaceData
         {
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.AmbientOcclusion)]
+            [SurfaceDataAttributes("Ambient Occlusion")]
+            public float ambientOcclusion;
+
+            [SurfaceDataAttributes("Specular Occlusion")]
+            public float specularOcclusion;
+
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Normal)]
             [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true)]
             public Vector3  normalWS;
@@ -64,7 +71,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3  fresnelF0;
 
             [SurfaceDataAttributes("Specular Lobe")]
-            public Vector2  specularLobe;
+            public Vector3  specularLobe; // .xy for SVBRDF, .xyz for CARPAINT2, for _CarPaint2_CTSpreads per lobe roughnesses
 
             [SurfaceDataAttributes("Height")]
             public float    height_mm;
@@ -73,12 +80,35 @@ namespace UnityEngine.Rendering.HighDefinition
             public float    anisotropyAngle;
 
             // Car Paint Variables
-            [SurfaceDataAttributes("Flakes UV")]
-            public Vector2  flakesUV;
+            [SurfaceDataAttributes("Flakes UV (or PlanarZY)")]
+            public Vector2  flakesUVZY;
+            [SurfaceDataAttributes("Flakes PlanarXZ")]
+            public Vector2  flakesUVXZ;
+            [SurfaceDataAttributes("Flakes PlanarXY")]
+            public Vector2  flakesUVXY;
 
-            [SurfaceDataAttributes("Flakes Mip")]
-            public float    flakesMipLevel;
+            [SurfaceDataAttributes("Flakes Mip (and for PlanarZY)")]
+            public float    flakesMipLevelZY;
+            [SurfaceDataAttributes("Flakes Mip for PlanarXZ")]
+            public float    flakesMipLevelXZ;
+            [SurfaceDataAttributes("Flakes Mip for PlanarXY")]
+            public float    flakesMipLevelXY;
+            [SurfaceDataAttributes("Flakes Triplanar Weights")]
+            public Vector3  flakesTriplanarWeights;
 
+            // if non null, we will prefer gradients (to be used statically only!)
+            [SurfaceDataAttributes("Flakes ddx (and for PlanarZY)")]
+            public Vector2  flakesDdxZY;
+            [SurfaceDataAttributes("Flakes ddy (and for PlanarZY)")]
+            public Vector2  flakesDdyZY;
+            [SurfaceDataAttributes("Flakes ddx for PlanarXZ")]
+            public Vector2  flakesDdxXZ;
+            [SurfaceDataAttributes("Flakes ddy for PlanarXZ")]
+            public Vector2  flakesDdyXZ;
+            [SurfaceDataAttributes("Flakes ddx for PlanarXY")]
+            public Vector2  flakesDdxXY;
+            [SurfaceDataAttributes("Flakes ddy for PlanarXY")]
+            public Vector2  flakesDdyXY;
             // BTF Variables
 
             // Clearcoat
@@ -102,6 +132,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [GenerateHLSL(PackingRules.Exact, false, false, true, 1250)]
         public struct BSDFData
         {
+            public float ambientOcclusion;
+            public float specularOcclusion;
+
             [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
             public Vector3  normalWS;
             [SurfaceDataAttributes("", true)]
@@ -113,15 +146,23 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3  diffuseColor;
             public Vector3  specularColor;
             public Vector3  fresnelF0;
-            public Vector2  roughness;
+            public Vector3  roughness; // .xy for SVBRDF, .xyz for CARPAINT2, for _CarPaint2_CTSpreads per lobe roughnesses
             public float    height_mm;
 
             // Car Paint Variables
-            [SurfaceDataAttributes("")]
-            public Vector2  flakesUV;
-
-            [SurfaceDataAttributes("Flakes Mip")]
-            public float    flakesMipLevel;
+            public Vector2  flakesUVZY;
+            public Vector2  flakesUVXZ;
+            public Vector2  flakesUVXY;
+            public float    flakesMipLevelZY;
+            public float    flakesMipLevelXZ;
+            public float    flakesMipLevelXY;
+            public Vector3  flakesTriplanarWeights;
+            public Vector2  flakesDdxZY; // if non null, we will prefer gradients (to be used statically only!)
+            public Vector2  flakesDdyZY;
+            public Vector2  flakesDdxXZ;
+            public Vector2  flakesDdyXZ;
+            public Vector2  flakesDdxXY;
+            public Vector2  flakesDdyXY;
 
             // BTF Variables
 

@@ -199,8 +199,8 @@
 #define LODDitheringTransition ERROR_ON_UNSUPPORTED_FUNCTION(LODDitheringTransition)
 #endif
 
-// On everything but GCN consoles we error on cross-lane operations
-#ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+// On everything but GCN consoles or DXC compiled shaders we error on cross-lane operations
+#if !defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(UNITY_COMPILER_DXC)
 #define WaveActiveAllTrue ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveAllTrue)
 #define WaveActiveAnyTrue ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveAnyTrue)
 #define WaveGetLaneIndex ERROR_ON_UNSUPPORTED_FUNCTION(WaveGetLaneIndex)
@@ -536,6 +536,51 @@ uint FastLog2(uint x)
 // Note: https://msdn.microsoft.com/en-us/library/windows/desktop/bb509636(v=vs.85).aspx pow(0, >0) == 0
 TEMPLATE_2_REAL(PositivePow, base, power, return pow(abs(base), power))
 
+// SafePositivePow: Same as pow(x,y) but considers x always positive and never exactly 0 such that
+// SafePositivePow(0,y) will numerically converge to 1 as y -> 0, including SafePositivePow(0,0) returning 1.
+//
+// First, like PositivePow, SafePositivePow removes this warning for when you know the x value is positive or 0 and you know
+// you avoid a NaN:
+// ie you know that x == 0 and y > 0, such that pow(x,y) == pow(0, >0) == 0
+// SafePositivePow(0, y) will however return close to 1 as y -> 0, see below.
+//
+// Also, pow(x,y) is most probably approximated as exp2(log2(x) * y), so pow(0,0) will give exp2(-inf * 0) == exp2(NaN) == NaN.
+//
+// SafePositivePow avoids NaN in allowing SafePositivePow(x,y) where (x,y) == (0,y) for any y including 0 by clamping x to a
+// minimum of FLT_EPS. The consequences are:
+//
+// -As a replacement for pow(0,y) where y >= 1, the result of SafePositivePow(x,y) should be close enough to 0.
+// -For cases where we substitute for pow(0,y) where 0 < y < 1, SafePositivePow(x,y) will quickly reach 1 as y -> 0, while
+// normally pow(0,y) would give 0 instead of 1 for all 0 < y.
+// eg: if we #define FLT_EPS  5.960464478e-8 (for fp32), 
+// SafePositivePow(0, 0.1)   = 0.1894646
+// SafePositivePow(0, 0.01)  = 0.8467453
+// SafePositivePow(0, 0.001) = 0.9835021
+//
+// Depending on the intended usage of pow(), this difference in behavior might be a moot point since:
+// 1) by leaving "y" free to get to 0, we get a NaNs
+// 2) the behavior of SafePositivePow() has more continuity when both x and y get closer together to 0, since
+// when x is assured to be positive non-zero, pow(x,x) -> 1 as x -> 0.
+//
+// TL;DR: SafePositivePow(x,y) avoids NaN and is safe for positive (x,y) including (x,y) == (0,0),
+//        but SafePositivePow(0, y) will return close to 1 as y -> 0, instead of 0, so watch out
+//        for behavior depending on pow(0, y) giving always 0, especially for 0 < y < 1.
+//
+// Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/bb509636(v=vs.85).aspx
+TEMPLATE_2_REAL(SafePositivePow, base, power, return pow(max(abs(base), real(REAL_EPS)), power))
+
+// Helpers for making shadergraph functions consider precision spec through the same $precision token used for variable types
+TEMPLATE_2_FLT(SafePositivePow_float, base, power, return pow(max(abs(base), float(FLT_EPS)), power))
+TEMPLATE_2_HALF(SafePositivePow_half, base, power, return pow(max(abs(base), half(HALF_EPS)), power))
+
+float Eps_float() { return FLT_EPS; }
+float Min_float() { return FLT_MIN; }
+float Max_float() { return FLT_MAX; }
+half Eps_half() { return HALF_EPS; }
+half Min_half() { return HALF_MIN; }
+half Max_half() { return HALF_MAX; }
+
+
 // Composes a floating point value with the magnitude of 'x' and the sign of 's'.
 // See the comment about FastSign() below.
 float CopySign(float x, float s, bool ignoreNegZero = true)
@@ -641,36 +686,37 @@ TEMPLATE_3_FLT(RangeRemap, min, max, t, return saturate((t - min) / (max - min))
 // Texture utilities
 // ----------------------------------------------------------------------------
 
-float ComputeTextureLOD(float2 uvdx, float2 uvdy, float2 scale)
+float ComputeTextureLOD(float2 uvdx, float2 uvdy, float2 scale, float bias = 0.0)
 {
     float2 ddx_ = scale * uvdx;
     float2 ddy_ = scale * uvdy;
-    float d = max(dot(ddx_, ddx_), dot(ddy_, ddy_));
+    float  d    = max(dot(ddx_, ddx_), dot(ddy_, ddy_));
 
-    return max(0.5 * log2(d), 0.0);
+    return max(0.5 * log2(d) - bias, 0.0);
 }
 
-float ComputeTextureLOD(float2 uv)
+float ComputeTextureLOD(float2 uv, float bias = 0.0)
 {
     float2 ddx_ = ddx(uv);
     float2 ddy_ = ddy(uv);
 
-    return ComputeTextureLOD(ddx_, ddy_, 1.0);
+    return ComputeTextureLOD(ddx_, ddy_, 1.0, bias);
 }
 
 // x contains width, w contains height
-float ComputeTextureLOD(float2 uv, float2 texelSize)
+float ComputeTextureLOD(float2 uv, float2 texelSize, float bias = 0.0)
 {
     uv *= texelSize;
 
-    return ComputeTextureLOD(uv);
+    return ComputeTextureLOD(uv, bias);
 }
 
 // LOD clamp is optional and happens outside the function.
-float ComputeTextureLOD(float3 duvw_dx, float3 duvw_dy, float3 duvw_dz, float scale)
+float ComputeTextureLOD(float3 duvw_dx, float3 duvw_dy, float3 duvw_dz, float scale, float bias = 0.0)
 {
     float d = Max3(dot(duvw_dx, duvw_dx), dot(duvw_dy, duvw_dy), dot(duvw_dz, duvw_dz));
-    return 0.5 * log2(d * (scale * scale));
+
+    return max(0.5f * log2(d * (scale * scale)) - bias, 0.0);
 }
 
 
@@ -700,6 +746,48 @@ uint GetMipCount(Texture2D tex)
 // ----------------------------------------------------------------------------
 // Texture format sampling
 // ----------------------------------------------------------------------------
+
+// DXC no longer supports DX9-style HLSL syntax for sampler2D, tex2D and the like.
+// These are emulated for backwards compatibilit using our own small structs and functions which manually combine samplers and textures.
+#if defined(UNITY_COMPILER_DXC) && !defined(DXC_SAMPLER_COMPATIBILITY)
+#define DXC_SAMPLER_COMPATIBILITY 1
+struct sampler1D            { Texture1D t; SamplerState s; };
+struct sampler2D            { Texture2D t; SamplerState s; };
+struct sampler3D            { Texture3D t; SamplerState s; };
+struct samplerCUBE          { TextureCube t; SamplerState s; };
+
+float4 tex1D(sampler1D x, float v)              { return x.t.Sample(x.s, v); }
+float4 tex2D(sampler2D x, float2 v)             { return x.t.Sample(x.s, v); }
+float4 tex3D(sampler3D x, float3 v)             { return x.t.Sample(x.s, v); }
+float4 texCUBE(samplerCUBE x, float3 v)         { return x.t.Sample(x.s, v); }
+
+float4 tex1Dbias(sampler1D x, in float4 t)              { return x.t.SampleBias(x.s, t.x, t.w); }
+float4 tex2Dbias(sampler2D x, in float4 t)              { return x.t.SampleBias(x.s, t.xy, t.w); }
+float4 tex3Dbias(sampler3D x, in float4 t)              { return x.t.SampleBias(x.s, t.xyz, t.w); }
+float4 texCUBEbias(samplerCUBE x, in float4 t)          { return x.t.SampleBias(x.s, t.xyz, t.w); }
+
+float4 tex1Dlod(sampler1D x, in float4 t)           { return x.t.SampleLevel(x.s, t.x, t.w); }
+float4 tex2Dlod(sampler2D x, in float4 t)           { return x.t.SampleLevel(x.s, t.xy, t.w); }
+float4 tex3Dlod(sampler3D x, in float4 t)           { return x.t.SampleLevel(x.s, t.xyz, t.w); }
+float4 texCUBElod(samplerCUBE x, in float4 t)       { return x.t.SampleLevel(x.s, t.xyz, t.w); }
+
+float4 tex1Dgrad(sampler1D x, float t, float dx, float dy)              { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 tex2Dgrad(sampler2D x, float2 t, float2 dx, float2 dy)           { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 tex3Dgrad(sampler3D x, float3 t, float3 dx, float3 dy)           { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 texCUBEgrad(samplerCUBE x, float3 t, float3 dx, float3 dy)       { return x.t.SampleGrad(x.s, t, dx, dy); }
+
+float4 tex1D(sampler1D x, float t, float dx, float dy)              { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 tex2D(sampler2D x, float2 t, float2 dx, float2 dy)           { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 tex3D(sampler3D x, float3 t, float3 dx, float3 dy)           { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 texCUBE(samplerCUBE x, float3 t, float3 dx, float3 dy)       { return x.t.SampleGrad(x.s, t, dx, dy); }
+
+float4 tex1Dproj(sampler1D s, in float2 t)              { return tex1D(s, t.x / t.y); }
+float4 tex1Dproj(sampler1D s, in float4 t)              { return tex1D(s, t.x / t.w); }
+float4 tex2Dproj(sampler2D s, in float3 t)              { return tex2D(s, t.xy / t.z); }
+float4 tex2Dproj(sampler2D s, in float4 t)              { return tex2D(s, t.xy / t.w); }
+float4 tex3Dproj(sampler3D s, in float4 t)              { return tex3D(s, t.xyz / t.w); }
+float4 texCUBEproj(samplerCUBE s, in float4 t)          { return texCUBE(s, t.xyz / t.w); }
+#endif
 
 float2 DirectionToLatLongCoordinate(float3 unDir)
 {
@@ -921,6 +1009,12 @@ float3 ComputeViewSpacePosition(float2 positionNDC, float deviceDepth, float4x4 
 float3 ComputeWorldSpacePosition(float2 positionNDC, float deviceDepth, float4x4 invViewProjMatrix)
 {
     float4 positionCS  = ComputeClipSpacePosition(positionNDC, deviceDepth);
+    float4 hpositionWS = mul(invViewProjMatrix, positionCS);
+    return hpositionWS.xyz / hpositionWS.w;
+}
+
+float3 ComputeWorldSpacePosition(float4 positionCS, float4x4 invViewProjMatrix)
+{
     float4 hpositionWS = mul(invViewProjMatrix, positionCS);
     return hpositionWS.xyz / hpositionWS.w;
 }
@@ -1171,5 +1265,8 @@ float SharpenAlpha(float alpha, float alphaClipTreshold)
 {
     return saturate((alpha - alphaClipTreshold) / max(fwidth(alpha), 0.0001) + 0.5);
 }
+
+// These clamping function to max of floating point 16 bit are use to prevent INF in code in case of extreme value
+TEMPLATE_1_REAL(ClampToFloat16Max, value, return min(value, HALF_MAX))
 
 #endif // UNITY_COMMON_INCLUDED

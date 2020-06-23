@@ -7,7 +7,9 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
 
-#if defined(SHADER_API_MOBILE) || defined(SHADER_API_GLCORE)
+#if defined(SHADER_API_MOBILE) && (SHADER_TARGET < 45)
+#define MAX_VISIBLE_LIGHTS 16
+#elif defined(SHADER_API_MOBILE) || (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) // Workaround for bug on Nintendo Switch where SHADER_API_GLCORE is mistakenly defined
     #define MAX_VISIBLE_LIGHTS 32
 #else
     #define MAX_VISIBLE_LIGHTS 256
@@ -43,6 +45,7 @@ float4 _ScaledScreenParams;
 
 float4 _MainLightPosition;
 half4 _MainLightColor;
+half4 _MainLightSpotDir;
 
 // Global object render pass data containing various settings.
 // x,y,z are currently unused
@@ -51,6 +54,7 @@ half4 _DrawObjectPassData;
 
 
 half4 _AdditionalLightsCount;
+
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
 StructuredBuffer<LightData> _AdditionalLightsBuffer;
 StructuredBuffer<int> _AdditionalLightsIndices;

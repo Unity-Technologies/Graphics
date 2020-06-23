@@ -1,8 +1,4 @@
-#if ETC1_EXTERNAL_ALPHA
-    TEXTURE2D(_AlphaTex); SAMPLER(sampler_AlphaTex);
-    float _EnableAlphaTexture;
-#endif
-    float4 _RendererColor;
+half4 _RendererColor;
 
 PackedVaryings vert(Attributes input)
 {
@@ -21,12 +17,12 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(unpacked);
     SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
-#if ETC1_EXTERNAL_ALPHA
-    float4 alpha = SAMPLE_TEXTURE2D(_AlphaTex, sampler_AlphaTex, unpacked.texCoord0.xy);
-    surfaceDescription.Color.a = lerp (surfaceDescription.Color.a, alpha.r, _EnableAlphaTexture);
+#ifdef UNIVERSAL_USELEGACYSPRITEBLOCKS
+    half4 color = surfaceDescription.SpriteColor;
+#else
+    half4 color = half4(surfaceDescription.BaseColor, surfaceDescription.Alpha);
 #endif
 
-    surfaceDescription.Color *= unpacked.color * _RendererColor;
-
-    return surfaceDescription.Color;
+    color *= unpacked.color * _RendererColor;
+    return color;
 }

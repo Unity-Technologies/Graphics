@@ -218,7 +218,8 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
     // Alpha mask
 #ifdef ENABLE_ALPHA
         // Post processing is not applied on pixels with zero alpha
-        color.xyz = lerp(inputColor.xyz, color.xyz, inputColor.a);
+        // Saturate is necessary to avoid issues when additive blending pushes the alpha over 1.
+        color.xyz = lerp(inputColor.xyz, color.xyz, saturate(inputColor.a));
 #endif
 
     // Done

@@ -1,26 +1,217 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
+using UnityEditor.ShaderGraph.Legacy;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
-    sealed class UniversalLitSubTarget : SubTarget<UniversalTarget>
+    sealed class UniversalLitSubTarget : SubTarget<UniversalTarget>, ILegacyTarget
     {
         const string kAssetGuid = "d6c78107b64145745805d963de80cc17";
+
+        [SerializeField]
+        WorkflowMode m_WorkflowMode = WorkflowMode.Metallic;
+
+        [SerializeField]
+        NormalDropOffSpace m_NormalDropOffSpace = NormalDropOffSpace.Tangent;
 
         public UniversalLitSubTarget()
         {
             displayName = "Lit";
         }
 
+        public WorkflowMode workflowMode
+        {
+            get => m_WorkflowMode;
+            set => m_WorkflowMode = value;
+        }
+
+        public NormalDropOffSpace normalDropOffSpace
+        {
+            get => m_NormalDropOffSpace;
+            set => m_NormalDropOffSpace = value;
+        }
+
+        public override bool IsActive() => true;
+        
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
             context.SetDefaultShaderGUI("ShaderGraph.PBRMasterGUI"); // TODO: This should be owned by URP
-            context.AddSubShader(SubShaders.Lit);
-            context.AddSubShader(SubShaders.LitDOTS);
+
+            // Process SubShaders
+            SubShaderDescriptor[] subShaders = { SubShaders.Lit, SubShaders.LitDOTS };
+            for(int i = 0; i < subShaders.Length; i++)
+            {
+                // Update Render State
+                subShaders[i].renderType = target.renderType;
+                subShaders[i].renderQueue = target.renderQueue;
+
+                // Add
+                context.AddSubShader(subShaders[i]);
+            }
+        }
+
+        public override void GetFields(ref TargetFieldContext context)
+        {
+            var descs = context.blocks.Select(x => x.descriptor);
+            // Surface Type & Blend Mode
+            // These must be set per SubTarget as Sprite SubTargets override them
+            context.AddField(Fields.SurfaceOpaque,       target.surfaceType == SurfaceType.Opaque);
+            context.AddField(Fields.SurfaceTransparent,  target.surfaceType != SurfaceType.Opaque);
+            context.AddField(Fields.BlendAdd,            target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Additive);
+            context.AddField(Fields.BlendAlpha,          target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Alpha);
+            context.AddField(Fields.BlendMultiply,       target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Multiply);
+            context.AddField(Fields.BlendPremultiply,    target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Premultiply);
+
+            // Lit
+            context.AddField(Fields.NormalDropOffOS,     normalDropOffSpace == NormalDropOffSpace.Object);
+            context.AddField(Fields.NormalDropOffTS,     normalDropOffSpace == NormalDropOffSpace.Tangent);
+            context.AddField(Fields.NormalDropOffWS,     normalDropOffSpace == NormalDropOffSpace.World);
+            context.AddField(Fields.SpecularSetup,       workflowMode == WorkflowMode.Specular);
+            context.AddField(Fields.Normal,              descs.Contains(BlockFields.SurfaceDescription.NormalOS) ||
+                                                         descs.Contains(BlockFields.SurfaceDescription.NormalTS) ||
+                                                         descs.Contains(BlockFields.SurfaceDescription.NormalWS));
+        }
+
+        public override void GetActiveBlocks(ref TargetActiveBlockContext context)
+        {
+            context.AddBlock(BlockFields.SurfaceDescription.Smoothness);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalOS,           normalDropOffSpace == NormalDropOffSpace.Object);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalTS,           normalDropOffSpace == NormalDropOffSpace.Tangent);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalWS,           normalDropOffSpace == NormalDropOffSpace.World);
+            context.AddBlock(BlockFields.SurfaceDescription.Emission);
+            context.AddBlock(BlockFields.SurfaceDescription.Occlusion);
+            context.AddBlock(BlockFields.SurfaceDescription.Specular,           workflowMode == WorkflowMode.Specular);
+            context.AddBlock(BlockFields.SurfaceDescription.Metallic,           workflowMode == WorkflowMode.Metallic);
+            context.AddBlock(BlockFields.SurfaceDescription.Alpha,              target.surfaceType == SurfaceType.Transparent || target.alphaClip);
+            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, target.alphaClip);
+        }
+
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
+        {
+            context.AddProperty("Workflow", new EnumField(WorkflowMode.Metallic) { value = workflowMode }, (evt) =>
+            {
+                if (Equals(workflowMode, evt.newValue))
+                    return;
+
+                registerUndo("Change Workflow");
+                workflowMode = (WorkflowMode)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Surface", new EnumField(SurfaceType.Opaque) { value = target.surfaceType }, (evt) =>
+            {
+                if (Equals(target.surfaceType, evt.newValue))
+                    return;
+                
+                registerUndo("Change Surface");
+                target.surfaceType = (SurfaceType)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Blend", new EnumField(AlphaMode.Alpha) { value = target.alphaMode }, target.surfaceType == SurfaceType.Transparent, (evt) =>
+            {
+                if (Equals(target.alphaMode, evt.newValue))
+                    return;
+
+                registerUndo("Change Blend");
+                target.alphaMode = (AlphaMode)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Alpha Clip", new Toggle() { value = target.alphaClip }, (evt) =>
+            {
+                if (Equals(target.alphaClip, evt.newValue))
+                    return;
+                
+                registerUndo("Change Alpha Clip");
+                target.alphaClip = evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Two Sided", new Toggle() { value = target.twoSided }, (evt) =>
+            {
+                if (Equals(target.twoSided, evt.newValue))
+                    return;
+                
+                registerUndo("Change Two Sided");
+                target.twoSided = evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Fragment Normal Space", new EnumField(NormalDropOffSpace.Tangent) { value = normalDropOffSpace }, (evt) =>
+            {
+                if (Equals(normalDropOffSpace, evt.newValue))
+                    return;
+
+                registerUndo("Change Fragment Normal Space");
+                normalDropOffSpace = (NormalDropOffSpace)evt.newValue;
+                onChange();
+            });
+        }
+
+        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
+        {
+            blockMap = null;
+            if(!(masterNode is PBRMasterNode1 pbrMasterNode))
+                return false;
+            
+            // Set data
+            m_WorkflowMode = (WorkflowMode)pbrMasterNode.m_Model;
+            m_NormalDropOffSpace = (NormalDropOffSpace)pbrMasterNode.m_NormalDropOffSpace;
+
+            // Handle mapping of Normal block specifically
+            BlockFieldDescriptor normalBlock;
+            switch(m_NormalDropOffSpace)
+            {
+                case NormalDropOffSpace.Object:
+                    normalBlock = BlockFields.SurfaceDescription.NormalOS;
+                    break;
+                case NormalDropOffSpace.World:
+                    normalBlock = BlockFields.SurfaceDescription.NormalWS;
+                    break;
+                default:
+                    normalBlock = BlockFields.SurfaceDescription.NormalTS;
+                    break;
+            }
+
+            // PBRMasterNode adds/removes Metallic/Specular based on settings
+            BlockFieldDescriptor specularMetallicBlock;
+            int specularMetallicId;
+            if(m_WorkflowMode == WorkflowMode.Specular)
+            {
+                specularMetallicBlock = BlockFields.SurfaceDescription.Specular;
+                specularMetallicId = 3;
+            }
+            else
+            {
+                specularMetallicBlock = BlockFields.SurfaceDescription.Metallic;
+                specularMetallicId = 2;
+            }
+
+            // Set blockmap
+            blockMap = new Dictionary<BlockFieldDescriptor, int>()
+            {
+                { BlockFields.VertexDescription.Position, 9 },
+                { BlockFields.VertexDescription.Normal, 10 },
+                { BlockFields.VertexDescription.Tangent, 11 },
+                { BlockFields.SurfaceDescription.BaseColor, 0 },
+                { normalBlock, 1 },
+                { specularMetallicBlock, specularMetallicId },
+                { BlockFields.SurfaceDescription.Emission, 4 },
+                { BlockFields.SurfaceDescription.Smoothness, 5 },
+                { BlockFields.SurfaceDescription.Occlusion, 6 },
+                { BlockFields.SurfaceDescription.Alpha, 7 },
+                { BlockFields.SurfaceDescription.AlphaClipThreshold, 8 },
+            };
+
+            return true;
         }
 
 #region SubShader
@@ -33,6 +224,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 passes = new PassCollection
                 {
                     { LitPasses.Forward },
+                    { LitPasses.GBuffer },
                     { CorePasses.ShadowCaster },
                     { CorePasses.DepthOnly },
                     { LitPasses.Meta },
@@ -45,12 +237,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 get
                 {
                     var forward = LitPasses.Forward;
+                    var gbuffer = LitPasses.GBuffer;
                     var shadowCaster = CorePasses.ShadowCaster;
                     var depthOnly = CorePasses.DepthOnly;
                     var meta = LitPasses.Meta;
                     var _2d = LitPasses._2D;
 
                     forward.pragmas = CorePragmas.DOTSForward;
+                    gbuffer.pragmas = CorePragmas.DOTSGBuffer;
                     shadowCaster.pragmas = CorePragmas.DOTSInstanced;
                     depthOnly.pragmas = CorePragmas.DOTSInstanced;
                     meta.pragmas = CorePragmas.DOTSDefault;
@@ -63,6 +257,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                         passes = new PassCollection
                         {
                             { forward },
+                            { gbuffer },
                             { shadowCaster },
                             { depthOnly },
                             { meta },
@@ -87,11 +282,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Template
                 passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port Mask
-                vertexPorts = CorePortMasks.Vertex,
-                pixelPorts = LitPortMasks.FragmentLit,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentLit,
 
                 // Fields
                 structs = CoreStructCollections.Default,
@@ -105,6 +300,33 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 includes = LitIncludes.Forward,
             };
 
+            public static PassDescriptor GBuffer = new PassDescriptor
+            {
+                // Definition
+                displayName = "GBuffer",
+                referenceName = "SHADERPASS_GBUFFER",
+                lightMode = "UniversalGBuffer",
+
+                // Template
+                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentLit,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                requiredFields = LitRequiredFields.GBuffer,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = CoreRenderStates.GBufferLit,
+                pragmas = CorePragmas.GBuffer,
+                keywords = LitKeywords.GBuffer,
+                includes = LitIncludes.GBuffer,
+            };
+
             public static PassDescriptor Meta = new PassDescriptor()
             {
                 // Definition
@@ -114,11 +336,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Template
                 passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port Mask
-                vertexPorts = CorePortMasks.Vertex,
-                pixelPorts = LitPortMasks.FragmentMeta,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentMeta,
 
                 // Fields
                 structs = CoreStructCollections.Default,
@@ -140,11 +362,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Template
                 passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port Mask
-                vertexPorts = CorePortMasks.Vertex,
-                pixelPorts = LitPortMasks.Fragment2D,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = CoreBlockMasks.FragmentColorAlpha,
 
                 // Fields
                 structs = CoreStructCollections.Default,
@@ -159,34 +381,29 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #endregion
 
 #region PortMasks
-        static class LitPortMasks
+        static class LitBlockMasks
         {
-            public static int[] FragmentLit = new int[]
+            public static BlockFieldDescriptor[] FragmentLit = new BlockFieldDescriptor[]
             {
-                PBRMasterNode.AlbedoSlotId,
-                PBRMasterNode.NormalSlotId,
-                PBRMasterNode.EmissionSlotId,
-                PBRMasterNode.MetallicSlotId,
-                PBRMasterNode.SpecularSlotId,
-                PBRMasterNode.SmoothnessSlotId,
-                PBRMasterNode.OcclusionSlotId,
-                PBRMasterNode.AlphaSlotId,
-                PBRMasterNode.AlphaThresholdSlotId,
+                BlockFields.SurfaceDescription.BaseColor,
+                BlockFields.SurfaceDescription.NormalOS,
+                BlockFields.SurfaceDescription.NormalTS,
+                BlockFields.SurfaceDescription.NormalWS,
+                BlockFields.SurfaceDescription.Emission,
+                BlockFields.SurfaceDescription.Metallic,
+                BlockFields.SurfaceDescription.Specular,
+                BlockFields.SurfaceDescription.Smoothness,
+                BlockFields.SurfaceDescription.Occlusion,
+                BlockFields.SurfaceDescription.Alpha,
+                BlockFields.SurfaceDescription.AlphaClipThreshold,
             };
 
-            public static int[] FragmentMeta = new int[]
+            public static BlockFieldDescriptor[] FragmentMeta = new BlockFieldDescriptor[]
             {
-                PBRMasterNode.AlbedoSlotId,
-                PBRMasterNode.EmissionSlotId,
-                PBRMasterNode.AlphaSlotId,
-                PBRMasterNode.AlphaThresholdSlotId,
-            };
-
-            public static int[] Fragment2D = new int[]
-            {
-                PBRMasterNode.AlbedoSlotId,
-                PBRMasterNode.AlphaSlotId,
-                PBRMasterNode.AlphaThresholdSlotId
+                BlockFields.SurfaceDescription.BaseColor,
+                BlockFields.SurfaceDescription.Emission,
+                BlockFields.SurfaceDescription.Alpha,
+                BlockFields.SurfaceDescription.AlphaClipThreshold,
             };
         }
 #endregion
@@ -195,6 +412,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         static class LitRequiredFields
         {
             public static FieldCollection Forward = new FieldCollection()
+            {
+                StructFields.Attributes.uv1,                            // needed for meta vertex position
+                StructFields.Varyings.positionWS,
+                StructFields.Varyings.normalWS,
+                StructFields.Varyings.tangentWS,                        // needed for vertex lighting
+                StructFields.Varyings.viewDirectionWS,
+                UniversalStructFields.Varyings.lightmapUV,
+                UniversalStructFields.Varyings.sh,
+                UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
+                UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
+            };
+
+            public static FieldCollection GBuffer = new FieldCollection()
             {
                 StructFields.Attributes.uv1,                            // needed for meta vertex position
                 StructFields.Varyings.positionWS,
@@ -218,6 +448,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #region Keywords
         static class LitKeywords
         {
+            public static KeywordDescriptor GBufferNormalsOct = new KeywordDescriptor()
+            {
+                displayName = "GBuffer normal octaedron encoding",
+                referenceName = "_GBUFFER_NORMALS_OCT",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.MultiCompile,
+                scope = KeywordScope.Global,
+            };
+
             public static KeywordCollection Forward = new KeywordCollection
             {
                 { CoreKeywordDescriptors.Lightmap },
@@ -228,6 +467,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.AdditionalLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
+            };
+
+            public static KeywordCollection GBuffer = new KeywordCollection
+            {
+                { CoreKeywordDescriptors.Lightmap },
+                { CoreKeywordDescriptors.DirectionalLightmapCombined },
+                { CoreKeywordDescriptors.MainLightShadows },
+                { CoreKeywordDescriptors.MainLightShadowsCascade },
+                { CoreKeywordDescriptors.ShadowsSoft },
+                { CoreKeywordDescriptors.MixedLightingSubtractive },
+                { GBufferNormalsOct },
             };
 
             public static KeywordCollection Meta = new KeywordCollection
@@ -243,6 +493,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             const string kShadows = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl";
             const string kMetaInput = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl";
             const string kForwardPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBRForwardPass.hlsl";
+            const string kGBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl";
+            const string kPBRGBufferPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBRGBufferPass.hlsl";
             const string kLightingMetaPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/LightingMetaPass.hlsl";
             const string k2DPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBR2DPass.hlsl";
 
@@ -256,6 +508,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
                 { kForwardPass, IncludeLocation.Postgraph },
+            };
+
+            public static IncludeCollection GBuffer = new IncludeCollection
+            {
+                // Pre-graph
+                { CoreIncludes.CorePregraph },
+                { kShadows, IncludeLocation.Pregraph },
+                { CoreIncludes.ShaderGraphPregraph },
+
+                // Post-graph
+                { CoreIncludes.CorePostgraph },
+                { kGBuffer, IncludeLocation.Postgraph },
+                { kPBRGBufferPass, IncludeLocation.Postgraph },
             };
 
             public static IncludeCollection Meta = new IncludeCollection

@@ -257,7 +257,7 @@ float3 ConvertToOutputSpace(float3 color)
 // Front most neighbourhood velocity ([Karis 2014])
 float2 GetClosestFragment(TEXTURE2D_X(DepthTexture), int2 positionSS)
 {
-    float center = LoadCameraDepth(positionSS);
+    float center = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS, 0).r;
 
     int2 quadOffset = GetQuadOffset(positionSS);
 
@@ -526,7 +526,7 @@ void MinMaxNeighbourhood(inout NeighbourhoodSamples samples)
     samples.avgNeighbour *= rcp(NEIGHBOUR_COUNT);
 }
 
-void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma, float colorLuma, float antiFlicker)
+void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma, float colorLuma, float2 antiFlickerParams, float motionVectorLen)
 {
     CTYPE moment1 = 0;
     CTYPE moment2 = 0;
@@ -552,21 +552,29 @@ void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma
     // and high temporal contrast, we let the history to be closer to be unclipped. To achieve, the min/max bounds
     // are extended artificially more.
 #if ANTI_FLICKER
-    stDevMultiplier = 1.4;
+    stDevMultiplier = 1.5;
     float temporalContrast = saturate(abs(colorLuma - historyLuma) / Max3(0.2, colorLuma, historyLuma));
-    stDevMultiplier += lerp(0.0, antiFlicker, smoothstep(0.1, 0.7, temporalContrast));
+#if ANTI_FLICKER_MV_DEPENDENT
+    const float screenDiag = length(_ScreenSize.xy);
+    const float maxFactorScale = 2.25f; // when stationary
+    const float minFactorScale = 0.8f; // when moving more than slightly
+    float localizedAntiFlicker = lerp(antiFlickerParams.x * minFactorScale, antiFlickerParams.x * maxFactorScale, saturate(1.0f - 2.0f * (motionVectorLen * screenDiag)));
+#else
+    float localizedAntiFlicker = antiFlickerParams.x;
 #endif
+    stDevMultiplier += lerp(0.0, localizedAntiFlicker, smoothstep(0.05, antiFlickerParams.y, temporalContrast));
 
-    samples.minNeighbour = moment1 - stDevMultiplier * stdDev;
-    samples.maxNeighbour = moment1 + stDevMultiplier * stdDev;
+#endif
+    samples.minNeighbour = moment1 - stdDev * stDevMultiplier;
+    samples.maxNeighbour = moment1 + stdDev * stDevMultiplier;
 }
 
-void GetNeighbourhoodCorners(inout NeighbourhoodSamples samples, float historyLuma, float colorLuma, float antiFlicker)
+void GetNeighbourhoodCorners(inout NeighbourhoodSamples samples, float historyLuma, float colorLuma, float2 antiFlickerParams, float motionVecLen)
 {
 #if NEIGHBOUROOD_CORNER_METHOD == MINMAX
     MinMaxNeighbourhood(samples);
 #else
-    VarianceNeighbourhood(samples, historyLuma, colorLuma, antiFlicker);
+    VarianceNeighbourhood(samples, historyLuma, colorLuma, antiFlickerParams, motionVecLen);
 #endif
 }
 
@@ -639,7 +647,7 @@ CTYPE DirectClipToAABB(CTYPE history, CTYPE minimum, CTYPE maximum)
 
     // This is actually `distance`, however the keyword is reserved
     CTYPE offset = history - center;
-    float3 v_unit = offset.xyz / extents;
+    float3 v_unit = offset.xyz / extents.xyz;
     float3 absUnit = abs(v_unit);
     float maxUnit = Max3(absUnit.x, absUnit.y, absUnit.z);
 

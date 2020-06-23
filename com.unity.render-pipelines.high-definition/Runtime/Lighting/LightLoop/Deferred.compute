@@ -33,6 +33,9 @@
 #pragma kernel Deferred_Indirect_Fptl_Variant28     SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant28     USE_INDIRECT    VARIANT=28
 
 #pragma multi_compile _ SHADOWS_SHADOWMASK
+#pragma multi_compile SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
+
+#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 
 #ifdef DEBUG_DISPLAY
     // Don't care about this warning in debug
@@ -163,9 +166,12 @@ void SHADE_OPAQUE_ENTRY(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
 
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
-    float3 diffuseLighting;
-    float3 specularLighting;
-    LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
+    LightLoopOutput lightLoopOutput;
+    LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
+
+    // Alias
+    float3 diffuseLighting = lightLoopOutput.diffuseLighting;
+    float3 specularLighting = lightLoopOutput.specularLighting;
 
     diffuseLighting *= GetCurrentExposureMultiplier();
     specularLighting *= GetCurrentExposureMultiplier();

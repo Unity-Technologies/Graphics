@@ -26,10 +26,10 @@ float3 SampleAreaLightCookie(float4 cookieScaleOffset, float4x3 L, float3 F)
     float3  hitPosition = hitDistance * normal;
     hitPosition -= origin;  // Relative to bottom-left corner
 
-                            // Here, right and up vectors are not necessarily orthonormal
-                            // We create the orthogonal vector "ortho" by projecting "up" onto the vector orthogonal to "right"
-                            //  ortho = up - (up.right') * right'
-                            // Where right' = right / sqrt( dot( right, right ) ), the normalized right vector
+    // Here, right and up vectors are not necessarily orthonormal
+    // We create the orthogonal vector "ortho" by projecting "up" onto the vector orthogonal to "right"
+    //  ortho = up - (up.right') * right'
+    // Where right' = right / sqrt( dot( right, right ) ), the normalized right vector
     float   recSqLengthRight = 1.0 / dot(right, right);
     float   upRightMixing = dot(up, right);
     float3  ortho = up - upRightMixing * right * recSqLengthRight;
@@ -93,7 +93,7 @@ void RectangularLightApplyBarnDoor(inout LightData lightData, float3 pointPositi
         // Transform the point to light source space. First position then orientation
         float3 lightRelativePointPos = -(lightData.positionRWS - pointPosition);
         float3 pointLS = float3(dot(lightRelativePointPos, lightData.right), dot(lightRelativePointPos, lightData.up), dot(lightRelativePointPos, lightData.forward));
-        
+
         // Compute the depth of the point in the pyramid space
         float pointDepth = min(pointLS.z, lightData.size.z * lightData.size.w);
 
@@ -103,15 +103,15 @@ void RectangularLightApplyBarnDoor(inout LightData lightData, float3 pointPositi
 
         // Compute the barn door projection
         float barnDoorProjection = sinTheta * lightData.size.w * pointDepthRatio;
-        
+
         // Compute the sign of the point when in the local light space
         float2 pointSign = sign(pointLS.xy);
         // Clamp the point to the closest edge
         pointLS.xy = float2(pointSign.x, pointSign.y) * max(abs(pointLS.xy), float2(halfWidth, halfHeight) + barnDoorProjection.xx);
-        
+
         // Compute the closest rect lignt corner, offset by the barn door size
         float3 closestLightCorner = float3(pointSign.x * (halfWidth + barnDoorProjection), pointSign.y * (halfHeight + barnDoorProjection), pointDepth);
-            
+
         // Compute the point projection onto the edge and deduce the size that should be removed from the light dimensions
         float3 pointProjection  = pointLS - closestLightCorner;
         // Phi being the angle between the point projection point and the forward vector of the light source
@@ -127,7 +127,7 @@ void RectangularLightApplyBarnDoor(inout LightData lightData, float3 pointPositi
         bottomLeft += (projectionDistance.y - barnDoorProjection) * float2(max(0, -pointSign.y), -max(0, pointSign.y));
         topRight = clamp(topRight, -halfWidth, halfWidth);
         bottomLeft = clamp(bottomLeft, -halfHeight, halfHeight);
-        
+
         // Compute the offset that needs to be applied to the origin points to match the culling of the barn door
         float2 lightCenterOffset = 0.5f * float2(topRight.x + topRight.y, bottomLeft.x + bottomLeft.y);
 
@@ -201,7 +201,7 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
         // TODO: Not sure it's possible to precompute cam rel pos since variables
         // in the two constant buffers may be set at a different frequency?
         float3 X = GetAbsolutePositionWS(posInput.positionWS);
-        float3 C = _PlanetCenterPosition;
+        float3 C = _PlanetCenterPosition.xyz;
 
         float r        = distance(X, C);
         float cosHoriz = ComputeCosineOfHorizonAngle(r);
@@ -237,13 +237,13 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
     return color;
 }
 
-DirectionalShadowType EvaluateShadow_Directional(LightLoopContext lightLoopContext, PositionInputs posInput,
-                                 DirectionalLightData light, BuiltinData builtinData, float3 N)
+SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, PositionInputs posInput,
+                                        DirectionalLightData light, BuiltinData builtinData, float3 N)
 {
 #ifndef LIGHT_EVALUATION_NO_SHADOWS
-    DirectionalShadowType shadow = 1.0;
-    float shadowMask = 1.0;
-    float NdotL      = dot(N, -light.forward); // Disable contact shadow and shadow mask when facing away from light (i.e transmission)
+    SHADOW_TYPE shadow  = 1.0;
+    float shadowMask    = 1.0;
+    float NdotL         = dot(N, -light.forward); // Disable contact shadow and shadow mask when facing away from light (i.e transmission)
 
 #ifdef SHADOWS_SHADOWMASK
     // shadowMaskSelector.x is -1 if there is no shadow mask
@@ -279,7 +279,7 @@ DirectionalShadowType EvaluateShadow_Directional(LightLoopContext lightLoopConte
         shadow = light.nonLightMappedOnly ? min(shadowMask, shadow) : shadow;
     #endif
 
-        shadow = lerp(shadowMask, shadow, light.shadowDimmer);
+        shadow = lerp(shadowMask.SHADOW_TYPE_REPLICATE, shadow, light.shadowDimmer);
     }
 
     // Transparents have no contact shadow information
@@ -302,42 +302,7 @@ DirectionalShadowType EvaluateShadow_Directional(LightLoopContext lightLoopConte
 // Punctual Light evaluation helper
 //-----------------------------------------------------------------------------
 
-// distances = {d, d^2, 1/d, d_proj}
-void ModifyDistancesForFillLighting(inout float4 distances, float lightSqRadius)
-{
-    // Apply the sphere light hack to soften the core of the punctual light.
-    // It is not physically plausible (using max() is more correct, but looks worse).
-    // See https://www.desmos.com/calculator/otqhxunqhl
-    // We only modify 1/d for performance reasons.
-    float sqDist = distances.y;
-    distances.z = rsqrt(sqDist + lightSqRadius); // Recompute 1/d
-}
-
-// Returns the normalized light vector L and the distances = {d, d^2, 1/d, d_proj}.
-void GetPunctualLightVectors(float3 positionWS, LightData light, out float3 L, out float4 distances)
-{
-    float3 lightToSample = positionWS - light.positionRWS;
-
-    distances.w = dot(lightToSample, light.forward);
-
-    if (light.lightType == GPULIGHTTYPE_PROJECTOR_BOX)
-    {
-        L = -light.forward;
-        distances.xyz = 1; // No distance or angle attenuation
-    }
-    else
-    {
-        float3 unL     = -lightToSample;
-        float  distSq  = dot(unL, unL);
-        float  distRcp = rsqrt(distSq);
-        float  dist    = distSq * distRcp;
-
-        L = unL * distRcp;
-        distances.xyz = float3(dist, distSq, distRcp);
-
-        ModifyDistancesForFillLighting(distances, light.size.x);
-    }
-}
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/PunctualLightCommon.hlsl"
 
 float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData light,
                                float3 lightToSample)
@@ -354,7 +319,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 
     UNITY_BRANCH if (lightType == GPULIGHTTYPE_POINT)
     {
-        cookie.rgb = SampleCookieCube(positionLS, light.cookieIndex);
+        cookie.rgb = SamplePointCookie(mul(lightToWorld, lightToSample), light.cookieScaleOffset);
         cookie.a   = 1;
     }
     else
@@ -368,8 +333,11 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 
         // Box lights have no range attenuation, so we must clip manually.
         bool isInBounds = Max3(abs(positionCS.x), abs(positionCS.y), abs(z - 0.5 * r) - 0.5 * r + 1) <= light.boxLightSafeExtent;
+        if (lightType != GPULIGHTTYPE_PROJECTOR_PYRAMID && lightType != GPULIGHTTYPE_PROJECTOR_BOX)
+        {
+            isInBounds = isInBounds & dot(positionCS, positionCS) <= light.iesCut * light.iesCut;
+        }
 
-        // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
         float2 positionNDC = positionCS * 0.5 + 0.5;
 
         // Manually clamp to border (black).
@@ -449,14 +417,13 @@ float4 EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs 
 }
 
 // distances = {d, d^2, 1/d, d_proj}, where d_proj = dot(lightToSample, light.forward).
-float EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionInputs posInput,
-                              LightData light, BuiltinData builtinData, float3 N, float3 L, float4 distances)
+SHADOW_TYPE EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionInputs posInput,
+                                    LightData light, BuiltinData builtinData, float3 N, float3 L, float4 distances)
 {
 #ifndef LIGHT_EVALUATION_NO_SHADOWS
-    float shadow     = 1.0;
-    float shadowMask = 1.0;
-    float NdotL      = dot(N, L); // Disable contact shadow and shadow mask when facing away from light (i.e transmission)
-
+    float shadow        = 1.0;
+    float shadowMask    = 1.0;
+    float NdotL         = dot(N, L); // Disable contact shadow and shadow mask when facing away from light (i.e transmission)
 
 #ifdef SHADOWS_SHADOWMASK
     // shadowMaskSelector.x is -1 if there is no shadow mask
@@ -464,7 +431,7 @@ float EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionInputs 
     shadow = shadowMask = (light.shadowMaskSelector.x >= 0.0 && NdotL > 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, light.shadowMaskSelector) : 1.0;
 #endif
 
-#if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT) && (SHADERPASS != SHADERPASS_VOLUMETRIC_LIGHTING)
+#if defined(SCREEN_SPACE_SHADOWS_ON) && !defined(_SURFACE_TYPE_TRANSPARENT)
     if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
     {
         shadow = GetScreenSpaceShadow(posInput, light.screenSpaceShadowIndex);
@@ -493,6 +460,49 @@ float EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionInputs 
 #if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(LIGHT_EVALUATION_NO_CONTACT_SHADOWS)
     shadow = min(shadow, NdotL > 0.0 ? GetContactShadow(lightLoopContext, light.contactShadowMask, light.isRayTracedContactShadow) : 1.0);
 #endif
+
+#ifdef DEBUG_DISPLAY
+    if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW && light.shadowIndex == _DebugSingleShadowIndex)
+        g_DebugShadowAttenuation = shadow;
+#endif
+    return shadow;
+#else // LIGHT_EVALUATION_NO_SHADOWS
+    return 1.0;
+#endif
+}
+
+
+SHADOW_TYPE EvaluateShadow_RectArea( LightLoopContext lightLoopContext, PositionInputs posInput,
+                                     LightData light, BuiltinData builtinData, float3 N, float3 L, float dist)
+{
+#ifndef LIGHT_EVALUATION_NO_SHADOWS
+    float shadow        = 1.0;
+    float shadowMask    = 1.0;
+    float NdotL         = dot(N, L); // Disable contact shadow and shadow mask when facing away from light (i.e transmission)
+
+#ifdef SHADOWS_SHADOWMASK
+    // shadowMaskSelector.x is -1 if there is no shadow mask
+    // Note that we override shadow value (in case we don't have any dynamic shadow)
+    shadow = shadowMask = (light.shadowMaskSelector.x >= 0.0 && NdotL > 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, light.shadowMaskSelector) : 1.0;
+#endif
+
+#if defined(SCREEN_SPACE_SHADOWS_ON) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
+    {
+        shadow = GetScreenSpaceShadow(posInput, light.screenSpaceShadowIndex);
+    }
+    else
+#endif
+    if ((light.shadowIndex >= 0) && (light.shadowDimmer > 0))
+    {
+        shadow = GetRectAreaShadowAttenuation(lightLoopContext.shadowContext, posInput.positionSS, posInput.positionWS, N, light.shadowIndex, L, dist);
+
+#ifdef SHADOWS_SHADOWMASK
+        // See comment for punctual light shadow mask
+        shadow = light.nonLightMappedOnly ? min(shadowMask, shadow) : shadow;
+#endif
+        shadow = lerp(shadowMask, shadow, light.shadowDimmer);
+    }
 
 #ifdef DEBUG_DISPLAY
     if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW && light.shadowIndex == _DebugSingleShadowIndex)
@@ -558,20 +568,17 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
 
 void InversePreExposeSsrLighting(inout float4 ssrLighting)
 {
-    float prevExposureInvMultiplier = GetInversePreviousExposureMultiplier();
-
-#if SHADEROPTIONS_RAYTRACING
-    if (!_UseRayTracedReflections)
-#endif
-    ssrLighting.rgb *= prevExposureInvMultiplier;
+    // Raytrace reflection use the current frame exposure - TODO: currently the buffer don't use pre-exposure.
+    // Screen space reflection reuse color buffer from previous frame
+    float exposureMultiplier = _EnableRayTracedReflections ? 1.0 : GetInversePreviousExposureMultiplier();
+    ssrLighting.rgb *= exposureMultiplier;
 }
 
 void ApplyScreenSpaceReflectionWeight(inout float4 ssrLighting)
 {
     // Note: RGB is already premultiplied by A for SSR
-#if SHADEROPTIONS_RAYTRACING
-    if (_UseRayTracedReflections)
-        ssrLighting.rgb *= ssrLighting.a;
-#endif
+    // TODO: check why it isn't consistent between SSR and RTR
+    float weight = _EnableRayTracedReflections ? 1.0 : ssrLighting.a;
+    ssrLighting.rgb *= ssrLighting.a;
 }
 #endif

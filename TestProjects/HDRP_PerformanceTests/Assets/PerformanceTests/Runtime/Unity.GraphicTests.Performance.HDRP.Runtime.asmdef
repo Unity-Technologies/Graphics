@@ -1,0 +1,26 @@
+{
+    "name": "Unity.GraphicTests.Performance.HDRP.Runtime",
+    "rootNamespace": "",
+    "references": [
+        "Unity.PerformanceTesting",
+        "GUID:c081bc530f560634bb5c21d4b323a7f1",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Unity.GraphicTests.Performance.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

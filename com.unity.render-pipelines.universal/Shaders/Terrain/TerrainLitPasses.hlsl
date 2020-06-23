@@ -2,6 +2,7 @@
 #define UNIVERSAL_TERRAIN_LIT_PASSES_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
 
 #if defined(UNITY_INSTANCING_ENABLED) && defined(_TERRAIN_INSTANCED_PERPIXEL_NORMAL)
     #define ENABLE_TERRAIN_PERPIXEL_NORMAL
@@ -203,10 +204,15 @@ void HeightBasedSplatModify(inout half4 splatControl, in half4 masks[4])
 void SplatmapFinalColor(inout half4 color, half fogCoord)
 {
     color.rgb *= color.a;
+
+    #ifndef TERRAIN_GBUFFER // Technically we don't need fogCoord, but it is still passed from the vertex shader.
+
     #ifdef TERRAIN_SPLAT_ADDPASS
         color.rgb = MixFogColor(color.rgb, half3(0,0,0), fogCoord);
     #else
         color.rgb = MixFog(color.rgb, fogCoord);
+    #endif
+
     #endif
 }
 
@@ -261,7 +267,7 @@ Varyings SplatmapVert(Attributes v)
     o.uvSplat23.zw = TRANSFORM_TEX(v.texcoord, _Splat3);
 #endif
 
-    half3 viewDirWS = GetCameraPositionWS() - Attributes.positionWS;
+    half3 viewDirWS = GetWorldSpaceViewDir(Attributes.positionWS);
 #if !SHADER_HINT_NICE_QUALITY
     viewDirWS = SafeNormalize(viewDirWS);
 #endif
@@ -315,7 +321,11 @@ void ComputeMasks(out half4 masks[4], half4 hasMask, Varyings IN)
 }
 
 // Used in Standard Terrain shader
+#ifdef TERRAIN_GBUFFER
+FragmentOutput SplatmapFragment(Varyings IN)
+#else
 half4 SplatmapFragment(Varyings IN) : SV_TARGET
+#endif
 {
 #ifdef _ALPHATEST_ON
     ClipHoles(IN.uvMainAndLM.xy);
@@ -370,11 +380,33 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
 
     InputData inputData;
     InitializeInputData(IN, normalTS, inputData);
+
+#ifdef TERRAIN_GBUFFER
+
+    BRDFData brdfData;
+    InitializeBRDFData(albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, alpha, brdfData);
+    
+    Light mainLight = GetMainLight(inputData.shadowCoord);                                      // TODO move this to a separate full-screen single gbuffer pass?
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(1, 1, 1, 1), half4(0, 0, 0, 0)); // TODO move this to a separate full-screen single gbuffer pass?
+
+    half4 color;
+    color.rgb = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
+
+    color.rgb += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS, false); // TODO move this to a separate full-screen single gbuffer pass?
+    color.a = alpha;
+
+    SplatmapFinalColor(color, inputData.fogCoord); 
+
+    return BRDFDataToGbuffer(brdfData, inputData, smoothness, color.rgb);
+
+#else
+
     half4 color = UniversalFragmentPBR(inputData, albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, occlusion, /* emission */ half3(0, 0, 0), alpha);
 
     SplatmapFinalColor(color, inputData.fogCoord);
 
     return half4(color.rgb, 1.0h);
+#endif
 }
 
 // Shadow pass

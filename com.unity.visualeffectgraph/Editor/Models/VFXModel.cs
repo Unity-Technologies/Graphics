@@ -11,6 +11,19 @@ namespace UnityEditor.VFX
 {
     class VFXObject : ScriptableObject
     {
+        //Explicitly disable the Reset option on all VFXObject
+        //Internal Reset() behavior leads to a dandling state in graph object
+        [MenuItem("CONTEXT/VFXObject/Reset", false)]
+        public static void DummyReset()
+        {
+        }
+
+        [MenuItem("CONTEXT/VFXObject/Reset", true)]
+        static bool ValidateDummyReset()
+        {
+            return false;
+        }
+
         public Action<VFXObject> onModified;
         void OnValidate()
         {
@@ -64,6 +77,8 @@ namespace UnityEditor.VFX
         }
 
         public virtual void Sanitize(int version) {}
+
+        public virtual void CheckGraphBeforeImport() {}
 
         public virtual void OnUnknownChange()
         {
@@ -303,7 +318,8 @@ namespace UnityEditor.VFX
 
         // Override this method to update other settings based on a setting modification
         // Use OnIvalidate with KSettingChanged and not this method to handle other side effects
-        protected virtual void OnSettingModified(VFXSetting setting) {}
+        protected virtual void OnSettingModified(VFXSetting setting) { }
+        public virtual IEnumerable<int> GetFilteredOutEnumerators(string name) { return null; }
 
         public virtual VFXSetting GetSetting(string name)
         {

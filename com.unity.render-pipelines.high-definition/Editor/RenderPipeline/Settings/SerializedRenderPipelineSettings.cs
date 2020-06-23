@@ -22,11 +22,11 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportSSR;
         public SerializedProperty supportSSRTransparent;
         public SerializedProperty supportSSAO;
+        public SerializedProperty supportSSGI;
         public SerializedProperty supportSubsurfaceScattering;
         public SerializedScalableSetting sssSampleBudget;
         [FormerlySerializedAs("supportVolumetric")]
         public SerializedProperty supportVolumetrics;
-        public SerializedProperty increaseResolutionOfVolumetrics;
         public SerializedProperty supportLightLayers;
         public SerializedProperty lightLayerName0;
         public SerializedProperty lightLayerName1;
@@ -49,10 +49,12 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportDitheringCrossFade;
         public SerializedProperty supportTerrainHole;
         public SerializedProperty supportRayTracing;
+        public SerializedProperty supportedRayTracingMode;
         public SerializedProperty supportDistortion;
         public SerializedProperty supportTransparentBackface;
         public SerializedProperty supportTransparentDepthPrepass;
         public SerializedProperty supportTransparentDepthPostpass;
+        internal SerializedProperty supportProbeVolume;
 
 
         public SerializedGlobalLightLoopSettings lightLoopSettings;
@@ -64,6 +66,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedXRSettings xrSettings;
         public SerializedPostProcessingQualitySettings postProcessQualitySettings;
         public SerializedLightingQualitySettings lightingQualitySettings;
+        internal SerializedGlobalProbeVolumeSettings probeVolumeSettings;
 
         public SerializedLightSettings lightSettings;
         public SerializedScalableSetting lodBias;
@@ -82,10 +85,10 @@ namespace UnityEditor.Rendering.HighDefinition
             supportSSR                      = root.Find((RenderPipelineSettings s) => s.supportSSR);
             supportSSRTransparent           = root.Find((RenderPipelineSettings s) => s.supportSSRTransparent);
             supportSSAO                     = root.Find((RenderPipelineSettings s) => s.supportSSAO);
+            supportSSGI                     = root.Find((RenderPipelineSettings s) => s.supportSSGI);
             supportSubsurfaceScattering     = root.Find((RenderPipelineSettings s) => s.supportSubsurfaceScattering);
             sssSampleBudget                 = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.sssSampleBudget));
             supportVolumetrics              = root.Find((RenderPipelineSettings s) => s.supportVolumetrics);
-            increaseResolutionOfVolumetrics = root.Find((RenderPipelineSettings s) => s.increaseResolutionOfVolumetrics);
             supportLightLayers              = root.Find((RenderPipelineSettings s) => s.supportLightLayers);
             lightLayerName0                 = root.Find((RenderPipelineSettings s) => s.lightLayerName0);
             lightLayerName1                 = root.Find((RenderPipelineSettings s) => s.lightLayerName1);
@@ -110,8 +113,10 @@ namespace UnityEditor.Rendering.HighDefinition
             supportTransparentBackface      = root.Find((RenderPipelineSettings s) => s.supportTransparentBackface);
             supportTransparentDepthPrepass  = root.Find((RenderPipelineSettings s) => s.supportTransparentDepthPrepass);
             supportTransparentDepthPostpass = root.Find((RenderPipelineSettings s) => s.supportTransparentDepthPostpass);
+            supportProbeVolume              = root.Find((RenderPipelineSettings s) => s.supportProbeVolume);
 
             supportRayTracing               = root.Find((RenderPipelineSettings s) => s.supportRayTracing);
+            supportedRayTracingMode         = root.Find((RenderPipelineSettings s) => s.supportedRayTracingMode);
 
             lightLoopSettings = new SerializedGlobalLightLoopSettings(root.Find((RenderPipelineSettings s) => s.lightLoopSettings));
             hdShadowInitParams = new SerializedHDShadowInitParameters(root.Find((RenderPipelineSettings s) => s.hdShadowInitParams));
@@ -121,6 +126,7 @@ namespace UnityEditor.Rendering.HighDefinition
             lowresTransparentSettings = new SerializedLowResTransparencySettings(root.Find((RenderPipelineSettings s) => s.lowresTransparentSettings));
             xrSettings = new SerializedXRSettings(root.Find((RenderPipelineSettings s) => s.xrSettings));
             postProcessQualitySettings = new SerializedPostProcessingQualitySettings(root.Find((RenderPipelineSettings s) => s.postProcessQualitySettings));
+            probeVolumeSettings = new SerializedGlobalProbeVolumeSettings(root.Find((RenderPipelineSettings s) => s.probeVolumeSettings));
 
             lightSettings = new SerializedLightSettings(root.Find((RenderPipelineSettings s) => s.lightSettings));
             lodBias = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.lodBias));

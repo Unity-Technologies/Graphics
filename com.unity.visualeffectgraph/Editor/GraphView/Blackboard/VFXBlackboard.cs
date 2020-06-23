@@ -358,6 +358,8 @@ namespace  UnityEditor.VFX.UI
             VFXParameter newParam = m_Controller.AddVFXParameter(Vector2.zero, (VFXModelDescriptorParameters)parameter);
             if (selectedCategory != null && newParam != null)
                 newParam.category = selectedCategory.title;
+
+            newParam.SetSettingValue("m_Exposed", true);
         }
 
         void OnAddItem(Blackboard bb)
@@ -402,9 +404,17 @@ namespace  UnityEditor.VFX.UI
         {
             string newCategoryName = EditorGUIUtility.TrTextContent("new category").text;
             int cpt = 1;
-            while (controller.graph.UIInfos.categories.Any(t => t.name == newCategoryName))
+
+            if(controller.graph.UIInfos.categories != null)
             {
-                newCategoryName = string.Format(EditorGUIUtility.TrTextContent("new category {0}").text, cpt++);
+                while (controller.graph.UIInfos.categories.Any(t => t.name == newCategoryName))
+                {
+                    newCategoryName = string.Format(EditorGUIUtility.TrTextContent("new category {0}").text, cpt++);
+                }
+            }
+            else
+            {
+                controller.graph.UIInfos.categories = new List<VFXUI.CategoryInfo>();
             }
 
             controller.graph.UIInfos.categories.Add(new VFXUI.CategoryInfo() { name = newCategoryName });

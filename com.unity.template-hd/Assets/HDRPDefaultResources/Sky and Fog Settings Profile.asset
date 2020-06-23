@@ -26,6 +26,12 @@ MonoBehaviour:
     hdr: 1
     showAlpha: 0
     showEyeDropper: 1
+  tint:
+    m_OverrideState: 0
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
+    hdr: 1
+    showAlpha: 0
+    showEyeDropper: 1
   maxFogDistance:
     m_OverrideState: 0
     m_Value: 5000
@@ -81,6 +87,16 @@ MonoBehaviour:
     m_Value: 0.75
     min: 0
     max: 1
+  screenResolutionPercentage:
+    m_OverrideState: 0
+    m_Value: 12.5
+    min: 6.25
+    max: 100
+  volumeSliceCount:
+    m_OverrideState: 0
+    m_Value: 64
+    min: 1
+    max: 1024
   filter:
     m_OverrideState: 0
     m_Value: 0

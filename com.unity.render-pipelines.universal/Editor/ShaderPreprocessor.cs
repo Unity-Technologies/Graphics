@@ -19,10 +19,14 @@ namespace UnityEditor.Rendering.Universal
         VertexLighting = (1 << 4),
         SoftShadows = (1 << 5),
         MixedLighting = (1 << 6),
-        TerrainHoles = (1 << 7)
+        TerrainHoles = (1 << 7),
+        DeferredShading = (1 << 8), // DeferredRenderer is in the list of renderer
+        DeferredWithAccurateGbufferNormals = (1 << 9),
+        DeferredWithoutAccurateGbufferNormals = (1 << 10)
     }
     internal class ShaderPreprocessor : IPreprocessShaders
     {
+        public static readonly string kPassNameGBuffer = "GBuffer";
 
         ShaderKeyword m_MainLightShadows = new ShaderKeyword(ShaderKeywordStrings.MainLightShadows);
         ShaderKeyword m_AdditionalLightsVertex = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
@@ -34,6 +38,7 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_Lightmap = new ShaderKeyword("LIGHTMAP_ON");
         ShaderKeyword m_DirectionalLightmap = new ShaderKeyword("DIRLIGHTMAP_COMBINED");
         ShaderKeyword m_AlphaTestOn = new ShaderKeyword("_ALPHATEST_ON");
+        ShaderKeyword m_GbufferNormalsOct = new ShaderKeyword("_GBUFFER_NORMALS_OCT");
 
         ShaderKeyword m_DeprecatedVertexLights = new ShaderKeyword("_VERTEX_LIGHTS");
         ShaderKeyword m_DeprecatedShadowsEnabled = new ShaderKeyword("_SHADOWS_ENABLED");
@@ -65,10 +70,14 @@ namespace UnityEditor.Rendering.Universal
                 if (!CoreUtils.HasFlag(features, ShaderFeatures.MainLightShadows) && !CoreUtils.HasFlag(features, ShaderFeatures.AdditionalLightShadows))
                     return true;
 
+            // TODO: Test against lightMode tag instead.
+            if (!CoreUtils.HasFlag(features, ShaderFeatures.DeferredShading) && snippetData.passName == kPassNameGBuffer)
+                return true;
+
             return false;
         }
 
-        bool StripUnusedFeatures(ShaderFeatures features, Shader shader, ShaderCompilerData compilerData)
+        bool StripUnusedFeatures(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
             // strip main light shadows and cascade variants
             if (!CoreUtils.HasFlag(features, ShaderFeatures.MainLightShadows))
@@ -111,6 +120,14 @@ namespace UnityEditor.Rendering.Universal
                !CoreUtils.HasFlag(features, ShaderFeatures.TerrainHoles))
                 return true;
 
+            // TODO: Test against lightMode tag instead.
+            if (snippetData.passName == kPassNameGBuffer)
+            {
+                if (CoreUtils.HasFlag(features, ShaderFeatures.DeferredWithAccurateGbufferNormals) && !compilerData.shaderKeywordSet.IsEnabled(m_GbufferNormalsOct))
+                    return true;
+                if (CoreUtils.HasFlag(features, ShaderFeatures.DeferredWithoutAccurateGbufferNormals) && compilerData.shaderKeywordSet.IsEnabled(m_GbufferNormalsOct))
+                    return true;
+            }
             return false;
         }
 
@@ -174,7 +191,7 @@ namespace UnityEditor.Rendering.Universal
             if (StripUnusedPass(features, snippetData))
                 return true;
 
-            if (StripUnusedFeatures(features, shader, compilerData))
+            if (StripUnusedFeatures(features, shader, snippetData, compilerData))
                 return true;
 
             if (StripUnsupportedVariants(compilerData))
@@ -212,14 +229,23 @@ namespace UnityEditor.Rendering.Universal
                 return;
 
             int prevVariantCount = compilerDataList.Count;
-
-            for (int i = 0; i < compilerDataList.Count; ++i)
+            
+            var inputShaderVariantCount = compilerDataList.Count;
+            for (int i = 0; i < inputShaderVariantCount;)
             {
-                if (StripUnused(ShaderBuildPreprocessor.supportedFeatures, shader, snippetData, compilerDataList[i]))
-                {
+                bool removeInput = StripUnused(ShaderBuildPreprocessor.supportedFeatures, shader, snippetData, compilerDataList[i]);
+                if (removeInput)
+                    compilerDataList[i] = compilerDataList[--inputShaderVariantCount];
+                else
+                    ++i;
+            }
+            
+            if(compilerDataList is List<ShaderCompilerData> inputDataList)
+                inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
+            else
+            {
+                for(int i = compilerDataList.Count -1; i >= inputShaderVariantCount; --i)
                     compilerDataList.RemoveAt(i);
-                    --i;
-                }
             }
 
             if (urpAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)
@@ -261,6 +287,9 @@ namespace UnityEditor.Rendering.Universal
             {
                 urps.Add(QualitySettings.GetRenderPipelineAssetAt(i) as UniversalRenderPipelineAsset);
             }
+
+            // Must reset flags.
+            _supportedFeatures = 0;
             foreach (UniversalRenderPipelineAsset urp in urps)
             {
                 if (urp != null)
@@ -301,6 +330,32 @@ namespace UnityEditor.Rendering.Universal
 
             if (pipelineAsset.supportsTerrainHoles)
                 shaderFeatures |= ShaderFeatures.TerrainHoles;
+
+            bool hasDeferredRenderer = false;
+            bool withAccurateGbufferNormals = false;
+            bool withoutAccurateGbufferNormals = false;
+
+            int rendererCount = pipelineAsset.m_RendererDataList.Length;
+            for (int rendererIndex = 0; rendererIndex < rendererCount; ++rendererIndex)
+            {
+                ScriptableRenderer renderer = pipelineAsset.GetRenderer(rendererIndex);
+                if (renderer is DeferredRenderer)
+                {
+                    hasDeferredRenderer |= true;
+                    DeferredRenderer deferredRenderer = (DeferredRenderer)renderer;
+                    withAccurateGbufferNormals |= deferredRenderer.AccurateGbufferNormals;
+                    withoutAccurateGbufferNormals |= !deferredRenderer.AccurateGbufferNormals;
+                }
+            }
+
+            if (hasDeferredRenderer)
+                shaderFeatures |= ShaderFeatures.DeferredShading;
+
+            // We can only strip accurateGbufferNormals related variants if all DeferredRenderers use the same option.
+            if (withAccurateGbufferNormals && !withoutAccurateGbufferNormals)
+                shaderFeatures |= ShaderFeatures.DeferredWithAccurateGbufferNormals;
+            if (!withAccurateGbufferNormals && withoutAccurateGbufferNormals)
+                shaderFeatures |= ShaderFeatures.DeferredWithoutAccurateGbufferNormals;
 
             return shaderFeatures;
         }
