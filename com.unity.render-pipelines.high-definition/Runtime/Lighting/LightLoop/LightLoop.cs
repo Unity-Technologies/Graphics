@@ -643,7 +643,6 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeShader clearDispatchIndirectShader { get { return defaultResources.shaders.clearDispatchIndirectCS; } }
         ComputeShader deferredComputeShader { get { return defaultResources.shaders.deferredCS; } }
         ComputeShader contactShadowComputeShader { get { return defaultResources.shaders.contactShadowCS; } }
-        ComputeShader capsuleOcclusionComputeShader { get { return defaultResources.shaders.capsuleOcclusionCS; } }
         Shader screenSpaceShadowsShader { get { return defaultResources.shaders.screenSpaceShadowPS; } }
 
         Shader deferredTilePixelShader { get { return defaultResources.shaders.deferredTilePS; } }
@@ -697,7 +696,6 @@ namespace UnityEngine.Rendering.HighDefinition
         static int[] s_shadeOpaqueIndirectFptlKernels = new int[LightDefinitions.s_NumFeatureVariants];
 
         static int s_deferredContactShadowKernel;
-        static int s_capsuleOcclusionKernel;
 
         static int s_GenListPerBigTileKernel;
 
@@ -893,7 +891,6 @@ namespace UnityEngine.Rendering.HighDefinition
             s_shadeOpaqueDirectFptlDebugDisplayKernel = deferredComputeShader.FindKernel("Deferred_Direct_Fptl_DebugDisplay");
 
             s_deferredContactShadowKernel = contactShadowComputeShader.FindKernel("DeferredContactShadow");
-            s_capsuleOcclusionKernel = capsuleOcclusionComputeShader.FindKernel("CapsuleOcclusion");
 
             for (int variant = 0; variant < LightDefinitions.s_NumFeatureVariants; variant++)
             {
