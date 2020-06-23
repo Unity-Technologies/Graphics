@@ -533,12 +533,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (renderMotionVecForTransparent)
                 {
                     passData.renderTarget[1] = builder.WriteTexture(motionVectorBuffer);
-                    // TODO RENDERGRAPH
-                    // WORKAROUND VELOCITY-MSAA
-                    // This is a workaround for velocity with MSAA. Currently motion vector resolve is not implemented with MSAA
-                    // It means that the msaa motion vector target is never read and such released as soon as it's created. In such a case, trying to write it here will generate a render graph error.
-                    // So, until we implement it correctly, we'll just force a read here to extend lifetime.
-                    builder.ReadTexture(motionVectorBuffer);
                 }
                 else
                 {
