@@ -198,5 +198,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_VIRTUALTEXTURES
         VTFeedbackClear,
 #endif
+        //this is capsule occluders section
+        PrepareVisibleCapsuleOccludersList
     }
 }

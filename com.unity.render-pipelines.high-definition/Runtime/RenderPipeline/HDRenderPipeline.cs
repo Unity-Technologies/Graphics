@@ -498,6 +498,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializeVolumetricLighting();
             InitializeSubsurfaceScattering();
+            InitializeCapsuleOccluders();
 
             m_DebugDisplaySettings.RegisterDebug();
 #if UNITY_EDITOR
@@ -1117,6 +1118,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_XRSystem.Cleanup();
             m_SkyManager.Cleanup();
             CleanupVolumetricLighting();
+            CleanupCapsuleOccluders();
             CleanupProbeVolumes();
 
             for(int bsdfIdx = 0; bsdfIdx < m_IBLFilterArray.Length; ++bsdfIdx)
@@ -2318,6 +2320,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Frustum cull density volumes on the CPU. Can be performed as soon as the camera is set up.
             DensityVolumeList densityVolumes = PrepareVisibleDensityVolumeList(hdCamera, cmd, hdCamera.time);
+
+            // Capsule Occluders
+            CapsuleOccluderList capsuleOccluderList = PrepareVisibleCapsuleOccludersList(hdCamera, cmd, hdCamera.time);
 
             // Frustum cull probe volumes on the CPU. Can be performed as soon as the camera is set up.
             ProbeVolumeList probeVolumes = PrepareVisibleProbeVolumeList(renderContext, hdCamera, cmd);
