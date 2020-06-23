@@ -56,31 +56,44 @@ function Write-Results {
     #> 
     param ($Results)
 
-    if ($Results[0] -eq $true) {
+    if ($Results[0] -gt 0) {
         # At least one shader was not found, so issue a report 
         $logFile = Join-Path $srpRoot "check-shader-includes.log"
         if ([System.IO.File]::Exists($logFile)) {
             "An old log file already exists. Deleting it..."
             Remove-Item $logFile
         }
-        "Shader includes check report issued on: $((Get-Date).ToString())`n" | Out-File -Append $logFile
+        "Shader includes check report issued on: $((Get-Date).ToString())" | Out-File -Append $logFile
+        "{0} shader(s) not found on the filesystem" -f $Results[0] | Out-File -Append $logFile
+
+        # First, dump missing shaders
         foreach ($file in $Results[1]) {
             # Reminder 
             # $file[0] --> FilePath
             # $file[1] --> Array of {[0]: PathToShader as written in the file (case insensitive), [1]: ShaderStatus}
+            if ($file[1].Count -gt 0) {
+                foreach ($shaderInclude in $file[1]) {
+                    if ($shaderInclude."ShaderStatus" -eq [ShaderStatus]::NotFound) {
+                        "[Warning] [{0}] Found include for [{1}] and it does not match the filesystem (check the case sensitivity)." -f $file[0], $shaderInclude."PathToShader" | Out-File -Append $logFile
+                    } 
+                }
+            } 
+        }
+
+        # Then, dump the shaders that we successfully found
+        "`n" | Out-File -Append $logFile
+        foreach ($file in $Results[1]) {
             if ($file[1].count -gt 0) {
                 foreach ($shaderInclude in $file[1]) {
                     if ($shaderInclude."ShaderStatus" -eq [ShaderStatus]::Found) {
                         "[OK] [{0}] Found include for [{1}] and it matches the filesystem (case sensitive)." -f $file[0], $shaderInclude."PathToShader" | Out-File -Append $logFile 
-                    } else {
-                        "[Warning] [{0}] Found include for [{1}] and it does not match the filesystem (check the case sensitivity)." -f $file[0], $shaderInclude."PathToShader" | Out-File -Append $logFile
-                    }
+                    } 
                 }
             } else {
                 "[OK] [{0}] - No shader include found in this file. Skipped shader includes checks." -f $file[0] | Out-File -Append $logFile
             }
-            "`n" | Out-File -Append $logFile
         }
+
         "FAILED - There may be an error with the shader includes in the files you're trying to commit. A report was generated in $logFile."
         exit 1 # Block commit
     } else {
@@ -152,17 +165,15 @@ function Find-Matches {
     param($Files)
 
     [System.Collections.ArrayList]$processedFiles = @()
-    $atLeastOneShaderNotFound = $false # This flag will allow us to decide whether or not to issue a report 
+    $nbShaderNotFound = 0
     foreach ($file in $Files) {
         $fileResults = Find-MatchesInFile -File $file
         $processedFiles.Add($fileResults) | Out-Null
-        $nbShaderNotFound = [Linq.Enumerable]::Any([object[]]$fileResults[1], [Func[object,bool]]{ param($shaderInclude) $shaderInclude."ShaderStatus" -eq [ShaderStatus]::NotFound })
-        if ($nbShaderNotFound -gt 0) {
-            $atLeastOneShaderNotFound = $true
-        }
+        # $nbShaderNotFound += $fileResults[1].Count | Where-Object { $_."ShaderStatus" -eq [ShaderStatus]::NotFound }
+        $nbShaderNotFound += [Linq.Enumerable]::Count([object[]]$fileResults[1], [Func[object,bool]]{ param($shaderInclude) $shaderInclude."ShaderStatus" -eq [ShaderStatus]::NotFound })
     }
-    
-    $atLeastOneShaderNotFound
+
+    $nbShaderNotFound
     (,$processedFiles) # Treat array as a single output variable, instead of one variable per array item
 }
 
