@@ -204,7 +204,7 @@ void ConvertYCoCgToRGBUtil(float4 inYSH, float2 inCoCg, float3 inNormal, out flo
                 + 2.094395 * Y11 * inYSH.y;
 
     // Compute the output color
-    outColor = y > 0.0001 ? YCoCgToRGB(float3(y, inCoCg.xy)) : 0.0;
+    outColor = y > 0.00001 ? YCoCgToRGB(float3(y, inCoCg.xy)) : 0.0;
     outColor = max(outColor, 0.0);
 }
 
