@@ -18,6 +18,9 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RayTracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 
+// For adaptive sampling:
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/AdaptiveSampling.hlsl"
+
 // Input(s)
 float4x4 _PixelCoordToViewDirWS;
 int      _RaytracingCameraSkyEnabled;
@@ -25,6 +28,9 @@ float3   _RaytracingCameraClearColor;
 
 // DoF related parameters
 float4   _PathTracedDoFConstants;     // x: aperture radius, y: focus distance, zw: unused
+
+// Adaptive sampling constans
+float4 _PtAdaptiveSamplingConstants;
 
 // Output(s)
 RWTexture2D<float4> _RadianceTexture;
@@ -60,9 +66,9 @@ void MissMaterial(inout PathIntersection pathIntersection : SV_RayPayload)
 // Packs a float2 in the [0, 1] range into one 32-bit float using 16 bits of precision per element 
 float PackFloat2(float2 r)
 {
-    uint lowBits = r.x * 65535u;
-    uint highBits = r.y * 65535u;
-    return asfloat(lowBits + 65536u * highBits);
+    uint lowBits = r.x * 32767u;
+    uint highBits = r.y * 32767u;
+    return asfloat(lowBits + 32768u * highBits);
 }
 
 [shader("raygeneration")]
@@ -72,6 +78,17 @@ void RayGen()
 
     // Get the current pixel coordinates
     uint2 currentPixelCoord = uint2(LaunchIndex.x, LaunchIndex.y);
+
+    // Early exit if adaptive sampling is enabled and the termination test is true
+    bool doAdaptiveSampling = (_PtAdaptiveSamplingConstants.x != 0);
+    int minSamples = _PtAdaptiveSamplingConstants.y;
+    float2 threshold = _PtAdaptiveSamplingConstants.zw;
+    if (doAdaptiveSampling && _RaytracingSampleIndex > minSamples && CheckVariance(currentPixelCoord, threshold))
+    {
+        // this pixel will be ignored during accumulation
+        _RadianceTexture[currentPixelCoord] = float4(0, 0, 0, CONVERGED_ALPHA);
+        return;
+    }
 
     // Jitter them (we use 4x10 dimensions of our sequence during path tracing atm, so pick the next available ones)
     float3 jitteredPixelCoord = float3(currentPixelCoord, 1.0);

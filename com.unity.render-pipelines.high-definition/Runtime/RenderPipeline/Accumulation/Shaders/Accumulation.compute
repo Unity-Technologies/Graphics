@@ -6,7 +6,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/AdaptiveSampling.hlsl"
 #endif
 
-
 #pragma kernel KMain
 
 #pragma multi_compile FILTER_BOX FILTER_GAUSSIAN FILTER_TRIANGLE FILTER_CATMULLROM FILTER_SINC
@@ -85,7 +84,7 @@ float GetSubPixelWeight(float2 offset, float2 filterSize)
 float2 UnpackFloat2(float r)
 {
     uint bits = asuint(r);
-    return float2(bits & 0xFFFF, bits >> 16) / 65535.0f;
+    return float2(bits & 0x7FFF, bits >> 15) / 32767.0f;
 }
 
 [numthreads(8, 8, 1)]
@@ -98,19 +97,20 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     // Have we reached max sampling?
     uint sampleCount = _AccumulationFrameIndex;
-    if (sampleCount >= _AccumulationNumSamples)
+    bool convergedPixel = (sampleCount >= _AccumulationNumSamples);
+
+#ifdef COMPUTE_VARIANCE
+    // Note: reconstruction filters are not taken into account when computing variance, because we only want to compute temporal variation. Otherwire, 
+    // if for example a very wide 10x10 reconstruction filter is used, the smoothed-out radiance will generate lower variance due to spatial filtering.
+    convergedPixel = convergedPixel || UpdatePerPixelVariance(currentPixelCoord, sampleCount, _RadianceTexture[COORD_TEXTURE2D_X(currentPixelCoord)]);
+#endif
+
+    if (convergedPixel)
     {
         _CameraColorTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(_AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)].xyz * exposureMultiplier, 1.0);
     }
     else
     {
-
-#ifdef COMPUTE_VARIANCE
-        // Note: reconstructions filters are not taken into account when computing variance, because we wan't to compute the temporal variation. Otherwire, 
-        // if for example a very wide 10x10 reconstruction filter is used, the smoothed-out radiance will generate lower variance due to the spatial filtering.
-        UpdatePerPixelVariance(currentPixelCoord, sampleCount, _RadianceTexture[COORD_TEXTURE2D_X(currentPixelCoord)]);
-#endif
-
         float subFrameWeight = _AccumulationWeights.x;
         float4 accColor = sampleCount > 0 ? _AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)] : 0.0f;
 
@@ -148,6 +148,9 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         // Apply exposure modifier
         accColor.xyz *= exposureMultiplier;
 
+#ifdef COMPUTE_VARIANCE
+        //accColor.xyz *= VisualizeVariance(currentPixelCoord, 0, 100.0);
+#endif
         // Add a little convergence cue to our result
         AddConvergenceCue(currentPixelCoord, sampleCount, accColor.xyz);
 

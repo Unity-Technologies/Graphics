@@ -59,6 +59,11 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Defines the maximum intensity value computed for a path segment.")]
         public ClampedFloatParameter maximumIntensity = new ClampedFloatParameter(10f, 0f, 100f);
 
+        public BoolParameter adaptive = new BoolParameter(false);
+        public MinFloatParameter threshold = new MinFloatParameter(32f, 0f);
+        public ClampedFloatParameter minimumSamples = new ClampedFloatParameter(32f, 1f, 4096f);
+        public ClampedIntParameter hits = new ClampedIntParameter(0, 0, 10);
+
         public PathTracingFilterParameter filter = new PathTracingFilterParameter(ReconstructionFilter.Box);
 
         /// <summary>
@@ -319,11 +324,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetRayTracingTextureParam(pathTracingShader, HDShaderIDs._RadianceTexture, m_RadianceTexture);
                 cmd.SetRayTracingMatrixParam(pathTracingShader, HDShaderIDs._PixelCoordToViewDirWS, hdCamera.mainViewConstants.pixelCoordToViewDirWS);
                 cmd.SetRayTracingVectorParam(pathTracingShader, HDShaderIDs._PathTracedDoFConstants, ComputeDoFConstants(hdCamera, m_PathTracingSettings));
+                cmd.SetRayTracingTextureParam(pathTracingShader, HDShaderIDs._AccumulatedVariance, GetVarianceBuffer(hdCamera));
+
+                // Adaptive sampling
+                cmd.SetRayTracingVectorParam(pathTracingShader, HDShaderIDs._PtAdaptiveSamplingConstants, new Vector4(
+                    m_PathTracingSettings.adaptive.value == true ?  1.0f : 0.0f,
+                    m_PathTracingSettings.minimumSamples.value,
+                    m_PathTracingSettings.threshold.value,
+                    m_PathTracingSettings.hits.value)
+                );
 
                 // Run the computation
                 cmd.DispatchRays(pathTracingShader, "RayGen", (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
             }
-            RenderAccumulation(hdCamera, cmd, m_RadianceTexture, outputTexture, true, m_PathTracingSettings.filter.value, m_PathTracingSettings.filterWidth.value, m_PathTracingSettings.filterHeight.value);
+            RenderAccumulation(hdCamera, cmd, m_RadianceTexture, outputTexture, true, m_PathTracingSettings.filter.value, m_PathTracingSettings.filterWidth.value, m_PathTracingSettings.filterHeight.value, m_PathTracingSettings.adaptive.value);
         }
     }
 

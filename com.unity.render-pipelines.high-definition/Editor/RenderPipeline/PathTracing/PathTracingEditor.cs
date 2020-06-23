@@ -20,6 +20,10 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
         SerializedDataParameter m_Filter;
         SerializedDataParameter m_FilterWidth;
         SerializedDataParameter m_FilterHeight;
+        SerializedDataParameter m_AdaptiveSampling;
+        SerializedDataParameter m_Threshold;
+        SerializedDataParameter m_MinSamples;
+        SerializedDataParameter m_Hits;
 
         public override void OnEnable()
         {
@@ -34,6 +38,10 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             m_Filter = Unpack(o.Find(x => x.filter));
             m_FilterWidth = Unpack(o.Find(x => x.filterWidth));
             m_FilterHeight = Unpack(o.Find(x => x.filterHeight));
+            m_AdaptiveSampling = Unpack(o.Find(x => x.adaptive));
+            m_Threshold = Unpack(o.Find(x => x.threshold));
+            m_MinSamples = Unpack(o.Find(x => x.minimumSamples));
+            m_Hits = Unpack(o.Find(x => x.hits));
         }
 
         public override void OnInspectorGUI()
@@ -59,6 +67,11 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                     PropertyField(m_MinDepth);
                     PropertyField(m_MaxDepth);
                     PropertyField(m_MaxIntensity);
+
+                    PropertyField(m_AdaptiveSampling);
+                    PropertyField(m_Threshold);
+                    PropertyField(m_MinSamples);
+                    PropertyField(m_Hits);
 
                     EditorGUILayout.LabelField("Antialiasing", EditorStyles.miniLabel);
                     PropertyField(m_Filter);

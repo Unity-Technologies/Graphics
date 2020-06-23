@@ -266,7 +266,13 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SubFrameManager.PrepareNewSubFrame();
         }
 
-        void RenderAccumulation(HDCamera hdCamera, CommandBuffer cmd, RTHandle inputTexture, RTHandle outputTexture, bool needsExposure = false, ReconstructionFilter filter = ReconstructionFilter.Box, float filterWidth = 1, float filterHeight = 1)
+        RTHandle GetVarianceBuffer(HDCamera hdCamera)
+        {
+            return hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracingVariance)
+                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.PathTracingVariance, PathTracingVarianceBufferAllocatorFunction, 1);
+        }
+
+        void RenderAccumulation(HDCamera hdCamera, CommandBuffer cmd, RTHandle inputTexture, RTHandle outputTexture, bool needsExposure = false, ReconstructionFilter filter = ReconstructionFilter.Box, float filterWidth = 1, float filterHeight = 1, bool computeVariance = false)
         {
             ComputeShader accumulationShader = m_Asset.renderPipelineResources.shaders.accumulationCS;
             accumulationShader.shaderKeywords = null;
@@ -293,14 +299,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Enable variance computation
-            accumulationShader.EnableKeyword("COMPUTE_VARIANCE");
+            if (computeVariance)
+                accumulationShader.EnableKeyword("COMPUTE_VARIANCE");
 
             // Grab the history buffer
             RTHandle history = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing)
                 ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.PathTracing, PathTracingHistoryBufferAllocatorFunction, 1);
-
-            RTHandle varianceBuffer = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracingVariance)
-                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.PathTracingVariance, PathTracingVarianceBufferAllocatorFunction, 1);
 
             // Check the validity of the state before moving on with the computation
             if (!accumulationShader)
@@ -316,7 +320,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalInt(HDShaderIDs._AccumulationFrameIndex, (int)camData.currentIteration);
             cmd.SetGlobalInt(HDShaderIDs._AccumulationNumSamples, (int)m_SubFrameManager.subFrameCount);
             cmd.SetComputeTextureParam(accumulationShader, kernel, HDShaderIDs._AccumulatedFrameTexture, history);
-            cmd.SetComputeTextureParam(accumulationShader, kernel, HDShaderIDs._AccumulatedVariance, varianceBuffer);
+            cmd.SetComputeTextureParam(accumulationShader, kernel, HDShaderIDs._AccumulatedVariance, GetVarianceBuffer(hdCamera));
             cmd.SetComputeTextureParam(accumulationShader, kernel, HDShaderIDs._CameraColorTextureRW, outputTexture);
             cmd.SetComputeTextureParam(accumulationShader, kernel, HDShaderIDs._RadianceTexture, inputTexture);
             cmd.SetComputeVectorParam(accumulationShader, HDShaderIDs._AccumulationWeights, frameWeights);
