@@ -39,13 +39,11 @@ float _HistoryValidity;
 float _DenoiserFilterRadius;
 
 // The maximal world space distance for temporal reprojection
-#define MAX_WORLD_SPACE_DISTANCE 0.1
+#define MAX_WORLD_SPACE_DISTANCE 0.75
 // The maximal pixel reprojection distance
 #define PIXEL_RADIUS_TOLERANCE_THRESHOLD 8
 // The maximal normal difference threshold
 #define MAX_NORMAL_DIFFERENCE 0.65
-// The minimal motion distance
-#define MINIMAL_MOTION_DISTANCE 0.001 
 // Number of samples to compelte the accumulation loop
 #define NUM_SAMPLE_LOOP 16.0
 #define EXPONENTIAL_ACCUMULATION_FACTOR (NUM_SAMPLE_LOOP/(NUM_SAMPLE_LOOP + 1.0f))
@@ -206,7 +204,8 @@ void ConvertYCoCgToRGBUtil(float4 inYSH, float2 inCoCg, float3 inNormal, out flo
                 + 2.094395 * Y11 * inYSH.y;
 
     // Compute the output color
-    outColor = YCoCgToRGB(float3(y, inCoCg.xy));
+    outColor = y > 0.0001 ? YCoCgToRGB(float3(y, inCoCg.xy)) : 0.0;
+    outColor = max(outColor, 0.0);
 }
 
 [numthreads(TEMPORAL_FILTER_TILE_SIZE, TEMPORAL_FILTER_TILE_SIZE, 1)]
@@ -333,7 +332,7 @@ void BilateralFilter(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     float wSum = 0.0;
 
     // Define the sample count for this pixel. 16 samples per pixels if it is a full res or 4 if half resolution
-    int numSamples = 16;
+    int numSamples = 32;
 
     // Compute the radius of the filter. This is evaluated as the max between a fixed radius value and an approximation of the footprint of the pixel
     const float parallelPixelFootPrint = _PixelSpreadAngleTangent * length(center.position);
