@@ -1364,7 +1364,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // The following features require a copy of the stencil, if none are active, no need to do the resolve.
             bool resolveIsNecessary = GetFeatureVariantsEnabled(hdCamera.frameSettings);
             resolveIsNecessary = resolveIsNecessary || hdCamera.IsSSREnabled()
-                                                    || hdCamera.IsTransparentSSREnabled();
+                                                    || hdCamera.IsSSREnabled(transparent: true);
             // We need the resolve only with msaa
             parameters.resolveIsNecessary = resolveIsNecessary && MSAAEnabled;
 
@@ -4252,7 +4252,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Render transparent depth prepass after opaque one
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.TransparentDepthPrepass)))
                 {
-                    if (hdCamera.IsTransparentSSREnabled())
+                    if (hdCamera.IsSSREnabled(transparent: true))
                     {
                         // But we also need to bind the normal buffer for objects that will receive SSR
                         CoreUtils.SetRenderTarget(cmd, m_SharedRTManager.GetPrepassBuffersRTI(hdCamera.frameSettings), m_SharedRTManager.GetDepthStencilBuffer());
@@ -4537,7 +4537,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderSSRTransparent(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext)
         {
-            if (!hdCamera.IsTransparentSSREnabled())
+            if (!hdCamera.IsSSREnabled(transparent: true))
                 return;
 
             var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();

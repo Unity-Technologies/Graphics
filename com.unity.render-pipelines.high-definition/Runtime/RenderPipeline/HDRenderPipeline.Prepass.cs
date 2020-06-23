@@ -55,7 +55,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_DepthBufferMipChainInfo;
         }
 
-
         struct PrepassOutput
         {
             // Buffers that may be output by the prepass.
@@ -105,6 +104,16 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureDesc motionVectorDesc = new TextureDesc(Vector2.one, true, true)
                 { colorFormat = Builtin.GetMotionVectorFormat(), bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = clear, clearColor = Color.clear, name = msaa ? "Motion Vectors MSAA" : "Motion Vectors" };
             return renderGraph.CreateTexture(motionVectorDesc, HDShaderIDs._CameraMotionVectorsTexture);
+        }
+
+        void BindPrepassColorBuffers(in RenderGraphBuilder builder, in PrepassOutput prepassOutput, HDCamera hdCamera)
+        {
+            int index = 0;
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+            {
+                builder.UseColorBuffer(prepassOutput.depthAsColor, index++);
+            }
+            builder.UseColorBuffer(prepassOutput.normalBuffer, index++);
         }
 
         PrepassOutput RenderPrepass(RenderGraph renderGraph, TextureHandle colorbuffer, TextureHandle sssBuffer, CullingResults cullingResults, HDCamera hdCamera)
