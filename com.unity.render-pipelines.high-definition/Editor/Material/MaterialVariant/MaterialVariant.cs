@@ -39,7 +39,7 @@ namespace Unity.Assets.MaterialVariant.Editor
                 {
                     matVariant.isShader = false;
 
-                    var path = AssetDatabase.GetAssetPath(rootShader);
+                    var path = AssetDatabase.GetAssetPath(rootMaterial);
                     var importer = AssetImporter.GetAtPath(path);
 
                     if (importer is MaterialVariantImporter)
