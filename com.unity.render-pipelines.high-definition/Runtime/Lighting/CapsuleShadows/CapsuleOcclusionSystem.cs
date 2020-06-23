@@ -80,8 +80,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OcclusionTexture, occlusionTexture);
 
                 // Shadow setup is super temporary. 
-
-                var sunDir = sunLight.transform.forward;
+                // TODO: Disable feature if sunLight is null.
+                var sunDir = (sunLight != null) ? sunLight.transform.forward : -Vector3.up;
                 // softness to be derived from angular diameter.
                 int softnessIndex = 3;
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._CapsuleShadowParameters, new Vector4(sunDir.x, sunDir.y, sunDir.z, softnessIndex));
