@@ -17,20 +17,6 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         internal void DispatchCapsuleOcclusion(CommandBuffer cmd, HDCamera camera, ComputeBuffer visibleCapsules)
         {
-            ComputeShader capsuleOcclusionCS = m_Resources.shaders.capsuleOcclusionCS;
-            int capsuleOcclusionKernel = capsuleOcclusionCS.FindKernel("CapsuleOcclusion");
-
-            capsuleOcclusionCS.EnableKeyword("AMBIENT_OCCLUSION");
-            capsuleOcclusionCS.DisableKeyword("SPECULAR_OCCLUSION");
-            capsuleOcclusionCS.DisableKeyword("DIRECTIONAL_SHADOW");
-            cmd.SetComputeTextureParam(capsuleOcclusionCS, capsuleOcclusionKernel, HDShaderIDs._OcclusionTexture, m_AmbientOcclusionTex);
-            cmd.SetComputeBufferParam(capsuleOcclusionCS, capsuleOcclusionKernel, HDShaderIDs._CapsuleOccludersDatas, visibleCapsules);
-
-            const int groupSizeX = 8;
-            const int groupSizeY = 8;
-            int threadGroupX = ((int)(camera.actualWidth) + (groupSizeX - 1)) / groupSizeX;
-            int threadGroupY = ((int)(camera.actualHeight) + (groupSizeY - 1)) / groupSizeY;
-            cmd.DispatchCompute(capsuleOcclusionCS, capsuleOcclusionKernel, threadGroupX, threadGroupY, camera.viewCount);
         }
     }
 

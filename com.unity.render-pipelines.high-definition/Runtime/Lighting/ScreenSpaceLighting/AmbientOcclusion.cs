@@ -215,13 +215,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
     partial class AmbientOcclusionSystem
     {
-        RenderPipelineResources m_Resources;
+        public RenderPipelineResources m_Resources;
         RenderPipelineSettings m_Settings;
 
         private bool m_HistoryReady = false;
         private RTHandle m_PackedDataTex;
         private RTHandle m_PackedDataBlurred;
-        private RTHandle m_AmbientOcclusionTex;
+        public RTHandle m_AmbientOcclusionTex;
         private RTHandle m_FinalHalfRes;
 
         private bool m_RunningFullRes = false;
@@ -633,16 +633,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             UpsampleAO(aoParameters, settings.temporalAccumulation.value ? m_FinalHalfRes : m_PackedDataTex, m_AmbientOcclusionTex, cmd);
                         }
                     }
-                }
-            }
-
-            var capsuleSettings = camera.volumeStack.GetComponent<CapsuleAmbientOcclusion>();
-            if (capsuleSettings.intensity.value > 0f)
-            {
-                Debug.Assert(settings.fullResolution);
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CapsuleOcclusion)))
-                {
-                    DispatchCapsuleOcclusion(cmd, camera, visibleCapsules);
                 }
             }
         }

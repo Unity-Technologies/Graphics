@@ -120,7 +120,7 @@ void EvaluateCapsuleOcclusion(uint evaluationFlags,
     sphereStart = 0;
 #endif
 
-        ambientOcclusion = sphereCount;
+        ambientOcclusion = posInput.positionNDC.x;
         return;
 
     bool fastPath = false;
