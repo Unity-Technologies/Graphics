@@ -33,8 +33,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal EllipsoidOccluderData ConvertToEngineData(Vector3 camOffset)
         {
-            Vector3 centerRWS = transform.TransformPoint(centerOS) - camOffset;
-            Vector3 directionWS = transform.TransformVector(Quaternion.Euler(directionOS) * Vector3.forward).normalized;
+            Transform tr = transform;
+            Vector3 centerRWS = tr.position + tr.rotation * centerOS - camOffset;
+            Vector3 directionWS = (tr.rotation * Quaternion.Euler(directionOS) * Vector3.forward).normalized;
             float radiusWS = radiusOS; // TODO: Handle scale transform.
             float scalingWS = scalingOS; // TODO: Handle scale transform.
             return new EllipsoidOccluderData {
@@ -53,30 +54,22 @@ namespace UnityEngine.Rendering.HighDefinition
             EllipsoidOccluderManager.manager.DeRegisterCapsule(this);
         }
 
-        /*
-        [SerializeField]
-        float m_Intensity;
-        /// <summary>
-        /// Get/Set the intensity of the light using the current light unit.
-        /// </summary>
-        public float intensity
-        {
-            get => m_Intensity;
-            set
-            {
-                if (m_Intensity == value)
-                    return;
 
-                m_Intensity = Mathf.Clamp(value, 0, float.MaxValue);
-                UpdateLightIntensity();
+        /// <summary>
+        /// Get the TRS matrix
+        /// </summary>
+        public Matrix4x4 TRS
+        {
+            get
+            {
+                Transform tr = transform;
+                Quaternion rot = Quaternion.Euler(directionOS);
+
+                Vector3 scale = Vector3.one * radiusOS;
+                scale.z *= scalingOS;
+
+                return Matrix4x4.TRS(tr.position + tr.rotation * centerOS, (tr.rotation * rot).normalized, scale);
             }
         }
-
-        /// <summary>
-        /// Set the light culling mask.
-        /// </summary>
-        /// <param name="cullingMask"></param>
-        public void SetCullingMask(int cullingMask) => legacyLight.cullingMask = cullingMask;
-        */
     }
 }
