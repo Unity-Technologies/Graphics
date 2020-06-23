@@ -2186,7 +2186,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            m_RenderGraph.PurgeUnusedResources();
+            if (m_EnableRenderGraph)
+                m_RenderGraph.PurgeUnusedResources();
             m_XRSystem.ReleaseFrame();
             UnityEngine.Rendering.RenderPipeline.EndFrameRendering(renderContext, cameras);
         }
