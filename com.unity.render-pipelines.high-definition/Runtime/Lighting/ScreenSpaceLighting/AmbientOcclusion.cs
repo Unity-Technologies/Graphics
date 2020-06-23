@@ -299,7 +299,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
 
-        internal void Render(CommandBuffer cmd, HDCamera camera, ScriptableRenderContext renderContext, in ShaderVariablesRaytracing globalRTCB, int frameCount)
+        internal void Render(CommandBuffer cmd, HDCamera camera, ScriptableRenderContext renderContext, RTHandle depthTexture, RTHandle normalBuffer, in ShaderVariablesRaytracing globalRTCB, int frameCount)
         {
             var settings = camera.volumeStack.GetComponent<AmbientOcclusion>();
 
@@ -314,7 +314,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, globalRTCB, renderContext, frameCount);
                 else
                 {
-                    Dispatch(cmd, camera, frameCount);
+                    Dispatch(cmd, camera, depthTexture, normalBuffer, frameCount);
                     PostDispatchWork(cmd, camera);
                 }
             }
@@ -496,11 +496,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void RenderAO(in RenderAOParameters      parameters,
                                 RTHandle                packedDataTexture,
-                                RenderPipelineResources resources,
+                                RTHandle                depthTexture,
+                                RTHandle                normalBuffer,
                                 CommandBuffer           cmd)
         {
             ConstantBuffer.Push(cmd, parameters.cb, parameters.gtaoCS, HDShaderIDs._ShaderVariablesAmbientOcclusion);
             cmd.SetComputeTextureParam(parameters.gtaoCS, parameters.gtaoKernel, HDShaderIDs._AOPackedData, packedDataTexture);
+            cmd.SetComputeTextureParam(parameters.gtaoCS, parameters.gtaoKernel, HDShaderIDs._NormalBufferTexture, normalBuffer);
+            cmd.SetComputeTextureParam(parameters.gtaoCS, parameters.gtaoKernel, HDShaderIDs._CameraDepthTexture, depthTexture);
 
             const int groupSizeX = 8;
             const int groupSizeY = 8;
@@ -598,7 +601,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void Dispatch(CommandBuffer cmd, HDCamera camera, int frameCount)
+        internal void Dispatch(CommandBuffer cmd, HDCamera camera, RTHandle depthTexture, RTHandle normalBuffer, int frameCount)
         {
             var settings = camera.volumeStack.GetComponent<AmbientOcclusion>();
             if (IsActive(camera, settings))
@@ -617,7 +620,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var aoParameters = PrepareRenderAOParameters(camera, historySize * rtScaleForHistory, frameCount);
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.HorizonSSAO)))
                     {
-                        RenderAO(aoParameters, m_PackedDataTex, m_Resources, cmd);
+                        RenderAO(aoParameters, m_PackedDataTex, depthTexture, normalBuffer, cmd);
                     }
 
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DenoiseSSAO)))
