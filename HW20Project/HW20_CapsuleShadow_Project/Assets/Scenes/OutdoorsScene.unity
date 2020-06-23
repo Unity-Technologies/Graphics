@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 1824.2983, g: 1911.7238, b: 2787.5903, a: 1}
+  m_IndirectSpecularColor: {r: 1823.1613, g: 1910.7943, b: 2786.7158, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -423,12 +423,12 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 160109297}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.039, y: 1.371, z: -0.655}
+  m_LocalRotation: {x: -0, y: -0.18986662, z: -0, w: 0.98181}
+  m_LocalPosition: {x: 0.2803891, y: 1.371, z: -0.65334266}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 7
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &160109302
 MonoBehaviour:
@@ -587,7 +587,7 @@ Transform:
   m_LocalScale: {x: 10, y: 1, z: 10}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1823688464
 GameObject:
@@ -881,7 +881,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 6
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1855118004
 MonoBehaviour:
@@ -990,7 +990,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &2104595140
 PrefabInstance:
@@ -1002,6 +1002,10 @@ PrefabInstance:
     - target: {fileID: 100002, guid: 427d34d6970bfe74f99a26b6745ccbc5, type: 3}
       propertyPath: m_Name
       value: Neo
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: 427d34d6970bfe74f99a26b6745ccbc5, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 400002, guid: 427d34d6970bfe74f99a26b6745ccbc5, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1098,9 +1102,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f7bb2cf6d9d6ce4eae33adcdaf47d20, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  centerOS: {x: 0.39485955, y: 1.4235857, z: 0.0068818927}
+  centerOS: {x: 0.4391513, y: 1.4265151, z: 0.0068818927}
   radiusOS: 0.12
-  directionOS: {x: 359.05478, y: 270.84186, z: 358.61267}
+  directionOS: {x: 357.14374, y: 270.88818, z: 358.6111}
   scalingOS: 6.12
 --- !u!114 &2104595145
 MonoBehaviour:

@@ -107,9 +107,9 @@ void EvaluateCapsuleOcclusion(uint evaluationFlags,
                               PositionInputs posInput,
                               float3 N,
                               float roughness,
-                              out float ambientOcclusion,
-                              out float specularOcclusion,
-                              out float shadow)
+                              inout float ambientOcclusion,
+                              inout float specularOcclusion,
+                              inout float shadow)
 {
     uint sphereCount, sphereStart;
 
@@ -119,6 +119,9 @@ void EvaluateCapsuleOcclusion(uint evaluationFlags,
     sphereCount = /* TO ADD FIXED COUNT */ ; 
     sphereStart = 0;
 #endif
+
+        ambientOcclusion = sphereCount;
+        return;
 
     bool fastPath = false;
 #if SCALARIZE_LIGHT_LOOP
