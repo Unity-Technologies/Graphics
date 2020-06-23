@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeBuffer                 m_VisibleCapsuleOccludersBuffer           = null;
         ComputeBuffer                 m_VisibleCapsuleOccludersDataBuffer       = null;
         
-        private const int k_MaxCapsuleOccludersCount                            = 256;
+        private const int k_MaxVisibleCapsuleOccludersCount                     = 256;
         List<OrientedBBox>            m_VisibleCapsuleOccludersBounds           = null;
         List<EllipsoidOccluderData>   m_VisibleCapsuleOccludersData             = null;
         
@@ -45,24 +45,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Collect all visible finite volume data, and upload it to the GPU.
                 var occluders = EllipsoidOccluderManager.manager.PrepareEllipsoidOccludersData(cmd, hdCamera, time);
 
-                for (int i = 0; i < Math.Min(occluders.Count, k_MaxCapsuleOccludersCount); i++)
+                for (int i = 0; i < Math.Min(occluders.Count, k_MaxVisibleCapsuleOccludersCount); i++)
                 {
                     EllipsoidOccluder occluder = occluders[i];
 
                     // TODO: cache these?
-                    var obb = new OrientedBBox(Matrix4x4.TRS(occluder.transform.position, occluder.transform.rotation, Vector3.one * occluder.radius));
+                    EllipsoidOccluderData data = occluder.ConvertToEngineData(camOffset);
 
-                    // Handle camera-relative rendering.
-                    obb.center -= camOffset;
+                    Vector3 positionRWS = new Vector3(data.positionRWS_radius.x, data.positionRWS_radius.y, data.positionRWS_radius.z);
+                    float radiusWS = data.positionRWS_radius.w;
+
+                    // TODO: cache these?
+                    var obb = new OrientedBBox(Matrix4x4.TRS(positionRWS, occluder.transform.rotation, Vector3.one * radiusWS));
 
                     // Frustum cull on the CPU for now. TODO: do it on the GPU.
                     // TODO: account for custom near and far planes of the V-Buffer's frustum.
                     // It's typically much shorter (along the Z axis) than the camera's frustum.
                     if (GeometryUtils.Overlap(obb, hdCamera.frustum, 6, 8))
                     {
-                        // TODO: cache these?
-                        var data = occluder.ConvertToEngineData(camOffset);
-
                         m_VisibleCapsuleOccludersBounds.Add(obb);
                         m_VisibleCapsuleOccludersData.Add(data);
                     }

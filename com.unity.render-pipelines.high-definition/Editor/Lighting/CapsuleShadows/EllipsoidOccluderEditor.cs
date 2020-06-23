@@ -19,14 +19,14 @@ namespace UnityEngine.Rendering.HighDefinition
         };
         static GUIContent[] k_ModesContent;
 
-        SerializedProperty center, radius, direction, scaling;
+        SerializedProperty centerOS, radiusOS, directionOS, scalingOS;
 
         void OnEnable()
         {
-            center = serializedObject.FindProperty("center");
-            radius = serializedObject.FindProperty("radius");
-            direction = serializedObject.FindProperty("direction");
-            scaling = serializedObject.FindProperty("scaling");
+            centerOS = serializedObject.FindProperty("centerOS");
+            radiusOS = serializedObject.FindProperty("radiusOS");
+            directionOS = serializedObject.FindProperty("directionOS");
+            scalingOS = serializedObject.FindProperty("scalingOS");
 
             if (k_ModesContent == null)
                 k_ModesContent = new GUIContent[]{
@@ -62,19 +62,19 @@ namespace UnityEngine.Rendering.HighDefinition
         public void OnSceneGUI()
         {
             Transform tr = (target as MonoBehaviour).transform;
-            Quaternion rot = Quaternion.Euler(direction.vector3Value);
+            Quaternion rot = Quaternion.Euler(directionOS.vector3Value);
 
-            Vector3 scalev = Vector3.one * radius.floatValue;
-            scalev.z *= scaling.floatValue;
+            Vector3 scalev = Vector3.one * radiusOS.floatValue;
+            scalev.z *= scalingOS.floatValue;
 
             Handles.color = color;
-            Handles.matrix = Matrix4x4.TRS(tr.position + center.vector3Value, tr.rotation * rot, scalev);
+            Handles.matrix = Matrix4x4.TRS(tr.position + (tr.rotation * centerOS.vector3Value), tr.rotation * rot, scalev);
             Handles.DrawWireDisc(Vector3.zero, Vector3.forward, 0.5f);
             Handles.DrawWireDisc(Vector3.zero, Vector3.up, 0.5f);
             Handles.DrawWireDisc(Vector3.zero, Vector3.right, 0.5f);
 
             Handles.color = Color.white;
-            Handles.matrix = Matrix4x4.TRS(tr.position + center.vector3Value, tr.rotation, Vector3.one);
+            Handles.matrix = Matrix4x4.TRS(tr.position + centerOS.vector3Value, tr.rotation, Vector3.one);
             serializedObject.Update();
 
             var mode = ArrayUtility.IndexOf(k_EditModes, EditMode.editMode);
@@ -82,10 +82,10 @@ namespace UnityEngine.Rendering.HighDefinition
             {
 
                 EditorGUI.BeginChangeCheck();
-                Vector3 new_center = Handles.PositionHandle(Vector3.zero, Quaternion.identity);
+                Vector3 new_centerOS = Handles.PositionHandle(Vector3.zero, Quaternion.identity);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    center.vector3Value += new_center;
+                    centerOS.vector3Value += new_centerOS;
                 }
             }
             else if (EditMode.editMode == k_EditModes[1])
@@ -94,16 +94,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 rot = Handles.RotationHandle(rot, Vector3.zero);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    direction.vector3Value = rot.eulerAngles;
+                    directionOS.vector3Value = rot.eulerAngles;
                 }
             }
             else if (EditMode.editMode == k_EditModes[2])
             {
                 EditorGUI.BeginChangeCheck();
-                float scale = Handles.ScaleSlider(scaling.floatValue, Vector3.zero, rot * Vector3.forward, rot, 0.5f, 1.0f);
+                float scale = Handles.ScaleSlider(scalingOS.floatValue, Vector3.zero, rot * Vector3.forward, rot, 0.5f, 1.0f);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    scaling.floatValue = scale;
+                    scalingOS.floatValue = scale;
                 }
             }
 

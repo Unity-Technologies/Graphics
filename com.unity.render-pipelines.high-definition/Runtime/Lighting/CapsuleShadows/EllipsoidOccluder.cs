@@ -19,24 +19,27 @@ namespace UnityEngine.Rendering.HighDefinition
     public class EllipsoidOccluder : MonoBehaviour
     {
         /// <summary></summary>
-        public Vector3 center = Vector3.zero;
+        public Vector3 centerOS = Vector3.zero;
 
         /// <summary></summary>
-        public float radius = 1.0f;
+        public float radiusOS = 1.0f;
+
+        /// <summary>The direction in object space that the ellipsoid's major axis is facing, parameterized as euler degrees.</summary>
+        public Vector3 directionOS = Vector3.zero;
 
         /// <summary></summary>
-        public Vector3 direction = Vector3.zero;
-
-        /// <summary></summary>
-        public float scaling = 1.0f;
+        public float scalingOS = 1.0f;
 
 
         internal EllipsoidOccluderData ConvertToEngineData(Vector3 camOffset)
         {
-            var centerRWS = center - camOffset;
+            Vector3 centerRWS = transform.TransformPoint(centerOS) - camOffset;
+            Vector3 directionWS = transform.TransformVector(Quaternion.Euler(directionOS) * Vector3.forward).normalized;
+            float radiusWS = radiusOS; // TODO: Handle scale transform.
+            float scalingWS = scalingOS; // TODO: Handle scale transform.
             return new EllipsoidOccluderData {
-                positionRWS_radius = new Vector4(centerRWS.x, centerRWS.y, centerRWS.z, radius),
-                directionWS_scaling = new Vector4(direction.x, direction.y, direction.z, scaling)
+                positionRWS_radius = new Vector4(centerRWS.x, centerRWS.y, centerRWS.z, radiusWS),
+                directionWS_scaling = new Vector4(directionWS.x, directionWS.y, directionWS.z, scalingWS)
             };
         }
 
