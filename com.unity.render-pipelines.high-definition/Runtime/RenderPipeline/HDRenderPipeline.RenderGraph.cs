@@ -47,7 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (new XRSinglePassScope(m_RenderGraph, hdCamera))
                 {
-                    RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera, colorBuffer);
+                    colorBuffer = RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera);
                     colorBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, colorBuffer);
                 }
             }

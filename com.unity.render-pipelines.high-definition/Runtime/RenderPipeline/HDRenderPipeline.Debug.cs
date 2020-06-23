@@ -285,8 +285,21 @@ namespace UnityEngine.Rendering.HighDefinition
             public FrameSettings frameSettings;
         }
 
-        void RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, TextureHandle output)
+        TextureHandle RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera)
         {
+            bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+            var output = renderGraph.CreateTexture(
+                new TextureDesc(Vector2.one, true, true)
+                {
+                    colorFormat = GetColorBufferFormat(),
+                    enableRandomWrite = !msaa,
+                    bindTextureMS = msaa,
+                    enableMSAA = msaa,
+                    clearBuffer = true,
+                    clearColor = Color.clear,
+                    name = msaa ? "CameraColorMSAA" : "CameraColor"
+                });
+
             if (m_CurrentDebugDisplaySettings.data.materialDebugSettings.IsDebugGBufferEnabled() && hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred)
             {
                 using (var builder = renderGraph.AddRenderPass<DebugViewMaterialData>("DebugViewMaterialGBuffer", out var passData, ProfilingSampler.Get(HDProfileId.DebugViewMaterialGBuffer)))
@@ -330,6 +343,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     });
                 }
             }
+
+            return output;
         }
 
         class PushFullScreenDebugPassData
