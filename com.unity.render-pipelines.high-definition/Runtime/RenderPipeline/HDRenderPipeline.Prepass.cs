@@ -457,7 +457,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (GBufferPassData data, RenderGraphContext context) =>
                 {
-                    BindProbeVolumeGlobalData(frameSettings, data, context);
+                    BindProbeVolumeGlobalData(data.frameSettings, data, context);
                     BindDBufferGlobalData(data.dBuffer, context);
                     DrawOpaqueRendererList(context, data.frameSettings, context.resources.GetRendererList(data.rendererList));
                 });

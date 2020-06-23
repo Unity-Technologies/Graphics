@@ -361,6 +361,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public RenderSSRParameters parameters;
             public TextureHandle depthBuffer;
             public TextureHandle depthPyramid;
+            public TextureHandle normalBuffer;
+            public TextureHandle motionVectorsBuffer;
             public TextureHandle colorPyramid;
             public TextureHandle stencilBuffer;
             public TextureHandle hitPointsTexture;
@@ -407,11 +409,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.clearCoatMask = builder.ReadTexture(clearCoatMask);
                     passData.coarseStencilBuffer = builder.ReadComputeBuffer(prepassOutput.coarseStencilBuffer);
 
-                    // TODO RENDERGRAPH: pass and bind properly those texture (once auto SetGlobal is gone)
-                    builder.ReadTexture(prepassOutput.resolvedNormalBuffer);
+                    passData.normalBuffer = builder.ReadTexture(prepassOutput.resolvedNormalBuffer);
                     // TODO RENDERGRAPH: SSR does not work without movecs... should we disable the feature altogether when not available?
                     if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors))
-                        builder.ReadTexture(prepassOutput.resolvedMotionVectorsBuffer);
+                        passData.motionVectorsBuffer = builder.ReadTexture(prepassOutput.resolvedMotionVectorsBuffer);
+                    else
+                        passData.motionVectorsBuffer = builder.ReadTexture(renderGraph.defaultResources.blackTextureXR);
 
                     // In practice, these textures are sparse (mostly black). Therefore, clearing them is fast (due to CMASK),
                     // and much faster than fully overwriting them from within SSR shaders.
@@ -429,6 +432,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         RenderSSR(data.parameters,
                                     res.GetTexture(data.depthBuffer),
                                     res.GetTexture(data.depthPyramid),
+                                    res.GetTexture(data.normalBuffer),
+                                    res.GetTexture(data.motionVectorsBuffer),
                                     res.GetTexture(data.hitPointsTexture),
                                     res.GetTexture(data.stencilBuffer),
                                     res.GetTexture(data.clearCoatMask),
