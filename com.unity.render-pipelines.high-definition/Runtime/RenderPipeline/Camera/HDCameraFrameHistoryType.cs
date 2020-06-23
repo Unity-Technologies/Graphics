@@ -41,6 +41,8 @@ namespace UnityEngine.Rendering.HighDefinition
         RayTracedSubSurface,
         /// <summary>Path tracing buffer.</summary>
         PathTracing,
+        /// <summary>Path tracing buffer.</summary>
+        PathTracingVariance,
         /// <summary>Number of history buffers.</summary>
         Count
     }

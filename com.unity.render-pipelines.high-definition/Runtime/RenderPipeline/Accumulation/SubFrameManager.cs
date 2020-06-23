@@ -292,9 +292,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             }
 
-            // Grab the history buffer (hijack the reflections one)
+            // Enable variance computation
+            accumulationShader.EnableKeyword("COMPUTE_VARIANCE");
+
+            // Grab the history buffer
             RTHandle history = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing)
                 ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.PathTracing, PathTracingHistoryBufferAllocatorFunction, 1);
+
+            RTHandle varianceBuffer = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracingVariance)
+                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.PathTracingVariance, PathTracingVarianceBufferAllocatorFunction, 1);
 
             // Check the validity of the state before moving on with the computation
             if (!accumulationShader)
@@ -310,6 +316,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalInt(HDShaderIDs._AccumulationFrameIndex, (int)camData.currentIteration);
             cmd.SetGlobalInt(HDShaderIDs._AccumulationNumSamples, (int)m_SubFrameManager.subFrameCount);
             cmd.SetComputeTextureParam(accumulationShader, kernel, HDShaderIDs._AccumulatedFrameTexture, history);
+            cmd.SetComputeTextureParam(accumulationShader, kernel, HDShaderIDs._AccumulatedVariance, varianceBuffer);
             cmd.SetComputeTextureParam(accumulationShader, kernel, HDShaderIDs._CameraColorTextureRW, outputTexture);
             cmd.SetComputeTextureParam(accumulationShader, kernel, HDShaderIDs._RadianceTexture, inputTexture);
             cmd.SetComputeVectorParam(accumulationShader, HDShaderIDs._AccumulationWeights, frameWeights);

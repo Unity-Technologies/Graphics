@@ -241,6 +241,13 @@ namespace UnityEngine.Rendering.HighDefinition
                                         name: string.Format("{0}_PathTracingHistoryBuffer{1}", viewName, frameIndex));
         }
 
+        static RTHandle PathTracingVarianceBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
+        {
+            return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, dimension: TextureXR.dimension,
+                                        enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
+                                        name: string.Format("{0}_PathTracingVarianceBuffer{1}", viewName, frameIndex));
+        }
+
         void RenderPathTracing(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture)
         {
             RayTracingShader pathTracingShader = m_Asset.renderPipelineRayTracingResources.pathTracing;

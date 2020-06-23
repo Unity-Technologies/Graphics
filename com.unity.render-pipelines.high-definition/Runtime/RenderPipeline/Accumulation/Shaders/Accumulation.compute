@@ -2,9 +2,15 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
+#ifdef COMPUTE_VARIANCE
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/AdaptiveSampling.hlsl"
+#endif
+
+
 #pragma kernel KMain
 
 #pragma multi_compile FILTER_BOX FILTER_GAUSSIAN FILTER_TRIANGLE FILTER_CATMULLROM FILTER_SINC
+#pragma multi_compile _ COMPUTE_VARIANCE
 
 // Inputs
 TEXTURE2D_X(_RadianceTexture);
@@ -98,6 +104,13 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
     else
     {
+
+#ifdef COMPUTE_VARIANCE
+        // Note: reconstructions filters are not taken into account when computing variance, because we wan't to compute the temporal variation. Otherwire, 
+        // if for example a very wide 10x10 reconstruction filter is used, the smoothed-out radiance will generate lower variance due to the spatial filtering.
+        UpdatePerPixelVariance(currentPixelCoord, sampleCount, _RadianceTexture[COORD_TEXTURE2D_X(currentPixelCoord)]);
+#endif
+
         float subFrameWeight = _AccumulationWeights.x;
         float4 accColor = sampleCount > 0 ? _AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)] : 0.0f;
 
