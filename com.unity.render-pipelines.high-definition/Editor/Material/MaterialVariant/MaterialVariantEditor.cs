@@ -15,12 +15,11 @@ namespace Unity.Assets.MaterialVariant.Editor
 
         private UnityEditor.Editor targetEditor = null;
 
+        public override bool showImportedObject => false;
+
         private void InitEditor()
         {
             targetEditor = CreateEditor(assetTarget);
-            //targetEditor.firstInspectedEditor = true;
-            //targetEditor.rootOverride = ((AssetVariant)extraDataTarget).root;
-            //targetEditor.onHeaderControlsGUIOverride += MyControlGUI;
         }
 
         public override void OnEnable()
