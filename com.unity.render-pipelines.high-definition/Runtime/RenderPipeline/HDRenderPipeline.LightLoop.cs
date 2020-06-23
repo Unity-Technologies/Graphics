@@ -17,12 +17,15 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle    contactShadowsBuffer;
         }
 
-        static void ReadLightingBuffers(LightingBuffers buffers, RenderGraphBuilder builder)
+        static LightingBuffers ReadLightingBuffers(in LightingBuffers buffers, RenderGraphBuilder builder)
         {
+            var result = new LightingBuffers();
             // We only read those buffers because sssBuffer and diffuseLightingBuffer our just output of the lighting process, not inputs.
-            builder.ReadTexture(buffers.ambientOcclusionBuffer);
-            builder.ReadTexture(buffers.ssrLightingBuffer);
-            builder.ReadTexture(buffers.contactShadowsBuffer);
+            result.ambientOcclusionBuffer = builder.ReadTexture(buffers.ambientOcclusionBuffer);
+            result.ssrLightingBuffer = builder.ReadTexture(buffers.ssrLightingBuffer);
+            result.contactShadowsBuffer = builder.ReadTexture(buffers.contactShadowsBuffer);
+
+            return result;
         }
 
         class BuildGPULightListPassData
@@ -254,6 +257,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle          tileFeatureFlagsBuffer;
             public ComputeBufferHandle          tileListBuffer;
             public ComputeBufferHandle          dispatchIndirectBuffer;
+
+            public LightingBuffers              lightingBuffers;
         }
 
         struct LightingOutput
@@ -293,7 +298,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthBuffer = builder.ReadTexture(depthStencilBuffer);
                 passData.depthTexture = builder.ReadTexture(depthPyramidTexture);
 
-                ReadLightingBuffers(lightingBuffers, builder);
+                passData.lightingBuffers = ReadLightingBuffers(lightingBuffers, builder);
 
                 passData.lightLayersTextureIndex = gbuffer.lightLayersTextureIndex;
                 passData.gbufferCount = gbuffer.gBufferCount;
@@ -337,6 +342,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetGlobalTexture(HDShaderIDs._LightLayersTexture, context.resources.GetTexture(data.gbuffer[data.lightLayersTextureIndex]));
                     else
                         context.cmd.SetGlobalTexture(HDShaderIDs._LightLayersTexture, TextureXR.GetWhiteTexture());
+
+                    // TODO RENDERGRAPH: Remove these SetGlobal and properly send these textures to the deferred passes and bind them directly to compute shaders.
+                    // This can wait that we remove the old code path.
+                    context.cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, context.resources.GetTexture(data.lightingBuffers.ambientOcclusionBuffer));
+                    context.cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, context.resources.GetTexture(data.lightingBuffers.ssrLightingBuffer));
+                    context.cmd.SetGlobalTexture(HDShaderIDs._ContactShadowTexture, context.resources.GetTexture(data.lightingBuffers.contactShadowsBuffer));
 
                     if (data.parameters.enableTile)
                     {
