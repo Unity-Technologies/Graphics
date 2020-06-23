@@ -4,7 +4,7 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [VolumeComponentMenu("Lighting/Capsule/Ambient Occlusion")]
+    [VolumeComponentMenu("Lighting/Capsule Ambient Occlusion")]
     internal class CapsuleAmbientOcclusion : VolumeComponent
     {
 
