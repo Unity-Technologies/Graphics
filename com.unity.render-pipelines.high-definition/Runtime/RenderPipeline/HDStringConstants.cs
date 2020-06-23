@@ -632,7 +632,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AccumulationNeedsExposure       = Shader.PropertyToID("_AccumulationNeedsExposure");
         public static readonly int _RadianceTexture                 = Shader.PropertyToID("_RadianceTexture");
         public static readonly int _AccumulatedVariance             = Shader.PropertyToID("_AccumulatedVariance");
-        public static readonly int _PtAdaptiveSamplingConstants     = Shader.PropertyToID("_PtAdaptiveSamplingConstants");
+        public static readonly int _PTAdaptiveSamplingConstants     = Shader.PropertyToID("_PTAdaptiveSamplingConstants");
 
         // Preintegrated texture name
         public static readonly int _PreIntegratedFGD_GGXDisneyDiffuse = Shader.PropertyToID("_PreIntegratedFGD_GGXDisneyDiffuse");

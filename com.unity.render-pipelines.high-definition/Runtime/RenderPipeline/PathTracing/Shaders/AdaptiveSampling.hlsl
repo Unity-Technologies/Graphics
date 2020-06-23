@@ -1,4 +1,4 @@
-#define CONVERGED_ALPHA asfloat(2147483648u)
+#define CONVERGED_ALPHA asfloat(1073741824)
 
 // Storage format:
 // x: the mean value
@@ -14,24 +14,24 @@ bool UpdatePerPixelVariance(uint2 pixelCoords, uint iteration, float4 radiance)
         return true;
     }
 
-    // Radiance is measured in gamma/perceptual space
-    float L = Luminance(LinearToGamma22(radiance));
+    float L = Luminance(radiance.xyz);
 
     // Welford's online algorithm
     float4 accVariance = (iteration > 0) ? _AccumulatedVariance[COORD_TEXTURE2D_X(pixelCoords)] : 0;
+    accVariance.z += 1.0;
     float delta = L - accVariance.x;
-    accVariance.x += delta / (accVariance.z + 1);
+    accVariance.x += delta / accVariance.z;
     float delta2 = L - accVariance.x;
     accVariance.y += delta * delta2;
-    accVariance.z += 1.0;
+
     _AccumulatedVariance[COORD_TEXTURE2D_X(pixelCoords)] = accVariance;
 
     return false;
 }
 
-bool CheckVariance(uint2 pixelCoords, float2 threshold)
+bool CheckVariance(uint2 pixelCoords, uint iteration, float2 threshold)
 {
-    float4 accVariance = _AccumulatedVariance[COORD_TEXTURE2D_X(pixelCoords)];
+    float4 accVariance = (iteration > 0) ? _AccumulatedVariance[COORD_TEXTURE2D_X(pixelCoords)] : 0;
 
     float variance = (accVariance.z > 0) ? accVariance.y / accVariance.z : 0;
 
@@ -39,11 +39,11 @@ bool CheckVariance(uint2 pixelCoords, float2 threshold)
     {
         // update history
         accVariance.w += 1.0;
+        _AccumulatedVariance[COORD_TEXTURE2D_X(pixelCoords)] = accVariance;
         if (accVariance.w > threshold.y)
         {
             return true;
         }
-        _AccumulatedVariance[COORD_TEXTURE2D_X(pixelCoords)] = accVariance;
     }
     // reset history
     accVariance.w = 0;
@@ -55,7 +55,7 @@ float3 VisualizeVariance(uint2 pixelCoords, float minVariance, float maxVariance
 {
     float4 accVariance = _AccumulatedVariance[COORD_TEXTURE2D_X(pixelCoords)];
 
-    float variance = (accVariance.z > 0) ? accVariance.y / accVariance.z : 1000;
+    float variance = (accVariance.z > 0) ? accVariance.y / accVariance.z : 0;
     variance = clamp(variance, minVariance, maxVariance);
     float hue = (0.6 * variance - minVariance) / (maxVariance - minVariance);
     hue = 0.6 - hue;

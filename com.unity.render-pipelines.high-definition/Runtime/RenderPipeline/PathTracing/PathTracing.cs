@@ -327,7 +327,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetRayTracingTextureParam(pathTracingShader, HDShaderIDs._AccumulatedVariance, GetVarianceBuffer(hdCamera));
 
                 // Adaptive sampling
-                cmd.SetRayTracingVectorParam(pathTracingShader, HDShaderIDs._PtAdaptiveSamplingConstants, new Vector4(
+                cmd.SetRayTracingVectorParam(pathTracingShader, HDShaderIDs._PTAdaptiveSamplingConstants, new Vector4(
                     m_PathTracingSettings.adaptive.value == true ?  1.0f : 0.0f,
                     m_PathTracingSettings.minimumSamples.value,
                     m_PathTracingSettings.threshold.value,
