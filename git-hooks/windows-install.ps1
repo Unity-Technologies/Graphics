@@ -3,6 +3,10 @@
 # made to these files will also be applied to the files in .git/hooks.
 # You just have to run this script after cloning the repo and each time a new hook is added.
 
+$pwdRepoCommand = "git rev-parse --show-toplevel"
+$pwdRepo = Invoke-Expression -Command $pwdRepoCommand
+$installFolder = Join-Path $pwdRepo "git-hooks/"
+Set-Location -Path $installFolder
 $hooksFolder = "../.git/hooks/"
 
 # Create directories in .git/hooks/ to match the filesystem inside git-hooks/

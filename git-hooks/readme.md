@@ -3,9 +3,9 @@
 ## Installation
 
 This folder contains git hooks for the Graphics repository. 
-They can be installed by running `install.sh`.
-It will (recursively) create a hard link of each file present in this folder and put it in the `.git/hooks/` folder.
+They can be installed by running `unix-install.sh` or `windows-install.ps1`, depending on your OS. Running the powershell script on windows requires administrator rights to create the symbolic links.
 
+It will (recursively) create a symbolic link of each file present in this folder and put it in the `.git/hooks/` folder.
 This manual installation step is required because the `.git/` folder can't be pushed to the remote repository and therefore automatically be configured for all developers. 
 
 ## Contributing
