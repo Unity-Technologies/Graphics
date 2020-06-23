@@ -2,8 +2,8 @@
 // This file was automatically generated. Please don't edit by hand.
 //
 
-#ifndef CAPSULEOCCLUSIONMANAGER_CS_HLSL
-#define CAPSULEOCCLUSIONMANAGER_CS_HLSL
+#ifndef CAPSULEOCCLUSIONSYSTEM_CS_HLSL
+#define CAPSULEOCCLUSIONSYSTEM_CS_HLSL
 //
 // UnityEngine.Rendering.HighDefinition.CapsuleOcclusionType:  static fields
 //
