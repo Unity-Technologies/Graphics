@@ -149,7 +149,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         accColor.xyz *= exposureMultiplier;
 
 #ifdef COMPUTE_VARIANCE
-        accColor.xyz = VisualizeVariance(currentPixelCoord, 0, 1.0);
+        accColor.xyz = lerp(VisualizeVariance(currentPixelCoord, 0.01, 0.04), accColor.xyz, 0.25);
 #endif
         // Add a little convergence cue to our result
         AddConvergenceCue(currentPixelCoord, sampleCount, accColor.xyz);
