@@ -38,7 +38,7 @@ namespace Unity.Assets.MaterialVariant.Editor
                     }
 
                     // Apply change again
-                    // TODO
+                    MaterialPropertyModification.ApplyPropertyModificationsToMaterial(material, matVariant.overrides);
 
                     // Setup as main replacement object
                     ctx.AddObjectToAsset("Material", material);

@@ -12,7 +12,19 @@ namespace Unity.Assets.MaterialVariant.Editor
         public string rootGUID;
         public bool isShader;
 
-        public List<PropertyModification> overrides;
+        public List<MaterialPropertyModification> overrides;
+        
+        public void TrimPreviousOverridesAndAdd(IEnumerable<MaterialPropertyModification> modifications)
+        {
+            foreach(var modification in modifications)
+            {
+                int pos = overrides.FindIndex(o => o.propertyPath == modification.propertyPath);
+                if (pos > -1)
+                    overrides[pos] = modification;
+                else
+                    overrides.Add(modification);
+            }
+        }
 
         public static void CreateVariant(Object target)
         {
@@ -48,7 +60,7 @@ namespace Unity.Assets.MaterialVariant.Editor
                         matVariant.rootGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(rootMaterial));
                 }
 
-                matVariant.overrides = new List<PropertyModification>();
+                matVariant.overrides = new List<MaterialPropertyModification>();
 
                 var targetPath = AssetDatabase.GetAssetPath(target);
                 targetPath = Path.Combine(Path.GetDirectoryName(targetPath),
