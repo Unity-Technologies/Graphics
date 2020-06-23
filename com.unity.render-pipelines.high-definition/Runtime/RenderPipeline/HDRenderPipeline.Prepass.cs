@@ -106,6 +106,8 @@ namespace UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(motionVectorDesc, HDShaderIDs._CameraMotionVectorsTexture);
         }
 
+        // TODO RENDERGRAPH: in someplaces we auto bind and in others we have to generate MRT because of discrepancy with non render graph path.
+        // Clean this once we only have one path.
         void BindPrepassColorBuffers(in RenderGraphBuilder builder, in PrepassOutput prepassOutput, HDCamera hdCamera)
         {
             int index = 0;
@@ -114,6 +116,23 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseColorBuffer(prepassOutput.depthAsColor, index++);
             }
             builder.UseColorBuffer(prepassOutput.normalBuffer, index++);
+        }
+
+        void BindMotionVectorPassColorBuffers(in RenderGraphBuilder builder, in PrepassOutput prepassOutput, HDCamera hdCamera)
+        {
+            bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+
+            if (msaa)
+            {
+                builder.UseColorBuffer(prepassOutput.depthAsColor, 0);
+                builder.UseColorBuffer(prepassOutput.motionVectorsBuffer, 1);
+                builder.UseColorBuffer(prepassOutput.normalBuffer, 2);
+            }
+            else
+            {
+                builder.UseColorBuffer(prepassOutput.motionVectorsBuffer, 0);
+                builder.UseColorBuffer(prepassOutput.normalBuffer, 1);
+            }
         }
 
         PrepassOutput RenderPrepass(RenderGraph renderGraph, TextureHandle colorbuffer, TextureHandle sssBuffer, CullingResults cullingResults, HDCamera hdCamera)
@@ -297,9 +316,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public FrameSettings        frameSettings;
             public TextureHandle        depthBuffer;
-            public TextureHandle        motionVectorsBuffer;
-            public TextureHandle        normalBuffer;
-            public TextureHandle        depthAsColorMSAABuffer;
             public RendererListHandle   rendererList;
         }
 
@@ -314,21 +330,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
                 hdCamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
-                bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-
                 passData.frameSettings = hdCamera.frameSettings;
                 passData.depthBuffer = builder.UseDepthBuffer(output.depthBuffer, DepthAccess.ReadWrite);
-                passData.motionVectorsBuffer = builder.UseColorBuffer(output.motionVectorsBuffer, 0);
-                passData.normalBuffer = builder.UseColorBuffer(output.normalBuffer, 1);
-                if (msaa)
-                    passData.depthAsColorMSAABuffer = builder.UseColorBuffer(output.depthAsColor, 2);
+                BindMotionVectorPassColorBuffers(builder, output, hdCamera);
 
+                RenderStateBlock? stateBlock = null;
+                if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.AlphaToMask))
+                    stateBlock = m_AlphaToMaskBlock;
                 passData.rendererList = builder.UseRendererList(
-                    renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_MotionVectorsName, PerObjectData.MotionVectors)));
+                    renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_MotionVectorsName, PerObjectData.MotionVectors, stateBlock: stateBlock)));
 
                 builder.SetRenderFunc(
                 (ObjectMotionVectorsPassData data, RenderGraphContext context) =>
                 {
+                    // Disable write to normal buffer for unlit shader (the normal buffer binding change when using MSAA)
+                    context.cmd.SetGlobalInt(HDShaderIDs._ColorMaskNormal, data.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? (int)ColorWriteMask.All : 0);
+
                     DrawOpaqueRendererList(context, data.frameSettings, context.resources.GetRendererList(data.rendererList));
                 });
             }
