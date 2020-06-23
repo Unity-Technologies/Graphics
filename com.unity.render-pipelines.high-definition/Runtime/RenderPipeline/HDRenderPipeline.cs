@@ -2685,6 +2685,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // TODO: This global set should probably be done once as multiple passes might need it set (e.g. contact shadows)
                 cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, m_TileAndClusterData.lightList);
                 m_CapsuleOcclusionSystem.RenderCapsuleOcclusions(cmd, hdCamera, m_AmbientOcclusionSystem.m_AmbientOcclusionTex, GetCurrentSunLight());
+                m_CapsuleOcclusionSystem.PushDebugTextures(cmd, hdCamera, m_AmbientOcclusionSystem.m_AmbientOcclusionTex);
 
                 // Run the contact shadows here as they need the light list
                 HDUtils.CheckRTCreated(m_ContactShadowBuffer);

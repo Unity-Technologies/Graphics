@@ -73,6 +73,10 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthPyramid,
         /// <summary>Display the final color pyramid for the frame.</summary>
         FinalColorPyramid,
+        /// <summary>Display Capsule Soft Shadows buffer.</summary>
+        CapsuleSoftShadows,
+        /// <summary>Display Capsule Specular Occlusion buffer.</summary>
+        CapsuleSpecularOcclusion,
 
         // Raytracing Only
         /// <summary>Display ray tracing light cluster.</summary>
