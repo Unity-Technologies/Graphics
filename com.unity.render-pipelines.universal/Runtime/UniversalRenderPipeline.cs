@@ -153,6 +153,8 @@ namespace UnityEngine.Rendering.Universal
             }
 
             EndFrameRendering(renderContext, cameras);
+
+            ShaderDebugPrintManager.Instance.EndFrame();
         }
 
         /// <summary>

@@ -708,6 +708,8 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
+            ShaderDebugPrintManager.Instance.SetShaderDebugPrintBindings(cmd);
+
             // Also, we execute the commands recorded at this point to ensure SetRenderTarget is called before RenderPass.Execute
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
