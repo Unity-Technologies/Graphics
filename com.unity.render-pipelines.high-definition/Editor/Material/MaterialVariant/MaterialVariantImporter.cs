@@ -19,22 +19,23 @@ namespace Unity.Assets.MaterialVariant.Editor
                     string rootPath = null;
                     Material material = null;
 
-                    // Reinit Material
+                    // Reinit Material + Build dependency chain
                     if (matVariant.isShader)
                     {
                         rootPath = AssetDatabase.GUIDToAssetPath(matVariant.rootGUID);
                         Shader shader = AssetDatabase.LoadAssetAtPath<Shader>(rootPath);
                         material = new Material(shader);
+                        ctx.DependsOnSourceAsset(AssetDatabase.GetAssetPath(shader));
                     }
                     else
                     {
                         rootPath = AssetDatabase.GUIDToAssetPath(matVariant.rootGUID);
+                        MaterialVariant matVar = AssetDatabase.LoadAssetAtPath<MaterialVariant>(rootPath);
+
                         Material mat = AssetDatabase.LoadAssetAtPath<Material>(rootPath);
                         material = new Material(mat);
+                        ctx.DependsOnSourceAsset(AssetDatabase.GetAssetPath(mat));
                     }
-
-                    // Build dependency chain
-                    ctx.DependsOnSourceAsset(matVariant.rootGUID);
 
                     // Apply change again
                     // TODO
