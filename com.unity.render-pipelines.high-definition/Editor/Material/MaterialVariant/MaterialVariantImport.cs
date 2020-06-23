@@ -5,11 +5,11 @@ using UnityEngine;
 
 namespace Unity.Assets.MaterialVariant.Editor
 {
-    [ScriptedImporter(1, ".matVariant")] // importQueueOffset must be higher than ShaderGraphImporter value
+    [ScriptedImporter(1, ".matVariant", 5)] // importQueueOffset must be higher than ShaderGraphImporter value
     public class MaterialVariantImporter : ScriptedImporter
     {
         public override void OnImportAsset(AssetImportContext ctx)
-        {
+        {/*
             var assets = InternalEditorUtility.LoadSerializedFileAndForget(ctx.assetPath);
             if (assets != null && assets.Length == 1)
             {
@@ -44,6 +44,7 @@ namespace Unity.Assets.MaterialVariant.Editor
                     ctx.SetMainObject(material);
                 }
             }
+            */
         }
     }
 }
