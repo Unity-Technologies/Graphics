@@ -4,7 +4,7 @@
 
 #pragma kernel CapsuleShadowLUTGeneration
 
-#define CONES_COUNT 4096 // Looks ok, but 1024 looks better, profile to decide.
+#define CONES_COUNT 4096
 
 float3 GetRandomConeAxis(float cosHalfAperture, float2 randVals)
 {

@@ -23,8 +23,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
     partial class CapsuleOcclusionSystem
     {
-        const int k_LUTWidth = 1024;
-        const int k_LUTHeight = 256;
+        const int k_LUTWidth = 192;
+        const int k_LUTHeight = 64;
         const int k_LUTDepth = 4;
 
         private bool m_LUTReady = false;

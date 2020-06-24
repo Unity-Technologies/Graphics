@@ -585,7 +585,7 @@ void EvaluateCapsuleOcclusion(uint evaluationFlags,
 
             if (evaluationFlags & CAPSULEOCCLUSIONTYPE_DIRECTIONAL_SHADOWS)
             {
-                float capsuleShadow = EvaluateCapsuleShadowAnalytical(s_capsuleData, posInput.positionWS, N, dirAndLen);
+                float capsuleShadow = EvaluateCapsuleShadowLUT(s_capsuleData, posInput.positionWS, N, dirAndLen);
                 shadow = AccumulateCapsuleShadow(shadow, capsuleShadow);
             }
         }
