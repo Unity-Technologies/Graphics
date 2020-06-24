@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Unity.Assets.MaterialVariant.Editor
 {
-    [ScriptedImporter(1, ".matVariant", 5)] // importQueueOffset must be higher than ShaderGraphImporter value
+    [ScriptedImporter(6, ".matVariant", 5)] // importQueueOffset must be higher than ShaderGraphImporter value
     public class MaterialVariantImporter : ScriptedImporter
     {
         public override void OnImportAsset(AssetImportContext ctx)
@@ -30,23 +30,34 @@ namespace Unity.Assets.MaterialVariant.Editor
                     else
                     {
                         rootPath = AssetDatabase.GUIDToAssetPath(matVariant.rootGUID);
-                        MaterialVariant matVar = AssetDatabase.LoadAssetAtPath<MaterialVariant>(rootPath);
-
                         Material mat = AssetDatabase.LoadAssetAtPath<Material>(rootPath);
+                        mat = AssetDatabase.LoadAssetAtPath<Material>(rootPath);
                         material = new Material(mat);
                         ctx.DependsOnSourceAsset(AssetDatabase.GetAssetPath(mat));
                     }
 
-                    // Apply change again
-                    MaterialPropertyModification.ApplyPropertyModificationsToMaterial(material, matVariant.overrides);
-
                     // Setup as main replacement object
                     ctx.AddObjectToAsset("Material", material);
                     ctx.SetMainObject(material);
-
+                    
                     // Keep trace of variant in order to register any override.
                     matVariant.hideFlags = HideFlags.HideInHierarchy | HideFlags.DontSaveInBuild | HideFlags.HideInInspector;
                     ctx.AddObjectToAsset("Variant", matVariant);
+
+                    int hash = material.ComputeCRC();
+
+                    // Force a save of this MaterialVariant to force an update of the asset database
+                    // and propagate to children
+                    if (matVariant.hash != hash)
+                    {
+                        matVariant.hash = hash;
+                        //InternalEditorUtility.SaveToSerializedFileAndForget(assets, ctx.assetPath, true);
+                    }
+                    else
+                    {
+                        // Apply change again
+                        MaterialPropertyModification.ApplyPropertyModificationsToMaterial(material, matVariant.overrides);
+                    }                   
                 }
             }
         }
