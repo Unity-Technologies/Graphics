@@ -83,6 +83,27 @@ namespace UnityEditor.VFX
             }  
         }
 
+        public bool IsEqual(VFXPropertyAttributes other)
+        {
+            if (m_Flag != other.m_Flag)
+                return false;
+
+            if (m_AllAttributes == null)
+                return other.m_AllAttributes == null;
+
+            if (other.m_AllAttributes == null)
+                return false;
+
+            if (m_AllAttributes.Length != other.m_AllAttributes.Length)
+                return false;
+
+            for (int i = 0; i < m_AllAttributes.Length; ++i)
+                if (!m_AllAttributes[i].Equals(other.m_AllAttributes[i]))
+                    return false;
+
+            return true;
+        }
+
         public VFXExpression ApplyToExpressionGraph(VFXExpression exp)
         {
             if (m_GraphAttributes == null)
