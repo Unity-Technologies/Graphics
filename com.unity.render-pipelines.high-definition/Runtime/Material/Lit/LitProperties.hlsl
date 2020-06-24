@@ -151,6 +151,9 @@ float _EnableGeometricSpecularAA;
 float _SpecularAAScreenSpaceVariance;
 float _SpecularAAThreshold;
 
+// Raytracing
+float _RayTracing;
+
 #ifndef LAYERED_LIT_SHADER
 
 // Set of users variables

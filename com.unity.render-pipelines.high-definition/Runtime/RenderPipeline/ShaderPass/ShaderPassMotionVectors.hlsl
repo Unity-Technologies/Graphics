@@ -34,19 +34,19 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 #endif // TESSELLATION_ON
 
 void Frag(  PackedVaryingsToPS packedInput
-            // The motion vector is always the first buffer
-            , out float4 outMotionVector : SV_Target0
-
-            // Write the normal buffer
-            #ifdef WRITE_NORMAL_BUFFER
-            , out float4 outNormalBuffer : SV_Target1
-                // Output the depth as a color if required
-                #ifdef WRITE_MSAA_DEPTH
-                , out float1 depthColor : SV_Target2
+            #ifdef WRITE_MSAA_DEPTH
+            // We need the depth color as SV_Target0 for alpha to coverage
+            , out float4 depthColor : SV_Target0
+            , out float4 outMotionVector : SV_Target1
+                #ifdef WRITE_NORMAL_BUFFER
+                , out float4 outNormalBuffer : SV_Target2
                 #endif
-            #elif defined(WRITE_MSAA_DEPTH) // When only WRITE_MSAA_DEPTH is define and not WRITE_NORMAL_BUFFER it mean we are Unlit and only need depth, but we still have normal buffer binded
-            , out float4 outNormalBuffer : SV_Target1
-            , out float1 depthColor : SV_Target2
+            #else
+            // When no MSAA, the motion vector is always the first buffer
+            , out float4 outMotionVector : SV_Target0
+                #ifdef WRITE_NORMAL_BUFFER
+                , out float4 outNormalBuffer : SV_Target1
+                #endif
             #endif
 
             #ifdef _DEPTHOFFSET_ON
@@ -92,19 +92,20 @@ void Frag(  PackedVaryingsToPS packedInput
     if (forceNoMotion)
         outMotionVector = float4(2.0, 0.0, 0.0, 0.0);
 
+// Depth and Alpha to coverage
+#ifdef WRITE_MSAA_DEPTH
+    // In case we are rendering in MSAA, reading the an MSAA depth buffer is way too expensive. To avoid that, we export the depth to a color buffer
+    depthColor = packedInput.vmesh.positionCS.z;
+
+    #ifdef _ALPHATOMASK_ON
+    // Alpha channel is used for alpha to coverage
+    depthColor.a = SharpenAlpha(builtinData.opacity, builtinData.alphaClipTreshold);
+    #endif
+#endif
+
 // Normal Buffer Processing
 #ifdef WRITE_NORMAL_BUFFER
     EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surfaceData), posInput.positionSS, outNormalBuffer);
-
-    #ifdef WRITE_MSAA_DEPTH
-    // In case we are rendering in MSAA, reading the an MSAA depth buffer is way too expensive. To avoid that, we export the depth to a color buffer
-    depthColor = packedInput.vmesh.positionCS.z;
-    #endif
-#elif defined(WRITE_MSAA_DEPTH) // When we are MSAA depth only without normal buffer
-    // Due to the binding order of these three render targets, we need to have them both declared
-    outNormalBuffer = float4(0.0, 0.0, 0.0, 1.0);
-    // In case we are rendering in MSAA, reading the an MSAA depth buffer is way too expensive. To avoid that, we export the depth to a color buffer
-    depthColor = packedInput.vmesh.positionCS.z;
 #endif
 
 #ifdef _DEPTHOFFSET_ON

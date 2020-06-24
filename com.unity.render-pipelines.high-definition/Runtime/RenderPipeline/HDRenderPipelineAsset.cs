@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
-using Utilities;
-
+#if UNITY_EDITOR
+using System.Linq;
+using UnityEditorInternal;
+#endif
 namespace UnityEngine.Rendering.HighDefinition
 {
     enum ShaderVariantLogLevel
@@ -16,11 +18,14 @@ namespace UnityEngine.Rendering.HighDefinition
     /// High Definition Render Pipeline asset.
     /// </summary>
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
-    public partial class HDRenderPipelineAsset : RenderPipelineAsset
+    public partial class HDRenderPipelineAsset : RenderPipelineAsset, IVirtualTexturingEnabledRenderPipeline
     {
+        [System.NonSerialized]
+        internal bool isInOnValidateCall = false;
 
         HDRenderPipelineAsset()
         {
+            
         }
 
         void Reset() => OnValidate();
@@ -37,12 +42,16 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         protected override void OnValidate()
         {
+            isInOnValidateCall = true;
+
             //Do not reconstruct the pipeline if we modify other assets.
             //OnValidate is called once at first selection of the asset.
             if (GraphicsSettings.currentRenderPipeline == this)
                 base.OnValidate();
 
             UpdateRenderingLayerNames();
+
+            isInOnValidateCall = false;
         }
 
         [SerializeField]
@@ -91,7 +100,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 // - cannot rely on OnEnable
                 //thus fallback with lazy init for them
                 if (m_RenderPipelineEditorResources == null || m_RenderPipelineEditorResources.Equals(null))
-                    m_RenderPipelineEditorResources = UnityEditor.AssetDatabase.LoadAssetAtPath<HDRenderPipelineEditorResources>(HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset");
+                {
+                    var objs = InternalEditorUtility.LoadSerializedFileAndForget(HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset");
+                    m_RenderPipelineEditorResources = objs != null && objs.Length > 0 ? objs.First() as HDRenderPipelineEditorResources : null;
+                }
+
                 return m_RenderPipelineEditorResources;
             }
             set { m_RenderPipelineEditorResources = value; }
@@ -249,9 +262,14 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         internal List<string> beforeTransparentCustomPostProcesses = new List<string>();
         [SerializeField]
+        internal List<string> beforeTAACustomPostProcesses = new List<string>();
+        [SerializeField]
         internal List<string> beforePostProcessCustomPostProcesses = new List<string>();
         [SerializeField]
         internal List<string> afterPostProcessCustomPostProcesses = new List<string>();
+
+        [SerializeField]
+        internal VirtualTexturingSettingsSRP virtualTexturingSettings = new VirtualTexturingSettingsSRP();
 
 #if UNITY_EDITOR
         /// <summary>HDRP default material.</summary>
@@ -362,5 +380,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 #endif
+
+        // Implement IVirtualTexturingEnabledRenderPipeline
+        public bool virtualTexturingEnabled { get { return true; } }
     }
 }

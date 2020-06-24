@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering
     /// A wrapper around <c>AnimationCurve</c> to automatically bake it into a texture.
     /// </summary>
     [Serializable]
-    public class TextureCurve
+    public class TextureCurve : IDisposable
     {
         const int k_Precision = 128; // Edit LutBuilder3D if you change this value
         const float k_Step = 1f / k_Precision;
@@ -76,6 +76,17 @@ namespace UnityEngine.Rendering
             length = keys.Length;
             SetDirty();
         }
+
+        /// <summary>
+        /// Finalizer.
+        /// </summary>
+        ~TextureCurve() {}
+
+        /// <summary>
+        /// Cleans up the internal texture resource.
+        /// </summary>
+        [Obsolete("Please use Release() instead.")]
+        public void Dispose() {}
 
         /// <summary>
         /// Releases the internal texture resource.

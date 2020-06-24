@@ -42,7 +42,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
     #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local _TERRAIN_INSTANCED_PERPIXEL_NORMAL
@@ -201,6 +201,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
+            #pragma multi_compile SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
 

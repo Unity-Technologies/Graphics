@@ -1,7 +1,7 @@
 <div style="border: solid 1px #999; border-radius:12px; background-color:#EEE; padding: 8px; padding-left:14px; color: #555; font-size:14px;"><b>Draft:</b> The content on this page is complete, but it has not been reviewed yet.</div>
 # Properties
 
-Properties are editable fields that you can connect to graph elements using [Property workflow](GraphLogicAndPhilosophy.md). They can be found on Graph Elements such as  [Contexts](Contexts.md),  [Blocks](Blocks.md) and [Operators](Operators.md).
+Properties are editable fields that you can connect to graph elements using [Property workflow](GraphLogicAndPhilosophy.md). They can be found on graph elements such as  [Contexts](Contexts.md),  [Blocks](Blocks.md) and [Operators](Operators.md).
 
 ## Using Properties
 
@@ -11,7 +11,7 @@ Properties are displayed on graph elements and will change their value according
 
 ## Property Types
 
-Properties in Visual Effect Graph can be of any type defined by the user, from base data types such as boolean, integer, float, Vectors, Textures, AnimationCurve or Gradient. 
+Properties in Visual Effect Graph can be of any type defined by the user, from base data types such as boolean, integer, float, Vectors, Textures, AnimationCurve or Gradient.
 
 ### Accessing Property Components
 
@@ -38,7 +38,7 @@ Compount Property Types are made from base data types in order to describe more 
 
 ![](Images/PropertyCompound.png)
 
-Compound property types can be expanded in order to access their components. 
+Compound property types can be expanded in order to access their components.
 
 ### Spaceable Properties
 
@@ -62,5 +62,5 @@ Property Nodes are special  [Operators](Operators.md) Nodes that enable accessin
 * You can create a Property Node :
   * By Dragging the Node from the Blackboard Panel into the Workspace.
   * By using the Create Node menu from the Right Click context menu and selecting the desired property from the Property category.
-* You can convert a Property Node to an Inline Node of the same type by right-clicking the property Node and selecting "Convert to Inline" 
+* You can convert a Property Node to an Inline Node of the same type by right-clicking the property Node and selecting "Convert to Inline"
 * Deleting a property from the Blackboard will also delete all its property Node instances from the graph.

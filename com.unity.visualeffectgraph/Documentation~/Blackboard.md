@@ -6,13 +6,19 @@ Properties you define in the Blackboard are global variables that you can use mu
 
 ![Blackboard-Properties](Images/Blackboard-Properties.png)
 
-Properties in the Blackboard are either **constants** or **exposed**. If you make a property exposed, you can see and edit it on the [Visual Effect Component](VisualEffectComponent.md) as well as via the C# API. 
+Properties in the Blackboard are either **constants** or **exposed**. If you make a property exposed, you can see and edit it on the [Visual Effect Component](VisualEffectComponent.md) as well as via the C# API.
 
 To differentiate between exposed properties and constants, the Blackboard displays a green dot on the left of an exposed property's label.
 
 ## Using the Blackboard
 
 To open the Blackboard, click the **Blackboard** button in the Visual Effect Graph window [Toolbar](VisualEffectGraphWindow.md#Toolbar). To resize the Blackboard, click on any edge or corner and drag. To reposition the Blackboard, click on the header and drag.
+
+### Menu Category
+
+In order to set the Menu path of the currently edited Subgraph, you can double-click the sub-title of the blackboard and enter the desired Category Name, then validate using the Return Key
+
+![Blackboard-Category](Images/Blackboard-Category.gif)
 
 ### Creating properties
 
@@ -74,4 +80,3 @@ To edit a property value, you need to override it. To do this, enable the checkb
 ### Using Gizmos
 
 You can use Gizmos to edit certain advanced property types. To enable Gizmo editing, click the **Show Property Gizmos** button. To use a Gizmo to edit a compatible property, click the **Edit** button next to the property.
-

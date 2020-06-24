@@ -7,7 +7,7 @@ namespace UnityEditor.VFX
     [VFXInfo(experimental = true)]
     class VFXLineStripOutput : VFXAbstractParticleOutput
     {
-        protected VFXLineStripOutput() : base(true) { }
+        protected VFXLineStripOutput() : base(true) {}
         public override string name { get { return "Output ParticleStrip Line"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLinesHW"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleLineOutput; } }

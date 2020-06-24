@@ -6,9 +6,15 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     #pragma editor_sync_compilation
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
     #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+
+    #pragma multi_compile_local _ SKY_MOTION
+    #pragma multi_compile_local _ USE_FLOWMAP
+
+    #pragma multi_compile_local _ USE_CLOUD_MAP
+    #pragma multi_compile_local _ USE_CLOUD_MOTION
 
     #pragma multi_compile _ DEBUG_DISPLAY
     #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
@@ -31,6 +37,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/CloudLayer/CloudLayer.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SDF2D.hlsl"
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -46,6 +53,9 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     TEXTURECUBE(_Cubemap);
     SAMPLER(sampler_Cubemap);
+    
+    TEXTURE2D(_Flowmap);
+    SAMPLER(sampler_Flowmap);
 
     float4 _SkyParam; // x exposure, y multiplier, zw rotation (cosPhi and sinPhi)
     float4 _BackplateParameters0; // xy: scale, z: groundLevel, w: projectionDistance
@@ -54,6 +64,8 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     float3 _BackplateShadowTint;  // xyz: ShadowTint
     uint   _BackplateShadowFilter;
 
+    float4 _FlowmapParam; // x upper hemisphere only, y scroll factor, zw scroll direction (cosPhi and sinPhi)
+    
     #define _Intensity          _SkyParam.x
     #define _CosPhi             _SkyParam.z
     #define _SinPhi             _SkyParam.w
@@ -76,6 +88,9 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     #define _OffsetTex          _BackplateParameters2.zw
     #define _ShadowTint         _BackplateShadowTint.rgb
     #define _ShadowFilter       _BackplateShadowFilter
+    #define _UpperHemisphere    _FlowmapParam.x
+    #define _ScrollFactor       _FlowmapParam.y
+    #define _ScrollDirection    _FlowmapParam.zw
 
     struct Attributes
     {
@@ -171,9 +186,44 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         return IsHit(sdf, dir.y);
     }
 
+    float3 GetDistordedSkyColor(float3 dir)
+    {
+#if SKY_MOTION
+        if (dir.y >= 0 || !_UpperHemisphere)
+        {
+            float2 alpha = frac(float2(_ScrollFactor, _ScrollFactor + 0.5)) - 0.5;
+
+#ifdef USE_FLOWMAP
+            float3 tangent = normalize(cross(dir, float3(0.0, 1.0, 0.0)));
+            float3 bitangent = cross(tangent, dir);
+
+            float3 windDir = RotationUp(dir, _ScrollDirection);
+            float2 flow = SAMPLE_TEXTURE2D_LOD(_Flowmap, sampler_Flowmap, GetLatLongCoords(windDir, _UpperHemisphere), 0).rg * 2.0 - 1.0;
+
+            float3 dd = flow.x * tangent + flow.y * bitangent;
+#else
+            float3 windDir = RotationUp(float3(0, 0, 1), _ScrollDirection);
+            windDir.x *= -1.0;
+            float3 dd = windDir*sin(dir.y*PI*0.5);
+#endif
+
+            // Sample twice
+            float3 color1 = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir - alpha.x*dd, 0).rgb;
+            float3 color2 = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir - alpha.y*dd, 0).rgb;
+
+            // Blend color samples
+            return lerp(color1, color2, abs(2.0 * alpha.x));
+        }
+        else
+#endif
+
+        return SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb;
+    }
+
     float3 GetSkyColor(float3 dir)
     {
-        return SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb;
+        float3 sky = GetDistordedSkyColor(dir);
+        return ApplyCloudLayer(dir, sky);
     }
 
     float4 GetColorWithRotation(float3 dir, float exposure, float2 cos_sin)
@@ -207,8 +257,8 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     float4 RenderSkyWithBackplate(Varyings input, float3 positionOnBackplate, float exposure, float3 originalDir, float blend, float depth)
     {
         // Reverse it to point into the scene
-        float3 offset = RotationUp(float3(_OffsetTexX, 0, _OffsetTexY), _CosSinPhiPlate);
-        float3 dir    = positionOnBackplate - float3(0, _ProjectionDistance + _GroundLevel, 0) + offset; // No need for normalization
+        float3 offset = RotationUp(float3(_OffsetTexX, 0.0, _OffsetTexY), _CosSinPhiPlate);
+        float3 dir    = positionOnBackplate - float3(0.0, _ProjectionDistance + _GroundLevel, 0.0) + offset; // No need for normalization
 
         PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
@@ -217,17 +267,17 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
         uint renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
         float3 shadow3;
-        ShadowLoopMin(shadowContext, posInput, float3(0, 1, 0), _ShadowFilter, renderingLayers, shadow3);
-        shadow = dot(shadow3, float3(1.0f/3.0f, 1.0f/3.0f, 1.0f/3.0f));
+        ShadowLoopMin(shadowContext, posInput, float3(0.0, 1.0, 0.0), _ShadowFilter, renderingLayers, shadow3);
+        shadow = dot(shadow3, float3(1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0));
 
-        float3 shadowColor = ComputeShadowColor(shadow, _ShadowTint, 0.0f);
+        float3 shadowColor = ComputeShadowColor(shadow, _ShadowTint, 0.0);
 
-        float3 output = lerp(            GetColorWithRotation(originalDir,                         exposure, _CosSinPhi).rgb,
-                             shadowColor*GetColorWithRotation(RotationUp(dir, _CosSinPhiPlateTex), exposure, _CosSinPhi).rgb, blend);
+        float3 output = lerp(              GetColorWithRotation(originalDir,                         exposure, _CosSinPhi).rgb,
+                             shadowColor * GetColorWithRotation(RotationUp(dir, _CosSinPhiPlateTex), exposure, _CosSinPhi).rgb, blend);
 
-        float3 ao = GetScreenSpaceAmbientOcclusionForBackplate(posInput.positionSS, originalDir.z, 1.0f);
+        float3 ao = GetScreenSpaceAmbientOcclusionForBackplate(posInput.positionSS, originalDir.z, 1.0);
 
-        return float4(ao*output, exposure);
+        return float4(ao * output, exposure);
     }
 
     float4 FragBaking(Varyings input) : SV_Target

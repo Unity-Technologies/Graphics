@@ -113,15 +113,14 @@ namespace UnityEditor.VFX.UI
             {
                 // Prevent breaking the editor opening.
                 try
-                { 
+                {
                     SyncFlowAnchors();
                     model.ResyncSlots(true);
                 }
-                    catch (Exception e)
+                catch (Exception e)
                 {
                     Debug.LogException(e);
                 }
-
             }
         }
 
@@ -136,7 +135,7 @@ namespace UnityEditor.VFX.UI
                     m_FlowInputAnchors.Add(inAnchor);
                     viewController.RegisterFlowAnchorController(inAnchor);
                 }
-                while(this.model.inputFlowSlot.Length < m_FlowInputAnchors.Count)
+                while (this.model.inputFlowSlot.Length < m_FlowInputAnchors.Count)
                 {
                     var removedAnchor = m_FlowInputAnchors[m_FlowInputAnchors.Count - 1];
                     removedAnchor.OnDisable();
@@ -252,17 +251,16 @@ namespace UnityEditor.VFX.UI
         internal void BlocksDropped(int blockIndex, IEnumerable<VFXBlockController> draggedBlocks, bool copy)
         {
             //Sort draggedBlock in the order we want them to appear and not the selected order ( blocks in the same context should appear in the same order as they where relative to each other).
-
             draggedBlocks = draggedBlocks.OrderBy(t => t.index).GroupBy(t => t.contextController).SelectMany<IGrouping<VFXContextController, VFXBlockController>, VFXBlockController>(t => t.Select(u => u));
 
-
-            foreach (VFXBlockController draggedBlock in draggedBlocks)
+            if (copy)
             {
-                if (copy)
-                {
-                    this.AddBlock(blockIndex++, DuplicateBlock(draggedBlock.model));
-                }
-                else
+                var copiedBlocks = VFXCopy.CopyBlocks(draggedBlocks);
+                VFXPaste.PasteBlocks(viewController, copiedBlocks, model, blockIndex);
+            }
+            else
+            {
+                foreach (VFXBlockController draggedBlock in draggedBlocks)
                 {
                     this.ReorderBlock(blockIndex++, draggedBlock.model);
                 }

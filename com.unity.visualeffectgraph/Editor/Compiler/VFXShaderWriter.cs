@@ -34,6 +34,7 @@ namespace UnityEditor.VFX
         {
             builder.Append(initialValue);
         }
+
         public static string GetValueString(VFXValueType type, object value)
         {
             var format = "";
@@ -215,18 +216,36 @@ namespace UnityEditor.VFX
             return padding;
         }
 
+
+        public void WriteBuffer(VFXUniformMapper mapper)
+        {
+            foreach (var buffer in mapper.buffers)
+            {
+                var name = mapper.GetName(buffer);
+                WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(buffer.valueType), name);
+            }
+        }
+
         public void WriteTexture(VFXUniformMapper mapper)
         {
             foreach (var texture in mapper.textures)
             {
-                string name = mapper.GetName(texture);
-                WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(texture.valueType),name);
-                WriteLineFormat("SamplerState sampler{0};", name);
-                WriteLineFormat("float4 {0}_TexelSize;", name);
+                var names = mapper.GetNames(texture);
+                // TODO At the moment issue all names sharing the same texture as different texture slots. This is not optimized as it required more texture binding than necessary
+                for (int i = 0; i < names.Count; ++i)
+                {
+                    WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(texture.valueType), names[i]);
+                    if (VFXExpression.IsTexture(texture.valueType)) //Mesh doesn't require a sampler or texel helper
+                    {
+                        WriteLineFormat("SamplerState sampler{0};", names[i]);
+                        WriteLineFormat("float4 {0}_TexelSize;", names[i]); // TODO This is not very good to add a uniform for each texture that is hardly ever used
+                    }
+                    WriteLine();
+                }
             }
         }
 
-        public void WriteEventBuffer(string baseName, int count)
+        public void WriteEventBuffers(string baseName, int count)
         {
             for (int i = 0; i < count; ++i)
             {
@@ -307,6 +326,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.Texture3D: return "VFXSampler3D";
                 case VFXValueType.TextureCube: return "VFXSamplerCube";
                 case VFXValueType.TextureCubeArray: return "VFXSamplerCubeArray";
+                case VFXValueType.Mesh: return "Buffer<float>";
 
                 default:
                     return VFXExpression.TypeToCode(type);
@@ -400,12 +420,13 @@ namespace UnityEditor.VFX
 
             WriteFormat("{0} {1};\n", VFXExpression.TypeToCode(type), variableName);
         }
-        public void WriteDeclaration(VFXValueType type, string variableName,string semantic)
+
+        public void WriteDeclaration(VFXValueType type, string variableName, string semantic)
         {
             if (!VFXExpression.IsTypeValidOnGPU(type))
                 throw new ArgumentException(string.Format("Invalid GPU Type: {0}", type));
 
-            WriteFormat("VFX_OPTIONAL_INTERPOLATION {0} {1} : {2};\n", VFXExpression.TypeToCode(type), variableName,semantic);
+            WriteFormat("VFX_OPTIONAL_INTERPOLATION {0} {1} : {2};\n", VFXExpression.TypeToCode(type), variableName, semantic);
         }
 
         public void WriteVariable(VFXExpression exp, Dictionary<VFXExpression, string> variableNames)

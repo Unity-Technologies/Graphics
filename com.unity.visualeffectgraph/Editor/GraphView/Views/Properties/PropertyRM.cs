@@ -23,11 +23,13 @@ namespace UnityEditor.VFX.UI
         VFXCoordinateSpace space { get; set; }
         bool IsSpaceInherited();
         string name { get; }
-        VFXPropertyAttribute[] attributes { get; }
+        VFXPropertyAttributes attributes { get; }
         object[] customAttributes { get; }
         Type portType { get; }
         int depth {get; }
         bool editable { get; }
+
+        IEnumerable<int> filteredOutEnumerators { get; }
         void RetractPath();
         void ExpandPath();
     }
@@ -67,11 +69,14 @@ namespace UnityEditor.VFX.UI
                 m_Setter((T)value);
             }
         }
+
+        IEnumerable<int> IPropertyRMProvider.filteredOutEnumerators { get { return null; } }
+
         string IPropertyRMProvider.name
         {
             get { return m_Name; }
         }
-        VFXPropertyAttribute[] IPropertyRMProvider.attributes { get { return new VFXPropertyAttribute[0]; } }
+        VFXPropertyAttributes IPropertyRMProvider.attributes { get { return new VFXPropertyAttributes(); } }
         object[] IPropertyRMProvider.customAttributes { get { return null; } }
         Type IPropertyRMProvider.portType
         {
@@ -193,7 +198,7 @@ namespace UnityEditor.VFX.UI
             Profiler.BeginSample("PropertyRM.Update");
 
             Profiler.BeginSample("PropertyRM.Update:Angle");
-            if (VFXPropertyAttribute.IsAngle(m_Provider.attributes))
+            if (m_Provider.attributes.Is(VFXPropertyAttributes.Type.Angle))
                 SetMultiplier(Mathf.PI / 180.0f);
             Profiler.EndSample();
 
@@ -205,7 +210,7 @@ namespace UnityEditor.VFX.UI
 
             if (value != null)
             {
-                string regex = VFXPropertyAttribute.ApplyRegex(m_Provider.attributes, value);
+                string regex = m_Provider.attributes.ApplyRegex(value);
                 if (regex != null)
                     value = m_Provider.value = regex;
             }
@@ -224,7 +229,7 @@ namespace UnityEditor.VFX.UI
 
             string text = ObjectNames.NicifyVariableName(m_Provider.name);
             string tooltip = null;
-            VFXPropertyAttribute.ApplyToGUI(m_Provider.attributes, ref text, ref tooltip);
+            m_Provider.attributes.ApplyToGUI(ref text, ref tooltip);
             m_Label.text = text;
 
             m_Label.tooltip = tooltip;
@@ -236,7 +241,7 @@ namespace UnityEditor.VFX.UI
 
         void UpdateExpandable()
         {
-            if (m_Provider.expandable && (m_Provider.expandableIfShowsEverything || ! showsEverything))
+            if (m_Provider.expandable && (m_Provider.expandableIfShowsEverything || !showsEverything))
             {
                 if (!m_IconClickableAdded)
                 {
@@ -251,7 +256,7 @@ namespace UnityEditor.VFX.UI
                 {
                     RemoveFromClassList("icon-expanded");
                 }
-                    AddToClassList("icon-expandable");
+                AddToClassList("icon-expandable");
             }
             else
             {
@@ -275,14 +280,14 @@ namespace UnityEditor.VFX.UI
 
             m_IconClickable = new Clickable(OnExpand);
 
-            isDelayed = VFXPropertyAttribute.IsDelayed(m_Provider.attributes);
+            isDelayed = m_Provider.attributes.Is(VFXPropertyAttributes.Type.Delayed);
 
-            if (VFXPropertyAttribute.IsAngle(provider.attributes))
+            if (provider.attributes.Is(VFXPropertyAttributes.Type.Angle))
                 SetMultiplier(Mathf.PI / 180.0f);
 
             string labelText = provider.name;
             string labelTooltip = null;
-            VFXPropertyAttribute.ApplyToGUI(provider.attributes, ref labelText, ref labelTooltip);
+            provider.attributes.ApplyToGUI(ref labelText, ref labelTooltip);
             m_Label = new Label() { name = "label", text = labelText };
             m_Label.tooltip = labelTooltip;
 
@@ -548,7 +553,7 @@ namespace UnityEditor.VFX.UI
         public SimpleUIPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
             m_Field = CreateField();
-            isDelayed = VFXPropertyAttribute.IsDelayed(m_Provider.attributes);
+            isDelayed = m_Provider.attributes.Is(VFXPropertyAttributes.Type.Delayed);
 
             m_FieldParent = new VisualElement();
 
@@ -601,7 +606,7 @@ namespace UnityEditor.VFX.UI
         {
             (m_Field as VisualElement).SetEnabled(propertyEnabled);
 
-            if( propertyEnabled)
+            if (propertyEnabled)
             {
                 if (m_TooltipHolder.parent != null)
                     m_TooltipHolder.RemoveFromHierarchy();
@@ -672,7 +677,7 @@ namespace UnityEditor.VFX.UI
         {
             fieldControl.SetEnabled(propertyEnabled);
 
-            if( propertyEnabled)
+            if (propertyEnabled)
             {
                 if (m_TooltipHolder.parent != null)
                     m_TooltipHolder.RemoveFromHierarchy();

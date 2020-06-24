@@ -7,7 +7,22 @@
 PackedVaryingsType Vert(AttributesMesh inputMesh)
 {
     VaryingsType varyingsType;
-    varyingsType.vmesh = VertMesh(inputMesh);
+
+#if (SHADERPASS == SHADERPASS_DEPTH_ONLY) && defined(HAVE_RECURSIVE_RENDERING) && !defined(SCENESELECTIONPASS)
+    // If we have a recursive raytrace object, we will not render it.
+    // As we don't want to rely on renderqueue to exclude the object from the list,
+    // we cull it by settings position to NaN value.
+    // TODO: provide a solution to filter dyanmically recursive raytrace object in the DrawRenderer
+    if (_EnableRecursiveRayTracing && _RayTracing > 0.0)
+    {
+        ZERO_INITIALIZE(VaryingsType, varyingsType); // Divide by 0 should produce a NaN and thus cull the primitive.
+    }
+    else
+#endif
+    {
+        varyingsType.vmesh = VertMesh(inputMesh);
+    }
+
     return PackVaryingsType(varyingsType);
 }
 
@@ -25,14 +40,14 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 #endif // TESSELLATION_ON
 
 void Frag(  PackedVaryingsToPS packedInput
-            #ifdef WRITE_NORMAL_BUFFER
-            , out float4 outNormalBuffer : SV_Target0
-                #ifdef WRITE_MSAA_DEPTH
-                , out float1 depthColor : SV_Target1
+            #ifdef WRITE_MSAA_DEPTH
+            // We need the depth color as SV_Target0 for alpha to coverage
+            , out float4 depthColor : SV_Target0
+                #ifdef WRITE_NORMAL_BUFFER
+                , out float4 outNormalBuffer : SV_Target1
                 #endif
-            #elif defined(WRITE_MSAA_DEPTH) // When only WRITE_MSAA_DEPTH is define and not WRITE_NORMAL_BUFFER it mean we are Unlit and only need depth, but we still have normal buffer binded
+            #elif defined(WRITE_NORMAL_BUFFER)
             , out float4 outNormalBuffer : SV_Target0
-            , out float1 depthColor : SV_Target1
             #elif defined(SCENESELECTIONPASS)
             , out float4 outColor : SV_Target0
             #endif
@@ -63,18 +78,21 @@ void Frag(  PackedVaryingsToPS packedInput
     outputDepth = posInput.deviceDepth;
 #endif
 
+// Depth and Alpha to coverage
+#ifdef WRITE_MSAA_DEPTH
+    // In case we are rendering in MSAA, reading the an MSAA depth buffer is way too expensive. To avoid that, we export the depth to a color buffer
+    depthColor = packedInput.vmesh.positionCS.z;
+
+    #ifdef _ALPHATOMASK_ON
+    // Alpha channel is used for alpha to coverage
+    depthColor.a = SharpenAlpha(builtinData.opacity, builtinData.alphaClipTreshold);
+    #endif
+#endif
+
+// Normal Buffer Processing
 #ifdef WRITE_NORMAL_BUFFER
     EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surfaceData), posInput.positionSS, outNormalBuffer);
-    #ifdef WRITE_MSAA_DEPTH
-    // In case we are rendering in MSAA, reading the an MSAA depth buffer is way too expensive. To avoid that, we export the depth to a color buffer
-    depthColor = packedInput.vmesh.positionCS.z;
-    #endif
-#elif defined(WRITE_MSAA_DEPTH) // When we are MSAA depth only without normal buffer
-    // Due to the binding order of these two render targets, we need to have them both declared
-    outNormalBuffer = float4(0.0, 0.0, 0.0, 1.0);
-    // In case we are rendering in MSAA, reading the an MSAA depth buffer is way too expensive. To avoid that, we export the depth to a color buffer
-    depthColor = packedInput.vmesh.positionCS.z;
-#elif defined(SCENESELECTIONPASS)
+#elif !defined(WRITE_MSAA_DEPTH) && defined(SCENESELECTIONPASS)
     // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
     outColor = float4(_ObjectId, _PassValue, 1.0, 1.0);
 #endif

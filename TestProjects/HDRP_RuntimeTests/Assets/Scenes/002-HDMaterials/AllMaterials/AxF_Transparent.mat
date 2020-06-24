@@ -9,7 +9,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: AxF_Transparent
   m_Shader: {fileID: 4800000, guid: 6510c57cccce5674092bdc0dd1ae98c1, type: 3}
-  m_ShaderKeywords: _AXF_BRDF_TYPE_SVBRDF
+  m_ShaderKeywords: _AXF_BRDF_TYPE_SVBRDF _DISABLE_SSR_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -173,6 +173,7 @@ Material:
     - _AlphaCutoffShadow: 0.5
     - _AlphaDstBlend: 0
     - _AlphaSrcBlend: 1
+    - _AlphaToMask: 0
     - _Anisotropy: 0
     - _AxF_BRDFType: 0
     - _BlendMode: 0
@@ -239,6 +240,7 @@ Material:
     - _IridescenceMask: 1
     - _IridescenceThickness: 1
     - _LinkDetailsWithBase: 1
+    - _MappingMode: 0
     - _MaterialID: 1
     - _MaterialTilingU: 1
     - _MaterialTilingV: 1
@@ -250,7 +252,9 @@ Material:
     - _PPDMinSamples: 5
     - _PPDPrimitiveLength: 1
     - _PPDPrimitiveWidth: 1
+    - _PlanarSpace: 0
     - _ReceivesSSR: 1
+    - _ReceivesSSRTransparent: 0
     - _RefractionModel: 0
     - _SSRefractionProjectionModel: 0
     - _SVBRDF_BRDFType: 0
@@ -302,9 +306,11 @@ Material:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _CarPaint2_BRDFColorMapUVScale: {r: 1, g: 1, b: 0, a: 0}
+    - _CarPaint2_BTFFlakeMap_SO: {r: 1, g: 1, b: 0, a: 0}
     - _CarPaint2_CTCoeffs: {r: 1, g: 1, b: 1, a: 1}
     - _CarPaint2_CTF0s: {r: 1, g: 1, b: 1, a: 1}
     - _CarPaint2_CTSpreads: {r: 1, g: 1, b: 1, a: 1}
+    - _ClearcoatNormalMap_SO: {r: 1, g: 1, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
@@ -313,6 +319,18 @@ Material:
     - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
+    - _MappingMask: {r: 1, g: 0, b: 0, a: 0}
+    - _Material_SO: {r: 1, g: 1, b: 0, a: 0}
+    - _SVBRDF_AlphaMap_SO: {r: 1, g: 1, b: 0, a: 0}
+    - _SVBRDF_AnisoRotationMap_SO: {r: 1, g: 1, b: 0, a: 0}
+    - _SVBRDF_ClearcoatColorMap_SO: {r: 1, g: 1, b: 0, a: 0}
+    - _SVBRDF_ClearcoatIORMap_SO: {r: 1, g: 1, b: 0, a: 0}
+    - _SVBRDF_DiffuseColorMap_SO: {r: 1, g: 1, b: 0, a: 0}
+    - _SVBRDF_FresnelMap_SO: {r: 1, g: 1, b: 0, a: 0}
+    - _SVBRDF_HeightMap_SO: {r: 1, g: 1, b: 0, a: 0}
+    - _SVBRDF_NormalMap_SO: {r: 1, g: 1, b: 0, a: 0}
+    - _SVBRDF_SpecularColorMap_SO: {r: 1, g: 1, b: 0, a: 0}
+    - _SVBRDF_SpecularLobeMap_SO: {r: 1, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
     - _ThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _TransmittanceColor: {r: 1, g: 1, b: 1, a: 1}
@@ -332,4 +350,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 2
+  version: 4

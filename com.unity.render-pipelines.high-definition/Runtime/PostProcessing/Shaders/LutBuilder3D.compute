@@ -2,13 +2,10 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-#pragma kernel KBuild_NoTonemap                MAIN=KBuild_NoTonemap                 TONEMAPPING_NONE
-#pragma kernel KBuild_NeutralTonemap           MAIN=KBuild_NeutralTonemap            TONEMAPPING_NEUTRAL
-#pragma kernel KBuild_AcesTonemap              MAIN=KBuild_AcesTonemap               TONEMAPPING_ACES
-#pragma kernel KBuild_CustomTonemap            MAIN=KBuild_CustomTonemap             TONEMAPPING_CUSTOM
-#pragma kernel KBuild_ExternalTonemap          MAIN=KBuild_ExternalTonemap           TONEMAPPING_EXTERNAL
+#pragma multi_compile TONEMAPPING_NONE TONEMAPPING_NEUTRAL TONEMAPPING_ACES TONEMAPPING_CUSTOM TONEMAPPING_EXTERNAL
+#pragma kernel KBuild
 
 TEXTURE3D(_LogLut3D);
 RW_TEXTURE3D(float4, _OutputTexture);
@@ -234,8 +231,9 @@ float3 Tonemap(float3 colorLinear)
 // allow anything higher than 256 threads. We'll use 4x4x4 then.
 // Ultimately it would nice to expose `maxTotalThreadsPerThreadgroup` for Metal...
 // Source: https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf
+// It is important to keep this in sync with the group-size declared in PostProcessSystem.cs
 [numthreads(4,4,4)]
-void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
+void KBuild(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     // Lut space
     // We use Alexa LogC (El 1000) to store the LUT as it provides a good enough range (~58.85666)

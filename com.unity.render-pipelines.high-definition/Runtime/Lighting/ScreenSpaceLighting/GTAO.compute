@@ -3,12 +3,10 @@
 
 //#pragma enable_d3d11_debug_symbols
 
-#pragma kernel GTAOMain_HalfRes GTAO_KERNEL_NAME=GTAOMain_HalfRes HALF_RES
-#pragma kernel GTAOMain_HalfRes_Temporal GTAO_KERNEL_NAME=GTAOMain_HalfRes_Temporal HALF_RES TEMPORAL
+#pragma kernel GTAOMain
 
-#pragma kernel GTAOMain_FullRes GTAO_KERNEL_NAME=GTAOMain_FullRes FULL_RES
-#pragma kernel GTAOMain_FullRes_Temporal GTAO_KERNEL_NAME=GTAOMain_FullRes_Temporal FULL_RES TEMPORAL
-
+#pragma multi_compile HALF_RES FULL_RES
+#pragma multi_compile _ TEMPORAL
 
 // --------------------------------------------
 // Options
@@ -146,7 +144,7 @@ float HorizonLoop(float3 positionVS, float3 V, float2 rayStart, float2 rayDir, f
 RW_TEXTURE2D_X(float, _AOPackedData);
 
 [numthreads(8,8,1)]
-void GTAO_KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
+void GTAOMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
 	UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 

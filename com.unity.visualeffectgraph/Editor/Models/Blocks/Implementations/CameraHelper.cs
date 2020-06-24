@@ -42,7 +42,7 @@ namespace UnityEditor.VFX.Block
             return expressions;
         }
 
-        public static CameraMatricesExpressions GetMatricesExpressions(IEnumerable<VFXNamedExpression> expressions, VFXCoordinateSpace space)
+        public static CameraMatricesExpressions GetMatricesExpressions(IEnumerable<VFXNamedExpression> expressions, VFXCoordinateSpace cameraSpace, VFXCoordinateSpace outputSpace)
         {
             var fov = expressions.First(e => e.name == "Camera_fieldOfView");
             var aspect = expressions.First(e => e.name == "Camera_aspectRatio");
@@ -50,7 +50,13 @@ namespace UnityEditor.VFX.Block
             var far = expressions.First(e => e.name == "Camera_farPlane");
             var cameraMatrix = expressions.First(e => e.name == "Camera_transform");
 
-            VFXExpression ViewToVFX = space == VFXCoordinateSpace.Local ? new VFXExpressionTransformMatrix(VFXBuiltInExpression.WorldToLocal, cameraMatrix.exp) : cameraMatrix.exp;
+            VFXExpression ViewToVFX = cameraMatrix.exp;
+
+            if (cameraSpace == VFXCoordinateSpace.World && outputSpace == VFXCoordinateSpace.Local)
+                ViewToVFX = new VFXExpressionTransformMatrix(VFXBuiltInExpression.WorldToLocal, cameraMatrix.exp);
+            else if (cameraSpace == VFXCoordinateSpace.Local && outputSpace == VFXCoordinateSpace.World)
+                ViewToVFX = new VFXExpressionTransformMatrix(VFXBuiltInExpression.LocalToWorld, cameraMatrix.exp);
+
             VFXExpression VFXToView = new VFXExpressionInverseTRSMatrix(ViewToVFX);
             VFXExpression ViewToClip = VFXOperatorUtility.GetPerspectiveMatrix(fov.exp, aspect.exp, near.exp, far.exp);
             VFXExpression ClipToView = new VFXExpressionInverseMatrix(ViewToClip);

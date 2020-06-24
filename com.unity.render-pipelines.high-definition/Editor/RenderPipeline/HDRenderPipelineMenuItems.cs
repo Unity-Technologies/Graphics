@@ -8,6 +8,7 @@ using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 using UnityEditor.SceneManagement;
 using UnityEngine.Rendering;
+using UnityEngine.Assertions;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -45,7 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/Export Sky to Image", priority = CoreUtils.editMenuPriority3)]
+        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Export Sky to Image")]
         static void ExportSkyToImage()
         {
             var renderpipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
@@ -95,160 +96,11 @@ namespace UnityEditor.Rendering.HighDefinition
             volume.sharedProfile = profile;
         }
 
-        [MenuItem("Edit/Render Pipeline/Upgrade Fog Volume Components", priority = CoreUtils.editMenuPriority2)]
-        static void UpgradeFogVolumeComponents(MenuCommand menuCommand)
+        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Previous Version /Upgrade HDRP Materials to Latest Version")]
+        internal static void UpgradeMaterials()
         {
-            void OverrideCommonParameters(AtmosphericScattering input, Fog output)
-            {
-                if (input.colorMode.overrideState)
-                    output.colorMode.Override(input.colorMode.value);
-                if (input.color.overrideState)
-                    output.color.Override(input.color.value);
-                if (input.maxFogDistance.overrideState)
-                    output.maxFogDistance.Override(input.maxFogDistance.value);
-                if (input.mipFogMaxMip.overrideState)
-                    output.mipFogMaxMip.Override(input.mipFogMaxMip.value);
-                if (input.mipFogNear.overrideState)
-                    output.mipFogNear.Override(input.mipFogNear.value);
-                if (input.mipFogFar.overrideState)
-                    output.mipFogFar.Override(input.mipFogFar.value);
-                if (input.tint.overrideState)
-                    output.tint.Override(input.tint.value);
-            }
-
-            Fog CreateFogComponentIfNeeded(VolumeProfile profile)
-            {
-                Fog fogComponent = null;
-                if (!profile.TryGet(out fogComponent))
-                {
-                    fogComponent = VolumeProfileFactory.CreateVolumeComponent<Fog>(profile, false, false);
-                }
-
-                return fogComponent;
-            }
-
-            if (!EditorUtility.DisplayDialog(DialogText.title, "This will upgrade all Volume Profiles containing Exponential or Volumetric Fog components to the new Fog component. " + DialogText.projectBackMessage, DialogText.proceed, DialogText.cancel))
-                return;
-
-            var profilePathList = AssetDatabase.FindAssets("t:VolumeProfile", new string[]{ "Assets" });
-
-            int profileCount = profilePathList.Length;
-            int profileIndex = 0;
-            foreach (string guid in profilePathList)
-            {
-                var assetPath = AssetDatabase.GUIDToAssetPath(guid);
-                profileIndex++;
-                if (EditorUtility.DisplayCancelableProgressBar("Upgrade Fog Volume Components", string.Format("({0} of {1}) {2}", profileIndex, profileCount, assetPath), (float)profileIndex / (float)profileCount))
-                    break;
-
-                VolumeProfile profile = AssetDatabase.LoadAssetAtPath(assetPath, typeof(VolumeProfile)) as VolumeProfile;
-
-                if (profile.TryGet<VisualEnvironment>(out var visualEnv))
-                {
-                    if (visualEnv.fogType.value == FogType.Exponential || visualEnv.fogType.value == FogType.Volumetric)
-                    {
-                        var fog = CreateFogComponentIfNeeded(profile);
-                        fog.enabled.Override(true);
-                    }
-                }
-
-
-                if (profile.TryGet<ExponentialFog>(out var expFog))
-                {
-                    var fog = CreateFogComponentIfNeeded(profile);
-
-                    // We only migrate distance because the height parameters are not compatible.
-                    if (expFog.fogDistance.overrideState)
-                        fog.meanFreePath.Override(expFog.fogDistance.value);
-
-                    OverrideCommonParameters(expFog, fog);
-                    EditorUtility.SetDirty(profile);
-                }
-
-                if (profile.TryGet<VolumetricFog>(out var volFog))
-                {
-                    var fog = CreateFogComponentIfNeeded(profile);
-
-                    fog.enableVolumetricFog.Override(true);
-                    if (volFog.meanFreePath.overrideState)
-                        fog.meanFreePath.Override(volFog.meanFreePath.value);
-                    if (volFog.albedo.overrideState)
-                        fog.albedo.Override(volFog.albedo.value);
-                    if (volFog.baseHeight.overrideState)
-                        fog.baseHeight.Override(volFog.baseHeight.value);
-                    if (volFog.maximumHeight.overrideState)
-                        fog.maximumHeight.Override(volFog.maximumHeight.value);
-                    if (volFog.anisotropy.overrideState)
-                        fog.anisotropy.Override(volFog.anisotropy.value);
-                    if (volFog.globalLightProbeDimmer.overrideState)
-                        fog.globalLightProbeDimmer.Override(volFog.globalLightProbeDimmer.value);
-
-                    OverrideCommonParameters(volFog, fog);
-                    EditorUtility.SetDirty(profile);
-                }
-
-                if (profile.TryGet<VolumetricLightingController>(out var volController))
-                {
-                    var fog = CreateFogComponentIfNeeded(profile);
-                    if (volController.depthExtent.overrideState)
-                        fog.depthExtent.Override(volController.depthExtent.value);
-                    if (volController.sliceDistributionUniformity.overrideState)
-                        fog.sliceDistributionUniformity.Override(volController.sliceDistributionUniformity.value);
-
-                    EditorUtility.SetDirty(profile);
-                }
-            }
-
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-            EditorUtility.ClearProgressBar();
-        }
-
-        [MenuItem("Edit/Render Pipeline/Upgrade Sky Intensity Mode", priority = CoreUtils.editMenuPriority2)]
-        static void UpgradeSkyIntensityMode(MenuCommand menuCommand)
-        {
-            if (!EditorUtility.DisplayDialog(DialogText.title, "This will upgrade all Volume Profiles containing Sky components with the new intensity mode paradigm. " + DialogText.projectBackMessage, DialogText.proceed, DialogText.cancel))
-                return;
-
-            var profilePathList = AssetDatabase.FindAssets("t:VolumeProfile", new string[] { "Assets" });
-
-            int profileCount = profilePathList.Length;
-            int profileIndex = 0;
-            foreach (string guid in profilePathList)
-            {
-                var assetPath = AssetDatabase.GUIDToAssetPath(guid);
-                profileIndex++;
-                if (EditorUtility.DisplayCancelableProgressBar("Upgrade Sky Components", string.Format("({0} of {1}) {2}", profileIndex, profileCount, assetPath), (float)profileIndex / (float)profileCount))
-                    break;
-
-                VolumeProfile profile = AssetDatabase.LoadAssetAtPath(assetPath, typeof(VolumeProfile)) as VolumeProfile;
-
-                List<SkySettings> m_VolumeSkyList = new List<SkySettings>();
-                if (profile.TryGetAllSubclassOf<SkySettings>(typeof(SkySettings), m_VolumeSkyList))
-                {
-                    foreach (var sky in m_VolumeSkyList)
-                    {
-                        // Trivial case where multiplier is not used we ignore, otherwise we end up with a multiplier of 0.833 for a 0.0 EV100 exposure
-                        if (sky.multiplier.value == 1.0f)
-                            continue;
-                        else if (sky.skyIntensityMode.value == SkyIntensityMode.Exposure) // Not Lux
-                        {
-                            // Any component using Exposure and Multiplier at the same time must switch to multiplier as we will convert exposure*multiplier into a multiplier.
-                            sky.skyIntensityMode.Override(SkyIntensityMode.Multiplier);
-                        }
-
-                        // Convert exposure * multiplier to multiplier and reset exposure for all non trivial cases.
-                        sky.multiplier.Override(sky.multiplier.value * ColorUtils.ConvertEV100ToExposure(-sky.exposure.value));
-                        sky.exposure.Override(0.0f);
-
-                        EditorUtility.SetDirty(profile);
-                    }
-                }
-            }
-
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-            EditorUtility.ClearProgressBar();
+            // Force reimport of all materials, this will upgrade the needed one and save the assets if needed
+            MaterialReimporter.ReimportAllMaterials();
         }
 
         class DoCreateNewAsset<TAssetType> : ProjectWindowCallback.EndNameEditAction where TAssetType : ScriptableObject
@@ -364,11 +216,12 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        // We now do this automatically when upgrading Material version, so not required anymore - keep it in case you want to manually do it
         // The goal of this script is to help maintenance of data that have already been produced but need to update to the latest shader code change.
         // In case the shader code have change and the inspector have been update with new kind of keywords we need to regenerate the set of keywords use by the material.
         // This script will remove all keyword of a material and trigger the inspector that will re-setup all the used keywords.
         // It require that the inspector of the material have a static function call that update all keyword based on material properties.
-        [MenuItem("Edit/Render Pipeline/Reset All Loaded High Definition Materials Keywords", priority = CoreUtils.editMenuPriority3)]
+        // [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Reset All Loaded High Definition Materials Keywords")]
         static void ResetAllMaterialKeywords()
         {
             try
@@ -382,7 +235,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // Don't expose, ResetAllMaterialKeywordsInProjectAndScenes include it anyway
-        //[MenuItem("Edit/Render Pipeline/Reset All Material Asset's Keywords (Materials in Project)", priority = CoreUtils.editMenuPriority3)]
+        //[MenuItem("Edit/Render Pipeline/HD Render Pipeline/Reset All Material Asset's Keywords (Materials in Project)")]
         static void ResetAllMaterialAssetsKeywords()
         {
             try
@@ -395,7 +248,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/Reset All Project and Scene High Definition Materials Keywords", priority = CoreUtils.editMenuPriority3)]
+        // We now do this automatically when upgrading Material version, so not required anymore - keep it in case you want to manually do it
+        // [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Reset All Project and Scene High Definition Materials Keywords")]
         static void ResetAllMaterialKeywordsInProjectAndScenes()
         {
             var openedScenes = new string[EditorSceneManager.loadedSceneCount];
@@ -520,7 +374,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/Check Scene Content for Ray Tracing", priority = CoreUtils.editMenuPriority4)]
+        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Check Scene Content for Ray Tracing")]
         static void CheckSceneContentForRayTracing(MenuCommand menuCommand)
         {
             // Flag that holds
@@ -584,9 +438,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         {
                             bool materialIsTransparent = currentMaterial.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT")
                                 || (HDRenderQueue.k_RenderQueue_Transparent.lowerBound <= currentMaterial.renderQueue
-                                && HDRenderQueue.k_RenderQueue_Transparent.upperBound >= currentMaterial.renderQueue)
-                                || (HDRenderQueue.k_RenderQueue_AllTransparentRaytracing.lowerBound <= currentMaterial.renderQueue
-                                && HDRenderQueue.k_RenderQueue_AllTransparentRaytracing.upperBound >= currentMaterial.renderQueue);
+                                && HDRenderQueue.k_RenderQueue_Transparent.upperBound >= currentMaterial.renderQueue);
 
                             // aggregate the transparency info
                             materialIsOnlyTransparent &= materialIsTransparent;
@@ -611,6 +463,51 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 Debug.Log("No errors were detected in the process.");
             }
+        }
+
+        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Previous Version/Fix Warning 'referenced script in (Game Object 'SceneIDMap') is missing' in loaded scenes")]
+        static public void FixWarningGameObjectSceneIDMapIsMissingInLoadedScenes()
+        {
+            var rootCache = new List<GameObject>();
+            for (var i = 0; i < SceneManager.sceneCount; ++i)
+                FixWarningGameObjectSceneIDMapIsMissingFor(SceneManager.GetSceneAt(i), rootCache);
+        }
+
+        static void FixWarningGameObjectSceneIDMapIsMissingFor(Scene scene, List<GameObject> rootCache)
+        {
+            Assert.IsTrue(scene.isLoaded);
+
+            var roots = rootCache ?? new List<GameObject>();
+            roots.Clear();
+            scene.GetRootGameObjects(roots);
+            bool markSceneAsDirty = false;
+            for (var i = roots.Count - 1; i >= 0; --i)
+            {
+                if (roots[i].name == "SceneIDMap")
+                {
+                    if (roots[i].GetComponent<SceneObjectIDMapSceneAsset>() == null)
+                    {
+                        // This gameObject must have SceneObjectIDMapSceneAsset
+                        // If not, then Unity can't find the component.
+                        // We can remove it, it will be regenerated properly by rebaking
+                        // the probes.
+                        //
+                        // This happens for scene with baked probes authored before renaming
+                        // the HDRP's namespaces without the 'Experiemental' prefix.
+                        // The serialization used this path explicitly, thus the Unity serialization
+                        // system lost the reference to the MonoBehaviour
+                        UnityEngine.Object.DestroyImmediate(roots[i]);
+
+                        // If we do any any modification on the scene
+                        // we need to dirty it, otherwise, the editor won't commit the change to the disk
+                        // and the issue will still persist.
+                        if (!markSceneAsDirty)
+                            markSceneAsDirty = true;
+                    }
+                }
+            }
+            if (markSceneAsDirty)
+                SceneManagement.EditorSceneManager.MarkSceneDirty(scene);
         }
     }
 }

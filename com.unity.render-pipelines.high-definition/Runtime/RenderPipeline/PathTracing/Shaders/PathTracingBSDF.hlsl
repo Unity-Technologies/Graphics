@@ -4,8 +4,8 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/SubSurface.hlsl"
 
 #define DELTA_PDF 1000000.0
-#define MIN_GGX_ROUGHNESS 0.001
-#define MAX_GGX_ROUGHNESS 0.999
+#define MIN_GGX_ROUGHNESS 0.00001
+#define MAX_GGX_ROUGHNESS 0.99999
 
 // Adapted from: "Sampling the GGX Distribution of Visible Normals", by E. Heitz
 // http://jcgt.org/published/0007/04/01/paper.pdf
@@ -460,10 +460,10 @@ bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 mean
     do // Start our random walk
     {
         // Samples for direction, distance and channel selection
-        float dirSample0 = GetSample(pixelCoord, _RaytracingFrameIndex, DIM_OFFSET + 4 * walkIdx + 0);
-        float dirSample1 = GetSample(pixelCoord, _RaytracingFrameIndex, DIM_OFFSET + 4 * walkIdx + 1);
-        float distSample = GetSample(pixelCoord, _RaytracingFrameIndex, DIM_OFFSET + 4 * walkIdx + 2);
-        float channelSample = GetSample(pixelCoord, _RaytracingFrameIndex, DIM_OFFSET + 4 * walkIdx + 3);
+        float dirSample0 = GetSample(pixelCoord, _RaytracingSampleIndex, DIM_OFFSET + 4 * walkIdx + 0);
+        float dirSample1 = GetSample(pixelCoord, _RaytracingSampleIndex, DIM_OFFSET + 4 * walkIdx + 1);
+        float distSample = GetSample(pixelCoord, _RaytracingSampleIndex, DIM_OFFSET + 4 * walkIdx + 2);
+        float channelSample = GetSample(pixelCoord, _RaytracingSampleIndex, DIM_OFFSET + 4 * walkIdx + 3);
 
         // Compute the per-channel weight
         float3 weights = result.throughput * SafeDivide(sigmaS, sigmaT);

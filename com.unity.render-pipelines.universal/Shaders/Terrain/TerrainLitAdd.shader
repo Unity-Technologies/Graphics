@@ -38,7 +38,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
 
 	HLSLINCLUDE
 
-	#pragma multi_compile __ _ALPHATEST_ON
+	#pragma multi_compile_fragment __ _ALPHATEST_ON
 
 	ENDHLSL
 
@@ -65,24 +65,82 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
-            #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
-            #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
 
             // -------------------------------------
             // Unity defined keywords
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile_fragment _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
-            #pragma shader_feature_local _TERRAIN_BLEND_HEIGHT
+            #pragma shader_feature_local_fragment _TERRAIN_BLEND_HEIGHT
             #pragma shader_feature_local _NORMALMAP
-            #pragma shader_feature_local _MASKMAP
+            #pragma shader_feature_local_fragment _MASKMAP            
             // Sample normal in pixel shader when doing instancing
             #pragma shader_feature_local _TERRAIN_INSTANCED_PERPIXEL_NORMAL
             #define TERRAIN_SPLAT_ADDPASS
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitPasses.hlsl"
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "GBuffer"
+            Tags{"LightMode" = "UniversalGBuffer"}
+
+            Blend One One
+
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
+            // This is a Lit material.
+            Stencil {
+                Ref 32       // 0b00100000
+                WriteMask 96 // 0b01100000
+                Comp Always
+                Pass Replace
+                Fail Keep
+                ZFail Keep
+            }
+
+            HLSLPROGRAM
+            // Required to compile gles 2.0 with standard srp library
+            #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
+            #pragma target 3.0
+
+            #pragma vertex SplatmapVert
+            #pragma fragment SplatmapFragment
+
+            // -------------------------------------
+            // Universal Pipeline keywords
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+            //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile _ _SHADOWS_SOFT
+            //#pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+            //#pragma multi_compile_fog
+            #pragma multi_compile_instancing
+            #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
+
+            #pragma shader_feature_local _TERRAIN_BLEND_HEIGHT
+            #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local _MASKMAP    
+            // Sample normal in pixel shader when doing instancing
+            #pragma shader_feature_local _TERRAIN_INSTANCED_PERPIXEL_NORMAL            
+            #define TERRAIN_SPLAT_ADDPASS 1
+            #define TERRAIN_GBUFFER 1
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitPasses.hlsl"

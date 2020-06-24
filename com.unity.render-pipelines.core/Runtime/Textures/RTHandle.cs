@@ -50,6 +50,11 @@ namespace UnityEngine.Rendering
         /// </summary>
         public string name { get { return m_Name; } }
 
+        /// <summary>
+        /// Returns true is MSAA is enabled, false otherwise.
+        /// </summary>
+        public bool isMSAAEnabled { get { return m_EnableMSAA; } }
+
         // Keep constructor private
         internal RTHandle(RTHandleSystem owner)
         {
@@ -140,5 +145,50 @@ namespace UnityEngine.Rendering
                     );
             }
         }
+
+#if UNITY_2020_2_OR_NEWER
+        /// <summary>
+        /// Switch the render target to fast memory on platform that have it.
+        /// </summary>
+        /// <param name="cmd">Command buffer used for rendering.</param>
+        /// <param name="residencyFraction">How much of the render target is to be switched into fast memory (between 0 and 1).</param>
+        /// <param name="flags">Flag to determine what parts of the render target is spilled if not fully resident in fast memory.</param>
+        /// <param name="copyContents">Whether the content of render target are copied or not when switching to fast memory.</param>
+
+        public void SwitchToFastMemory(CommandBuffer cmd,
+            float residencyFraction = 1.0f,
+            FastMemoryFlags flags = FastMemoryFlags.SpillTop,
+            bool copyContents = false
+            )
+        {
+            residencyFraction = Mathf.Clamp01(residencyFraction);
+            cmd.SwitchIntoFastMemory(m_RT, flags, residencyFraction, copyContents);
+        }
+
+        /// <summary>
+        /// Switch the render target to fast memory on platform that have it and copies the content.
+        /// </summary>
+        /// <param name="cmd">Command buffer used for rendering.</param>
+        /// <param name="residencyFraction">How much of the render target is to be switched into fast memory (between 0 and 1).</param>
+        /// <param name="flags">Flag to determine what parts of the render target is spilled if not fully resident in fast memory.</param>
+        public void CopyToFastMemory(CommandBuffer cmd,
+            float residencyFraction = 1.0f,
+            FastMemoryFlags flags = FastMemoryFlags.SpillTop
+            )
+        {
+            SwitchToFastMemory(cmd, residencyFraction, flags, copyContents: true);
+        }
+
+        /// <summary>
+        /// Switch out the render target from fast memory back to main memory on platforms that have fast memory.
+        /// </summary>
+        /// <param name="cmd">Command buffer used for rendering.</param>
+        /// <param name="copyContents">Whether the content of render target are copied or not when switching out fast memory.</param>
+        public void SwitchOutFastMemory(CommandBuffer cmd, bool copyContents = true)
+        {
+            cmd.SwitchOutOfFastMemory(m_RT, copyContents);
+        }
+#endif
+
     }
 }

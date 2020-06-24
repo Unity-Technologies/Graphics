@@ -154,11 +154,12 @@ namespace UnityEngine.Rendering
                 var stateParam = state.parameters[i];
                 var toParam = parameters[i];
 
-                // Keep track of the override state for debugging purpose
-                stateParam.overrideState = toParam.overrideState;
-
                 if (toParam.overrideState)
+                {
+                    // Keep track of the override state for debugging purpose
+                    stateParam.overrideState = toParam.overrideState;
                     stateParam.Interp(stateParam, toParam, interpFactor);
+                }
             }
         }
 

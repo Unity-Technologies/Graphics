@@ -27,30 +27,85 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class BuildGPULightListPassData
         {
-            public LightDataGlobalParameters lightDataGlobalParameters;
-            public ShadowGlobalParameters shadowGlobalParameters;
-            public LightLoopGlobalParameters lightLoopGlobalParameters;
-
-            public BuildGPULightListParameters buildGPULightListParameters;
-            public BuildGPULightListResources buildGPULightListResources;
+            public BuildGPULightListParameters  buildGPULightListParameters;
             public TextureHandle                depthBuffer;
             public TextureHandle                stencilTexture;
             public TextureHandle[]              gBuffer = new TextureHandle[RenderGraph.kMaxMRTCount];
-            public int gBufferCount;
+            public int                          gBufferCount;
+
+            // Buffers filled with the CPU outside of render graph.
+            public ComputeBufferHandle          convexBoundsBuffer;
+            public ComputeBufferHandle          AABBBoundsBuffer;
+
+            // Transient buffers that are not used outside of BuildGPULight list so they don't need to go outside the pass.
+            public ComputeBufferHandle          globalLightListAtomic;
+            public ComputeBufferHandle          lightVolumeDataBuffer;
+
+            public BuildGPULightListOutput      output = new BuildGPULightListOutput();
         }
 
-        void BuildGPULightList(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthStencilBuffer, TextureHandle stencilBufferCopy, GBufferOutput gBuffer)
+        struct BuildGPULightListOutput
+        {
+            // Tile
+            public ComputeBufferHandle lightList;
+            public ComputeBufferHandle tileList;
+            public ComputeBufferHandle tileFeatureFlags;
+            public ComputeBufferHandle dispatchIndirectBuffer;
+
+            // Big Tile
+            public ComputeBufferHandle bigTileLightList;
+
+            // Cluster
+            public ComputeBufferHandle perVoxelOffset;
+            public ComputeBufferHandle perVoxelLightLists;
+            public ComputeBufferHandle perTileLogBaseTweak;
+        }
+
+        static BuildGPULightListResources PrepareBuildGPULightListResources(RenderGraphContext context, BuildGPULightListPassData data)
+        {
+            var buildLightListResources = new BuildGPULightListResources();
+
+            buildLightListResources.depthBuffer = context.resources.GetTexture(data.depthBuffer);
+            buildLightListResources.stencilTexture = context.resources.GetTexture(data.stencilTexture);
+            if (data.buildGPULightListParameters.computeMaterialVariants && data.buildGPULightListParameters.enableFeatureVariants)
+            {
+                buildLightListResources.gBuffer = context.renderGraphPool.GetTempArray<RTHandle>(data.gBufferCount);
+                for (int i = 0; i < data.gBufferCount; ++i)
+                    buildLightListResources.gBuffer[i] = context.resources.GetTexture(data.gBuffer[i]);
+            }
+
+            buildLightListResources.lightVolumeDataBuffer = context.resources.GetComputeBuffer(data.lightVolumeDataBuffer);
+            buildLightListResources.convexBoundsBuffer = context.resources.GetComputeBuffer(data.convexBoundsBuffer);
+            buildLightListResources.AABBBoundsBuffer = context.resources.GetComputeBuffer(data.AABBBoundsBuffer);
+            buildLightListResources.globalLightListAtomic = context.resources.GetComputeBuffer(data.globalLightListAtomic);
+
+            buildLightListResources.tileFeatureFlags = context.resources.GetComputeBuffer(data.output.tileFeatureFlags);
+            buildLightListResources.dispatchIndirectBuffer = context.resources.GetComputeBuffer(data.output.dispatchIndirectBuffer);
+            buildLightListResources.perVoxelOffset = context.resources.GetComputeBuffer(data.output.perVoxelOffset);
+            buildLightListResources.perTileLogBaseTweak = context.resources.GetComputeBuffer(data.output.perTileLogBaseTweak);
+            buildLightListResources.tileList = context.resources.GetComputeBuffer(data.output.tileList);
+            buildLightListResources.bigTileLightList = context.resources.GetComputeBuffer(data.output.bigTileLightList);
+            buildLightListResources.perVoxelLightLists = context.resources.GetComputeBuffer(data.output.perVoxelLightLists);
+            buildLightListResources.lightList = context.resources.GetComputeBuffer(data.output.lightList);
+
+            return buildLightListResources;
+        }
+
+        BuildGPULightListOutput BuildGPULightList(  RenderGraph                     renderGraph,
+                                                    HDCamera                        hdCamera,
+                                                    TileAndClusterData              tileAndClusterData,
+                                                    int                             totalLightCount,
+                                                    int                             maxLightOnScreen,
+                                                    ref ShaderVariablesLightList    constantBuffer,
+                                                    TextureHandle                   depthStencilBuffer,
+                                                    TextureHandle                   stencilBufferCopy,
+                                                    GBufferOutput                   gBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<BuildGPULightListPassData>("Build Light List", out var passData, ProfilingSampler.Get(HDProfileId.BuildLightList)))
             {
                 builder.EnableAsyncCompute(hdCamera.frameSettings.BuildLightListRunsAsync());
 
-                passData.lightDataGlobalParameters = PrepareLightDataGlobalParameters(hdCamera);
-                passData.shadowGlobalParameters = PrepareShadowGlobalParameters(hdCamera);
-                passData.lightLoopGlobalParameters = PrepareLightLoopGlobalParameters(hdCamera);
-                passData.buildGPULightListParameters = PrepareBuildGPULightListParameters(hdCamera);
-                // TODO: Move this inside the render function onces compute buffers are RenderGraph ready
-                passData.buildGPULightListResources = PrepareBuildGPULightListResources(m_TileAndClusterData, null, null);
+                passData.buildGPULightListParameters = PrepareBuildGPULightListParameters(hdCamera, tileAndClusterData, ref constantBuffer, totalLightCount);
                 passData.depthBuffer = builder.ReadTexture(depthStencilBuffer);
                 passData.stencilTexture = builder.ReadTexture(stencilBufferCopy);
                 if (passData.buildGPULightListParameters.computeMaterialVariants && passData.buildGPULightListParameters.enableFeatureVariants)
@@ -60,41 +115,91 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.gBufferCount = gBuffer.gBufferCount;
                 }
 
+                // Here we use m_MaxViewCount/m_MaxWidthHeight to avoid always allocating buffers of different sizes for each camera.
+                // This way we'll be reusing them more often.
+
+                // Those buffer are filled with the CPU outside of the render graph.
+                passData.convexBoundsBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(tileAndClusterData.convexBoundsBuffer));
+                passData.lightVolumeDataBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(tileAndClusterData.lightVolumeDataBuffer));
+
+                passData.globalLightListAtomic = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(1, sizeof(uint)) { name = "LightListAtomic"});
+                passData.AABBBoundsBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(m_MaxViewCount * 2 * maxLightOnScreen, 4 * sizeof(float)) { name = "AABBBoundBuffer" });
+
+                var nrTilesX = (m_MaxCameraWidth + LightDefinitions.s_TileSizeFptl - 1) / LightDefinitions.s_TileSizeFptl;
+                var nrTilesY = (m_MaxCameraHeight + LightDefinitions.s_TileSizeFptl - 1) / LightDefinitions.s_TileSizeFptl;
+                var nrTiles = nrTilesX * nrTilesY * m_MaxViewCount;
+                const int capacityUShortsPerTile = 32;
+                const int dwordsPerTile = (capacityUShortsPerTile + 1) >> 1; // room for 31 lights and a nrLights value.
+
+                if (tileAndClusterData.hasTileBuffers)
+                {
+                    // note that nrTiles include the viewCount in allocation below
+                    // Tile buffers
+                    passData.output.lightList = builder.WriteComputeBuffer(
+                        renderGraph.CreateComputeBuffer(new ComputeBufferDesc((int)LightCategory.Count * dwordsPerTile * nrTiles, sizeof(uint)) { name = "LightList" }));
+                    passData.output.tileList = builder.WriteComputeBuffer(
+                        renderGraph.CreateComputeBuffer(new ComputeBufferDesc(LightDefinitions.s_NumFeatureVariants * nrTiles, sizeof(uint)) { name = "TileList" }));
+                    passData.output.tileFeatureFlags = builder.WriteComputeBuffer(
+                        renderGraph.CreateComputeBuffer(new ComputeBufferDesc(nrTiles, sizeof(uint)) { name = "TileFeatureFlags" }));
+                    // DispatchIndirect: Buffer with arguments has to have three integer numbers at given argsOffset offset: number of work groups in X dimension, number of work groups in Y dimension, number of work groups in Z dimension.
+                    // DrawProceduralIndirect: Buffer with arguments has to have four integer numbers at given argsOffset offset: vertex count per instance, instance count, start vertex location, and start instance location
+                    // Use use max size of 4 unit for allocation
+                    passData.output.dispatchIndirectBuffer = builder.WriteComputeBuffer(
+                        renderGraph.CreateComputeBuffer(new ComputeBufferDesc(m_MaxViewCount * LightDefinitions.s_NumFeatureVariants * 4, sizeof(uint), ComputeBufferType.IndirectArguments) { name = "DispatchIndirectBuffer" }));
+                }
+
+                // Big Tile buffer
+                if (passData.buildGPULightListParameters.runBigTilePrepass)
+                {
+                    var nrBigTilesX = (m_MaxCameraWidth + 63) / 64;
+                    var nrBigTilesY = (m_MaxCameraHeight + 63) / 64;
+                    var nrBigTiles = nrBigTilesX * nrBigTilesY * m_MaxViewCount;
+                    // TODO: (Nick) In the case of Probe Volumes, this buffer could be trimmed down / tuned more specifically to probe volumes if we added a s_MaxNrBigTileProbeVolumesPlusOne value.
+                    passData.output.bigTileLightList = builder.WriteComputeBuffer(
+                        renderGraph.CreateComputeBuffer(new ComputeBufferDesc(LightDefinitions.s_MaxNrBigTileLightsPlusOne * nrBigTiles, sizeof(uint)) { name = "BigTiles" }));
+                }
+
+                // Cluster buffers
+                var nrClustersX = (m_MaxCameraWidth + LightDefinitions.s_TileSizeClustered - 1) / LightDefinitions.s_TileSizeClustered;
+                var nrClustersY = (m_MaxCameraHeight + LightDefinitions.s_TileSizeClustered - 1) / LightDefinitions.s_TileSizeClustered;
+                var nrClusterTiles = nrClustersX * nrClustersY * m_MaxViewCount;
+
+                passData.output.perVoxelOffset = builder.WriteComputeBuffer(
+                    renderGraph.CreateComputeBuffer(new ComputeBufferDesc((int)LightCategory.Count * (1 << k_Log2NumClusters) * nrClusterTiles, sizeof(uint)) { name = "PerVoxelOffset" }));
+                passData.output.perVoxelLightLists = builder.WriteComputeBuffer(
+                    renderGraph.CreateComputeBuffer(new ComputeBufferDesc(NumLightIndicesPerClusteredTile() * nrClusterTiles, sizeof(uint)) { name = "PerVoxelLightList" }));
+                if (tileAndClusterData.clusterNeedsDepth)
+                {
+                    passData.output.perTileLogBaseTweak = builder.WriteComputeBuffer(
+                        renderGraph.CreateComputeBuffer(new ComputeBufferDesc(nrClusterTiles, sizeof(float)) { name = "PerTileLogBaseTweak" }));
+                }
+
                 builder.SetRenderFunc(
                 (BuildGPULightListPassData data, RenderGraphContext context) =>
                 {
                     bool tileFlagsWritten = false;
 
-                    data.buildGPULightListResources.depthBuffer = context.resources.GetTexture(data.depthBuffer);
-                    data.buildGPULightListResources.stencilTexture = context.resources.GetTexture(data.stencilTexture);
-                    if (data.buildGPULightListParameters.computeMaterialVariants && data.buildGPULightListParameters.enableFeatureVariants)
-                    {
-                        data.buildGPULightListResources.gBuffer = context.renderGraphPool.GetTempArray<RTHandle>(data.gBufferCount);
-                        for (int i = 0; i < data.gBufferCount; ++i)
-                            data.buildGPULightListResources.gBuffer[i] = context.resources.GetTexture(data.gBuffer[i]);
-                    }
+                    var buildLightListResources = PrepareBuildGPULightListResources(context, data);
 
-                    ClearLightLists(data.buildGPULightListParameters, data.buildGPULightListResources, context.cmd);
-                    GenerateLightsScreenSpaceAABBs(data.buildGPULightListParameters, data.buildGPULightListResources, context.cmd);
-                    BigTilePrepass(data.buildGPULightListParameters, data.buildGPULightListResources, context.cmd);
-                    BuildPerTileLightList(data.buildGPULightListParameters, data.buildGPULightListResources, ref tileFlagsWritten, context.cmd);
-                    VoxelLightListGeneration(data.buildGPULightListParameters, data.buildGPULightListResources, context.cmd);
+                    ClearLightLists(data.buildGPULightListParameters, buildLightListResources, context.cmd);
+                    GenerateLightsScreenSpaceAABBs(data.buildGPULightListParameters, buildLightListResources, context.cmd);
+                    BigTilePrepass(data.buildGPULightListParameters, buildLightListResources, context.cmd);
+                    BuildPerTileLightList(data.buildGPULightListParameters, buildLightListResources, ref tileFlagsWritten, context.cmd);
+                    VoxelLightListGeneration(data.buildGPULightListParameters, buildLightListResources, context.cmd);
 
-                    BuildDispatchIndirectArguments(data.buildGPULightListParameters, data.buildGPULightListResources, tileFlagsWritten, context.cmd);
-
-                    // TODO RENDERGRAPH WARNING: Note that the three sets of variables are bound here, but it should be handled differently.
-                    PushLightDataGlobalParams(data.lightDataGlobalParameters, context.cmd);
-                    PushShadowGlobalParams(data.shadowGlobalParameters, context.cmd);
-                    PushLightLoopGlobalParams(data.lightLoopGlobalParameters, context.cmd);
+                    BuildDispatchIndirectArguments(data.buildGPULightListParameters, buildLightListResources, tileFlagsWritten, context.cmd);
                 });
 
+                return passData.output;
             }
         }
 
         class PushGlobalCameraParamPassData
         {
-            public HDCamera    hdCamera;
-            public int         frameCount;
+            public HDCamera                 hdCamera;
+            public int                      frameCount;
+            public ShaderVariablesGlobal    globalCB;
+            public ShaderVariablesXR        xrCB;
 
         }
 
@@ -104,20 +209,24 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.hdCamera = hdCamera;
                 passData.frameCount = m_FrameCount;
+                passData.globalCB = m_ShaderVariablesGlobalCB;
+                passData.xrCB = m_ShaderVariablesXRCB;
 
                 builder.SetRenderFunc(
                 (PushGlobalCameraParamPassData data, RenderGraphContext context) =>
                 {
-                    data.hdCamera.SetupGlobalParams(context.cmd, data.frameCount);
+                    data.hdCamera.UpdateShaderVariablesGlobalCB(ref data.globalCB, data.frameCount);
+                    ConstantBuffer.PushGlobal(context.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
+                    data.hdCamera.UpdateShaderVariablesXRCB(ref data.xrCB);
+                    ConstantBuffer.PushGlobal(context.cmd, data.xrCB, HDShaderIDs._ShaderVariablesXR);
                 });
             }
         }
 
         internal ShadowResult RenderShadows(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullResults)
         {
-            var result = m_ShadowManager.RenderShadows(m_RenderGraph, hdCamera, cullResults);
-
-            // TODO: Remove this once shadows don't pollute global parameters anymore.
+            var result = m_ShadowManager.RenderShadows(m_RenderGraph, m_ShaderVariablesGlobalCB, hdCamera, cullResults);
+            // Need to restore global camera parameters.
             PushGlobalCameraParams(renderGraph, hdCamera);
             return result;
         }
@@ -126,13 +235,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                 { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = !msaa,
-                    bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = true, clearColor = Color.clear, name = string.Format("CameraSSSDiffuseLighting{0}", msaa ? "MSAA" : "") });
-        }
+                    bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = true, clearColor = Color.clear, name = msaa ? "CameraSSSDiffuseLightingMSAA" : "CameraSSSDiffuseLighting" });
+            }
 
         class DeferredLightingPassData
         {
             public DeferredLightingParameters   parameters;
-            public DeferredLightingResources    resources;
 
             public TextureHandle                colorBuffer;
             public TextureHandle                sssDiffuseLightingBuffer;
@@ -142,6 +250,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public int                          gbufferCount;
             public int                          lightLayersTextureIndex;
             public TextureHandle[]              gbuffer = new TextureHandle[8];
+
+            public ComputeBufferHandle          lightListBuffer;
+            public ComputeBufferHandle          tileFeatureFlagsBuffer;
+            public ComputeBufferHandle          tileListBuffer;
+            public ComputeBufferHandle          dispatchIndirectBuffer;
         }
 
         struct LightingOutput
@@ -151,26 +264,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
         LightingOutput RenderDeferredLighting(  RenderGraph                 renderGraph,
                                                 HDCamera                    hdCamera,
-                                                TextureHandle       colorBuffer,
-                                                TextureHandle       depthStencilBuffer,
-                                                TextureHandle       depthPyramidTexture,
+                                                TextureHandle               colorBuffer,
+                                                TextureHandle               depthStencilBuffer,
+                                                TextureHandle               depthPyramidTexture,
                                                 in LightingBuffers          lightingBuffers,
                                                 in GBufferOutput            gbuffer,
-                                                in ShadowResult             shadowResult)
+                                                in ShadowResult             shadowResult,
+                                                in BuildGPULightListOutput  lightLists)
         {
             if (hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred)
                 return new LightingOutput();
 
             using (var builder = renderGraph.AddRenderPass<DeferredLightingPassData>("Deferred Lighting", out var passData))
             {
-                passData.parameters = PrepareDeferredLightingParameters(hdCamera, debugDisplaySettings);
-
-                // TODO: Move this inside the render function onces compute buffers are RenderGraph ready
-                passData.resources = new  DeferredLightingResources();
-                passData.resources.lightListBuffer = m_TileAndClusterData.lightList;
-                passData.resources.tileFeatureFlagsBuffer = m_TileAndClusterData.tileFeatureFlags;
-                passData.resources.tileListBuffer = m_TileAndClusterData.tileList;
-                passData.resources.dispatchIndirectBuffer = m_TileAndClusterData.dispatchIndirectBuffer;
+                passData.parameters = PrepareDeferredLightingParameters(hdCamera, m_CurrentDebugDisplaySettings);
 
                 passData.colorBuffer = builder.WriteTexture(colorBuffer);
                 if (passData.parameters.outputSplitLighting)
@@ -182,11 +289,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     // TODO RENDERGRAPH: Check how to avoid this kind of pattern.
                     // Unfortunately, the low level needs this texture to always be bound with UAV enabled, so in order to avoid effectively creating the full resolution texture here,
                     // we need to create a small dummy texture.
-                    passData.sssDiffuseLightingBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(1, 1, true, true) { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true } ));
+                    passData.sssDiffuseLightingBuffer = builder.CreateTransientTexture(new TextureDesc(1, 1, true, true) { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true } );
                 }
                 passData.depthBuffer = builder.ReadTexture(depthStencilBuffer);
                 passData.depthTexture = builder.ReadTexture(depthPyramidTexture);
 
+                // TODO RENDERGRAPH: Check why this is needed
                 ReadLightingBuffers(lightingBuffers, builder);
 
                 passData.lightLayersTextureIndex = gbuffer.lightLayersTextureIndex;
@@ -196,19 +304,31 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 HDShadowManager.ReadShadowResult(shadowResult, builder);
 
+                passData.lightListBuffer = builder.ReadComputeBuffer(lightLists.lightList);
+                passData.tileFeatureFlagsBuffer = builder.ReadComputeBuffer(lightLists.tileFeatureFlags);
+                passData.tileListBuffer = builder.ReadComputeBuffer(lightLists.tileList);
+                passData.dispatchIndirectBuffer = builder.ReadComputeBuffer(lightLists.dispatchIndirectBuffer);
+
                 var output = new LightingOutput();
                 output.colorBuffer = passData.colorBuffer;
 
                 builder.SetRenderFunc(
                 (DeferredLightingPassData data, RenderGraphContext context) =>
                 {
-                    data.resources.colorBuffers = context.renderGraphPool.GetTempArray<RenderTargetIdentifier>(2);
-                    data.resources.colorBuffers[0] = context.resources.GetTexture(data.colorBuffer);
-                        data.resources.colorBuffers[1] = context.resources.GetTexture(data.sssDiffuseLightingBuffer);
-                    data.resources.depthStencilBuffer = context.resources.GetTexture(data.depthBuffer);
-                    data.resources.depthTexture = context.resources.GetTexture(data.depthTexture);
+                    var resources = new DeferredLightingResources();
 
-                    // TODO: try to find a better way to bind this.
+                    resources.colorBuffers = context.renderGraphPool.GetTempArray<RenderTargetIdentifier>(2);
+                    resources.colorBuffers[0] = context.resources.GetTexture(data.colorBuffer);
+                    resources.colorBuffers[1] = context.resources.GetTexture(data.sssDiffuseLightingBuffer);
+                    resources.depthStencilBuffer = context.resources.GetTexture(data.depthBuffer);
+                    resources.depthTexture = context.resources.GetTexture(data.depthTexture);
+
+                    resources.lightListBuffer = context.resources.GetComputeBuffer(data.lightListBuffer);
+                    resources.tileFeatureFlagsBuffer = context.resources.GetComputeBuffer(data.tileFeatureFlagsBuffer);
+                    resources.tileListBuffer = context.resources.GetComputeBuffer(data.tileListBuffer);
+                    resources.dispatchIndirectBuffer = context.resources.GetComputeBuffer(data.dispatchIndirectBuffer);
+
+                    // TODO RENDERGRAPH: try to find a better way to bind this.
                     // Issue is that some GBuffers have several names (for example normal buffer is both NormalBuffer and GBuffer1)
                     // So it's not possible to use auto binding via dependency to shaderTagID
                     // Should probably get rid of auto binding and go explicit all the way (might need to wait for us to remove non rendergraph code path).
@@ -224,13 +344,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         bool useCompute = data.parameters.useComputeLightingEvaluation && !k_PreferFragment;
                         if (useCompute)
-                            RenderComputeDeferredLighting(data.parameters, data.resources, context.cmd);
+                            RenderComputeDeferredLighting(data.parameters, resources, context.cmd);
                         else
-                            RenderComputeAsPixelDeferredLighting(data.parameters, data.resources, context.cmd);
+                            RenderComputeAsPixelDeferredLighting(data.parameters, resources, context.cmd);
                     }
                     else
                     {
-                        RenderPixelDeferredLighting(data.parameters, data.resources, context.cmd);
+                        RenderPixelDeferredLighting(data.parameters, resources, context.cmd);
                     }
                 });
 
@@ -241,22 +361,21 @@ namespace UnityEngine.Rendering.HighDefinition
         class RenderSSRPassData
         {
             public RenderSSRParameters parameters;
+            public TextureHandle depthBuffer;
             public TextureHandle depthPyramid;
             public TextureHandle colorPyramid;
             public TextureHandle stencilBuffer;
             public TextureHandle hitPointsTexture;
             public TextureHandle lightingTexture;
             public TextureHandle clearCoatMask;
+            public ComputeBufferHandle coarseStencilBuffer;
             //public TextureHandle debugTexture;
         }
 
-        TextureHandle RenderSSR(    RenderGraph     renderGraph,
-                                        HDCamera            hdCamera,
-                                    TextureHandle   normalBuffer,
-                                    TextureHandle   motionVectorsBuffer,
-                                    TextureHandle   depthPyramid,
-                                    TextureHandle   stencilBuffer,
-                                    TextureHandle   clearCoatMask)
+        TextureHandle RenderSSR(    RenderGraph         renderGraph,
+                                    HDCamera            hdCamera,
+                                    in PrepassOutput    prepassOutput,
+                                    TextureHandle       clearCoatMask)
         {
             var ssrBlackTexture = renderGraph.ImportTexture(TextureXR.GetBlackTexture(), HDShaderIDs._SsrLightingTexture);
 
@@ -282,19 +401,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     var colorPyramid = renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain));
 
-                    passData.parameters = PrepareSSRParameters(hdCamera);
-                    passData.depthPyramid = builder.ReadTexture(depthPyramid);
+                    passData.parameters = PrepareSSRParameters(hdCamera, m_DepthBufferMipChainInfo, true);
+                    passData.depthBuffer = builder.ReadTexture(prepassOutput.depthBuffer);
+                    passData.depthPyramid = builder.ReadTexture(prepassOutput.depthPyramidTexture);
                     passData.colorPyramid = builder.ReadTexture(colorPyramid);
-                    passData.stencilBuffer = builder.ReadTexture(stencilBuffer);
+                    passData.stencilBuffer = builder.ReadTexture(prepassOutput.stencilBuffer);
                     passData.clearCoatMask = builder.ReadTexture(clearCoatMask);
+                    passData.coarseStencilBuffer = builder.ReadComputeBuffer(prepassOutput.coarseStencilBuffer);
 
-                    builder.ReadTexture(normalBuffer);
-                    builder.ReadTexture(motionVectorsBuffer);
+                    // TODO RENDERGRAPH: pass and bind properly those texture (once auto setglobal is gone)
+                    builder.ReadTexture(prepassOutput.resolvedNormalBuffer);
+                    builder.ReadTexture(prepassOutput.resolvedMotionVectorsBuffer);
 
                     // In practice, these textures are sparse (mostly black). Therefore, clearing them is fast (due to CMASK),
                     // and much faster than fully overwriting them from within SSR shaders.
-                    passData.hitPointsTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                        { colorFormat = GraphicsFormat.R16G16_UNorm, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Hit_Point_Texture" }));
+                    passData.hitPointsTexture = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
+                        { colorFormat = GraphicsFormat.R16G16_UNorm, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Hit_Point_Texture" });
                     passData.lightingTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                         { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Lighting_Texture" }, HDShaderIDs._SsrLightingTexture));
                     //passData.hitPointsTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
@@ -305,12 +427,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         var res = context.resources;
                         RenderSSR(data.parameters,
+                                    res.GetTexture(data.depthBuffer),
                                     res.GetTexture(data.depthPyramid),
                                     res.GetTexture(data.hitPointsTexture),
                                     res.GetTexture(data.stencilBuffer),
                                     res.GetTexture(data.clearCoatMask),
                                     res.GetTexture(data.colorPyramid),
                                     res.GetTexture(data.lightingTexture),
+                                    res.GetComputeBuffer(data.coarseStencilBuffer),
                                     context.cmd, context.renderContext);
                     });
 
@@ -324,9 +448,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            // TODO RENDERGRAPH
-            //cmd.SetGlobalInt(HDShaderIDs._UseRayTracedReflections, usesRaytracedReflections ? 1 : 0);
-
             PushFullScreenDebugTexture(renderGraph, result, FullScreenDebugMode.ScreenSpaceReflections);
             return result;
         }
@@ -335,13 +456,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public ContactShadowsParameters     parameters;
             public LightLoopLightData           lightLoopLightData;
-            public TileAndClusterData           tileAndClusterData;
-            public TextureHandle            depthTexture;
-            public TextureHandle            contactShadowsTexture;
-            public HDShadowManager              shadowManager;
+            public TextureHandle                depthTexture;
+            public TextureHandle                contactShadowsTexture;
+            public ComputeBufferHandle          lightList;
         }
 
-        TextureHandle RenderContactShadows(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, int firstMipOffsetY)
+        TextureHandle RenderContactShadows(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, in BuildGPULightListOutput lightLists, int firstMipOffsetY)
         {
             if (!WillRenderContactShadow())
                 return renderGraph.ImportTexture(TextureXR.GetClearTexture(), HDShaderIDs._ContactShadowTexture);
@@ -356,9 +476,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.parameters = PrepareContactShadowsParameters(hdCamera, firstMipOffsetY);
                 passData.lightLoopLightData = m_LightLoopLightData;
-                passData.tileAndClusterData = m_TileAndClusterData;
+                passData.lightList = builder.ReadComputeBuffer(lightLists.lightList);
                 passData.depthTexture = builder.ReadTexture(depthTexture);
-                passData.shadowManager = m_ShadowManager;
                 passData.contactShadowsTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                     { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, clearBuffer = clearBuffer, clearColor = Color.clear, name = "ContactShadowsBuffer" }, HDShaderIDs._ContactShadowTexture));
 
@@ -368,9 +487,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (RenderContactShadowPassData data, RenderGraphContext context) =>
                 {
                     var res = context.resources;
-                    data.shadowManager.PushGlobalParameters(context.cmd);
-
-                    RenderContactShadows(data.parameters, res.GetTexture(data.contactShadowsTexture), res.GetTexture(data.depthTexture), data.lightLoopLightData, data.tileAndClusterData, context.cmd);
+                    RenderContactShadows(data.parameters, res.GetTexture(data.contactShadowsTexture), res.GetTexture(data.depthTexture), data.lightLoopLightData, res.GetComputeBuffer(data.lightList), context.cmd);
                 });
             }
 
@@ -382,16 +499,17 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public VolumeVoxelizationParameters parameters;
             public TextureHandle                densityBuffer;
+            public ComputeBufferHandle          bigTileLightListBuffer;
             public ComputeBuffer                visibleVolumeBoundsBuffer;
             public ComputeBuffer                visibleVolumeDataBuffer;
-            public ComputeBuffer                bigTileLightListBuffer;
         }
 
-        TextureHandle VolumeVoxelizationPass(   RenderGraph     renderGraph,
-                                                    HDCamera            hdCamera,
-                                                    ComputeBuffer       visibleVolumeBoundsBuffer,
-                                                    ComputeBuffer       visibleVolumeDataBuffer,
-                                                    ComputeBuffer       bigTileLightListBuffer)
+        TextureHandle VolumeVoxelizationPass(   RenderGraph         renderGraph,
+                                                HDCamera            hdCamera,
+                                                ComputeBuffer       visibleVolumeBoundsBuffer,
+                                                ComputeBuffer       visibleVolumeDataBuffer,
+                                                ComputeBufferHandle bigTileLightList,
+                                                int                 frameIndex)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
@@ -399,28 +517,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     builder.EnableAsyncCompute(hdCamera.frameSettings.VolumeVoxelizationRunsAsync());
 
-                    passData.parameters = PrepareVolumeVoxelizationParameters(hdCamera);
+                    passData.parameters = PrepareVolumeVoxelizationParameters(hdCamera, frameIndex);
                     passData.visibleVolumeBoundsBuffer = visibleVolumeBoundsBuffer;
                     passData.visibleVolumeDataBuffer = visibleVolumeDataBuffer;
-                    passData.bigTileLightListBuffer = bigTileLightListBuffer;
-                    passData.densityBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(ComputeVBufferResolutionXY, false, false)
-                    {
-                        dimension = TextureDimension.Tex3D,
-                        colorFormat = GraphicsFormat.R16G16B16A16_SFloat, // 8888_sRGB is not precise enough
-                        enableRandomWrite = true,
-                        slices = ComputeVBufferSliceCount(volumetricLightingPreset),
-                        /* useDynamicScale: true, // <- TODO ,*/
-                        name = "VBufferDensity"
-                    }));
+                    passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightList);
+
+                    float tileSize = 0;
+                    Vector3Int viewportSize = ComputeVolumetricViewportSize(hdCamera, ref tileSize);
+
+                    passData.densityBuffer = builder.WriteTexture(renderGraph.ImportTexture(m_DensityBuffer));
 
                     builder.SetRenderFunc(
                     (VolumeVoxelizationPassData data, RenderGraphContext ctx) =>
                     {
-                        VolumeVoxelizationPass(data.parameters,
+                        VolumeVoxelizationPass( data.parameters,
                                                 ctx.resources.GetTexture(data.densityBuffer),
                                                 data.visibleVolumeBoundsBuffer,
                                                 data.visibleVolumeDataBuffer,
-                                                data.bigTileLightListBuffer,
+                                                ctx.resources.GetComputeBuffer(data.bigTileLightListBuffer),
                                                 ctx.cmd);
                     });
 
@@ -437,10 +551,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle                lightingBuffer;
             public TextureHandle                historyBuffer;
             public TextureHandle                feedbackBuffer;
-            public ComputeBuffer                bigTileLightListBuffer;
+            public ComputeBufferHandle          bigTileLightListBuffer;
         }
 
-        TextureHandle VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle densityBuffer, ComputeBuffer bigTileLightListBuffer, ShadowResult shadowResult, int frameIndex)
+        TextureHandle VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle densityBuffer, ComputeBufferHandle bigTileLightListBuffer, ShadowResult shadowResult, int frameIndex)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
@@ -448,24 +562,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 using (var builder = renderGraph.AddRenderPass<VolumetricLightingPassData>("Volumetric Lighting", out var passData))
                 {
+                    // TODO RENDERGRAPH
                     //builder.EnableAsyncCompute(hdCamera.frameSettings.VolumetricLightingRunsAsync());
 
                     passData.parameters = parameters;
-                    passData.bigTileLightListBuffer = bigTileLightListBuffer;
+                    passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightListBuffer);
                     passData.densityBuffer = builder.ReadTexture(densityBuffer);
-                    passData.lightingBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(ComputeVBufferResolutionXY, false, false)
-                    {
-                        dimension = TextureDimension.Tex3D,
-                        colorFormat = GraphicsFormat.R16G16B16A16_SFloat, // 8888_sRGB is not precise enough
-                        enableRandomWrite = true,
-                        slices = ComputeVBufferSliceCount(volumetricLightingPreset),
-                        /* useDynamicScale: true, // <- TODO ,*/
-                        name = "VBufferIntegral"
-                    }, HDShaderIDs._VBufferLighting));
+
+                    float tileSize = 0;
+                    Vector3Int viewportSize = ComputeVolumetricViewportSize(hdCamera, ref tileSize);
+
+                    // TODO RENDERGRAPH: Auto-scale of 3D RTs is not supported yet so we need to find a better solution for this. Or keep it as is?
+                    passData.lightingBuffer = builder.WriteTexture(renderGraph.ImportTexture(m_LightingBuffer, HDShaderIDs._VBufferLighting));
+
                     if (passData.parameters.enableReprojection)
                     {
-                        passData.historyBuffer = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting)));
-                        passData.feedbackBuffer = builder.WriteTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting)));
+                        var currIdx = (frameIndex + 0) & 1;
+                        var prevIdx = (frameIndex + 1) & 1;
+
+                        passData.feedbackBuffer = builder.WriteTexture(renderGraph.ImportTexture(hdCamera.volumetricHistoryBuffers[currIdx]));
+                        passData.historyBuffer  = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.volumetricHistoryBuffers[prevIdx]));
                     }
 
                     HDShadowManager.ReadShadowResult(shadowResult, builder);
@@ -475,12 +591,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         RTHandle densityBufferRT = ctx.resources.GetTexture(data.densityBuffer);
                         RTHandle lightinBufferRT = ctx.resources.GetTexture(data.lightingBuffer);
+
                         VolumetricLightingPass( data.parameters,
                                                 densityBufferRT,
                                                 lightinBufferRT,
-                                                data.parameters.enableReprojection ? ctx.resources.GetTexture(data.historyBuffer) : null,
+                                                data.parameters.enableReprojection ? ctx.resources.GetTexture(data.historyBuffer)  : null,
                                                 data.parameters.enableReprojection ? ctx.resources.GetTexture(data.feedbackBuffer) : null,
-                                                data.bigTileLightListBuffer,
+                                                ctx.resources.GetComputeBuffer(data.bigTileLightListBuffer),
                                                 ctx.cmd);
 
                         if (data.parameters.filterVolume)

@@ -6,6 +6,7 @@ The **Render Pipeline Debug** window is a specific window for the Scriptable Ren
 - [Display Stats](#StatsPanel)
 - [Material](#MaterialPanel)
 - [Lighting](#LightingPanel)
+- [Volume](#VolumePanel)
 - [Rendering](#RenderingPanel)
 - [Camera](#CameraPanel)
 
@@ -43,7 +44,7 @@ To display the current active item independently of the debug window:
 
 ## Decals panel
 
-The **Decals** panel has tools that you can use to debug [decals](Decal-Shader.html) in your project.
+The **Decals** panel has tools that you can use to debug [decals](Decal-Shader.md) in your project.
 
 | **Debug Option**  | **Description**                                              |
 | ----------------- | ------------------------------------------------------------ |
@@ -85,11 +86,11 @@ The **Material** panel has tools that you can use to visualize different Materia
 | **Attributes**               | Use the drop-down to select a 3D GameObject attribute, like Texture Coordinates or Vertex Color, to visualize on screen. |
 | **Properties**               | Use the drop-down to select a property that the debugger uses to highlight GameObjects on screen. The debugger highlights GameObjects that use a Material with the property that you select. |
 | **GBuffer**                  | Use the drop-down to select a property to visualize from the GBuffer for deferred Materials. |
-| **Material Validator**       | Use the drop-down to select properties to show validation colors for.<br/>&#8226; **Diffuse Color**: Select this option to check if the diffuse colors in your Scene adheres to an acceptable [PBR](Glossary.html#PhysicallyBasedRendering) range. If the Material color is out of this range, the debugger displays it in the **Too High Color** color if it is above the range, or in the **Too Low Color** if it is below the range.<br/>&#8226; **Metal or SpecularColor**: Select this option to check if a pixel contains a metallic or specular color that adheres to an acceptable PBR range. If it does not, the debugger highlights it in the **Not A Pure Metal Color**.For information about the acceptable PBR ranges in Unity, see the [Material Charts documentation](https://docs.unity3d.com/Manual/StandardShaderMaterialCharts.html). |
-| **- Too High Color**         | Use the color picker to select the color that the debugger displays when a Material's diffuse color is above the acceptable PBR range. This property only appears when you select **Diffuse Color** or **Metal or SpecularColor** from the **Material Validator** drop-down. |
-| **- Too Low Color**          | Use the color picker to select the color that the debugger displays when a Material's diffuse color is below the acceptable PBR range. This property only appears when you select **Diffuse Color** or **Metal or SpecularColor** from the **Material Validator** drop-down. |
-| **- Not A Pure Metal Color** | Use the color picker to select the color that the debugger displays if a pixel defined as metallic has a non-zero albedo value. The debugger only highlights these pixels if you enable the **True Metals** checkbox. This property only appears when you select **Diffuse Color** or **Metal or SpecularColor** from the **Material Validator** drop-down. |
-| **- Pure Metals**            | Enable the checkbox to make the debugger highlight any pixels which Unity defines as metallic, but which have a non-zero albedo value. The debugger uses the **Not A Pure Metal Color** to highlight these pixels. This property only appears when you select **Diffuse Color** or **Metal or SpecularColor** from the **Material Validator** drop-down. |
+| **Material Validator**       | Use the drop-down to select properties to show validation colors for.<br/>&#8226; **Diffuse Color**: Select this option to check if the diffuse colors in your Scene adheres to an acceptable [PBR](Glossary.md#PhysicallyBasedRendering) range. If the Material color is out of this range, the debugger displays it in the **Too High Color** color if it is above the range, or in the **Too Low Color** if it is below the range.<br/>&#8226; **Metal or SpecularColor**: Select this option to check if a pixel contains a metallic or specular color that adheres to an acceptable PBR range. If it does not, the debugger highlights it in the **Not A Pure Metal Color**.For information about the acceptable PBR ranges in Unity, see the [Material Charts documentation](https://docs.unity3d.com/Manual/StandardShaderMaterialCharts.html). |
+| **- Too High Color**         | Use the color picker to select the color that the debugger displays when a Material's diffuse color is above the acceptable PBR range.<br/>This property only appears when you select **Diffuse Color** or **Metal or SpecularColor** from the **Material Validator** drop-down. |
+| **- Too Low Color**          | Use the color picker to select the color that the debugger displays when a Material's diffuse color is below the acceptable PBR range.<br/>This property only appears when you select **Diffuse Color** or **Metal or SpecularColor** from the **Material Validator** drop-down. |
+| **- Not A Pure Metal Color** | Use the color picker to select the color that the debugger displays if a pixel defined as metallic has a non-zero albedo value. The debugger only highlights these pixels if you enable the **True Metals** checkbox.<br/>This property only appears when you select **Diffuse Color** or **Metal or SpecularColor** from the **Material Validator** drop-down. |
+| **- Pure Metals**            | Enable the checkbox to make the debugger highlight any pixels which Unity defines as metallic, but which have a non-zero albedo value. The debugger uses the **Not A Pure Metal Color** to highlight these pixels.<br/>This property only appears when you select **Diffuse Color** or **Metal or SpecularColor** from the **Material Validator** drop-down. |
 
 <a name="LightingPanel"></a>
 
@@ -97,30 +98,37 @@ The **Material** panel has tools that you can use to visualize different Materia
 
 The **Lighting** panel has tools that you can use to visualize various components of the lighting system in your Scene, like, shadowing and direct/indirect lighting.
 
-| **Shadow Debug Option**              | **Description**                                              |
-| ------------------------------------ | ------------------------------------------------------------ |
-| **Debug Mode**                       | Use the drop-down to select which shadow debug information to overlay on the screen.<br/>&#8226;**None**: Select this mode to remove the shadow debug information from the screen.<br/>&#8226; **VisualizePunctualLightAtlas**: Select this mode to overlay the shadow atlas for [punctual Lights](Glossary.html#PunctualLight) in your Scene.<br/>&#8226; **VisualizeDirectionalLightAtlas**: Select this mode to overlay the shadow atlas for Directional Lights in your Scene.<br/>&#8226; **VisualizeAreaLightAtlas**: Select this mode to overlay the shadow atlas for area Lights in your Scene.<br/>&#8226; **VisualizeShadowMap**: Select this mode to overlay a single shadow map for a Light in your Scene.<br/>&#8226; **SingleShadow**: Select this mode to replace the Scene's lighting with a single Light. To select which Light to isolate, see **Use Selection** or **Shadow Map Index**.|
-| **- Use Selection**                  | Enable the checkbox to show the shadow map for the Light you select in the Scene. This property only appears when you select **VisualizeShadowMap** or **SingleShadow** from the **Shadow Debug Mode** drop-down. |
-| **- Shadow Map Index**               | Use the slider to select the index of the shadow map to view. To use this property correctly, you must have at least one [Light](Light-Component.html) in your Scene that uses shadow maps. |
-| **Global Scale Factor**              | Use the slider to set the global scale that HDRP applies to the shadow rendering resolution. |
-| **Clear Shadow Atlas**               | Enable the checkbox to clear the shadow atlas every frame.   |
-| **Range Minimum Value**              | Set the minimum shadow value to display in the various shadow debug overlays. |
-| **Range Maximum Value**              | Set the maximum shadow value to display in the various shadow debug overlays. |
+| **Shadow Debug Option** | **Description**                                              |
+| ----------------------- | ------------------------------------------------------------ |
+| **Debug Mode**          | Use the drop-down to select which shadow debug information to overlay on the screen.<br/>&#8226;**None**: Select this mode to remove the shadow debug information from the screen.<br/>&#8226; **VisualizePunctualLightAtlas**: Select this mode to overlay the shadow atlas for [punctual Lights](Glossary.md#PunctualLight) in your Scene.<br/>&#8226; **VisualizeDirectionalLightAtlas**: Select this mode to overlay the shadow atlas for Directional Lights in your Scene.<br/>&#8226; **VisualizeAreaLightAtlas**: Select this mode to overlay the shadow atlas for area Lights in your Scene.<br/>&#8226; **VisualizeShadowMap**: Select this mode to overlay a single shadow map for a Light in your Scene.<br/>&#8226; **SingleShadow**: Select this mode to replace the Scene's lighting with a single Light. To select which Light to isolate, see **Use Selection** or **Shadow Map Index**. |
+| **- Use Selection**     | Enable the checkbox to show the shadow map for the Light you select in the Scene.<br/>This property only appears when you select **VisualizeShadowMap** or **SingleShadow** from the **Shadow Debug Mode** drop-down. |
+| **- Shadow Map Index**  | Use the slider to select the index of the shadow map to view. To use this property correctly, you must have at least one [Light](Light-Component.md) in your Scene that uses shadow maps. |
+| **Global Scale Factor** | Use the slider to set the global scale that HDRP applies to the shadow rendering resolution. |
+| **Clear Shadow Atlas**  | Enable the checkbox to clear the shadow atlas every frame.   |
+| **Range Minimum Value** | Set the minimum shadow value to display in the various shadow debug overlays. |
+| **Range Maximum Value** | Set the maximum shadow value to display in the various shadow debug overlays. |
 
-| **Lighting Debug Option**            | **Description**                                              |
-| ------------------------------------ | ------------------------------------------------------------ |
-| **Show Lights By Type**              | Allows the user to enable or disable lights in the scene based on their type.|
-| **- Directional Lights**             | Enable the checkbox to see Directional Lights in your Scene. Disable this checkbox to remove Directional Lights from your Scene's lighting. |
-| **- Punctual Lights**                | Enable the checkbox to see [Punctual Lights](Glossary.html#PunctualLight) in your Scene. Disable this checkbox to remove Punctual Lights from your Scene's lighting. |
-| **- Area Lights**                    | Enable the checkbox to see Area Lights in your Scene. Disable this checkbox to remove Aera Lights from your Scene's lighting. |
-| **- Reflection Probes**              | Enable the checkbox to see Reflection Probes in your Scene. Disable this checkbox to remove Reflection Probes from your Scene's lighting. |
-| **Debug Mode**                       | Use the drop-down to select a lighting mode to debug. For example, you can visualize diffuse lighting, specular lighting, and Directional Light shadow cascades. |
-| **Hierarchy Debug Mode**             | Use the drop-down to select a light type to show the direct lighting for or a Reflection Probe type to show the indirect lighting for. |
-| **Light Layers Visualization**       | Enable the checkbox to visualize light layers of objects in your Scene. |
-| **- Use Selected Light**             | Enable the checkbox to visualize objects affected by the selected light. |
-| **- Switch to Light's Shadow Layers**| Enable the checkbox to visualize objects casting shadows for the selected light. |
-| **- Filter Layers**                  | Use the drop-down to filter light layers that you want to visialize. Objects having a matching layer will be displayed in a specific color. |
-| **- Layers Color**                   | Use the color pickers to select the display color of each light layer. |
+| **Lighting Debug Option**             | **Description**                                              |
+| ------------------------------------- | ------------------------------------------------------------ |
+| **Show Lights By Type**               | Allows the user to enable or disable lights in the scene based on their type. |
+| **- Directional Lights**              | Enable the checkbox to see Directional Lights in your Scene. Disable this checkbox to remove Directional Lights from your Scene's lighting. |
+| **- Punctual Lights**                 | Enable the checkbox to see [Punctual Lights](Glossary.md#PunctualLight) in your Scene. Disable this checkbox to remove Punctual Lights from your Scene's lighting. |
+| **- Area Lights**                     | Enable the checkbox to see Area Lights in your Scene. Disable this checkbox to remove Aera Lights from your Scene's lighting. |
+| **- Reflection Probes**               | Enable the checkbox to see Reflection Probes in your Scene. Disable this checkbox to remove Reflection Probes from your Scene's lighting. |
+| **Debug Mode**                        | Use the drop-down to select a lighting mode to debug. For example, you can visualize diffuse lighting, specular lighting, direct diffuse lighting, direct specular lighting, indirect diffuse lighting, indirect specular lighting, emissive lighting and Directional Light shadow cascades. |
+| **Hierarchy Debug Mode**              | Use the drop-down to select a light type to show the direct lighting for or a Reflection Probe type to show the indirect lighting for. |
+| **Light Layers Visualization**        | Enable the checkbox to visualize light layers of objects in your Scene. |
+| **- Use Selected Light**              | Enable the checkbox to visualize objects affected by the selected light. |
+| **- Switch to Light's Shadow Layers** | Enable the checkbox to visualize objects casting shadows for the selected light. |
+| **- Filter Layers**                   | Use the drop-down to filter light layers that you want to visialize. Objects having a matching layer will be displayed in a specific color. |
+| **- Layers Color**                    | Use the color pickers to select the display color of each light layer. |
+| **Exposure **                         | Allows you to select an [Exposure](Override-Exposure.md) debug mode to use. |
+| **- Debug Mode**                      | Use the drop-down to select a debug mode. See [Exposure](Override-Exposure.md) documentation for more information. |
+| - **Show Tonemap curve**              | Enable the checkbox to overlay the tonemap curve to the histogram debug view.<br/>This property only appears when you select **HistogramView** from **Debug Mode**. |
+| **- Center Around Exposure**          | Enable the checkbox to overlay the center the histogram around the current exposure value.<br/>This property only appears when you select **HistogramView** from **Debug Mode**. |
+| **- Display RGB Histogram**           | Enable the checkbox to display the Final Image Histogram as an RGB histogram instead of just luminance.<br />This property only appears when you select **FinalImageHistogramView** from **Debug Mode**. |
+| **- Debug Lens Attenuation**          | Sets the imperfection factor that the lens HDRP uses for exposure calculations. The higher the value, the less the lens disperses light. |
+| **- Debug Exposure Compensation**     | Set an additional exposure compensation for debug purposes.  |
 
 | **Material Override**                | **Description**                                              |
 | ------------------------------------ | ------------------------------------------------------------ |
@@ -136,16 +144,30 @@ The **Lighting** panel has tools that you can use to visualize various component
 
 | **Debug Option**                     | **Description**                                              |
 | ------------------------------------ | ------------------------------------------------------------ |
-| **Fullscreen Debug Mode**            | Use the drop-down to select a fullscreen lighting effect to debug. For example, you can visualize [Contact Shadows](Override-Contact-Shadows.html), the depth pyramid, and indirect diffuse lighting. |
+| **Fullscreen Debug Mode**            | Use the drop-down to select a fullscreen lighting effect to debug. For example, you can visualize [Contact Shadows](Override-Contact-Shadows.md), the depth pyramid, and indirect diffuse lighting. |
 | **Tile/Cluster Debug**               | Use the drop-down to select an internal HDRP lighting structure to visualize on screen.<br/>&#8226; **None**: Select this option to turn off this debug feature.<br/>&#8226; **Tile**: Select this option to show an overlay of each lighting tile, and the number of lights in them.<br/>&#8226; **Cluster**: Select this option to show an overlay of each lighting cluster that intersects opaque geometry, and the number of lights in them.<br/>&#8226; **Material Feature Variants**: Select this option to show the index of the lighting Shader variant that HDRP uses for a tile. You can find variant descriptions in the *lit.hlsl* file. |
-| **- Tile/Cluster Debug By Category** | Use the drop-down to select the Light type that you want to show the Tile/Cluster debug information for. The options include [Light Types](Light-Component.html), [Decals](Decal-Projector.html), and [Density Volumes](Density-Volume.html).This property only appears when you select **Tile** or **Cluster** from the **Tile/Cluster Debug** drop-down. |
+| **- Tile/Cluster Debug By Category** | Use the drop-down to select the Light type that you want to show the Tile/Cluster debug information for. The options include [Light Types](Light-Component.md), [Decals](Decal-Projector.md), and [Density Volumes](Density-Volume.md).<br/>This property only appears when you select **Tile** or **Cluster** from the **Tile/Cluster Debug** drop-down. |
 | **Display Sky Reflection**           | Enable the checkbox to display an overlay of the cube map that the current sky generates and HDRP uses for lighting. |
-| **- Sky Reflection Mipmap**          | Use the slider to set the mipmap level of the sky reflection cubemap. Use this to view the sky reflection cubemap's different mipmap levels.This property only appears when you enable the **Display Sky Reflection** checkbox. |
+| **- Sky Reflection Mipmap**          | Use the slider to set the mipmap level of the sky reflection cubemap. Use this to view the sky reflection cubemap's different mipmap levels.<br/>This property only appears when you enable the **Display Sky Reflection** checkbox. |
 | **Display Light Volumes**            | Enable the checkbox to show an overlay of all light bounding volumes. |
-| **- Light Volume Debug Type**        | Use the drop-down to select the method HDRP uses to display the light volumes.**Gradient**: Select this option to display the light volumes as a gradient.**ColorAndEdge**: Select this option to display the light volumes as a plain color (a different color for each Light Type) with a red border for readability.This property only appears when you enable the **Display Light Volumes** checkbox. |
+| **- Light Volume Debug Type**        | Use the drop-down to select the method HDRP uses to display the light volumes.**Gradient**: Select this option to display the light volumes as a gradient.**ColorAndEdge**: Select this option to display the light volumes as a plain color (a different color for each Light Type) with a red border for readability.<br/>This property only appears when you enable the **Display Light Volumes** checkbox. |
 | **- Max Debug Light Count**          | Use the slider to rescale the gradient. Lower this value to make the screen turn red faster. Use this property to change the maximum acceptable number of lights for your application and still see areas in red. This property only appears when you enable the **Display Light Volumes** checkbox. |
 | **Debug Exposure**                   | Set the exposure that HDRP applies when you select a **Lighting Debug Mode**. This is useful because HDRP does not apply normal Scene exposure when it is in debug mode. |
 | **Debug Overlay Screen Ratio**       | Set the size of the debug overlay textures with a ratio of the screen size. The default value is 0.33 which is 33% of the screen size. |
+
+<a name="VolumePanel"></a>
+
+## Volume panel
+
+The **Volume** panel has tools that you can use to visualize the Volume Components affecting a camera.
+
+| **Debug Option**       | **Description**                                      |
+| ---------------------- | ---------------------------------------------------- |
+| **Component**          | Use the drop-down to select which volume component to visualize. |
+| **Camera**             | Use the drop-down to select which camera to use as volume anchor. |
+| **Parameter**          | List of parameters for the selected component. |
+| **Interpolated Value** | Current value affecting the choosen camera for each parameter. |
+| **Other columns**      | One column for each volume. Shows the corresponding parameter's value in each volume if it impacts the final interpolated value. |
 
 <a name="RenderingPanel"></a>
 
@@ -161,11 +183,11 @@ The **Rendering** panel has tools that you can use to visualize various HDRP ren
 | **Color Picker - Debug Mode** | Use the drop-down to select the format of the color picker display. |
 | **Color Picker - Font Color** | Use the color picker to select a color for the font that the Color Picker uses for its display. |
 | **False Color Mode**          | Enable the checkbox to define intensity ranges that the debugger uses to show a color temperature gradient for the current frame. The color temperature gradient goes from blue, to green, to yellow, to red. |
-| **- Range Threshold 0**       | Set the first split for the intensity range.This property only appears when you enable the **False Color Mode** checkbox. |
-| **- Range Threshold 1**       | Set the second split for the intensity range.This property only appears when you enable the **False Color Mode** checkbox. |
-| **- Range Threshold 2**       | Set the third split for the intensity range.This property only appears when you enable the **False Color Mode** checkbox. |
-| **- Range Threshold 3**       | Set the final split for the intensity range.This property only appears when you enable the **False Color Mode** checkbox. |
-| **MSAA Samples**              | Use the drop-down to select the number of samples the debugger uses for [MSAA](Anti-Aliasing.html#MSAA). |
+| **- Range Threshold 0**       | Set the first split for the intensity range.<br/>This property only appears when you enable the **False Color Mode** checkbox. |
+| **- Range Threshold 1**       | Set the second split for the intensity range.<br/>This property only appears when you enable the **False Color Mode** checkbox. |
+| **- Range Threshold 2**       | Set the third split for the intensity range.<br/>This property only appears when you enable the **False Color Mode** checkbox. |
+| **- Range Threshold 3**       | Set the final split for the intensity range.<br/>This property only appears when you enable the **False Color Mode** checkbox. |
+| **MSAA Samples**              | Use the drop-down to select the number of samples the debugger uses for [MSAA](Anti-Aliasing.md#MSAA). |
 | **Freeze Camera for Culling** | Use the drop-down to select a Camera to freeze in order to check its culling. To check if the Camera's culling works correctly, freeze the Camera and move occluders around it. |
 | **XR Debug Mode**             | Use the drop-down to select which XR debug information to view in the **Game** window.**None**: Select this option to disable **XR Debug Mode**.**Composite**: Select this option to composite four tiles in the **Game** window. HDRP renders these tiles with multi-pass and single-pass instancing so you can debug the rendering path. |
 | **- Display Borders**         | Enable the checkbox to render a red line at the border between the tiles. This property only appears when you select **Composite** from the **XR Debug Mode** drop-down. |
@@ -177,7 +199,7 @@ The **Color Picker** works with whichever debug mode HDRP displays at the time. 
 
 ## Camera panels
 
-In the **Render Pipeline Debug** window , each active Camera in the Scene has its own debug window. Use the Camera's debug window to temporarily change that Camera's [Frame Settings](Frame-Settings.html) without altering the Camera data in the Scene. The Camera window helps you to understand why a specific feature does not work correctly. You can access all of the information that HDRP uses the render the Camera you select.
+In the **Render Pipeline Debug** window , each active Camera in the Scene has its own debug window. Use the Camera's debug window to temporarily change that Camera's [Frame Settings](Frame-Settings.md) without altering the Camera data in the Scene. The Camera window helps you to understand why a specific feature does not work correctly. You can access all of the information that HDRP uses the render the Camera you select.
 
 **Note**: The Camera debug window is only available for Cameras, not Reflection Probes.
 
@@ -188,7 +210,7 @@ The following columns are available for each Frame Setting:
 | **Debug**      | Displays Frame Setting values you can modify for the selected Camera. You can use these to temporarily alter the Camera’s Frame Settings for debugging purposes. You cannot enable Frame Setting features that your HDRP Asset does not support. |
 | **Sanitized**  | Displays the Frame Setting values that the selected Camera uses after Unity checks to see if your HDRP Asset supports them. |
 | **Overridden** | Displays the Frame Setting values that the selected Camera overrides. If you do not check the **Custom Frame Settings** checkbox, check it and do not override any settings, this column is identical to the **Default** column. |
-| **Default**    | Displays the default Frame Setting values in your current [HDRP Asset](HDRP-Asset.html). |
+| **Default**    | Displays the default Frame Setting values in your current [HDRP Asset](HDRP-Asset.md). |
 
 Unity processes **Sanitized**, **Overridden**, and **Default** in a specific order. First it checks the **Default** Frame Settings, then checks the selected Camera’s **Overridden** Frame Settings. Finally, it checks whether the HDRP Asset supports the selected Camera’s Frame Settings and displays that result in the **Sanitized** column.
 

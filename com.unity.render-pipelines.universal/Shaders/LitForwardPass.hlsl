@@ -3,6 +3,8 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
+// keep this file in sync with LitGBufferPass.hlsl
+
 struct Attributes
 {
     float4 positionOS   : POSITION;
@@ -22,14 +24,11 @@ struct Varyings
     float3 positionWS               : TEXCOORD2;
 #endif
 
-#ifdef _NORMALMAP
-    float4 normalWS                 : TEXCOORD3;    // xyz: normal, w: viewDir.x
-    float4 tangentWS                : TEXCOORD4;    // xyz: tangent, w: viewDir.y
-    float4 bitangentWS              : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
-#else
     float3 normalWS                 : TEXCOORD3;
-    float3 viewDirWS                : TEXCOORD4;
+#ifdef _NORMALMAP
+    float4 tangentWS                : TEXCOORD4;    // xyz: tangent, w: sign
 #endif
+    float3 viewDirWS                : TEXCOORD5;
 
     half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
 
@@ -50,17 +49,16 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.positionWS = input.positionWS;
 #endif
 
+    half3 viewDirWS = SafeNormalize(input.viewDirWS);
 #ifdef _NORMALMAP
-    half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
-    inputData.normalWS = TransformTangentToWorld(normalTS,
-        half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
+    float sgn = input.tangentWS.w;      // should be either +1 or -1
+    float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
+    inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz));
 #else
-    half3 viewDirWS = input.viewDirWS;
     inputData.normalWS = input.normalWS;
 #endif
 
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
-    viewDirWS = SafeNormalize(viewDirWS);
     inputData.viewDirectionWS = viewDirWS;
 
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
@@ -90,20 +88,24 @@ Varyings LitPassVertex(Attributes input)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
+
+    // normalWS and tangentWS already normalize.
+    // this is required to avoid skewing the direction during interpolation
+    // also required for per-vertex lighting and SH evaluation
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
-    half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
+
+    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
     half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
     half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
 
     output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
 
-#ifdef _NORMALMAP
-    output.normalWS = half4(normalInput.normalWS, viewDirWS.x);
-    output.tangentWS = half4(normalInput.tangentWS, viewDirWS.y);
-    output.bitangentWS = half4(normalInput.bitangentWS, viewDirWS.z);
-#else
-    output.normalWS = NormalizeNormalPerVertex(normalInput.normalWS);
+    // already normalized from normal transform to WS.
+    output.normalWS = normalInput.normalWS;
     output.viewDirWS = viewDirWS;
+#ifdef _NORMALMAP
+    real sign = input.tangentOS.w * GetOddNegativeScale();
+    output.tangentWS = half4(normalInput.tangentWS.xyz, sign);
 #endif
 
     OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
@@ -124,21 +126,6 @@ Varyings LitPassVertex(Attributes input)
     return output;
 }
 
-inline float4 EncodrIntToRGBA( int v ) {
-  int pos0 = 0xff & v;
-  int pos1 = 0xff & (v >> 8);
-  int pos2 = 0xff & (v >> 16);
-  int pos3 = 0xff & (v >> 24);
-  return float4(asfloat(pos3), asfloat(pos2), asfloat(pos1), asfloat(pos0));
-}
-
-inline float4 EncodeFloatRGBA( float v ) {
-  float4 enc = float4(1.0, 255.0, 65025.0, 16581375.0) * v;
-  enc = frac(enc);
-  enc -= enc.yzww * float4(1.0/255.0,1.0/255.0,1.0/255.0,0.0);
-  return enc;
-}
-
 // Used in Standard (Physically Based) shader
 float4 LitPassFragment(Varyings input) : SV_Target
 {
@@ -151,9 +138,10 @@ float4 LitPassFragment(Varyings input) : SV_Target
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
 
-    half4 color = UniversalFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
+    half4 color = UniversalFragmentPBR(inputData, surfaceData);
 
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
+    color.a = OutputAlpha(color.a);
 
     #ifdef RENDER_OBJECT_ID
     return asint(unity_LODFade.z);

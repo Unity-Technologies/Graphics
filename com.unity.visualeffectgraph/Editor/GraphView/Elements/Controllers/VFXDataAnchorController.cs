@@ -1,4 +1,3 @@
-#define _RESTRICT_ATTRIBUTE_ACCESS
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -67,6 +66,9 @@ namespace UnityEditor.VFX.UI
 
         public Type portType { get; set; }
 
+
+        IEnumerable<int> IPropertyRMProvider.filteredOutEnumerators { get { return null; } }
+
         public Type storageType
         {
             get
@@ -121,7 +123,7 @@ namespace UnityEditor.VFX.UI
             UpdateInfos();
             Profiler.EndSample();
 
-            sourceNode.DataEdgesMightHaveChanged();            
+            sourceNode.DataEdgesMightHaveChanged();
 
             Profiler.BeginSample("VFXDataAnchorController.NotifyChange");
             NotifyChange(AnyThing);
@@ -144,39 +146,8 @@ namespace UnityEditor.VFX.UI
             return model.HasLink();
         }
 
-#if _RESTRICT_ATTRIBUTE_ACCESS
-        static private bool DependOnAttribute(object model)
-        {
-            return model is VFXAttributeParameter || model is Operator.AgeOverLifetime;
-        }
-
-        static private HashSet<IVFXSlotContainer> CollectDescendantOfAttribute(IEnumerable<VFXNodeController> allSlotContainerControllers)
-        {
-            var operatorDependOnAttribute = new HashSet<IVFXSlotContainer>();
-            foreach (var attributeParameter in allSlotContainerControllers.Where(o => DependOnAttribute(o.model)))
-            {
-                VFXViewController.CollectDescendantOperator(attributeParameter.model as IVFXSlotContainer, operatorDependOnAttribute);
-            }
-            return operatorDependOnAttribute;
-        }
-
-        static private HashSet<IVFXSlotContainer> CollectAnscestorOfSpawner(IEnumerable<VFXNodeController> allSlotContainerControllers)
-        {
-            var operatorDependOnSpawner = new HashSet<IVFXSlotContainer>();
-            foreach (var block in allSlotContainerControllers.Where(o => o.model is VFXBlock && (o.model as VFXBlock).GetParent().contextType == VFXContextType.Spawner))
-            {
-                VFXViewController.CollectAncestorOperator(block.model as IVFXSlotContainer, operatorDependOnSpawner);
-            }
-            return operatorDependOnSpawner;
-        }
-
-#endif
         public class CanLinkCache
         {
-#if _RESTRICT_ATTRIBUTE_ACCESS
-            internal HashSet<IVFXSlotContainer> ancestorOfSpawners;
-            internal HashSet<IVFXSlotContainer> descendantOfAttribute;
-#endif
             internal HashSet<IVFXSlotContainer> localChildrenOperator = new HashSet<IVFXSlotContainer>();
             internal HashSet<IVFXSlotContainer> localParentOperator = new HashSet<IVFXSlotContainer>();
         }
@@ -196,32 +167,11 @@ namespace UnityEditor.VFX.UI
             if (direction != Direction.Input)
             {
                 VFXViewController.CollectAncestorOperator(sourceNode.slotContainer, cache.localParentOperator);
-#if _RESTRICT_ATTRIBUTE_ACCESS
-                if (cache.localParentOperator.Any(o => DependOnAttribute(o)))
-                {
-                    if (cache.ancestorOfSpawners == null)
-                        cache.ancestorOfSpawners = CollectAnscestorOfSpawner(viewController.AllSlotContainerControllers);
-                    var additionnalExcludeOperator = cache.ancestorOfSpawners;
-                    cache.localChildrenOperator.UnionWith(additionnalExcludeOperator);
-                }
-#endif
                 result = !cache.localParentOperator.Contains(nodeController.slotContainer);
             }
             else
             {
                 VFXViewController.CollectDescendantOperator(sourceNode.slotContainer, cache.localChildrenOperator);
-#if _RESTRICT_ATTRIBUTE_ACCESS
-
-                var contextTypeInChildren = cache.localChildrenOperator.OfType<VFXBlock>().Select(o => o.GetParent().contextType);
-                if (contextTypeInChildren.Any(o => o == VFXContextType.Spawner))
-                {
-                    if (cache.descendantOfAttribute == null)
-                        cache.descendantOfAttribute = CollectDescendantOfAttribute(viewController.AllSlotContainerControllers);
-
-                    var additionnalExcludeOperator = cache.descendantOfAttribute;
-                    return !cache.localParentOperator.Contains(sourceNode.slotContainer) && !additionnalExcludeOperator.Contains(nodeController.slotContainer);
-                }
-#endif
                 result = !cache.localChildrenOperator.Contains(nodeController.slotContainer);
             }
 
@@ -289,17 +239,12 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        VFXPropertyAttribute[] m_Attributes;
+        VFXPropertyAttributes m_Attributes;
 
         public virtual void UpdateInfos()
         {
-            bool sameAttributes = (m_Attributes == null && model.property.attributes == null) || (m_Attributes != null && model.property.attributes != null && Enumerable.SequenceEqual(m_Attributes, model.property.attributes));
-
-            if (model.property.type != portType || !sameAttributes)
-            {
-                portType = model.property.type;
-                m_Attributes = model.property.attributes;
-            }
+            portType = model.property.type;
+            m_Attributes = model.property.attributes;
         }
 
         public bool indeterminate
@@ -326,13 +271,13 @@ namespace UnityEditor.VFX.UI
                             Profiler.EndSample();
                             if (evaluatedValue != null)
                             {
-                                if( typeof(UnityObject).IsAssignableFrom(storageType))
+                                if (typeof(UnityObject).IsAssignableFrom(storageType))
                                 {
                                     int instanceID = (int)evaluatedValue;
-                                    return  VFXConverter.ConvertTo(EditorUtility.InstanceIDToObject(instanceID),storageType);
+                                    return VFXConverter.ConvertTo(EditorUtility.InstanceIDToObject(instanceID), storageType);
                                 }
                                 else
-                                return VFXConverter.ConvertTo(evaluatedValue, storageType);
+                                    return VFXConverter.ConvertTo(evaluatedValue, storageType);
                             }
                         }
                         catch (System.Exception e)
@@ -389,7 +334,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public VFXPropertyAttribute[] attributes
+        public VFXPropertyAttributes attributes
         {
             get { return m_Attributes; }
         }
@@ -763,8 +708,8 @@ namespace UnityEditor.VFX.UI
 
                 if (subSlot != null)
                 {
-                    object result = null ;
-                    if (subSlot.HasLink(true) && m_Controller.viewController.CanGetEvaluatedContent(subSlot) && ( result = m_Controller.viewController.GetEvaluatedContent(subSlot)) != null)
+                    object result = null;
+                    if (subSlot.HasLink(true) && m_Controller.viewController.CanGetEvaluatedContent(subSlot) && (result = m_Controller.viewController.GetEvaluatedContent(subSlot)) != null)
                     {
                         m_ValueBuilder.Add(o => o.Add(m_Controller.viewController.GetEvaluatedContent(subSlot)));
                     }

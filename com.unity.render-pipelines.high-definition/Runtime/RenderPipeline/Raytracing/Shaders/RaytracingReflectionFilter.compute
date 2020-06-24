@@ -10,7 +10,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/BSDF.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/PreIntegratedFGD/PreIntegratedFGD.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasing.hlsl"
 
 // Raytracing Includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/OnlineVariance.hlsl"
@@ -48,9 +47,6 @@ void REFLECTION_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchThreadID
     uint2 sourceCoord = targetCoord;
     #endif
 
-    // Compute the index of the noise texture to use
-    int noiseIndex = (int)(clamp((int)(_ScramblingTexture[sourceCoord].y * 32.0f), 0, 31));
-
     // Compute the subpixel index that matches this full screen pixel.
     int localIndex = (targetCoord.x & 1) + (targetCoord.y & 1) * 2;
 
@@ -74,28 +70,29 @@ void REFLECTION_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchThreadID
     if (depth == UNITY_RAW_FAR_CLIP_VALUE || perceptualSmoothness < _RaytracingReflectionMinSmoothness)
         return;
 
-    // Fetch the normal WS
-    float3 normalWS = normalData.normalWS;
-
     // Compute the world space position
     PositionInputs posInput = GetPositionInput(targetCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
     // Compute the view in world space
-    float3 viewWS = normalize(_WorldSpaceCameraPos - positionWS);
+    const float3 viewWS = normalize(-posInput.positionWS);
+
+    // Compute NdotV and clamp it
+   const  float NdotV = saturate(dot(viewWS, normalData.normalWS));
 
     // Compute the reflected direction for this view direction
-    float3 reflDir = reflect(-viewWS, normalWS);
+    float3 reflDir = reflect(-viewWS, normalData.normalWS);
 
     // Initialize the output pixels
     float4 resultSum = float4(0.0 ,0.0, 0.0, 0.0);
     uint sampleCount = 0;
 
-    float radiusSq = _SpatialFilterRadius * _SpatialFilterRadius;
+    // We want to avoid overblur for smoothsurfaces, so the upscale radius is lerped between the minimal value and the maximal value
+    const int upscaleRadius = lerp(2, _SpatialFilterRadius, normalData.perceptualRoughness);
+    const float radiusSq = upscaleRadius * upscaleRadius;
 
-    for(int y = -_SpatialFilterRadius; y < _SpatialFilterRadius; ++y)
+    for(int y = -upscaleRadius; y < upscaleRadius; ++y)
     {
-        for(int x = -_SpatialFilterRadius; x < _SpatialFilterRadius; ++x)
+        for(int x = -upscaleRadius; x < upscaleRadius; ++x)
         {
             float radiusDistanceSq = (y*y + x*x);
             if(radiusDistanceSq > radiusSq) continue;
@@ -133,7 +130,7 @@ void REFLECTION_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchThreadID
             if(sampleDepth == 0.0f) continue;
 
             // Compute the target pixel that it will impact
-            float sample = _BlueNoiseTexture[int3(relativeHRShift, noiseIndex)].x;
+            float sample = _BlueNoiseTexture[int3(relativeHRShift, 0)].x;
             int index = clamp(floor(sample * 4.0f), 0, 3);
 
             if (index != localIndex) continue;
@@ -143,7 +140,7 @@ void REFLECTION_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchThreadID
             float4 directionPDF = _SsrHitPointTexture[COORD_TEXTURE2D_X(sampleCoord)];
 
             // If this direction is under the candidate surface, then it is not valid
-            if(dot(directionPDF.xyz, normalWS) <= 0.0f) continue;
+            if(dot(directionPDF.xyz, normalData.normalWS) <= 0.0f) continue;
 
             // If this direction is not in the hemisphere of the reflected view direction, then it is not valid
             if(dot(directionPDF.xyz, reflDir) <= 0.0f) continue;
@@ -154,9 +151,8 @@ void REFLECTION_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchThreadID
             {
                 // Compute the brdf of this sample
                 float3 H = normalize(directionPDF.xyz + viewWS);
-                float NdotH = dot(normalWS, H);
-                float NdotL = dot(directionPDF.xyz, normalWS);
-                float NdotV = dot(viewWS, normalWS);
+                float NdotH = dot(normalData.normalWS, H);
+                float NdotL = dot(directionPDF.xyz, normalData.normalWS);
                 float localBRDF = D_GGX(NdotH, roughness) * V_SmithJointGGX(NdotL, NdotV, roughness) * NdotL;
                 weight = localBRDF * directionPDF.w;
             }

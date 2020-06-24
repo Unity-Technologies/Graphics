@@ -6,8 +6,8 @@ Shader "HDRP/LitTessellation"
         // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
 
         // Reminder. Color here are in linear but the UI (color picker) do the conversion sRGB to linear
-        _BaseColor("BaseColor", Color) = (1,1,1,1)
-        _BaseColorMap("BaseColorMap", 2D) = "white" {}
+        [MainColor] _BaseColor("BaseColor", Color) = (1,1,1,1)
+        [MainTexture] _BaseColorMap("BaseColorMap", 2D) = "white" {}
         [HideInInspector] _BaseColorMap_MipInfo("_BaseColorMap_MipInfo", Vector) = (0, 0, 0, 0)
 
         _Metallic("_Metallic", Range(0.0, 1.0)) = 0
@@ -152,11 +152,13 @@ Shader "HDRP/LitTessellation"
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
         [HideInInspector] _AlphaSrcBlend("__alphaSrc", Float) = 1.0
         [HideInInspector] _AlphaDstBlend("__alphaDst", Float) = 0.0
+        [HideInInspector][ToggleUI]_AlphaToMask("__alphaToMask", Float) = 0
         [HideInInspector][ToggleUI] _ZWrite("__zw", Float) = 1.0
         [HideInInspector][ToggleUI] _TransparentZWrite("_TransparentZWrite", Float) = 0.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
         [HideInInspector] _CullModeForward("__cullmodeForward", Float) = 2.0 // This mode is dedicated to Forward to correctly handle backface then front face rendering thin transparent
         [Enum(UnityEditor.Rendering.HighDefinition.TransparentCullMode)] _TransparentCullMode("_TransparentCullMode", Int) = 2 // Back culling by default
+        [Enum(UnityEditor.Rendering.HighDefinition.OpaqueCullMode)] _OpaqueCullMode("_OpaqueCullMode", Int) = 2 // Back culling by default
         [HideInInspector] _ZTestDepthEqualForOpaque("_ZTestDepthEqualForOpaque", Int) = 4 // Less equal
         [HideInInspector] _ZTestModeDistortion("_ZTestModeDistortion", Int) = 8
         [HideInInspector] _ZTestGBuffer("_ZTestGBuffer", Int) = 4
@@ -236,13 +238,14 @@ Shader "HDRP/LitTessellation"
     HLSLINCLUDE
 
     #pragma target 5.0
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
     //-------------------------------------------------------------------------------------
     // Variant
     //-------------------------------------------------------------------------------------
 
     #pragma shader_feature_local _ALPHATEST_ON
+    #pragma shader_feature_local _ALPHATOMASK_ON
     #pragma shader_feature_local _DEPTHOFFSET_ON
     #pragma shader_feature_local _DOUBLESIDED_ON
     #pragma shader_feature_local _ _TESSELLATION_DISPLACEMENT _PIXEL_DISPLACEMENT
@@ -502,6 +505,7 @@ Shader "HDRP/LitTessellation"
             Tags{ "LightMode" = "DepthOnly" }
 
             Cull[_CullMode]
+            AlphaToMask [_AlphaToMask]
 
             // To be able to tag stencil with disableSSR information for forward
             Stencil
@@ -556,6 +560,7 @@ Shader "HDRP/LitTessellation"
             }
 
             Cull[_CullMode]
+            AlphaToMask [_AlphaToMask]
 
             ZWrite On
 
@@ -660,6 +665,7 @@ Shader "HDRP/LitTessellation"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
+            #pragma multi_compile SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
 
@@ -726,6 +732,7 @@ Shader "HDRP/LitTessellation"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
+            #pragma multi_compile SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
 

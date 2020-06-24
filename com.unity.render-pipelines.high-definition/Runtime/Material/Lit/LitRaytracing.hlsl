@@ -1,4 +1,15 @@
 #ifdef HAS_LIGHTLOOP
+IndirectLighting EvaluateBSDF_RaytracedReflection(LightLoopContext lightLoopContext,
+                                                    BSDFData bsdfData,
+                                                    PreLightData preLightData,
+                                                    float3 reflection)
+{
+    IndirectLighting lighting;
+    ZERO_INITIALIZE(IndirectLighting, lighting);
+    lighting.specularReflected = reflection.rgb * preLightData.specularFGD;
+    return lighting;
+}
+
 IndirectLighting EvaluateBSDF_RaytracedRefraction(LightLoopContext lightLoopContext,
                                                     PreLightData preLightData,
                                                     float3 transmittedColor)
@@ -16,6 +27,23 @@ IndirectLighting EvaluateBSDF_RaytracedRefraction(LightLoopContext lightLoopCont
 
     return lighting;
 }
+
+float RecursiveRenderingReflectionPerceptualSmoothness(BSDFData bsdfData)
+{
+    return PerceptualRoughnessToPerceptualSmoothness(bsdfData.perceptualRoughness);
+}
+
+#if HAS_REFRACTION
+void OverrideRefractionData(SurfaceData surfaceData, float refractionDistance, float3 refractionPositionWS, inout BSDFData bsdfData, inout PreLightData preLightData)
+{
+    // This variable is only used for SSRefraction, we intentionally put an invalid value in it.
+    bsdfData.absorptionCoefficient = TransmittanceColorAtDistanceToAbsorption(surfaceData.transmittanceColor, refractionDistance);
+    preLightData.transparentRefractV = 0.0;
+    preLightData.transparentPositionWS = refractionPositionWS;
+    preLightData.transparentTransmittance = exp(-bsdfData.absorptionCoefficient * refractionDistance);
+}
+#endif
+
 #endif
 
 #if (SHADERPASS == SHADERPASS_RAYTRACING_GBUFFER)
@@ -35,12 +63,6 @@ void FitToStandardLit( SurfaceData surfaceData
     outStandardlit.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
     outStandardlit.coatMask = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) ? surfaceData.coatMask : 0.0;
     outStandardlit.emissiveAndBaked = builtinData.bakeDiffuseLighting * surfaceData.ambientOcclusion + builtinData.emissiveColor;
-#ifdef LIGHT_LAYERS
-    outStandardlit.renderingLayers = builtinData.renderingLayers;
-#endif
-#ifdef SHADOWS_SHADOWMASK
-    outStandardlit.shadowMasks = BUILTIN_DATA_SHADOW_MASK;
-#endif
     outStandardlit.isUnlit = 0;
 }
 #endif

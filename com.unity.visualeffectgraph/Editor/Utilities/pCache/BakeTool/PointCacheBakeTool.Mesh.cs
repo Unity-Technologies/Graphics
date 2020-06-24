@@ -55,7 +55,7 @@ namespace UnityEditor.Experimental.VFX.Utility
                 if (GUILayout.Button("Save to pCache file..."))
                 {
                     string fileName = EditorUtility.SaveFilePanelInProject("pCacheFile", m_Mesh.name, "pcache", "Save PCache");
-                    if (fileName != null)
+                    if (!string.IsNullOrEmpty(fileName))
                     {
                         try
                         {
@@ -65,7 +65,6 @@ namespace UnityEditor.Experimental.VFX.Utility
                             {
                                 EditorUtility.DisplayProgressBar("pCache bake tool", "Saving pCache file", 1.0f);
                                 file.SaveToFile(fileName, m_OutputFormat);
-                                AssetDatabase.ImportAsset(fileName, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
                             }
                         }
                         catch (System.Exception e)
@@ -328,7 +327,7 @@ namespace UnityEditor.Experimental.VFX.Utility
                         throw new InvalidOperationException("Cannot Find FindIndexOfArea");
 
                     if (m_accumulatedAreaTriangles[mid] >= area &&
-                        (mid == 0 || (m_accumulatedAreaTriangles[mid-1] < area)))
+                        (mid == 0 || (m_accumulatedAreaTriangles[mid - 1] < area)))
                     {
                         return mid;
                     }
