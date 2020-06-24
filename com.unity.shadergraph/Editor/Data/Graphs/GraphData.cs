@@ -319,7 +319,8 @@ namespace UnityEditor.ShaderGraph
         public DataValueEnumerable<Target> activeTargets => m_ActiveTargets.SelectValue();
 
         // TODO: Need a better way to handle this
-        public bool isVFXTarget => !isSubGraph && activeTargets.Count() > 0 && activeTargets.ElementAt(0).GetType() == typeof(VFXTarget);
+        public bool isVFXTarget => !isSubGraph && activeTargets.Any(o => o is VFXTarget);
+
         #endregion
 
         private Comparison<Target> targetComparison = new Comparison<Target>((a, b) => string.Compare(a.displayName, b.displayName));
