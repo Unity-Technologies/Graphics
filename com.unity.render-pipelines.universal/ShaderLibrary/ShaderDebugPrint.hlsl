@@ -40,7 +40,7 @@ static const uint ValueTypeHasTag = 128;
         if (index < MaxShaderDebugOutputElements) \
         { \
             shaderDebugOutputData[index++] = TYPE | HASTAG; \
-            if (HASTAG) shaderDebugOutputData[index++] = TAG[0] | (TAG[1] << 8) | (TAG[2] << 16) | (TAG[3] << 24); \
+            if (HASTAG) shaderDebugOutputData[index++] = TAG; \
             shaderDebugOutputData[index++] = VALUE; \
         } \
     } \
@@ -58,7 +58,7 @@ static const uint ValueTypeHasTag = 128;
         if (index < MaxShaderDebugOutputElements) \
         { \
             shaderDebugOutputData[index++] = TYPE | HASTAG; \
-            if (HASTAG) shaderDebugOutputData[index++] = TAG[0] | (TAG[1] << 8) | (TAG[2] << 16) | (TAG[3] << 24); \
+            if (HASTAG) shaderDebugOutputData[index++] = TAG; \
             shaderDebugOutputData[index++] = VALUE.x; \
             shaderDebugOutputData[index++] = VALUE.y; \
         } \
@@ -77,7 +77,7 @@ static const uint ValueTypeHasTag = 128;
         if (index < MaxShaderDebugOutputElements) \
         { \
             shaderDebugOutputData[index++] = TYPE | HASTAG; \
-            if (HASTAG) shaderDebugOutputData[index++] = TAG[0] | (TAG[1] << 8) | (TAG[2] << 16) | (TAG[3] << 24); \
+            if (HASTAG) shaderDebugOutputData[index++] = TAG; \
             shaderDebugOutputData[index++] = VALUE.x; \
             shaderDebugOutputData[index++] = VALUE.y; \
             shaderDebugOutputData[index++] = VALUE.z; \
@@ -97,7 +97,7 @@ static const uint ValueTypeHasTag = 128;
         if (index < MaxShaderDebugOutputElements) \
         { \
             shaderDebugOutputData[index++] = TYPE | HASTAG; \
-            if (HASTAG) shaderDebugOutputData[index++] = TAG[0] | (TAG[1] << 8) | (TAG[2] << 16) | (TAG[3] << 24); \
+            if (HASTAG) shaderDebugOutputData[index++] = TAG; \
             shaderDebugOutputData[index++] = VALUE.x; \
             shaderDebugOutputData[index++] = VALUE.y; \
             shaderDebugOutputData[index++] = VALUE.z; \
@@ -106,20 +106,25 @@ static const uint ValueTypeHasTag = 128;
     } \
 }
 
-static const uint ShaderDebugNoTag[4];
+static const uint ShaderDebugNoTag;
 
-void ShaderDebugPrint(uint tag[4], uint   value) PRINT1(ValueTypeUint,   value,         ValueTypeHasTag, tag);
-void ShaderDebugPrint(uint tag[4], int    value) PRINT1(ValueTypeInt,    asuint(value), ValueTypeHasTag, tag);
-void ShaderDebugPrint(uint tag[4], float  value) PRINT1(ValueTypeFloat,  asuint(value), ValueTypeHasTag, tag);
-void ShaderDebugPrint(uint tag[4], uint2  value) PRINT2(ValueTypeUint2,  value,         ValueTypeHasTag, tag)
-void ShaderDebugPrint(uint tag[4], int2   value) PRINT2(ValueTypeInt2,   asuint(value), ValueTypeHasTag, tag)
-void ShaderDebugPrint(uint tag[4], float2 value) PRINT2(ValueTypeFloat2, asuint(value), ValueTypeHasTag, tag)
-void ShaderDebugPrint(uint tag[4], uint3  value) PRINT3(ValueTypeUint3,  value,         ValueTypeHasTag, tag)
-void ShaderDebugPrint(uint tag[4], int3   value) PRINT3(ValueTypeInt3,   asuint(value), ValueTypeHasTag, tag)
-void ShaderDebugPrint(uint tag[4], float3 value) PRINT3(ValueTypeFloat3, asuint(value), ValueTypeHasTag, tag)
-void ShaderDebugPrint(uint tag[4], uint4  value) PRINT4(ValueTypeUint4,  value,         ValueTypeHasTag, tag)
-void ShaderDebugPrint(uint tag[4], int4   value) PRINT4(ValueTypeInt4,   asuint(value), ValueTypeHasTag, tag)
-void ShaderDebugPrint(uint tag[4], float4 value) PRINT4(ValueTypeFloat4, asuint(value), ValueTypeHasTag, tag)
+uint Tag(uint a, uint b, uint c, uint d)
+{
+    return a | (b << 8) | (c << 16) | (d << 24);
+}
+
+void ShaderDebugPrint(uint tag, uint   value) PRINT1(ValueTypeUint,   value,         ValueTypeHasTag, tag);
+void ShaderDebugPrint(uint tag, int    value) PRINT1(ValueTypeInt,    asuint(value), ValueTypeHasTag, tag);
+void ShaderDebugPrint(uint tag, float  value) PRINT1(ValueTypeFloat,  asuint(value), ValueTypeHasTag, tag);
+void ShaderDebugPrint(uint tag, uint2  value) PRINT2(ValueTypeUint2,  value,         ValueTypeHasTag, tag)
+void ShaderDebugPrint(uint tag, int2   value) PRINT2(ValueTypeInt2,   asuint(value), ValueTypeHasTag, tag)
+void ShaderDebugPrint(uint tag, float2 value) PRINT2(ValueTypeFloat2, asuint(value), ValueTypeHasTag, tag)
+void ShaderDebugPrint(uint tag, uint3  value) PRINT3(ValueTypeUint3,  value,         ValueTypeHasTag, tag)
+void ShaderDebugPrint(uint tag, int3   value) PRINT3(ValueTypeInt3,   asuint(value), ValueTypeHasTag, tag)
+void ShaderDebugPrint(uint tag, float3 value) PRINT3(ValueTypeFloat3, asuint(value), ValueTypeHasTag, tag)
+void ShaderDebugPrint(uint tag, uint4  value) PRINT4(ValueTypeUint4,  value,         ValueTypeHasTag, tag)
+void ShaderDebugPrint(uint tag, int4   value) PRINT4(ValueTypeInt4,   asuint(value), ValueTypeHasTag, tag)
+void ShaderDebugPrint(uint tag, float4 value) PRINT4(ValueTypeFloat4, asuint(value), ValueTypeHasTag, tag)
 void ShaderDebugPrint(uint   value) PRINT1(ValueTypeUint,   value,         0, ShaderDebugNoTag)
 void ShaderDebugPrint(int    value) PRINT1(ValueTypeInt,    asuint(value), 0, ShaderDebugNoTag)
 void ShaderDebugPrint(float  value) PRINT1(ValueTypeFloat,  asuint(value), 0, ShaderDebugNoTag)
@@ -150,18 +155,18 @@ void ShaderDebugPrint(float4 value) PRINT4(ValueTypeFloat4, asuint(value), 0, Sh
         ShaderDebugPrint(TAG, VALUE);             \
 }
 
-void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag[4], uint   value) PRINT_MOUSE_WITH_TAG(value, tag);
-void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag[4], int    value) PRINT_MOUSE_WITH_TAG(value, tag);
-void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag[4], float  value) PRINT_MOUSE_WITH_TAG(value, tag);
-void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag[4], uint2  value) PRINT_MOUSE_WITH_TAG(value, tag);
-void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag[4], int2   value) PRINT_MOUSE_WITH_TAG(value, tag);
-void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag[4], float2 value) PRINT_MOUSE_WITH_TAG(value, tag);
-void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag[4], uint3  value) PRINT_MOUSE_WITH_TAG(value, tag);
-void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag[4], int3   value) PRINT_MOUSE_WITH_TAG(value, tag);
-void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag[4], float3 value) PRINT_MOUSE_WITH_TAG(value, tag);
-void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag[4], uint4  value) PRINT_MOUSE_WITH_TAG(value, tag);
-void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag[4], int4   value) PRINT_MOUSE_WITH_TAG(value, tag);
-void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag[4], float4 value) PRINT_MOUSE_WITH_TAG(value, tag);
+void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag, uint   value) PRINT_MOUSE_WITH_TAG(value, tag);
+void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag, int    value) PRINT_MOUSE_WITH_TAG(value, tag);
+void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag, float  value) PRINT_MOUSE_WITH_TAG(value, tag);
+void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag, uint2  value) PRINT_MOUSE_WITH_TAG(value, tag);
+void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag, int2   value) PRINT_MOUSE_WITH_TAG(value, tag);
+void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag, float2 value) PRINT_MOUSE_WITH_TAG(value, tag);
+void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag, uint3  value) PRINT_MOUSE_WITH_TAG(value, tag);
+void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag, int3   value) PRINT_MOUSE_WITH_TAG(value, tag);
+void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag, float3 value) PRINT_MOUSE_WITH_TAG(value, tag);
+void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag, uint4  value) PRINT_MOUSE_WITH_TAG(value, tag);
+void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag, int4   value) PRINT_MOUSE_WITH_TAG(value, tag);
+void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag, float4 value) PRINT_MOUSE_WITH_TAG(value, tag);
 void ShaderDebugPrintMouseOver(int2 pixelPos, uint   value) PRINT_MOUSE(value);
 void ShaderDebugPrintMouseOver(int2 pixelPos, int    value) PRINT_MOUSE(value);
 void ShaderDebugPrintMouseOver(int2 pixelPos, float  value) PRINT_MOUSE(value);
