@@ -317,7 +317,7 @@ namespace UnityEngine.Rendering.HighDefinition
             indirectDiffuseDenoiser.DenoiseBuffer(cmd, hdCamera, indirectDiffuseBuffer, directionBuffer,
                             indirectDiffuseHistoryHF0, indirectDiffuseHistoryLF0, indirectDiffuseHistoryHF1, indirectDiffuseHistoryLF1,
                             m_IndirectDiffuseBuffer1,
-                            historyValidity, settings.denoiserRadius, settings.secondDenoiserRadius);
+                            historyValidity, settings.denoiserRadius, settings.secondDenoiserRadius, m_FrameCount);
             HDUtils.BlitCameraTexture(cmd, m_IndirectDiffuseBuffer1, indirectDiffuseBuffer);
 
             /*

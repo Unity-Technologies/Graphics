@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle historySignal0_0,  RTHandle historySignal1_0,
             RTHandle historySignal0_1, RTHandle historySignal1_1,
             RTHandle outputSignal, 
-            float historyValidity, float kernelSize, float kernelSize2)
+            float historyValidity, float kernelSize, float kernelSize2, int frameCount)
         {
             // If we do not have a depth and normal history buffers, we can skip right away
             var historyDepthBuffer = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth);
@@ -61,6 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Request the intermediate buffer we need
             RTHandle validationBuffer = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.R0);
+            RTHandle varianceBuffer = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.R1);
             RTHandle outputBuffer0 = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
             RTHandle outputBuffer1 = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.RGBA1);
             RTHandle outputBuffer2 = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.RGBA2);
@@ -98,10 +99,19 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._ValidationBuffer, validationBuffer);
             cmd.DispatchCompute(m_IndirectDiffuseDenoiseCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
 
+            // Evaluate the variance
+            m_KernelFilter = m_IndirectDiffuseDenoiseCS.FindKernel("ComputeVariance");
+            cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture0, outputBuffer2);
+            cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
+            cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
+            cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTexture0RW, varianceBuffer);
+            cmd.DispatchCompute(m_IndirectDiffuseDenoiseCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
+
             // Make sure to copy the new-accumulated signal in our history buffer
             m_KernelFilter = m_IndirectDiffuseDenoiseCS.FindKernel("CopyHistory");
             cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture0, outputBuffer2);
             cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture1, outputBuffer3);
+            cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture2, varianceBuffer);
             cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTexture0RW, historySignal0_0);
             cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTexture1RW, historySignal1_0);
             cmd.DispatchCompute(m_IndirectDiffuseDenoiseCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
@@ -109,8 +119,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_KernelFilter = m_IndirectDiffuseDenoiseCS.FindKernel("BilateralFilterNoNormal");
             cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledRGTexture, m_OwenScrambleRGBA);
             cmd.SetComputeFloatParam(m_IndirectDiffuseDenoiseCS, HDShaderIDs._DenoiserFilterRadius, kernelSize);
+            cmd.SetComputeIntParam(m_IndirectDiffuseDenoiseCS, "_FrameOffset", frameCount % 4);
             cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture0, outputBuffer2);
             cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture1, outputBuffer3);
+            cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture2, varianceBuffer);
             cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
             cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
             cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTexture0RW, outputBuffer0);
@@ -130,10 +142,19 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._ValidationBuffer, validationBuffer);
             cmd.DispatchCompute(m_IndirectDiffuseDenoiseCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
 
+            // Evaluate the variance
+            m_KernelFilter = m_IndirectDiffuseDenoiseCS.FindKernel("ComputeVariance");
+            cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture0, outputBuffer2);
+            cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
+            cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
+            cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTexture0RW, varianceBuffer);
+            cmd.DispatchCompute(m_IndirectDiffuseDenoiseCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
+
             // Make sure to copy the new-accumulated signal in our history buffer
             m_KernelFilter = m_IndirectDiffuseDenoiseCS.FindKernel("CopyHistory");
             cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture0, outputBuffer2);
             cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture1, outputBuffer3);
+            cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture2, varianceBuffer);
             cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTexture0RW, historySignal0_1);
             cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTexture1RW, historySignal1_1);
             cmd.DispatchCompute(m_IndirectDiffuseDenoiseCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
@@ -141,8 +162,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_KernelFilter = m_IndirectDiffuseDenoiseCS.FindKernel("BilateralFilter");
             cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledRGTexture, m_OwenScrambleRGBA);
             cmd.SetComputeFloatParam(m_IndirectDiffuseDenoiseCS, HDShaderIDs._DenoiserFilterRadius, kernelSize2);
+            cmd.SetComputeIntParam(m_IndirectDiffuseDenoiseCS, "_FrameOffset", frameCount % 4);
             cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture0, outputBuffer2);
             cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture1, outputBuffer3);
+            cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture2, varianceBuffer);
             cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
             cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
             cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTexture0RW, outputBuffer0);
@@ -157,6 +180,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
             cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTexture0RW, outputSignal);
             cmd.DispatchCompute(m_IndirectDiffuseDenoiseCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
+
+            (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(hdCamera, cmd, varianceBuffer, FullScreenDebugMode.TransparentScreenSpaceReflections);
         }
     }
 }

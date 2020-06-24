@@ -2,6 +2,7 @@
 #pragma kernel ConvertYCoCgToRGB
 #pragma kernel ValidateHistory
 #pragma kernel TemporalAccumulation
+#pragma kernel ComputeVariance
 #pragma kernel CopyHistory
 #pragma kernel BilateralFilterNoNormal BILATERAL_FILTER=BilateralFilterNoNormal IGNORE_NORMAL
 #pragma kernel BilateralFilter BILATERAL_FILTER=BilateralFilter
@@ -19,6 +20,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Denoising/BilateralFilter.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/OnlineVariance.hlsl"
 
 #pragma only_renderers d3d11
 // #pragma enable_d3d11_debug_symbols
@@ -38,6 +40,8 @@ float _PixelSpreadAngleTangent;
 float _HistoryValidity;
 // Radius of the filter (world space)
 float _DenoiserFilterRadius;
+
+int _FrameOffset;
 
 // The maximal world space distance for temporal reprojection
 #define MAX_WORLD_SPACE_DISTANCE 0.75
@@ -135,6 +139,7 @@ TEXTURE2D_X(_HistoryBuffer1);
 // Noisy Input Buffer from the current rame
 TEXTURE2D_X(_DenoiseInputTexture0);
 TEXTURE2D_X(_DenoiseInputTexture1);
+TEXTURE2D_X(_DenoiseInputTexture2);
 // Generic output buffer for our kernels
 RW_TEXTURE2D_ARRAY(float4, _DenoiseOutputTexture0RW);
 RW_TEXTURE2D_ARRAY(float4, _DenoiseOutputTexture1RW);
@@ -209,6 +214,22 @@ void ConvertYCoCgToRGBUtil(float4 inYSH, float2 inCoCg, float3 inNormal, out flo
     outColor = max(outColor, 0.0);
 }
 
+void EvaluateLuminance(float4 inYSH, float3 inNormal, out float outLuminance)
+{
+    // Compute the coeffs required for the projection
+    float Y00     = 0.282095;
+    float Y11     = 0.488603 * inNormal.x;
+    float Y10     = 0.488603 * inNormal.z;
+    float Y1_1    = 0.488603 * inNormal.y;
+
+    // Compute the Y value
+    outLuminance = 3.141593 * Y00 * inYSH.x
+                + 2.094395 * Y1_1 * inYSH.w
+                + 2.094395 * Y10 * inYSH.z
+                + 2.094395 * Y11 * inYSH.y;
+}
+
+
 [numthreads(TEMPORAL_FILTER_TILE_SIZE, TEMPORAL_FILTER_TILE_SIZE, 1)]
 void ConvertYCoCgToRGB(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
@@ -234,8 +255,49 @@ void ConvertYCoCgToRGB(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 group
     float2 cocg = LOAD_TEXTURE2D_X(_DenoiseInputTexture1, centerCoord).xy;
     ConvertYCoCgToRGBUtil(ySH, cocg, normalData.normalWS, color);
 
+    color = max(color, 0);
     // Store our accumulated value
     _DenoiseOutputTexture0RW[COORD_TEXTURE2D_X(centerCoord)] = float4(color, 1.0);
+}
+
+[numthreads(TEMPORAL_FILTER_TILE_SIZE, TEMPORAL_FILTER_TILE_SIZE, 1)]
+void ComputeVariance(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Fetch the current pixel coordinate
+    int2 centerCoord = (int2)groupId * TEMPORAL_FILTER_TILE_SIZE + groupThreadId;
+
+    // If the depth of this pixel is the depth of the background, we can end the process right away
+    float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
+    if (depth == UNITY_RAW_FAR_CLIP_VALUE)
+    {
+        _DenoiseOutputTexture0RW[COORD_TEXTURE2D_X(centerCoord)] = 0.0;
+        return;
+    }
+
+    // Loop in the neighborhood
+    VarianceEstimator varianceEstimator;
+    InitializeVarianceEstimator(varianceEstimator);
+    for (int y = -1; y <= 1; ++y)
+    {
+        for (int x = -1; x <= 1; ++x)
+        {
+            int2 tapCoord = centerCoord + int2(x, y);
+            NormalData normalData;
+            DecodeFromNormalBuffer(tapCoord, normalData);
+
+            // Convert the color we got
+            float luminance = 0.0;
+            float4 ySH = LOAD_TEXTURE2D_X(_DenoiseInputTexture0, tapCoord);
+            EvaluateLuminance(ySH, normalData.normalWS, luminance);
+            PushValue(varianceEstimator, luminance);
+        }
+    }
+
+    // Store our accumulated value
+    float variance = Variance(varianceEstimator);
+    _DenoiseOutputTexture0RW[COORD_TEXTURE2D_X(centerCoord)] = saturate(variance * 100.0f);
 }
 
 [numthreads(TEMPORAL_FILTER_TILE_SIZE, TEMPORAL_FILTER_TILE_SIZE, 1)]
@@ -303,7 +365,7 @@ void CopyHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
         return;  // Out of bounds, discard
 
     _DenoiseOutputTexture0RW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = LOAD_TEXTURE2D_X(_DenoiseInputTexture0, dispatchThreadId.xy);
-    _DenoiseOutputTexture1RW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = LOAD_TEXTURE2D_X(_DenoiseInputTexture1, dispatchThreadId.xy);
+    _DenoiseOutputTexture1RW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(LOAD_TEXTURE2D_X(_DenoiseInputTexture1, dispatchThreadId.xy).xyz, LOAD_TEXTURE2D_X(_DenoiseInputTexture2, dispatchThreadId.xy).x);
 }
 
 [numthreads(TEMPORAL_FILTER_TILE_SIZE, TEMPORAL_FILTER_TILE_SIZE, 1)]
@@ -324,6 +386,8 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
         _DenoiseOutputTexture1RW[COORD_TEXTURE2D_X(centerCoord)] = float4(0.0, 0.0, 0.0, 1.0);
     }
 
+    float centerVariance = LOAD_TEXTURE2D_X(_DenoiseInputTexture2, centerCoord).x;
+
     // Create the local ortho basis for our sampling
     float3x3 localToWorld = GetLocalFrame(center.normal);
 
@@ -333,7 +397,7 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     float wSum = 0.0;
 
     // Define the sample count for this pixel. 16 samples per pixels if it is a full res or 4 if half resolution
-    int numSamples = 48;
+    int numSamples = 16;
 
     // Compute the radius of the filter. This is evaluated as the max between a fixed radius value and an approximation of the footprint of the pixel
     const float parallelPixelFootPrint = _PixelSpreadAngleTangent * length(center.position);
@@ -342,7 +406,7 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     const float denoisingRadius = max(_DenoiserFilterRadius, realPixelFootPrint * PIXEL_RADIUS_TOLERANCE_THRESHOLD);
 
     // Compute the sigma value
-    const float sigma = 0.5 * denoisingRadius;
+    const float sigma = 0.75 * denoisingRadius;
 
     // Index of the pixel in the 2x2 group that are used for the half res filter
     int localIndex = (centerCoord.x & 1) + (centerCoord.y & 1) * 2;
@@ -352,8 +416,8 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     {
         // Fetch the noise value for the current sample
         float2 newSample;
-        newSample.x = GetLDSequenceSampleFloat(sampleIndex, 0);
-        newSample.y = GetLDSequenceSampleFloat(sampleIndex, 1);
+        newSample.x = GetLDSequenceSampleFloat(sampleIndex + _FrameOffset * 16, 0);
+        newSample.y = GetLDSequenceSampleFloat(sampleIndex + _FrameOffset * 16, 1);
         
         // Convert the sample to a local unit disk
         newSample = SampleDiskUniform(newSample.x * newSample.x, newSample.y);
