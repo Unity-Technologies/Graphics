@@ -524,6 +524,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DenoiseInputTexture             = Shader.PropertyToID("_DenoiseInputTexture");
         public static readonly int _DenoiseInputTexture0            = Shader.PropertyToID("_DenoiseInputTexture0");
         public static readonly int _DenoiseInputTexture1            = Shader.PropertyToID("_DenoiseInputTexture1");
+        public static readonly int _DenoiseInputTexture2            = Shader.PropertyToID("_DenoiseInputTexture2");
         public static readonly int _DenoiseOutputTextureRW          = Shader.PropertyToID("_DenoiseOutputTextureRW");
         public static readonly int _DenoiseOutputTexture0RW         = Shader.PropertyToID("_DenoiseOutputTexture0RW");
         public static readonly int _DenoiseOutputTexture1RW         = Shader.PropertyToID("_DenoiseOutputTexture1RW");
