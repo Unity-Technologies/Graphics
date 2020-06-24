@@ -83,7 +83,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     || cameraData.isSceneViewCamera
                     || !cameraData.isDefaultViewport
                     || !m_UseDepthStencilBuffer
-                    || !cameraData.resolveFinalTarget;
+                    || !cameraData.resolveFinalTarget
+                    || !Mathf.Approximately(cameraData.renderScale, 1.0f);
 
                 m_CreateDepthTexture = !cameraData.resolveFinalTarget && m_UseDepthStencilBuffer;
 

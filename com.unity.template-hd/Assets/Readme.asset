@@ -24,12 +24,26 @@ MonoBehaviour:
     linkText: 
     url: 
   - heading: 
+    text: 'The example content in this template showcases an environment with three distinct rooms with specific lighting conditions:'
+  - heading:
+    text: '    <b>The first room</b> includes directional sunlight that uses real-world values, and has examples of decal projectors used to bring more believability to the environment.'
+    linkText: 
+    url: 
+  - heading:
+    text: '    <b>The second room</b> is an interior room lit by the same directional light coming in through a sunroof. It has examples of artificial lighting using real-world values, and demonstrates how physical light values contribute to lighting the scene. Also included are material examples of metal, glass, stone, and foliage.'
+    linkText: 
+    url: 
+  - heading:
+    text: '    <b>The last room</b> is an interior room lit entirely with artificial lighting. It showcases the same physical values used for the artificial lights, and the effects exposure has on lighting. Also in this room are examples of emission materials and light cookies.'
+    linkText: 
+    url: 	
+  - heading: 
     text: This project uses the <b>Package Manager</b> to bring you the latest features
       Unity has to offer. Open the Package Manager from <b>Windows > Package Manager</b>
       and make sure you're using the most recent version of HDRP. To update packages, select your desired package from the list on the
       left, and click the Update to button in the bottom right corner.
     linkText: 
-    url: 	
+    url: 
   - heading: Documentation
     text: 'To read more about HDRP please see the <b>HDRP documentation</b> :'
     linkText: High Definition Render Pipeline

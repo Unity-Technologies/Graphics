@@ -1,4 +1,6 @@
 PropertyRow EnumField,
+PropertyRow PopupField,
+PropertyRow TextField,
 PropertyRow Label,
 PropertyRow Toggle,
 PropertyRow IntegerField,
@@ -17,6 +19,8 @@ PropertyRow > #container{
 }
 
 PropertyRow > #container > #label {
+    flex-grow: 5;
+    min-width: 92px;
     width: 92px;
     font-size: 12px;
     margin-right: 4px;

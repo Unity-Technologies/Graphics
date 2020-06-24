@@ -17,8 +17,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 enableMSAA = msaa,
                 clearBuffer = NeedClearGBuffer(),
                 clearColor = Color.clear,
-                name = string.Format("SSSBuffer{0}", msaa ? "MSAA" : "" ) }
-            );
+                name = msaa ? "SSSBufferMSAA" : "SSSBuffer"
+            });
         }
 
         class SubsurfaceScaterringPassData
@@ -30,6 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthTexture;
             public TextureHandle cameraFilteringBuffer;
             public TextureHandle sssBuffer;
+            public ComputeBufferHandle coarseStencilBuffer;
         }
 
         void RenderSubsurfaceScattering(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer,
@@ -51,6 +52,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthStencilBuffer = builder.ReadTexture(depthStencilBuffer);
                 passData.depthTexture = builder.ReadTexture(depthTexture);
                 passData.sssBuffer = builder.ReadTexture(lightingBuffers.sssBuffer);
+                passData.coarseStencilBuffer = builder.ReadComputeBuffer(prepassOutput.coarseStencilBuffer);
                 if (passData.parameters.needTemporaryBuffer)
                 {
                     passData.cameraFilteringBuffer = builder.CreateTransientTexture(
@@ -68,7 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     resources.depthTexture = context.resources.GetTexture(data.depthTexture);
                     resources.cameraFilteringBuffer = context.resources.GetTexture(data.cameraFilteringBuffer);
                     resources.sssBuffer = context.resources.GetTexture(data.sssBuffer);
-                    resources.coarseStencilBuffer = data.parameters.coarseStencilBuffer;
+                    resources.coarseStencilBuffer = context.resources.GetComputeBuffer(data.coarseStencilBuffer);
 
                     RenderSubsurfaceScattering(data.parameters, resources, context.cmd);
                 });

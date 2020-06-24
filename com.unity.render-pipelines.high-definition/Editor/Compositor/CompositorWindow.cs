@@ -22,24 +22,29 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
         CompositionManagerEditor m_Editor;
         Vector2 m_ScrollPosition = Vector2.zero;
         bool m_RequiresRedraw = false;
+        float m_TimeSinceLastRepaint = 0;
 
-        [MenuItem("Window/Render Pipeline/HD Render Pipeline Compositor", false, 10400)]
+        [MenuItem("Window/Render Pipeline/Graphics Compositor", false, 10400)]
         static void Init()
         {
             // Get existing open window or if none, make a new one:
             s_Window = (CompositorWindow)EditorWindow.GetWindow(typeof(CompositorWindow));
-            s_Window.titleContent = new GUIContent("HDRP Compositor (Preview)");
+            s_Window.titleContent = new GUIContent("Graphics Compositor (Preview)");
             s_Window.Show();
         }
 
         void Update()
         {
-            // This ensures that layer thumbnails are updated every frame (for video layers)
-            Repaint();
+            m_TimeSinceLastRepaint += Time.deltaTime;
+
+            // This ensures that layer thumbnails are updated at least 4 times per second (redrawing the UI on every frame is too CPU intensive)
+            if (m_TimeSinceLastRepaint > 0.25f)
+                Repaint();
         }
 
         void OnGUI()
         {
+            m_TimeSinceLastRepaint = 0;
             CompositionManager compositor = CompositionManager.GetInstance();
             bool enableCompositor = false;
             if (compositor)
