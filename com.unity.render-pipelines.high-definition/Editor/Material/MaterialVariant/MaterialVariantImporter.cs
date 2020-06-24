@@ -75,6 +75,9 @@ namespace Unity.Assets.MaterialVariant.Editor
                     // Apply local modification
                     MaterialPropertyModification.ApplyPropertyModificationsToMaterial(material, matVariant.overrides);
 
+                    // Keep trace of variant in order to register any override.
+                    matVariant.hideFlags = HideFlags.HideInHierarchy | HideFlags.DontSaveInBuild | HideFlags.HideInInspector;
+                    ctx.AddObjectToAsset("Variant", matVariant);
                     ctx.AddObjectToAsset("Material", material);
                     ctx.SetMainObject(material);
                 }

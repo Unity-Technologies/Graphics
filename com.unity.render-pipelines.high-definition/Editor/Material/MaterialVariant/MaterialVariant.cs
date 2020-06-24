@@ -11,7 +11,7 @@ namespace Unity.Assets.MaterialVariant.Editor
     {
         public string rootGUID;
 
-        public List<MaterialPropertyModification> overrides;
+        public List<MaterialPropertyModification> overrides = new List<MaterialPropertyModification>();
         
         public void TrimPreviousOverridesAndAdd(IEnumerable<MaterialPropertyModification> modifications)
         {
@@ -46,55 +46,6 @@ namespace Unity.Assets.MaterialVariant.Editor
                 InternalEditorUtility.SaveToSerializedFileAndForget(new[] { matVariant }, targetPath, true);
                 AssetDatabase.ImportAsset(targetPath);
             }
-        }
-        
-        /// <summary>
-        /// Try to find an attached MaterialVariant for the given target
-        /// Could work on Material and shadergraph
-        /// Return null if nothing found
-        /// </summary>
-        public static MaterialVariant[] FindMaterialVariants(MaterialEditor materialEditor)
-        {
-            int targetCount = materialEditor.targets.Length;
-            MaterialVariant[] result = new MaterialVariant [targetCount];
-
-            bool atLeastOne = false;
-
-            for(int i = 0; i < targetCount; ++i)
-            {
-                Object target = materialEditor.targets[i];
-                var rootMaterial = target as Material;
-                var rootShader = target as Shader;
-
-                if (EditorUtility.IsPersistent(target) && (rootMaterial || rootShader))
-                {
-                    if (rootShader)
-                    {
-                        var path = AssetDatabase.GetAssetPath(rootShader);
-                        var importer = AssetImporter.GetAtPath(path);
-
-                        if (importer is ShaderGraphImporter)
-                        {
-                            result[i] = AssetDatabase.LoadAssetAtPath<MaterialVariant>(importer.assetPath);
-                            atLeastOne = true;
-                        }
-                    }
-
-                    if (rootMaterial)
-                    {
-                        var path = AssetDatabase.GetAssetPath(rootMaterial);
-                        var importer = AssetImporter.GetAtPath(path);
-
-                        if (importer is MaterialVariantImporter)
-                        {
-                            result[i] = AssetDatabase.LoadAssetAtPath<MaterialVariant>(importer.assetPath);
-                            atLeastOne = true;
-                        }
-                    }
-                }
-            }
-
-            return atLeastOne ? result : null;
         }
         
         private const string MENU_ITEM_PATH = "Assets/Create/Variants/Material Variant";
