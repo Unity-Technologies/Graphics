@@ -6,6 +6,7 @@
 #endif
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/CapsuleOcclusionSystem.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/EllipsoidOccluder.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/CapsuleOcclusionShaderUtils.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/CapsuleOcclusionShaderUtils.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/SphericalGaussian.hlsl"
@@ -63,8 +64,8 @@ float4 GetDataForSphereIntersection(EllipsoidOccluderData data)
 {
     // TODO : Fill with transformations needed so the rest of the code deals with simple spheres.
     // xyz should be un-normalized direction, w should contain the length.
-    float3 dir = 0;
-    float len = 0;
+    float3 dir = data.directionWS_influence.xyz;
+    float len = data.directionWS_influence.w;
     return float4(dir.x, dir.y, dir.z, len);
 }
 
@@ -93,6 +94,21 @@ float ApplyInfluenceFalloff(float occlusion, float influenceFalloff)
 // and a dirAndLength containing the data output by the function GetDataForSphereIntersection()
 
 float EvaluateCapsuleAmbientOcclusion(EllipsoidOccluderData data, float3 positionWS, float3 N, float4 dirAndLength)
+{
+    float3 dir = GetOccluderDirectionWS(data);
+    float proj = dot(positionWS, dir);
+    float3 positionCS = positionWS - (proj * dir) + proj * dir / GetOccluderScaling(data);
+    proj = dot(GetOccluderPositionRWS(data), dir);
+    float3 centerCS = GetOccluderPositionRWS(data) - (proj * dir) + proj * dir / GetOccluderScaling(data);
+
+    // TODO: should also transform the normal
+    // IMPORTANT: Remember to modify by intensity modifier here and not after.
+    return IQSphereAO(positionCS, N, centerCS, GetOccluderRadius(data));
+}
+
+// I stubbed out this version as a reference for myself while the work was being done by others. Keeping here as a reference in case we need it,
+// but leaving the above version as the standard so that I do not interfere with others work.
+float EvaluateCapsuleAmbientOcclusionNick(EllipsoidOccluderData data, float3 positionWS, float3 N, float4 dirAndLength)
 {
     // TODO: Can combine distance falloff math with IQSphereAO math.
     float3 occluderFromSurfaceDirectionWS;
@@ -401,6 +417,7 @@ float EvaluateCapsuleShadow(EllipsoidOccluderData data, float3 positionWS, float
 
 float AccumulateCapsuleAmbientOcclusion(float prevAO, float capsuleAO)
 {
+    return max(prevAO, capsuleAO);
     return min(prevAO, capsuleAO);
 }
 
