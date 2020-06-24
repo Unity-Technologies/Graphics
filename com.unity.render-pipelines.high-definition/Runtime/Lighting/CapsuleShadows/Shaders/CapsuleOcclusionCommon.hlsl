@@ -62,8 +62,8 @@ float4 GetDataForSphereIntersection(EllipsoidOccluderData data)
 {
     // TODO : Fill with transformations needed so the rest of the code deals with simple spheres.
     // xyz should be un-normalized direction, w should contain the length.
-    float3 dir = 0;
-    float len = 0;
+    float3 dir = data.directionWS_influence.xyz;
+    float len = data.directionWS_influence.w;
     return float4(dir.x, dir.y, dir.z, len);
 }
 

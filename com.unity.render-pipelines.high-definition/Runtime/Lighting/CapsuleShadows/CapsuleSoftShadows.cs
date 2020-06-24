@@ -10,5 +10,11 @@ namespace UnityEngine.Rendering.HighDefinition
     internal class CapsuleSoftShadows : VolumeComponent
     {
         public BoolParameter enabled = new BoolParameter(false);
+        
+        internal static bool IsCapsuleSoftShadowsEnabled(HDCamera hdCamera)
+        {
+            var capsuleSoftShadows = hdCamera.volumeStack.GetComponent<CapsuleSoftShadows>();
+            return capsuleSoftShadows.enabled.value;
+        }
     }
-} 
+}
