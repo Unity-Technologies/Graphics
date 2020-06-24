@@ -13,21 +13,22 @@ renormalize()
   echo "Renormalizing files if needed (git add --renormalize)."
   for dir in ./*
   do
-    if [[ $dir =~ $monitored_folders_regex ]]
+  	# match=`find $dir -regex $monitored_folders_regex -type d`
+	match=`echo $dir | grep -E $monitored_folders_regex | wc -l`
+    if [ "$match" = 0 ];
     then
 
       # Retrieve files that changed since last commit
       git diff --quiet HEAD -- $dir
       has_changed=$?
-      if [[ $has_changed == 0 ]]
+      if [ "$has_changed" -eq 0 ];
       then
         continue
       fi
 
       # Renormalize files that changed and that we monitor
       git add $dir --renormalize
-      result=$?
-      if [[ $result != 0 ]]
+      if [ "$?" -ne 0 ]
       then
         echo "Could not renormalize $dir's content."
         exit 1
