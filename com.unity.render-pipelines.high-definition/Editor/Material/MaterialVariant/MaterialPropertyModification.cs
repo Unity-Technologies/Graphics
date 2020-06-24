@@ -12,7 +12,7 @@ namespace Unity.Assets.MaterialVariant.Editor
     [System.Serializable]
     public sealed class MaterialPropertyModification
     {
-        [Serializable] enum SerializedType
+        enum SerializedType
         {
             Scalar,
             Vector, // will be decomposed as r g b a scalars
@@ -20,51 +20,49 @@ namespace Unity.Assets.MaterialVariant.Editor
         }
 
         // Property path of the property being modified (Matches as SerializedProperty.propertyPath)
-        [SerializeField] internal string propertyPath;
+        [SerializeField] string m_PropertyPath;
         // The value being applied
-        [SerializeField] float value;
+        [SerializeField] float m_Value;
         // The value being applied when it is a object reference (which can not be represented as a string)
-        [SerializeField] public Object objectReference;
+        [SerializeField] Object m_ObjectReference;
 
-        private MaterialPropertyModification() { }
+        internal string propertyPath => m_PropertyPath;
 
-        public static System.Collections.Generic.IEnumerable<MaterialPropertyModification> CreateMaterialPropertyModifications(SerializedProperty property)
+        private MaterialPropertyModification(string propertyPath, float value, Object objectReference)
+        {
+            m_PropertyPath = propertyPath;
+            m_Value = value;
+            m_ObjectReference = objectReference;
+        }
+
+        public static System.Collections.Generic.IEnumerable<MaterialPropertyModification> CreateMaterialPropertyModifications(MaterialProperty property)
         {
             SerializedType type = ResolveType(property);
             switch (type)
             {
                 case SerializedType.Scalar:
-                    return new[] { CreateOneMaterialPropertyModification(property) };
+                    return new[] { new MaterialPropertyModification(property.name, property.floatValue, null) };
                 case SerializedType.Vector:
                     return new[]
                     {
-                        CreateOneMaterialPropertyModification(property.FindPropertyRelative("r")),
-                        CreateOneMaterialPropertyModification(property.FindPropertyRelative("g")),
-                        CreateOneMaterialPropertyModification(property.FindPropertyRelative("b")),
-                        CreateOneMaterialPropertyModification(property.FindPropertyRelative("a"))
+                        new MaterialPropertyModification(property.name + ".r", property.vectorValue.x, null),
+                        new MaterialPropertyModification(property.name + ".g", property.vectorValue.y, null),
+                        new MaterialPropertyModification(property.name + ".b", property.vectorValue.z, null),
+                        new MaterialPropertyModification(property.name + ".a", property.vectorValue.w, null)
                     };
                 case SerializedType.Texture:
                     return new[]
                     {
-                        CreateOneMaterialPropertyModification(property.FindPropertyRelative("m_Texture")),
-                        CreateOneMaterialPropertyModification(property.FindPropertyRelative("m_Scale.x")),
-                        CreateOneMaterialPropertyModification(property.FindPropertyRelative("m_Scale.y")),
-                        CreateOneMaterialPropertyModification(property.FindPropertyRelative("m_Offset.x")),
-                        CreateOneMaterialPropertyModification(property.FindPropertyRelative("m_Offset.y"))
+                        new MaterialPropertyModification(property.name + ".m_Texture", 0f, property.textureValue),
+                        new MaterialPropertyModification(property.name + ".m_Scale.x", property.textureScaleAndOffset.x, null),
+                        new MaterialPropertyModification(property.name + ".m_Scale.y", property.textureScaleAndOffset.y, null),
+                        new MaterialPropertyModification(property.name + ".m_Offset.x", property.textureScaleAndOffset.z, null),
+                        new MaterialPropertyModification(property.name + ".m_Offset.y", property.textureScaleAndOffset.w, null)
                     };
                 default:
                     throw new Exception("Unhandled type in Material");
             }
         }
-
-        static MaterialPropertyModification CreateOneMaterialPropertyModification(SerializedProperty property)
-            => new MaterialPropertyModification()
-            {
-                propertyPath = property.propertyPath,
-                value = property.floatValue,
-                objectReference = property.objectReferenceValue
-            };
-
 
         public static void ApplyPropertyModificationsToMaterial(Material material, System.Collections.Generic.IEnumerable<MaterialPropertyModification> propertyModifications)
         {
@@ -81,38 +79,31 @@ namespace Unity.Assets.MaterialVariant.Editor
             for (int i = 1; i < pathParts.Length; ++i)
                 property = property.FindPropertyRelative(pathParts[i]);
 
-            property.floatValue = propertyModificaton.value;
-            property.objectReferenceValue = propertyModificaton.objectReference;
+            property.floatValue = propertyModificaton.m_Value;
+            property.objectReferenceValue = propertyModificaton.m_ObjectReference;
         }
         
-        static SerializedType ResolveType(SerializedProperty value)
+        static SerializedType ResolveType(MaterialProperty value)
         {
-            if (value.propertyType == SerializedPropertyType.Boolean
-                || value.propertyType == SerializedPropertyType.Integer
-                || value.propertyType == SerializedPropertyType.Enum
-                || value.propertyType == SerializedPropertyType.Float)
-                return SerializedType.Scalar;
-            else if (value.propertyType == SerializedPropertyType.Color
-                || value.propertyType == SerializedPropertyType.Vector2
-                || value.propertyType == SerializedPropertyType.Vector2Int
-                || value.propertyType == SerializedPropertyType.Vector3
-                || value.propertyType == SerializedPropertyType.Vector3Int
-                || value.propertyType == SerializedPropertyType.Vector4)
-                return SerializedType.Vector;
-            else if (value.propertyType == SerializedPropertyType.ObjectReference
-                && value.objectReferenceValue is Texture)
-                return SerializedType.Texture;
-            else
-                throw new ArgumentException("Parameter type not allowed in material", "value");
+            switch (value.type)
+            {
+                case MaterialProperty.PropType.Float:   return SerializedType.Scalar;
+                case MaterialProperty.PropType.Color:   return SerializedType.Vector;
+                case MaterialProperty.PropType.Vector:  return SerializedType.Vector;
+                case MaterialProperty.PropType.Texture: return SerializedType.Texture;
+                case MaterialProperty.PropType.Range:   //need to check what is this. Fallback on unhandled for now
+                default:
+                    throw new ArgumentException("Unhandled MaterialProperty Type", "value");
+            }
         }
         
         static (SerializedType type, string[] pathParts) RecreateType(MaterialPropertyModification propertyModification)
         {
-            string[] parts = propertyModification.propertyPath.Split(new[] { '.' });
+            string[] parts = propertyModification.m_PropertyPath.Split(new[] { '.' });
             if (parts.Length == 1)
                 return (SerializedType.Scalar, parts);
 
-            if (propertyModification.objectReference != null)
+            if (propertyModification.m_ObjectReference != null)
                 return (SerializedType.Texture, parts);
             
             if (parts.Length == 2)
