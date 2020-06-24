@@ -36,6 +36,9 @@ namespace Unity.Assets.MaterialVariant.Editor
                         ctx.DependsOnSourceAsset(AssetDatabase.GetAssetPath(mat));
                     }
 
+                    // Apply change
+                    MaterialPropertyModification.ApplyPropertyModificationsToMaterial(material, matVariant.overrides);
+
                     // Setup as main replacement object
                     ctx.AddObjectToAsset("Material", material);
                     ctx.SetMainObject(material);
@@ -44,20 +47,20 @@ namespace Unity.Assets.MaterialVariant.Editor
                     matVariant.hideFlags = HideFlags.HideInHierarchy | HideFlags.DontSaveInBuild | HideFlags.HideInInspector;
                     ctx.AddObjectToAsset("Variant", matVariant);
 
-                    int hash = material.ComputeCRC();
+                    //int hash = material.ComputeCRC();
 
-                    // Force a save of this MaterialVariant to force an update of the asset database
-                    // and propagate to children
-                    if (matVariant.hash != hash)
-                    {
-                        matVariant.hash = hash;
-                        //InternalEditorUtility.SaveToSerializedFileAndForget(assets, ctx.assetPath, true);
-                    }
-                    else
-                    {
-                        // Apply change again
-                        MaterialPropertyModification.ApplyPropertyModificationsToMaterial(material, matVariant.overrides);
-                    }                   
+                    //// Force a save of this MaterialVariant to force an update of the asset database
+                    //// and propagate to children
+                    //if (matVariant.hash != hash)
+                    //{
+                    //    matVariant.hash = hash;
+                    //    //InternalEditorUtility.SaveToSerializedFileAndForget(assets, ctx.assetPath, true);
+                    //}
+                    //else
+                    //{
+                    //    // Apply change again
+                    //    MaterialPropertyModification.ApplyPropertyModificationsToMaterial(material, matVariant.overrides);
+                    //}                   
                 }
             }
         }
