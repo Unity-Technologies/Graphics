@@ -43,6 +43,10 @@ namespace Unity.Assets.MaterialVariant.Editor
                     // Setup as main replacement object
                     ctx.AddObjectToAsset("Material", material);
                     ctx.SetMainObject(material);
+
+                    // Keep trace of variant in order to register any override.
+                    matVariant.hideFlags = HideFlags.HideInHierarchy | HideFlags.DontSaveInBuild | HideFlags.HideInInspector;
+                    ctx.AddObjectToAsset("Variant", matVariant);
                 }
             }
         }
