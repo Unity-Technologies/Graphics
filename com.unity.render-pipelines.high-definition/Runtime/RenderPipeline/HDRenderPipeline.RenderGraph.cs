@@ -1382,7 +1382,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void BindCustomPassBuffers(RenderGraph renderGraph, HDCamera hdCamera)
         {
-            // Bind the custom color/depth before the first custom pass
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
             {
                 using (var builder = renderGraph.AddRenderPass("Bind Custom Pass Buffers", out BindCustomPassBuffersPassData passData))
