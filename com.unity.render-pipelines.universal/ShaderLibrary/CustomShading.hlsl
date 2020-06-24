@@ -41,7 +41,7 @@ struct CustomSurfaceData
     half3 reflectance;          // reflectance color at normal indicence. It's monochromatic for dieletrics.
     half3 normalWS;             // normal in world space
     half  ao;                   // ambient occlusion
-    half  perceptualRoughness;  // perceptual roughness. roughness = perceptualRoughness * perceptualRoughness;
+    half  roughness;            // roughness = perceptualRoughness * perceptualRoughness;
     half3 emission;             // emissive color
     half  alpha;                // 0 for transparent materials, 1.0 for opaque.
 };
@@ -49,14 +49,9 @@ struct CustomSurfaceData
 struct LightingData 
 {
     Light light;
-    half3 environmentLighting;
-    half3 environmentReflections;
     half3 halfDirectionWS;
-    half3 viewDirectionWS;
-    half3 reflectionDirectionWS;
     half3 normalWS;
     half NdotL;
-    half NdotV;
     half NdotH;
     half LdotH;
 };
@@ -145,33 +140,37 @@ half3 EnvironmentBRDF(half3 f0, half roughness, half NdotV)
     }
 #endif
 
-#ifdef CUSTOM_LIGHTING_FUNCTION
-    half4 CUSTOM_LIGHTING_FUNCTION(CustomSurfaceData surfaceData, LightingData lightingData);
+#ifdef CUSTOM_GI_FUNCTION
+    half3 CUSTOM_GI_FUNCTION(CustomSurfaceData surfaceData, half3 environmentLighting, half3 environmentReflections, half3 viewDirectionWS);
 #else
-    half4 CUSTOM_LIGHTING_FUNCTION(CustomSurfaceData surfaceData, LightingData lightingData)
+    half3 CUSTOM_GI_FUNCTION(CustomSurfaceData surfaceData, half3 environmentLighting, half3 environmentReflections, half3 viewDirectionWS)
     {
-        // 0.089 perceptual roughness is the min value we can represent in fp16
-        // to avoid denorm/division by zero as we need to do 1 / (pow(perceptualRoughness, 4)) in GGX
-        half perceptualRoughness = max(surfaceData.perceptualRoughness, 0.089);
-        half roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
+        half3 NdotV = saturate(dot(surfaceData.normalWS, viewDirectionWS)) + HALF_MIN;
+        environmentReflections *= EnvironmentBRDF(surfaceData.reflectance, surfaceData.roughness, NdotV);
+        environmentLighting = environmentLighting * surfaceData.diffuse;
+        
+        return (environmentReflections + environmentLighting) * surfaceData.ao;
+    }
+#endif
 
-        half3 environmentReflection = lightingData.environmentReflections;
-        environmentReflection *= EnvironmentBRDF(surfaceData.reflectance, roughness, lightingData.NdotV);
-
-        half3 environmentLighting = lightingData.environmentLighting * surfaceData.diffuse;
+#ifdef CUSTOM_LIGHTING_FUNCTION
+    half3 CUSTOM_LIGHTING_FUNCTION(CustomSurfaceData surfaceData, LightingData lightingData, half3 viewDirectionWS);
+#else
+    half3 CUSTOM_LIGHTING_FUNCTION(CustomSurfaceData surfaceData, LightingData lightingData, half3 viewDirectionWS)
+    {
         half3 diffuse = surfaceData.diffuse * Lambert();
-
+        
         // CookTorrance
         // inline D_GGX + V_SmithJoingGGX for better code generations
-        half DV = DV_SmithJointGGX(lightingData.NdotH, lightingData.NdotL, lightingData.NdotV, roughness);
+        half3 NdotV = saturate(dot(surfaceData.normalWS, viewDirectionWS)) + HALF_MIN;
+        half DV = DV_SmithJointGGX(lightingData.NdotH, lightingData.NdotL, NdotV, surfaceData.roughness);
         
         // for microfacet fresnel we use H instead of N. In this case LdotH == VdotH, we use LdotH as it
         // seems to be more widely used convetion in the industry.
         half3 F = F_Schlick(surfaceData.reflectance, lightingData.LdotH);
         half3 specular = DV * F;
         half3 finalColor = (diffuse + specular) * lightingData.light.color * lightingData.NdotL;
-        finalColor += environmentReflection + environmentLighting + surfaceData.emission;
-        return half4(finalColor, surfaceData.alpha);
+        return finalColor;
     }
 #endif
 
@@ -242,24 +241,31 @@ half4 CalculateColor(Varyings IN)
 
     half3 viewDirectionWS = normalize(GetWorldSpaceViewDir(IN.positionWS));
     half3 reflectionDirectionWS = reflect(-viewDirectionWS, surfaceData.normalWS);
-    
+
     // shadowCoord is position in shadow light space
     float4 shadowCoord = TransformWorldToShadowCoord(IN.positionWS);
     Light light = GetMainLight(shadowCoord);
     lightingData.light = light;
-    lightingData.environmentLighting = SAMPLE_GI(IN.uvLightmap, SampleSH(surfaceData.normalWS), surfaceData.normalWS) * surfaceData.ao;
-    lightingData.environmentReflections = GlossyEnvironmentReflection(reflectionDirectionWS, surfaceData.perceptualRoughness, surfaceData.ao);
     lightingData.halfDirectionWS = normalize(light.direction + viewDirectionWS);
-    lightingData.viewDirectionWS = viewDirectionWS;
-    lightingData.reflectionDirectionWS = reflectionDirectionWS;
     lightingData.normalWS = surfaceData.normalWS;
     lightingData.NdotL = saturate(dot(surfaceData.normalWS, lightingData.light.direction));
-    lightingData.NdotV = saturate(dot(surfaceData.normalWS, lightingData.viewDirectionWS)) + HALF_MIN;
     lightingData.NdotH = saturate(dot(surfaceData.normalWS, lightingData.halfDirectionWS));
     lightingData.LdotH = saturate(dot(lightingData.light.direction, lightingData.halfDirectionWS));
 
-    half4 finalColor = CUSTOM_LIGHTING_FUNCTION(surfaceData, lightingData);
-    return CUSTOM_FINAL_COLOR(finalColor);
+    half3 environmentLighting = SAMPLE_GI(IN.uvLightmap, SampleSH(surfaceData.normalWS), surfaceData.normalWS);
+    half3 environmentReflections = GlossyEnvironmentReflection(reflectionDirectionWS, surfaceData.roughness);
+
+    // 0.089 perceptual roughness is the min value we can represent in fp16
+    // to avoid denorm/division by zero as we need to do 1 / (pow(perceptualRoughness, 4)) in GGX
+    surfaceData.roughness = max(surfaceData.roughness, 0.089);
+    surfaceData.roughness = PerceptualRoughnessToRoughness(surfaceData.roughness);
+    
+    half3 finalColor = CUSTOM_GI_FUNCTION(surfaceData, environmentLighting, environmentReflections, viewDirectionWS);
+    finalColor += CUSTOM_LIGHTING_FUNCTION(surfaceData, lightingData, viewDirectionWS);
+    finalColor += surfaceData.emission;
+    // TODO: fog? should it be applied as GI?
+    
+    return CUSTOM_FINAL_COLOR(half4(finalColor, surfaceData.alpha));
 }
 
 half4 SurfaceFragment(Varyings IN) : SV_Target

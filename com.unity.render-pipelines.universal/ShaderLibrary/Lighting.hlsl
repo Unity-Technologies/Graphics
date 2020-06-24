@@ -557,7 +557,7 @@ half3 HackSampleSH(half3 normalWS)
 #define SAMPLE_GI(lmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
 #endif
 
-half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness, half occlusion)
+half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness)
 {
 #if !defined(_ENVIRONMENTREFLECTIONS_OFF)
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
@@ -569,10 +569,15 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness,
     half3 irradiance = encodedIrradiance.rgb;
 #endif
 
-    return irradiance * occlusion;
+    return irradiance;
 #endif // GLOSSY_REFLECTIONS
 
-    return _GlossyEnvironmentColor.rgb * occlusion;
+    return _GlossyEnvironmentColor.rgb;
+}
+
+half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness, half occlusion)
+{
+    return GlossyEnvironmentReflection(reflectVector, perceptualRoughness) * occlusion;
 }
 
 half3 SubtractDirectMainLightFromLightmap(Light mainLight, half3 normalWS, half3 bakedGI)
