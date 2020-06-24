@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph
         public PositionNode()
         {
             name = "Position";
-            precision = Precision.Float;
+            precision = Precision.Single;
             UpdateNodeAfterDeserialization();
         }
 

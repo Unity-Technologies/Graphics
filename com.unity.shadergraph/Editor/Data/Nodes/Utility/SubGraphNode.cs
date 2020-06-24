@@ -188,7 +188,7 @@ namespace UnityEditor.ShaderGraph
             {
                 var outputSlots = new List<MaterialSlot>();
                 GetOutputSlots(outputSlots);
-                var outputPrecision = asset != null ? asset.outputPrecision : ConcretePrecision.Float;
+                var outputPrecision = asset != null ? asset.outputPrecision : ConcretePrecision.Single;
                 foreach (var slot in outputSlots)
                 {
                     sb.AppendLine($"{slot.concreteValueType.ToShaderString(outputPrecision)} {GetVariableNameForSlot(slot.id)} = {slot.GetDefaultValue(GenerationMode.ForReals)};");
@@ -239,7 +239,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var feedbackSlot in asset.vtFeedbackVariables)
             {
                 string feedbackVar = GetVariableNameForNode() + "_" + feedbackSlot;
-                sb.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Float), feedbackVar);
+                sb.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Single), feedbackVar);
                 arguments.Add(feedbackVar);
             }
 

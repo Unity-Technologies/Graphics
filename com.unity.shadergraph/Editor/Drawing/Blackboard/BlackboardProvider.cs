@@ -201,7 +201,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void AddPropertyItems(GenericMenu gm)
         {
-            gm.AddItem(new GUIContent($"Vector1"), false, () => AddInputRow(new Vector1ShaderProperty(), true));
+            gm.AddItem(new GUIContent($"Float"), false, () => AddInputRow(new Vector1ShaderProperty(), true));
             gm.AddItem(new GUIContent($"Vector2"), false, () => AddInputRow(new Vector2ShaderProperty(), true));
             gm.AddItem(new GUIContent($"Vector3"), false, () => AddInputRow(new Vector3ShaderProperty(), true));
             gm.AddItem(new GUIContent($"Vector4"), false, () => AddInputRow(new Vector4ShaderProperty(), true));

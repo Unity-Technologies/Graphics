@@ -196,7 +196,7 @@ namespace UnityEditor.ShaderGraph
 
                 // Vt Feedback arguments
                 foreach (var output in asset.vtFeedbackVariables)
-                    arguments.Add($"out {ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Float)} {output}_out");
+                    arguments.Add($"out {ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Single)} {output}_out");
 
                 // Create the function prototype from the arguments
                 sb.AppendLine("void {0}({1})"

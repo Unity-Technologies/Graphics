@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph.Internal
         string m_OutputStructName;
 
         [SerializeField]
-        ConcretePrecision m_ConcretePrecision = ConcretePrecision.Float;
+        ConcretePrecision m_ConcretePrecision = ConcretePrecision.Single;
 
         ShaderGraphVfxAssetData m_Data = new ShaderGraphVfxAssetData();
 

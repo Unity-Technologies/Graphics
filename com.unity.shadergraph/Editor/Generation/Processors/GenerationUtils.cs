@@ -733,7 +733,7 @@ namespace UnityEditor.ShaderGraph
                             surfaceDescriptionStruct.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(firstSlot.owner.concretePrecision), "Out");
                         }
                         else
-                            surfaceDescriptionStruct.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Float), "Out");
+                            surfaceDescriptionStruct.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Single), "Out");
                         
                     }
                     else
@@ -756,7 +756,7 @@ namespace UnityEditor.ShaderGraph
                 // TODO: move this into the regular FieldDescriptor system with a conditional, doesn't belong as a special case here
                 if (virtualTextureFeedback)
                 {
-                    surfaceDescriptionStruct.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Float), "VTPackedFeedback");
+                    surfaceDescriptionStruct.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Single), "VTPackedFeedback");
 
                     if (!isSubgraphOutput && activeFields != null)
                     {

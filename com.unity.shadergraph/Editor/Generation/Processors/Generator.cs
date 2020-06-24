@@ -520,7 +520,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
             if(interpolatorBuilder.length != 0) //hard code interpolators to float, TODO: proper handle precision
-                interpolatorBuilder.ReplaceInCurrentMapping(PrecisionUtil.Token, ConcretePrecision.Float.ToShaderString());
+                interpolatorBuilder.ReplaceInCurrentMapping(PrecisionUtil.Token, ConcretePrecision.Single.ToShaderString());
             else
                 interpolatorBuilder.AppendLine("//Interpolator Packs: <None>");
             spliceCommands.Add("InterpolatorPack", interpolatorBuilder.ToCodeBlock());
@@ -533,7 +533,7 @@ namespace UnityEditor.ShaderGraph
                 foreach(StructDescriptor shaderStruct in passStructs)
                 {
                     GenerationUtils.GenerateShaderStruct(shaderStruct, activeFields, out structBuilder);
-                    structBuilder.ReplaceInCurrentMapping(PrecisionUtil.Token, ConcretePrecision.Float.ToShaderString()); //hard code structs to float, TODO: proper handle precision
+                    structBuilder.ReplaceInCurrentMapping(PrecisionUtil.Token, ConcretePrecision.Single.ToShaderString()); //hard code structs to float, TODO: proper handle precision
                     passStructBuilder.Concat(structBuilder);
                 }
             }

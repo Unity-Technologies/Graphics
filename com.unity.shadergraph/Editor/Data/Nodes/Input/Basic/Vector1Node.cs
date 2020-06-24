@@ -7,7 +7,7 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input", "Basic", "Vector 1")]
+    [Title("Input", "Basic", "Float")]
     class Vector1Node : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {
         [SerializeField]
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
 
         public Vector1Node()
         {
-            name = "Vector 1";
+            name = "Float";
             UpdateNodeAfterDeserialization();
         }
 

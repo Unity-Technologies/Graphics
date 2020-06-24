@@ -96,7 +96,7 @@ namespace UnityEditor.ShaderGraph
             get { return true; }
         }
 
-        private ConcretePrecision m_ConcretePrecision = ConcretePrecision.Float;
+        private ConcretePrecision m_ConcretePrecision = ConcretePrecision.Single;
 
         public ConcretePrecision concretePrecision
         {

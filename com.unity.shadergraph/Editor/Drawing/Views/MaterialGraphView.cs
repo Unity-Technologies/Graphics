@@ -428,7 +428,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (selectedNode.node.precision != Precision.Inherit)
                     inheritPrecisionAction = DropdownMenuAction.Status.Normal;
-                if (selectedNode.node.precision != Precision.Float)
+                if (selectedNode.node.precision != Precision.Single)
                     floatPrecisionAction = DropdownMenuAction.Status.Normal;
                 if (selectedNode.node.precision != Precision.Half)
                     halfPrecisionAction = DropdownMenuAction.Status.Normal;
@@ -436,7 +436,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Create the menu options
             evt.menu.AppendAction("Precision/Inherit", _ => SetNodePrecisionOnSelection(Precision.Inherit), (a) => inheritPrecisionAction);
-            evt.menu.AppendAction("Precision/Float", _ => SetNodePrecisionOnSelection(Precision.Float), (a) => floatPrecisionAction);
+            evt.menu.AppendAction("Precision/Single", _ => SetNodePrecisionOnSelection(Precision.Single), (a) => floatPrecisionAction);
             evt.menu.AppendAction("Precision/Half", _ => SetNodePrecisionOnSelection(Precision.Half), (a) => halfPrecisionAction);
         }
 

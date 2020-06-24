@@ -40,6 +40,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the `Reference Suffix` of Keyword Enum entries so that you cannot edit them, which ensures that material keywords compile properly. 
 - Updated the dependent version of `Searcher` to 4.2.0. 
 - Added support for `Linear Blend Skinning` Node to Universal Render Pipeline.
+- Changed UI names from `Vector1` to `Float`
+- Renamed `Float` precision to `Single`
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
