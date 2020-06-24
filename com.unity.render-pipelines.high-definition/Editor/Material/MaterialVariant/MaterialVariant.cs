@@ -12,7 +12,7 @@ namespace Unity.Assets.MaterialVariant.Editor
         public string rootGUID;
         public bool isShader;
 
-        public List<MaterialPropertyModification> overrides;
+        public List<MaterialPropertyModification> overrides = new List<MaterialPropertyModification>();
         
         public void TrimPreviousOverridesAndAdd(IEnumerable<MaterialPropertyModification> modifications)
         {
