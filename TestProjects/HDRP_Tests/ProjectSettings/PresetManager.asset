@@ -14,3 +14,7 @@ PresetManager:
         type: 2}
       m_Filter: glob:"ActualImages/**"
       m_Disabled: 0
+    - m_Preset: {fileID: 2655988077585873504, guid: 5e6bade33f990fb4c9b0542510519b12,
+        type: 2}
+      m_Filter: glob:"ReferenceImages/**"
+      m_Disabled: 0
