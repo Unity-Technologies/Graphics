@@ -26,6 +26,11 @@ namespace Unity.Assets.MaterialVariant.Editor
             }
         }
 
+        private static bool IsValidRoot(Object root)
+        {
+            return EditorUtility.IsPersistent(root) && ((root is Material) || (root is Shader));
+        }
+
         public static void CreateVariant(Object target)
         {
             var rootMaterial = target as Material;
@@ -71,7 +76,7 @@ namespace Unity.Assets.MaterialVariant.Editor
                 AssetDatabase.ImportAsset(targetPath);
             }
         }
-
+        
         /// <summary>
         /// Try to find an attached MaterialVariant for the given target
         /// Could work on Material and shadergraph
@@ -120,11 +125,19 @@ namespace Unity.Assets.MaterialVariant.Editor
 
             return atLeastOne ? result : null;
         }
+        
+        private const string MENU_ITEM_PATH = "Assets/Create/Variants/Material Variant";
 
-        [MenuItem("Assets/Create/Variants/Material Variant")]
+        [MenuItem(MENU_ITEM_PATH, false)]
         private static void CreateMaterialVariantMenu()
         {
             CreateVariant(Selection.activeObject);
+        }
+
+        [MenuItem(MENU_ITEM_PATH, true)]
+        private static bool ValidateMaterialVariantMenu()
+        {
+            return IsValidRoot(Selection.activeObject);
         }
     }
 }
