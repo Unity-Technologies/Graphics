@@ -25,9 +25,10 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         const int k_LUTWidth = 192;
         const int k_LUTHeight = 64;
-        const int k_LUTDepth = 4;
+        const int k_LUTDepth = 1;
 
         private bool m_LUTReady = false;
+        private float m_LUTConeApertureUsed = -1.0f;
         private RTHandle m_CapsuleSoftShadowLUT;
         private RenderPipelineResources m_Resources;
         private RenderPipelineSettings m_Settings;
@@ -84,7 +85,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // TODO: Disable feature if sunLight is null.
                 var sunDir = (sunLight != null) ? sunLight.transform.forward : -Vector3.up;
                 // softness to be derived from angular diameter.
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._CapsuleShadowParameters, new Vector4(-sunDir.x, -sunDir.y, -sunDir.z,  Mathf.Max(0.01f, shadowSettings.softness.value)));
+                // For now a somewhat randomly set.
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._CapsuleShadowParameters, new Vector4(-sunDir.x, -sunDir.y, -sunDir.z, shadowSettings.coneAperture.value / 89.0f));
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CapsuleShadowLUT, m_CapsuleSoftShadowLUT);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CapsuleOcclusions, m_CapsuleOcclusions);
 
@@ -108,21 +110,27 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_CapsuleOcclusions);
         }
 
-        internal void GenerateCapsuleSoftShadowsLUT(CommandBuffer cmd)
+        internal void GenerateCapsuleSoftShadowsLUT(CommandBuffer cmd, HDCamera hdCamera)
         {
+            var shadowSettings = hdCamera.volumeStack.GetComponent<CapsuleSoftShadows>();
+
+            if (m_LUTConeApertureUsed != shadowSettings.coneAperture.value)
+            {
+                m_LUTReady = false;
+                m_LUTConeApertureUsed = shadowSettings.coneAperture.value;
+            }
             if(!m_LUTReady)
             {
                 var cs = m_Resources.shaders.capsuleShadowLUTGeneratorCS;
                 var kernel = cs.FindKernel("CapsuleShadowLUTGeneration");
 
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._LUTGenParameters, new Vector4(k_LUTWidth, k_LUTHeight, k_LUTDepth, 0));
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._LUTConeCosAngles, new Vector4( Mathf.Cos(0.5f * 10.0f * Mathf.Deg2Rad), Mathf.Cos(0.5f * 30.0f * Mathf.Deg2Rad), Mathf.Cos(0.5f * 50.0f * Mathf.Deg2Rad), Mathf.Cos(0.5f * 70.0f * Mathf.Deg2Rad)));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._LUTGenParameters, new Vector4(k_LUTWidth, k_LUTHeight, k_LUTDepth, Mathf.Cos(Mathf.Deg2Rad * 0.5f * m_LUTConeApertureUsed)));
 
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CapsuleShadowLUT, m_CapsuleSoftShadowLUT);
 
                 int groupCountX = k_LUTWidth / 8;
                 int groupCountY = k_LUTHeight / 8;
-                int groupCountZ = k_LUTDepth / 4;
+                int groupCountZ = 1;
 
                 cmd.DispatchCompute(cs, kernel, groupCountX, groupCountY, groupCountZ);
 

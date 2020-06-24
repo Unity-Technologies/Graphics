@@ -214,7 +214,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Capsule occlusions
         public static readonly int _LUTGenParameters = Shader.PropertyToID("_LUTGenParameters");
-        public static readonly int _LUTConeCosAngles = Shader.PropertyToID("_LUTConeCosAngles");
         public static readonly int _CapsuleShadowLUT = Shader.PropertyToID("_CapsuleShadowLUT");
         public static readonly int _CapsuleShadowParameters = Shader.PropertyToID("_CapsuleShadowParameters");
         public static readonly int _CapsuleOcclusions = Shader.PropertyToID("_CapsuleOcclusions");

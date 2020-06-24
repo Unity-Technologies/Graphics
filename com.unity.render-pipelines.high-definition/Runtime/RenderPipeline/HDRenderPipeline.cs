@@ -2307,7 +2307,7 @@ namespace UnityEngine.Rendering.HighDefinition
             LightLoopNewFrame(cmd, hdCamera);
 
             // Init the required resources for capsule occlusion (if needed)
-            m_CapsuleOcclusionSystem.GenerateCapsuleSoftShadowsLUT(cmd);
+            m_CapsuleOcclusionSystem.GenerateCapsuleSoftShadowsLUT(cmd, hdCamera);
 
             // Apparently scissor states can leak from editor code. As it is not used currently in HDRP (apart from VR). We disable scissor at the beginning of the frame.
             cmd.DisableScissorRect();
