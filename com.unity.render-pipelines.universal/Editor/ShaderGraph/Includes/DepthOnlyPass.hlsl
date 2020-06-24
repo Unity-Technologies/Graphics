@@ -11,7 +11,7 @@ PackedVaryings vert(Attributes input)
 }
 
 half4 frag(PackedVaryings packedInput) : SV_TARGET 
-{    
+{
     Varyings unpacked = UnpackVaryings(packedInput);
     UNITY_SETUP_INSTANCE_ID(unpacked);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(unpacked);
