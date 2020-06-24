@@ -407,7 +407,7 @@ float EvaluateCapsuleSpecularOcclusion(EllipsoidOccluderData data, float3 positi
 
 // Ref https://developer.amd.com/wordpress/media/2012/10/Oat-AmbientApetureLighting.pdf
 // Quite slow... 
-float EvaluateCapsuleShadowAnalytical(EllipsoidOccluderData data, float3 positionWS, float3 N, float4 dirAndLength, float2 posSS)
+float EvaluateCapsuleShadowAnalytical(EllipsoidOccluderData data, float3 positionWS, float3 N, float4 dirAndLength)
 {
     float lightAngle = _CapsuleShadowParameters.w; // get from code.
     float3 coneAxis = _CapsuleShadowParameters.xyz;
