@@ -106,10 +106,17 @@ namespace UnityEngine.Rendering.Universal
 
                 Debug.Log("Frame #" + m_FrameCounter + ": ");
 
+                uint count = data[0];
+
+                if (count >= MaxBufferElements)
+                {
+                    count = MaxBufferElements;
+                    Debug.LogWarning("Debug Shader Print Buffer Full!");
+                }
+
                 unsafe // Need to do ugly casts via pointers
                 {
                     uint *ptr = (uint*)data.GetUnsafePtr();
-                    uint count = data[0];
                     for (int i = 1; i < count;)
                     {
                         DebugValueType type = (DebugValueType) data[i];
