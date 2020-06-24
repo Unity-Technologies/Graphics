@@ -12,3 +12,5 @@ This manual installation step is required because the `.git/` folder can't be pu
 
 New types of hooks can be added by creating a script file (e.g. `pre-push`) at the root of this folder.
 New hooks' logic should be put in a folder (`pre-push.d/`) and be called by the root file corresponding to the hook type so that the root files stay short and new hooks can be added easily.
+
+New scripts should be added to git using [`git add --chmod=+x [file]`](https://git-scm.com/docs/git-add#Documentation/git-add.txt---chmod-x) so that *nix users can use them. 
