@@ -350,9 +350,8 @@ float3x3 CovarianceMatrixFromVariance(float3 variance)
 
 float3 EigenVectorFromMatrix(float3x3 m)
 {
-  float3 res;
-
-  float vMin;
+    float3 res;
+    float vMin;
   
     for (int i = 0; i < 3; ++i)
     {
