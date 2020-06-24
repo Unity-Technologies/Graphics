@@ -22,10 +22,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 centerOS = Vector3.zero;
 
         /// <summary></summary>
-        public float radiusOS = 1.0f;
+        public float radiusOS = 0.5f;
 
-        /// <summary>The direction in object space that the ellipsoid's major axis is facing, parameterized as euler degrees.</summary>
-        public Vector3 directionOS = Vector3.zero;
+        public Vector3 anglesOS = Vector3.zero;
+        /// <summary>The direction in object space that the ellipsoid's major axis is facing.</summary>
+        public Vector3 directionWS => (transform.rotation * Quaternion.Euler(anglesOS) * Vector3.forward).normalized;
 
         /// <summary></summary>
         public float scalingOS = 1.0f;
@@ -36,12 +37,23 @@ namespace UnityEngine.Rendering.HighDefinition
         internal EllipsoidOccluderData ConvertToEngineData(Vector3 camOffset)
         {
             Transform tr = transform;
-            Vector3 centerRWS = tr.position + tr.rotation * centerOS - camOffset;
-            Vector3 directionWS = (tr.rotation * Quaternion.Euler(directionOS) * Vector3.forward).normalized * scalingOS;
-            float influenceRadius = radiusOS * scalingOS * influenceRadiusScale;
+            Quaternion rot = Quaternion.Euler(anglesOS);
+
+            float forward = tr.TransformVector(rot * Vector3.forward).magnitude;
+            float right = tr.TransformVector(rot * Vector3.right).magnitude;
+            float up = tr.TransformVector(rot * Vector3.up).magnitude;
+            float radius = radiusOS * Mathf.Max(right, up);
+
+            Vector3 centerRWS = tr.TransformPoint(centerOS) - camOffset;
+            Vector3 dir = directionWS * forward * scalingOS;
+
+            Vector3 lossyScale = tr.lossyScale;
+            float influenceRadius = Mathf.Max(Mathf.Max(lossyScale.x, lossyScale.y), lossyScale.z) * influenceRadiusScale * radiusOS;
+            influenceRadius *= Mathf.Max(1.0f, scalingOS);
+
             return new EllipsoidOccluderData {
-                positionRWS_radius = new Vector4(centerRWS.x, centerRWS.y, centerRWS.z, radiusOS),
-                directionWS_influence = new Vector4(directionWS.x, directionWS.y, directionWS.z, influenceRadius)
+                positionRWS_radius = new Vector4(centerRWS.x, centerRWS.y, centerRWS.z, radius),
+                directionWS_influence = new Vector4(dir.x, dir.y, dir.z, influenceRadius)
             };
         }
 
@@ -64,12 +76,18 @@ namespace UnityEngine.Rendering.HighDefinition
             get
             {
                 Transform tr = transform;
-                Quaternion rot = Quaternion.Euler(directionOS);
+                Quaternion rot = Quaternion.Euler(anglesOS);
+
+                float forward = tr.TransformVector(rot * Vector3.forward).magnitude;
+                float right = tr.TransformVector(rot * Vector3.right).magnitude;
+                float up = tr.TransformVector(rot * Vector3.up).magnitude;
 
                 Vector3 scale = Vector3.one * radiusOS;
-                scale.z *= scalingOS;
+                scale.x *= Mathf.Max(right, up);
+                scale.y *= Mathf.Max(right, up);
+                scale.z *= forward * scalingOS;
 
-                return Matrix4x4.TRS(tr.position + tr.rotation * centerOS, (tr.rotation * rot).normalized, scale);
+                return Matrix4x4.TRS(tr.TransformPoint(centerOS), (tr.rotation * rot).normalized, scale);
             }
         }
     }

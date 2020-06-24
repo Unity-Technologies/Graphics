@@ -19,13 +19,13 @@ namespace UnityEngine.Rendering.HighDefinition
         };
         static GUIContent[] k_ModesContent;
 
-        SerializedProperty centerOS, radiusOS, directionOS, scalingOS, influenceRadiusScale;
+        SerializedProperty centerOS, radiusOS, anglesOS, scalingOS, influenceRadiusScale;
 
         void OnEnable()
         {
             centerOS = serializedObject.FindProperty("centerOS");
             radiusOS = serializedObject.FindProperty("radiusOS");
-            directionOS = serializedObject.FindProperty("directionOS");
+            anglesOS = serializedObject.FindProperty("anglesOS");
             scalingOS = serializedObject.FindProperty("scalingOS");
             influenceRadiusScale = serializedObject.FindProperty("influenceRadiusScale");
 
@@ -60,29 +60,38 @@ namespace UnityEngine.Rendering.HighDefinition
             DrawDefaultInspector();
         }
 
-        private void DrawEllipsoid(float radius, Color color)
+        private void DrawEllipsoid(Color color)
         {
             Handles.color = color;
-            Handles.DrawWireDisc(Vector3.zero, Vector3.forward, radius);
-            Handles.DrawWireDisc(Vector3.zero, Vector3.up, radius);
-            Handles.DrawWireDisc(Vector3.zero, Vector3.right, radius);
+            Handles.DrawWireDisc(Vector3.zero, Vector3.forward, 1.0f);
+            Handles.DrawWireDisc(Vector3.zero, Vector3.up, 1.0f);
+            Handles.DrawWireDisc(Vector3.zero, Vector3.right, 1.0f);
         }
 
         public void OnSceneGUI()
         {
             Transform tr = (target as MonoBehaviour).transform;
-            Quaternion rot = Quaternion.Euler(directionOS.vector3Value);
+            Quaternion rot = Quaternion.Euler(anglesOS.vector3Value);
 
             serializedObject.Update();
 
             Handles.matrix = (target as EllipsoidOccluder).TRS;
-            DrawEllipsoid(1.0f, color);
+            Handles.color = Color.red;
+            Handles.DrawLine(Vector3.zero, Vector3.forward);
 
-            Handles.matrix = Matrix4x4.TRS(tr.position + tr.rotation * centerOS.vector3Value, (tr.rotation * rot).normalized, Vector3.one * radiusOS.floatValue * scalingOS.floatValue);
-            DrawEllipsoid(influenceRadiusScale.floatValue, Color.blue);
+            DrawEllipsoid(color);
+
+            Vector3 lossyScale = tr.lossyScale;
+            float influenceRadius = Mathf.Max(Mathf.Max(lossyScale.x, lossyScale.y), lossyScale.z) * influenceRadiusScale.floatValue * radiusOS.floatValue;
+            influenceRadius *= Mathf.Max(1.0f, scalingOS.floatValue);
+
+            Handles.matrix = Matrix4x4.TRS(tr.TransformPoint(centerOS.vector3Value), (tr.rotation * rot).normalized, Vector3.one * influenceRadius);
+            Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
+            DrawEllipsoid(Color.blue);
 
             Handles.color = Color.white;
             Handles.matrix = Matrix4x4.TRS(tr.position, tr.rotation, Vector3.one);
+            Handles.zTest = UnityEngine.Rendering.CompareFunction.Always;
 
             var mode = ArrayUtility.IndexOf(k_EditModes, EditMode.editMode);
             if (EditMode.editMode == k_EditModes[0])
@@ -97,7 +106,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 EditorGUI.BeginChangeCheck();
                 rot = Handles.RotationHandle(rot, centerOS.vector3Value);
                 if (EditorGUI.EndChangeCheck())
-                    directionOS.vector3Value = rot.eulerAngles;
+                    anglesOS.vector3Value = rot.eulerAngles;
             }
             else if (EditMode.editMode == k_EditModes[2])
             {

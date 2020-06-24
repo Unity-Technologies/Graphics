@@ -85,6 +85,16 @@ float ApplyInfluenceFalloff(float occlusion, float influenceFalloff)
     return lerp(1.0f, occlusion, influenceFalloff);
 }
 
+// Returns pos/radius of occluder as sphere relative to positionWS
+float4 TransformOccluder(float3 positionWS, EllipsoidOccluderData data)
+{
+    float3 dir = GetOccluderDirectionWS(data);
+    float3 toOccluder = GetOccluderPositionRWS(data) - positionWS;
+    float proj = dot(toOccluder, dir);
+    float3 toOccluderCS = toOccluder - (proj * dir) + proj * dir * (GetOccluderRadius(data) * 2.0 / GetOccluderScaling(data));
+    return float4(toOccluderCS, GetOccluderRadius(data));
+}
+
 // --------------------------------------------
 // Evaluation functions
 // --------------------------------------------
@@ -93,15 +103,8 @@ float ApplyInfluenceFalloff(float occlusion, float influenceFalloff)
 
 float EvaluateCapsuleAmbientOcclusion(EllipsoidOccluderData data, float3 positionWS, float3 N, float4 dirAndLength)
 {
-    float3 dir = GetOccluderDirectionWS(data);
-    float proj = dot(positionWS, dir);
-    float3 positionCS = positionWS - (proj * dir) + proj * dir / GetOccluderScaling(data);
-    proj = dot(GetOccluderPositionRWS(data), dir);
-    float3 centerCS = GetOccluderPositionRWS(data) - (proj * dir) + proj * dir / GetOccluderScaling(data);
-
-    // TODO: should also transform the normal
-    // IMPORTANT: Remember to modify by intensity modifier here and not after.
-    return IQSphereAO(positionCS, N, centerCS, GetOccluderRadius(data));
+    float4 occluder = TransformOccluder(positionWS, data);
+    return IQSphereAO(0, N, occluder.xyz, occluder.w);
 }
 
 // I stubbed out this version as a reference for myself while the work was being done by others. Keeping here as a reference in case we need it,
