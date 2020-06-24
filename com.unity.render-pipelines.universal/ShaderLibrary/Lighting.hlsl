@@ -465,22 +465,15 @@ half3 HackSampleSH(half3 normalWS)
 
 half3 BoxProjectedCubemapDirection(half3 reflectVector, half3 positionWS, real4 cubemapCenter, real4 boxMin, real4 boxMax)
 {
-    half3 pos = _WorldSpaceCameraPos;
-    // TODO: Check optimized version in the builtin renderer.
+    half3 pos = positionWS;
     
-    //float3 nrdir = normalize(reflectVector);
+    float3 boxMinMax = (reflectVector > 0.0f) ? boxMax.xyz : boxMin.xyz;
+    float3 rbMinMax = (boxMinMax - pos) / reflectVector;
 
-    float3 rbmax = (boxMax.xyz - pos) / reflectVector;
-    float3 rbmin = (boxMin.xyz - pos) / reflectVector;
-
-    float3 rbminmax = (reflectVector > 0.0f) ? rbmax : rbmin;
-
-    float fa = min(min(rbminmax.x, rbminmax.y), rbminmax.z);
+    float fa = min(min(rbMinMax.x, rbMinMax.y), rbMinMax.z);
 
     pos -= cubemapCenter.xyz;
-    reflectVector = pos + reflectVector * fa;
-    
-    return reflectVector;
+    return pos + reflectVector * fa;
 }
 
 half3 GlossyEnvironmentReflection(half3 reflectVector, half3 positionWS, half perceptualRoughness, half occlusion)
