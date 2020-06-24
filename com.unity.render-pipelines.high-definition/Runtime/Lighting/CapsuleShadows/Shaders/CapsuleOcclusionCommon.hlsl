@@ -19,7 +19,6 @@ CBUFFER_END
 
 TEXTURE3D(_CapsuleShadowLUT);
 
-
 // StructuredBuffer<OrientedBBox> _CapsuleOccludersBounds;
 StructuredBuffer<EllipsoidOccluderData> _CapsuleOccludersDatas;
 
@@ -402,7 +401,67 @@ float EvaluateCapsuleSpecularOcclusion(EllipsoidOccluderData data, float3 positi
 #endif
 }
 
-float EvaluateCapsuleShadow(EllipsoidOccluderData data, float3 positionWS, float3 N, float4 dirAndLength, float2 posSS)
+
+// Ref https://developer.amd.com/wordpress/media/2012/10/Oat-AmbientApetureLighting.pdf
+// Quite slow... 
+float EvaluateCapsuleShadowAnalytical(EllipsoidOccluderData data, float3 positionWS, float3 N, float4 dirAndLength, float2 posSS)
+{
+    float lightAngle = _CapsuleShadowParameters.w; // get from code.
+    float3 coneAxis = _CapsuleShadowParameters.xyz;
+    float3 occluderPos = GetOccluderPositionRWS(data);
+    float radius = GetOccluderRadius(data);
+
+    float3 occluderFromSurfaceDirectionWS;
+    float occluderFromSurfaceDistance;
+    ComputeDirectionAndDistanceFromStartAndEnd(positionWS, occluderPos, occluderFromSurfaceDirectionWS, occluderFromSurfaceDistance);
+
+    float tanTheta = radius / occluderFromSurfaceDistance;
+    float theta = FastATanPos(tanTheta);
+
+    float cosPhi = dot(coneAxis, occluderFromSurfaceDirectionWS);
+    float phi = FastACos(cosPhi);
+
+
+    float minRadius;
+    float maxRadius;
+
+    float intersectionArea = 0;
+
+    if (lightAngle < theta)
+    {
+        minRadius = lightAngle;
+        maxRadius = theta;
+    }
+    else
+    {
+         maxRadius = lightAngle;
+         minRadius = theta;
+    }
+
+    if (phi <= (maxRadius - minRadius))
+    {
+        intersectionArea = TWO_PI - TWO_PI * cos(minRadius);
+    }
+    else if (phi >= (theta + lightAngle))
+    {
+        intersectionArea = 0;
+    }
+    else
+    {
+        float diff = abs(theta - lightAngle);
+        intersectionArea = smoothstep(0.0f, 1.0f, 1.0f - saturate((phi - diff) / (theta + lightAngle - diff)));
+        intersectionArea *= (TWO_PI - TWO_PI * cos(minRadius));
+    }
+
+    float lightArea = TWO_PI - TWO_PI * cos(lightAngle);
+
+    float NdotPosToSphere = dot(N, occluderFromSurfaceDirectionWS);
+
+    float sinTheta = sin(theta);
+    return 1.0f - saturate(intersectionArea / lightArea);
+}
+
+float EvaluateCapsuleShadowLUT(EllipsoidOccluderData data, float3 positionWS, float3 N, float4 dirAndLength)
 {
     // For now assuming just directional light.
     float3 coneAxis = _CapsuleShadowParameters.xyz;
@@ -413,30 +472,16 @@ float EvaluateCapsuleShadow(EllipsoidOccluderData data, float3 positionWS, float
     float occluderFromSurfaceDistance;
     ComputeDirectionAndDistanceFromStartAndEnd(positionWS, occluderPos, occluderFromSurfaceDirectionWS, occluderFromSurfaceDistance);
 
-
     // Angle between occluder and cone axis
     float cosPhi = dot(coneAxis, occluderFromSurfaceDirectionWS);
-    float sinPhi = sqrt(1.0f - cosPhi * cosPhi);
-
-    // Angle subtended by occluder (to be shared among computation I'd say)
-
-    // TODO: Why do we need an half scale factor here!?!
-    radius *= 0.5f;
 
     float tanTheta = radius / occluderFromSurfaceDistance;
-    float cosTheta = rsqrt(1.0 + tanTheta * tanTheta);
+    float sinTheta = tanTheta * rsqrt(1 + tanTheta * tanTheta);
 
     // For now hardcoded, but will change.
     float LUTZCoord = _CapsuleShadowParameters.w;
 
-    float NdotPosToSphere = dot(N, occluderFromSurfaceDirectionWS);
-
-
-    float occlusionVal = 1 - SAMPLE_TEXTURE3D_LOD(_CapsuleShadowLUT, s_linear_clamp_sampler, float3(PositivePow(cosTheta, 3), sinPhi, LUTZCoord), 0).x;
-
-    if (NdotPosToSphere <= 0.01f)
-        occlusionVal = 1;
-
+    float occlusionVal = SAMPLE_TEXTURE3D_LOD(_CapsuleShadowLUT, s_linear_clamp_sampler, float3(0.5f * cosPhi + 0.5f, sinTheta, LUTZCoord), 0).x;
     return occlusionVal;
 }
 
@@ -537,7 +582,7 @@ void EvaluateCapsuleOcclusion(uint evaluationFlags,
 
             if (evaluationFlags & CAPSULEOCCLUSIONTYPE_DIRECTIONAL_SHADOWS)
             {
-                float capsuleShadow = EvaluateCapsuleShadow(s_capsuleData, posInput.positionWS, N, dirAndLen, posInput.positionSS);
+                float capsuleShadow = EvaluateCapsuleShadowAnalytical(s_capsuleData, posInput.positionWS, N, dirAndLen);
                 shadow = AccumulateCapsuleShadow(shadow, capsuleShadow);
             }
         }

@@ -18,8 +18,8 @@ float3 GetRandomConeAxis(float cosHalfAperture, float2 randVals)
     return float3(cosPhi * sinTheta, sinPhi * sinTheta, cosTheta);
 }
 
-RW_TEXTURE3D(float, _CapsuleShadowLUT);
 
+RW_TEXTURE3D(float, _CapsuleShadowLUT);
 
 // Note here we assume that we always have 4 angles to select from
 CBUFFER_START(CapsuleShadowsLUTGenerationCB)
@@ -40,7 +40,7 @@ void CapsuleShadowLUTGeneration(uint3 dispatchThreadId : SV_DispatchThreadID, ui
 {
     // Phi is the angle between the cone axis and the vector pointing towards the occluder center.
     float2 outUV = dispatchThreadId.xy * float2(rcp(_LUTWidth - 1.0f), rcp(_LUTHeight - 1.0f));
-    outUV.x = PositivePow(outUV.x, 1.0f / 3.0f);    // Distribute more on the later end of the range
+   // outUV.x = PositivePow(outUV.x, 1.0f / 3.0f);    // Distribute more on the later end of the range
     float cosPhi = 2.0f * outUV.x - 1.0f;
     float sinPhi = sqrt(1.0f - sqrt(cosPhi * cosPhi));
     // Theta is the angle subtended by the occluder 
