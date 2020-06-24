@@ -109,8 +109,8 @@ static const int ValueTypeHasTag = 128;
 uint ShaderDebugNoTag[4];
 
 void ShaderDebugPrint(uint tag[4], uint value) PRINT1(ValueTypeUint, value, ValueTypeHasTag, tag);
-void ShaderDebugPrint(uint tag[4], int value) PRINT1(ValueTypeInt, value, ValueTypeHasTag, tag);
-void ShaderDebugPrint(uint tag[4], float value) PRINT1(ValueTypeFloat, value, ValueTypeHasTag, tag);
+void ShaderDebugPrint(uint tag[4], int value) PRINT1(ValueTypeInt, asuint(value), ValueTypeHasTag, tag);
+void ShaderDebugPrint(uint tag[4], float value) PRINT1(ValueTypeFloat, asuint(value), ValueTypeHasTag, tag);
 void ShaderDebugPrint(uint tag[4], uint2 value)  PRINT2(ValueTypeUint2, value, ValueTypeHasTag, tag)
 void ShaderDebugPrint(uint tag[4], int2 value)   PRINT2(ValueTypeInt2, asuint(value), ValueTypeHasTag, tag)
 void ShaderDebugPrint(uint tag[4], float2 value) PRINT2(ValueTypeFloat2, asuint(value), ValueTypeHasTag, tag)
