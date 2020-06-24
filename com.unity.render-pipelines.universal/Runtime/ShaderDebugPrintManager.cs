@@ -24,8 +24,8 @@ namespace UnityEngine.Rendering.Universal
         private int m_FrameCounter = 0;
         private bool m_FrameCleared = false;
 
-        private static readonly int m_ShaderPropertyIDInputMouse  = Shader.PropertyToID("_ShaderDebugPrintInputMouse");
-        private static readonly int m_ShaderPropertyIDInputExtras = Shader.PropertyToID("_ShaderDebugPrintInputExtras");
+        private static readonly int m_ShaderPropertyIDInputMouse = Shader.PropertyToID("_ShaderDebugPrintInputMouse");
+        private static readonly int m_ShaderPropertyIDInputFrame = Shader.PropertyToID("_ShaderDebugPrintInputFrame");
 
         enum DebugValueType
         {
@@ -68,9 +68,8 @@ namespace UnityEngine.Rendering.Universal
             var input = ShaderDebugPrintInput.Get();
 
             var mouse = new Vector4(input.Pos.x, input.Pos.y, input.LeftDown ? 1 : 0, input.RightDown ? 1 : 0);
-            var extras = new Vector4(m_FrameCounter, 0, 0, 0);
             cmd.SetGlobalVector(m_ShaderPropertyIDInputMouse, mouse);
-            cmd.SetGlobalVector(m_ShaderPropertyIDInputExtras, extras);
+            cmd.SetGlobalInt(m_ShaderPropertyIDInputFrame, m_FrameCounter);
         }
 
         public void SetShaderDebugPrintBindings(CommandBuffer cmd)

@@ -7,7 +7,12 @@ static const int MaxShaderDebugOutputElements = 1024 * 1024; // 1M - must match 
 
 // Input Constants
 float4 _ShaderDebugPrintInputMouse;
-float4 _ShaderDebugPrintInputExtras;
+int    _ShaderDebugPrintInputFrame;
+
+int2 ShaderDebugMouseCoords()      { return _ShaderDebugPrintInputMouse.xy; }
+int  ShaderDebugMouseButtonLeft()  { return _ShaderDebugPrintInputMouse.z;  }
+int  ShaderDebugMouseButtonRight() { return _ShaderDebugPrintInputMouse.w;  }
+int  ShaderDebugFrameNumber()      { return _ShaderDebugPrintInputFrame; }
 
 static const int ValueTypeUint   = 1;
 static const int ValueTypeInt    = 2;
@@ -132,5 +137,26 @@ void ShaderDebugPrint(float4 value) PRINT4(ValueTypeFloat4, asuint(value), 0, Sh
 #undef PRINT2
 #undef PRINT3
 #undef PRINT4
+
+#define PRINT_MOUSE(VALUE)                        \
+{                                                 \
+    if(all(pixelPos == ShaderDebugMouseCoords())) \
+        ShaderDebugPrint(value);                  \
+}
+
+void ShaderDebugPrintMouseOver(int2 pixelPos, uint   value) PRINT_MOUSE(value);
+void ShaderDebugPrintMouseOver(int2 pixelPos, int    value) PRINT_MOUSE(value);
+void ShaderDebugPrintMouseOver(int2 pixelPos, float  value) PRINT_MOUSE(value);
+void ShaderDebugPrintMouseOver(int2 pixelPos, uint2  value) PRINT_MOUSE(value);
+void ShaderDebugPrintMouseOver(int2 pixelPos, int2   value) PRINT_MOUSE(value);
+void ShaderDebugPrintMouseOver(int2 pixelPos, float2 value) PRINT_MOUSE(value);
+void ShaderDebugPrintMouseOver(int2 pixelPos, uint3  value) PRINT_MOUSE(value);
+void ShaderDebugPrintMouseOver(int2 pixelPos, int3   value) PRINT_MOUSE(value);
+void ShaderDebugPrintMouseOver(int2 pixelPos, float3 value) PRINT_MOUSE(value);
+void ShaderDebugPrintMouseOver(int2 pixelPos, uint4  value) PRINT_MOUSE(value);
+void ShaderDebugPrintMouseOver(int2 pixelPos, int4   value) PRINT_MOUSE(value);
+void ShaderDebugPrintMouseOver(int2 pixelPos, float4 value) PRINT_MOUSE(value);
+
+#undef PRINT_MOUSE
 
 #endif // SHADER_DEBUG_PRINT_INCLUDED
