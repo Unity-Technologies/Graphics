@@ -1,5 +1,5 @@
 #define CONVERGED_ALPHA asfloat(1073741824)
-#define FILTER_RADIUS 3
+#define FILTER_RADIUS 4
 
 // Storage format:
 // x: the mean value
@@ -16,17 +16,16 @@ bool UpdatePerPixelVariance(uint2 pixelCoords, uint iteration, float exposureMul
         return true;
     }
 
-    //Note: perceptual color space looks like a win for dark areas, but can make bright areas worse. Investigate...
     float L = Luminance(LinearToGamma22(exposureMultiplier * radiance.xyz));
 
     float4 accVariance = (iteration > 0) ? _AccumulatedVariance[COORD_TEXTURE2D_X(pixelCoords)] : 0;
     accVariance.z += 1.0;
 
-    // first compute the accumulated luminance
+    // first compute the (unfiltered) accumulated luminance
     float deltaL = L - accVariance.w;
     accVariance.w += deltaL / accVariance.z;
 
-    // The pass this to Welford's online algorithm for variance computation
+    // Then find the variance of this value using Welford's online algorithm
     float delta = accVariance.w - accVariance.x;
     accVariance.x += delta / accVariance.z;
     float delta2 = accVariance.w - accVariance.x;
@@ -37,31 +36,63 @@ bool UpdatePerPixelVariance(uint2 pixelCoords, uint iteration, float exposureMul
     return false;
 }
 
-float GetVariance(uint2 pixelCoords, uint iteration)
+float DecodeVariance(float4 data)
 {
-    float4 accVariance = (iteration > 0) ? _AccumulatedVariance[COORD_TEXTURE2D_X(pixelCoords)] : 0;
-    return (accVariance.z > 0) ? accVariance.y / accVariance.z : 0;
+    return (data.z > 0) ? data.y / data.z : 0;
 }
 
-bool CheckVariance(uint2 pixelCoords, uint iteration, float2 threshold)
+float GetVariance(uint2 pixelCoords)
 {
-    float totalVariance = 0;
+    float4 data = _AccumulatedVariance[COORD_TEXTURE2D_X(pixelCoords)];
+    return DecodeVariance(data);
+}
+
+float4 FetchPackedVariance(uint2 pixelCoords, uint iteration)
+{
+   return (iteration > 0) ? _AccumulatedVariance[COORD_TEXTURE2D_X(pixelCoords)] : 0;
+}
+
+bool CheckVariance(uint2 pixelCoords, float2 threshold, inout uint iteration)
+{
+    float4 data = FetchPackedVariance(pixelCoords, iteration);
+    float totalVariance = DecodeVariance(data);
+    // update the iteration number with the per pixel data
+    iteration = data.z;
 
     if (iteration > 0)
     {
-        uint2 start = clamp(pixelCoords - FILTER_RADIUS, uint2(0, 0), _ScreenSize.xy - uint2(1, 1));
-        uint2 end = clamp(pixelCoords + FILTER_RADIUS, uint2(0, 0), _ScreenSize.xy - uint2(1, 1));
-        for (uint i = start.x; i <= end.x; ++i)
+        // partially unrolled, to avoid reading agian the (0, 0) coordinate
+        for (int i = 1; i <= FILTER_RADIUS; ++i)
         {
-            for (uint j = start.y; j <= end.y; ++j)
+            for (int j = 1; j <= FILTER_RADIUS; ++j)
             {
-                totalVariance = max(totalVariance, GetVariance(uint2(i,j), iteration));
-                //totalVariance += GetVariance(uint2(i,j), iteration);
+                uint2 crd = clamp(pixelCoords + int2(i, j), int2(0, 0), _ScreenSize.xy - int2(1, 1));
+                totalVariance = max(totalVariance, GetVariance(crd));
+                crd = clamp(pixelCoords + int2(-i, j), int2(0, 0), _ScreenSize.xy - int2(1, 1));
+                totalVariance = max(totalVariance, GetVariance(crd));
+                crd = clamp(pixelCoords + int2(i, -j), int2(0, 0), _ScreenSize.xy - int2(1, 1));
+                totalVariance = max(totalVariance, GetVariance(crd));
+                crd = clamp(pixelCoords + int2(-i, -j), int2(0, 0), _ScreenSize.xy - int2(1, 1));
+                totalVariance = max(totalVariance, GetVariance(crd));
             }
         }
-        //totalVariance /= ((1 + 2 * FILTER_RADIUS) * (1 + 2 * FILTER_RADIUS));
-    }
 
+        for (int j = 1; j <= FILTER_RADIUS; ++j)
+        {
+            uint2 crd = clamp(pixelCoords + int2(0, j), int2(0, 0), _ScreenSize.xy - int2(1, 1));
+            totalVariance = max(totalVariance, GetVariance(crd));
+            crd = clamp(pixelCoords + int2(0, -j), int2(0, 0), _ScreenSize.xy - int2(1, 1));
+            totalVariance = max(totalVariance, GetVariance(crd));
+        }
+
+        for (int k = 1; k <= FILTER_RADIUS; ++k)
+        {
+            uint2 crd = clamp(pixelCoords + int2(k, 0), int2(0, 0), _ScreenSize.xy - int2(1, 1));
+            totalVariance = max(totalVariance, GetVariance(crd));
+            crd = clamp(pixelCoords + int2(-k, 0), int2(0, 0), _ScreenSize.xy - int2(1, 1));
+            totalVariance = max(totalVariance, GetVariance(crd));
+        }
+    }
 
     if (totalVariance < threshold.x)
     {

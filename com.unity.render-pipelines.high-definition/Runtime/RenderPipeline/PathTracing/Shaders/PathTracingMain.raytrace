@@ -83,16 +83,21 @@ void RayGen()
     bool doAdaptiveSampling = (_PTAdaptiveSamplingConstants.x != 0);
     int minSamples = _PTAdaptiveSamplingConstants.y;
     float2 threshold = _PTAdaptiveSamplingConstants.zw;
-    if (doAdaptiveSampling && _RaytracingSampleIndex > minSamples && CheckVariance(currentPixelCoord, _RaytracingSampleIndex, threshold))
+    uint perPixelSampleIndex = _RaytracingSampleIndex;
+    if (doAdaptiveSampling && _RaytracingSampleIndex > minSamples)
     {
-        // this pixel will be ignored during accumulation
-        _RadianceTexture[currentPixelCoord] = float4(0, 0, 0, CONVERGED_ALPHA);
-        return;
+        // Note: CheckVariance also outputs the correct per-pixel SampleIndex
+        if (CheckVariance(currentPixelCoord, threshold, perPixelSampleIndex))
+        {
+            // this pixel will be ignored during accumulation
+            _RadianceTexture[currentPixelCoord] = float4(0, 0, 0, CONVERGED_ALPHA);
+            return;
+        }
     }
 
     // Jitter them (we use 4x10 dimensions of our sequence during path tracing atm, so pick the next available ones)
     float3 jitteredPixelCoord = float3(currentPixelCoord, 1.0);
-    float2 subPixelOffset = float2(GetSample(currentPixelCoord, _RaytracingSampleIndex, 40), GetSample(currentPixelCoord, _RaytracingSampleIndex, 41));
+    float2 subPixelOffset = float2(GetSample(currentPixelCoord, perPixelSampleIndex, 40), GetSample(currentPixelCoord, perPixelSampleIndex, 41));
     jitteredPixelCoord.xy += subPixelOffset;
 
     // Compute the ray direction from those coordinates (for zero aperture)
@@ -105,8 +110,8 @@ void RayGen()
         // Compute the ray origin and direction for a lens with non-zero aperture
 
         // Sample the lens apperture using the next available dimensions (we use 40 for path tracing, 2 for sub-pixel jittering, 64 for SSS -> 106, 107)
-        float r1 = GetSample(currentPixelCoord, _RaytracingSampleIndex, 106);
-        float r2 = GetSample(currentPixelCoord, _RaytracingSampleIndex, 107);
+        float r1 = GetSample(currentPixelCoord, perPixelSampleIndex, 106);
+        float r2 = GetSample(currentPixelCoord, perPixelSampleIndex, 107);
         float2 uv = apertureRadius * SampleDiskUniform(r1, r2);
 
         // Compute the new ray origin ( _ViewMatrix[0] = right, _ViewMatrix[1] = up, _ViewMatrix[2] = forward )
