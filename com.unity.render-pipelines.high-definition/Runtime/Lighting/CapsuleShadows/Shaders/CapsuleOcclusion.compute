@@ -54,15 +54,19 @@ void CapsuleOcclusion(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupI
     capsuleFeatureFlags = capsuleFeatureFlags | CAPSULEOCCLUSIONTYPE_DIRECTIONAL_SHADOWS;
 #endif
 
-    if (capsuleFeatureFlags != 0) // Should never happen
+    if ((capsuleFeatureFlags != 0) // Should never happen
+        && (posInput.deviceDepth > 0.0f))
     {
         NormalData normalData;
         const float4 normalBuffer = LOAD_TEXTURE2D_X(_NormalBufferTexture, pixelCoord);
         DecodeFromNormalBuffer(normalBuffer, pixelCoord, normalData);
 
+        float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+
         EvaluateCapsuleOcclusion(capsuleFeatureFlags,
             posInput,
             normalData.normalWS,
+            V,
             normalData.perceptualRoughness,
             ao,
             specOcclusion,

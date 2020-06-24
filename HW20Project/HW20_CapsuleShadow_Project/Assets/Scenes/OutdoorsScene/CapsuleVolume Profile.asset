@@ -36,6 +36,25 @@ MonoBehaviour:
   enabled:
     m_OverrideState: 0
     m_Value: 0
+--- !u!114 &-3439557432838079226
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50940169a8aa3b845b2d7a6457104501, type: 3}
+  m_Name: CapsuleAmbientOcclusion
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  intensity:
+    m_OverrideState: 1
+    m_Value: 1
+    min: 0
+    max: 4
 --- !u!114 &-2415132327207178177
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -142,8 +161,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   components:
   - {fileID: -6320298406119171668}
-  - {fileID: 8709397930631009001}
   - {fileID: -2415132327207178177}
+  - {fileID: -3439557432838079226}
 --- !u!114 &2879286140844481241
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -161,6 +180,25 @@ MonoBehaviour:
   intensity:
     m_OverrideState: 1
     m_Value: 0.9
+    min: 0
+    max: 4
+--- !u!114 &3896965797824694849
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50940169a8aa3b845b2d7a6457104501, type: 3}
+  m_Name: CapsuleAmbientOcclusion
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  intensity:
+    m_OverrideState: 0
+    m_Value: 0
     min: 0
     max: 4
 --- !u!114 &8709397930631009001
