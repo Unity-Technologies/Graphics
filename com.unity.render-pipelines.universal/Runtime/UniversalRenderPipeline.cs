@@ -8,6 +8,7 @@ using UnityEditor.Rendering.Universal;
 using UnityEngine.Scripting.APIUpdating;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.LWRP
 {
@@ -70,7 +71,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // GLES can be selected as platform on Windows (not a mobile platform) but uniform buffer size so we must use a low light count.
                 return (isMobile || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
-                        ? k_MaxVisibleAdditionalLightsMobile : k_MaxVisibleAdditionalLightsNonMobile;
+                            ? k_MaxVisibleAdditionalLightsMobile : k_MaxVisibleAdditionalLightsNonMobile;
             }
         }
 
@@ -122,61 +123,113 @@ namespace UnityEngine.Rendering.Universal
             CameraCaptureBridge.enabled = false;
         }
 
-        protected override void ProcessRenderRequests(ScriptableRenderContext context, Camera camera, List<Camera.RenderRequest> renderRequests)
+        protected override void ProcessRenderRequests(ScriptableRenderContext renderContext, Camera camera, List<Camera.RenderRequest> renderRequests)
         {
+            var cameras = new [] {camera};
+            BeginFrameRendering(renderContext, cameras);
+
+            GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+            GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
+            SetupPerFrameShaderConstants();
+            
+            BeginCameraRendering(renderContext, camera);
+#if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
+            //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
+            VFX.VFXManager.PrepareCamera(camera);
+#endif
+            UpdateVolumeFramework(camera, null);
+
+
             var cameraTarget = camera.targetTexture;
+
             foreach (var renderRequest in renderRequests)
             {
+                
                 if (!renderRequest.isValid)
                     continue;
-
-                switch (renderRequest.mode)
-                {
-                    case Camera.RenderRequestMode.ObjectId:
-                        Shader.EnableKeyword("RENDER_OBJECT_ID");
-                        break;
-                    case Camera.RenderRequestMode.Depth:
-                        break;
-                    case Camera.RenderRequestMode.Normals:
-                        Shader.EnableKeyword("RENDER_NORMALS");
-                        break;
-                    case Camera.RenderRequestMode.EntityId:
-                        break;
-                    case Camera.RenderRequestMode.WorldPosition:
-                        Shader.EnableKeyword("RENDER_WORLD_POS");
-                        break;
-                    default:
-                        Debug.LogWarning(string.Format("Requested camera render mode {0} is not supported by UniversalRenderPipeline", renderRequest.mode));
-                        break;
-                }
-
-                camera.targetTexture = renderRequest.result;
-                Render(context, new[] {camera});
-
-                switch (renderRequest.mode)
-                {
-                    case Camera.RenderRequestMode.ObjectId:
-                        Shader.DisableKeyword("RENDER_OBJECT_ID");
-                        break;
-                    case Camera.RenderRequestMode.Depth:
-                        break;
-                    case Camera.RenderRequestMode.Normals:
-                        Shader.DisableKeyword("RENDER_NORMALS");
-                        break;
-                    case Camera.RenderRequestMode.EntityId:
-                        break;
-                    case Camera.RenderRequestMode.WorldPosition:
-                        Shader.DisableKeyword("RENDER_WORLD_POS");
-                        break;
-                    default:
-                        Debug.LogWarning(string.Format("Requested camera render mode {0} is not supported by UniversalRenderPipeline", renderRequest.mode));
-                        break;
-                }
+                RenderWithMode(renderContext, camera, renderRequest);
             }
-
+            
+            EndCameraRendering(renderContext, camera);
+            EndFrameRendering(renderContext, cameras);
             camera.targetTexture = cameraTarget;
         }
 
+        void RenderWithMode(ScriptableRenderContext renderContext, Camera camera, Camera.RenderRequest renderRequest)
+        {
+                camera.targetTexture = renderRequest.result;
+
+                UniversalAdditionalCameraData additionalCameraData = null;
+                if (IsGameCamera(camera))
+                    camera.gameObject.TryGetComponent(out additionalCameraData);
+
+                if (additionalCameraData != null && additionalCameraData.renderType != CameraRenderType.Base)
+                {
+                    Debug.LogWarning("Only Base cameras can be rendered with standalone RenderSingleCamera. Camera will be skipped.");
+                    return;
+                }
+
+                var data = ScriptableObject.CreateInstance<RenderRequestRendererData>();
+                data.mode = renderRequest.mode;
+                InitializeCameraData(camera, additionalCameraData, true, out var cameraData);
+                cameraData.renderer = data.InternalCreateRenderer();
+                RenderSingleCamera(renderContext, cameraData, false);
+                Object.DestroyImmediate(data);
+        }
+
+        public class RenderRequestRendererData : ScriptableRendererData
+        {
+            protected override ScriptableRenderer Create()
+            {
+                return new RenderRequestRenderer(this);
+            }
+
+            public Camera.RenderRequestMode mode { get; set; } = Camera.RenderRequestMode.None;
+        }
+        
+        class RenderRequestRenderer : ScriptableRenderer
+        {
+            DrawObjectsPass m_RenderOpaqueForwardPass;
+            DrawObjectsPass m_RenderTransparentForwardPass;
+
+            LayerMask m_OpaqueLayerMask = -1;
+            LayerMask m_TransparentLayerMask = -1;
+            StencilState m_DefaultStencilState = StencilState.defaultValue;
+            
+            public RenderRequestRenderer(RenderRequestRendererData data) : base(data)
+            {
+                var shaderTags = new[] {new ShaderTagId("DataExtraction")};
+                m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", shaderTags, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, m_OpaqueLayerMask, m_DefaultStencilState, 0 );
+                m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", shaderTags, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, m_TransparentLayerMask, m_DefaultStencilState, 0);
+
+                string keyword = String.Empty;
+                switch (data.mode)
+                {
+                    case Camera.RenderRequestMode.ObjectId:
+                        keyword = "RENDER_OBJECT_ID";
+                        break;
+                    case Camera.RenderRequestMode.Normals:
+                        keyword = "RENDER_NORMALS";
+                        break;
+                    case Camera.RenderRequestMode.WorldPosition:
+                        keyword = "RENDER_WORLD_POS";
+                        break;
+                    default:
+                        Debug.LogWarning(string.Format("Requested camera render mode {0} is not supported by UniversalRenderPipeline", data.mode));
+                        break;
+                }
+                m_RenderOpaqueForwardPass.SetAdditionalKeywords(new [] {keyword});
+                m_RenderTransparentForwardPass.SetAdditionalKeywords(new [] {keyword});
+            }
+            
+            /// <inheritdoc />
+            public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
+            {
+                EnqueuePass(m_RenderOpaqueForwardPass);
+                EnqueuePass(m_RenderTransparentForwardPass);
+            }
+        }
+        
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
             BeginFrameRendering(renderContext, cameras);

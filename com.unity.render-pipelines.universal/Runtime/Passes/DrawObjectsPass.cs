@@ -16,9 +16,19 @@ namespace UnityEngine.Rendering.Universal.Internal
         string m_ProfilerTag;
         ProfilingSampler m_ProfilingSampler;
         bool m_IsOpaque;
+        List<string> m_AdditionalShaderKeywords = new List<string>();
 
         static readonly int s_DrawObjectPassDataPropID = Shader.PropertyToID("_DrawObjectPassData");
 
+        public void SetAdditionalKeywords(IEnumerable<string> words)
+        {
+            m_AdditionalShaderKeywords.Clear();
+            foreach (var word in words)
+            {
+                m_AdditionalShaderKeywords.Add(word);
+            }
+        }
+        
         public DrawObjectsPass(string profilerTag, ShaderTagId[] shaderTagIds, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
         {
             m_ProfilerTag = profilerTag;
@@ -71,6 +81,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // w is used for knowing whether the object is opaque(1) or alpha blended(0)
                 Vector4 drawObjectPassData = new Vector4(0.0f, 0.0f, 0.0f, (m_IsOpaque) ? 1.0f : 0.0f);
                 cmd.SetGlobalVector(s_DrawObjectPassDataPropID, drawObjectPassData);
+                foreach (var word in m_AdditionalShaderKeywords)
+                    cmd.EnableShaderKeyword(word);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
@@ -89,6 +101,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings, ref m_RenderStateBlock);
 
+                foreach (var word in m_AdditionalShaderKeywords)
+                    cmd.DisableShaderKeyword(word);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+                
                 // Render objects that did not match any shader pass with error shader
                 RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
             }
