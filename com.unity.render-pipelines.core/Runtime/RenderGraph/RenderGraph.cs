@@ -255,6 +255,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         /// <summary>
+        /// Purge resources that have been used since last frame.
+        /// This need to be called once per frame to avoid over usage of GPU memory.
+        /// </summary>
+        public void PurgeUnusedResources()
+        {
+            m_Resources.PurgeUnusedResources();
+        }
+
+        /// <summary>
         /// Import an external texture to the Render Graph.
         /// Any pass writing to an imported texture will be considered having side effects and can't be automatically pruned.
         /// </summary>

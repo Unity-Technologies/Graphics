@@ -370,22 +370,19 @@ namespace UnityEngine.Rendering.HighDefinition
             return antialiasing == AntialiasingMode.TemporalAntialiasing;
         }
 
-        internal bool IsSSREnabled()
+        internal bool IsSSREnabled(bool transparent = false)
         {
             var ssr = volumeStack.GetComponent<ScreenSpaceReflection>();
-            return frameSettings.IsEnabled(FrameSettingsField.SSR) && ssr.enabled.value;
+            if (!transparent)
+                return frameSettings.IsEnabled(FrameSettingsField.SSR) && ssr.enabled.value;
+            else
+                return frameSettings.IsEnabled(FrameSettingsField.TransparentSSR) && ssr.enabled.value;
         }
 
         internal bool IsSSGIEnabled()
         {
             var ssgi = volumeStack.GetComponent<GlobalIllumination>();
             return frameSettings.IsEnabled(FrameSettingsField.SSGI) && ssgi.enable.value;
-        }
-
-        internal bool IsTransparentSSREnabled()
-        {
-            var ssr = volumeStack.GetComponent<ScreenSpaceReflection>();
-            return frameSettings.IsEnabled(FrameSettingsField.TransparentSSR) && ssr.enabled.value;
         }
 
         internal bool IsVolumetricReprojectionEnabled()

@@ -55,7 +55,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_DepthBufferMipChainInfo;
         }
 
-
         struct PrepassOutput
         {
             // Buffers that may be output by the prepass.
@@ -107,6 +106,35 @@ namespace UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(motionVectorDesc, HDShaderIDs._CameraMotionVectorsTexture);
         }
 
+        // TODO RENDERGRAPH: in someplaces we auto bind and in others we have to generate MRT because of discrepancy with non render graph path.
+        // Clean this once we only have one path.
+        void BindPrepassColorBuffers(in RenderGraphBuilder builder, in PrepassOutput prepassOutput, HDCamera hdCamera)
+        {
+            int index = 0;
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+            {
+                builder.UseColorBuffer(prepassOutput.depthAsColor, index++);
+            }
+            builder.UseColorBuffer(prepassOutput.normalBuffer, index++);
+        }
+
+        void BindMotionVectorPassColorBuffers(in RenderGraphBuilder builder, in PrepassOutput prepassOutput, HDCamera hdCamera)
+        {
+            bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+
+            if (msaa)
+            {
+                builder.UseColorBuffer(prepassOutput.depthAsColor, 0);
+                builder.UseColorBuffer(prepassOutput.motionVectorsBuffer, 1);
+                builder.UseColorBuffer(prepassOutput.normalBuffer, 2);
+            }
+            else
+            {
+                builder.UseColorBuffer(prepassOutput.motionVectorsBuffer, 0);
+                builder.UseColorBuffer(prepassOutput.normalBuffer, 1);
+            }
+        }
+
         PrepassOutput RenderPrepass(RenderGraph renderGraph, TextureHandle colorbuffer, TextureHandle sssBuffer, CullingResults cullingResults, HDCamera hdCamera)
         {
             m_IsDepthBufferCopyValid = false;
@@ -118,17 +146,14 @@ namespace UnityEngine.Rendering.HighDefinition
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
             bool clearMotionVectors = hdCamera.camera.cameraType == CameraType.SceneView && !hdCamera.animateMaterials;
 
-
             // TODO: See how to clean this. Some buffers are created outside, some inside functions...
             result.motionVectorsBuffer = CreateMotionVectorBuffer(renderGraph, msaa, clearMotionVectors);
             result.depthBuffer = CreateDepthBuffer(renderGraph, msaa);
 
-            // TODO RENDERGRAPH : XR occlusion mesh also need to write to color buffer
-            //RenderXROcclusionMeshes(renderGraph, hdCamera, result.depthBuffer);
+            RenderXROcclusionMeshes(renderGraph, hdCamera, colorbuffer, result.depthBuffer);
 
             using (new XRSinglePassScope(renderGraph, hdCamera))
             {
-                // TODO RENDERGRAPH
                 //// Bind the custom color/depth before the first custom pass
                 //if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
                 //{
@@ -137,7 +162,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 //    if (m_CustomPassDepthBuffer.IsValueCreated)
                 //        cmd.SetGlobalTexture(HDShaderIDs._CustomDepthTexture, m_CustomPassDepthBuffer.Value);
                 //}
-                //RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforeRendering);
+
+                //RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforeRendering, aovRequest, aovCustomPassBuffers);
+
+                //RenderRayTracingPrepass(cullingResults, hdCamera, renderContext, cmd, false);
+
+                // When evaluating probe volumes in material pass, we build a custom probe volume light list.
+                // When evaluating probe volumes in light loop, probe volumes are folded into the standard light loop data.
+                BuildGPULightListOutput probeVolumeListOutput = new BuildGPULightListOutput();
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
+                {
+                    probeVolumeListOutput = BuildGPULightList(m_RenderGraph, hdCamera, m_ProbeVolumeClusterData, m_ProbeVolumeCount, ref m_ShaderVariablesProbeVolumeLightListCB, result.depthBuffer, result.stencilBuffer, result.gbuffer);
+                }
 
                 bool shouldRenderMotionVectorAfterGBuffer = RenderDepthPrepass(renderGraph, cullingResults, hdCamera, ref result);
 
@@ -153,7 +189,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool needCameraMVBeforeResolve = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
                 if (needCameraMVBeforeResolve)
                 {
-                    RenderCameraMotionVectors(renderGraph, hdCamera, result.depthPyramidTexture, result.motionVectorsBuffer);
+                    RenderCameraMotionVectors(renderGraph, hdCamera, result.depthBuffer, result.motionVectorsBuffer);
                 }
 
                 PreRenderSky(renderGraph, hdCamera, colorbuffer, result.depthBuffer, result.normalBuffer);
@@ -163,32 +199,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderDBuffer(renderGraph, hdCamera, ref result, cullingResults);
 
-                // TODO RENDERGRAPH
-                //// When evaluating probe volumes in material pass, we build a custom probe volume light list.
-                //// When evaluating probe volumes in light loop, probe volumes are folded into the standard light loop data.
-                //if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
-                //{
-                //    if (hdCamera.frameSettings.BuildLightListRunsAsync())
-                //    {
-                //        buildProbeVolumeLightListTask.EndWithPostWork(cmd, hdCamera, Callback);
+                RenderGBuffer(renderGraph, sssBuffer, ref result, probeVolumeListOutput, cullingResults, hdCamera);
 
-                //        void Callback(CommandBuffer c, HDCamera cam)
-                //        {
-                //            var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-                //            var globalParams = hdrp.PrepareLightLoopGlobalParameters(cam, m_ProbeVolumeClusterData);
-                //            PushProbeVolumeLightListGlobalParams(globalParams, c);
-                //        }
-                //    }
-                //    else
-                //    {
-                //        BuildGPULightListProbeVolumesCommon(hdCamera, cmd);
-                //        var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-                //        var globalParams = hdrp.PrepareLightLoopGlobalParameters(hdCamera, m_ProbeVolumeClusterData);
-                //        PushProbeVolumeLightListGlobalParams(globalParams, cmd);
-                //    }
-                //}
-
-                RenderGBuffer(renderGraph, sssBuffer, ref result, cullingResults, hdCamera);
 
                 DecalNormalPatch(renderGraph, hdCamera, ref result);
 
@@ -212,11 +224,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // In case we don't have MSAA, we always run camera motion vectors when is safe to assume Object MV are rendered
                 if (!needCameraMVBeforeResolve)
                 {
-                    RenderCameraMotionVectors(renderGraph, hdCamera, result.depthPyramidTexture, result.resolvedMotionVectorsBuffer);
+                    RenderCameraMotionVectors(renderGraph, hdCamera, result.depthBuffer, result.resolvedMotionVectorsBuffer);
                 }
-
-                // TODO RENDERGRAPH / Probably need to move this somewhere else.
-                //RenderTransparencyOverdraw(cullingResults, hdCamera, renderContext, cmd);
 
                 BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, ref result);
             }
@@ -279,9 +288,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 (DepthPrepassData data, RenderGraphContext context) =>
                 {
                     var mrt = context.renderGraphPool.GetTempArray<RenderTargetIdentifier>(data.msaaEnabled ? 2 : 1);
-                    mrt[0] = context.resources.GetTexture(data.normalBuffer);
                     if (data.msaaEnabled)
-                        mrt[1] = context.resources.GetTexture(data.depthAsColorBuffer);
+                    {
+                        mrt[0] = context.resources.GetTexture(data.depthAsColorBuffer);
+                        mrt[1] = context.resources.GetTexture(data.normalBuffer);
+                    }
+                    else
+                    {
+                        mrt[0] = context.resources.GetTexture(data.normalBuffer);
+                    }
 
                     bool useRayTracing = data.frameSettings.IsEnabled(FrameSettingsField.RayTracing);
 
@@ -302,9 +317,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public FrameSettings        frameSettings;
             public TextureHandle        depthBuffer;
-            public TextureHandle        motionVectorsBuffer;
-            public TextureHandle        normalBuffer;
-            public TextureHandle        depthAsColorMSAABuffer;
             public RendererListHandle   rendererList;
         }
 
@@ -319,21 +331,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
                 hdCamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
-                bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-
                 passData.frameSettings = hdCamera.frameSettings;
                 passData.depthBuffer = builder.UseDepthBuffer(output.depthBuffer, DepthAccess.ReadWrite);
-                passData.motionVectorsBuffer = builder.UseColorBuffer(output.motionVectorsBuffer, 0);
-                passData.normalBuffer = builder.UseColorBuffer(output.normalBuffer, 1);
-                if (msaa)
-                    passData.depthAsColorMSAABuffer = builder.UseColorBuffer(output.depthAsColor, 2);
+                BindMotionVectorPassColorBuffers(builder, output, hdCamera);
 
+                RenderStateBlock? stateBlock = null;
+                if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.AlphaToMask))
+                    stateBlock = m_AlphaToMaskBlock;
                 passData.rendererList = builder.UseRendererList(
-                    renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_MotionVectorsName, PerObjectData.MotionVectors)));
+                    renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_MotionVectorsName, PerObjectData.MotionVectors, stateBlock: stateBlock)));
 
                 builder.SetRenderFunc(
                 (ObjectMotionVectorsPassData data, RenderGraphContext context) =>
                 {
+                    // Disable write to normal buffer for unlit shader (the normal buffer binding change when using MSAA)
+                    context.cmd.SetGlobalInt(HDShaderIDs._ColorMaskNormal, data.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? (int)ColorWriteMask.All : 0);
+
                     DrawOpaqueRendererList(context, data.frameSettings, context.resources.GetRendererList(data.rendererList));
                 });
             }
@@ -346,6 +359,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle[]      gbufferRT = new TextureHandle[RenderGraph.kMaxMRTCount];
             public TextureHandle        depthBuffer;
             public DBufferOutput        dBuffer;
+            public bool                 needProbeVolumeLightLists;
+            public ComputeBufferHandle  probeVolumeBigTile;
+            public ComputeBufferHandle  probeVolumePerVoxelOffset;
+            public ComputeBufferHandle  probeVolumePerVoxelLightList;
         }
 
         struct GBufferOutput
@@ -418,9 +435,22 @@ namespace UnityEngine.Rendering.HighDefinition
             ctx.cmd.SetGlobalBuffer(HDShaderIDs._DecalPropertyMaskBufferSRV, ctx.resources.GetComputeBuffer(dBufferOutput.decalPropertyMaskBuffer));
         }
 
+        static void BindProbeVolumeGlobalData(in FrameSettings frameSettings, GBufferPassData data, in RenderGraphContext ctx)
+        {
+            if (!data.needProbeVolumeLightLists)
+                return;
+
+            if (frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
+                ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, ctx.resources.GetComputeBuffer(data.probeVolumeBigTile));
+            ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vProbeVolumesLayeredOffsetsBuffer, ctx.resources.GetComputeBuffer(data.probeVolumePerVoxelOffset));
+            ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vProbeVolumesLightListGlobal, ctx.resources.GetComputeBuffer(data.probeVolumePerVoxelLightList));
+            // int useDepthBuffer = 0;
+            // cmd.SetGlobalInt(HDShaderIDs.g_isLogBaseBufferEnabled, useDepthBuffer);
+        }
+
         // RenderGBuffer do the gbuffer pass. This is only called with deferred. If we use a depth prepass, then the depth prepass will perform the alpha testing for opaque alpha tested and we don't need to do it anymore
         // during Gbuffer pass. This is handled in the shader and the depth test (equal and no depth write) is done here.
-        void RenderGBuffer(RenderGraph renderGraph, TextureHandle sssBuffer, ref PrepassOutput prepassOutput, CullingResults cull, HDCamera hdCamera)
+        void RenderGBuffer(RenderGraph renderGraph, TextureHandle sssBuffer, ref PrepassOutput prepassOutput, in BuildGPULightListOutput probeVolumeLightList, CullingResults cull, HDCamera hdCamera)
         {
             if (hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred)
             {
@@ -439,9 +469,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.dBuffer = ReadDBuffer(prepassOutput.dbuffer, builder);
 
+                passData.needProbeVolumeLightLists = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass;
+                if (passData.needProbeVolumeLightLists)
+                {
+                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
+                        passData.probeVolumeBigTile = builder.ReadComputeBuffer(probeVolumeLightList.bigTileLightList);
+                    passData.probeVolumePerVoxelLightList = builder.ReadComputeBuffer(probeVolumeLightList.perVoxelLightLists);
+                    passData.probeVolumePerVoxelOffset = builder.ReadComputeBuffer(probeVolumeLightList.perVoxelOffset);
+                }
+
                 builder.SetRenderFunc(
                 (GBufferPassData data, RenderGraphContext context) =>
                 {
+                    BindProbeVolumeGlobalData(data.frameSettings, data, context);
                     BindDBufferGlobalData(data.dBuffer, context);
                     DrawOpaqueRendererList(context, data.frameSettings, context.resources.GetRendererList(data.rendererList));
                 });
@@ -779,10 +819,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public Material cameraMotionVectorsMaterial;
             public TextureHandle motionVectorsBuffer;
-            public TextureHandle depthTexture;
+            public TextureHandle depthBuffer;
         }
 
-        void RenderCameraMotionVectors(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, TextureHandle motionVectorsBuffer)
+        void RenderCameraMotionVectors(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectorsBuffer)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors))
                 return;
@@ -793,15 +833,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
                 hdCamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
+                m_CameraMotionVectorsMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ObjectMotionVector);
+                m_CameraMotionVectorsMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ObjectMotionVector);
                 passData.cameraMotionVectorsMaterial = m_CameraMotionVectorsMaterial;
-                passData.depthTexture = builder.ReadTexture(depthTexture);
+                passData.depthBuffer = builder.ReadTexture(depthBuffer);
                 passData.motionVectorsBuffer = builder.WriteTexture(motionVectorsBuffer);
 
                 builder.SetRenderFunc(
                 (CameraMotionVectorsPassData data, RenderGraphContext context) =>
                 {
                     var res = context.resources;
-                    HDUtils.DrawFullScreen(context.cmd, data.cameraMotionVectorsMaterial, res.GetTexture(data.motionVectorsBuffer));
+                    HDUtils.DrawFullScreen(context.cmd, data.cameraMotionVectorsMaterial, res.GetTexture(data.motionVectorsBuffer), res.GetTexture(data.depthBuffer), null, 0);
                 });
             }
         }

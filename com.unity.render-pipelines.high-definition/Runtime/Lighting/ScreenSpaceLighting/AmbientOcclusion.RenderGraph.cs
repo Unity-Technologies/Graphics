@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { enableRandomWrite = true, colorFormat = GraphicsFormat.R8_UNorm, name = "Ambient Occlusion" }, HDShaderIDs._AmbientOcclusionTexture);
         }
 
-        public TextureHandle Render(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle motionVectors, int frameCount)
+        public TextureHandle Render(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectors, int frameCount)
         {
             var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
 
@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     var aoParameters = PrepareRenderAOParameters(hdCamera, historySize * rtScaleForHistory, frameCount);
 
-                    var packedData = RenderAO(renderGraph, aoParameters, depthPyramid);
+                    var packedData = RenderAO(renderGraph, aoParameters, depthPyramid, normalBuffer);
                     result = DenoiseAO(renderGraph, aoParameters, motionVectors, packedData, currentHistory, outputHistory);
                 }
             }
@@ -48,9 +48,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public RenderAOParameters   parameters;
             public TextureHandle        packedData;
             public TextureHandle        depthPyramid;
+            public TextureHandle        normalBuffer;
         }
 
-        TextureHandle RenderAO(RenderGraph renderGraph, in RenderAOParameters parameters, TextureHandle depthPyramid)
+        TextureHandle RenderAO(RenderGraph renderGraph, in RenderAOParameters parameters, TextureHandle depthPyramid, TextureHandle normalBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<RenderAOPassData>("GTAO Horizon search and integration", out var passData, ProfilingSampler.Get(HDProfileId.HorizonSSAO)))
             {
@@ -62,11 +63,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.packedData = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one * scaleFactor, true, true)
                 { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, name = "AO Packed data" }));
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
+                passData.normalBuffer = builder.ReadTexture(normalBuffer);
 
                 builder.SetRenderFunc(
                 (RenderAOPassData data, RenderGraphContext ctx) =>
                 {
-                    RenderAO(data.parameters, ctx.resources.GetTexture(data.packedData), m_Resources, ctx.cmd);
+                    RenderAO(data.parameters, ctx.resources.GetTexture(data.packedData), ctx.resources.GetTexture(data.depthPyramid), ctx.resources.GetTexture(data.normalBuffer), ctx.cmd);
                 });
 
                 return passData.packedData;
@@ -101,11 +103,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.parameters = parameters;
                 passData.packedData = builder.ReadTexture(aoPackedData);
-                passData.motionVectors = builder.ReadTexture(motionVectors);
+                if (parameters.temporalAccumulation)
+                {
+                    passData.motionVectors = builder.ReadTexture(motionVectors);
+                    passData.currentHistory = builder.ReadTexture(currentHistory); // can also be written on first frame, but since it's an imported resource, it doesn't matter in term of lifetime.
+                    passData.outputHistory = builder.WriteTexture(outputHistory);
+                }
+
                 passData.packedDataBlurred = builder.CreateTransientTexture(
-                    new TextureDesc(Vector2.one * scaleFactor, true, true) { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, name = "AO Packed blurred data" } );
-                passData.currentHistory = builder.ReadTexture(currentHistory); // can also be written on first frame, but since it's an imported resource, it doesn't matter in term of lifetime.
-                passData.outputHistory = builder.WriteTexture(outputHistory);
+                    new TextureDesc(Vector2.one * scaleFactor, true, true) { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, name = "AO Packed blurred data" });
 
                 var format = parameters.fullResolution ? GraphicsFormat.R8_UNorm : GraphicsFormat.R32_UInt;
                 if (parameters.fullResolution)

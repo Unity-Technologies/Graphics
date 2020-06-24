@@ -406,11 +406,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public bool clusterNeedsDepth { get; private set; }
             public bool hasTileBuffers { get; private set; }
+            public int maxLightCount { get; private set; }
 
-            public void Initialize(bool allocateTileBuffers, bool clusterNeedsDepth)
+            public void Initialize(bool allocateTileBuffers, bool clusterNeedsDepth, int maxLightCount)
             {
                 hasTileBuffers = allocateTileBuffers;
                 this.clusterNeedsDepth = clusterNeedsDepth;
+                this.maxLightCount = maxLightCount;
                 globalLightListAtomic = new ComputeBuffer(1, sizeof(uint));
             }
 
@@ -897,11 +899,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // All the allocation of the compute buffers need to happened after the kernel finding in order to avoid the leak loop when a shader does not compile or is not available
             m_LightLoopLightData.Initialize(m_MaxDirectionalLightsOnScreen, m_MaxPunctualLightsOnScreen, m_MaxAreaLightsOnScreen, m_MaxEnvLightsOnScreen, m_MaxDecalsOnScreen);
 
-            m_TileAndClusterData.Initialize(allocateTileBuffers: true, clusterNeedsDepth: k_UseDepthBuffer);
+            m_TileAndClusterData.Initialize(allocateTileBuffers: true, clusterNeedsDepth: k_UseDepthBuffer, maxLightCount: m_MaxLightsOnScreen);
             if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
             {
                 m_ProbeVolumeClusterData = new TileAndClusterData();
-                m_ProbeVolumeClusterData.Initialize(allocateTileBuffers: false, clusterNeedsDepth: false);
+                m_ProbeVolumeClusterData.Initialize(allocateTileBuffers: false, clusterNeedsDepth: false, maxLightCount: k_MaxVisibleProbeVolumeCount);
             }
 
             // OUTPUT_SPLIT_LIGHTING - SHADOWS_SHADOWMASK - DEBUG_DISPLAY
