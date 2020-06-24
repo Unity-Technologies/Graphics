@@ -18,6 +18,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_DepthBufferMipChainInfo.textureSize;
         }
 
+        // Avoid GCAlloc by capturing functor...
+        TextureDesc m_DepthPyramidDesc;
+
         void InitializePrepass(HDRenderPipelineAsset hdAsset)
         {
             m_DepthResolveMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.depthValuesPS);
@@ -30,6 +33,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_DepthBufferMipChainInfo = new HDUtils.PackedMipChainInfo();
             m_DepthBufferMipChainInfo.Allocate();
+
+            m_DepthPyramidDesc = new TextureDesc(ComputeDepthBufferMipChainSize, true, true)
+                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "CameraDepthBufferMipChain" };
+
         }
 
         void CleanupPrepass()
@@ -100,7 +107,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(motionVectorDesc, HDShaderIDs._CameraMotionVectorsTexture);
         }
 
-        PrepassOutput RenderPrepass(RenderGraph renderGraph, TextureHandle sssBuffer, CullingResults cullingResults, HDCamera hdCamera)
+        PrepassOutput RenderPrepass(RenderGraph renderGraph, TextureHandle colorbuffer, TextureHandle sssBuffer, CullingResults cullingResults, HDCamera hdCamera)
         {
             m_IsDepthBufferCopyValid = false;
 
@@ -149,13 +156,37 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderCameraMotionVectors(renderGraph, hdCamera, result.depthPyramidTexture, result.motionVectorsBuffer);
                 }
 
-                // TODO RENDERGRAPH
-                //PreRenderSky(hdCamera, cmd);
+                PreRenderSky(renderGraph, hdCamera, colorbuffer, result.depthBuffer, result.normalBuffer);
 
                 // At this point in forward all objects have been rendered to the prepass (depth/normal/motion vectors) so we can resolve them
                 ResolvePrepassBuffers(renderGraph, hdCamera, ref result);
 
                 RenderDBuffer(renderGraph, hdCamera, ref result, cullingResults);
+
+                // TODO RENDERGRAPH
+                //// When evaluating probe volumes in material pass, we build a custom probe volume light list.
+                //// When evaluating probe volumes in light loop, probe volumes are folded into the standard light loop data.
+                //if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
+                //{
+                //    if (hdCamera.frameSettings.BuildLightListRunsAsync())
+                //    {
+                //        buildProbeVolumeLightListTask.EndWithPostWork(cmd, hdCamera, Callback);
+
+                //        void Callback(CommandBuffer c, HDCamera cam)
+                //        {
+                //            var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+                //            var globalParams = hdrp.PrepareLightLoopGlobalParameters(cam, m_ProbeVolumeClusterData);
+                //            PushProbeVolumeLightListGlobalParams(globalParams, c);
+                //        }
+                //    }
+                //    else
+                //    {
+                //        BuildGPULightListProbeVolumesCommon(hdCamera, cmd);
+                //        var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+                //        var globalParams = hdrp.PrepareLightLoopGlobalParameters(hdCamera, m_ProbeVolumeClusterData);
+                //        PushProbeVolumeLightListGlobalParams(globalParams, cmd);
+                //    }
+                //}
 
                 RenderGBuffer(renderGraph, sssBuffer, ref result, cullingResults, hdCamera);
 
@@ -163,14 +194,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // TODO RENDERGRAPH
                 //// After Depth and Normals/roughness including decals
-                //RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterOpaqueDepthAndNormal);
+                //bool depthBufferModified = RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterOpaqueDepthAndNormal, aovRequest, aovCustomPassBuffers);
+
+                //// If the depth was already copied in RenderDBuffer, we force the copy again because the custom pass modified the depth.
+                //if (depthBufferModified)
+                //    m_IsDepthBufferCopyValid = false;
 
                 // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
                 GenerateDepthPyramid(renderGraph, hdCamera, ref result);
-
-                // TODO RENDERGRAPH
-                //// Send all the geometry graphics buffer to client systems if required (must be done after the pyramid and before the transparent depth pre-pass)
-                //SendGeometryGraphicsBuffers(cmd, hdCamera);
 
                 if (shouldRenderMotionVectorAfterGBuffer)
                 {
@@ -379,7 +410,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // TODO RENDERGRAPH: For now we just bind globally for GBuffer/Forward passes.
-        // We need to find a nice way to invalid this kind of buffers when they should not be used anymore (after the last read).
+        // We need to find a nice way to invalidate this kind of buffers when they should not be used anymore (after the last read).
         static void BindDBufferGlobalData(in DBufferOutput dBufferOutput, in RenderGraphContext ctx)
         {
             for (int i = 0; i < dBufferOutput.dBufferCount; ++i)
@@ -498,8 +529,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (var builder = renderGraph.AddRenderPass<CopyDepthPassData>("Copy depth buffer", out var passData, ProfilingSampler.Get(HDProfileId.CopyDepthBuffer)))
                 {
                     passData.inputDepth = builder.ReadTexture(output.resolvedDepthBuffer);
-                    passData.outputDepth = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(ComputeDepthBufferMipChainSize, true, true)
-                        { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "CameraDepthBufferMipChain" }, HDShaderIDs._CameraDepthTexture));
+                    passData.outputDepth = builder.WriteTexture(renderGraph.CreateTexture(m_DepthPyramidDesc, HDShaderIDs._CameraDepthTexture));
                     passData.GPUCopy = m_GPUCopy;
                     passData.width = hdCamera.actualWidth;
                     passData.height = hdCamera.actualHeight;

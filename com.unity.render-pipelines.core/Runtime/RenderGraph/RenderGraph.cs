@@ -205,12 +205,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         #region Public Interface
 
-        // TODO RENDERGRAPH: Currently only needed by SSAO to sample correctly depth texture mips. Need to figure out a way to hide this behind a proper formalization.
-        /// <summary>
-        /// Gets the RTHandleProperties structure associated with the Render Graph's RTHandle System.
-        /// </summary>
-        public RTHandleProperties rtHandleProperties { get { return m_Resources.GetRTHandleProperties(); } }
-
         public RenderGraphDefaultResources defaultResources
         {
             get
@@ -258,17 +252,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public void UnRegisterDebug()
         {
             m_DebugParameters.UnRegisterDebug();
-        }
-
-        /// <summary>
-        /// Resets the reference size of the internal RTHandle System.
-        /// This allows users to reduce the memory footprint of render textures after doing a super sampled rendering pass for example.
-        /// </summary>
-        /// <param name="width">New width of the internal RTHandle System.</param>
-        /// <param name="height">New height of the internal RTHandle System.</param>
-        public void ResetRTHandleReferenceSize(int width, int height)
-        {
-            m_Resources.ResetRTHandleReferenceSize(width, height);
         }
 
         /// <summary>
