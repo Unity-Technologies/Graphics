@@ -585,31 +585,29 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
         // γ is the angle of rotation of the tangent frame around the normal.
         //
         // The following symmetry relations exist:
-        // 1st quadrant (Sin >= 0, Cos >= 0): AnisoGGX(α, β, γ), where (0 <= γ <= Pi/2)
-        // 2nd quadrant (Sin >= 0, Cos <  0): AnisoGGX(α, β, γ) == AnisoGGX(β, α, γ + Pi * 1/2)
-        // 3rd quadrant (Sin <  0, Cos <  0): AnisoGGX(α, β, γ) == AnisoGGX(α, β, γ + Pi)
+        // 1st quadrant (Sin >= 0, Cos >  0): AnisoGGX(α, β, γ), where (0 <= γ < Pi/2)
+        // 2nd quadrant (Sin >  0, Cos <= 0): AnisoGGX(α, β, γ) == AnisoGGX(β, α, γ + Pi * 1/2)
+        // 3rd quadrant (Sin <= 0, Cos <  0): AnisoGGX(α, β, γ) == AnisoGGX(α, β, γ + Pi)
         // 4th quadrant (Sin <  0, Cos >= 0): AnisoGGX(α, β, γ) == AnisoGGX(β, α, γ + Pi * 3/2)
-        // Handling of interval end-points is asymmetric to simplify programming.
-        // Q Sin Cos Xor
-        // 1  0   0   0
-        // 2  0   1   1
-        // 3  3   1   2
-        // 4  3   0   3
-        uint quadrant = ((sinFrame < 0) ? 3 : 0) ^ ((cosFrame < 0) ? 1 : 0); // 0-indexed
+        // Handling of interval end-points may be less rigorous to simplify programming.
+        // The only requirement is that the handling is consistent.
+        bool quad2or4 = (sinFrame * cosFrame) < 0;
+
         // Anisotropy = (α - β) / (α + β).
         // Exchanging the roughness values α and β is equivalent to negating the value of anisotropy.
-        float anisotropy = asfloat(asuint(surfaceData.anisotropy) ^ ((quadrant & 1) << 31));
+        float anisotropy = quad2or4 ? -surfaceData.anisotropy : surfaceData.anisotropy;
+
         // We need to convert the values of Sin and Cos to those appropriate for the 1st quadrant.
         // To go from Q3 to Q1, we must rotate by Pi, so taking the absolute value suffices.
         // To go from Q2 or Q4 to Q1, we must rotate by ((N + 1/2) * Pi), so we must
         // take the absolute value and also swap Sin and Cos.
-        uint  storeSin = (abs(sinFrame) < abs(cosFrame) ? 1 : 0) ^ (quadrant & 1);
+        bool  storeSin = (abs(sinFrame) < abs(cosFrame)) != quad2or4;
         // sin [and cos] are approximately linear up to [after] Pi/4 ± Pi.
         float sinOrCos = min(abs(sinFrame), abs(cosFrame)) * sqrt(2);
 
         outGBuffer2.rgb = float3(anisotropy * 0.5 + 0.5,
                                  sinOrCos,
-                                 PackFloatInt8bit(surfaceData.metallic, storeSin, 8));
+                                 PackFloatInt8bit(surfaceData.metallic, storeSin ? 1 : 0, 8));
     }
     else if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
     {
@@ -891,9 +889,9 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
             UnpackFloatInt8bit(inGBuffer2.b, 8, unused, tangentFlags);
 
             // Get the rotation angle of the actual tangent frame with respect to the default one.
-            uint  storeSin = tangentFlags;
             float sinOrCos = inGBuffer2.g * rsqrt(2);
             float cosOrSin = sqrt(1 - sinOrCos * sinOrCos);
+            bool  storeSin = tangentFlags != 0;
             float sinFrame = storeSin ? sinOrCos : cosOrSin;
             float cosFrame = storeSin ? cosOrSin : sinOrCos;
 
