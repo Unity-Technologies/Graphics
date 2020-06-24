@@ -10,11 +10,13 @@ namespace UnityEditor
 	{
 		private static class Styles
         {
-	        public static readonly GUIContent Enabled = EditorGUIUtility.TrTextContent("Enabled");
+            public static readonly GUIContent[] ProjectionStrings = { EditorGUIUtility.TrTextContent("Infinite"), EditorGUIUtility.TrTextContent("Box") };
+            public static readonly GUIContent Enabled = EditorGUIUtility.TrTextContent("Enabled");
 	        public static readonly GUIContent Name = EditorGUIUtility.TrTextContent("Name");
 	        public static readonly GUIContent Mode = EditorGUIUtility.TrTextContent("Mode");
 
-	        public static readonly GUIContent HDR = EditorGUIUtility.TrTextContent("HDR");
+            public static readonly GUIContent Projection = EditorGUIUtility.TrTextContent("Projection");
+            public static readonly GUIContent HDR = EditorGUIUtility.TrTextContent("HDR");
 	        public static readonly GUIContent ShadowDistance = EditorGUIUtility.TrTextContent("Shadow Distance");
 	        public static readonly GUIContent NearPlane = EditorGUIUtility.TrTextContent("Near Plane");
 	        public static readonly GUIContent FarPlane = EditorGUIUtility.TrTextContent("Far Plane");
@@ -43,15 +45,20 @@ namespace UnityEditor
 				{
 					EditorGUI.IntPopup(r, prop, Styles.ReflectionProbeModeTitles, Styles.ReflectionProbeModeValues, GUIContent.none);
 				}),     // 2: Mode
-				new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, Styles.HDR, "m_HDR", 35),  // 3: HDR
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Int, Styles.Projection, "m_BoxProjection", 80, (r, prop, dep) =>
+                {
+                    int[] opts = { 0, 1 };
+                    prop.boolValue = EditorGUI.IntPopup(r, prop.boolValue ? 1 : 0, Styles.ProjectionStrings, opts) == 1;
+                }),     // 3: Projection
+				new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, Styles.HDR, "m_HDR", 35),  // 4: HDR
 				new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, Styles.Resolution, "m_Resolution", 100, (r, prop, dep) =>
 				{
 					EditorGUI.IntPopup(r, prop, Styles.ReflectionProbeSizeTitles, Styles.ReflectionProbeSizeValues, GUIContent.none);
-				}), // 4: Probe Resolution
-				new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, Styles.ShadowDistance, "m_ShadowDistance", 100), // 5: Shadow Distance
-				new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, Styles.NearPlane, "m_NearClip", 70), // 6: Near Plane
-				new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, Styles.FarPlane, "m_FarClip", 70), // 7: Far Plane
-			};
+				}), // 5: Probe Resolution
+				new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, Styles.ShadowDistance, "m_ShadowDistance", 100), // 6: Shadow Distance
+				new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, Styles.NearPlane, "m_NearClip", 70), // 7: Near Plane
+				new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, Styles.FarPlane, "m_FarClip", 70), // 8: Far Plane
+            };
 		}
 	}
 }
