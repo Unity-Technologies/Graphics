@@ -8,13 +8,13 @@
 | Defines a constant Boolean value in the shader. | Defines a constant Vector 4 value in the shader using a Color field. |
 |[**Constant**](Constant-Node.md)|[**Integer**](Integer-Node.md)|
 |![Image](images/ConstantNodeThumb.png)|![Image](images/IntegerNodeThumb.png)|
-|Defines a Vector 1 of a mathematical constant value in the shader.|Defines a constant Vector 1 value in the shader using an Integer field.|
+|Defines a Float of a mathematical constant value in the shader.|Defines a constant Float value in the shader using an Integer field.|
 |[**Slider**](Slider-Node.md)|[**Time**](Time-Node.md)|
 |![Image](images/SliderNodeThumb.png)|![Image](images/TimeNodeThumb.png)|
-|Defines a constant Vector 1 value in the shader using a Slider field.|Provides access to various Time parameters in the shader.|
-|[**Vector 1**](Vector-1-Node.md)|[**Vector 2**](Vector-2-Node.md)|
+|Defines a constant Float value in the shader using a Slider field.|Provides access to various Time parameters in the shader.|
+|[**Float**](Vector-1-Node.md)|[**Vector 2**](Vector-2-Node.md)|
 |![Image](images/Vector1NodeThumb.png)|![Image](images/Vector2NodeThumb.png)|
-|Defines a Vector 1 value in the shader.|Defines a Vector 2 value in the shader.|
+|Defines a Float value in the shader.|Defines a Vector 2 value in the shader.|
 |[**Vector 3**](Vector-3-Node.md)|[**Vector 4**](Vector-4-Node.md)|
 |![Image](images/Vector3NodeThumb.png)|![Image](images/Vector4NodeThumb.png)|
 |Defines a Vector 3 value in the shader.|Defines a Vector 4 value in the shader.|

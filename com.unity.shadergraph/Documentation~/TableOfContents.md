@@ -70,7 +70,7 @@
             * [Integer](Integer-Node)  
             * [Slider](Slider-Node)  
             * [Time](Time-Node)  
-            * [Vector 1](Vector-1-Node)  
+            * [Float](Vector-1-Node)  
             * [Vector 2](Vector-2-Node)  
             * [Vector 3](Vector-3-Node)  
             * [Vector 4](Vector-4-Node)  

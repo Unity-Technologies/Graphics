@@ -21,13 +21,13 @@ NOTE: If you overwrite the **Reference Name** parameter be aware of the followin
 - If your **Reference Name** contains any characters which are unsupported in HLSL they will be removed.
 - You can revert to the default **Reference Name** by right clicking on it and selecting **Reset Reference**.
 
-## Vector 1
+## Float
 
-Defines a **Vector 1** value.
+Defines a **Float** value.
 
 | Data Type    | Modes |
 |:-------------|:------|
-| Vector 1 | Default, Slider, Integer |
+| Float | Default, Slider, Integer |
 
 #### Default
 
@@ -35,7 +35,7 @@ Displays a scalar input field in the material inspector.
 
 | Field        | Type  | Description |
 |:-------------|:------|:------------|
-| Default | Vector 1 | The default value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). |
+| Default | Float | The default value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). |
 
 #### Slider
 
@@ -43,9 +43,9 @@ Displays a slider field in the material inspector.
 
 | Field        | Type  | Description |
 |:-------------|:------|:------------|
-| Default | Vector 1 |  The default value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). |
-| Min | Vector 1 | The minimum value of the slider. |
-| Max | Vector 1 | The maximum value of the slider. |
+| Default | Float |  The default value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). |
+| Min | Float | The minimum value of the slider. |
+| Max | Float | The maximum value of the slider. |
 
 #### Integer
 
@@ -165,7 +165,7 @@ Defines a [Cubemap](https://docs.unity3d.com/Manual/class-Cubemap.html) value. D
 
 ## Boolean
 
-Defines a **Boolean** value. Displays a **ToggleUI** field in the material inspector. Note that internally to the shader this value is a **Vector 1**. The **Boolean** type in [Shader Graph](Shader-Graph.md) is merely for usability. 
+Defines a **Boolean** value. Displays a **ToggleUI** field in the material inspector. Note that internally to the shader this value is a **Float**. The **Boolean** type in [Shader Graph](Shader-Graph.md) is merely for usability. 
 
 | Data Type    | Modes |
 |:-------------|:------|

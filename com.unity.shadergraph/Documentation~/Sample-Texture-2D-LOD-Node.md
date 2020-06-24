@@ -15,12 +15,12 @@ This [Node](Node.md) is useful for sampling a **Texture** in the vertex [Shader 
 | Texture |	Input |	Texture 2D  | None | Texture 2D to sample |
 | UV      | Input |	Vector 2    | 	UV	| UV coordinates |
 | Sampler | Input |	Sampler State | Default sampler state | Sampler for the texture |
-| LOD   |	Input |	Vector 1  | None | Level of detail to sample |
+| LOD   |	Input |	Float  | None | Level of detail to sample |
 | RGBA	| Output	| Vector 4	| None	| Output value as RGBA |
-| R	    | Output	| Vector 1	| None	| red (x) component of RGBA output |
-| G	    | Output	| Vector 1	| None	| green (y) component of RGBA output |
-| B	    | Output	| Vector 1	| None	| blue (z) component of RGBA output |
-| A     |	Output	| Vector 1	| None | alpha (w) component of RGBA output |
+| R	    | Output	| Float	| None	| red (x) component of RGBA output |
+| G	    | Output	| Float	| None	| green (y) component of RGBA output |
+| B	    | Output	| Float	| None	| blue (z) component of RGBA output |
+| A     |	Output	| Float	| None | alpha (w) component of RGBA output |
 
 ## Controls
 

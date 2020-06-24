@@ -10,7 +10,7 @@ Some **Data Types** have associated [Property Types](Property-Types.md) for expo
 
 | Name        | Color           | Description |
 |:------------|:----------------|:------------|
-| Vector 1 | Light Blue | A **Vector 1** or scalar value |
+| Float | Light Blue | A **Float** or scalar value |
 | Vector 2 | Green | A **Vector 2** value |
 | Vector 3 | Yellow | A **Vector 3** value |
 | Vector 4 | Pink | A **Vector 4** value |
@@ -40,7 +40,7 @@ One notable exception to this is the [Multiply Node](Multiply-Node.md) which all
 
 ### Dynamic Vector
 
-The **Dynamic Vector** type allows connected edges of any **Vector** type. All connected edges are automatically truncated to the type with the lowest dimension, unless the lowest dimension is 1, in which case the **Vector 1** is promoted.
+The **Dynamic Vector** type allows connected edges of any **Vector** type. All connected edges are automatically truncated to the type with the lowest dimension, unless the lowest dimension is 1, in which case the **Float** is promoted.
 
 ### Dynamic Matrix
 

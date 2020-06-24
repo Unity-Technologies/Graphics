@@ -11,7 +11,7 @@ See [Precision Types](Precision-Types.md) for more information about type option
 ## Menu Options
 | Name | Description |
 |------:|------------|
-| Float | Sets the precision mode to `float`. |
+| Single | Sets the precision mode to `float`. |
 | Half | Sets the precision mode to `half`. |
 | Inherit | Sets the precision mode to `inherit`. <br> See **Precision Inheritance** below. Only available on nodes. |
 

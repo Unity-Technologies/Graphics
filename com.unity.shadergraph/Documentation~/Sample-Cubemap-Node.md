@@ -12,7 +12,7 @@ Samples a **Cubemap** and returns a **Vector 4** color value for use in the shad
 | View Dir      | Input | Vector 3 | View Direction (object space) | Mesh's view direction |
 | Normal | Input      |    Vector 3 | Normal (object space) | Mesh's normal vector |
 | Sampler | Input |	Sampler State | Default sampler state | Sampler for the **Cubemap** |
-| LOD | Input      |    Vector 1 | None | Level of detail for sampling |
+| LOD | Input      |    Float | None | Level of detail for sampling |
 | Out | Output      | Vector 4 | None | Output value |
 
 ## Generated Code Example

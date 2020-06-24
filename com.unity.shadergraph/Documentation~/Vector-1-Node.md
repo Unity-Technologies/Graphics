@@ -1,15 +1,15 @@
-# Vector 1 Node
+# Float Node
 
 ## Description
 
-Defines a **Vector 1** value in the shader. If [Port](Port.md) **X** is not connected with an [Edge](Edge.md) this [Node](Node.md) defines a constant **Vector 1**.
+Defines a **Float** value in the shader. If [Port](Port.md) **X** is not connected with an [Edge](Edge.md) this [Node](Node.md) defines a constant **Float**.
 
 ## Ports
 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
-| X      | Input | Vector 1 | None | Input x component value |
-| Out | Output      |    Vector 1 | None | Output value |
+| X      | Input | Float | None | Input x component value |
+| Out | Output      |    Float | None | Output value |
 
 ## Generated Code Example
 
