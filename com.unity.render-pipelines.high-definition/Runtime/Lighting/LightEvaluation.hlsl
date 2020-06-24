@@ -201,7 +201,7 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
         // TODO: Not sure it's possible to precompute cam rel pos since variables
         // in the two constant buffers may be set at a different frequency?
         float3 X = GetAbsolutePositionWS(posInput.positionWS);
-        float3 C = _PlanetCenterPosition;
+        float3 C = _PlanetCenterPosition.xyz;
 
         float r        = distance(X, C);
         float cosHoriz = ComputeCosineOfHorizonAngle(r);
@@ -237,13 +237,13 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
     return color;
 }
 
-DirectionalShadowType EvaluateShadow_Directional(LightLoopContext lightLoopContext, PositionInputs posInput,
-                                 DirectionalLightData light, BuiltinData builtinData, float3 N)
+SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, PositionInputs posInput,
+                                        DirectionalLightData light, BuiltinData builtinData, float3 N)
 {
 #ifndef LIGHT_EVALUATION_NO_SHADOWS
-    DirectionalShadowType shadow = 1.0;
-    float shadowMask = 1.0;
-    float NdotL      = dot(N, -light.forward); // Disable contact shadow and shadow mask when facing away from light (i.e transmission)
+    SHADOW_TYPE shadow  = 1.0;
+    float shadowMask    = 1.0;
+    float NdotL         = dot(N, -light.forward); // Disable contact shadow and shadow mask when facing away from light (i.e transmission)
 
 #ifdef SHADOWS_SHADOWMASK
     // shadowMaskSelector.x is -1 if there is no shadow mask
@@ -279,7 +279,7 @@ DirectionalShadowType EvaluateShadow_Directional(LightLoopContext lightLoopConte
         shadow = light.nonLightMappedOnly ? min(shadowMask, shadow) : shadow;
     #endif
 
-        shadow = lerp(shadowMask, shadow, light.shadowDimmer);
+        shadow = lerp(shadowMask.SHADOW_TYPE_REPLICATE, shadow, light.shadowDimmer);
     }
 
     // Transparents have no contact shadow information
@@ -417,14 +417,13 @@ float4 EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs 
 }
 
 // distances = {d, d^2, 1/d, d_proj}, where d_proj = dot(lightToSample, light.forward).
-float EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionInputs posInput,
-                              LightData light, BuiltinData builtinData, float3 N, float3 L, float4 distances)
+SHADOW_TYPE EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionInputs posInput,
+                                    LightData light, BuiltinData builtinData, float3 N, float3 L, float4 distances)
 {
 #ifndef LIGHT_EVALUATION_NO_SHADOWS
-    float shadow     = 1.0;
-    float shadowMask = 1.0;
-    float NdotL      = dot(N, L); // Disable contact shadow and shadow mask when facing away from light (i.e transmission)
-
+    float shadow        = 1.0;
+    float shadowMask    = 1.0;
+    float NdotL         = dot(N, L); // Disable contact shadow and shadow mask when facing away from light (i.e transmission)
 
 #ifdef SHADOWS_SHADOWMASK
     // shadowMaskSelector.x is -1 if there is no shadow mask
@@ -432,7 +431,7 @@ float EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionInputs 
     shadow = shadowMask = (light.shadowMaskSelector.x >= 0.0 && NdotL > 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, light.shadowMaskSelector) : 1.0;
 #endif
 
-#if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT) && (SHADERPASS != SHADERPASS_VOLUMETRIC_LIGHTING)
+#if defined(SCREEN_SPACE_SHADOWS_ON) && !defined(_SURFACE_TYPE_TRANSPARENT)
     if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
     {
         shadow = GetScreenSpaceShadow(posInput, light.screenSpaceShadowIndex);
@@ -461,6 +460,49 @@ float EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionInputs 
 #if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(LIGHT_EVALUATION_NO_CONTACT_SHADOWS)
     shadow = min(shadow, NdotL > 0.0 ? GetContactShadow(lightLoopContext, light.contactShadowMask, light.isRayTracedContactShadow) : 1.0);
 #endif
+
+#ifdef DEBUG_DISPLAY
+    if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW && light.shadowIndex == _DebugSingleShadowIndex)
+        g_DebugShadowAttenuation = shadow;
+#endif
+    return shadow;
+#else // LIGHT_EVALUATION_NO_SHADOWS
+    return 1.0;
+#endif
+}
+
+
+SHADOW_TYPE EvaluateShadow_RectArea( LightLoopContext lightLoopContext, PositionInputs posInput,
+                                     LightData light, BuiltinData builtinData, float3 N, float3 L, float dist)
+{
+#ifndef LIGHT_EVALUATION_NO_SHADOWS
+    float shadow        = 1.0;
+    float shadowMask    = 1.0;
+    float NdotL         = dot(N, L); // Disable contact shadow and shadow mask when facing away from light (i.e transmission)
+
+#ifdef SHADOWS_SHADOWMASK
+    // shadowMaskSelector.x is -1 if there is no shadow mask
+    // Note that we override shadow value (in case we don't have any dynamic shadow)
+    shadow = shadowMask = (light.shadowMaskSelector.x >= 0.0 && NdotL > 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, light.shadowMaskSelector) : 1.0;
+#endif
+
+#if defined(SCREEN_SPACE_SHADOWS_ON) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
+    {
+        shadow = GetScreenSpaceShadow(posInput, light.screenSpaceShadowIndex);
+    }
+    else
+#endif
+    if ((light.shadowIndex >= 0) && (light.shadowDimmer > 0))
+    {
+        shadow = GetRectAreaShadowAttenuation(lightLoopContext.shadowContext, posInput.positionSS, posInput.positionWS, N, light.shadowIndex, L, dist);
+
+#ifdef SHADOWS_SHADOWMASK
+        // See comment for punctual light shadow mask
+        shadow = light.nonLightMappedOnly ? min(shadowMask, shadow) : shadow;
+#endif
+        shadow = lerp(shadowMask, shadow, light.shadowDimmer);
+    }
 
 #ifdef DEBUG_DISPLAY
     if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW && light.shadowIndex == _DebugSingleShadowIndex)
@@ -526,20 +568,17 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
 
 void InversePreExposeSsrLighting(inout float4 ssrLighting)
 {
-    float prevExposureInvMultiplier = GetInversePreviousExposureMultiplier();
-
-#if SHADEROPTIONS_RAYTRACING
-    if (!_UseRayTracedReflections)
-#endif
-    ssrLighting.rgb *= prevExposureInvMultiplier;
+    // Raytrace reflection use the current frame exposure - TODO: currently the buffer don't use pre-exposure.
+    // Screen space reflection reuse color buffer from previous frame
+    float exposureMultiplier = _EnableRayTracedReflections ? 1.0 : GetInversePreviousExposureMultiplier();
+    ssrLighting.rgb *= exposureMultiplier;
 }
 
 void ApplyScreenSpaceReflectionWeight(inout float4 ssrLighting)
 {
     // Note: RGB is already premultiplied by A for SSR
-#if SHADEROPTIONS_RAYTRACING
-    if (_UseRayTracedReflections)
-        ssrLighting.rgb *= ssrLighting.a;
-#endif
+    // TODO: check why it isn't consistent between SSR and RTR
+    float weight = _EnableRayTracedReflections ? 1.0 : ssrLighting.a;
+    ssrLighting.rgb *= ssrLighting.a;
 }
 #endif
