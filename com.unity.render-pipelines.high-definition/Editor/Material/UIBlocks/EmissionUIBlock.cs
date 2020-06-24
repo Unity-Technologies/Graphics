@@ -131,7 +131,8 @@ namespace UnityEditor.Rendering.HighDefinition
         void DrawEmissionGUI()
         {
             EditorGUI.BeginChangeCheck();
-            materialEditor.ShaderProperty(useEmissiveIntensity, Styles.useEmissiveIntensityText);
+            using (CreateOverrideScopeFor(useEmissiveIntensity))
+                materialEditor.ShaderProperty(useEmissiveIntensity, Styles.useEmissiveIntensityText);
             bool updateEmissiveColor = EditorGUI.EndChangeCheck();
 
             if (useEmissiveIntensity.floatValue == 0)
@@ -168,32 +169,35 @@ namespace UnityEditor.Rendering.HighDefinition
                         EmissiveIntensityUnit unit = (EmissiveIntensityUnit)emissiveIntensityUnit.floatValue;
                         EditorGUI.showMixedValue = intensityIsMixed;
 
-                        if (unit == EmissiveIntensityUnit.Nits)
+                        using (CreateOverrideScopeFor(emissiveIntensity))
                         {
-                            using (var change = new EditorGUI.ChangeCheckScope())
-                            {
-                                materialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
-                                intensityChanged = change.changed;
-                                if (intensityChanged)
-                                    newIntensity = Mathf.Clamp(emissiveIntensity.floatValue, 0, float.MaxValue);
-                            }
-                        }
-                        else
-                        {
-                            float value = emissiveIntensity.floatValue;
-                            if (!intensityIsMixed)
-                            {
-                                float evValue = LightUtils.ConvertLuminanceToEv(emissiveIntensity.floatValue);
-                                evValue = EditorGUILayout.FloatField(Styles.emissiveIntensityText, evValue);
-                                newIntensity = Mathf.Clamp(evValue, 0, float.MaxValue);
-                                emissiveIntensity.floatValue = LightUtils.ConvertEvToLuminance(evValue);
-                            }
-                            else
+                            if (unit == EmissiveIntensityUnit.Nits)
                             {
                                 using (var change = new EditorGUI.ChangeCheckScope())
                                 {
-                                    newIntensity = EditorGUILayout.FloatField(Styles.emissiveIntensityText, value);
+                                    materialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
                                     intensityChanged = change.changed;
+                                    if (intensityChanged)
+                                        newIntensity = Mathf.Clamp(emissiveIntensity.floatValue, 0, float.MaxValue);
+                                }
+                            }
+                            else
+                            {
+                                float value = emissiveIntensity.floatValue;
+                                if (!intensityIsMixed)
+                                {
+                                    float evValue = LightUtils.ConvertLuminanceToEv(emissiveIntensity.floatValue);
+                                    evValue = EditorGUILayout.FloatField(Styles.emissiveIntensityText, evValue);
+                                    newIntensity = Mathf.Clamp(evValue, 0, float.MaxValue);
+                                    emissiveIntensity.floatValue = LightUtils.ConvertEvToLuminance(evValue);
+                                }
+                                else
+                                {
+                                    using (var change = new EditorGUI.ChangeCheckScope())
+                                    {
+                                        newIntensity = EditorGUILayout.FloatField(Styles.emissiveIntensityText, value);
+                                        intensityChanged = change.changed;
+                                    }
                                 }
                             }
                         }
@@ -212,10 +216,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     if(unitChanged)
                     {
-                        if (unitIsMixed)
-                            UpdateEmissionUnit(newUnitFloat);
-                        else
-                            emissiveIntensityUnit.floatValue = newUnitFloat;
+                        using (CreateOverrideScopeFor(emissiveIntensityUnit))
+                        {
+                            if (unitIsMixed)
+                                UpdateEmissionUnit(newUnitFloat);
+                            else
+                                emissiveIntensityUnit.floatValue = newUnitFloat;
+                        }
                     }
 
                     // We don't allow changes on intensity if units are mixed
@@ -226,10 +233,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            materialEditor.ShaderProperty(emissiveExposureWeight, Styles.emissiveExposureWeightText);
+            using (CreateOverrideScopeFor(emissiveExposureWeight))
+                materialEditor.ShaderProperty(emissiveExposureWeight, Styles.emissiveExposureWeightText);
 
             if ((m_Features & Features.MultiplyWithBase) != 0)
-                materialEditor.ShaderProperty(albedoAffectEmissive, Styles.albedoAffectEmissiveText);
+                using (CreateOverrideScopeFor(albedoAffectEmissive))
+                    materialEditor.ShaderProperty(albedoAffectEmissive, Styles.albedoAffectEmissiveText);
 
             // Emission for GI?
             if ((m_Features & Features.EnableEmissionForGI) != 0)
@@ -273,7 +282,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DoEmissiveTextureProperty(MaterialProperty color)
         {
-            materialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, color);
+            using (CreateOverrideScopeFor(emissiveColorMap))
+                materialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, color);
 
             // TODO: does not support multi-selection
             if (materials[0].GetTexture(kEmissiveColorMap))
@@ -281,7 +291,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.indentLevel++;
                 if (UVEmissive != null) // Unlit does not have UVEmissive
                 {
-                    materialEditor.ShaderProperty(UVEmissive, Styles.UVEmissiveMappingText);
+                    using (CreateOverrideScopeFor(UVEmissive))
+                        materialEditor.ShaderProperty(UVEmissive, Styles.UVEmissiveMappingText);
                     UVEmissiveMapping uvEmissiveMapping = (UVEmissiveMapping)UVEmissive.floatValue;
 
                     float X, Y, Z, W;
@@ -290,11 +301,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     Z = (uvEmissiveMapping == UVEmissiveMapping.UV2) ? 1.0f : 0.0f;
                     W = (uvEmissiveMapping == UVEmissiveMapping.UV3) ? 1.0f : 0.0f;
 
-                    UVMappingMaskEmissive.colorValue = new Color(X, Y, Z, W);
+                    using (CreateOverrideScopeFor(UVEmissive))
+                        UVMappingMaskEmissive.colorValue = new Color(X, Y, Z, W);
 
                     if ((uvEmissiveMapping == UVEmissiveMapping.Planar) || (uvEmissiveMapping == UVEmissiveMapping.Triplanar))
                     {
-                        materialEditor.ShaderProperty(TexWorldScaleEmissive, Styles.texWorldScaleText);
+                        using (CreateOverrideScopeFor(TexWorldScaleEmissive))
+                            materialEditor.ShaderProperty(TexWorldScaleEmissive, Styles.texWorldScaleText);
                     }
                 }
 

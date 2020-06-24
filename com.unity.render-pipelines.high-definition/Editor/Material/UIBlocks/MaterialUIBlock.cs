@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.Rendering;
+using Unity.Assets.MaterialVariant.Editor;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -11,6 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected MaterialEditor        materialEditor;
         protected Material[]            materials;
         protected MaterialProperty[]    properties;
+        MaterialVariant[]     variants;
 
         protected MaterialUIBlockList   parent;
 
@@ -52,11 +54,15 @@ namespace UnityEditor.Rendering.HighDefinition
             LayeringOption3 = 1 << 30
         }
 
+        protected MaterialPropertyScope CreateOverrideScopeFor(MaterialProperty property)
+            => new MaterialPropertyScope(property, variants);
+
         public void         Initialize(MaterialEditor materialEditor, MaterialProperty[] properties, MaterialUIBlockList parent)
         {
             this.materialEditor = materialEditor;
             this.parent = parent;
             materials = materialEditor.targets.Select(target => target as Material).ToArray();
+            variants = MaterialVariantEditor.GetMaterialVariantsFor(materialEditor);
 
             // We should always register the key used to keep collapsable state
             materialEditor.InitExpandableState();

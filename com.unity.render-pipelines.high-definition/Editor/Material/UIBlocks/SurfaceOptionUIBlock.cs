@@ -367,6 +367,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnGUI()
         {
+
             using (var header = new MaterialHeaderScope(Styles.optionText, (uint)m_ExpandableBit, materialEditor))
             {
                 if (header.expanded)
@@ -392,24 +393,28 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             EditorGUI.BeginChangeCheck();
             if (alphaCutoffEnable != null)
-                materialEditor.ShaderProperty(alphaCutoffEnable, Styles.alphaCutoffEnableText);
+                using (CreateOverrideScopeFor(alphaCutoffEnable))
+                    materialEditor.ShaderProperty(alphaCutoffEnable, Styles.alphaCutoffEnableText);
 
             if (alphaCutoffEnable != null && alphaCutoffEnable.floatValue == 1.0f)
             {
                 EditorGUI.indentLevel++;
 
                 if (alphaCutoff != null)
-                    materialEditor.ShaderProperty(alphaCutoff, Styles.alphaCutoffText);
+                    using (CreateOverrideScopeFor(alphaCutoff))
+                        materialEditor.ShaderProperty(alphaCutoff, Styles.alphaCutoffText);
 
                 if ((m_Features & Features.AlphaCutoffThreshold) != 0)
                 {
                     if (useShadowThreshold != null)
-                        materialEditor.ShaderProperty(useShadowThreshold, Styles.useShadowThresholdText);
+                        using (CreateOverrideScopeFor(useShadowThreshold))
+                            materialEditor.ShaderProperty(useShadowThreshold, Styles.useShadowThresholdText);
 
                     if (alphaCutoffShadow != null && useShadowThreshold != null && useShadowThreshold.floatValue == 1.0f && (m_Features & Features.AlphaCutoffShadowThreshold) != 0)
                     {
                         EditorGUI.indentLevel++;
-                        materialEditor.ShaderProperty(alphaCutoffShadow, Styles.alphaCutoffShadowText);
+                        using (CreateOverrideScopeFor(alphaCutoffShadow))
+                            materialEditor.ShaderProperty(alphaCutoffShadow, Styles.alphaCutoffShadowText);
                         EditorGUI.indentLevel--;
                     }
                 }
@@ -417,7 +422,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 if ((m_Features & Features.AlphaToMask) != 0)
                 {
                     if (alphaToMask != null)
-                        materialEditor.ShaderProperty(alphaToMask, Styles.alphaToMaskText);
+                        using (CreateOverrideScopeFor(alphaToMask))
+                            materialEditor.ShaderProperty(alphaToMask, Styles.alphaToMaskText);
                 }
 
                 // With transparent object and few specific materials like Hair, we need more control on the cutoff to apply
@@ -427,13 +433,15 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (transparentDepthPrepassEnable != null && transparentDepthPrepassEnable.floatValue == 1.0f)
                     {
                         if (alphaCutoffPrepass != null)
-                            materialEditor.ShaderProperty(alphaCutoffPrepass, Styles.alphaCutoffPrepassText);
+                            using (CreateOverrideScopeFor(alphaCutoffPrepass))
+                                materialEditor.ShaderProperty(alphaCutoffPrepass, Styles.alphaCutoffPrepassText);
                     }
 
                     if (transparentDepthPostpassEnable != null && transparentDepthPostpassEnable.floatValue == 1.0f)
                     {
                         if (alphaCutoffPostpass != null)
-                            materialEditor.ShaderProperty(alphaCutoffPostpass, Styles.alphaCutoffPostpassText);
+                            using (CreateOverrideScopeFor(alphaCutoffPostpass))
+                                materialEditor.ShaderProperty(alphaCutoffPostpass, Styles.alphaCutoffPostpassText);
                     }
                 }
                 EditorGUI.indentLevel--;
@@ -458,7 +466,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // This function must finish with double sided option (see LitUI.cs)
             if (doubleSidedEnable != null)
-                materialEditor.ShaderProperty(doubleSidedEnable, Styles.doubleSidedEnableText);
+                using (CreateOverrideScopeFor(doubleSidedEnable))
+                    materialEditor.ShaderProperty(doubleSidedEnable, Styles.doubleSidedEnableText);
         }
 
         void DrawSurfaceGUI()
@@ -490,55 +499,68 @@ namespace UnityEditor.Rendering.HighDefinition
                 else if (blendMode != null && showBlendModePopup)
                     BlendModePopup();
 
-                EditorGUI.indentLevel++; if (renderQueueHasMultipleDifferentValue)
+                EditorGUI.indentLevel++;
+                if (renderQueueHasMultipleDifferentValue)
                 {
                     using (new EditorGUI.DisabledScope(true))
                         EditorGUILayout.LabelField(Styles.enableBlendModePreserveSpecularLightingText, Styles.notSupportedInMultiEdition);
                 }
                 else if (enableBlendModePreserveSpecularLighting != null && blendMode != null && showBlendModePopup)
-                    materialEditor.ShaderProperty(enableBlendModePreserveSpecularLighting, Styles.enableBlendModePreserveSpecularLightingText);
+                    using (CreateOverrideScopeFor(enableBlendModePreserveSpecularLighting))
+                        materialEditor.ShaderProperty(enableBlendModePreserveSpecularLighting, Styles.enableBlendModePreserveSpecularLightingText);
                 EditorGUI.indentLevel--;
 
                 if (transparentSortPriority != null)
                 {
-                    EditorGUI.BeginChangeCheck();
-                    materialEditor.ShaderProperty(transparentSortPriority, Styles.transparentSortPriorityText);
-                    if (EditorGUI.EndChangeCheck())
+                    using (CreateOverrideScopeFor(transparentSortPriority))
                     {
-                        transparentSortPriority.floatValue = HDRenderQueue.ClampsTransparentRangePriority((int)transparentSortPriority.floatValue);
-                        renderQueue = HDRenderQueue.ChangeType(HDRenderQueue.GetTypeByRenderQueueValue(renderQueue), offset: (int)transparentSortPriority.floatValue);
+                        EditorGUI.BeginChangeCheck();
+                        materialEditor.ShaderProperty(transparentSortPriority, Styles.transparentSortPriorityText);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            transparentSortPriority.floatValue = HDRenderQueue.ClampsTransparentRangePriority((int)transparentSortPriority.floatValue);
+                            renderQueue = HDRenderQueue.ChangeType(HDRenderQueue.GetTypeByRenderQueueValue(renderQueue), offset: (int)transparentSortPriority.floatValue);
+                        }
                     }
                 }
 
                 if (enableFogOnTransparent != null)
-                    materialEditor.ShaderProperty(enableFogOnTransparent, Styles.enableTransparentFogText);
+                    using (CreateOverrideScopeFor(enableFogOnTransparent))
+                        materialEditor.ShaderProperty(enableFogOnTransparent, Styles.enableTransparentFogText);
 
                 if (transparentBackfaceEnable != null)
-                    materialEditor.ShaderProperty(transparentBackfaceEnable, Styles.transparentBackfaceEnableText);
+                    using (CreateOverrideScopeFor(transparentBackfaceEnable))
+                        materialEditor.ShaderProperty(transparentBackfaceEnable, Styles.transparentBackfaceEnableText);
 
                 if ((m_Features & Features.ShowPrePassAndPostPass) != 0)
                 {
                     if (transparentDepthPrepassEnable != null)
-                        materialEditor.ShaderProperty(transparentDepthPrepassEnable, Styles.transparentDepthPrepassEnableText);
+                        using (CreateOverrideScopeFor(transparentDepthPrepassEnable))
+                            materialEditor.ShaderProperty(transparentDepthPrepassEnable, Styles.transparentDepthPrepassEnableText);
 
                     if (transparentDepthPostpassEnable != null)
-                        materialEditor.ShaderProperty(transparentDepthPostpassEnable, Styles.transparentDepthPostpassEnableText);
+                        using (CreateOverrideScopeFor(transparentDepthPostpassEnable))
+                            materialEditor.ShaderProperty(transparentDepthPostpassEnable, Styles.transparentDepthPostpassEnableText);
                 }
 
                 if (transparentWritingMotionVec != null)
-                    materialEditor.ShaderProperty(transparentWritingMotionVec, Styles.transparentWritingMotionVecText);
+                    using (CreateOverrideScopeFor(transparentWritingMotionVec))
+                        materialEditor.ShaderProperty(transparentWritingMotionVec, Styles.transparentWritingMotionVecText);
 
                 if (transparentZWrite != null)
-                    materialEditor.ShaderProperty(transparentZWrite, Styles.zWriteEnableText);
+                    using (CreateOverrideScopeFor(transparentZWrite))
+                        materialEditor.ShaderProperty(transparentZWrite, Styles.zWriteEnableText);
 
                 if (zTest != null)
-                    materialEditor.ShaderProperty(zTest, Styles.transparentZTestText);
+                    using (CreateOverrideScopeFor(zTest))
+                        materialEditor.ShaderProperty(zTest, Styles.transparentZTestText);
 
                 bool showTransparentCullMode = transparentCullMode != null && doubleSidedEnable.floatValue == 0;
                 if (transparentBackfaceEnable != null)
                     showTransparentCullMode &= transparentBackfaceEnable.floatValue == 0;
                 if (showTransparentCullMode)
-                    materialEditor.ShaderProperty(transparentCullMode, Styles.transparentCullModeText);
+                    using (CreateOverrideScopeFor(transparentCullMode))
+                        materialEditor.ShaderProperty(transparentCullMode, Styles.transparentCullModeText);
 
                 EditorGUI.indentLevel--;
             }
@@ -546,7 +568,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUI.indentLevel++;
                 if (doubleSidedEnable != null && doubleSidedEnable.floatValue == 0 && opaqueCullMode != null)
-                    materialEditor.ShaderProperty(opaqueCullMode, Styles.opaqueCullModeText);
+                    using (CreateOverrideScopeFor(opaqueCullMode))
+                        materialEditor.ShaderProperty(opaqueCullMode, Styles.opaqueCullModeText);
                 EditorGUI.indentLevel--;
                 if (HDRenderQueue.k_RenderQueue_AfterPostProcessOpaque.Contains(renderQueue))
                 {
@@ -572,6 +595,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported && rayTracing != null)
                 materialEditor.ShaderProperty(rayTracing, Styles.rayTracingText);
 
+
             var mode = (SurfaceType)surfaceType.floatValue;
             var renderQueueType = HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue);
             bool alphaTest = material.HasProperty(kAlphaCutoffEnabled) && material.GetFloat(kAlphaCutoffEnabled) > 0.0f;
@@ -587,26 +611,31 @@ namespace UnityEditor.Rendering.HighDefinition
             bool renderQueueTypeMismatchRenderQueue = HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue) != renderQueueType;
 
             EditorGUI.showMixedValue = surfaceType.hasMixedValue;
-            var newMode = (SurfaceType)EditorGUILayout.Popup(Styles.surfaceTypeText, (int)mode, Styles.surfaceTypeNames);
-            if (newMode != mode) //EditorGUI.EndChangeCheck is called even if value remain the same after the popup. Prefer not to use it here
+
+            SurfaceType newMode;
+            using (CreateOverrideScopeFor(surfaceType))
             {
-                materialEditor.RegisterPropertyChangeUndo(Styles.surfaceTypeText);
-                surfaceType.floatValue = (float)newMode;
-                HDRenderQueue.RenderQueueType targetQueueType;
-                switch(newMode)
+                newMode = (SurfaceType)EditorGUILayout.Popup(Styles.surfaceTypeText, (int)mode, Styles.surfaceTypeNames);
+                if (newMode != mode) //EditorGUI.EndChangeCheck is called even if value remain the same after the popup. Prefer not to use it here
                 {
-                    case SurfaceType.Opaque:
-                        targetQueueType = HDRenderQueue.GetOpaqueEquivalent(HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue));
-                        break;
-                    case SurfaceType.Transparent:
-                        targetQueueType = HDRenderQueue.GetTransparentEquivalent(HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue));
-                        break;
-                    default:
-                        throw new ArgumentException("Unknown SurfaceType");
+                    materialEditor.RegisterPropertyChangeUndo(Styles.surfaceTypeText);
+                    surfaceType.floatValue = (float)newMode;
+                    HDRenderQueue.RenderQueueType targetQueueType;
+                    switch (newMode)
+                    {
+                        case SurfaceType.Opaque:
+                            targetQueueType = HDRenderQueue.GetOpaqueEquivalent(HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue));
+                            break;
+                        case SurfaceType.Transparent:
+                            targetQueueType = HDRenderQueue.GetTransparentEquivalent(HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue));
+                            break;
+                        default:
+                            throw new ArgumentException("Unknown SurfaceType");
+                    }
+                    renderQueue = HDRenderQueue.ChangeType(targetQueueType, (int)transparentSortPriority.floatValue, alphaTest);
                 }
-                renderQueue = HDRenderQueue.ChangeType(targetQueueType, (int)transparentSortPriority.floatValue, alphaTest);
+                EditorGUI.showMixedValue = false;
             }
-            EditorGUI.showMixedValue = false;
 
             bool isMixedRenderQueue = surfaceType.hasMixedValue || renderQueueHasMultipleDifferentValue;
             bool showAfterPostProcessPass = (m_Features & Features.ShowAfterPostProcessPass) != 0;
@@ -658,18 +687,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void BlendModePopup()
         {
-            EditorGUI.showMixedValue = blendMode.hasMixedValue;
-            var mode = (BlendMode)blendMode.floatValue;
-
-            EditorGUI.BeginChangeCheck();
-            mode = (BlendMode)EditorGUILayout.IntPopup(Styles.blendModeText, (int)mode, Styles.blendModeNames, Styles.blendModeValues);
-            if (EditorGUI.EndChangeCheck())
+            using (CreateOverrideScopeFor(blendMode))
             {
-                materialEditor.RegisterPropertyChangeUndo("Blend Mode");
-                blendMode.floatValue = (float)mode;
-            }
+                EditorGUI.showMixedValue = blendMode.hasMixedValue;
+                var mode = (BlendMode)blendMode.floatValue;
 
-            EditorGUI.showMixedValue = false;
+                EditorGUI.BeginChangeCheck();
+                mode = (BlendMode)EditorGUILayout.IntPopup(Styles.blendModeText, (int)mode, Styles.blendModeNames, Styles.blendModeValues);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    materialEditor.RegisterPropertyChangeUndo("Blend Mode");
+                    blendMode.floatValue = (float)mode;
+                }
+
+                EditorGUI.showMixedValue = false;
+            }
         }
 
         int DoOpaqueRenderingPassPopup(string text, int inputValue, bool afterPost)
@@ -726,65 +758,79 @@ namespace UnityEditor.Rendering.HighDefinition
             if (doubleSidedNormalMode != null && doubleSidedEnable != null && doubleSidedEnable.floatValue > 0.0f)
             {
                 EditorGUI.indentLevel++;
-                materialEditor.ShaderProperty(doubleSidedNormalMode, Styles.doubleSidedNormalModeText);
+                using (CreateOverrideScopeFor(doubleSidedNormalMode))
+                    materialEditor.ShaderProperty(doubleSidedNormalMode, Styles.doubleSidedNormalModeText);
                 EditorGUI.indentLevel--;
             }
 
             if (materialID != null)
             {
-                materialEditor.ShaderProperty(materialID, Styles.materialIDText);
+                using (CreateOverrideScopeFor(materialID))
+                    materialEditor.ShaderProperty(materialID, Styles.materialIDText);
 
                 if ((int)materialID.floatValue == (int)MaterialId.LitSSS)
                 {
                     EditorGUI.indentLevel++;
-                    materialEditor.ShaderProperty(transmissionEnable, Styles.transmissionEnableText);
+                    using (CreateOverrideScopeFor(transmissionEnable))
+                        materialEditor.ShaderProperty(transmissionEnable, Styles.transmissionEnableText);
                     EditorGUI.indentLevel--;
                 }
             }
 
             if (supportDecals != null)
             {
-                materialEditor.ShaderProperty(supportDecals, Styles.supportDecalsText);
+                using (CreateOverrideScopeFor(supportDecals))
+                    materialEditor.ShaderProperty(supportDecals, Styles.supportDecalsText);
             }
 
             if (receivesSSR != null && receivesSSRTransparent != null)
             {
                 // Based on the surface type, display the right recieveSSR option
                 if (surfaceTypeValue == SurfaceType.Transparent)
-                    materialEditor.ShaderProperty(receivesSSRTransparent, Styles.receivesSSRTransparentText);
+                    using (CreateOverrideScopeFor(receivesSSRTransparent))
+                        materialEditor.ShaderProperty(receivesSSRTransparent, Styles.receivesSSRTransparentText);
                 else
-                    materialEditor.ShaderProperty(receivesSSR, Styles.receivesSSRText);
+                    using (CreateOverrideScopeFor(receivesSSR))
+                        materialEditor.ShaderProperty(receivesSSR, Styles.receivesSSRText);
             }
 
             if (enableGeometricSpecularAA != null)
             {
-                materialEditor.ShaderProperty(enableGeometricSpecularAA, Styles.enableGeometricSpecularAAText);
+                using (CreateOverrideScopeFor(enableGeometricSpecularAA))
+                    materialEditor.ShaderProperty(enableGeometricSpecularAA, Styles.enableGeometricSpecularAAText);
 
                 if (enableGeometricSpecularAA.floatValue > 0.0)
                 {
                     EditorGUI.indentLevel++;
-                    materialEditor.ShaderProperty(specularAAScreenSpaceVariance, Styles.specularAAScreenSpaceVarianceText);
-                    materialEditor.ShaderProperty(specularAAThreshold, Styles.specularAAThresholdText);
+                    using (CreateOverrideScopeFor(specularAAScreenSpaceVariance))
+                        materialEditor.ShaderProperty(specularAAScreenSpaceVariance, Styles.specularAAScreenSpaceVarianceText);
+                    using (CreateOverrideScopeFor(specularAAThreshold))
+                        materialEditor.ShaderProperty(specularAAThreshold, Styles.specularAAThresholdText);
                     EditorGUI.indentLevel--;
                 }
             }
 
             if (displacementMode != null)
             {
-                EditorGUI.BeginChangeCheck();
-                FilterDisplacementMode();
-                materialEditor.ShaderProperty(displacementMode, Styles.displacementModeText);
-                if (EditorGUI.EndChangeCheck())
+                using (CreateOverrideScopeFor(displacementMode))
                 {
-                    for (int i = 0; i < m_LayerCount; i++)
-                        UpdateDisplacement(i);
+                    EditorGUI.BeginChangeCheck();
+                    FilterDisplacementMode();
+                    materialEditor.ShaderProperty(displacementMode, Styles.displacementModeText);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        for (int i = 0; i < m_LayerCount; i++)
+                            UpdateDisplacement(i);
+                    }
                 }
 
                 if ((DisplacementMode)displacementMode.floatValue != DisplacementMode.None)
                 {
                     EditorGUI.indentLevel++;
-                    materialEditor.ShaderProperty(displacementLockObjectScale, Styles.lockWithObjectScaleText);
-                    materialEditor.ShaderProperty(displacementLockTilingScale, Styles.lockWithTilingRateText);
+                    using (CreateOverrideScopeFor(displacementLockObjectScale))
+                        materialEditor.ShaderProperty(displacementLockObjectScale, Styles.lockWithObjectScaleText);
+                    using (CreateOverrideScopeFor(displacementLockTilingScale))
+                        materialEditor.ShaderProperty(displacementLockTilingScale, Styles.lockWithTilingRateText);
                     EditorGUI.indentLevel--;
                 }
 
@@ -792,16 +838,28 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     EditorGUILayout.Space();
                     EditorGUI.indentLevel++;
-                    materialEditor.ShaderProperty(ppdMinSamples, Styles.ppdMinSamplesText);
-                    materialEditor.ShaderProperty(ppdMaxSamples, Styles.ppdMaxSamplesText);
-                    ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
-                    materialEditor.ShaderProperty(ppdLodThreshold, Styles.ppdLodThresholdText);
-                    materialEditor.ShaderProperty(ppdPrimitiveLength, Styles.ppdPrimitiveLength);
-                    ppdPrimitiveLength.floatValue = Mathf.Max(0.01f, ppdPrimitiveLength.floatValue);
-                    materialEditor.ShaderProperty(ppdPrimitiveWidth, Styles.ppdPrimitiveWidth);
-                    ppdPrimitiveWidth.floatValue = Mathf.Max(0.01f, ppdPrimitiveWidth.floatValue);
-                    invPrimScale.vectorValue = new Vector4(1.0f / ppdPrimitiveLength.floatValue, 1.0f / ppdPrimitiveWidth.floatValue); // Precompute
-                    materialEditor.ShaderProperty(depthOffsetEnable, Styles.depthOffsetEnableText);
+                    using (CreateOverrideScopeFor(ppdMinSamples))
+                        materialEditor.ShaderProperty(ppdMinSamples, Styles.ppdMinSamplesText);
+                    using (CreateOverrideScopeFor(ppdMaxSamples))
+                        materialEditor.ShaderProperty(ppdMaxSamples, Styles.ppdMaxSamplesText);
+                    using (CreateOverrideScopeFor(ppdMinSamples))
+                        ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
+                    using (CreateOverrideScopeFor(ppdLodThreshold))
+                        materialEditor.ShaderProperty(ppdLodThreshold, Styles.ppdLodThresholdText);
+                    using (CreateOverrideScopeFor(ppdPrimitiveLength))
+                    {
+                        materialEditor.ShaderProperty(ppdPrimitiveLength, Styles.ppdPrimitiveLength);
+                        ppdPrimitiveLength.floatValue = Mathf.Max(0.01f, ppdPrimitiveLength.floatValue);
+                    }
+                    using (CreateOverrideScopeFor(ppdPrimitiveWidth))
+                    {
+                        materialEditor.ShaderProperty(ppdPrimitiveWidth, Styles.ppdPrimitiveWidth);
+                        ppdPrimitiveWidth.floatValue = Mathf.Max(0.01f, ppdPrimitiveWidth.floatValue);
+                    }
+                    using (CreateOverrideScopeFor(invPrimScale))
+                        invPrimScale.vectorValue = new Vector4(1.0f / ppdPrimitiveLength.floatValue, 1.0f / ppdPrimitiveWidth.floatValue); // Precompute
+                    using (CreateOverrideScopeFor(depthOffsetEnable))
+                        materialEditor.ShaderProperty(depthOffsetEnable, Styles.depthOffsetEnableText);
                     EditorGUI.indentLevel--;
                 }
             }

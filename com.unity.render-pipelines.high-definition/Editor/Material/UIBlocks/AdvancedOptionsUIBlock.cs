@@ -72,11 +72,13 @@ namespace UnityEditor.Rendering.HighDefinition
             if ((m_Features & Features.Instancing) != 0)
                 materialEditor.EnableInstancingField();
             if ((m_Features & Features.SpecularOcclusion) != 0)
-                materialEditor.ShaderProperty(specularOcclusionMode, Styles.specularOcclusionModeText);
+                using (CreateOverrideScopeFor(specularOcclusionMode))
+                    materialEditor.ShaderProperty(specularOcclusionMode, Styles.specularOcclusionModeText);
             if ((m_Features & Features.AddPrecomputedVelocity) != 0)
             {
                 if ( addPrecomputedVelocity != null)
-                    materialEditor.ShaderProperty(addPrecomputedVelocity, Styles.addPrecomputedVelocityText);
+                    using (CreateOverrideScopeFor(addPrecomputedVelocity))
+                        materialEditor.ShaderProperty(addPrecomputedVelocity, Styles.addPrecomputedVelocityText);
         }
     }
 }
