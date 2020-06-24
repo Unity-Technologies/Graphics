@@ -601,7 +601,8 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
         float anisotropy = asfloat(asuint(surfaceData.anisotropy) ^ ((quadrant & 1) << 31));
         // We need to convert the values of Sin and Cos to those appropriate for the 1st quadrant.
         // To go from Q3 to Q1, we must rotate by Pi, so taking the absolute value suffices.
-        // To go from Q2 or Q4 to Q1, we must rotate by (N+1/2)*Pi (so swap Sin and Cos), and take the absolute value.
+        // To go from Q2 or Q4 to Q1, we must rotate by ((N + 1/2) * Pi), so we must
+        // take the absolute value and also swap Sin and Cos.
         uint  storeSin = (abs(sinFrame) < abs(cosFrame) ? 1 : 0) ^ (quadrant & 1);
         // sin [and cos] are approximately linear up to [after] Pi/4 ± Pi.
         float sinOrCos = min(abs(sinFrame), abs(cosFrame)) * sqrt(2);
