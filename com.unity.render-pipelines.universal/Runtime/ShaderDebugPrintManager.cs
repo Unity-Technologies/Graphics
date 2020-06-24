@@ -41,6 +41,7 @@ namespace UnityEngine.Rendering.Universal
             TypeUint4 = 10,
             TypeInt4 = 11,
             TypeFloat4 = 12,
+            TypeBool = 13,
         };
 
         private const uint TypeHasTag = 128;
@@ -198,6 +199,10 @@ namespace UnityEngine.Rendering.Universal
                                 float4 valueFloat4 = *(float4*) &ptr[i + 1];
                                 outputLine += valueFloat4;
                                 i += 5;
+                                break;
+                            case DebugValueType.TypeBool:
+                                outputLine += ((data[i + 1] == 0) ? "False" : "True");
+                                i += 2;
                                 break;
                             default:
                                 i = (int) count; // Cannot handle the rest if there is an unknown type

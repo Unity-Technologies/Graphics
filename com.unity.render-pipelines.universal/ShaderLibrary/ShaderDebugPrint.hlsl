@@ -26,6 +26,7 @@ static const uint ValueTypeFloat3 = 9;
 static const uint ValueTypeUint4  = 10;
 static const uint ValueTypeInt4   = 11;
 static const uint ValueTypeFloat4 = 12;
+static const uint ValueTypeBool   = 13;
 static const uint ValueTypeHasTag = 128;
 
 #define PRINT1(TYPE, VALUE, HASTAG, TAG) \
@@ -108,6 +109,7 @@ static const uint ValueTypeHasTag = 128;
 
 static const uint ShaderDebugNoTag[4];
 
+void ShaderDebugPrint(uint tag[4], bool   value) PRINT1(ValueTypeBool,   uint(value),   ValueTypeHasTag, tag);
 void ShaderDebugPrint(uint tag[4], uint   value) PRINT1(ValueTypeUint,   value,         ValueTypeHasTag, tag);
 void ShaderDebugPrint(uint tag[4], int    value) PRINT1(ValueTypeInt,    asuint(value), ValueTypeHasTag, tag);
 void ShaderDebugPrint(uint tag[4], float  value) PRINT1(ValueTypeFloat,  asuint(value), ValueTypeHasTag, tag);
@@ -120,6 +122,7 @@ void ShaderDebugPrint(uint tag[4], float3 value) PRINT3(ValueTypeFloat3, asuint(
 void ShaderDebugPrint(uint tag[4], uint4  value) PRINT4(ValueTypeUint4,  value,         ValueTypeHasTag, tag)
 void ShaderDebugPrint(uint tag[4], int4   value) PRINT4(ValueTypeInt4,   asuint(value), ValueTypeHasTag, tag)
 void ShaderDebugPrint(uint tag[4], float4 value) PRINT4(ValueTypeFloat4, asuint(value), ValueTypeHasTag, tag)
+void ShaderDebugPrint(bool   value) PRINT1(ValueTypeBool,   uint(value),   0, ShaderDebugNoTag)
 void ShaderDebugPrint(uint   value) PRINT1(ValueTypeUint,   value,         0, ShaderDebugNoTag)
 void ShaderDebugPrint(int    value) PRINT1(ValueTypeInt,    asuint(value), 0, ShaderDebugNoTag)
 void ShaderDebugPrint(float  value) PRINT1(ValueTypeFloat,  asuint(value), 0, ShaderDebugNoTag)
