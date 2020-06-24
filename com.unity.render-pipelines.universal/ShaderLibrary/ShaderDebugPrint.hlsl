@@ -3,7 +3,7 @@
 
 RWStructuredBuffer<uint> shaderDebugOutputData : register(u7);
 
-static const int MaxShaderDebugOutputElements = 1024 * 1024; // 1M - must match the C# side buffer size
+static const uint MaxShaderDebugOutputElements = 1024 * 1024; // 1M - must match the C# side buffer size
 
 // Input Constants
 float4 _ShaderDebugPrintInputMouse;
@@ -14,19 +14,19 @@ int  ShaderDebugMouseButtonLeft()  { return _ShaderDebugPrintInputMouse.z;  }
 int  ShaderDebugMouseButtonRight() { return _ShaderDebugPrintInputMouse.w;  }
 int  ShaderDebugFrameNumber()      { return _ShaderDebugPrintInputFrame; }
 
-static const int ValueTypeUint   = 1;
-static const int ValueTypeInt    = 2;
-static const int ValueTypeFloat  = 3;
-static const int ValueTypeUint2  = 4;
-static const int ValueTypeInt2   = 5;
-static const int ValueTypeFloat2 = 6;
-static const int ValueTypeUint3  = 7;
-static const int ValueTypeInt3   = 8;
-static const int ValueTypeFloat3 = 9;
-static const int ValueTypeUint4  = 10;
-static const int ValueTypeInt4   = 11;
-static const int ValueTypeFloat4 = 12;
-static const int ValueTypeHasTag = 128;
+static const uint ValueTypeUint   = 1;
+static const uint ValueTypeInt    = 2;
+static const uint ValueTypeFloat  = 3;
+static const uint ValueTypeUint2  = 4;
+static const uint ValueTypeInt2   = 5;
+static const uint ValueTypeFloat2 = 6;
+static const uint ValueTypeUint3  = 7;
+static const uint ValueTypeInt3   = 8;
+static const uint ValueTypeFloat3 = 9;
+static const uint ValueTypeUint4  = 10;
+static const uint ValueTypeInt4   = 11;
+static const uint ValueTypeFloat4 = 12;
+static const uint ValueTypeHasTag = 128;
 
 #define PRINT1(TYPE, VALUE, HASTAG, TAG) \
 { \
@@ -106,31 +106,31 @@ static const int ValueTypeHasTag = 128;
     } \
 }
 
-uint ShaderDebugNoTag[4];
+static const uint ShaderDebugNoTag[4];
 
-void ShaderDebugPrint(uint tag[4], uint value) PRINT1(ValueTypeUint, value, ValueTypeHasTag, tag);
-void ShaderDebugPrint(uint tag[4], int value) PRINT1(ValueTypeInt, asuint(value), ValueTypeHasTag, tag);
-void ShaderDebugPrint(uint tag[4], float value) PRINT1(ValueTypeFloat, asuint(value), ValueTypeHasTag, tag);
-void ShaderDebugPrint(uint tag[4], uint2 value)  PRINT2(ValueTypeUint2, value, ValueTypeHasTag, tag)
-void ShaderDebugPrint(uint tag[4], int2 value)   PRINT2(ValueTypeInt2, asuint(value), ValueTypeHasTag, tag)
+void ShaderDebugPrint(uint tag[4], uint   value) PRINT1(ValueTypeUint,   value,         ValueTypeHasTag, tag);
+void ShaderDebugPrint(uint tag[4], int    value) PRINT1(ValueTypeInt,    asuint(value), ValueTypeHasTag, tag);
+void ShaderDebugPrint(uint tag[4], float  value) PRINT1(ValueTypeFloat,  asuint(value), ValueTypeHasTag, tag);
+void ShaderDebugPrint(uint tag[4], uint2  value) PRINT2(ValueTypeUint2,  value,         ValueTypeHasTag, tag)
+void ShaderDebugPrint(uint tag[4], int2   value) PRINT2(ValueTypeInt2,   asuint(value), ValueTypeHasTag, tag)
 void ShaderDebugPrint(uint tag[4], float2 value) PRINT2(ValueTypeFloat2, asuint(value), ValueTypeHasTag, tag)
-void ShaderDebugPrint(uint tag[4], uint3 value)  PRINT3(ValueTypeUint3, value, ValueTypeHasTag, tag)
-void ShaderDebugPrint(uint tag[4], int3 value)   PRINT3(ValueTypeInt3, asuint(value), ValueTypeHasTag, tag)
+void ShaderDebugPrint(uint tag[4], uint3  value) PRINT3(ValueTypeUint3,  value,         ValueTypeHasTag, tag)
+void ShaderDebugPrint(uint tag[4], int3   value) PRINT3(ValueTypeInt3,   asuint(value), ValueTypeHasTag, tag)
 void ShaderDebugPrint(uint tag[4], float3 value) PRINT3(ValueTypeFloat3, asuint(value), ValueTypeHasTag, tag)
-void ShaderDebugPrint(uint tag[4], uint4 value)  PRINT4(ValueTypeUint4, value, ValueTypeHasTag, tag)
-void ShaderDebugPrint(uint tag[4], int4 value)   PRINT4(ValueTypeInt4, asuint(value), ValueTypeHasTag, tag)
+void ShaderDebugPrint(uint tag[4], uint4  value) PRINT4(ValueTypeUint4,  value,         ValueTypeHasTag, tag)
+void ShaderDebugPrint(uint tag[4], int4   value) PRINT4(ValueTypeInt4,   asuint(value), ValueTypeHasTag, tag)
 void ShaderDebugPrint(uint tag[4], float4 value) PRINT4(ValueTypeFloat4, asuint(value), ValueTypeHasTag, tag)
-void ShaderDebugPrint(uint value)   PRINT1(ValueTypeUint, value, 0, ShaderDebugNoTag)
-void ShaderDebugPrint(int value)    PRINT1(ValueTypeInt, asuint(value), 0, ShaderDebugNoTag)
-void ShaderDebugPrint(float value)  PRINT1(ValueTypeFloat, asuint(value), 0, ShaderDebugNoTag)
-void ShaderDebugPrint(uint2 value)  PRINT2(ValueTypeUint2, value, 0, ShaderDebugNoTag)
-void ShaderDebugPrint(int2 value)   PRINT2(ValueTypeInt2, asuint(value), 0, ShaderDebugNoTag)
+void ShaderDebugPrint(uint   value) PRINT1(ValueTypeUint,   value,         0, ShaderDebugNoTag)
+void ShaderDebugPrint(int    value) PRINT1(ValueTypeInt,    asuint(value), 0, ShaderDebugNoTag)
+void ShaderDebugPrint(float  value) PRINT1(ValueTypeFloat,  asuint(value), 0, ShaderDebugNoTag)
+void ShaderDebugPrint(uint2  value) PRINT2(ValueTypeUint2,  value,         0, ShaderDebugNoTag)
+void ShaderDebugPrint(int2   value) PRINT2(ValueTypeInt2,   asuint(value), 0, ShaderDebugNoTag)
 void ShaderDebugPrint(float2 value) PRINT2(ValueTypeFloat2, asuint(value), 0, ShaderDebugNoTag)
-void ShaderDebugPrint(uint3 value)  PRINT3(ValueTypeUint3, value, 0, ShaderDebugNoTag)
-void ShaderDebugPrint(int3 value)   PRINT3(ValueTypeInt3, asuint(value), 0, ShaderDebugNoTag)
+void ShaderDebugPrint(uint3  value) PRINT3(ValueTypeUint3,  value,         0, ShaderDebugNoTag)
+void ShaderDebugPrint(int3   value) PRINT3(ValueTypeInt3,   asuint(value), 0, ShaderDebugNoTag)
 void ShaderDebugPrint(float3 value) PRINT3(ValueTypeFloat3, asuint(value), 0, ShaderDebugNoTag)
-void ShaderDebugPrint(uint4 value)  PRINT4(ValueTypeUint4, value, 0, ShaderDebugNoTag)
-void ShaderDebugPrint(int4 value)   PRINT4(ValueTypeInt4, asuint(value), 0, ShaderDebugNoTag)
+void ShaderDebugPrint(uint4  value) PRINT4(ValueTypeUint4,  value,         0, ShaderDebugNoTag)
+void ShaderDebugPrint(int4   value) PRINT4(ValueTypeInt4,   asuint(value), 0, ShaderDebugNoTag)
 void ShaderDebugPrint(float4 value) PRINT4(ValueTypeFloat4, asuint(value), 0, ShaderDebugNoTag)
 
 #undef PRINT1
