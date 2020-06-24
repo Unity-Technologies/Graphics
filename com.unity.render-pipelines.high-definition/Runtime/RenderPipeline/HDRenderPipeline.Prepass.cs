@@ -201,6 +201,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderGBuffer(renderGraph, sssBuffer, ref result, probeVolumeListOutput, cullingResults, hdCamera);
 
+
                 DecalNormalPatch(renderGraph, hdCamera, ref result);
 
                 // TODO RENDERGRAPH
