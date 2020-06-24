@@ -17,8 +17,7 @@ namespace Unity.Assets.MaterialVariant.Editor
         protected override Type extraDataType => typeof(MaterialVariant);
         protected override bool needsApplyRevert => true;
         public override bool showImportedObject => false;
-
-        protected override Type extraDataType => typeof(MaterialVariant);
+        
         protected override void InitializeExtraDataInstance(Object extraTarget, int targetIndex)
             => LoadMaterialVariant((MaterialVariant)extraTarget, ((AssetImporter)targets[targetIndex]).assetPath);
         
@@ -78,13 +77,6 @@ namespace Unity.Assets.MaterialVariant.Editor
             ApplyRevertGUI();
         }
         
-        protected override void InitializeExtraDataInstance(Object extraData, int targetIndex)
-        {
-            var importer = targets[targetIndex] as MaterialVariantImporter;
-            var assets = InternalEditorUtility.LoadSerializedFileAndForget(importer.assetPath);
-            EditorUtility.CopySerialized(assets[0], extraData);
-        }
-        
         protected override void Apply()
         {
             base.Apply();
@@ -98,9 +90,6 @@ namespace Unity.Assets.MaterialVariant.Editor
                     AssetDatabase.ImportAsset((targets[i] as MaterialVariantImporter).assetPath);
                 }
             }
-
-            InternalEditorUtility.SaveToSerializedFileAndForget(new[] { extraDataTarget }, (target as MaterialVariantImporter).assetPath, true);
-            AssetDatabase.ImportAsset((target as MaterialVariantImporter).assetPath);
         }
     }
 }
