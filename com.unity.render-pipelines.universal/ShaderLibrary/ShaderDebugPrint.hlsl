@@ -153,6 +153,7 @@ void ShaderDebugPrint(float4 value) PRINT4(ValueTypeFloat4, asuint(value), 0, Sh
         ShaderDebugPrint(TAG, VALUE);             \
 }
 
+void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag[4], bool   value) PRINT_MOUSE_WITH_TAG(value, tag);
 void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag[4], uint   value) PRINT_MOUSE_WITH_TAG(value, tag);
 void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag[4], int    value) PRINT_MOUSE_WITH_TAG(value, tag);
 void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag[4], float  value) PRINT_MOUSE_WITH_TAG(value, tag);
@@ -165,6 +166,7 @@ void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag[4], float3 value) PRINT_M
 void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag[4], uint4  value) PRINT_MOUSE_WITH_TAG(value, tag);
 void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag[4], int4   value) PRINT_MOUSE_WITH_TAG(value, tag);
 void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag[4], float4 value) PRINT_MOUSE_WITH_TAG(value, tag);
+void ShaderDebugPrintMouseOver(int2 pixelPos, bool   value) PRINT_MOUSE(value);
 void ShaderDebugPrintMouseOver(int2 pixelPos, uint   value) PRINT_MOUSE(value);
 void ShaderDebugPrintMouseOver(int2 pixelPos, int    value) PRINT_MOUSE(value);
 void ShaderDebugPrintMouseOver(int2 pixelPos, float  value) PRINT_MOUSE(value);
@@ -179,5 +181,6 @@ void ShaderDebugPrintMouseOver(int2 pixelPos, int4   value) PRINT_MOUSE(value);
 void ShaderDebugPrintMouseOver(int2 pixelPos, float4 value) PRINT_MOUSE(value);
 
 #undef PRINT_MOUSE
+#undef PRINT_MOUSE_WITH_TAG
 
 #endif // SHADER_DEBUG_PRINT_INCLUDED
