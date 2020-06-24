@@ -23,8 +23,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
     partial class CapsuleOcclusionSystem
     {
-        const int k_LUTWidth = 128;
-        const int k_LUTHeight = 64;
+        const int k_LUTWidth = 256;
+        const int k_LUTHeight = 128;
         const int k_LUTDepth = 4;
 
         private bool m_LUTReady = false;
@@ -50,12 +50,12 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void AllocRTs()
         {
             // Enough precision?
-            m_CapsuleSoftShadowLUT = RTHandles.Alloc(k_LUTWidth, k_LUTHeight, k_LUTDepth, colorFormat: GraphicsFormat.R8_UNorm,
+            m_CapsuleSoftShadowLUT = RTHandles.Alloc(k_LUTWidth, k_LUTHeight, k_LUTDepth, colorFormat: GraphicsFormat.R32_SFloat,
                                                     dimension: TextureDimension.Tex3D,
                                                     enableRandomWrite: true,
                                                     name: "Capsule Soft Shadows LUT");
 
-            m_CapsuleOcclusions = RTHandles.Alloc(Vector2.one, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R8G8_UNorm, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: "Capsule Occlusions");
+            m_CapsuleOcclusions = RTHandles.Alloc(Vector2.one, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32G32_SFloat, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: "Capsule Occlusions");
 
         }
 
@@ -68,6 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var kernel = cs.FindKernel("CapsuleOcclusion");
 
                 var aoSettings = hdCamera.volumeStack.GetComponent<CapsuleAmbientOcclusion>();
+                var shadowSettings = hdCamera.volumeStack.GetComponent<CapsuleSoftShadows>();
 
                 cs.shaderKeywords = null;
                 cs.EnableKeyword("DIRECTIONAL_SHADOW");
@@ -79,12 +80,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._CapsuleOccludersDatas, m_VisibleCapsuleOccludersDataBuffer);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OcclusionTexture, occlusionTexture);
 
+
                 // Shadow setup is super temporary. 
                 // TODO: Disable feature if sunLight is null.
                 var sunDir = (sunLight != null) ? sunLight.transform.forward : -Vector3.up;
                 // softness to be derived from angular diameter.
                 int softnessIndex = 3;
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._CapsuleShadowParameters, new Vector4(sunDir.x, sunDir.y, sunDir.z, softnessIndex));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._CapsuleShadowParameters, new Vector4(sunDir.x, sunDir.y, sunDir.z, shadowSettings.softness.value));
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CapsuleShadowLUT, m_CapsuleSoftShadowLUT);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CapsuleOcclusions, m_CapsuleOcclusions);
 

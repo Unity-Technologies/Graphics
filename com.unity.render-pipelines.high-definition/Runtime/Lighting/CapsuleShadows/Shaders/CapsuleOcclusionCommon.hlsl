@@ -402,28 +402,40 @@ float EvaluateCapsuleSpecularOcclusion(EllipsoidOccluderData data, float3 positi
 #endif
 }
 
-float EvaluateCapsuleShadow(EllipsoidOccluderData data, float3 positionWS, float3 N, float4 dirAndLength)
+float EvaluateCapsuleShadow(EllipsoidOccluderData data, float3 positionWS, float3 N, float4 dirAndLength, float2 posSS)
 {
     // For now assuming just directional light.
-
     float3 coneAxis = _CapsuleShadowParameters.xyz;
     float3 occluderPos = GetOccluderPositionRWS(data);
     float radius = GetOccluderRadius(data);
 
+    float3 occluderFromSurfaceDirectionWS;
+    float occluderFromSurfaceDistance;
+    ComputeDirectionAndDistanceFromStartAndEnd(positionWS, occluderPos, occluderFromSurfaceDirectionWS, occluderFromSurfaceDistance);
+
 
     // Angle between occluder and cone axis
-    float cosPhi = dot(coneAxis, dirAndLength.xyz);
+    float cosPhi = dot(coneAxis, occluderFromSurfaceDirectionWS);
     float sinPhi = sqrt(1.0f - cosPhi * cosPhi);
 
     // Angle subtended by occluder (to be shared among computation I'd say)
-    float tanTheta = radius / dirAndLength.w;
+
+    // TODO: Why do we need an half scale factor here!?!
+    radius *= 0.5f;
+
+    float tanTheta = radius / occluderFromSurfaceDistance;
     float cosTheta = rsqrt(1.0 + tanTheta * tanTheta);
 
     // For now hardcoded, but will change.
     float LUTZCoord = _CapsuleShadowParameters.w;
 
+    float NdotPosToSphere = dot(N, occluderFromSurfaceDirectionWS);
 
-    float occlusionVal = SAMPLE_TEXTURE3D_LOD(_CapsuleShadowLUT, s_linear_clamp_sampler, float3(cosTheta, sinPhi, 0), 0).x;
+
+    float occlusionVal = 1 - SAMPLE_TEXTURE3D_LOD(_CapsuleShadowLUT, s_linear_clamp_sampler, float3(PositivePow(cosTheta, 3), sinPhi, LUTZCoord), 0).x;
+
+    if (NdotPosToSphere <= 0.01f)
+        occlusionVal = 1;
 
     return occlusionVal;
 }
@@ -447,7 +459,7 @@ float AccumulateCapsuleSpecularOcclusion(float prevSpecOcc, float capsuleSpecOcc
 
 float AccumulateCapsuleShadow(float prevShadow, float capsuleShadow)
 {
-    return min(prevShadow, capsuleShadow);
+    return prevShadow  * capsuleShadow;
 }
 
 // --------------------------------------------
@@ -525,7 +537,7 @@ void EvaluateCapsuleOcclusion(uint evaluationFlags,
 
             if (evaluationFlags & CAPSULEOCCLUSIONTYPE_DIRECTIONAL_SHADOWS)
             {
-                float capsuleShadow = EvaluateCapsuleShadow(s_capsuleData, posInput.positionWS, N, dirAndLen);
+                float capsuleShadow = EvaluateCapsuleShadow(s_capsuleData, posInput.positionWS, N, dirAndLen, posInput.positionSS);
                 shadow = AccumulateCapsuleShadow(shadow, capsuleShadow);
             }
         }

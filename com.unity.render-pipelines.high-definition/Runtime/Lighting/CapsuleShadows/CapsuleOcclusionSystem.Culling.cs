@@ -18,8 +18,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal CapsuleOccluderList PrepareVisibleCapsuleOccludersList(HDCamera hdCamera, CommandBuffer cmd, float time)
         {
             CapsuleOccluderList capsuleOccluderVolumes = new CapsuleOccluderList();
-            if (!CapsuleSoftShadows.IsCapsuleSoftShadowsEnabled(hdCamera))
-                return capsuleOccluderVolumes; 
+
+            //if (!CapsuleSoftShadows.IsCapsuleSoftShadowsEnabled(hdCamera))
+            //    return capsuleOccluderVolumes; 
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareVisibleCapsuleOccludersList)))
             {

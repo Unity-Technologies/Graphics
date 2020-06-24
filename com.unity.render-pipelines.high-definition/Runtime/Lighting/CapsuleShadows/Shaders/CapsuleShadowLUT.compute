@@ -4,7 +4,7 @@
 
 #pragma kernel CapsuleShadowLUTGeneration
 
-#define CONES_COUNT 256 // Looks ok, but 1024 looks better, profile to decide.
+#define CONES_COUNT 4096 // Looks ok, but 1024 looks better, profile to decide.
 
 float3 GetRandomConeAxis(float cosHalfAperture, float2 randVals)
 {
@@ -39,10 +39,12 @@ CBUFFER_END
 void CapsuleShadowLUTGeneration(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupId : SV_GroupID)
 {
     // Phi is the angle between the cone axis and the vector pointing towards the occluder center.
-    float cosPhi = 2.0f * (dispatchThreadId.x * rcp(_LUTWidth - 1.0f)) - 1.0f;
+    float2 outUV = dispatchThreadId.xy * float2(rcp(_LUTWidth - 1.0f), rcp(_LUTHeight - 1.0f));
+    outUV.x = PositivePow(outUV.x, 1.0f / 3.0f);    // Distribute more on the later end of the range
+    float cosPhi = 2.0f * outUV.x - 1.0f;
     float sinPhi = sqrt(1.0f - sqrt(cosPhi * cosPhi));
     // Theta is the angle subtended by the occluder 
-    float sinTheta = dispatchThreadId.y * rcp(_LUTHeight - 1.0f);
+    float sinTheta = outUV.y;
     float cosTheta = sqrt(1.0f - sinTheta * sinTheta);
 
     float3 occluderVec = float3(sinPhi, 0, cosPhi);
