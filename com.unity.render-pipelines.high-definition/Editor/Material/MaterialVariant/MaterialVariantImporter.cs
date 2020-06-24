@@ -77,6 +77,8 @@ namespace Unity.Assets.MaterialVariant.Editor
 
                     // Keep trace of variant in order to register any override.
                     matVariant.hideFlags = HideFlags.HideInHierarchy | HideFlags.DontSaveInBuild | HideFlags.HideInInspector;
+                    // CAUTION: This subAssets "Variant" can be use inside the OnImportAsset() (see GetMaterialFromRoot())
+                    // it is use for the MaterialVariantEditor
                     ctx.AddObjectToAsset("Variant", matVariant);
                     ctx.AddObjectToAsset("Material", material);
                     ctx.SetMainObject(material);

@@ -29,7 +29,6 @@ namespace Unity.Assets.MaterialVariant.Editor
             var asset = assets.First() as MaterialVariant;
 
             variantTarget.rootGUID = asset.rootGUID;
-            variantTarget.isShader = asset.isShader;
             variantTarget.overrides = asset.overrides;
         }
 
@@ -85,8 +84,7 @@ namespace Unity.Assets.MaterialVariant.Editor
             {
                 for (int i = 0; i < targets.Length; ++i)
                 {
-                    InternalEditorUtility.SaveToSerializedFileAndForget(new[] { extraDataTargets[i] },
-                        (targets[i] as MaterialVariantImporter).assetPath, true);
+                    InternalEditorUtility.SaveToSerializedFileAndForget(new[] { extraDataTargets[i] }, (targets[i] as MaterialVariantImporter).assetPath, true);
                     AssetDatabase.ImportAsset((targets[i] as MaterialVariantImporter).assetPath);
                 }
             }

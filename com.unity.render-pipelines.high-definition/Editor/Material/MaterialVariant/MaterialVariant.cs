@@ -36,7 +36,6 @@ namespace Unity.Assets.MaterialVariant.Editor
             {
                 var matVariant = ScriptableObject.CreateInstance<MaterialVariant>();
                 matVariant.rootGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(target));
-                matVariant.overrides = new List<MaterialPropertyModification>();
 
                 var targetPath = AssetDatabase.GetAssetPath(target);
                 targetPath = Path.Combine(Path.GetDirectoryName(targetPath),
