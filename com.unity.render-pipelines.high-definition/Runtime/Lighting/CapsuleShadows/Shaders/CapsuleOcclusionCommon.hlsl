@@ -405,7 +405,27 @@ float EvaluateCapsuleSpecularOcclusion(EllipsoidOccluderData data, float3 positi
 float EvaluateCapsuleShadow(EllipsoidOccluderData data, float3 positionWS, float3 N, float4 dirAndLength)
 {
     // For now assuming just directional light.
-    return 1.0f;
+
+    float3 coneAxis = _CapsuleShadowParameters.xyz;
+    float3 occluderPos = GetOccluderPositionRWS(data);
+    float radius = GetOccluderRadius(data);
+
+
+    // Angle between occluder and cone axis
+    float cosPhi = dot(coneAxis, dirAndLength.xyz);
+    float sinPhi = sqrt(1.0f - cosPhi * cosPhi);
+
+    // Angle subtended by occluder (to be shared among computation I'd say)
+    float tanTheta = radius / dirAndLength.w;
+    float cosTheta = rsqrt(1.0 + tanTheta * tanTheta);
+
+    // For now hardcoded, but will change.
+    float LUTZCoord = _CapsuleShadowParameters.w;
+
+
+    float occlusionVal = SAMPLE_TEXTURE3D_LOD(_CapsuleShadowLUT, s_linear_clamp_sampler, float3(cosTheta, sinPhi, 0), 0).x;
+
+    return occlusionVal;
 }
 
 // --------------------------------------------

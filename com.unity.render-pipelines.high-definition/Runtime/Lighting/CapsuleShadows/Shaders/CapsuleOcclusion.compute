@@ -54,7 +54,7 @@ void CapsuleOcclusion(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupI
     capsuleFeatureFlags = capsuleFeatureFlags | CAPSULEOCCLUSIONTYPE_DIRECTIONAL_SHADOWS;
 #endif
 
-    if ((capsuleFeatureFlags != 0) // Should never happen
+    if ((capsuleFeatureFlags != 0)
         && (posInput.deviceDepth > 0.0f))
     {
         NormalData normalData;
