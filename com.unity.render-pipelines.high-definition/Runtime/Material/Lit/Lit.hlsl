@@ -586,15 +586,37 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
         // Compute the rotation angle of the actual tangent frame with respect to the default one.
         float sinFrame = dot(surfaceData.tangentWS, frame[1]);
         float cosFrame = dot(surfaceData.tangentWS, frame[0]);
-        uint  storeSin = abs(sinFrame) < abs(cosFrame) ? 4 : 0;
-        uint  quadrant = ((sinFrame < 0) ? 1 : 0) | ((cosFrame < 0) ? 2 : 0);
 
-        // sin [and cos] are approximately linear up to [after] 45 degrees.
+        // Define AnisoGGX(α, β, γ), where:
+        // α is the linear roughness corresponding to the direction of the tangent;
+        // β is the linear roughness corresponding to the direction of the bi-tangent;
+        // γ is the angle of rotation of the tangent frame around the normal.
+        //
+        // The following symmetry relations exist:
+        // 1st quadrant (Sin >= 0, Cos >= 0): AnisoGGX(α, β, γ), where (0 <= γ <= Pi/2)
+        // 2nd quadrant (Sin >= 0, Cos <  0): AnisoGGX(α, β, γ) == AnisoGGX(β, α, γ + Pi * 1/2)
+        // 3rd quadrant (Sin <  0, Cos <  0): AnisoGGX(α, β, γ) == AnisoGGX(α, β, γ + Pi)
+        // 4th quadrant (Sin <  0, Cos >= 0): AnisoGGX(α, β, γ) == AnisoGGX(β, α, γ + Pi * 3/2)
+        // Handling of interval end-points is asymmetric to simplify programming.
+        // Q Sin Cos Xor
+        // 1  0   0   0
+        // 2  0   1   1
+        // 3  3   1   2
+        // 4  3   0   3
+        uint quadrant = ((sinFrame < 0) ? 3 : 0) ^ ((cosFrame < 0) ? 1 : 0); // 0-indexed
+        // Anisotropy = (α - β) / (α + β).
+        // Exchanging the roughness values α and β is equivalent to negating the value of anisotropy.
+        float anisotropy = asfloat(asuint(surfaceData.anisotropy) ^ ((quadrant & 1) << 31));
+        // We need to convert the values of Sin and Cos to those appropriate for the 1st quadrant.
+        // To go from Q3 to Q1, we must rotate by Pi, so taking the absolute value suffices.
+        // To go from Q2 or Q4 to Q1, we must rotate by (N+1/2)*Pi (so swap Sin and Cos), and take the absolute value.
+        uint  storeSin = (abs(sinFrame) < abs(cosFrame) ? 1 : 0) ^ (quadrant & 1);
+        // sin [and cos] are approximately linear up to [after] Pi/4 ± Pi.
         float sinOrCos = min(abs(sinFrame), abs(cosFrame)) * sqrt(2);
 
-        outGBuffer2.rgb = float3(surfaceData.anisotropy * 0.5 + 0.5,
+        outGBuffer2.rgb = float3(anisotropy * 0.5 + 0.5,
                                  sinOrCos,
-                                 PackFloatInt8bit(surfaceData.metallic, storeSin | quadrant, 8));
+                                 PackFloatInt8bit(surfaceData.metallic, storeSin, 8));
     }
     else if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
     {
@@ -876,14 +898,11 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
             UnpackFloatInt8bit(inGBuffer2.b, 8, unused, tangentFlags);
 
             // Get the rotation angle of the actual tangent frame with respect to the default one.
-            uint  quadrant = tangentFlags;
-            uint  storeSin = tangentFlags & 4;
+            uint  storeSin = tangentFlags;
             float sinOrCos = inGBuffer2.g * rsqrt(2);
             float cosOrSin = sqrt(1 - sinOrCos * sinOrCos);
             float sinFrame = storeSin ? sinOrCos : cosOrSin;
             float cosFrame = storeSin ? cosOrSin : sinOrCos;
-                  sinFrame = (quadrant & 1) ? -sinFrame : sinFrame;
-                  cosFrame = (quadrant & 2) ? -cosFrame : cosFrame;
 
             // Rotate the reconstructed tangent around the normal.
             frame[0] = sinFrame * frame[1] + cosFrame * frame[0];
