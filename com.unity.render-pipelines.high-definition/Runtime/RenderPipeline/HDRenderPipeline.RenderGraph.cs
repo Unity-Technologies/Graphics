@@ -1332,10 +1332,12 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
+#if UNITY_EDITOR
         class RenderWireOverlayPassData
         {
             public HDCamera hdCamera;
         }
+#endif
 
         void RenderWireOverlay(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer)
         {
