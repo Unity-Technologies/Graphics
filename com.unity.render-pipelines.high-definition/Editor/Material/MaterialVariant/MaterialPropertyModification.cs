@@ -88,10 +88,10 @@ namespace Unity.Assets.MaterialVariant.Editor
             switch (value.type)
             {
                 case MaterialProperty.PropType.Float:   return SerializedType.Scalar;
+                case MaterialProperty.PropType.Range:   return SerializedType.Scalar;
                 case MaterialProperty.PropType.Color:   return SerializedType.Vector;
                 case MaterialProperty.PropType.Vector:  return SerializedType.Vector;
                 case MaterialProperty.PropType.Texture: return SerializedType.Texture;
-                case MaterialProperty.PropType.Range:   //need to check what is this. Fallback on unhandled for now
                 default:
                     throw new ArgumentException("Unhandled MaterialProperty Type", "value");
             }
