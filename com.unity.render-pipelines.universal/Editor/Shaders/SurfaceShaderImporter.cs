@@ -157,6 +157,53 @@ Shader ""Hidden/GraphErrorShader2""
         return subshaders;
     }
 
+    string GetShaderName(string shaderSnippet)
+    {
+        int shaderNameTokenIndex = shaderSnippet.IndexOf("Shader", StringComparison.Ordinal);
+        int startNameIndex = shaderSnippet.IndexOf("\"", shaderNameTokenIndex + "Shader".Length, StringComparison.Ordinal);
+        int endNameIndex = shaderSnippet.IndexOf("\"", startNameIndex + 1, StringComparison.Ordinal);
+
+        if (endNameIndex - startNameIndex <= 0)
+            return "";
+        
+        return shaderSnippet.Substring(startNameIndex, endNameIndex - startNameIndex + 1);
+    }
+
+    string GetSurfaceShader(string shaderSnippet)
+    {
+        var surfaceShaderStart = shaderSnippet.IndexOf("SURFACESHADER", StringComparison.Ordinal) ;
+        var surfaceShaderCount = shaderSnippet.IndexOf("ENDSURFACESHADER", StringComparison.Ordinal) - surfaceShaderStart;
+        return shaderSnippet.Substring(surfaceShaderStart + "SURFACESHADER".Length, surfaceShaderCount - "SURFACESHADER".Length);
+    }
+
+    string GetShaderProperties(string shaderSnippet)
+    {
+        int shaderNameTokenIndex = shaderSnippet.IndexOf("Properties", StringComparison.Ordinal);
+        int startNameIndex = shaderSnippet.IndexOf("{", shaderNameTokenIndex + "Properties".Length, StringComparison.Ordinal);
+        int depth = 0;
+        int endNameIndex = startNameIndex;
+        while (endNameIndex < shaderSnippet.Length)
+        {
+            endNameIndex++;
+            char c = shaderSnippet[endNameIndex];
+            if (c == '}')
+            {
+                if (depth == 0)
+                    break;
+
+                depth--;
+            }
+
+            if (c == '{')
+                depth++;
+        }
+
+        if (endNameIndex - startNameIndex <= 2)
+            return "";
+        
+        return shaderSnippet.Substring(startNameIndex + 1, endNameIndex - startNameIndex - 1);
+    }
+
     public override void OnImportAsset(AssetImportContext ctx)
     {
         var oldShader = AssetDatabase.LoadAssetAtPath<Shader>(ctx.assetPath);
@@ -169,25 +216,29 @@ Shader ""Hidden/GraphErrorShader2""
         UnityEngine.Object mainObject;
 
         var textGraph = File.ReadAllText(path, Encoding.UTF8);
+
+        var shaderName = GetShaderName(textGraph);
+        var shaderProperties = GetShaderProperties(textGraph);
+        var surfaceShader = GetSurfaceShader(textGraph);
         
-        var surfaceShaderStart = textGraph.IndexOf("SURFACESHADER", StringComparison.Ordinal) ;
-        var surfaceShaderCount = textGraph.IndexOf("ENDSURFACESHADER", StringComparison.Ordinal) - surfaceShaderStart;
-        var surfaceShader = textGraph.Substring(surfaceShaderStart + "SURFACESHADER".Length, surfaceShaderCount - "SURFACESHADER".Length);
+        // Surface Shader Template
+        var templatePath = AssetDatabase.GUIDToAssetPath("f9cb61ee5b9aa4521bce6ae21747d4dc");
+        var templateText = File.ReadAllText(templatePath, Encoding.UTF8);
 
-        textGraph = textGraph.Remove(surfaceShaderStart, surfaceShaderCount + "ENDSURFACESHADER".Length);
+        templateText = templateText.Replace("$SHADERNAME", shaderName);
+        templateText = templateText.Replace("$SHADERPROPERTIES", shaderProperties);
+        templateText = templateText.Replace("$SURFACESHADER", surfaceShader);
 
-        StringBuilder subShaders = new StringBuilder();
-        foreach (var subShader in GetSubShaders())
-        {
-            var textSubshader = subShader.GetSubShader(surfaceShader);
-            textSubshader = textSubshader.Replace("$CUSTOMINCLUDES", subShader.GetAdditonalIncludes());
-            subShaders.AppendLine(textSubshader);
-        }
+        // TODO:
+        templateText = templateText.Replace("$SHADERRENDERSTATE", "");
+        templateText = templateText.Replace("$SHADERPRAGMAS", "");
+        templateText = templateText.Replace("$SHADERKEYWORDS", "");
+        templateText = templateText.Replace("$SHADERINCLUDES", "");
+        templateText = templateText.Replace("$SHADERFALLBACK", "");
+        templateText = templateText.Replace("$SHADERCUSTOMEDITOR", "");
 
-        textGraph = textGraph.Replace("$BUILDSUBSHADERS", subShaders.ToString());
-
-        File.WriteAllText(path + ".shader", textGraph, Encoding.UTF8);
-        var shader = ShaderUtil.CreateShaderAsset(textGraph, false);
+        File.WriteAllText(path + ".shader", templateText, Encoding.UTF8);
+        var shader = ShaderUtil.CreateShaderAsset(templateText, false);
         mainObject = shader;
         
         Texture2D texture = Resources.Load<Texture2D>("Icons/sg_graph_icon@64");

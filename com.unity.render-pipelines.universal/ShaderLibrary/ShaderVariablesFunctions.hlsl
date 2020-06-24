@@ -36,6 +36,23 @@ VertexNormalInputs GetVertexNormalInputs(float3 normalOS, float4 tangentOS)
     return tbn;
 }
 
+// Convert normal from tangent space to space of TBN matrix
+// f.ex, if normal and tangent are passed in world space, per-pixel normal will return in world space.
+half3 GetPerPixelNormal(TEXTURE2D_PARAM(normalMap, sampler_NormalMap), float2 uv, half3 normal, half4 tangent)
+{
+    half3 bitangent = cross(normal, tangent.xyz) * tangent.w;
+    half3 normalTS = UnpackNormal(SAMPLE_TEXTURE2D(normalMap, sampler_NormalMap, uv));
+    return normalize(mul(normalTS, half3x3(tangent.xyz, bitangent, normal)));
+}
+
+// Convert normal from tangent space to space of TBN matrix and apply scale to normal
+half3 GetPerPixelNormalScaled(TEXTURE2D_PARAM(normalMap, sampler_NormalMap), float2 uv, half3 normal, half4 tangent, half scale)
+{
+    half3 bitangent = cross(normal, tangent.xyz) * tangent.w;
+    half3 normalTS = UnpackNormalScale(SAMPLE_TEXTURE2D(normalMap, sampler_NormalMap, uv), scale);
+    return normalize(mul(normalTS, half3x3(tangent.xyz, bitangent, normal)));
+}
+
 float4 GetScaledScreenParams()
 {
     return _ScaledScreenParams;
