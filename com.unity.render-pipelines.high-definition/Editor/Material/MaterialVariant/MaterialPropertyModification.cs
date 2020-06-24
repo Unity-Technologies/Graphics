@@ -88,8 +88,10 @@ namespace Unity.Assets.MaterialVariant.Editor
             for (int i = 1; i < pathParts.Length; ++i)
                 property = property.FindPropertyRelative(pathParts[i]);
 
-            property.floatValue = propertyModificaton.m_Value;
-            //property.objectReferenceValue = propertyModificaton.m_ObjectReference;
+            if (property.propertyType == SerializedPropertyType.ObjectReference)
+                property.objectReferenceValue = propertyModificaton.m_ObjectReference;
+            else
+                property.floatValue = propertyModificaton.m_Value;
         }
         
         static SerializedType ResolveType(MaterialProperty value)
