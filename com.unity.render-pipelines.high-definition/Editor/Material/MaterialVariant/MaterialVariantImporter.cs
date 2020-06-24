@@ -52,8 +52,7 @@ namespace Unity.Assets.MaterialVariant.Editor
                     else
                     {
                         // Apply change again
-                        // TODO
-
+                        MaterialPropertyModification.ApplyPropertyModificationsToMaterial(material, matVariant.overrides);
                     }                   
                 }
             }
