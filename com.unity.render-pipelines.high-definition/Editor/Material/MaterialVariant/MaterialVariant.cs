@@ -11,6 +11,7 @@ namespace Unity.Assets.MaterialVariant.Editor
     {
         public string rootGUID;
         public bool isShader;
+        public int hash;
 
         public List<PropertyModification> overrides;
 
