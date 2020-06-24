@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -25,6 +26,16 @@ namespace Unity.Assets.MaterialVariant.Editor
                 else
                     overrides.Add(modification);
             }
+        }
+
+        public bool IsOverriddenProperty(MaterialProperty property)
+        {
+            return overrides.Where(o => o.propertyPath.StartsWith(property.name)).Any();
+        }
+
+        public void ResetOverride(MaterialProperty property)
+        {
+            overrides.RemoveAll(o => o.propertyPath.StartsWith(property.name));
         }
 
         private static bool IsValidRoot(Object root)

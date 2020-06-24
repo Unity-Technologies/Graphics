@@ -15,6 +15,8 @@ namespace Unity.Assets.MaterialVariant.Editor
         //GUIContent m_Label;
         MaterialVariant[] m_Variants;
 
+        float startY;
+
         public MaterialPropertyScope(/*Rect drawingRect, */MaterialProperty materialProperty/*, GUIContent label*/, MaterialVariant[] variants)
         {
             //m_DrawingRect = drawingRect;
@@ -28,10 +30,39 @@ namespace Unity.Assets.MaterialVariant.Editor
             //Starting registering change
             if (m_Variants != null)
                 EditorGUI.BeginChangeCheck();
+
+            // Get the current Y coordinate before drawing the property
+            startY = GUILayoutUtility.GetLastRect().yMax;
+        }
+        void ResetOverride()
+        {
+            m_Variants[0].ResetOverride(m_MaterialProperty);
         }
 
         void IDisposable.Dispose()
         {
+            bool isOverride = m_Variants[0].IsOverriddenProperty(m_MaterialProperty);
+
+            Rect r = GUILayoutUtility.GetLastRect();
+            float endY = r.yMax;
+            r.xMin = 1;
+            r.yMin = startY + 2;
+            r.yMax = endY - 2;
+            r.width = EditorGUIUtility.labelWidth;
+
+            if ( Event.current.rawType == EventType.ContextClick && r.Contains(Event.current.mousePosition))
+            {
+                GenericMenu menu = new GenericMenu();
+                menu.AddItem(new GUIContent("Reset Override"), isOverride, ResetOverride);
+                menu.ShowAsContext();
+            }
+
+            if (isOverride)
+            {
+                r.width = 3;
+                EditorGUI.DrawRect(r, Color.white);
+            }
+
             //Stop registering change
             if (m_Variants != null && EditorGUI.EndChangeCheck())
             {
