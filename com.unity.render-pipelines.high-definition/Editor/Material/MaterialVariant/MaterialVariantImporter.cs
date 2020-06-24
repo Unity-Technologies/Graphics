@@ -75,6 +75,9 @@ namespace Unity.Assets.MaterialVariant.Editor
                     // Apply local modification
                     MaterialPropertyModification.ApplyPropertyModificationsToMaterial(material, matVariant.overrides);
 
+                    // We need to update keyword now that everything is override properly
+                    UnityEditor.Rendering.HighDefinition.HDShaderUtils.ResetMaterialKeywords(material);
+
                     // Keep trace of variant in order to register any override.
                     matVariant.hideFlags = HideFlags.HideInHierarchy | HideFlags.DontSaveInBuild | HideFlags.HideInInspector;
                     // CAUTION: This subAssets "Variant" can be use inside the OnImportAsset() (see GetMaterialFromRoot())
