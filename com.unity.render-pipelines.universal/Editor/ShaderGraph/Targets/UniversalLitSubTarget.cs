@@ -224,6 +224,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 passes = new PassCollection
                 {
                     { LitPasses.Forward },
+                    { LitPasses.DataExtraction },
                     { LitPasses.GBuffer },
                     { CorePasses.ShadowCaster },
                     { CorePasses.DepthOnly },
@@ -238,12 +239,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 {
                     var forward = LitPasses.Forward;
                     var gbuffer = LitPasses.GBuffer;
+                    var dataGeneration = LitPasses.DataExtraction;
                     var shadowCaster = CorePasses.ShadowCaster;
                     var depthOnly = CorePasses.DepthOnly;
                     var meta = LitPasses.Meta;
                     var _2d = LitPasses._2D;
 
                     forward.pragmas = CorePragmas.DOTSForward;
+                    dataGeneration.pragmas = CorePragmas.DOTSDataExtraction;
                     gbuffer.pragmas = CorePragmas.DOTSGBuffer;
                     shadowCaster.pragmas = CorePragmas.DOTSInstanced;
                     depthOnly.pragmas = CorePragmas.DOTSInstanced;
@@ -258,6 +261,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                         {
                             { forward },
                             { gbuffer },
+                            { dataGeneration },
                             { shadowCaster },
                             { depthOnly },
                             { meta },
@@ -297,6 +301,34 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 renderStates = CoreRenderStates.Default,
                 pragmas = CorePragmas.Forward,
                 keywords = LitKeywords.Forward,
+                includes = LitIncludes.Forward,
+            };
+            
+            public static PassDescriptor DataExtraction = new PassDescriptor
+            {
+                // Definition
+                displayName = "Data Extraction",
+                referenceName = "DATA_EXTRACTION",
+                lightMode = "DataExtraction",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentLit,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                requiredFields = LitRequiredFields.Forward,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = CoreRenderStates.Default,
+                pragmas = CorePragmas.DataExtraction,
+                keywords = LitKeywords.DataExtraction,
                 includes = LitIncludes.Forward,
             };
 
@@ -468,6 +500,34 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
             };
+            
+            public static KeywordCollection DataExtraction = new KeywordCollection
+            {
+                new KeywordDescriptor()
+                {
+                    displayName = "Extraction Modes",
+                    referenceName = "",
+                    type = KeywordType.MultiCompile,
+                    definition = KeywordDefinition.MultiCompile,
+                    scope = KeywordScope.Global,
+                    value = 0,
+                    entries = new[]
+                    {
+                        new KeywordEntry("None", "_"),
+                        new KeywordEntry("Object Id", "RENDER_OBJECT_ID"),
+                        new KeywordEntry("Depth", "RENDER_DEPTH"),
+                        new KeywordEntry("World Normals (face)", "RENDER_WORLD_NORMALS_FACE"),
+                        new KeywordEntry("World Normals (pixel)", "RENDER_WORLD_NORMALS_PIXEL"),
+                        new KeywordEntry("World Position", "RENDER_WORLD_POSITION"),
+                        new KeywordEntry("Base Color + Alpha", "RENDER_BASE_COLOR_ALPHA"),
+                        new KeywordEntry("Specular(RGB) Metallic(A)", "RENDER_SPECULAR_METALLIC"),
+                        new KeywordEntry("Emission(RGB)", "RENDER_EMISSION"),
+                        new KeywordEntry("Smoothness(r) + Occlusion (g)", "RENDER_SMOOTHNESS_OCCLUSION"),
+                        new KeywordEntry("EntityId", "RENDER_ENTITY_ID"),
+                    },
+                }
+            };
+            
 
             public static KeywordCollection GBuffer = new KeywordCollection
             {

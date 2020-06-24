@@ -4,6 +4,7 @@
     internal enum KeywordType
     {
         Boolean,
-        Enum
+        Enum,
+        MultiCompile
     }
 }

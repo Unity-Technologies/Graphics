@@ -526,6 +526,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
+        
+        public static readonly PragmaCollection DataExtraction = new PragmaCollection
+        {
+            { Pragma.Target(ShaderModel.Target20) },
+            { Pragma.OnlyRenderers(new[]{ Platform.GLES, Platform.GLES3, Platform.GLCore }) },
+            { Pragma.MultiCompileInstancing },
+            { Pragma.Vertex("vert") },
+            { Pragma.Fragment("fragExtraction") },
+        };
 
         public static readonly PragmaCollection GBuffer = new PragmaCollection
         {
@@ -572,6 +581,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.DOTSInstancing },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
+        };
+
+        public static readonly PragmaCollection DOTSDataExtraction = new PragmaCollection
+        {
+            { Pragma.Target(ShaderModel.Target45) },
+            { Pragma.ExcludeRenderers(new[]{ Platform.D3D9, Platform.GLES }) },
+            { Pragma.MultiCompileFog },
+            { Pragma.DOTSInstancing },
+            { Pragma.Vertex("vert") },
+            { Pragma.Fragment("fragExtraction") },
         };
 
         public static readonly PragmaCollection DOTSGBuffer = new PragmaCollection

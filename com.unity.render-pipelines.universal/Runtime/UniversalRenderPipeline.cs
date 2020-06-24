@@ -202,22 +202,61 @@ namespace UnityEngine.Rendering.Universal
                 m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", shaderTags, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, m_OpaqueLayerMask, m_DefaultStencilState, 0 );
                 m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", shaderTags, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, m_TransparentLayerMask, m_DefaultStencilState, 0);
 
+                /*
+                 *  #ifdef RENDER_OBJECT_ID
+    return asint(unity_LODFade.z);
+    #elif defined(RENDER_NORMALS)
+    return float4(inputData.normalWS, 1.0f);
+    #elif defined(RENDER_WORLD_POS)
+    return float4(inputData.positionWS, 1.0);
+    #elif defined(RENDER_BASE_COLOR)
+    return float4(surfaceDescription.baseColor);
+    #elif defined(RENDER_METAL_SPEC)
+    return float4(specular.xyz, metallic);
+    #elif defined(RENDER_EMISSION_SMOOTHNESS)
+    return float4(surfaceDescription.emission.xyz, surfaceDescription.smoothness);
+    #elif defined(RENDER_ENTITY_ID)
+                 */
+                
                 string keyword = String.Empty;
                 switch (data.mode)
                 {
+                    case Camera.RenderRequestMode.None:
+                        break;
                     case Camera.RenderRequestMode.ObjectId:
                         keyword = "RENDER_OBJECT_ID";
                         break;
-                    case Camera.RenderRequestMode.Normals:
-                        keyword = "RENDER_NORMALS";
+                    case Camera.RenderRequestMode.Depth:
+                        keyword = "RENDER_DEPTH";
+                        break;
+                    case Camera.RenderRequestMode.WorldNormalFace:
+                        keyword = "RENDER_WORLD_NORMALS_FACE";
                         break;
                     case Camera.RenderRequestMode.WorldPosition:
-                        keyword = "RENDER_WORLD_POS";
+                        keyword = "RENDER_WORLD_POSITION";
+                        break;
+                    case Camera.RenderRequestMode.EntityId:
+                        keyword = "RENDER_ENTITY_ID";
+                        break;
+                    case Camera.RenderRequestMode.BaseColorAlpha:
+                        keyword = "RENDER_BASE_COLOR_ALPHA";
+                        break;
+                    case Camera.RenderRequestMode.SpecularMetallic:
+                        keyword = "RENDER_SPECULAR_METALLIC";
+                        break;
+                    case Camera.RenderRequestMode.Emission:
+                        keyword = "RENDER_EMISSION";
+                        break;
+                    case Camera.RenderRequestMode.WorldNormalPerPixel:
+                        keyword = "RENDER_WORLD_NORMALS_PIXEL";
+                        break;
+                    case Camera.RenderRequestMode.SmoothnessOcclusion:
+                        keyword = "RENDER_SMOOTHNESS_OCCLUSION";
                         break;
                     default:
-                        Debug.LogWarning(string.Format("Requested camera render mode {0} is not supported by UniversalRenderPipeline", data.mode));
-                        break;
+                        throw new ArgumentOutOfRangeException();
                 }
+                
                 m_RenderOpaqueForwardPass.SetAdditionalKeywords(new [] {keyword});
                 m_RenderTransparentForwardPass.SetAdditionalKeywords(new [] {keyword});
             }
