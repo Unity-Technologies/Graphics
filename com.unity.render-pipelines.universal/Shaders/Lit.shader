@@ -158,7 +158,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_fragment _SPECULAR_SETUP
             #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
 
-            #pragma multi_compile _ RENDER_OBJECT_ID RENDER_DEPTH RENDER_NORMALS RENDER_WORLD_POS RENDER_ENTITY_ID
+            #pragma multi_compile _ RENDER_OBJECT_ID RENDER_DEPTH RENDER_WORLD_NORMALS_FACE RENDER_WORLD_NORMALS_PIXEL RENDER_WORLD_POSITION RENDER_BASE_COLOR_ALPHA RENDER_SPECULAR_METALLIC RENDER_EMISSION RENDER_SMOOTHNESS_OCCLUSION RENDER_ENTITY_ID
 
             //--------------------------------------
             // GPU Instancing

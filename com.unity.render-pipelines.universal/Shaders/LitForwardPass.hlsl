@@ -139,7 +139,6 @@ float4 LitPassFragment(Varyings input) : SV_Target
     InitializeInputData(input, surfaceData.normalTS, inputData);
 
     half4 color = UniversalFragmentPBR(inputData, surfaceData);
-
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a);
 
@@ -147,10 +146,20 @@ float4 LitPassFragment(Varyings input) : SV_Target
     return asint(unity_LODFade.z);
     #elif defined(RENDER_DEPTH)
     return 0;
-    #elif defined(RENDER_NORMALS)
+    #elif defined(RENDER_WORLD_NORMALS_FACE)
+    return float4(input.normalWS, 1.0f);
+    #elif defined(RENDER_WORLD_NORMALS_PIXEL)
     return float4(inputData.normalWS, 1.0f);
-    #elif defined(RENDER_WORLD_POS)
+    #elif defined(RENDER_WORLD_POSITION)
     return float4(inputData.positionWS, 1.0);
+    #elif defined(RENDER_BASE_COLOR_ALPHA)
+    return float4(surfaceData.albedo.xyz, surfaceData.alpha);
+    #elif defined(RENDER_SPECULAR_METALLIC)
+    return float4(surfaceData.specular.xyz, surfaceData.metallic);
+    #elif defined(RENDER_EMISSION)
+    return float4(surfaceData.emission.xyz, 1.0);
+    #elif defined(RENDER_SMOOTHNESS_OCCLUSION)
+    return float4(surfaceData.smoothness, surfaceData.occlusion, 1.0, 1.0);
     #elif defined(RENDER_ENTITY_ID)
     return 0;
     #else

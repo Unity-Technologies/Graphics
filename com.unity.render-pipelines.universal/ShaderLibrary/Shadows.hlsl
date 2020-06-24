@@ -22,7 +22,7 @@
     #endif
 #endif
 
-#if defined(_ADDITIONAL_LIGHTS) || defined(_MAIN_LIGHT_SHADOWS_CASCADE) || defined(RENDER_WORLD_POS)
+#if defined(_ADDITIONAL_LIGHTS) || defined(_MAIN_LIGHT_SHADOWS_CASCADE) || defined(RENDER_WORLD_POSITION)
     #define REQUIRES_WORLD_SPACE_POS_INTERPOLATOR
 #endif
 
