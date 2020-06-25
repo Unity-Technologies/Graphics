@@ -1300,6 +1300,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ShaderVariablesGlobalCB._EnableRecursiveRayTracing = 0;
             }
 
+
+            // 
+            var capsuleSpecOccSettings = hdCamera.volumeStack.GetComponent<CapsuleSpecularOcclusion>();
+            var capsuleSoftShadow = hdCamera.volumeStack.GetComponent<CapsuleSoftShadows>(); // Again this is bad, should be per light really... 
+            // TODO: This is bad for now... we really must find a way to bind neutral (tried but didn't work :D ) 
+            m_ShaderVariablesGlobalCB._CapsuleOcclusionParams = new Vector4(capsuleSoftShadow.directShadow.value ? 1 : 0, capsuleSpecOccSettings.intensity.value, capsuleSoftShadow.intensity.value, 0);
+
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
         }
 
@@ -2685,7 +2692,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // TODO: This global set should probably be done once as multiple passes might need it set (e.g. contact shadows)
                 cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, m_TileAndClusterData.lightList);
                 m_CapsuleOcclusionSystem.RenderCapsuleOcclusions(cmd, hdCamera, m_AmbientOcclusionSystem.m_AmbientOcclusionTex, GetCurrentSunLight());
-                m_CapsuleOcclusionSystem.PushGlobalTextures(cmd);
+                m_CapsuleOcclusionSystem.PushGlobalTextures(cmd, hdCamera);
                 m_CapsuleOcclusionSystem.PushDebugTextures(cmd, hdCamera, m_AmbientOcclusionSystem.m_AmbientOcclusionTex);
 
                 // Run the contact shadows here as they need the light list

@@ -94,6 +94,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _ContactShadowOpacity;
     float _ReplaceDiffuseForIndirect;
     float4 _AmbientOcclusionParam;
+    float4 _CapsuleOcclusionParams;
     float _IndirectDiffuseLightingMultiplier;
     uint _IndirectDiffuseLightingLayers;
     float _ReflectionLightingMultiplier;

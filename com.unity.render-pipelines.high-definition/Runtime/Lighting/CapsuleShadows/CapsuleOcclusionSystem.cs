@@ -57,25 +57,29 @@ namespace UnityEngine.Rendering.HighDefinition
                                                     name: "Capsule Soft Shadows LUT");
 
             m_CapsuleOcclusions = RTHandles.Alloc(Vector2.one, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R8G8_UNorm, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: "Capsule Occlusions");
-
         }
 
-        internal bool AnyEffectIsActive(HDCamera hdCamera)
+        internal bool SpecOcclusionOrShadowEnabled(HDCamera hdCamera)
         {
-            var aoSettings = hdCamera.volumeStack.GetComponent<CapsuleAmbientOcclusion>();
             var specularOcclusionSettings = hdCamera.volumeStack.GetComponent<CapsuleSpecularOcclusion>();
             var shadowSettings = hdCamera.volumeStack.GetComponent<CapsuleSoftShadows>();
 
+            return
+                  specularOcclusionSettings.intensity.value > 0.0f ||
+                  shadowSettings.intensity.value > 0.0f;
+
+        }
+        internal bool AnyEffectIsActive(HDCamera hdCamera)
+        {
+            var aoSettings = hdCamera.volumeStack.GetComponent<CapsuleAmbientOcclusion>();
+
             // TODO: Need to add frame settings
 
-
             bool anyEnabled = aoSettings.intensity.value > 0.0f ||
-                              specularOcclusionSettings.intensity.value > 0.0f ||
-                              shadowSettings.intensity.value > 0.0f;
+                              SpecOcclusionOrShadowEnabled(hdCamera);
 
 
             return anyEnabled;
-
         }
 
         internal void GenerateCapsuleSoftShadowsLUT(CommandBuffer cmd, HDCamera hdCamera)
@@ -170,9 +174,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void PushGlobalTextures(CommandBuffer cmd)
+        internal void PushGlobalTextures(CommandBuffer cmd, HDCamera hdCamera)
         {
-            cmd.SetGlobalTexture(HDShaderIDs._CapsuleOcclusionsTexture, m_CapsuleOcclusions);
+            cmd.SetGlobalTexture(HDShaderIDs._CapsuleOcclusionsTexture,  m_CapsuleOcclusions);
         }
 
         internal void PushDebugTextures(CommandBuffer cmd, HDCamera hdCamera, RTHandle occlusionTexture)

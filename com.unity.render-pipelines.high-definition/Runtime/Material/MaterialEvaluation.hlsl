@@ -50,7 +50,7 @@ struct AmbientOcclusionFactor
 };
 
 // Get screen space ambient occlusion only:
-float GetScreenSpaceDiffuseOcclusion(float2 positionSS)
+float GetScreenSpaceDiffuseOcclusion(float2 positionSS, float capsuleDirectionalAO)
 {
     #if (SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT) || (SHADERPASS == SHADERPASS_RAYTRACING_FORWARD)
         // When we are in raytracing mode, we do not want to take the screen space computed AO texture
@@ -61,7 +61,7 @@ float GetScreenSpaceDiffuseOcclusion(float2 positionSS)
         // We store inverse AO so neutral is black. So either we sample inside or outside the texture it return 0 in case of neutral
         // Ambient occlusion use for indirect lighting (reflection probe, baked diffuse lighting)
         #ifndef _SURFACE_TYPE_TRANSPARENT
-        float indirectAmbientOcclusion = 1.0 - LOAD_TEXTURE2D_X(_AmbientOcclusionTexture, positionSS).x;
+        float indirectAmbientOcclusion = (1.0 - LOAD_TEXTURE2D_X(_AmbientOcclusionTexture, positionSS).x) * capsuleDirectionalAO;
         #else
         float indirectAmbientOcclusion = 1.0;
         #endif
@@ -71,7 +71,7 @@ float GetScreenSpaceDiffuseOcclusion(float2 positionSS)
 }
 
 // Get specular occlusion from our screen space RT which stores capsule specular occlusion which was calculated previously in async compute.
-float GetScreenSpaceSpecularOcclusion(float2 positionSS)
+float GetScreenSpaceSpecularOcclusion(float2 positionSS, float capsuleSpecOcclusion)
 {
     #if (SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT) || (SHADERPASS == SHADERPASS_RAYTRACING_FORWARD)
         // When we are in raytracing mode, we do not want to take the capsule occluder texture.
@@ -84,7 +84,7 @@ float GetScreenSpaceSpecularOcclusion(float2 positionSS)
         #ifndef _SURFACE_TYPE_TRANSPARENT
         // TODO: Will need some transforms around positionSS in the future to handle a potentially half resolution capsule occlusion texture.
         // TODO: Apply remainder of the specular BRDF here, i.e: Fresnel.
-        float indirectSpecularOcclusion = LOAD_TEXTURE2D_X(_CapsuleOcclusionsTexture, positionSS).x;
+        float indirectSpecularOcclusion = capsuleSpecOcclusion;
         #else
         float indirectSpecularOcclusion = 1.0;
         #endif
@@ -95,12 +95,20 @@ float GetScreenSpaceSpecularOcclusion(float2 positionSS)
 
 void GetScreenSpaceAmbientOcclusion(float2 positionSS, float NdotV, float perceptualRoughness, float ambientOcclusionFromData, float specularOcclusionFromData, out AmbientOcclusionFactor aoFactor)
 {
-    float indirectAmbientOcclusion = GetScreenSpaceDiffuseOcclusion(positionSS);
+    // x: specular occlusion y: indirect directional occlusion (for directional lightmaps if capsule shadows are set to be indirect shadows)
+    // NOTE: This is very temp as it changes the signatures and we can't really do that :) But it's hackweek [TODO if we ever port to proper HDRP]
+    float2 capsuleOcclusions = LOAD_TEXTURE2D_X(_CapsuleOcclusionsTexture, positionSS).xy;
+    if (_CapsuleOcclusionParams.x)
+        capsuleOcclusions.y = 1;
+    if (_CapsuleOcclusionParams.y)
+        capsuleOcclusions.x = 1;
+
+    float indirectAmbientOcclusion = GetScreenSpaceDiffuseOcclusion(positionSS, capsuleOcclusions.y);
     float directAmbientOcclusion = lerp(1.0, indirectAmbientOcclusion, _AmbientOcclusionParam.w);
 
     float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
     float indirectSpecularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(NdotV), indirectAmbientOcclusion, roughness);
-    indirectSpecularOcclusion = min(indirectSpecularOcclusion, GetScreenSpaceSpecularOcclusion(positionSS));
+    indirectSpecularOcclusion = min(indirectSpecularOcclusion, GetScreenSpaceSpecularOcclusion(positionSS, capsuleOcclusions.x));
     float directSpecularOcclusion = lerp(1.0, indirectSpecularOcclusion, _AmbientOcclusionParam.w);
 
     aoFactor.indirectSpecularOcclusion = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), min(specularOcclusionFromData, indirectSpecularOcclusion));
@@ -112,7 +120,15 @@ void GetScreenSpaceAmbientOcclusion(float2 positionSS, float NdotV, float percep
 // Use GTAOMultiBounce approximation for ambient occlusion (allow to get a tint from the diffuseColor)
 void GetScreenSpaceAmbientOcclusionMultibounce(float2 positionSS, float NdotV, float perceptualRoughness, float ambientOcclusionFromData, float specularOcclusionFromData, float3 diffuseColor, float3 fresnel0, out AmbientOcclusionFactor aoFactor)
 {
-    float indirectAmbientOcclusion = GetScreenSpaceDiffuseOcclusion(positionSS);
+    // x: specular occlusion y: indirect directional occlusion (for directional lightmaps if capsule shadows are set to be indirect shadows)
+    // NOTE: This is very temp as it changes the signatures and we can't really do that :) But it's hackweek [TODO if we ever port to proper HDRP]
+    float2 capsuleOcclusions = LOAD_TEXTURE2D_X(_CapsuleOcclusionsTexture, positionSS).xy;
+    if (_CapsuleOcclusionParams.x)
+        capsuleOcclusions.y = 1;
+    if (_CapsuleOcclusionParams.y)
+        capsuleOcclusions.x = 1;
+
+    float indirectAmbientOcclusion = GetScreenSpaceDiffuseOcclusion(positionSS, capsuleOcclusions.y);
     float directAmbientOcclusion = lerp(1.0, indirectAmbientOcclusion, _AmbientOcclusionParam.w);
 
     float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
@@ -121,10 +137,11 @@ void GetScreenSpaceAmbientOcclusionMultibounce(float2 positionSS, float NdotV, f
 
     aoFactor.indirectSpecularOcclusion = GTAOMultiBounce(min(specularOcclusionFromData, indirectSpecularOcclusion), fresnel0);
     aoFactor.indirectAmbientOcclusion = GTAOMultiBounce(min(ambientOcclusionFromData, indirectAmbientOcclusion), diffuseColor);
+
     aoFactor.directSpecularOcclusion = GTAOMultiBounce(directSpecularOcclusion, fresnel0);
     aoFactor.directAmbientOcclusion = GTAOMultiBounce(directAmbientOcclusion, diffuseColor);
 
-    aoFactor.indirectSpecularOcclusion = min(aoFactor.indirectSpecularOcclusion, GetScreenSpaceSpecularOcclusion(positionSS));
+    aoFactor.indirectSpecularOcclusion = min(aoFactor.indirectSpecularOcclusion, GetScreenSpaceSpecularOcclusion(positionSS, capsuleOcclusions.x));
 }
 
 void ApplyAmbientOcclusionFactor(AmbientOcclusionFactor aoFactor, inout BuiltinData builtinData, inout AggregateLighting lighting)
