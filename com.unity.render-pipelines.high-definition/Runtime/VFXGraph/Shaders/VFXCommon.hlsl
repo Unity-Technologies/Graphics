@@ -159,19 +159,19 @@ float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
 #ifdef VFX_VARYING_PS_INPUTS
 float4 VFXApplyPreExposure(float4 color, float exposureWeight)
 {
-	float exposure = lerp(1.0f, GetCurrentExposureMultiplier(), exposureWeight);
-	color.xyz *= exposure;
+    float exposure = lerp(1.0f, GetCurrentExposureMultiplier(), exposureWeight);
+    color.xyz *= exposure;
     return color;
 }
 
 float4 VFXApplyPreExposure(float4 color, VFX_VARYING_PS_INPUTS input)
 {
 #ifdef VFX_VARYING_EXPOSUREWEIGHT
-	return VFXApplyPreExposure(color, input.VFX_VARYING_EXPOSUREWEIGHT);
+    return VFXApplyPreExposure(color, input.VFX_VARYING_EXPOSUREWEIGHT);
 #elif VFX_BYPASS_EXPOSURE
     return VFXApplyPreExposure(color, 0.0f);
 #else
-	return VFXApplyPreExposure(color, 1.0f);
+    return VFXApplyPreExposure(color, 1.0f);
 #endif
 }
 #endif
