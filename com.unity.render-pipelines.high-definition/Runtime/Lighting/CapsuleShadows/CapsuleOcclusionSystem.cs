@@ -60,9 +60,59 @@ namespace UnityEngine.Rendering.HighDefinition
 
         }
 
+        internal bool AnyEffectIsActive(HDCamera hdCamera)
+        {
+            var aoSettings = hdCamera.volumeStack.GetComponent<CapsuleAmbientOcclusion>();
+            var specularOcclusionSettings = hdCamera.volumeStack.GetComponent<CapsuleSpecularOcclusion>();
+            var shadowSettings = hdCamera.volumeStack.GetComponent<CapsuleSoftShadows>();
+
+            // TODO: Need to add frame settings
+
+
+            bool anyEnabled = aoSettings.intensity.value > 0.0f ||
+                              specularOcclusionSettings.intensity.value > 0.0f ||
+                              shadowSettings.intensity.value > 0.0f;
+
+
+            return anyEnabled;
+
+        }
+
+        internal void GenerateCapsuleSoftShadowsLUT(CommandBuffer cmd, HDCamera hdCamera)
+        {
+            if (!AnyEffectIsActive(hdCamera)) return;
+
+            var shadowSettings = hdCamera.volumeStack.GetComponent<CapsuleSoftShadows>();
+
+            if (m_LUTConeApertureUsed != shadowSettings.coneAperture.value)
+            {
+                m_LUTReady = false;
+                m_LUTConeApertureUsed = shadowSettings.coneAperture.value;
+            }
+            if (!m_LUTReady)
+            {
+                var cs = m_Resources.shaders.capsuleShadowLUTGeneratorCS;
+                var kernel = cs.FindKernel("CapsuleShadowLUTGeneration");
+
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._LUTGenParameters, new Vector4(k_LUTWidth, k_LUTHeight, k_LUTDepth, Mathf.Cos(Mathf.Deg2Rad * 0.5f * m_LUTConeApertureUsed)));
+
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CapsuleShadowLUT, m_CapsuleSoftShadowLUT);
+
+                int groupCountX = k_LUTWidth / 8;
+                int groupCountY = k_LUTHeight / 8;
+                int groupCountZ = 1;
+
+                cmd.DispatchCompute(cs, kernel, groupCountX, groupCountY, groupCountZ);
+
+                m_LUTReady = true;
+            }
+        }
+
         // TODO: This assumes is shadows from sun.
         internal void RenderCapsuleOcclusions(CommandBuffer cmd, HDCamera hdCamera, RTHandle occlusionTexture, Light sunLight)
         {
+            if (!AnyEffectIsActive(hdCamera)) return;
+
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CapsuleOcclusion)))
             {
                 var cs = m_Resources.shaders.capsuleOcclusionCS;
@@ -136,34 +186,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             RTHandles.Release(m_CapsuleSoftShadowLUT);
             RTHandles.Release(m_CapsuleOcclusions);
-        }
-
-        internal void GenerateCapsuleSoftShadowsLUT(CommandBuffer cmd, HDCamera hdCamera)
-        {
-            var shadowSettings = hdCamera.volumeStack.GetComponent<CapsuleSoftShadows>();
-
-            if (m_LUTConeApertureUsed != shadowSettings.coneAperture.value)
-            {
-                m_LUTReady = false;
-                m_LUTConeApertureUsed = shadowSettings.coneAperture.value;
-            }
-            if(!m_LUTReady)
-            {
-                var cs = m_Resources.shaders.capsuleShadowLUTGeneratorCS;
-                var kernel = cs.FindKernel("CapsuleShadowLUTGeneration");
-
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._LUTGenParameters, new Vector4(k_LUTWidth, k_LUTHeight, k_LUTDepth, Mathf.Cos(Mathf.Deg2Rad * 0.5f * m_LUTConeApertureUsed)));
-
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CapsuleShadowLUT, m_CapsuleSoftShadowLUT);
-
-                int groupCountX = k_LUTWidth / 8;
-                int groupCountY = k_LUTHeight / 8;
-                int groupCountZ = 1;
-
-                cmd.DispatchCompute(cs, kernel, groupCountX, groupCountY, groupCountZ);
-
-                m_LUTReady = true;
-            }
         }
     }
 }
