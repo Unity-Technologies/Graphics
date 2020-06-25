@@ -463,6 +463,10 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!isExecuting)
                 throw new Exception("ResolveMSAAColorBuffer can only be called inside the CustomPass.Execute function");
 
+            // TODO RENDERGRAPH
+            // See how to implement this correctly...
+            // When running with render graph, the design was to have both msaa/non-msaa textures at the same time, which makes a lot of the code simpler.
+            // This pattern here breaks this.
             if (IsMSAAEnabled(hdCamera))
             {
                 currentRTManager.ResolveMSAAColor(cmd, hdCamera, currentRenderTarget.cameraColorMSAABuffer, currentRenderTarget.cameraColorBuffer);
