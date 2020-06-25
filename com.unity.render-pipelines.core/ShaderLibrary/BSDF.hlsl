@@ -204,9 +204,16 @@ real GetSmithJointGGXPartLambdaV(real NdotV, real roughness)
     return sqrt((-NdotV * a2 + NdotV) * NdotV + a2);
 }
 
-half V_Kelemen(half LoH)
+// Kelemen 2001, "A Microfacet Based Coupled Specular-Matte BRDF Model with Importance Sampling"
+// TODO - Move to Core or switch Visibility term?
+real V_Kelemen(real LoH) 
 {
-    return 0.25 / (LoH * LoH);
+    real x = 0.25 / (LoH * LoH);
+#if defined (SHADER_API_MOBILE)
+    return min(x, 65504.0);
+#else
+    return x;
+#endif
 }
 
 // Note: V = G / (4 * NdotL * NdotV)
