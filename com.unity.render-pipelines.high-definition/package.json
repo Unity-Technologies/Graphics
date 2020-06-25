@@ -6,7 +6,7 @@
   "unityRelease": "0a16",
   "displayName": "High Definition RP",
   "dependencies": {
-    "com.unity.render-pipelines.core": "10.0.0-preview.2",
+    "com.unity.render-pipelines.core": "10.0.0-preview.3",
     "com.unity.shadergraph": "10.0.0-preview.1",
     "com.unity.visualeffectgraph": "10.0.0-preview.1",
     "com.unity.render-pipelines.high-definition-config": "10.0.0-preview.1"
