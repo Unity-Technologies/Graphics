@@ -164,8 +164,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool intensityIsMixed = unitIsMixed || emissiveIntensity.hasMixedValue;
                 bool intensityChanged = false;
                 bool unitChanged = false;
-                MaterialPropertyScope.MaterialPropertyScopeDelayedOverrideRegisterer emissiveIntensityUnitDelayedRegisterer;
-                MaterialPropertyScope.MaterialPropertyScopeDelayedOverrideRegisterer emissiveIntensityDelayedRegisterer = default;
+                MaterialPropertyScope.DelayedOverrideRegisterer emissiveIntensityUnitDelayedRegisterer;
+                MaterialPropertyScope.DelayedOverrideRegisterer emissiveIntensityDelayedRegisterer = default;
                 EditorGUI.BeginChangeCheck();
                 {
                     using (new EditorGUILayout.HorizontalScope())

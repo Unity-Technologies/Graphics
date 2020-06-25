@@ -57,6 +57,9 @@ namespace UnityEditor.Rendering.HighDefinition
         protected MaterialPropertyScope CreateOverrideScopeFor(MaterialProperty property, bool forceMode = false)
             => new MaterialPropertyScope(property, variants, forceMode);
 
+        protected MaterialRenderQueueScope CreateRenderQueueOverrideScope(Func<int> valueGetter)
+            => new MaterialRenderQueueScope(variants, valueGetter);
+
         public void         Initialize(MaterialEditor materialEditor, MaterialProperty[] properties, MaterialUIBlockList parent)
         {
             this.materialEditor = materialEditor;

@@ -15,9 +15,10 @@ namespace Unity.Assets.MaterialVariant.Editor
         enum SerializedType
         {
             Scalar,
-            Color, // will be decomposed as r g b a scalars
-            Vector, // will be decomposed as r g b a scalars
-            Texture // will be decomposed as m_Texture ObjectReference and m_Scale and m_Offset Vector2s, and each vector2 will be split into x and y
+            Color,      // will be decomposed as r g b a scalars
+            Vector,     // will be decomposed as r g b a scalars
+            Texture,    // will be decomposed as m_Texture ObjectReference and m_Scale and m_Offset Vector2s, and each vector2 will be split into x and y
+            NonMaterialProperty,    //only handle int for now. Should be enough. It is for properties outside of maps.
         }
 
         // Property path of the property being modified (Matches as SerializedProperty.propertyPath)
@@ -73,6 +74,9 @@ namespace Unity.Assets.MaterialVariant.Editor
             }
         }
 
+        public static System.Collections.Generic.IEnumerable<MaterialPropertyModification> CreateMaterialPropertyModificationsForNonMaterial<T>(string key, T value)
+            => new[] { new MaterialPropertyModification($"::{key}:{value.ToString()}", default, null) };
+
         public static void ApplyPropertyModificationsToMaterial(Material material, System.Collections.Generic.IEnumerable<MaterialPropertyModification> propertyModifications)
         {
             SerializedObject serializedMaterial = new SerializedObject(material);
@@ -84,14 +88,24 @@ namespace Unity.Assets.MaterialVariant.Editor
         static void ApplyOnePropertyModificationToSerializedObject(SerializedObject serializedMaterial, MaterialPropertyModification propertyModificaton)
         {
             (SerializedType type, string[] pathParts) = RecreateType(propertyModificaton);
-            (SerializedProperty property, int index, SerializedProperty parent) = FindProperty(serializedMaterial, pathParts[0], type);
-            for (int i = 1; i < pathParts.Length; ++i)
-                property = property.FindPropertyRelative(pathParts[i]);
 
-            if (property.propertyType == SerializedPropertyType.ObjectReference)
-                property.objectReferenceValue = propertyModificaton.m_ObjectReference;
+            if (type != SerializedType.NonMaterialProperty)
+            {
+                (SerializedProperty property, int index, SerializedProperty parent) = FindProperty(serializedMaterial, pathParts[0], type);
+                for (int i = 1; i < pathParts.Length; ++i)
+                    property = property.FindPropertyRelative(pathParts[i]);
+
+                if (property.propertyType == SerializedPropertyType.ObjectReference)
+                    property.objectReferenceValue = propertyModificaton.m_ObjectReference;
+                else
+                    property.floatValue = propertyModificaton.m_Value;
+            }
             else
-                property.floatValue = propertyModificaton.m_Value;
+            {
+                SerializedProperty property = serializedMaterial.FindProperty(pathParts[0]);
+                // int should be enough. If we need to handle any other type here, we need to write it on the line like ::name:string:somevalue for retrieving where to assign it.
+                property.intValue = int.Parse(pathParts[1]);
+            }
         }
         
         static SerializedType ResolveType(MaterialProperty value)
@@ -110,6 +124,12 @@ namespace Unity.Assets.MaterialVariant.Editor
         
         static (SerializedType type, string[] pathParts) RecreateType(MaterialPropertyModification propertyModification)
         {
+            if (propertyModification.m_PropertyPath.StartsWith("::"))
+            {
+                string[] nonMaterialPropertyParts = propertyModification.m_PropertyPath.TrimStart(':').Split(new[] { ':' });
+                return (SerializedType.NonMaterialProperty, nonMaterialPropertyParts);
+            }
+
             string[] parts = propertyModification.m_PropertyPath.Split(new[] { '.' });
             if (parts.Length == 1)
                 return (SerializedType.Scalar, parts);

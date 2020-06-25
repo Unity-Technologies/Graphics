@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.Experimental.AssetImporters;
+using UnityEditor.Rendering;
 using UnityEditorInternal;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -78,8 +79,10 @@ namespace Unity.Assets.MaterialVariant.Editor
             }
 
             ApplyRevertGUI();
+
+            DrawLineageGUI();
         }
-        
+
         protected override void Apply()
         {
             base.Apply();
@@ -92,6 +95,48 @@ namespace Unity.Assets.MaterialVariant.Editor
                     AssetDatabase.ImportAsset((targets[i] as MaterialVariantImporter).assetPath);
                 }
             }
+        }
+
+        private void DrawLineageGUI()
+        {
+            GUILayout.Space(10);
+            GUILayout.BeginVertical("Bloodline", "window"); // TODO Find a better style
+            GUILayout.Space(4);
+
+            using (new EditorGUI.DisabledScope(true))
+            {
+                DrawLineageMember(assetTarget, typeof(Material));
+
+                Object nextAncestor = (extraDataTarget as MaterialVariant).GetParent();
+                while (nextAncestor)
+                {
+                    if (nextAncestor is MaterialVariant)
+                    {
+                        Material mat = AssetDatabase.LoadAssetAtPath<Material>(AssetDatabase.GetAssetPath(nextAncestor));
+                        DrawLineageMember(mat, typeof(Material));
+                        nextAncestor = (nextAncestor as MaterialVariant).GetParent();
+                    }
+                    else if (nextAncestor is Material)
+                    {
+                        DrawLineageMember(nextAncestor, typeof(Material));
+                        nextAncestor = (nextAncestor as Material).shader;
+                    }
+                    else if (nextAncestor is Shader)
+                    {
+                        DrawLineageMember(nextAncestor, typeof(Shader));
+                        nextAncestor = null;
+                    }
+                }
+            }
+
+            GUILayout.Space(4);
+            GUILayout.EndVertical();
+        }
+
+        void DrawLineageMember(Object asset, Type assetType)
+        {
+            // We could use this to start a Horizontal and add inline icons and toggles to show overridden/locked
+            EditorGUILayout.ObjectField("", asset, assetType, false);
         }
     }
 }

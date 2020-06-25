@@ -655,32 +655,35 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.HelpBox(Styles.transparentSSSErrorMessage, MessageType.Error);
             }
 
-            switch (mode)
+            using (CreateRenderQueueOverrideScope(() => renderQueue))
             {
-                case SurfaceType.Opaque:
-                    //GetOpaqueEquivalent: prevent issue when switching surface type
-                    HDRenderQueue.OpaqueRenderQueue renderQueueOpaqueType = HDRenderQueue.ConvertToOpaqueRenderQueue(HDRenderQueue.GetOpaqueEquivalent(renderQueueType));
-                    var newRenderQueueOpaqueType = (HDRenderQueue.OpaqueRenderQueue)DoOpaqueRenderingPassPopup(Styles.renderingPassText, (int)renderQueueOpaqueType, showAfterPostProcessPass);
-                    if (newRenderQueueOpaqueType != renderQueueOpaqueType || renderQueueTypeMismatchRenderQueue) //EditorGUI.EndChangeCheck is called even if value remain the same after the popup. Prefer not to use it here
-                    {
-                        materialEditor.RegisterPropertyChangeUndo("Rendering Pass");
-                        renderQueueType = HDRenderQueue.ConvertFromOpaqueRenderQueue(newRenderQueueOpaqueType);
-                        renderQueue = HDRenderQueue.ChangeType(renderQueueType, alphaTest: alphaTest);
-                    }
-                    break;
-                case SurfaceType.Transparent:
-                    //GetTransparentEquivalent: prevent issue when switching surface type
-                    HDRenderQueue.TransparentRenderQueue renderQueueTransparentType = HDRenderQueue.ConvertToTransparentRenderQueue(HDRenderQueue.GetTransparentEquivalent(renderQueueType));
-                    var newRenderQueueTransparentType = (HDRenderQueue.TransparentRenderQueue)DoTransparentRenderingPassPopup(Styles.renderingPassText, (int)renderQueueTransparentType, showPreRefractionPass, showLowResolutionPass, showAfterPostProcessPass);
-                    if (newRenderQueueTransparentType != renderQueueTransparentType || renderQueueTypeMismatchRenderQueue) //EditorGUI.EndChangeCheck is called even if value remain the same after the popup. Prefer not to use it here
-                    {
-                        materialEditor.RegisterPropertyChangeUndo("Rendering Pass");
-                        renderQueueType = HDRenderQueue.ConvertFromTransparentRenderQueue(newRenderQueueTransparentType);
-                        renderQueue = HDRenderQueue.ChangeType(renderQueueType, offset: (int)transparentSortPriority.floatValue);
-                    }
-                    break;
-                default:
-                    throw new ArgumentException("Unknown SurfaceType");
+                switch (mode)
+                {
+                    case SurfaceType.Opaque:
+                        //GetOpaqueEquivalent: prevent issue when switching surface type
+                        HDRenderQueue.OpaqueRenderQueue renderQueueOpaqueType = HDRenderQueue.ConvertToOpaqueRenderQueue(HDRenderQueue.GetOpaqueEquivalent(renderQueueType));
+                        var newRenderQueueOpaqueType = (HDRenderQueue.OpaqueRenderQueue)DoOpaqueRenderingPassPopup(Styles.renderingPassText, (int)renderQueueOpaqueType, showAfterPostProcessPass);
+                        if (newRenderQueueOpaqueType != renderQueueOpaqueType || renderQueueTypeMismatchRenderQueue) //EditorGUI.EndChangeCheck is called even if value remain the same after the popup. Prefer not to use it here
+                        {
+                            materialEditor.RegisterPropertyChangeUndo("Rendering Pass");
+                            renderQueueType = HDRenderQueue.ConvertFromOpaqueRenderQueue(newRenderQueueOpaqueType);
+                            renderQueue = HDRenderQueue.ChangeType(renderQueueType, alphaTest: alphaTest);
+                        }
+                        break;
+                    case SurfaceType.Transparent:
+                        //GetTransparentEquivalent: prevent issue when switching surface type
+                        HDRenderQueue.TransparentRenderQueue renderQueueTransparentType = HDRenderQueue.ConvertToTransparentRenderQueue(HDRenderQueue.GetTransparentEquivalent(renderQueueType));
+                        var newRenderQueueTransparentType = (HDRenderQueue.TransparentRenderQueue)DoTransparentRenderingPassPopup(Styles.renderingPassText, (int)renderQueueTransparentType, showPreRefractionPass, showLowResolutionPass, showAfterPostProcessPass);
+                        if (newRenderQueueTransparentType != renderQueueTransparentType || renderQueueTypeMismatchRenderQueue) //EditorGUI.EndChangeCheck is called even if value remain the same after the popup. Prefer not to use it here
+                        {
+                            materialEditor.RegisterPropertyChangeUndo("Rendering Pass");
+                            renderQueueType = HDRenderQueue.ConvertFromTransparentRenderQueue(newRenderQueueTransparentType);
+                            renderQueue = HDRenderQueue.ChangeType(renderQueueType, offset: (int)transparentSortPriority.floatValue);
+                        }
+                        break;
+                    default:
+                        throw new ArgumentException("Unknown SurfaceType");
+                }
             }
             --EditorGUI.indentLevel;
             EditorGUI.showMixedValue = false;
@@ -840,7 +843,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     EditorGUILayout.Space();
                     EditorGUI.indentLevel++;
-                    MaterialPropertyScope.MaterialPropertyScopeDelayedOverrideRegisterer ppdMinSamplesDelayedRegisterer;
+                    MaterialPropertyScope.DelayedOverrideRegisterer ppdMinSamplesDelayedRegisterer;
                     using (var scope = CreateOverrideScopeFor(ppdMinSamples))
                     {
                         materialEditor.ShaderProperty(ppdMinSamples, Styles.ppdMinSamplesText);
