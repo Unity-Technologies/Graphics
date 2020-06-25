@@ -122,7 +122,9 @@ ${VFXPassForwardDefine}
             #endif
 
             #if HAS_SHADERGRAPH_PARAM_EMISSION
-                o.color.rgb += OUTSG.${SHADERGRAPH_PARAM_EMISSION}.rgb * GetCurrentExposureMultiplier();
+                float4 emission = float4(OUTSG.${SHADERGRAPH_PARAM_EMISSION}.rgb, 0.0f);
+                emission = VFXApplyPreExposure(emission, 1.0f);
+                o.color.rgb += emission.rgb;
             #endif
             
             #if HAS_SHADERGRAPH_PARAM_ALPHA 
