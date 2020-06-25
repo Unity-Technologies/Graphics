@@ -9,13 +9,14 @@ namespace Unity.Assets.MaterialVariant.Editor
     [ScriptedImporter(1, ".matVariant", 5)] // importQueueOffset must be higher than ShaderGraphImporter value
     public class MaterialVariantImporter : ScriptedImporter
     {
-        protected Material GetMaterialFromRoot(AssetImportContext ctx, string rootPath)
+        protected Material GetMaterialFromRoot(AssetImportContext ctx, string rootGUID)
         {
             // As only a write of a file trigger the OnImportAsset we need to add
             // all member of the hierarchy as a dependency so we can detect changes
             // (Change of shader graph write a file, change of Material change a file, change of a MaterialVariant write a file)
             // If we were only adding dependency on the Parent we will not catch the change of a GrandParent as it will only
             // trigger OnImportAsset for the Parent but not propagate it for child (as it don't write on disk)
+            string rootPath = AssetDatabase.GUIDToAssetPath(rootGUID);
             ctx.DependsOnSourceAsset(rootPath);
 
             // When we call LoadAssetAtPath on a MaterialVariant or a ShaderGraph it return respectively a Material or a Shader
@@ -44,7 +45,7 @@ namespace Unity.Assets.MaterialVariant.Editor
             if (subAsset is MaterialVariant)
             {
                 MaterialVariant rootMatVariant = subAsset as MaterialVariant;
-                material = GetMaterialFromRoot(ctx, AssetDatabase.GUIDToAssetPath(rootMatVariant.rootGUID));
+                material = GetMaterialFromRoot(ctx, rootMatVariant.rootGUID);
 
                 // Apply root modification
                 MaterialPropertyModification.ApplyPropertyModificationsToMaterial(material, rootMatVariant.overrides);
@@ -71,7 +72,7 @@ namespace Unity.Assets.MaterialVariant.Editor
                 var matVariant = assets[0] as MaterialVariant;
                 if (matVariant != null)
                 {
-                    Material material = GetMaterialFromRoot(ctx, AssetDatabase.GUIDToAssetPath(matVariant.rootGUID));
+                    Material material = GetMaterialFromRoot(ctx, matVariant.rootGUID);
 
                     // Apply local modification
                     MaterialPropertyModification.ApplyPropertyModificationsToMaterial(material, matVariant.overrides);
