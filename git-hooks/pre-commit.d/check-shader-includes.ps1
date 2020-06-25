@@ -109,16 +109,27 @@ function Find-MatchesInFile {
             Find and matches pattern in given file
     #> 
     param($File)
-
-    $regex = '(?<=#include\s\").+\.hlsl' 
     
-    $searchResult = Select-String -Path $File -Pattern $regex
+    $globalRegex = '.+.hlsl'
+    $isCommentRegex = '^(\/|\*).+$'
+    $pathRegex = '(?<=#include\s\").+\.hlsl' 
+    
+    $searchResult = Select-String -Path $File -Pattern $globalRegex
     [System.Collections.ArrayList]$shaderIncludesOfFile = @()
-
     if ($null -ne $searchResult)
     {
         foreach ($match in $searchResult.Matches) {
-            $strippedFilePath = $match.Value.Replace('"', "")
+            $isCommentTestResults = $match.Value | Select-String -Pattern $isCommentRegex
+            if ($null -ne $isCommentTestResults) {
+                # Do not consider comments
+                continue
+            }
+            $pathResults = $match.Value | Select-String -Pattern $pathRegex
+            if ($null -eq $pathResults) {
+                continue
+            }
+
+            $strippedFilePath = $pathResults.Matches[0].Value.Replace('"', "")
             $matchAsbolutePathPreffix = $strippedFilePath | Select-String -Pattern 'Packages'
             if ($matchAsbolutePathPreffix.Matches.Count -gt 0) {
                 # The include is "absolute", e.g. "Packages/com.unity.some-package/some-shader.hlsl"
@@ -169,7 +180,6 @@ function Find-Matches {
     foreach ($file in $Files) {
         $fileResults = Find-MatchesInFile -File $file
         $processedFiles.Add($fileResults) | Out-Null
-        # $nbShaderNotFound += $fileResults[1].Count | Where-Object { $_."ShaderStatus" -eq [ShaderStatus]::NotFound }
         $nbShaderNotFound += [Linq.Enumerable]::Count([object[]]$fileResults[1], [Func[object,bool]]{ param($shaderInclude) $shaderInclude."ShaderStatus" -eq [ShaderStatus]::NotFound })
     }
 
