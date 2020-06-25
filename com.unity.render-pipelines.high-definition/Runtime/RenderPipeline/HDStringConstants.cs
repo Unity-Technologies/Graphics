@@ -217,8 +217,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CapsuleShadowLUT = Shader.PropertyToID("_CapsuleShadowLUT");
         public static readonly int _CapsuleShadowParameters = Shader.PropertyToID("_CapsuleShadowParameters");
         public static readonly int _CapsuleOcclusions = Shader.PropertyToID("_CapsuleOcclusions");
-        public static readonly int _CapsuleAmbientOcclusionIntensity = Shader.PropertyToID("_CapsuleAmbientOcclusionIntensity");
-        public static readonly int _CapsuleSpecularOcclusionIntensity = Shader.PropertyToID("_CapsuleSpecularOcclusionIntensity");
+        public static readonly int _CapsuleOcclusionIntensities = Shader.PropertyToID("_CapsuleOcclusionIntensities");
 
         public static readonly int _WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
         public static readonly int _PrevCamPosRWS = Shader.PropertyToID("_PrevCamPosRWS");

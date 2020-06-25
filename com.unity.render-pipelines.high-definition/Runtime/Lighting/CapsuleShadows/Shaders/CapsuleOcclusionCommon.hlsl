@@ -15,17 +15,6 @@
 
 
 // --------------------------------------------
-// Shader variables
-// --------------------------------------------
-CBUFFER_START(CapsuleOcclusionConstantBuffer)
-    float4 _CapsuleShadowParameters;    // xyz: direction w: cone width to use.      // Soon to be subjected to changes!
-CBUFFER_END
-
-TEXTURE3D(_CapsuleShadowLUT);
-
-
-
-// --------------------------------------------
 // Evaluation functions
 // --------------------------------------------
 // These functions should evaluate the occlusion types. Note that all of these functions take EllipsoidOccluderData containing the shape to evaluate against
@@ -275,6 +264,9 @@ void EvaluateCapsuleOcclusion(uint evaluationFlags,
             }
         }
     }
+
+    specularOcclusion = PositivePow(specularOcclusion, _CapsuleSpecularOcclusionIntensity);
+    ambientOcclusion = 1.0f - PositivePow(1.0f - ambientOcclusion, _CapsuleAmbientOcclusionIntensity);
 }
 
 

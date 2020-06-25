@@ -235,8 +235,9 @@ void EvaluateCapsuleOcclusionMonteCarlo(
         }
     }
 
-    ambientOcclusion = 1.0f - ambientOcclusion;
-    specularOcclusion = specularOcclusion;
+    specularOcclusion = PositivePow(specularOcclusion, _CapsuleSpecularOcclusionIntensity);
+    ambientOcclusion = 1.0f - PositivePow(ambientOcclusion, _CapsuleAmbientOcclusionIntensity);
+
 }
 
 #endif

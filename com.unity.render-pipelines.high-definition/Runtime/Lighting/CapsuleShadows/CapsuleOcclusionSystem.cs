@@ -107,8 +107,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ScramblingTexture, m_Resources.textures.scramblingTex);
                 }
 
-                cmd.SetComputeFloatParam(cs, HDShaderIDs._CapsuleAmbientOcclusionIntensity, aoSettings.intensity.value);
-                cmd.SetComputeFloatParam(cs, HDShaderIDs._CapsuleSpecularOcclusionIntensity, specularOcclusionSettings.intensity.value);
+
+
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._CapsuleOcclusionIntensities, new Vector4(aoSettings.intensity.value, specularOcclusionSettings.intensity.value, 0, 0));
 
                 int dispatchX = HDUtils.DivRoundUp(hdCamera.actualWidth, 16);
                 int dispatchY = HDUtils.DivRoundUp(hdCamera.actualHeight, 16);
