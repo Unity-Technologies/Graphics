@@ -67,7 +67,7 @@ float3x3 GetRelativeMatrix (EllipsoidOccluderData data)
     float3 yAxis = normalize(cross(zAxis, float3(0,1,0)));
     float3 xAxis = cross(zAxis, yAxis);
     
-    return float3x3 (xAxis, yAxis, yAxis);
+    return float3x3 (xAxis, yAxis, zAxis);
 }
 
 float4 GetDataForSphereIntersection(EllipsoidOccluderData data, float3 positionWS)
@@ -114,24 +114,14 @@ float4 TransformOccluder(float3 positionWS, EllipsoidOccluderData data)
 // These functions should evaluate the occlusion types. Note that all of these functions take EllipsoidOccluderData containing the shape to evaluate against
 // and a dirAndLength containing the data output by the function GetDataForSphereIntersection()
 
-float EvaluateCapsuleAmbientOcclusion(EllipsoidOccluderData data, float3 positionWS, float3 N, float3x3 m)
+float EvaluateCapsuleAmbientOcclusion(EllipsoidOccluderData data, float3 positionWS, float3 N, float4 dirAndLength)
 {
+    float3x3 m = GetRelativeMatrix(data);
     float4 occluder = TransformOccluder(positionWS, data);
-    return IQSphereAO(0, N, occluder.xyz, occluder.w);
-
-    /*float3 dir = GetOccluderDirectionWS(data);
-    float proj = dot(positionWS, dir);
-    float3 positionCS = positionWS - (proj * dir) + proj * dir / GetOccluderScaling(data);
-    proj = dot(GetOccluderPositionRWS(data), dir);
-    float3 centerCS = GetOccluderPositionRWS(data) - (proj * dir) + proj * dir / GetOccluderScaling(data);*/
-    
-    /*float3 positionCS = mul(m, positionWS - GetOccluderPositionRWS(data));
-    float3 centerCS = 0;
+    float3 positionCS = mul(m, positionWS - GetOccluderPositionRWS(data));
+    float3 centerCS = mul(m, occluder.xyz);
     float3 normalCS = normalize(mul(m, N));
-
-    // TODO: should also transform the normal
-    // IMPORTANT: Remember to modify by intensity modifier here and not after.
-    return IQSphereAO(positionCS, normalCS, centerCS, GetOccluderRadius(data));*/
+    return IQSphereAO(positionCS, normalCS, centerCS, occluder.w);
 }
 
 // I stubbed out this version as a reference for myself while the work was being done by others. Keeping here as a reference in case we need it,
@@ -586,12 +576,10 @@ void EvaluateCapsuleOcclusion(uint evaluationFlags,
             v_sphereListOffset++;
 
             float4 dirAndLen = GetDataForSphereIntersection(s_capsuleData, posInput.positionWS);
-            
-            float3x3 m = GetRelativeMatrix(s_capsuleData);
 
             if (evaluationFlags & CAPSULEOCCLUSIONTYPE_AMBIENT_OCCLUSION)
             {
-                float capsuleAO = EvaluateCapsuleAmbientOcclusion(s_capsuleData, posInput.positionWS, N, m);
+                float capsuleAO = EvaluateCapsuleAmbientOcclusion(s_capsuleData, posInput.positionWS, N, dirAndLen);
                 ambientOcclusion = AccumulateCapsuleAmbientOcclusion(ambientOcclusion, capsuleAO);
             }
 
