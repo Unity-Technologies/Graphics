@@ -148,5 +148,41 @@ namespace Unity.Assets.MaterialVariant.Editor
             // We could use this to start a Horizontal and add inline icons and toggles to show overridden/locked
             EditorGUILayout.ObjectField("", asset, assetType, false);
         }
+
+        internal static void DrawPropertyScopeContextMenuAndIcons(MaterialVariant matVariant, string propertyName, bool isOverride, Rect labelRect, GenericMenu.MenuFunction resetFunction, GenericMenu.MenuFunction blockFunction)
+        {
+            if (Event.current.rawType == EventType.ContextClick && labelRect.Contains(Event.current.mousePosition))
+            {
+                GenericMenu menu = new GenericMenu();
+
+                var resetGUIContent = new GUIContent("Reset Override");
+                if (isOverride)
+                {
+                    menu.AddItem(resetGUIContent, false, resetFunction);
+                }
+                else
+                {
+                    menu.AddDisabledItem(resetGUIContent);
+                }
+
+                var blockGUIContent = new GUIContent("Lock in children");
+                if (matVariant.IsPropertyBlockedInAncestors(propertyName))
+                {
+                    menu.AddDisabledItem(blockGUIContent, true);
+                }
+                else
+                {
+                    menu.AddItem(blockGUIContent, matVariant.IsPropertyBlockedInCurrent(propertyName), blockFunction);
+                }
+
+                menu.ShowAsContext();
+            }
+
+            if (isOverride)
+            {
+                labelRect.width = 3;
+                EditorGUI.DrawRect(labelRect, Color.white);
+            }
+        }
     }
 }
