@@ -332,6 +332,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed light layers not correctly disabled when the lightlayers is set to Nothing and Lightlayers isn't enabled in HDRP Asset
 - Fixed a wrong condition in CameraSwitcher, potentially causing out of bound exceptions.
 - Fixed an issue where editing the Look Dev default profile would not reflect directly in the Look Dev window.
+- Fix supported Mac platform detection to handle new major version (11.0) properly
 
 ### Changed
 - Hide unused LOD settings in Quality Settings legacy window.
