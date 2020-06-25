@@ -18,6 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 HDStructFields.AttributesMesh.uv2,
                 HDStructFields.AttributesMesh.uv3,
                 HDStructFields.AttributesMesh.color,
+                HDStructFields.AttributesMesh.dotsInstanceID,
                 HDStructFields.AttributesMesh.instanceID,
                 HDStructFields.AttributesMesh.weights,
                 HDStructFields.AttributesMesh.indices,
@@ -40,6 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 HDStructFields.VaryingsMeshToPS.texCoord2,
                 HDStructFields.VaryingsMeshToPS.texCoord3,
                 HDStructFields.VaryingsMeshToPS.color,
+                HDStructFields.VaryingsMeshToPS.dotsInstanceID,
                 HDStructFields.VaryingsMeshToPS.instanceID,
                 HDStructFields.VaryingsMeshToPS.cullFace,
             }
