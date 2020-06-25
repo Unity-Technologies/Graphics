@@ -10,6 +10,7 @@ float IQSphereAO(float3 positionWS, float3 normalWS, float3 sphereCenter, float 
     float NdotPosToSphere = dot(normalWS, posToSphereNorm);
 
     float h = posToSphereLen / sphereRadius;
+    h = max(1.0, posToSphereLen / sphereRadius);
     float h2 = h * h;
     float NdotPosToSphere2 = NdotPosToSphere * NdotPosToSphere;
     float k2 = 1.0f - h2 * NdotPosToSphere2;
