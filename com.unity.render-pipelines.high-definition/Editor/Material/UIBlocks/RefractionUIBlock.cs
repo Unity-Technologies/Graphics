@@ -69,51 +69,68 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Refraction is not available for pre-refraction objects
                 && !isPrepass)
             {
-                materialEditor.ShaderProperty(refractionModel, Styles.refractionModelText);
+                using (CreateOverrideScopeFor(refractionModel))
+                    materialEditor.ShaderProperty(refractionModel, Styles.refractionModelText);
                 var mode = (ScreenSpaceRefraction.RefractionModel)refractionModel.floatValue;
                 switch (mode)
                 {
                     case ScreenSpaceRefraction.RefractionModel.Box:
                     case ScreenSpaceRefraction.RefractionModel.Sphere:
-                    {
-                        materialEditor.ShaderProperty(ior, Styles.refractionIorText);
-                        // TODO: change check
-                        foreach (var material in materials)
                         {
-                            // TODO
-                            // material.SetBlendMode(BlendMode.Alpha);
-                            // blendMode.floatValue = (float)BlendMode.Alpha;
-                        }
-
-                        if (thicknessMap[0].textureValue == null)
-                        {
-                            materialEditor.TexturePropertySingleLine(Styles.refractionThicknessText, thicknessMap[0], thickness[0]);
-                        }
-                        else
-                        {
-                            materialEditor.TexturePropertySingleLine(Styles.refractionThicknessMapText, thicknessMap[0]);
-                            // Display the remap of texture values.
-                            Vector2 remap = thicknessRemap[0].vectorValue;
-                            EditorGUI.BeginChangeCheck();
-                            EditorGUILayout.MinMaxSlider(Styles.refractionThicknessRemappingText, ref remap.x, ref remap.y, 0.0f, 1.0f);
-                            if (EditorGUI.EndChangeCheck())
+                            using (CreateOverrideScopeFor(ior))
+                                materialEditor.ShaderProperty(ior, Styles.refractionIorText);
+                            // TODO: change check
+                            foreach (var material in materials)
                             {
-                                thicknessRemap[0].vectorValue = remap;
+                                // TODO
+                                // material.SetBlendMode(BlendMode.Alpha);
+                                // blendMode.floatValue = (float)BlendMode.Alpha;
                             }
+
+                            if (thicknessMap[0].textureValue == null)
+                            {
+                                using (CreateOverrideScopeFor(thicknessMap[0]))
+                                using (CreateOverrideScopeFor(thickness[0]))
+                                    materialEditor.TexturePropertySingleLine(Styles.refractionThicknessText, thicknessMap[0], thickness[0]);
+                            }
+                            else
+                            {
+                                using (CreateOverrideScopeFor(thicknessMap[0]))
+                                    materialEditor.TexturePropertySingleLine(Styles.refractionThicknessMapText, thicknessMap[0]);
+                                // Display the remap of texture values.
+                                using (CreateOverrideScopeFor(thicknessRemap[0]))
+                                {
+                                    Vector2 remap = thicknessRemap[0].vectorValue;
+                                    EditorGUI.BeginChangeCheck();
+                                    EditorGUILayout.MinMaxSlider(Styles.refractionThicknessRemappingText, ref remap.x, ref remap.y, 0.0f, 1.0f);
+                                    if (EditorGUI.EndChangeCheck())
+                                    {
+                                        thicknessRemap[0].vectorValue = remap;
+                                    }
+                                }
+                            }
+
+                            using (CreateOverrideScopeFor(transmittanceColorMap))
+                            using (CreateOverrideScopeFor(transmittanceColor))
+                                materialEditor.TexturePropertySingleLine(Styles.transmittanceColorText, transmittanceColorMap, transmittanceColor);
+                            ++EditorGUI.indentLevel;
+                            using (CreateOverrideScopeFor(atDistance))
+                            {
+                                EditorGUI.BeginChangeCheck();
+                                materialEditor.ShaderProperty(atDistance, Styles.atDistanceText);
+                                if (EditorGUI.EndChangeCheck())
+                                    atDistance.floatValue = Mathf.Max(atDistance.floatValue, 0);
+                            }
+                            --EditorGUI.indentLevel;
                         }
-
-
-                        materialEditor.TexturePropertySingleLine(Styles.transmittanceColorText, transmittanceColorMap, transmittanceColor);
-                        ++EditorGUI.indentLevel;
-                        materialEditor.ShaderProperty(atDistance, Styles.atDistanceText);
-                        atDistance.floatValue = Mathf.Max(atDistance.floatValue, 0);
-                        --EditorGUI.indentLevel;
-                    }
-                    break;
+                        break;
                     case ScreenSpaceRefraction.RefractionModel.Thin:
-                    {
-                        materialEditor.ShaderProperty(ior, Styles.refractionIorText);
-                        materialEditor.TexturePropertySingleLine(Styles.transmittanceColorText, transmittanceColorMap, transmittanceColor);
+                        {
+                            using (CreateOverrideScopeFor(ior))
+                                materialEditor.ShaderProperty(ior, Styles.refractionIorText);
+                            using (CreateOverrideScopeFor(transmittanceColorMap))
+                            using (CreateOverrideScopeFor(transmittanceColor))
+                                materialEditor.TexturePropertySingleLine(Styles.transmittanceColorText, transmittanceColorMap, transmittanceColor);
                     }
                     break;
                     default:
