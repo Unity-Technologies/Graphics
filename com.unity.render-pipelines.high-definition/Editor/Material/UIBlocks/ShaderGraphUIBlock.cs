@@ -215,8 +215,10 @@ namespace UnityEditor.Rendering.HighDefinition
             finalFlag |= EditorGUILayout.Toggle("Area Shadow",          shadowFilterRect)  ? (uint)LightFeatureFlags.Area        : 0x00000000u;
             finalFlag &= mantissa;
             finalFlag |= exponent;
-
-            materials[0].SetFloat(HDMaterialProperties.kShadowMatteFilter, HDShadowUtils.Asfloat(finalFlag));
+            
+            float tmp = HDShadowUtils.Asfloat(finalFlag);
+            using (CreateNonDrawnOverrideScope(HDMaterialProperties.kShadowMatteFilter, tmp))
+                materials[0].SetFloat(HDMaterialProperties.kShadowMatteFilter, tmp);
         }
 
         void DrawDiffusionProfileUI()

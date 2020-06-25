@@ -74,8 +74,37 @@ namespace Unity.Assets.MaterialVariant.Editor
             }
         }
 
-        public static System.Collections.Generic.IEnumerable<MaterialPropertyModification> CreateMaterialPropertyModificationsForNonMaterial<T>(string key, T value)
-            => new[] { new MaterialPropertyModification($"::{key}:{value.ToString()}", default, null) };
+        public static System.Collections.Generic.IEnumerable<MaterialPropertyModification> CreateMaterialPropertyModificationsForNonMaterialProperty<T>(string key, T value)
+            where T : struct
+        {
+            if (typeof(T) == typeof(int))
+                return new[] { new MaterialPropertyModification($"::{key}:{value.ToString()}", default, null) };
+            if (typeof(T) == typeof(float))
+                return new[] { new MaterialPropertyModification(key, (float)(object)value, null) };
+            if (typeof(T) == typeof(Color))
+            {
+                Color colValue = (Color)(object)value;
+                return new[]
+                {
+                    new MaterialPropertyModification($"{key}.r", colValue.r, null),
+                    new MaterialPropertyModification($"{key}.g", colValue.g, null),
+                    new MaterialPropertyModification($"{key}.b", colValue.b, null),
+                    new MaterialPropertyModification($"{key}.a", colValue.a, null),
+                };
+            }
+            if (typeof(T) == typeof(Vector4))
+            {
+                Vector4 vecValue = (Vector4)(object)value;
+                return new[]
+                {
+                    new MaterialPropertyModification($"{key}.x", vecValue.x, null),
+                    new MaterialPropertyModification($"{key}.y", vecValue.y, null),
+                    new MaterialPropertyModification($"{key}.z", vecValue.z, null),
+                    new MaterialPropertyModification($"{key}.w", vecValue.w, null)
+                };
+            }
+            return new MaterialPropertyModification[0];
+        }
 
         public static void ApplyPropertyModificationsToMaterial(Material material, System.Collections.Generic.IEnumerable<MaterialPropertyModification> propertyModifications)
         {

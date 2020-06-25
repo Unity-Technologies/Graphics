@@ -689,7 +689,11 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.showMixedValue = false;
 
             if (material.HasProperty("_RenderQueueType"))
-                material.SetFloat("_RenderQueueType", (float)renderQueueType);
+            {
+                float tmp = (float)renderQueueType;
+                using (CreateNonDrawnOverrideScope("_RenderQueueType", tmp))
+                    material.SetFloat("_RenderQueueType", tmp);
+            }
         }
 
         void BlendModePopup()

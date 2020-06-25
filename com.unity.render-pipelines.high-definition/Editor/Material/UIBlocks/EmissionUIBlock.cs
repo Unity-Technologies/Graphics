@@ -112,7 +112,9 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (target.HasProperty(kEmissiveColorLDR) && target.HasProperty(kEmissiveIntensity) && target.HasProperty(kEmissiveColor))
                 {
-                    target.SetColor(kEmissiveColor, target.GetColor(kEmissiveColorLDR) * target.GetFloat(kEmissiveIntensity));
+                    Color tmp = target.GetColor(kEmissiveColorLDR) * target.GetFloat(kEmissiveIntensity);
+                    using (CreateNonDrawnOverrideScope(kEmissiveColor, tmp))
+                        target.SetColor(kEmissiveColor, tmp);
                 }
             }
             materialEditor.serializedObject.Update();
@@ -124,7 +126,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (target.HasProperty(kEmissiveIntensityUnit) && target.HasProperty(kEmissiveIntensity))
                 {
-                    target.SetFloat(kEmissiveIntensityUnit, newUnitFloat);
+                    using (CreateNonDrawnOverrideScope(kEmissiveIntensityUnit, newUnitFloat))
+                        target.SetFloat(kEmissiveIntensityUnit, newUnitFloat);
                 }
             }
             materialEditor.serializedObject.Update();
@@ -142,7 +145,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.BeginChangeCheck();
                 DoEmissiveTextureProperty(emissiveColor);
                 if (EditorGUI.EndChangeCheck() || updateEmissiveColor)
-                    emissiveColor.colorValue = emissiveColor.colorValue;
+                    using (CreateOverrideScopeFor(emissiveColor, forceMode: true))
+                        emissiveColor.colorValue = emissiveColor.colorValue;
                 EditorGUILayout.HelpBox(Styles.emissiveIntensityFromHDRColorText.text, MessageType.Info, true);
             }
             else
@@ -153,7 +157,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 foreach (Material material in materials)
                 {
                     if (material.HasProperty(kEmissiveColorLDR))
-                        material.SetColor(kEmissiveColorLDR, NormalizeEmissionColor(ref updateEmissiveColor, material.GetColor(kEmissiveColorLDR)));
+                    {
+                        Color tmp = NormalizeEmissionColor(ref updateEmissiveColor, material.GetColor(kEmissiveColorLDR));
+                        using (CreateNonDrawnOverrideScope(kEmissiveColorLDR, tmp))
+                            material.SetColor(kEmissiveColorLDR, tmp);
+                    }
                 }
                 if (EditorGUI.EndChangeCheck() || updateEmissiveColor)
                     UpdateEmissiveColorAndIntensity();
@@ -230,15 +238,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     if(unitChanged)
                     {
-                        using (CreateOverrideScopeFor(emissiveIntensityUnit))
+                        if (unitIsMixed)
+                            UpdateEmissionUnit(newUnitFloat);
+                        else
                         {
-                            if (unitIsMixed)
-                                UpdateEmissionUnit(newUnitFloat);
-                            else
-                            {
-                                emissiveIntensityUnit.floatValue = newUnitFloat;
-                                emissiveIntensityUnitDelayedRegisterer.RegisterNow();
-                            }
+                            emissiveIntensityUnit.floatValue = newUnitFloat;
+                            emissiveIntensityUnitDelayedRegisterer.RegisterNow();
                         }
                     }
 

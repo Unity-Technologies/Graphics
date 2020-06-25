@@ -230,7 +230,7 @@ namespace Unity.Assets.MaterialVariant.Editor
             // EditorGUI.EndChangeCheck() must be first to not break balance of BeginChangeCheck and EndChangeCheck if we are not force registering
             if (EditorGUI.EndChangeCheck() && !m_HaveDelayedRegisterer && m_Variants != null)
             {
-                System.Collections.Generic.IEnumerable<MaterialPropertyModification> changes = MaterialPropertyModification.CreateMaterialPropertyModificationsForNonMaterial(k_SerializedPropertyName, m_ValueGetter());
+                System.Collections.Generic.IEnumerable<MaterialPropertyModification> changes = MaterialPropertyModification.CreateMaterialPropertyModificationsForNonMaterialProperty(k_SerializedPropertyName, m_ValueGetter());
                 foreach (var variant in m_Variants)
                     variant?.TrimPreviousOverridesAndAdd(changes);
             }
@@ -262,11 +262,45 @@ namespace Unity.Assets.MaterialVariant.Editor
             {
                 if (m_Variants != null)
                 {
-                    System.Collections.Generic.IEnumerable<MaterialPropertyModification> changes = MaterialPropertyModification.CreateMaterialPropertyModificationsForNonMaterial(k_SerializedPropertyName, m_ValueGetter());
+                    System.Collections.Generic.IEnumerable<MaterialPropertyModification> changes = MaterialPropertyModification.CreateMaterialPropertyModificationsForNonMaterialProperty(k_SerializedPropertyName, m_ValueGetter());
                     foreach (var variant in m_Variants)
                         variant?.TrimPreviousOverridesAndAdd(changes);
                 }
             }
         }
     }
+
+    public struct MaterialNonDrawnPropertyScope<T> : IDisposable
+        where T : struct
+    {
+        MaterialVariant[] m_Variants;
+        string m_PropertyName;
+        T m_Value;
+
+        /// <summary>
+        /// MaterialPropertyScope are used to handle MaterialPropertyModification in material instances.
+        /// This will do the registration of any new override but also this will do the UI (contextual menu and left bar displayed when there is an override).
+        /// </summary>
+        /// <param name="propertyName">The key to register</param>
+        /// <param name="value">value to register</param>
+        /// <param name="variants">The list of MaterialVariant should have the same size than elements in selection.</param>
+        public MaterialNonDrawnPropertyScope(string propertyName, T value, MaterialVariant[] variants)
+        {
+            m_Variants = variants;
+            m_PropertyName = propertyName;
+            m_Value = value;
+        }
+
+        void IDisposable.Dispose()
+        {
+            //Registering change
+            if (m_Variants != null)
+            {
+                System.Collections.Generic.IEnumerable<MaterialPropertyModification> changes = MaterialPropertyModification.CreateMaterialPropertyModificationsForNonMaterialProperty(m_PropertyName, m_Value);
+                foreach (var variant in m_Variants)
+                    variant?.TrimPreviousOverridesAndAdd(changes);
+            }
+        }
+    }
+
 }
