@@ -8,7 +8,7 @@
   "dependencies": {
     "com.unity.mathematics": "1.1.0",
     "com.unity.burst": "1.2.3",
-    "com.unity.render-pipelines.core": "9.0.0-preview.33",
+    "com.unity.render-pipelines.core": "9.0.0-preview.34",
     "com.unity.shadergraph": "9.0.0-preview.33"
   },
   "keywords": [

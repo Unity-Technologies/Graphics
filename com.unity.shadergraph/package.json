@@ -6,7 +6,7 @@
   "unityRelease": "0b13",
   "displayName": "Shader Graph",
   "dependencies": {
-    "com.unity.render-pipelines.core": "9.0.0-preview.33",
+    "com.unity.render-pipelines.core": "9.0.0-preview.34",
     "com.unity.searcher": "4.2.0"
   },
   "samples": [
