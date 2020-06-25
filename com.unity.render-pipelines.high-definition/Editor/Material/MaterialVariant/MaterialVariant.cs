@@ -58,8 +58,8 @@ namespace Unity.Assets.MaterialVariant.Editor
 
         public bool IsOverriddenPropertyForNonMaterialProperty(string propertyName)
         {
-            propertyName = "::" + propertyName;
-            return overrides.Any(modification => IsSameProperty(modification, propertyName));
+            propertyName = $"::{propertyName}:";
+            return overrides.Any(modification => modification.propertyPath.StartsWith(propertyName));
         }
 
         public void ResetOverride(MaterialProperty property)
