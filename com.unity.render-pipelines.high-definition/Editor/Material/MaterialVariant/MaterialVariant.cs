@@ -39,7 +39,15 @@ namespace Unity.Assets.MaterialVariant.Editor
         {
             foreach(var modification in modifications)
             {
-                int pos = overrides.FindIndex(o => o.propertyPath == modification.propertyPath);
+                int pos;
+                if (modification.propertyPath.StartsWith("::"))
+                {
+                    string key = $"::{modification.propertyPath.TrimStart(':').Split(':')[0]}:";
+                    pos = overrides.FindIndex(o => o.propertyPath.StartsWith(key));
+                }
+                else
+                    pos = overrides.FindIndex(o => o.propertyPath == modification.propertyPath);
+
                 if (pos > -1)
                     overrides[pos] = modification;
                 else
@@ -71,8 +79,8 @@ namespace Unity.Assets.MaterialVariant.Editor
         
         public void ResetOverrideForNonMaterialProperty(string propertyName)
         {
-            propertyName = "::" + propertyName;
-            overrides.RemoveAll(modification => IsSameProperty(modification, propertyName));
+            propertyName = $"::{propertyName}:";
+            overrides.RemoveAll(modification => modification.propertyPath.StartsWith(propertyName));
         }
         #endregion
 
