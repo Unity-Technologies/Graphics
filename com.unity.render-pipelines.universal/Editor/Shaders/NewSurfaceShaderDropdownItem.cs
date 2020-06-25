@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.Universal
     {
         static readonly string defaultNewClassName = "NewSurfaceShader.surfaceshader";
 
-        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/SurfaceShader", priority = EditorUtils.lwrpAssetCreateMenuPriorityGroup2)]
+        [MenuItem("Assets/Create/Shader/Universal Render Pipeline/Surface Shader", priority = EditorUtils.lwrpAssetCreateMenuPriorityGroup2)]
         internal static void CreateNewSurfaceShader()
         {
             string templatePath = AssetDatabase.GUIDToAssetPath(ResourceGuid.surfaceShaderTemplate);
