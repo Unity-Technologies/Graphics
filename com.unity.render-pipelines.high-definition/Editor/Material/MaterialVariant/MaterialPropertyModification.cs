@@ -29,6 +29,17 @@ namespace Unity.Assets.MaterialVariant.Editor
         [SerializeField] Object m_ObjectReference;
 
         internal string propertyPath => m_PropertyPath;
+        internal string key
+        {
+            get
+            {
+                (SerializedType type, string[] pathParts) = RecreateType(this);
+                if (type == SerializedType.NonMaterialProperty)
+                    return $"::{pathParts[0]}:";
+                else
+                    return pathParts[0];
+            }
+        }
 
         private MaterialPropertyModification(string propertyPath, float value, Object objectReference)
         {
