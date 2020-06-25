@@ -4,7 +4,7 @@ namespace UnityEditor.Rendering.Universal
 {
     internal static class NewSurfaceShaderDropdownItem
     {
-        static readonly string defaultNewClassName = "NewSurfaceShader.surfaceshader";
+        static readonly string defaultNewClassName = "CustomSurfaceShader.surfaceshader";
 
         [MenuItem("Assets/Create/Shader/Universal Render Pipeline/Surface Shader", priority = EditorUtils.lwrpAssetCreateMenuPriorityGroup2)]
         internal static void CreateNewSurfaceShader()

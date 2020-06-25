@@ -1,4 +1,4 @@
-﻿Shader "Universal Render Pipeline/Custom/Surface"
+﻿Shader "Universal Render Pipeline/Custom/#SCRIPTNAME#"
 {
     Properties
     {
