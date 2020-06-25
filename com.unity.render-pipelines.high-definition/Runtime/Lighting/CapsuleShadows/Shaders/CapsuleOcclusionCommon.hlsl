@@ -58,12 +58,25 @@ float GetOccluderInfluenceRadiusWS(EllipsoidOccluderData data)
 // --------------------------------------------
 // Data preparation functions
 // --------------------------------------------
-float4 GetDataForSphereIntersection(EllipsoidOccluderData data)
+float3x3 GetRelativeMatrix (EllipsoidOccluderData data)
+{
+    float zMagnitude = data.positionRWS_radius.w / length(data.directionWS_influence.xyz);
+    float3 centerSphere = data.positionRWS_radius.xyz;
+    
+    float3 zAxis = normalize(data.directionWS_influence.xyz) * zMagnitude;
+    float3 yAxis = normalize(cross(zAxis, float3(0,1,0)));
+    float3 xAxis = cross(zAxis, yAxis);
+    
+    return float3x3 (xAxis, yAxis, yAxis);
+}
+
+float4 GetDataForSphereIntersection(EllipsoidOccluderData data, float3 positionWS)
 {
     // TODO : Fill with transformations needed so the rest of the code deals with simple spheres.
     // xyz should be un-normalized direction, w should contain the length.
-    float3 dir = data.directionWS_influence.xyz;
-    float len = data.directionWS_influence.w;
+    float3 dir = positionWS - data.positionRWS_radius.xyz;
+    float3 TransformVec = mul(GetRelativeMatrix (data), dir);
+    float len = length(TransformVec);
     return float4(dir.x, dir.y, dir.z, len);
 }
 
@@ -101,10 +114,24 @@ float4 TransformOccluder(float3 positionWS, EllipsoidOccluderData data)
 // These functions should evaluate the occlusion types. Note that all of these functions take EllipsoidOccluderData containing the shape to evaluate against
 // and a dirAndLength containing the data output by the function GetDataForSphereIntersection()
 
-float EvaluateCapsuleAmbientOcclusion(EllipsoidOccluderData data, float3 positionWS, float3 N, float4 dirAndLength)
+float EvaluateCapsuleAmbientOcclusion(EllipsoidOccluderData data, float3 positionWS, float3 N, float3x3 m)
 {
-    float4 occluder = TransformOccluder(positionWS, data);
-    return IQSphereAO(0, N, occluder.xyz, occluder.w);
+//    float4 occluder = TransformOccluder(positionWS, data);
+//    return IQSphereAO(0, N, occluder.xyz, occluder.w);
+
+    /*float3 dir = GetOccluderDirectionWS(data);
+    float proj = dot(positionWS, dir);
+    float3 positionCS = positionWS - (proj * dir) + proj * dir / GetOccluderScaling(data);
+    proj = dot(GetOccluderPositionRWS(data), dir);
+    float3 centerCS = GetOccluderPositionRWS(data) - (proj * dir) + proj * dir / GetOccluderScaling(data);*/
+    
+    float3 positionCS = mul(m, positionWS - GetOccluderPositionRWS(data));
+    float3 centerCS = 0;
+    float3 normalCS = normalize(mul(m, N));
+
+    // TODO: should also transform the normal
+    // IMPORTANT: Remember to modify by intensity modifier here and not after.
+    return IQSphereAO(positionCS, normalCS, centerCS, GetOccluderRadius(data));
 }
 
 // I stubbed out this version as a reference for myself while the work was being done by others. Keeping here as a reference in case we need it,
@@ -569,11 +596,13 @@ void EvaluateCapsuleOcclusion(uint evaluationFlags,
         {
             v_sphereListOffset++;
 
-            float4 dirAndLen = GetDataForSphereIntersection(s_capsuleData);
+            float4 dirAndLen = GetDataForSphereIntersection(s_capsuleData, posInput.positionWS);
+            
+            float3x3 m = GetRelativeMatrix(s_capsuleData);
 
             if (evaluationFlags & CAPSULEOCCLUSIONTYPE_AMBIENT_OCCLUSION)
             {
-                float capsuleAO = EvaluateCapsuleAmbientOcclusion(s_capsuleData, posInput.positionWS, N, dirAndLen);
+                float capsuleAO = EvaluateCapsuleAmbientOcclusion(s_capsuleData, posInput.positionWS, N, m);
                 ambientOcclusion = AccumulateCapsuleAmbientOcclusion(ambientOcclusion, capsuleAO);
             }
 
