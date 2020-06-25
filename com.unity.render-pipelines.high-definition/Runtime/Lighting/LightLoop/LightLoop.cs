@@ -3383,7 +3383,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     : 0;
             cb._ProbeVolumeIndexShift = (uint)probeVolumeIndexShift;
 
-            int capsuleOccluderIndexShift = probeVolumeIndexShift + m_ProbeVolumeCount;
+            int capsuleOccluderIndexShift = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_DensityVolumeCount + m_ProbeVolumeCount;
             cb._CapsuleOccluderIndexShift = (uint)capsuleOccluderIndexShift;
 
             // Copy the constant buffer into the parameter struct.
