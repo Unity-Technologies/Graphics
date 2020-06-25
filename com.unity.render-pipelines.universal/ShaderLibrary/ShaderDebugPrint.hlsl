@@ -1,6 +1,17 @@
 #ifndef SHADER_DEBUG_PRINT_INCLUDED
 #define SHADER_DEBUG_PRINT_INCLUDED
 
+// Include this header to any shader to enable debug printing values from shader code to console
+//
+// Example:
+// float4 colorRGBA = float4(0.1, 0.2, 0.3, 0.4);
+// if(all(int2(pixel.xy) == int2(100, 100))
+//     ShaderDebugPrint(ShaderDebugTag('C','o','l'), colorRGBA);
+// ----
+// Output:
+// Frame #270497: Col  float4(0.1f, 0.2f, 0.3f, 0.4f)
+
+// Output buffer bound into "last" slot by convention
 RWStructuredBuffer<uint> shaderDebugOutputData : register(u7);
 
 static const uint MaxShaderDebugOutputElements = 1024 * 1024; // 1M - must match the C# side buffer size
@@ -9,11 +20,21 @@ static const uint MaxShaderDebugOutputElements = 1024 * 1024; // 1M - must match
 float4 _ShaderDebugPrintInputMouse;
 int    _ShaderDebugPrintInputFrame;
 
-int2 ShaderDebugMouseCoords()      { return _ShaderDebugPrintInputMouse.xy; }
-int  ShaderDebugMouseButtonLeft()  { return _ShaderDebugPrintInputMouse.z;  }
-int  ShaderDebugMouseButtonRight() { return _ShaderDebugPrintInputMouse.w;  }
-int  ShaderDebugFrameNumber()      { return _ShaderDebugPrintInputFrame; }
+// Mouse coordinates in pixels
+// Relative to game view surface/rendertarget
+// (Typically (0,0) is bottom-left. Tip: print mouse coords to check.)
+int2 ShaderDebugMouseCoords()           { return _ShaderDebugPrintInputMouse.xy; }
 
+// Mouse buttons
+// Returns true on button down.
+int  ShaderDebugMouseButtonLeft()       { return _ShaderDebugPrintInputMouse.z;  }
+int  ShaderDebugMouseButtonRight()      { return _ShaderDebugPrintInputMouse.w;  }
+int  ShaderDebugMouseButton(int button) { return button == 0 ? ShaderDebugMouseButtonLeft() : ShaderDebugMouseButtonRight(); }
+
+int  ShaderDebugFrameNumber()           { return _ShaderDebugPrintInputFrame; }
+
+// Output Data type encondings
+// Must match C# side decoding
 static const uint ValueTypeUint   = 1;
 static const uint ValueTypeInt    = 2;
 static const uint ValueTypeFloat  = 3;
@@ -29,6 +50,16 @@ static const uint ValueTypeFloat4 = 12;
 static const uint ValueTypeBool   = 13;
 static const uint ValueTypeHasTag = 128;
 
+// Data-buffer format
+// 1    uint    header
+// 1    uint    tag (optional)
+// 1-4  uint    value (type dependent)
+//
+// Header format
+// 1    byte        Type id + tag flag
+//      bits 0..6   value type id/enum
+//      bit  7      has tag flag
+// 3    bytes       (empty)
 #define PRINT1(TYPE, VALUE, HASTAG, TAG) \
 { \
     if (shaderDebugOutputData[0] < MaxShaderDebugOutputElements) \
@@ -109,11 +140,18 @@ static const uint ValueTypeHasTag = 128;
 
 static const uint ShaderDebugNoTag;
 
-uint Tag(uint a, uint b, uint c, uint d)
-{
-    return a | (b << 8) | (c << 16) | (d << 24);
-}
+// Create 1-4 letter tags encoded into a uint
+// For example
+// ShaderDebugTag( 'M', 'y', 'I', 'd' );
+uint ShaderDebugTag(uint a, uint b, uint c, uint d) { return a | (b << 8) | (c << 16) | (d << 24); }
+uint ShaderDebugTag(uint a, uint b, uint c)         { return ShaderDebugTag( a, b, c, ' '); }
+uint ShaderDebugTag(uint a, uint b)                 { return ShaderDebugTag( a, b, ' '); }
+uint ShaderDebugTag(uint a)                         { return ShaderDebugTag( a, ' '); }
 
+// Print value to (Unity) console
+// Be careful to not print all N threads (thousands). Use if statements and thread ids to pick values only from a few threads.
+// (tag), an optional text tag for the print. Use ShaderDebugTag() helper to create.
+// value, to be printed
 void ShaderDebugPrint(uint tag, bool   value) PRINT1(ValueTypeBool,   uint(value),   ValueTypeHasTag, tag);
 void ShaderDebugPrint(uint tag, uint   value) PRINT1(ValueTypeUint,   value,         ValueTypeHasTag, tag);
 void ShaderDebugPrint(uint tag, int    value) PRINT1(ValueTypeInt,    asuint(value), ValueTypeHasTag, tag);
@@ -158,6 +196,10 @@ void ShaderDebugPrint(float4 value) PRINT4(ValueTypeFloat4, asuint(value), 0, Sh
         ShaderDebugPrint(TAG, VALUE);             \
 }
 
+// Print value for pixel under mouse cursor
+// pixelPos, screen space pixel coordinates for this fragment shader thread. Typically .xy of fragment shader input parameter with SV_Position semantic.
+// (tag), an optional text tag for the print. Use ShaderDebugTag() helper to create.
+// value, to be printed
 void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag, bool   value) PRINT_MOUSE_WITH_TAG(value, tag);
 void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag, uint   value) PRINT_MOUSE_WITH_TAG(value, tag);
 void ShaderDebugPrintMouseOver(int2 pixelPos, uint tag, int    value) PRINT_MOUSE_WITH_TAG(value, tag);
@@ -187,5 +229,51 @@ void ShaderDebugPrintMouseOver(int2 pixelPos, float4 value) PRINT_MOUSE(value);
 
 #undef PRINT_MOUSE
 #undef PRINT_MOUSE_WITH_TAG
+
+#define PRINT_MOUSE_BUTTON(BUTTON, VALUE)                        \
+{                                                 \
+    if(ShaderDebugMouseButton(BUTTON) && all(pixelPos == ShaderDebugMouseCoords())) \
+        ShaderDebugPrint(VALUE);                  \
+}
+
+#define PRINT_MOUSE_BUTTON_WITH_TAG(BUTTON, VALUE, TAG)          \
+{                                                 \
+    if(ShaderDebugMouseButton(BUTTON) && all(pixelPos == ShaderDebugMouseCoords())) \
+        ShaderDebugPrint(TAG, VALUE);             \
+}
+
+// Print value for pixel under mouse cursor when mouse left button is pressed
+// pixelPos, screen space pixel coordinates for this fragment shader thread. Typically .xy of fragment shader input parameter with SV_Position semantic.
+// (tag), an optional text tag for the print. Use ShaderDebugTag() helper to create.
+// value, to be printed
+void ShaderDebugPrintMouseButtonOver(int2 pixelPos, uint tag, bool   value) PRINT_MOUSE_BUTTON_WITH_TAG(0, value, tag);
+void ShaderDebugPrintMouseButtonOver(int2 pixelPos, uint tag, uint   value) PRINT_MOUSE_BUTTON_WITH_TAG(0, value, tag);
+void ShaderDebugPrintMouseButtonOver(int2 pixelPos, uint tag, int    value) PRINT_MOUSE_BUTTON_WITH_TAG(0, value, tag);
+void ShaderDebugPrintMouseButtonOver(int2 pixelPos, uint tag, float  value) PRINT_MOUSE_BUTTON_WITH_TAG(0, value, tag);
+void ShaderDebugPrintMouseButtonOver(int2 pixelPos, uint tag, uint2  value) PRINT_MOUSE_BUTTON_WITH_TAG(0, value, tag);
+void ShaderDebugPrintMouseButtonOver(int2 pixelPos, uint tag, int2   value) PRINT_MOUSE_BUTTON_WITH_TAG(0, value, tag);
+void ShaderDebugPrintMouseButtonOver(int2 pixelPos, uint tag, float2 value) PRINT_MOUSE_BUTTON_WITH_TAG(0, value, tag);
+void ShaderDebugPrintMouseButtonOver(int2 pixelPos, uint tag, uint3  value) PRINT_MOUSE_BUTTON_WITH_TAG(0, value, tag);
+void ShaderDebugPrintMouseButtonOver(int2 pixelPos, uint tag, int3   value) PRINT_MOUSE_BUTTON_WITH_TAG(0, value, tag);
+void ShaderDebugPrintMouseButtonOver(int2 pixelPos, uint tag, float3 value) PRINT_MOUSE_BUTTON_WITH_TAG(0, value, tag);
+void ShaderDebugPrintMouseButtonOver(int2 pixelPos, uint tag, uint4  value) PRINT_MOUSE_BUTTON_WITH_TAG(0, value, tag);
+void ShaderDebugPrintMouseButtonOver(int2 pixelPos, uint tag, int4   value) PRINT_MOUSE_BUTTON_WITH_TAG(0, value, tag);
+void ShaderDebugPrintMouseButtonOver(int2 pixelPos, uint tag, float4 value) PRINT_MOUSE_BUTTON_WITH_TAG(0, value, tag);
+void ShaderDebugPrintMouseButtonOver(int2 pixelPos, bool   value) PRINT_MOUSE_BUTTON(0, value);
+void ShaderDebugPrintMouseButtonOver(int2 pixelPos, uint   value) PRINT_MOUSE_BUTTON(0, value);
+void ShaderDebugPrintMouseButtonOver(int2 pixelPos, int    value) PRINT_MOUSE_BUTTON(0, value);
+void ShaderDebugPrintMouseButtonOver(int2 pixelPos, float  value) PRINT_MOUSE_BUTTON(0, value);
+void ShaderDebugPrintMouseButtonOver(int2 pixelPos, uint2  value) PRINT_MOUSE_BUTTON(0, value);
+void ShaderDebugPrintMouseButtonOver(int2 pixelPos, int2   value) PRINT_MOUSE_BUTTON(0, value);
+void ShaderDebugPrintMouseButtonOver(int2 pixelPos, float2 value) PRINT_MOUSE_BUTTON(0, value);
+void ShaderDebugPrintMouseButtonOver(int2 pixelPos, uint3  value) PRINT_MOUSE_BUTTON(0, value);
+void ShaderDebugPrintMouseButtonOver(int2 pixelPos, int3   value) PRINT_MOUSE_BUTTON(0, value);
+void ShaderDebugPrintMouseButtonOver(int2 pixelPos, float3 value) PRINT_MOUSE_BUTTON(0, value);
+void ShaderDebugPrintMouseButtonOver(int2 pixelPos, uint4  value) PRINT_MOUSE_BUTTON(0, value);
+void ShaderDebugPrintMouseButtonOver(int2 pixelPos, int4   value) PRINT_MOUSE_BUTTON(0, value);
+void ShaderDebugPrintMouseButtonOver(int2 pixelPos, float4 value) PRINT_MOUSE_BUTTON(0, value);
+
+#undef PRINT_MOUSE_BUTTON
+#undef PRINT_MOUSE_BUTTON_WITH_TAG
 
 #endif // SHADER_DEBUG_PRINT_INCLUDED
