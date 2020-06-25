@@ -367,7 +367,9 @@ namespace UnityEditor.Rendering.HighDefinition
             UVBaseMapping uvBaseMapping = (UVBaseMapping)UVBase[m_LayerIndex].floatValue;
             float X, Y, Z, W;
 
-            materialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap[m_LayerIndex], baseColor[m_LayerIndex]);
+            using (CreateOverrideScopeFor(baseColorMap[m_LayerIndex]))
+                using (CreateOverrideScopeFor(baseColor[m_LayerIndex]))
+                    materialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap[m_LayerIndex], baseColor[m_LayerIndex]);
 
             // TODO: does not work with multi-selection
             MaterialId materialIdValue = materials[0].GetMaterialId();
@@ -376,39 +378,51 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialIdValue == MaterialId.LitAniso ||
                 materialIdValue == MaterialId.LitIridescence)
             {
-                materialEditor.ShaderProperty(metallic[m_LayerIndex], Styles.metallicText);
+                using (CreateOverrideScopeFor(metallic[m_LayerIndex]))
+                    materialEditor.ShaderProperty(metallic[m_LayerIndex], Styles.metallicText);
             }
 
             if (maskMap[m_LayerIndex].textureValue == null)
             {
-                materialEditor.ShaderProperty(smoothness[m_LayerIndex], Styles.smoothnessText);
+                using (CreateOverrideScopeFor(smoothness[m_LayerIndex]))
+                    materialEditor.ShaderProperty(smoothness[m_LayerIndex], Styles.smoothnessText);
             }
             else
             {
-                float remapMin = smoothnessRemapMin[m_LayerIndex].floatValue;
-                float remapMax = smoothnessRemapMax[m_LayerIndex].floatValue;
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.MinMaxSlider(Styles.smoothnessRemappingText, ref remapMin, ref remapMax, 0.0f, 1.0f);
-                if (EditorGUI.EndChangeCheck())
+                using (CreateOverrideScopeFor(smoothnessRemapMin[m_LayerIndex]))
+                using (CreateOverrideScopeFor(smoothnessRemapMax[m_LayerIndex]))
                 {
-                    smoothnessRemapMin[m_LayerIndex].floatValue = remapMin;
-                    smoothnessRemapMax[m_LayerIndex].floatValue = remapMax;
+                    float remapMin = smoothnessRemapMin[m_LayerIndex].floatValue;
+                    float remapMax = smoothnessRemapMax[m_LayerIndex].floatValue;
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.MinMaxSlider(Styles.smoothnessRemappingText, ref remapMin, ref remapMax, 0.0f, 1.0f);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        smoothnessRemapMin[m_LayerIndex].floatValue = remapMin;
+                        smoothnessRemapMax[m_LayerIndex].floatValue = remapMax;
+                    }
                 }
 
-                float aoMin = aoRemapMin[m_LayerIndex].floatValue;
-                float aoMax = aoRemapMax[m_LayerIndex].floatValue;
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.MinMaxSlider(Styles.aoRemappingText, ref aoMin, ref aoMax, 0.0f, 1.0f);
-                if (EditorGUI.EndChangeCheck())
+                using (CreateOverrideScopeFor(aoRemapMin[m_LayerIndex]))
+                using (CreateOverrideScopeFor(aoRemapMax[m_LayerIndex]))
                 {
-                    aoRemapMin[m_LayerIndex].floatValue = aoMin;
-                    aoRemapMax[m_LayerIndex].floatValue = aoMax;
+                    float aoMin = aoRemapMin[m_LayerIndex].floatValue;
+                    float aoMax = aoRemapMax[m_LayerIndex].floatValue;
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.MinMaxSlider(Styles.aoRemappingText, ref aoMin, ref aoMax, 0.0f, 1.0f);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        aoRemapMin[m_LayerIndex].floatValue = aoMin;
+                        aoRemapMax[m_LayerIndex].floatValue = aoMax;
+                    }
                 }
             }
 
-            materialEditor.TexturePropertySingleLine((materialIdValue == MaterialId.LitSpecular) ? Styles.maskMapSpecularText : Styles.maskMapSText, maskMap[m_LayerIndex]);
+            using (CreateOverrideScopeFor(maskMap[m_LayerIndex]))
+                materialEditor.TexturePropertySingleLine((materialIdValue == MaterialId.LitSpecular) ? Styles.maskMapSpecularText : Styles.maskMapSText, maskMap[m_LayerIndex]);
 
-            materialEditor.ShaderProperty(normalMapSpace[m_LayerIndex], Styles.normalMapSpaceText);
+            using (CreateOverrideScopeFor(normalMapSpace[m_LayerIndex]))
+                materialEditor.ShaderProperty(normalMapSpace[m_LayerIndex], Styles.normalMapSpaceText);
 
             // Triplanar only work with tangent space normal
             if ((NormalMapSpace)normalMapSpace[m_LayerIndex].floatValue == NormalMapSpace.ObjectSpace && ((UVBaseMapping)UVBase[m_LayerIndex].floatValue == UVBaseMapping.Triplanar))
@@ -421,55 +435,74 @@ namespace UnityEditor.Rendering.HighDefinition
             // 2. to avoid the warning that ask to fix the object normal map texture (normalOS are just linear RGB texture
             if ((NormalMapSpace)normalMapSpace[m_LayerIndex].floatValue == NormalMapSpace.TangentSpace)
             {
-                materialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap[m_LayerIndex], normalScale[m_LayerIndex]);
-                materialEditor.TexturePropertySingleLine(Styles.bentNormalMapText, bentNormalMap[m_LayerIndex]);
+                using (CreateOverrideScopeFor(normalMap[m_LayerIndex]))
+                using (CreateOverrideScopeFor(normalScale[m_LayerIndex]))
+                    materialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap[m_LayerIndex], normalScale[m_LayerIndex]);
+                using (CreateOverrideScopeFor(bentNormalMap[m_LayerIndex]))
+                    materialEditor.TexturePropertySingleLine(Styles.bentNormalMapText, bentNormalMap[m_LayerIndex]);
             }
             else
             {
                 // No scaling in object space
-                materialEditor.TexturePropertySingleLine(Styles.normalMapOSText, normalMapOS[m_LayerIndex]);
-                materialEditor.TexturePropertySingleLine(Styles.bentNormalMapOSText, bentNormalMapOS[m_LayerIndex]);
+                using (CreateOverrideScopeFor(normalMapOS[m_LayerIndex]))
+                    materialEditor.TexturePropertySingleLine(Styles.normalMapOSText, normalMapOS[m_LayerIndex]);
+                using (CreateOverrideScopeFor(bentNormalMapOS[m_LayerIndex]))
+                    materialEditor.TexturePropertySingleLine(Styles.bentNormalMapOSText, bentNormalMapOS[m_LayerIndex]);
             }
 
             DisplacementMode displaceMode = (DisplacementMode)displacementMode.floatValue;
             if (displaceMode != DisplacementMode.None || (m_Features & Features.HeightMap) != 0)
             {
                 EditorGUI.BeginChangeCheck();
-                materialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap[m_LayerIndex]);
+                using (CreateOverrideScopeFor(heightMap[m_LayerIndex]))
+                    materialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap[m_LayerIndex]);
                 if (!heightMap[m_LayerIndex].hasMixedValue && heightMap[m_LayerIndex].textureValue != null && !displacementMode.hasMixedValue)
                 {
                     EditorGUI.indentLevel++;
                     if (displaceMode == DisplacementMode.Pixel)
                     {
-                        materialEditor.ShaderProperty(heightPoMAmplitude[m_LayerIndex], Styles.heightMapAmplitudeText);
+                        using (CreateOverrideScopeFor(heightPoMAmplitude[m_LayerIndex]))
+                            materialEditor.ShaderProperty(heightPoMAmplitude[m_LayerIndex], Styles.heightMapAmplitudeText);
                     }
                     else
                     {
-                        materialEditor.ShaderProperty(heightParametrization[m_LayerIndex], Styles.heightMapParametrization);
+                        using (CreateOverrideScopeFor(heightParametrization[m_LayerIndex]))
+                            materialEditor.ShaderProperty(heightParametrization[m_LayerIndex], Styles.heightMapParametrization);
                         if (!heightParametrization[m_LayerIndex].hasMixedValue)
                         {
                             HeightmapParametrization parametrization = (HeightmapParametrization)heightParametrization[m_LayerIndex].floatValue;
                             if (parametrization == HeightmapParametrization.MinMax)
                             {
-                                EditorGUI.BeginChangeCheck();
-                                materialEditor.ShaderProperty(heightMin[m_LayerIndex], Styles.heightMapMinText);
-                                if (EditorGUI.EndChangeCheck())
-                                    heightMin[m_LayerIndex].floatValue = Mathf.Min(heightMin[m_LayerIndex].floatValue, heightMax[m_LayerIndex].floatValue);
-                                EditorGUI.BeginChangeCheck();
-                                materialEditor.ShaderProperty(heightMax[m_LayerIndex], Styles.heightMapMaxText);
-                                if (EditorGUI.EndChangeCheck())
-                                    heightMax[m_LayerIndex].floatValue = Mathf.Max(heightMin[m_LayerIndex].floatValue, heightMax[m_LayerIndex].floatValue);
+                                using (CreateOverrideScopeFor(heightMin[m_LayerIndex]))
+                                {
+                                    EditorGUI.BeginChangeCheck();
+                                    materialEditor.ShaderProperty(heightMin[m_LayerIndex], Styles.heightMapMinText);
+                                    if (EditorGUI.EndChangeCheck())
+                                        heightMin[m_LayerIndex].floatValue = Mathf.Min(heightMin[m_LayerIndex].floatValue, heightMax[m_LayerIndex].floatValue);
+                                }
+                                using (CreateOverrideScopeFor(heightMax[m_LayerIndex]))
+                                {
+                                    EditorGUI.BeginChangeCheck();
+                                    materialEditor.ShaderProperty(heightMax[m_LayerIndex], Styles.heightMapMaxText);
+                                    if (EditorGUI.EndChangeCheck())
+                                        heightMax[m_LayerIndex].floatValue = Mathf.Max(heightMin[m_LayerIndex].floatValue, heightMax[m_LayerIndex].floatValue);
+                                }
                             }
                             else
                             {
-                                EditorGUI.BeginChangeCheck();
-                                materialEditor.ShaderProperty(heightTessAmplitude[m_LayerIndex], Styles.heightMapAmplitudeText);
-                                if (EditorGUI.EndChangeCheck())
-                                    heightTessAmplitude[m_LayerIndex].floatValue = Mathf.Max(0f, heightTessAmplitude[m_LayerIndex].floatValue);
-                                materialEditor.ShaderProperty(heightTessCenter[m_LayerIndex], Styles.heightMapCenterText);
+                                using (CreateOverrideScopeFor(heightTessAmplitude[m_LayerIndex]))
+                                {
+                                    EditorGUI.BeginChangeCheck();
+                                    materialEditor.ShaderProperty(heightTessAmplitude[m_LayerIndex], Styles.heightMapAmplitudeText);
+                                    if (EditorGUI.EndChangeCheck())
+                                        heightTessAmplitude[m_LayerIndex].floatValue = Mathf.Max(0f, heightTessAmplitude[m_LayerIndex].floatValue);
+                                }
+                                using (CreateOverrideScopeFor(heightTessCenter[m_LayerIndex]))
+                                    materialEditor.ShaderProperty(heightTessCenter[m_LayerIndex], Styles.heightMapCenterText);
                             }
 
-                            materialEditor.ShaderProperty(heightOffset[m_LayerIndex], Styles.heightMapOffsetText);
+                            using (CreateOverrideScopeFor(heightOffset[m_LayerIndex]))
+                                materialEditor.ShaderProperty(heightOffset[m_LayerIndex], Styles.heightMapOffsetText);
                         }
                     }
                     EditorGUI.indentLevel--;
@@ -525,7 +558,8 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.Space();
 
             EditorGUI.BeginChangeCheck();
-            materialEditor.ShaderProperty(UVBase[m_LayerIndex], Styles.UVBaseMappingText);
+            using (CreateOverrideScopeFor(UVBase[m_LayerIndex]))
+                materialEditor.ShaderProperty(UVBase[m_LayerIndex], Styles.UVBaseMappingText);
             uvBaseMapping = (UVBaseMapping)UVBase[m_LayerIndex].floatValue;
 
             X = (uvBaseMapping == UVBaseMapping.UV0) ? 1.0f : 0.0f;
@@ -537,16 +571,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if ((uvBaseMapping == UVBaseMapping.Planar) || (uvBaseMapping == UVBaseMapping.Triplanar))
             {
-                materialEditor.ShaderProperty(TexWorldScale[m_LayerIndex], Styles.texWorldScaleText);
+                using (CreateOverrideScopeFor(TexWorldScale[m_LayerIndex]))
+                    materialEditor.ShaderProperty(TexWorldScale[m_LayerIndex], Styles.texWorldScaleText);
             }
-            materialEditor.TextureScaleOffsetProperty(baseColorMap[m_LayerIndex]);
+            using (CreateOverrideScopeFor(baseColorMap[m_LayerIndex]))
+                materialEditor.TextureScaleOffsetProperty(baseColorMap[m_LayerIndex]);
             if (EditorGUI.EndChangeCheck())
             {
                 // Precompute.
-                InvTilingScale[m_LayerIndex].floatValue = 2.0f / (Mathf.Abs(baseColorMap[m_LayerIndex].textureScaleAndOffset.x) + Mathf.Abs(baseColorMap[m_LayerIndex].textureScaleAndOffset.y));
-                if ((uvBaseMapping == UVBaseMapping.Planar) || (uvBaseMapping == UVBaseMapping.Triplanar))
+                using (CreateOverrideScopeFor(baseColorMap[m_LayerIndex], forceMode: true))
                 {
-                    InvTilingScale[m_LayerIndex].floatValue = InvTilingScale[m_LayerIndex].floatValue / TexWorldScale[m_LayerIndex].floatValue;
+                    InvTilingScale[m_LayerIndex].floatValue = 2.0f / (Mathf.Abs(baseColorMap[m_LayerIndex].textureScaleAndOffset.x) + Mathf.Abs(baseColorMap[m_LayerIndex].textureScaleAndOffset.y));
+                    if ((uvBaseMapping == UVBaseMapping.Planar) || (uvBaseMapping == UVBaseMapping.Triplanar))
+                    {
+                        InvTilingScale[m_LayerIndex].floatValue = InvTilingScale[m_LayerIndex].floatValue / TexWorldScale[m_LayerIndex].floatValue;
+                    }
                 }
             }
         }
@@ -557,14 +596,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (hdPipeline == null)
                 return;
-
-            DiffusionProfileMaterialUI.OnGUI(materialEditor, diffusionProfileAsset[m_LayerIndex], diffusionProfileHash[m_LayerIndex], m_LayerIndex);
+            
+            using (CreateOverrideScopeFor(diffusionProfileAsset[m_LayerIndex]))
+            using (CreateOverrideScopeFor(diffusionProfileHash[m_LayerIndex]))
+                DiffusionProfileMaterialUI.OnGUI(materialEditor, diffusionProfileAsset[m_LayerIndex], diffusionProfileHash[m_LayerIndex], m_LayerIndex);
 
             // TODO: does not work with multi-selection
             if ((int)materialID.floatValue == (int)MaterialId.LitSSS && materials[0].GetSurfaceType() != SurfaceType.Transparent)
             {
-                materialEditor.ShaderProperty(subsurfaceMask[m_LayerIndex], Styles.subsurfaceMaskText);
-                materialEditor.TexturePropertySingleLine(Styles.subsurfaceMaskMapText, subsurfaceMaskMap[m_LayerIndex]);
+                using (CreateOverrideScopeFor(subsurfaceMask[m_LayerIndex]))
+                    materialEditor.ShaderProperty(subsurfaceMask[m_LayerIndex], Styles.subsurfaceMaskText);
+                using (CreateOverrideScopeFor(subsurfaceMaskMap[m_LayerIndex]))
+                    materialEditor.TexturePropertySingleLine(Styles.subsurfaceMaskMapText, subsurfaceMaskMap[m_LayerIndex]);
             }
 
             if ((int)materialID.floatValue == (int)MaterialId.LitTranslucent ||
@@ -572,20 +615,26 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (thicknessMap[m_LayerIndex].textureValue != null)
                 {
-                    materialEditor.TexturePropertySingleLine(Styles.thicknessMapText, thicknessMap[m_LayerIndex]);
+                    using (CreateOverrideScopeFor(thicknessMap[m_LayerIndex]))
+                        materialEditor.TexturePropertySingleLine(Styles.thicknessMapText, thicknessMap[m_LayerIndex]);
                     // Display the remap of texture values.
-                    Vector2 remap = thicknessRemap[m_LayerIndex].vectorValue;
-                    EditorGUI.BeginChangeCheck();
-                    EditorGUILayout.MinMaxSlider(Styles.thicknessRemapText, ref remap.x, ref remap.y, 0.0f, 1.0f);
-                    if (EditorGUI.EndChangeCheck())
+                    using (CreateOverrideScopeFor(thicknessRemap[m_LayerIndex]))
                     {
-                        thicknessRemap[m_LayerIndex].vectorValue = remap;
+                        Vector2 remap = thicknessRemap[m_LayerIndex].vectorValue;
+                        EditorGUI.BeginChangeCheck();
+                        EditorGUILayout.MinMaxSlider(Styles.thicknessRemapText, ref remap.x, ref remap.y, 0.0f, 1.0f);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            thicknessRemap[m_LayerIndex].vectorValue = remap;
+                        }
                     }
                 }
                 else
                 {
                     // Allow the user to set the constant value of thickness if no thickness map is provided.
-                    materialEditor.TexturePropertySingleLine(Styles.thicknessText, thicknessMap[m_LayerIndex], thickness[m_LayerIndex]);
+                    using (CreateOverrideScopeFor(thicknessMap[m_LayerIndex]))
+                    using (CreateOverrideScopeFor(thickness[m_LayerIndex]))
+                        materialEditor.TexturePropertySingleLine(Styles.thicknessText, thicknessMap[m_LayerIndex], thickness[m_LayerIndex]);
                 }
             }
         }
@@ -594,70 +643,92 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if ((NormalMapSpace)normalMapSpace[0].floatValue == NormalMapSpace.TangentSpace)
             {
-                materialEditor.TexturePropertySingleLine(Styles.tangentMapText, tangentMap);
+                using (CreateOverrideScopeFor(tangentMap))
+                    materialEditor.TexturePropertySingleLine(Styles.tangentMapText, tangentMap);
             }
             else
             {
-                materialEditor.TexturePropertySingleLine(Styles.tangentMapOSText, tangentMapOS);
+                using (CreateOverrideScopeFor(tangentMapOS))
+                    materialEditor.TexturePropertySingleLine(Styles.tangentMapOSText, tangentMapOS);
             }
-            materialEditor.ShaderProperty(anisotropy, Styles.anisotropyText);
-            materialEditor.TexturePropertySingleLine(Styles.anisotropyMapText, anisotropyMap);
+            using (CreateOverrideScopeFor(anisotropy))
+                materialEditor.ShaderProperty(anisotropy, Styles.anisotropyText);
+            using (CreateOverrideScopeFor(anisotropyMap))
+                materialEditor.TexturePropertySingleLine(Styles.anisotropyMapText, anisotropyMap);
         }
 
         void ShaderSpecularColorInputGUI()
         {
-            materialEditor.TexturePropertySingleLine(Styles.specularColorText, specularColorMap, specularColor);
+            using (CreateOverrideScopeFor(specularColorMap))
+            using (CreateOverrideScopeFor(specularColor))
+                materialEditor.TexturePropertySingleLine(Styles.specularColorText, specularColorMap, specularColor);
             EditorGUI.indentLevel++;
-            materialEditor.ShaderProperty(energyConservingSpecularColor, Styles.energyConservingSpecularColorText);
+            using (CreateOverrideScopeFor(energyConservingSpecularColor))
+                materialEditor.ShaderProperty(energyConservingSpecularColor, Styles.energyConservingSpecularColorText);
             EditorGUI.indentLevel--;
         }
 
         void ShaderIridescenceInputGUI()
         {
-            materialEditor.TexturePropertySingleLine(Styles.iridescenceMaskText, iridescenceMaskMap, iridescenceMask);
+            using (CreateOverrideScopeFor(iridescenceMaskMap))
+            using (CreateOverrideScopeFor(iridescenceMask))
+                materialEditor.TexturePropertySingleLine(Styles.iridescenceMaskText, iridescenceMaskMap, iridescenceMask);
 
             if (iridescenceThicknessMap.textureValue != null)
             {
-                materialEditor.TexturePropertySingleLine(Styles.iridescenceThicknessMapText, iridescenceThicknessMap);
+                using (CreateOverrideScopeFor(iridescenceThicknessMap))
+                    materialEditor.TexturePropertySingleLine(Styles.iridescenceThicknessMapText, iridescenceThicknessMap);
                 // Display the remap of texture values.
-                Vector2 remap = iridescenceThicknessRemap.vectorValue;
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.MinMaxSlider(Styles.iridescenceThicknessRemapText, ref remap.x, ref remap.y, 0.0f, 1.0f);
-                if (EditorGUI.EndChangeCheck())
+                using (CreateOverrideScopeFor(iridescenceThicknessRemap))
                 {
-                    iridescenceThicknessRemap.vectorValue = remap;
+                    Vector2 remap = iridescenceThicknessRemap.vectorValue;
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.MinMaxSlider(Styles.iridescenceThicknessRemapText, ref remap.x, ref remap.y, 0.0f, 1.0f);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        iridescenceThicknessRemap.vectorValue = remap;
+                    }
                 }
             }
             else
             {
                 // Allow the user to set the constant value of thickness if no thickness map is provided.
-                materialEditor.TexturePropertySingleLine(Styles.iridescenceThicknessMapText, iridescenceThicknessMap, iridescenceThickness);
+                using (CreateOverrideScopeFor(iridescenceThicknessMap))
+                using (CreateOverrideScopeFor(iridescenceThickness))
+                    materialEditor.TexturePropertySingleLine(Styles.iridescenceThicknessMapText, iridescenceThicknessMap, iridescenceThickness);
             }
         }
 
         void ShaderClearCoatInputGUI()
         {
-            materialEditor.TexturePropertySingleLine(Styles.coatMaskText, coatMaskMap, coatMask);
+            using (CreateOverrideScopeFor(coatMaskMap))
+            using (CreateOverrideScopeFor(coatMask))
+                materialEditor.TexturePropertySingleLine(Styles.coatMaskText, coatMaskMap, coatMask);
         }
 
         void DrawLayerOptionsGUI()
         {
             EditorGUI.showMixedValue = layerCount.hasMixedValue;
-            EditorGUI.BeginChangeCheck();
-            int newLayerCount = EditorGUILayout.IntSlider(Styles.layerCountText, (int)layerCount.floatValue, 2, 4);
-            if (EditorGUI.EndChangeCheck())
+            using (CreateOverrideScopeFor(layerCount))
             {
-                Material material = materialEditor.target as Material;
-                Undo.RecordObject(material, "Change layer count");
-                // Technically not needed (i think), TODO: check
-                // numLayer = newLayerCount;
-                layerCount.floatValue = (float)newLayerCount;
+                EditorGUI.BeginChangeCheck();
+                int newLayerCount = EditorGUILayout.IntSlider(Styles.layerCountText, (int)layerCount.floatValue, 2, 4);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Material material = materialEditor.target as Material;
+                    Undo.RecordObject(material, "Change layer count");
+                    // Technically not needed (i think), TODO: check
+                    // numLayer = newLayerCount;
+                    layerCount.floatValue = (float)newLayerCount;
+                }
             }
 
-            materialEditor.TexturePropertySingleLine(Styles.layerMapMaskText, layerMaskMap);
+            using (CreateOverrideScopeFor(layerMaskMap))
+                materialEditor.TexturePropertySingleLine(Styles.layerMapMaskText, layerMaskMap);
 
             EditorGUI.indentLevel++;
-            materialEditor.ShaderProperty(UVBlendMask, Styles.UVBlendMaskText);
+            using (CreateOverrideScopeFor(UVBlendMask))
+                materialEditor.ShaderProperty(UVBlendMask, Styles.UVBlendMaskText);
             UVBaseMapping uvBlendMask = (UVBaseMapping)UVBlendMask.floatValue;
 
             float X, Y, Z, W;
@@ -671,37 +742,49 @@ namespace UnityEditor.Rendering.HighDefinition
             if (((UVBaseMapping)UVBlendMask.floatValue == UVBaseMapping.Planar) ||
                 ((UVBaseMapping)UVBlendMask.floatValue == UVBaseMapping.Triplanar))
             {
-                materialEditor.ShaderProperty(texWorldScaleBlendMask, Styles.layerTexWorldScaleText);
+                using (CreateOverrideScopeFor(texWorldScaleBlendMask))
+                    materialEditor.ShaderProperty(texWorldScaleBlendMask, Styles.layerTexWorldScaleText);
             }
-            materialEditor.TextureScaleOffsetProperty(layerMaskMap);
+            using (CreateOverrideScopeFor(layerMaskMap))
+                materialEditor.TextureScaleOffsetProperty(layerMaskMap);
             EditorGUI.indentLevel--;
 
-            materialEditor.ShaderProperty(vertexColorMode, Styles.vertexColorModeText);
+            using (CreateOverrideScopeFor(vertexColorMode))
+                materialEditor.ShaderProperty(vertexColorMode, Styles.vertexColorModeText);
 
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = useMainLayerInfluence.hasMixedValue;
-            bool mainLayerModeInfluenceEnable = EditorGUILayout.Toggle(Styles.useMainLayerInfluenceModeText, useMainLayerInfluence.floatValue > 0.0f);
-            if (EditorGUI.EndChangeCheck())
+            bool mainLayerModeInfluenceEnable;
+            using (CreateOverrideScopeFor(vertexColorMode))
             {
-                useMainLayerInfluence.floatValue = mainLayerModeInfluenceEnable ? 1.0f : 0.0f;
+                EditorGUI.BeginChangeCheck();
+                EditorGUI.showMixedValue = useMainLayerInfluence.hasMixedValue;
+                mainLayerModeInfluenceEnable = EditorGUILayout.Toggle(Styles.useMainLayerInfluenceModeText, useMainLayerInfluence.floatValue > 0.0f);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    useMainLayerInfluence.floatValue = mainLayerModeInfluenceEnable ? 1.0f : 0.0f;
+                }
             }
 
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = useHeightBasedBlend.hasMixedValue;
-            m_UseHeightBasedBlend = EditorGUILayout.Toggle(Styles.useHeightBasedBlendText, useHeightBasedBlend.floatValue > 0.0f);
-            if (EditorGUI.EndChangeCheck())
-            {
-                useHeightBasedBlend.floatValue = m_UseHeightBasedBlend ? 1.0f : 0.0f;
+            using (CreateOverrideScopeFor(useHeightBasedBlend))
+            { 
+                EditorGUI.BeginChangeCheck();
+                EditorGUI.showMixedValue = useHeightBasedBlend.hasMixedValue;
+                m_UseHeightBasedBlend = EditorGUILayout.Toggle(Styles.useHeightBasedBlendText, useHeightBasedBlend.floatValue > 0.0f);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    useHeightBasedBlend.floatValue = m_UseHeightBasedBlend ? 1.0f : 0.0f;
+                }
             }
 
             if (m_UseHeightBasedBlend)
             {
                 EditorGUI.indentLevel++;
-                materialEditor.ShaderProperty(heightTransition, Styles.heightTransition);
+                using (CreateOverrideScopeFor(heightTransition))
+                    materialEditor.ShaderProperty(heightTransition, Styles.heightTransition);
                 EditorGUI.indentLevel--;
             }
 
-            materialEditor.ShaderProperty(objectScaleAffectTile, mainLayerModeInfluenceEnable ? Styles.objectScaleAffectTileText2 : Styles.objectScaleAffectTileText);
+            using (CreateOverrideScopeFor(objectScaleAffectTile))
+                materialEditor.ShaderProperty(objectScaleAffectTile, mainLayerModeInfluenceEnable ? Styles.objectScaleAffectTileText2 : Styles.objectScaleAffectTileText);
         }
     }
 }
