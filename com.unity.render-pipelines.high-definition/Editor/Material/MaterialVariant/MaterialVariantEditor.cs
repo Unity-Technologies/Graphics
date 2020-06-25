@@ -23,13 +23,12 @@ namespace Unity.Assets.MaterialVariant.Editor
         
         void LoadMaterialVariant(MaterialVariant variantTarget, string assetPath)
         {
-            var assets = AssetDatabase.LoadAllAssetsAtPath(assetPath).Where(a => a.GetType() == typeof(MaterialVariant));
-            if (!assets.Any())
-                return;
-            var asset = assets.First() as MaterialVariant;
-
-            variantTarget.rootGUID = asset.rootGUID;
-            variantTarget.overrides = asset.overrides;
+            var asset = MaterialVariantImporter.GetMaterialVariantFromAssetPath(assetPath);
+            if (asset)
+            {
+                variantTarget.rootGUID = asset.rootGUID;
+                variantTarget.overrides = asset.overrides;
+            }
         }
 
         static Dictionary<UnityEditor.Editor, MaterialVariant[]> registeredVariants = new Dictionary<UnityEditor.Editor, MaterialVariant[]>();
