@@ -142,6 +142,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Render graph specific
             // TODO RENDERGRAPH cleanup the other ones when we only have the render graph path.
             public TextureHandle colorBufferRG;
+            public TextureHandle nonMSAAColorBufferRG;
             public TextureHandle depthBufferRG;
             public TextureHandle normalBufferRG;
         }
@@ -232,6 +233,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // We can change that once we properly integrate render graph into custom passes.
             // Problem with that is that it will extend the lifetime of any of those textures to the last custom pass that is executed...
             output.colorBufferRG = builder.ReadTexture(builder.WriteTexture(targets.colorBufferRG));
+            output.nonMSAAColorBufferRG = builder.ReadTexture(builder.WriteTexture(targets.nonMSAAColorBufferRG));
             output.depthBufferRG = builder.ReadTexture(builder.WriteTexture(targets.depthBufferRG));
             output.normalBufferRG = builder.ReadTexture(builder.WriteTexture(targets.normalBufferRG));
 
@@ -469,7 +471,19 @@ namespace UnityEngine.Rendering.HighDefinition
             // This pattern here breaks this.
             if (IsMSAAEnabled(hdCamera))
             {
-                currentRTManager.ResolveMSAAColor(cmd, hdCamera, currentRenderTarget.cameraColorMSAABuffer, currentRenderTarget.cameraColorBuffer);
+                RTHandle input, output;
+                if (currentRenderTarget.useRenderGraph)
+                {
+                    input = currentRenderGraphContext.resources.GetTexture(currentRenderTarget.colorBufferRG);
+                    output = currentRenderGraphContext.resources.GetTexture(currentRenderTarget.nonMSAAColorBufferRG);
+                }
+                else
+                {
+                    input = currentRenderTarget.cameraColorMSAABuffer;
+                    output = currentRenderTarget.cameraColorBuffer;
+                }
+
+                currentRTManager.ResolveMSAAColor(cmd, hdCamera, input, output);
             }
         }
 

@@ -10,6 +10,9 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         class TempPassData { };
 
+        // Needed only because of custom pass. See comment at ResolveMSAAColor.
+        TextureHandle m_NonMSAAColorBuffer;
+
         void ExecuteWithRenderGraph(    RenderRequest           renderRequest,
                                         AOVRequestData          aovRequest,
                                         List<RTHandle>          aovBuffers,
@@ -30,6 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureHandle backBuffer = m_RenderGraph.ImportBackbuffer(target.id);
             TextureHandle colorBuffer = CreateColorBuffer(m_RenderGraph, hdCamera, msaa);
+            m_NonMSAAColorBuffer = CreateColorBuffer(m_RenderGraph, hdCamera, false);
             TextureHandle currentColorPyramid = m_RenderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain), HDShaderIDs._ColorPyramidTexture);
 
             LightingBuffers lightingBuffers = new LightingBuffers();
@@ -768,7 +772,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction))
             {
-                var resolvedColorBuffer = ResolveMSAAColor(renderGraph, hdCamera, colorBuffer);
+                var resolvedColorBuffer = ResolveMSAAColor(renderGraph, hdCamera, colorBuffer, m_NonMSAAColorBuffer);
                 GenerateColorPyramid(renderGraph, hdCamera, resolvedColorBuffer, currentColorPyramid, true);
             }
 
@@ -778,7 +782,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
             RenderForwardTransparent(renderGraph, hdCamera, colorBuffer, prepassOutput.motionVectorsBuffer, prepassOutput.depthBuffer, ssrLightingBuffer, currentColorPyramid, lightLists, shadowResult, cullingResults, false);
 
-            colorBuffer = ResolveMSAAColor(renderGraph, hdCamera, colorBuffer);
+            colorBuffer = ResolveMSAAColor(renderGraph, hdCamera, colorBuffer, m_NonMSAAColorBuffer);
 
             // Render All forward error
             RenderForwardError(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, cullingResults);
@@ -1189,20 +1193,34 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle ResolveMSAAColor(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle input)
         {
+            var outputDesc = renderGraph.GetTextureDesc(input);
+            outputDesc.enableMSAA = false;
+            outputDesc.enableRandomWrite = true;
+            outputDesc.bindTextureMS = false;
+            // Can't do that because there is NO way to concatenate strings without allocating.
+            // We're stuck with subpar debug name in the meantime...
+            //outputDesc.name = string.Format("{0}Resolved", outputDesc.name);
+
+            var output = renderGraph.CreateTexture(outputDesc);
+
+            return ResolveMSAAColor(renderGraph, hdCamera, input, output);
+        }
+
+        // TODO RENDERGRAPH:
+        // In theory we should never need to specify the output. The function can create the output texture on its own (see function above).
+        // This way when doing an msaa resolve, we can return the right texture regardless of msaa being enabled or not (either the new texture or the input directly).
+        // This allows client code to not have to worry about managing the texture at all.
+        // Now, because Custom Passes allow to do an MSAA resolve for the main color buffer but are implemented outside of render graph, we need an explicit msaa/nonMsaa separation for the main color buffer.
+        // Having this function here allows us to do that by having the main color non msaa texture created outside and passed to both ResolveMSAAColor and the custom passes.
+        // When Custom Pass correctly use render graph we'll be able to remove that.
+        TextureHandle ResolveMSAAColor(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle input, TextureHandle output)
+        {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
             {
                 using (var builder = renderGraph.AddRenderPass<ResolveColorData>("ResolveColor", out var passData))
                 {
-                    var outputDesc = renderGraph.GetTextureDesc(input);
-                    outputDesc.enableMSAA = false;
-                    outputDesc.enableRandomWrite = true;
-                    outputDesc.bindTextureMS = false;
-                    // Can't do that because there is NO way to concatenate strings without allocating.
-                    // We're stuck with subpar debug name in the meantime...
-                    //outputDesc.name = string.Format("{0}Resolved", outputDesc.name);
-
                     passData.input = builder.ReadTexture(input);
-                    passData.output = builder.UseColorBuffer(renderGraph.CreateTexture(outputDesc), 0);
+                    passData.output = builder.UseColorBuffer(output, 0);
                     passData.resolveMaterial = m_ColorResolveMaterial;
                     passData.passIndex = SampleCountToPassIndex(m_MSAASamples);
 
@@ -1362,10 +1380,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     // To replace them correctly we need users to actually write render graph passes and explicit whether or not they want to use those buffers.
                     // We'll do it when we switch fully to render graph for custom passes.
                     customColorBuffer = m_CustomPassColorBuffer,
-                    customDepthBuffer= m_CustomPassDepthBuffer,
+                    customDepthBuffer = m_CustomPassDepthBuffer,
 
                     // Render Graph Specific textures
                     colorBufferRG = colorBuffer,
+                    nonMSAAColorBufferRG = m_NonMSAAColorBuffer,
                     depthBufferRG = depthBuffer,
                     normalBufferRG = normalBuffer,
                 };
