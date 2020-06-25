@@ -69,9 +69,12 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                     PropertyField(m_MaxIntensity);
 
                     PropertyField(m_AdaptiveSampling);
-                    PropertyField(m_Threshold);
-                    PropertyField(m_MinSamples);
-                    PropertyField(m_Hits);
+                    using (new EditorGUI.DisabledScope(!m_AdaptiveSampling.value.boolValue))
+                    {
+                        PropertyField(m_Threshold);
+                        PropertyField(m_MinSamples);
+                        PropertyField(m_Hits);
+                    }
 
                     EditorGUILayout.LabelField("Antialiasing", EditorStyles.miniLabel);
                     PropertyField(m_Filter);
