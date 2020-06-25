@@ -45,7 +45,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             using (CreateOverrideScopeFor(colorMap))
             {
-                materialEditor.TexturePropertySingleLine(Styles.colorText, colorMap, color);
+                using (CreateOverrideScopeFor(color))
+                    materialEditor.TexturePropertySingleLine(Styles.colorText, colorMap, color);
                 materialEditor.TextureScaleOffsetProperty(colorMap);
             }
         }

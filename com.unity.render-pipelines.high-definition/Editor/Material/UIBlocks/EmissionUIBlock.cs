@@ -6,6 +6,8 @@ using UnityEngine.Rendering;
 using System.Reflection;
 using System.Linq.Expressions;
 
+using Unity.Assets.MaterialVariant.Editor;
+
 namespace UnityEditor.Rendering.HighDefinition
 {
     class EmissionUIBlock : MaterialUIBlock
@@ -162,6 +164,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool intensityIsMixed = unitIsMixed || emissiveIntensity.hasMixedValue;
                 bool intensityChanged = false;
                 bool unitChanged = false;
+                MaterialPropertyScope.MaterialPropertyScopeDelayedOverrideRegisterer emissiveIntensityUnitDelayedRegisterer;
+                MaterialPropertyScope.MaterialPropertyScopeDelayedOverrideRegisterer emissiveIntensityDelayedRegisterer = default;
                 EditorGUI.BeginChangeCheck();
                 {
                     using (new EditorGUILayout.HorizontalScope())
@@ -169,35 +173,41 @@ namespace UnityEditor.Rendering.HighDefinition
                         EmissiveIntensityUnit unit = (EmissiveIntensityUnit)emissiveIntensityUnit.floatValue;
                         EditorGUI.showMixedValue = intensityIsMixed;
 
-                        using (CreateOverrideScopeFor(emissiveIntensity))
+                        if (unit == EmissiveIntensityUnit.Nits)
                         {
-                            if (unit == EmissiveIntensityUnit.Nits)
+                            using (var change = new EditorGUI.ChangeCheckScope())
                             {
-                                using (var change = new EditorGUI.ChangeCheckScope())
+                                using (var scope = CreateOverrideScopeFor(emissiveIntensity))
                                 {
                                     materialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
-                                    intensityChanged = change.changed;
-                                    if (intensityChanged)
-                                        newIntensity = Mathf.Clamp(emissiveIntensity.floatValue, 0, float.MaxValue);
+                                    emissiveIntensityDelayedRegisterer = scope.ProduceDelayedRegisterer();
                                 }
+                                intensityChanged = change.changed;
+                                if (intensityChanged)
+                                    newIntensity = Mathf.Clamp(emissiveIntensity.floatValue, 0, float.MaxValue);
+                            }
+                        }
+                        else
+                        {
+                            float value = emissiveIntensity.floatValue;
+                            if (!intensityIsMixed)
+                            {
+                                float evValue = LightUtils.ConvertLuminanceToEv(emissiveIntensity.floatValue);
+                                evValue = EditorGUILayout.FloatField(Styles.emissiveIntensityText, evValue);
+                                newIntensity = Mathf.Clamp(evValue, 0, float.MaxValue);
+                                emissiveIntensity.floatValue = LightUtils.ConvertEvToLuminance(evValue);
+                                emissiveIntensityDelayedRegisterer.RegisterNow();
                             }
                             else
                             {
-                                float value = emissiveIntensity.floatValue;
-                                if (!intensityIsMixed)
+                                using (var change = new EditorGUI.ChangeCheckScope())
                                 {
-                                    float evValue = LightUtils.ConvertLuminanceToEv(emissiveIntensity.floatValue);
-                                    evValue = EditorGUILayout.FloatField(Styles.emissiveIntensityText, evValue);
-                                    newIntensity = Mathf.Clamp(evValue, 0, float.MaxValue);
-                                    emissiveIntensity.floatValue = LightUtils.ConvertEvToLuminance(evValue);
-                                }
-                                else
-                                {
-                                    using (var change = new EditorGUI.ChangeCheckScope())
+                                    using (var scope = CreateOverrideScopeFor(emissiveIntensity))
                                     {
                                         newIntensity = EditorGUILayout.FloatField(Styles.emissiveIntensityText, value);
-                                        intensityChanged = change.changed;
+                                        emissiveIntensityDelayedRegisterer = scope.ProduceDelayedRegisterer();
                                     }
+                                    intensityChanged = change.changed;
                                 }
                             }
                         }
@@ -206,7 +216,11 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUI.showMixedValue = emissiveIntensityUnit.hasMixedValue;
                         using (var change = new EditorGUI.ChangeCheckScope())
                         {
-                            newUnitFloat = (float)(EmissiveIntensityUnit)EditorGUILayout.EnumPopup(unit);
+                            using (var scope = CreateOverrideScopeFor(emissiveIntensityUnit))
+                            {
+                                newUnitFloat = (float)(EmissiveIntensityUnit)EditorGUILayout.EnumPopup(unit);
+                                emissiveIntensityUnitDelayedRegisterer = scope.ProduceDelayedRegisterer();
+                            }
                             unitChanged = change.changed;
                         }
                         EditorGUI.showMixedValue = false;
@@ -221,13 +235,19 @@ namespace UnityEditor.Rendering.HighDefinition
                             if (unitIsMixed)
                                 UpdateEmissionUnit(newUnitFloat);
                             else
+                            {
                                 emissiveIntensityUnit.floatValue = newUnitFloat;
+                                emissiveIntensityUnitDelayedRegisterer.RegisterNow();
+                            }
                         }
                     }
 
                     // We don't allow changes on intensity if units are mixed
                     if (intensityChanged && !unitIsMixed)
+                    {
                         emissiveIntensity.floatValue = newIntensity;
+                        emissiveIntensityDelayedRegisterer.RegisterNow();
+                    }
 
                     UpdateEmissiveColorAndIntensity();
                 }
@@ -283,7 +303,8 @@ namespace UnityEditor.Rendering.HighDefinition
         void DoEmissiveTextureProperty(MaterialProperty color)
         {
             using (CreateOverrideScopeFor(emissiveColorMap))
-                materialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, color);
+                using (CreateOverrideScopeFor(color))
+                    materialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, color);
 
             // TODO: does not support multi-selection
             if (materials[0].GetTexture(kEmissiveColorMap))
@@ -301,7 +322,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     Z = (uvEmissiveMapping == UVEmissiveMapping.UV2) ? 1.0f : 0.0f;
                     W = (uvEmissiveMapping == UVEmissiveMapping.UV3) ? 1.0f : 0.0f;
 
-                    using (CreateOverrideScopeFor(UVEmissive))
+                    using (CreateOverrideScopeFor(UVMappingMaskEmissive))
                         UVMappingMaskEmissive.colorValue = new Color(X, Y, Z, W);
 
                     if ((uvEmissiveMapping == UVEmissiveMapping.Planar) || (uvEmissiveMapping == UVEmissiveMapping.Triplanar))
@@ -312,7 +333,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 if (UVEmissive == null || (UVEmissiveMapping)UVEmissive.floatValue != UVEmissiveMapping.SameAsBase)
-                    materialEditor.TextureScaleOffsetProperty(emissiveColorMap);
+                    using (CreateOverrideScopeFor(emissiveColorMap))
+                        materialEditor.TextureScaleOffsetProperty(emissiveColorMap);
                 EditorGUI.indentLevel--;
             }
         }
