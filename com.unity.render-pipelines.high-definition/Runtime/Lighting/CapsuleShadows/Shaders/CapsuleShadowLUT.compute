@@ -4,7 +4,7 @@
 
 #pragma kernel CapsuleShadowLUTGeneration
 
-#define CONES_COUNT 4096 // Looks ok, but 1024 looks better, profile to decide.
+#define CONES_COUNT 4096
 
 float3 GetRandomConeAxis(float cosHalfAperture, float2 randVals)
 {
@@ -18,29 +18,30 @@ float3 GetRandomConeAxis(float cosHalfAperture, float2 randVals)
     return float3(cosPhi * sinTheta, sinPhi * sinTheta, cosTheta);
 }
 
-RW_TEXTURE3D(float, _CapsuleShadowLUT);
 
+RW_TEXTURE3D(float, _CapsuleShadowLUT);
 
 // Note here we assume that we always have 4 angles to select from
 CBUFFER_START(CapsuleShadowsLUTGenerationCB)
-    float4 _LUTGenParameters;     // xyz: LUT size
+    float4 _LUTGenParameters;     // xyz: LUT size w: cos aperture angle.
     float4 _LUTConeCosAngles;     
 CBUFFER_END
 
-#define _LUTWidth   _LUTGenParameters.x
-#define _LUTHeight  _LUTGenParameters.y
-#define _LUTDepth   _LUTGenParameters.z
+#define _LUTWidth           _LUTGenParameters.x
+#define _LUTHeight          _LUTGenParameters.y
+#define _LUTDepth           _LUTGenParameters.z
+#define _LUTConeCosAngle    _LUTGenParameters.w
 
 
 // Ref: The Lighting technology of "The Last of Us"
 // http://miciwan.com/SIGGRAPH2013/Lighting%20Technology%20of%20The%20Last%20Of%20Us.pdf
 
-[numthreads(8, 8, 4)]
+[numthreads(8, 8, 1)]
 void CapsuleShadowLUTGeneration(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupId : SV_GroupID)
 {
     // Phi is the angle between the cone axis and the vector pointing towards the occluder center.
     float2 outUV = dispatchThreadId.xy * float2(rcp(_LUTWidth - 1.0f), rcp(_LUTHeight - 1.0f));
-    outUV.x = PositivePow(outUV.x, 1.0f / 3.0f);    // Distribute more on the later end of the range
+   // outUV.x = PositivePow(outUV.x, 1.0f / 3.0f);    // Distribute more on the later end of the range
     float cosPhi = 2.0f * outUV.x - 1.0f;
     float sinPhi = sqrt(1.0f - sqrt(cosPhi * cosPhi));
     // Theta is the angle subtended by the occluder 
@@ -54,9 +55,9 @@ void CapsuleShadowLUTGeneration(uint3 dispatchThreadId : SV_DispatchThreadID, ui
     {
         float2 randVals = Golden2dSeq(i, CONES_COUNT);
 
-        float3 coneDir = GetRandomConeAxis(_LUTConeCosAngles[dispatchThreadId.z], randVals);
+        float3 coneDir = GetRandomConeAxis(_LUTConeCosAngle, randVals);
         if (dot(coneDir, occluderVec) > cosTheta) hits++;
     }
 
-    _CapsuleShadowLUT[uint3(dispatchThreadId.x, dispatchThreadId.y, dispatchThreadId.z)] = 1.0f - (hits * rcp(CONES_COUNT));
+    _CapsuleShadowLUT[uint3(dispatchThreadId.x, dispatchThreadId.y, 0)] = 1.0f - (hits * rcp(CONES_COUNT));
 }

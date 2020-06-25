@@ -19,7 +19,6 @@ CBUFFER_END
 
 TEXTURE3D(_CapsuleShadowLUT);
 
-
 // StructuredBuffer<OrientedBBox> _CapsuleOccludersBounds;
 StructuredBuffer<EllipsoidOccluderData> _CapsuleOccludersDatas;
 
@@ -59,12 +58,25 @@ float GetOccluderInfluenceRadiusWS(EllipsoidOccluderData data)
 // --------------------------------------------
 // Data preparation functions
 // --------------------------------------------
-float4 GetDataForSphereIntersection(EllipsoidOccluderData data)
+float3x3 GetRelativeMatrix (EllipsoidOccluderData data)
+{
+    float zMagnitude = data.positionRWS_radius.w / length(data.directionWS_influence.xyz);
+    float3 centerSphere = data.positionRWS_radius.xyz;
+    
+    float3 zAxis = normalize(data.directionWS_influence.xyz) * zMagnitude;
+    float3 yAxis = normalize(cross(zAxis, float3(0,1,0)));
+    float3 xAxis = cross(zAxis, yAxis);
+    
+    return float3x3 (xAxis, yAxis, yAxis);
+}
+
+float4 GetDataForSphereIntersection(EllipsoidOccluderData data, float3 positionWS)
 {
     // TODO : Fill with transformations needed so the rest of the code deals with simple spheres.
     // xyz should be un-normalized direction, w should contain the length.
-    float3 dir = data.directionWS_influence.xyz;
-    float len = data.directionWS_influence.w;
+    float3 dir = positionWS - data.positionRWS_radius.xyz;
+    float3 TransformVec = mul(GetRelativeMatrix (data), dir);
+    float len = length(TransformVec);
     return float4(dir.x, dir.y, dir.z, len);
 }
 
@@ -86,23 +98,40 @@ float ApplyInfluenceFalloff(float occlusion, float influenceFalloff)
     return lerp(1.0f, occlusion, influenceFalloff);
 }
 
+// Returns pos/radius of occluder as sphere relative to positionWS
+float4 TransformOccluder(float3 positionWS, EllipsoidOccluderData data)
+{
+    float3 dir = GetOccluderDirectionWS(data);
+    float3 toOccluder = GetOccluderPositionRWS(data) - positionWS;
+    float proj = dot(toOccluder, dir);
+    float3 toOccluderCS = toOccluder - (proj * dir) + proj * dir * (GetOccluderRadius(data) * 2.0 / GetOccluderScaling(data));
+    return float4(toOccluderCS, GetOccluderRadius(data));
+}
+
 // --------------------------------------------
 // Evaluation functions
 // --------------------------------------------
 // These functions should evaluate the occlusion types. Note that all of these functions take EllipsoidOccluderData containing the shape to evaluate against
 // and a dirAndLength containing the data output by the function GetDataForSphereIntersection()
 
-float EvaluateCapsuleAmbientOcclusion(EllipsoidOccluderData data, float3 positionWS, float3 N, float4 dirAndLength)
+float EvaluateCapsuleAmbientOcclusion(EllipsoidOccluderData data, float3 positionWS, float3 N, float3x3 m)
 {
-    float3 dir = GetOccluderDirectionWS(data);
+    float4 occluder = TransformOccluder(positionWS, data);
+    return IQSphereAO(0, N, occluder.xyz, occluder.w);
+
+    /*float3 dir = GetOccluderDirectionWS(data);
     float proj = dot(positionWS, dir);
     float3 positionCS = positionWS - (proj * dir) + proj * dir / GetOccluderScaling(data);
     proj = dot(GetOccluderPositionRWS(data), dir);
-    float3 centerCS = GetOccluderPositionRWS(data) - (proj * dir) + proj * dir / GetOccluderScaling(data);
+    float3 centerCS = GetOccluderPositionRWS(data) - (proj * dir) + proj * dir / GetOccluderScaling(data);*/
+    
+    /*float3 positionCS = mul(m, positionWS - GetOccluderPositionRWS(data));
+    float3 centerCS = 0;
+    float3 normalCS = normalize(mul(m, N));
 
     // TODO: should also transform the normal
     // IMPORTANT: Remember to modify by intensity modifier here and not after.
-    return IQSphereAO(positionCS, N, centerCS, GetOccluderRadius(data));
+    return IQSphereAO(positionCS, normalCS, centerCS, GetOccluderRadius(data));*/
 }
 
 // I stubbed out this version as a reference for myself while the work was being done by others. Keeping here as a reference in case we need it,
@@ -391,7 +420,67 @@ float EvaluateCapsuleSpecularOcclusion(EllipsoidOccluderData data, float3 positi
 #endif
 }
 
-float EvaluateCapsuleShadow(EllipsoidOccluderData data, float3 positionWS, float3 N, float4 dirAndLength, float2 posSS)
+
+// Ref https://developer.amd.com/wordpress/media/2012/10/Oat-AmbientApetureLighting.pdf
+// Quite slow... 
+float EvaluateCapsuleShadowAnalytical(EllipsoidOccluderData data, float3 positionWS, float3 N, float4 dirAndLength)
+{
+    float lightAngle = _CapsuleShadowParameters.w; // get from code.
+    float3 coneAxis = _CapsuleShadowParameters.xyz;
+    float3 occluderPos = GetOccluderPositionRWS(data);
+    float radius = GetOccluderRadius(data);
+
+    float3 occluderFromSurfaceDirectionWS;
+    float occluderFromSurfaceDistance;
+    ComputeDirectionAndDistanceFromStartAndEnd(positionWS, occluderPos, occluderFromSurfaceDirectionWS, occluderFromSurfaceDistance);
+
+    float tanTheta = radius / occluderFromSurfaceDistance;
+    float theta = FastATanPos(tanTheta);
+
+    float cosPhi = dot(coneAxis, occluderFromSurfaceDirectionWS);
+    float phi = FastACos(cosPhi);
+
+
+    float minRadius;
+    float maxRadius;
+
+    float intersectionArea = 0;
+
+    if (lightAngle < theta)
+    {
+        minRadius = lightAngle;
+        maxRadius = theta;
+    }
+    else
+    {
+         maxRadius = lightAngle;
+         minRadius = theta;
+    }
+
+    if (phi <= (maxRadius - minRadius))
+    {
+        intersectionArea = TWO_PI - TWO_PI * cos(minRadius);
+    }
+    else if (phi >= (theta + lightAngle))
+    {
+        intersectionArea = 0;
+    }
+    else
+    {
+        float diff = abs(theta - lightAngle);
+        intersectionArea = smoothstep(0.0f, 1.0f, 1.0f - saturate((phi - diff) / (theta + lightAngle - diff)));
+        intersectionArea *= (TWO_PI - TWO_PI * cos(minRadius));
+    }
+
+    float lightArea = TWO_PI - TWO_PI * cos(lightAngle);
+
+    float NdotPosToSphere = dot(N, occluderFromSurfaceDirectionWS);
+
+    float sinTheta = sin(theta);
+    return 1.0f - saturate(intersectionArea / lightArea);
+}
+
+float EvaluateCapsuleShadowLUT(EllipsoidOccluderData data, float3 positionWS, float3 N, float4 dirAndLength)
 {
     // For now assuming just directional light.
     float3 coneAxis = _CapsuleShadowParameters.xyz;
@@ -402,30 +491,16 @@ float EvaluateCapsuleShadow(EllipsoidOccluderData data, float3 positionWS, float
     float occluderFromSurfaceDistance;
     ComputeDirectionAndDistanceFromStartAndEnd(positionWS, occluderPos, occluderFromSurfaceDirectionWS, occluderFromSurfaceDistance);
 
-
     // Angle between occluder and cone axis
     float cosPhi = dot(coneAxis, occluderFromSurfaceDirectionWS);
-    float sinPhi = sqrt(1.0f - cosPhi * cosPhi);
-
-    // Angle subtended by occluder (to be shared among computation I'd say)
-
-    // TODO: Why do we need an half scale factor here!?!
-    radius *= 0.5f;
 
     float tanTheta = radius / occluderFromSurfaceDistance;
-    float cosTheta = rsqrt(1.0 + tanTheta * tanTheta);
+    float sinTheta = tanTheta * rsqrt(1 + tanTheta * tanTheta);
 
     // For now hardcoded, but will change.
     float LUTZCoord = _CapsuleShadowParameters.w;
 
-    float NdotPosToSphere = dot(N, occluderFromSurfaceDirectionWS);
-
-
-    float occlusionVal = 1 - SAMPLE_TEXTURE3D_LOD(_CapsuleShadowLUT, s_linear_clamp_sampler, float3(PositivePow(cosTheta, 3), sinPhi, LUTZCoord), 0).x;
-
-    if (NdotPosToSphere <= 0.01f)
-        occlusionVal = 1;
-
+    float occlusionVal = SAMPLE_TEXTURE3D_LOD(_CapsuleShadowLUT, s_linear_clamp_sampler, float3(0.5f * cosPhi + 0.5f, sinTheta, 0), 0).x;
     return occlusionVal;
 }
 
@@ -510,11 +585,13 @@ void EvaluateCapsuleOcclusion(uint evaluationFlags,
         {
             v_sphereListOffset++;
 
-            float4 dirAndLen = GetDataForSphereIntersection(s_capsuleData);
+            float4 dirAndLen = GetDataForSphereIntersection(s_capsuleData, posInput.positionWS);
+            
+            float3x3 m = GetRelativeMatrix(s_capsuleData);
 
             if (evaluationFlags & CAPSULEOCCLUSIONTYPE_AMBIENT_OCCLUSION)
             {
-                float capsuleAO = EvaluateCapsuleAmbientOcclusion(s_capsuleData, posInput.positionWS, N, dirAndLen);
+                float capsuleAO = EvaluateCapsuleAmbientOcclusion(s_capsuleData, posInput.positionWS, N, m);
                 ambientOcclusion = AccumulateCapsuleAmbientOcclusion(ambientOcclusion, capsuleAO);
             }
 
@@ -526,7 +603,7 @@ void EvaluateCapsuleOcclusion(uint evaluationFlags,
 
             if (evaluationFlags & CAPSULEOCCLUSIONTYPE_DIRECTIONAL_SHADOWS)
             {
-                float capsuleShadow = EvaluateCapsuleShadow(s_capsuleData, posInput.positionWS, N, dirAndLen, posInput.positionSS);
+                float capsuleShadow = EvaluateCapsuleShadowLUT(s_capsuleData, posInput.positionWS, N, dirAndLen);
                 shadow = AccumulateCapsuleShadow(shadow, capsuleShadow);
             }
         }
