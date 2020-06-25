@@ -144,9 +144,9 @@ static const uint ShaderDebugNoTag;
 // For example
 // ShaderDebugTag( 'M', 'y', 'I', 'd' );
 uint ShaderDebugTag(uint a, uint b, uint c, uint d) { return a | (b << 8) | (c << 16) | (d << 24); }
-uint ShaderDebugTag(uint a, uint b, uint c)         { return ShaderDebugTag( a, b, c, ' '); }
-uint ShaderDebugTag(uint a, uint b)                 { return ShaderDebugTag( a, b, ' '); }
-uint ShaderDebugTag(uint a)                         { return ShaderDebugTag( a, ' '); }
+uint ShaderDebugTag(uint a, uint b, uint c)         { return ShaderDebugTag( a, b, c, 0); }
+uint ShaderDebugTag(uint a, uint b)                 { return ShaderDebugTag( a, b, 0); }
+uint ShaderDebugTag(uint a)                         { return ShaderDebugTag( a, 0); }
 
 // Print value to (Unity) console
 // Be careful to not print all N threads (thousands). Use if statements and thread ids to pick values only from a few threads.

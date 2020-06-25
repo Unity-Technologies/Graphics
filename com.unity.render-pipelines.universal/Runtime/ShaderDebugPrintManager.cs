@@ -132,7 +132,11 @@ namespace UnityEngine.Rendering.Universal
                             i++;
                             for (int j = 0; j < 4; j++)
                             {
-                                outputLine += (char) (tagEncoded & 255);
+                                char c = (char) (tagEncoded & 255);
+                                // skip '\0', for low-level output (avoid string termination)
+                                if (c == 0) 
+                                    continue;
+                                outputLine += c;
                                 tagEncoded >>= 8;
                             }
 
