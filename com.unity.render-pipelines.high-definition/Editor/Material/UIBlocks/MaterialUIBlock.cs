@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected MaterialEditor        materialEditor;
         protected Material[]            materials;
         protected MaterialProperty[]    properties;
-        MaterialVariant[]     variants;
+        protected MaterialVariant[]     variants;
 
         protected MaterialUIBlockList   parent;
 

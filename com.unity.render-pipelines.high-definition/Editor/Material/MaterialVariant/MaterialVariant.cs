@@ -91,6 +91,7 @@ namespace Unity.Assets.MaterialVariant.Editor
         }
         #endregion
 
+        #region MaterialVariant Blocks Management
         public bool IsPropertyBlockedInCurrent(string propertyName)
         {
             return blocks.Any(b => b == propertyName);
@@ -123,6 +124,16 @@ namespace Unity.Assets.MaterialVariant.Editor
             if (!blocks.Remove(propertyName))
                 blocks.Add(propertyName);
         }
+
+        public IEnumerable<MaterialPropertyModification> TrimOverridesList(IEnumerable<MaterialPropertyModification> overrides)
+        {
+            var parent = GetParent();
+            if (parent is MaterialVariant matVariant)
+                return overrides.Where(mpm => matVariant.IsPropertyBlocked(mpm.key));
+
+            return overrides;
+        }
+        #endregion
 
         #region MaterialVariant Create Menu
         private const string MATERIAL_VARIANT_MENU_PATH = "Assets/Create/Variants/Material Variant";

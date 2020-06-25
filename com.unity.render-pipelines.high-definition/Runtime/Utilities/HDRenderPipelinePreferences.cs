@@ -61,7 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static class Keys
+        internal static class Keys
         {
             internal const string sceneViewAntialiasing = "HDRP.SceneView.Antialiasing";
             internal const string sceneViewStopNaNs = "HDRP.SceneView.StopNaNs";
@@ -69,6 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal const string matcapViewScale = "HDRP.SceneView.MatcapViewScale";
             internal const string lightColorNormalization = "HDRP.UI.LightColorNormalization";
             internal const string materialEmissionColorNormalization = "HDRP.UI.MaterialEmissionNormalization";
+            internal const string showLockedProperties = "HDRP.MaterialVariants.ShowLockedProperties";
         }
 
         [SettingsProvider]
@@ -84,6 +85,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     matcapViewMixAlbedo = EditorGUILayout.Toggle("Mix Albedo in the Matcap", matcapViewMixAlbedo);
                     if(matcapViewMixAlbedo)
                         matcapViewScale = EditorGUILayout.FloatField("Matcap intensity scale", matcapViewScale);
+
+                    EditorGUI.BeginChangeCheck();
+                    bool showLocked = EditorGUILayout.Toggle("Show Material Locked Properties", EditorPrefs.GetBool(Keys.showLockedProperties, true));
+                    if(EditorGUI.EndChangeCheck())
+                    {
+                        EditorPrefs.SetBool(Keys.showLockedProperties, showLocked);
+                    }
 
                     // Disable this until we have a good solution to handle the normalized color picking
                     // EditorGUILayout.LabelField("Color Normalization");

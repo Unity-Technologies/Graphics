@@ -180,7 +180,7 @@ namespace Unity.Assets.MaterialVariant.Editor
             EditorGUILayout.ObjectField("", asset, assetType, false);
         }
 
-        internal static void DrawPropertyScopeContextMenuAndIcons(MaterialVariant matVariant, string propertyName, bool isOverride, Rect labelRect, GenericMenu.MenuFunction resetFunction, GenericMenu.MenuFunction blockFunction)
+        internal static void DrawPropertyScopeContextMenuAndIcons(MaterialVariant matVariant, string propertyName, bool isOverride, bool isBlocked, Rect labelRect, GenericMenu.MenuFunction resetFunction, GenericMenu.MenuFunction blockFunction)
         {
             if (Event.current.rawType == EventType.ContextClick && labelRect.Contains(Event.current.mousePosition))
             {
@@ -213,6 +213,15 @@ namespace Unity.Assets.MaterialVariant.Editor
             {
                 labelRect.width = 3;
                 EditorGUI.DrawRect(labelRect, Color.white);
+            }
+
+            if(isBlocked || matVariant.IsPropertyBlockedInCurrent(propertyName))
+            {
+                labelRect.xMin = 8;
+                labelRect.width = 32;
+                EditorGUI.BeginDisabledGroup(isBlocked);
+                GUI.Label(labelRect, EditorGUIUtility.IconContent("AssemblyLock"));
+                EditorGUI.EndDisabledGroup();
             }
         }
 

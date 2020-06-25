@@ -1,10 +1,7 @@
-using System.Runtime.InteropServices;
-using Object = UnityEngine.Object;
-using UnityEngine.Scripting;
-using UnityEngine.Bindings;
 using UnityEngine;
 using UnityEditor;
 using System;
+using System.Linq;
 
 namespace Unity.Assets.MaterialVariant.Editor
 {
@@ -44,7 +41,8 @@ namespace Unity.Assets.MaterialVariant.Editor
             if (m_Force || m_Variants == null)
                 return;
 
-            m_IsBlocked = m_Variants[0].IsPropertyBlockedInAncestors(m_MaterialProperty.name);
+            var name = m_MaterialProperty.name;
+            m_IsBlocked = m_Variants.Any(o => o.IsPropertyBlockedInAncestors(name));
 
             if (m_IsBlocked)
                 EditorGUI.BeginDisabledGroup(true);
@@ -61,7 +59,10 @@ namespace Unity.Assets.MaterialVariant.Editor
             if (!m_Force)
             {
                 if (m_IsBlocked)
+                {
+
                     EditorGUI.EndDisabledGroup();
+                }
 
                 {
                     bool isOverride = !m_IsBlocked && m_Variants[0].IsOverriddenProperty(m_MaterialProperty);
@@ -75,7 +76,7 @@ namespace Unity.Assets.MaterialVariant.Editor
 
                     MaterialVariant matVariant = m_Variants[0];
                     MaterialProperty matProperty = m_MaterialProperty;
-                    MaterialVariantEditor.DrawPropertyScopeContextMenuAndIcons(matVariant, m_MaterialProperty.name, isOverride, r,
+                    MaterialVariantEditor.DrawPropertyScopeContextMenuAndIcons(matVariant, m_MaterialProperty.name, isOverride, m_IsBlocked, r,
                     () => matVariant.ResetOverride(matProperty),
                     () => matVariant.TogglePropertyBlocked(matProperty.name));
                 }
@@ -164,7 +165,7 @@ namespace Unity.Assets.MaterialVariant.Editor
             if (m_Variants == null)
                 return;
 
-            m_IsBlocked = m_Variants[0].IsPropertyBlockedInAncestors(k_SerializedPropertyName);
+            m_IsBlocked = m_Variants.Any(o => o.IsPropertyBlockedInAncestors(k_SerializedPropertyName));
 
             if (m_IsBlocked)
                 EditorGUI.BeginDisabledGroup(true);
@@ -191,7 +192,7 @@ namespace Unity.Assets.MaterialVariant.Editor
                 r.width = EditorGUIUtility.labelWidth;
 
                 MaterialVariant matVariant = m_Variants[0];
-                MaterialVariantEditor.DrawPropertyScopeContextMenuAndIcons(matVariant, k_SerializedPropertyName, isOverride, r,
+                MaterialVariantEditor.DrawPropertyScopeContextMenuAndIcons(matVariant, k_SerializedPropertyName, isOverride, m_IsBlocked, r,
                     () => matVariant.ResetOverrideForNonMaterialProperty(k_SerializedPropertyName),
                     () => matVariant.TogglePropertyBlocked(k_SerializedPropertyName));
             }
