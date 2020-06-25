@@ -23,10 +23,18 @@ float GetDirectionalShadowAttenuation(HDShadowContext shadowContext, float2 posi
 #if SHADOW_AUTO_FLIP_NORMAL
     normalWS *= FastSign(dot(normalWS, L));
 #endif
+
+    // TODO: Note this is temp, find the best place to place and especially change when we support anything not directional!
+    float capsuleShadow = 1;
+    if (_CapsuleOcclusionParams.x)
+    {
+        capsuleShadow = LOAD_TEXTURE2D_X(_CapsuleOcclusionsTexture, positionSS).y;
+    }
+
 #if defined(SHADOW_LOW) || defined(SHADOW_MEDIUM)
-    return EvalShadow_CascadedDepth_Dither(shadowContext, _ShadowmapCascadeAtlas, s_linear_clamp_compare_sampler, positionSS, positionWS, normalWS, shadowDataIndex, L);
+    return EvalShadow_CascadedDepth_Dither(shadowContext, _ShadowmapCascadeAtlas, s_linear_clamp_compare_sampler, positionSS, positionWS, normalWS, shadowDataIndex, L) * capsuleShadow;
 #else
-    return EvalShadow_CascadedDepth_Blend(shadowContext, _ShadowmapCascadeAtlas, s_linear_clamp_compare_sampler, positionSS, positionWS, normalWS, shadowDataIndex, L);
+    return EvalShadow_CascadedDepth_Blend(shadowContext, _ShadowmapCascadeAtlas, s_linear_clamp_compare_sampler, positionSS, positionWS, normalWS, shadowDataIndex, L) * capsuleShadow;
 #endif
 }
 
