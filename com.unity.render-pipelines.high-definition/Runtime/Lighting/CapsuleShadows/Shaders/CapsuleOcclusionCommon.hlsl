@@ -116,8 +116,8 @@ float4 TransformOccluder(float3 positionWS, EllipsoidOccluderData data)
 
 float EvaluateCapsuleAmbientOcclusion(EllipsoidOccluderData data, float3 positionWS, float3 N, float3x3 m)
 {
-//    float4 occluder = TransformOccluder(positionWS, data);
-//    return IQSphereAO(0, N, occluder.xyz, occluder.w);
+    float4 occluder = TransformOccluder(positionWS, data);
+    return IQSphereAO(0, N, occluder.xyz, occluder.w);
 
     /*float3 dir = GetOccluderDirectionWS(data);
     float proj = dot(positionWS, dir);
@@ -125,13 +125,13 @@ float EvaluateCapsuleAmbientOcclusion(EllipsoidOccluderData data, float3 positio
     proj = dot(GetOccluderPositionRWS(data), dir);
     float3 centerCS = GetOccluderPositionRWS(data) - (proj * dir) + proj * dir / GetOccluderScaling(data);*/
     
-    float3 positionCS = mul(m, positionWS - GetOccluderPositionRWS(data));
+    /*float3 positionCS = mul(m, positionWS - GetOccluderPositionRWS(data));
     float3 centerCS = 0;
     float3 normalCS = normalize(mul(m, N));
 
     // TODO: should also transform the normal
     // IMPORTANT: Remember to modify by intensity modifier here and not after.
-    return IQSphereAO(positionCS, normalCS, centerCS, GetOccluderRadius(data));
+    return IQSphereAO(positionCS, normalCS, centerCS, GetOccluderRadius(data));*/
 }
 
 // I stubbed out this version as a reference for myself while the work was being done by others. Keeping here as a reference in case we need it,
