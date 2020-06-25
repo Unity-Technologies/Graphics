@@ -45,20 +45,32 @@ namespace Unity.Assets.MaterialVariant.Editor
             }
         }
 
-        private bool IsSameProperty(MaterialPropertyModification modification, MaterialProperty property)
+        private bool IsSameProperty(MaterialPropertyModification modification, string propertyName)
         {
             string modificationPropertyName = modification.propertyPath.Split('.')[0];
-            return property.name == modificationPropertyName;
+            return propertyName == modificationPropertyName;
         }
 
         public bool IsOverriddenProperty(MaterialProperty property)
         {
-            return overrides.Any(modification => IsSameProperty(modification, property));
+            return overrides.Any(modification => IsSameProperty(modification, property.name));
+        }
+
+        public bool IsOverriddenPropertyForNonMaterialProperty(string propertyName)
+        {
+            propertyName = "::" + propertyName;
+            return overrides.Any(modification => IsSameProperty(modification, propertyName));
         }
 
         public void ResetOverride(MaterialProperty property)
         {
-            overrides.RemoveAll(modification => IsSameProperty(modification, property));
+            overrides.RemoveAll(modification => IsSameProperty(modification, property.name));
+        }
+        
+        public void ResetOverrideForNonMaterialProperty(string propertyName)
+        {
+            propertyName = "::" + propertyName;
+            overrides.RemoveAll(modification => IsSameProperty(modification, propertyName));
         }
         #endregion
 
