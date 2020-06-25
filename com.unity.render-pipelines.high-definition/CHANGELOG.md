@@ -317,6 +317,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue with MipRatio debug mode showing _DebugMatCapTexture not being set.
 - Fixed missing initialization of input params in Blit for VR.
 - Fix Inf source in LTC for area lights.
+- Fix supported Mac platform detection to handle new major version (11.0) properly
 
 ### Changed
 - Hide unused LOD settings in Quality Settings legacy window.
