@@ -19,7 +19,7 @@ Universal_OSX_OpenGLCore_playmode_trunk:
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && utr/utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
+      -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:
             paths:
@@ -40,7 +40,7 @@ Universal_OSX_OpenGLCore_editmode_trunk:
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && utr/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
+      -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:
             paths:
@@ -61,7 +61,7 @@ Universal_OSX_OpenGLCore_playmode_XR_trunk:
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && utr/utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results
+      -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:
             paths:
@@ -82,7 +82,7 @@ Universal_OSX_OpenGLCore_playmode_fast-trunk:
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && utr/utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
+      -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:
             paths:
@@ -103,7 +103,7 @@ Universal_OSX_OpenGLCore_editmode_fast-trunk:
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && utr/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
+      -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:
             paths:
@@ -124,7 +124,7 @@ Universal_OSX_OpenGLCore_playmode_XR_fast-trunk:
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && utr/utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results
+      -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:
             paths:
@@ -146,7 +146,7 @@ Universal_OSX_OpenGLCore_playmode_CUSTOM-REVISION:
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && utr/utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
+      -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:
             paths:
@@ -168,7 +168,7 @@ Universal_OSX_OpenGLCore_editmode_CUSTOM-REVISION:
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && utr/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
+      -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:
             paths:
@@ -190,7 +190,7 @@ Universal_OSX_OpenGLCore_playmode_XR_CUSTOM-REVISION:
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && utr/utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results
+      -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:
             paths:
