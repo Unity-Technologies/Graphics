@@ -41,7 +41,7 @@ namespace Unity.Assets.MaterialVariant.Editor
 
         void IDisposable.Dispose()
         {
-            bool isOverride = m_Variants[0].IsOverriddenProperty(m_MaterialProperty);
+            bool isOverride = (m_Variants != null) ? m_Variants[0].IsOverriddenProperty(m_MaterialProperty) : false;
 
             Rect r = GUILayoutUtility.GetLastRect();
             float endY = r.yMax;
