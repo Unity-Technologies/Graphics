@@ -42,6 +42,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Memory allocation test failed, 2 allocations detected.
+  - FilteredScene: {fileID: 102900000, guid: 3ac6122326e687b439415cfacaf7d48e, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: cause crash on sucessive XR test
   - FilteredScene: {fileID: 102900000, guid: 7529f10e11b78924b9c1ee1727b1405f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
