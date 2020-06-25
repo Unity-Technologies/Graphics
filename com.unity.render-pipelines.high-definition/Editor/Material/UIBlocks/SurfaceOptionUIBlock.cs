@@ -840,7 +840,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     EditorGUILayout.Space();
                     EditorGUI.indentLevel++;
-                    MaterialPropertyScope.MaterialPropertyScopeDelayedOverrideRegisterer ppdMinSamplesDelayedRegisterer;
+                    MaterialPropertyScope.DelayedOverrideRegisterer ppdMinSamplesDelayedRegisterer;
                     using (var scope = CreateOverrideScopeFor(ppdMinSamples))
                     {
                         materialEditor.ShaderProperty(ppdMinSamples, Styles.ppdMinSamplesText);

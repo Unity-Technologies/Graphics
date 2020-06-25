@@ -36,11 +36,12 @@ namespace Unity.Assets.MaterialVariant.Editor
             //Starting registering change
             if (!m_Force && m_Variants != null)
                 EditorGUI.BeginChangeCheck();
-            
+
             // Get the current Y coordinate before drawing the property
             // We define a new empty rect in order to grab the current height even if there was nothing drawn in the block (GetLastRect cause issue if it was first element of block)
-            m_StartY = GUILayoutUtility.GetRect(0,0).yMax;
+            m_StartY = GUILayoutUtility.GetRect(0, 0).yMax;
         }
+
         void ResetOverride()
         {
             m_Variants[0].ResetOverride(m_MaterialProperty);
@@ -75,7 +76,7 @@ namespace Unity.Assets.MaterialVariant.Editor
             }
 
             //Stop registering change
-            // EditorGUI.EndChangeCheck() must be first to not break balance of BeginChangeCheck and EndChangeCheck if we ar not force registering
+            // EditorGUI.EndChangeCheck() must be first to not break balance of BeginChangeCheck and EndChangeCheck if we are not force registering
             if ((m_Force || EditorGUI.EndChangeCheck()) && !m_HaveDelayedRegisterer && m_Variants != null)
             {
                 System.Collections.Generic.IEnumerable<MaterialPropertyModification> changes = MaterialPropertyModification.CreateMaterialPropertyModifications(m_MaterialProperty);
@@ -84,23 +85,23 @@ namespace Unity.Assets.MaterialVariant.Editor
             }
         }
 
-        public MaterialPropertyScopeDelayedOverrideRegisterer ProduceDelayedRegisterer()
+        public DelayedOverrideRegisterer ProduceDelayedRegisterer()
         {
             if (m_HaveDelayedRegisterer)
                 throw new Exception($"A delayed registerer already exists for this MaterialPropertyScope for {m_MaterialProperty.displayName}. You should only use one at the end of all operations on this property.");
 
             m_HaveDelayedRegisterer = true;
 
-            return new MaterialPropertyScopeDelayedOverrideRegisterer(m_MaterialProperty, m_Variants);
+            return new DelayedOverrideRegisterer(m_MaterialProperty, m_Variants);
         }
 
 
-        public struct MaterialPropertyScopeDelayedOverrideRegisterer
+        public struct DelayedOverrideRegisterer
         {
             MaterialProperty m_MaterialProperty;
             MaterialVariant[] m_Variants;
 
-            internal MaterialPropertyScopeDelayedOverrideRegisterer(MaterialProperty materialProperty, MaterialVariant[] variants)
+            internal DelayedOverrideRegisterer(MaterialProperty materialProperty, MaterialVariant[] variants)
             {
                 m_MaterialProperty = materialProperty;
                 m_Variants = variants;

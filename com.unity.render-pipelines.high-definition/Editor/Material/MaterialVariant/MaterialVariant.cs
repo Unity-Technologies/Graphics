@@ -31,7 +31,8 @@ namespace Unity.Assets.MaterialVariant.Editor
 
             return parentAsset;
         }
-
+        
+        #region MaterialVariant Overrides Management
         public void TrimPreviousOverridesAndAdd(IEnumerable<MaterialPropertyModification> modifications)
         {
             foreach(var modification in modifications)
@@ -59,6 +60,7 @@ namespace Unity.Assets.MaterialVariant.Editor
         {
             overrides.RemoveAll(modification => IsSameProperty(modification, property));
         }
+        #endregion
 
         #region MaterialVariant Create Menu
         private const string MATERIAL_VARIANT_MENU_PATH = "Assets/Create/Variants/Material Variant";
