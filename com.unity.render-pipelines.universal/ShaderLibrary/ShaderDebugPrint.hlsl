@@ -15,7 +15,7 @@
 RWStructuredBuffer<uint> shaderDebugOutputData : register(u7);
 
 
-static const uint MaxShaderDebugOutputElements = 1024 * 16; // 16KB - must match the C# side buffer size (16KB / 4 (bytes per uint) / 6 (uints, header+payload) == 682 uint4s)
+static const uint MaxShaderDebugOutputElements = 1024 * 16; // 16KB - must match the C# side buffer size (16KB / 4 (bytes per uint) / 6 (uints, header+tag+payload) == 682 uint4s)
 // Input Constants
 float4 _ShaderDebugPrintInputMouse;
 int    _ShaderDebugPrintInputFrame;
