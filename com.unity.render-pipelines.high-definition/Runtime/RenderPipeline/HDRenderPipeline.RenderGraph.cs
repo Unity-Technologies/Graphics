@@ -1063,6 +1063,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     var colorPyramid = context.resources.GetTexture(data.colorPyramid);
                     var inputTexture = context.resources.GetTexture(data.inputColor);
                     data.hdCamera.colorPyramidHistoryMipCount = data.mipGenerator.RenderColorGaussianPyramid(context.cmd, pyramidSize, inputTexture, colorPyramid);
+
+                    // TODO RENDERGRAPH: We'd like to avoid SetGlobals like this but it's required by custom passes currently.
+                    // We will probably be able to remove those once we push custom passes fully to render graph.
+                    context.cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, colorPyramid);
                 });
             }
 
