@@ -525,6 +525,28 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                         new KeywordEntry("Smoothness(r) + Occlusion (g)", "RENDER_SMOOTHNESS_OCCLUSION"),
                         new KeywordEntry("EntityId", "RENDER_ENTITY_ID"),
                     },
+                },
+                new KeywordDescriptor()
+                {
+                    displayName = "Extraction Output Space",
+                    referenceName = "",
+                    type = KeywordType.MultiCompile,
+                    definition = KeywordDefinition.MultiCompile,
+                    scope = KeywordScope.Global,
+                    value = 0,
+                    entries = new[]
+                    {
+                        new KeywordEntry("Mesh", "_"),
+                        new KeywordEntry("UV0", "RENDER_SPACE_UV0"),
+                        new KeywordEntry("UV1", "RENDER_SPACE_UV1"),
+                        new KeywordEntry("UV2", "RENDER_SPACE_UV2"),
+                        new KeywordEntry("UV3", "RENDER_SPACE_UV3"),
+                        new KeywordEntry("UV4", "RENDER_SPACE_UV4"),
+                        new KeywordEntry("UV5", "RENDER_SPACE_UV5"),
+                        new KeywordEntry("UV6", "RENDER_SPACE_UV6"),
+                        new KeywordEntry("UV7", "RENDER_SPACE_UV7"),
+                        new KeywordEntry("UV8", "RENDER_SPACE_UV8"),
+                    },
                 }
             };
             

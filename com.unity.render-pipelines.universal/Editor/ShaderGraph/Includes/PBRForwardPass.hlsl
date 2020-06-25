@@ -41,6 +41,45 @@ PackedVaryings vert(Attributes input)
     return packedOutput;
 }
 
+PackedVaryings vertExtraction(
+    Attributes input 
+    /*float2 uv2 : TEXCOORD2,
+    float2 uv3 : TEXCOORD3,
+    float2 uv4 : TEXCOORD4,
+    float2 uv5 : TEXCOORD5,
+    float2 uv6 : TEXCOORD6,
+    float2 uv7 : TEXCOORD7,
+    float2 uv8 : TEXCOORD8 */    )
+{
+    Varyings output = (Varyings)0;
+    output = BuildVaryings(input);
+    PackedVaryings packedOutput = (PackedVaryings)0;
+    packedOutput = PackVaryings(output);
+    
+  //  packedOutput.positionCS = float4(input.uv0.xy, 0.5f, 1.0f);
+    /*#if defined(RENDER_SPACE_UV0)
+    packedOutput.positionCS = float4(input.uv0.xyz, 1.0f);
+    #elif defined(RENDER_SPACE_UV1)
+    packedOutput.positionCS = input.uv1;
+    #elif defined(RENDER_SPACE_UV2)
+    packedOutput.positionCS = uv2;
+    #elif defined(RENDER_SPACE_UV3)
+    packedOutput.positionCS = uv3;
+    #elif defined(RENDER_SPACE_UV4)
+    packedOutput.positionCS = uv4;
+    #elif defined(RENDER_SPACE_UV5)
+    packedOutput.positionCS = uv5;
+    #elif defined(RENDER_SPACE_UV6)
+    packedOutput.positionCS = uv6;
+    #elif defined(RENDER_SPACE_UV7)
+    packedOutput.positionCS = uv7;
+    #elif defined(RENDER_SPACE_UV8)
+    packedOutput.positionCS = uv8;
+    #endif
+    */
+    return packedOutput;
+}
+
 half4 frag(PackedVaryings packedInput) : SV_TARGET
 {
     Varyings unpacked = UnpackVaryings(packedInput);
@@ -78,11 +117,27 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 			surfaceDescription.Smoothness,
 			surfaceDescription.Occlusion,
 			surfaceDescription.Emission,
-			alpha);
+			alpha);   
 
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     return color;
 }
+
+int UNITY_DataExtraction_Mode;
+int UNITY_DataExtraction_Space;
+
+#define RENDER_OBJECT_ID 1
+#define RENDER_DEPTH 2
+#define RENDER_WORLD_NORMALS_FACE 3
+#define RENDER_WORLD_POSITION 4
+#define RENDER_ENTITY_ID 5
+#define RENDER_BASE_COLOR 6
+#define RENDER_SPECULAR 7
+#define RENDER_METALLIC 8
+#define RENDER_EMISSION 9
+#define RENDER_WORLD_NORMALS_PIXEL 10
+#define RENDER_SMOOTHNESS 11
+#define RENDER_OCCLUSION 12
 
 half4 fragExtraction(PackedVaryings packedInput) : SV_TARGET
 {
@@ -125,27 +180,30 @@ half4 fragExtraction(PackedVaryings packedInput) : SV_TARGET
 
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     
-    #ifdef RENDER_OBJECT_ID
-    return asint(unity_LODFade.z);
-    #elif defined(RENDER_DEPTH)
-    return 0;
-    #elif defined(RENDER_WORLD_NORMALS_FACE)
-    return float4(unpacked.normalWS, 1.0f);
-    #elif defined(RENDER_WORLD_NORMALS_PIXEL)
-    return float4(inputData.normalWS, 1.0f);
-    #elif defined(RENDER_WORLD_POSITION)
-    return float4(inputData.positionWS, 1.0);
-    #elif defined(RENDER_BASE_COLOR_ALPHA)
-    return float4(surfaceDescription.BaseColor.xyz, alpha);
-    #elif defined(RENDER_SPECULAR_METALLIC)
-    return float4(specular.xyz, metallic);
-    #elif defined(RENDER_EMISSION)
-    return float4(surfaceDescription.Emission.xyz, 1.0);
-    #elif defined(RENDER_SMOOTHNESS_OCCLUSION)
-    return float4(surfaceDescription.Smoothness, surfaceDescription.Occlusion, 1.0, 1.0);
-    #elif defined(RENDER_ENTITY_ID)
-    return 0;
-    #else
+    if(UNITY_DataExtraction_Mode == RENDER_OBJECT_ID)
+        return asint(unity_LODFade.z);
+    if(UNITY_DataExtraction_Mode == RENDER_DEPTH)
+        return 0;
+    if(UNITY_DataExtraction_Mode == RENDER_WORLD_NORMALS_FACE)
+        return float4(unpacked.normalWS, 1.0f);
+    if(UNITY_DataExtraction_Mode == RENDER_WORLD_POSITION)
+        return float4(inputData.positionWS, 1.0);
+    if(UNITY_DataExtraction_Mode == RENDER_ENTITY_ID)
+        return 0;
+    if(UNITY_DataExtraction_Mode == RENDER_BASE_COLOR)
+        return float4(surfaceDescription.BaseColor.xyz, alpha);
+    if(UNITY_DataExtraction_Mode == RENDER_SPECULAR)  
+        return float4(specular.xyz, 1);
+    if(UNITY_DataExtraction_Mode == RENDER_METALLIC)        
+        return float4(metallic, 0.0, 0.0, 1.0);
+    if(UNITY_DataExtraction_Mode == RENDER_EMISSION)
+        return float4(surfaceDescription.Emission.xyz, 1.0);
+    if(UNITY_DataExtraction_Mode == RENDER_WORLD_NORMALS_PIXEL)
+        return float4(inputData.normalWS, 1.0f);
+    if(UNITY_DataExtraction_Mode == RENDER_SMOOTHNESS)
+        return float4(surfaceDescription.Smoothness, 0.0, 0.0, 1.0);
+    if(UNITY_DataExtraction_Mode == RENDER_OCCLUSION)
+       return float4(surfaceDescription.Occlusion, 0.0, 0.0, 1.0); 
+    
     return color;
-    #endif
 }

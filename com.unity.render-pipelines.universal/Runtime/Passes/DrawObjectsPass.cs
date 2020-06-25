@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.Universal.Internal
@@ -16,7 +17,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         string m_ProfilerTag;
         ProfilingSampler m_ProfilingSampler;
         bool m_IsOpaque;
+        
         List<string> m_AdditionalShaderKeywords = new List<string>();
+        Dictionary<string, int> m_AdditionalValues = new Dictionary<string, int>();
 
         static readonly int s_DrawObjectPassDataPropID = Shader.PropertyToID("_DrawObjectPassData");
 
@@ -28,7 +31,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_AdditionalShaderKeywords.Add(word);
             }
         }
-        
+
+        public void SetAdditionalValues(List<Tuple<string, int>>  values)
+        {
+            m_AdditionalValues.Clear();
+            foreach (var word in values)
+            {
+                m_AdditionalValues.Add(word.Item1, word.Item2);
+            }
+        }
+
         public DrawObjectsPass(string profilerTag, ShaderTagId[] shaderTagIds, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
         {
             m_ProfilerTag = profilerTag;
@@ -83,6 +95,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalVector(s_DrawObjectPassDataPropID, drawObjectPassData);
                 foreach (var word in m_AdditionalShaderKeywords)
                     cmd.EnableShaderKeyword(word);
+                foreach (var value in m_AdditionalValues)
+                    cmd.SetGlobalInt(value.Key, value.Value);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 

@@ -532,7 +532,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.Target(ShaderModel.Target20) },
             { Pragma.OnlyRenderers(new[]{ Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.MultiCompileInstancing },
-            { Pragma.Vertex("vert") },
+            { Pragma.Vertex("vertExtraction") },
             { Pragma.Fragment("fragExtraction") },
         };
 
@@ -589,7 +589,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.ExcludeRenderers(new[]{ Platform.D3D9, Platform.GLES }) },
             { Pragma.MultiCompileFog },
             { Pragma.DOTSInstancing },
-            { Pragma.Vertex("vert") },
+            { Pragma.Vertex("vertExtraction") },
             { Pragma.Fragment("fragExtraction") },
         };
 
