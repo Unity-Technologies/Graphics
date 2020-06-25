@@ -49,7 +49,11 @@ namespace Unity.Assets.MaterialVariant.Editor
                     pos = overrides.FindIndex(o => o.propertyPath == modification.propertyPath);
 
                 if (pos > -1)
-                    overrides[pos] = modification;
+                {
+                    //prevent registration at frame for broken inspector that update material at inspector frame
+                    if (overrides[pos] != modification)
+                        overrides[pos] = modification;
+                }
                 else
                     overrides.Add(modification);
             }

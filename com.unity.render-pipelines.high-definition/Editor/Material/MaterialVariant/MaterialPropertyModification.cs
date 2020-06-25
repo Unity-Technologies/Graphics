@@ -10,7 +10,7 @@ namespace Unity.Assets.MaterialVariant.Editor
 {
     // Defines a single modified property.
     [System.Serializable]
-    public sealed class MaterialPropertyModification
+    public struct MaterialPropertyModification
     {
         enum SerializedType
         {
@@ -226,6 +226,20 @@ namespace Unity.Assets.MaterialVariant.Editor
 
             property = property.FindPropertyRelative("second");
             return (property, indexOf, propertyBase);
+        }
+
+        public static bool operator ==(MaterialPropertyModification mpm1, MaterialPropertyModification mpm2)
+        {
+            return mpm1.m_PropertyPath == mpm2.m_PropertyPath
+                && mpm1.m_Value == mpm2.m_Value
+                && mpm1.m_ObjectReference == mpm2.m_ObjectReference;
+        }
+
+        public static bool operator !=(MaterialPropertyModification mpm1, MaterialPropertyModification mpm2)
+        {
+            return mpm1.m_PropertyPath != mpm2.m_PropertyPath
+                || mpm1.m_Value != mpm2.m_Value
+                || mpm1.m_ObjectReference != mpm2.m_ObjectReference;
         }
     }
 }
