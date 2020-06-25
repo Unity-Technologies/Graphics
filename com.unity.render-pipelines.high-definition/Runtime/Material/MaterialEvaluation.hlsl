@@ -100,7 +100,7 @@ void GetScreenSpaceAmbientOcclusion(float2 positionSS, float NdotV, float percep
     float2 capsuleOcclusions = LOAD_TEXTURE2D_X(_CapsuleOcclusionsTexture, positionSS).xy;
     if (_CapsuleOcclusionParams.x && _CapsuleOcclusionParams.z > 0.0f)
         capsuleOcclusions.y = 1;
-    if (_CapsuleOcclusionParams.y)
+    if (_CapsuleOcclusionParams.y < 1e-5f)
         capsuleOcclusions.x = 1;
 
     float indirectAmbientOcclusion = GetScreenSpaceDiffuseOcclusion(positionSS, capsuleOcclusions.y);
@@ -125,7 +125,7 @@ void GetScreenSpaceAmbientOcclusionMultibounce(float2 positionSS, float NdotV, f
     float2 capsuleOcclusions = LOAD_TEXTURE2D_X(_CapsuleOcclusionsTexture, positionSS).xy;
     if (_CapsuleOcclusionParams.x && _CapsuleOcclusionParams.z > 0.0f)
         capsuleOcclusions.y = 1;
-    if (_CapsuleOcclusionParams.y)
+    if (_CapsuleOcclusionParams.y < 1e-5f)
         capsuleOcclusions.x = 1;
 
     float indirectAmbientOcclusion = GetScreenSpaceDiffuseOcclusion(positionSS, capsuleOcclusions.y);
