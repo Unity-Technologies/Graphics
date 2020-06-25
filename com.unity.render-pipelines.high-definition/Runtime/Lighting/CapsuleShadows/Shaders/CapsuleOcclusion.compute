@@ -47,7 +47,7 @@ void CapsuleOcclusion(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupI
 
     PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, tileCoord);
 
-    float ao = 0.0f;
+    float ao = 1.0f;
     float specOcclusion = 1;
     float shadow = 1;
 
@@ -96,7 +96,7 @@ void CapsuleOcclusion(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupI
     }
 
 #ifdef AMBIENT_OCCLUSION
-    _OcclusionTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = max(_OcclusionTexture[COORD_TEXTURE2D_X(pixelCoord.xy)], ao);
+    _OcclusionTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = 1.0f - ((1.0f - _OcclusionTexture[COORD_TEXTURE2D_X(pixelCoord.xy)]) * ao);
 #endif
 
 #if defined(SPECULAR_OCCLUSION) || defined(DIRECTIONAL_SHADOW)

@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float radius = radiusOS * Mathf.Max(right, up);
 
             Vector3 centerRWS = tr.TransformPoint(centerOS) - camOffset;
-            Vector3 dir = directionWS * forward * scalingOS;
+            Vector3 dir = directionWS * forward * scalingOS / Mathf.Max(right, up);
 
             Vector3 lossyScale = tr.lossyScale;
             float influenceRadius = Mathf.Max(Mathf.Max(lossyScale.x, lossyScale.y), lossyScale.z) * influenceRadiusScale * radiusOS;
