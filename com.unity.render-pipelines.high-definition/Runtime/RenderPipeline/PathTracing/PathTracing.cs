@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter maximumIntensity = new ClampedFloatParameter(10f, 0f, 100f);
 
         public BoolParameter adaptive = new BoolParameter(false);
-        public MinFloatParameter threshold = new MinFloatParameter(32f, 0f);
+        public MinFloatParameter threshold = new MinFloatParameter(0.01f, 0f);
         public ClampedFloatParameter minimumSamples = new ClampedFloatParameter(32f, 1f, 4096f);
         public ClampedIntParameter hits = new ClampedIntParameter(0, 0, 16);
 

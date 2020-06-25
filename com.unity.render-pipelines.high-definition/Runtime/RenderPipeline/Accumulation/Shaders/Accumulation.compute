@@ -112,7 +112,13 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     if (convergedPixel)
     {
-        _CameraColorTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(_AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)].xyz * exposureMultiplier, 1.0);
+        float3 color = _AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)].xyz * exposureMultiplier;
+        if (sampleCount < _AccumulationNumSamples)
+        {
+            // Add a little convergence cue to our result as long as we have not reached max samples
+            AddConvergenceCue(currentPixelCoord, sampleCount, color);
+        }
+         _CameraColorTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(color, 1.0f);
     }
     else
     {

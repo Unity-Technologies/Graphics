@@ -1,5 +1,5 @@
 #define CONVERGED_ALPHA asfloat(1073741824)
-#define FILTER_RADIUS 4
+#define FILTER_RADIUS 3
 #define PACK_SUCCESSIVE_HITS
 
 // Storage format:
