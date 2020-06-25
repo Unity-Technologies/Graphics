@@ -52,16 +52,6 @@ namespace Unity.Assets.MaterialVariant.Editor
                 EditorGUI.BeginChangeCheck();
         }
 
-        void ResetOverride()
-        {
-            m_Variants[0].ResetOverride(m_MaterialProperty);
-        }
-
-        void BlockToggle()
-        {
-            m_Variants[0].TogglePropertyBlocked(m_MaterialProperty.name);
-        }
-
         void IDisposable.Dispose()
         {
             if (m_Variants == null)
@@ -83,38 +73,11 @@ namespace Unity.Assets.MaterialVariant.Editor
                     r.yMax = endY - 2;
                     r.width = EditorGUIUtility.labelWidth;
 
-                    if (Event.current.rawType == EventType.ContextClick && r.Contains(Event.current.mousePosition))
-                    {
-                        GenericMenu menu = new GenericMenu();
-
-                        var resetGUIContent = new GUIContent("Reset Override");
-                        if (isOverride)
-                        {
-                            menu.AddItem(resetGUIContent, false, ResetOverride);
-                        }
-                        else
-                        {
-                            menu.AddDisabledItem(resetGUIContent);
-                        }
-
-                        var blockGUIContent = new GUIContent("Lock in children");
-                        if (m_IsBlocked)
-                        {
-                            menu.AddDisabledItem(blockGUIContent, true);
-                        }
-                        else
-                        {
-                            menu.AddItem(blockGUIContent, m_Variants[0].IsPropertyBlockedInCurrent(m_MaterialProperty.name), BlockToggle);
-                        }
-
-                        menu.ShowAsContext();
-                    }
-
-                    if (isOverride)
-                    {
-                        r.width = 3;
-                        EditorGUI.DrawRect(r, Color.white);
-                    }
+                    MaterialVariant matVariant = m_Variants[0];
+                    MaterialProperty matProperty = m_MaterialProperty;
+                    MaterialVariantEditor.DrawPropertyScopeContextMenuAndIcons(matVariant, m_MaterialProperty.name, isOverride, r,
+                    () => matVariant.ResetOverride(matProperty),
+                    () => matVariant.TogglePropertyBlocked(matProperty.name));
                 }
             }
 
@@ -209,16 +172,6 @@ namespace Unity.Assets.MaterialVariant.Editor
                 EditorGUI.BeginChangeCheck();
         }
 
-        void ResetOverride()
-        {
-            m_Variants[0].ResetOverrideForNonMaterialProperty(k_SerializedPropertyName);
-        }
-
-        void BlockToggle()
-        {
-            m_Variants[0].TogglePropertyBlocked(k_SerializedPropertyName);
-        }
-
         void IDisposable.Dispose()
         {
             if (m_Variants == null)
@@ -237,69 +190,11 @@ namespace Unity.Assets.MaterialVariant.Editor
                 r.yMax = endY - 2;
                 r.width = EditorGUIUtility.labelWidth;
 
-                if (Event.current.rawType == EventType.ContextClick && r.Contains(Event.current.mousePosition))
-                {
-                    GenericMenu menu = new GenericMenu();
-
-                    var resetGUIContent = new GUIContent("Reset Override");
-                    if (isOverride)
-                    {
-                        menu.AddItem(resetGUIContent, false, ResetOverride);
-                    }
-                    else
-                    {
-                        menu.AddDisabledItem(resetGUIContent);
-                    }
-
-                    var blockGUIContent = new GUIContent("Lock in children");
-                    if (m_IsBlocked)
-                    {
-                        menu.AddDisabledItem(blockGUIContent, true);
-                    }
-                    else
-                    {
-                        menu.AddItem(blockGUIContent, m_Variants[0].IsPropertyBlockedInCurrent(k_SerializedPropertyName), BlockToggle);
-                    }
-
-                    menu.ShowAsContext();
-                }
-
-                if (isOverride)
-                {
-                    r.width = 3;
-                    EditorGUI.DrawRect(r, Color.white);
-                }
+                MaterialVariant matVariant = m_Variants[0];
+                MaterialVariantEditor.DrawPropertyScopeContextMenuAndIcons(matVariant, k_SerializedPropertyName, isOverride, r,
+                    () => matVariant.ResetOverrideForNonMaterialProperty(k_SerializedPropertyName),
+                    () => matVariant.TogglePropertyBlocked(k_SerializedPropertyName));
             }
-            /*
-                {
-                    if (Event.current.rawType == EventType.ContextClick && r.Contains(Event.current.mousePosition))
-                    {
-                        GenericMenu menu = new GenericMenu();
-
-                        var resetGUIContent = new GUIContent("Reset Override");
-                        if (isOverride)
-                        {
-                            menu.AddItem(resetGUIContent, false, ResetOverride);
-                        }
-                        else
-                        {
-                            menu.AddDisabledItem(resetGUIContent);
-                        }
-
-                        var blockGUIContent = new GUIContent("Lock in children");
-                        if (m_IsBlocked)
-                        {
-                            menu.AddDisabledItem(blockGUIContent, true);
-                        }
-                        else
-                        {
-                            menu.AddItem(blockGUIContent, m_Variants[0].IsPropertyBlockedInCurrent(m_MaterialProperty.name), BlockToggle);
-                        }
-
-                        menu.ShowAsContext();
-                    }
-                }
-             */
 
             bool hasChanged = !m_IsBlocked && EditorGUI.EndChangeCheck();
 
