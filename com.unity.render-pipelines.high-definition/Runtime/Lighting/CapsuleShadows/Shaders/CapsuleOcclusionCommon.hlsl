@@ -98,6 +98,13 @@ float EvaluateCapsuleShadowAnalytical(EllipsoidOccluderData data, float3 positio
     float occluderFromSurfaceDistance;
     ComputeDirectionAndDistanceFromStartAndEnd(positionWS, occluderPos, occluderFromSurfaceDirectionWS, occluderFromSurfaceDistance);
 
+    // transform to sphere space
+    float4 occluder = TransformOccluder(positionWS, data);
+    occluderFromSurfaceDistance = length(occluder.xyz);
+    occluderFromSurfaceDirectionWS = normalize(occluder.xyz);
+    coneAxis = normalize(TransformDirection(coneAxis, data));
+    // --
+
     float tanTheta = radius / occluderFromSurfaceDistance;
     float theta = FastATanPos(tanTheta);
 

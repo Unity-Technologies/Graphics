@@ -35,14 +35,39 @@ MonoBehaviour:
   m_AdvancedMode: 0
   intensity:
     m_OverrideState: 1
-    m_Value: 0.01
+    m_Value: 1
     min: 0
     max: 4
+  directShadow:
+    m_OverrideState: 1
+    m_Value: 0
   coneAperture:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 30
     min: 15
     max: 89
+--- !u!114 &-3553838302268289699
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 137aba84404d7a84ca2fb541822f33bb, type: 3}
+  m_Name: CapsuleSpecularOcclusion
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  intensity:
+    m_OverrideState: 1
+    m_Value: 1
+    min: 0
+    max: 4
+  monteCarlo:
+    m_OverrideState: 1
+    m_Value: 0
 --- !u!114 &-3439557432838079226
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -189,9 +214,10 @@ MonoBehaviour:
   m_Name: CapsuleVolume Profile
   m_EditorClassIdentifier: 
   components:
-  - {fileID: -6320298406119171668}
   - {fileID: -2415132327207178177}
+  - {fileID: -6320298406119171668}
   - {fileID: -3439557432838079226}
+  - {fileID: -3553838302268289699}
 --- !u!114 &2879286140844481241
 MonoBehaviour:
   m_ObjectHideFlags: 3

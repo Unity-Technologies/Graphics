@@ -105,9 +105,15 @@ float4 TransformOccluder(float3 positionWS, EllipsoidOccluderData data)
     float3 dir = GetOccluderDirectionWS(data);
     float3 toOccluder = GetOccluderPositionRWS(data) - positionWS;
     float proj = dot(toOccluder, dir);
-    float3 toOccluderCS = toOccluder - (proj * dir) + proj * dir / (GetOccluderScaling(data));
+    float3 toOccluderCS = toOccluder - (proj * dir) + proj * dir / GetOccluderScaling(data);
     return float4(toOccluderCS, GetOccluderRadius(data));
 }
 
+float3 TransformDirection(float3 direction, EllipsoidOccluderData data)
+{
+    float3 dir = GetOccluderDirectionWS(data);
+    float proj = dot(direction, dir);
+    return direction - (proj * dir) + proj * dir / GetOccluderScaling(data);
+}
 
 #endif
