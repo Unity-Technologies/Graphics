@@ -68,6 +68,7 @@ SurfaceDescriptionInputs FragInputsToSurfaceDescriptionInputs(FragInputs input, 
 FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 {
     UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_SETUP_DOTS_INSTANCE_ID(input);
     VaryingsMeshToPS unpacked= UnpackVaryingsMeshToPS(input);
     return BuildFragInputs(unpacked);
 }

@@ -143,10 +143,32 @@ CBUFFER_START(UnityInstancingDOTS_InstanceVisibility)
     DOTSVisibleData unity_DOTSVisibleInstances[UNITY_INSTANCED_ARRAY_SIZE];
 CBUFFER_END
 
+#ifdef UNITY_DOTS_DATA_ORIENTED_HYBRID_ENABLED
+
+// A global instance ID variable that functions can directly access. analouge to UnityInstancing's unity_InstanceID
+static uint unity_dotsInstanceID;
+
+#define UNITY_DOTS_INSTANCE_ID uint dotsInstanceID : TEXCOORD7;
+#define UNITY_SETUP_DOTS_INSTANCE_ID(input) unity_dotsInstanceID = input.dotsInstanceID;
+#define UNITY_TRANSFER_DOTS_INSTANCE_ID(input, output) output.dotsInstanceID = input.dotsInstanceID
+
+uint GetDOTSInstanceIndex()
+{
+    return unity_InstanceID;
+}
+
+#else
+
+#define UNITY_DOTS_INSTANCE_ID
+#define UNITY_SETUP_DOTS_INSTANCE_ID(input)
+#define UNITY_TRANSFER_DOTS_INSTANCE_ID(input, output)
+
 uint GetDOTSInstanceIndex()
 {
     return unity_DOTSVisibleInstances[unity_InstanceID].VisibleData.x;
 }
+
+#endif
 
 uint ComputeDOTSInstanceDataAddress(uint metadata, uint stride)
 {
@@ -232,6 +254,12 @@ float2x4 LoadDOTSInstancedData(float2x4 dummy, uint metadata) { return LoadDOTSI
 
 #undef DEFINE_DOTS_LOAD_INSTANCE_SCALAR
 #undef DEFINE_DOTS_LOAD_INSTANCE_VECTOR
+
+#else
+
+#define UNITY_DOTS_INSTANCE_ID
+#define UNITY_SETUP_DOTS_INSTANCE_ID(input)
+#define UNITY_TRANSFER_DOTS_INSTANCE_ID(input, output)
 
 #endif // UNITY_DOTS_INSTANCING_ENABLED
 

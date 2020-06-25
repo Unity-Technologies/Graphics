@@ -107,6 +107,9 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
+    UNITY_SETUP_DOTS_INSTANCE_ID(input);
+    UNITY_TRANSFER_DOTS_INSTANCE_ID(input, output);
+
 #if defined(HAVE_MESH_MODIFICATION)
     input = ApplyMeshModification(input, _TimeParameters.xyz);
 #endif
@@ -172,6 +175,9 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
 
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
+
+    UNITY_SETUP_DOTS_INSTANCE_ID(input);
+    UNITY_TRANSFER_DOTS_INSTANCE_ID(input, output);
 
     output.positionCS = TransformWorldToHClip(input.positionRWS);
 
