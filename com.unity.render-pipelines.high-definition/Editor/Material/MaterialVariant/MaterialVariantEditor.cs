@@ -46,11 +46,8 @@ namespace Unity.Assets.MaterialVariant.Editor
         {
             base.OnEnable();
 
-            // We want to allow users to do a re-parenting so we allow to edit parent
-            assetTarget.hideFlags &= ~HideFlags.NotEditable; // Be sure we can edit this material
-
             targetEditor = CreateEditor(assetTarget);
-            //targetEditor.firstInspectedEditor = true; // This line allow to remove the small extra arrow in the header, but require to have access to internal of Editor
+            InternalEditorUtility.SetIsInspectorExpanded(assetTarget, true);
             registeredVariants.Add(targetEditor, extraDataTargets.Cast<MaterialVariant>().ToArray());
         }
 
@@ -68,15 +65,13 @@ namespace Unity.Assets.MaterialVariant.Editor
 
         public override void OnInspectorGUI()
         {
-          //  extraDataSerializedObject.Update();
-            using (var changed = new EditorGUI.ChangeCheckScope())
-            {
-                targetEditor.OnInspectorGUI();
-                if (changed.changed)
-                {
-                    Apply();
-                }
-            }
+            serializedObject.UpdateIfRequiredOrScript();
+            extraDataSerializedObject.UpdateIfRequiredOrScript();
+
+            targetEditor.OnInspectorGUI();
+
+            serializedObject.ApplyModifiedProperties();
+            extraDataSerializedObject.ApplyModifiedProperties();
 
             DrawLineageGUI();
 
@@ -86,12 +81,26 @@ namespace Unity.Assets.MaterialVariant.Editor
         protected override void Apply()
         {
             base.Apply();
-            
+            RefreshTargets(true);
+        }
+
+        protected override void ResetValues()
+        {
+            base.ResetValues();
+            RefreshTargets(false);
+        }
+
+        private void RefreshTargets(bool save)
+        {
             if (assetTarget != null)
             {
                 for (int i = 0; i < targets.Length; ++i)
                 {
-                    InternalEditorUtility.SaveToSerializedFileAndForget(new[] { extraDataTargets[i] }, (targets[i] as MaterialVariantImporter).assetPath, true);
+                    if (save)
+                    {
+                        InternalEditorUtility.SaveToSerializedFileAndForget(new[] { extraDataTargets[i] }, (targets[i] as MaterialVariantImporter).assetPath, true);
+                    }
+
                     AssetDatabase.ImportAsset((targets[i] as MaterialVariantImporter).assetPath);
                 }
             }
