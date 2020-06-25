@@ -848,6 +848,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed extensions of shader CAS include files.
 - Making the planar probe atlas's format match the color buffer's format.
 - Removing the planarReflectionCacheCompressed setting from asset.
+- VFXTarget with Unlit now allows EmissiveColor output to be consistent with HDRP unlit.
 
 ## [7.1.1] - 2019-09-05
 
