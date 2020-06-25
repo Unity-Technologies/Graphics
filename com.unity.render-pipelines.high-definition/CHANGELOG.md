@@ -628,6 +628,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where the light list is not cleared but still used when resizing the RT.
 - Fixed exposure debug shader with XR single-pass rendering.
 - Fixed issues with scene view and transparent motion vectors.
+- Fix supported Mac platform detection to handle new major version (11.0) properly
 
 ### Changed
 - Improve MIP selection for decals on Transparents
