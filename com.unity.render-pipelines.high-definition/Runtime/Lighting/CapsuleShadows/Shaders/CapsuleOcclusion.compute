@@ -55,11 +55,7 @@ void CapsuleOcclusion(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupI
 
     uint capsuleFeatureFlags = 0;
 #ifdef AMBIENT_OCCLUSION
-    // TEMP HACK: Disabling reading SSAO data from buffer, as it looks like this is broken (getting recursive painting).
-    // Guessing this has something to do with where this shader is actually dispatched in the render pipeline.
-    // For now, just starting from a clean slate here, and overwriting SSAO data with our capsule AO.
-    // ao = _OcclusionTexture[COORD_TEXTURE2D_X(pixelCoord.xy)];
-    ao = 0.0f;
+    ao = _OcclusionTexture[COORD_TEXTURE2D_X(pixelCoord.xy)];
     capsuleFeatureFlags = capsuleFeatureFlags | CAPSULEOCCLUSIONTYPE_AMBIENT_OCCLUSION;
 #endif
 #ifdef SPECULAR_OCCLUSION
