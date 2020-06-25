@@ -99,7 +99,8 @@ namespace UnityEditor.Rendering.HighDefinition
             UVBaseMapping uvBaseMapping = (UVBaseMapping)UVBase[m_LayerIndex].floatValue;
             float X, Y, Z, W;
 
-            materialEditor.TexturePropertySingleLine(Styles.detailMapNormalText, detailMap[m_LayerIndex]);
+            using (CreateOverrideScopeFor(detailMap[m_LayerIndex]))
+                materialEditor.TexturePropertySingleLine(Styles.detailMapNormalText, detailMap[m_LayerIndex]);
 
             // TODO: does not work with multi-selection
             if (materials[0].GetTexture(isLayeredLit ? kDetailMap + m_LayerIndex : kDetailMap))
@@ -117,7 +118,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 else
                 {
-                    materialEditor.ShaderProperty(UVDetail[m_LayerIndex], Styles.UVDetailMappingText);
+                    using (CreateOverrideScopeFor(UVDetail[m_LayerIndex]))
+                        materialEditor.ShaderProperty(UVDetail[m_LayerIndex], Styles.UVDetailMappingText);
                 }
 
                 // Setup the UVSet for detail, if planar/triplanar is use for base, it will override the mapping of detail (See shader code)
@@ -125,21 +127,27 @@ namespace UnityEditor.Rendering.HighDefinition
                 Y = ((UVDetailMapping)UVDetail[m_LayerIndex].floatValue == UVDetailMapping.UV1) ? 1.0f : 0.0f;
                 Z = ((UVDetailMapping)UVDetail[m_LayerIndex].floatValue == UVDetailMapping.UV2) ? 1.0f : 0.0f;
                 W = ((UVDetailMapping)UVDetail[m_LayerIndex].floatValue == UVDetailMapping.UV3) ? 1.0f : 0.0f;
-                UVDetailsMappingMask[m_LayerIndex].colorValue = new Color(X, Y, Z, W);
+                using (CreateOverrideScopeFor(UVDetailsMappingMask[m_LayerIndex], forceMode: true))
+                    UVDetailsMappingMask[m_LayerIndex].colorValue = new Color(X, Y, Z, W);
 
                 EditorGUI.indentLevel++;
-                materialEditor.ShaderProperty(linkDetailsWithBase[m_LayerIndex], Styles.linkDetailsWithBaseText);
+                using (CreateOverrideScopeFor(linkDetailsWithBase[m_LayerIndex]))
+                    materialEditor.ShaderProperty(linkDetailsWithBase[m_LayerIndex], Styles.linkDetailsWithBaseText);
                 EditorGUI.indentLevel--;
 
-                materialEditor.TextureScaleOffsetProperty(detailMap[m_LayerIndex]);
+                using (CreateOverrideScopeFor(detailMap[m_LayerIndex]))
+                    materialEditor.TextureScaleOffsetProperty(detailMap[m_LayerIndex]);
                 if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel && (UVDetail[m_LayerIndex].floatValue != UVBase[m_LayerIndex].floatValue))
                 {
                     if (materials[0].GetTexture(isLayeredLit ? kDetailMap + m_LayerIndex : kDetailMap))
                         EditorGUILayout.HelpBox(Styles.perPixelDisplacementDetailsWarning.text, MessageType.Warning);
                 }
-                materialEditor.ShaderProperty(detailAlbedoScale[m_LayerIndex], Styles.detailAlbedoScaleText);
-                materialEditor.ShaderProperty(detailNormalScale[m_LayerIndex], Styles.detailNormalScaleText);
-                materialEditor.ShaderProperty(detailSmoothnessScale[m_LayerIndex], Styles.detailSmoothnessScaleText);
+                using (CreateOverrideScopeFor(detailAlbedoScale[m_LayerIndex]))
+                    materialEditor.ShaderProperty(detailAlbedoScale[m_LayerIndex], Styles.detailAlbedoScaleText);
+                using (CreateOverrideScopeFor(detailNormalScale[m_LayerIndex]))
+                    materialEditor.ShaderProperty(detailNormalScale[m_LayerIndex], Styles.detailNormalScaleText);
+                using (CreateOverrideScopeFor(detailSmoothnessScale[m_LayerIndex]))
+                    materialEditor.ShaderProperty(detailSmoothnessScale[m_LayerIndex], Styles.detailSmoothnessScaleText);
                 EditorGUI.indentLevel--;
             }
         }
