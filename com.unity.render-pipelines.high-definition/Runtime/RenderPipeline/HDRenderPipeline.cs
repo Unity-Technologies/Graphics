@@ -1305,7 +1305,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var capsuleSpecOccSettings = hdCamera.volumeStack.GetComponent<CapsuleSpecularOcclusion>();
             var capsuleSoftShadow = hdCamera.volumeStack.GetComponent<CapsuleSoftShadows>(); // Again this is bad, should be per light really... 
             // TODO: This is bad for now... we really must find a way to bind neutral (tried but didn't work :D ) 
-            m_ShaderVariablesGlobalCB._CapsuleOcclusionParams = new Vector4(capsuleSoftShadow.directShadow.value ? 1 : 0, capsuleSpecOccSettings.intensity.value, capsuleSoftShadow.intensity.value, 0);
+            m_ShaderVariablesGlobalCB._CapsuleOcclusionParams = new Vector4(capsuleSoftShadow.directShadow.value ? 1 : 0, capsuleSpecOccSettings.intensity.value, capsuleSoftShadow.intensity.value, capsuleSoftShadow.directShadowIsForDirectional.value ? 1 : 0);
 
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
         }

@@ -1229,6 +1229,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #endregion
 
+        // TODO Mustn't be public, here for quick prototyping
+        public bool isLightForCapsuleShadows = false;
+
         #region HDShadow Properties API (from AdditionalShadowData)
         [SerializeField] private IntScalableSettingValue m_ShadowResolution = new IntScalableSettingValue
         {

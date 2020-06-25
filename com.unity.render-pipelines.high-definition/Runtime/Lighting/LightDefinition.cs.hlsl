@@ -121,7 +121,8 @@ struct LightData
     float specularDimmer;
     float isRayTracedContactShadow;
     float penumbraTint;
-    float3 padding;
+    float2 padding;
+    int hasCapsuleShadows;
     float boxLightSafeExtent;
 };
 

@@ -456,6 +456,11 @@ SHADOW_TYPE EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionI
         shadow = lerp(shadowMask, shadow, light.shadowDimmer);
     }
 
+    if (_CapsuleOcclusionParams.x && _CapsuleOcclusionParams.z > 0.0f && light.hasCapsuleShadows == 1 && _CapsuleOcclusionParams.w == 0)
+    {
+        shadow *= LOAD_TEXTURE2D_X(_CapsuleOcclusionsTexture, posInput.positionSS).y;
+    }
+
     // Transparents have no contact shadow information
 #if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(LIGHT_EVALUATION_NO_CONTACT_SHADOWS)
     shadow = min(shadow, NdotL > 0.0 ? GetContactShadow(lightLoopContext, light.contactShadowMask, light.isRayTracedContactShadow) : 1.0);

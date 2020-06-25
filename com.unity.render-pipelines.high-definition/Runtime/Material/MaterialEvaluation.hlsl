@@ -98,7 +98,7 @@ void GetScreenSpaceAmbientOcclusion(float2 positionSS, float NdotV, float percep
     // x: specular occlusion y: indirect directional occlusion (for directional lightmaps if capsule shadows are set to be indirect shadows)
     // NOTE: This is very temp as it changes the signatures and we can't really do that :) But it's hackweek [TODO if we ever port to proper HDRP]
     float2 capsuleOcclusions = LOAD_TEXTURE2D_X(_CapsuleOcclusionsTexture, positionSS).xy;
-    if (_CapsuleOcclusionParams.x)
+    if (_CapsuleOcclusionParams.x && _CapsuleOcclusionParams.z > 0.0f)
         capsuleOcclusions.y = 1;
     if (_CapsuleOcclusionParams.y)
         capsuleOcclusions.x = 1;
@@ -123,7 +123,7 @@ void GetScreenSpaceAmbientOcclusionMultibounce(float2 positionSS, float NdotV, f
     // x: specular occlusion y: indirect directional occlusion (for directional lightmaps if capsule shadows are set to be indirect shadows)
     // NOTE: This is very temp as it changes the signatures and we can't really do that :) But it's hackweek [TODO if we ever port to proper HDRP]
     float2 capsuleOcclusions = LOAD_TEXTURE2D_X(_CapsuleOcclusionsTexture, positionSS).xy;
-    if (_CapsuleOcclusionParams.x)
+    if (_CapsuleOcclusionParams.x && _CapsuleOcclusionParams.z > 0.0f)
         capsuleOcclusions.y = 1;
     if (_CapsuleOcclusionParams.y)
         capsuleOcclusions.x = 1;

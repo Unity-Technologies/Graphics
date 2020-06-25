@@ -8,12 +8,14 @@
 // --------------------------------------------
 CBUFFER_START(CapsuleOcclusionConstantBuffer)
 float4 _CapsuleShadowParameters;    // xyz: direction w: cone width to use.      // Soon to be subjected to changes!
+float4 _CapsuleShadowParameters2; 
 float4 _CapsuleOcclusionIntensities;
 CBUFFER_END
 
 #define _CapsuleAmbientOcclusionIntensity _CapsuleOcclusionIntensities.x 
 #define _CapsuleSpecularOcclusionIntensity _CapsuleOcclusionIntensities.y
 #define _CapsuleShadowIntensity saturate(_CapsuleOcclusionIntensities.z)
+#define _CapsuleShadowIsPunctual (_CapsuleShadowParameters2.x == 0)
 
 TEXTURE3D(_CapsuleShadowLUT);
 

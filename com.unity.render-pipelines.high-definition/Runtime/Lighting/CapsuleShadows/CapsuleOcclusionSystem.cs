@@ -23,8 +23,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
     partial class CapsuleOcclusionSystem
     {
-        const int k_LUTWidth = 192;
-        const int k_LUTHeight = 64;
+        const int k_LUTWidth = 1024;   // TODO: This is large temporarily just to make the punctual don't look too bad, but realistically more thought should be put into this. 
+        const int k_LUTHeight = 128;
         const int k_LUTDepth = 1;
 
         private bool m_LUTReady = false;
@@ -34,6 +34,8 @@ namespace UnityEngine.Rendering.HighDefinition
         private RenderPipelineSettings m_Settings;
 
         private RTHandle m_CapsuleOcclusions;
+
+        private HDAdditionalLightData m_LightForShadows = null;
 
         internal CapsuleOcclusionSystem(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
         {
@@ -57,6 +59,16 @@ namespace UnityEngine.Rendering.HighDefinition
                                                     name: "Capsule Soft Shadows LUT");
 
             m_CapsuleOcclusions = RTHandles.Alloc(Vector2.one, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R8G8_UNorm, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: "Capsule Occlusions");
+        }
+
+        internal void SetLightForShadows(HDAdditionalLightData light)
+        {
+            m_LightForShadows = light;
+        }
+
+        internal bool IsLightCurrentLightCastingShadows(HDAdditionalLightData light)
+        {
+            return m_LightForShadows == light;
         }
 
         internal bool SpecOcclusionOrShadowEnabled(HDCamera hdCamera)
@@ -142,7 +154,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 var sunDir = (sunLight != null) ? sunLight.transform.forward : -Vector3.up;
                 // softness to be derived from angular diameter.
                 // For now a somewhat randomly set.
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._CapsuleShadowParameters, new Vector4(-sunDir.x, -sunDir.y, -sunDir.z, shadowSettings.coneAperture.value / 89.0f));
+
+                bool isDir = true;
+                Vector3 posOrAxis = new Vector3(-sunDir.x, -sunDir.y, -sunDir.z);
+                if(m_LightForShadows != null)
+                {
+                    posOrAxis = m_LightForShadows.transform.position - hdCamera.camera.transform.position; // move to camera relative
+                    isDir = false;
+                }
+
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._CapsuleShadowParameters, new Vector4(posOrAxis.x, posOrAxis.y, posOrAxis.z, shadowSettings.coneAperture.value / 89.0f));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._CapsuleShadowParameters2, new Vector4(isDir ? 1 : 0, 0, 0, 0));
+
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CapsuleShadowLUT, m_CapsuleSoftShadowLUT);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CapsuleOcclusions, m_CapsuleOcclusions);
 

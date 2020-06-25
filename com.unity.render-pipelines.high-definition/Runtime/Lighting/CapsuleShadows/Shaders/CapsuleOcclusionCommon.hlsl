@@ -88,6 +88,12 @@ float EvaluateCapsuleShadowAnalytical(EllipsoidOccluderData data, float3 positio
     float3 occluderPos = GetOccluderPositionRWS(data);
     float radius = GetOccluderRadius(data);
 
+    if (_CapsuleShadowIsPunctual)
+    {
+        float3 lightPos = _CapsuleShadowParameters.xyz;
+        coneAxis = normalize(lightPos - positionWS);
+    }
+
     float3 occluderFromSurfaceDirectionWS;
     float occluderFromSurfaceDistance;
     ComputeDirectionAndDistanceFromStartAndEnd(positionWS, occluderPos, occluderFromSurfaceDirectionWS, occluderFromSurfaceDistance);
@@ -142,6 +148,14 @@ float EvaluateCapsuleShadowLUT(EllipsoidOccluderData data, float3 positionWS, fl
 {
     // For now assuming just directional light.
     float3 coneAxis = _CapsuleShadowParameters.xyz;
+
+    if (_CapsuleShadowIsPunctual)
+    {
+        float3 lightPos = _CapsuleShadowParameters.xyz;
+        coneAxis = normalize(lightPos - positionWS);
+    }
+
+
     float3 occluderPos = GetOccluderPositionRWS(data);
     float radius = GetOccluderRadius(data);
 

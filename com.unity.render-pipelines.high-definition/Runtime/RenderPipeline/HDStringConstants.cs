@@ -216,6 +216,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _LUTGenParameters = Shader.PropertyToID("_LUTGenParameters");
         public static readonly int _CapsuleShadowLUT = Shader.PropertyToID("_CapsuleShadowLUT");
         public static readonly int _CapsuleShadowParameters = Shader.PropertyToID("_CapsuleShadowParameters");
+        public static readonly int _CapsuleShadowParameters2 = Shader.PropertyToID("_CapsuleShadowParameters2");
         public static readonly int _CapsuleOcclusions = Shader.PropertyToID("_CapsuleOcclusions");
         public static readonly int _CapsuleOcclusionIntensities = Shader.PropertyToID("_CapsuleOcclusionIntensities");
 

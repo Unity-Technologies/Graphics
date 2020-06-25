@@ -1406,6 +1406,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             lightData.range = light.range;
 
+            lightData.hasCapsuleShadows = m_CapsuleOcclusionSystem.IsLightCurrentLightCastingShadows(additionalLightData) ? 1 : 0;
+
             if (additionalLightData.applyRangeAttenuation)
             {
                 lightData.rangeAttenuationScale = 1.0f / (light.range * light.range);
@@ -2451,6 +2453,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_DebugSelectedLightShadowCount = shadowRequestCount;
                     }
 #endif
+                }
+
+                if(additionalLightData.isLightForCapsuleShadows)
+                {
+                    m_CapsuleOcclusionSystem.SetLightForShadows(additionalLightData);
                 }
 
                 // Directional rendering side, it is separated as it is always visible so no volume to handle here
