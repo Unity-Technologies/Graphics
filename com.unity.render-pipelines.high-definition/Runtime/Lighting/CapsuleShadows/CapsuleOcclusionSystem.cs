@@ -61,7 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // TODO: This assumes is shadows from sun.
-        internal void RenderCapsuleOcclusions(CommandBuffer cmd, HDCamera hdCamera, RTHandle occlusionTexture, Light sunLight, int frameIndex)
+        internal void RenderCapsuleOcclusions(CommandBuffer cmd, HDCamera hdCamera, RTHandle occlusionTexture, Light sunLight)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CapsuleOcclusion)))
             {
@@ -105,8 +105,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ScramblingTileXSPP, m_Resources.textures.scramblingTile8SPP);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RankingTileXSPP, m_Resources.textures.rankingTile8SPP);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ScramblingTexture, m_Resources.textures.scramblingTex);
-
-                    cmd.SetComputeIntParam(cs, HDShaderIDs._CapsuleFrameIndex, frameIndex);
                 }
 
                 cmd.SetComputeFloatParam(cs, HDShaderIDs._CapsuleAmbientOcclusionIntensity, aoSettings.intensity.value);
