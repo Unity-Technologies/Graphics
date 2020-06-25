@@ -23,7 +23,7 @@ VFX_HDRP_OSX_Metal_Standalone_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr/utr --suite=playmode --platform=StandaloneOSX  --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --timeout=1400'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr --suite=playmode --platform=StandaloneOSX  --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --timeout=1400'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
@@ -52,7 +52,7 @@ VFX_HDRP_OSX_Metal_playmode_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
@@ -81,7 +81,7 @@ VFX_HDRP_OSX_Metal_playmode_XR_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr/utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
@@ -110,7 +110,7 @@ VFX_HDRP_OSX_Metal_editmode_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
@@ -139,7 +139,7 @@ VFX_HDRP_OSX_Metal_Standalone_fast-trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr/utr --suite=playmode --platform=StandaloneOSX  --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --timeout=1400'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr --suite=playmode --platform=StandaloneOSX  --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --timeout=1400'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
@@ -168,7 +168,7 @@ VFX_HDRP_OSX_Metal_playmode_fast-trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
@@ -197,7 +197,7 @@ VFX_HDRP_OSX_Metal_playmode_XR_fast-trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr/utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
@@ -226,7 +226,7 @@ VFX_HDRP_OSX_Metal_editmode_fast-trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
@@ -256,7 +256,7 @@ VFX_HDRP_OSX_Metal_Standalone_CUSTOM-REVISION:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr/utr --suite=playmode --platform=StandaloneOSX  --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --timeout=1400'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr --suite=playmode --platform=StandaloneOSX  --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --timeout=1400'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
@@ -286,7 +286,7 @@ VFX_HDRP_OSX_Metal_playmode_CUSTOM-REVISION:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
@@ -316,7 +316,7 @@ VFX_HDRP_OSX_Metal_playmode_XR_CUSTOM-REVISION:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr/utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
@@ -346,7 +346,7 @@ VFX_HDRP_OSX_Metal_editmode_CUSTOM-REVISION:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/

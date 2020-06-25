@@ -23,7 +23,7 @@ Universal_Hybrid_OSX_Metal_Standalone_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/UniversalHybridTest && ~/Graphics/TestProjects/UniversalHybridTest/utr/utr --suite=playmode --platform=StandaloneOSX  --testproject=/Users/bokken/Graphics/TestProjects/UniversalHybridTest --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results --timeout=1400'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/UniversalHybridTest && ~/Graphics/TestProjects/UniversalHybridTest/utr --suite=playmode --platform=StandaloneOSX  --testproject=/Users/bokken/Graphics/TestProjects/UniversalHybridTest --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results --timeout=1400'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/UniversalHybridTest/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results/ TestProjects/UniversalHybridTest/test-results/
@@ -52,7 +52,7 @@ Universal_Hybrid_OSX_Metal_playmode_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/UniversalHybridTest && ~/Graphics/TestProjects/UniversalHybridTest/utr/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/UniversalHybridTest --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/UniversalHybridTest && ~/Graphics/TestProjects/UniversalHybridTest/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/UniversalHybridTest --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/UniversalHybridTest/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results/ TestProjects/UniversalHybridTest/test-results/
@@ -81,7 +81,7 @@ Universal_Hybrid_OSX_Metal_Standalone_fast-trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/UniversalHybridTest && ~/Graphics/TestProjects/UniversalHybridTest/utr/utr --suite=playmode --platform=StandaloneOSX  --testproject=/Users/bokken/Graphics/TestProjects/UniversalHybridTest --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results --timeout=1400'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/UniversalHybridTest && ~/Graphics/TestProjects/UniversalHybridTest/utr --suite=playmode --platform=StandaloneOSX  --testproject=/Users/bokken/Graphics/TestProjects/UniversalHybridTest --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results --timeout=1400'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/UniversalHybridTest/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results/ TestProjects/UniversalHybridTest/test-results/
@@ -110,7 +110,7 @@ Universal_Hybrid_OSX_Metal_playmode_fast-trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/UniversalHybridTest && ~/Graphics/TestProjects/UniversalHybridTest/utr/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/UniversalHybridTest --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/UniversalHybridTest && ~/Graphics/TestProjects/UniversalHybridTest/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/UniversalHybridTest --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/UniversalHybridTest/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results/ TestProjects/UniversalHybridTest/test-results/
@@ -140,7 +140,7 @@ Universal_Hybrid_OSX_Metal_Standalone_CUSTOM-REVISION:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/UniversalHybridTest && ~/Graphics/TestProjects/UniversalHybridTest/utr/utr --suite=playmode --platform=StandaloneOSX  --testproject=/Users/bokken/Graphics/TestProjects/UniversalHybridTest --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results --timeout=1400'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/UniversalHybridTest && ~/Graphics/TestProjects/UniversalHybridTest/utr --suite=playmode --platform=StandaloneOSX  --testproject=/Users/bokken/Graphics/TestProjects/UniversalHybridTest --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results --timeout=1400'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/UniversalHybridTest/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results/ TestProjects/UniversalHybridTest/test-results/
@@ -170,7 +170,7 @@ Universal_Hybrid_OSX_Metal_playmode_CUSTOM-REVISION:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/UniversalHybridTest && ~/Graphics/TestProjects/UniversalHybridTest/utr/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/UniversalHybridTest --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/UniversalHybridTest && ~/Graphics/TestProjects/UniversalHybridTest/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/UniversalHybridTest --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/UniversalHybridTest/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results/ TestProjects/UniversalHybridTest/test-results/
