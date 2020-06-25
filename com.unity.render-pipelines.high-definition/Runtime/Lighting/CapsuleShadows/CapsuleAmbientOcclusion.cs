@@ -9,7 +9,6 @@ namespace UnityEngine.Rendering.HighDefinition
     {
 
         public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 4f);
-        public BoolParameter monteCarlo = new BoolParameter(false);
     }
 
 

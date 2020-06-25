@@ -69,15 +69,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 var kernel = cs.FindKernel("CapsuleOcclusion");
 
                 var aoSettings = hdCamera.volumeStack.GetComponent<CapsuleAmbientOcclusion>();
+                var specularOcclusionSettings = hdCamera.volumeStack.GetComponent<CapsuleSpecularOcclusion>();
                 var shadowSettings = hdCamera.volumeStack.GetComponent<CapsuleSoftShadows>();
 
                 cs.shaderKeywords = null;
-                if (aoSettings.monteCarlo.value) { cs.EnableKeyword("MONTE_CARLO"); }
-                cs.EnableKeyword("DIRECTIONAL_SHADOW");
-                cs.EnableKeyword("SPECULAR_OCCLUSION");
-                if (aoSettings.intensity.value > 0.0f)
-                    cs.EnableKeyword("AMBIENT_OCCLUSION");
-
+                
+                if (aoSettings.intensity.value > 0.0f) { cs.EnableKeyword("AMBIENT_OCCLUSION"); }
+                if (specularOcclusionSettings.intensity.value > 0.0f) { cs.EnableKeyword("SPECULAR_OCCLUSION"); }
+                if (specularOcclusionSettings.monteCarlo.value) { cs.EnableKeyword("MONTE_CARLO"); }
+                if (shadowSettings.intensity.value > 0.0f) { cs.EnableKeyword("DIRECTIONAL_SHADOW"); }
+                
 
                 cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._CapsuleOccludersDatas, m_VisibleCapsuleOccludersDataBuffer);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OcclusionTexture, occlusionTexture);
@@ -91,16 +92,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CapsuleShadowLUT, m_CapsuleSoftShadowLUT);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CapsuleOcclusions, m_CapsuleOcclusions);
 
-                if (aoSettings.monteCarlo.value)
+                if (specularOcclusionSettings.monteCarlo.value)
                 {
                     // Same as BlueNoise.BindDitheredRNGData1SPP() but binding to this compute shader, instead of binding globally.
+                    // cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OwenScrambledTexture, m_Resources.textures.owenScrambled256Tex);
+                    // cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ScramblingTileXSPP, m_Resources.textures.scramblingTile1SPP);
+                    // cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RankingTileXSPP, m_Resources.textures.rankingTile1SPP);
+                    // cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ScramblingTexture, m_Resources.textures.scramblingTex);
+
+                    // Same as BlueNoise.BindDitheredRNGData8SPP() but binding to this compute shader, instead of binding globally.
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OwenScrambledTexture, m_Resources.textures.owenScrambled256Tex);
-                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ScramblingTileXSPP, m_Resources.textures.scramblingTile1SPP);
-                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RankingTileXSPP, m_Resources.textures.rankingTile1SPP);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ScramblingTileXSPP, m_Resources.textures.scramblingTile8SPP);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RankingTileXSPP, m_Resources.textures.rankingTile8SPP);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ScramblingTexture, m_Resources.textures.scramblingTex);
 
                     cmd.SetComputeIntParam(cs, HDShaderIDs._CapsuleFrameIndex, frameIndex);
                 }
+
+                cmd.SetComputeFloatParam(cs, HDShaderIDs._CapsuleAmbientOcclusionIntensity, aoSettings.intensity.value);
+                cmd.SetComputeFloatParam(cs, HDShaderIDs._CapsuleSpecularOcclusionIntensity, specularOcclusionSettings.intensity.value);
 
                 int dispatchX = HDUtils.DivRoundUp(hdCamera.actualWidth, 16);
                 int dispatchY = HDUtils.DivRoundUp(hdCamera.actualHeight, 16);

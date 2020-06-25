@@ -76,12 +76,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 worldFromSphereNormal
             );
 
-            dir = worldFromSphereNormal;
-
             return new EllipsoidOccluderData
             {
                 positionRWS_radius = new Vector4(centerRWS.x, centerRWS.y, centerRWS.z, radius),
                 directionWS_influence = new Vector4(dir.x, dir.y, dir.z, influenceRadius),
+
+                // Just using these for debugging - should strip these out in the final version.
                 sphereFromWorldTangent = sphereFromWorldTangent,
                 sphereFromWorldBitangent = sphereFromWorldBitangent,
                 sphereFromWorldNormal = sphereFromWorldNormal,

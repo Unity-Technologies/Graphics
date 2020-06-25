@@ -64,10 +64,10 @@ float3x3 GetRelativeMatrix (EllipsoidOccluderData data)
     float3 centerSphere = data.positionRWS_radius.xyz;
     
     float3 zAxis = normalize(data.directionWS_influence.xyz) * zMagnitude;
-    float3 yAxis = normalize(cross(zAxis, float3(0,1,0)));
-    float3 xAxis = cross(zAxis, yAxis);
+    float3 yAxis = normalize(cross(normalize(zAxis), float3(0,1,0)));
+    float3 xAxis = normalize(cross(normalize(zAxis), yAxis));
     
-    return float3x3 (xAxis, yAxis, yAxis);
+    return float3x3(xAxis, yAxis, zAxis);
 }
 
 float4 GetDataForSphereIntersection(EllipsoidOccluderData data, float3 positionWS)
@@ -89,8 +89,7 @@ void ComputeDirectionAndDistanceFromStartAndEnd(float3 start, float3 end, out fl
 
 float ComputeInfluenceFalloff(float dist, float influenceRadius)
 {
-    // Linear falloff for now. Might want to curve this in the future, similar to punctual lights.
-    return 1.0f - saturate(dist / influenceRadius);
+    return smoothstep(1.0f, 0.5f, dist / influenceRadius);
 }
 
 float ApplyInfluenceFalloff(float occlusion, float influenceFalloff)
@@ -125,13 +124,13 @@ float EvaluateCapsuleAmbientOcclusion(EllipsoidOccluderData data, float3 positio
     proj = dot(GetOccluderPositionRWS(data), dir);
     float3 centerCS = GetOccluderPositionRWS(data) - (proj * dir) + proj * dir / GetOccluderScaling(data);*/
     
-    /*float3 positionCS = mul(m, positionWS - GetOccluderPositionRWS(data));
-    float3 centerCS = 0;
-    float3 normalCS = normalize(mul(m, N));
+    // float3 positionCS = mul(m, positionWS - GetOccluderPositionRWS(data));
+    // float3 centerCS = 0;
+    // float3 normalCS = normalize(mul(m, N));
 
-    // TODO: should also transform the normal
-    // IMPORTANT: Remember to modify by intensity modifier here and not after.
-    return IQSphereAO(positionCS, normalCS, centerCS, GetOccluderRadius(data));*/
+    // // TODO: should also transform the normal
+    // // IMPORTANT: Remember to modify by intensity modifier here and not after.
+    // return IQSphereAO(positionCS, normalCS, centerCS, GetOccluderRadius(data));
 }
 
 // I stubbed out this version as a reference for myself while the work was being done by others. Keeping here as a reference in case we need it,
@@ -659,7 +658,7 @@ float EvaluateCapsuleRaytraceOcclusion(EllipsoidOccluderData data, float3 positi
 
 
 
-    float3 samplePositionWS = positionWS + N * 1e-2f + V * 1e-2f;
+    float3 samplePositionWS = positionWS + N * 1e-3f + V * 1e-3f;
     float3 samplePositionSphereSpace = mul(sphereFromWorldSpace, samplePositionWS - occluderPositionWS);
 
     float3 sampleDirectionWS = directionWS;
@@ -670,13 +669,13 @@ float EvaluateCapsuleRaytraceOcclusion(EllipsoidOccluderData data, float3 positi
     bool intersects = IntersectRaySphere(samplePositionSphereSpace, sampleDirectionSphereSpace, 1.0f, intersections);
 
     // TODO: Could wire up occluder opacity here.
-    bool isSelfShadowing = min(intersections.x, intersections.y) < 1e-2f; 
-    return (intersects && !isSelfShadowing) ? 1.0f : 0.0f;
+    bool isSelfShadowing = min(intersections.x, intersections.y) < 1e-4f; 
+    return (intersects && !isSelfShadowing) ? 0.0f : 1.0f;
 }
 
 float AccumulateCapsuleRaytraceOcclusion(float prevAO, float capsuleAO)
 {
-    return max(prevAO, capsuleAO);
+    return min(prevAO, capsuleAO);
 }
 
 float ComputePDFInverseGGXDistributionOfVisibleNormals(float NdotH, float NdotV, float roughness)
@@ -698,129 +697,154 @@ void EvaluateCapsuleOcclusionMonteCarlo(
     inout float specularOcclusion,
     inout float shadow)
 {
-    ambientOcclusion = 1.0f - ambientOcclusion;
-    specularOcclusion = 1.0f - specularOcclusion;
+    // ambientOcclusion = 1.0f - ambientOcclusion;
+    // specularOcclusion = 1.0f - specularOcclusion;
+    ambientOcclusion = 0.0f;
+    specularOcclusion = 0.0f;
 
-    // Generete a new direction to follow
-    float2 newSample;
-    newSample.x = GetBNDSequenceSample(posInput.positionSS.xy, _CapsuleFrameIndex, 0);
-    newSample.y = GetBNDSequenceSample(posInput.positionSS.xy, _CapsuleFrameIndex, 1);
+    const int SAMPLE_COUNT = 8;
+    const float SAMPLE_COUNT_INVERSE = 1.0f / (float)SAMPLE_COUNT;
 
-    // Importance sample with a cosine lobe (direction that will be used for ray casting)
-    float3 sampleDirectionDiffuseWS = SampleHemisphereCosine(newSample.x, newSample.y, N);
-
-    float3x3 tangentToWorld = ComputeTangentToWorldMatrix(N);
-    float3 viewDirectionTS = mul(V, tangentToWorld);
-    float3 sampleDirectionSpecularWS = SampleDirectionGGXDistributionOfVisibleNormals(
-        newSample,
-        tangentToWorld,
-        viewDirectionTS,
-        roughness
-    );
-
-
-    uint sphereCount, sphereStart;
-
-#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-    GetCountAndStart(posInput, LIGHTCATEGORY_CAPSULE_OCCLUDER, sphereStart, sphereCount);
-#else   // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-    sphereCount = /* TO ADD FIXED COUNT */ ; 
-    sphereStart = 0;
-#endif
-
-    bool fastPath = false;
-#if SCALARIZE_LIGHT_LOOP
-    uint sphereStartLane0;
-    fastPath = IsFastPath(sphereStart, sphereStartLane0);
-
-    if (fastPath)
+    for (int s = 0; s < SAMPLE_COUNT; ++s)
     {
-        sphereStart = sphereStartLane0;
-    }
-#endif
+        float ambientOcclusionCurrent = 1.0f;
+        float specularOcclusionCurrent = 1.0f;
+        // Generete a new direction to follow
+        float2 newSample;
+        newSample.x = GetBNDSequenceSample(posInput.positionSS.xy, _CapsuleFrameIndex * SAMPLE_COUNT + s, 0);
+        newSample.y = GetBNDSequenceSample(posInput.positionSS.xy, _CapsuleFrameIndex * SAMPLE_COUNT + s, 1);
 
-    // Scalarized loop. All spheres that are in a tile/cluster touched by any pixel in the wave are loaded (scalar load), only the one relevant to current thread/pixel are processed.
-    // For clarity, the following code will follow the convention: variables starting with s_ are meant to be wave uniform (meant for scalar register),
-    // v_ are variables that might have different value for each thread in the wave (meant for vector registers).
-    // This will perform more loads than it is supposed to, however, the benefits should offset the downside, especially given that light data accessed should be largely coherent.
-    // Note that the above is valid only if wave intriniscs are supported.
-    uint v_sphereListOffset = 0;
-    uint v_sphereIdx = sphereStart;
+        // Importance sample with a cosine lobe (direction that will be used for ray casting)
+        float3 sampleDirectionDiffuseWS = SampleHemisphereCosine(newSample.x, newSample.y, N);
 
-    while (v_sphereListOffset < sphereCount)
-    {
-        v_sphereIdx = FetchIndex(sphereStart, v_sphereListOffset);
-        uint s_sphereIdx = ScalarizeElementIndex(v_sphereIdx, fastPath);
-        if (s_sphereIdx == -1)
-            break;
+        float3x3 tangentToWorld = ComputeTangentToWorldMatrix(N);
+        float3 viewDirectionTS = mul(V, tangentToWorld);
+        float3 sampleDirectionSpecularWS = SampleDirectionGGXDistributionOfVisibleNormals(
+            newSample,
+            tangentToWorld,
+            viewDirectionTS,
+            roughness
+        );
 
-        EllipsoidOccluderData s_capsuleData = FetchEllipsoidOccluderData(s_sphereIdx);
 
-        // If current scalar and vector sphere index match, we process the sphere. The v_sphereListOffset for current thread is increased.
-        // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
-        // end up with a unique v_sphereIdx value that is smaller than s_sphereIdx hence being stuck in a loop. All the active lanes will not have this problem.
-        if (s_sphereIdx >= v_sphereIdx)
+        uint sphereCount, sphereStart;
+
+    #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+        GetCountAndStart(posInput, LIGHTCATEGORY_CAPSULE_OCCLUDER, sphereStart, sphereCount);
+    #else   // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+        sphereCount = /* TO ADD FIXED COUNT */ ; 
+        sphereStart = 0;
+    #endif
+
+        bool fastPath = false;
+    #if SCALARIZE_LIGHT_LOOP
+        uint sphereStartLane0;
+        fastPath = IsFastPath(sphereStart, sphereStartLane0);
+
+        if (fastPath)
         {
-            v_sphereListOffset++;
+            sphereStart = sphereStartLane0;
+        }
+    #endif
 
-            float4 dirAndLen = GetDataForSphereIntersection(s_capsuleData, posInput.positionWS);
+        // Scalarized loop. All spheres that are in a tile/cluster touched by any pixel in the wave are loaded (scalar load), only the one relevant to current thread/pixel are processed.
+        // For clarity, the following code will follow the convention: variables starting with s_ are meant to be wave uniform (meant for scalar register),
+        // v_ are variables that might have different value for each thread in the wave (meant for vector registers).
+        // This will perform more loads than it is supposed to, however, the benefits should offset the downside, especially given that light data accessed should be largely coherent.
+        // Note that the above is valid only if wave intriniscs are supported.
+        uint v_sphereListOffset = 0;
+        uint v_sphereIdx = sphereStart;
 
-            if (evaluationFlags & CAPSULEOCCLUSIONTYPE_AMBIENT_OCCLUSION)
+        while (v_sphereListOffset < sphereCount)
+        {
+            v_sphereIdx = FetchIndex(sphereStart, v_sphereListOffset);
+            uint s_sphereIdx = ScalarizeElementIndex(v_sphereIdx, fastPath);
+            if (s_sphereIdx == -1)
+                break;
+
+            EllipsoidOccluderData s_capsuleData = FetchEllipsoidOccluderData(s_sphereIdx);
+
+            // If current scalar and vector sphere index match, we process the sphere. The v_sphereListOffset for current thread is increased.
+            // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
+            // end up with a unique v_sphereIdx value that is smaller than s_sphereIdx hence being stuck in a loop. All the active lanes will not have this problem.
+            if (s_sphereIdx >= v_sphereIdx)
             {
-                float capsuleAO = EvaluateCapsuleRaytraceOcclusion(s_capsuleData, posInput.positionWS, sampleDirectionDiffuseWS, N, V);
-                ambientOcclusion = AccumulateCapsuleRaytraceOcclusion(ambientOcclusion, capsuleAO);
-            }
+                v_sphereListOffset++;
 
-            if (evaluationFlags & CAPSULEOCCLUSIONTYPE_SPECULAR_OCCLUSION)
-            {
-                float capsuleSpecOcc = EvaluateCapsuleRaytraceOcclusion(s_capsuleData, posInput.positionWS, sampleDirectionSpecularWS, N, V);
-                specularOcclusion = AccumulateCapsuleRaytraceOcclusion(specularOcclusion, capsuleSpecOcc);
-            }
+                float4 dirAndLen = GetDataForSphereIntersection(s_capsuleData, posInput.positionWS);
 
-            // TODO:
-            // if (evaluationFlags & CAPSULEOCCLUSIONTYPE_DIRECTIONAL_SHADOWS)
-            // {
-            //     float capsuleShadow = EvaluateCapsuleShadow(s_capsuleData, posInput.positionWS, N, dirAndLen, posInput.positionSS);
-            //     shadow = AccumulateCapsuleShadow(shadow, capsuleShadow);
-            // }
+                if (evaluationFlags & CAPSULEOCCLUSIONTYPE_AMBIENT_OCCLUSION)
+                {
+                    float capsuleAO = EvaluateCapsuleRaytraceOcclusion(s_capsuleData, posInput.positionWS, sampleDirectionDiffuseWS, N, V);
+                    ambientOcclusionCurrent = AccumulateCapsuleRaytraceOcclusion(ambientOcclusionCurrent, capsuleAO);
+                }
+
+                if (evaluationFlags & CAPSULEOCCLUSIONTYPE_SPECULAR_OCCLUSION)
+                {
+                    float capsuleSpecOcc = EvaluateCapsuleRaytraceOcclusion(s_capsuleData, posInput.positionWS, sampleDirectionSpecularWS, N, V);
+                    specularOcclusionCurrent = AccumulateCapsuleRaytraceOcclusion(specularOcclusionCurrent, capsuleSpecOcc);
+                }
+
+                // TODO:
+                // if (evaluationFlags & CAPSULEOCCLUSIONTYPE_DIRECTIONAL_SHADOWS)
+                // {
+                //     float capsuleShadow = EvaluateCapsuleShadow(s_capsuleData, posInput.positionWS, N, dirAndLen, posInput.positionSS);
+                //     shadow = AccumulateCapsuleShadow(shadow, capsuleShadow);
+                // }
+            }
+        }
+
+
+        {
+            float3 L = sampleDirectionSpecularWS;
+            float3 H = normalize(L + V);
+            float NdotL = max(1e-5f, dot(N, L));
+            float NdotH = saturate(dot(N, H));
+            float VdotH = max(1e-5f, abs(dot(V, H)));
+            float NdotV = max(1e-5f, abs(dot(N, V)));
+
+            // https://schuttejoe.github.io/post/ggximportancesamplingpart2/
+            // Key for mapping variables from source to variables in our code:
+            // wg = N
+            // wi = L
+            // wo = V
+            // wm = H
+            //
+            // outgoingRadiance(N, V) = integral[incomingRadiance * BRDF(L, V) * NdotL * ddx]
+            // BRDF(L, V) = F(VdotH) * D(NdotH) * G2(NdotL, NdotV) / (4.0f * NdotL * NdotV)
+            // outgoingRadiance = incomingRadiance * NdotL * F(VdotH) * D(NdotH) * G2(NdotL, NdotV) / (4.0f * NdotL * NdotV) / PDF
+            //
+            // PDF = D(NdotH) * G1(NdotV) * VdotH / (4.0f * NdotV * VdotH)
+            // PDF = D_GGX(NdotH, roughness) * G_MaskingSmithGGX(NdotV, roughness) * VdotH / (4.0f * NdotV * VdotH)
+            float D = D_GGX(NdotH, roughness);
+            float F = 1.0f;//F_Schlick(0.04f, VdotH);
+            float G = G_MaskingSmithGGX(NdotL, roughness) * G_MaskingSmithGGX(NdotV, roughness);
+            G /= (4.0 * NdotL * NdotV);
+
+            float brdf = F * D * G * NdotL;
+            specularOcclusionCurrent *= ComputePDFInverseGGXDistributionOfVisibleNormals(NdotH, NdotV, roughness);
+
+            specularOcclusionCurrent *= brdf;
+
+            specularOcclusion += specularOcclusionCurrent * SAMPLE_COUNT_INVERSE;
+        }
+
+        {
+            // No BRDF application or PDF division needed, they cancel eachother out with lambert brdf
+            // and cosine weighted sampling.
+            // Importance sampling weight for each sample
+            // pdf = N.L / PI
+            // weight = fr * (N.L) with fr = diffuseAlbedo / PI
+            // weight over pdf is:
+            // weightOverPdf = (diffuseAlbedo / PI) * (N.L) / (N.L / PI)
+            // weightOverPdf = diffuseAlbedo
+            // diffuseAlbedo is apply outside the function
+            ambientOcclusion += ambientOcclusionCurrent * SAMPLE_COUNT_INVERSE;
         }
     }
 
-
-    {
-        float3 L = sampleDirectionSpecularWS;
-        float3 H = normalize(L + V);
-        float NdotL = max(1e-5f, dot(N, L));
-        float NdotH = saturate(dot(N, H));
-        float VdotH = max(1e-5f, abs(dot(V, H)));
-        float NdotV = max(1e-5f, abs(dot(N, V)));
-
-        // https://schuttejoe.github.io/post/ggximportancesamplingpart2/
-        // Key for mapping variables from source to variables in our code:
-        // wg = N
-        // wi = L
-        // wo = V
-        // wm = H
-        //
-        // outgoingRadiance(N, V) = integral[incomingRadiance * BRDF(L, V) * NdotL * ddx]
-        // BRDF(L, V) = F(VdotH) * D(NdotH) * G2(NdotL, NdotV) / (4.0f * NdotL * NdotV)
-        // outgoingRadiance = incomingRadiance * NdotL * F(VdotH) * D(NdotH) * G2(NdotL, NdotV) / (4.0f * NdotL * NdotV) / PDF
-        //
-        // PDF = D(NdotH) * G1(NdotV) * VdotH / (4.0f * NdotV * VdotH)
-        // PDF = D_GGX(NdotH, roughness) * G_MaskingSmithGGX(NdotV, roughness) * VdotH / (4.0f * NdotV * VdotH)
-        float D = D_GGX(NdotH, roughness);
-        float F = 1.0f;//F_Schlick(0.04f, VdotH);
-        float G = G_MaskingSmithGGX(NdotL, roughness) * G_MaskingSmithGGX(NdotV, roughness);
-        G /= (4.0 * NdotL * NdotV);
-
-        float brdf = F * D * G * NdotL;
-        specularOcclusion *= ComputePDFInverseGGXDistributionOfVisibleNormals(NdotH, NdotV, roughness);
-
-        specularOcclusion *= brdf;
-    }
-
     ambientOcclusion = 1.0f - ambientOcclusion;
-    specularOcclusion = 1.0f - specularOcclusion;
+    specularOcclusion = specularOcclusion;
 }
 #endif
 

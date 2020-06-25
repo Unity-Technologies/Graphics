@@ -20,6 +20,9 @@ RW_TEXTURE2D_X(unorm float2, _CapsuleOcclusions);   // R: Specular Occlusion G: 
 int _CapsuleFrameIndex;
 #endif
 
+float _CapsuleAmbientOcclusionIntensity;
+float _CapsuleSpecularOcclusionIntensity;
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/BSDF.hlsl"
@@ -49,13 +52,12 @@ void CapsuleOcclusion(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupI
 
     PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, tileCoord);
 
-    float ao = 1;
+    float ao = 0.0f;
     float specOcclusion = 1;
     float shadow = 1;
 
     uint capsuleFeatureFlags = 0;
 #ifdef AMBIENT_OCCLUSION
-    ao = _OcclusionTexture[COORD_TEXTURE2D_X(pixelCoord.xy)];
     capsuleFeatureFlags = capsuleFeatureFlags | CAPSULEOCCLUSIONTYPE_AMBIENT_OCCLUSION;
 #endif
 #ifdef SPECULAR_OCCLUSION
@@ -80,7 +82,7 @@ void CapsuleOcclusion(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupI
             posInput,
             normalData.normalWS,
             V,
-            normalData.perceptualRoughness,
+            max(0.04f, PerceptualRoughnessToRoughness(normalData.perceptualRoughness)),
             ao,
             specOcclusion,
             shadow
@@ -90,7 +92,7 @@ void CapsuleOcclusion(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupI
             posInput,
             normalData.normalWS,
             V,
-            normalData.perceptualRoughness,
+            max(0.04f, PerceptualRoughnessToRoughness(normalData.perceptualRoughness)),
             ao,
             specOcclusion,
             shadow
@@ -99,11 +101,16 @@ void CapsuleOcclusion(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupI
     }
 
 #ifdef AMBIENT_OCCLUSION
-    _OcclusionTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = ao;
+    _OcclusionTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = min(
+        _OcclusionTexture[COORD_TEXTURE2D_X(pixelCoord.xy)],
+        1.0f - PositivePow(1.0f - ao, _CapsuleAmbientOcclusionIntensity));
 #endif
 
 #if defined(SPECULAR_OCCLUSION) || defined(DIRECTIONAL_SHADOW)
-    _CapsuleOcclusions[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float2(specOcclusion, shadow);
+    _CapsuleOcclusions[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float2(
+        PositivePow(specOcclusion, _CapsuleSpecularOcclusionIntensity),
+        shadow
+    );
 #endif
 
 
