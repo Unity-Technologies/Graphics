@@ -79,11 +79,7 @@ all_project_ci_trunk:
          rerun: on-new-revision
       -  path: .yamato/all-universal.yml#All_Universal_trunk
          rerun: on-new-revision
-      -  path: .yamato/all-universal_stereo.yml#All_Universal_Stereo_trunk
-         rerun: on-new-revision
       -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_trunk
-         rerun: on-new-revision
-      -  path: .yamato/all-shadergraph_stereo.yml#All_ShaderGraph_Stereo_trunk
          rerun: on-new-revision
       -  path: .yamato/all-hdrp.yml#All_HDRP_trunk
          rerun: on-new-revision
@@ -209,11 +205,7 @@ all_project_ci_fast-trunk:
          rerun: on-new-revision
       -  path: .yamato/all-universal.yml#All_Universal_fast-trunk
          rerun: on-new-revision
-      -  path: .yamato/all-universal_stereo.yml#All_Universal_Stereo_fast-trunk
-         rerun: on-new-revision
       -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/all-shadergraph_stereo.yml#All_ShaderGraph_Stereo_fast-trunk
          rerun: on-new-revision
       -  path: .yamato/all-hdrp.yml#All_HDRP_fast-trunk
          rerun: on-new-revision
@@ -325,11 +317,7 @@ all_project_ci_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/all-universal.yml#All_Universal_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/all-universal_stereo.yml#All_Universal_Stereo_CUSTOM-REVISION
-         rerun: always
       -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/all-shadergraph_stereo.yml#All_ShaderGraph_Stereo_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-hdrp.yml#All_HDRP_CUSTOM-REVISION
          rerun: always

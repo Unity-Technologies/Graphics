@@ -3,9 +3,7 @@ abv: # specify the editor versions for which to create the expression trigger fo
     - fast-trunk
   projects:
     - name: Universal
-    - name: Universal_Stereo
     - name: ShaderGraph
-    - name: ShaderGraph_Stereo
     - name: HDRP
     - name: VFX_HDRP
     - name: VFX_URP
