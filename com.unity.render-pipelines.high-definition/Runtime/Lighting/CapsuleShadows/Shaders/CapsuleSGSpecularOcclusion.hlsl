@@ -49,6 +49,8 @@ AnisotropicSphericalGaussian AnisotropicSphericalGaussianFromEllipsoidOccluderDa
     float3 normal = occluderFromSurfaceDirectionWS;
     float axisMajorTNormalScalar = dot(occluderAxisMajor, occluderFromSurfaceDirectionWS);
     float3 axisMajorTNormal = normal * axisMajorTNormalScalar;
+
+
     // Guard against degenerate case where major axis direction and normal are aligned.
     float3 up = (abs(normal.y) < 0.999f) ? float3(0.0f, 1.0f, 0.0f) : float3(1.0f, 0.0f, 0.0f);
     float3 tangent = (abs(axisMajorTNormalScalar) < 0.999f)
@@ -57,7 +59,7 @@ AnisotropicSphericalGaussian AnisotropicSphericalGaussianFromEllipsoidOccluderDa
     float3 bitangent = normalize(cross(tangent, normal));
 
     // TODO: project
-    float occluderRadiusMajorProjected = lerp(occluderRadiusMajor, occluderRadiusMinor, (axisMajorTNormalScalar));
+    float occluderRadiusMajorProjected = lerp(occluderRadiusMajor, occluderRadiusMinor, abs(axisMajorTNormalScalar));
 
     // tan(theta) == opposite / adjacent
     // theta == atan(opposite / adjacent)

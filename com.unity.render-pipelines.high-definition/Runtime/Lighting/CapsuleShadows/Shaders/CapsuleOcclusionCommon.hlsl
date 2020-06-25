@@ -75,6 +75,8 @@ float EvaluateCapsuleSpecularOcclusion(EllipsoidOccluderData data, float3 positi
     return EvaluateCapsuleSpecularOcclusionSGOccluderASGBRDF(data, positionWS, N, V, roughness, dirAndLength);
 #elif 0
     return EvaluateCapsuleSpecularOcclusionASGOccluderASGBRDF(data, positionWS, N, V, roughness, dirAndLength);
+#elif 0
+    return EvaluateCapsuleAmbientOcclusionSphericalGaussianReference(data, positionWS, N, V, roughness, dirAndLength);
 #endif
 }
 

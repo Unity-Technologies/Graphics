@@ -62,7 +62,10 @@ float EvaluateCapsuleRaytraceOcclusion(EllipsoidOccluderData data, float3 positi
 
     // TODO: Could wire up occluder opacity here.
     bool isSelfShadowing = min(intersections.x, intersections.y) < 1e-4f;
-    return (intersects && !isSelfShadowing) ? 0.0f : 1.0f;
+    if (!intersects || isSelfShadowing) { return 1.0f; }
+
+    // Compute influence falloff to avoid tile culling artifacts.
+    return ApplyInfluenceFalloff(0.0f, ComputeInfluenceFalloff(length(occluderPositionWS - positionWS), GetOccluderInfluenceRadiusWS(data)));
 }
 
 float AccumulateCapsuleRaytraceOcclusion(float prevAO, float capsuleAO)
