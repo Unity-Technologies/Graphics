@@ -638,15 +638,6 @@ float3x3 ComputeTangentToWorldMatrix(float3 n)
 
 #ifdef MONTE_CARLO
 
-float3 TransformOccluder(float3 positionWS, EllipsoidOccluderData data)
-{
-    float3 dir = GetOccluderDirectionWS(data);
-    float3 toOccluder = GetOccluderPositionRWS(data) - positionWS;
-    float proj = dot(toOccluder, dir);
-    float unscaleFactor = GetOccluderRadius(data) * 2.0 / GetOccluderScaling(data);
-    return toOccluder - toOccluder - (proj * dir) + (proj * dir) * unscaleFactor;
-}
-
 float EvaluateCapsuleRaytraceOcclusion(EllipsoidOccluderData data, float3 positionWS, float3 directionWS, float3 N, float3 V)
 {
     float3 occluderPositionWS = GetOccluderPositionRWS(data); 
@@ -772,7 +763,7 @@ void EvaluateCapsuleOcclusionMonteCarlo(
         {
             v_sphereListOffset++;
 
-            float4 dirAndLen = GetDataForSphereIntersection(s_capsuleData);
+            float4 dirAndLen = GetDataForSphereIntersection(s_capsuleData, posInput.positionWS);
 
             if (evaluationFlags & CAPSULEOCCLUSIONTYPE_AMBIENT_OCCLUSION)
             {
