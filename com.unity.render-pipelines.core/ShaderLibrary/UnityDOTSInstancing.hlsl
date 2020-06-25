@@ -144,7 +144,7 @@ CBUFFER_START(UnityInstancingDOTS_InstanceVisibility)
 CBUFFER_END
 
 //hw20-data-oriented-hybrid-renderer: switch
-#define UNITY_DOTS_DATA_ORIENTED_HYBRID_ENABLED
+//#define UNITY_DOTS_DATA_ORIENTED_HYBRID_ENABLED
 
 #ifdef UNITY_DOTS_DATA_ORIENTED_HYBRID_ENABLED
 
@@ -157,7 +157,7 @@ static uint unity_dotsInstanceID;
 
 uint GetDOTSInstanceIndex()
 {
-    return unity_InstanceID;
+    return unity_dotsInstanceID;
 }
 
 #else
