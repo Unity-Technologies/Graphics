@@ -138,10 +138,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 if ((properties[i].flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) != 0)
                     continue;
 
-                float h = materialEditor.GetPropertyHeight(properties[i], properties[i].displayName);
-                Rect r = EditorGUILayout.GetControlRect(true, h, EditorStyles.layerMaskField);
+                using (CreateOverrideScopeFor(properties[i]))
+                {
+                    float h = materialEditor.GetPropertyHeight(properties[i], properties[i].displayName);
+                    Rect r = EditorGUILayout.GetControlRect(true, h, EditorStyles.layerMaskField);
 
-                materialEditor.ShaderProperty(r, properties[i], properties[i].displayName);
+                    materialEditor.ShaderProperty(r, properties[i], properties[i].displayName);
+                }
             }
         }
 
@@ -219,7 +222,14 @@ namespace UnityEditor.Rendering.HighDefinition
         void DrawDiffusionProfileUI()
         {
             if (DiffusionProfileMaterialUI.IsSupported(materialEditor))
-                DiffusionProfileMaterialUI.OnGUI(materialEditor, FindProperty("_DiffusionProfileAsset"), FindProperty("_DiffusionProfileHash"), 0);
+            {
+                MaterialProperty diffusionProfileAsset = FindProperty("_DiffusionProfileAsset");
+                MaterialProperty diffusionProfileHash = FindProperty("_DiffusionProfileHash");
+                using (CreateOverrideScopeFor(diffusionProfileAsset))
+                using (CreateOverrideScopeFor(diffusionProfileHash))
+                    DiffusionProfileMaterialUI.OnGUI(materialEditor, diffusionProfileAsset, diffusionProfileHash, 0);
+
+            }
         }
     }
 }
