@@ -117,9 +117,8 @@ half4 CalculateColor(Varyings IN)
 
     // shadowCoord is position in shadow light space
     float4 shadowCoord = TransformWorldToShadowCoord(IN.positionWS);
-    Light light = GetMainLight(shadowCoord);
-    lightingData.light = light;
-    lightingData.halfDirectionWS = normalize(light.direction + viewDirectionWS);
+    lightingData.light = GetMainLight(shadowCoord);
+    lightingData.halfDirectionWS = normalize(lightingData.light.direction + viewDirectionWS);
     lightingData.normalWS = surfaceData.normalWS;
     lightingData.NdotL = saturate(dot(surfaceData.normalWS, lightingData.light.direction));
     lightingData.NdotH = saturate(dot(surfaceData.normalWS, lightingData.halfDirectionWS));
@@ -134,7 +133,24 @@ half4 CalculateColor(Varyings IN)
     surfaceData.roughness = PerceptualRoughnessToRoughness(surfaceData.roughness);
     
     half3 finalColor = GlobalIlluminationFunction(surfaceData, environmentLighting, environmentReflections, viewDirectionWS);
+
+    // main lighting
     finalColor += LightingFunction(surfaceData, lightingData, viewDirectionWS);
+
+#ifdef _ADDITIONAL_LIGHTS
+    uint pixelLightCount = GetAdditionalLightsCount();
+    for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
+    {
+        lightingData.light = GetAdditionalLight(lightIndex, IN.positionWS);
+        lightingData.halfDirectionWS = normalize(lightingData.light.direction + viewDirectionWS);
+        lightingData.normalWS = surfaceData.normalWS;
+        lightingData.NdotL = saturate(dot(surfaceData.normalWS, lightingData.light.direction));
+        lightingData.NdotH = saturate(dot(surfaceData.normalWS, lightingData.halfDirectionWS));
+        lightingData.LdotH = saturate(dot(lightingData.light.direction, lightingData.halfDirectionWS));
+        finalColor += LightingFunction(surfaceData, lightingData, viewDirectionWS);
+    }
+#endif
+
     finalColor += surfaceData.emission;
     // TODO: fog? should it be applied as GI?
     
