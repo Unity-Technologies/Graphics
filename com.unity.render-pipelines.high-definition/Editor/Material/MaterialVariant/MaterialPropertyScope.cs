@@ -44,7 +44,7 @@ namespace Unity.Assets.MaterialVariant.Editor
             if (m_Force || m_Variants == null)
                 return;
 
-            m_IsBlocked = m_Variants[0].IsPropertyBlockedInAncestors(m_MaterialProperty);
+            m_IsBlocked = m_Variants[0].IsPropertyBlockedInAncestors(m_MaterialProperty.name);
 
             if (m_IsBlocked)
                 EditorGUI.BeginDisabledGroup(true);
@@ -59,7 +59,7 @@ namespace Unity.Assets.MaterialVariant.Editor
 
         void BlockToggle()
         {
-            m_Variants[0].TogglePropertyBlocked(m_MaterialProperty);
+            m_Variants[0].TogglePropertyBlocked(m_MaterialProperty.name);
         }
 
         void IDisposable.Dispose()
@@ -73,46 +73,48 @@ namespace Unity.Assets.MaterialVariant.Editor
                 if (m_IsBlocked)
                     EditorGUI.EndDisabledGroup();
 
-                bool isOverride = !m_IsBlocked && (m_Variants != null) ? m_Variants[0].IsOverriddenProperty(m_MaterialProperty) : false;
-
-                Rect r = GUILayoutUtility.GetLastRect();
-                float endY = r.yMax;
-                r.xMin = 1;
-                r.yMin = m_StartY + 2;
-                r.yMax = endY - 2;
-                r.width = EditorGUIUtility.labelWidth;
-
-                if (Event.current.rawType == EventType.ContextClick && r.Contains(Event.current.mousePosition))
                 {
-                    GenericMenu menu = new GenericMenu();
+                    bool isOverride = !m_IsBlocked && m_Variants[0].IsOverriddenProperty(m_MaterialProperty);
 
-                    var resetGUIContent = new GUIContent("Reset Override");
+                    Rect r = GUILayoutUtility.GetLastRect();
+                    float endY = r.yMax;
+                    r.xMin = 1;
+                    r.yMin = m_StartY + 2;
+                    r.yMax = endY - 2;
+                    r.width = EditorGUIUtility.labelWidth;
+
+                    if (Event.current.rawType == EventType.ContextClick && r.Contains(Event.current.mousePosition))
+                    {
+                        GenericMenu menu = new GenericMenu();
+
+                        var resetGUIContent = new GUIContent("Reset Override");
+                        if (isOverride)
+                        {
+                            menu.AddItem(resetGUIContent, false, ResetOverride);
+                        }
+                        else
+                        {
+                            menu.AddDisabledItem(resetGUIContent);
+                        }
+
+                        var blockGUIContent = new GUIContent("Lock in children");
+                        if (m_IsBlocked)
+                        {
+                            menu.AddDisabledItem(blockGUIContent, true);
+                        }
+                        else
+                        {
+                            menu.AddItem(blockGUIContent, m_Variants[0].IsPropertyBlockedInCurrent(m_MaterialProperty.name), BlockToggle);
+                        }
+
+                        menu.ShowAsContext();
+                    }
+
                     if (isOverride)
                     {
-                        menu.AddItem(resetGUIContent, false, ResetOverride);
+                        r.width = 3;
+                        EditorGUI.DrawRect(r, Color.white);
                     }
-                    else
-                    {
-                        menu.AddDisabledItem(resetGUIContent);
-                    }
-
-                    var blockGUIContent = new GUIContent("Lock in children");
-                    if (m_IsBlocked)
-                    {
-                        menu.AddDisabledItem(blockGUIContent, true);
-                    }
-                    else
-                    {
-                        menu.AddItem(blockGUIContent, m_Variants[0].IsPropertyBlockedInCurrent(m_MaterialProperty), BlockToggle);
-                    }
-
-                    menu.ShowAsContext();
-                }
-
-                if (isOverride)
-                {
-                    r.width = 3;
-                    EditorGUI.DrawRect(r, Color.white);
                 }
             }
 
@@ -173,6 +175,7 @@ namespace Unity.Assets.MaterialVariant.Editor
         Func<int> m_ValueGetter;
 
         bool m_HaveDelayedRegisterer;
+        bool m_IsBlocked;
         float m_StartY;
 
         const string k_SerializedPropertyName = "m_CustomRenderQueue";
@@ -186,15 +189,24 @@ namespace Unity.Assets.MaterialVariant.Editor
         {
             m_Variants = variants;
             m_ValueGetter = valueGetter;
-            m_HaveDelayedRegisterer = false;
 
-            //Starting registering change
-            if (m_Variants != null)
-                EditorGUI.BeginChangeCheck();
+            m_HaveDelayedRegisterer = false;
+            m_IsBlocked = false;
 
             // Get the current Y coordinate before drawing the property
             // We define a new empty rect in order to grab the current height even if there was nothing drawn in the block (GetLastRect cause issue if it was first element of block)
             m_StartY = GUILayoutUtility.GetRect(0, 0).yMax;
+
+            //Starting registering change
+            if (m_Variants == null)
+                return;
+
+            m_IsBlocked = m_Variants[0].IsPropertyBlockedInAncestors(k_SerializedPropertyName);
+
+            if (m_IsBlocked)
+                EditorGUI.BeginDisabledGroup(true);
+            else
+                EditorGUI.BeginChangeCheck();
         }
 
         void ResetOverride()
@@ -202,38 +214,105 @@ namespace Unity.Assets.MaterialVariant.Editor
             m_Variants[0].ResetOverrideForNonMaterialProperty(k_SerializedPropertyName);
         }
 
+        void BlockToggle()
+        {
+            m_Variants[0].TogglePropertyBlocked(k_SerializedPropertyName);
+        }
+
         void IDisposable.Dispose()
         {
-            bool isOverride = (m_Variants != null) ? m_Variants[0].IsOverriddenPropertyForNonMaterialProperty(k_SerializedPropertyName) : false;
+            if (m_Variants == null)
+                return;
 
-            Rect r = GUILayoutUtility.GetLastRect();
-            float endY = r.yMax;
-            r.xMin = 1;
-            r.yMin = m_StartY + 2;
-            r.yMax = endY - 2;
-            r.width = EditorGUIUtility.labelWidth;
+            if (m_IsBlocked)
+                EditorGUI.EndDisabledGroup();
 
-            if (Event.current.rawType == EventType.ContextClick && r.Contains(Event.current.mousePosition))
             {
-                GenericMenu menu = new GenericMenu();
-                menu.AddItem(new GUIContent("Reset Override"), isOverride, ResetOverride);
-                menu.ShowAsContext();
-            }
+                bool isOverride = !m_IsBlocked && m_Variants[0].IsOverriddenPropertyForNonMaterialProperty(k_SerializedPropertyName);
 
-            if (isOverride)
-            {
-                r.width = 3;
-                EditorGUI.DrawRect(r, Color.white);
-            }
+                Rect r = GUILayoutUtility.GetLastRect();
+                float endY = r.yMax;
+                r.xMin = 1;
+                r.yMin = m_StartY + 2;
+                r.yMax = endY - 2;
+                r.width = EditorGUIUtility.labelWidth;
 
-            //Stop registering change
-            // EditorGUI.EndChangeCheck() must be first to not break balance of BeginChangeCheck and EndChangeCheck if we are not force registering
-            if (EditorGUI.EndChangeCheck() && !m_HaveDelayedRegisterer && m_Variants != null)
-            {
-                System.Collections.Generic.IEnumerable<MaterialPropertyModification> changes = MaterialPropertyModification.CreateMaterialPropertyModificationsForNonMaterialProperty(k_SerializedPropertyName, m_ValueGetter());
-                foreach (var variant in m_Variants)
-                    variant?.TrimPreviousOverridesAndAdd(changes);
+                if (Event.current.rawType == EventType.ContextClick && r.Contains(Event.current.mousePosition))
+                {
+                    GenericMenu menu = new GenericMenu();
+
+                    var resetGUIContent = new GUIContent("Reset Override");
+                    if (isOverride)
+                    {
+                        menu.AddItem(resetGUIContent, false, ResetOverride);
+                    }
+                    else
+                    {
+                        menu.AddDisabledItem(resetGUIContent);
+                    }
+
+                    var blockGUIContent = new GUIContent("Lock in children");
+                    if (m_IsBlocked)
+                    {
+                        menu.AddDisabledItem(blockGUIContent, true);
+                    }
+                    else
+                    {
+                        menu.AddItem(blockGUIContent, m_Variants[0].IsPropertyBlockedInCurrent(k_SerializedPropertyName), BlockToggle);
+                    }
+
+                    menu.ShowAsContext();
+                }
+
+                if (isOverride)
+                {
+                    r.width = 3;
+                    EditorGUI.DrawRect(r, Color.white);
+                }
             }
+            /*
+                {
+                    if (Event.current.rawType == EventType.ContextClick && r.Contains(Event.current.mousePosition))
+                    {
+                        GenericMenu menu = new GenericMenu();
+
+                        var resetGUIContent = new GUIContent("Reset Override");
+                        if (isOverride)
+                        {
+                            menu.AddItem(resetGUIContent, false, ResetOverride);
+                        }
+                        else
+                        {
+                            menu.AddDisabledItem(resetGUIContent);
+                        }
+
+                        var blockGUIContent = new GUIContent("Lock in children");
+                        if (m_IsBlocked)
+                        {
+                            menu.AddDisabledItem(blockGUIContent, true);
+                        }
+                        else
+                        {
+                            menu.AddItem(blockGUIContent, m_Variants[0].IsPropertyBlockedInCurrent(m_MaterialProperty.name), BlockToggle);
+                        }
+
+                        menu.ShowAsContext();
+                    }
+                }
+             */
+
+            bool hasChanged = !m_IsBlocked && EditorGUI.EndChangeCheck();
+
+            if (hasChanged && !m_HaveDelayedRegisterer)
+            {
+                ApplyChangesToMaterialVariants();
+            }
+        }
+        void ApplyChangesToMaterialVariants()
+        {
+            System.Collections.Generic.IEnumerable<MaterialPropertyModification> changes = MaterialPropertyModification.CreateMaterialPropertyModificationsForNonMaterialProperty(k_SerializedPropertyName, m_ValueGetter());
+            foreach (var variant in m_Variants)
+                variant?.TrimPreviousOverridesAndAdd(changes);
         }
 
         public DelayedOverrideRegisterer ProduceDelayedRegisterer()
@@ -243,28 +322,28 @@ namespace Unity.Assets.MaterialVariant.Editor
 
             m_HaveDelayedRegisterer = true;
 
-            return new DelayedOverrideRegisterer(m_ValueGetter, m_Variants);
+            return new DelayedOverrideRegisterer(ApplyChangesToMaterialVariants);
         }
-
 
         public struct DelayedOverrideRegisterer
         {
-            Func<int> m_ValueGetter;
-            MaterialVariant[] m_Variants;
+            internal delegate void RegisterFunction();
 
-            internal DelayedOverrideRegisterer(Func<int> valueGetter, MaterialVariant[] variants)
+            RegisterFunction m_RegisterFunction;
+            bool m_AlreadyRegistered;
+
+            internal DelayedOverrideRegisterer(RegisterFunction registerFunction)
             {
-                m_ValueGetter = valueGetter;
-                m_Variants = variants;
+                m_RegisterFunction = registerFunction;
+                m_AlreadyRegistered = false;
             }
 
             public void RegisterNow()
             {
-                if (m_Variants != null)
+                if (!m_AlreadyRegistered)
                 {
-                    System.Collections.Generic.IEnumerable<MaterialPropertyModification> changes = MaterialPropertyModification.CreateMaterialPropertyModificationsForNonMaterialProperty(k_SerializedPropertyName, m_ValueGetter());
-                    foreach (var variant in m_Variants)
-                        variant?.TrimPreviousOverridesAndAdd(changes);
+                    m_RegisterFunction();
+                    m_AlreadyRegistered = true;
                 }
             }
         }

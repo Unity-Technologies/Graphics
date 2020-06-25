@@ -88,38 +88,35 @@ namespace Unity.Assets.MaterialVariant.Editor
         }
         #endregion
 
-        public bool IsPropertyBlockedInCurrent(MaterialProperty property)
+        public bool IsPropertyBlockedInCurrent(string propertyName)
         {
-            return blocks.Any(b => b == property.name);
+            return blocks.Any(b => b == propertyName);
         }
 
-        public bool IsPropertyBlockedInAncestors(MaterialProperty property)
+        public bool IsPropertyBlockedInAncestors(string propertyName)
         {
             var parent = GetParent();
             if (parent is MaterialVariant)
-                return (parent as MaterialVariant).IsPropertyBlocked(property);
+                return (parent as MaterialVariant).IsPropertyBlocked(propertyName);
 
             return false;
         }
 
-        public bool IsPropertyBlocked(MaterialProperty property)
+        public bool IsPropertyBlocked(string propertyName)
         {
-            return IsPropertyBlockedInCurrent(property) || IsPropertyBlockedInAncestors(property);
+            return IsPropertyBlockedInCurrent(propertyName) || IsPropertyBlockedInAncestors(propertyName);
         }
 
-        public void SetPropertyBlocked(MaterialProperty property, bool block)
+        public void SetPropertyBlocked(string propertyName, bool block)
         {
-            string propertyName = property.name;
-
             if (!block)
                 blocks.Remove(propertyName);
             else if (!blocks.Contains(propertyName))
                 blocks.Add(propertyName);
         }
 
-        public void TogglePropertyBlocked(MaterialProperty property)
+        public void TogglePropertyBlocked(string propertyName)
         {
-            string propertyName = property.name;
             if (!blocks.Remove(propertyName))
                 blocks.Add(propertyName);
         }
