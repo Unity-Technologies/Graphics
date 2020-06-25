@@ -109,8 +109,8 @@ half4 fragExtraction(PackedVaryings packedInput) : SV_TARGET
         float3 specular = surfaceDescription.Specular;
         float metallic = 1;
     #else
-        float3 specular = 0;
-        float metallic = surfaceDescription.Metallic;
+        float3 specular = surfaceDescription.Metallic;
+        float metallic = 1;
     #endif
     
     half4 color = UniversalFragmentPBR(
