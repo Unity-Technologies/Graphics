@@ -78,9 +78,9 @@ namespace Unity.Assets.MaterialVariant.Editor
                 }
             }
 
-            ApplyRevertGUI();
-
             DrawLineageGUI();
+
+            ApplyRevertGUI();
         }
 
         protected override void Apply()
