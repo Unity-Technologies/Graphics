@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DrawEllipsoid(Color.blue);
 
             Handles.color = Color.white;
-            Handles.matrix = Matrix4x4.TRS(tr.position, tr.rotation, Vector3.one);
+            Handles.matrix = Matrix4x4.TRS(tr.TransformPoint(Vector3.zero), tr.rotation, Vector3.one);
             Handles.zTest = UnityEngine.Rendering.CompareFunction.Always;
 
             var mode = ArrayUtility.IndexOf(k_EditModes, EditMode.editMode);
