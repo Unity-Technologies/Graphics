@@ -44,7 +44,12 @@ namespace Unity.Assets.MaterialVariant.Editor
         public override void OnEnable()
         {
             base.OnEnable();
+
+            // We want to allow users to do a re-parenting so we allow to edit parent
+            assetTarget.hideFlags &= ~HideFlags.NotEditable; // Be sure we can edit this material
+
             targetEditor = CreateEditor(assetTarget);
+            //targetEditor.firstInspectedEditor = true; // This line allow to remove the small extra arrow in the header, but require to have access to internal of Editor
             registeredVariants.Add(targetEditor, extraDataTargets.Cast<MaterialVariant>().ToArray());
         }
 
