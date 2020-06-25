@@ -110,7 +110,7 @@ function Find-MatchesInFile {
     #> 
     param($File)
     
-    $globalRegex = '.+.hlsl'
+    $globalRegex = '(.+)?#include\s\".+.hlsl'
     $isCommentRegex = '^(\/|\*).+$'
     $pathRegex = '(?<=#include\s\").+\.hlsl' 
     
@@ -175,12 +175,17 @@ function Find-Matches {
     #> 
     param($Files)
 
+    $allowedExtensions = ".compute",".shader",".cs",".hlsl",".json"
     [System.Collections.ArrayList]$processedFiles = @()
     $nbShaderNotFound = 0
+
     foreach ($file in $Files) {
-        $fileResults = Find-MatchesInFile -File $file
-        $processedFiles.Add($fileResults) | Out-Null
-        $nbShaderNotFound += [Linq.Enumerable]::Count([object[]]$fileResults[1], [Func[object,bool]]{ param($shaderInclude) $shaderInclude."ShaderStatus" -eq [ShaderStatus]::NotFound })
+        if ($allowedExtensions -contains [io.path]::GetExtension($file))
+        {
+            $fileResults = Find-MatchesInFile -File $file
+            $processedFiles.Add($fileResults) | Out-Null
+            $nbShaderNotFound += [Linq.Enumerable]::Count([object[]]$fileResults[1], [Func[object,bool]]{ param($shaderInclude) $shaderInclude."ShaderStatus" -eq [ShaderStatus]::NotFound })
+        }
     }
 
     $nbShaderNotFound
