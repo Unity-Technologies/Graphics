@@ -33,10 +33,8 @@ TEXTURE3D(_CapsuleShadowLUT);
 
 float EvaluateCapsuleAmbientOcclusion(EllipsoidOccluderData data, float3 positionWS, float3 N, float4 dirAndLength)
 {
-    float3x3 m = GetRelativeMatrix(data);
     float4 occluder = TransformOccluder(positionWS, data);
-
-    // return IQSphereAO(0, N, occluder.xyz, occluder.w);
+    return IQSphereAO(0, N, occluder.xyz, occluder.w);
 
     /*float3 dir = GetOccluderDirectionWS(data);
     float proj = dot(positionWS, dir);
@@ -52,6 +50,7 @@ float EvaluateCapsuleAmbientOcclusion(EllipsoidOccluderData data, float3 positio
     // // IMPORTANT: Remember to modify by intensity modifier here and not after.
     // return IQSphereAO(positionCS, normalCS, centerCS, GetOccluderRadius(data));
 
+    float3x3 m = GetRelativeMatrix(data);
     float3 positionCS = mul(m, positionWS - GetOccluderPositionRWS(data));
     float3 centerCS = mul(m, occluder.xyz);
     float3 normalCS = normalize(mul(m, N));
