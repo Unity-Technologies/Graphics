@@ -36,9 +36,10 @@ namespace Unity.Assets.MaterialVariant.Editor
             //Starting registering change
             if (!m_Force && m_Variants != null)
                 EditorGUI.BeginChangeCheck();
-
+            
             // Get the current Y coordinate before drawing the property
-            m_StartY = GUILayoutUtility.GetLastRect().yMax;
+            // We define a new empty rect in order to grab the current height even if there was nothing drawn in the block (GetLastRect cause issue if it was first element of block)
+            m_StartY = GUILayoutUtility.GetRect(0,0).yMax;
         }
         void ResetOverride()
         {
@@ -98,22 +99,15 @@ namespace Unity.Assets.MaterialVariant.Editor
         {
             MaterialProperty m_MaterialProperty;
             MaterialVariant[] m_Variants;
-            bool m_Registered;
 
             internal MaterialPropertyScopeDelayedOverrideRegisterer(MaterialProperty materialProperty, MaterialVariant[] variants)
             {
                 m_MaterialProperty = materialProperty;
                 m_Variants = variants;
-                m_Registered = false;
             }
 
             public void RegisterNow()
             {
-                if (m_Registered)
-                    return;
-
-                m_Registered = true;
-
                 if (m_Variants != null)
                 {
                     System.Collections.Generic.IEnumerable<MaterialPropertyModification> changes = MaterialPropertyModification.CreateMaterialPropertyModifications(m_MaterialProperty);
