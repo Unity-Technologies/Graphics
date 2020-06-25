@@ -62,6 +62,7 @@ namespace UnityEditor.ShaderGraph
                 "CUSTOM_INSTANCE_ID", "UNITY_ANY_INSTANCING_ENABLED");
             public static FieldDescriptor dotsInstanceID = new FieldDescriptor(Attributes.name, "dotsInstanceID", "",
                 ShaderValueType.Uint,
+                "TEXCOORD7",
                 preprocessor: "UNITY_DOTS_DATA_ORIENTED_HYBRID_ENABLED");
             public static FieldDescriptor cullFace = new FieldDescriptor(Varyings.name, "cullFace", "VARYINGS_NEED_CULLFACE", "FRONT_FACE_TYPE",
                 "FRONT_FACE_SEMANTIC", "defined(SHADER_STAGE_FRAGMENT) && defined(VARYINGS_NEED_CULLFACE)", StructFieldOptions.Generated & StructFieldOptions.Optional);
