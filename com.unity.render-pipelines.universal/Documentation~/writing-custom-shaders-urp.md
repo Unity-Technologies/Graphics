@@ -5,7 +5,7 @@ This section contains guidelines that help you to get started with writing shade
 The section contains the following topics:
 
 * [Creating a sample scene](writing-shaders-urp-basic-prerequisites.md)
-* [URP basic shader](writing-shaders-urp-basic-unlit-structure.md)
+* [URP basic unlit shader](writing-shaders-urp-basic-unlit-structure.md)
     * [Basic ShaderLab structure](writing-shaders-urp-basic-unlit-structure.md#basic-shaderlab-structure)
 * [URP unlit shader with color input](writing-shaders-urp-unlit-color.md)
 * [Drawing a texture](writing-shaders-urp-unlit-texture.md)
