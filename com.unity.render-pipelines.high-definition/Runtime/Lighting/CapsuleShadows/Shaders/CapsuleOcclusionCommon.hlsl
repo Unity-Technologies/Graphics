@@ -170,8 +170,7 @@ float EvaluateCapsuleShadowLUT(EllipsoidOccluderData data, float3 positionWS, fl
 
 float AccumulateCapsuleAmbientOcclusion(float prevAO, float capsuleAO)
 {
-    return max(prevAO, capsuleAO);
-    return min(prevAO, capsuleAO);
+    return prevAO * (1.0-capsuleAO);
 }
 
 float AccumulateCapsuleSpecularOcclusion(float prevSpecOcc, float capsuleSpecOcc)
@@ -266,7 +265,7 @@ void EvaluateCapsuleOcclusion(uint evaluationFlags,
     }
 
     specularOcclusion = PositivePow(specularOcclusion, _CapsuleSpecularOcclusionIntensity);
-    ambientOcclusion = 1.0f - PositivePow(1.0f - ambientOcclusion, _CapsuleAmbientOcclusionIntensity);
+    ambientOcclusion = PositivePow(ambientOcclusion, _CapsuleAmbientOcclusionIntensity);
 }
 
 

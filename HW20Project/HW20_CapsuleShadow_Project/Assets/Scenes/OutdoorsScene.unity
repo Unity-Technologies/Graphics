@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 1823.2308, g: 1911.4525, b: 2789.8887, a: 1}
+  m_IndirectSpecularColor: {r: 1822.3746, g: 1910.1643, b: 2786.3127, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -344,7 +344,6 @@ GameObject:
   - component: {fileID: 160109301}
   - component: {fileID: 160109300}
   - component: {fileID: 160109299}
-  - component: {fileID: 160109298}
   - component: {fileID: 160109302}
   m_Layer: 0
   m_Name: Capsule
@@ -353,20 +352,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!136 &160109298
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 160109297}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &160109299
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -443,9 +428,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   centerOS: {x: 0, y: 0, z: 0}
-  radiusOS: 0.5
+  radiusOS: 0.49
   anglesOS: {x: 90, y: 0, z: 0}
-  scalingOS: 2.51
+  scalingOS: 1.9
   influenceRadiusScale: 4
 --- !u!1 &432432459
 GameObject:
