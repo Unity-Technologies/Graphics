@@ -27,29 +27,6 @@ float3 GetWorldSpaceViewDir(float3 positionWS)
 }
 #endif
 
-half3 EnvironmentBRDF(half3 f0, half roughness, half NdotV)
-{
-#if 1
-    // Adapted from Unity Environment BDRF Approximation
-    // mmikk
-    half fresnelTerm = Pow4(1.0 - NdotV);
-    half3 grazingTerm = saturate((1.0 - roughness) + f0);
-
-    // surfaceReduction = Int D(NdotH) * NdotH * Id(NdotL>0) dH = 1/(roughness^2+1)
-    half surfaceReduction = 1.0 / (roughness * roughness + 1.0);
-    return lerp(f0, grazingTerm, fresnelTerm) * surfaceReduction;
-#else
-    // Brian Karis - Physically Based Shading in Mobile
-    const half4 c0 = { -1, -0.0275, -0.572, 0.022 };
-    const half4 c1 = { 1, 0.0425, 1.04, -0.04 };
-    half4 r = roughness * c0 + c1;
-    half a004 = min( r.x * r.x, exp2( -9.28 * NdotV ) ) * r.x + r.y;
-    half2 AB = half2( -1.04, 1.04 ) * a004 + r.zw;
-    return f0 * AB.x + AB.y;
-    return half3(0, 0, 0);
-#endif
-}
-
 #ifdef CUSTOM_FINAL_COLOR
     half4 CUSTOM_FINAL_COLOR(half4 inColor);
 #else
@@ -68,38 +45,6 @@ void CUSTOM_VERTEX_FUNCTION(inout Attributes IN);
 #else
 void CUSTOM_VERTEX_FUNCTION(inout Attributes IN)
 {}
-#endif
-
-#ifndef CustomGlobalIllumination
-    half3 CustomGlobalIllumination(CustomSurfaceData surfaceData, half3 environmentLighting, half3 environmentReflections, half3 viewDirectionWS)
-    {
-        half3 NdotV = saturate(dot(surfaceData.normalWS, viewDirectionWS)) + HALF_MIN;
-        environmentReflections *= EnvironmentBRDF(surfaceData.reflectance, surfaceData.roughness, NdotV);
-        environmentLighting = environmentLighting * surfaceData.diffuse;
-        
-        return (environmentReflections + environmentLighting) * surfaceData.ao;
-    }
-#endif
-
-#ifdef CUSTOM_LIGHTING_FUNCTION
-    half3 CUSTOM_LIGHTING_FUNCTION(CustomSurfaceData surfaceData, LightingData lightingData, half3 viewDirectionWS);
-#else
-    half3 CUSTOM_LIGHTING_FUNCTION(CustomSurfaceData surfaceData, LightingData lightingData, half3 viewDirectionWS)
-    {
-        half3 diffuse = surfaceData.diffuse * Lambert();
-        
-        // CookTorrance
-        // inline D_GGX + V_SmithJoingGGX for better code generations
-        half3 NdotV = saturate(dot(surfaceData.normalWS, viewDirectionWS)) + HALF_MIN;
-        half DV = DV_SmithJointGGX(lightingData.NdotH, lightingData.NdotL, NdotV, surfaceData.roughness);
-        
-        // for microfacet fresnel we use H instead of N. In this case LdotH == VdotH, we use LdotH as it
-        // seems to be more widely used convetion in the industry.
-        half3 F = F_Schlick(surfaceData.reflectance, lightingData.LdotH);
-        half3 specular = DV * F;
-        half3 finalColor = (diffuse + specular) * lightingData.light.color * lightingData.NdotL;
-        return finalColor;
-    }
 #endif
 
 Varyings SurfaceVertex(Attributes IN)
@@ -188,8 +133,8 @@ half4 CalculateColor(Varyings IN)
     surfaceData.roughness = max(surfaceData.roughness, 0.089);
     surfaceData.roughness = PerceptualRoughnessToRoughness(surfaceData.roughness);
     
-    half3 finalColor = CustomGlobalIllumination(surfaceData, environmentLighting, environmentReflections, viewDirectionWS);
-    finalColor += CUSTOM_LIGHTING_FUNCTION(surfaceData, lightingData, viewDirectionWS);
+    half3 finalColor = GlobalIlluminationFunction(surfaceData, environmentLighting, environmentReflections, viewDirectionWS);
+    finalColor += LightingFunction(surfaceData, lightingData, viewDirectionWS);
     finalColor += surfaceData.emission;
     // TODO: fog? should it be applied as GI?
     

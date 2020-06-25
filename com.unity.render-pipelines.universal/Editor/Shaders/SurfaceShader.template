@@ -8,6 +8,7 @@ Shader $SHADERNAME
     HLSLINCLUDE
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/CustomShading.hlsl"
     $SURFACESHADER
+    $SURFACEFUNCTIONS
     ENDHLSL
 
     Subshader

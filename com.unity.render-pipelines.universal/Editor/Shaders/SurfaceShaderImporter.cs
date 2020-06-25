@@ -142,20 +142,37 @@ Shader ""Hidden/GraphErrorShader2""
     Fallback Off
 }";
 
-    public IEnumerable<ISurfaceSubShader> GetSubShaders()
+    public const string k_GlobalIlluminationFunction = @"
+    half3 GlobalIlluminationFunction(CustomSurfaceData surfaceData, half3 environmentLighting, half3 environmentReflections, half3 viewDirectionWS)
     {
-        var subshaders = new List<ISurfaceSubShader>();
+        half3 NdotV = saturate(dot(surfaceData.normalWS, viewDirectionWS)) + HALF_MIN;
+        environmentReflections *= EnvironmentBRDF(surfaceData.reflectance, surfaceData.roughness, NdotV);
+        environmentLighting = environmentLighting * surfaceData.diffuse;
 
-        foreach( var assembly in AppDomain.CurrentDomain.GetAssemblies())
-        {
-            var types = assembly.GetTypes().Where(t => t.IsClass && !t.IsAbstract && !t.IsInterface && typeof(ISurfaceSubShader).IsAssignableFrom(t));
-
-            foreach (var type in types) 
-                subshaders.Add((ISurfaceSubShader) Activator.CreateInstance(type));
-        }
-        
-        return subshaders;
+        return (environmentReflections + environmentLighting) * surfaceData.ao;
     }
+
+";
+
+    public const string k_LightingFunction = @"
+    half3 LightingFunction(CustomSurfaceData surfaceData, LightingData lightingData, half3 viewDirectionWS)
+    {
+        half3 diffuse = surfaceData.diffuse * Lambert();
+
+        // CookTorrance
+        // inline D_GGX + V_SmithJoingGGX for better code generations
+        half3 NdotV = saturate(dot(surfaceData.normalWS, viewDirectionWS)) + HALF_MIN;
+        half DV = DV_SmithJointGGX(lightingData.NdotH, lightingData.NdotL, NdotV, surfaceData.roughness);
+
+        // for microfacet fresnel we use H instead of N. In this case LdotH == VdotH, we use LdotH as it
+        // seems to be more widely used convetion in the industry.
+        half3 F = F_Schlick(surfaceData.reflectance, lightingData.LdotH);
+        half3 specular = DV * F;
+        half3 finalColor = (diffuse + specular) * lightingData.light.color * lightingData.NdotL;
+        return finalColor;
+    }
+
+";
 
     string GetShaderName(string shaderSnippet)
     {
@@ -174,6 +191,18 @@ Shader ""Hidden/GraphErrorShader2""
         var surfaceShaderStart = shaderSnippet.IndexOf("SURFACESHADER", StringComparison.Ordinal) ;
         var surfaceShaderCount = shaderSnippet.IndexOf("ENDSURFACESHADER", StringComparison.Ordinal) - surfaceShaderStart;
         return shaderSnippet.Substring(surfaceShaderStart + "SURFACESHADER".Length, surfaceShaderCount - "SURFACESHADER".Length);
+    }
+
+    string GetDefaultFunctions(string shaderSnippet)
+    {
+        StringBuilder functions = new StringBuilder();
+        if (shaderSnippet.IndexOf("GlobalIlluminationFunction", StringComparison.Ordinal) == -1)
+            functions.Append(k_GlobalIlluminationFunction);
+        
+        if (shaderSnippet.IndexOf("LightingFunction", StringComparison.Ordinal) == -1)
+            functions.Append(k_LightingFunction);
+
+        return functions.ToString();
     }
 
     string GetShaderProperties(string shaderSnippet)
@@ -220,6 +249,7 @@ Shader ""Hidden/GraphErrorShader2""
         var shaderName = GetShaderName(textGraph);
         var shaderProperties = GetShaderProperties(textGraph);
         var surfaceShader = GetSurfaceShader(textGraph);
+        var defaultFunctions = GetDefaultFunctions(textGraph);
         
         // Surface Shader Template
         var templatePath = AssetDatabase.GUIDToAssetPath("f9cb61ee5b9aa4521bce6ae21747d4dc");
@@ -228,6 +258,7 @@ Shader ""Hidden/GraphErrorShader2""
         templateText = templateText.Replace("$SHADERNAME", shaderName);
         templateText = templateText.Replace("$SHADERPROPERTIES", shaderProperties);
         templateText = templateText.Replace("$SURFACESHADER", surfaceShader);
+        templateText = templateText.Replace("$SURFACEFUNCTIONS", defaultFunctions);
 
         // TODO:
         templateText = templateText.Replace("$SHADERRENDERSTATE", "");
@@ -244,7 +275,6 @@ Shader ""Hidden/GraphErrorShader2""
         Texture2D texture = Resources.Load<Texture2D>("Icons/sg_graph_icon@64");
         ctx.AddObjectToAsset("MainAsset", mainObject, texture);
         ctx.SetMainObject(mainObject);
-
 
         foreach (var sourceAssetDependencyPath in sourceAssetDependencyPaths.Distinct())
         {

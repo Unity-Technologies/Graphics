@@ -377,6 +377,29 @@ half3 EnvironmentBRDF(BRDFData brdfData, half3 indirectDiffuse, half3 indirectSp
     return c;
 }
 
+half3 EnvironmentBRDF(half3 f0, half roughness, half NdotV)
+{
+#if 1
+    // Adapted from Unity Environment BDRF Approximation
+    // mmikk
+    half fresnelTerm = Pow4(1.0 - NdotV);
+    half3 grazingTerm = saturate((1.0 - roughness) + f0);
+
+    // surfaceReduction = Int D(NdotH) * NdotH * Id(NdotL>0) dH = 1/(roughness^2+1)
+    half surfaceReduction = 1.0 / (roughness * roughness + 1.0);
+    return lerp(f0, grazingTerm, fresnelTerm) * surfaceReduction;
+#else
+    // Brian Karis - Physically Based Shading in Mobile
+    const half4 c0 = { -1, -0.0275, -0.572, 0.022 };
+    const half4 c1 = { 1, 0.0425, 1.04, -0.04 };
+    half4 r = roughness * c0 + c1;
+    half a004 = min( r.x * r.x, exp2( -9.28 * NdotV ) ) * r.x + r.y;
+    half2 AB = half2( -1.04, 1.04 ) * a004 + r.zw;
+    return f0 * AB.x + AB.y;
+    return half3(0, 0, 0);
+#endif
+}
+
 // Environment BRDF without diffuse for clear coat
 half3 EnvironmentBRDFClearCoat(BRDFData brdfData, half clearCoatMask, half3 indirectSpecular, half fresnelTerm)
 {
