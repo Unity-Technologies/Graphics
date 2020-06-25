@@ -34,8 +34,6 @@ namespace UnityEditor.ShaderGraph
     {
         public bool isValid;
 
-        public bool isRecursive;
-        
         public long processedAt;
 
         public string functionName;
@@ -60,25 +58,25 @@ namespace UnityEditor.ShaderGraph
         private SerializationHelper.JSONSerializedElement m_SerializedSubGraphData;
 
         public DataValueEnumerable<AbstractShaderProperty> inputs => m_SubGraphData.inputs.SelectValue();
-        
+
         public DataValueEnumerable<ShaderKeyword> keywords => m_SubGraphData.keywords.SelectValue();
-        
+
         public DataValueEnumerable<AbstractShaderProperty> nodeProperties => m_SubGraphData.nodeProperties.SelectValue();
 
         public DataValueEnumerable<MaterialSlot> outputs => m_SubGraphData.outputs.SelectValue();
 
         public DataValueEnumerable<Target> unsupportedTargets => m_SubGraphData.unsupportedTargets.SelectValue();
 
-        public List<string> children = new List<string>();
+        public List<string> children = new List<string>();          // guids of direct USED SUBGRAPH file dependencies
 
-        public List<string> descendents = new List<string>();
+        public List<string> descendents = new List<string>();       // guids of ALL file dependencies at any level
 
         public ShaderStageCapability effectiveShaderStage;
-        
+
         public ConcretePrecision graphPrecision;
 
         public ConcretePrecision outputPrecision;
-        
+
         public void WriteData(IEnumerable<AbstractShaderProperty> inputs, IEnumerable<ShaderKeyword> keywords, IEnumerable<AbstractShaderProperty> nodeProperties, IEnumerable<MaterialSlot> outputs, IEnumerable<Target> unsupportedTargets)
         {
             if(m_SubGraphData == null)
@@ -126,14 +124,14 @@ namespace UnityEditor.ShaderGraph
 
         public void OnAfterDeserialize()
         {
-            
+
         }
 
         public void LoadGraphData()
         {
+            m_SubGraphData = new SubGraphData();
             if(!String.IsNullOrEmpty(m_SerializedSubGraphData.JSONnodeData))
             {
-                m_SubGraphData = new SubGraphData();
                 MultiJson.Deserialize(m_SubGraphData, m_SerializedSubGraphData.JSONnodeData);
             }
         }

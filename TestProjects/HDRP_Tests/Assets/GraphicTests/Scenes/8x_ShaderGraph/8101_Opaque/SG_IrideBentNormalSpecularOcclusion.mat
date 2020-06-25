@@ -62,6 +62,7 @@ Material:
     - _DoubleSidedNormalMode: 0
     - _DstBlend: 0
     - _EnableFogOnTransparent: 1
+    - _OpaqueCullMode: 2
     - _RayTracing: 0
     - _ReceivesSSR: 1
     - _ReceivesSSRTransparent: 0

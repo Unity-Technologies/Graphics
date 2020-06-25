@@ -226,6 +226,12 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!pathTracingShader || !m_PathTracingSettings.enable.value)
                 return;
 
+            if (hdCamera.viewCount > 1)
+            {
+                Debug.LogError("Path Tracing is not supported when using XR single-pass rendering.");
+                return;
+            }
+
             CheckDirtiness(hdCamera);
 
             // Inject the ray-tracing sampling data
@@ -286,7 +292,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Run the computation
                 cmd.DispatchRays(pathTracingShader, "RayGen", (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
             }
-            RenderAccumulation(hdCamera, cmd, m_RadianceTexture, outputTexture, true);
+            RenderAccumulation(hdCamera, m_RadianceTexture, outputTexture, true, cmd);
         }
     }
 }

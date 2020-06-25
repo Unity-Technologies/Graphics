@@ -122,10 +122,13 @@ float AdaptExposure(float exposure)
     }
 }
 
-float CurveRemap(float inEV)
+float CurveRemap(float inEV, out float limitMin, out float limitMax)
 {
     float remap = saturate((inEV - ParamCurveMin) / (ParamCurveMax - ParamCurveMin));
-    return SAMPLE_TEXTURE2D_LOD(_ExposureCurveTexture, s_linear_clamp_sampler, float2(remap, 0.0), 0.0).x;
+    float3 curveSample = SAMPLE_TEXTURE2D_LOD(_ExposureCurveTexture, s_linear_clamp_sampler, float2(remap, 0.0), 0.0).xyz;
+    limitMin = curveSample.y;
+    limitMax = curveSample.z;
+    return curveSample.x;
 }
 
 #endif
