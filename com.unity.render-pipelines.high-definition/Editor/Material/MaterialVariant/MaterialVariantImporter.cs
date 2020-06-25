@@ -89,6 +89,7 @@ namespace Unity.Assets.MaterialVariant.Editor
             }
         }
 
+        // Caution: GetMaterialVariantFromAssetPath can't be call inside OnImportAsset() as ctx.AddObjectToAsset("Variant", matVariant) is not define yet
         public static MaterialVariant GetMaterialVariantFromAssetPath(string assetPath)
         {
             return AssetDatabase.LoadAllAssetsAtPath(assetPath).OfType<MaterialVariant>().FirstOrDefault();
