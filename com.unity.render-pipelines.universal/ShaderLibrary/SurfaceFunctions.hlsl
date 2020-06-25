@@ -22,31 +22,11 @@ float3 GetWorldSpaceViewDir(float3 positionWS)
 }
 #endif
 
-#ifdef CUSTOM_FINAL_COLOR
-    half4 CUSTOM_FINAL_COLOR(half4 inColor);
-#else
-    half4 CUSTOM_FINAL_COLOR(half4 inColor)
-    {
-        return inColor;        
-    }
-#endif
-
-// Forward declaration of SurfaceFunction. This function must be implemented in the shader
-void SurfaceFunction(Varyings IN, out CustomSurfaceData surfaceData);
-
-#ifdef CUSTOM_VERTEX_FUNCTION
-// Forward declaration of SurfaceFunction. This function must be implemented in the shader
-void CUSTOM_VERTEX_FUNCTION(inout Attributes IN);
-#else
-void CUSTOM_VERTEX_FUNCTION(inout Attributes IN)
-{}
-#endif
-
 Varyings SurfaceVertex(Attributes IN)
 {
     Varyings OUT;
     
-    CUSTOM_VERTEX_FUNCTION(IN);
+    VertexModificationFunction(IN);
 
     // VertexPositionInputs contains position in multiple spaces (world, view, homogeneous clip space)
     // The compiler will strip all unused references.
@@ -149,7 +129,7 @@ half4 CalculateColor(Varyings IN)
     finalColor += surfaceData.emission;
     // TODO: fog? should it be applied as GI?
     
-    return CUSTOM_FINAL_COLOR(half4(finalColor, surfaceData.alpha));
+    return FinalColorFunction(half4(finalColor, surfaceData.alpha));
 }
 
 half4 SurfaceFragment(Varyings IN) : SV_Target

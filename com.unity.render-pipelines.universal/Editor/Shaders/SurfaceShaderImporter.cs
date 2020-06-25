@@ -4,96 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.Experimental.AssetImporters;
  using UnityEngine;
-
- interface ISurfacecShaderPass
- {
-     string GetPass();
- }
- 
-interface ISurfaceSubShader
-{
-    string GetSubShader(string surfaceShader);
-    string GetAdditonalIncludes();
-}
-
-interface IOpaqueSurfaceSubShader : ISurfaceSubShader
-{ }
-
- class UniversalForwardSurfaceShaderPass : ISurfacecShaderPass
- {
-     private const string Guid = "6f9e55b20bbdf4c429b1437578e36933";
-
-     public string GetPass()
-     {
-         string path = AssetDatabase.GUIDToAssetPath(Guid);
-         return File.ReadAllText(path, Encoding.UTF8);
-     }
- }
-
-class UniversalDepthOnlySurfaceShaderPass : ISurfacecShaderPass
-{
-    private const string Guid = "9a2e027e95e0343458c375c75ee91317";
-
-    public string GetPass()
-    {
-        string path = AssetDatabase.GUIDToAssetPath(Guid);
-        return File.ReadAllText(path, Encoding.UTF8);
-    }
-}
-
-class UniversalShadowCasterSurfaceShaderPass : ISurfacecShaderPass
-{
-    private const string Guid = "4a9665a8ebed2444fadc74a2f4e46293";
-
-    public string GetPass()
-    {
-        string path = AssetDatabase.GUIDToAssetPath(Guid);
-        return File.ReadAllText(path, Encoding.UTF8);
-    }
-}
-
-class UniversalOpaqueSurfaceShader : IOpaqueSurfaceSubShader
-{
-    private UniversalForwardSurfaceShaderPass forwardPass = new UniversalForwardSurfaceShaderPass();
-    private UniversalDepthOnlySurfaceShaderPass depthPass = new UniversalDepthOnlySurfaceShaderPass();
-    private UniversalShadowCasterSurfaceShaderPass shadowCasterPass = new UniversalShadowCasterSurfaceShaderPass();
-
-
-    public string GetAdditonalIncludes()
-    {
-        var sb = new StringBuilder();
-        sb.AppendLine("#include \"Packages/com.unity.render-pipelines.universal/ShaderLibrary/CustomShading.hlsl\"");
-        return sb.ToString();
-    }
-
-    public string GetSubShader(string surfaceShader)
-    {
-        Dictionary<string, string> tags = new Dictionary<string, string>();
-        tags["RenderPipeline"] = "UniversalRenderPipeline";
-
-        var subshader = new StringBuilder();
-        subshader.AppendLine("Subshader");
-        subshader.AppendLine("{");
-
-        foreach (var tag in tags)
-        {
-            subshader.AppendLine($"Tags{{\"{tag.Key}\" = \"{tag.Value}\"}}");
-        }
-
-        subshader.AppendLine("HLSLINCLUDE");
-        subshader.AppendLine(surfaceShader);
-        subshader.AppendLine("ENDHLSL");
-
-        subshader.AppendLine(forwardPass.GetPass());
-        subshader.AppendLine(depthPass.GetPass());
-        subshader.AppendLine(shadowCasterPass.GetPass());
-        subshader.AppendLine("}");
-        return subshader.ToString();
-    }
-}
 
 [ScriptedImporter(1, Extension, 3)]
 class SurfaceShaderImporter : ScriptedImporter
@@ -174,6 +88,21 @@ Shader ""Hidden/GraphErrorShader2""
 
 ";
 
+    public const string k_FinalColorFunction = @"
+    half4 FinalColorFunction(half4 inColor)
+    {
+        return inColor;
+    }
+
+";
+
+    public const string k_VertexModificationFunction = @"
+    void VertexModificationFunction(inout Attributes IN)
+    {
+    }
+
+";
+
     string GetShaderName(string shaderSnippet)
     {
         int shaderNameTokenIndex = shaderSnippet.IndexOf("Shader", StringComparison.Ordinal);
@@ -186,11 +115,18 @@ Shader ""Hidden/GraphErrorShader2""
         return shaderSnippet.Substring(startNameIndex, endNameIndex - startNameIndex + 1);
     }
 
-    string GetSurfaceShader(string shaderSnippet)
+    string GetSurfaceShaderSection(string shaderSnippet, string startTag, string endTag)
     {
-        var surfaceShaderStart = shaderSnippet.IndexOf("SURFACESHADER", StringComparison.Ordinal) ;
-        var surfaceShaderCount = shaderSnippet.IndexOf("ENDSURFACESHADER", StringComparison.Ordinal) - surfaceShaderStart;
-        return shaderSnippet.Substring(surfaceShaderStart + "SURFACESHADER".Length, surfaceShaderCount - "SURFACESHADER".Length);
+        var surfaceShaderStart = shaderSnippet.IndexOf(startTag, StringComparison.Ordinal);
+        if (surfaceShaderStart == -1)
+            return "";
+
+        var surfaceShaderEnd = shaderSnippet.IndexOf(endTag, surfaceShaderStart, StringComparison.Ordinal);
+        if (surfaceShaderEnd == -1)
+            return "";
+
+        var surfaceShaderCount = surfaceShaderEnd - surfaceShaderStart;
+        return shaderSnippet.Substring(surfaceShaderStart + startTag.Length, surfaceShaderCount - startTag.Length);
     }
 
     string GetDefaultFunctions(string shaderSnippet)
@@ -201,14 +137,21 @@ Shader ""Hidden/GraphErrorShader2""
         
         if (shaderSnippet.IndexOf("LightingFunction", StringComparison.Ordinal) == -1)
             functions.Append(k_LightingFunction);
+        
+        if (shaderSnippet.IndexOf("VertexModificationFunction", StringComparison.Ordinal) == -1)
+            functions.Append(k_VertexModificationFunction);
+        
+        if (shaderSnippet.IndexOf("FinalColorFunction", StringComparison.Ordinal) == -1)
+            functions.Append(k_FinalColorFunction);
 
         return functions.ToString();
     }
 
-    string GetShaderProperties(string shaderSnippet)
+    // Returns a shader section like Properties {}
+    string GetShaderBlock(string shaderSnippet, string section)
     {
-        int shaderNameTokenIndex = shaderSnippet.IndexOf("Properties", StringComparison.Ordinal);
-        int startNameIndex = shaderSnippet.IndexOf("{", shaderNameTokenIndex + "Properties".Length, StringComparison.Ordinal);
+        int shaderNameTokenIndex = shaderSnippet.IndexOf(section, StringComparison.Ordinal);
+        int startNameIndex = shaderSnippet.IndexOf("{", shaderNameTokenIndex + section.Length, StringComparison.Ordinal);
         int depth = 0;
         int endNameIndex = startNameIndex;
         while (endNameIndex < shaderSnippet.Length)
@@ -235,6 +178,7 @@ Shader ""Hidden/GraphErrorShader2""
 
     public override void OnImportAsset(AssetImportContext ctx)
     {
+        const string k_templateGUID = "f9cb61ee5b9aa4521bce6ae21747d4dc";
         var oldShader = AssetDatabase.LoadAssetAtPath<Shader>(ctx.assetPath);
         if (oldShader != null)
             ShaderUtil.ClearShaderMessages(oldShader);
@@ -247,18 +191,20 @@ Shader ""Hidden/GraphErrorShader2""
         var textGraph = File.ReadAllText(path, Encoding.UTF8);
 
         var shaderName = GetShaderName(textGraph);
-        var shaderProperties = GetShaderProperties(textGraph);
-        var surfaceShader = GetSurfaceShader(textGraph);
+        var shaderProperties = GetShaderBlock(textGraph, "Properties");
+        var surfaceShader = GetSurfaceShaderSection(textGraph, "SURFACESHADER", "ENDSURFACESHADER");
+        var additionalShaderPasses = GetSurfaceShaderSection(textGraph, "CUSTOMPASS", "ENDCUSTOMPASS");
         var defaultFunctions = GetDefaultFunctions(textGraph);
-        
+
         // Surface Shader Template
-        var templatePath = AssetDatabase.GUIDToAssetPath("f9cb61ee5b9aa4521bce6ae21747d4dc");
+        var templatePath = AssetDatabase.GUIDToAssetPath(k_templateGUID);
         var templateText = File.ReadAllText(templatePath, Encoding.UTF8);
 
         templateText = templateText.Replace("$SHADERNAME", shaderName);
         templateText = templateText.Replace("$SHADERPROPERTIES", shaderProperties);
         templateText = templateText.Replace("$SURFACESHADER", surfaceShader);
         templateText = templateText.Replace("$SURFACEFUNCTIONS", defaultFunctions);
+        templateText = templateText.Replace("$ADDITIONALSHADERPASSES", additionalShaderPasses);
 
         // TODO:
         templateText = templateText.Replace("$SHADERRENDERSTATE", "");
@@ -275,7 +221,8 @@ Shader ""Hidden/GraphErrorShader2""
         Texture2D texture = Resources.Load<Texture2D>("Icons/sg_graph_icon@64");
         ctx.AddObjectToAsset("MainAsset", mainObject, texture);
         ctx.SetMainObject(mainObject);
-
+        ctx.DependsOnSourceAsset(k_templateGUID);
+        
         foreach (var sourceAssetDependencyPath in sourceAssetDependencyPaths.Distinct())
         {
             // Ensure that dependency path is relative to project
