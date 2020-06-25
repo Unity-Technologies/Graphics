@@ -94,7 +94,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         TexturePool                         m_TexturePool = new TexturePool();
         ComputeBufferPool                   m_ComputeBufferPool = new ComputeBufferPool();
         DynamicArray<RendererListResource>  m_RendererListResources = new DynamicArray<RendererListResource>();
-        RTHandleSystem                      m_RTHandleSystem = new RTHandleSystem();
         RenderGraphDebugParams              m_RenderGraphDebug;
         RenderGraphLogger                   m_Logger;
         int                                 m_CurrentFrameIndex;
@@ -150,8 +149,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal RenderGraphResourceRegistry(bool supportMSAA, MSAASamples initialSampleCount, RenderGraphDebugParams renderGraphDebug, RenderGraphLogger logger)
         {
-            // We initialize to screen width/height to avoid multiple realloc that can lead to inflated memory usage (as releasing of memory is delayed).
-            m_RTHandleSystem.Initialize(Screen.width, Screen.height, supportMSAA, initialSampleCount);
             m_RenderGraphDebug = renderGraphDebug;
             m_Logger = logger;
 
@@ -178,11 +175,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal void BeginRender(int width, int height, MSAASamples msaaSamples, int currentFrameIndex)
         {
             m_CurrentFrameIndex = currentFrameIndex;
-            // Update RTHandleSystem with size for this rendering pass.
-            m_RTHandleSystem.SetReferenceSize(width, height, msaaSamples);
         }
-
-        internal RTHandleProperties GetRTHandleProperties() { return m_RTHandleSystem.rtHandleProperties; }
 
         void CheckHandleValidity(in ResourceHandle res)
         {
@@ -225,7 +218,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (m_CurrentBackbuffer != null)
                 m_CurrentBackbuffer.SetTexture(rt);
             else
-                m_CurrentBackbuffer = m_RTHandleSystem.Alloc(rt);
+                m_CurrentBackbuffer = RTHandles.Alloc(rt);
 
             int newHandle = AddNewResource(m_Resources[(int)RenderGraphResourceType.Texture], out TextureResource texResource);
             texResource.resource = m_CurrentBackbuffer;
@@ -340,15 +333,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     switch (desc.sizeMode)
                     {
                         case TextureSizeMode.Explicit:
-                            resource.resource = m_RTHandleSystem.Alloc(desc.width, desc.height, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
+                            resource.resource = RTHandles.Alloc(desc.width, desc.height, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
                             desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.msaaSamples, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, desc.name);
                             break;
                         case TextureSizeMode.Scale:
-                            resource.resource = m_RTHandleSystem.Alloc(desc.scale, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
+                            resource.resource = RTHandles.Alloc(desc.scale, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
                             desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.enableMSAA, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, desc.name);
                             break;
                         case TextureSizeMode.Functor:
-                            resource.resource = m_RTHandleSystem.Alloc(desc.func, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
+                            resource.resource = RTHandles.Alloc(desc.func, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
                             desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.enableMSAA, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, desc.name);
                             break;
                     }
@@ -576,17 +569,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             m_TexturePool.CheckFrameAllocation(onException, m_CurrentFrameIndex);
             m_ComputeBufferPool.CheckFrameAllocation(onException, m_CurrentFrameIndex);
+        }
 
+        internal void PurgeUnusedResources()
+        {
             // TODO RENDERGRAPH: Might not be ideal to purge stale resources every frame.
             // In case users enable/disable features along a level it might provoke performance spikes when things are reallocated...
             // Will be much better when we have actual resource aliasing and we can manage memory more efficiently.
             m_TexturePool.PurgeUnusedResources(m_CurrentFrameIndex);
             m_ComputeBufferPool.PurgeUnusedResources(m_CurrentFrameIndex);
-        }
-
-        internal void ResetRTHandleReferenceSize(int width, int height)
-        {
-            m_RTHandleSystem.ResetReferenceSize(width, height);
         }
 
         internal void Cleanup()
