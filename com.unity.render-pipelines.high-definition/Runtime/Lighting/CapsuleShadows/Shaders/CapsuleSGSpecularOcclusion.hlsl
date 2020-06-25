@@ -58,8 +58,15 @@ AnisotropicSphericalGaussian AnisotropicSphericalGaussianFromEllipsoidOccluderDa
         : normalize(cross(up, normal));
     float3 bitangent = normalize(cross(tangent, normal));
 
-    // TODO: project
-    float occluderRadiusMajorProjected = lerp(occluderRadiusMajor, occluderRadiusMinor, abs(axisMajorTNormalScalar));
+    // Lerping between minor and major axis based on projection is a reasonable approximation for more distant occluders,
+    // but breaks down when occluders major axis approaches contact with surface, as this significant increase in solid angle is not
+    // fully taken into account.
+    // In many situations, preserving the major axis size regardless of projection produces results that are closer to the ground truth,
+    // particularly near contact. The downside of doing this is that when looking straight down the major axis, we still see stretching that we should not.
+    // for now, simply apply an adhoc rescaling of the projected area to approximately handle both cases.
+    float occluderRadiusMajorProjected = lerp(occluderRadiusMajor, occluderRadiusMinor, smoothstep(0.9f, 1.0f, abs(axisMajorTNormalScalar)));
+    // float occluderRadiusMajorProjected = lerp(occluderRadiusMajor, occluderRadiusMinor, abs(axisMajorTNormalScalar));
+
 
     // tan(theta) == opposite / adjacent
     // theta == atan(opposite / adjacent)
@@ -67,6 +74,11 @@ AnisotropicSphericalGaussian AnisotropicSphericalGaussianFromEllipsoidOccluderDa
     // cosTheta == cos(atan(occluderRadiusProjectedAverage / occluderFromSurfaceDistance))
     // cos(atan(x / y)) == rsqrt(x^2 / y^2 + 1)
     // cosTheta == rsqrt(occluderRadiusProjectedAverage^2 / occluderFromSurfaceDistance^2 + 1)
+    //
+    // Ultimately, the output of SphericalGaussianSharpnessFromAngleAndLogThreshold(cosTheta, log(amplitude), log(epsilon)))
+    // ends up looking like an inverted parabola when graphed over occluderFromSurfaceDistance.
+    // In the future, we should just fit a polynomial for all this math that returns sharpness for a given occluderRadius / occluderDistance.
+    //
     float cosThetaRadiusMinor = rsqrt((occluderRadiusMinor * occluderRadiusMinor) / (occluderFromSurfaceDistance * occluderFromSurfaceDistance) + 1.0f);
     float cosThetaRadiusMajor = rsqrt((occluderRadiusMajorProjected * occluderRadiusMajorProjected) / (occluderFromSurfaceDistance * occluderFromSurfaceDistance) + 1.0f);
     float amplitude = 1.0f;
