@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.Universal
 
         private const int DebugUAVSlot = 7;
         private const int FramesInFlight = 4;
-        private const int MaxBufferElements = 1024 * 1024; // 1M - must match the shader size definition
+        private const int MaxBufferElements = 1024 * 16; // 16KB - must match the shader size definition
 
         private List<GraphicsBuffer> m_outputBuffers = new List<GraphicsBuffer>();
 
