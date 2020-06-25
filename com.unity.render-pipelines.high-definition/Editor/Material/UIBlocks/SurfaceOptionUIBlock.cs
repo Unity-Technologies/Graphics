@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
+using Unity.Assets.MaterialVariant.Editor;
+
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
@@ -449,7 +451,8 @@ namespace UnityEditor.Rendering.HighDefinition
             else if ((m_Features & Features.AlphaToMask) != 0)
             {
                 if (alphaToMask != null)
-                    alphaToMask.floatValue = 0.0f;
+                    using (CreateOverrideScopeFor(alphaToMask, forceMode: true))
+                        alphaToMask.floatValue = 0.0f;
             }
 
 
@@ -593,7 +596,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // We only display the ray tracing option if the asset supports it (and the attributes exists in this shader)
             if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported && rayTracing != null)
-                materialEditor.ShaderProperty(rayTracing, Styles.rayTracingText);
+                using (CreateOverrideScopeFor(rayTracing))
+                    materialEditor.ShaderProperty(rayTracing, Styles.rayTracingText);
 
 
             var mode = (SurfaceType)surfaceType.floatValue;
@@ -634,8 +638,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                     renderQueue = HDRenderQueue.ChangeType(targetQueueType, (int)transparentSortPriority.floatValue, alphaTest);
                 }
-                EditorGUI.showMixedValue = false;
             }
+            EditorGUI.showMixedValue = false;
 
             bool isMixedRenderQueue = surfaceType.hasMixedValue || renderQueueHasMultipleDifferentValue;
             bool showAfterPostProcessPass = (m_Features & Features.ShowAfterPostProcessPass) != 0;
@@ -812,16 +816,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (displacementMode != null)
             {
+                EditorGUI.BeginChangeCheck();
+                FilterDisplacementMode();
                 using (CreateOverrideScopeFor(displacementMode))
-                {
-                    EditorGUI.BeginChangeCheck();
-                    FilterDisplacementMode();
                     materialEditor.ShaderProperty(displacementMode, Styles.displacementModeText);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        for (int i = 0; i < m_LayerCount; i++)
-                            UpdateDisplacement(i);
-                    }
+                if (EditorGUI.EndChangeCheck())
+                {
+                    for (int i = 0; i < m_LayerCount; i++)
+                        UpdateDisplacement(i);
                 }
 
                 if ((DisplacementMode)displacementMode.floatValue != DisplacementMode.None)
@@ -838,26 +840,39 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     EditorGUILayout.Space();
                     EditorGUI.indentLevel++;
-                    using (CreateOverrideScopeFor(ppdMinSamples))
+                    MaterialPropertyScope.MaterialPropertyScopeDelayedOverrideRegisterer ppdMinSamplesDelayedRegisterer;
+                    using (var scope = CreateOverrideScopeFor(ppdMinSamples))
+                    {
                         materialEditor.ShaderProperty(ppdMinSamples, Styles.ppdMinSamplesText);
+                        ppdMinSamplesDelayedRegisterer = scope.ProduceDelayedRegisterer();
+                    }
                     using (CreateOverrideScopeFor(ppdMaxSamples))
                         materialEditor.ShaderProperty(ppdMaxSamples, Styles.ppdMaxSamplesText);
-                    using (CreateOverrideScopeFor(ppdMinSamples))
-                        ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
+                    ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
+                    ppdMinSamplesDelayedRegisterer.RegisterNow();
                     using (CreateOverrideScopeFor(ppdLodThreshold))
                         materialEditor.ShaderProperty(ppdLodThreshold, Styles.ppdLodThresholdText);
-                    using (CreateOverrideScopeFor(ppdPrimitiveLength))
+
+                    EditorGUI.BeginChangeCheck();
                     {
-                        materialEditor.ShaderProperty(ppdPrimitiveLength, Styles.ppdPrimitiveLength);
-                        ppdPrimitiveLength.floatValue = Mathf.Max(0.01f, ppdPrimitiveLength.floatValue);
+                        using (CreateOverrideScopeFor(ppdPrimitiveLength))
+                        {
+                            EditorGUI.BeginChangeCheck();
+                            materialEditor.ShaderProperty(ppdPrimitiveLength, Styles.ppdPrimitiveLength);
+                            if (EditorGUI.EndChangeCheck())
+                                ppdPrimitiveLength.floatValue = Mathf.Max(0.01f, ppdPrimitiveLength.floatValue);
+                        }
+                        using (CreateOverrideScopeFor(ppdPrimitiveWidth))
+                        {
+                            EditorGUI.BeginChangeCheck();
+                            materialEditor.ShaderProperty(ppdPrimitiveWidth, Styles.ppdPrimitiveWidth);
+                            if (EditorGUI.EndChangeCheck())
+                                ppdPrimitiveWidth.floatValue = Mathf.Max(0.01f, ppdPrimitiveWidth.floatValue);
+                        }
                     }
-                    using (CreateOverrideScopeFor(ppdPrimitiveWidth))
-                    {
-                        materialEditor.ShaderProperty(ppdPrimitiveWidth, Styles.ppdPrimitiveWidth);
-                        ppdPrimitiveWidth.floatValue = Mathf.Max(0.01f, ppdPrimitiveWidth.floatValue);
-                    }
-                    using (CreateOverrideScopeFor(invPrimScale))
-                        invPrimScale.vectorValue = new Vector4(1.0f / ppdPrimitiveLength.floatValue, 1.0f / ppdPrimitiveWidth.floatValue); // Precompute
+                    if (EditorGUI.EndChangeCheck())
+                        using (CreateOverrideScopeFor(invPrimScale, forceMode: true))
+                            invPrimScale.vectorValue = new Vector4(1.0f / ppdPrimitiveLength.floatValue, 1.0f / ppdPrimitiveWidth.floatValue); // Precompute
                     using (CreateOverrideScopeFor(depthOffsetEnable))
                         materialEditor.ShaderProperty(depthOffsetEnable, Styles.depthOffsetEnableText);
                     EditorGUI.indentLevel--;
@@ -870,8 +885,10 @@ namespace UnityEditor.Rendering.HighDefinition
             DisplacementMode displaceMode = (DisplacementMode)displacementMode.floatValue;
             if (displaceMode == DisplacementMode.Pixel)
             {
-                heightAmplitude[layerIndex].floatValue = heightPoMAmplitude[layerIndex].floatValue * 0.01f; // Conversion centimeters to meters.
-                heightCenter[layerIndex].floatValue = 1.0f; // PoM is always inward so base (0 height) is mapped to 1 in the texture
+                using (CreateOverrideScopeFor(heightAmplitude[layerIndex], forceMode: true))
+                    heightAmplitude[layerIndex].floatValue = heightPoMAmplitude[layerIndex].floatValue * 0.01f; // Conversion centimeters to meters.
+                using (CreateOverrideScopeFor(heightCenter[layerIndex], forceMode: true))
+                    heightCenter[layerIndex].floatValue = 1.0f; // PoM is always inward so base (0 height) is mapped to 1 in the texture
             }
             else
             {
@@ -881,14 +898,18 @@ namespace UnityEditor.Rendering.HighDefinition
                     float offset = heightOffset[layerIndex].floatValue;
                     float amplitude = (heightMax[layerIndex].floatValue - heightMin[layerIndex].floatValue);
 
-                    heightAmplitude[layerIndex].floatValue = amplitude * 0.01f; // Conversion centimeters to meters.
-                    heightCenter[layerIndex].floatValue = -(heightMin[layerIndex].floatValue + offset) / Mathf.Max(1e-6f, amplitude);
+                    using (CreateOverrideScopeFor(heightAmplitude[layerIndex], forceMode: true))
+                        heightAmplitude[layerIndex].floatValue = amplitude * 0.01f; // Conversion centimeters to meters.
+                    using (CreateOverrideScopeFor(heightCenter[layerIndex], forceMode: true))
+                        heightCenter[layerIndex].floatValue = -(heightMin[layerIndex].floatValue + offset) / Mathf.Max(1e-6f, amplitude);
                 }
                 else
                 {
                     float amplitude = heightTessAmplitude[layerIndex].floatValue;
-                    heightAmplitude[layerIndex].floatValue = amplitude * 0.01f;
-                    heightCenter[layerIndex].floatValue = -heightOffset[layerIndex].floatValue / Mathf.Max(1e-6f, amplitude) + heightTessCenter[layerIndex].floatValue;
+                    using (CreateOverrideScopeFor(heightAmplitude[layerIndex], forceMode: true))
+                        heightAmplitude[layerIndex].floatValue = amplitude * 0.01f;
+                    using (CreateOverrideScopeFor(heightCenter[layerIndex], forceMode: true))
+                        heightCenter[layerIndex].floatValue = -heightOffset[layerIndex].floatValue / Mathf.Max(1e-6f, amplitude) + heightTessCenter[layerIndex].floatValue;
                 }
             }
         }
@@ -898,12 +919,14 @@ namespace UnityEditor.Rendering.HighDefinition
             if (tessellationMode == null)
             {
                 if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Tessellation)
-                    displacementMode.floatValue = (float)DisplacementMode.None;
+                    using (CreateOverrideScopeFor(displacementMode, forceMode: true))
+                        displacementMode.floatValue = (float)DisplacementMode.None;
             }
             else
             {
                 if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel || (DisplacementMode)displacementMode.floatValue == DisplacementMode.Vertex)
-                    displacementMode.floatValue = (float)DisplacementMode.None;
+                    using (CreateOverrideScopeFor(displacementMode, forceMode: true))
+                        displacementMode.floatValue = (float)DisplacementMode.None;
             }
         }
     }

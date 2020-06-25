@@ -54,8 +54,8 @@ namespace UnityEditor.Rendering.HighDefinition
             LayeringOption3 = 1 << 30
         }
 
-        protected MaterialPropertyScope CreateOverrideScopeFor(MaterialProperty property)
-            => new MaterialPropertyScope(property, variants);
+        protected MaterialPropertyScope CreateOverrideScopeFor(MaterialProperty property, bool forceMode = false)
+            => new MaterialPropertyScope(property, variants, forceMode);
 
         public void         Initialize(MaterialEditor materialEditor, MaterialProperty[] properties, MaterialUIBlockList parent)
         {
