@@ -61,7 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // TODO: This assumes is shadows from sun.
-        internal void RenderCapsuleOcclusions(CommandBuffer cmd, HDCamera hdCamera, RTHandle occlusionTexture, Light sunLight)
+        internal void RenderCapsuleOcclusions(CommandBuffer cmd, HDCamera hdCamera, RTHandle occlusionTexture, Light sunLight, int frameIndex)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CapsuleOcclusion)))
             {
@@ -72,6 +72,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var shadowSettings = hdCamera.volumeStack.GetComponent<CapsuleSoftShadows>();
 
                 cs.shaderKeywords = null;
+                if (aoSettings.monteCarlo.value) { cs.EnableKeyword("MONTE_CARLO"); }
                 cs.EnableKeyword("DIRECTIONAL_SHADOW");
                 cs.EnableKeyword("SPECULAR_OCCLUSION");
                 if (aoSettings.intensity.value > 0.0f)
@@ -91,11 +92,29 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CapsuleShadowLUT, m_CapsuleSoftShadowLUT);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CapsuleOcclusions, m_CapsuleOcclusions);
 
+                if (aoSettings.monteCarlo.value)
+                {
+                    // Same as BlueNoise.BindDitheredRNGData1SPP() but binding to this compute shader, instead of binding globally.
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OwenScrambledTexture, m_Resources.textures.owenScrambled256Tex);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ScramblingTileXSPP, m_Resources.textures.scramblingTile1SPP);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RankingTileXSPP, m_Resources.textures.rankingTile1SPP);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ScramblingTexture, m_Resources.textures.scramblingTex);
+
+                    cmd.SetComputeIntParam(cs, HDShaderIDs._CapsuleFrameIndex, frameIndex);
+                }
+
                 int dispatchX = HDUtils.DivRoundUp(hdCamera.actualWidth, 16);
                 int dispatchY = HDUtils.DivRoundUp(hdCamera.actualHeight, 16);
 
                 cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, hdCamera.viewCount);
+
+                
             }
+        }
+
+        internal void PushGlobalTextures(CommandBuffer cmd)
+        {
+            cmd.SetGlobalTexture(HDShaderIDs._CapsuleOcclusionsTexture, m_CapsuleOcclusions);
         }
 
         internal void PushDebugTextures(CommandBuffer cmd, HDCamera hdCamera, RTHandle occlusionTexture)

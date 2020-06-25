@@ -218,6 +218,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CapsuleShadowLUT = Shader.PropertyToID("_CapsuleShadowLUT");
         public static readonly int _CapsuleShadowParameters = Shader.PropertyToID("_CapsuleShadowParameters");
         public static readonly int _CapsuleOcclusions = Shader.PropertyToID("_CapsuleOcclusions");
+        public static readonly int _CapsuleFrameIndex = Shader.PropertyToID("_CapsuleFrameIndex");
 
         public static readonly int _WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
         public static readonly int _PrevCamPosRWS = Shader.PropertyToID("_PrevCamPosRWS");
@@ -259,6 +260,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CameraSssDiffuseLightingBuffer = Shader.PropertyToID("_CameraSssDiffuseLightingTexture");
         public static readonly int _CameraFilteringBuffer          = Shader.PropertyToID("_CameraFilteringTexture");
         public static readonly int _IrradianceSource               = Shader.PropertyToID("_IrradianceSource");
+        public static readonly int _CapsuleOcclusionsTexture       = Shader.PropertyToID("_CapsuleOcclusionsTexture");
 
         // Planar reflection filtering
         public static readonly int _ReflectionColorMipChain = Shader.PropertyToID("_ReflectionColorMipChain");

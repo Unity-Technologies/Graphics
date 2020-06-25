@@ -70,6 +70,29 @@ float GetScreenSpaceDiffuseOcclusion(float2 positionSS)
     return indirectAmbientOcclusion;
 }
 
+// Get specular occlusion from our screen space RT which stores capsule specular occlusion which was calculated previously in async compute.
+float GetScreenSpaceSpecularOcclusion(float2 positionSS)
+{
+    #if (SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT) || (SHADERPASS == SHADERPASS_RAYTRACING_FORWARD)
+        // When we are in raytracing mode, we do not want to take the capsule occluder texture.
+        float indirectSpecularOcclusion = 1.0;
+    #else
+        // Note: When we ImageLoad outside of texture size, the value returned by Load is 0 (Note: On Metal maybe it clamp to value of texture which is also fine)
+        // We use this property to have a neutral value for AO that doesn't consume a sampler and work also with compute shader (i.e use ImageLoad)
+        // We store inverse AO so neutral is black. So either we sample inside or outside the texture it return 0 in case of neutral
+        // Ambient occlusion use for indirect lighting (reflection probe, baked diffuse lighting)
+        #ifndef _SURFACE_TYPE_TRANSPARENT
+        // TODO: Will need some transforms around positionSS in the future to handle a potentially half resolution capsule occlusion texture.
+        // TODO: Apply remainder of the specular BRDF here, i.e: Fresnel.
+        float indirectSpecularOcclusion = LOAD_TEXTURE2D_X(_CapsuleOcclusionsTexture, positionSS).x;
+        #else
+        float indirectSpecularOcclusion = 1.0;
+        #endif
+    #endif
+
+    return indirectSpecularOcclusion;
+}
+
 void GetScreenSpaceAmbientOcclusion(float2 positionSS, float NdotV, float perceptualRoughness, float ambientOcclusionFromData, float specularOcclusionFromData, out AmbientOcclusionFactor aoFactor)
 {
     float indirectAmbientOcclusion = GetScreenSpaceDiffuseOcclusion(positionSS);
@@ -77,6 +100,7 @@ void GetScreenSpaceAmbientOcclusion(float2 positionSS, float NdotV, float percep
 
     float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
     float indirectSpecularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(NdotV), indirectAmbientOcclusion, roughness);
+    indirectSpecularOcclusion = min(indirectSpecularOcclusion, GetScreenSpaceSpecularOcclusion(positionSS));
     float directSpecularOcclusion = lerp(1.0, indirectSpecularOcclusion, _AmbientOcclusionParam.w);
 
     aoFactor.indirectSpecularOcclusion = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), min(specularOcclusionFromData, indirectSpecularOcclusion));
@@ -99,6 +123,8 @@ void GetScreenSpaceAmbientOcclusionMultibounce(float2 positionSS, float NdotV, f
     aoFactor.indirectAmbientOcclusion = GTAOMultiBounce(min(ambientOcclusionFromData, indirectAmbientOcclusion), diffuseColor);
     aoFactor.directSpecularOcclusion = GTAOMultiBounce(directSpecularOcclusion, fresnel0);
     aoFactor.directAmbientOcclusion = GTAOMultiBounce(directAmbientOcclusion, diffuseColor);
+
+    aoFactor.indirectSpecularOcclusion = min(aoFactor.indirectSpecularOcclusion, GetScreenSpaceSpecularOcclusion(positionSS));
 }
 
 void ApplyAmbientOcclusionFactor(AmbientOcclusionFactor aoFactor, inout BuiltinData builtinData, inout AggregateLighting lighting)

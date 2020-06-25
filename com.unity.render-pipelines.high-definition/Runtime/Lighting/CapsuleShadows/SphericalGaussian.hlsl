@@ -197,11 +197,14 @@ SphericalGaussian SphericalGaussianFromNDFApproximate(float3 normal, float rough
 SphericalGaussian SphericalGaussianWarpWSFromHS(in SphericalGaussian sgNDFHalfVectorSpace, float3 V)
 {
     SphericalGaussian sgNDFWorldSpace;
+
+    // TODO: Pass this in, instead of recalculating here.
+    float NdotV = max(1e-5f, abs(dot(sgNDFHalfVectorSpace.normal, V)));
  
     sgNDFWorldSpace.normal = reflect(-V, sgNDFHalfVectorSpace.normal);
     sgNDFWorldSpace.amplitude = sgNDFHalfVectorSpace.amplitude;
     sgNDFWorldSpace.sharpness = sgNDFHalfVectorSpace.sharpness;
-    sgNDFWorldSpace.sharpness /= (4.0f * max(dot(sgNDFHalfVectorSpace.normal, V), 1e-5f));
+    sgNDFWorldSpace.sharpness /= (4.0f * NdotV);
  
     return sgNDFWorldSpace;
 }
@@ -313,9 +316,13 @@ AnisotropicSphericalGaussian AnisotropicSphericalGaussianWarpWSFromHS(SphericalG
 
     // Second derivative of the sharpness with respect to how
     // far we are from basis Axis direction
-    const float SHARPNESS_MAX = 1000.0f;
-    asgNDFWorldSpace.sharpness.x = min(SHARPNESS_MAX, sgNDFHalfVectorSpace.sharpness / (8.0f * NdotV * NdotV));
-    asgNDFWorldSpace.sharpness.y = min(SHARPNESS_MAX, sgNDFHalfVectorSpace.sharpness / 8.0f);
+    const float SHARPNESS_MAX = 100000.0f;
+    asgNDFWorldSpace.sharpness.x = min(SHARPNESS_MAX, sgNDFHalfVectorSpace.sharpness * 0.125f / (NdotV * NdotV));
+    asgNDFWorldSpace.sharpness.y = min(SHARPNESS_MAX, sgNDFHalfVectorSpace.sharpness * 0.125f);
+
+    // Slightly lerp toward an isotropic distribution to avoid precision issues near degenerate distributions.
+    float sharpnessIsotropic = asgNDFWorldSpace.sharpness.x * 0.5f + asgNDFWorldSpace.sharpness.y * 0.5f;
+    asgNDFWorldSpace.sharpness = lerp(asgNDFWorldSpace.sharpness, float2(sharpnessIsotropic, sharpnessIsotropic), 0.1f);
 
     asgNDFWorldSpace.amplitude = sgNDFHalfVectorSpace.amplitude;
 

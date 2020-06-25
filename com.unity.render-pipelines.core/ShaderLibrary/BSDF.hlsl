@@ -183,6 +183,14 @@ real D_GGX(real NdotH, real roughness)
     return INV_PI * D_GGXNoPI(NdotH, roughness);
 }
 
+real D_GGXInverse(real NdotH, real roughness)
+{
+    real a2 = Sq(roughness);
+    real s = (NdotH * a2 - NdotH) * NdotH + 1.0;
+
+    return SafeDiv(s * s * PI, a2);
+}
+
 // Ref: Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs, p. 19, 29.
 // p. 84 (37/60)
 real G_MaskingSmithGGX(real NdotV, real roughness)

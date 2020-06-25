@@ -10,6 +10,9 @@ struct EllipsoidOccluderData
 {
     float4 positionRWS_radius;
     float4 directionWS_influence;
+    float3 sphereFromWorldTangent;
+    float3 sphereFromWorldBitangent;
+    float3 sphereFromWorldNormal;
 };
 
 

@@ -11,6 +11,9 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public Vector4 positionRWS_radius;
         public Vector4 directionWS_influence;
+        public Vector3 sphereFromWorldTangent;
+        public Vector3 sphereFromWorldBitangent;
+        public Vector3 sphereFromWorldNormal;
     }
 
     /// <summary>
@@ -51,10 +54,52 @@ namespace UnityEngine.Rendering.HighDefinition
             float influenceRadius = Mathf.Max(Mathf.Max(lossyScale.x, lossyScale.y), lossyScale.z) * influenceRadiusScale * radiusOS;
             influenceRadius *= Mathf.Max(1.0f, scalingOS);
 
-            return new EllipsoidOccluderData {
+            Quaternion worldFromSphereRotation = tr.rotation * Quaternion.Euler(anglesOS);
+            Vector3 worldFromSphereTangent = worldFromSphereRotation * Vector3.right;
+            Vector3 worldFromSphereBitangent = worldFromSphereRotation * Vector3.up;
+            Vector3 worldFromSphereNormal = worldFromSphereRotation * Vector3.forward;
+
+            Vector3 worldFromSphereScale = new Vector3(radiusOS * tr.lossyScale.x, radiusOS * tr.lossyScale.y, radiusOS * scalingOS * tr.lossyScale.z);
+            worldFromSphereTangent *= worldFromSphereScale.x;
+            worldFromSphereBitangent *= worldFromSphereScale.y;
+            worldFromSphereNormal *= worldFromSphereScale.z;
+
+            Vector3 sphereFromWorldTangent;
+            Vector3 sphereFromWorldBitangent;
+            Vector3 sphereFromWorldNormal;
+            Vector3x3Invert(
+                out sphereFromWorldTangent,
+                out sphereFromWorldBitangent,
+                out sphereFromWorldNormal,
+                worldFromSphereTangent,
+                worldFromSphereBitangent,
+                worldFromSphereNormal
+            );
+
+            dir = worldFromSphereNormal;
+
+            return new EllipsoidOccluderData
+            {
                 positionRWS_radius = new Vector4(centerRWS.x, centerRWS.y, centerRWS.z, radius),
-                directionWS_influence = new Vector4(dir.x, dir.y, dir.z, influenceRadius)
+                directionWS_influence = new Vector4(dir.x, dir.y, dir.z, influenceRadius),
+                sphereFromWorldTangent = sphereFromWorldTangent,
+                sphereFromWorldBitangent = sphereFromWorldBitangent,
+                sphereFromWorldNormal = sphereFromWorldNormal,
             };
+        }
+
+        private static void Vector3x3Invert(out Vector3 tangentOut, out Vector3 bitangentOut, out Vector3 normalOut, Vector3 tangentIn, Vector3 bitangentIn, Vector3 normalIn)
+        {
+            tangentOut = Vector3.Cross(bitangentIn, normalIn);
+            bitangentOut = Vector3.Cross(normalIn, tangentIn);
+            normalOut = Vector3.Cross(tangentIn, bitangentIn);
+
+            float det = Vector3.Dot(Vector3.Cross(tangentIn, bitangentIn), normalIn);
+            float detInverse = Mathf.Abs(det) > 1e-5f ? (1.0f / det) : 0.0f;
+
+            tangentOut *= detInverse;
+            bitangentOut *= detInverse;
+            normalOut *= detInverse;
         }
 
         private void OnEnable()

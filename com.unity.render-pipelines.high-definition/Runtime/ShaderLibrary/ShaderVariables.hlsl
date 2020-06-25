@@ -151,6 +151,8 @@ SAMPLER(samplerunity_ProbeVolumeSH);
 TEXTURE2D(_ExposureTexture);
 TEXTURE2D(_PrevExposureTexture);
 
+TEXTURE2D_X(_CapsuleOcclusionsTexture);
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesXR.cs.hlsl"
 
 // Note: To sample camera depth in HDRP we provide these utils functions because the way we store the depth mips can change
