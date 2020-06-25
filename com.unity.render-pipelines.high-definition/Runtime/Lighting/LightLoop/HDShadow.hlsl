@@ -26,7 +26,7 @@ float GetDirectionalShadowAttenuation(HDShadowContext shadowContext, float2 posi
 
     // TODO: Note this is temp, find the best place to place and especially change when we support anything not directional!
     float capsuleShadow = 1;
-    if (_CapsuleOcclusionParams.x)
+    if (_CapsuleOcclusionParams.x && _CapsuleOcclusionParams.z > 0.0f)
     {
         capsuleShadow = LOAD_TEXTURE2D_X(_CapsuleOcclusionsTexture, positionSS).y;
     }
