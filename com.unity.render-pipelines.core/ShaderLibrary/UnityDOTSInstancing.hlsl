@@ -128,7 +128,7 @@ for t, c, sz in (
 // TODO: Shader feature level to compute only
 ByteAddressBuffer unity_DOTSInstanceData;
 
-
+#ifndef UNITY_DOTS_DATA_ORIENTED_HYBRID_ENABLED
 // The data has to be wrapped inside a struct, otherwise the instancing code path
 // on some platforms does not trigger.
 struct DOTSVisibleData
@@ -142,6 +142,7 @@ struct DOTSVisibleData
 CBUFFER_START(UnityInstancingDOTS_InstanceVisibility)
     DOTSVisibleData unity_DOTSVisibleInstances[UNITY_INSTANCED_ARRAY_SIZE];
 CBUFFER_END
+#endif
 
 //hw20-data-oriented-hybrid-renderer: switch
 //#define UNITY_DOTS_DATA_ORIENTED_HYBRID_ENABLED
