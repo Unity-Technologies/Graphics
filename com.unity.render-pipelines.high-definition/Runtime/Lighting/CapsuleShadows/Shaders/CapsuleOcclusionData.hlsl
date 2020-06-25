@@ -13,6 +13,7 @@ CBUFFER_END
 
 #define _CapsuleAmbientOcclusionIntensity _CapsuleOcclusionIntensities.x 
 #define _CapsuleSpecularOcclusionIntensity _CapsuleOcclusionIntensities.y
+#define _CapsuleShadowIntensity saturate(_CapsuleOcclusionIntensities.z)
 
 TEXTURE3D(_CapsuleShadowLUT);
 

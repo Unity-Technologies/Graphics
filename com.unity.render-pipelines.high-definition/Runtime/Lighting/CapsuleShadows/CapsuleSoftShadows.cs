@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [VolumeComponentMenu("Lighting/Capsule/Soft Shadows")]
     internal class CapsuleSoftShadows : VolumeComponent
     {
-        public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 4f);
+        public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
         public BoolParameter directShadow = new BoolParameter(true);
 
         // IMPORTANT: Whenever this is changed the LUT is recomputed and that is not desirable at runtime.

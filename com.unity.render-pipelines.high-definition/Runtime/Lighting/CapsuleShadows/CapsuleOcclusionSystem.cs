@@ -163,7 +163,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
 
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._CapsuleOcclusionIntensities, new Vector4(aoSettings.intensity.value, specularOcclusionSettings.intensity.value, 0, 0));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._CapsuleOcclusionIntensities, new Vector4(aoSettings.intensity.value, specularOcclusionSettings.intensity.value, shadowSettings.intensity.value, 0));
 
                 int dispatchX = HDUtils.DivRoundUp(hdCamera.actualWidth, 16);
                 int dispatchY = HDUtils.DivRoundUp(hdCamera.actualHeight, 16);

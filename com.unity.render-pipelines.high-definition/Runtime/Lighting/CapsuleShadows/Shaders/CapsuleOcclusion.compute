@@ -100,7 +100,7 @@ void CapsuleOcclusion(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupI
 #endif
 
 #if defined(SPECULAR_OCCLUSION) || defined(DIRECTIONAL_SHADOW)
-    _CapsuleOcclusions[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float2(specOcclusion, shadow);
+    _CapsuleOcclusions[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float2(specOcclusion, lerp(1, shadow, _CapsuleShadowIntensity));
 #endif
 
 
