@@ -143,6 +143,9 @@ CBUFFER_START(UnityInstancingDOTS_InstanceVisibility)
     DOTSVisibleData unity_DOTSVisibleInstances[UNITY_INSTANCED_ARRAY_SIZE];
 CBUFFER_END
 
+//hw20-data-oriented-hybrid-renderer: switch
+#define UNITY_DOTS_DATA_ORIENTED_HYBRID_ENABLED
+
 #ifdef UNITY_DOTS_DATA_ORIENTED_HYBRID_ENABLED
 
 // A global instance ID variable that functions can directly access. analouge to UnityInstancing's unity_InstanceID
