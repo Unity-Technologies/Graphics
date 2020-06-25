@@ -1,3 +1,5 @@
+
+
 struct AttributesMesh
 {
     float3 positionOS   : POSITION;
@@ -53,8 +55,8 @@ struct VaryingsMeshToPS
     float4 color;
 #endif
 
-    UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_DOTS_INSTANCE_ID
+    UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct PackedVaryingsMeshToPS
@@ -87,8 +89,8 @@ struct PackedVaryingsMeshToPS
     float4 interpolators5 : TEXCOORD5;
 #endif
 
-    UNITY_VERTEX_INPUT_INSTANCE_ID // Must be declare before FRONT_FACE_SEMANTIC
     UNITY_DOTS_INSTANCE_ID
+    UNITY_VERTEX_INPUT_INSTANCE_ID // Must be declare before FRONT_FACE_SEMANTIC
 
 #if defined(VARYINGS_NEED_CULLFACE) && SHADER_STAGE_FRAGMENT
     FRONT_FACE_TYPE cullFace : FRONT_FACE_SEMANTIC;

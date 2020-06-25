@@ -210,6 +210,8 @@
 #   define UNITY_SETUP_INSTANCE_ID(input) DEFAULT_UNITY_SETUP_INSTANCE_ID(input)
 #endif
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityDOTSInstancing.hlsl"
+
 ////////////////////////////////////////////////////////
 // instanced property arrays
 #if defined(UNITY_INSTANCING_ENABLED) || defined(UNITY_DOTS_INSTANCING_ENABLED)
@@ -233,8 +235,6 @@
     #define UNITY_INSTANCING_BUFFER_END(arr)        UNITY_INSTANCING_CBUFFER_SCOPE_END
     #define UNITY_DEFINE_INSTANCED_PROP(type, var)  type var;
     #define UNITY_ACCESS_INSTANCED_PROP(arr, var)   var
-
-    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityDOTSInstancing.hlsl"
 
 #else
     #define UNITY_INSTANCING_BUFFER_START(buf)      UNITY_INSTANCING_CBUFFER_SCOPE_BEGIN(UnityInstancing_##buf) struct {

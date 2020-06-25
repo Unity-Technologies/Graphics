@@ -3,6 +3,9 @@
 
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
 
+//hw20-data-oriented-hybrid-renderer: switch
+#define UNITY_DOTS_DATA_ORIENTED_HYBRID_ENABLED 1
+
 /*
 Here's a bit of python code to generate these repetitive typespecs without
 a lot of C macro magic
@@ -128,10 +131,7 @@ for t, c, sz in (
 // TODO: Shader feature level to compute only
 ByteAddressBuffer unity_DOTSInstanceData;
 
-//hw20-data-oriented-hybrid-renderer: switch
-#define UNITY_DOTS_DATA_ORIENTED_HYBRID_ENABLED
-
-#ifndef UNITY_DOTS_DATA_ORIENTED_HYBRID_ENABLED
+#if !UNITY_DOTS_DATA_ORIENTED_HYBRID_ENABLED
 // The data has to be wrapped inside a struct, otherwise the instancing code path
 // on some platforms does not trigger.
 struct DOTSVisibleData
@@ -147,7 +147,7 @@ CBUFFER_START(UnityInstancingDOTS_InstanceVisibility)
 CBUFFER_END
 #endif
 
-#ifdef UNITY_DOTS_DATA_ORIENTED_HYBRID_ENABLED
+#if UNITY_DOTS_DATA_ORIENTED_HYBRID_ENABLED
 
 // A global instance ID variable that functions can directly access. analouge to UnityInstancing's unity_InstanceID
 static uint unity_dotsInstanceID;
@@ -264,6 +264,8 @@ float2x4 LoadDOTSInstancedData(float2x4 dummy, uint metadata) { return LoadDOTSI
 #define UNITY_DOTS_INSTANCE_ID
 #define UNITY_SETUP_DOTS_INSTANCE_ID(input)
 #define UNITY_TRANSFER_DOTS_INSTANCE_ID(input, output)
+
+#define UNITY_DOTS_DATA_ORIENTED_HYBRID_ENABLED 0
 
 #endif // UNITY_DOTS_INSTANCING_ENABLED
 

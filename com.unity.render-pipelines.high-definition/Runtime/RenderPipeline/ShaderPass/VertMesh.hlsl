@@ -1,3 +1,5 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
+
 struct VaryingsToPS
 {
     VaryingsMeshToPS vmesh;

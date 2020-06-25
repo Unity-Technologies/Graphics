@@ -344,7 +344,6 @@ float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
 // This define allow to tell to unity instancing that we will use our camera relative functions (ApplyCameraTranslationToMatrix and  ApplyCameraTranslationToInverseMatrix) for the model view matrix
 #define MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityDOTSInstancing.hlsl"
 
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
 // Undef the matrix error macros so that the DOTS instancing macro works
