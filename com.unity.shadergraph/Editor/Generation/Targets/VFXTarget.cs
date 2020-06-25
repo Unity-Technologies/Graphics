@@ -60,7 +60,7 @@ namespace UnityEditor.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.Metallic,           lit);
             context.AddBlock(BlockFields.SurfaceDescription.Smoothness,         lit);
             context.AddBlock(BlockFields.SurfaceDescription.NormalTS,           lit);
-            context.AddBlock(BlockFields.SurfaceDescription.Emission,           lit);
+            context.AddBlock(BlockFields.SurfaceDescription.Emission);
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, alphaTest);
         }
 
