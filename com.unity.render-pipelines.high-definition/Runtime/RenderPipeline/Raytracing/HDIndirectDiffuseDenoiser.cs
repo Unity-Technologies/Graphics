@@ -100,12 +100,12 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(m_IndirectDiffuseDenoiseCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
 
             // Evaluate the variance
-            m_KernelFilter = m_IndirectDiffuseDenoiseCS.FindKernel("ComputeVariance");
-            cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture0, outputBuffer2);
-            cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
-            cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
-            cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTexture0RW, varianceBuffer);
-            cmd.DispatchCompute(m_IndirectDiffuseDenoiseCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
+            //m_KernelFilter = m_IndirectDiffuseDenoiseCS.FindKernel("ComputeVariance");
+            //cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture0, outputBuffer2);
+            //cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
+            //cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
+            //cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTexture0RW, varianceBuffer);
+            //cmd.DispatchCompute(m_IndirectDiffuseDenoiseCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
 
             // Make sure to copy the new-accumulated signal in our history buffer
             m_KernelFilter = m_IndirectDiffuseDenoiseCS.FindKernel("CopyHistory");
@@ -142,13 +142,12 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._ValidationBuffer, validationBuffer);
             cmd.DispatchCompute(m_IndirectDiffuseDenoiseCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
 
-            // Evaluate the variance
-            m_KernelFilter = m_IndirectDiffuseDenoiseCS.FindKernel("ComputeVariance");
-            cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture0, outputBuffer2);
-            cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
-            cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
-            cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTexture0RW, varianceBuffer);
-            cmd.DispatchCompute(m_IndirectDiffuseDenoiseCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
+            //m_KernelFilter = m_IndirectDiffuseDenoiseCS.FindKernel("ComputeVariance");
+            //cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture0, outputBuffer2);
+            //cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
+            //cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
+            //cmd.SetComputeTextureParam(m_IndirectDiffuseDenoiseCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTexture0RW, varianceBuffer);
+            //cmd.DispatchCompute(m_IndirectDiffuseDenoiseCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
 
             // Make sure to copy the new-accumulated signal in our history buffer
             m_KernelFilter = m_IndirectDiffuseDenoiseCS.FindKernel("CopyHistory");

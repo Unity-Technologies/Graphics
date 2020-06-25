@@ -386,8 +386,6 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
         _DenoiseOutputTexture1RW[COORD_TEXTURE2D_X(centerCoord)] = float4(0.0, 0.0, 0.0, 1.0);
     }
 
-    float centerVariance = LOAD_TEXTURE2D_X(_DenoiseInputTexture2, centerCoord).x;
-
     // Create the local ortho basis for our sampling
     float3x3 localToWorld = GetLocalFrame(center.normal);
 
@@ -416,8 +414,8 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     {
         // Fetch the noise value for the current sample
         float2 newSample;
-        newSample.x = GetLDSequenceSampleFloat(sampleIndex + _FrameOffset * 16, 0);
-        newSample.y = GetLDSequenceSampleFloat(sampleIndex + _FrameOffset * 16, 1);
+        newSample.x = GetLDSequenceSampleFloat(sampleIndex + _FrameOffset * 4, 0);
+        newSample.y = GetLDSequenceSampleFloat(sampleIndex + _FrameOffset * 4, 1);
         
         // Convert the sample to a local unit disk
         newSample = SampleDiskUniform(newSample.x * newSample.x, newSample.y);
