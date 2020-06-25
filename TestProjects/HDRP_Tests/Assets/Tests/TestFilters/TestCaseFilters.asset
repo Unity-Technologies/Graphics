@@ -13,6 +13,13 @@ MonoBehaviour:
   m_Name: TestCaseFilters
   m_EditorClassIdentifier: 
   filters:
+  - FilteredScene: {fileID: 102900000, guid: d2d3cc41bae835b4baad808d950d67a9, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: Fail on DX12 XR but not DX12...
   - FilteredScene: {fileID: 102900000, guid: c566b460a3674184da6c102196a1a888, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
