@@ -204,6 +204,11 @@ real GetSmithJointGGXPartLambdaV(real NdotV, real roughness)
     return sqrt((-NdotV * a2 + NdotV) * NdotV + a2);
 }
 
+half V_Kelemen(half LoH)
+{
+    return 0.25 / (LoH * LoH);
+}
+
 // Note: V = G / (4 * NdotL * NdotV)
 // Ref: http://jcgt.org/published/0003/02/03/paper.pdf
 real V_SmithJointGGX(real NdotL, real NdotV, real roughness, real partLambdaV)

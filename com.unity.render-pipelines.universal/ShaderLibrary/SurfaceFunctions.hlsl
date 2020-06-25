@@ -3,11 +3,6 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/CustomShading.hlsl"
 
-half V_Kelemen(half LoH)
-{
-    return 0.25 / (LoH * LoH);
-}
-
 // defined in latest URP
 #if SHADER_LIBRARY_VERSION_MAJOR < 9
 // Computes the world space view direction (pointing towards the viewer).
