@@ -28,10 +28,6 @@ nightly:
       api: Metal
       test_platforms:
         - Standalone
-    - project: HDRP_Hybrid
-      all: true
-    - project: Universal_Hybrid
-      all: true
 smoke_test: # specifications for smoke tests
   folder: SRP_SmokeTest
   agent: sdet_win_large # used for editmode
