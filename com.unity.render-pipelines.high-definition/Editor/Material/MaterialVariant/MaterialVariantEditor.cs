@@ -29,6 +29,7 @@ namespace Unity.Assets.MaterialVariant.Editor
             {
                 variantTarget.rootGUID = asset.rootGUID;
                 variantTarget.overrides = asset.overrides;
+                variantTarget.blocks = asset.blocks;
             }
         }
 

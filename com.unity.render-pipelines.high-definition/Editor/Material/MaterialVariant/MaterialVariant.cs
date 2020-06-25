@@ -8,10 +8,12 @@ using UnityEditor.ShaderGraph;
 
 namespace Unity.Assets.MaterialVariant.Editor
 {
+
     public class MaterialVariant : ScriptableObject
     {
         public string rootGUID;
         public List<MaterialPropertyModification> overrides = new List<MaterialPropertyModification>();
+        public List<string> blocks = new List<string>();
 
         public Object GetParent()
         {
@@ -73,6 +75,42 @@ namespace Unity.Assets.MaterialVariant.Editor
             overrides.RemoveAll(modification => IsSameProperty(modification, propertyName));
         }
         #endregion
+
+        public bool IsPropertyBlockedInCurrent(MaterialProperty property)
+        {
+            return blocks.Any(b => b == property.name);
+        }
+
+        public bool IsPropertyBlockedInAncestors(MaterialProperty property)
+        {
+            var parent = GetParent();
+            if (parent is MaterialVariant)
+                return (parent as MaterialVariant).IsPropertyBlocked(property);
+
+            return false;
+        }
+
+        public bool IsPropertyBlocked(MaterialProperty property)
+        {
+            return IsPropertyBlockedInCurrent(property) || IsPropertyBlockedInAncestors(property);
+        }
+
+        public void SetPropertyBlocked(MaterialProperty property, bool block)
+        {
+            string propertyName = property.name;
+
+            if (!block)
+                blocks.Remove(propertyName);
+            else if (!blocks.Contains(propertyName))
+                blocks.Add(propertyName);
+        }
+
+        public void TogglePropertyBlocked(MaterialProperty property)
+        {
+            string propertyName = property.name;
+            if (!blocks.Remove(propertyName))
+                blocks.Add(propertyName);
+        }
 
         #region MaterialVariant Create Menu
         private const string MATERIAL_VARIANT_MENU_PATH = "Assets/Create/Variants/Material Variant";
