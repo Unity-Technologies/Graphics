@@ -19,7 +19,7 @@ namespace Unity.Assets.MaterialVariant.Editor
         protected override Type extraDataType => typeof(MaterialVariant);
         protected override bool needsApplyRevert => true;
         public override bool showImportedObject => false;
-        
+
         protected override void InitializeExtraDataInstance(Object extraTarget, int targetIndex)
             => LoadMaterialVariant((MaterialVariant)extraTarget, ((AssetImporter)targets[targetIndex]).assetPath);
         
@@ -62,37 +62,7 @@ namespace Unity.Assets.MaterialVariant.Editor
 
         protected override void OnHeaderGUI()
         {
-            if (assetTarget is MaterialVariant)
-            {
-                serializedObject.UpdateIfRequiredOrScript();
-                extraDataSerializedObject.UpdateIfRequiredOrScript();
-
-                var oldLabelWidth = EditorGUIUtility.labelWidth;
-
-                //using (new EditorGUI.DisabledScope(!IsEnabled()))
-                {
-                    EditorGUIUtility.labelWidth = 50;
-
-                    // Shader selection dropdown
-                    ShaderPopup("MiniPulldown", null);
-
-                    // Edit button for custom shaders
-                  //  if (m_Shader != null && !HasMultipleMixedShaderValues() && (m_Shader.hideFlags & HideFlags.DontSave) == 0)
-                  //  {
-                   //     if (GUILayout.Button("Edit...", EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
-                   //         AssetDatabase.OpenAsset(m_Shader);
-                   // }
-                }
-
-                EditorGUIUtility.labelWidth = oldLabelWidth;
-
-                serializedObject.ApplyModifiedProperties();
-                extraDataSerializedObject.ApplyModifiedProperties();
-            }
-            else
-            {
-                targetEditor.DrawHeader();
-            }            
+            targetEditor.DrawHeader();
         }
 
         public override void OnInspectorGUI()
@@ -102,10 +72,10 @@ namespace Unity.Assets.MaterialVariant.Editor
 
             targetEditor.OnInspectorGUI();
 
+            DrawLineageGUI();
+
             serializedObject.ApplyModifiedProperties();
             extraDataSerializedObject.ApplyModifiedProperties();
-
-            DrawLineageGUI();
 
             ApplyRevertGUI();
         }
@@ -141,43 +111,81 @@ namespace Unity.Assets.MaterialVariant.Editor
         private void DrawLineageGUI()
         {
             GUILayout.Space(10);
-            GUILayout.BeginVertical("Bloodline", "window"); // TODO Find a better style
+            GUILayout.BeginVertical("Material Variant Hierarchy", "window"); // TODO Find a better style
             GUILayout.Space(4);
 
+            MaterialVariant matVariant = extraDataTarget as MaterialVariant;
+            Object parent = matVariant.GetParent();
+            Object selectedObj = null;
+
+            // Draw ourselve in the hierarchy
             using (new EditorGUI.DisabledScope(true))
             {
                 DrawLineageMember(assetTarget, typeof(Material));
+            }
 
-                Object nextAncestor = (extraDataTarget as MaterialVariant).GetParent();
-                while (nextAncestor)
+            if (parent == null)
+            {
+                Object selectedMaterial = DrawLineageMember(null, typeof(Material));
+                Object selectedShader = DrawLineageMember(null, typeof(Shader));
+
+                selectedObj = selectedMaterial != null ? selectedMaterial : selectedShader;
+            }
+            else
+            {
+                bool first = true;
+                Object localSelectedObj = null;
+                while (parent)
                 {
-                    if (nextAncestor is MaterialVariant)
+                    // Display remaining of the hierarchy
+                    using (new EditorGUI.DisabledScope(!first))
                     {
-                        Material mat = AssetDatabase.LoadAssetAtPath<Material>(AssetDatabase.GetAssetPath(nextAncestor));
-                        DrawLineageMember(mat, typeof(Material));
-                        nextAncestor = (nextAncestor as MaterialVariant).GetParent();
-                    }
-                    else if (nextAncestor is Material)
-                    {
-                        DrawLineageMember(nextAncestor, typeof(Material));
-                        nextAncestor = (nextAncestor as Material).shader;
-                    }
-                    else if (nextAncestor is Shader)
-                    {
-                        DrawLineageMember(nextAncestor, typeof(Shader));
-                        nextAncestor = null;
+                        if (parent is MaterialVariant)
+                        {
+                            Material mat = AssetDatabase.LoadAssetAtPath<Material>(AssetDatabase.GetAssetPath(parent));
+                            localSelectedObj = DrawLineageMember(mat, typeof(Material));
+                            if (first)
+                            {
+
+                            }
+                            parent = (parent as MaterialVariant).GetParent();
+                        }
+                        else if (parent is Material)
+                        {
+                            localSelectedObj = DrawLineageMember(parent, typeof(Material));
+                            parent = (parent as Material).shader;
+                        }
+                        else if (parent is Shader)
+                        {
+                            localSelectedObj = DrawLineageMember(parent, typeof(Shader));
+                            parent = null;
+                        }
+
+                        if (first)
+                        {
+                            selectedObj = localSelectedObj;
+                            first = false;
+                        }
                     }
                 }
             }
 
             GUILayout.Space(4);
             GUILayout.EndVertical();
+
+            // We need to compare the selected object (if any) with the current asset reference by Parent
+            // to see if anything have change
+            Object initialObj = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GetAssetPath(matVariant.GetParent()));
+            if (selectedObj != initialObj)
+            {
+                matVariant.rootGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(selectedObj));
+            }
         }
 
-        void DrawLineageMember(Object asset, Type assetType)
+        Object DrawLineageMember(Object asset, Type assetType)
         {
             // We could use this to start a Horizontal and add inline icons and toggles to show overridden/locked
-            EditorGUILayout.ObjectField("", asset, assetType, false);
+            return EditorGUILayout.ObjectField("", asset, assetType, false);
         }
 
         internal static void DrawPropertyScopeContextMenuAndIcons(MaterialVariant matVariant, string propertyName, bool isOverride, bool isBlocked, Rect labelRect, GenericMenu.MenuFunction resetFunction, GenericMenu.MenuFunction blockFunction)
@@ -224,168 +232,5 @@ namespace Unity.Assets.MaterialVariant.Editor
                 EditorGUI.EndDisabledGroup();
             }
         }
-
-        // Note: this is called from native code.
-        internal void OnSelectedShaderPopup(object shaderNameObj)
-        {
-            serializedObject.Update();
-            var shaderName = (string)shaderNameObj;
-            if (!string.IsNullOrEmpty(shaderName))
-            {
-                var shader = Shader.Find(shaderName);
-                if (shader != null)
-                {
-                    // TODO
-                    //extraDataTargets.Cast<MaterialVariant>();
-
-                    MaterialVariant matVariant = extraDataTargets[0] as MaterialVariant;
-                    matVariant.rootGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(shader));
-                }
-            }
-        }
-
-        private void ShaderPopup(GUIStyle style, Shader shader)
-        {
-            bool wasEnabled = GUI.enabled;
-
-            Rect position = EditorGUILayout.GetControlRect();
-            position = EditorGUI.PrefixLabel(position, 47385, EditorGUIUtility.TempContent("Shader"));
-            EditorGUI.showMixedValue = false; // HasMultipleMixedShaderValues();
-
-            var buttonContent = EditorGUIUtility.TempContent(shader != null ? shader.name : "No Shader Selected");
-            if (EditorGUI.DropdownButton(position, buttonContent, FocusType.Keyboard, style))
-            {
-                var dropdown = new ShaderSelectionDropdown(shader, OnSelectedShaderPopup);
-                dropdown.Show(position);
-            }
-
-            EditorGUI.showMixedValue = false;
-            GUI.enabled = wasEnabled;
-        }
-
-        private class ShaderSelectionDropdown : AdvancedDropdown
-        {
-            Action<object> m_OnSelectedShaderPopup;
-            Shader m_CurrentShader;
-
-            public ShaderSelectionDropdown(Shader shader, Action<object> onSelectedShaderPopup)
-                : base(new AdvancedDropdownState())
-            {
-                minimumSize = new Vector2(270, 308);
-                m_CurrentShader = shader;
-                m_OnSelectedShaderPopup = onSelectedShaderPopup;
-                m_DataSource = new CallbackDataSource(BuildRoot);
-                m_Gui = new MaterialVariantDropdownGUI(m_DataSource);
-            }
-
-            protected override AdvancedDropdownItem BuildRoot()
-            {
-                var root = new AdvancedDropdownItem("Shaders");
-
-                var shaders = ShaderUtil.GetAllShaderInfo();
-                var shaderList = new List<string>();
-
-                foreach (var shader in shaders)
-                {
-                    // Only HDRP and HDRP shader graph shader are supported currently
-                    //if (shader.IsShaderGraph())
-                    //{
-                    //    if (!shader.TryGetMetadataOfType<HDMetadata>(out _))
-                    //        continue;
-                    //}
-                    if (!shader.name.Contains("HDRP") || shader.name.StartsWith("Hidden"))
-                    {
-                        continue;
-                    }
-
-                    shaderList.Add(shader.name);
-                }
-
-                shaderList.Sort((s1, s2) =>
-                {
-                    var order = s2.Count(c => c == '/') - s1.Count(c => c == '/');
-                    if (order == 0)
-                    {
-                        order = s1.CompareTo(s2);
-                    }
-
-                    return order;
-                });
-
-                shaderList.ForEach(s => AddShaderToMenu("", root, s, s));
-
-                return root;
-            }
-
-            protected override void ItemSelected(AdvancedDropdownItem item)
-            {
-                m_OnSelectedShaderPopup(((ShaderDropdownItem)item).fullName);
-            }
-
-            private void AddShaderToMenu(string prefix, AdvancedDropdownItem parent, string fullShaderName, string shaderName)
-            {
-                var shaderNameParts = shaderName.Split('/');
-                if (shaderNameParts.Length > 1)
-                {
-                    AddShaderToMenu(prefix, FindOrCreateChild(parent, shaderName), fullShaderName, shaderName.Substring(shaderNameParts[0].Length + 1));
-                }
-                else
-                {
-                    var item = new ShaderDropdownItem(prefix, fullShaderName, shaderName);
-                    parent.AddChild(item);
-                    if (m_CurrentShader != null && m_CurrentShader.name == fullShaderName)
-                    {
-                        m_DataSource.selectedIDs.Add(item.id);
-                    }
-                }
-            }
-
-            private AdvancedDropdownItem FindOrCreateChild(AdvancedDropdownItem parent, string path)
-            {
-                var shaderNameParts = path.Split('/');
-                var group = shaderNameParts[0];
-                foreach (var child in parent.children)
-                {
-                    if (child.name == group)
-                        return child;
-                }
-
-                var item = new AdvancedDropdownItem(group);
-                parent.AddChild(item);
-                return item;
-            }
-
-            private class ShaderDropdownItem : AdvancedDropdownItem
-            {
-                string m_FullName;
-                string m_Prefix;
-                public string fullName => m_FullName;
-                public string prefix => m_Prefix;
-
-                public ShaderDropdownItem(string prefix, string fullName, string shaderName)
-                    : base(shaderName)
-                {
-                    m_FullName = fullName;
-                    m_Prefix = prefix;
-                    id = (prefix + fullName + shaderName).GetHashCode();
-                }
-            }
-
-            private class MaterialVariantDropdownGUI : AdvancedDropdownGUI
-            {
-                public MaterialVariantDropdownGUI(AdvancedDropdownDataSource dataSource)
-                    : base(dataSource) { }
-
-                internal override void DrawItem(AdvancedDropdownItem item, string name, Texture2D icon, bool enabled, bool drawArrow, bool selected, bool hasSearch)
-                {
-                    var newScriptItem = item as ShaderDropdownItem;
-                    if (hasSearch && newScriptItem != null)
-                    {
-                        name = string.Format("{0} ({1})", newScriptItem.name, newScriptItem.prefix + newScriptItem.fullName);
-                    }
-                    base.DrawItem(item, name, icon, enabled, drawArrow, selected, hasSearch);
-                }
-            }
-        } // ShaderSelectionDropdown
     }
 }
