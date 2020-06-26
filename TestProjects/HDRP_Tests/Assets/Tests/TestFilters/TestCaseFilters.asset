@@ -20,6 +20,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Fail on DX12 XR but not DX12...
+  - FilteredScene: {fileID: 102900000, guid: 3f6529c22f7d2ca46814b2e7afd04ef9, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable on yamato
   - FilteredScene: {fileID: 102900000, guid: 439ce9822b2644f4ea064429ed2c5955, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -42,6 +49,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Memory allocation test failed, 5 allocations detected.
+  - FilteredScene: {fileID: 102900000, guid: b8090c44833d0a842bcd90e27dc43b6b, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable on yamato
   - FilteredScene: {fileID: 102900000, guid: 100c0e304d8aba84186dcd9bf48e5b85, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
