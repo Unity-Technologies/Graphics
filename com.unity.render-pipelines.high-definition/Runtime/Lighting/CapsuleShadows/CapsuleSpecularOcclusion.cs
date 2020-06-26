@@ -5,7 +5,7 @@ using System;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [VolumeComponentMenu("Lighting/Capsule Specular Occlusion")]
-    internal class CapsuleSpecularOcclusion : VolumeComponent
+    public class CapsuleSpecularOcclusion : VolumeComponent
     {
 
         public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 4f);

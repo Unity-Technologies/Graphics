@@ -7,7 +7,7 @@ using System;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [VolumeComponentMenu("Lighting/Capsule/Soft Shadows")]
-    internal class CapsuleSoftShadows : VolumeComponent
+    public class CapsuleSoftShadows : VolumeComponent
     {
         public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
         public BoolParameter directShadow = new BoolParameter(true);
