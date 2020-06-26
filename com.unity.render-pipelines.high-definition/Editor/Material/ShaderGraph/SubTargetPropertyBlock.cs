@@ -159,7 +159,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             m_Key = key;
             m_ContainedField = containedField;
-            bool lockInitValue = false; //should be gathered by testing if m_Locks in metadata have the given m_Key
+            bool lockInitValue = false; // [TODO] should be gathered by testing if m_Locks in metadata have the given m_Key
             m_LockArea = new LockArea(lockInitValue, RegisterChange);
 
             Add(m_ContainedField);
