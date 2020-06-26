@@ -15,8 +15,11 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Deferred.hlsl"
 
-    // XR not supported in 2020.1 preview
-    #define XR_MODE 0 // defined(USING_STEREO_MATRICES) && (defined(_POINT) || defined(_SPOT) || defined(_DIRECTIONAL))
+    #if defined(USING_STEREO_MATRICES) && (defined(_POINT) || defined(_SPOT) || defined(_DIRECTIONAL))
+    #define XR_MODE 1
+    #else
+    #define XR_MODE 0
+    #endif
 
     struct Attributes
     {
@@ -92,7 +95,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     TEXTURE2D_X_HALF(_GBuffer0);
     TEXTURE2D_X_HALF(_GBuffer1);
     TEXTURE2D_X_HALF(_GBuffer2);
-    float4x4 _ScreenToWorld;
+    float4x4 _ScreenToWorld[2];
     SamplerState my_point_clamp_sampler;
 
     float3 _LightPosWS;
@@ -119,21 +122,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         half4 gbuffer1 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, my_point_clamp_sampler, screen_uv, 0);
         half4 gbuffer2 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer2, my_point_clamp_sampler, screen_uv, 0);
 
-        #if XR_MODE
-            #if UNITY_REVERSED_Z
-            d = 1.0 - d;
-            #endif
-            d = d * 2.0 - 1.0;
-            float4 posCS = float4(input.posCS.xy, d * input.posCS.w, input.posCS.w);
-            #if UNITY_UV_STARTS_AT_TOP
-            posCS.y = -posCS.y;
-            #endif
-            float3 posWS = ComputeWorldSpacePosition(posCS, UNITY_MATRIX_I_VP);
-        #else
-            // We can fold all this into 1 neat matrix transform, unless in XR Single Pass mode at the moment.
-            float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
-            posWS.xyz *= rcp(posWS.w);
-        #endif
+        int eyeIndex = XR_MODE ? unity_StereoEyeIndex : 0;
+        float4 posWS = mul(_ScreenToWorld[eyeIndex], float4(input.positionCS.xy, d, 1.0));
+        posWS.xyz *= rcp(posWS.w);
 
         InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
         uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
@@ -220,7 +211,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             HLSLPROGRAM
 
-            #pragma multi_compile _ _SPOT
+            #pragma multi_compile_vertex _ _SPOT
 
             #pragma vertex Vertex
             #pragma fragment FragWhite
