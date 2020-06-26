@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static FieldDescriptor instanceID = new FieldDescriptor(AttributesMesh.name, "instanceID", "", ShaderValueType.Uint,
                 "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED");
             public static FieldDescriptor dotsInstanceID = new FieldDescriptor(AttributesMesh.name, "dotsInstanceID", "",
-                ShaderValueType.Uint,
+                ShaderValueType.Uint4,
                 "TEXCOORD7", "UNITY_DOTS_DATA_ORIENTED_HYBRID_ENABLED");
             public static FieldDescriptor vertexID = new FieldDescriptor(AttributesMesh.name, "vertexID", "ATTRIBUTES_NEED_VERTEXID", ShaderValueType.Uint,
                 "SV_VertexID", subscriptOptions: StructFieldOptions.Optional);
@@ -58,7 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static FieldDescriptor instanceID = new FieldDescriptor(VaryingsMeshToPS.name, "instanceID", "", ShaderValueType.Uint,
                 "CUSTOM_INSTANCE_ID", "UNITY_ANY_INSTANCING_ENABLED");
             public static FieldDescriptor dotsInstanceID = new FieldDescriptor(VaryingsMeshToPS.name, "dotsInstanceID", "",
-                ShaderValueType.Uint,
+                ShaderValueType.Uint4,
                 "TEXCOORD7",
                 preprocessor: "UNITY_DOTS_DATA_ORIENTED_HYBRID_ENABLED");
             public static FieldDescriptor cullFace = new FieldDescriptor(VaryingsMeshToPS.name, "cullFace", "VARYINGS_NEED_CULLFACE", "FRONT_FACE_TYPE",

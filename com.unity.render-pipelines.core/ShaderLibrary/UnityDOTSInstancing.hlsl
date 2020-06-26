@@ -152,8 +152,8 @@ CBUFFER_END
 // A global instance ID variable that functions can directly access. analouge to UnityInstancing's unity_InstanceID
 static uint unity_dotsInstanceID;
 
-#define UNITY_DOTS_INSTANCE_ID uint dotsInstanceID : TEXCOORD7;
-#define UNITY_SETUP_DOTS_INSTANCE_ID(input) unity_dotsInstanceID = input.dotsInstanceID;
+#define UNITY_DOTS_INSTANCE_ID uint4 dotsInstanceID : TEXCOORD7;
+#define UNITY_SETUP_DOTS_INSTANCE_ID(input) unity_dotsInstanceID = input.dotsInstanceID.x;
 #define UNITY_TRANSFER_DOTS_INSTANCE_ID(input, output) output.dotsInstanceID = input.dotsInstanceID
 
 uint GetDOTSInstanceIndex()
