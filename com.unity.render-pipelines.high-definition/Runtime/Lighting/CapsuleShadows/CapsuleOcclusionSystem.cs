@@ -61,6 +61,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CapsuleOcclusions = RTHandles.Alloc(Vector2.one, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R8G8_UNorm, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: "Capsule Occlusions");
         }
 
+        internal void ClearLightForShadows()
+        {
+            m_LightForShadows = null;
+        }
+
         internal void SetLightForShadows(HDAdditionalLightData light)
         {
             m_LightForShadows = light;

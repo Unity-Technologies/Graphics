@@ -2403,6 +2403,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var hdShadowSettings = hdCamera.volumeStack.GetComponent<HDShadowSettings>();
 
+            // De-register and previously referenced capsule shadow casters. They may no longer be valid this frame.
+            m_CapsuleOcclusionSystem.ClearLightForShadows();
+
             // TODO: Refactor shadow management
             // The good way of managing shadow:
             // Here we sort everyone and we decide which light is important or not (this is the responsibility of the lightloop)
