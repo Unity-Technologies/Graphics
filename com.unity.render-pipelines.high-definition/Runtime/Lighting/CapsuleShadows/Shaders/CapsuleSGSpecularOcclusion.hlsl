@@ -21,7 +21,7 @@ SphericalGaussian SphericalGaussianFromEllipsoidOccluderData(EllipsoidOccluderDa
     // cosTheta == rsqrt(occluderRadiusProjectedAverage^2 / occluderFromSurfaceDistance^2 + 1)
     float cosTheta = rsqrt((occluderRadiusProjectedAverage * occluderRadiusProjectedAverage) / (occluderFromSurfaceDistance * occluderFromSurfaceDistance) + 1.0f);
     float amplitude = 1.0f;
-    float epsilon = 0.1f;
+    float epsilon = 0.5f;
     const float SHARPNESS_MAX = 10000.0f;
     float sharpness = min(SHARPNESS_MAX, SphericalGaussianSharpnessFromAngleAndLogThreshold(cosTheta, log(amplitude), log(epsilon)));
     // float sharpness = min(SHARPNESS_MAX, occluderFromSurfaceDistance * occluderFromSurfaceDistance / (occluderRadiusProjectedAverage * occluderRadiusProjectedAverage));

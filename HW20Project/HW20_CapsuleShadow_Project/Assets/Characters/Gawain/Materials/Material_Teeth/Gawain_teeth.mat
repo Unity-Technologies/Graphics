@@ -1,0 +1,113 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-7294341188023641401
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 2
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Gawain_teeth
+  m_Shader: {fileID: -6465566751694194690, guid: bc408bac29ada3d4cb3ee48f863fe564,
+    type: 3}
+  m_ShaderKeywords: TEETH_ATTN_SKYPOLYGON TEETH_ATTN_TEETH_ATTN_SKYPOLYGON TEETH_DATA_FIXED_6
+    TEETH_DATA_TEETH_DATA_FIXED_6
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap:
+    MotionVector: User
+  disabledShaderPasses:
+  - MOTIONVECTORS
+  - TransparentBackface
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - Texture2D_10FAAB9B:
+        m_Texture: {fileID: 2800000, guid: 19649a687316e4545b18e6f0a9425047, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - Texture2D_1EF2D409:
+        m_Texture: {fileID: 2800000, guid: 53d95121684af0d4a92699e86cb4a262, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - Texture2D_C3851C63:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - Texture2D_CAAE629C:
+        m_Texture: {fileID: 2800000, guid: 8b823e34ad1bc364997bbd534e56abcb, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - Texture2D_E55E8C35:
+        m_Texture: {fileID: 2800000, guid: 45963a05be427c24ebab6885ecfb54fa, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - ENUM_3C8052AD: 2
+    - ENUM_60FA5B81: 0
+    - TEETH_ATTN: 2
+    - TEETH_DATA: 0
+    - Vector1_185974A5: 1
+    - Vector1_5ABE8C3F: 0
+    - Vector1_6D6A085A: 0.2
+    - Vector1_928EF644: 0
+    - Vector1_929B4C1A: 1
+    - Vector1_B67B9F00: 1
+    - Vector1_BF465F41: 1
+    - Vector1_D224AD90: 0
+    - _AlphaCutoffEnable: 0
+    - _AlphaDstBlend: 0
+    - _AlphaSrcBlend: 1
+    - _BlendMode: 0
+    - _CullMode: 2
+    - _CullModeForward: 2
+    - _DiffusionProfileHash: 3.8619018
+    - _DoubleSidedEnable: 0
+    - _DoubleSidedNormalMode: 2
+    - _DstBlend: 0
+    - _EnableFogOnTransparent: 1
+    - _ReceivesSSR: 1
+    - _RenderQueueType: 1
+    - _RequireSplitLighting: 1
+    - _SrcBlend: 1
+    - _StencilRef: 4
+    - _StencilRefDepth: 8
+    - _StencilRefDistortionVec: 4
+    - _StencilRefGBuffer: 14
+    - _StencilRefMV: 40
+    - _StencilWriteMask: 6
+    - _StencilWriteMaskDepth: 8
+    - _StencilWriteMaskDistortionVec: 4
+    - _StencilWriteMaskGBuffer: 14
+    - _StencilWriteMaskMV: 40
+    - _SurfaceType: 0
+    - _TransparentBackfaceEnable: 0
+    - _TransparentCullMode: 2
+    - _TransparentSortPriority: 0
+    - _TransparentZWrite: 0
+    - _UseShadowThreshold: 0
+    - _ZTestDepthEqualForOpaque: 3
+    - _ZTestGBuffer: 4
+    - _ZTestTransparent: 4
+    - _ZWrite: 1
+    m_Colors:
+    - Color_CF785A7E: {r: 1, g: 0.975, b: 0.95, a: 1}
+    - Vector4_EE94FD5A: {r: 1, g: 1, b: 0, a: 0}
+    - _DiffusionProfileAsset: {r: -3.955976e-18, g: 931.7912, b: -1.4195336e-33, a: -2.7005924e+14}
+    - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
+    - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}

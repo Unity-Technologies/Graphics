@@ -1,0 +1,275 @@
+float $sneer_l = max(0,Nose_L_cntr.translateY/2.5); 
+float $disgust_l = max(0,UprLip_L_2_cntr.translateY/2.5);
+float $nl_deep_l = max(0,UprLip_L_2_cntr.translateX/2.5);
+float $corner_up_l = max(0,Crnr_L_cntr.translateY/2.5);
+float $smile_l = max(0,Crnr_L_2_cntr.translateX/2.5);
+float $dimple_l = max(0,-Crnr_L_2_cntr.translateZ/2.5);
+float $stretch_l = max(0,-Chin_L_cntr.translateY/2.5);
+float $frown_l = max(0,-Crnr_L_2_cntr.translateY/2.5);
+float $lwr_lip_dn_l = max(0,-LwrLip_L_cntr.translateY/2.5);
+float $chin_raise_up_l = max(0,Chin_cntr.translateY/2.5);
+float $chin_raise_dn_l = max(0,Chin_cntr.translateY/2.5);
+float $lwr_lip_l_l = max(0,LwrLip_cntr.translateX/2.5);
+float $lwr_lip_r_l = max(0,-LwrLip_cntr.translateX/2.5);
+float $funnel_up_l = max(0,UprLip_L_cntr.translateZ/2.5);
+float $funnel_dn_l = max(0,LwrLip_L_cntr.translateZ/2.5);
+float $funnel_l = max($funnel_up_l,$funnel_dn_l);
+float $o_up_l = max(0,-UprLip_L_cntr.translateX/2.5);
+float $o_dn_l = max(0,-LwrLip_L_cntr.translateX/2.5);
+float $o_l = max($o_up_l,$o_dn_l);
+float $pucker_up_l = max(0,-Crnr_L_cntr.translateX/2.5);
+float $pucker_dn_l = max(0,-Crnr_L_cntr.translateX/2.5);
+float $pucker_l = max($pucker_up_l,$pucker_dn_l);
+float $lip_in_up_l = max(0,-UprLip_L_cntr.translateZ/2.5);
+float $lip_in_dn_l = max(0,-LwrLip_L_cntr.translateZ/2.5);
+float $lip_in_l = max($lip_in_up_l,$lip_in_dn_l);
+float $tension_up_l = max(0,-UprLip_2_cntr.translateX/2.5);
+float $tension_dn_l = max(0,-UprLip_2_cntr.translateX/2.5);
+float $tension_l = max($tension_up_l,$tension_dn_l);
+
+float $press_up_l = max(0,-UprLip_2_cntr.translateY/2.5);
+float $press_dn_l = max(0,-UprLip_2_cntr.translateY/2.5);
+float $press_l = max($press_up_l,$press_dn_l);
+float $puff_up_l = max(0,Cheek_L_2_cntr.translateX/2.5);
+float $puff_dn_l = max(0,Cheek_L_2_cntr.translateX/2.5);
+float $puff_l = max($puff_up_l,$puff_dn_l);
+float $suck_up_l = max(0,-Cheek_L_2_cntr.translateX/2.5);
+float $suck_dn_l = max(0,-Cheek_L_2_cntr.translateX/2.5);
+float $suck_l = max($suck_up_l,$suck_dn_l);
+float $upr_lip_dn_up_l = max(0,-UprLip_L_cntr.translateY/2.5);
+float $upr_lip_dn_dn_l = max(0,-UprLip_L_cntr.translateY/2.5);
+float $lip_lock_open_l = max(0, LwrLip_L_cntr.translateY/2.5)*max(0,-Jaw_cntr.translateY/2.5);
+
+float $sneer_r = max(0,Nose_R_cntr.translateY/2.5);
+float $disgust_r = max(0,UprLip_R_2_cntr.translateY/2.5);
+float $nl_deep_r = max(0,UprLip_R_2_cntr.translateX/2.5);
+float $corner_up_r = max(0,Crnr_R_cntr.translateY/2.5);
+float $smile_r = max(0,Crnr_R_2_cntr.translateX/2.5);
+float $dimple_r = max(0,-Crnr_R_2_cntr.translateZ/2.5);
+float $stretch_r = max(0,-Chin_R_cntr.translateY/2.5);
+float $frown_r = max(0,-Crnr_R_2_cntr.translateY/2.5);
+float $lwr_lip_dn_r = max(0,-LwrLip_R_cntr.translateY/2.5);
+float $chin_raise_up_r = max(0,Chin_cntr.translateY/2.5);
+float $chin_raise_dn_r = max(0,Chin_cntr.translateY/2.5);
+float $lwr_lip_l_r = max(0,LwrLip_cntr.translateX/2.5);
+float $lwr_lip_r_r = max(0,-LwrLip_cntr.translateX/2.5);
+float $funnel_up_r = max(0,UprLip_R_cntr.translateZ/2.5);
+float $funnel_dn_r = max(0,LwrLip_R_cntr.translateZ/2.5);
+float $funnel_r = max($funnel_up_r,$funnel_dn_r);
+float $o_up_r = max(0,-UprLip_R_cntr.translateX/2.5);
+float $o_dn_r = max(0,-LwrLip_R_cntr.translateX/2.5);
+float $o_r = max($o_up_r,$o_dn_r);
+float $pucker_up_r = max(0,-Crnr_R_cntr.translateX/2.5);
+float $pucker_dn_r = max(0,-Crnr_R_cntr.translateX/2.5);
+float $pucker_r = max($pucker_up_r,$pucker_dn_r);
+float $lip_in_up_r = max(0,-UprLip_R_cntr.translateZ/2.5);
+float $lip_in_dn_r = max(0,-LwrLip_R_cntr.translateZ/2.5);
+float $lip_in_r = max($lip_in_up_r,$lip_in_dn_r);
+float $tension_up_r = max(0,-UprLip_2_cntr.translateX/2.5);
+float $tension_dn_r = max(0,-UprLip_2_cntr.translateX/2.5);
+float $tension_r = max($tension_up_r,$tension_dn_r);
+
+float $press_up_r = max(0,-UprLip_2_cntr.translateY/2.5);
+float $press_dn_r = max(0,-UprLip_2_cntr.translateY/2.5);
+float $press_r = max($press_up_r,$press_dn_r);
+float $puff_up_r = max(0,Cheek_R_2_cntr.translateX/2.5);
+float $puff_dn_r = max(0,Cheek_R_2_cntr.translateX/2.5);
+float $puff_r = max($puff_up_r,$puff_dn_r);
+float $suck_up_r = max(0,-Cheek_R_2_cntr.translateX/2.5);
+float $suck_dn_r = max(0,-Cheek_R_2_cntr.translateX/2.5);
+float $suck_r = max($suck_up_r,$suck_dn_r);
+float $upr_lip_dn_up_r = max(0,-UprLip_R_cntr.translateY/2.5);
+float $upr_lip_dn_dn_r = max(0,-UprLip_R_cntr.translateY/2.5);
+float $lip_lock_open_r = max(0, LwrLip_R_cntr.translateY/2.5)*max(0,-Jaw_cntr.translateY/2.5);
+
+float $jaw_drop = 0;//max(0,-Jaw_cntr.ty);
+float $jaw_open = max(0,-Jaw_cntr.translateY/2.5);
+float $jaw_l = max(0,Jaw_cntr.translateX/2.5);
+float $jaw_r = max(0,-Jaw_cntr.translateX/2.5);
+float $jaw_back = max(0,-Jaw_cntr.translateZ/2.5);
+float $jaw_fwd = max(0,Jaw_cntr.translateZ/2.5);
+float $mouth_l = max(0,Mouth_cntr.translateX/2.5);
+float $mouth_r = max(0,-Mouth_cntr.translateX/2.5);
+float $nose_close = max(0,-Nose_cntr.translateX/2.5);
+float $nose_open = max(0,Nose_cntr.translateX/2.5);
+
+//Head_blendShape.jaw_open = $jaw_open;
+Head_blendShape.jaw_l = $jaw_l;
+Head_blendShape.jaw_r = $jaw_r;
+Head_blendShape.mouth_l = $mouth_l;
+Head_blendShape.mouth_r = $mouth_r;
+Head_blendShape.nose_close = $nose_close;
+Head_blendShape.nose_open = $nose_open;
+
+Head_blendShape.sneer_1 = $sneer_l*(1-$nl_deep_l*0.5583)*(1-$smile_l*0.975)*(1-$dimple_l*0.0625)*(1-$funnel_dn_l*0.1958)*(1-$o_dn_l*0.4667)*(1-$pucker_dn_l*0.3417)*(1-$tension_dn_l*0.1)*(1-$lip_in_dn_l*0.625)*(1-$upr_lip_dn_dn_l*0.3375)*(1-$mouth_l*0.2583)*(1-$mouth_r*0.2333)*(1-$jaw_open*0.1875);
+Head_blendShape.sneer_2 = $sneer_l*(1-$disgust_l*0.4)*(1-$nl_deep_l*0.6292)*(1-$smile_l*0.6875)*(1-$dimple_l*0.025)*(1-$frown_l*0.1333)*(1-$funnel_up_l*0.1917)*(1-$o_up_l*0.4417)*(1-$pucker_up_l*0.2875)*(1-$tension_up_l*0.2)*(1-$press_up_l*0.1)*(1-$lip_in_up_l*0.8667)*(1-$upr_lip_dn_up_l*0.725)*(1-$mouth_r*0.1208)*(1-$jaw_open*0.1208);
+Head_blendShape.sneer_3 = $sneer_l*(1-$nl_deep_l*0.2583)*(1-$smile_l*0.1542)*(1-$o_up_l*0.1667)*(1-$pucker_up_l*0.2375)*(1-$tension_up_l*0.1292)*(1-$lip_in_up_l*0.3542)*(1-$upr_lip_dn_up_l*0.3917)*(1-$mouth_l*0.1083)*(1-$lip_lock_open_l*0.4292);
+Head_blendShape.sneer_4 = $sneer_l*(1-$disgust_l*0.3125)*(1-$nl_deep_l*0.2625)*(1-$smile_l*0.4833)*(1-$dimple_l*0.2208)*(1-$lip_in_up_l*0.3167)*(1-$upr_lip_dn_up_l*0.425)*(1-$mouth_l*0.1292)*(1-$jaw_open*0.4167)*(1-$lip_lock_open_l*0.4625);
+Head_blendShape.sneer_5 = $sneer_r*(1-$nl_deep_r*0.5583)*(1-$smile_r*0.975)*(1-$dimple_r*0.0625)*(1-$funnel_dn_r*0.1958)*(1-$o_dn_r*0.4667)*(1-$pucker_dn_r*0.3417)*(1-$tension_dn_r*0.1)*(1-$lip_in_dn_r*0.625)*(1-$upr_lip_dn_dn_r*0.3375)*(1-$mouth_l*0.2583)*(1-$mouth_r*0.2333)*(1-$jaw_open*0.1875);
+Head_blendShape.sneer_6 = $sneer_r*(1-$disgust_r*0.4)*(1-$nl_deep_r*0.6292)*(1-$smile_r*0.6875)*(1-$dimple_r*0.025)*(1-$frown_r*0.1333)*(1-$funnel_up_r*0.1917)*(1-$o_up_r*0.4417)*(1-$pucker_up_r*0.2875)*(1-$tension_up_r*0.2)*(1-$press_up_r*0.1)*(1-$lip_in_up_r*0.8667)*(1-$upr_lip_dn_up_r*0.725)*(1-$mouth_r*0.1208)*(1-$jaw_open*0.1208);
+Head_blendShape.sneer_7 = $sneer_r*(1-$nl_deep_r*0.2583)*(1-$smile_r*0.1542)*(1-$o_up_r*0.1667)*(1-$pucker_up_r*0.2375)*(1-$tension_up_r*0.1292)*(1-$lip_in_up_r*0.3542)*(1-$upr_lip_dn_up_r*0.3917)*(1-$mouth_l*0.1083)*(1-$lip_lock_open_r*0.4292);
+Head_blendShape.sneer_8 = $sneer_r*(1-$disgust_r*0.3125)*(1-$nl_deep_r*0.2625)*(1-$smile_r*0.4833)*(1-$dimple_r*0.2208)*(1-$lip_in_up_r*0.3167)*(1-$upr_lip_dn_up_r*0.425)*(1-$mouth_l*0.1292)*(1-$jaw_open*0.4167)*(1-$lip_lock_open_r*0.4625);
+
+
+Head_blendShape.disgust_1 = $disgust_l*(1-$sneer_l*1.0)*(1-$corner_up_l*0.1167)*(1-$smile_l*0.5667)*(1-$dimple_l*0.0875)*(1-$frown_l*0.3458)*(1-$lwr_lip_l_l*0.2)*(1-$lwr_lip_r_l*0.1917)*(1-$funnel_dn_l*0.2167)*(1-$o_dn_l*0.3083)*(1-$pucker_dn_l*0.1708)*(1-$tension_dn_l*0.2208)*(1-$press_dn_l*0.2292)*(1-$lip_in_dn_l*0.6167)*(1-$upr_lip_dn_dn_l*0.2792)*(1-$mouth_l*0.2583)*(1-$mouth_r*0.6167)*(1-$jaw_open*0.1792)*(1-$lip_lock_open_l*0.4042);
+Head_blendShape.disgust_2 = $disgust_l*(1-$sneer_l*0.4708)*(1-$nl_deep_l*0.15)*(1-$smile_l*0.4292)*(1-$frown_l*0.4208)*(1-$funnel_up_l*0.4625)*(1-$o_up_l*0.5833)*(1-$pucker_up_l*0.2458)*(1-$tension_up_l*0.2292)*(1-$press_up_l*0.0875)*(1-$lip_in_up_l*0.7792)*(1-$upr_lip_dn_up_l*0.5583)*(1-$mouth_l*0.2875)*(1-$mouth_r*0.2292)*(1-$jaw_open*0.1042)*(1-$lip_lock_open_l*0.4208);
+Head_blendShape.disgust_3 = $disgust_l*(1-$sneer_l*0.875)*(1-$nl_deep_l*0.1333)*(1-$smile_l*0.2833)*(1-$frown_l*0.1792)*(1-$funnel_up_l*0.1292)*(1-$o_up_l*0.1292)*(1-$pucker_up_l*0.1083)*(1-$lip_in_up_l*0.2792)*(1-$mouth_l*0.4292)*(1-$mouth_r*0.5167)*(1-$jaw_open*0.1167)*(1-$lip_lock_open_l*0.1625);
+Head_blendShape.disgust_4 = $disgust_l*(1-$sneer_l*0.4375)*(1-$nl_deep_l*0.2167)*(1-$corner_up_l*0.3042)*(1-$smile_l*0.5083)*(1-$dimple_l*0.3208)*(1-$frown_l*0.3375)*(1-$funnel_up_l*0.2667)*(1-$o_up_l*0.1292)*(1-$pucker_up_l*0.1583)*(1-$lip_in_up_l*0.3708)*(1-$mouth_l*0.4542)*(1-$mouth_r*0.2417)*(1-$jaw_open*0.2667)*(1-$lip_lock_open_l*0.3875);
+Head_blendShape.disgust_5 = $disgust_r*(1-$sneer_r*1.0)*(1-$corner_up_r*0.1167)*(1-$smile_r*0.5667)*(1-$dimple_r*0.0875)*(1-$frown_r*0.3458)*(1-$lwr_lip_l_r*0.2)*(1-$lwr_lip_r_r*0.1917)*(1-$funnel_dn_r*0.2167)*(1-$o_dn_r*0.3083)*(1-$pucker_dn_r*0.1708)*(1-$tension_dn_r*0.2208)*(1-$press_dn_r*0.2292)*(1-$lip_in_dn_r*0.6167)*(1-$upr_lip_dn_dn_r*0.2792)*(1-$mouth_l*0.2583)*(1-$mouth_r*0.6167)*(1-$jaw_open*0.1792)*(1-$lip_lock_open_r*0.4042);
+Head_blendShape.disgust_6 = $disgust_r*(1-$sneer_r*0.4708)*(1-$nl_deep_r*0.15)*(1-$smile_r*0.4292)*(1-$frown_r*0.4208)*(1-$funnel_up_r*0.4625)*(1-$o_up_r*0.5833)*(1-$pucker_up_r*0.2458)*(1-$tension_up_r*0.2292)*(1-$press_up_r*0.0875)*(1-$lip_in_up_r*0.7792)*(1-$upr_lip_dn_up_r*0.5583)*(1-$mouth_l*0.2875)*(1-$mouth_r*0.2292)*(1-$jaw_open*0.1042)*(1-$lip_lock_open_r*0.4208);
+Head_blendShape.disgust_7 = $disgust_r*(1-$sneer_r*0.875)*(1-$nl_deep_r*0.1333)*(1-$smile_r*0.2833)*(1-$frown_r*0.1792)*(1-$funnel_up_r*0.1292)*(1-$o_up_r*0.1292)*(1-$pucker_up_r*0.1083)*(1-$lip_in_up_r*0.2792)*(1-$mouth_l*0.4292)*(1-$mouth_r*0.5167)*(1-$jaw_open*0.1167)*(1-$lip_lock_open_r*0.1625);
+Head_blendShape.disgust_8 = $disgust_r*(1-$sneer_r*0.4375)*(1-$nl_deep_r*0.2167)*(1-$corner_up_r*0.3042)*(1-$smile_r*0.5083)*(1-$dimple_r*0.3208)*(1-$frown_r*0.3375)*(1-$funnel_up_r*0.2667)*(1-$o_up_r*0.1292)*(1-$pucker_up_r*0.1583)*(1-$lip_in_up_r*0.3708)*(1-$mouth_l*0.4542)*(1-$mouth_r*0.2417)*(1-$jaw_open*0.2667)*(1-$lip_lock_open_r*0.3875);
+
+
+Head_blendShape.nl_deep_1 = $nl_deep_l*(1-$disgust_l*0.6583)*(1-$smile_l*0.75)*(1-$stretch_l*0.2583)*(1-$frown_l*0.0667)*(1-$lwr_lip_l_l*0.2958)*(1-$chin_raise_dn_l*0.1083)*(1-$funnel_dn_l*0.5125)*(1-$o_dn_l*0.7)*(1-$pucker_dn_l*0.8125)*(1-$tension_dn_l*0.0833)*(1-$press_dn_l*0.2042)*(1-$upr_lip_dn_dn_l*0.0375)*(1-$jaw_open*0.0333);
+Head_blendShape.nl_deep_2 = $nl_deep_l*(1-$disgust_l*0.5667)*(1-$smile_l*0.4583)*(1-$dimple_l*0.1042)*(1-$stretch_l*0.1875)*(1-$frown_l*0.2917)*(1-$lwr_lip_l_l*0.0208)*(1-$chin_raise_up_l*0.125)*(1-$funnel_up_l*0.4125)*(1-$o_up_l*0.5792)*(1-$pucker_up_l*0.525)*(1-$tension_up_l*0.2375)*(1-$press_up_l*0.0875)*(1-$lip_in_up_l*0.525)*(1-$upr_lip_dn_up_l*0.2042)*(1-$jaw_open*0.1583);
+Head_blendShape.nl_deep_3 = $nl_deep_l*(1-$disgust_l*0.45)*(1-$funnel_up_l*0.475)*(1-$o_up_l*0.3125);
+Head_blendShape.nl_deep_4 = $nl_deep_l*(1-$sneer_l*0.2333)*(1-$disgust_l*0.375)*(1-$corner_up_l*0.375)*(1-$smile_l*0.4792)*(1-$jaw_open*0.1375);
+Head_blendShape.nl_deep_5 = $nl_deep_r*(1-$disgust_r*0.6583)*(1-$smile_r*0.75)*(1-$stretch_r*0.2583)*(1-$frown_r*0.0667)*(1-$lwr_lip_l_r*0.2958)*(1-$chin_raise_dn_r*0.1083)*(1-$funnel_dn_r*0.5125)*(1-$o_dn_r*0.7)*(1-$pucker_dn_r*0.8125)*(1-$tension_dn_r*0.0833)*(1-$press_dn_r*0.2042)*(1-$upr_lip_dn_dn_r*0.0375)*(1-$jaw_open*0.0333);
+Head_blendShape.nl_deep_6 = $nl_deep_r*(1-$disgust_r*0.5667)*(1-$smile_r*0.4583)*(1-$dimple_r*0.1042)*(1-$stretch_r*0.1875)*(1-$frown_r*0.2917)*(1-$lwr_lip_l_r*0.0208)*(1-$chin_raise_up_r*0.125)*(1-$funnel_up_r*0.4125)*(1-$o_up_r*0.5792)*(1-$pucker_up_r*0.525)*(1-$tension_up_r*0.2375)*(1-$press_up_r*0.0875)*(1-$lip_in_up_r*0.525)*(1-$upr_lip_dn_up_r*0.2042)*(1-$jaw_open*0.1583);
+Head_blendShape.nl_deep_7 = $nl_deep_r*(1-$disgust_r*0.45)*(1-$funnel_up_r*0.475)*(1-$o_up_r*0.3125);
+Head_blendShape.nl_deep_8 = $nl_deep_r*(1-$sneer_r*0.2333)*(1-$disgust_r*0.375)*(1-$corner_up_r*0.375)*(1-$smile_r*0.4792)*(1-$jaw_open*0.1375);
+
+
+Head_blendShape.corner_up_1 = $corner_up_l*(1-$sneer_l*0.3792)*(1-$smile_l*1.0)*(1-$dimple_l*0.1167)*(1-$stretch_l*0.4542)*(1-$frown_l*0.4)*(1-$o_dn_l*0.5583)*(1-$pucker_dn_l*0.1625)*(1-$lip_in_dn_l*0.4417)*(1-$mouth_l*0.3042)*(1-$mouth_r*0.2083)*(1-$jaw_open*0.3875)*(1-$lip_lock_open_l*0.1917);
+Head_blendShape.corner_up_2 = $corner_up_l*(1-$sneer_l*0.3167)*(1-$disgust_l*0.1333)*(1-$nl_deep_l*0.1792)*(1-$smile_l*0.6708)*(1-$dimple_l*0.2875)*(1-$stretch_l*0.2)*(1-$funnel_dn_l*0.325)*(1-$o_dn_l*0.4083)*(1-$pucker_dn_l*0.6167)*(1-$tension_dn_l*0.2917)*(1-$lip_in_dn_l*0.6208)*(1-$mouth_l*0.3333)*(1-$mouth_r*0.4542)*(1-$jaw_open*0.2125)*(1-$lip_lock_open_l*0.2625);
+Head_blendShape.corner_up_3 = $corner_up_l*(1-$sneer_l*0.2375)*(1-$disgust_l*0.1625)*(1-$nl_deep_l*0.1458)*(1-$smile_l*0.6292)*(1-$dimple_l*0.1958)*(1-$stretch_l*0.3417)*(1-$o_up_l*0.4917)*(1-$tension_up_l*0.1917)*(1-$lip_in_up_l*0.6542)*(1-$mouth_l*0.3583)*(1-$mouth_r*0.5542)*(1-$jaw_open*0.2958)*(1-$lip_lock_open_l*0.4625);
+Head_blendShape.corner_up_4 = $corner_up_l*(1-$disgust_l*0.275)*(1-$smile_l*0.0458)*(1-$tension_up_l*0.1542)*(1-$lip_in_up_l*0.4833)*(1-$mouth_l*0.2333)*(1-$mouth_r*0.3)*(1-$jaw_open*0.2875)*(1-$lip_lock_open_l*0.2375);
+Head_blendShape.corner_up_5 = $corner_up_l*(1-$sneer_l*0.3208)*(1-$disgust_l*0.2583)*(1-$nl_deep_l*0.3792)*(1-$smile_l*0.5292)*(1-$stretch_l*0.3792)*(1-$frown_l*0.4208)*(1-$tension_up_l*0.3042)*(1-$lip_in_up_l*0.3625)*(1-$mouth_l*0.35)*(1-$mouth_r*0.5125)*(1-$jaw_open*0.3958)*(1-$lip_lock_open_l*0.2333);
+Head_blendShape.corner_up_6 = $corner_up_r*(1-$sneer_r*0.3792)*(1-$smile_r*1.0)*(1-$dimple_r*0.1167)*(1-$stretch_r*0.4542)*(1-$frown_r*0.4)*(1-$o_dn_r*0.5583)*(1-$pucker_dn_r*0.1625)*(1-$lip_in_dn_r*0.4417)*(1-$mouth_l*0.3042)*(1-$mouth_r*0.2083)*(1-$jaw_open*0.3875)*(1-$lip_lock_open_r*0.1917);
+Head_blendShape.corner_up_7 = $corner_up_r*(1-$sneer_r*0.3167)*(1-$disgust_r*0.1333)*(1-$nl_deep_r*0.1792)*(1-$smile_r*0.6708)*(1-$dimple_r*0.2875)*(1-$stretch_r*0.2)*(1-$funnel_dn_r*0.325)*(1-$o_dn_r*0.4083)*(1-$pucker_dn_r*0.6167)*(1-$tension_dn_r*0.2917)*(1-$lip_in_dn_r*0.6208)*(1-$mouth_l*0.3333)*(1-$mouth_r*0.4542)*(1-$jaw_open*0.2125)*(1-$lip_lock_open_r*0.2625);
+Head_blendShape.corner_up_8 = $corner_up_r*(1-$sneer_r*0.2375)*(1-$disgust_r*0.1625)*(1-$nl_deep_r*0.1458)*(1-$smile_r*0.6292)*(1-$dimple_r*0.1958)*(1-$stretch_r*0.3417)*(1-$o_up_r*0.4917)*(1-$tension_up_r*0.1917)*(1-$lip_in_up_r*0.6542)*(1-$mouth_l*0.3583)*(1-$mouth_r*0.5542)*(1-$jaw_open*0.2958)*(1-$lip_lock_open_r*0.4625);
+Head_blendShape.corner_up_9 = $corner_up_r*(1-$disgust_r*0.275)*(1-$smile_r*0.0458)*(1-$tension_up_r*0.1542)*(1-$lip_in_up_r*0.4833)*(1-$mouth_l*0.2333)*(1-$mouth_r*0.3)*(1-$jaw_open*0.2875)*(1-$lip_lock_open_r*0.2375);
+Head_blendShape.corner_up_10 = $corner_up_r*(1-$sneer_r*0.3208)*(1-$disgust_r*0.2583)*(1-$nl_deep_r*0.3792)*(1-$smile_r*0.5292)*(1-$stretch_r*0.3792)*(1-$frown_r*0.4208)*(1-$tension_up_r*0.3042)*(1-$lip_in_up_r*0.3625)*(1-$mouth_l*0.35)*(1-$mouth_r*0.5125)*(1-$jaw_open*0.3958)*(1-$lip_lock_open_r*0.2333);
+
+
+Head_blendShape.smile_1 = $smile_l*(1-$dimple_l*0.2208)*(1-$stretch_l*0.4458)*(1-$frown_l*0.1708)*(1-$funnel_dn_l*0.3958)*(1-$o_dn_l*0.4833)*(1-$pucker_dn_l*0.2708)*(1-$lip_in_dn_l*0.9)*(1-$mouth_l*0.625)*(1-$mouth_r*0.6333)*(1-$jaw_open*0.3167);
+Head_blendShape.smile_2 = $smile_l*(1-$disgust_l*0.0833)*(1-$dimple_l*0.2792)*(1-$stretch_l*0.1583)*(1-$frown_l*0.15)*(1-$funnel_dn_l*0.4625)*(1-$o_dn_l*0.625)*(1-$pucker_dn_l*0.4)*(1-$tension_dn_l*0.2083)*(1-$lip_in_dn_l*0.6208)*(1-$mouth_l*0.5667)*(1-$mouth_r*0.4792)*(1-$jaw_open*0.0667);
+Head_blendShape.smile_3 = $smile_l*(1-$disgust_l*0.1667)*(1-$corner_up_l*0.0083)*(1-$stretch_l*0.125)*(1-$frown_l*0.0917)*(1-$funnel_up_l*0.425)*(1-$o_up_l*0.7)*(1-$pucker_up_l*0.55)*(1-$tension_up_l*0.0875)*(1-$lip_in_up_l*0.6458)*(1-$upr_lip_dn_up_l*0.2708)*(1-$mouth_l*0.35)*(1-$mouth_r*0.5167)*(1-$jaw_open*0.1458);
+Head_blendShape.smile_4 = $smile_l*(1-$sneer_l*0.5667)*(1-$disgust_l*0.5708)*(1-$nl_deep_l*0.2583)*(1-$stretch_l*0.1375)*(1-$frown_l*0.3333)*(1-$funnel_up_l*0.1083)*(1-$o_up_l*0.1458)*(1-$pucker_up_l*0.2292)*(1-$tension_up_l*0.1625)*(1-$lip_in_up_l*0.5583)*(1-$upr_lip_dn_up_l*0.3083)*(1-$mouth_l*0.2333)*(1-$mouth_r*0.4292)*(1-$jaw_open*0.2083);
+Head_blendShape.smile_5 = $smile_l*(1-$sneer_l*0.1875)*(1-$disgust_l*0.2625)*(1-$nl_deep_l*0.1125)*(1-$corner_up_l*0.15)*(1-$dimple_l*0.1792)*(1-$stretch_l*0.1625)*(1-$frown_l*0.2792)*(1-$funnel_up_l*0.1792)*(1-$o_up_l*0.475)*(1-$pucker_up_l*0.4)*(1-$tension_up_l*0.1)*(1-$lip_in_up_l*0.4125)*(1-$mouth_l*0.4167)*(1-$mouth_r*0.4375)*(1-$jaw_open*0.25);
+Head_blendShape.smile_6 = $smile_r*(1-$dimple_r*0.2208)*(1-$stretch_r*0.4458)*(1-$frown_r*0.1708)*(1-$funnel_dn_r*0.3958)*(1-$o_dn_r*0.4833)*(1-$pucker_dn_r*0.2708)*(1-$lip_in_dn_r*0.9)*(1-$mouth_l*0.625)*(1-$mouth_r*0.6333)*(1-$jaw_open*0.3167);
+Head_blendShape.smile_7 = $smile_r*(1-$disgust_r*0.0833)*(1-$dimple_r*0.2792)*(1-$stretch_r*0.1583)*(1-$frown_r*0.15)*(1-$funnel_dn_r*0.4625)*(1-$o_dn_r*0.625)*(1-$pucker_dn_r*0.4)*(1-$tension_dn_r*0.2083)*(1-$lip_in_dn_r*0.6208)*(1-$mouth_l*0.5667)*(1-$mouth_r*0.4792)*(1-$jaw_open*0.0667);
+Head_blendShape.smile_8 = $smile_r*(1-$disgust_r*0.1667)*(1-$corner_up_r*0.0083)*(1-$stretch_r*0.125)*(1-$frown_r*0.0917)*(1-$funnel_up_r*0.425)*(1-$o_up_r*0.7)*(1-$pucker_up_r*0.55)*(1-$tension_up_r*0.0875)*(1-$lip_in_up_r*0.6458)*(1-$upr_lip_dn_up_r*0.2708)*(1-$mouth_l*0.35)*(1-$mouth_r*0.5167)*(1-$jaw_open*0.1458);
+Head_blendShape.smile_9 = $smile_r*(1-$sneer_r*0.5667)*(1-$disgust_r*0.5708)*(1-$nl_deep_r*0.2583)*(1-$stretch_r*0.1375)*(1-$frown_r*0.3333)*(1-$funnel_up_r*0.1083)*(1-$o_up_r*0.1458)*(1-$pucker_up_r*0.2292)*(1-$tension_up_r*0.1625)*(1-$lip_in_up_r*0.5583)*(1-$upr_lip_dn_up_r*0.3083)*(1-$mouth_l*0.2333)*(1-$mouth_r*0.4292)*(1-$jaw_open*0.2083);
+Head_blendShape.smile_10 = $smile_r*(1-$sneer_r*0.1875)*(1-$disgust_r*0.2625)*(1-$nl_deep_r*0.1125)*(1-$corner_up_r*0.15)*(1-$dimple_r*0.1792)*(1-$stretch_r*0.1625)*(1-$frown_r*0.2792)*(1-$funnel_up_r*0.1792)*(1-$o_up_r*0.475)*(1-$pucker_up_r*0.4)*(1-$tension_up_r*0.1)*(1-$lip_in_up_r*0.4125)*(1-$mouth_l*0.4167)*(1-$mouth_r*0.4375)*(1-$jaw_open*0.25);
+
+
+Head_blendShape.dimple_1 = $dimple_l*(1-$nl_deep_l*0.3167)*(1-$corner_up_l*0.4375)*(1-$smile_l*0.425)*(1-$stretch_l*0.725)*(1-$frown_l*0.2917)*(1-$lwr_lip_l_l*0.4958)*(1-$lwr_lip_r_l*0.1542)*(1-$chin_raise_dn_l*0.5167)*(1-$funnel_dn_l*0.3625)*(1-$o_dn_l*0.2875)*(1-$pucker_dn_l*0.4125)*(1-$tension_dn_l*0.2083)*(1-$lip_in_dn_l*0.4333)*(1-$mouth_l*0.625)*(1-$mouth_r*0.6292)*(1-$jaw_open*0.3542)*(1-$lip_lock_open_l*0.7625);
+Head_blendShape.dimple_2 = $dimple_l*(1-$disgust_l*0.1167)*(1-$nl_deep_l*0.3792)*(1-$corner_up_l*0.3167)*(1-$smile_l*0.4083)*(1-$stretch_l*0.2292)*(1-$frown_l*0.1875)*(1-$lwr_lip_l_l*0.1042)*(1-$lwr_lip_r_l*0.2958)*(1-$chin_raise_up_l*0.0542)*(1-$funnel_up_l*0.4375)*(1-$o_up_l*0.2875)*(1-$pucker_up_l*0.3125)*(1-$tension_up_l*0.2875)*(1-$lip_in_up_l*0.3958)*(1-$mouth_l*0.4083)*(1-$mouth_r*0.3375)*(1-$jaw_open*0.2208)*(1-$lip_lock_open_l*0.3917);
+Head_blendShape.dimple_3 = $dimple_r*(1-$nl_deep_r*0.3167)*(1-$corner_up_r*0.4375)*(1-$smile_r*0.425)*(1-$stretch_r*0.725)*(1-$frown_r*0.2917)*(1-$lwr_lip_l_r*0.4958)*(1-$lwr_lip_r_r*0.1542)*(1-$chin_raise_dn_r*0.5167)*(1-$funnel_dn_r*0.3625)*(1-$o_dn_r*0.2875)*(1-$pucker_dn_r*0.4125)*(1-$tension_dn_r*0.2083)*(1-$lip_in_dn_r*0.4333)*(1-$mouth_l*0.625)*(1-$mouth_r*0.6292)*(1-$jaw_open*0.3542)*(1-$lip_lock_open_r*0.7625);
+Head_blendShape.dimple_4 = $dimple_r*(1-$disgust_r*0.1167)*(1-$nl_deep_r*0.3792)*(1-$corner_up_r*0.3167)*(1-$smile_r*0.4083)*(1-$stretch_r*0.2292)*(1-$frown_r*0.1875)*(1-$lwr_lip_l_r*0.1042)*(1-$lwr_lip_r_r*0.2958)*(1-$chin_raise_up_r*0.0542)*(1-$funnel_up_r*0.4375)*(1-$o_up_r*0.2875)*(1-$pucker_up_r*0.3125)*(1-$tension_up_r*0.2875)*(1-$lip_in_up_r*0.3958)*(1-$mouth_l*0.4083)*(1-$mouth_r*0.3375)*(1-$jaw_open*0.2208)*(1-$lip_lock_open_r*0.3917);
+
+
+Head_blendShape.stretch_1 = $stretch_l*(1-$smile_l*0.1333)*(1-$chin_raise_dn_l*0.4667)*(1-$o_dn_l*0.3375)*(1-$pucker_dn_l*0.3667)*(1-$tension_dn_l*0.0958)*(1-$lip_in_dn_l*0.3958)*(1-$upr_lip_dn_dn_l*0.1)*(1-$mouth_l*0.525)*(1-$mouth_r*0.5708)*(1-$jaw_open*0.3583)*(1-$lip_lock_open_l*0.6042);
+Head_blendShape.stretch_2 = $stretch_l*(1-$disgust_l*0.1042)*(1-$smile_l*0.2375)*(1-$o_up_l*0.1875)*(1-$pucker_up_l*0.1375)*(1-$tension_up_l*0.1292)*(1-$lip_in_up_l*0.2917)*(1-$mouth_l*0.6125)*(1-$mouth_r*0.7167)*(1-$jaw_open*0.2708)*(1-$lip_lock_open_l*0.2042);
+Head_blendShape.stretch_3 = $stretch_r*(1-$smile_r*0.1333)*(1-$chin_raise_dn_r*0.4667)*(1-$o_dn_r*0.3375)*(1-$pucker_dn_r*0.3667)*(1-$tension_dn_r*0.0958)*(1-$lip_in_dn_r*0.3958)*(1-$upr_lip_dn_dn_r*0.1)*(1-$mouth_l*0.525)*(1-$mouth_r*0.5708)*(1-$jaw_open*0.3583)*(1-$lip_lock_open_r*0.6042);
+Head_blendShape.stretch_4 = $stretch_r*(1-$disgust_r*0.1042)*(1-$smile_r*0.2375)*(1-$o_up_r*0.1875)*(1-$pucker_up_r*0.1375)*(1-$tension_up_r*0.1292)*(1-$lip_in_up_r*0.2917)*(1-$mouth_l*0.6125)*(1-$mouth_r*0.7167)*(1-$jaw_open*0.2708)*(1-$lip_lock_open_r*0.2042);
+
+
+Head_blendShape.frown_1 = $frown_l*(1-$smile_l*0.2542)*(1-$stretch_l*0.0875)*(1-$lwr_lip_l_l*0.1417)*(1-$funnel_dn_l*0.0333)*(1-$pucker_dn_l*0.0417)*(1-$mouth_l*0.6875)*(1-$mouth_r*0.7458)*(1-$jaw_open*0.4083);
+Head_blendShape.frown_2 = $frown_l*(1-$disgust_l*0.0167)*(1-$nl_deep_l*0.2625)*(1-$smile_l*0.2375)*(1-$stretch_l*0.2167)*(1-$funnel_up_l*0.0917)*(1-$o_up_l*0.1542)*(1-$pucker_up_l*0.1333)*(1-$lip_in_up_l*0.3375)*(1-$mouth_l*0.5417)*(1-$mouth_r*0.5083)*(1-$jaw_open*0.625);
+Head_blendShape.frown_3 = $frown_r*(1-$smile_r*0.2542)*(1-$stretch_r*0.0875)*(1-$lwr_lip_l_r*0.1417)*(1-$funnel_dn_r*0.0333)*(1-$pucker_dn_r*0.0417)*(1-$mouth_l*0.6875)*(1-$mouth_r*0.7458)*(1-$jaw_open*0.4083);
+Head_blendShape.frown_4 = $frown_r*(1-$disgust_r*0.0167)*(1-$nl_deep_r*0.2625)*(1-$smile_r*0.2375)*(1-$stretch_r*0.2167)*(1-$funnel_up_r*0.0917)*(1-$o_up_r*0.1542)*(1-$pucker_up_r*0.1333)*(1-$lip_in_up_r*0.3375)*(1-$mouth_l*0.5417)*(1-$mouth_r*0.5083)*(1-$jaw_open*0.625);
+
+
+Head_blendShape.lwr_lip_dn_1 = $lwr_lip_dn_l*(1-$stretch_l*0.3875)*(1-$funnel_dn_l*0.2958)*(1-$o_dn_l*0.3208)*(1-$pucker_dn_l*0.4042)*(1-$lip_in_dn_l*0.5875)*(1-$jaw_open*0.3667);
+Head_blendShape.lwr_lip_dn_2 = $lwr_lip_dn_l*(1-$stretch_l*0.5042)*(1-$chin_raise_up_l*0.5583)*(1-$funnel_up_l*0.3167)*(1-$o_up_l*0.2875)*(1-$pucker_up_l*0.3083)*(1-$lip_in_up_l*0.4417)*(1-$jaw_open*0.4083);
+Head_blendShape.lwr_lip_dn_3 = $lwr_lip_dn_r*(1-$stretch_r*0.3875)*(1-$funnel_dn_r*0.2958)*(1-$o_dn_r*0.3208)*(1-$pucker_dn_r*0.4042)*(1-$lip_in_dn_r*0.5875)*(1-$jaw_open*0.3667);
+Head_blendShape.lwr_lip_dn_4 = $lwr_lip_dn_r*(1-$stretch_r*0.5042)*(1-$chin_raise_up_r*0.5583)*(1-$funnel_up_r*0.3167)*(1-$o_up_r*0.2875)*(1-$pucker_up_r*0.3083)*(1-$lip_in_up_r*0.4417)*(1-$jaw_open*0.4083);
+
+
+Head_blendShape.lwr_lip_l_1 = $lwr_lip_l_l*(1-$chin_raise_dn_l*0.1625);
+Head_blendShape.lwr_lip_l_2 = $lwr_lip_l_l*(1-$sneer_l*0.1208)*(1-$disgust_l*0.1708)*(1-$nl_deep_l*0.0417)*(1-$funnel_up_l*0.4542)*(1-$pucker_up_l*0.1083);
+Head_blendShape.lwr_lip_l_3 = $lwr_lip_l_r*(1-$chin_raise_dn_r*0.1625);
+Head_blendShape.lwr_lip_l_4 = $lwr_lip_l_r*(1-$sneer_r*0.1208)*(1-$disgust_r*0.1708)*(1-$nl_deep_r*0.0417)*(1-$funnel_up_r*0.4542)*(1-$pucker_up_r*0.1083);
+
+
+Head_blendShape.lwr_lip_r_1 = $lwr_lip_r_l*(1-$chin_raise_dn_l*0.1542);
+Head_blendShape.lwr_lip_r_2 = $lwr_lip_r_l*(1-$pucker_up_l*0.4458);
+Head_blendShape.lwr_lip_r_3 = $lwr_lip_r_r*(1-$chin_raise_dn_r*0.1542);
+Head_blendShape.lwr_lip_r_4 = $lwr_lip_r_r*(1-$pucker_up_r*0.4458);
+
+
+Head_blendShape.chin_raise_1 = $chin_raise_dn_l*(1-$sneer_l*0.2917)*(1-$disgust_l*0.5542)*(1-$smile_l*0.2542)*(1-$stretch_l*0.1417)*(1-$lwr_lip_l_l*0.1583)*(1-$lwr_lip_r_l*0.1708)*(1-$press_dn_l*0.0417)*(1-$lip_in_dn_l*0.475)*(1-$mouth_l*0.3208)*(1-$mouth_r*0.7333);
+Head_blendShape.chin_raise_2 = $chin_raise_dn_l*(1-$disgust_l*0.5458)*(1-$nl_deep_l*0.0583)*(1-$smile_l*0.4917)*(1-$lwr_lip_dn_l*0.4375)*(1-$mouth_l*0.2917)*(1-$mouth_r*0.85)*(1-$jaw_open*0.0708);
+Head_blendShape.chin_raise_3 = $chin_raise_up_l*(1-$sneer_l*0.3375)*(1-$disgust_l*0.8958)*(1-$nl_deep_l*0.3708)*(1-$smile_l*0.5542)*(1-$stretch_l*0.3583)*(1-$lwr_lip_dn_l*1.0)*(1-$lwr_lip_l_l*0.225)*(1-$lwr_lip_r_l*0.175)*(1-$funnel_up_l*0.55)*(1-$o_up_l*0.2167)*(1-$pucker_up_l*0.3)*(1-$lip_in_up_l*0.35)*(1-$upr_lip_dn_up_l*0.4667)*(1-$mouth_l*0.3875)*(1-$mouth_r*0.6958)*(1-$jaw_open*0.5917);
+Head_blendShape.chin_raise_4 = $chin_raise_dn_r*(1-$sneer_r*0.2917)*(1-$disgust_r*0.5542)*(1-$smile_r*0.2542)*(1-$stretch_r*0.1417)*(1-$lwr_lip_l_r*0.1583)*(1-$lwr_lip_r_r*0.1708)*(1-$press_dn_r*0.0417)*(1-$lip_in_dn_r*0.475)*(1-$mouth_l*0.3208)*(1-$mouth_r*0.7333);
+Head_blendShape.chin_raise_5 = $chin_raise_dn_r*(1-$disgust_r*0.5458)*(1-$nl_deep_r*0.0583)*(1-$smile_r*0.4917)*(1-$lwr_lip_dn_r*0.4375)*(1-$mouth_l*0.2917)*(1-$mouth_r*0.85)*(1-$jaw_open*0.0708);
+Head_blendShape.chin_raise_6 = $chin_raise_up_r*(1-$sneer_r*0.3375)*(1-$disgust_r*0.8958)*(1-$nl_deep_r*0.3708)*(1-$smile_r*0.5542)*(1-$stretch_r*0.3583)*(1-$lwr_lip_dn_r*1.0)*(1-$lwr_lip_l_r*0.225)*(1-$lwr_lip_r_r*0.175)*(1-$funnel_up_r*0.55)*(1-$o_up_r*0.2167)*(1-$pucker_up_r*0.3)*(1-$lip_in_up_r*0.35)*(1-$upr_lip_dn_up_r*0.4667)*(1-$mouth_l*0.3875)*(1-$mouth_r*0.6958)*(1-$jaw_open*0.5917);
+
+
+Head_blendShape.funnel_1 = $funnel_dn_l*(1-$disgust_l*0.1167)*(1-$nl_deep_l*0.1333)*(1-$corner_up_l*0.1958)*(1-$smile_l*0.1875)*(1-$dimple_l*0.0625)*(1-$stretch_l*0.3167)*(1-$frown_l*0.1458)*(1-$lwr_lip_l_l*0.1458)*(1-$lwr_lip_r_l*0.0875)*(1-$o_dn_l*1.0)*(1-$pucker_dn_l*1.0)*(1-$tension_dn_l*0.1417)*(1-$mouth_l*0.3708)*(1-$mouth_r*0.2083)*(1-$jaw_open*0.35)*(1-$lip_lock_open_l*0.3292);
+Head_blendShape.funnel_2 = $funnel_dn_l*(1-$disgust_l*0.2708)*(1-$nl_deep_l*0.1792)*(1-$corner_up_l*0.4333)*(1-$dimple_l*0.3417)*(1-$stretch_l*0.4292)*(1-$frown_l*0.3292)*(1-$lwr_lip_l_l*0.3083)*(1-$lwr_lip_r_l*0.3958)*(1-$o_dn_l*1.0)*(1-$pucker_dn_l*1.0)*(1-$tension_dn_l*0.0917)*(1-$mouth_l*0.4292)*(1-$mouth_r*0.4167)*(1-$jaw_open*0.2917)*(1-$lip_lock_open_l*0.3917);
+Head_blendShape.funnel_3 = $funnel_up_l*(1-$sneer_l*0.15)*(1-$smile_l*0.1417)*(1-$dimple_l*0.1333)*(1-$stretch_l*0.3792)*(1-$frown_l*0.2042)*(1-$o_up_l*1.0)*(1-$pucker_up_l*1.0)*(1-$tension_up_l*0.1208)*(1-$upr_lip_dn_up_l*0.25)*(1-$mouth_l*0.1083)*(1-$mouth_r*0.175)*(1-$jaw_open*0.3)*(1-$lip_lock_open_l*0.6333);
+Head_blendShape.funnel_4 = $funnel_dn_r*(1-$disgust_r*0.1167)*(1-$nl_deep_r*0.1333)*(1-$corner_up_r*0.1958)*(1-$smile_r*0.1875)*(1-$dimple_r*0.0625)*(1-$stretch_r*0.3167)*(1-$frown_r*0.1458)*(1-$lwr_lip_l_r*0.1458)*(1-$lwr_lip_r_r*0.0875)*(1-$o_dn_r*1.0)*(1-$pucker_dn_r*1.0)*(1-$tension_dn_r*0.1417)*(1-$mouth_l*0.3708)*(1-$mouth_r*0.2083)*(1-$jaw_open*0.35)*(1-$lip_lock_open_r*0.3292);
+Head_blendShape.funnel_5 = $funnel_dn_r*(1-$disgust_r*0.2708)*(1-$nl_deep_r*0.1792)*(1-$corner_up_r*0.4333)*(1-$dimple_r*0.3417)*(1-$stretch_r*0.4292)*(1-$frown_r*0.3292)*(1-$lwr_lip_l_r*0.3083)*(1-$lwr_lip_r_r*0.3958)*(1-$o_dn_r*1.0)*(1-$pucker_dn_r*1.0)*(1-$tension_dn_r*0.0917)*(1-$mouth_l*0.4292)*(1-$mouth_r*0.4167)*(1-$jaw_open*0.2917)*(1-$lip_lock_open_r*0.3917);
+Head_blendShape.funnel_6 = $funnel_up_r*(1-$sneer_r*0.15)*(1-$smile_r*0.1417)*(1-$dimple_r*0.1333)*(1-$stretch_r*0.3792)*(1-$frown_r*0.2042)*(1-$o_up_r*1.0)*(1-$pucker_up_r*1.0)*(1-$tension_up_r*0.1208)*(1-$upr_lip_dn_up_r*0.25)*(1-$mouth_l*0.1083)*(1-$mouth_r*0.175)*(1-$jaw_open*0.3)*(1-$lip_lock_open_r*0.6333);
+
+
+Head_blendShape.o_1 = $o_dn_l*(1-$smile_l*0.2)*(1-$dimple_l*0.1208)*(1-$stretch_l*0.3)*(1-$frown_l*0.1417)*(1-$lwr_lip_l_l*0.075)*(1-$lwr_lip_r_l*0.0917)*(1-$chin_raise_dn_l*0.2625)*(1-$pucker_dn_l*1.0)*(1-$tension_dn_l*0.2875)*(1-$lip_in_dn_l*1.0)*(1-$mouth_l*0.6625)*(1-$mouth_r*0.3292)*(1-$jaw_open*0.4375)*(1-$lip_lock_open_l*0.2583);
+Head_blendShape.o_2 = $o_dn_l*(1-$sneer_l*0.125)*(1-$disgust_l*0.1833)*(1-$nl_deep_l*0.2458)*(1-$smile_l*0.1625)*(1-$dimple_l*0.175)*(1-$stretch_l*0.1083)*(1-$frown_l*0.3458)*(1-$lwr_lip_l_l*0.1125)*(1-$lwr_lip_r_l*0.3583)*(1-$chin_raise_dn_l*0.0917)*(1-$pucker_dn_l*1.0)*(1-$tension_dn_l*0.225)*(1-$lip_in_dn_l*1.0)*(1-$mouth_l*0.6)*(1-$mouth_r*0.475)*(1-$jaw_open*0.35)*(1-$lip_lock_open_l*0.1375);
+Head_blendShape.o_3 = $o_up_l*(1-$sneer_l*0.1333)*(1-$smile_l*0.125)*(1-$dimple_l*0.2833)*(1-$stretch_l*0.4167)*(1-$frown_l*0.2375)*(1-$lwr_lip_l_l*0.1333)*(1-$lwr_lip_r_l*0.1167)*(1-$chin_raise_up_l*0.2625)*(1-$pucker_up_l*1.0)*(1-$tension_up_l*0.1708)*(1-$lip_in_up_l*1.0)*(1-$mouth_l*0.1542)*(1-$mouth_r*0.65)*(1-$jaw_open*0.4833)*(1-$lip_lock_open_l*0.3083);
+Head_blendShape.o_4 = $o_dn_r*(1-$smile_r*0.2)*(1-$dimple_r*0.1208)*(1-$stretch_r*0.3)*(1-$frown_r*0.1417)*(1-$lwr_lip_l_r*0.075)*(1-$lwr_lip_r_r*0.0917)*(1-$chin_raise_dn_r*0.2625)*(1-$pucker_dn_r*1.0)*(1-$tension_dn_r*0.2875)*(1-$lip_in_dn_r*1.0)*(1-$mouth_l*0.6625)*(1-$mouth_r*0.3292)*(1-$jaw_open*0.4375)*(1-$lip_lock_open_r*0.2583);
+Head_blendShape.o_5 = $o_dn_r*(1-$sneer_r*0.125)*(1-$disgust_r*0.1833)*(1-$nl_deep_r*0.2458)*(1-$smile_r*0.1625)*(1-$dimple_r*0.175)*(1-$stretch_r*0.1083)*(1-$frown_r*0.3458)*(1-$lwr_lip_l_r*0.1125)*(1-$lwr_lip_r_r*0.3583)*(1-$chin_raise_dn_r*0.0917)*(1-$pucker_dn_r*1.0)*(1-$tension_dn_r*0.225)*(1-$lip_in_dn_r*1.0)*(1-$mouth_l*0.6)*(1-$mouth_r*0.475)*(1-$jaw_open*0.35)*(1-$lip_lock_open_r*0.1375);
+Head_blendShape.o_6 = $o_up_r*(1-$sneer_r*0.1333)*(1-$smile_r*0.125)*(1-$dimple_r*0.2833)*(1-$stretch_r*0.4167)*(1-$frown_r*0.2375)*(1-$lwr_lip_l_r*0.1333)*(1-$lwr_lip_r_r*0.1167)*(1-$chin_raise_up_r*0.2625)*(1-$pucker_up_r*1.0)*(1-$tension_up_r*0.1708)*(1-$lip_in_up_r*1.0)*(1-$mouth_l*0.1542)*(1-$mouth_r*0.65)*(1-$jaw_open*0.4833)*(1-$lip_lock_open_r*0.3083);
+
+
+Head_blendShape.pucker_1 = $pucker_dn_l*(1-$disgust_l*0.1167)*(1-$nl_deep_l*0.1458)*(1-$corner_up_l*0.0667)*(1-$dimple_l*0.2208)*(1-$stretch_l*0.3208)*(1-$frown_l*0.2167)*(1-$lwr_lip_l_l*0.2083)*(1-$lwr_lip_r_l*0.2667)*(1-$chin_raise_dn_l*0.2292)*(1-$tension_dn_l*0.2875)*(1-$lip_in_dn_l*1.0)*(1-$mouth_l*0.3958)*(1-$mouth_r*0.425)*(1-$jaw_open*0.1167);
+Head_blendShape.pucker_2 = $pucker_dn_l*(1-$sneer_l*0.3667)*(1-$disgust_l*0.3542)*(1-$nl_deep_l*0.3583)*(1-$corner_up_l*0.2542)*(1-$smile_l*0.1833)*(1-$dimple_l*0.2167)*(1-$stretch_l*0.4167)*(1-$frown_l*0.4833)*(1-$lwr_lip_l_l*0.4417)*(1-$lwr_lip_r_l*0.3083)*(1-$chin_raise_dn_l*0.225)*(1-$lip_in_dn_l*1.0)*(1-$upr_lip_dn_dn_l*0.3625)*(1-$mouth_l*0.2792)*(1-$mouth_r*0.3167)*(1-$jaw_open*0.4542);
+Head_blendShape.pucker_3 = $pucker_up_l*(1-$sneer_l*0.125)*(1-$disgust_l*0.1)*(1-$nl_deep_l*0.2542)*(1-$corner_up_l*0.0792)*(1-$dimple_l*0.225)*(1-$stretch_l*0.2292)*(1-$frown_l*0.1833)*(1-$lwr_lip_l_l*0.1375)*(1-$lwr_lip_r_l*0.175)*(1-$tension_up_l*0.1292)*(1-$lip_in_up_l*1.0)*(1-$upr_lip_dn_up_l*0.4042)*(1-$mouth_l*0.3208)*(1-$mouth_r*0.2833)*(1-$jaw_open*0.3583);
+Head_blendShape.pucker_4 = $pucker_dn_r*(1-$disgust_r*0.1167)*(1-$nl_deep_r*0.1458)*(1-$corner_up_r*0.0667)*(1-$dimple_r*0.2208)*(1-$stretch_r*0.3208)*(1-$frown_r*0.2167)*(1-$lwr_lip_l_r*0.2083)*(1-$lwr_lip_r_r*0.2667)*(1-$chin_raise_dn_r*0.2292)*(1-$tension_dn_r*0.2875)*(1-$lip_in_dn_r*1.0)*(1-$mouth_l*0.3958)*(1-$mouth_r*0.425)*(1-$jaw_open*0.1167);
+Head_blendShape.pucker_5 = $pucker_dn_r*(1-$sneer_r*0.3667)*(1-$disgust_r*0.3542)*(1-$nl_deep_r*0.3583)*(1-$corner_up_r*0.2542)*(1-$smile_r*0.1833)*(1-$dimple_r*0.2167)*(1-$stretch_r*0.4167)*(1-$frown_r*0.4833)*(1-$lwr_lip_l_r*0.4417)*(1-$lwr_lip_r_r*0.3083)*(1-$chin_raise_dn_r*0.225)*(1-$lip_in_dn_r*1.0)*(1-$upr_lip_dn_dn_r*0.3625)*(1-$mouth_l*0.2792)*(1-$mouth_r*0.3167)*(1-$jaw_open*0.4542);
+Head_blendShape.pucker_6 = $pucker_up_r*(1-$sneer_r*0.125)*(1-$disgust_r*0.1)*(1-$nl_deep_r*0.2542)*(1-$corner_up_r*0.0792)*(1-$dimple_r*0.225)*(1-$stretch_r*0.2292)*(1-$frown_r*0.1833)*(1-$lwr_lip_l_r*0.1375)*(1-$lwr_lip_r_r*0.175)*(1-$tension_up_r*0.1292)*(1-$lip_in_up_r*1.0)*(1-$upr_lip_dn_up_r*0.4042)*(1-$mouth_l*0.3208)*(1-$mouth_r*0.2833)*(1-$jaw_open*0.3583);
+
+
+Head_blendShape.tension_1 = $tension_dn_l*(1-$smile_l*0.3625)*(1-$o_dn_l*0.2792)*(1-$pucker_dn_l*0.1625)*(1-$lip_in_dn_l*0.3083)*(1-$mouth_l*0.6667)*(1-$mouth_r*0.6833)*(1-$jaw_open*0.3083);
+Head_blendShape.tension_2 = $tension_dn_l*(1-$sneer_l*0.2542)*(1-$disgust_l*0.2042)*(1-$smile_l*0.6833)*(1-$dimple_l*0.2958)*(1-$stretch_l*0.6583)*(1-$funnel_dn_l*0.0792)*(1-$o_dn_l*0.4583)*(1-$pucker_dn_l*0.7458)*(1-$lip_in_dn_l*0.175)*(1-$mouth_l*0.5375)*(1-$mouth_r*0.6542)*(1-$jaw_open*0.2667);
+Head_blendShape.tension_3 = $tension_up_l*(1-$sneer_l*0.0625)*(1-$disgust_l*0.1875)*(1-$smile_l*0.5)*(1-$stretch_l*0.1083)*(1-$o_up_l*0.1833)*(1-$lip_in_up_l*0.1583)*(1-$mouth_l*0.4875)*(1-$mouth_r*0.3375)*(1-$jaw_open*0.0833);
+Head_blendShape.tension_4 = $tension_dn_r*(1-$smile_r*0.3625)*(1-$o_dn_r*0.2792)*(1-$pucker_dn_r*0.1625)*(1-$lip_in_dn_r*0.3083)*(1-$mouth_l*0.6667)*(1-$mouth_r*0.6833)*(1-$jaw_open*0.3083);
+Head_blendShape.tension_5 = $tension_dn_r*(1-$sneer_r*0.2542)*(1-$disgust_r*0.2042)*(1-$smile_r*0.6833)*(1-$dimple_r*0.2958)*(1-$stretch_r*0.6583)*(1-$funnel_dn_r*0.0792)*(1-$o_dn_r*0.4583)*(1-$pucker_dn_r*0.7458)*(1-$lip_in_dn_r*0.175)*(1-$mouth_l*0.5375)*(1-$mouth_r*0.6542)*(1-$jaw_open*0.2667);
+Head_blendShape.tension_6 = $tension_up_r*(1-$sneer_r*0.0625)*(1-$disgust_r*0.1875)*(1-$smile_r*0.5)*(1-$stretch_r*0.1083)*(1-$o_up_r*0.1833)*(1-$lip_in_up_r*0.1583)*(1-$mouth_l*0.4875)*(1-$mouth_r*0.3375)*(1-$jaw_open*0.0833);
+
+
+Head_blendShape.press_1 = $press_dn_l*(1-$smile_l*0.3458);
+Head_blendShape.press_2 = $press_dn_l*(1-$frown_l*0.2083);
+Head_blendShape.press_3 = $press_up_l*(1-$smile_l*0.3667)*(1-$chin_raise_up_l*0.3292);
+Head_blendShape.press_4 = $press_dn_r*(1-$smile_r*0.3458);
+Head_blendShape.press_5 = $press_dn_r*(1-$frown_r*0.2083);
+Head_blendShape.press_6 = $press_up_r*(1-$smile_r*0.3667)*(1-$chin_raise_up_r*0.3292);
+
+
+Head_blendShape.lip_in_1 = $lip_in_dn_l*(1-$dimple_l*0.225)*(1-$stretch_l*0.0083)*(1-$mouth_l*0.8)*(1-$mouth_r*0.4333)*(1-$lip_lock_open_l*0.5708);
+Head_blendShape.lip_in_2 = $lip_in_dn_l*(1-$sneer_l*0.1042)*(1-$dimple_l*0.3667)*(1-$stretch_l*0.2417)*(1-$frown_l*0.05)*(1-$mouth_l*0.4708)*(1-$mouth_r*0.3917)*(1-$jaw_open*0.0792);
+Head_blendShape.lip_in_3 = $lip_in_up_l*(1-$smile_l*0.0042)*(1-$dimple_l*0.1958)*(1-$frown_l*0.1583)*(1-$tension_up_l*0.1208)*(1-$mouth_l*0.425)*(1-$mouth_r*0.4875)*(1-$lip_lock_open_l*0.3792);
+Head_blendShape.lip_in_4 = $lip_in_dn_r*(1-$dimple_r*0.225)*(1-$stretch_r*0.0083)*(1-$mouth_l*0.8)*(1-$mouth_r*0.4333)*(1-$lip_lock_open_r*0.5708);
+Head_blendShape.lip_in_5 = $lip_in_dn_r*(1-$sneer_r*0.1042)*(1-$dimple_r*0.3667)*(1-$stretch_r*0.2417)*(1-$frown_r*0.05)*(1-$mouth_l*0.4708)*(1-$mouth_r*0.3917)*(1-$jaw_open*0.0792);
+Head_blendShape.lip_in_6 = $lip_in_up_r*(1-$smile_r*0.0042)*(1-$dimple_r*0.1958)*(1-$frown_r*0.1583)*(1-$tension_up_r*0.1208)*(1-$mouth_l*0.425)*(1-$mouth_r*0.4875)*(1-$lip_lock_open_r*0.3792);
+
+
+Head_blendShape.upr_lip_dn_1 = $upr_lip_dn_dn_l;
+Head_blendShape.upr_lip_dn_2 = $upr_lip_dn_dn_l*(1-$sneer_l*0.2708)*(1-$disgust_l*0.2542)*(1-$nl_deep_l*0.0542)*(1-$smile_l*0.6333)*(1-$funnel_dn_l*0.4)*(1-$o_dn_l*0.3)*(1-$pucker_dn_l*0.275);
+Head_blendShape.upr_lip_dn_3 = $upr_lip_dn_up_l*(1-$sneer_l*0.6917)*(1-$disgust_l*0.5667)*(1-$nl_deep_l*0.4083)*(1-$smile_l*0.5417)*(1-$funnel_up_l*0.4583)*(1-$o_up_l*0.3167)*(1-$pucker_up_l*0.1833);
+Head_blendShape.upr_lip_dn_4 = $upr_lip_dn_dn_r;
+Head_blendShape.upr_lip_dn_5 = $upr_lip_dn_dn_r*(1-$sneer_r*0.2708)*(1-$disgust_r*0.2542)*(1-$nl_deep_r*0.0542)*(1-$smile_r*0.6333)*(1-$funnel_dn_r*0.4)*(1-$o_dn_r*0.3)*(1-$pucker_dn_r*0.275);
+Head_blendShape.upr_lip_dn_6 = $upr_lip_dn_up_r*(1-$sneer_r*0.6917)*(1-$disgust_r*0.5667)*(1-$nl_deep_r*0.4083)*(1-$smile_r*0.5417)*(1-$funnel_up_r*0.4583)*(1-$o_up_r*0.3167)*(1-$pucker_up_r*0.1833);
+
+
+Head_blendShape.puff_1 = $puff_l;
+Head_blendShape.puff_2 = $puff_r;
+
+
+Head_blendShape.suck_1 = $suck_l;
+Head_blendShape.suck_2 = $suck_r;
+
+Head_blendShape.jaw_open_1 = $jaw_open*(1-$stretch_l*0.0958)*(1-$funnel_dn_l*0.1125)*(1-$o_dn_l*0.075)*(1-$pucker_dn_l*0.1458)*(1-$lip_in_dn_l*0.3125);
+Head_blendShape.jaw_open_2 = $jaw_open*(1-$dimple_l*0.075)*(1-$stretch_l*0.1542)*(1-$chin_raise_dn_l*0.0833)*(1-$funnel_dn_l*0.1833)*(1-$o_dn_l*0.0875)*(1-$pucker_dn_l*0.1292)*(1-$lip_in_dn_l*0.3417)*(1-$puff_dn_l*0.1333);
+Head_blendShape.jaw_open_3 = $jaw_open*(1-$sneer_l*0.2083)*(1-$dimple_l*0.0958)*(1-$pucker_up_l*0.2875);
+Head_blendShape.jaw_open_4 = $jaw_open*(1-$smile_l*0.0667);
+Head_blendShape.jaw_open_5 = $jaw_open*(1-$smile_l*0.35);
+Head_blendShape.jaw_open_6 = $jaw_open*(1-$stretch_r*0.0958)*(1-$funnel_dn_r*0.1125)*(1-$o_dn_r*0.075)*(1-$pucker_dn_r*0.1458)*(1-$lip_in_dn_r*0.3125);
+Head_blendShape.jaw_open_7 = $jaw_open*(1-$dimple_r*0.075)*(1-$stretch_r*0.1542)*(1-$chin_raise_dn_r*0.0833)*(1-$funnel_dn_r*0.1833)*(1-$o_dn_r*0.0875)*(1-$pucker_dn_r*0.1292)*(1-$lip_in_dn_r*0.3417)*(1-$puff_dn_r*0.1333);
+Head_blendShape.jaw_open_8 = $jaw_open*(1-$sneer_r*0.2083)*(1-$dimple_r*0.0958)*(1-$pucker_up_r*0.2875);
+Head_blendShape.jaw_open_9 = $jaw_open*(1-$smile_r*0.0667);
+Head_blendShape.jaw_open_10 = $jaw_open*(1-$smile_r*0.35);
+//Head_blendShape.jaw_open_11 = $jaw_open;

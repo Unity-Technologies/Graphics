@@ -1,0 +1,218 @@
+//-----------------------------------------------Neck_cntr----------------------------------------------------------
+Head_blendShape.neck_blow = max(0,Neck_cntr.translateZ/2.5);
+Head_blendShape.neck_muscle = max(0,Neck_cntr.translateX/2.5);
+Head_blendShape.neck_slide = max(0,-Neck_cntr.translateZ/2.5);
+Head_blendShape.swallow_1 = linstep(0,0.2,max(0,-Neck_cntr.translateY/2.5));
+Head_blendShape.swallow_2 = linstep(0.2,0.4,max(0,-Neck_cntr.translateY/2.5));
+Head_blendShape.swallow_3 = linstep(0.4,0.6,max(0,-Neck_cntr.translateY/2.5));
+Head_blendShape.swallow_4 = linstep(0.6,0.8,max(0,-Neck_cntr.translateY/2.5));
+Head_blendShape.swallow_5 = linstep(0.8,1.0,max(0,-Neck_cntr.translateY/2.5));
+//------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------Jaw_cntr-----------------------------------------------------------
+Head_blendShape.jaw_drop = hermite(0,0.0,4,-4,max(0,-Jaw_cntr.translateY/2.5));
+Head_blendShape.jaw_fwd = max(0,Jaw_cntr.translateZ/2.5);
+Head_blendShape.jaw_back = max(0,-Jaw_cntr.translateZ/2.5);
+//------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------Chin_cntr---------------------------------------------------------
+Head_blendShape.chin_dn = max(0,-Chin_cntr.translateY/2.5);
+Head_blendShape.chin_tension = max(0,-Chin_cntr.translateX/2.5);
+Head_blendShape.lwr_lip_vol = max(0,-Chin_cntr.translateZ/2.5);
+Head_blendShape.jaw_clench = max(0,Chin_cntr.translateX/2.5);
+//------------------------------------------------------------------------------------------------------------------
+//-------------------------------------------Chin_L_cntr/Chin_R_cntr------------------------------------------------
+Head_blendShape.neck_tension_1 = max(0,Chin_L_cntr.translateX/2.5);
+Head_blendShape.neck_tension_2 = max(0,Chin_R_cntr.translateX/2.5);
+//------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------H/O/Kiss----------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------LwrLip_cntr--------------------------------------------------------
+Head_blendShape.lwr_lip_fwd = max(0,LwrLip_cntr.translateZ/2.5);
+Head_blendShape.lwr_lip_bk = max(0,-LwrLip_cntr.translateZ/2.5);
+//------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------Mouth_cntr--------------------------------------------------------
+Head_blendShape.lip_in_p = max(0,-Mouth_cntr.translateZ/2.5);
+
+
+
+
+
+
+
+
+
+
+
+
+Head_blendShape.mouth_dn = max(0,-Mouth_cntr.translateY/2.5);
+Head_blendShape.mouth_up = max(0,Mouth_cntr.translateY/2.5);
+//------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------Crnr_L_cntr/Crnr_R_cntr-----------------------------------------------
+Head_blendShape.tight_1 = max(0,-Crnr_L_2_cntr.translateX/2.5);
+Head_blendShape.tight_2 = max(0,-Crnr_R_2_cntr.translateX/2.5);
+Head_blendShape.wide_1 = max(0,Crnr_L_cntr.translateX/2.5);
+Head_blendShape.wide_2 = max(0,Crnr_R_cntr.translateX/2.5);
+Head_blendShape.sticky_lips_1_1 = linstep(0,0.2,max(0,-Crnr_L_cntr.translateZ/2.5));
+Head_blendShape.sticky_lips_2_1 = linstep(0.2,0.4,max(0,-Crnr_L_cntr.translateZ/2.5));
+Head_blendShape.sticky_lips_3_1 = linstep(0.4,0.6,max(0,-Crnr_L_cntr.translateZ/2.5));
+Head_blendShape.sticky_lips_4_1 = linstep(0.6,0.8,max(0,-Crnr_L_cntr.translateZ/2.5));
+Head_blendShape.sticky_lips_5_1 = linstep(0.8,1.0,max(0,-Crnr_L_cntr.translateZ/2.5));
+Head_blendShape.sticky_lips_1_2 = linstep(0,0.2,max(0,-Crnr_R_cntr.translateZ/2.5));
+Head_blendShape.sticky_lips_2_2 = linstep(0.2,0.4,max(0,-Crnr_R_cntr.translateZ/2.5));
+Head_blendShape.sticky_lips_3_2 = linstep(0.4,0.6,max(0,-Crnr_R_cntr.translateZ/2.5));
+Head_blendShape.sticky_lips_4_2 = linstep(0.6,0.8,max(0,-Crnr_R_cntr.translateZ/2.5));
+Head_blendShape.sticky_lips_5_2 = linstep(0.8,1.0,max(0,-Crnr_R_cntr.translateZ/2.5));
+//------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------Crnr_L_2_cntr/Crnr_R_2_cntr-------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------UprLip_cntr-------------------------------------------------------
+Head_blendShape.upr_lip_fwd = max(0,UprLip_cntr.translateZ/2.5);
+Head_blendShape.upr_lip_bk = max(0,-UprLip_cntr.translateZ/2.5);
+Head_blendShape.o_wide_1 = max(0,UprLip_cntr.translateX/2.5) * Head_blendShape.o_1;
+Head_blendShape.o_wide_2 = max(0,UprLip_cntr.translateX/2.5) * Head_blendShape.o_3;
+Head_blendShape.o_wide_3 = max(0,UprLip_cntr.translateX/2.5) * Head_blendShape.o_4;
+Head_blendShape.o_wide_4 = max(0,UprLip_cntr.translateX/2.5) * Head_blendShape.o_6;
+Head_blendShape.funnel_wide_1 = max(0,UprLip_cntr.translateX/2.5) * Head_blendShape.funnel_1;
+Head_blendShape.funnel_wide_2 = max(0,UprLip_cntr.translateX/2.5) * Head_blendShape.funnel_3;
+Head_blendShape.funnel_wide_3 = max(0,UprLip_cntr.translateX/2.5) * Head_blendShape.funnel_4;
+Head_blendShape.funnel_wide_4 = max(0,UprLip_cntr.translateX/2.5) * Head_blendShape.funnel_6;
+//------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------UprLip_L_cntr\UprLip_R_cntr------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------UprLip_2_cntr-------------------------------------------------------
+Head_blendShape.upr_lip_vol = max(0,-UprLip_2_cntr.translateZ/2.5);
+//------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------UprLip_L_2_cntr\UprLip_R_2_cntr------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------LwrLip_L_cntr/LwrLip_R_cntr-------------------------------------------
+float $close_l = max(0,LwrLip_L_cntr.translateY/2.5);
+float $close_r = max(0,LwrLip_R_cntr.translateY/2.5);
+Head_blendShape.lip_lock_open_1 = $close_l * Head_blendShape.jaw_open_1;
+Head_blendShape.lip_lock_open_2 = $close_r * Head_blendShape.jaw_open_6;
+Head_blendShape.lip_lock_drop_1 = hermite(0,0.0,4,-4,Head_blendShape.lip_lock_open_1);
+Head_blendShape.lip_lock_drop_2 = hermite(0,0.0,4,-4,Head_blendShape.lip_lock_open_2);
+Head_blendShape.lip_lock_fwd_1 = $close_l * Head_blendShape.jaw_fwd;
+Head_blendShape.lip_lock_fwd_2 = $close_r * Head_blendShape.jaw_fwd;
+Head_blendShape.lip_lock_back_1 = $close_l * Head_blendShape.jaw_back;
+Head_blendShape.lip_lock_back_2 = $close_r * Head_blendShape.jaw_back;
+Head_blendShape.lip_lock_l_1 = $close_l * Head_blendShape.jaw_l;
+Head_blendShape.lip_lock_l_2 = $close_r * Head_blendShape.jaw_l;
+Head_blendShape.lip_lock_r_1 = $close_l * Head_blendShape.jaw_r;
+Head_blendShape.lip_lock_r_2 = $close_r * Head_blendShape.jaw_r;
+Head_blendShape.sneer_close_1 = $close_l * Head_blendShape.sneer_2;
+Head_blendShape.sneer_close_2 = $close_r * Head_blendShape.sneer_6;
+Head_blendShape.disgust_close_1 = $close_l * Head_blendShape.disgust_2;
+Head_blendShape.disgust_close_2 = $close_r * Head_blendShape.disgust_6;
+Head_blendShape.nl_deep_close_1 = $close_l * Head_blendShape.nl_deep_2;
+Head_blendShape.nl_deep_close_2 = $close_r * Head_blendShape.nl_deep_6;
+Head_blendShape.funnel_close_1 = $close_l * max(Head_blendShape.funnel_1,Head_blendShape.funnel_3);
+Head_blendShape.funnel_close_2 = $close_r * max(Head_blendShape.funnel_4,Head_blendShape.funnel_6);
+Head_blendShape.stretch_close_1 = $close_l * Head_blendShape.stretch_1 ;
+Head_blendShape.stretch_close_2 = $close_r * Head_blendShape.stretch_3 ;
+Head_blendShape.smile_close_1 = $close_l * Head_blendShape.smile_2 ;
+Head_blendShape.smile_close_2 = $close_r * Head_blendShape.smile_7 ;
+//------------------------------------------------------------------------------------------------------------------
+//-------------------------------------------------Nose_cntr--------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------Nose_L_cntr\Nose_R_cntr-----------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------Cheek_L_2_cntr\Cheek_R_2_cntr-----------------------------------------
+//------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------Cheek_L_cntr\Cheek_R_cntr---------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------LwrLid_L_cntr\LwrLid_R_cntr------------------------------------------
+Head_blendShape.lwr_lid_up_1 = max(0,LwrLid_L_cntr.translateY/2.5);
+Head_blendShape.lwr_lid_up_2 = max(0,LwrLid_R_cntr.translateY/2.5);
+Head_blendShape.lwr_lid_dn_1 = max(0,-LwrLid_L_cntr.translateY/2.5);
+Head_blendShape.lwr_lid_dn_2 = max(0,-LwrLid_R_cntr.translateY/2.5);
+//------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------UprLid_L_cntr\UprLid_R_cntr-----------------------------------------
+Head_blendShape.upr_lid_up_1 = max(0,UprLid_L_cntr.translateY/2.5);
+Head_blendShape.upr_lid_up_2 = max(0,UprLid_R_cntr.translateY/2.5);
+//------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------EyeSqz_L_cntr\EyeSqz_R_cntr------------------------------------------
+Head_blendShape.eye_sqz_open_1 = Head_blendShape.eye_sqz_2 * (1-Head_blendShape.eye_blink_2);
+Head_blendShape.eye_sqz_open_2 = Head_blendShape.eye_sqz_5 * (1-Head_blendShape.eye_blink_4);
+//------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------Brow_cntr----------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------BrowIn_L_cntr\BrowIn_R_cntr-----------------------------------------
+//------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------BrowOut_L_cntr\BrowOut_R_cntr--------------------------------------
+//------------------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------Head_cntr--------------------------------------------------
+Head_blendShape.head_skin_slide = max(0,Head_cntr.translateY/2.5);
+//------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------Drops----------------------------------------------------
+Head_blendShape.neck_tns_dr_1 = Head_blendShape.jaw_open_1 * Head_blendShape.neck_tension_1;
+Head_blendShape.neck_tns_dr_2 = Head_blendShape.jaw_open_6 * Head_blendShape.neck_tension_2;
+Head_blendShape.smile_drop_1 = Head_blendShape.smile_3 * Head_blendShape.jaw_open_2;
+Head_blendShape.smile_drop_2 = Head_blendShape.smile_8 * Head_blendShape.jaw_open_7;
+Head_blendShape.smile_close_d_1 = Head_blendShape.smile_close_1 * Head_blendShape.jaw_open_1;
+Head_blendShape.smile_close_d_2 = Head_blendShape.smile_close_1 * Head_blendShape.jaw_open_6;
+Head_blendShape.stretch_close_d_1 = Head_blendShape.stretch_close_1 * Head_blendShape.jaw_open_1;
+Head_blendShape.stretch_close_d_2 = Head_blendShape.stretch_close_1 * Head_blendShape.jaw_open_6;
+Head_blendShape.stretch_drop_1 = Head_blendShape.stretch_1 * Head_blendShape.jaw_open_2;
+Head_blendShape.stretch_drop_2 = Head_blendShape.stretch_3 * Head_blendShape.jaw_open_7;
+Head_blendShape.stretch_close_d_1 = Head_blendShape.stretch_drop_1 * Head_blendShape.stretch_close_1;
+Head_blendShape.stretch_close_d_2 = Head_blendShape.stretch_drop_2 * Head_blendShape.stretch_close_2;
+
+
+
+
+
+
+
+
+
+
+//------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------Eyes----------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------Eyes/Blinks----------------------------------------------
+Head_blendShape.eye_blink_b_1 = hermite(0,0.0,4,-4,max(0,Head_blendShape.eye_blink_2));
+Head_blendShape.eye_blink_b_2 = hermite(0,0.0,4,-4,max(0,Head_blendShape.eye_blink_4));
+Head_blendShape.eye_look_dn_b_1 = hermite(0,0.0,4,-4,max(0,Head_blendShape.eye_look_dn_2));
+Head_blendShape.eye_look_dn_b_2 = hermite(0,0.0,4,-4,max(0,Head_blendShape.eye_look_dn_4));
+Head_blendShape.brows_up_blink_1 = Head_blendShape.brows_up_1 * max(Head_blendShape.eye_blink_2,Head_blendShape.eye_look_dn_2);
+Head_blendShape.brows_up_blink_2 = Head_blendShape.brows_up_3 * max(Head_blendShape.eye_blink_2,Head_blendShape.eye_look_dn_2);
+
+
+Head_blendShape.brows_dn_blink_1 = Head_blendShape.eye_blink_2 * Head_blendShape.brows_dn_in_2;
+Head_blendShape.brows_dn_blink_2 = Head_blendShape.eye_blink_4 * Head_blendShape.brows_dn_in_4;
+Head_blendShape.browssqzup_blink_1 = Head_blendShape.eye_blink_2 * Head_blendShape.brows_sqz_up_2;
+Head_blendShape.browssqzup_blink_2 = Head_blendShape.eye_blink_4 * Head_blendShape.brows_sqz_up_4;
+Head_blendShape.browssqz_blink_1 = Head_blendShape.eye_blink_2 * Head_blendShape.brows_sqz_2;
+Head_blendShape.browssqz_blink_2 = Head_blendShape.eye_blink_4 * Head_blendShape.brows_sqz_4;
+//------------------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------Correctives------------------------------------------------
+
+
+
+
+Head_blendShape.nl_deep_l = max(0,Head_blendShape.nl_deep_2 - Head_blendShape.nl_deep_6);
+Head_blendShape.nl_deep_r = max(0,Head_blendShape.nl_deep_6 - Head_blendShape.nl_deep_2);
+Head_blendShape.nl_deep_l_c = min(Head_blendShape.nl_deep_l,Head_blendShape.nl_deep_close_1);
+Head_blendShape.nl_deep_r_c = min(Head_blendShape.nl_deep_r,Head_blendShape.nl_deep_close_2);
+Head_blendShape.smile_l = max(0,Head_blendShape.smile_2 - Head_blendShape.smile_7);
+Head_blendShape.smile_r = max(0,Head_blendShape.smile_7 - Head_blendShape.smile_2);
+Head_blendShape.smile_l_c = min(Head_blendShape.smile_l,Head_blendShape.smile_close_1);
+Head_blendShape.smile_r_c = min(Head_blendShape.smile_r,Head_blendShape.smile_close_2);
+Head_blendShape.stretch_l = max(0,Head_blendShape.stretch_2 - Head_blendShape.stretch_4);
+Head_blendShape.stretch_r = max(0,Head_blendShape.stretch_4 - Head_blendShape.stretch_2);
+Head_blendShape.stretch_l_c = min(Head_blendShape.stretch_l,Head_blendShape.stretch_close_1);
+Head_blendShape.stretch_r_c = min(Head_blendShape.stretch_r,Head_blendShape.stretch_close_2);
+Head_blendShape.eye_sqz_sneer_1 = Head_blendShape.eye_sqz_1 * Head_blendShape.sneer_3;
+Head_blendShape.eye_sqz_sneer_2 = Head_blendShape.eye_sqz_2 * Head_blendShape.sneer_7;
+
+
+
+
+
+
+
+
+Head_blendShape.lip_in_b_1 = hermite(0,0.0,4,-4,max(0,Head_blendShape.lip_in_1));
+Head_blendShape.lip_in_b_2 = hermite(0,0.0,4,-4,max(0,Head_blendShape.lip_in_3));
+Head_blendShape.lip_in_b_3 = hermite(0,0.0,4,-4,max(0,Head_blendShape.lip_in_4));
+Head_blendShape.lip_in_b_4 = hermite(0,0.0,4,-4,max(0,Head_blendShape.lip_in_6));
+//------------------------------------------------------------------------------------------------------------------

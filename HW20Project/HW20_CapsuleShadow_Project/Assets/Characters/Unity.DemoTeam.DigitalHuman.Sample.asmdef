@@ -1,0 +1,16 @@
+{
+    "name": "Unity.DemoTeam.DigitalHuman.Sample",
+    "references": [
+        "GUID:7e9d95a3be8cd654ba8a8d2bb2409223",
+        "GUID:e0cd26848372d4e5c891c569017e11f1"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

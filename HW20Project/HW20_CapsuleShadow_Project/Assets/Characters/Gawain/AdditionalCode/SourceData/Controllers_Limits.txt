@@ -1,0 +1,151 @@
+Neck_cntr.translateX  = clamp(Neck_cntr.translateX, 0.0, 2.5);
+Neck_cntr.translateY  = clamp(Neck_cntr.translateY, -2.5, 0.0);
+Neck_cntr.translateZ  = clamp(Neck_cntr.translateZ, -2.5, 2.5);
+
+Head_cntr.translateX  = clamp(Head_cntr.translateX, 0.0, 0.0);
+Head_cntr.translateY  = clamp(Head_cntr.translateY, 0.0, 2.5);
+Head_cntr.translateZ  = clamp(Head_cntr.translateZ, 0.0, 0.0);
+
+Brow_cntr.translateX  = clamp(Brow_cntr.translateX, -2.5, 0.0);
+Brow_cntr.translateY  = clamp(Brow_cntr.translateY, 0.0, 2.5);
+Brow_cntr.translateZ  = clamp(Brow_cntr.translateZ, 0.0, 0.0);
+
+BrowOut_R_cntr.translateX  = clamp(BrowOut_R_cntr.translateX, 0.0, 0.0);
+BrowOut_R_cntr.translateY  = clamp(BrowOut_R_cntr.translateY, -2.5, 2.5);
+BrowOut_R_cntr.translateZ  = clamp(BrowOut_R_cntr.translateZ, 0.0, 0.0);
+
+BrowIn_R_cntr.translateX  = clamp(BrowIn_R_cntr.translateX, -2.5, 0.0);
+BrowIn_R_cntr.translateY  = clamp(BrowIn_R_cntr.translateY, -2.5, 2.5);
+BrowIn_R_cntr.translateZ  = clamp(BrowIn_R_cntr.translateZ, 0.0, 0.0);
+
+BrowIn_L_cntr.translateX  = clamp(BrowIn_L_cntr.translateX, -2.5, 0.0);
+BrowIn_L_cntr.translateY  = clamp(BrowIn_L_cntr.translateY, -2.5, 2.5);
+BrowIn_L_cntr.translateZ  = clamp(BrowIn_L_cntr.translateZ, 0.0, 0.0);
+
+BrowOut_L_cntr.translateX  = clamp(BrowOut_L_cntr.translateX, 0.0, 0.0);
+BrowOut_L_cntr.translateY  = clamp(BrowOut_L_cntr.translateY, -2.5, 2.5);
+BrowOut_L_cntr.translateZ  = clamp(BrowOut_L_cntr.translateZ, 0.0, 0.0);
+
+EyeSqz_R_cntr.translateX  = clamp(EyeSqz_R_cntr.translateX, -2.5, 0.0);
+EyeSqz_R_cntr.translateY  = clamp(EyeSqz_R_cntr.translateY, -2.5, 0.0);
+EyeSqz_R_cntr.translateZ  = clamp(EyeSqz_R_cntr.translateZ, 0.0, 0.0);
+
+EyeSqz_L_cntr.translateX  = clamp(EyeSqz_L_cntr.translateX, -2.5, 0.0);
+EyeSqz_L_cntr.translateY  = clamp(EyeSqz_L_cntr.translateY, -2.5, 0.0);
+EyeSqz_L_cntr.translateZ  = clamp(EyeSqz_L_cntr.translateZ, 0.0, 0.0);
+
+UprLid_R_cntr.translateX  = clamp(UprLid_R_cntr.translateX, -2.5, 0.0);
+UprLid_R_cntr.translateY  = clamp(UprLid_R_cntr.translateY, -2.5, 2.5);
+UprLid_R_cntr.translateZ  = clamp(UprLid_R_cntr.translateZ, 0.0, 0.0);
+
+UprLid_L_cntr.translateX  = clamp(UprLid_L_cntr.translateX, -2.5, 0.0);
+UprLid_L_cntr.translateY  = clamp(UprLid_L_cntr.translateY, -2.5, 2.5);
+UprLid_L_cntr.translateZ  = clamp(UprLid_L_cntr.translateZ, 0.0, 0.0);
+
+LwrLid_R_cntr.translateX  = clamp(LwrLid_R_cntr.translateX, 0.0, 0.0);
+LwrLid_R_cntr.translateY  = clamp(LwrLid_R_cntr.translateY, -2.5, 2.5);
+LwrLid_R_cntr.translateZ  = clamp(LwrLid_R_cntr.translateZ, 0.0, 0.0);
+
+LwrLid_L_cntr.translateX  = clamp(LwrLid_L_cntr.translateX, 0.0, 0.0);
+LwrLid_L_cntr.translateY  = clamp(LwrLid_L_cntr.translateY, -2.5, 2.5);
+LwrLid_L_cntr.translateZ  = clamp(LwrLid_L_cntr.translateZ, 0.0, 0.0);
+
+Cheek_R_2_cntr.translateX  = clamp(Cheek_R_2_cntr.translateX, -2.5, 2.5);
+Cheek_R_2_cntr.translateY  = clamp(Cheek_R_2_cntr.translateY, -2.5, 2.5);
+Cheek_R_2_cntr.translateZ  = clamp(Cheek_R_2_cntr.translateZ, 0.0, 0.0);
+
+Cheek_L_2_cntr.translateX  = clamp(Cheek_L_2_cntr.translateX, -2.5, 2.5);
+Cheek_L_2_cntr.translateY  = clamp(Cheek_L_2_cntr.translateY, -2.5, 2.5);
+Cheek_L_2_cntr.translateZ  = clamp(Cheek_L_2_cntr.translateZ, 0.0, 0.0);
+
+Nose_R_cntr.translateX  = clamp(Nose_R_cntr.translateX, 0.0, 0.0);
+Nose_R_cntr.translateY  = clamp(Nose_R_cntr.translateY, 0.0, 2.5);
+Nose_R_cntr.translateZ  = clamp(Nose_R_cntr.translateZ, 0.0, 0.0);
+
+Nose_L_cntr.translateX  = clamp(Nose_L_cntr.translateX, 0.0, 0.0);
+Nose_L_cntr.translateY  = clamp(Nose_L_cntr.translateY, 0.0, 2.5);
+Nose_L_cntr.translateZ  = clamp(Nose_L_cntr.translateZ, 0.0, 0.0);
+
+Cheek_R_cntr.translateX  = clamp(Cheek_R_cntr.translateX, 0.0, 0.0);
+Cheek_R_cntr.translateY  = clamp(Cheek_R_cntr.translateY, 0.0, 2.5);
+Cheek_R_cntr.translateZ  = clamp(Cheek_R_cntr.translateZ, 0.0, 0.0);
+
+Cheek_L_cntr.translateX  = clamp(Cheek_L_cntr.translateX, 0.0, 0.0);
+Cheek_L_cntr.translateY  = clamp(Cheek_L_cntr.translateY, 0.0, 2.5);
+Cheek_L_cntr.translateZ  = clamp(Cheek_L_cntr.translateZ, 0.0, 0.0);
+
+Nose_cntr.translateX  = clamp(Nose_cntr.translateX, -2.5, 2.5);
+Nose_cntr.translateY  = clamp(Nose_cntr.translateY, 0.0, 0.0);
+Nose_cntr.translateZ  = clamp(Nose_cntr.translateZ, 0.0, 0.0);
+
+UprLip_2_cntr.translateX  = clamp(UprLip_2_cntr.translateX, -2.5, 0.0);
+UprLip_2_cntr.translateY  = clamp(UprLip_2_cntr.translateY, -2.5, 2.5);
+UprLip_2_cntr.translateZ  = clamp(UprLip_2_cntr.translateZ, -2.5, 0.0);
+
+UprLip_R_2_cntr.translateX  = clamp(UprLip_R_2_cntr.translateX, -2.5, 2.5);
+UprLip_R_2_cntr.translateY  = clamp(UprLip_R_2_cntr.translateY, 0.0, 2.5);
+UprLip_R_2_cntr.translateZ  = clamp(UprLip_R_2_cntr.translateZ, 0.0, 0.0);
+
+UprLip_L_2_cntr.translateX  = clamp(UprLip_L_2_cntr.translateX, -2.5, 2.5);
+UprLip_L_2_cntr.translateY  = clamp(UprLip_L_2_cntr.translateY, 0.0, 2.5);
+UprLip_L_2_cntr.translateZ  = clamp(UprLip_L_2_cntr.translateZ, 0.0, 0.0);
+
+UprLip_R_cntr.translateX  = clamp(UprLip_R_cntr.translateX, -2.5, 0.0);
+UprLip_R_cntr.translateY  = clamp(UprLip_R_cntr.translateY, -2.5, 2.5);
+UprLip_R_cntr.translateZ  = clamp(UprLip_R_cntr.translateZ, -2.5, 2.5);
+
+UprLip_L_cntr.translateX  = clamp(UprLip_L_cntr.translateX, -2.5, 0.0);
+UprLip_L_cntr.translateY  = clamp(UprLip_L_cntr.translateY, -2.5, 2.5);
+UprLip_L_cntr.translateZ  = clamp(UprLip_L_cntr.translateZ, -2.5, 2.5);
+
+UprLip_cntr.translateX  = clamp(UprLip_cntr.translateX, 0.0, 2.5);
+UprLip_cntr.translateY  = clamp(UprLip_cntr.translateY, 0.0, 2.5);
+UprLip_cntr.translateZ  = clamp(UprLip_cntr.translateZ, -2.5, 2.5);
+
+Mouth_cntr.translateX  = clamp(Mouth_cntr.translateX, -2.5, 2.5);
+Mouth_cntr.translateY  = clamp(Mouth_cntr.translateY, -2.5, 2.5);
+Mouth_cntr.translateZ  = clamp(Mouth_cntr.translateZ, -2.5, 2.5);
+
+Crnr_R_2_cntr.translateX  = clamp(Crnr_R_2_cntr.translateX, -2.5, 2.5);
+Crnr_R_2_cntr.translateY  = clamp(Crnr_R_2_cntr.translateY, -2.5, 0.0);
+Crnr_R_2_cntr.translateZ  = clamp(Crnr_R_2_cntr.translateZ, -2.5, 0.0);
+
+Crnr_L_2_cntr.translateX  = clamp(Crnr_L_2_cntr.translateX, -2.5, 2.5);
+Crnr_L_2_cntr.translateY  = clamp(Crnr_L_2_cntr.translateY, -2.5, 0.0);
+Crnr_L_2_cntr.translateZ  = clamp(Crnr_L_2_cntr.translateZ, -2.5, 0.0);
+
+Crnr_R_cntr.translateX  = clamp(Crnr_R_cntr.translateX, -2.5, 2.5);
+Crnr_R_cntr.translateY  = clamp(Crnr_R_cntr.translateY, -2.5, 2.5);
+Crnr_R_cntr.translateZ  = clamp(Crnr_R_cntr.translateZ, -2.5, 0.0);
+
+Crnr_L_cntr.translateX  = clamp(Crnr_L_cntr.translateX, -2.5, 2.5);
+Crnr_L_cntr.translateY  = clamp(Crnr_L_cntr.translateY, -2.5, 2.5);
+Crnr_L_cntr.translateZ  = clamp(Crnr_L_cntr.translateZ, -2.5, 0.0);
+
+LwrLip_R_cntr.translateX  = clamp(LwrLip_R_cntr.translateX, -2.5, 2.5);
+LwrLip_R_cntr.translateY  = clamp(LwrLip_R_cntr.translateY, -2.5, 2.5);
+LwrLip_R_cntr.translateZ  = clamp(LwrLip_R_cntr.translateZ, -2.5, 2.5);
+
+LwrLip_L_cntr.translateX  = clamp(LwrLip_L_cntr.translateX, -2.5, 2.5);
+LwrLip_L_cntr.translateY  = clamp(LwrLip_L_cntr.translateY, -2.5, 2.5);
+LwrLip_L_cntr.translateZ  = clamp(LwrLip_L_cntr.translateZ, -2.5, 2.5);
+
+LwrLip_cntr.translateX  = clamp(LwrLip_cntr.translateX, -2.5, 2.5);
+LwrLip_cntr.translateY  = clamp(LwrLip_cntr.translateY, -2.5, 2.5);
+LwrLip_cntr.translateZ  = clamp(LwrLip_cntr.translateZ, -2.5, 2.5);
+
+Chin_R_cntr.translateX  = clamp(Chin_R_cntr.translateX, 0.0, 2.5);
+Chin_R_cntr.translateY  = clamp(Chin_R_cntr.translateY, -2.5, 0.0);
+Chin_R_cntr.translateZ  = clamp(Chin_R_cntr.translateZ, 0.0, 0.0);
+
+Chin_L_cntr.translateX  = clamp(Chin_L_cntr.translateX, 0.0, 2.5);
+Chin_L_cntr.translateY  = clamp(Chin_L_cntr.translateY, -2.5, 0.0);
+Chin_L_cntr.translateZ  = clamp(Chin_L_cntr.translateZ, 0.0, 0.0);
+
+Chin_cntr.translateX  = clamp(Chin_cntr.translateX, -2.5, 2.5);
+Chin_cntr.translateY  = clamp(Chin_cntr.translateY, -2.5, 2.5);
+Chin_cntr.translateZ  = clamp(Chin_cntr.translateZ, -2.5, 0.0);
+
+Jaw_cntr.translateX  = clamp(Jaw_cntr.translateX, -2.5, 2.5);
+Jaw_cntr.translateY  = clamp(Jaw_cntr.translateY, -2.5, 0.0);
+Jaw_cntr.translateZ  = clamp(Jaw_cntr.translateZ, -2.5, 2.5);

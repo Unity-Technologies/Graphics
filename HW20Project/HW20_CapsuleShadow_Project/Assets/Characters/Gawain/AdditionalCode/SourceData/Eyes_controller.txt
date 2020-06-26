@@ -1,0 +1,203 @@
+float $upr_lid_dn_l = max(0,-UprLid_L_cntr.translateY/2.5); 
+float $eye_blink_l = max(0,-UprLid_L_cntr.translateX/2.5);
+float $eye_squint_l = max(0,-EyeSqz_L_cntr.translateX/2.5);
+float $eye_sqz_l = max(0,-EyeSqz_L_cntr.translateY/2.5);
+float $cheek_raise_l = max(0,Cheek_L_cntr.translateY/2.5);
+float $brows_dn_in_l = max(0,-BrowIn_L_cntr.translateY/2.5);
+float $brows_dn_out_l = max(0,-BrowOut_L_cntr.translateY/2.5);
+float $brows_sqz_l = max(0,-BrowIn_L_cntr.translateX/2.5);
+float $brows_up_out_l = max(0,BrowOut_L_cntr.translateY/2.5);
+float $brows_up_in_l = max(0,BrowIn_L_cntr.translateY/2.5);
+
+float $upr_lid_dn_r = max(0,-UprLid_R_cntr.translateY/2.5);
+float $eye_blink_r = max(0,-UprLid_R_cntr.translateX/2.5);
+float $eye_squint_r = max(0,-EyeSqz_R_cntr.translateX/2.5);
+float $eye_sqz_r = max(0,-EyeSqz_R_cntr.translateY/2.5);
+float $cheek_raise_r = max(0,Cheek_R_cntr.translateY/2.5);
+
+float $brows_dn_in_r = max(0,-BrowIn_R_cntr.translateY/2.5);
+float $brows_dn_out_r = max(0,-BrowOut_R_cntr.translateY/2.5);
+float $brows_sqz_r = max(0,-BrowIn_R_cntr.translateX/2.5);
+float $brows_up_out_r = max(0,BrowOut_R_cntr.translateY/2.5);
+float $brows_up_in_r = max(0,BrowIn_R_cntr.translateY/2.5);
+
+float $brows_sqz_up = max(0,Brow_cntr.translateY/2.5); 
+
+float $eye_look_up_l = 0;
+float $eye_look_dn_l = 0;
+float $eye_look_in_l = 0;
+float $eye_look_out_l = 0;
+
+float $eye_look_up_r = 0;
+float $eye_look_dn_r = 0;
+float $eye_look_in_r = 0;
+float $eye_look_out_r = 0;
+
+float $sneer_l = max(0,Nose_L_cntr.translateY/2.5);
+float $disgust_l = max(0,UprLip_L_2_cntr.translateY/2.5);
+float $smile_l = max(0,Crnr_L_2_cntr.translateX/2.5);
+
+float $sneer_r = max(0,Nose_R_cntr.translateY/2.5);
+float $disgust_r = max(0,UprLip_R_2_cntr.translateY/2.5);
+float $smile_r = max(0,Crnr_R_2_cntr.translateX/2.5);
+
+if(LeftEye.rotateY >= 0.0 && LeftEye.rotateY<180.0) 
+$eye_look_out_l = LeftEye.rotateY/40.0;
+else
+$eye_look_out_l = 0.0;
+
+if(LeftEye.rotateY > -180 && LeftEye.rotateY<-90)
+$eye_look_in_l = (180.0 + LeftEye.rotateY)/40.0 ;
+else if(LeftEye.rotateY < 0.0 && LeftEye.rotateY > -90)
+$eye_look_in_l = -LeftEye.rotateY/40.0 ;
+else if(LeftEye.rotateY > 180.0)
+$eye_look_in_l = (LeftEye.rotateY -180.0)/40.0;
+else
+$eye_look_in_l = 0.0;
+
+if(LeftEye.rotateX >= 0.0 && LeftEye.rotateX <= 90.0)
+$eye_look_dn_l = LeftEye.rotateX/30.0;
+else if(LeftEye.rotateX > 180.0)
+$eye_look_dn_l = (LeftEye.rotateX-180.0)/30.0;
+else if(LeftEye.rotateX > 90.0 && LeftEye.rotateX > 180.0 )
+$eye_look_dn_l = (180-LeftEye.rotateX)/30.0;
+else
+$eye_look_dn_l = 0.0;
+
+
+if(LeftEye.rotateX <= 0.0 && LeftEye.rotateX >= -90.0)
+$eye_look_up_l = -LeftEye.rotateX/25.0;
+else if(LeftEye.rotateX < -180.0)
+$eye_look_up_l = (-LeftEye.rotateX-180.0)/25.0;
+else
+$eye_look_up_l = 0.0;
+
+
+//////////////////////
+
+if(RightEye.rotateY >= 0.0 && RightEye.rotateY<180.0)
+$eye_look_in_r = RightEye.rotateY/40.0;
+else
+$eye_look_in_r = 0.0;
+
+if(RightEye.rotateY > -180 && RightEye.rotateY<-90)
+$eye_look_out_r = (180.0 + RightEye.rotateY)/40.0 ;
+else if(RightEye.rotateY < 0.0 && RightEye.rotateY > -90)
+$eye_look_out_r = -RightEye.rotateY/40.0 ;
+else if(RightEye.rotateY > 180.0)
+$eye_look_out_r = (RightEye.rotateY -180.0)/40.0;
+else
+$eye_look_out_r = 0.0;
+
+if(RightEye.rotateX >= 0.0 && RightEye.rotateX <= 90.0)
+$eye_look_dn_r = RightEye.rotateX/30.0;
+else if(RightEye.rotateX > 180.0)
+$eye_look_dn_r = (RightEye.rotateX-180.0)/30.0;
+else if(RightEye.rotateX > 90.0 && RightEye.rotateX > 180.0 )
+$eye_look_dn_r = (180-RightEye.rotateX)/30.0;
+else
+$eye_look_dn_r = 0.0;
+
+
+if(RightEye.rotateX <= 0.0 && RightEye.rotateX >= -90.0)
+$eye_look_up_r = -RightEye.rotateX/25.0;
+else if(RightEye.rotateX < -180.0)
+$eye_look_up_r = (-RightEye.rotateX-180.0)/25.0;
+else
+$eye_look_up_r = 0.0;
+
+
+
+
+//Head_blendShape.upr_lid_dn_1 = $upr_lid_dn_l*(1-$eye_squint_l*0.0917)*(1-$cheek_raise_l*0.0792)*(1-$eye_look_up_l*0.1)*(1-$eye_look_dn_l*0.2542);
+//Head_blendShape.upr_lid_dn_2 = $upr_lid_dn_r*(1-$eye_squint_r*0.0917)*(1-$cheek_raise_r*0.0792)*(1-$eye_look_up_r*0.1)*(1-$eye_look_dn_r*0.2542);
+
+
+Head_blendShape.eye_blink_1 = $eye_blink_l*(1-$eye_squint_l*0.6833);
+Head_blendShape.eye_blink_2 = max($upr_lid_dn_l,$eye_blink_l)*(1-$eye_squint_l*0.1958)*(1-$eye_look_up_l*0.1958)*(1-$eye_look_dn_l*0.1583)*(1-$sneer_l*0.0542);
+Head_blendShape.eye_blink_3 = $eye_blink_r*(1-$eye_squint_r*0.6833);
+Head_blendShape.eye_blink_4 = max($upr_lid_dn_r,$eye_blink_r)*(1-$eye_squint_r*0.1958)*(1-$eye_look_up_r*0.1958)*(1-$eye_look_dn_r*0.1583)*(1-$sneer_r*0.0542);
+
+
+Head_blendShape.eye_squint_1 = $eye_squint_l*(1-$upr_lid_dn_l*0.5958)*(1-$eye_blink_l*0.2167)*(1-$eye_sqz_l*0.1875)*(1-$eye_look_dn_l*0.2583);
+Head_blendShape.eye_squint_2 = $eye_squint_l*(1-$eye_sqz_l*1.0);
+Head_blendShape.eye_squint_3 = $eye_squint_l*(1-$eye_sqz_l*1.0)*(1-$eye_look_up_l*0.5292)*(1-$eye_look_dn_l*0.3583);
+Head_blendShape.eye_squint_4 = $eye_squint_r*(1-$upr_lid_dn_r*0.5958)*(1-$eye_blink_r*0.2167)*(1-$eye_sqz_r*0.1875)*(1-$eye_look_dn_r*0.2583);
+Head_blendShape.eye_squint_5 = $eye_squint_r*(1-$eye_sqz_r*1.0);
+Head_blendShape.eye_squint_6 = $eye_squint_r*(1-$eye_sqz_r*1.0)*(1-$eye_look_up_r*0.5292)*(1-$eye_look_dn_r*0.3583);
+
+
+Head_blendShape.eye_sqz_1 = $eye_sqz_l*(1-$eye_squint_l*0.2458)*(1-$cheek_raise_l*0.0625)*(1-$eye_look_up_l*0.3625)*(1-$eye_look_dn_l*0.3667);
+Head_blendShape.eye_sqz_2 = $eye_sqz_l*(1-$eye_look_dn_l*0.1667);//*(1-$sneer_l*EyeSqz_L_cntr.eye_sqz_sneer);
+Head_blendShape.eye_sqz_3 = $eye_sqz_l*(1-$eye_look_up_l*0.5792)*(1-$eye_look_dn_l*0.3542);
+Head_blendShape.eye_sqz_4 = $eye_sqz_r*(1-$eye_squint_r*0.2458)*(1-$cheek_raise_r*0.0625)*(1-$eye_look_up_r*0.3625)*(1-$eye_look_dn_r*0.3667);
+Head_blendShape.eye_sqz_5 = $eye_sqz_r*(1-$eye_look_dn_r*0.1667);//*(1-$sneer_r*EyeSqz_R_cntr.eye_sqz_sneer);
+Head_blendShape.eye_sqz_6 = $eye_sqz_r*(1-$eye_look_up_r*0.5792)*(1-$eye_look_dn_r*0.3542);
+
+
+Head_blendShape.cheek_raise_1 = $cheek_raise_l;
+Head_blendShape.cheek_raise_2 = $cheek_raise_l;
+Head_blendShape.cheek_raise_3 = $cheek_raise_l*(1-$eye_sqz_l*0.2917);
+Head_blendShape.cheek_raise_4 = $cheek_raise_r;
+Head_blendShape.cheek_raise_5 = $cheek_raise_r;
+Head_blendShape.cheek_raise_6 = $cheek_raise_r*(1-$eye_sqz_r*0.2917);
+
+
+Head_blendShape.eye_look_up_1 = $eye_look_up_l*(1-$upr_lid_dn_l*0.6792)*(1-$eye_blink_l*0.1417)*(1-$eye_squint_l*0.2292);
+Head_blendShape.eye_look_up_2 = $eye_look_up_l*(1-$upr_lid_dn_l*1.0)*(1-$eye_blink_l*1.0)*(1-$eye_sqz_l*0.225);
+Head_blendShape.eye_look_up_3 = $eye_look_up_r*(1-$upr_lid_dn_r*0.6792)*(1-$eye_blink_r*0.1417)*(1-$eye_squint_r*0.2292);
+Head_blendShape.eye_look_up_4 = $eye_look_up_r*(1-$upr_lid_dn_r*1.0)*(1-$eye_blink_r*1.0)*(1-$eye_sqz_r*0.225);
+
+
+Head_blendShape.eye_look_dn_1 = $eye_look_dn_l*(1-$upr_lid_dn_l*0.7917)*(1-$eye_blink_l*0.725);
+Head_blendShape.eye_look_dn_2 = $eye_look_dn_l*(1-$upr_lid_dn_l*0.5583)*(1-$eye_blink_l*0.6625)*(1-$eye_sqz_l*0.1208);
+Head_blendShape.eye_look_dn_3 = $eye_look_dn_r*(1-$upr_lid_dn_r*0.7917)*(1-$eye_blink_r*0.725);
+Head_blendShape.eye_look_dn_4 = $eye_look_dn_r*(1-$upr_lid_dn_r*0.5583)*(1-$eye_blink_r*0.6625)*(1-$eye_sqz_r*0.1208);
+
+
+Head_blendShape.eye_look_in_1 = $eye_look_in_l*(1-$upr_lid_dn_l*1.0)*(1-$eye_blink_l*1.0)*(1-$eye_squint_l*0.3875);
+Head_blendShape.eye_look_in_2 = $eye_look_in_l*(1-$upr_lid_dn_l*1.0)*(1-$eye_blink_l*1.0)*(1-$eye_squint_l*0.2542);
+Head_blendShape.eye_look_in_3 = $eye_look_in_r*(1-$upr_lid_dn_r*1.0)*(1-$eye_blink_r*1.0)*(1-$eye_squint_r*0.3875);
+Head_blendShape.eye_look_in_4 = $eye_look_in_r*(1-$upr_lid_dn_r*1.0)*(1-$eye_blink_r*1.0)*(1-$eye_squint_r*0.2542);
+
+
+Head_blendShape.eye_look_out_1 = $eye_look_out_l*(1-$upr_lid_dn_l*1.0)*(1-$eye_blink_l*1.0)*(1-$eye_squint_l*0.4583);
+Head_blendShape.eye_look_out_2 = $eye_look_out_l*(1-$upr_lid_dn_l*1.0)*(1-$eye_blink_l*1.0)*(1-$eye_squint_l*0.3167);
+Head_blendShape.eye_look_out_3 = $eye_look_out_r*(1-$upr_lid_dn_r*1.0)*(1-$eye_blink_r*1.0)*(1-$eye_squint_r*0.4583);
+Head_blendShape.eye_look_out_4 = $eye_look_out_r*(1-$upr_lid_dn_r*1.0)*(1-$eye_blink_r*1.0)*(1-$eye_squint_r*0.3167);
+ 
+Head_blendShape.brows_dn_in_1 = $brows_dn_in_l;
+Head_blendShape.brows_dn_in_2 = $brows_dn_in_l;
+Head_blendShape.brows_dn_in_3 = $brows_dn_in_r;
+Head_blendShape.brows_dn_in_4 = $brows_dn_in_r;
+
+
+Head_blendShape.brows_dn_out_1 = $brows_dn_out_l;
+Head_blendShape.brows_dn_out_2 = $brows_dn_out_l;
+Head_blendShape.brows_dn_out_3 = $brows_dn_out_r;
+Head_blendShape.brows_dn_out_4 = $brows_dn_out_r;
+
+
+Head_blendShape.brows_sqz_1 = $brows_sqz_l*(1-$brows_up_out_l*0.05);
+Head_blendShape.brows_sqz_2 = $brows_sqz_l*(1-$brows_dn_in_l*0.4708);
+Head_blendShape.brows_sqz_3 = $brows_sqz_r*(1-$brows_up_out_r*0.05);
+Head_blendShape.brows_sqz_4 = $brows_sqz_r*(1-$brows_dn_in_r*0.4708);
+
+
+Head_blendShape.brows_up_1 = $brows_up_out_l*(1-$brows_dn_in_l*0.3167)*(1-$brows_sqz_l*0.2958);
+Head_blendShape.brows_up_2 = $brows_up_in_l;
+Head_blendShape.brows_up_3 = $brows_up_out_r*(1-$brows_dn_in_r*0.3167)*(1-$brows_sqz_r*0.2958);
+Head_blendShape.brows_up_4 = $brows_up_in_r;
+
+
+Head_blendShape.brows_sqz_up_1 = $brows_sqz_up;
+Head_blendShape.brows_sqz_up_2 = $brows_sqz_up;
+Head_blendShape.brows_sqz_up_3 = $brows_sqz_up;
+Head_blendShape.brows_sqz_up_4 = $brows_sqz_up;
+
+
+Head_blendShape.eye_blink_out_1 =$eye_look_out_l * max($upr_lid_dn_l ,$eye_blink_l);
+Head_blendShape.eye_blink_out_2 =$eye_look_out_r * max($upr_lid_dn_r ,$eye_blink_r);
+
+Head_blendShape.eye_blink_in_1 =$eye_look_in_l * max($upr_lid_dn_l ,$eye_blink_l);
+Head_blendShape.eye_blink_in_2 =$eye_look_in_r * max($upr_lid_dn_r ,$eye_blink_r);

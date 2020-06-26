@@ -1,0 +1,103 @@
+UprLip_jnt_adj_p.translateX = UprLip_cntr_adj.translateX;
+UprLip_jnt_adj_p.translateY = UprLip_cntr_adj.translateY;
+UprLip_jnt_adj_p.translateZ = UprLip_cntr_adj.translateZ;
+
+UprLip_jnt_L_adj_p.translateX = UprLip_cntr_L_adj.translateX;
+UprLip_jnt_L_adj_p.translateY = UprLip_cntr_L_adj.translateY;
+UprLip_jnt_L_adj_p.translateZ = UprLip_cntr_L_adj.translateZ;
+
+UprLip_jnt_R_adj_p.translateX = UprLip_cntr_R_adj.translateX;
+UprLip_jnt_R_adj_p.translateY = UprLip_cntr_R_adj.translateY;
+UprLip_jnt_R_adj_p.translateZ = UprLip_cntr_R_adj.translateZ;
+
+LwrLip_jnt_adj_p.translateX = LwrLip_cntr_adj.translateX;
+LwrLip_jnt_adj_p.translateY = LwrLip_cntr_adj.translateY;
+LwrLip_jnt_adj_p.translateZ = LwrLip_cntr_adj.translateZ;
+
+LwrLip_jnt_L_adj_p.translateX = LwrLip_cntr_L_adj.translateX;
+LwrLip_jnt_L_adj_p.translateY = LwrLip_cntr_L_adj.translateY;
+LwrLip_jnt_L_adj_p.translateZ = LwrLip_cntr_L_adj.translateZ;
+
+LwrLip_jnt_R_adj_p.translateX = LwrLip_cntr_R_adj.translateX;
+LwrLip_jnt_R_adj_p.translateY = LwrLip_cntr_R_adj.translateY;
+LwrLip_jnt_R_adj_p.translateZ = LwrLip_cntr_R_adj.translateZ;
+
+Corner_jnt_L_adj_p.translateX = Corner_cntr_L_adj.translateX;
+Corner_jnt_L_adj_p.translateY = Corner_cntr_L_adj.translateY;
+Corner_jnt_L_adj_p.translateZ = Corner_cntr_L_adj.translateZ;
+
+Corner_jnt_R_adj_p.translateX = Corner_cntr_R_adj.translateX;
+Corner_jnt_R_adj_p.translateY = Corner_cntr_R_adj.translateY;
+Corner_jnt_R_adj_p.translateZ = Corner_cntr_R_adj.translateZ;
+
+LwrLid_1_jnt_L_adj_p.translateX = LwrLid_1_cntr_L_adj.translateX;
+LwrLid_1_jnt_L_adj_p.translateY = LwrLid_1_cntr_L_adj.translateY;
+LwrLid_1_jnt_L_adj_p.translateZ = LwrLid_1_cntr_L_adj.translateZ;
+
+LwrLid_2_jnt_L_adj_p.translateX = LwrLid_2_cntr_L_adj.translateX;
+LwrLid_2_jnt_L_adj_p.translateY = LwrLid_2_cntr_L_adj.translateY;
+LwrLid_2_jnt_L_adj_p.translateZ = LwrLid_2_cntr_L_adj.translateZ;
+
+LwrLid_3_jnt_L_adj_p.translateX = LwrLid_3_cntr_L_adj.translateX;
+LwrLid_3_jnt_L_adj_p.translateY = LwrLid_3_cntr_L_adj.translateY;
+LwrLid_3_jnt_L_adj_p.translateZ = LwrLid_3_cntr_L_adj.translateZ;
+
+UprLid_1_jnt_L_adj_p.translateX = UprLid_1_cntr_L_adj.translateX;
+UprLid_1_jnt_L_adj_p.translateY = UprLid_1_cntr_L_adj.translateY;
+UprLid_1_jnt_L_adj_p.translateZ = UprLid_1_cntr_L_adj.translateZ;
+
+UprLid_2_jnt_L_adj_p.translateX = UprLid_2_cntr_L_adj.translateX;
+UprLid_2_jnt_L_adj_p.translateY = UprLid_2_cntr_L_adj.translateY;
+UprLid_2_jnt_L_adj_p.translateZ = UprLid_2_cntr_L_adj.translateZ;
+
+UprLid_3_jnt_L_adj_p.translateX = UprLid_3_cntr_L_adj.translateX;
+UprLid_3_jnt_L_adj_p.translateY = UprLid_3_cntr_L_adj.translateY;
+UprLid_3_jnt_L_adj_p.translateZ = UprLid_3_cntr_L_adj.translateZ;
+
+UprLid_1_jnt_R_adj_p.translateX = UprLid_1_cntr_R_adj.translateX;
+UprLid_1_jnt_R_adj_p.translateY = UprLid_1_cntr_R_adj.translateY;
+UprLid_1_jnt_R_adj_p.translateZ = UprLid_1_cntr_R_adj.translateZ;
+
+UprLid_2_jnt_R_adj_p.translateX = UprLid_2_cntr_R_adj.translateX;
+UprLid_2_jnt_R_adj_p.translateY = UprLid_2_cntr_R_adj.translateY;
+UprLid_2_jnt_R_adj_p.translateZ = UprLid_2_cntr_R_adj.translateZ;
+
+UprLid_3_jnt_R_adj_p.translateX = UprLid_3_cntr_R_adj.translateX;
+UprLid_3_jnt_R_adj_p.translateY = UprLid_3_cntr_R_adj.translateY;
+UprLid_3_jnt_R_adj_p.translateZ = UprLid_3_cntr_R_adj.translateZ;
+
+LwrLid_1_jnt_R_adj_p.translateX = LwrLid_1_cntr_R_adj.translateX;
+LwrLid_1_jnt_R_adj_p.translateY = LwrLid_1_cntr_R_adj.translateY;
+LwrLid_1_jnt_R_adj_p.translateZ = LwrLid_1_cntr_R_adj.translateZ;
+
+LwrLid_2_jnt_R_adj_p.translateX = LwrLid_2_cntr_R_adj.translateX;
+LwrLid_2_jnt_R_adj_p.translateY = LwrLid_2_cntr_R_adj.translateY;
+LwrLid_2_jnt_R_adj_p.translateZ = LwrLid_2_cntr_R_adj.translateZ;
+
+LwrLid_3_jnt_R_adj_p.translateX = LwrLid_3_cntr_R_adj.translateX;
+LwrLid_3_jnt_R_adj_p.translateY = LwrLid_3_cntr_R_adj.translateY;
+LwrLid_3_jnt_R_adj_p.translateZ = LwrLid_3_cntr_R_adj.translateZ;
+
+Brow_1_jnt_L_adj_p.translateX = Brow_1_cntr_L_adj.translateX;
+Brow_1_jnt_L_adj_p.translateY = Brow_1_cntr_L_adj.translateY;
+Brow_1_jnt_L_adj_p.translateZ = Brow_1_cntr_L_adj.translateZ;
+
+Brow_2_jnt_L_adj_p.translateX = Brow_2_cntr_L_adj.translateX;
+Brow_2_jnt_L_adj_p.translateY = Brow_2_cntr_L_adj.translateY;
+Brow_2_jnt_L_adj_p.translateZ = Brow_2_cntr_L_adj.translateZ;
+
+Brow_3_jnt_L_adj_p.translateX = Brow_3_cntr_L_adj.translateX;
+Brow_3_jnt_L_adj_p.translateY = Brow_3_cntr_L_adj.translateY;
+Brow_3_jnt_L_adj_p.translateZ = Brow_3_cntr_L_adj.translateZ;
+
+Brow_1_jnt_R_adj_p.translateX = Brow_1_cntr_R_adj.translateX;
+Brow_1_jnt_R_adj_p.translateY = Brow_1_cntr_R_adj.translateY;
+Brow_1_jnt_R_adj_p.translateZ = Brow_1_cntr_R_adj.translateZ;
+
+Brow_2_jnt_R_adj_p.translateX = Brow_2_cntr_R_adj.translateX;
+Brow_2_jnt_R_adj_p.translateY = Brow_2_cntr_R_adj.translateY;
+Brow_2_jnt_R_adj_p.translateZ = Brow_2_cntr_R_adj.translateZ;
+
+Brow_3_jnt_R_adj_p.translateX = Brow_3_cntr_R_adj.translateX;
+Brow_3_jnt_R_adj_p.translateY = Brow_3_cntr_R_adj.translateY;
+Brow_3_jnt_R_adj_p.translateZ = Brow_3_cntr_R_adj.translateZ;

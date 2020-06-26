@@ -1,0 +1,303 @@
+Tongue_cntr_p.translateX = -Tongue_cntr.translateX;
+Tongue_cntr_p.translateY = -Tongue_cntr.translateY;
+Tongue_cntr_p.translateZ = -Tongue_cntr.translateZ;
+
+Tongue_curl_cntr_p.translateX = -Tongue_curl_cntr.translateX;
+Tongue_curl_cntr_p.translateY = -Tongue_curl_cntr.translateY;
+Tongue_curl_cntr_p.translateZ = -Tongue_curl_cntr.translateZ;
+
+Teeth_cntr_p.translateX = -Teeth_cntr.translateX;
+Teeth_cntr_p.translateY = -Teeth_cntr.translateY;
+Teeth_cntr_p.translateZ = -Teeth_cntr.translateZ;
+
+Jaw_cntr_p.translateX = -Jaw_cntr.translateX;
+Jaw_cntr_p.translateY = -Jaw_cntr.translateY;
+Jaw_cntr_p.translateZ = -Jaw_cntr.translateZ;
+
+Chin_cntr_p.translateX = -Chin_cntr.translateX;
+Chin_cntr_p.translateY = -Chin_cntr.translateY;
+Chin_cntr_p.translateZ = -Chin_cntr.translateZ;
+
+Neck_cntr_p.translateX = -Neck_cntr.translateX;
+Neck_cntr_p.translateY = -Neck_cntr.translateY;
+Neck_cntr_p.translateZ = -Neck_cntr.translateZ;
+
+
+Chin_L_cntr_p.translateX = -Chin_L_cntr.translateX;
+Chin_L_cntr_p.translateY = -Chin_L_cntr.translateY;
+Chin_L_cntr_p.translateZ = -Chin_L_cntr.translateZ;
+
+Chin_R_cntr_p.translateX = -Chin_R_cntr.translateX;
+Chin_R_cntr_p.translateY = -Chin_R_cntr.translateY;
+Chin_R_cntr_p.translateZ = -Chin_R_cntr.translateZ;
+
+LwrLip_R_cntr_p.translateX = -LwrLip_R_cntr.translateX;
+LwrLip_R_cntr_p.translateY = -LwrLip_R_cntr.translateY;
+LwrLip_R_cntr_p.translateZ = -LwrLip_R_cntr.translateZ;
+
+LwrLip_L_cntr_p.translateX = -LwrLip_L_cntr.translateX;
+LwrLip_L_cntr_p.translateY = -LwrLip_L_cntr.translateY;
+LwrLip_L_cntr_p.translateZ = -LwrLip_L_cntr.translateZ;
+
+LwrLip_cntr_p.translateX = -LwrLip_cntr.translateX;
+LwrLip_cntr_p.translateY = -LwrLip_cntr.translateY;
+LwrLip_cntr_p.translateZ = -LwrLip_cntr.translateZ;
+
+Mouth_cntr_p.translateX = -Mouth_cntr.translateX;
+Mouth_cntr_p.translateY = -Mouth_cntr.translateY;
+Mouth_cntr_p.translateZ = -Mouth_cntr.translateZ;
+
+Crnr_L_cntr_p.translateX = -Crnr_L_cntr.translateX;
+Crnr_L_cntr_p.translateY = -Crnr_L_cntr.translateY;
+Crnr_L_cntr_p.translateZ = -Crnr_L_cntr.translateZ;
+
+Crnr_R_cntr_p.translateX = -Crnr_R_cntr.translateX;
+Crnr_R_cntr_p.translateY = -Crnr_R_cntr.translateY;
+Crnr_R_cntr_p.translateZ = -Crnr_R_cntr.translateZ;
+
+UprLip_L_cntr_p.translateX = -UprLip_L_cntr.translateX;
+UprLip_L_cntr_p.translateY = -UprLip_L_cntr.translateY;
+UprLip_L_cntr_p.translateZ = -UprLip_L_cntr.translateZ;
+
+UprLip_R_cntr_p.translateX = -UprLip_R_cntr.translateX;
+UprLip_R_cntr_p.translateY = -UprLip_R_cntr.translateY;
+UprLip_R_cntr_p.translateZ = -UprLip_R_cntr.translateZ;
+
+UprLip_cntr_p.translateX = -UprLip_cntr.translateX;
+UprLip_cntr_p.translateY = -UprLip_cntr.translateY;
+UprLip_cntr_p.translateZ = -UprLip_cntr.translateZ;
+
+Crnr_L_2_cntr_p.translateX = -Crnr_L_2_cntr.translateX;
+Crnr_L_2_cntr_p.translateY = -Crnr_L_2_cntr.translateY;
+Crnr_L_2_cntr_p.translateZ = -Crnr_L_2_cntr.translateZ;
+
+Crnr_R_2_cntr_p.translateX = -Crnr_R_2_cntr.translateX;
+Crnr_R_2_cntr_p.translateY = -Crnr_R_2_cntr.translateY;
+Crnr_R_2_cntr_p.translateZ = -Crnr_R_2_cntr.translateZ;
+
+Cheek_L_cntr_p.translateX = -Cheek_L_cntr.translateX;
+Cheek_L_cntr_p.translateY = -Cheek_L_cntr.translateY;
+Cheek_L_cntr_p.translateZ = -Cheek_L_cntr.translateZ;
+
+Cheek_R_cntr_p.translateX = -Cheek_R_cntr.translateX;
+Cheek_R_cntr_p.translateY = -Cheek_R_cntr.translateY;
+Cheek_R_cntr_p.translateZ = -Cheek_R_cntr.translateZ;
+
+UprLip_2_cntr_p.translateX = -UprLip_2_cntr.translateX;
+UprLip_2_cntr_p.translateY = -UprLip_2_cntr.translateY;
+UprLip_2_cntr_p.translateZ = -UprLip_2_cntr.translateZ;
+
+UprLip_L_2_cntr_p.translateX = -UprLip_L_2_cntr.translateX;
+UprLip_L_2_cntr_p.translateY = -UprLip_L_2_cntr.translateY;
+UprLip_L_2_cntr_p.translateZ = -UprLip_L_2_cntr.translateZ;
+
+UprLip_R_2_cntr_p.translateX = -UprLip_R_2_cntr.translateX;
+UprLip_R_2_cntr_p.translateY = -UprLip_R_2_cntr.translateY;
+UprLip_R_2_cntr_p.translateZ = -UprLip_R_2_cntr.translateZ;
+
+Nose_cntr_p.translateX = -Nose_cntr.translateX;
+Nose_cntr_p.translateY = -Nose_cntr.translateY;
+Nose_cntr_p.translateZ = -Nose_cntr.translateZ;
+
+Nose_R_cntr_p.translateX = -Nose_R_cntr.translateX;
+Nose_R_cntr_p.translateY = -Nose_R_cntr.translateY;
+Nose_R_cntr_p.translateZ = -Nose_R_cntr.translateZ;
+
+Nose_L_cntr_p.translateX = -Nose_L_cntr.translateX;
+Nose_L_cntr_p.translateY = -Nose_L_cntr.translateY;
+Nose_L_cntr_p.translateZ = -Nose_L_cntr.translateZ;
+
+Cheek_R_2_cntr_p.translateX = -Cheek_R_2_cntr.translateX;
+Cheek_R_2_cntr_p.translateY = -Cheek_R_2_cntr.translateY;
+Cheek_R_2_cntr_p.translateZ = -Cheek_R_2_cntr.translateZ;
+
+Cheek_L_2_cntr_p.translateX = -Cheek_L_2_cntr.translateX;
+Cheek_L_2_cntr_p.translateY = -Cheek_L_2_cntr.translateY;
+Cheek_L_2_cntr_p.translateZ = -Cheek_L_2_cntr.translateZ;
+
+LwrLid_L_cntr_p.translateX = -LwrLid_L_cntr.translateX;
+LwrLid_L_cntr_p.translateY = -LwrLid_L_cntr.translateY;
+LwrLid_L_cntr_p.translateZ = -LwrLid_L_cntr.translateZ;
+
+LwrLid_R_cntr_p.translateX = -LwrLid_R_cntr.translateX;
+LwrLid_R_cntr_p.translateY = -LwrLid_R_cntr.translateY;
+LwrLid_R_cntr_p.translateZ = -LwrLid_R_cntr.translateZ;
+
+UprLid_L_cntr_p.translateX = -UprLid_L_cntr.translateX;
+UprLid_L_cntr_p.translateY = -UprLid_L_cntr.translateY;
+UprLid_L_cntr_p.translateZ = -UprLid_L_cntr.translateZ;
+
+UprLid_R_cntr_p.translateX = -UprLid_R_cntr.translateX;
+UprLid_R_cntr_p.translateY = -UprLid_R_cntr.translateY;
+UprLid_R_cntr_p.translateZ = -UprLid_R_cntr.translateZ;
+
+EyeSqz_L_cntr_p.translateX = -EyeSqz_L_cntr.translateX;
+EyeSqz_L_cntr_p.translateY = -EyeSqz_L_cntr.translateY;
+EyeSqz_L_cntr_p.translateZ = -EyeSqz_L_cntr.translateZ;
+
+EyeSqz_R_cntr_p.translateX = -EyeSqz_R_cntr.translateX;
+EyeSqz_R_cntr_p.translateY = -EyeSqz_R_cntr.translateY;
+EyeSqz_R_cntr_p.translateZ = -EyeSqz_R_cntr.translateZ;
+
+BrowIn_L_cntr_p.translateX = -BrowIn_L_cntr.translateX;
+BrowIn_L_cntr_p.translateY = -BrowIn_L_cntr.translateY;
+BrowIn_L_cntr_p.translateZ = -BrowIn_L_cntr.translateZ;
+
+BrowIn_R_cntr_p.translateX = -BrowIn_R_cntr.translateX;
+BrowIn_R_cntr_p.translateY = -BrowIn_R_cntr.translateY;
+BrowIn_R_cntr_p.translateZ = -BrowIn_R_cntr.translateZ;
+
+BrowOut_L_cntr_p.translateX = -BrowOut_L_cntr.translateX;
+BrowOut_L_cntr_p.translateY = -BrowOut_L_cntr.translateY;
+BrowOut_L_cntr_p.translateZ = -BrowOut_L_cntr.translateZ;
+
+BrowOut_R_cntr_p.translateX = -BrowOut_R_cntr.translateX;
+BrowOut_R_cntr_p.translateY = -BrowOut_R_cntr.translateY;
+BrowOut_R_cntr_p.translateZ = -BrowOut_R_cntr.translateZ;
+
+Brow_cntr_p.translateX = -Brow_cntr.translateX;
+Brow_cntr_p.translateY = -Brow_cntr.translateY;
+Brow_cntr_p.translateZ = -Brow_cntr.translateZ;
+
+Head_cntr_p.translateX = -Head_cntr.translateX;
+Head_cntr_p.translateY = -Head_cntr.translateY;
+Head_cntr_p.translateZ = -Head_cntr.translateZ;
+
+UprLip_cntr_adj_p.translateX = -UprLip_cntr_adj.translateX;
+UprLip_cntr_adj_p.translateY = -UprLip_cntr_adj.translateY;
+UprLip_cntr_adj_p.translateZ = -UprLip_cntr_adj.translateZ;
+
+UprLip_cntr_L_adj_p.translateX = -UprLip_cntr_L_adj.translateX;
+UprLip_cntr_L_adj_p.translateY = -UprLip_cntr_L_adj.translateY;
+UprLip_cntr_L_adj_p.translateZ = -UprLip_cntr_L_adj.translateZ;
+
+UprLip_cntr_R_adj_p.translateX = -UprLip_cntr_R_adj.translateX;
+UprLip_cntr_R_adj_p.translateY = -UprLip_cntr_R_adj.translateY;
+UprLip_cntr_R_adj_p.translateZ = -UprLip_cntr_R_adj.translateZ;
+
+Corner_cntr_L_adj_p.translateX = -Corner_cntr_L_adj.translateX;
+Corner_cntr_L_adj_p.translateY = -Corner_cntr_L_adj.translateY;
+Corner_cntr_L_adj_p.translateZ = -Corner_cntr_L_adj.translateZ;
+
+Corner_cntr_R_adj_p.translateX = -Corner_cntr_R_adj.translateX;
+Corner_cntr_R_adj_p.translateY = -Corner_cntr_R_adj.translateY;
+Corner_cntr_R_adj_p.translateZ = -Corner_cntr_R_adj.translateZ;
+
+LwrLip_cntr_adj_p.translateX = -LwrLip_cntr_adj.translateX;
+LwrLip_cntr_adj_p.translateY = -LwrLip_cntr_adj.translateY;
+LwrLip_cntr_adj_p.translateZ = -LwrLip_cntr_adj.translateZ;
+
+LwrLip_cntr_L_adj_p.translateX = -LwrLip_cntr_L_adj.translateX;
+LwrLip_cntr_L_adj_p.translateY = -LwrLip_cntr_L_adj.translateY;
+LwrLip_cntr_L_adj_p.translateZ = -LwrLip_cntr_L_adj.translateZ;
+
+LwrLip_cntr_R_adj_p.translateX = -LwrLip_cntr_R_adj.translateX;
+LwrLip_cntr_R_adj_p.translateY = -LwrLip_cntr_R_adj.translateY;
+LwrLip_cntr_R_adj_p.translateZ = -LwrLip_cntr_R_adj.translateZ;
+
+UprLip_cntr_adj_p.scaleX = 1/UprLip_cntr_adj.scaleX;
+UprLip_cntr_adj_p.scaleY = 1/UprLip_cntr_adj.scaleY;
+UprLip_cntr_adj_p.scaleZ = 1/UprLip_cntr_adj.scaleZ;
+
+UprLip_cntr_L_adj_p.scaleX = 1/UprLip_cntr_L_adj.scaleX;
+UprLip_cntr_L_adj_p.scaleY = 1/UprLip_cntr_L_adj.scaleY;
+UprLip_cntr_L_adj_p.scaleZ = 1/UprLip_cntr_L_adj.scaleZ;
+
+UprLip_cntr_R_adj_p.scaleX = 1/UprLip_cntr_R_adj.scaleX;
+UprLip_cntr_R_adj_p.scaleY = 1/UprLip_cntr_R_adj.scaleY;
+UprLip_cntr_R_adj_p.scaleZ = 1/UprLip_cntr_R_adj.scaleZ;
+
+Corner_cntr_L_adj_p.scaleX = 1/Corner_cntr_L_adj.scaleX;
+Corner_cntr_L_adj_p.scaleY = 1/Corner_cntr_L_adj.scaleY;
+Corner_cntr_L_adj_p.scaleZ = 1/Corner_cntr_L_adj.scaleZ;
+
+Corner_cntr_R_adj_p.scaleX = 1/Corner_cntr_R_adj.scaleX;
+Corner_cntr_R_adj_p.scaleY = 1/Corner_cntr_R_adj.scaleY;
+Corner_cntr_R_adj_p.scaleZ = 1/Corner_cntr_R_adj.scaleZ;
+
+LwrLip_cntr_adj_p.scaleX = 1/LwrLip_cntr_adj.scaleX;
+LwrLip_cntr_adj_p.scaleY = 1/LwrLip_cntr_adj.scaleY;
+LwrLip_cntr_adj_p.scaleZ = 1/LwrLip_cntr_adj.scaleZ;
+
+LwrLip_cntr_L_adj_p.scaleX = 1/LwrLip_cntr_L_adj.scaleX;
+LwrLip_cntr_L_adj_p.scaleY = 1/LwrLip_cntr_L_adj.scaleY;
+LwrLip_cntr_L_adj_p.scaleZ = 1/LwrLip_cntr_L_adj.scaleZ;
+
+LwrLip_cntr_R_adj_p.scaleX = 1/LwrLip_cntr_R_adj.scaleX;
+LwrLip_cntr_R_adj_p.scaleY = 1/LwrLip_cntr_R_adj.scaleY;
+LwrLip_cntr_R_adj_p.scaleZ = 1/LwrLip_cntr_R_adj.scaleZ;
+
+
+UprLid_1_cntr_L_adj_p.translateX = -UprLid_1_cntr_L_adj.translateX;
+UprLid_1_cntr_L_adj_p.translateY = -UprLid_1_cntr_L_adj.translateY;
+UprLid_1_cntr_L_adj_p.translateZ = -UprLid_1_cntr_L_adj.translateZ;
+
+UprLid_2_cntr_L_adj_p.translateX = -UprLid_2_cntr_L_adj.translateX;
+UprLid_2_cntr_L_adj_p.translateY = -UprLid_2_cntr_L_adj.translateY;
+UprLid_2_cntr_L_adj_p.translateZ = -UprLid_2_cntr_L_adj.translateZ;
+
+UprLid_3_cntr_L_adj_p.translateX = -UprLid_3_cntr_L_adj.translateX;
+UprLid_3_cntr_L_adj_p.translateY = -UprLid_3_cntr_L_adj.translateY;
+UprLid_3_cntr_L_adj_p.translateZ = -UprLid_3_cntr_L_adj.translateZ;
+
+UprLid_1_cntr_R_adj_p.translateX = -UprLid_1_cntr_R_adj.translateX;
+UprLid_1_cntr_R_adj_p.translateY = -UprLid_1_cntr_R_adj.translateY;
+UprLid_1_cntr_R_adj_p.translateZ = -UprLid_1_cntr_R_adj.translateZ;
+
+UprLid_2_cntr_R_adj_p.translateX = -UprLid_2_cntr_R_adj.translateX;
+UprLid_2_cntr_R_adj_p.translateY = -UprLid_2_cntr_R_adj.translateY;
+UprLid_2_cntr_R_adj_p.translateZ = -UprLid_2_cntr_R_adj.translateZ;
+
+UprLid_3_cntr_R_adj_p.translateX = -UprLid_3_cntr_R_adj.translateX;
+UprLid_3_cntr_R_adj_p.translateY = -UprLid_3_cntr_R_adj.translateY;
+UprLid_3_cntr_R_adj_p.translateZ = -UprLid_3_cntr_R_adj.translateZ;
+
+LwrLid_1_cntr_L_adj_p.translateX = -LwrLid_1_cntr_L_adj.translateX;
+LwrLid_1_cntr_L_adj_p.translateY = -LwrLid_1_cntr_L_adj.translateY;
+LwrLid_1_cntr_L_adj_p.translateZ = -LwrLid_1_cntr_L_adj.translateZ;
+
+LwrLid_2_cntr_L_adj_p.translateX = -LwrLid_2_cntr_L_adj.translateX;
+LwrLid_2_cntr_L_adj_p.translateY = -LwrLid_2_cntr_L_adj.translateY;
+LwrLid_2_cntr_L_adj_p.translateZ = -LwrLid_2_cntr_L_adj.translateZ;
+
+LwrLid_3_cntr_L_adj_p.translateX = -LwrLid_3_cntr_L_adj.translateX;
+LwrLid_3_cntr_L_adj_p.translateY = -LwrLid_3_cntr_L_adj.translateY;
+LwrLid_3_cntr_L_adj_p.translateZ = -LwrLid_3_cntr_L_adj.translateZ;
+
+LwrLid_1_cntr_R_adj_p.translateX = -LwrLid_1_cntr_R_adj.translateX;
+LwrLid_1_cntr_R_adj_p.translateY = -LwrLid_1_cntr_R_adj.translateY;
+LwrLid_1_cntr_R_adj_p.translateZ = -LwrLid_1_cntr_R_adj.translateZ;
+
+LwrLid_2_cntr_R_adj_p.translateX = -LwrLid_2_cntr_R_adj.translateX;
+LwrLid_2_cntr_R_adj_p.translateY = -LwrLid_2_cntr_R_adj.translateY;
+LwrLid_2_cntr_R_adj_p.translateZ = -LwrLid_2_cntr_R_adj.translateZ;
+
+LwrLid_3_cntr_R_adj_p.translateX = -LwrLid_3_cntr_R_adj.translateX;
+LwrLid_3_cntr_R_adj_p.translateY = -LwrLid_3_cntr_R_adj.translateY;
+LwrLid_3_cntr_R_adj_p.translateZ = -LwrLid_3_cntr_R_adj.translateZ;
+
+
+Brow_1_cntr_L_adj_p.translateX = -Brow_1_cntr_L_adj.translateX;
+Brow_1_cntr_L_adj_p.translateY = -Brow_1_cntr_L_adj.translateY;
+Brow_1_cntr_L_adj_p.translateZ = -Brow_1_cntr_L_adj.translateZ;
+
+Brow_2_cntr_L_adj_p.translateX = -Brow_2_cntr_L_adj.translateX;
+Brow_2_cntr_L_adj_p.translateY = -Brow_2_cntr_L_adj.translateY;
+Brow_2_cntr_L_adj_p.translateZ = -Brow_2_cntr_L_adj.translateZ;
+
+Brow_3_cntr_L_adj_p.translateX = -Brow_3_cntr_L_adj.translateX;
+Brow_3_cntr_L_adj_p.translateY = -Brow_3_cntr_L_adj.translateY;
+Brow_3_cntr_L_adj_p.translateZ = -Brow_3_cntr_L_adj.translateZ;
+
+
+Brow_1_cntr_R_adj_p.translateX = -Brow_1_cntr_R_adj.translateX;
+Brow_1_cntr_R_adj_p.translateY = -Brow_1_cntr_R_adj.translateY;
+Brow_1_cntr_R_adj_p.translateZ = -Brow_1_cntr_R_adj.translateZ;
+
+Brow_2_cntr_R_adj_p.translateX = -Brow_2_cntr_R_adj.translateX;
+Brow_2_cntr_R_adj_p.translateY = -Brow_2_cntr_R_adj.translateY;
+Brow_2_cntr_R_adj_p.translateZ = -Brow_2_cntr_R_adj.translateZ;
+
+Brow_3_cntr_R_adj_p.translateX = -Brow_3_cntr_R_adj.translateX;
+Brow_3_cntr_R_adj_p.translateY = -Brow_3_cntr_R_adj.translateY;
+Brow_3_cntr_R_adj_p.translateZ = -Brow_3_cntr_R_adj.translateZ;

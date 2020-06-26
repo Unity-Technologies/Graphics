@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99d7a576a6b9d7e4a98db4a7d8c175d5, type: 3}
+  m_Name: Gawain_SnappersHeadImporter
+  m_EditorClassIdentifier: 
+  scriptsResolveControllers:
+  - {fileID: 4900000, guid: 8eacd53453e62f24facbfb9937d9c020, type: 3}
+  - {fileID: 4900000, guid: 5c86ee61b5750314e83df6af5511d2f1, type: 3}
+  scriptsResolveBlendShapes:
+  - {fileID: 4900000, guid: dc27bf92724b6a54fbe0613079488499, type: 3}
+  - {fileID: 4900000, guid: ccb25d5c00e9d4347814c4633558ec4b, type: 3}
+  - {fileID: 4900000, guid: 3f9d25f1386575f4db3f3462bf849402, type: 3}
+  scriptsResolveShaderParam:
+  - {fileID: 4900000, guid: 37d5850a02425264b98f7c53bcfc7f02, type: 3}
+  namedControllers: Head_controller
+  namedBlendShapes: Head_blendShape
+  namedShaderParam: SkinShader
+  csClassPrefix: Gawain
+  csNamespace: Unity.DemoTeam.DigitalHuman.Sample

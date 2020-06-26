@@ -60,25 +60,23 @@ float GetOccluderInfluenceRadiusWS(EllipsoidOccluderData data)
 // --------------------------------------------
 // Data preparation functions
 // --------------------------------------------
-float3x3 GetRelativeMatrix(EllipsoidOccluderData data)
+// Returns pos/radius of occluder as sphere relative to positionWS
+float3 TransformOccluder(EllipsoidOccluderData data, float3 positionWS)
 {
-    float zMagnitude = data.positionRWS_radius.w / length(data.directionWS_influence.xyz);
-    float3 centerSphere = data.positionRWS_radius.xyz;
-
-    float3 zAxis = normalize(data.directionWS_influence.xyz) * zMagnitude;
-    float3 yAxis = normalize(cross(normalize(zAxis), float3(0, 1, 0)));
-    float3 xAxis = normalize(cross(normalize(zAxis), yAxis));
-
-    return float3x3(xAxis, yAxis, zAxis);
+    float3 dir = GetOccluderDirectionWS(data);
+    float3 toOccluder = GetOccluderPositionRWS(data) - positionWS;
+    float proj = dot(toOccluder, dir);
+    float3 toOccluderCS = toOccluder - (proj * dir) + proj * dir / GetOccluderScaling(data);
+    return float3(toOccluderCS);
 }
 
 float4 GetDataForSphereIntersection(EllipsoidOccluderData data, float3 positionWS)
 {
     // TODO : Fill with transformations needed so the rest of the code deals with simple spheres.
     // xyz should be un-normalized direction, w should contain the length.
-    float3 dir = positionWS - data.positionRWS_radius.xyz;
-    float3 TransformVec = mul(GetRelativeMatrix(data), dir);
-    float len = length(TransformVec);
+    float3 dir = TransformOccluder (data, positionWS); 
+    float len = length(dir);
+    dir = normalize(dir);
     return float4(dir.x, dir.y, dir.z, len);
 }
 
@@ -97,16 +95,6 @@ float ComputeInfluenceFalloff(float dist, float influenceRadius)
 float ApplyInfluenceFalloff(float occlusion, float influenceFalloff)
 {
     return lerp(1.0f, occlusion, influenceFalloff);
-}
-
-// Returns pos/radius of occluder as sphere relative to positionWS
-float4 TransformOccluder(float3 positionWS, EllipsoidOccluderData data)
-{
-    float3 dir = GetOccluderDirectionWS(data);
-    float3 toOccluder = GetOccluderPositionRWS(data) - positionWS;
-    float proj = dot(toOccluder, dir);
-    float3 toOccluderCS = toOccluder - (proj * dir) + proj * dir / GetOccluderScaling(data);
-    return float4(toOccluderCS, GetOccluderRadius(data));
 }
 
 float3 TransformDirection(float3 direction, EllipsoidOccluderData data)

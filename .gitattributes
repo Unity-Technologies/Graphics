@@ -51,3 +51,4 @@ LightingData.asset binary
 *.rar filter=lfs diff=lfs merge=lfs -text
 *.tar filter=lfs diff=lfs merge=lfs -text
 TestProjects/ShaderGraph/Assets/TestbedAssets/Textures/Texture2DArray/*.asset filter=lfs diff=lfs merge=lfs -text
+HW20Project/HW20_CapsuleShadow_Project/Assets/Characters/*.asset filter=lfs diff=lfs merge=lfs -text
