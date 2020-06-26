@@ -245,7 +245,7 @@ MonoBehaviour:
   m_AdvancedMode: 0
   intensity:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
     min: 0
     max: 1
   directShadow:
@@ -253,10 +253,10 @@ MonoBehaviour:
     m_Value: 1
   directShadowIsForDirectional:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0
   coneAperture:
     m_OverrideState: 1
-    m_Value: 30
+    m_Value: 15
     min: 15
     max: 89
 --- !u!114 &8709397930631009001
