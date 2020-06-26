@@ -347,7 +347,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ShaderVariablesAmbientOcclusion cb;
         }
 
-        RenderAOParameters PrepareRenderAOParameters(HDCamera camera, Vector2 historySize, int frameCount)
+        RenderAOParameters PrepareRenderAOParameters(HDCamera camera, Vector2 historySize, int frameCount, in HDUtils.PackedMipChainInfo depthMipInfo)
         {
             var parameters = new RenderAOParameters();
 
@@ -435,8 +435,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 0
             );
 
-            var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-            var depthMipInfo = hdrp.sharedRTManager.GetDepthBufferMipChainInfo();
             cb._FirstTwoDepthMipOffsets = new Vector4(depthMipInfo.mipLevelOffsets[1].x, depthMipInfo.mipLevelOffsets[1].y, depthMipInfo.mipLevelOffsets[2].x, depthMipInfo.mipLevelOffsets[2].y);
 
             parameters.bilateralUpsample = settings.bilateralUpsample;
@@ -617,7 +615,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                                       currentHistory.referenceSize.y * currentHistory.scaleFactor.y);
                     var rtScaleForHistory = camera.historyRTHandleProperties.rtHandleScale;
 
-                    var aoParameters = PrepareRenderAOParameters(camera, historySize * rtScaleForHistory, frameCount);
+                    var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+                    var aoParameters = PrepareRenderAOParameters(camera, historySize * rtScaleForHistory, frameCount, hdrp.sharedRTManager.GetDepthBufferMipChainInfo());
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.HorizonSSAO)))
                     {
                         RenderAO(aoParameters, m_PackedDataTex, depthTexture, normalBuffer, cmd);
