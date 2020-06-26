@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         RTHandle IndirectDiffuseHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
-            return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, dimension: TextureXR.dimension,
+            return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension,
                                         enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
                                         name: string.Format("{0}_IndirectDiffuseHistoryBuffer{1}", viewName, frameIndex));
         }
@@ -291,15 +291,35 @@ namespace UnityEngine.Rendering.HighDefinition
         void DenoiseIndirectDiffuseBuffer(HDCamera hdCamera, CommandBuffer cmd, GlobalIllumination settings, RTHandle indirectDiffuseBuffer, RTHandle directionBuffer)
         {
             // Grab the high frequency history buffer
-            RTHandle indirectDiffuseHistoryHF0 = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF0)
-                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF0, IndirectDiffuseHistoryBufferAllocatorFunction, 1);
-            RTHandle indirectDiffuseHistoryLF0 = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseLF0)
-                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseLF0, IndirectDiffuseHistoryBufferAllocatorFunction, 1);
-            // Grab the high frequency history buffer
-            RTHandle indirectDiffuseHistoryHF1 = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF1)
-                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF1, IndirectDiffuseHistoryBufferAllocatorFunction, 1);
-            RTHandle indirectDiffuseHistoryLF1 = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseLF1)
-                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseLF1, IndirectDiffuseHistoryBufferAllocatorFunction, 1);
+            RTHandle indirectDiffuseHistoryHF0, indirectDiffuseHistoryLF0, indirectDiffuseHistoryHF1, indirectDiffuseHistoryLF1;
+
+            indirectDiffuseHistoryHF0 = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF0);
+            if (indirectDiffuseHistoryHF0 == null)
+            {
+                indirectDiffuseHistoryHF0 = hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF0, IndirectDiffuseHistoryBufferAllocatorFunction, 1);
+                CoreUtils.SetRenderTarget(cmd, indirectDiffuseHistoryHF0, clearFlag: ClearFlag.Color, clearColor: Color.white);
+            }
+
+            indirectDiffuseHistoryLF0 = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseLF0);
+            if (indirectDiffuseHistoryLF0 == null)
+            {
+                indirectDiffuseHistoryLF0 = hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseLF0, IndirectDiffuseHistoryBufferAllocatorFunction, 1);
+                CoreUtils.SetRenderTarget(cmd, indirectDiffuseHistoryLF0, clearFlag: ClearFlag.Color, clearColor: new Color(0.501960784f, 0.501960784f, 0.0f ,0.0f));
+            }
+
+            indirectDiffuseHistoryHF1 = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF1);
+            if (indirectDiffuseHistoryHF1 == null)
+            {
+                indirectDiffuseHistoryHF1 = hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF1, IndirectDiffuseHistoryBufferAllocatorFunction, 1);
+                CoreUtils.SetRenderTarget(cmd, indirectDiffuseHistoryHF1, clearFlag: ClearFlag.Color, clearColor: Color.black);
+            }
+
+            indirectDiffuseHistoryLF1 = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseLF1);
+            if (indirectDiffuseHistoryLF1 == null)
+            {
+                indirectDiffuseHistoryLF1 = hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseLF1, IndirectDiffuseHistoryBufferAllocatorFunction, 1);
+                CoreUtils.SetRenderTarget(cmd, indirectDiffuseHistoryLF1, clearFlag: ClearFlag.Color, clearColor: new Color(0.501960784f, 0.501960784f, 0.0f, 0.0f));
+            }
 
             // Request the intermediate texture we will be using
             //RTHandle intermediateBuffer1 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA1);

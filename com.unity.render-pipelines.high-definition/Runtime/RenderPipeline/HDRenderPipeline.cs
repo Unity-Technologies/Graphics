@@ -3160,17 +3160,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Override all the planes
                 plane.SetNormalAndPosition(camera.transform.right, camera.transform.position - camera.transform.right * camera.farClipPlane);
+                cullingParams.SetCullingPlane(0, plane);
                 cameraProperties.SetShadowCullingPlane(0, plane);
                 plane.SetNormalAndPosition(-camera.transform.right, camera.transform.position + camera.transform.right * camera.farClipPlane);
-                cameraProperties.SetShadowCullingPlane(1, plane);
+                cullingParams.SetCullingPlane(1, plane);
+                cameraProperties.SetCameraCullingPlane(1, plane);
                 plane.SetNormalAndPosition(camera.transform.up, camera.transform.position - camera.transform.up * camera.farClipPlane);
-                cameraProperties.SetShadowCullingPlane(2, plane);
+                cullingParams.SetCullingPlane(2, plane);
+                cameraProperties.SetCameraCullingPlane(2, plane);
                 plane.SetNormalAndPosition(-camera.transform.up, camera.transform.position + camera.transform.up * camera.farClipPlane);
+                cullingParams.SetCullingPlane(3, plane);
                 cameraProperties.SetShadowCullingPlane(3, plane);
                 plane.SetNormalAndPosition(camera.transform.forward, camera.transform.position - camera.transform.forward * camera.farClipPlane);
+                cullingParams.SetCullingPlane(4, plane);
                 cameraProperties.SetShadowCullingPlane(4, plane);
                 // The 5th planes doesn't need to be overriden, but just in case.
                 plane.SetNormalAndPosition(-camera.transform.forward, camera.transform.position + camera.transform.forward * camera.farClipPlane);
+                cullingParams.SetCullingPlane(5, plane);
                 cameraProperties.SetShadowCullingPlane(5, plane);
 
                 // Propagate the new planes

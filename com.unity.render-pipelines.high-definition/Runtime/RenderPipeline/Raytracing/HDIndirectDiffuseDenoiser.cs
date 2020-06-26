@@ -43,10 +43,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var historyNormalBuffer = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Normal);
             if (historyDepthBuffer == null || historyNormalBuffer == null)
             {
-                HDUtils.BlitCameraTexture(cmd, noisySignal, historySignal0_0);
-                HDUtils.BlitCameraTexture(cmd, noisySignal, historySignal0_1);
-                HDUtils.BlitCameraTexture(cmd, noisySignal, historySignal1_0);
-                HDUtils.BlitCameraTexture(cmd, noisySignal, historySignal1_1);
                 return;
             }
 

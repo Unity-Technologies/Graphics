@@ -94,7 +94,6 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
         return;
     }
 
-
     // Real the normal data for this pixel
     NormalData normalData;
     DecodeFromNormalBuffer(centerCoord, normalData);
@@ -115,6 +114,7 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
         return;
     }
 
+    /*
     // Compute the world space normal (from previous frame)
     float4 historyNormal = LOAD_TEXTURE2D_X(_HistoryNormalBufferTexture, historyTapCoord);
     NormalData historyNormalData;
@@ -126,6 +126,7 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
         _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;
         return;
     }
+    */
 
     // If none of the previous conditions have failed, the the history is valid
     _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 1;
@@ -184,7 +185,7 @@ void ConvertRGBToYCoCg(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 group
     // Fetch the current value, history value and current sample count
     float3 color = LOAD_TEXTURE2D_X(_DenoiseInputTexture0, centerCoord).xyz;
     float3 direction = LOAD_TEXTURE2D_X(_DirectionTexture, centerCoord).xyz;
-
+    color = color / (1.0 + color);
     // Convert the color we got
     float4 ySH;
     float2 cocg;
@@ -256,6 +257,8 @@ void ConvertYCoCgToRGB(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 group
     ConvertYCoCgToRGBUtil(ySH, cocg, normalData.normalWS, color);
 
     color = max(color, 0);
+    color = color / (1.0 - color);
+
     // Store our accumulated value
     _DenoiseOutputTexture0RW[COORD_TEXTURE2D_X(centerCoord)] = float4(color, 1.0);
 }
@@ -395,7 +398,7 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     float wSum = 0.0;
 
     // Define the sample count for this pixel. 16 samples per pixels if it is a full res or 4 if half resolution
-    int numSamples = 24;
+    int numSamples = 16;
 
     // Compute the radius of the filter. This is evaluated as the max between a fixed radius value and an approximation of the footprint of the pixel
     const float parallelPixelFootPrint = _PixelSpreadAngleTangent * length(center.position);
