@@ -139,6 +139,9 @@ float EvaluateCapsuleShadowLUT(EllipsoidOccluderData data, float3 positionWS, fl
 
     float sinTheta = sin(theta);
     float occlusionVal = SAMPLE_TEXTURE3D_LOD(_CapsuleShadowLUT, s_linear_clamp_sampler, float3(0.5f * cosPhi+ 0.5f, sinTheta, 0), 0).x;
+
+    occlusionVal = ApplyInfluenceFalloff(occlusionVal, ComputeInfluenceFalloff(occluderFromSurfaceDistance, GetOccluderInfluenceRadiusWS(data)));
+    
     return occlusionVal;
 }
 
