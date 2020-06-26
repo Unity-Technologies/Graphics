@@ -217,7 +217,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Color, hdCamera, colorBuffer, aovBuffers);
 
-            TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, colorBuffer, prepassOutput.depthBuffer, backBuffer, cullingResults, hdCamera);
+            TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, colorBuffer, prepassOutput.resolvedDepthBuffer, backBuffer, cullingResults, hdCamera);
 
             // TODO RENDERGRAPH
             //// If requested, compute histogram of the very final image
@@ -258,7 +258,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 postProcessDest = RenderDebug(  m_RenderGraph,
                                                 hdCamera,
                                                 postProcessDest,
-                                                prepassOutput.depthBuffer,
+                                                prepassOutput.resolvedDepthBuffer,
                                                 prepassOutput.depthPyramidTexture,
                                                 m_DebugFullScreenTexture,
                                                 colorPickerTexture,
@@ -270,7 +270,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (target.targetDepth != null)
                 {
-                    BlitFinalCameraTexture(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, m_RenderGraph.ImportTexture(target.targetDepth), prepassOutput.resolvedMotionVectorsBuffer, prepassOutput.resolvedNormalBuffer);
+                    BlitFinalCameraTexture(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, m_RenderGraph.ImportTexture(target.targetDepth), prepassOutput.resolvedMotionVectorsBuffer, prepassOutput.resolvedNormalBuffer);
                 }
 
                 aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Output, hdCamera, postProcessDest, aovBuffers);
@@ -778,7 +778,7 @@ namespace UnityEngine.Rendering.HighDefinition
             colorBuffer = ResolveMSAAColor(renderGraph, hdCamera, colorBuffer);
 
             // Render All forward error
-            RenderForwardError(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, cullingResults);
+            RenderForwardError(renderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, cullingResults);
 
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent))
             {
@@ -788,7 +788,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Fill depth buffer to reduce artifact for transparent object during postprocess
-            RenderTransparentDepthPostpass(renderGraph, hdCamera, prepassOutput.depthBuffer, cullingResults);
+            RenderTransparentDepthPostpass(renderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, cullingResults);
 
             return colorBuffer;
         }
