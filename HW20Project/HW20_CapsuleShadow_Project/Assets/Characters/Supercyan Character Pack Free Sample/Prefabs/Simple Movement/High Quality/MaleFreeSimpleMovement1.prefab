@@ -1082,7 +1082,7 @@ GameObject:
   - component: {fileID: 54084939265967506}
   - component: {fileID: 136606663363984694}
   - component: {fileID: 95665039525092722}
-  - component: {fileID: 8748688856612009363}
+  - component: {fileID: 8198084982374159809}
   m_Layer: 0
   m_Name: MaleFreeSimpleMovement1
   m_TagString: Untagged
@@ -1155,7 +1155,7 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
---- !u!114 &8748688856612009363
+--- !u!114 &8198084982374159809
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1164,7 +1164,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1824340380413090}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ba158ff05cf30224f94bfdddec8e7635, type: 3}
+  m_Script: {fileID: 11500000, guid: c83431060034736499bc8132c5ec5504, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_moveSpeed: 2
