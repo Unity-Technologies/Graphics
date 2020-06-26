@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEditor.Rendering.HighDefinition;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -23,6 +24,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             get => m_MigrateFromOldCrossPipelineSG;
             set => m_MigrateFromOldCrossPipelineSG = value;
+        }
+
+        public System.Collections.Generic.List<string> m_Locks = new System.Collections.Generic.List<string>();
+    }
+
+    static public class HDMetaDataHelper
+    {
+        static public System.Collections.Generic.List<string> GetLocksFromMetaData(Shader shader)
+        {
+            HDMetadata metaData;
+            if (shader.TryGetMetadataOfType<HDMetadata>(out metaData))
+                return metaData.m_Locks;
+            else
+                return null;
         }
     }
 }

@@ -5,6 +5,8 @@ using UnityEditor;
 using UnityEngine;
 using UnityEditorInternal;
 
+using UnityEditor.Rendering.HighDefinition.ShaderGraph; //We store locks in HDMetaData as metadata are accessible without deserializing the whole graph.
+
 namespace Unity.Assets.MaterialVariant.Editor
 {
     public class MaterialVariant : ScriptableObject
@@ -100,8 +102,15 @@ namespace Unity.Assets.MaterialVariant.Editor
         public bool IsPropertyBlockedInAncestors(string propertyName)
         {
             var parent = GetParent();
-            if (parent is MaterialVariant)
-                return (parent as MaterialVariant).IsPropertyBlocked(propertyName);
+            if (parent is MaterialVariant matVariant)
+                return matVariant.IsPropertyBlocked(propertyName);
+
+            if (parent is Shader shader)
+            {
+                List<string> locks = HDMetaDataHelper.GetLocksFromMetaData(shader);
+                if (locks != null)
+                    return locks.Any(l => l == propertyName);
+            }
 
             return false;
         }

@@ -7,6 +7,7 @@ using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using UnityEngine;
 using RenderQueueType = UnityEngine.Rendering.HighDefinition.HDRenderQueue.RenderQueueType;
+using System.Linq;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -14,7 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         // Null/Empty means no title
         protected virtual string title => null;
-        
+
         protected TargetPropertyGUIContext context;
         protected Action onChange;
         protected Action<String> registerUndo;
@@ -43,27 +44,30 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             BaseField<Data> elem = null;
             BaseField<Enum> elemEnum = null;
 
+            // [TODO] Extract key for this property line
+            string m_Key = "";
+
             switch (getter())
             {
-                case bool b: elem = new Toggle { value = b, tooltip = displayName.tooltip } as BaseField<Data>; break;
-                case int i: elem = new IntegerField { value = i, tooltip = displayName.tooltip } as BaseField<Data>; break;
-                case float f: elem = new FloatField { value = f, tooltip = displayName.tooltip } as BaseField<Data>; break;
-                case SurfaceType e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case RenderQueueType e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case BlendMode e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case CompareFunction e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case TransparentCullMode e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case DoubleSidedMode e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case NormalDropOffSpace e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case HDLitData.MaterialType e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case DistortionMode e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case ScreenSpaceRefraction.RefractionModel e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case SpecularOcclusionMode e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case FabricData.MaterialType e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case EyeData.MaterialType e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case StackLit.BaseParametrization e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case StackLit.DualSpecularLobeParametrization e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case OpaqueCullMode e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
+                case bool b: elem = new LockableBaseField<Toggle, bool>(new Toggle { value = b, tooltip = displayName.tooltip }, m_Key) as BaseField<Data>; break;
+                case int i: elem = new LockableBaseField<IntegerField, int>(new IntegerField { value = i, tooltip = displayName.tooltip }, m_Key) as BaseField<Data>; break;
+                case float f: elem = new LockableBaseField<FloatField, float>(new FloatField { value = f, tooltip = displayName.tooltip }, m_Key) as BaseField<Data>; break;
+                case SurfaceType e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
+                case RenderQueueType e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
+                case BlendMode e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
+                case CompareFunction e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
+                case TransparentCullMode e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
+                case DoubleSidedMode e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
+                case NormalDropOffSpace e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
+                case HDLitData.MaterialType e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
+                case DistortionMode e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
+                case ScreenSpaceRefraction.RefractionModel e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
+                case SpecularOcclusionMode e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
+                case FabricData.MaterialType e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
+                case EyeData.MaterialType e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
+                case StackLit.BaseParametrization e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
+                case StackLit.DualSpecularLobeParametrization e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
+                case OpaqueCullMode e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
                 default: throw new Exception($"Can't create UI field for type {getter().GetType()}, please add it if it's relevant. If you can't consider using TargetPropertyGUIContext.AddProperty instead.");
             }
 
@@ -139,5 +143,122 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         /// <summary>Warning: this property must have a different value for each property block type!</summary>
         protected abstract int foldoutIndex { get; }
+    }
+
+    public class LockableBaseField<TBaseField, TValueType> : BaseField<TValueType>
+        where TBaseField : BaseField<TValueType>
+    {
+        public new static readonly string ussClassName = "unity-lockable";
+
+        BaseField<TValueType> m_ContainedField;
+        LockArea m_LockArea;
+        readonly string m_Key;
+
+        public LockableBaseField(BaseField<TValueType> containedField, string key)
+            : base(null, null)
+        {
+            m_Key = key;
+            m_ContainedField = containedField;
+            bool lockInitValue = false; //should be gathered by testing if m_Locks in metadata have the given m_Key
+            m_LockArea = new LockArea(lockInitValue, RegisterChange);
+
+            Add(m_ContainedField);
+            Add(m_LockArea);
+
+            //styling
+            this.Q(className: "unity-base-field__input").style.flexGrow = 0;
+            style.overflow = Overflow.Visible;
+            style.marginLeft = 0;
+            style.marginRight = 0;
+            m_ContainedField.style.flexGrow = 1;
+        }
+
+        public new virtual TValueType value
+        {
+            get => m_ContainedField.value;
+            set => m_ContainedField.value = value;
+        }
+
+        public new Label labelElement => m_ContainedField.labelElement;
+
+        public new string label
+        {
+            get => m_ContainedField.label;
+            set => m_ContainedField.label = value;
+        }
+
+        public override void SetValueWithoutNotify(TValueType newValue)
+            => m_ContainedField.SetValueWithoutNotify(newValue);
+
+        void RegisterChange(bool newValue)
+        {
+            // [TODO]
+            // grab m_Locks from metadata
+            // if (newValue)
+            //    m_Locks.Add(m_Key);
+            // else
+            //    m_Locks.Remove(m_Key);
+            // update metadata
+        }
+    }
+
+    public class LockArea : Image
+    {
+        public new static readonly string ussClassName = "unity-lock-area";
+        
+        bool m_Locked;
+        Action<bool> m_Callback;
+
+        public LockArea(bool initValue, Action<bool> callback) : base()
+        {
+            m_Locked = initValue;
+            m_Callback = callback;
+
+            //styling
+            this.image = EditorGUIUtility.IconContent("AssemblyLock").image;
+            style.height = 15;
+            style.minHeight = 15;
+            style.maxHeight = 15;
+            style.width = 14;
+            style.minWidth = 14;
+            style.maxWidth = 14;
+            style.position = Position.Absolute;
+            style.right = -15;
+
+            UpdateDisplay();
+            this.AddManipulator(new ToggleClickManipulator(Toggle));
+        }
+
+        void UpdateDisplay()
+            => style.opacity = m_Locked ? 1f : 0.25f;
+        
+        public bool locked => m_Locked;
+        
+        public void Toggle()
+        {
+            m_Locked ^= true;
+            UpdateDisplay();
+            m_Callback?.Invoke(m_Locked);
+        }
+
+        class ToggleClickManipulator : Manipulator
+        {
+            Action m_Callback;
+
+            public ToggleClickManipulator(Action callback)
+                => m_Callback = callback;
+
+            protected override void RegisterCallbacksOnTarget()
+                => target.RegisterCallback<MouseDownEvent>(OnMouseDown);
+
+            protected override void UnregisterCallbacksFromTarget()
+                => target.UnregisterCallback<MouseDownEvent>(OnMouseDown);
+
+            void OnMouseDown(MouseDownEvent evt)
+            {
+                m_Callback();
+                evt.StopPropagation();
+            }
+        }
     }
 }
