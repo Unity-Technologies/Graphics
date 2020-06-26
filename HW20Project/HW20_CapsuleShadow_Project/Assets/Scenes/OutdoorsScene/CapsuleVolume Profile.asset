@@ -256,7 +256,7 @@ MonoBehaviour:
     m_Value: 0
   coneAperture:
     m_OverrideState: 1
-    m_Value: 15
+    m_Value: 19
     min: 15
     max: 89
 --- !u!114 &8709397930631009001
