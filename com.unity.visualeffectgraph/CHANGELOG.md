@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Ability to read attribute in spawn context through graph
 - Added save button to save only the current visual effect graph.
 - Added Degrees / Radians conversion subgraphs in samples
+- New TransformVector4 operator
+- New GetTextureDimensions operator
 
 ### Fixed
 - Moved VFX Event Tester Window visibility to Component Play Controls SceneView Window
