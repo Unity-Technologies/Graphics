@@ -126,6 +126,23 @@ Varyings LitPassVertex(Attributes input)
     return output;
 }
 
+int UNITY_DataExtraction_Mode;
+int UNITY_DataExtraction_Space;
+
+#define RENDER_OBJECT_ID 1
+#define RENDER_DEPTH 2
+#define RENDER_WORLD_NORMALS_FACE 3
+#define RENDER_WORLD_POSITION 4
+#define RENDER_ENTITY_ID 5
+#define RENDER_BASE_COLOR 6
+#define RENDER_SPECULAR 7
+#define RENDER_METALLIC 8
+#define RENDER_EMISSION 9
+#define RENDER_WORLD_NORMALS_PIXEL 10
+#define RENDER_SMOOTHNESS 11
+#define RENDER_OCCLUSION 12
+
+
 // Used in Standard (Physically Based) shader
 float4 LitPassFragment(Varyings input) : SV_Target
 {
@@ -142,29 +159,32 @@ float4 LitPassFragment(Varyings input) : SV_Target
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a);
 
-    #ifdef RENDER_OBJECT_ID
-    return asint(unity_LODFade.z);
-    #elif defined(RENDER_DEPTH)
-    return 0;
-    #elif defined(RENDER_WORLD_NORMALS_FACE)
-    return float4(input.normalWS, 1.0f);
-    #elif defined(RENDER_WORLD_NORMALS_PIXEL)
+    if(UNITY_DataExtraction_Mode == RENDER_OBJECT_ID)
+        return asint(unity_LODFade.z);
+    if(UNITY_DataExtraction_Mode == RENDER_DEPTH)
+        return 0;
+    if(UNITY_DataExtraction_Mode == RENDER_WORLD_NORMALS_FACE)
+        return float4(input.normalWS, 1.0f);
+    if(UNITY_DataExtraction_Mode == RENDER_WORLD_POSITION)
+        return float4(inputData.positionWS, 1.0);
+    if(UNITY_DataExtraction_Mode == RENDER_ENTITY_ID)
+        return 0;
+    if(UNITY_DataExtraction_Mode == RENDER_BASE_COLOR)
+        return float4(surfaceData.albedo.xyz, surfaceData.alpha);
+    if(UNITY_DataExtraction_Mode == RENDER_SPECULAR)  
+        return float4(surfaceData.specular.xyz, 1.0);
+    if(UNITY_DataExtraction_Mode == RENDER_METALLIC)  
+        return float4(surfaceData.metallic, 0.0, 0.0, 1.0);
+    if(UNITY_DataExtraction_Mode == RENDER_EMISSION)
+        return float4(surfaceData.emission.xyz, 1.0);
+    if(UNITY_DataExtraction_Mode == RENDER_WORLD_NORMALS_PIXEL)
     return float4(inputData.normalWS, 1.0f);
-    #elif defined(RENDER_WORLD_POSITION)
-    return float4(inputData.positionWS, 1.0);
-    #elif defined(RENDER_BASE_COLOR_ALPHA)
-    return float4(surfaceData.albedo.xyz, surfaceData.alpha);
-    #elif defined(RENDER_SPECULAR_METALLIC)
-    return float4(surfaceData.specular.xyz, surfaceData.metallic);
-    #elif defined(RENDER_EMISSION)
-    return float4(surfaceData.emission.xyz, 1.0);
-    #elif defined(RENDER_SMOOTHNESS_OCCLUSION)
-    return float4(surfaceData.smoothness, surfaceData.occlusion, 1.0, 1.0);
-    #elif defined(RENDER_ENTITY_ID)
-    return 0;
-    #else
+    if(UNITY_DataExtraction_Mode == RENDER_SMOOTHNESS)
+        return float4(surfaceData.smoothness, 0.0, 0.0, 1.0);
+    if(UNITY_DataExtraction_Mode == RENDER_OCCLUSION)
+    return float4(surfaceData.occlusion, 0.0, 0.0, 1.0);
+    
     return color;
-    #endif
 }
 
 #endif

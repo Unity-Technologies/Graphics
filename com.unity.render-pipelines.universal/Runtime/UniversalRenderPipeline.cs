@@ -220,6 +220,14 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_RenderOpaqueForwardPass);
                 EnqueuePass(m_RenderTransparentForwardPass);
             }
+
+            public override void FinishRendering(CommandBuffer cmd)
+            {
+                base.FinishRendering(cmd);
+                cmd.SetGlobalInt("UNITY_DataExtraction_Mode", 0);
+                cmd.SetGlobalInt("UNITY_DataExtraction_Space", 0);
+                
+            }
         }
         
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
