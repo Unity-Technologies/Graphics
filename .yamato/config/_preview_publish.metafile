@@ -2,8 +2,8 @@ publishing:
   auto_publish: true
   auto_version: true
 platforms:
-  - os: OSX
-  - os: Win
+  - name: Win
+  - name: OSX
 packages:
   - name: core
     path: com.unity.render-pipelines.core
