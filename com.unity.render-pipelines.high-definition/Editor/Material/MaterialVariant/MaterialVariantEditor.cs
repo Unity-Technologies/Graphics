@@ -148,12 +148,12 @@ namespace Unity.Assets.MaterialVariant.Editor
             // Draw ourselves in the hierarchy
             using (new EditorGUI.DisabledScope(true))
             {
-                DrawLineageMember(assetTarget, false);
+                DrawLineageMember("Current", assetTarget, false);
             }
 
             if (parent == null)
             {
-                selectedTarget = DrawLineageMember(null, first);
+                selectedTarget = DrawLineageMember("Parent", null, first);
             }
             else
             {
@@ -166,17 +166,17 @@ namespace Unity.Assets.MaterialVariant.Editor
                         if (parent is MaterialVariant)
                         {
                             Material mat = AssetDatabase.LoadAssetAtPath<Material>(AssetDatabase.GetAssetPath(parent));
-                            localSelectedTarget = DrawLineageMember(mat, first);
+                            localSelectedTarget = DrawLineageMember(first ? "Parent" : " ", mat, first);
                             parent = (parent as MaterialVariant).GetParent();
                         }
                         else if (parent is Material)
                         {
-                            localSelectedTarget = DrawLineageMember(parent, first);
+                            localSelectedTarget = DrawLineageMember(first ? "Parent" : "Root", parent, first);
                             parent = (parent as Material).shader;
                         }
                         else if (parent is Shader)
                         {
-                            localSelectedTarget = DrawLineageMember(parent, first);
+                            localSelectedTarget = DrawLineageMember(first ? "Parent" : "Root", parent, first);
                             parent = null;
                         }
 
@@ -210,7 +210,7 @@ namespace Unity.Assets.MaterialVariant.Editor
             Shader = 1
         }
 
-        Object DrawLineageMember(Object asset, bool showButton)
+        Object DrawLineageMember(string label, Object asset, bool showButton)
         {
             Object target;
 
@@ -221,15 +221,15 @@ namespace Unity.Assets.MaterialVariant.Editor
                 Type type = m_ParentVariantType == ParentVariantType.Shader ? typeof(Shader) : typeof(Material);
                 // If m_ParentTarget is null we favor Material
                 if (m_ParentTarget is Material && m_ParentVariantType != ParentVariantType.Material)
-                    target = EditorGUILayout.ObjectField("", null, type, false);
+                    target = EditorGUILayout.ObjectField(label, null, type, false);
                 else if (m_ParentTarget is Shader && m_ParentVariantType != ParentVariantType.Shader)
-                    target = EditorGUILayout.ObjectField("", null, type, false);
+                    target = EditorGUILayout.ObjectField(label, null, type, false);
                 else
-                    target = EditorGUILayout.ObjectField("", asset, type, false);
+                    target = EditorGUILayout.ObjectField(label, asset, type, false);
 
                 var oldWidth = EditorGUIUtility.labelWidth;
-                EditorGUIUtility.labelWidth = 50;
-                m_ParentVariantType = (ParentVariantType)EditorGUILayout.EnumPopup(Styles.parentVariantType, m_ParentVariantType, GUILayout.MaxWidth(150));
+                EditorGUIUtility.labelWidth = 45;
+                m_ParentVariantType = (ParentVariantType)EditorGUILayout.EnumPopup(Styles.parentVariantType, m_ParentVariantType);
                 EditorGUIUtility.labelWidth = oldWidth;
                 EditorGUILayout.EndHorizontal();
                 
@@ -237,7 +237,7 @@ namespace Unity.Assets.MaterialVariant.Editor
             else
             {
                 Type type = asset is Shader ? typeof(Shader) : typeof(Material);
-                target = EditorGUILayout.ObjectField("", asset, type, false);
+                target = EditorGUILayout.ObjectField(label, asset, type, false);
             }
 
             // We could use this to start a Horizontal and add inline icons and toggles to show overridden/locked
