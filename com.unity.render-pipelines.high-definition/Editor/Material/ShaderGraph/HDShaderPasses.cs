@@ -491,7 +491,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 // Definition
                 displayName = "TransparentDepthPrepass",
-                referenceName = "SHADERPASS_DEPTH_ONLY",
+                referenceName = "SHADERPASS_TRANSPARENT_DEPTH_PREPASS",
                 lightMode = "TransparentDepthPrepass",
                 useInPreview = true,
 
@@ -530,9 +530,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 KeywordCollection keywords = new KeywordCollection { CoreKeywords.HDBase };
 
-                if (supportLighting)
-                    keywords.Add(CoreKeywordDescriptors.WriteNormalBuffer);
-                
+                // For now we can generate WriteNormalBuffer the way we want with SG generator
+                // as it require a conditional define. So instead it is hard coded in
+                // ShaderPass.template. Looks for SHADERPASS_TRANSPARENT_DEPTH_PREPASS in the file
+                //if (supportLighting)
+                //    keywords.Add(CoreKeywordDescriptors.WriteNormalBuffer);
+
                 return keywords;
             }
 
@@ -609,7 +612,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 // Definition
                 displayName = "TransparentDepthPostpass",
-                referenceName = "SHADERPASS_DEPTH_ONLY",
+                referenceName = "SHADERPASS_TRANSPARENT_DEPTH_POSTPASS",
                 lightMode = "TransparentDepthPostpass",
                 useInPreview = true,
 

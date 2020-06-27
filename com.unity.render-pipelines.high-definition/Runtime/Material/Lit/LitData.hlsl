@@ -219,9 +219,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // Perform alha test very early to save performance (a killed pixel will not sample textures)
     float alphaCutoff = _AlphaCutoff;
-    #ifdef CUTOFF_TRANSPARENT_DEPTH_PREPASS
+    #if SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_PREPASS
     alphaCutoff = _AlphaCutoffPrepass;
-    #elif defined(CUTOFF_TRANSPARENT_DEPTH_POSTPASS)
+    #elif SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_POSTPASS
     alphaCutoff = _AlphaCutoffPostpass;
     #endif
 
