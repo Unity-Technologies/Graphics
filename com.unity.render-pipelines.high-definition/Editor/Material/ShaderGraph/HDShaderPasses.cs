@@ -500,7 +500,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     BlockFields.SurfaceDescription.Alpha,
                     HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,
                     BlockFields.SurfaceDescription.AlphaClipThreshold,
-                    HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass,
                     HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow,
                     HDBlockFields.SurfaceDescription.DepthOffset,
                     BlockFields.SurfaceDescription.NormalTS,
