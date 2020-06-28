@@ -370,7 +370,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
 #region Forward Only
 
-        public static PassDescriptor GenereateForwardOnlyPass(bool supportLighting)
+        public static PassDescriptor GenerateForwardOnlyPass(bool supportLighting)
         {
             return new PassDescriptor
             { 
@@ -388,7 +388,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 keywords = supportLighting ? CoreKeywords.Forward : UnlitForwardKeywords,
                 includes = GenerateIncludes(),
 
-                virtualTextureFeedback = supportLighting ? false : true,
+                virtualTextureFeedback = true,
             };
 
             IncludeCollection GenerateIncludes()

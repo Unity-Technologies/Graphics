@@ -87,7 +87,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (supportForward)
                 {
                     passes.Add(HDShaderPasses.GenerateDepthForwardOnlyPass(supportLighting));
-                    passes.Add(HDShaderPasses.GenereateForwardOnlyPass(supportLighting));
+                    passes.Add(HDShaderPasses.GenerateForwardOnlyPass(supportLighting));
                 }
 
                 if (supportDistortion)
