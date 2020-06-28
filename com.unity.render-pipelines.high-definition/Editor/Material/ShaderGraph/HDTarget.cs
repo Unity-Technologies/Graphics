@@ -664,17 +664,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend, Uniforms.alphaSrcBlend, Uniforms.alphaDstBlend) },
             { RenderState.Cull(Uniforms.cullModeForward) },
             { RenderState.ZWrite(Uniforms.zWrite) },
-            { RenderState.ZTest(Uniforms.zTestDepthEqualForOpaque), new FieldCondition[] {
-                new FieldCondition(Fields.SurfaceOpaque, true),
-                new FieldCondition(Fields.AlphaTest, false)
-            } },
-            { RenderState.ZTest(Uniforms.zTestDepthEqualForOpaque), new FieldCondition[] {
-                new FieldCondition(Fields.SurfaceOpaque, false),
-            } },
-            { RenderState.ZTest(ZTest.Equal), new FieldCondition[] {
-                new FieldCondition(Fields.SurfaceOpaque, true),
-                new FieldCondition(Fields.AlphaTest, true)
-            } },
+            { RenderState.ZTest(Uniforms.zTestDepthEqualForOpaque) },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = Uniforms.stencilWriteMask,
@@ -689,17 +679,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend, Uniforms.alphaSrcBlend, Uniforms.alphaDstBlend) },
             { RenderState.Cull(Uniforms.cullModeForward) },
             { RenderState.ZWrite(Uniforms.zWrite) },
-            { RenderState.ZTest(Uniforms.zTestDepthEqualForOpaque), new FieldCondition[] {
-                new FieldCondition(Fields.SurfaceOpaque, true),
-                new FieldCondition(Fields.AlphaTest, false)
-            } },
-            { RenderState.ZTest(Uniforms.zTestDepthEqualForOpaque), new FieldCondition[] {
-                new FieldCondition(Fields.SurfaceOpaque, false),
-            } },
-            { RenderState.ZTest(ZTest.Equal), new FieldCondition[] {
-                new FieldCondition(Fields.SurfaceOpaque, true),
-                new FieldCondition(Fields.AlphaTest, true)
-            } },
+            { RenderState.ZTest(Uniforms.zTestDepthEqualForOpaque) },
             { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVel] 1") },
             { RenderState.Stencil(new StencilDescriptor()
             {
@@ -830,7 +810,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywordDescriptors.BlendModePreserveSpecularLighting, new FieldCondition(HDFields.Unlit, false) },
             { CoreKeywordDescriptors.AddPrecomputedVelocity },
             { CoreKeywordDescriptors.TransparentWritesMotionVector },
-            { CoreKeywordDescriptors.DepthOffset },
+            { CoreKeywordDescriptors.DepthOffset, new FieldCondition(Fields.DepthOffset, true) },
             { CoreKeywordDescriptors.FogOnTransparent },
             { CoreKeywordDescriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true) },
         };
@@ -926,7 +906,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static DefineCollection Forward = new DefineCollection
         {
             { CoreKeywordDescriptors.HasLightloop, 1 },
-            { RayTracingNode.GetRayTracingKeyword(), 0, new FieldCondition(Fields.SurfaceTransparent, true) },
+            { RayTracingNode.GetRayTracingKeyword(), 0 },
         };
     }
 #endregion
@@ -1368,24 +1348,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
-        };
-
-        public static KeywordDescriptor DepthPrepassCutoff = new KeywordDescriptor()
-        {
-            displayName = "Depth Prepass Cutoff",
-            referenceName = "CUTOFF_TRANSPARENT_DEPTH_PREPASS",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.Predefined,
-            scope = KeywordScope.Global,
-        };
-
-        public static KeywordDescriptor DepthPostpassCutoff = new KeywordDescriptor()
-        {
-            displayName = "Depth Postpass Cutoff",
-            referenceName = "CUTOFF_TRANSPARENT_DEPTH_POSTPASS",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.Predefined,
-            scope = KeywordScope.Global,
         };
     }
 #endregion

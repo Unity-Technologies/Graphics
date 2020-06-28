@@ -42,9 +42,15 @@ Pass
     $VaryingsMeshToPS.texCoord2:        #define VARYINGS_NEED_TEXCOORD2
     $VaryingsMeshToPS.texCoord3:        #define VARYINGS_NEED_TEXCOORD3
     $VaryingsMeshToPS.color:            #define VARYINGS_NEED_COLOR
-    $VaryingsMeshToPS.cullFace:         #define VARYINGS_NEED_CULLFACE
     $features.graphVertex:              #define HAVE_MESH_MODIFICATION
     $splice(GraphDefines)
+
+    #ifndef SHADER_UNLIT
+    // We need isFrontFace when using double sided - it is not required for unlit as in case of unlit double sided only drive the cullmode
+    #ifdef _DOUBLESIDED_ON
+        #define VARYINGS_NEED_CULLFACE
+    #endif
+    #endif
 
     // Specific Material Define
     $include("ShaderPassDefine.template.hlsl")
@@ -76,13 +82,6 @@ Pass
             #define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
             #endif
         #endif
-    #endif
-
-    #ifndef SHADER_UNLIT
-    // We need isFontFace when using double sided
-    #if defined(_DOUBLESIDED_ON) && !defined(VARYINGS_NEED_CULLFACE)
-        #define VARYINGS_NEED_CULLFACE
-    #endif
     #endif
 
     // Translate transparent motion vector define
@@ -166,11 +165,17 @@ Pass
         // TODO: split graph evaluation to grab just alpha dependencies first? tricky..
         #ifdef _ALPHATEST_ON
             float alphaCutoff = surfaceDescription.AlphaClipThreshold;
+            #if SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_PREPASS
+            // The TransparentDepthPrepass is also used with SSR transparent.
+            // If an artists enable transaprent SSR but not the TransparentDepthPrepass itself, then we use AlphaClipThreshold
+            // otherwise if TransparentDepthPrepass is enabled we use AlphaClipThresholdDepthPrepass
             $DoAlphaTestPrepass: alphaCutoff = surfaceDescription.AlphaClipThresholdDepthPrepass;
-            $DoAlphaTestPostpass: alphaCutoff = surfaceDescription.AlphaClipThresholdDepthPostpass;
-
-            #if SHADERPASS == SHADERPASS_SHADOWS
-                $DoAlphaTestShadow: alphaCutoff = _UseShadowThreshold ? surfaceDescription.AlphaClipThresholdShadow : alphaCutoff;
+            #elif SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_POSTPASS
+            // DepthPostpass always use its own alpha threshold
+            alphaCutoff = surfaceDescription.AlphaClipThresholdDepthPostpass;
+            #elif SHADERPASS == SHADERPASS_SHADOWS
+            // If use shadow threshold isn't enable we don't allow any test
+            $DoAlphaTestShadow: alphaCutoff = _UseShadowThreshold ? surfaceDescription.AlphaClipThresholdShadow : alphaCutoff;
             #endif
 
             GENERIC_ALPHA_TEST(surfaceDescription.Alpha, alphaCutoff);

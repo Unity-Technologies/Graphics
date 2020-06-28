@@ -1,4 +1,4 @@
-﻿namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph
 {
     [GenerationAPI]
     internal static class Fields
@@ -30,6 +30,7 @@
         public static FieldDescriptor IsPreview =             new FieldDescriptor(string.Empty, "isPreview", "SHADERGRAPH_PREVIEW");
         public static FieldDescriptor LodCrossFade =          new FieldDescriptor(string.Empty, "LodCrossFade", "_LODCROSSFADE 1");
         public static FieldDescriptor AlphaToMask =           new FieldDescriptor(string.Empty, "AlphaToMask", "_ALPHATOMASK_ON 1");
+        public static FieldDescriptor DepthOffset =           new FieldDescriptor(string.Empty, "DepthOffset", "_DEPTH_OFFSET 1");
 #endregion
     }
 }

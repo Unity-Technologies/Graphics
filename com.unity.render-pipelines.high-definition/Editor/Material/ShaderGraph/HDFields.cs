@@ -50,8 +50,6 @@ namespace UnityEditor.Rendering.HighDefinition
         // Misc
         public static FieldDescriptor DoAlphaTestShadow =       new FieldDescriptor(string.Empty, "DoAlphaTestShadow", "_DO_ALPHA_TEST_SHADOW 1");
         public static FieldDescriptor DoAlphaTestPrepass =      new FieldDescriptor(string.Empty, "DoAlphaTestPrepass", "_DO_ALPHA_TEST_PREPASS 1");
-        public static FieldDescriptor DoAlphaTestPostpass =     new FieldDescriptor(string.Empty, "DoAlphaTestPostpass", "_DO_ALPHA_TEST_POSTPASS 1");
-        public static FieldDescriptor AlphaFog =                new FieldDescriptor(string.Empty, "AlphaFog", "_ENABLE_FOG_ON_TRANSPARENT 1");
         public static FieldDescriptor BentNormal =              new FieldDescriptor(string.Empty, "BentNormal", "_BENT_NORMAL 1");
         public static FieldDescriptor AmbientOcclusion =        new FieldDescriptor(string.Empty, "AmbientOcclusion", "_AMBIENT_OCCLUSION 1");
         public static FieldDescriptor CoatMask =                new FieldDescriptor(string.Empty, "CoatMask", "_COAT_MASK 1");
@@ -59,6 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor LightingGI =              new FieldDescriptor(string.Empty, "LightingGI", "_LIGHTING_GI 1");
         public static FieldDescriptor BackLightingGI =          new FieldDescriptor(string.Empty, "BackLightingGI", "_BACK_LIGHTING_GI 1");
         public static FieldDescriptor TransparentBackFace =     new FieldDescriptor(string.Empty, "TransparentBackFace", string.Empty);
+        public static FieldDescriptor TransparentDepthPostPass = new FieldDescriptor(string.Empty, "TransparentDepthPostPass", string.Empty);
         public static FieldDescriptor RayTracing =              new FieldDescriptor(string.Empty, "RayTracing", string.Empty);
         public static FieldDescriptor Unlit =                   new FieldDescriptor(string.Empty, "Unlit", string.Empty);
 

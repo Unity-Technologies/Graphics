@@ -521,8 +521,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var defines = new DefineCollection{ { RayTracingNode.GetRayTracingKeyword(), 0 } };
 
-                defines.Add(CoreKeywordDescriptors.DepthPrepassCutoff, 0);
-
                 return defines;
             }
 
@@ -635,7 +633,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             DefineCollection GenerateDefines()
             {
                 var defines = new DefineCollection{ CoreDefines.ShaderGraphRaytracingHigh };
-                defines.Add(CoreKeywordDescriptors.DepthPostpassCutoff, 0);
+
                 return defines;
             }
 

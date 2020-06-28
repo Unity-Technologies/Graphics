@@ -218,15 +218,14 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float alphaValue = SAMPLE_UVMAPPING_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, layerTexCoord.base).a * _BaseColor.a;
 
     // Perform alha test very early to save performance (a killed pixel will not sample textures)
-    float alphaCutoff = _AlphaCutoff;
     #if SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_PREPASS
-    alphaCutoff = _AlphaCutoffPrepass;
+    float alphaCutoff = _AlphaCutoffPrepass;
     #elif SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_POSTPASS
-    alphaCutoff = _AlphaCutoffPostpass;
-    #endif
-
-    #if SHADERPASS == SHADERPASS_SHADOWS
-        alphaCutoff = _UseShadowThreshold ? _AlphaCutoffShadow : alphaCutoff;
+    float alphaCutoff = _AlphaCutoffPostpass;
+    #elif SHADERPASS == SHADERPASS_SHADOWS
+    float alphaCutoff = _UseShadowThreshold ? _AlphaCutoffShadow : alphaCutoff;
+    #else
+    float alphaCutoff = _AlphaCutoff;
     #endif
 
     GENERIC_ALPHA_TEST(alphaValue, alphaCutoff);
