@@ -70,20 +70,24 @@ namespace UnityEditor.Rendering.HighDefinition
         public static void AddStencilShaderProperties(PropertyCollector collector, SystemData systemData, LightingData lightingData, bool splitLighting)
         {
             bool ssrStencil = false;
-            bool receiveSSROpaque = false;
-            bool receiveSSRTransparent = false;
-            bool receiveDecals = false;
-            bool blendPreserveSpecular = false;
 
             if (lightingData != null)
             {
                 ssrStencil = systemData.surfaceType == SurfaceType.Opaque ? lightingData.receiveSSR : lightingData.receiveSSRTransparent;
-                receiveSSROpaque = lightingData.receiveSSR;
-                receiveSSRTransparent = lightingData.receiveSSRTransparent;
-                receiveDecals = lightingData.receiveDecals;
-                blendPreserveSpecular = lightingData.blendPreserveSpecular;
+                bool receiveSSROpaque = lightingData.receiveSSR;
+                bool receiveSSRTransparent = lightingData.receiveSSRTransparent;
+                bool receiveDecals = lightingData.receiveDecals;
+                bool blendPreserveSpecular = lightingData.blendPreserveSpecular;
+
+                // Don't add those property on Unlit
+                collector.AddToggleProperty(kUseSplitLighting, splitLighting);
+                collector.AddToggleProperty(kReceivesSSR, receiveSSROpaque);
+                collector.AddToggleProperty(kReceivesSSRTransparent, receiveSSRTransparent);
+                collector.AddToggleProperty(kEnableBlendModePreserveSpecularLighting, blendPreserveSpecular);
+                collector.AddToggleProperty(kSupportDecals, receiveDecals);
             }
 
+            // Configure render state
             BaseLitGUI.ComputeStencilProperties(ssrStencil, splitLighting, out int stencilRef, out int stencilWriteMask,
                 out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
                 out int stencilRefMV, out int stencilWriteMaskMV
@@ -105,12 +109,6 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddIntProperty("_StencilWriteMaskGBuffer", stencilWriteMaskGBuffer);
             collector.AddIntProperty("_StencilRefGBuffer", stencilRefGBuffer);
             collector.AddIntProperty("_ZTestGBuffer", 4);
-
-            collector.AddToggleProperty(kUseSplitLighting, splitLighting);
-            collector.AddToggleProperty(kReceivesSSR, receiveSSROpaque);
-            collector.AddToggleProperty(kReceivesSSRTransparent, receiveSSRTransparent);
-            collector.AddToggleProperty(kSupportDecals, receiveDecals);
-            collector.AddToggleProperty(kEnableBlendModePreserveSpecularLighting, blendPreserveSpecular);
         }
 
         public static void AddBlendingStatesShaderProperties(
