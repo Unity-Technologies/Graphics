@@ -73,10 +73,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var descs = context.blocks.Select(x => x.descriptor);
 
             // Misc
-            context.AddField(BlendPreserveSpecular,                systemData.surfaceType != SurfaceType.Opaque && lightingData.blendPreserveSpecular);
-            context.AddField(DisableDecals,                        !lightingData.receiveDecals);
-            context.AddField(DisableSSR,                           !lightingData.receiveSSR);
-            context.AddField(DisableSSRTransparent,                !lightingData.receiveSSRTransparent);
             context.AddField(SpecularAA,                           lightingData.specularAA &&
                                                                                 context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold) &&
                                                                                 context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance));
@@ -126,6 +122,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Add all shader properties required by the inspector
             HDSubShaderUtilities.AddStencilShaderProperties(collector, systemData, lightingData, requireSplitLighting);
+        }
+
+        public override void ProcessPreviewMaterial(Material material)
+        {
+            base.ProcessPreviewMaterial(material);
+
+            material.SetFloat(kEnableBlendModePreserveSpecularLighting, lightingData.blendPreserveSpecular ? 1 : 0);
+            material.SetFloat(kReceivesSSR, lightingData.receiveSSR ? 1 : 0);
+            material.SetFloat(kReceivesSSRTransparent, lightingData.receiveSSRTransparent ? 1 : 0);
         }
     }
 }
