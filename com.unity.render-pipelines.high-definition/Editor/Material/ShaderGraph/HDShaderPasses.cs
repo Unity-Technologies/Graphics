@@ -986,7 +986,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingForwardDefines : null,
-                keywords = CoreKeywords.RaytracingGBufferForward,
+                keywords = CoreKeywords.RaytracingForward,
                 includes = GenerateIncludes(),
             };
 
@@ -1053,7 +1053,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingGBufferDefines : null,
-                keywords = CoreKeywords.RaytracingGBufferForward,
+                keywords = CoreKeywords.RaytracingGBuffer,
                 includes = GenerateIncludes(),
             };
 
@@ -1180,7 +1180,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 //Collections
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = RaytracingSubsurfaceDefines,
-                keywords = CoreKeywords.RaytracingGBufferForward,
+                keywords = CoreKeywords.RaytracingForward,
                 includes = GenerateIncludes(),
             };
 

@@ -828,6 +828,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywordDescriptors.DynamicLightmap },
         };
 
+        public static KeywordCollection LightmapsRaytracing = new KeywordCollection
+        {
+            { CoreKeywordDescriptors.Lightmap },
+            { CoreKeywordDescriptors.DirectionalLightmapCombined },
+        };
+
         public static KeywordCollection WriteMsaaDepth = new KeywordCollection
         {
             { CoreKeywordDescriptors.WriteMsaaDepth },
@@ -870,13 +876,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static KeywordCollection RaytracingIndirect = new KeywordCollection
         {
             { HDBaseNoCrossFade },
-            { Lightmaps },
+            { CoreKeywordDescriptors.DebugDisplay },
+            { LightmapsRaytracing },
         };
 
-        public static KeywordCollection RaytracingGBufferForward = new KeywordCollection
+        public static KeywordCollection RaytracingForward = new KeywordCollection
         {
             { HDBaseNoCrossFade },
-            { Lightmaps },
+            { CoreKeywordDescriptors.DebugDisplay },
+            { LightmapsRaytracing },
+        };
+
+        public static KeywordCollection RaytracingGBuffer = new KeywordCollection
+        {
+            { HDBaseNoCrossFade },
+            { CoreKeywordDescriptors.DebugDisplay },
+            { LightmapsRaytracing },
+            { CoreKeywordDescriptors.RaytraceMinimalGBuffer },
         };
 
         public static KeywordCollection RaytracingVisiblity = new KeywordCollection
@@ -1294,6 +1310,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             displayName = "Transparent Color Shadow",
             referenceName = "TRANSPARENT_COLOR_SHADOW",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global
+        };
+
+        public static KeywordDescriptor RaytraceMinimalGBuffer = new KeywordDescriptor()
+        {
+            displayName = "Minimal GBuffer",
+            referenceName = "MINIMAL_GBUFFER",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global
