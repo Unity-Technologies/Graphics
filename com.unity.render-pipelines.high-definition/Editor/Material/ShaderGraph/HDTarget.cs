@@ -845,7 +845,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywordDescriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
         };
 
-        public static KeywordCollection Forward = new KeywordCollection
+        public static KeywordCollection ForwardBase = new KeywordCollection
         {
             { HDBase },
             { CoreKeywordDescriptors.DebugDisplay },
@@ -854,7 +854,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywordDescriptors.Shadow },
             { CoreKeywordDescriptors.ScreenSpaceShadow },
             { CoreKeywordDescriptors.Decals },
+        };
+
+        public static KeywordCollection Forward = new KeywordCollection
+        {
+            { ForwardBase },
             { CoreKeywordDescriptors.LightList },
+        };
+
+        public static KeywordCollection BackThenFrontTransparent = new KeywordCollection
+        {
+            { ForwardBase },
         };
 
         public static KeywordCollection RaytracingIndirect = new KeywordCollection
@@ -900,13 +910,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static DefineCollection TransparentDepthPrepass = new DefineCollection
         {
             { RayTracingNode.GetRayTracingKeyword(), 0 },
-            { CoreKeywordDescriptors.WriteNormalBuffer, 1 },
+        };
+
+        public static DefineCollection TransparentDepthPostpass = new DefineCollection
+        {
+            { RayTracingNode.GetRayTracingKeyword(), 0 },
         };
 
         public static DefineCollection Forward = new DefineCollection
         {
             { CoreKeywordDescriptors.HasLightloop, 1 },
             { RayTracingNode.GetRayTracingKeyword(), 0 },
+        };
+
+        public static DefineCollection BackThenFront = new DefineCollection
+        {
+            { CoreKeywordDescriptors.HasLightloop, 1 },
+            { RayTracingNode.GetRayTracingKeyword(), 0 },
+            { CoreKeywordDescriptors.LightList, 1 }, // BackThenFront Transparent use #define USE_CLUSTERED_LIGHTLIST 
         };
     }
 #endregion

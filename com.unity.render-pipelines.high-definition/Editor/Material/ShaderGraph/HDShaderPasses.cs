@@ -446,8 +446,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = CoreRequiredFields.LitMinimal,
                 renderStates = CoreRenderStates.TransparentBackface,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
-                defines = CoreDefines.Forward,
-                keywords = CoreKeywords.Forward,
+                defines = CoreDefines.BackThenFront,
+                keywords = supportLighting ? CoreKeywords.BackThenFrontTransparent : UnlitForwardKeywords,
                 includes = GenerateIncludes(),
             };
 
@@ -512,17 +512,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = TransparentDepthPrepassFields,
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
-                defines = GenerateDefines(),
+                defines = CoreDefines.TransparentDepthPrepass,
                 keywords = GenerateKeywords(),
                 includes = GenerateIncludes(),
             };
-
-            DefineCollection GenerateDefines()
-            {
-                var defines = new DefineCollection{ { RayTracingNode.GetRayTracingKeyword(), 0 } };
-
-                return defines;
-            }
 
             KeywordCollection GenerateKeywords()
             {
@@ -625,17 +618,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
-                defines = GenerateDefines(),
+                defines = CoreDefines.TransparentDepthPostpass,
                 keywords = CoreKeywords.HDBase,
                 includes = GenerateIncludes(),
             };
-
-            DefineCollection GenerateDefines()
-            {
-                var defines = new DefineCollection{ CoreDefines.ShaderGraphRaytracingHigh };
-
-                return defines;
-            }
 
             IncludeCollection GenerateIncludes()
             {
