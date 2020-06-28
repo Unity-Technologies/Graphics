@@ -865,11 +865,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { LightmapsRaytracing },
         };
 
+        public static KeywordCollection RaytracingIndirectUnlit = new KeywordCollection
+        {
+            { HDBaseNoCrossFade },
+            { CoreKeywordDescriptors.DebugDisplay },
+        };
+
         public static KeywordCollection RaytracingForward = new KeywordCollection
         {
             { HDBaseNoCrossFade },
             { CoreKeywordDescriptors.DebugDisplay },
             { LightmapsRaytracing },
+        };
+
+        public static KeywordCollection RaytracingForwardUnlit = new KeywordCollection
+        {
+            { HDBaseNoCrossFade },
+            { CoreKeywordDescriptors.DebugDisplay },
         };
 
         public static KeywordCollection RaytracingGBuffer = new KeywordCollection
@@ -878,6 +890,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywordDescriptors.DebugDisplay },
             { LightmapsRaytracing },
             { CoreKeywordDescriptors.RaytraceMinimalGBuffer },
+        };
+
+        public static KeywordCollection RaytracingGBufferUnlit = new KeywordCollection
+        {
+            { HDBaseNoCrossFade },
+            { CoreKeywordDescriptors.DebugDisplay },
         };
 
         public static KeywordCollection RaytracingVisiblity = new KeywordCollection

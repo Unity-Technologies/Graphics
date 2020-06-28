@@ -229,12 +229,30 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 requiredFields = GenerateRequiredFields(),
-                renderStates = CoreRenderStates.DepthOnly,
+                renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = supportLighting ? CoreDefines.DepthMotionVectors : null,
                 keywords = CoreKeywords.DepthMotionVectorsNoNormal,
                 includes = GenerateIncludes(),
             };
+
+            RenderStateCollection GenerateRenderState()
+            {
+                var renderState = CoreRenderStates.DepthOnly;
+
+                if (!supportLighting)
+                {
+                    // Caution: When using MSAA we have normal and depth buffer bind.
+                    // Unlit objects need to NOT write in normal buffer (or write 0) - Disable color mask for this RT
+                    // Note: ShaderLab doesn't allow to have a variable on the second parameter of ColorMask
+                    // - When MSAA: disable target 1 (normal buffer)
+                    // - When no MSAA: disable target 0 (normal buffer) and 1 (unused)
+                    renderState.Add(RenderState.ColorMask("ColorMask [_ColorMaskNormal]"));
+                    renderState.Add(RenderState.ColorMask("ColorMask 0 1"));
+                }
+
+                return renderState;
+            }
 
             FieldCollection GenerateRequiredFields()
             {
@@ -321,6 +339,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     
                 if (!supportLighting)
                 {
+                    // Caution: When using MSAA we have motion vector, normal and depth buffer bind.
+                    // Unlit objects need to NOT write in normal buffer (or write 0) - Disable color mask for this RT
+                    // Note: ShaderLab doesn't allow to have a variable on the second parameter of ColorMask
+                    // - When MSAA: disable target 2 (normal buffer)
+                    // - When no MSAA: disable target 1 (normal buffer) and 2 (unused)
                     renderState.Add(RenderState.ColorMask("ColorMask [_ColorMaskNormal] 1"));
                     renderState.Add(RenderState.ColorMask("ColorMask 0 2"));
                 }
@@ -495,18 +518,25 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 lightMode = "TransparentDepthPrepass",
                 useInPreview = true,
 
-                validPixelBlocks = new BlockFieldDescriptor[]
-                {
-                    BlockFields.SurfaceDescription.Alpha,
-                    HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,
-                    BlockFields.SurfaceDescription.AlphaClipThreshold,
-                    HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow,
-                    HDBlockFields.SurfaceDescription.DepthOffset,
-                    BlockFields.SurfaceDescription.NormalTS,
-                    BlockFields.SurfaceDescription.NormalWS,
-                    BlockFields.SurfaceDescription.NormalOS,
-                    BlockFields.SurfaceDescription.Smoothness,
-                },
+                validPixelBlocks = supportLighting ?
+                    new BlockFieldDescriptor[]
+                    {
+                        BlockFields.SurfaceDescription.Alpha,
+                        HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,
+                        BlockFields.SurfaceDescription.AlphaClipThreshold,
+                        HDBlockFields.SurfaceDescription.DepthOffset,
+                        BlockFields.SurfaceDescription.NormalTS,
+                        BlockFields.SurfaceDescription.NormalWS,
+                        BlockFields.SurfaceDescription.NormalOS,
+                        BlockFields.SurfaceDescription.Smoothness,
+                    } :
+                    new BlockFieldDescriptor[]
+                    {
+                        BlockFields.SurfaceDescription.Alpha,
+                        HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,
+                        BlockFields.SurfaceDescription.AlphaClipThreshold,
+                        HDBlockFields.SurfaceDescription.DepthOffset,
+                    },
 
                 // Collections
                 requiredFields = TransparentDepthPrepassFields,
@@ -548,6 +578,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 if (!supportLighting)
                 {
+                    // Caution: When using MSAA we have normal and depth buffer bind.
+                    // Unlit objects need to NOT write in normal buffer (or write 0) - Disable color mask for this RT
+                    // Note: ShaderLab doesn't allow to have a variable on the second parameter of ColorMask
+                    // - When MSAA: disable target 1 (normal buffer)
+                    // - When no MSAA: disable target 0 (normal buffer) and 1 (unused)
                     renderState.Add(RenderState.ColorMask("ColorMask [_ColorMaskNormal]"));
                     renderState.Add(RenderState.ColorMask("ColorMask 0 1"));
                 }
@@ -870,7 +905,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingIndirectDefines : null,
-                keywords = CoreKeywords.RaytracingIndirect,
+                keywords = supportLighting ? CoreKeywords.RaytracingIndirect : CoreKeywords.RaytracingIndirectUnlit,
                 includes = GenerateIncludes(),
             };
 
@@ -986,7 +1021,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingForwardDefines : null,
-                keywords = CoreKeywords.RaytracingForward,
+                keywords = supportLighting ? CoreKeywords.RaytracingForward : CoreKeywords.RaytracingForwardUnlit,
                 includes = GenerateIncludes(),
             };
 
@@ -1053,7 +1088,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingGBufferDefines : null,
-                keywords = CoreKeywords.RaytracingGBuffer,
+                keywords = supportLighting ? CoreKeywords.RaytracingGBuffer : CoreKeywords.RaytracingGBufferUnlit,
                 includes = GenerateIncludes(),
             };
 

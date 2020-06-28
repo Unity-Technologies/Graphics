@@ -67,7 +67,7 @@ Pass
     // so instead we used this and chose to pay the extra cost of normal write even if SSR transaprent is disabled.
     // Ideally the shader graph generator should handle it but condition below can't be handle correctly for now.
     #if SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_PREPASS
-    #if !defined(_DISABLE_SSR_TRANSPARENT)
+    #if !defined(_DISABLE_SSR_TRANSPARENT) && !defined(SHADER_UNLIT)
         #define WRITE_NORMAL_BUFFER
     #endif
     #endif
