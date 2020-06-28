@@ -228,7 +228,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(Fields.AlphaToMask,                    systemData.alphaTest);
             context.AddField(HDFields.TransparentBackFace,          builtinData.backThenFrontRendering);
 
-            context.AddField(Fields.DepthOffset, builtinData.depthOffset && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.DepthOffset));
+            context.AddField(HDFields.DepthOffset, builtinData.depthOffset && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.DepthOffset));
 
             // Depth offset needs positionRWS and is now a multi_compile
             if (builtinData.depthOffset)

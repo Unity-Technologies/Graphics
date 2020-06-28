@@ -810,7 +810,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywordDescriptors.BlendModePreserveSpecularLighting, new FieldCondition(HDFields.Unlit, false) },
             { CoreKeywordDescriptors.AddPrecomputedVelocity },
             { CoreKeywordDescriptors.TransparentWritesMotionVector },
-            { CoreKeywordDescriptors.DepthOffset, new FieldCondition(Fields.DepthOffset, true) },
+            { CoreKeywordDescriptors.DepthOffset, new FieldCondition(HDFields.DepthOffset, true) },
             { CoreKeywordDescriptors.FogOnTransparent },
             { CoreKeywordDescriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true) },
         };
