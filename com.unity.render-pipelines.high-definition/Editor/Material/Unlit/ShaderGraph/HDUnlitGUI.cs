@@ -12,12 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     class HDUnlitGUI : HDShaderGUI
     {
-        // For surface option shader graph we only want all unlit features but alpha clip, double sided mode and back then front rendering
-        const SurfaceOptionUIBlock.Features   surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Unlit
-            ^ SurfaceOptionUIBlock.Features.AlphaCutoffThreshold
-            ^ SurfaceOptionUIBlock.Features.DoubleSidedNormalMode
-            ^ SurfaceOptionUIBlock.Features.BackThenFrontRendering
-            | SurfaceOptionUIBlock.Features.ShowDepthOffsetOnly;
+        const SurfaceOptionUIBlock.Features surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Unlit;
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {

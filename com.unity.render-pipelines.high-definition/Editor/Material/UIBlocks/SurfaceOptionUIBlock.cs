@@ -25,12 +25,14 @@ namespace UnityEditor.Rendering.HighDefinition
             DoubleSidedNormalMode       = 1 << 6,
             BackThenFrontRendering      = 1 << 7,
             ReceiveSSR                  = 1 << 8,
-            ShowAfterPostProcessPass    = 1 << 9,
-            AlphaToMask                 = 1 << 10,
-            ShowPrePassAndPostPass      = 1 << 11,
-            ShowDepthOffsetOnly         = 1 << 12,
-            Unlit                       = Surface | BlendMode | DoubleSided | DoubleSidedNormalMode | AlphaCutoff | AlphaCutoffShadowThreshold | AlphaCutoffThreshold | BackThenFrontRendering | ShowAfterPostProcessPass | AlphaToMask,
-            Lit                         = All ^ ShowDepthOffsetOnly,
+            ReceiveDecal                = 1 << 9,
+            ShowAfterPostProcessPass    = 1 << 10,
+            AlphaToMask                 = 1 << 11,
+            ShowPrePassAndPostPass      = 1 << 12,
+            ShowDepthOffsetOnly         = 1 << 13,
+            PreserveSpecularLighting    = 1 << 14,
+            Unlit                       = Surface | BlendMode | DoubleSided | AlphaCutoff | AlphaCutoffThreshold | AlphaCutoffShadowThreshold| AlphaToMask | BackThenFrontRendering | ShowAfterPostProcessPass | ShowPrePassAndPostPass | ShowDepthOffsetOnly,
+            Lit                         = All ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass, // Lit can't be display in after postprocess pass
             All                         = ~0,
         }
 
@@ -295,7 +297,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             transparentWritingMotionVec = FindProperty(kTransparentWritingMotionVec);
 
-            enableBlendModePreserveSpecularLighting = FindProperty(kEnableBlendModePreserveSpecularLighting);
+            if ((m_Features & Features.PreserveSpecularLighting) != 0)
+                enableBlendModePreserveSpecularLighting = FindProperty(kEnableBlendModePreserveSpecularLighting);
+
             enableFogOnTransparent = FindProperty(kEnableFogOnTransparent);
 
             if ((m_Features & Features.DoubleSided) != 0)
@@ -341,7 +345,10 @@ namespace UnityEditor.Rendering.HighDefinition
             tessellationMode = FindProperty(kTessellationMode);
 
             // Decal
-            supportDecals = FindProperty(kSupportDecals);
+            if ((m_Features & Features.ReceiveDecal) != 0)
+            {
+                supportDecals = FindProperty(kSupportDecals);
+            }
 
             // specular AA
             enableGeometricSpecularAA = FindProperty(kEnableGeometricSpecularAA);
@@ -391,22 +398,29 @@ namespace UnityEditor.Rendering.HighDefinition
         void DrawAlphaCutoffGUI()
         {
             EditorGUI.BeginChangeCheck();
-            if (alphaCutoffEnable != null)
+
+            // For shadergraphs we show this slider only if the feature is enabled in the shader settings.
+            bool showAlphaClipThreshold = true;
+            var shader = materials[0].shader;
+            bool isShaderGraph = shader.IsShaderGraph();
+            if (isShaderGraph)
+                showAlphaClipThreshold = shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex(kAlphaCutoffEnabled)) > 0.0f;
+
+            if (showAlphaClipThreshold && alphaCutoffEnable != null)
                 materialEditor.ShaderProperty(alphaCutoffEnable, Styles.alphaCutoffEnableText);
 
-            if (alphaCutoffEnable != null && alphaCutoffEnable.floatValue == 1.0f)
+            if (showAlphaClipThreshold && alphaCutoffEnable != null && alphaCutoffEnable.floatValue == 1.0f)
             {
                 EditorGUI.indentLevel++;
 
-                if (alphaCutoff != null)
+                if (showAlphaClipThreshold && alphaCutoff != null)
                     materialEditor.ShaderProperty(alphaCutoff, Styles.alphaCutoffText);
 
-                if ((m_Features & Features.AlphaCutoffThreshold) != 0)
+                if (showAlphaClipThreshold && (m_Features & Features.AlphaCutoffShadowThreshold) != 0)
                 {
                     // For shadergraphs we show this slider only if the feature is enabled in the shader settings.
                     bool showUseShadowThreshold = useShadowThreshold != null;
-                    var shader = materials[0].shader;
-                    if (showUseShadowThreshold && shader.IsShaderGraph())
+                    if (isShaderGraph)
                         showUseShadowThreshold = shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex(kUseShadowThreshold)) > 0.0f;
 
                     if (showUseShadowThreshold)
@@ -420,7 +434,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 
-                if ((m_Features & Features.AlphaToMask) != 0)
+                if (showAlphaClipThreshold && (m_Features & Features.AlphaToMask) != 0)
                 {
                     if (alphaToMask != null)
                         materialEditor.ShaderProperty(alphaToMask, Styles.alphaToMaskText);
@@ -428,7 +442,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // With transparent object and few specific materials like Hair, we need more control on the cutoff to apply
                 // This allow to get a better sorting (with prepass), better shadow (better silhouettes fidelity) etc...
-                if (surfaceTypeValue == SurfaceType.Transparent)
+                if (showAlphaClipThreshold && surfaceTypeValue == SurfaceType.Transparent)
                 {
                     // TODO: check if passes exists
                     if (transparentDepthPrepassEnable != null && transparentDepthPrepassEnable.floatValue == 1.0f)
@@ -497,14 +511,17 @@ namespace UnityEditor.Rendering.HighDefinition
                 else if (blendMode != null && showBlendModePopup)
                     BlendModePopup();
 
-                EditorGUI.indentLevel++; if (renderQueueHasMultipleDifferentValue)
+                if ((m_Features & Features.PreserveSpecularLighting) != 0)
                 {
-                    using (new EditorGUI.DisabledScope(true))
-                        EditorGUILayout.LabelField(Styles.enableBlendModePreserveSpecularLightingText, Styles.notSupportedInMultiEdition);
+                    EditorGUI.indentLevel++; if (renderQueueHasMultipleDifferentValue)
+                    {
+                        using (new EditorGUI.DisabledScope(true))
+                            EditorGUILayout.LabelField(Styles.enableBlendModePreserveSpecularLightingText, Styles.notSupportedInMultiEdition);
+                    }
+                    else if (enableBlendModePreserveSpecularLighting != null && blendMode != null && showBlendModePopup)
+                        materialEditor.ShaderProperty(enableBlendModePreserveSpecularLighting, Styles.enableBlendModePreserveSpecularLightingText);
+                    EditorGUI.indentLevel--;
                 }
-                else if (enableBlendModePreserveSpecularLighting != null && blendMode != null && showBlendModePopup)
-                    materialEditor.ShaderProperty(enableBlendModePreserveSpecularLighting, Styles.enableBlendModePreserveSpecularLightingText);
-                EditorGUI.indentLevel--;
 
                 if (transparentSortPriority != null)
                 {
@@ -779,7 +796,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            if ((m_Features & Features.ShowDepthOffsetOnly) != 0)
+            if ((m_Features & Features.ShowDepthOffsetOnly) != 0 && depthOffsetEnable != null)
                 materialEditor.ShaderProperty(depthOffsetEnable, Styles.depthOffsetEnableText);
             else if (displacementMode != null)
             {
