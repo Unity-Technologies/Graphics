@@ -665,21 +665,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RenderState.Cull(Uniforms.cullModeForward) },
             { RenderState.ZWrite(Uniforms.zWrite) },
             { RenderState.ZTest(Uniforms.zTestDepthEqualForOpaque) },
-            { RenderState.Stencil(new StencilDescriptor()
-            {
-                WriteMask = Uniforms.stencilWriteMask,
-                Ref = Uniforms.stencilRef,
-                Comp = "Always",
-                Pass = "Replace",
-            }) },
-        };
-
-        public static RenderStateCollection ForwardColorMask = new RenderStateCollection
-        {
-            { RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend, Uniforms.alphaSrcBlend, Uniforms.alphaDstBlend) },
-            { RenderState.Cull(Uniforms.cullModeForward) },
-            { RenderState.ZWrite(Uniforms.zWrite) },
-            { RenderState.ZTest(Uniforms.zTestDepthEqualForOpaque) },
             { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVel] 1") },
             { RenderState.Stencil(new StencilDescriptor()
             {
