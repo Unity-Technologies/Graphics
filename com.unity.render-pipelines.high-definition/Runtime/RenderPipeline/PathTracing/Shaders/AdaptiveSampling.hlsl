@@ -67,7 +67,7 @@ bool UpdatePerPixelVariance(uint2 pixelCoords, uint iteration, float exposureMul
         return true;
     }
 
-    float L = Luminance(LinearToGamma22(exposureMultiplier * radiance.xyz));
+    float L = Luminance(LinearToGamma22(radiance.xyz));
 
     float4 accVariance = (iteration > 0) ? _AccumulatedVariance[COORD_TEXTURE2D_X(pixelCoords)] : 0;
     float count = IncrementSampleCount(accVariance);
