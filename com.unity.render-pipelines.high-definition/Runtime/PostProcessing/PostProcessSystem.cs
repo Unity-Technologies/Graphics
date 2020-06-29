@@ -667,7 +667,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 ComputeBloomMipSizesAndScales(camera);
                                 AllocateBloomMipTextures();
-                                DoBloom(PrepareBloomParameters(camera), cmd, source, m_BloomMipsDown, m_BloomMipsUp, uberPostParams.uberPostCS, uberPostParams.uberPostKernel);
+                                DoBloom(PrepareBloomParameters(camera), cmd, source, m_BloomMipsDown, m_BloomMipsUp);
                                 RecycleUnusedBloomMips();
                             }
                         }
@@ -2893,7 +2893,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static void DoBloom(in BloomParameters bloomParameters, CommandBuffer cmd, RTHandle source, RTHandle[] bloomMipsDown, RTHandle[] bloomMipsUp, ComputeShader uberCS, int uberKernel)
+        static void DoBloom(in BloomParameters bloomParameters, CommandBuffer cmd, RTHandle source, RTHandle[] bloomMipsDown, RTHandle[] bloomMipsUp)
         {
             // All the computes for this effect use the same group size so let's use a local
             // function to simplify dispatches
