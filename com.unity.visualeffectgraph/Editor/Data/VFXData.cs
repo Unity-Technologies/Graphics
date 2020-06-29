@@ -67,6 +67,9 @@ namespace UnityEditor.VFX
                 case VFXDataType.SpawnEvent:
                     newVFXData = ScriptableObject.CreateInstance<VFXDataSpawner>();
                     break;
+                case VFXDataType.OutputEvent:
+                    newVFXData = ScriptableObject.CreateInstance<VFXDataOutputEvent>();
+                    break;
                 default:                        return null;
             }
             newVFXData.m_Parent = graph;
