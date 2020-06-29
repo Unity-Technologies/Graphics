@@ -1,0 +1,75 @@
+project:
+  name: HDRP 
+  folder: HDRP_Tests
+  folder_standalone: HDRP_RuntimeTests
+test_platforms:
+  - playmode
+  - playmode_XR
+  - editmode
+  - Standalone
+platforms:
+  - name: Win
+    os: windows
+    apis:
+      DX11: -force-d3d11
+      DX12: -force-d3d12
+      Vulkan: -force-vulkan
+    agent_default:
+      type: Unity::VM::GPU
+      image: graphics-foundation/win10-dxr:stable
+      flavor: b1.xlarge
+      model: rtx2080
+    agent_editmode:
+      type: Unity::VM
+      image: graphics-foundation/win10-dxr:stable
+      flavor: b1.xlarge
+    agent_standalone:
+      type: Unity::VM::GPU
+      image: graphics-foundation/win10-dxr:stable
+      flavor: b1.xlarge
+      model: rtx2080
+    agent_standalone_build:
+      type: Unity::VM
+      image: graphics-foundation/win10-dxr:stable
+      flavor: b1.xlarge
+      model: rtx2080
+    components:
+      - editor
+      - il2cpp
+  - name: OSX 
+    apis:
+      - Metal
+  - name: Linux
+    apis: 
+      - Vulkan
+all:
+  dependencies:
+    - platform: Win
+      api: DX11
+      test_platforms:
+        - editmode
+        - playmode
+        - playmode_XR
+        - Standalone
+    - platform: Win
+      api: DX12
+      test_platforms:
+        - playmode
+        - playmode_XR
+        # - Standalone
+    - platform: Win
+      api: Vulkan
+      test_platforms:
+        - playmode
+        # - Standalone
+    - platform: OSX
+      api: Metal
+      test_platforms:
+        - Standalone
+        - editmode
+        # - playmode
+    - platform: Linux
+      api: Vulkan
+      test_platforms:
+        - editmode
+        # - playmode        
