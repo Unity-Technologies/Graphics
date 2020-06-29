@@ -22,9 +22,23 @@ namespace UnityEditor.VFX
         private static VFXResources s_Instance;
         private static Values s_Values;
 
+        static void LoadUserResources()
+        {
+            s_Instance = FindObjectOfType<VFXResources>();
+            if (s_Instance != null)
+                return;
+
+            foreach( var guid in AssetDatabase.FindAssets("t:VFXResources"))
+            {
+                s_Instance = AssetDatabase.LoadAssetAtPath<VFXResources>(AssetDatabase.GUIDToAssetPath(guid));
+                if (s_Instance != null)
+                    return;
+            }
+        }
+
         void OnEnable()
         {
-            if (Resources.FindObjectsOfTypeAll<VFXResources>().Length > 1)
+            if (AssetDatabase.FindAssets("t:VFXResources").Length > 1)
                 Debug.LogError("Having more than on VFXResources in you project is unsupported");
             s_Instance = this;
         }
@@ -35,8 +49,7 @@ namespace UnityEditor.VFX
             {
                 get
                 {
-                    if (s_Instance == null)
-                        s_Instance = FindObjectOfType<VFXResources>();
+                    LoadUserResources();
                     if (s_Instance != null)
                         return s_Instance.animationCurve;
 
@@ -47,8 +60,7 @@ namespace UnityEditor.VFX
             {
                 get
                 {
-                    if (s_Instance == null)
-                        s_Instance = FindObjectOfType<VFXResources>();
+                    LoadUserResources();
                     if (s_Instance != null)
                         return s_Instance.gradient;
                     return defaultGradient;
@@ -58,8 +70,7 @@ namespace UnityEditor.VFX
             {
                 get
                 {
-                    if (s_Instance == null)
-                        s_Instance = FindObjectOfType<VFXResources>();
+                    LoadUserResources();
                     if (s_Instance != null)
                         return s_Instance.gradientMapRamp;
                     return defaultGradientMapRamp;
@@ -70,8 +81,7 @@ namespace UnityEditor.VFX
             {
                 get
                 {
-                    if (s_Instance == null)
-                        s_Instance = FindObjectOfType<VFXResources>();
+                    LoadUserResources();
                     if (s_Instance != null && s_Instance.shader != null)
                         return s_Instance.shader;
 
@@ -84,8 +94,7 @@ namespace UnityEditor.VFX
             {
                 get
                 {
-                    if (s_Instance == null)
-                        s_Instance = FindObjectOfType<VFXResources>();
+                    LoadUserResources();
                     if (s_Instance != null && s_Instance.particleTexture != null)
                         return s_Instance.particleTexture;
                     return defaultParticleTexture;
@@ -96,8 +105,7 @@ namespace UnityEditor.VFX
             {
                 get
                 {
-                    if (s_Instance == null)
-                        s_Instance = FindObjectOfType<VFXResources>();
+                    LoadUserResources();
                     if (s_Instance != null && s_Instance.noiseTexture != null)
                         return s_Instance.noiseTexture;
                     return defaultNoiseTexture;
@@ -107,8 +115,7 @@ namespace UnityEditor.VFX
             {
                 get
                 {
-                    if (s_Instance == null)
-                        s_Instance = FindObjectOfType<VFXResources>();
+                    LoadUserResources();
                     if (s_Instance != null && s_Instance.vectorField != null)
                         return s_Instance.vectorField;
                     return defaultVectorField;
@@ -118,8 +125,7 @@ namespace UnityEditor.VFX
             {
                 get
                 {
-                    if (s_Instance == null)
-                        s_Instance = FindObjectOfType<VFXResources>();
+                    LoadUserResources();
                     if (s_Instance != null && s_Instance.signedDistanceField != null)
                         return s_Instance.signedDistanceField;
                     return defaultSignedDistanceField;
@@ -130,8 +136,7 @@ namespace UnityEditor.VFX
             {
                 get
                 {
-                    if (s_Instance == null)
-                        s_Instance = FindObjectOfType<VFXResources>();
+                    LoadUserResources();
                     if (s_Instance != null && s_Instance.mesh != null)
                         return s_Instance.mesh;
 
