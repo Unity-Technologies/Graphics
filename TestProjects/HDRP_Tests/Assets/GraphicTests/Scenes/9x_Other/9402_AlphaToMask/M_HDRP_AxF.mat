@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 4
+  version: 5
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -521,6 +521,7 @@ Material:
     - _LinkDetailsWithBase1: 1
     - _LinkDetailsWithBase2: 1
     - _LinkDetailsWithBase3: 1
+    - _MappingMode: 0
     - _MaterialID: 1
     - _MaterialTilingU: 0.21
     - _MaterialTilingV: 0.37
@@ -549,6 +550,7 @@ Material:
     - _PPDMinSamples: 5
     - _PPDPrimitiveLength: 1
     - _PPDPrimitiveWidth: 1
+    - _PlanarSpace: 0
     - _PreRefractionPass: 0
     - _ReceivesSSR: 0
     - _ReceivesSSRTransparent: 1
@@ -676,6 +678,7 @@ Material:
     - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
+    - _MappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _Material_SO: {r: 0.34, g: 0.08, b: 0.4, a: 0.4}
     - _SVBRDF_AlphaMap_SO: {r: 1, g: 1, b: 0, a: 0}
     - _SVBRDF_AnisoRotationMap_SO: {r: 1, g: 1, b: 0, a: 0}
