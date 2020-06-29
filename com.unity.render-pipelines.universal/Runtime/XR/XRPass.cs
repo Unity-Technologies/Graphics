@@ -311,6 +311,7 @@ namespace UnityEngine.Rendering.Universal
         // Store array to avoid allocating every frame
         private Matrix4x4[] stereoProjectionMatrix = new Matrix4x4[2];
         private Matrix4x4[] stereoViewMatrix = new Matrix4x4[2];
+        private Matrix4x4[] stereoCameraProjectionMatrix = new Matrix4x4[2];
 
         internal void UpdateGPUViewAndProjectionMatrices(CommandBuffer cmd, ref CameraData cameraData, bool isRenderToTexture)
         {
@@ -321,10 +322,11 @@ namespace UnityEngine.Rendering.Universal
             {
                 for (int i = 0; i < 2; i++)
                 {
+                    stereoCameraProjectionMatrix[i] = cameraData.xr.GetProjMatrix(i);
                     stereoViewMatrix[i] = cameraData.xr.GetViewMatrix(i);
-                    stereoProjectionMatrix[i] = GL.GetGPUProjectionMatrix(cameraData.xr.GetProjMatrix(i), isRenderToTexture);
+                    stereoProjectionMatrix[i] = GL.GetGPUProjectionMatrix(stereoCameraProjectionMatrix[i], isRenderToTexture);
                 }
-                RenderingUtils.SetStereoViewAndProjectionMatrices(cmd, stereoViewMatrix, stereoProjectionMatrix, true);
+                RenderingUtils.SetStereoViewAndProjectionMatrices(cmd, stereoViewMatrix, stereoProjectionMatrix, stereoCameraProjectionMatrix, true);
             }
         }
     }

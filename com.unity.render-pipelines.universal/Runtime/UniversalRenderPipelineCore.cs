@@ -255,8 +255,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int viewAndProjectionMatrix = Shader.PropertyToID("unity_MatrixVP");
 
         public static readonly int inverseViewMatrix = Shader.PropertyToID("unity_MatrixInvV");
-        // Undefined:
-        // public static readonly int inverseProjectionMatrix = Shader.PropertyToID("unity_MatrixInvP");
+        public static readonly int inverseProjectionMatrix = Shader.PropertyToID("unity_MatrixInvP");
         public static readonly int inverseViewAndProjectionMatrix = Shader.PropertyToID("unity_MatrixInvVP");
 
         public static readonly int cameraProjectionMatrix = Shader.PropertyToID("unity_CameraProjection");
