@@ -20,7 +20,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     }
 
     /// <summary>
-    /// This struct specifies the context given to every render pass.
+    /// This class specifies the context given to every render pass.
     /// </summary>
     public class RenderGraphContext
     {
