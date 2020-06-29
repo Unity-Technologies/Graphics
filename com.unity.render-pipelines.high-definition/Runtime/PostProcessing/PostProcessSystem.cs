@@ -726,31 +726,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ContrastAdaptiveSharpen)))
                     {
                         var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
-
-                        var cs = m_Resources.shaders.contrastAdaptiveSharpenCS;
-                        int kInit = cs.FindKernel("KInitialize");
-                        int kMain = cs.FindKernel("KMain");
-                        if (kInit >= 0 && kMain >= 0)
-                        {
-                            cmd.SetComputeFloatParam(cs, HDShaderIDs._Sharpness, 1);
-                            cmd.SetComputeTextureParam(cs, kMain, HDShaderIDs._InputTexture, source);
-                            cmd.SetComputeVectorParam(cs, HDShaderIDs._InputTextureDimensions, new Vector4(source.rt.width, source.rt.height));
-                            cmd.SetComputeTextureParam(cs, kMain, HDShaderIDs._OutputTexture, destination);
-                            cmd.SetComputeVectorParam(cs, HDShaderIDs._OutputTextureDimensions, new Vector4(destination.rt.width, destination.rt.height));
-
-                            ValidateComputeBuffer(ref m_ContrastAdaptiveSharpen, 2, sizeof(uint) * 4);
-
-                            cmd.SetComputeBufferParam(cs, kInit, "CasParameters", m_ContrastAdaptiveSharpen);
-                            cmd.SetComputeBufferParam(cs, kMain, "CasParameters", m_ContrastAdaptiveSharpen);
-
-                            cmd.DispatchCompute(cs, kInit, 1, 1, 1);
-
-                            int dispatchX = (int)System.Math.Ceiling(destination.rt.width / 16.0f);
-                            int dispatchY = (int)System.Math.Ceiling(destination.rt.height / 16.0f);
-
-                            cmd.DispatchCompute(cs, kMain, dispatchX, dispatchY, camera.viewCount);
-                        }
-
+                        DoContrastAdaptiveSharpening(PrepareContrastAdaptiveSharpeningParameters(camera), cmd, source, destination);
                         PoolSource(ref source, destination);
                     }
                 }
@@ -3485,6 +3461,61 @@ namespace UnityEngine.Rendering.HighDefinition
             HDUtils.DrawFullScreen(cmd, parameters.smaaMaterial, destination, null, (int)SMAAStage.NeighborhoodBlending);
         }
 
+        #endregion
+
+        #region CAS
+        struct CASParameters
+        {
+            public ComputeShader casCS;
+            public int initKernel;
+            public int mainKernel;
+
+            public ComputeBuffer casParametersBuffer;
+
+            public int viewCount;
+        }
+
+        CASParameters PrepareContrastAdaptiveSharpeningParameters(HDCamera camera)
+        {
+            CASParameters parameters = new CASParameters();
+
+            parameters.casCS = m_Resources.shaders.contrastAdaptiveSharpenCS;
+            parameters.initKernel = parameters.casCS.FindKernel("KInitialize");
+            parameters.mainKernel = parameters.casCS.FindKernel("KMain");
+
+            ValidateComputeBuffer(ref m_ContrastAdaptiveSharpen, 2, sizeof(uint) * 4);
+            parameters.casParametersBuffer = m_ContrastAdaptiveSharpen;
+
+            parameters.viewCount = camera.viewCount;
+
+            return parameters;
+        }
+
+        static void DoContrastAdaptiveSharpening(in CASParameters parameters, CommandBuffer cmd, RTHandle source, RTHandle destination)
+        {
+            var cs = parameters.casCS;
+            int kInit = parameters.initKernel;
+            int kMain = parameters.mainKernel;
+            if (kInit >= 0 && kMain >= 0)
+            {
+                cmd.SetComputeFloatParam(cs, HDShaderIDs._Sharpness, 1);
+                cmd.SetComputeTextureParam(cs, kMain, HDShaderIDs._InputTexture, source);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._InputTextureDimensions, new Vector4(source.rt.width, source.rt.height));
+                cmd.SetComputeTextureParam(cs, kMain, HDShaderIDs._OutputTexture, destination);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._OutputTextureDimensions, new Vector4(destination.rt.width, destination.rt.height));
+
+                cmd.SetComputeBufferParam(cs, kInit, "CasParameters", parameters.casParametersBuffer);
+                cmd.SetComputeBufferParam(cs, kMain, "CasParameters", parameters.casParametersBuffer);
+
+                cmd.DispatchCompute(cs, kInit, 1, 1, 1);
+
+                int dispatchX = (int)System.Math.Ceiling(destination.rt.width / 16.0f);
+                int dispatchY = (int)System.Math.Ceiling(destination.rt.height / 16.0f);
+
+                cmd.DispatchCompute(cs, kMain, dispatchX, dispatchY, parameters.viewCount);
+            }
+
+        }
         #endregion
 
         #region Final Pass
