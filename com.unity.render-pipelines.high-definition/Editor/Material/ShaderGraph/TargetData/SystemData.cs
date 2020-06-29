@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Serialization;
 
 using RenderQueueType = UnityEngine.Rendering.HighDefinition.HDRenderQueue.RenderQueueType;
 
@@ -89,20 +90,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_AlphaTest = value;
         }
 
-        [SerializeField]
-        bool m_AlphaTestDepthPrepass;
-        public bool alphaTestDepthPrepass
+        [SerializeField, FormerlySerializedAs("m_AlphaTestDepthPrepass")]
+        bool m_TransparentDepthPrepass;
+        public bool transparentDepthPrepass
         {
-            get => m_AlphaTestDepthPrepass;
-            set => m_AlphaTestDepthPrepass = value;
+            get => m_TransparentDepthPrepass;
+            set => m_TransparentDepthPrepass = value;
         }
 
-        [SerializeField]
-        bool m_AlphaTestDepthPostpass;
-        public bool alphaTestDepthPostpass
+        [SerializeField, FormerlySerializedAs("m_AlphaTestDepthPostpass")]
+        bool m_TransparentDepthPostpass;
+        public bool transparentDepthPostpass
         {
-            get => m_AlphaTestDepthPostpass;
-            set => m_AlphaTestDepthPostpass = value;
+            get => m_TransparentDepthPostpass;
+            set => m_TransparentDepthPostpass = value;
         }
 
         [SerializeField]

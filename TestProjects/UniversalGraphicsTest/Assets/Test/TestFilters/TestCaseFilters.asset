@@ -384,3 +384,10 @@ MonoBehaviour:
     StereoModes: 0
     Reason: 'iOS tracked  regression: Lit shader fails has an error on iOS (scene
       104)'
+  - FilteredScene: {fileID: 102900000, guid: 83adeebeb3ba74a13816f2b8636588aa, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None 
+    StereoModes: 0
+    Reason: iOS tracked regression (scene 111 - 1256906)
