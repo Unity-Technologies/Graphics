@@ -3,7 +3,11 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+#if UNITY_2020_2_OR_NEWER
+using UnityEditor.AssetImporters;
+#else
 using UnityEditor.Experimental.AssetImporters;
+#endif
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -11,7 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// Class describing the logic for importer an IES file an generating the IESObject associated
     /// </summary>
     [CustomEditor(typeof(IESImporter))]
-    public partial class HDIESImporterEditor : UnityEditor.Experimental.AssetImporters.ScriptedImporterEditor
+    public partial class HDIESImporterEditor : ScriptedImporterEditor
     {
         /// <summary>
         /// IES Importer Editor, common to Core and HDRP
