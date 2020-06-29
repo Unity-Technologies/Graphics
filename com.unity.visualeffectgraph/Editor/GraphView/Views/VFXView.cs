@@ -396,9 +396,8 @@ namespace UnityEditor.VFX.UI
             m_NoAssetLabel.style.top = new StyleLength(40f);
             m_NoAssetLabel.style.bottom = new StyleLength(140f);
             m_NoAssetLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
-            m_NoAssetLabel.style.fontSize = new StyleLength(72f);
+            m_NoAssetLabel.style.fontSize = new StyleLength(12f);
             m_NoAssetLabel.style.color = Color.white * 0.75f;
-
             Add(m_NoAssetLabel);
 
 

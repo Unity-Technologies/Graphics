@@ -94,6 +94,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove some shader warnings
 - Fixed Sample Flipbook Texture File Names
 - Don't lose SRP output specific data when SRP package is not present
+- Fix visual effect graph when a subgraph or shader graph dependency changes
 - Support of flag settings in model inspector
 - height of initial event name.
 - fix colorfield height.
@@ -106,6 +107,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Prevent from creating a context in VisualEffectSugraphOperator by draggingfrom an output slot.
 - Avoid NullReferenceException when VisualEffectAsset is null if VFXPropertyBinder [Case 1219061](https://issuetracker.unity3d.com/product/unity/issues/guid/1219061/)
 - Missing Reset function in VFXPropertyBinder [Case 1219063](https://issuetracker.unity3d.com/product/unity/issues/guid/1219063/)
+- Fix issue with strips outputs that could cause too many vertices to be renderered
+- SpawnIndex attribute returns correct value in update and outputs contexts
+- Disable Reset option in context menu for all VFXObject [Case 1251519](https://issuetracker.unity3d.com/product/unity/issues/guid/1251519/) & [Case 1251533](https://issuetracker.unity3d.com/product/unity/issues/guid/1251533/)
+- Avoid other NullReferenceException using property binders
+- Fix culture issues when generating attributes defines in shaders [Case 1222819](https://issuetracker.unity3d.com/product/unity/issues/guid/1222819/)
+- Move the VFXPropertyBinder from Update to LateUpdate [Case 1254340](https://issuetracker.unity3d.com/product/unity/issues/guid/1254340/)
+- Properties in blackboard are now exposed by default
+- Dissociated Colors for bool, uint and int
+- De-nicified attribute name (conserve case) in Set Custom Attribute title
+- Changed the default "No Asset" message when opening the visual effect graph window
+- Subgraphs are not in hardcoded categories anymore : updated default subgraph templates + Samples to add meaningful categories.
 
 ## [7.1.1] - 2019-09-05
 ### Added
