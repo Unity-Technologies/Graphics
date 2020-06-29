@@ -256,7 +256,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (PushCameraTexturePassData data, RenderGraphContext ctx) =>
                 {
-                    HDUtils.BlitCameraTexture(ctx.cmd, ctx.resources.GetTexture(data.source), data.targets[data.requestIndex]);
+                    HDUtils.BlitCameraTexture(ctx.cmd, data.source, data.targets[data.requestIndex]);
                 });
             }
         }

@@ -55,10 +55,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                     (AlphaCopyPassData data, RenderGraphContext ctx) =>
                     {
-                        DoCopyAlpha(    data.parameters,
-                                        ctx.resources.GetTexture(data.source),
-                                        ctx.resources.GetTexture(data.outputAlpha),
-                                        ctx.cmd);
+                        DoCopyAlpha(data.parameters, data.source, data.outputAlpha, ctx.cmd);
                     });
 
                     alphaTexture = passData.outputAlpha;
@@ -268,7 +265,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                     (ColorGradingPassData data, RenderGraphContext ctx) =>
                     {
-                        DoColorGrading(data.parameters, ctx.resources.GetTexture(data.logLut), ctx.cmd);
+                        DoColorGrading(data.parameters, data.logLut, ctx.cmd);
                     });
                 }
 
@@ -297,10 +294,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
                         DoUberPostProcess(  data.parameters,
-                                            ctx.resources.GetTexture(data.source),
-                                            ctx.resources.GetTexture(data.destination),
-                                            ctx.resources.GetTexture(data.logLut),
-                                            ctx.resources.GetTexture(data.source),  // TODO: TMP VALUE, should be bloom texture and will be as soon as PP is ported to rendergraph.
+                                            data.source,
+                                            data.destination,
+                                            data.logLut,
+                                            data.source,  // TODO: TMP VALUE, should be bloom texture and will be as soon as PP is ported to rendergraph.
                                             ctx.cmd);
                     });
 
@@ -378,12 +375,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (FinalPassData data, RenderGraphContext ctx) =>
                 {
-                    DoFinalPass(    data.parameters,
-                                    ctx.resources.GetTexture(data.source),
-                                    ctx.resources.GetTexture(data.afterPostProcessTexture),
-                                    ctx.resources.GetTexture(data.destination),
-                                    ctx.resources.GetTexture(data.alphaTexture),
-                                    ctx.cmd);
+                    DoFinalPass(data.parameters, data.source, data.afterPostProcessTexture, data.destination, data.alphaTexture, ctx.cmd);
                 });
             }
         }

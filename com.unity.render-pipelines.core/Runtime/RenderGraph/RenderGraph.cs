@@ -30,8 +30,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public CommandBuffer                cmd;
         ///<summary>Render Graph pooll used for temporary data.</summary>
         public RenderGraphObjectPool        renderGraphPool;
-        ///<summary>Render Graph Resource Registry used for accessing resources.</summary>
-        public RenderGraphResourceRegistry  resources;
         ///<summary>Render Graph default resources.</summary>
         public RenderGraphDefaultResources  defaultResources;
     }
@@ -814,7 +812,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             rgContext.cmd = cmd;
             rgContext.renderContext = renderContext;
             rgContext.renderGraphPool = m_RenderGraphPool;
-            rgContext.resources = m_Resources;
             rgContext.defaultResources = m_DefaultResources;
 
             for (int passIndex = 0; passIndex < m_CompiledPassInfos.size; ++passIndex)

@@ -5,10 +5,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
-    /// <summary>
-    /// The RenderGraphResourceRegistry holds all resource allocated during Render Graph execution.
-    /// </summary>
-    public class RenderGraphResourceRegistry
+    class RenderGraphResourceRegistry
     {
         static readonly ShaderTagId s_EmptyName = new ShaderTagId("");
 
@@ -100,13 +97,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         RTHandle                            m_CurrentBackbuffer;
 
-        #region Public Interface
-        /// <summary>
-        /// Returns the RTHandle associated with the provided resource handle.
-        /// </summary>
-        /// <param name="handle">Handle to a texture resource.</param>
-        /// <returns>The RTHandle associated with the provided resource handle or null if the handle is invalid.</returns>
-        public RTHandle GetTexture(in TextureHandle handle)
+        internal RTHandle GetTexture(in TextureHandle handle)
         {
             if (!handle.IsValid())
                 return null;
@@ -114,12 +105,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return GetTextureResource(handle.handle).resource;
         }
 
-        /// <summary>
-        /// Returns the RendererList associated with the provided resource handle.
-        /// </summary>
-        /// <param name="handle">Handle to a Renderer List resource.</param>
-        /// <returns>The Renderer List associated with the provided resource handle or an invalid renderer list if the handle is invalid.</returns>
-        public RendererList GetRendererList(in RendererListHandle handle)
+        internal RendererList GetRendererList(in RendererListHandle handle)
         {
             if (!handle.IsValid() || handle >= m_RendererListResources.size)
                 return RendererList.nullRendererList;
@@ -127,19 +113,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return m_RendererListResources[handle].rendererList;
         }
 
-        /// <summary>
-        /// Returns the Compute Buffer associated with the provided resource handle.
-        /// </summary>
-        /// <param name="handle">Handle to a Compute Buffer resource.</param>
-        /// <returns>The Compute Buffer associated with the provided resource handle or a null reference if the handle is invalid.</returns>
-        public ComputeBuffer GetComputeBuffer(in ComputeBufferHandle handle)
+        internal ComputeBuffer GetComputeBuffer(in ComputeBufferHandle handle)
         {
             if (!handle.IsValid())
                 return null;
 
             return GetComputeBufferResource(handle.handle).resource;
         }
-        #endregion
 
         #region Internal Interface
         private RenderGraphResourceRegistry()
@@ -210,7 +190,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             texResource.imported = true;
             texResource.shaderProperty = shaderProperty;
 
-            return new TextureHandle(newHandle);
+            return new TextureHandle(newHandle, this);
         }
 
         internal TextureHandle ImportBackbuffer(RenderTargetIdentifier rt)
@@ -224,7 +204,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             texResource.resource = m_CurrentBackbuffer;
             texResource.imported = true;
 
-            return new TextureHandle(newHandle);
+            return new TextureHandle(newHandle, this);
         }
 
         int AddNewResource<ResType>(DynamicArray<IRenderGraphResource> resourceArray, out ResType outRes) where ResType : IRenderGraphResource, new()
@@ -248,7 +228,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             texResource.desc = desc;
             texResource.shaderProperty = shaderProperty;
             texResource.transientPassIndex = transientPassIndex;
-            return new TextureHandle(newHandle);
+            return new TextureHandle(newHandle, this);
         }
 
         internal int GetTextureResourceCount()
@@ -271,7 +251,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             ValidateRendererListDesc(desc);
 
             int newHandle = m_RendererListResources.Add(new RendererListResource(desc));
-            return new RendererListHandle(newHandle);
+            return new RendererListHandle(newHandle, this);
         }
 
         internal ComputeBufferHandle ImportComputeBuffer(ComputeBuffer computeBuffer)
@@ -280,7 +260,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             bufferResource.resource = computeBuffer;
             bufferResource.imported = true;
 
-            return new ComputeBufferHandle(newHandle);
+            return new ComputeBufferHandle(newHandle, this);
         }
 
         internal ComputeBufferHandle CreateComputeBuffer(in ComputeBufferDesc desc, int transientPassIndex = -1)
@@ -291,7 +271,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             bufferResource.desc = desc;
             bufferResource.transientPassIndex = transientPassIndex;
 
-            return new ComputeBufferHandle(newHandle);
+            return new ComputeBufferHandle(newHandle, this);
         }
 
         internal ComputeBufferDesc GetComputeBufferResourceDesc(in ResourceHandle handle)
@@ -444,7 +424,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                         var clearFlag = resource.desc.depthBufferBits != DepthBits.None ? ClearFlag.Depth : ClearFlag.Color;
                         // Not ideal to do new TextureHandle here but GetTexture is a public API and we rather have it take an explicit TextureHandle parameters.
                         // Everywhere else internally int is better because it allows us to share more code.
-                        CoreUtils.SetRenderTarget(rgContext.cmd, GetTexture(new TextureHandle(index)), clearFlag, Color.magenta);
+                        CoreUtils.SetRenderTarget(rgContext.cmd, GetTexture(new TextureHandle(index, this)), clearFlag, Color.magenta);
                     }
                 }
 
