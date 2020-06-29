@@ -2,11 +2,6 @@ using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using UnityEditor;
-using UnityEditor.AssetImporters;
-#if UNITY_2020_2_OR_NEWER
-#else
-using UnityEditor.Experimental.AssetImporters;
-#endif
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -36,7 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="light">Light used for the prefab</param>
         /// <param name="ies">Texture used for the prefab</param>
         /// <returns></returns>
-        static public void CreateRenderPipelinePrefabLight(AssetImportContext ctx, string iesFileName, bool useIESMaximumIntensity, string iesMaximumIntensityUnit, float iesMaximumIntensity, Light light, Texture ies)
+        static public void CreateRenderPipelinePrefabLight(UnityEditor.Experimental.AssetImporters.AssetImportContext ctx, string iesFileName, bool useIESMaximumIntensity, string iesMaximumIntensityUnit, float iesMaximumIntensity, Light light, Texture ies)
         {
             HDLightTypeAndShape hdLightTypeAndShape = (light.type == LightType.Point) ? HDLightTypeAndShape.Point : HDLightTypeAndShape.ConeSpot;
 
