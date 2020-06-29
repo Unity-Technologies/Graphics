@@ -626,7 +626,8 @@ namespace UnityEditor.VFX
                 }
                 else if (child is VFXSubgraphOperator operatorChild)
                 {
-                    operatorChild.ResyncSlots(false);
+                    operatorChild.RecreateCopy();
+                    operatorChild.ResyncSlots(true);
                     operatorChild.UpdateOutputExpressions();
                 }
             }
