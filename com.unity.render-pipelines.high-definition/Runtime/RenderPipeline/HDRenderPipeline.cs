@@ -5322,6 +5322,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 finalRT: destination,
                 depthBuffer: m_SharedRTManager.GetDepthStencilBuffer(),
                 depthMipChain: m_SharedRTManager.GetDepthTexture(),
+                motionVecTexture: m_SharedRTManager.GetMotionVectorsBuffer(),
                 flipY: parameters.flipYInPostProcess
             );
         }

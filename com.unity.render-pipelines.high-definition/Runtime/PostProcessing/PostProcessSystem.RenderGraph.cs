@@ -65,6 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TemporalAntiAliasingParameters parameters;
             public TextureHandle source;
             public TextureHandle destination;
+            public TextureHandle motionVecTexture;
             public TextureHandle depthBuffer;
             public TextureHandle depthMipChain;
             public TextureHandle prevHistory;
@@ -95,6 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public MotionBlurParameters parameters;
             public TextureHandle source;
             public TextureHandle destination;
+            public TextureHandle motionVecTexture;
             public TextureHandle preppedMotionVec;
             public TextureHandle minMaxTileVel;
             public TextureHandle maxTileNeigbourhood;
@@ -117,7 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle[] mipsUp = new TextureHandle[k_MaxBloomMipCount + 1];
         }
 
-        void FillBloomMipsTextureHandles(ref BloomData bloomData, RenderGraph renderGraph, RenderGraphBuilder builder)
+        void FillBloomMipsTextureHandles(BloomData bloomData, RenderGraph renderGraph, RenderGraphBuilder builder)
         {
             for (int i = 0; i < m_BloomMipCount; i++)
             {
@@ -153,6 +155,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             TextureHandle afterPostProcessTexture,
                             TextureHandle depthBuffer,
                             TextureHandle depthBufferMipChain,
+                            TextureHandle motionVectors,
                             TextureHandle finalRT,
                             bool flipY)
         {
@@ -345,6 +348,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             passData.source = builder.ReadTexture(source);
                             passData.parameters = PrepareTAAParameters(hdCamera);
                             passData.depthBuffer = builder.ReadTexture(depthBuffer);
+                            passData.motionVecTexture = builder.ReadTexture(motionVectors);
                             passData.depthMipChain = builder.ReadTexture(depthBufferMipChain);
                             passData.prevHistory = renderGraph.ImportTexture(prevHistory);
                             passData.nextHistory = renderGraph.ImportTexture(nextHistory);
@@ -365,6 +369,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 DoTemporalAntialiasing(data.parameters, ctx.cmd, ctx.resources.GetTexture(data.source),
                                                                                  ctx.resources.GetTexture(data.destination),
+                                                                                 ctx.resources.GetTexture(data.motionVecTexture),
                                                                                  ctx.resources.GetTexture(data.depthBuffer),
                                                                                  ctx.resources.GetTexture(data.depthMipChain),
                                                                                  ctx.resources.GetTexture(data.prevHistory),
@@ -449,6 +454,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         passData.source = builder.ReadTexture(source);
                         passData.parameters = PrepareMotionBlurParameters(hdCamera);
 
+                        passData.motionVecTexture = builder.ReadTexture(motionVectors);
+
                         Vector2 tileTexScale = new Vector2((float)passData.parameters.tileTargetSize.x / hdCamera.actualWidth, (float)passData.parameters.tileTargetSize.y / hdCamera.actualHeight);
 
                         passData.preppedMotionVec = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
@@ -486,6 +493,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             DoMotionBlur(data.parameters, ctx.cmd, ctx.resources.GetTexture(data.source),
                                                                    ctx.resources.GetTexture(data.destination),
+                                                                   ctx.resources.GetTexture(data.motionVecTexture),
                                                                    ctx.resources.GetTexture(data.preppedMotionVec),
                                                                    ctx.resources.GetTexture(data.minMaxTileVel),
                                                                    ctx.resources.GetTexture(data.maxTileNeigbourhood),
@@ -536,7 +544,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         passData.source = builder.ReadTexture(source);
                         passData.parameters = PrepareBloomParameters(hdCamera);
-                        FillBloomMipsTextureHandles(ref passData, renderGraph, builder);
+                        FillBloomMipsTextureHandles(passData, renderGraph, builder);
                         passData.mipsUp[0] = builder.WriteTexture(passData.mipsUp[0]);
 
 

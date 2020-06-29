@@ -468,7 +468,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void Render(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle colorBuffer, RTHandle afterPostProcessTexture, RenderTargetIdentifier finalRT, RTHandle depthBuffer, RTHandle depthMipChain, bool flipY)
+        public void Render(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle colorBuffer, RTHandle afterPostProcessTexture, RenderTargetIdentifier finalRT, RTHandle depthBuffer, RTHandle depthMipChain, RTHandle motionVecTexture, bool flipY)
         {
             var dynResHandler = DynamicResolutionHandler.instance;
 
@@ -574,7 +574,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 var taaParams = PrepareTAAParameters(camera);
                                 GrabTemporalAntialiasingHistoryTextures(camera, out var prevHistory, out var nextHistory);
                                 GrabVelocityMagnitudeHistoryTextures(camera, out var prevMVLen, out var nextMVLen);
-                                DoTemporalAntialiasing(taaParams, cmd, source, destination, depthBuffer, depthMipChain, prevHistory, nextHistory, prevMVLen, nextMVLen);
+                                DoTemporalAntialiasing(taaParams, cmd, source, destination, motionVecTexture, depthBuffer, depthMipChain, prevHistory, nextHistory, prevMVLen, nextMVLen);
                                 PoolSource(ref source, destination);
                             }
                         }
@@ -632,7 +632,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         out preppedMotionVec, out minMaxTileVel,
                                         out maxTileNeigbourhood, out tileToScatterMax,
                                         out tileToScatterMin);
-                            DoMotionBlur(PrepareMotionBlurParameters(camera), cmd, source, destination, preppedMotionVec, minMaxTileVel, maxTileNeigbourhood, tileToScatterMax, tileToScatterMin);
+                            DoMotionBlur(PrepareMotionBlurParameters(camera), cmd, source, destination, motionVecTexture, preppedMotionVec, minMaxTileVel, maxTileNeigbourhood, tileToScatterMax, tileToScatterMin);
                             RecycleMotionBlurRenderTargets(preppedMotionVec, minMaxTileVel, maxTileNeigbourhood, tileToScatterMax, tileToScatterMin);
                       
                             PoolSource(ref source, destination);
@@ -1512,6 +1512,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         CommandBuffer cmd,
                                         RTHandle source,
                                         RTHandle destination,
+                                        RTHandle motionVecTexture,
                                         RTHandle depthBuffer,
                                         RTHandle depthMipChain,
                                         RTHandle prevHistory,
@@ -1531,6 +1532,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             taaParams.taaPropertyBlock.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ExcludeFromTAA);
             taaParams.taaPropertyBlock.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ExcludeFromTAA);
+            taaParams.taaPropertyBlock.SetTexture(HDShaderIDs._CameraMotionVectorsTexture, motionVecTexture);
             taaParams.taaPropertyBlock.SetTexture(HDShaderIDs._InputTexture, source);
             taaParams.taaPropertyBlock.SetTexture(HDShaderIDs._InputHistoryTexture, prevHistory);
             taaParams.taaPropertyBlock.SetTexture(HDShaderIDs._InputVelocityMagnitudeHistory, prevMVLen);
@@ -2444,7 +2446,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static void DoMotionBlur(in MotionBlurParameters motionBlurParams, CommandBuffer cmd, RTHandle source, RTHandle destination,
+        static void DoMotionBlur(in MotionBlurParameters motionBlurParams, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle motionVectorTexture,
                           RTHandle preppedMotionVec, RTHandle minMaxTileVel,
                           RTHandle maxTileNeigbourhood, RTHandle tileToScatterMax,
                           RTHandle tileToScatterMin)
@@ -2475,6 +2477,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams.motionBlurParams0);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams1, motionBlurParams.motionBlurParams1);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams2, motionBlurParams.motionBlurParams2);
+
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CameraMotionVectorsTexture, motionVectorTexture);
 
                 cmd.SetComputeMatrixParam(cs, HDShaderIDs._PrevVPMatrixNoTranslation, motionBlurParams.camera.mainViewConstants.prevViewProjMatrixNoCameraTrans);
 
