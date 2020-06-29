@@ -570,5 +570,15 @@ namespace UnityEditor.VFX
                 }
             }
         }
+
+        public override void CheckGraphBeforeImport()
+        {
+            base.CheckGraphBeforeImport();
+            // If the graph is reimported it can be because one of its depedency such as the subgraphs, has been changed.
+            // blocs could be subgraph blocks.
+
+            foreach (var block in children)
+                block.CheckGraphBeforeImport();
+        }
     }
 }
