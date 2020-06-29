@@ -13,4 +13,4 @@ target_folder="$pwd_repo/.git/hooks"
 # Create directories in .git/hooks/ to match the filesystem inside git-hooks/
 find . -type d -not \( -iname \. \) -exec mkdir "$target_folder/{}" \; 2> /dev/null
 # Create symlinks for all the files (recursively), excluding some that aren't hooks
-find . -type f -not \( -iname \*.log -o -iname \*.md -o -iname \*.txt \) -not -path "*-install.*" -exec ln -s "$source_folder/{}" "$target_folder/{}" \; 2> /dev/null
+find . -type f -not \( -iname \*.log -o -iname \*.md -o -iname \*.txt \) -not -path "*-install.*" -exec chmod +x "$source_folder/{}" \; -exec ln -s "$source_folder/{}" "$target_folder/{}" \; 2> /dev/null
