@@ -107,6 +107,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Prevent from creating a context in VisualEffectSugraphOperator by draggingfrom an output slot.
 - Avoid NullReferenceException when VisualEffectAsset is null if VFXPropertyBinder [Case 1219061](https://issuetracker.unity3d.com/product/unity/issues/guid/1219061/)
 - Missing Reset function in VFXPropertyBinder [Case 1219063](https://issuetracker.unity3d.com/product/unity/issues/guid/1219063/)
+- fixes the user created vfx default resources that were ignored unless loaded
 
 ## [7.1.1] - 2019-09-05
 ### Added
