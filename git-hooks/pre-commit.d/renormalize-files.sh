@@ -15,7 +15,7 @@ renormalize()
   do
   	# match=`find $dir -regex $monitored_folders_regex -type d`
 	match=`echo $dir | grep -E $monitored_folders_regex | wc -l`
-    if [ "$match" = 0 ];
+    if [ "$match" = 1 ];
     then
 
       # Retrieve files that changed since last commit
