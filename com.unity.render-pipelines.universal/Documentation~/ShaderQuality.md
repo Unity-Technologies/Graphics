@@ -1,8 +1,10 @@
 # Shader Quality
 
-This setting defines the available features and behavior of shaders in the Player.
+In this setting you select the Shader Quality tier, __Low__, __Medium__, or  __High__. The quality tier defines the available features and behavior of shaders.
 
-Available values: __Low__, __Medium__, __High__.
+Shader Graph shaders and shaders installed with the URP package support Shader Quality tiers. To add support for Quality Tiers in your custom shader, see section [Adding support for Shader Quality tiers in custom shaders](#support-for-shader-quality).
+
+Select the Shader Quality tier on the [render pipeline asset](universalrp-asset.md), in __Quality > Shader Quality__.
 
 ## Shader feature support:
 
@@ -10,7 +12,7 @@ The following table shows the shader features that different Shader Quality sett
 
 | __Feature__         | __Description__           | __Shader define__ | __Low__    | __Medium__ | __High__   |
 | ------------------- | ------------------------- | ----------------- | ---------- | ---------- | ---------- |
-| __Shadow fading__   | Enables blending between the visible shadows and the invisible shadows when the shadows are too far away to be rendered.              | FADE_SHADOWS |   | Yes | Yes |
+| __Smooth Shadow Falloff__   | Enabling this setting makes shadows fade smoothly when the shadows are father than the maximum shadow rendering distance (__Shadows > Distance__ in the render pipeline asset).              | FADE_SHADOWS |   | Yes | Yes |
 
 ## Normalization of normals:
 
@@ -20,7 +22,9 @@ The following list shows how Unity normalizes the normals with different Shader 
 * __Medium__: Always use the per-vertex normalization. Use the per-pixel normalization only if the normal map is defined.
 * __High__: Always use the per-vertex and the per-pixel normalization.
 
-## Default values for platforms
+<a name="support-for-shader-quality"></a>
+
+## Adding support for Shader Quality tiers in custom shaders
 
 To use the Shader Quality setting from the URP asset, a shader must have the following keyword definition:
 
