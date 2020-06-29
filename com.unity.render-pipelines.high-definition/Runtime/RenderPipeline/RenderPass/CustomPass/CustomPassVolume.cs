@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using System.Linq;
 using System;
 
@@ -94,6 +94,28 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (pass != null && pass.WillBeExecuted(hdCamera))
                 {
                     pass.ExecuteInternal(renderContext, cmd, hdCamera, cullingResult, rtManager, targets, this);
+                    executed = true;
+                }
+            }
+
+            return executed;
+        }
+
+        internal bool Execute(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullingResult, in CustomPass.RenderTargets targets)
+        {
+            bool executed = false;
+
+            // We never execute volume if the layer is not within the culling layers of the camera
+            if ((hdCamera.volumeLayerMask & (1 << gameObject.layer)) == 0)
+                return false;
+
+            Shader.SetGlobalFloat(HDShaderIDs._CustomPassInjectionPoint, (float)injectionPoint);
+
+            foreach (var pass in customPasses)
+            {
+                if (pass != null && pass.WillBeExecuted(hdCamera))
+                {
+                    pass.ExecuteInternal(renderGraph, hdCamera, cullingResult, targets, this);
                     executed = true;
                 }
             }
@@ -227,7 +249,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: cache the results per camera in the HDRenderPipeline so it's not executed twice per camera
             Update(hdCamera);
 
-            // For each injection points, we gather the culling results for 
+            // For each injection points, we gather the culling results for
             hdCamera.camera.TryGetCullingParameters(out var cullingParameters);
 
             // By default we don't want the culling to return any objects
