@@ -146,6 +146,7 @@ namespace UnityEngine.Rendering
             }
         }
 
+#if UNITY_2020_2_OR_NEWER
         /// <summary>
         /// Switch the render target to fast memory on platform that have it.
         /// </summary>
@@ -160,10 +161,8 @@ namespace UnityEngine.Rendering
             bool copyContents = false
             )
         {
-#if UNITY_2020_2_OR_NEWER
             residencyFraction = Mathf.Clamp01(residencyFraction);
             cmd.SwitchIntoFastMemory(m_RT, flags, residencyFraction, copyContents);
-#endif
         }
 
         /// <summary>
@@ -187,9 +186,9 @@ namespace UnityEngine.Rendering
         /// <param name="copyContents">Whether the content of render target are copied or not when switching out fast memory.</param>
         public void SwitchOutFastMemory(CommandBuffer cmd, bool copyContents = true)
         {
-#if UNITY_2020_2_OR_NEWER
             cmd.SwitchOutOfFastMemory(m_RT, copyContents);
-#endif
         }
+#endif
+
     }
 }

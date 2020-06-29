@@ -1617,7 +1617,7 @@ namespace UnityEditor.VFX.UI
         public void SetParametersOrder(VFXParameterController controller, int index, bool input)
         {
             controller.model.category = string.Empty;
-            var orderedParameters = m_ParameterControllers.Where(t => t.Value.isOutput == !input).OrderBy(t => t.Value.order).Select(t => t.Value).ToList();
+            var orderedParameters = m_ParameterControllers.Where(t => t.Value.isOutput == !input && t.Value.model.category == "").OrderBy(t => t.Value.order).Select(t => t.Value).ToList();
 
             int oldIndex = orderedParameters.IndexOf(controller);
 
