@@ -311,7 +311,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
                 if (camera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value)
-                    m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, globalRTCB, renderContext, frameCount);
+                    m_RaytracingAmbientOcclusion.RenderRTAO(camera, cmd, m_AmbientOcclusionTex, globalRTCB, renderContext, frameCount);
                 else
                 {
                     Dispatch(cmd, camera, depthTexture, normalBuffer, frameCount);
