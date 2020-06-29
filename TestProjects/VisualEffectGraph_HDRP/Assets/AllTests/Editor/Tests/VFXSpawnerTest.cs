@@ -156,7 +156,7 @@ namespace UnityEditor.VFX.Test
         }
 
         static List<int> s_receivedEvent;
-        static void OnEventReceived(VisualEffect.OutputEventArgs evt)
+        static void OnEventReceived(VFXOutputEventArgs evt)
         {
             s_receivedEvent.Add(evt.nameId);
         }
