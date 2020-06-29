@@ -127,19 +127,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (passData.parameters.blurAlgorithm == BlurAlgorithm.EVSM)
                 {
-                    passData.momentAtlasTexture1 = builder.WriteTexture(AllocateMomentAtlas(renderGraph, string.Format("{0}Moment", m_Name)));
-                    passData.momentAtlasTexture2 = builder.WriteTexture(AllocateMomentAtlas(renderGraph, string.Format("{0}MomentCopy", m_Name)));
+                    passData.momentAtlasTexture1 = builder.WriteTexture(AllocateMomentAtlas(renderGraph, m_MomentName));
+                    passData.momentAtlasTexture2 = builder.WriteTexture(AllocateMomentAtlas(renderGraph, m_MomentCopyName));
 
                     result = passData.momentAtlasTexture1;
                 }
                 else if (passData.parameters.blurAlgorithm == BlurAlgorithm.IM)
                 {
                     passData.momentAtlasTexture1 = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(width, height)
-                                                    { colorFormat = GraphicsFormat.R32G32B32A32_SFloat, name = string.Format("{0}Moment", m_Name), enableRandomWrite = true }));
+                                                    { colorFormat = GraphicsFormat.R32G32B32A32_SFloat, name = m_MomentName, enableRandomWrite = true }));
                     passData.intermediateSummedAreaTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(width, height)
-                                                    { colorFormat = GraphicsFormat.R32G32B32A32_SInt, name = string.Format("{0}IntermediateSummedArea", m_Name), enableRandomWrite = true }));
+                                                    { colorFormat = GraphicsFormat.R32G32B32A32_SInt, name = m_IntermediateSummedAreaName, enableRandomWrite = true }));
                     passData.summedAreaTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(width, height)
-                                                    { colorFormat = GraphicsFormat.R32G32B32A32_SInt, name = string.Format("{0}SummedArea", m_Name), enableRandomWrite = true }));
+                                                    { colorFormat = GraphicsFormat.R32G32B32A32_SInt, name = m_SummedAreaName, enableRandomWrite = true }));
 
                     result = passData.momentAtlasTexture1;
                 }
