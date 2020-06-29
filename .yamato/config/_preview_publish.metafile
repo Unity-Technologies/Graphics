@@ -1,5 +1,3 @@
-override_editors:
-  - version: trunk
 publishing:
   auto_publish: true
   auto_version: true

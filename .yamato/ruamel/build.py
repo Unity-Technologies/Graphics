@@ -21,6 +21,7 @@ from jobs.preview_publish.pb_publish import PreviewPublish_PublishJob
 from jobs.preview_publish.pb_promote import PreviewPublish_PromoteJob
 from jobs.preview_publish.pb_auto_version import PreviewPublish_AutoVersionJob
 from jobs.preview_publish.pb_publish_all_preview import PreviewPublish_PublishAllPreviewJob
+from jobs.preview_publish.pb_promote_all_preview import PreviewPublish_PromoteAllPreviewJob
 from jobs.preview_publish.pb_wait_for_nightly import PreviewPublish_WaitForNightlyJob
 from jobs.templates.template_pack import Template_PackJob
 from jobs.templates.template_test import Template_TestJob
@@ -34,7 +35,7 @@ shared_editors = []
 shared_platforms = []
 shared_test_platforms = []
 shared_agents = []
-target_branch = ''
+target_branch, target_editor = '', ''
 
 yml_files = {}
 
@@ -162,7 +163,7 @@ def create_package_jobs(metafile_name):
         job = Package_PackJob(package, get_agent(metafile["agent_pack"]))
         yml[job.job_id] = job.yml
 
-        job = Package_PublishJob(package, get_agent(metafile["agent_publish"]), metafile["platforms"])
+        job = Package_PublishJob(package, get_agent(metafile["agent_publish"]), metafile["platforms"], target_editor)
         yml[job.job_id] = job.yml
 
     for editor in get_editors(metafile):
@@ -224,16 +225,19 @@ def create_preview_publish_jobs(metafile_name):
     job = PreviewPublish_PublishAllPreviewJob(metafile["packages"], target_branch, metafile["publishing"]["auto_publish"])
     yml[job.job_id] = job.yml
 
-    job = PreviewPublish_WaitForNightlyJob(metafile["packages"],  get_editors(metafile), metafile["platforms"])
+    job = PreviewPublish_PromoteAllPreviewJob(metafile["packages"], target_branch, metafile["publishing"]["auto_publish"])
+    yml[job.job_id] = job.yml
+
+    job = PreviewPublish_WaitForNightlyJob(metafile["packages"],  metafile["platforms"], target_editor)
     yml[job.job_id] = job.yml
 
     for package in metafile["packages"]:
 
         if package["publish_source"] == True:
-            job = PreviewPublish_PublishJob(get_agent(metafile["agent_publish"]), package, get_editors(metafile), metafile["platforms"])
+            job = PreviewPublish_PublishJob(get_agent(metafile["agent_publish"]), package, metafile["platforms"], target_editor)
             yml[job.job_id] = job.yml
 
-            job = PreviewPublish_PromoteJob(get_agent(metafile["agent_promote"]), package)
+            job = PreviewPublish_PromoteJob(get_agent(metafile["agent_promote"]), package,  metafile["platforms"], target_editor)
             yml[job.job_id] = job.yml
 
     dump_yml(pb_filepath(), yml)
@@ -280,6 +284,7 @@ if __name__== "__main__":
     shared_platforms = shared['project_platforms']
     shared_test_platforms = shared['test_platforms']
     target_branch = shared['target_branch']
+    target_editor = shared['target_editor']
     shared_agents = shared['non_project_agents']
 
     # clear directory from existing yml files, not to have old duplicates etc

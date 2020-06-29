@@ -1,11 +1,6 @@
 target_branch: master # specifies the branch on which recurrent or pr triggers are created, etc
+target_editor: trunk # specifies the target editor used for some package/preview publish jobs
 editors: # applied for all yml files. Override this by specifying override_editors (in the same format) in a specific metafile
-#  - version: 2020.1
-#    rerun_strategy: on-new-revision
-#    cmd: -u 2020.1/staging
-#  - version: fast-2020.1
-#    rerun_strategy: on-new-revision
-#    cmd: -u 2020.1/staging --fast
   - version: trunk
     rerun_strategy: on-new-revision
     cmd: -u trunk
@@ -19,6 +14,7 @@ test_platforms:
   Standalone: --suite=playmode --platform=Standalone
   playmode: --suite=playmode
   playmode_XR: --suite=playmode --extra-editor-arg="-xr-tests"
+  playmode_RenderGraph: --suite=playmode --extra-editor-arg="-rendergraph-tests"
   editmode: --suite=editor --platform=editmode
 project_platforms:
   Win:

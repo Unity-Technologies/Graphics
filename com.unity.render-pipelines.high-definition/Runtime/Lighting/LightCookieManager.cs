@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -19,6 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
         HDRenderPipelineAsset m_RenderPipelineAsset = null;
 
         internal static readonly int s_texSource = Shader.PropertyToID("_SourceTexture");
+        internal static readonly int s_texCubeSource = Shader.PropertyToID("_SourceCubeTexture");
         internal static readonly int s_sourceMipLevel = Shader.PropertyToID("_SourceMipLevel");
         internal static readonly int s_sourceSize = Shader.PropertyToID("_SourceSize");
         internal static readonly int s_uvLimits = Shader.PropertyToID("_UVLimits");
@@ -28,16 +30,14 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly Material m_MaterialFilterAreaLights;
         MaterialPropertyBlock m_MPBFilterAreaLights = new MaterialPropertyBlock();
 
-        readonly Material m_CubeToPanoMaterial;
-
         RenderTexture m_TempRenderTexture0 = null;
         RenderTexture m_TempRenderTexture1 = null;
 
         // Structure for cookies used by directional and spotlights
         PowerOfTwoTextureAtlas m_CookieAtlas;
 
-        // Structure for cookies used by point lights
-        TextureCacheCubemap m_CubeCookieTexArray;
+        int m_CookieCubeResolution;
+
         // During the light loop, when reserving space for the cookies (first part of the light loop) the atlas
         // can run out of space, in this case, we set to true this flag which will trigger a re-layouting of the
         // atlas (sort entries by size and insert them again).
@@ -58,27 +58,17 @@ namespace UnityEngine.Rendering.HighDefinition
             // Also make sure to create the engine material that is used for the filtering
             m_MaterialFilterAreaLights = CoreUtils.CreateEngineMaterial(hdResources.shaders.filterAreaLightCookiesPS);
 
-            int cookieCubeSize = gLightLoopSettings.cubeCookieTexArraySize;
             int cookieAtlasSize = (int)gLightLoopSettings.cookieAtlasSize;
             cookieFormat = (GraphicsFormat)gLightLoopSettings.cookieFormat;
             cookieAtlasLastValidMip = gLightLoopSettings.cookieAtlasLastValidMip;
 
             m_CookieAtlas = new PowerOfTwoTextureAtlas(cookieAtlasSize, gLightLoopSettings.cookieAtlasLastValidMip, cookieFormat, name: "Cookie Atlas (Punctual Lights)", useMipMap: true);
 
-            m_CubeToPanoMaterial = CoreUtils.CreateEngineMaterial(hdResources.shaders.cubeToPanoPS);
-
-            m_CubeCookieTexArray = new TextureCacheCubemap("Cookie");
-            int cookieCubeResolution = (int)gLightLoopSettings.pointCookieSize;
-            if (TextureCacheCubemap.GetApproxCacheSizeInByte(cookieCubeSize, cookieCubeResolution, 1) > HDRenderPipeline.k_MaxCacheSize)
-                cookieCubeSize = TextureCacheCubemap.GetMaxCacheSizeForWeightInByte(HDRenderPipeline.k_MaxCacheSize, cookieCubeResolution, 1);
-
-            // For now the cubemap cookie array format is hardcoded to R8G8B8A8 SRGB.
-            m_CubeCookieTexArray.AllocTextureArray(cookieCubeSize, cookieCubeResolution, cookieFormat, true, m_CubeToPanoMaterial);
+            m_CookieCubeResolution = (int)gLightLoopSettings.pointCookieSize;
         }
 
         public void NewFrame()
         {
-            m_CubeCookieTexArray.NewFrame();
             m_CookieAtlas.ResetRequestedTexture();
             m_2DCookieAtlasNeedsLayouting = false;
             m_NoMoreSpace = false;
@@ -87,7 +77,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public void Release()
         {
             CoreUtils.Destroy(m_MaterialFilterAreaLights);
-            CoreUtils.Destroy(m_CubeToPanoMaterial);
 
             if(m_TempRenderTexture0 != null)
             {
@@ -105,31 +94,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CookieAtlas.Release();
                 m_CookieAtlas = null;
             }
-            if (m_CubeCookieTexArray != null)
-            {
-                m_CubeCookieTexArray.Release();
-                m_CubeCookieTexArray = null;
-            }
         }
 
-        Texture FilterAreaLightTexture(CommandBuffer cmd, Texture source)
+        void ReserveTempTextureIfNeeded(CommandBuffer cmd, int mipMapCount)
         {
-            if (m_MaterialFilterAreaLights == null)
-            {
-                Debug.LogError("FilterAreaLightTexture has an invalid shader. Can't filter area light cookie.");
-                return null;
-            }
-
-            // TODO: we don't need to allocate two temp RT, we can use the atlas as temp render texture
-            // it will avoid additional copy of the whole mip chain into the atlas.
-            int sourceWidth = m_CookieAtlas.AtlasTexture.rt.width;
-            int sourceHeight = m_CookieAtlas.AtlasTexture.rt.height;
-            int viewportWidth = source.width;
-            int viewportHeight = source.height;
-            int mipMapCount = 1 + Mathf.FloorToInt(Mathf.Log(Mathf.Max(source.width, source.height), 2));
-
             if (m_TempRenderTexture0 == null)
             {
+                // TODO: we don't need to allocate two temp RT, we can use the atlas as temp render texture
+                // it will avoid additional copy of the whole mip chain into the atlas.
+                int sourceWidth = m_CookieAtlas.AtlasTexture.rt.width;
+                int sourceHeight = m_CookieAtlas.AtlasTexture.rt.height;
+
                 string cacheName = m_CookieAtlas.AtlasTexture.name;
                 m_TempRenderTexture0 = new RenderTexture(sourceWidth, sourceHeight, 1, cookieFormat)
                 {
@@ -163,14 +138,41 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
             }
+        }
+
+        Texture FilterAreaLightTexture(CommandBuffer cmd, Texture source, int finalWidth, int finalHeight)
+        {
+            if (m_MaterialFilterAreaLights == null)
+            {
+                Debug.LogError("FilterAreaLightTexture has an invalid shader. Can't filter area light cookie.");
+                return null;
+            }
+
+            int sourceWidth = m_CookieAtlas.AtlasTexture.rt.width;
+            int sourceHeight = m_CookieAtlas.AtlasTexture.rt.height;
+            int viewportWidth = finalWidth;// source.width;
+            int viewportHeight = finalHeight;// source.height;
+            int mipMapCount = 1 + Mathf.FloorToInt(Mathf.Log(Mathf.Max(source.width, source.height), 2));
+
+            ReserveTempTextureIfNeeded(cmd, mipMapCount);
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.AreaLightCookieConvolution)))
             {
                 int targetWidth = sourceWidth;
                 int targetHeight = sourceHeight;
 
-                // Start by copying the source texture to the array slice's mip 0
+                if (source.dimension == TextureDimension.Cube)
                 {
+                    m_MPBFilterAreaLights.SetInt(s_sourceMipLevel, 0);
+                    m_MPBFilterAreaLights.SetTexture(s_texCubeSource, source);
+
+                    cmd.SetRenderTarget(m_TempRenderTexture0, 0);
+                    cmd.SetViewport(new Rect(0, 0, viewportWidth, viewportHeight));
+                    cmd.DrawProcedural(Matrix4x4.identity, m_MaterialFilterAreaLights, 3, MeshTopology.Triangles, 3, 1, m_MPBFilterAreaLights);
+                }
+                else
+                {
+                    // Start by copying the source texture to the array slice's mip 0
                     m_MPBFilterAreaLights.SetInt(s_sourceMipLevel, 0);
                     m_MPBFilterAreaLights.SetTexture(s_texSource, source);
 
@@ -188,7 +190,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         Vector4 uvLimits = new Vector4(0, 0, viewportWidth / (float)sourceWidth, viewportHeight / (float)sourceHeight);
 
                         viewportWidth = Mathf.Max(1, viewportWidth >> 1);
-                        targetWidth = Mathf.Max(1, targetWidth  >> 1);
+                        targetWidth = Mathf.Max(1, targetWidth >> 1);
 
                         m_MPBFilterAreaLights.SetTexture(s_texSource, m_TempRenderTexture0);
                         m_MPBFilterAreaLights.SetInt(s_sourceMipLevel, mipIndex - 1);
@@ -238,13 +240,33 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        public Vector4 Fetch2DCookie(CommandBuffer cmd, Texture cookie, Texture ies)
+        {
+            int width  = (int)Mathf.Max(cookie.width, ies.height);
+            int height = (int)Mathf.Max(cookie.width, ies.height);
+
+            if (width < k_MinCookieSize || height < k_MinCookieSize)
+                return Vector4.zero;
+
+            if (!m_CookieAtlas.IsCached(out var scaleBias, m_CookieAtlas.GetTextureID(cookie, ies)) && !m_NoMoreSpace)
+                Debug.LogError($"Unity cannot fetch the 2D Light cookie texture: {cookie} because it is not on the cookie atlas. To resolve this, open your HDRP Asset and increase the resolution of the cookie atlas.");
+
+            if (m_CookieAtlas.NeedsUpdate(cookie, ies, false))
+            {
+                m_CookieAtlas.BlitTexture(cmd, scaleBias, ies, new Vector4(1, 1, 0, 0), blitMips: false, overrideInstanceID: m_CookieAtlas.GetTextureID(cookie, ies));
+                m_CookieAtlas.BlitTextureMultiply(cmd, scaleBias, cookie, new Vector4(1, 1, 0, 0), blitMips: false, overrideInstanceID: m_CookieAtlas.GetTextureID(cookie, ies));
+            }
+
+            return scaleBias;
+        }
+
         public Vector4 Fetch2DCookie(CommandBuffer cmd, Texture cookie)
         {
             if (cookie.width < k_MinCookieSize || cookie.height < k_MinCookieSize)
                 return Vector4.zero;
 
-            if (!m_CookieAtlas.IsCached(out var scaleBias, cookie) && !m_NoMoreSpace)
-                Debug.LogError($"2D Light cookie texture {cookie} can't be fetched without having reserved. You can try to increase the cookie atlas resolution in the HDRP settings.");
+            if (!m_CookieAtlas.IsCached(out var scaleBias, m_CookieAtlas.GetTextureID(cookie)) && !m_NoMoreSpace)
+                Debug.LogError($"Unity cannot fetch the 2D Light cookie texture: {cookie} because it is not on the cookie atlas. To resolve this, open your HDRP Asset and increase the resolution of the cookie atlas.");
 
             if (m_CookieAtlas.NeedsUpdate(cookie, false))
                 m_CookieAtlas.BlitTexture(cmd, scaleBias, cookie, new Vector4(1, 1, 0, 0), blitMips: false);
@@ -260,15 +282,59 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_CookieAtlas.IsCached(out var scaleBias, cookie) && !m_NoMoreSpace)
                 Debug.LogError($"Area Light cookie texture {cookie} can't be fetched without having reserved. You can try to increase the cookie atlas resolution in the HDRP settings.");
 
+            int currentID = m_CookieAtlas.GetTextureID(cookie);
+            //RTHandle existingTexture;
             if (m_CookieAtlas.NeedsUpdate(cookie, true))
             {
                 // Generate the mips
-                Texture filteredAreaLight = FilterAreaLightTexture(cmd, cookie);
+                Texture filteredAreaLight = FilterAreaLightTexture(cmd, cookie, cookie.width, cookie.height);
                 Vector4 sourceScaleOffset = new Vector4(cookie.width / (float)atlasTexture.rt.width, cookie.height / (float)atlasTexture.rt.height, 0, 0);
-                m_CookieAtlas.BlitTexture(cmd, scaleBias, filteredAreaLight, sourceScaleOffset, blitMips: true, overrideInstanceID: cookie.GetInstanceID());
+                m_CookieAtlas.BlitTexture(cmd, scaleBias, filteredAreaLight, sourceScaleOffset, blitMips: true, overrideInstanceID: currentID);
             }
 
             return scaleBias;
+        }
+
+        public Vector4 FetchAreaCookie(CommandBuffer cmd, Texture cookie, Texture ies)
+        {
+            int width  = (int)Mathf.Max(cookie.width, ies.height);
+            int height = (int)Mathf.Max(cookie.width, ies.height);
+
+            if (width < k_MinCookieSize || height < k_MinCookieSize)
+                return Vector4.zero;
+
+            int projectionSize = 2*(int)Mathf.Max((float)m_CookieCubeResolution, Mathf.Max((float)cookie.width, (float)ies.width));
+
+            if (!m_CookieAtlas.IsCached(out var scaleBias, cookie, ies) && !m_NoMoreSpace)
+                Debug.LogError($"Area Light cookie texture {cookie} & {ies} can't be fetched without having reserved. You can try to increase the cookie atlas resolution in the HDRP settings.");
+
+            int currentID = m_CookieAtlas.GetTextureID(cookie, ies);
+            if (m_CookieAtlas.NeedsUpdate(cookie, ies, true))
+            {
+                Vector4 sourceScaleOffset = new Vector4(projectionSize / (float)atlasTexture.rt.width, projectionSize / (float)atlasTexture.rt.height, 0, 0);
+
+                Texture filteredProjected = FilterAreaLightTexture(cmd, cookie, projectionSize, projectionSize);
+                m_CookieAtlas.BlitOctahedralTexture(cmd, scaleBias, filteredProjected, sourceScaleOffset, blitMips: true, overrideInstanceID: m_CookieAtlas.GetTextureID(cookie, ies));
+                filteredProjected = FilterAreaLightTexture(cmd, ies, projectionSize, projectionSize);
+                m_CookieAtlas.BlitOctahedralTextureMultiply(cmd, scaleBias, filteredProjected, sourceScaleOffset, blitMips: true, overrideInstanceID: m_CookieAtlas.GetTextureID(cookie, ies));
+            }
+
+            return scaleBias;
+        }
+
+        public void ReserveSpace(Texture cookieA, Texture cookieB)
+        {
+            if (cookieA == null || cookieB == null)
+                return;
+
+            int width  = (int)Mathf.Max(cookieA.width, cookieB.height);
+            int height = (int)Mathf.Max(cookieA.width, cookieB.height);
+
+            if (width < k_MinCookieSize || height < k_MinCookieSize)
+                return;
+
+            if (!m_CookieAtlas.ReserveSpace(m_CookieAtlas.GetTextureID(cookieA, cookieB), width, height))
+                m_2DCookieAtlasNeedsLayouting = true;
         }
 
         public void ReserveSpace(Texture cookie)
@@ -283,17 +349,95 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_2DCookieAtlasNeedsLayouting = true;
         }
 
-        public int FetchCubeCookie(CommandBuffer cmd, Texture cookie) => m_CubeCookieTexArray.FetchSlice(cmd, cookie);
+        public void ReserveSpaceCube(Texture cookie)
+        {
+            if (cookie == null)
+                return;
+
+            Debug.Assert(cookie.dimension == TextureDimension.Cube);
+
+            int projectionSize  = 2*cookie.width;
+
+            if (projectionSize < k_MinCookieSize)
+                return;
+
+            if (!m_CookieAtlas.ReserveSpace(m_CookieAtlas.GetTextureID(cookie), projectionSize, projectionSize))
+                m_2DCookieAtlasNeedsLayouting = true;
+        }
+
+        public void ReserveSpaceCube(Texture cookieA, Texture cookieB)
+        {
+            if (cookieA == null && cookieB == null)
+                return;
+
+            Debug.Assert(cookieA.dimension == TextureDimension.Cube && cookieB.dimension == TextureDimension.Cube);
+
+            int projectionSize  = 2*(int)Mathf.Max(cookieA.width, cookieB.width);
+
+            if (projectionSize < k_MinCookieSize)
+                return;
+
+            if (!m_CookieAtlas.ReserveSpace(m_CookieAtlas.GetTextureID(cookieA, cookieB), projectionSize, projectionSize))
+                m_2DCookieAtlasNeedsLayouting = true;
+        }
+
+        public Vector4 FetchCubeCookie(CommandBuffer cmd, Texture cookie)
+        {
+            Debug.Assert(cookie != null);
+            Debug.Assert(cookie.dimension == TextureDimension.Cube);
+
+            int projectionSize = 2*(int)Mathf.Max((float)m_CookieCubeResolution, (float)cookie.width);
+            if (projectionSize < k_MinCookieSize)
+                return Vector4.zero;
+
+            if (!m_CookieAtlas.IsCached(out var scaleBias, cookie) && !m_NoMoreSpace)
+                Debug.LogError($"Unity cannot fetch the Cube cookie texture: {cookie} because it is not on the cookie atlas. To resolve this, open your HDRP Asset and increase the resolution of the cookie atlas.");
+
+            if (m_CookieAtlas.NeedsUpdate(cookie, true))
+            {
+                Vector4 sourceScaleOffset = new Vector4(projectionSize/(float)atlasTexture.rt.width, projectionSize/(float)atlasTexture.rt.height, 0, 0);
+
+                Texture filteredProjected = FilterAreaLightTexture(cmd, cookie, projectionSize, projectionSize);
+                m_CookieAtlas.BlitOctahedralTexture(cmd, scaleBias, filteredProjected, sourceScaleOffset, blitMips: true, overrideInstanceID: m_CookieAtlas.GetTextureID(cookie));
+            }
+
+            return scaleBias;
+        }
+
+        public Vector4 FetchCubeCookie(CommandBuffer cmd, Texture cookie, Texture ies)
+        {
+            Debug.Assert(cookie != null);
+            Debug.Assert(ies != null);
+            Debug.Assert(cookie.dimension == TextureDimension.Cube);
+            Debug.Assert(ies.dimension == TextureDimension.Cube);
+
+            int projectionSize = 2*(int)Mathf.Max((float)m_CookieCubeResolution, (float)cookie.width);
+            if (projectionSize < k_MinCookieSize)
+                return Vector4.zero;
+
+            if (!m_CookieAtlas.IsCached(out var scaleBias, cookie, ies) && !m_NoMoreSpace)
+                Debug.LogError($"Unity cannot fetch the Cube cookie texture: {cookie} because it is not on the cookie atlas. To resolve this, open your HDRP Asset and increase the resolution of the cookie atlas.");
+
+            if (m_CookieAtlas.NeedsUpdate(cookie, ies, true))
+            {
+                Vector4 sourceScaleOffset = new Vector4(projectionSize/(float)atlasTexture.rt.width, projectionSize/(float)atlasTexture.rt.height, 0, 0);
+
+                Texture filteredProjected = FilterAreaLightTexture(cmd, cookie, projectionSize, projectionSize);
+                m_CookieAtlas.BlitOctahedralTexture(cmd, scaleBias, filteredProjected, sourceScaleOffset, blitMips: true, overrideInstanceID: m_CookieAtlas.GetTextureID(cookie, ies));
+                filteredProjected = FilterAreaLightTexture(cmd, ies, projectionSize, projectionSize);
+                m_CookieAtlas.BlitOctahedralTextureMultiply(cmd, scaleBias, filteredProjected, sourceScaleOffset, blitMips: true, overrideInstanceID: m_CookieAtlas.GetTextureID(cookie, ies));
+            }
+
+            return scaleBias;
+        }
 
         public void ResetAllocator() => m_CookieAtlas.ResetAllocator();
 
         public void ClearAtlasTexture(CommandBuffer cmd) => m_CookieAtlas.ClearTarget(cmd);
 
         public RTHandle atlasTexture => m_CookieAtlas.AtlasTexture;
-        public Texture cubeCache => m_CubeCookieTexArray.GetTexCache();
 
         public PowerOfTwoTextureAtlas atlas => m_CookieAtlas;
-        public TextureCacheCubemap cubeCookieTexArray => m_CubeCookieTexArray;
 
         public Vector4 GetCookieAtlasSize()
         {

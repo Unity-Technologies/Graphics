@@ -6,16 +6,6 @@ namespace UnityEngine.Rendering.HighDefinition
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
     public partial class HDRenderPipelineEditorResources : ScriptableObject
     {
-        [Reload("Editor/DefaultScene/DefaultSceneRoot.prefab")]
-        public GameObject defaultScene;
-        [Reload("Editor/DefaultDXRScene/DefaultSceneRoot.prefab")]
-        public GameObject defaultDXRScene;
-        [Reload("Editor/DefaultScene/Sky and Fog Settings Profile.asset")]
-        public VolumeProfile defaultSkyAndFogProfile;
-        [Reload("Editor/DefaultDXRScene/Sky and Fog Settings Profile.asset")]
-        public VolumeProfile defaultDXRSkyAndFogProfile;
-        [Reload("Editor/DefaultDXRScene/DXR Settings.asset")]
-        public VolumeProfile defaultDXRSettings;
         [Reload(new[]
         {
             "Runtime/RenderPipelineResources/Skin Diffusion Profile.asset",

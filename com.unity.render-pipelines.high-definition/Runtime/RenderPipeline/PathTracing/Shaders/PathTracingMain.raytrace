@@ -108,7 +108,7 @@ void RayGen()
     pathIntersection.value = 1.0;
     pathIntersection.remainingDepth = _RaytracingMaxRecursion;
     pathIntersection.pixelCoord = currentPixelCoord;
-    pathIntersection.maxRoughness = 0.001;
+    pathIntersection.maxRoughness = 0.0;
 
     // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
     pathIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle;

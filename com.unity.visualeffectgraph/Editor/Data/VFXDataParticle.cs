@@ -195,7 +195,7 @@ namespace UnityEditor.VFX
     {
         public override VFXDataType type { get { return hasStrip ? VFXDataType.ParticleStrip : VFXDataType.Particle; } }
 
-        protected enum DataType
+        internal enum DataType
         {
             Particle,
             ParticleStrip
@@ -215,6 +215,14 @@ namespace UnityEditor.VFX
         protected override void OnSettingModified(VFXSetting setting)
         {
             base.OnSettingModified(setting);
+
+            if (setting.name == "capacity" && capacity == 0)
+                capacity = 1;
+            else if (setting.name == "stripCapacity" && stripCapacity == 0)
+                stripCapacity = 1;
+            else if (setting.name == "particlePerStripCount" && particlePerStripCount == 0)
+                particlePerStripCount = 1;
+
             if (hasStrip)
             {
                 if (setting.name == "dataType") // strip has just been set
