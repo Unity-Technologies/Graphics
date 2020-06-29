@@ -523,7 +523,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     var exposureParameters = PrepareExposureParameters(camera);
 
-                    GrabExposureRequiredTextures(camera, out var prevExposure, out var nextExposure, out var tmpRenderTarget1024, out var tmpRenderTarget32);
+                    GrabExposureRequiredTextures(camera, out var prevExposure, out var nextExposure);
 
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DynamicExposure)))
                     {
@@ -533,7 +533,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                         else
                         {
-                            DoDynamicExposure(exposureParameters, cmd, source, prevExposure, nextExposure, tmpRenderTarget1024, tmpRenderTarget32);
+                            DoDynamicExposure(exposureParameters, cmd, source, prevExposure, nextExposure, m_TempTexture1024, m_TempTexture32);
                         }
 
                         // On reset history we need to apply dynamic exposure immediately to avoid
@@ -542,19 +542,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (camera.resetPostProcessingHistory)
                         {
                             var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
-
-                            var cs = m_Resources.shaders.applyExposureCS;
-                            int kernel = cs.FindKernel("KMain");
-
-                            // Note: we call GetPrevious instead of GetCurrent because the textures
-                            // are swapped internally as the system expects the texture will be used
-                            // on the next frame. So the actual "current" for this frame is in
-                            // "previous".
-                            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureTexture, GetPreviousExposureTexture(camera));
-                            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
-                            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
-                            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
-
+                            ApplyExposure(PrepareApplyExposureParameters(camera), cmd, source, destination, GetPreviousExposureTexture(camera));
                             PoolSource(ref source, destination);
                         }
                     }
@@ -982,7 +970,46 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Exposure
 
-        struct ExposureParameter
+        struct ApplyExposureParameters
+        {
+            public ComputeShader applyExposureCS;
+            public int applyExposureKernel;
+
+            public int width;
+            public int height;
+            public int viewCount;
+        }
+
+        ApplyExposureParameters PrepareApplyExposureParameters(HDCamera camera)
+        {
+            ApplyExposureParameters parameters = new ApplyExposureParameters();
+            parameters.applyExposureCS = m_Resources.shaders.applyExposureCS;
+            parameters.applyExposureKernel = parameters.applyExposureCS.FindKernel("KMain");
+
+            parameters.width = camera.actualWidth;
+            parameters.height = camera.actualHeight;
+            parameters.viewCount = camera.viewCount;
+
+            return parameters;
+        }
+
+        static void ApplyExposure(in ApplyExposureParameters parameters, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle prevExposure)
+        {
+            var cs = parameters.applyExposureCS;
+            int kernel = parameters.applyExposureKernel;
+
+            // Note: we use previous instead of current because the textures
+            // are swapped internally as the system expects the texture will be used
+            // on the next frame. So the actual "current" for this frame is in
+            // "previous".
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureTexture, prevExposure);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
+            cmd.DispatchCompute(cs, kernel, (parameters.width + 7) / 8, (parameters.height + 7) / 8, parameters.viewCount);
+
+        }
+
+        struct ExposureParameters
         {
             public ComputeShader exposureCS;
             public ComputeShader histogramExposureCS;
@@ -1009,9 +1036,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 adaptationParams;
         }
 
-        ExposureParameter PrepareExposureParameters(HDCamera hdCamera)
+        ExposureParameters PrepareExposureParameters(HDCamera hdCamera)
         {
-            var parameters = new ExposureParameter();
+            var parameters = new ExposureParameters();
             parameters.exposureCS = m_Resources.shaders.exposureCS;
             parameters.histogramExposureCS = m_Resources.shaders.histogramExposureCS;
             parameters.histogramExposureCS.shaderKeywords = null;
@@ -1202,7 +1229,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_DebugImageHistogramBuffer;
         }
 
-        void DoFixedExposure(in ExposureParameter parameters, CommandBuffer cmd, RTHandle prevExposure)
+        void DoFixedExposure(in ExposureParameters parameters, CommandBuffer cmd, RTHandle prevExposure)
         {
             var cs = parameters.exposureCS;
             int kernel = parameters.exposureReductionKernel;
@@ -1284,7 +1311,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ExposureCurveTexture.Apply();
         }
 
-        void GrabExposureRequiredTextures(HDCamera camera, out RTHandle prevExposure, out RTHandle nextExposure, out RTHandle tmpRenderTarget1024, out RTHandle tmpRenderTarget32)
+        void GrabExposureRequiredTextures(HDCamera camera, out RTHandle prevExposure, out RTHandle nextExposure)
         {
             GrabExposureHistoryTextures(camera, out prevExposure, out nextExposure);
             if (camera.resetPostProcessingHistory)
@@ -1293,18 +1320,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 // When we reset history we must setup neutral value
                 prevExposure = m_EmptyExposureTexture; // Use neutral texture
             }
-
-            tmpRenderTarget1024 = m_TempTexture1024;
-            tmpRenderTarget32 = m_TempTexture32;
         }
 
-        static void DoDynamicExposure(in ExposureParameter exposureParameters, CommandBuffer cmd, RTHandle colorBuffer, RTHandle prevExposure, RTHandle nextExposure, RTHandle tmpRenderTarget1024, RTHandle tmpRenderTarget32)
+        static void DoDynamicExposure(in ExposureParameters exposureParameters, CommandBuffer cmd, RTHandle colorBuffer, RTHandle prevExposure, RTHandle nextExposure, RTHandle tmpRenderTarget1024, RTHandle tmpRenderTarget32)
         {
             var cs = exposureParameters.exposureCS;
             int kernel;
     
             var sourceTex = colorBuffer;
 
+            // NOTE: Breakpoint here.
             kernel = exposureParameters.exposurePreparationKernel;
             cmd.SetComputeIntParams(cs, HDShaderIDs._Variants,  exposureParameters.exposureVariants);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PreviousExposureTexture, prevExposure);
@@ -1347,7 +1372,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(cs, kernel, 1, 1, 1);
         }
 
-        static void DoHistogramBasedExposure(in ExposureParameter exposureParameters, CommandBuffer cmd, RTHandle sourceTexture, RTHandle prevExposure, RTHandle nextExposure, RTHandle debugData)
+        static void DoHistogramBasedExposure(in ExposureParameters exposureParameters, CommandBuffer cmd, RTHandle sourceTexture, RTHandle prevExposure, RTHandle nextExposure, RTHandle debugData)
         {
             var cs = exposureParameters.histogramExposureCS;
             int kernel;

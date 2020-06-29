@@ -17,6 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle RenderPostProcess(    RenderGraph     renderGraph,
                                             TextureHandle   inputColor,
                                             TextureHandle   depthBuffer,
+                                            TextureHandle   depthBufferMipChain,
                                             TextureHandle   backBuffer,
                                             CullingResults  cullResults,
                                             HDCamera        hdCamera)
@@ -61,6 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 inputColor,
                 afterPostProcessBuffer,
                 depthBuffer,
+                depthBufferMipChain,
                 dest,
                 parameters.flipYInPostProcess
             );

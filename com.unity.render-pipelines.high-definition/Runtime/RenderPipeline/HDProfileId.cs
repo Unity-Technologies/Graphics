@@ -161,6 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
         StopNaNs,
         FixedExposure,
         DynamicExposure,
+        ApplyExposure,
         TemporalAntialiasing,
         DepthOfField,
         DepthOfFieldKernel,
