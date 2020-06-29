@@ -464,33 +464,33 @@ half3 HackSampleSH(half3 normalWS)
 #endif
 
 half3 BoxProjectedCubemapDirection(half3 reflectVector, half3 positionWS, real4 cubemapCenter, real4 boxMin, real4 boxMax)
-{
-    half3 pos = positionWS;
-    
+{    
     float3 boxMinMax = (reflectVector > 0.0f) ? boxMax.xyz : boxMin.xyz;
-    float3 rbMinMax = (boxMinMax - pos) / reflectVector;
+    float3 rbMinMax = (boxMinMax - positionWS) / reflectVector;
 
     float fa = min(min(rbMinMax.x, rbMinMax.y), rbMinMax.z);
 
-    pos -= cubemapCenter.xyz;
+    half3 pos = positionWS - cubemapCenter.xyz;
     return pos + reflectVector * fa;
 }
 
 half3 GlossyEnvironmentReflection(half3 reflectVector, half3 positionWS, half perceptualRoughness, half occlusion)
 {
+    bool unity_SpecCube0_BoxProjection = true;
+    bool unity_SpecCube1_BoxProjection = false;
+
 #if !defined(_ENVIRONMENTREFLECTIONS_OFF)
 #if REFLECTION_PROBE
-#if defined(UNITY_SPECCUBE_BOX_PROJECTION)
     half3 originalReflectVector = reflectVector;
-    reflectVector = BoxProjectedCubemapDirection(reflectVector, positionWS, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
-#endif // UNITY_SPECCUBE_BOX_PROJECTION
+    reflectVector = (1 - unity_SpecCube0_BoxProjection) * originalReflectVector
+                        + unity_SpecCube0_BoxProjection * BoxProjectedCubemapDirection(reflectVector, positionWS, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
     half4 encodedIrradiance0 = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
+
 #if BLEND_REFLECTION_PROBE
 
-#if defined(UNITY_SPECCUBE_BOX_PROJECTION)
-    reflectVector = BoxProjectedCubemapDirection(originalReflectVector, positionWS, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
-#endif // UNITY_SPECCUBE_BOX_PROJECTION
+    reflectVector = (1 - unity_SpecCube1_BoxProjection) * originalReflectVector
+                        + unity_SpecCube1_BoxProjection * BoxProjectedCubemapDirection(originalReflectVector, positionWS, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
 
     half4 encodedIrradiance1 = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube1, samplerunity_SpecCube1, reflectVector, mip);
 #if !defined(UNITY_USE_NATIVE_HDR)

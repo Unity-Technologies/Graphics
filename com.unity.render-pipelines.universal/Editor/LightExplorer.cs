@@ -45,7 +45,7 @@ namespace UnityEditor
 				{
 					EditorGUI.IntPopup(r, prop, Styles.ReflectionProbeModeTitles, Styles.ReflectionProbeModeValues, GUIContent.none);
 				}),     // 2: Mode
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Int, Styles.Projection, "m_BoxProjection", 80, (r, prop, dep) =>
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, Styles.Projection, "m_BoxProjection", 80, (r, prop, dep) =>
                 {
                     int[] opts = { 0, 1 };
                     prop.boolValue = EditorGUI.IntPopup(r, prop.boolValue ? 1 : 0, Styles.ProjectionStrings, opts) == 1;
