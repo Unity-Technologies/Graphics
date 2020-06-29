@@ -351,7 +351,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Calculate smallest brick size capable of covering shortest AABB dimension
             float minVolumeSize = Mathf.Min(AABB.size.x, Mathf.Min(AABB.size.y, AABB.size.z));
-            int brickSubDivLevel = Mathf.CeilToInt(Mathf.Log(minVolumeSize, 3));
+            int brickSubDivLevel = Mathf.Min(Mathf.CeilToInt(Mathf.Log(minVolumeSize, 3)), m_MaxSubdivision);
             int brickTotalSize = (int)Mathf.Pow(3, brickSubDivLevel);
 
             // Extend AABB to have origin that lies on a grid point
