@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShowDepthOffsetOnly         = 1 << 13,
             PreserveSpecularLighting    = 1 << 14,
             Unlit                       = Surface | BlendMode | DoubleSided | AlphaCutoff | AlphaCutoffThreshold | AlphaCutoffShadowThreshold| AlphaToMask | BackThenFrontRendering | ShowAfterPostProcessPass | ShowPrePassAndPostPass | ShowDepthOffsetOnly,
-            Lit                         = All ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass, // Lit can't be display in after postprocess pass
+            Lit                         = All ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass ^ ShowDepthOffsetOnly, // Lit can't be display in after postprocess pass
             All                         = ~0,
         }
 
