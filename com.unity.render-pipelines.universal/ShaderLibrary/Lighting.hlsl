@@ -655,10 +655,11 @@ void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedG
     bakedGI = SubtractDirectMainLightFromLightmap(light, normalWS, bakedGI);
 #elif defined(_SHADOW_MASK_DISTANCE)
     half bakedShadow = BEYOND_SHADOW_FAR(shadowCoord) ? shadowMask[maskChannel] : 1.0;
-    light.shadowAttenuation = min(light.shadowAttenuation, bakedShadow);
 #elif defined(_SHADOW_MASK_ALWAYS)
-    half bakedShadow = shadowMask[maskChannel];//This might not be the channel of the main light atten - needs fix
-    light.shadowAttenuation = min(light.shadowAttenuation, bakedShadow);
+    half bakedShadow = shadowMask[maskChannel];
+#endif
+#if defined(_SHADOW_MASK_DISTANCE) || defined(_SHADOW_MASK_ALWAYS)
+    light.shadowAttenuation = min(light.shadowAttenuation, bakedShadow + 1 - saturate(_MainLightSpotDir.w));
 #endif
 }
 

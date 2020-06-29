@@ -135,6 +135,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 int channel = light.bakingOutput.occlusionMaskChannel;
                 //light index is baked in the alpha channel of the light's direction
                 lightSpotDir.w = channel + 1;
+            } else
+            {
+                lightSpotDir.w = 0;//If mask should not be used, light index is 0
             }
         }
 
