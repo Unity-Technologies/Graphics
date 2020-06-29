@@ -7,7 +7,7 @@
   "displayName": "Universal RP",
   "dependencies": {
     "com.unity.mathematics": "1.1.0",
-    "com.unity.render-pipelines.core": "10.0.0-preview.2",
+    "com.unity.render-pipelines.core": "10.0.0-preview.3",
     "com.unity.shadergraph": "10.0.0-preview.1"
   },
   "keywords": [

@@ -58,12 +58,12 @@ all:
       test_platforms:
         - playmode
         - playmode_XR
-        # - Standalone
+        - Standalone
     - platform: Win
       api: Vulkan
       test_platforms:
         - playmode
-        # - Standalone
+        - Standalone
     - platform: OSX
       api: Metal
       test_platforms:

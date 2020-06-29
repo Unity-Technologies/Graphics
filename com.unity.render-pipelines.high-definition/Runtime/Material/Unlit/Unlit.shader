@@ -452,6 +452,8 @@ Shader "HDRP/Unlit"
             #pragma only_renderers d3d11
             #pragma raytracing surface_shader
 
+            #pragma multi_compile _ DEBUG_DISPLAY
+
             #define SHADERPASS SHADERPASS_RAYTRACING_INDIRECT
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
@@ -480,6 +482,8 @@ Shader "HDRP/Unlit"
             #pragma only_renderers d3d11
             #pragma raytracing surface_shader
 
+            #pragma multi_compile _ DEBUG_DISPLAY
+
             #define SHADERPASS SHADERPASS_RAYTRACING_FORWARD
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
@@ -506,10 +510,6 @@ Shader "HDRP/Unlit"
 
             #pragma only_renderers d3d11
             #pragma raytracing surface_shader
-
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
 
             #define SHADERPASS SHADERPASS_RAYTRACING_GBUFFER
 

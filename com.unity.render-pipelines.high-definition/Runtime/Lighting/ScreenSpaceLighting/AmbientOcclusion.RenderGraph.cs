@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { enableRandomWrite = true, colorFormat = GraphicsFormat.R8_UNorm, name = "Ambient Occlusion" }, HDShaderIDs._AmbientOcclusionTexture);
         }
 
-        public TextureHandle Render(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectors, int frameCount)
+        public TextureHandle Render(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectors, int frameCount, in HDUtils.PackedMipChainInfo depthMipInfo)
         {
             var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
 
@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                   historyRT.referenceSize.y * historyRT.scaleFactor.y);
                     var rtScaleForHistory = hdCamera.historyRTHandleProperties.rtHandleScale;
 
-                    var aoParameters = PrepareRenderAOParameters(hdCamera, historySize * rtScaleForHistory, frameCount);
+                    var aoParameters = PrepareRenderAOParameters(hdCamera, historySize * rtScaleForHistory, frameCount, depthMipInfo);
 
                     var packedData = RenderAO(renderGraph, aoParameters, depthPyramid, normalBuffer);
                     result = DenoiseAO(renderGraph, aoParameters, motionVectors, packedData, currentHistory, outputHistory);
