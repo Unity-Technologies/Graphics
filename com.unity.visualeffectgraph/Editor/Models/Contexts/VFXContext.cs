@@ -17,11 +17,12 @@ namespace UnityEditor.VFX
 
         Spawner = 1 << 0,
         Init = 1 << 1,
-        Update = 1 << 2,
-        Output = 1 << 3,
-        Event = 1 << 4,
-        SpawnerGPU = 1 << 5,
-        Subgraph = 1 << 6,
+        OutputEvent = 1 << 2,
+        Update = 1 << 3,
+        Output = 1 << 4,
+        Event = 1 << 5,
+        SpawnerGPU = 1 << 6,
+        Subgraph = 1 << 7,
 
         InitAndUpdate = Init | Update,
         InitAndUpdateAndOutput = Init | Update | Output,
@@ -34,9 +35,10 @@ namespace UnityEditor.VFX
     {
         None =          0,
         SpawnEvent =    1 << 0,
-        Particle =      1 << 1,
-        Mesh =          1 << 2,
-        ParticleStrip = 1 << 3 | Particle, // strips
+        OutputEvent =   1 << 1,
+        Particle =      1 << 2,
+        Mesh =          1 << 3,
+        ParticleStrip = 1 << 4 | Particle, // strips 
     };
 
     [Serializable]
@@ -238,6 +240,10 @@ namespace UnityEditor.VFX
                 to.m_InputFlowSlot[toIndex].link.Any(o => o.context == from && o.slotIndex == fromIndex))
                 return false;
 
+            //Special incorrect case, GPUEvent use the same type than Spawner which leads to an unexpected allowed link.
+            if (from.m_ContextType == VFXContextType.SpawnerGPU && to.m_ContextType == VFXContextType.OutputEvent)
+                return false;
+
             return true;
         }
 
@@ -291,6 +297,7 @@ namespace UnityEditor.VFX
         private bool CanLinkFromMany()
         {
             return contextType == VFXContextType.Output
+                || contextType == VFXContextType.OutputEvent
                 || contextType == VFXContextType.Spawner
                 || contextType == VFXContextType.Subgraph
                 ||  contextType == VFXContextType.Init;
@@ -389,7 +396,7 @@ namespace UnityEditor.VFX
                 {
                     m_Data.OnContextRemoved(this);
                     if (m_Data.owners.Count() == 0)
-                        m_Data.Detach();
+                        m_Data.Detach(notify);
                 }
                 OnDataChanges(m_Data, data);
                 m_Data = data;
