@@ -1,3 +1,4 @@
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
@@ -26,6 +27,8 @@ namespace UnityEditor.Rendering.HighDefinition
         GUIContent[]    m_DistortionModes = { new GUIContent("Procedural"), new GUIContent("Flowmap") };
         int[]           m_DistortionModeValues = { 1, 0 };
 
+        MaterialEditor  materialEditor = null; 
+
         public override void OnEnable()
         {
             var o = new PropertyFetcher<CloudLayer>(serializedObject);
@@ -43,6 +46,16 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Flowmap                   = Unpack(o.Find(x => x.flowmap));
             m_ScrollDirection           = Unpack(o.Find(x => x.scrollDirection));
             m_ScrollSpeed               = Unpack(o.Find(x => x.scrollSpeed));
+
+            CreateEditor(m_CloudMap);
+        }
+
+        public override void OnDisable ()
+        {
+            if (materialEditor != null)
+                Object.DestroyImmediate(materialEditor);
+
+            base.OnDisable();
         }
 
         bool IsMapFormatInvalid(SerializedDataParameter map)
@@ -55,11 +68,25 @@ namespace UnityEditor.Rendering.HighDefinition
             return (tex as Texture).dimension != TextureDimension.Tex2D;
         }
 
+        void CreateEditor(SerializedDataParameter map)
+        {
+            if (materialEditor != null)
+                Object.DestroyImmediate(materialEditor);
+
+            var tex = map.value.objectReferenceValue as CustomRenderTexture;
+            if (tex != null && tex.material != null)
+                materialEditor = (MaterialEditor)Editor.CreateEditor(tex.material);
+        }
+
         public override void OnInspectorGUI()
         {
             PropertyField(m_Enabled, new GUIContent("Enable"));
 
+            EditorGUI.BeginChangeCheck ();
             PropertyField(m_CloudMap);
+            if (EditorGUI.EndChangeCheck())
+                CreateEditor(m_CloudMap);
+
             if (IsMapFormatInvalid(m_CloudMap))
                 EditorGUILayout.HelpBox("The cloud map needs to be a 2D Texture in LatLong layout.", MessageType.Info);
 
@@ -92,6 +119,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_ScrollDirection);
                 PropertyField(m_ScrollSpeed);
                 EditorGUI.indentLevel--;
+            }
+
+
+            if (materialEditor != null)
+            {
+                EditorGUILayout.Space();
+                materialEditor.DrawHeader(); 
+                materialEditor.OnInspectorGUI(); 
+                EditorGUILayout.Space();
             }
         }
     }

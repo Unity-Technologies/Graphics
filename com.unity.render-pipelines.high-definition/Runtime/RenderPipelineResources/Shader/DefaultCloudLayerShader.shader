@@ -44,4 +44,5 @@ Shader "Hidden/DefaultCloudLayer"
         }
     }
     Fallback Off
+	CustomEditor "Rendering.HighDefinition.DefaultCloudLayerGUI"
 }

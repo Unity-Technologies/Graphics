@@ -35,7 +35,7 @@ Only the red and green channel are used and they represent respectively horizont
 | **Cloud Map*                  | Assign a Texture that HDRP uses to render the cloud layer. Refer to the section [Customizing the Cloud Map](#CustomizingCloudMap) for more details. |
 | **Upper Hemisphere Only**     | Check the box to display the cloud layer above the horizon only. |
 | **Tint**                      | Specifies a color that HDRP uses to tint the Cloud Layer. |
-| **Intensity Multiplier**      | Set the multiplier by which HDRP multiplies the Cloud Layer color.<br />Note: If the **Cloud Layer** is applied on top of a **Physically Based Sky**, the multiplier may need to be quite big. |
+| **Intensity Multiplier**      | Set the multiplier by which HDRP multiplies the Cloud Layer color. |
 | **Rotation**                  | Use the slider to set the angle to rotate the Cloud Layer, in degrees. |
 | **Enable Distortion**         | Enable or disable cloud motion using UV distortion. |
 | - **Distortion Mode**         | Use the drop-down to select the method that HDRP uses to calculate the cloud distortion.<br />&#8226; **Procedural**: HDRP distorts the clouds using a uniform wind direction.<br />&#8226; **Flowmap**: HDRP distorts the clouds with a user provided flowmap. |
