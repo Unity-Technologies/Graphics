@@ -479,34 +479,33 @@ half3 BoxProjectedCubemapDirection(half3 reflectVector, half3 positionWS, real4 
 half3 GlossyEnvironmentReflection(half3 reflectVector, half3 positionWS, half perceptualRoughness, half occlusion)
 {
 #if !defined(_ENVIRONMENTREFLECTIONS_OFF)
+#if REFLECTION_PROBE
 #if defined(UNITY_SPECCUBE_BOX_PROJECTION)
     half3 originalReflectVector = reflectVector;
     reflectVector = BoxProjectedCubemapDirection(reflectVector, positionWS, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
 #endif // UNITY_SPECCUBE_BOX_PROJECTION
-
-#if REFLECTION_PROBE
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
-    half3 irradiance = half3(0.0, 0.0, 0.0);
-#if BLEND_REFLECTION_PROBE
     half4 encodedIrradiance0 = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
+#if BLEND_REFLECTION_PROBE
+
 #if defined(UNITY_SPECCUBE_BOX_PROJECTION)
     reflectVector = BoxProjectedCubemapDirection(originalReflectVector, positionWS, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
 #endif // UNITY_SPECCUBE_BOX_PROJECTION
+
     half4 encodedIrradiance1 = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube1, samplerunity_SpecCube1, reflectVector, mip);
 #if !defined(UNITY_USE_NATIVE_HDR)
     half3 irradiance0 = DecodeHDREnvironment(encodedIrradiance0, unity_SpecCube0_HDR);
     half3 irradiance1 = DecodeHDREnvironment(encodedIrradiance1, unity_SpecCube1_HDR);
-    irradiance = irradiance0 * unity_LODFade.w + irradiance1 * (1 - unity_LODFade.w);
+    half3 irradiance = irradiance0 * unity_LODFade.w + irradiance1 * (1 - unity_LODFade.w);
 #else
     half4 encodedIrradiance = encodedIrradiance0 * unity_LODFade.w + encodedIrradiance1 * (1 - unity_LODFade.w);
-    irradiance = encodedIrradiance.rbg;
+    half3 irradiance = encodedIrradiance.rbg;
 #endif
 #else
-    half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
 #if !defined(UNITY_USE_NATIVE_HDR)
-    irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
+    half3 irradiance = DecodeHDREnvironment(encodedIrradiance0, unity_SpecCube0_HDR);
 #else
-    irradiance = encodedIrradiance.rbg;
+    half3 irradiance = encodedIrradiance0.rbg;
 #endif
 #endif // BLEND_REFLECTION_PROBE
     return irradiance * occlusion;
