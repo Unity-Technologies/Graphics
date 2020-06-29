@@ -11,6 +11,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public static readonly GUIContent AAMode = EditorGUIUtility.TrTextContent("Camera Anti-aliasing", "The anti-alising mode that will be used in the scene view camera.");
             public static readonly GUIContent StopNaNs = EditorGUIUtility.TrTextContent("Camera Stop NaNs", "When enabled, any NaNs in the color buffer of the scene view camera will be suppressed.");
+            public static readonly GUIContent OverrideExposure = EditorGUIUtility.TrTextContent("Override Exposure", "When enabled, the scene exposure is overridden with the selected value.");
+            public static readonly GUIContent OverriddenExposure = EditorGUIUtility.TrTextContent("Scene Exposure", "The value for the overridden exposure.");
 #if UNITY_2020_2_OR_NEWER
             public static readonly string HelpBox = "Temporal Anti - aliasing in the Scene View is only supported when Always Refresh is enabled.";
 #else
@@ -102,6 +104,21 @@ namespace UnityEngine.Rendering.HighDefinition
             set => s_SceneViewStopNaNs.value = value;
         }
 
+        static CachedEditorPref<bool> s_SceneExposureOverride = new CachedEditorPref<bool>("HDRP:SceneViewCamera:OverrideExposure", false);
+
+        public static bool sceneExposureOverriden
+        {
+            get => s_SceneExposureOverride.value;
+            set => s_SceneExposureOverride.value = value;
+        }
+
+        static CachedEditorPref<float> s_SceneExposure = new CachedEditorPref<float>("HDRP:SceneViewCamera:Exposure", 10.0f);
+
+        public static float sceneExposure
+        {
+            get => s_SceneExposure.value;
+            set => s_SceneExposure.value = value;
+        }
         static HDAdditionalSceneViewSettings()
         {
             SceneViewCameraWindow.additionalSettingsGui += DoAdditionalSettings;
@@ -111,12 +128,15 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("HD Render Pipeline", EditorStyles.boldLabel);
-
             sceneViewAntialiasing = (AntialiasingMode)EditorGUILayout.EnumPopup(Styles.AAMode, sceneViewAntialiasing);
             if (sceneViewAntialiasing == AntialiasingMode.TemporalAntialiasing)
                 EditorGUILayout.HelpBox(Styles.HelpBox, MessageType.Info);
 
             sceneViewStopNaNs = EditorGUILayout.Toggle(Styles.StopNaNs, sceneViewStopNaNs);
+
+            sceneExposureOverriden = EditorGUILayout.Toggle(Styles.OverrideExposure, sceneExposureOverriden);
+            if (sceneExposureOverriden)
+                sceneExposure = EditorGUILayout.Slider(Styles.OverriddenExposure, sceneExposure, -11.0f, 16.0f);
         }
     }
 #endif

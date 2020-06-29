@@ -19,16 +19,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
-            // Strip every useless shadow configs
-            var shadowInitParams = hdrpAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
-
-            foreach (var shadowVariant in m_ShadowKeywords.ShadowVariants)
-            {
-                if (shadowVariant.Key != shadowInitParams.shadowFilteringQuality)
-                    if (inputData.shaderKeywordSet.IsEnabled(shadowVariant.Value))
-                        return true;
-            }
-
             // CAUTION: Pass Name and Lightmode name must match in master node and .shader.
             // HDRP use LightMode to do drawRenderer and pass name is use here for stripping!
 
@@ -80,6 +70,26 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Note that this is only going to affect the deferred shader and for a debug case, so it won't save much.
             if (inputData.shaderKeywordSet.IsEnabled(m_SubsurfaceScattering) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportSubsurfaceScattering)
+                return true;
+
+            // SHADOW
+
+            // Strip every useless shadow configs
+            var shadowInitParams = hdrpAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
+
+            foreach (var shadowVariant in m_ShadowKeywords.ShadowVariants)
+            {
+                if (shadowVariant.Key != shadowInitParams.shadowFilteringQuality)
+                    if (inputData.shaderKeywordSet.IsEnabled(shadowVariant.Value))
+                        return true;
+            }
+
+            // Screen space shadow variant is exclusive, either we have a variant with dynamic if that support screen space shadow or not
+            // either we have a variant that don't support at all. We can't have both at the same time.
+            if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowOFFKeywords) && shadowInitParams.supportScreenSpaceShadows)
+                return true;
+
+            if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowONKeywords) && !shadowInitParams.supportScreenSpaceShadows)
                 return true;
 
             // DECAL
@@ -134,6 +144,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 
+#if UNITY_2020_2_OR_NEWER
     class HDRPPreprocessComputeShaders : IPreprocessComputeShaders
     {
         struct ExportComputeShaderStrip : System.IDisposable
@@ -195,6 +206,8 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ShadowKeywords m_ShadowKeywords = new ShadowKeywords();
         protected ShaderKeyword m_EnableAlpha = new ShaderKeyword("ENABLE_ALPHA");
         protected ShaderKeyword m_MSAA = new ShaderKeyword("ENABLE_MSAA");
+        protected ShaderKeyword m_ScreenSpaceShadowOFFKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_OFF");
+        protected ShaderKeyword m_ScreenSpaceShadowONKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_ON");
 
         public int callbackOrder { get { return 0; } }
 
@@ -226,18 +239,24 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (shadowVariant.Key != shadowInitParams.shadowFilteringQuality)
                 {
                     if (inputData.shaderKeywordSet.IsEnabled(shadowVariant.Value))
-                    {
                         return true;
-                    }
                 }
             }
 
-            if(inputData.shaderKeywordSet.IsEnabled(m_MSAA) && !hdAsset.currentPlatformRenderPipelineSettings.supportMSAA)
+            // Screen space shadow variant is exclusive, either we have a variant with dynamic if that support screen space shadow or not
+            // either we have a variant that don't support at all. We can't have both at the same time.
+            if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowOFFKeywords) && shadowInitParams.supportScreenSpaceShadows)
+                return true;
+
+            if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowONKeywords) && !shadowInitParams.supportScreenSpaceShadows)
+                return true;
+
+            if (inputData.shaderKeywordSet.IsEnabled(m_MSAA) && !hdAsset.currentPlatformRenderPipelineSettings.supportMSAA)
             {
                 return true;
             }
 
-            if(inputData.shaderKeywordSet.IsEnabled(m_EnableAlpha) && !hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha)
+            if (inputData.shaderKeywordSet.IsEnabled(m_EnableAlpha) && !hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha)
             {
                 return true;
             }
@@ -308,6 +327,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
     }
+#endif // #if UNITY_2020_2_OR_NEWER
 
     class HDRPreprocessShaders : IPreprocessShaders
     {

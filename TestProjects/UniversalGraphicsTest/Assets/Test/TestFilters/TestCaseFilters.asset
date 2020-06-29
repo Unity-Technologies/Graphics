@@ -274,6 +274,13 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 102900000, guid: 83adeebeb3ba74a13816f2b8636588aa, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: OSX Standalone MSAA backbuffer has incorrect aspect ratio/fov
   - FilteredScene: {fileID: 102900000, guid: 069f595c511c463418479db2f730eec1, type: 3}
     ColorSpace: -1
     BuildPlatform: -2
@@ -377,3 +384,10 @@ MonoBehaviour:
     StereoModes: 0
     Reason: 'iOS tracked  regression: Lit shader fails has an error on iOS (scene
       104)'
+  - FilteredScene: {fileID: 102900000, guid: 83adeebeb3ba74a13816f2b8636588aa, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None 
+    StereoModes: 0
+    Reason: iOS tracked regression (scene 111 - 1256906)

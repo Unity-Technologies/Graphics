@@ -1,4 +1,4 @@
-#if (SHADERPASS != SHADERPASS_DEPTH_ONLY && SHADERPASS != SHADERPASS_SHADOWS)
+#if (SHADERPASS != SHADERPASS_DEPTH_ONLY && SHADERPASS != SHADERPASS_SHADOWS && SHADERPASS != SHADERPASS_TRANSPARENT_DEPTH_PREPASS && SHADERPASS != SHADERPASS_TRANSPARENT_DEPTH_POSTPASS)
 #error SHADERPASS_is_not_correctly_define
 #endif
 
@@ -7,7 +7,22 @@
 PackedVaryingsType Vert(AttributesMesh inputMesh)
 {
     VaryingsType varyingsType;
-    varyingsType.vmesh = VertMesh(inputMesh);
+
+#if (SHADERPASS == SHADERPASS_DEPTH_ONLY) && defined(HAVE_RECURSIVE_RENDERING) && !defined(SCENESELECTIONPASS)
+    // If we have a recursive raytrace object, we will not render it.
+    // As we don't want to rely on renderqueue to exclude the object from the list,
+    // we cull it by settings position to NaN value.
+    // TODO: provide a solution to filter dyanmically recursive raytrace object in the DrawRenderer
+    if (_EnableRecursiveRayTracing && _RayTracing > 0.0)
+    {
+        ZERO_INITIALIZE(VaryingsType, varyingsType); // Divide by 0 should produce a NaN and thus cull the primitive.
+    }
+    else
+#endif
+    {
+        varyingsType.vmesh = VertMesh(inputMesh);
+    }
+
     return PackVaryingsType(varyingsType);
 }
 

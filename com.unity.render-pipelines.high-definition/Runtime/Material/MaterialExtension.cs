@@ -118,6 +118,13 @@ namespace UnityEditor.Rendering.HighDefinition
         Front = CullMode.Front,
     }
 
+    internal enum OpaqueCullMode
+    {
+        // Off is double sided and a different setting so we don't have it here
+        Back = CullMode.Back,
+        Front = CullMode.Front,
+    }
+
     internal static class MaterialExtension
     {
         public static SurfaceType   GetSurfaceType(this Material material)
@@ -140,6 +147,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static CullMode      GetTransparentCullMode(this Material material)
             => material.HasProperty(kTransparentCullMode) ? (CullMode)material.GetInt(kTransparentCullMode) : CullMode.Back;
+
+        public static CullMode      GetOpaqueCullMode(this Material material)
+            => material.HasProperty(kOpaqueCullMode) ? (CullMode)material.GetInt(kOpaqueCullMode) : CullMode.Back;
 
         public static CompareFunction   GetTransparentZTest(this Material material)
             => material.HasProperty(kZTestTransparent) ? (CompareFunction)material.GetInt(kZTestTransparent) : CompareFunction.LessEqual;

@@ -213,6 +213,9 @@ EditorBuildSettings:
     path: Assets/Scenes/109_URPShadersAlphaOutput.unity
     guid: 0a89803a0d2352245a452c202f9a67d1
   - enabled: 1
+    path: Assets/Scenes/111_CameraStackMSAA.unity
+    guid: 83adeebeb3ba74a13816f2b8636588aa
+  - enabled: 1
     path: Assets/Scenes/117_SkyboxReflectionTestProjection.unity
     guid: f5310a9ab278ec748b2091bf7ba966a7
   - enabled: 1

@@ -133,8 +133,8 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     uint _XRViewCount;
     int _FrameCount;
     float4 _CoarseStencilBufferSize;
-    int _UseIndirectDiffuse;
-    int _UseRayTracedReflections;
+    int _IndirectDiffuseMode;
+    int _EnableRayTracedReflections;
     int _RaytracingFrameIndex;
     uint _EnableRecursiveRayTracing;
     float4 _ProbeVolumeAtlasResolutionAndSliceCount;

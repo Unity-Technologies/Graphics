@@ -27,8 +27,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Previous master node wasn't having any renderingPass. Assign it correctly now.
             systemData.renderingPass = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
             systemData.alphaTest = hairMasterNode.m_AlphaTest;
-            systemData.alphaTestDepthPrepass = hairMasterNode.m_AlphaTestDepthPrepass;
-            systemData.alphaTestDepthPostpass = hairMasterNode.m_AlphaTestDepthPostpass;
+            systemData.transparentDepthPrepass = hairMasterNode.m_AlphaTestDepthPrepass;
+            systemData.transparentDepthPostpass = hairMasterNode.m_AlphaTestDepthPostpass;
             systemData.sortPriority = hairMasterNode.m_SortPriority;
             systemData.doubleSidedMode = hairMasterNode.m_DoubleSidedMode;
             systemData.transparentZWrite = hairMasterNode.m_ZWrite;
@@ -96,9 +96,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     case HairMasterNode1.SlotMask.AlphaClipThreshold:
                         return systemData.alphaTest;
                     case HairMasterNode1.SlotMask.AlphaClipThresholdDepthPrepass:
-                        return systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPrepass;
+                        return systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.transparentDepthPrepass;
                     case HairMasterNode1.SlotMask.AlphaClipThresholdDepthPostpass:
-                        return systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPostpass;
+                        return systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.transparentDepthPostpass;
                     case HairMasterNode1.SlotMask.AlphaClipThresholdShadow:
                         return systemData.alphaTest && builtinData.alphaTestShadow;
                     default:
