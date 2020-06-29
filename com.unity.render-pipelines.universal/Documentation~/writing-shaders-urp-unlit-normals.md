@@ -85,7 +85,8 @@ Shader "Example/URPUnlitShaderNormal"
             struct Attributes
             {
                 float4 positionOS   : POSITION;
-                // Declaring the variable containing the normal vector for each vertex.
+                // Declaring the variable containing the normal vector for each
+                // vertex.
                 half3 normal        : NORMAL;
             };
 
@@ -99,8 +100,8 @@ Shader "Example/URPUnlitShaderNormal"
             {                
                 Varyings OUT;                
                 OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);       
-                // Using the TransformObjectToWorldNormal function to transform the normals 
-                // from object to world space. This function is from the 
+                // Using the TransformObjectToWorldNormal function to transform the
+                // normals from object to world space. This function is from the 
                 // SpaceTransforms.hlsl file, which is referenced in Core.hlsl.
                 OUT.normal = TransformObjectToWorldNormal(IN.normal);                
                 return OUT;
@@ -109,9 +110,9 @@ Shader "Example/URPUnlitShaderNormal"
             half4 frag(Varyings IN) : SV_Target
             {                
                 half4 color = 0;
-                // IN.normal is a 3D vector. Each vector component has the range -1..1.
-                // To show all vector elements as color, including the negative values,
-                // compress each value into the range 0..1.
+                // IN.normal is a 3D vector. Each vector component has the range
+                // -1..1. To show all vector elements as color, including the
+                // negative values, compress each value into the range 0..1.
                 color.rgb = IN.normal * 0.5 + 0.5;                
                 return color;
             }

@@ -51,9 +51,9 @@ Below is the complete ShaderLab code for this example.
 // window on a Material.
 Shader "Example/URPUnlitShaderColor"
 {    
-    // The _BaseColor variable is visible as a field called Base Color in the Inspector
-    // window on a Material. This variable has the default value ((1, 1, 1, 1)), and you
-    // can select a custom color using the Base Color field.
+    // The _BaseColor variable is visible as a field called Base Color in the
+    // Inspector window on a Material. This variable has the default value
+    // (1, 1, 1, 1), and you can select a custom color using the Base Color field.
     Properties
     { 
         _BaseColor("Base Color", Color) = (1, 1, 1, 1)
@@ -81,11 +81,12 @@ Shader "Example/URPUnlitShaderColor"
                 float4 positionHCS  : SV_POSITION;
             };
 
-            // To make the shader SRP Batcher compatible, declare all properties related to
-            // a Material in a a single CBUFFER block with the name UnityPerMaterial.
+            // To make the shader SRP Batcher compatible, declare all properties
+            // related to a Material in a a single CBUFFER block with the name
+            // UnityPerMaterial.
             CBUFFER_START(UnityPerMaterial)
-                // The following line declares the _BaseColor variable, so that you can use
-                // it in the fragment shader.
+                // The following line declares the _BaseColor variable, so that you
+                // can use it in the fragment shader.
                 half4 _BaseColor;            
             CBUFFER_END
 
