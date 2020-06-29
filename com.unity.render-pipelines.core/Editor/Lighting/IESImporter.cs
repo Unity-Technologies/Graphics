@@ -1,7 +1,11 @@
 using System.IO;
 using UnityEditor;
-using UnityEditor.Experimental.AssetImporters;
 using UnityEngine;
+#if UNITY_2020_2_OR_NEWER
+using UnityEditor.AssetImporters;
+#else
+using UnityEditor.Experimental.AssetImporters;
+#endif
 
 namespace UnityEditor.Rendering
 {
@@ -9,8 +13,8 @@ namespace UnityEditor.Rendering
     /// Common class use to share code between implementation of IES Importeres
     /// </summary>
     [System.Serializable]
-    [UnityEditor.Experimental.AssetImporters.ScriptedImporter(1, "ies")]
-    public partial class IESImporter : UnityEditor.Experimental.AssetImporters.ScriptedImporter
+    [ScriptedImporter(1, "ies")]
+    public partial class IESImporter : ScriptedImporter
     {
         /// <summary>
         /// IES Engine
