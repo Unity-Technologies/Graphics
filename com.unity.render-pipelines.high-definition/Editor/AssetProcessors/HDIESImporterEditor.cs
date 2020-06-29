@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// Class describing the logic for importer an IES file an generating the IESObject associated
     /// </summary>
     [CustomEditor(typeof(IESImporter))]
-    public partial class HDIESImporterEditor : ScriptedImporterEditor
+    public partial class HDIESImporterEditor : UnityEditor.Experimental.AssetImporters.ScriptedImporterEditor
     {
         /// <summary>
         /// IES Importer Editor, common to Core and HDRP

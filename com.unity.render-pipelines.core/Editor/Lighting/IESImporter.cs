@@ -9,8 +9,8 @@ namespace UnityEditor.Rendering
     /// Common class use to share code between implementation of IES Importeres
     /// </summary>
     [System.Serializable]
-    [ScriptedImporter(1, "ies")]
-    public partial class IESImporter : ScriptedImporter
+    [UnityEditor.Experimental.AssetImporters.ScriptedImporter(1, "ies")]
+    public partial class IESImporter : UnityEditor.Experimental.AssetImporters.ScriptedImporter
     {
         /// <summary>
         /// IES Engine
