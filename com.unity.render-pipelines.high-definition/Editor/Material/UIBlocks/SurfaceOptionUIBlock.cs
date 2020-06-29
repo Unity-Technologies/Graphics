@@ -127,7 +127,7 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty alphaCutoffPostpass = null;
         const string kAlphaCutoffPostpass = "_AlphaCutoffPostpass";
         MaterialProperty alphaToMask = null;
-        const string kAlphaToMask = "_AlphaToMask";
+        const string kAlphaToMask = kAlphaToMaskInspector;
         MaterialProperty transparentDepthPrepassEnable = null;
         const string kTransparentDepthPrepassEnable = "_TransparentDepthPrepassEnable";
         MaterialProperty transparentDepthPostpassEnable = null;
@@ -459,12 +459,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 EditorGUI.indentLevel--;
             }
-            else if ((m_Features & Features.AlphaToMask) != 0)
-            {
-                if (alphaToMask != null)
-                    alphaToMask.floatValue = 0.0f;
-            }
-
 
             // Update the renderqueue when we change the alphaTest
             if (EditorGUI.EndChangeCheck())
