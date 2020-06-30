@@ -12,7 +12,7 @@ The following table shows the shader features that different Shader Quality sett
 
 | __Feature__         | __Description__           | __Shader define__ | __Low__    | __Medium__ | __High__   |
 | ------------------- | ------------------------- | ----------------- | ---------- | ---------- | ---------- |
-| __Smooth Shadow Falloff__   | Enabling this setting makes shadows fade smoothly when the shadows are father than the maximum shadow rendering distance (__Shadows > Distance__ in the render pipeline asset).              | FADE_SHADOWS |   | Yes | Yes |
+| __Smooth Shadow Falloff__   | Enabling this setting makes shadows fade smoothly when the shadows are father than the maximum shadow rendering distance (__Shadows > Distance__ in the render pipeline asset).<img src="Images/ShaderQuality/WithoutShadowFade.PNG" width="300"/> <img src="Images/ShaderQuality/ShadowFade.PNG" width="300"/>              | FADE_SHADOWS |   | Yes | Yes |
 
 ## Normalization of normals:
 
