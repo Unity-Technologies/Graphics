@@ -496,7 +496,6 @@ namespace UnityEditor.VFX.UI
             m_Field.OnValueChanged += OnValueChanged;
             Add(m_Field);
 
-            //m_Field.SetEnabled(enabledSelf);
         }
 
         public void OnValueChanged()
