@@ -12,6 +12,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         static readonly ShaderTagId k_CombinedRenderingPassNameOld = new ShaderTagId("Lightweight2D");
         static readonly ShaderTagId k_CombinedRenderingPassName = new ShaderTagId("Universal2D");
         static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
+        static readonly ShaderTagId k_DepthRenderingPassName = new ShaderTagId("DepthRendering");
         static readonly ShaderTagId k_LegacyPassName = new ShaderTagId("SRPDefaultUnlit");
         static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_LegacyPassName, k_CombinedRenderingPassName, k_CombinedRenderingPassNameOld };
 
@@ -93,6 +94,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 DrawingSettings combinedDrawSettings = CreateDrawingSettings(k_ShaderTags, ref renderingData, SortingCriteria.CommonTransparent);
                 DrawingSettings normalsDrawSettings = CreateDrawingSettings(k_NormalsRenderingPassName, ref renderingData, SortingCriteria.CommonTransparent);
+                DrawingSettings depthDrawSettings = CreateDrawingSettings(k_DepthRenderingPassName, ref renderingData, SortingCriteria.CommonOpaque);
+
+                // Depth pre-pass.
+                cmd.Clear();
+                CoreUtils.SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare, depthAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None);
+                context.ExecuteCommandBuffer(cmd);
+                context.DrawRenderers(renderingData.cullResults, ref depthDrawSettings, ref filterSettings);
 
                 SortingSettings sortSettings = combinedDrawSettings.sortingSettings;
                 GetTransparencySortingMode(camera, ref sortSettings);
