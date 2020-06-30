@@ -155,6 +155,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for exposure curve remapping for min/max limits.
 - Added presets for ray traced reflections.
 - Added final image histogram debug view (both luminance and RGB).
+- Added an example texture and rotation to the Cloud Layer volume override.
+- Added an option to extend the camera culling for skinned mesh animation in ray tracing effects (1258547).
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -697,6 +699,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed culling for decals when used in prefabs and edited in context.
 - Force to rebake probe with missing baked texture. (1253367)
 - Fix supported Mac platform detection to handle new major version (11.0) properly
+- Fixed typo in the Render Pipeline Wizard under HDRP+VR
+- Change transparent SSR name in frame settings to avoid clipping. 
 - Fixed alpha to mask reset when toggling alpha test in the material UI.
 
 ### Changed
@@ -851,6 +855,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Making the planar probe atlas's format match the color buffer's format.
 - Removing the planarReflectionCacheCompressed setting from asset.
 - SHADERPASS for TransparentDepthPrepass and TransparentDepthPostpass identification is using respectively SHADERPASS_TRANSPARENT_DEPTH_PREPASS and SHADERPASS_TRANSPARENT_DEPTH_POSTPASS
+- Renamed the debug name from SSAO to ScreenSpaceAmbientOcclusion (1254974).
 
 ## [7.1.1] - 2019-09-05
 
