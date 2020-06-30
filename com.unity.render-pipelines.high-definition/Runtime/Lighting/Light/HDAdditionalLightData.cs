@@ -2264,6 +2264,11 @@ namespace UnityEngine.Rendering.HighDefinition
             DisableCachedShadowSlot();
             m_ShadowMapRenderedSinceLastRequest = false;
 
+            if (emissiveMeshRenderer != null && !emissiveMeshRenderer.Equals(null))
+            {
+                emissiveMeshRenderer.gameObject.layer = m_AreaLightEmissiveMeshLayer;
+            }
+
 #if UNITY_EDITOR
             // If modification are due to change on prefab asset that are non overridden on this prefab instance
             if (PrefabUtility.IsPartOfPrefabInstance(this) && ((PrefabUtility.GetCorrespondingObjectFromOriginalSource(this) as HDAdditionalLightData)?.needRefreshPrefabInstanceEmissiveMeshes ?? false))
