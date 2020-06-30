@@ -135,8 +135,6 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int UNITY_STEREO_MATRIX_IVP = Shader.PropertyToID("unity_StereoMatrixInvVP");
         internal static readonly int UNITY_STEREO_CAMERA_PROJECTION = Shader.PropertyToID("unity_StereoCameraProjection");
         internal static readonly int UNITY_STEREO_CAMERA_INV_PROJECTION = Shader.PropertyToID("unity_StereoCameraInvProjection");
-        internal static readonly int UNITY_STEREO_WORLD_TO_CAMERA = Shader.PropertyToID("unity_StereoWorldToCamera");
-        internal static readonly int UNITY_STEREO_CAMERA_TO_WORLD = Shader.PropertyToID("unity_StereoCameraToWorld");
         internal static readonly int UNITY_STEREO_VECTOR_CAMPOS = Shader.PropertyToID("unity_StereoWorldSpaceCameraPos");
 
         // Hold the stereo matrices in this class to avoid allocating arrays every frame
@@ -180,7 +178,6 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_VP, stereoConstants.viewProjMatrix);
 
             cmd.SetGlobalMatrixArray(UNITY_STEREO_CAMERA_PROJECTION, cameraProjMatrix);
-            cmd.SetGlobalMatrixArray(UNITY_STEREO_WORLD_TO_CAMERA, viewMatrix);
             
             if (setInverseMatrices)
             {
@@ -189,7 +186,6 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_IVP, stereoConstants.invViewProjMatrix);
 
                 cmd.SetGlobalMatrixArray(UNITY_STEREO_CAMERA_INV_PROJECTION, stereoConstants.invCameraProjMatrix);
-                cmd.SetGlobalMatrixArray(UNITY_STEREO_CAMERA_TO_WORLD, stereoConstants.invViewMatrix);
             }
             cmd.SetGlobalVectorArray(UNITY_STEREO_VECTOR_CAMPOS, stereoConstants.worldSpaceCameraPos);
         }

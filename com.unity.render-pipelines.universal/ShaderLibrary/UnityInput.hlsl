@@ -27,8 +27,8 @@
 // Camera transform (but the same as pass transform for XR).
 #define unity_CameraProjection        unity_StereoCameraProjection[unity_StereoEyeIndex] // Does not go through GL.GetGPUProjectionMatrix()
 #define unity_CameraInvProjection     unity_StereoCameraInvProjection[unity_StereoEyeIndex]
-#define unity_WorldToCamera           unity_StereoWorldToCamera[unity_StereoEyeIndex]
-#define unity_CameraToWorld           unity_StereoCameraToWorld[unity_StereoEyeIndex]
+#define unity_WorldToCamera           unity_StereoMatrixV[unity_StereoEyeIndex] // Should be unity_StereoWorldToCamera but no use-case in XR pass
+#define unity_CameraToWorld           unity_StereoMatrixInvV[unity_StereoEyeIndex] // Should be unity_StereoCameraToWorld but no use-case in XR pass
 #define _WorldSpaceCameraPos          unity_StereoWorldSpaceCameraPos[unity_StereoEyeIndex]
 #endif
 
@@ -135,8 +135,6 @@ float4x4 unity_StereoMatrixInvVP[2];
 
 float4x4 unity_StereoCameraProjection[2];
 float4x4 unity_StereoCameraInvProjection[2];
-float4x4 unity_StereoWorldToCamera[2];
-float4x4 unity_StereoCameraToWorld[2];
 
 float3   unity_StereoWorldSpaceCameraPos[2];
 float4   unity_StereoScaleOffset[2];
