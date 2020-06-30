@@ -90,7 +90,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_AlphaTest = value;
         }
 
-        [SerializeField, FormerlySerializedAs("m_AlphaTestDepthPrepass")]
+        [SerializeField]
         bool m_TransparentDepthPrepass;
         public bool transparentDepthPrepass
         {
@@ -98,7 +98,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_TransparentDepthPrepass = value;
         }
 
-        [SerializeField, FormerlySerializedAs("m_AlphaTestDepthPostpass")]
+        [SerializeField]
         bool m_TransparentDepthPostpass;
         public bool transparentDepthPostpass
         {
