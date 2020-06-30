@@ -292,7 +292,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Run the computation
                 cmd.DispatchRays(pathTracingShader, "RayGen", (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
             }
-            RenderAccumulation(hdCamera, cmd, m_RadianceTexture, outputTexture, true);
+            RenderAccumulation(hdCamera, m_RadianceTexture, outputTexture, true, cmd);
         }
     }
 }
