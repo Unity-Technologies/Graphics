@@ -686,8 +686,7 @@ Shader "HDRP/Lit"
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
-            #define SHADERPASS SHADERPASS_DEPTH_ONLY
-            #define CUTOFF_TRANSPARENT_DEPTH_PREPASS
+            #define SHADERPASS SHADERPASS_TRANSPARENT_DEPTH_PREPASS
 
             // If the transparent surface should have reflections, then we should output normal
             #if !defined(_DISABLE_SSR_TRANSPARENT)
@@ -876,8 +875,7 @@ Shader "HDRP/Lit"
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
-            #define SHADERPASS SHADERPASS_DEPTH_ONLY
-            #define CUTOFF_TRANSPARENT_DEPTH_POSTPASS
+            #define SHADERPASS SHADERPASS_TRANSPARENT_DEPTH_POSTPASS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"

@@ -633,8 +633,7 @@ Shader "HDRP/LitTessellation"
 
             HLSLPROGRAM
 
-            #define SHADERPASS SHADERPASS_DEPTH_ONLY
-            #define CUTOFF_TRANSPARENT_DEPTH_PREPASS
+            #define SHADERPASS SHADERPASS_TRANSPARENT_DEPTH_PREPASS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
@@ -789,8 +788,7 @@ Shader "HDRP/LitTessellation"
 
             HLSLPROGRAM
 
-            #define SHADERPASS SHADERPASS_DEPTH_ONLY
-            #define CUTOFF_TRANSPARENT_DEPTH_POSTPASS
+            #define SHADERPASS SHADERPASS_TRANSPARENT_DEPTH_POSTPASS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"

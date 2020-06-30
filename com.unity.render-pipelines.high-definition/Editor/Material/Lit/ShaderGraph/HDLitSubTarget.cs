@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
 
         protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
-        protected override string customInspector => "Rendering.HighDefinition.HDLitGUI";
+        protected override string customInspector => "Rendering.HighDefinition.LightingShaderGraphGUI";
         protected override string subTargetAssetGuid => "caab952c840878340810cca27417971c"; // HDLitSubTarget.cs
         protected override string postDecalsInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl";
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Lit;
