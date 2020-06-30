@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   counterTestSuite:
     scenes:
-    - scene: 
-      sceneLabels: 
-      scenePath: 
+    - scene: SampleScene
+      sceneLabels: Default
+      scenePath: Assets/Scenes/SampleScene.unity
       enabled: 1
     srpAssets:
     - asset: {fileID: 11400000, guid: 19ba41d7c0026c3459d37c2fe90c55a0, type: 2}
