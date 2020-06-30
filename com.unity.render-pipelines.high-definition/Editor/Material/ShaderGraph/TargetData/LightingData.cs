@@ -23,16 +23,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_BlendPreserveSpecular = value;
         }
 
-        /*
-        // Need to keep to do the migration?
+        // Obsolete for Migration
         [SerializeField]
-        bool m_ReceiveDecals = true;
-        public bool receiveDecals
-        {
-            get => m_ReceiveDecals;
-            set => m_ReceiveDecals = value;
-        }
-        */
+        internal bool m_ReceiveDecals = true;
 
         [SerializeField]
         DecalLayerMask m_DecalLayerMask;
