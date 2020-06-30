@@ -425,8 +425,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 //EditorGUILayout.PropertyField(p.aperture, apertureContent);
                 var rect = EditorGUILayout.BeginHorizontal();
                 {
-                    const float pad = 2;
+                    // Magic values/offsets to get the UI look consistent
                     const float textRectSize = 80;
+                    const float textRectPaddingRight = 62;
+                    const float unitRectPaddingRight = 97;
+                    const float sliderPaddingLeft = 2;
+                    const float sliderPaddingRight = 77;
 
                     var labelRect = rect;
                     labelRect.width = EditorGUIUtility.labelWidth;
@@ -435,8 +439,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     GUI.SetNextControlName("ApertureSlider");
                     var sliderRect = rect;
-                    sliderRect.x += EditorGUIUtility.labelWidth + pad;
-                    sliderRect.width = rect.width - EditorGUIUtility.labelWidth - pad - 75;
+                    sliderRect.x += labelRect.width + sliderPaddingLeft;
+                    sliderRect.width = rect.width - labelRect.width - sliderPaddingRight;
                     float newVal = GUI.HorizontalSlider(sliderRect, p.aperture.floatValue, 1.0f, 32);
 
                     // keep only 2 digits of precision, like the otehr editor fields
@@ -450,13 +454,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     var unitRect = rect;
-                    unitRect.x = rect.width - textRectSize;
+                    unitRect.x += rect.width - unitRectPaddingRight;
                     unitRect.width = textRectSize;
                     unitRect.height = EditorGUIUtility.singleLineHeight;
                     EditorGUI.LabelField(unitRect, "f /", EditorStyles.label);
 
                     var textRect = rect;
-                    textRect.x = rect.width - 62;
+                    textRect.x = rect.width - textRectPaddingRight;
                     textRect.width = textRectSize;
                     textRect.height = EditorGUIUtility.singleLineHeight;
                     string newAperture = EditorGUI.TextField(textRect, p.aperture.floatValue.ToString());
