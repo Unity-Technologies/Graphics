@@ -422,7 +422,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         cam.focalLength.floatValue = focalLengthVal;
                 }
 
-                //EditorGUILayout.PropertyField(p.aperture, apertureContent);
+                // Custom layout for aperture
                 var rect = EditorGUILayout.BeginHorizontal();
                 {
                     // Magic values/offsets to get the UI look consistent
