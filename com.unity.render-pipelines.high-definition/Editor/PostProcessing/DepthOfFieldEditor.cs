@@ -7,6 +7,14 @@ namespace UnityEditor.Rendering.HighDefinition
     [VolumeComponentEditor(typeof(DepthOfField))]
     sealed class DepthOfFieldEditor : VolumeComponentWithQualityEditor
     {
+        static partial class Styles
+        {
+            public static GUIContent k_NearSampleCount = new GUIContent("Sample Count", "Sets the number of samples to use for the near field.");
+            public static GUIContent k_NearMaxBlur = new GUIContent("Max Radius", "Sets the maximum radius the near blur can reach.");
+            public static GUIContent k_FarSampleCount = new GUIContent("Sample Count", "Sets the number of samples to use for the far field.");
+            public static GUIContent k_FarMaxBlur = new GUIContent("Max Radius", "Sets the maximum radius the far blur can reach");
+        }
+
         SerializedDataParameter m_FocusMode;
 
         // Physical mode
@@ -74,12 +82,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     GUI.enabled = useCustomValue;
                     EditorGUILayout.LabelField("Near Blur", EditorStyles.miniLabel);
-                    PropertyField(m_NearSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
-                    PropertyField(m_NearMaxBlur, EditorGUIUtility.TrTextContent("Max Radius"));
+                    PropertyField(m_NearSampleCount, Styles.k_NearSampleCount);
+                    PropertyField(m_NearMaxBlur, Styles.k_NearMaxBlur);
 
                     EditorGUILayout.LabelField("Far Blur", EditorStyles.miniLabel);
-                    PropertyField(m_FarSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
-                    PropertyField(m_FarMaxBlur, EditorGUIUtility.TrTextContent("Max Radius"));
+                    PropertyField(m_FarSampleCount, Styles.k_FarSampleCount);
+                    PropertyField(m_FarMaxBlur, Styles.k_FarMaxBlur);
                     GUI.enabled = true;
                 }
             }
@@ -106,8 +114,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (advanced)
                 {
                     GUI.enabled = useCustomValue;
-                    PropertyField(m_FarSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
-                    PropertyField(m_FarMaxBlur, EditorGUIUtility.TrTextContent("Max Radius"));
+                    PropertyField(m_FarSampleCount, Styles.k_FarSampleCount);
+                    PropertyField(m_FarMaxBlur, Styles.k_FarMaxBlur);
                     GUI.enabled = true;
                 }
             }
