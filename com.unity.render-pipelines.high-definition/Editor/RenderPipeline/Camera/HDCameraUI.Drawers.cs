@@ -422,7 +422,51 @@ namespace UnityEditor.Rendering.HighDefinition
                         cam.focalLength.floatValue = focalLengthVal;
                 }
 
-                EditorGUILayout.PropertyField(p.aperture, apertureContent);
+                //EditorGUILayout.PropertyField(p.aperture, apertureContent);
+                var rect = EditorGUILayout.BeginHorizontal();
+                {
+                    const float pad = 2;
+                    const float textRectSize = 80;
+
+                    var labelRect = rect;
+                    labelRect.width = EditorGUIUtility.labelWidth;
+                    labelRect.height = EditorGUIUtility.singleLineHeight;
+                    EditorGUI.LabelField(labelRect, apertureContent);
+
+                    GUI.SetNextControlName("ApertureSlider");
+                    var sliderRect = rect;
+                    sliderRect.x += EditorGUIUtility.labelWidth + pad;
+                    sliderRect.width = rect.width - EditorGUIUtility.labelWidth - pad - 75;
+                    float newVal = GUI.HorizontalSlider(sliderRect, p.aperture.floatValue, 1.0f, 32);
+
+                    // keep only 2 digits of precision, like the otehr editor fields
+                    newVal = Mathf.Floor(100 * newVal) / 100.0f;
+
+                    if (p.aperture.floatValue != newVal)
+                    {
+                        p.aperture.floatValue = newVal;
+                        // Note: We need to move the focus when the slider changes, otherwise the textField will not update
+                        GUI.FocusControl("ApertureSlider");
+                    }
+
+                    var unitRect = rect;
+                    unitRect.x = rect.width - textRectSize;
+                    unitRect.width = textRectSize;
+                    unitRect.height = EditorGUIUtility.singleLineHeight;
+                    EditorGUI.LabelField(unitRect, "f /", EditorStyles.label);
+
+                    var textRect = rect;
+                    textRect.x = rect.width - 62;
+                    textRect.width = textRectSize;
+                    textRect.height = EditorGUIUtility.singleLineHeight;
+                    string newAperture = EditorGUI.TextField(textRect, p.aperture.floatValue.ToString());
+                    p.aperture.floatValue = (float)Convert.ToDouble(newAperture);
+                }
+
+                EditorGUILayout.EndHorizontal();
+                EditorGUILayout.Space();
+                EditorGUILayout.Space();
+                EditorGUILayout.Space();
                 EditorGUILayout.PropertyField(cam.lensShift, lensShiftContent);
             }
 
