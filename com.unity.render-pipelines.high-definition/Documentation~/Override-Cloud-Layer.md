@@ -15,8 +15,12 @@ After you add a **Cloud Layer** override, you must enable it in the override its
 
 ## Using the default Cloud Map
 
-An example Cloud Map texture named `DefaultCloudLayer` is included in the HDRP package.
-As it is a CustomRenderTexture, you can duplicate the asset in your project and tweak some parameters. To do so, first duplicate the `DefaultCloudLayer` CustomRenderTexture. Then duplicate the `DefaultCloudLayerMaterial` and select it in the inspector of your CustomRenderTexture.
+HDRP includes an example Cloud Map texture named `DefaultCloudLayer`.
+This example Cloud Map is a read-only **CustomRenderTexture**. This means that, if you want to modify any of its properties, you need to create a duplicate of it and modify that instead. To duplicate the example Cloud Map:
+
+1. Duplicate the `DefaultCloudLayer` asset.
+2. Duplicate the Material referenced by the DefaultCloudLayer asset. This Material is called `DefaultCloudLayerMaterial`.
+3. In the Inspector for the new `DefaultCloudLayer`, assign the new `DefaultCloudLayerMaterial` to the **Material** property.
 
 <a name="CustomizingCloudMap"></a>
 
