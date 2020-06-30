@@ -11,11 +11,18 @@ The **Cloud Layer** uses the [Volume](Volumes.html) framework, so to enable and 
 
 After you add a **Cloud Layer** override, you must enable it in the override itself. In the override, Check the **Enable** property. HDRP now renders **Cloud Layer** for any Camera this Volume affects.
 
+<a name="DefaultCloudMap"></a>
+
+## Using the default Cloud Map
+
+An example Cloud Map texture named `DefaultCloudLayer` is included in the HDRP package.
+As it is a CustomRenderTexture, you can duplicate the asset in your project and tweak some parameters. To do so, first duplicate the `DefaultCloudLayer` CustomRenderTexture. Then duplicate the `DefaultCloudLayerMaterial` and select it in the inspector of your CustomRenderTexture.
+
 <a name="CustomizingCloudMap"></a>
 
 ## Customizing the Cloud Map
 
-The Cloud Map is a 2D texture in LatLong layout (sometimes called Cylindrical or Equirectangular) that contains cloud color in the RGB channel and cloud coverage in the alpha channel. An example texture named `DefaultCloudLayer` is included in the package.
+The Cloud Map is a 2D texture in LatLong layout (sometimes called Cylindrical or Equirectangular) that contains cloud color in the RGB channel and cloud coverage in the alpha channel.
 If **Upper Hemisphere Only** is checked, the map is interpreted as being the upper half of a LatLong texture.
 
 <a name="CustomizingFlowmap"></a>
@@ -32,7 +39,7 @@ Only the red and green channel are used and they represent respectively horizont
 | Property                      | Description                                                  |
 | ----------------------------- | ------------------------------------------------------------ |
 | **Enable**                    | Enables the cloud layer. |
-| **Cloud Map*                  | Assign a Texture that HDRP uses to render the cloud layer. Refer to the section [Customizing the Cloud Map](#CustomizingCloudMap) for more details. |
+| **Cloud Map*                  | Assign a Texture that HDRP uses to render the cloud layer. Refer to the section [Using the default Cloud Map](#DefaultCloudMap) or [Customizing the Cloud Map](#CustomizingCloudMap) for more details. |
 | **Upper Hemisphere Only**     | Check the box to display the cloud layer above the horizon only. |
 | **Tint**                      | Specifies a color that HDRP uses to tint the Cloud Layer. |
 | **Intensity Multiplier**      | Set the multiplier by which HDRP multiplies the Cloud Layer color. |
