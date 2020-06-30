@@ -156,6 +156,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added presets for ray traced reflections.
 - Added final image histogram debug view (both luminance and RGB).
 - Added an example texture and rotation to the Cloud Layer volume override.
+- Added an option to extend the camera culling for skinned mesh animation in ray tracing effects (1258547).
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
