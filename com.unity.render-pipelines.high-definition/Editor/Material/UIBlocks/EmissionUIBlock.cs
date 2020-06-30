@@ -246,7 +246,7 @@ namespace UnityEditor.Rendering.HighDefinition
             
             // Calculate isMixed
             bool enabled = materials[0].globalIlluminationFlags == MaterialGlobalIlluminationFlags.BakedEmissive;
-            bool isMixed = materials.All(m => m.globalIlluminationFlags == materials[0].globalIlluminationFlags);
+            bool isMixed = materials.Any(m => m.globalIlluminationFlags != materials[0].globalIlluminationFlags);
 
             // initial checkbox for enabling/disabling emission
             EditorGUI.BeginChangeCheck();
