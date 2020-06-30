@@ -32,12 +32,14 @@ cmd_map = {
         'standalone_build' : iphone.cmd_standalone_build
     },
     'internal' : {
-        'not_standalone': internal.cmd_not_standalone
+        'not_standalone': internal.cmd_not_standalone,
+        'standalone' : internal.cmd_standalone,
+        'standalone_build' : internal.cmd_standalone_build
     }  
 }
 
 
-def get_cmd(platform_name="", api="", test_platform_type="", key=""):
+def get_cmd(platform_name="", api=None, test_platform_type="", key=""):
     if key is not "":
         return cmd_map.get(f'key')[test_platform_type]
     else:

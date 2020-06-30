@@ -17,21 +17,21 @@ def cmd_not_standalone(project_folder, platform, api, test_platform_args):
     base[-1] += f' --extra-editor-arg="{platform["apis"][api]}"' if (api != "" and platform["apis"][api] != None)  else ''
     return base
 
-# def cmd_standalone(project_folder, platform, api, test_platform_args):
-#     base = _cmd_base(project_folder, platform["components"])
+def cmd_standalone(project_folder, platform, api, test_platform_args):
+    base = _cmd_base(project_folder, platform["components"])
 
-#     if project_folder.lower() == 'URP-Update-Testing'.lower():
-#         base.append('git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects')
+    if project_folder.lower() == 'URP-Update-Testing'.lower():
+        base.append('git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects')
 
-#     base.extend([
-#         f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {test_platform_args}Windows64 --artifacts_path={PATH_TEST_RESULTS} --timeout=1200 --player-load-path=../../{PATH_PLAYERS} --player-connection-ip=auto'
-#     ])
-#     return base
+    base.extend([
+        f'cd {TEST_PROJECTS_DIR}/URP-Update-testing/{project_folder} && utr {test_platform_args}Windows64 --artifacts_path={PATH_TEST_RESULTS} --timeout=1200 --player-load-path=../../{PATH_PLAYERS} --player-connection-ip=auto'
+    ])
+    return base
 
 
-# def cmd_standalone_build(project_folder, platform, api, test_platform_args):
-#     base = _cmd_base(project_folder, platform["components"])
-#     base.extend([
-#         f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {test_platform_args}Windows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindows{api}Linear" --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS} --timeout=1200 --player-save-path=../../{PATH_PLAYERS} --build-only'
-#     ])
-#     return base
+def cmd_standalone_build(project_folder, platform, api, test_platform_args):
+    base = _cmd_base(project_folder, platform["components"])
+    base.extend([
+        f'cd {TEST_PROJECTS_DIR}/URP-Update-testing/{project_folder} && utr {test_platform_args}Windows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindows{api}Linear" --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS} --timeout=1200 --player-save-path=../../{PATH_PLAYERS} --build-only'
+    ])
+    return base

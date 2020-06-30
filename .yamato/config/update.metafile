@@ -5,11 +5,11 @@ test_platforms:
   - playmode
   - editmode
 platforms:
-  - name: Internal
+  - name: Win
     apis:
       - DX11
       - Vulkan
-  - name: Internal
+  - name: OSX
     apis:
       - OpenGLCore
       - Metal
