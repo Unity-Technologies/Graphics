@@ -699,6 +699,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Force to rebake probe with missing baked texture. (1253367)
 - Fix supported Mac platform detection to handle new major version (11.0) properly
 - Fixed typo in the Render Pipeline Wizard under HDRP+VR
+- Fixed issue with light layers bigger than 8 (and above the supported range). 
 
 ### Changed
 - Improve MIP selection for decals on Transparents
