@@ -174,13 +174,13 @@ namespace UnityEngine.Rendering.Universal
             public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
             {
                 RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
-                int downsampleDivider = m_CurrentSettings.Downsample ? 2 : 1;
+                int downsampleDivider = 1;//m_CurrentSettings.Downsample ? 2 : 1;
 
                 // Update SSAO parameters in the material
                 Vector4 ssaoParams = new Vector4(
                     m_CurrentSettings.Intensity,   // Intensity
                     m_CurrentSettings.Radius,      // Radius
-                    1.0f / downsampleDivider,      // Downsampling
+                    1.0f,// / downsampleDivider,      // Downsampling
                     m_CurrentSettings.SampleCount  // Sample count
                 );
                 material.SetVector(s_SSAOParamsID, ssaoParams);

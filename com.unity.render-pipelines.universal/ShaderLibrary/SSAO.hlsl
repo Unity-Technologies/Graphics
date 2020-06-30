@@ -23,7 +23,8 @@ float4 _CameraDepthTexture_TexelSize;
 // SSAO Settings
 #define INTENSITY _SSAOParams.x
 #define RADIUS _SSAOParams.y
-#define DOWNSAMPLE _SSAOParams.z
+#define DOWNSAMPLE 1
+//_SSAOParams.z
 
 // GLES2: In many cases, dynamic looping is not supported.
 #if defined(SHADER_API_GLES) && !defined(SHADER_API_GLES3)
