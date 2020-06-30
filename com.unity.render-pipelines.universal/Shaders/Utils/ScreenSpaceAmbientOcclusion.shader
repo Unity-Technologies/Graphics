@@ -56,6 +56,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
     SubShader
     {
         Tags{ "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}
+        Cull Off ZWrite Off ZTest Always
 
         // ------------------------------------------------------------------
         // Depth only passes
@@ -64,7 +65,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
         // 0 - Occlusion estimation with CameraDepthTexture
         Pass
         {
-            Name "SSAO_DepthOnly_Occlusion"
+            Name "SSAO_Occlusion"
             ZTest Always
             ZWrite Off
             Cull Off
@@ -72,56 +73,32 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             HLSLPROGRAM
                 #pragma vertex VertDefault
                 #pragma fragment SSAO
-                #define SOURCE_DEPTH
+                #pragma multi_compile_local _SOURCE_DEPTH _SOURCE_DEPTH_NORMALS _SOURCE_GBUFFER
                 #pragma multi_compile_local _RECONSTRUCT_NORMAL_LOW _RECONSTRUCT_NORMAL_MEDIUM _RECONSTRUCT_NORMAL_HIGH
                 #pragma multi_compile_local _ _ORTHOGRAPHIC
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
             ENDHLSL
         }
 
-        // 1 - Occlusion estimation with CameraDepthNormalTexture
+        // 1 - Horizontal Blur
         Pass
         {
-            Name "SSAO_DepthNormals_Occlusion"
-
-            HLSLPROGRAM
-                #pragma vertex VertDefault
-                #pragma fragment SSAO
-                #define SOURCE_DEPTH_NORMALS
-                #pragma multi_compile_local _ _ORTHOGRAPHIC
-                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
-            ENDHLSL
-        }
-
-        // 2 - Occlusion estimation with G-Buffer
-        Pass
-        {
-            Name "SSAO_GBuffer_Occlusion"
-
-            HLSLPROGRAM
-                #define SOURCE_GBUFFER
-                #pragma vertex VertDefault
-                #pragma fragment SSAO
-                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
-            ENDHLSL
-        }
-
-        // 3 - Horizontal Blur
-        Pass
-        {
-            Name "Horizontal Blur"
+            Name "SSAO_HorizontalBlur"
 
             HLSLPROGRAM
                 #pragma vertex VertDefault
                 #pragma fragment HorizontalBlur
+                #define BLUR_SAMPLE_CENTER_NORMAL
+                #pragma multi_compile_local _ _ORTHOGRAPHIC
+                #pragma multi_compile_local _SOURCE_DEPTH _SOURCE_DEPTH_NORMALS _SOURCE_GBUFFER
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
             ENDHLSL
         }
 
-        // 4 - Vertical Blur
+        // 2 - Vertical Blur
         Pass
         {
-            Name "Vertical Blur"
+            Name "SSAO_VerticalBlur"
 
             HLSLPROGRAM
                 #pragma vertex VertDefault
@@ -130,10 +107,10 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             ENDHLSL
         }
 
-        // 5 - Final Blur
+        // 3 - Final Blur
         Pass
         {
-            Name "Final Blur"
+            Name "SSAO_FinalBlur"
 
             HLSLPROGRAM
                 #pragma vertex VertDefault

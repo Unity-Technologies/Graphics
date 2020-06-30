@@ -130,9 +130,9 @@ float SampleAndGetLinearDepth(float2 uv)
 float3 ReconstructViewPos(float2 uv, float depth, float2 p11_22, float2 p13_31)
 {
     #if defined(_ORTHOGRAPHIC)
-        float3 viewPos = float3(((uv.xy * 2.0 - 1.0 - p13_31) / p11_22), depth);
+        float3 viewPos = float3(((uv.xy * 2.0 - 1.0 - p13_31) * p11_22), depth);
     #else
-        float3 viewPos = float3(depth * ((uv.xy * 2.0 - 1.0 - p13_31) / p11_22), depth);
+        float3 viewPos = float3(depth * ((uv.xy * 2.0 - 1.0 - p13_31) * p11_22), depth);
     #endif
     return viewPos;
 }
@@ -211,11 +211,25 @@ void SampleDepthNormalView(float2 uv, float2 p11_22, float2 p13_31, out float de
     depth  = SampleAndGetLinearDepth(uv);
     vpos = ReconstructViewPos(uv, depth, p11_22, p13_31);
 
-    #if defined(SOURCE_DEPTH_NORMALS)
+    #if defined(_SOURCE_DEPTH_NORMALS)
         normal = SampleSceneNormals(uv);
     #else
         normal = ReconstructNormal(uv, depth, vpos, p11_22, p13_31);
     #endif
+}
+
+float3x3 GetCoordinateConversionParameters(out float2 p11_22, out float2 p13_31)
+{
+    float3x3 camProj = (float3x3)unity_CameraProjection;
+    #ifdef UNITY_STEREO_INSTANCING_ENABLED
+        camProj._22 = -camProj._22;
+        camProj._23 = -camProj._23;
+    #endif
+
+    p11_22 = rcp(float2(camProj._11, camProj._22));
+    p13_31 = float2(camProj._13, camProj._23);
+
+    return camProj;
 }
 
 // Distance-based AO estimator based on Morgan 2011
@@ -227,13 +241,8 @@ float4 SSAO(Varyings input) : SV_Target
     float2 uv = input.uv;
 
     // Parameters used in coordinate conversion
-    float3x3 camProj = (float3x3)unity_CameraProjection;
-    #ifdef UNITY_STEREO_INSTANCING_ENABLED
-        camProj._22 = -camProj._22;
-        camProj._23 = -camProj._23;
-    #endif
-    float2 p11_22 = float2(camProj._11, camProj._22);
-    float2 p13_31 = float2(camProj._13, camProj._23);
+    float2 p11_22, p13_31;
+    float3x3 camProj = GetCoordinateConversionParameters(p11_22, p13_31);
 
     // Get the depth, normal and view position for this fragment
     float depth_o;
@@ -292,6 +301,7 @@ float4 SSAO(Varyings input) : SV_Target
     return PackAONormal(ao, norm_o);
 }
 
+// Geometry-aware separable bilateral filter
 half4 Blur(float2 uv, float2 delta) : SV_Target
 {
     float4 p0 = SAMPLE_BASEMAP(uv                 );
@@ -300,7 +310,22 @@ half4 Blur(float2 uv, float2 delta) : SV_Target
     float4 p2a = SAMPLE_BASEMAP(uv - delta * 3.2307692308);
     float4 p2b = SAMPLE_BASEMAP(uv + delta * 3.2307692308);
 
-    float3 n0 = GetPackedNormal(p0);
+    #if defined(BLUR_SAMPLE_CENTER_NORMAL)
+        #if defined(_SOURCE_DEPTH_NORMALS)
+            float3 n0 = SampleSceneNormals(uv);
+        #else
+            float2 p11_22, p13_31;
+            float3x3 camProj = GetCoordinateConversionParameters(p11_22, p13_31);
+
+            // Get the depth, normal and view position for this fragment
+            float depth_o;
+            float3 n0;
+            float3 vpos_o;
+            SampleDepthNormalView(uv, p11_22, p13_31, depth_o, n0, vpos_o);
+        #endif
+    #else
+        float3 n0 = GetPackedNormal(p0);
+    #endif
 
     float w0  =                                           0.2270270270;
     float w1a = CompareNormal(n0, GetPackedNormal(p1a)) * 0.3162162162;
@@ -319,7 +344,6 @@ half4 Blur(float2 uv, float2 delta) : SV_Target
 
     return PackAONormal(s, n0);
 }
-
 
 // Geometry-aware bilateral filter (single pass/small kernel)
 float BlurSmall(float2 uv, float2 delta)
@@ -362,7 +386,7 @@ half4 VerticalBlur(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     float2 uv = input.uv;
-    float2 delta = float2(0.0, _BaseMap_TexelSize.y * rcp(DOWNSAMPLE));
+    float2 delta = float2(0.0, _BaseMap_TexelSize.y * rcp(DOWNSAMPLE) * 2.0);
     return Blur(uv, delta);
 }
 

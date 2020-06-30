@@ -47,6 +47,9 @@ namespace UnityEngine.Rendering.Universal
         private const string k_NormalReconstructionLowKeyword = "_RECONSTRUCT_NORMAL_LOW";
         private const string k_NormalReconstructionMediumKeyword = "_RECONSTRUCT_NORMAL_MEDIUM";
         private const string k_NormalReconstructionHighKeyword = "_RECONSTRUCT_NORMAL_HIGH";
+        private const string k_SourceDepthKeyword = "_SOURCE_DEPTH";
+        private const string k_SourceDepthNormalsKeyword = "_SOURCE_DEPTH_NORMALS";
+        private const string k_SourceGBufferKeyword = "_SOURCE_GBUFFER";
 
         /// <inheritdoc/>
         public override void Create()
@@ -136,12 +139,10 @@ namespace UnityEngine.Rendering.Universal
 
             private enum ShaderPasses
             {
-                AODepth = 0,
-                AODepthNormals = 1,
-                AODeferred = 2,
-                BlurHorizontal = 3,
-                BlurVertical = 4,
-                BlurFinal = 5
+                AO = 0,
+                BlurHorizontal = 1,
+                BlurVertical = 2,
+                BlurFinal = 3
             }
 
             internal ScreenSpaceAmbientOcclusionPass()
@@ -211,6 +212,20 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
+                switch (m_CurrentSettings.Source)
+                {
+                    case ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals:
+                        CoreUtils.SetKeyword(material, k_SourceDepthKeyword, false);
+                        CoreUtils.SetKeyword(material, k_SourceDepthNormalsKeyword, true);
+                        CoreUtils.SetKeyword(material, k_SourceGBufferKeyword, false);
+                        break;
+                    default:
+                        CoreUtils.SetKeyword(material, k_SourceDepthKeyword, true);
+                        CoreUtils.SetKeyword(material, k_SourceDepthNormalsKeyword, false);
+                        CoreUtils.SetKeyword(material, k_SourceGBufferKeyword, false);
+                        break;
+                }
+
                 // Get temporary render textures
                 m_Descriptor = cameraTargetDescriptor;
                 m_Descriptor.msaaSamples = 1;
@@ -257,20 +272,12 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetGlobalVector(s_ScaleBiasID, scaleBias);
 
                     // Execute the SSAO
-                    switch (m_CurrentSettings.Source)
-                    {
-                        case ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth:
-                            ExecuteSSAO(cmd, ShaderPasses.AODepth);
-                            break;
-                        case ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals:
-                            ExecuteSSAO(cmd, ShaderPasses.AODepthNormals);
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
+                    Render(cmd, m_SSAOTexture1Target, ShaderPasses.AO);
 
                     // Execute the Blur Passes
-                    ExecuteBlur(cmd);
+                    RenderAndSetBaseMap(cmd, m_SSAOTexture1Target, m_SSAOTexture2Target, ShaderPasses.BlurHorizontal);
+                    RenderAndSetBaseMap(cmd, m_SSAOTexture2Target, m_SSAOTexture3Target, ShaderPasses.BlurVertical);
+                    RenderAndSetBaseMap(cmd, m_SSAOTexture3Target, m_SSAOTexture2Target, ShaderPasses.BlurFinal);
 
                     // Set the global SSAO texture and AO Params
                     cmd.SetGlobalTexture(k_SSAOTextureName, m_SSAOTexture2Target);
@@ -279,18 +286,6 @@ namespace UnityEngine.Rendering.Universal
 
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
-            }
-
-            private void ExecuteSSAO(CommandBuffer cmd, ShaderPasses pass)
-            {
-                Render(cmd, m_SSAOTexture1Target, pass);
-            }
-
-            private void ExecuteBlur(CommandBuffer cmd)
-            {
-                RenderAndSetBaseMap(cmd, m_SSAOTexture1Target, m_SSAOTexture2Target, ShaderPasses.BlurHorizontal);
-                RenderAndSetBaseMap(cmd, m_SSAOTexture2Target, m_SSAOTexture3Target, ShaderPasses.BlurVertical);
-                RenderAndSetBaseMap(cmd, m_SSAOTexture3Target, m_SSAOTexture2Target, ShaderPasses.BlurFinal);
             }
 
             private void Render(CommandBuffer cmd, RenderTargetIdentifier target, ShaderPasses pass)
