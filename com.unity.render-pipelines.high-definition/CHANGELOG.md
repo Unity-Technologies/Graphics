@@ -155,6 +155,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for exposure curve remapping for min/max limits.
 - Added presets for ray traced reflections.
 - Added final image histogram debug view (both luminance and RGB).
+- Added an option to extend the camera culling for skinned mesh animation in ray tracing effects (1258547).
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)

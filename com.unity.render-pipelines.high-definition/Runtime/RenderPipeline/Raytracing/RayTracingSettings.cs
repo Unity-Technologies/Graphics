@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -18,7 +19,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Enables the override of the shadow culling. This increases the validity area of shadow maps outside of the frustum.
         /// </summary>
         [Tooltip("Enables the override of the shadow culling.")]
-        public BoolParameter extendCulling = new BoolParameter(false);
+        [FormerlySerializedAs("extendCulling")]
+        public BoolParameter extendShadowCulling = new BoolParameter(false);
+
+        /// <summary>
+        /// Enables the override of the camera culling. This increases affects the animation of skinned meshed that are outside of the frustum.
+        /// </summary>
+        [Tooltip("Enables the override of the camera culling.")]
+        public BoolParameter extendCameraCulling = new BoolParameter(false);
 
         RayTracingSettings()
         {
@@ -26,3 +34,4 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 }
+
