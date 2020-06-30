@@ -477,7 +477,7 @@ half3 BoxProjectedCubemapDirection(half3 reflectVector, half3 positionWS, real4 
 half3 GlossyEnvironmentReflection(half3 reflectVector, half3 positionWS, half perceptualRoughness, half occlusion)
 {
     bool unity_SpecCube0_BoxProjection = true;
-    bool unity_SpecCube1_BoxProjection = false;
+    bool unity_SpecCube1_BoxProjection = true;
 
 #if !defined(_ENVIRONMENTREFLECTIONS_OFF)
 #if REFLECTION_PROBE
