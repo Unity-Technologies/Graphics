@@ -239,6 +239,14 @@ namespace UnityEditor.Rendering.HighDefinition
             // So we need a way to work around that before we activate this.
             material.SetupMainTexForAlphaTestGI("_EmissiveColorMap", "_EmissiveColor");
 
+            // depth offset for ShaderGraphs (they don't have the displacement mode property)
+            if (!material.HasProperty(kDisplacementMode) && material.HasProperty(kDepthOffsetEnable))
+            {
+                // Depth offset is only enabled if per pixel displacement is
+                bool depthOffsetEnable = (material.GetFloat(kDepthOffsetEnable) > 0.0f);
+                CoreUtils.SetKeyword(material, "_DEPTHOFFSET_ON", depthOffsetEnable);
+            }
+
             // DoubleSidedGI has to be synced with our double sided toggle
             var serializedObject = new SerializedObject(material);
             var doubleSidedGIppt = serializedObject.FindProperty("m_DoubleSidedGI");
