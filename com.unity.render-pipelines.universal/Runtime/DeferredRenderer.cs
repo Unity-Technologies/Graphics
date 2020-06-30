@@ -68,6 +68,10 @@ namespace UnityEngine.Rendering.Universal
         Material m_StencilDeferredMaterial;
 
         bool m_EnableSinglePassDeferred;
+        public bool enableSinglePassDeferred { 
+            get { return m_EnableSinglePassDeferred; }
+            set { m_EnableSinglePassDeferred = value && PlatformSupportSinglePassDeferred(); }
+        }
 
         public DeferredRenderer(DeferredRendererData data) : base(data)
         {
@@ -87,7 +91,7 @@ namespace UnityEngine.Rendering.Universal
             m_DefaultStencilState.SetFailOperation(stencilData.failOperation);
             m_DefaultStencilState.SetZFailOperation(stencilData.zFailOperation);
 
-            m_EnableSinglePassDeferred = data.enableSinglePassDeferred && PlatformSupportSinglePassDeferred();
+            enableSinglePassDeferred = data.enableSinglePassDeferred;
 
             m_ForwardLights = new ForwardLights();
             m_DeferredLights = new DeferredLights(m_TileDepthInfoMaterial, m_TileDeferredMaterial, m_StencilDeferredMaterial);
@@ -173,9 +177,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            // m_EnableSinglePassDeferred = true;
-
-            if(m_EnableSinglePassDeferred)  // fast path
+            if(enableSinglePassDeferred)  // fast path
             {
                 SetupSinglePassDeferred(context, ref renderingData);
                 return;

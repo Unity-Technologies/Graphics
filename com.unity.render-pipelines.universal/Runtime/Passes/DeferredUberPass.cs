@@ -94,6 +94,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings/*, ref m_RenderStateBlock*/);
 
                 m_DeferredLights.ExecuteDeferredPass(context, ref renderingData, cmd);
+
+                cmd.DisableShaderKeyword("METAL2_ENABLED");
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
