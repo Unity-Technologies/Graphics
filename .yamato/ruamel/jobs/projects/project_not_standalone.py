@@ -12,9 +12,13 @@ class Project_NotStandaloneJob():
 
 
     def get_job_definition(self, project, editor, platform, api, test_platform):
-
-        cmd = get_cmd(platform["name"], api, 'not_standalone')
-        job = _job(project["name"], test_platform["name"], editor, platform, api, cmd(project["folder"], platform, api, test_platform["args"]))
-        return job
+        if project["name"] == 'URPUpdate':
+            cmd = get_cmd(key='internal')
+            job = _job(project["name"], test_platform["name"], editor, platform, api, cmd(project["folder"], platform, api, test_platform["args"]))
+            return job
+        else:
+            cmd = get_cmd(platform["name"], api, 'not_standalone')
+            job = _job(project["name"], test_platform["name"], editor, platform, api, cmd(project["folder"], platform, api, test_platform["args"]))
+            return job
     
     
