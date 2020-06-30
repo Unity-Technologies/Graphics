@@ -423,14 +423,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void MigrateDecalLayerMask(Material material, HDShaderUtils.ShaderID id)
         {
-            var serializedObject = new SerializedObject(material);
-            if (FindProperty(serializedObject, "_SupportDecals", SerializedType.Boolean).property != null)
+            if (material.HasProperty("_SupportDecals"))
             {
-                var supportDecal = GetSerializedBoolean(serializedObject, "_SupportDecals");
-                RemoveSerializedBoolean(serializedObject, "_SupportDecals");
-                serializedObject.ApplyModifiedProperties();
-                var decalLayerMask = supportDecal ? DecalLayerMask.Layer0 : DecalLayerMask.None;
-                material.SetDecalLayerMask(decalLayerMask);
+                var serializedObject = new SerializedObject(material);
+                if (FindProperty(serializedObject, "_SupportDecals", SerializedType.Boolean).property != null)
+                {
+                    var supportDecal = GetSerializedBoolean(serializedObject, "_SupportDecals");
+                    RemoveSerializedBoolean(serializedObject, "_SupportDecals");
+                    serializedObject.ApplyModifiedProperties();
+                    var decalLayerMask = supportDecal ? DecalLayerMask.Layer0 : DecalLayerMask.None;
+                    material.SetDecalLayerMask(decalLayerMask);
+                }
             }
 
             // We need to reset the custom RenderQueue to take into account the move to specific RenderQueue for Opaque with Decal.
