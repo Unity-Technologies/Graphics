@@ -148,7 +148,9 @@ GLOBAL_CBUFFER_END
 
 #if defined(USING_STEREO_MATRICES) && defined(UNITY_STEREO_MULTIVIEW_ENABLED)
 GLOBAL_CBUFFER_START(UnityStereoEyeIndices)
-    float4 unity_StereoEyeIndices[2];
+    #if defined(SHADER_API_GLES)
+        float4 unity_StereoEyeIndices[2];
+    #endif
 GLOBAL_CBUFFER_END
 #endif
 
