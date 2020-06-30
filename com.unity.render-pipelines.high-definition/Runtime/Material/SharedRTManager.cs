@@ -193,11 +193,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public RenderTargetIdentifier[] GetMotionVectorsPassRTI(FrameSettings frameSettings)
         {
             // Note: Hardware allow to not write in all RT bind only if all the previous RT have been written (i.e there is no bubble)
-            // So here we need to guarantee that all RT but last are written by the shader.
-            // Material could enable decal or not exactly like Material could ask for WriteNormalBuffer or not
-            // However for Decal we use a separate RenderQueue which allow to filter Material requiring the DecalBuffer
-            // This allow us to be sure that Material will write in the Decal Buffer if we have isOpaqueDecal setup to true
-            // So we can safely setup normal buffer as last as it could then be optionally written without having a bubble (i.e not writing decal buffer)
+            // So here we need to guarantee that all RTs but last are written by the shader.
+            // Material could enable decal or not in Material so it should be last target
+            // However with motion vector pass, unlike for depth prepass we have no way to no if we are deferred (don't write normal buffer)
+            // or forward (write normal buffer). As we have a single function to setup the target, we are forcing
+            // disabled decals to still write 0 in DecalBuffer while render in the Motion vector pass
+            // For this reasons we render normal last, as now decal is permanent
             Debug.Assert(m_MotionVectorsSupport);
             using (ListPool<RenderTargetIdentifier>.Get(out var mrts))
             {
@@ -206,16 +207,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     Debug.Assert(m_MSAASupported);
                     mrts.Add(m_DepthAsColorMSAART.nameID);
                     mrts.Add(m_MotionVectorsMSAART.nameID);
-                    mrts.Add(m_NormalMSAART.nameID);
                     if (frameSettings.IsEnabled(FrameSettingsField.Decals))
                         mrts.Add(m_DecalPrePassBufferMSAA.nameID);
+                    mrts.Add(m_NormalMSAART.nameID);
                 }
                 else
                 {
                     mrts.Add(m_MotionVectorsRT.nameID);
-                    mrts.Add(m_NormalRT.nameID);
                     if (frameSettings.IsEnabled(FrameSettingsField.Decals))
                         mrts.Add(m_DecalPrePassBuffer.nameID);
+                    mrts.Add(m_NormalRT.nameID);
                 }
 
                 switch (mrts.Count)

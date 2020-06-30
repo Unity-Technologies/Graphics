@@ -4394,20 +4394,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 // With all this variant we have the following scenario of render target binding
                 // decalsEnabled
                 //     LitShaderMode.Forward
-                //         Range Opaque both deferred and forward - depth + optional msaa + motion + normal
-                //	       Range opaqueDecal for both deferred and forward - depth + optional msaa + motion + normal + decal
-                //	       Range opaqueAlphaTest for both deferred and forward - depth + optional msaa + motion + normal
-                //	       Range opaqueDecalAlphaTest for both deferred and forward - depth + optional msaa + motion + normal + decal
+                //         Range Opaque both deferred and forward - depth + optional msaa + motion + force zero decal + normal
+                //	       Range opaqueDecal for both deferred and forward - depth + optional msaa + motion + decal + normal
+                //	       Range opaqueAlphaTest for both deferred and forward - depth + optional msaa + motion + force zero decal + normal
+                //	       Range opaqueDecalAlphaTest for both deferred and forward - depth + optional msaa + motion + decal + normal
                 //    LitShaderMode.Deferred
-                //	       Range Opaque for deferred - depth + motion
+                //	       Range Opaque for deferred - depth + motion + force zero decal
                 //	       Range opaqueDecal for deferred - depth + motion + decal
-                //	       Range opaqueAlphaTest for deferred - depth + motion
+                //	       Range opaqueAlphaTest for deferred - depth + motion + force zero decal
                 //	       Range opaqueDecalAlphaTes for deferred - depth + motion + decal
 
-                //	       Range Opaque for forward - depth + motion + normal
-                //	       Range opaqueDecal for forward - depth + motion + normal + decal
-                //	       Range opaqueAlphaTest for forward - depth + motion + normal
-                //	       Range opaqueDecalAlphaTest for forward - depth + motion + normal + decal
+                //	       Range Opaque for forward - depth + motion  + force zero decal + normal
+                //	       Range opaqueDecal for forward - depth + motion + decal + normal
+                //	       Range opaqueAlphaTest for forward - depth + motion + force zero decal + normal
+                //	       Range opaqueDecalAlphaTest for forward - depth + motion + decal + normal
 
                 // !decalsEnabled
                 //     LitShaderMode.Forward
