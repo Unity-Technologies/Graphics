@@ -42,7 +42,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             {
                 float3 positionOS   : POSITION;
                 float4 color        : COLOR;
-                float2  uv           : TEXCOORD0;
+                float2 uv           : TEXCOORD0;
+                float2 customDepth  : TEXCOORD1;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -92,7 +93,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
                 o.positionCS = TransformObjectToHClip(v.positionOS);
                 o.positionCS.xy /= o.positionCS.w;
-                o.positionCS.z = _CustomDepth;
+                o.positionCS.z = _CustomDepth > 0 ? _CustomDepth : v.customDepth.x;
                 o.positionCS.w = 1.0f;
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 float4 clipVertex = o.positionCS / o.positionCS.w;
@@ -242,6 +243,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             struct Attributes
             {
                 float3 positionOS   : POSITION;
+                float2 customDepth  : TEXCOORD1;
             };
 
             struct Varyings
@@ -254,7 +256,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 Varyings o = (Varyings)0;
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
                 o.positionCS.xy /= o.positionCS.w;
-                o.positionCS.z = _CustomDepth;
+                o.positionCS.z = _CustomDepth > 0 ? _CustomDepth : attributes.customDepth.x;
                 o.positionCS.w = 1.0f;
                 return o;
             }
