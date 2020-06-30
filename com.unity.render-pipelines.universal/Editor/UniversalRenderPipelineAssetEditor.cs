@@ -235,7 +235,7 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUILayout.HelpBox(Styles.rendererMissingDefaultMessage.text, MessageType.Error, true);
                 else if (!asset.ValidateRendererDataList(true))
                     EditorGUILayout.HelpBox(Styles.rendererMissingMessage.text, MessageType.Warning, true);
-                else if (!asset.ValidateRendererGraphicsAPIs(out unsupportedGraphicsApisMessage))
+                else if (!ValidateRendererGraphicsAPIs(asset, out unsupportedGraphicsApisMessage))
                     EditorGUILayout.HelpBox(Styles.rendererUnsupportedAPIMessage.text + unsupportedGraphicsApisMessage, MessageType.Warning, true);
 
                 EditorGUILayout.PropertyField(m_RequireDepthTextureProp, Styles.requireDepthTextureText);
@@ -488,6 +488,30 @@ namespace UnityEditor.Rendering.Universal
                 }
                 EditorUtility.SetDirty(target);
             };
+        }
+
+        bool ValidateRendererGraphicsAPIs(UniversalRenderPipelineAsset pipelineAsset, out string unsupportedGraphicsApisMessage)
+        {
+            // Check the list of Renderers against all Graphics APIs the player is built with.
+            unsupportedGraphicsApisMessage = null;
+
+            BuildTarget platform = EditorUserBuildSettings.activeBuildTarget;
+            GraphicsDeviceType[] graphicsAPIs = PlayerSettings.GetGraphicsAPIs(platform);
+            int rendererCount = pipelineAsset.m_RendererDataList.Length;
+
+            for (int i = 0; i < rendererCount; i++)
+            {
+                ScriptableRenderer renderer = pipelineAsset.GetRenderer(i);
+                GraphicsDeviceType[] unsupportedAPIs = renderer.unsupportedGraphicsDeviceTypes;
+
+                for (int apiIndex = 0; apiIndex < unsupportedAPIs.Length; apiIndex++)
+                {
+                    if (System.Array.FindIndex(graphicsAPIs, element => element == unsupportedAPIs[apiIndex]) >= 0)
+                        unsupportedGraphicsApisMessage += System.String.Format("{0} at index {1} does not support {2}.\n", renderer, i, unsupportedAPIs[apiIndex]);
+                }
+            }
+
+            return unsupportedGraphicsApisMessage == null;
         }
     }
 }
