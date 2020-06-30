@@ -109,8 +109,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (systemData.renderingPass == HDRenderQueue.RenderQueueType.Background)
                 systemData.renderingPass = HDRenderQueue.RenderQueueType.Opaque;
             systemData.alphaTest = hdLitMasterNode.m_AlphaTest;
-            systemData.alphaTestDepthPrepass = hdLitMasterNode.m_AlphaTestDepthPrepass;
-            systemData.alphaTestDepthPostpass = hdLitMasterNode.m_AlphaTestDepthPostpass;
+            systemData.transparentDepthPrepass = hdLitMasterNode.m_AlphaTestDepthPrepass;
+            systemData.transparentDepthPostpass = hdLitMasterNode.m_AlphaTestDepthPostpass;
             systemData.sortPriority = hdLitMasterNode.m_SortPriority;
             systemData.doubleSidedMode = hdLitMasterNode.m_DoubleSidedMode;
             systemData.transparentZWrite = hdLitMasterNode.m_ZWrite;
@@ -204,9 +204,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     case HDLitMasterNode1.SlotMask.AlphaThreshold:
                         return systemData.alphaTest;
                     case HDLitMasterNode1.SlotMask.AlphaThresholdDepthPrepass:
-                        return systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPrepass;
+                        return systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.transparentDepthPrepass;
                     case HDLitMasterNode1.SlotMask.AlphaThresholdDepthPostpass:
-                        return systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPostpass;
+                        return systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.transparentDepthPostpass;
                     case HDLitMasterNode1.SlotMask.AlphaThresholdShadow:
                         return systemData.alphaTest && builtinData.alphaTestShadow;
                     default:
