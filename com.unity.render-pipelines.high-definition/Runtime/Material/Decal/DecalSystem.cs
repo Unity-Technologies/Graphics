@@ -470,7 +470,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public DecalHandle AddDecal(Matrix4x4 localToWorld, Quaternion rotation, Matrix4x4 sizeOffset, float drawDistance,
                 float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, int materialID,
-                int layerMask, ulong sceneLayerMask, float fadeFactor, decalLayerMask)
+                int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerMask decalLayerMask)
             {
                 // increase array size if no space left
                 if (m_DecalsCount == m_Handles.Length)
@@ -761,7 +761,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (; batchIndex < m_InstanceCount / kDrawIndexedBatchSize; batchIndex++)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
-                    m_PropertyBlock.SetFloatArray(HDMaterialProperties.kDecalLayerMask, m_DecalLayerMasks[batchIndex]);
+                    m_PropertyBlock.SetFloatArray(HDMaterialProperties.kDecalLayerMaskFromDecal, m_DecalLayerMasks[batchIndex]);
                     cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Material, m_cachedProjectorPassValue, m_DecalToWorld[batchIndex], kDrawIndexedBatchSize, m_PropertyBlock);
                     totalToDraw -= kDrawIndexedBatchSize;
                 }
@@ -769,7 +769,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (totalToDraw > 0)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
-                    m_PropertyBlock.SetFloatArray(HDMaterialProperties.kDecalLayerMask, m_DecalLayerMasks[batchIndex]);
+                    m_PropertyBlock.SetFloatArray(HDMaterialProperties.kDecalLayerMaskFromDecal, m_DecalLayerMasks[batchIndex]);
                     cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Material, m_cachedProjectorPassValue, m_DecalToWorld[batchIndex], totalToDraw, m_PropertyBlock);
                 }
             }
@@ -785,7 +785,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (; batchIndex < m_InstanceCount / kDrawIndexedBatchSize; batchIndex++)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
-                    m_PropertyBlock.SetFloatArray(HDMaterialProperties.kDecalLayerMask, m_DecalLayerMasks[batchIndex]);
+                    m_PropertyBlock.SetFloatArray(HDMaterialProperties.kDecalLayerMaskFromDecal, m_DecalLayerMasks[batchIndex]);
                     cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Material, m_cachedProjectorEmissivePassValue, m_DecalToWorld[batchIndex], kDrawIndexedBatchSize, m_PropertyBlock);
                     totalToDraw -= kDrawIndexedBatchSize;
                 }
@@ -793,7 +793,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (totalToDraw > 0)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
-                    m_PropertyBlock.SetFloatArray(HDMaterialProperties.kDecalLayerMask, m_DecalLayerMasks[batchIndex]);
+                    m_PropertyBlock.SetFloatArray(HDMaterialProperties.kDecalLayerMaskFromDecal, m_DecalLayerMasks[batchIndex]);
                     cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Material, m_cachedProjectorEmissivePassValue, m_DecalToWorld[batchIndex], totalToDraw, m_PropertyBlock);
                 }
             }
@@ -938,7 +938,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             return decalSet.AddDecal(localToWorld, rotation, sizeOffset, drawDistance,
                 fadeScale, uvScaleBias, affectsTransparency, key,
-                layerMask, sceneLayerMask, fadeFactor, DecalLayerMask decalLayerMask);
+                layerMask, sceneLayerMask, fadeFactor, decalLayerMask);
         }
 
 
@@ -948,7 +948,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return AddDecal(Matrix4x4.TRS(position, rotation, scale), rotation, sizeOffset, drawDistance,
                 fadeScale, uvScaleBias, affectsTransparency, material,
-                layerMask, sceneLayerMask, fadeFactor, DecalLayerMask decalLayerMask);
+                layerMask, sceneLayerMask, fadeFactor, decalLayerMask);
         }
 
         public DecalHandle AddDecal(Transform transform, Matrix4x4 sizeOffset, float drawDistance,
@@ -957,7 +957,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return AddDecal(transform.localToWorldMatrix, transform.rotation, sizeOffset, drawDistance,
                 fadeScale, uvScaleBias, affectsTransparency, material,
-                layerMask, sceneLayerMask, fadeFactor, DecalLayerMask decalLayerMask);
+                layerMask, sceneLayerMask, fadeFactor, decalLayerMask);
         }
 
         public void RemoveDecal(DecalHandle handle)

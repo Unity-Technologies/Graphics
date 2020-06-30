@@ -172,7 +172,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     case 3:
                         mrts.CopyTo(m_RTIDs3);
                         return m_RTIDs3;
-                    default: throw new Exception("Unreachable");
+                    default:
+                        return null;
                 }
             }
         }
@@ -233,7 +234,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     case 4:
                         mrts.CopyTo(m_RTIDs4);
                         return m_RTIDs4;
-                    default: throw new Exception("Unreachable");
+                    default:
+                        return null;
                 }
             }
         }

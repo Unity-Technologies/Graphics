@@ -67,7 +67,7 @@ void Frag(  PackedVaryingsToPS packedInput
                 #endif
 
                 // Decal buffer must be last as it is bind but we can optionally write into it (based on _DISABLE_DECALS)
-                #ifdef WRITE_DECAL_BUFFER && !defined(_DISABLE_DECALS)
+                #if defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)
                 , out float4 outDecalBuffer : SV_TARGET_DECAL
                 #endif
             #endif

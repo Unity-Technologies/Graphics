@@ -142,7 +142,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return null;
         }
 
-        public RTHandle GetDecalBuffer(int index)
+        public RTHandle GetDecalBuffer()
         {
             for (int gbufferIndex = 0; gbufferIndex < m_BufferCount; ++gbufferIndex)
             {
