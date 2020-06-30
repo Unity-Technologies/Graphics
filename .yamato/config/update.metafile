@@ -1,0 +1,16 @@
+project:
+  name: URPUpdate
+  folder: URP-Update-Testing
+test_platforms:
+  - playmode
+  - editmode
+platforms:
+  - name: Internal
+    apis:
+      - DX11
+      - Vulkan
+  - name: Internal
+    apis:
+      - OpenGLCore
+      - Metal
+

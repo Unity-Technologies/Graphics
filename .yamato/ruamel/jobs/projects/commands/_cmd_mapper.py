@@ -1,4 +1,4 @@
-from . import win, osx_openglcore, osx_metal, linux, android, osx_metal_split, linux_split, iphone
+from . import win, osx_openglcore, osx_metal, linux, android, osx_metal_split, linux_split, iphone, internal
 
 cmd_map = {
     'win' : {
@@ -30,8 +30,10 @@ cmd_map = {
         'not_standalone': iphone.cmd_not_standalone,
         'standalone' : iphone.cmd_standalone,
         'standalone_build' : iphone.cmd_standalone_build
-    }
-    
+    },
+    'internal' : {
+        'not_standalone': internal.cmd_not_standalone
+    }  
 }
 
 
