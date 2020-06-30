@@ -82,7 +82,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             SHAPE_LIGHT(3)
             #endif
 
-            float _MyDepth;
+            float _CustomDepth;
 
             Varyings CombinedShapeLightVertex(Attributes v)
             {
@@ -92,7 +92,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
                 o.positionCS = TransformObjectToHClip(v.positionOS);
                 o.positionCS.xy /= o.positionCS.w;
-                o.positionCS.z = _MyDepth;
+                o.positionCS.z = _CustomDepth;
                 o.positionCS.w = 1.0f;
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 float4 clipVertex = o.positionCS / o.positionCS.w;
@@ -237,7 +237,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             #pragma vertex DepthVertex
             #pragma fragment DepthFragment
 
-            float _MyDepth;
+            float _CustomDepth;
 
             struct Attributes
             {
@@ -254,7 +254,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 Varyings o = (Varyings)0;
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
                 o.positionCS.xy /= o.positionCS.w;
-                o.positionCS.z = _MyDepth;
+                o.positionCS.z = _CustomDepth;
                 o.positionCS.w = 1.0f;
                 return o;
             }
