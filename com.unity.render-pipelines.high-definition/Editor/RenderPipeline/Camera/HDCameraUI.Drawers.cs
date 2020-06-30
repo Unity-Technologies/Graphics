@@ -441,7 +441,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     var sliderRect = rect;
                     sliderRect.x += labelRect.width + sliderPaddingLeft;
                     sliderRect.width = rect.width - labelRect.width - sliderPaddingRight;
-                    float newVal = GUI.HorizontalSlider(sliderRect, p.aperture.floatValue, 1.0f, 32);
+                    float newVal = GUI.HorizontalSlider(sliderRect, p.aperture.floatValue, HDPhysicalCamera.kMinAperture, HDPhysicalCamera.kMaxAperture);
 
                     // keep only 2 digits of precision, like the otehr editor fields
                     newVal = Mathf.Floor(100 * newVal) / 100.0f;
@@ -464,13 +464,16 @@ namespace UnityEditor.Rendering.HighDefinition
                     textRect.width = textRectSize;
                     textRect.height = EditorGUIUtility.singleLineHeight;
                     string newAperture = EditorGUI.TextField(textRect, p.aperture.floatValue.ToString());
-                    p.aperture.floatValue = (float)Convert.ToDouble(newAperture);
+                    try
+                    {
+                        p.aperture.floatValue = Mathf.Clamp(float.Parse(newAperture), HDPhysicalCamera.kMinAperture, HDPhysicalCamera.kMaxAperture);
+                    }
+                    catch
+                    { }
                 }
 
                 EditorGUILayout.EndHorizontal();
-                EditorGUILayout.Space();
-                EditorGUILayout.Space();
-                EditorGUILayout.Space();
+                EditorGUILayout.Space(EditorGUIUtility.singleLineHeight);
                 EditorGUILayout.PropertyField(cam.lensShift, lensShiftContent);
             }
 
