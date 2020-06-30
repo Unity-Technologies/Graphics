@@ -5,12 +5,6 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Deferred.hlsl"
 
-    #if defined(USING_STEREO_MATRICES) && (defined(_POINT) || defined(_SPOT) || defined(_DIRECTIONAL))
-    #define XR_MODE 1
-    #else
-    #define XR_MODE 0
-    #endif
-
     struct TileData
     {
         uint tileID;                 // 2 ushorts
@@ -199,7 +193,11 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
         half4 gbuffer1 = LOAD_TEXTURE2D_X(_GBuffer1, input.positionCS.xy);
         half4 gbuffer2 = LOAD_TEXTURE2D_X(_GBuffer2, input.positionCS.xy);
 
-        int eyeIndex = XR_MODE ? unity_StereoEyeIndex : 0;
+        #if defined(USING_STEREO_MATRICES)
+        int eyeIndex = unity_StereoEyeIndex;
+        #else
+        int eyeIndex = 0;
+        #endif
         float4 posWS = mul(_ScreenToWorld[eyeIndex], float4(input.positionCS.xy, d, 1.0));
         posWS.xyz *= rcp(posWS.w);
 

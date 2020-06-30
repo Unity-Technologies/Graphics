@@ -379,43 +379,18 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             ref CameraData cameraData = ref renderingData.cameraData;
 
-            // When reading back from depth texture, we need to scale back from [0; 1] to [-1; 1] as Unity defaults to for GL clip-space depth convention.
-            // As well, non-GL platforms render upside-down, we don't need to y-reverse again on GL platforms.
-            bool isGL = SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore
-                     || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2
-                     || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
-
 #if ENABLE_VR && ENABLE_XR_MODULE
             int eyeCount = cameraData.xr.enabled && cameraData.xr.singlePassEnabled ? 2 : 1;
 #else
             int eyeCount = 1;
 #endif
-            Matrix4x4[] screenToWorld = new Matrix4x4[2];
-            Matrix4x4 proj;
-            Matrix4x4 view;
+            Matrix4x4[] screenToWorld = new Matrix4x4[2]; // deferred shaders expects 2 elements
 
             for (int eyeIndex = 0; eyeIndex < eyeCount; eyeIndex++)
             {
-#if ENABLE_VR && ENABLE_XR_MODULE
-                if (cameraData.xr.enabled)
-                {
-                    proj = cameraData.xr.GetProjMatrix(eyeIndex);
-                    view = cameraData.xr.GetViewMatrix(eyeIndex);
-                }
-                else
-#endif
-                {
-                    proj = cameraData.camera.projectionMatrix;
-                    view = cameraData.camera.worldToCameraMatrix;
-                }
-
-                //Matrix4x4 gpuProj = GL.GetGPUProjectionMatrix(proj, false); // This function does not work for orthographic projection, so make we our own!
-                Matrix4x4 gpuProj = new Matrix4x4(
-                    new Vector4(1.0f, 0.0f, 0.0f, 0.0f),
-                    new Vector4(0.0f, (SystemInfo.graphicsUVStartsAtTop || isGL ? 1.0f : -1.0f), 0.0f, 0.0f),
-                    new Vector4(0.0f, 0.0f, (SystemInfo.usesReversedZBuffer ? -1.0f : 1.0f) * 0.5f, 0.0f),
-                    new Vector4(0.0f, 0.0f, 0.5f, 1.0f)
-                ) * proj;
+                Matrix4x4 proj = cameraData.GetProjectionMatrix(eyeIndex);
+                Matrix4x4 view = cameraData.GetViewMatrix(eyeIndex);
+                Matrix4x4 gpuProj = GL.GetGPUProjectionMatrix(proj, false);
 
                 // xy coordinates in range [-1; 1] go to pixel coordinates.
                 Matrix4x4 toScreen = new Matrix4x4(
