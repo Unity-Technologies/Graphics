@@ -11,7 +11,8 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         bool UsesQualityMode()
         {
-            return mode.overrideState && mode == RayTracingMode.Quality;
+            // The default value is to quality. So we should be quality if no override or we have an override to quality
+            return !mode.overrideState || mode == RayTracingMode.Quality;
         }
 
         /// <summary>
