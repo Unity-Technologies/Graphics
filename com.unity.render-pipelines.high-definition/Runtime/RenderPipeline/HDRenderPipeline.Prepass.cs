@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
@@ -147,7 +148,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        PrepassOutput RenderPrepass(RenderGraph renderGraph, TextureHandle colorbuffer, TextureHandle sssBuffer, CullingResults cullingResults, HDCamera hdCamera)
+        PrepassOutput RenderPrepass(RenderGraph     renderGraph,
+                                    TextureHandle   colorBuffer,
+                                    TextureHandle   sssBuffer,
+                                    CullingResults  cullingResults,
+                                    CullingResults  customPassCullingResults,
+                                    HDCamera        hdCamera,
+                                    AOVRequestData  aovRequest,
+                                    List<RTHandle>  aovBuffers)
         {
             m_IsDepthBufferCopyValid = false;
 
@@ -162,20 +170,14 @@ namespace UnityEngine.Rendering.HighDefinition
             result.motionVectorsBuffer = CreateMotionVectorBuffer(renderGraph, msaa, clearMotionVectors);
             result.depthBuffer = CreateDepthBuffer(renderGraph, msaa);
 
-            RenderXROcclusionMeshes(renderGraph, hdCamera, colorbuffer, result.depthBuffer);
+            RenderXROcclusionMeshes(renderGraph, hdCamera, colorBuffer, result.depthBuffer);
 
             using (new XRSinglePassScope(renderGraph, hdCamera))
             {
-                //// Bind the custom color/depth before the first custom pass
-                //if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
-                //{
-                //    if (m_CustomPassColorBuffer.IsValueCreated)
-                //        cmd.SetGlobalTexture(HDShaderIDs._CustomColorTexture, m_CustomPassColorBuffer.Value);
-                //    if (m_CustomPassDepthBuffer.IsValueCreated)
-                //        cmd.SetGlobalTexture(HDShaderIDs._CustomDepthTexture, m_CustomPassDepthBuffer.Value);
-                //}
+                // Bind the custom color/depth before the first custom pass
+                BindCustomPassBuffers(renderGraph, hdCamera);
 
-                //RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforeRendering, aovRequest, aovCustomPassBuffers);
+                RenderCustomPass(renderGraph, hdCamera, colorBuffer, result.depthBuffer, result.normalBuffer, customPassCullingResults, CustomPassInjectionPoint.BeforeRendering, aovRequest, aovBuffers);
 
                 //RenderRayTracingPrepass(cullingResults, hdCamera, renderContext, cmd, false);
 
@@ -204,7 +206,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderCameraMotionVectors(renderGraph, hdCamera, result.depthBuffer, result.motionVectorsBuffer);
                 }
 
-                PreRenderSky(renderGraph, hdCamera, colorbuffer, result.depthBuffer, result.normalBuffer);
+                PreRenderSky(renderGraph, hdCamera, colorBuffer, result.depthBuffer, result.normalBuffer);
 
                 // At this point in forward all objects have been rendered to the prepass (depth/normal/motion vectors) so we can resolve them
                 ResolvePrepassBuffers(renderGraph, hdCamera, ref result);
@@ -213,16 +215,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderGBuffer(renderGraph, sssBuffer, ref result, probeVolumeListOutput, cullingResults, hdCamera);
 
-
                 DecalNormalPatch(renderGraph, hdCamera, ref result);
 
-                // TODO RENDERGRAPH
-                //// After Depth and Normals/roughness including decals
-                //bool depthBufferModified = RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterOpaqueDepthAndNormal, aovRequest, aovCustomPassBuffers);
+                // After Depth and Normals/roughness including decals
+                bool depthBufferModified = RenderCustomPass(renderGraph, hdCamera, colorBuffer, result.depthBuffer, result.normalBuffer, customPassCullingResults, CustomPassInjectionPoint.AfterOpaqueDepthAndNormal, aovRequest, aovBuffers);
 
-                //// If the depth was already copied in RenderDBuffer, we force the copy again because the custom pass modified the depth.
-                //if (depthBufferModified)
-                //    m_IsDepthBufferCopyValid = false;
+                // If the depth was already copied in RenderDBuffer, we force the copy again because the custom pass modified the depth.
+                if (depthBufferModified)
+                    m_IsDepthBufferCopyValid = false;
 
                 // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
                 GenerateDepthPyramid(renderGraph, hdCamera, ref result);
