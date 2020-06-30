@@ -402,6 +402,15 @@ namespace UnityEngine.Rendering.Universal
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
+            bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
+            bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
+
+            if (mainLightShadows)
+                EnqueuePass(m_MainLightShadowCasterPass);
+
+            if (additionalLightShadows)
+                EnqueuePass(m_AdditionalLightsShadowCasterPass);
+
             m_DeferredUberPass.Setup(ref renderingData, RenderTargetHandle.CameraTarget, RenderTargetHandle.CameraTarget);
             EnqueuePass(m_DeferredUberPass);
 
