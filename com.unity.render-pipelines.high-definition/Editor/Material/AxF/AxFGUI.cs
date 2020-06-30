@@ -130,8 +130,10 @@ namespace UnityEditor.Rendering.HighDefinition
             CoreUtils.SetKeyword(material, "_REQUIRE_UV3", mappingMode == AxFMappingMode.UV3);
 
             // Keywords for opt-out of decals and SSR:
-            bool decalsEnabled = material.HasProperty(kEnableDecals) && material.GetFloat(kEnableDecals) > 0.0f;
-            CoreUtils.SetKeyword(material, "_DISABLE_DECALS", decalsEnabled == false);
+            var decalsEnabled = material.GetDecalLayerMask() != DecalLayerMask.None;
+            CoreUtils.SetKeyword(material, "_DISABLE_DECALS", !decalsEnabled);
+            CoreUtils.SetKeyword(material, "WRITE_DECAL_BUFFER", decalsEnabled);
+
             bool ssrEnabled = false;
             if (material.GetSurfaceType() == SurfaceType.Transparent)
                 ssrEnabled = material.HasProperty(kReceivesSSRTransparent) ? material.GetFloat(kReceivesSSRTransparent) != 0 : false;

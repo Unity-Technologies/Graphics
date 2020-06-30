@@ -72,6 +72,39 @@ namespace UnityEditor.Rendering.HighDefinition
             if (inputData.shaderKeywordSet.IsEnabled(m_SubsurfaceScattering) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportSubsurfaceScattering)
                 return true;
 
+            if (inputData.shaderKeywordSet.IsEnabled(m_Transparent))
+            {
+                // If transparent we don't need the depth only pass
+                bool isDepthOnlyPass = snippet.passName == "DepthForwardOnly";
+                if (isDepthOnlyPass)
+                    return true;
+
+                // If transparent we don't need the motion vector pass
+                bool isMotionPass = snippet.passName == "Motion Vectors";
+                if (isMotionPass)
+                    return true;
+
+                // If we are transparent we use cluster lighting and not tile lighting
+                if (inputData.shaderKeywordSet.IsEnabled(m_TileLighting))
+                    return true;
+            }
+            else // Opaque
+            {
+                // If opaque, we never need transparent specific passes (even in forward only mode)
+                bool isTransparentPrepass = snippet.passName == "TransparentDepthPrepass";
+                bool isTransparentPostpass = snippet.passName == "TransparentDepthPostpass";
+                bool isTransparentBackface = snippet.passName == "TransparentBackface";
+                bool isDistortionPass = snippet.passName == "DistortionVectors";
+                bool isTransparentForwardPass = isTransparentPostpass || isTransparentBackface || isTransparentPrepass || isDistortionPass;
+                if (isTransparentForwardPass)
+                    return true;
+
+                // TODO: Should we remove Cluster version if we know MSAA is disabled ? This prevent to manipulate LightLoop Settings (useFPTL option)
+                // For now comment following code
+                // if (inputData.shaderKeywordSet.IsEnabled(m_ClusterLighting) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportMSAA)
+                //    return true;
+            }
+
             // SHADOW
 
             // Strip every useless shadow configs
@@ -93,6 +126,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 return true;
 
             // DECAL
+
+            // Strip the decal prepass variant when decals are disabled
+            if (inputData.shaderKeywordSet.IsEnabled(m_WriteDecalBuffer) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportDecals)
+                return true;
 
             // Identify when we compile a decal shader
             bool isDecal3RTPass = false;

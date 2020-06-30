@@ -194,6 +194,7 @@ namespace UnityEditor.Rendering.HighDefinition
              RenderQueueUpgrade,
              ShaderGraphStack,
              MoreMaterialSurfaceOptionFromShaderGraph,
+             MigrateDecalLayerMask
         };
 
         #region Migrations
@@ -415,6 +416,21 @@ namespace UnityEditor.Rendering.HighDefinition
                     return;
                 float defaultValue = material.shader.GetPropertyDefaultFloatValue(propIndex);
                 material.SetFloat(propName, defaultValue);
+            }
+
+            HDShaderUtils.ResetMaterialKeywords(material);
+        }
+
+        static void MigrateDecalLayerMask(Material material, HDShaderUtils.ShaderID id)
+        {
+            var serializedObject = new SerializedObject(material);
+            if (FindProperty(serializedObject, "_SupportDecals", SerializedType.Boolean).property != null)
+            {
+                var supportDecal = GetSerializedBoolean(serializedObject, "_SupportDecals");
+                RemoveSerializedBoolean(serializedObject, "_SupportDecals");
+                serializedObject.ApplyModifiedProperties();
+                var decalLayerMask = supportDecal ? DecalLayerMask.Layer0 : DecalLayerMask.None;
+                material.SetDecalLayerMask(decalLayerMask);
             }
 
             HDShaderUtils.ResetMaterialKeywords(material);

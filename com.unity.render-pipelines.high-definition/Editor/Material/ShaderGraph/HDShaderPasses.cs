@@ -231,8 +231,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = GenerateRequiredFields(),
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV2Only,
-                defines = supportLighting ? CoreDefines.DepthMotionVectors : null,
-                keywords = CoreKeywords.DepthMotionVectorsNoNormal,
+                defines = supportLighting ? CoreDefines.DepthForwardOnly : null,
+                keywords = CoreKeywords.DepthForwardOnly,
                 includes = GenerateIncludes(),
             };
 
@@ -325,9 +325,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { RayTracingNode.GetRayTracingKeyword(), 0 },
                 };
 
-                //  #define WRITE_NORMAL_BUFFER for forward
+                //  #define WRITE_NORMAL_BUFFER for motion vector in forward case
                 if (supportForward)
+                {
                     defines.Add(CoreKeywordDescriptors.WriteNormalBuffer, 1);
+                }                    
                 
                 return defines;
             }
@@ -356,6 +358,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 var keywords = new KeywordCollection
                 {
                     { CoreKeywords.HDBase },
+                    { CoreKeywordDescriptors.WriteDecalBuffer },
                     { CoreKeywordDescriptors.WriteMsaaDepth },
                     { CoreKeywordDescriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
                 };
@@ -732,6 +735,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywords.HDBase },
             { CoreKeywordDescriptors.WriteMsaaDepth },
             { CoreKeywordDescriptors.WriteNormalBuffer },
+            { CoreKeywordDescriptors.WriteDecalBuffer },
             { CoreKeywordDescriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
         };
 

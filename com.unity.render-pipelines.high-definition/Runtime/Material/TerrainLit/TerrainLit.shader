@@ -47,7 +47,7 @@ Shader "HDRP/TerrainLit"
         [HideInInspector] _MainTex("Albedo", 2D) = "white" {}
         [HideInInspector] _Color("Color", Color) = (1,1,1,1)
 
-        [HideInInspector] [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
+        _DecalLayerMask("Decal Layer Mask", Int) = 1
         [HideInInspector] [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
         [HideInInspector] [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
 
@@ -208,6 +208,7 @@ Shader "HDRP/TerrainLit"
             // In deferred, depth only pass don't output anything.
             // In forward it output the normal buffer
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
+            #pragma multi_compile _ WRITE_DECAL_BUFFER
             #pragma multi_compile _ WRITE_MSAA_DEPTH
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY

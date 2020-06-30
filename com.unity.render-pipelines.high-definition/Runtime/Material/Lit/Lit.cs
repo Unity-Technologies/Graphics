@@ -231,10 +231,10 @@ namespace UnityEngine.Rendering.HighDefinition
             gBufferUsage[1] = GBufferUsage.Normal;
             enableWrite[1] = true;                    // normal buffer is used as RWTexture to composite decals in forward
             RTFormat[2] = GraphicsFormat.R8G8B8A8_UNorm; // Data
-            gBufferUsage[2] = GBufferUsage.None;
+            gBufferUsage[2] = GBufferUsage.Data;
             enableWrite[2] = true;
             RTFormat[3] = Builtin.GetLightingBufferFormat();
-            gBufferUsage[3] = GBufferUsage.None;
+            gBufferUsage[3] = GBufferUsage.Lighting;
             enableWrite[3] = true;
 
             #if ENABLE_VIRTUALTEXTURES

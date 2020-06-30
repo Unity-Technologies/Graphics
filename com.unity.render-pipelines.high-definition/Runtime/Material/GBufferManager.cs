@@ -8,6 +8,8 @@ namespace UnityEngine.Rendering.HighDefinition
         None,
         SubsurfaceScattering,
         Normal,
+        Data,
+        Lighting,
         LightLayers,
         ShadowMask
         #if ENABLE_VIRTUALTEXTURES
@@ -134,6 +136,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // This is not the index we are looking for, find the next one
                     currentIndex++;
+                }
+            }
+
+            return null;
+        }
+
+        public RTHandle GetDecalBuffer(int index)
+        {
+            for (int gbufferIndex = 0; gbufferIndex < m_BufferCount; ++gbufferIndex)
+            {
+                if (m_GBufferUsage[gbufferIndex] == GBufferUsage.Data)
+                {
+                    return m_RTs[gbufferIndex];
                 }
             }
 

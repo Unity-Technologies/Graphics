@@ -35,7 +35,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
         _MainTex("Albedo", 2D) = "white" {}
         _Color("Color", Color) = (1,1,1,1)
 
-        [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
+        _DecalLayerMask("Decal Layer Mask", Int) = 1
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
     }
 
@@ -167,6 +167,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
             // In deferred, depth only pass don't output anything.
             // In forward it output the normal buffer
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
+            #pragma multi_compile _ WRITE_DECAL_BUFFER
             #pragma multi_compile _ WRITE_MSAA_DEPTH
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY

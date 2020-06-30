@@ -1,3 +1,6 @@
+#ifndef UNITY_NORMAL_BUFFER_INCLUDED
+#define UNITY_NORMAL_BUFFER_INCLUDED
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 
@@ -11,7 +14,7 @@ struct NormalData
     float  perceptualRoughness;
 };
 
-// SSSBuffer texture declaration
+// NormalBuffer texture declaration
 TEXTURE2D_X(_NormalBufferTexture);
 
 void EncodeIntoNormalBuffer(NormalData normalData, uint2 positionSS, out float4 outNormalBuffer0)
@@ -46,4 +49,4 @@ void DecodeFromNormalBuffer(uint2 positionSS, out NormalData normalData)
     DecodeFromNormalBuffer(normalBuffer, positionSS, normalData);
 }
 
-// OUTPUT_NORMAL_NORMALBUFFER start from SV_Target0 as it is used during depth prepass where there is no color buffer
+#endif // UNITY_NORMAL_BUFFER_INCLUDED

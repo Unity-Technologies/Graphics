@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
@@ -23,12 +23,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_BlendPreserveSpecular = value;
         }
 
+        /*
+        // Need to keep to do the migration?
         [SerializeField]
         bool m_ReceiveDecals = true;
         public bool receiveDecals
         {
             get => m_ReceiveDecals;
             set => m_ReceiveDecals = value;
+        }
+        */
+
+        [SerializeField]
+        DecalLayerMask m_DecalLayerMask;
+        public DecalLayerMask decalLayerMask
+        {
+            get => m_DecalLayerMask;
+            set => m_DecalLayerMask = value;
         }
 
         [SerializeField]

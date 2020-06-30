@@ -210,6 +210,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DecalNormalBufferStencilRef = Shader.PropertyToID("_DecalNormalBufferStencilRef");
         public static readonly int _DecalPropertyMaskBuffer = Shader.PropertyToID("_DecalPropertyMaskBuffer");
         public static readonly int _DecalPropertyMaskBufferSRV = Shader.PropertyToID("_DecalPropertyMaskBufferSRV");
+        public static readonly int _DecalPrepassTexture = Shader.PropertyToID("_DecalPrepassTexture");
+        public static readonly int _DecalPrepassTextureMS = Shader.PropertyToID("_DecalPrepassTextureMS");
 
 
         public static readonly int _WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
@@ -894,8 +896,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kSurfaceType = "_SurfaceType";
         public const string kMaterialID = "_MaterialID";
         public const string kTransmissionEnable = "_TransmissionEnable";
-        public const string kEnableDecals = "_SupportDecals";
-        public const string kSupportDecals = kEnableDecals;
+        public const string kDecalLayerMask = "_DecalLayerMask";
         public const string kEnableSSR = "_ReceivesSSR";
 
         public const string kLayerCount = "_LayerCount";
