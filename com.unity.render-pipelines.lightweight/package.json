@@ -6,7 +6,7 @@
   "unityRelease": "0b13",
   "displayName": "Lightweight RP",
   "dependencies": {
-    "com.unity.render-pipelines.universal": "9.0.0-preview.33",
+    "com.unity.render-pipelines.universal": "9.0.0-preview.34",
     "com.unity.postprocessing": "2.1.7"
   },
   "keywords": [
