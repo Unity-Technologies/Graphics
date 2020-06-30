@@ -241,7 +241,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.GetTemporaryRT(s_SSAOTexture3ID, m_Descriptor, FilterMode.Bilinear);
 
                 // Configure targets and clear color
-                ConfigureTarget(s_SSAOTexture3ID);
+                ConfigureTarget(s_SSAOTexture2ID);
                 ConfigureClear(ClearFlag.None, Color.white);
             }
 
