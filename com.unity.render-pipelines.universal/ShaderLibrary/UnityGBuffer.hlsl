@@ -48,9 +48,14 @@ half4 GbufferToImageBlock(FragmentOutput output, float depth)
     return output.GBuffer3;
 }
 
+float LoadDepthFromImageBlock()
+{
+    return INOUT_imageblock_fragmentOutput[0].__RasterOrderGroup_0__Depth;
+}
+
 void LoadGBufferFromImageBlock(out float d, out half4 gbuffer0, out half4 gbuffer1, out half4 gbuffer2)
 {
-    d = INOUT_imageblock_fragmentOutput[0].__RasterOrderGroup_0__Depth;
+    d = LoadDepthFromImageBlock();
     gbuffer0 = INOUT_imageblock_fragmentOutput[0].__RasterOrderGroup_0__GBuffer0;
     gbuffer1 = INOUT_imageblock_fragmentOutput[0].__RasterOrderGroup_0__GBuffer1;
     gbuffer2 = INOUT_imageblock_fragmentOutput[0].__RasterOrderGroup_0__GBuffer2;

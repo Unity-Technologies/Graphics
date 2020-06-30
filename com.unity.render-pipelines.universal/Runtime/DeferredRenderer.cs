@@ -402,6 +402,8 @@ namespace UnityEngine.Rendering.Universal
 
             m_DeferredUberPass.Setup(ref renderingData, RenderTargetHandle.CameraTarget, RenderTargetHandle.CameraTarget);
             EnqueuePass(m_DeferredUberPass);
+
+            EnqueuePass(m_DrawSkyboxPass);
         }
 
         /// <inheritdoc />
