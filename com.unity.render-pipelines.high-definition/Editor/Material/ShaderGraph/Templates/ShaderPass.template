@@ -27,6 +27,9 @@ Pass
     // --------------------------------------------------
     // Defines
 
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+
     // Attribute
     $AttributesMesh.normalOS:           #define ATTRIBUTES_NEED_NORMAL
     $AttributesMesh.tangentOS:          #define ATTRIBUTES_NEED_TANGENT
