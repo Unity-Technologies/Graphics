@@ -21,7 +21,7 @@ auto-version:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 promote_all_preview:
     name: Promote all preview packages - nightly
     dependencies:
@@ -76,7 +76,7 @@ promote_core:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 promote_universal:
     name: '[universal] Preview - Production Promote'
     agent:
@@ -96,7 +96,7 @@ promote_universal:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 promote_hdrp:
     name: '[hdrp] Preview - Production Promote'
     agent:
@@ -116,7 +116,7 @@ promote_hdrp:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 promote_shadergraph:
     name: '[shadergraph] Preview - Production Promote'
     agent:
@@ -136,7 +136,7 @@ promote_shadergraph:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 promote_vfx:
     name: '[vfx] Preview - Production Promote'
     agent:
@@ -156,7 +156,7 @@ promote_vfx:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 promote_config:
     name: '[config] Preview - Production Promote'
     agent:
@@ -176,7 +176,7 @@ promote_config:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 promote_lwrp:
     name: '[lwrp] Preview - Production Promote'
     agent:
@@ -196,4 +196,4 @@ promote_lwrp:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
