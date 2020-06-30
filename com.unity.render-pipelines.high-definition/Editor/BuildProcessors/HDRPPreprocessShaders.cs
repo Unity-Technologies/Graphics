@@ -80,7 +80,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     return true;
 
                 // If transparent we don't need the motion vector pass
-                bool isMotionPass = snippet.passName == "Motion Vectors";
                 if (isMotionPass)
                     return true;
 
@@ -91,10 +90,6 @@ namespace UnityEditor.Rendering.HighDefinition
             else // Opaque
             {
                 // If opaque, we never need transparent specific passes (even in forward only mode)
-                bool isTransparentPrepass = snippet.passName == "TransparentDepthPrepass";
-                bool isTransparentPostpass = snippet.passName == "TransparentDepthPostpass";
-                bool isTransparentBackface = snippet.passName == "TransparentBackface";
-                bool isDistortionPass = snippet.passName == "DistortionVectors";
                 bool isTransparentForwardPass = isTransparentPostpass || isTransparentBackface || isTransparentPrepass || isDistortionPass;
                 if (isTransparentForwardPass)
                     return true;

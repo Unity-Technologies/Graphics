@@ -94,7 +94,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 collector.AddToggleProperty(kReceivesSSR, receiveSSROpaque);
                 collector.AddToggleProperty(kReceivesSSRTransparent, receiveSSRTransparent);
                 collector.AddToggleProperty(kEnableBlendModePreserveSpecularLighting, blendPreserveSpecular);
-                collector.AddDecalLayerMaskProperty(collector, decalLayerMask);
+                collector.AddDecalLayerMaskProperty(decalLayerMask);
             }
 
             // Configure render state

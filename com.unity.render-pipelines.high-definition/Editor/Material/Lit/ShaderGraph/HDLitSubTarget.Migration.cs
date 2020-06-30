@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             builtinData.addPrecomputedVelocity = false;
             lightingData.blendPreserveSpecular = false;
             lightingData.normalDropOffSpace = pbrMasterNode.m_NormalDropOffSpace;
-            lightingData.receiveDecals = false;
+            lightingData.decalLayerMask = DecalLayerMask.None;
             lightingData.receiveSSR = true;
             lightingData.receiveSSRTransparent = false;
             litData.materialType = pbrMasterNode.m_Model == PBRMasterNode1.Model.Specular ? HDLitData.MaterialType.SpecularColor : HDLitData.MaterialType.Standard;
@@ -133,7 +133,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             builtinData.backThenFrontRendering = hdLitMasterNode.m_BackThenFrontRendering;
             lightingData.normalDropOffSpace = hdLitMasterNode.m_NormalDropOffSpace;
             lightingData.blendPreserveSpecular = hdLitMasterNode.m_BlendPreserveSpecular;
-            lightingData.receiveDecals = hdLitMasterNode.m_ReceiveDecals;
+            lightingData.decalLayerMask = hdLitMasterNode.m_ReceiveDecals ? DecalLayerMask.Layer0 : DecalLayerMask.None;
             lightingData.receiveSSR = hdLitMasterNode.m_ReceivesSSR;
             lightingData.receiveSSRTransparent = hdLitMasterNode.m_ReceivesSSRTransparent;
             lightingData.specularAA = hdLitMasterNode.m_SpecularAA;

@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             builtinData.alphaTestShadow = hairMasterNode.m_AlphaTestShadow;
             builtinData.backThenFrontRendering = hairMasterNode.m_BackThenFrontRendering;
             lightingData.blendPreserveSpecular = hairMasterNode.m_BlendPreserveSpecular;
-            lightingData.receiveDecals = hairMasterNode.m_ReceiveDecals;
+            lightingData.decalLayerMask = hairMasterNode.m_ReceiveDecals ? DecalLayerMask.Layer0 : DecalLayerMask.None;
             lightingData.receiveSSR = hairMasterNode.m_ReceivesSSR;
             lightingData.receiveSSRTransparent = hairMasterNode.m_ReceivesSSRTransparent;
             lightingData.specularAA = hairMasterNode.m_SpecularAA;

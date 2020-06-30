@@ -232,7 +232,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = supportLighting ? CoreDefines.DepthForwardOnly : null,
-                keywords = CoreKeywords.DepthForwardOnly,
+                keywords = CoreKeywords.DepthForwardOnlyNoWriteNormal,
                 includes = GenerateIncludes(),
             };
 

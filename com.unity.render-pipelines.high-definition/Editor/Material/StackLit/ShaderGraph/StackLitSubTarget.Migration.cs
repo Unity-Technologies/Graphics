@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             lightingData.normalDropOffSpace = stackLitMasterNode.m_NormalDropOffSpace;
             lightingData.blendPreserveSpecular = stackLitMasterNode.m_BlendPreserveSpecular;
-            lightingData.receiveDecals = stackLitMasterNode.m_ReceiveDecals;
+            lightingData.decalLayerMask = stackLitMasterNode.m_ReceiveDecals ? DecalLayerMask.Layer0 : DecalLayerMask.None;
             lightingData.receiveSSR = stackLitMasterNode.m_ReceiveSSR;
             lightingData.receiveSSRTransparent = stackLitMasterNode.m_ReceivesSSRTransparent;
             lightingData.overrideBakedGI = stackLitMasterNode.m_overrideBakedGI;

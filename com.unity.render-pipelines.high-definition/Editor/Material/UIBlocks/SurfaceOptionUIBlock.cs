@@ -96,7 +96,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent ppdPrimitiveLength = new GUIContent("Primitive Length", "Sets the length of the primitive (with the scale of 1) to which HDRP applies per-pixel displacement mapping. For example, the standard quad is 1 x 1 meter, while the standard plane is 10 x 10 meters.");
             public static GUIContent ppdPrimitiveWidth = new GUIContent("Primitive Width", "Sets the width of the primitive (with the scale of 1) to which HDRP applies per-pixel displacement mapping. For example, the standard quad is 1 x 1 meter, while the standard plane is 10 x 10 meters.");
 
-            public static GUIContent decalLayerText = new GUIContent("Decal Layer Mask", "Decal with a matching Decal Layer Mask value will affect this material.");
+            public static GUIContent decalLayerMaskText = new GUIContent("Decal Layer Mask", "Decal with a matching Decal Layer Mask value will affect this material.");
 
             public static GUIContent enableGeometricSpecularAAText = new GUIContent("Geometric Specular AA", "When enabled, HDRP reduces specular aliasing on high density meshes (particularly useful when the not using a normal map).");
             public static GUIContent specularAAScreenSpaceVarianceText = new GUIContent("Screen space variance", "Controls the strength of the Specular AA reduction. Higher values give a more blurry result and less aliasing.");

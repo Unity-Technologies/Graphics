@@ -402,7 +402,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Synchronize properties we exposed from SG to the material
                 ResetFloatProperty(kReceivesSSR);
                 ResetFloatProperty(kReceivesSSRTransparent);
-                ResetFloatProperty(kEnableDecals);
+                ResetFloatProperty("_SupportDecals");
                 ResetFloatProperty(kEnableBlendModePreserveSpecularLighting);
                 ResetFloatProperty(kTransparentWritingMotionVec);
                 ResetFloatProperty(kAddPrecomputedVelocity);
@@ -433,6 +433,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetDecalLayerMask(decalLayerMask);
             }
 
+            // We need to reset the custom RenderQueue to take into account the move to specific RenderQueue for Opaque with Decal.
+            // this should be handled correctly with reset below
             HDShaderUtils.ResetMaterialKeywords(material);
         }
 

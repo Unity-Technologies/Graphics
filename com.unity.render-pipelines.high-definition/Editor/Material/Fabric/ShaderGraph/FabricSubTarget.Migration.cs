@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             builtinData.alphaToMask = fabricMasterNode.m_AlphaToMask;
 
             lightingData.blendPreserveSpecular = fabricMasterNode.m_BlendPreserveSpecular;
-            lightingData.receiveDecals = fabricMasterNode.m_ReceiveDecals;
+            lightingData.decalLayerMask = fabricMasterNode.m_ReceiveDecals ? DecalLayerMask.Layer0 : DecalLayerMask.None;
             lightingData.receiveSSR = fabricMasterNode.m_ReceivesSSR;
             lightingData.receiveSSRTransparent = fabricMasterNode.m_ReceivesSSRTransparent;
             lightingData.specularOcclusionMode = fabricMasterNode.m_SpecularOcclusionMode;

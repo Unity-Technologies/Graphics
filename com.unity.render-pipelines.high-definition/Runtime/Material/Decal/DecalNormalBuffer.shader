@@ -88,6 +88,10 @@ Shader "Hidden/HDRP/Material/Decal/DecalNormalBuffer"
                 Ref [_DecalNormalBufferStencilRef]
                 Comp Equal
                 Pass Zero   // Clear bits since they are not needed anymore.
+                            // Note: this is fine with the combination
+                            // _DecalNormalBufferStencilReadMask - StencilUsage.Decals | (int)StencilUsage.RequiresDeferredLighting
+                            // _DecalNormalBufferStencilRef = (int)StencilUsage.Decals
+                            // Because the test success only if RequiresDeferredLighting isn't set, and thus we can clear the 2 bits, RequiresDeferredLighting already don't exist
             }
 
             HLSLPROGRAM
