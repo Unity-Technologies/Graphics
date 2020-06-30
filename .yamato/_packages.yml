@@ -32,7 +32,7 @@ publish_core:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 pack_lwrp:
     name: Pack Lightweight
     agent:
@@ -62,7 +62,7 @@ publish_lwrp:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 pack_shadergraph:
     name: Pack ShaderGraph
     agent:
@@ -92,7 +92,7 @@ publish_shadergraph:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 pack_hdrp:
     name: Pack HDRP
     agent:
@@ -122,7 +122,7 @@ publish_hdrp:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 pack_universal:
     name: Pack Universal
     agent:
@@ -152,7 +152,7 @@ publish_universal:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 pack_vfx:
     name: Pack VFX
     agent:
@@ -182,7 +182,7 @@ publish_vfx:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 pack_config:
     name: Pack Config
     agent:
@@ -212,7 +212,7 @@ publish_config:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 test_core_Win_2020.1:
     name: Test Core Win 2020.1
     agent:

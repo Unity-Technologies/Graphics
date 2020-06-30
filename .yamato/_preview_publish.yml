@@ -23,7 +23,7 @@ auto-version:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 publish_all_preview:
     name: Publish all preview packages - nightly
     dependencies:
@@ -90,7 +90,7 @@ publish_core:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 promote_core:
     name: '[core] Production Promote'
     agent:
@@ -110,7 +110,7 @@ promote_core:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 publish_universal:
     name: '[universal] Candidates Publish'
     agent:
@@ -128,7 +128,7 @@ publish_universal:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 promote_universal:
     name: '[universal] Production Promote'
     agent:
@@ -148,7 +148,7 @@ promote_universal:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 publish_hdrp:
     name: '[hdrp] Candidates Publish'
     agent:
@@ -166,7 +166,7 @@ publish_hdrp:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 promote_hdrp:
     name: '[hdrp] Production Promote'
     agent:
@@ -186,7 +186,7 @@ promote_hdrp:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 publish_shadergraph:
     name: '[shadergraph] Candidates Publish'
     agent:
@@ -204,7 +204,7 @@ publish_shadergraph:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 promote_shadergraph:
     name: '[shadergraph] Production Promote'
     agent:
@@ -224,7 +224,7 @@ promote_shadergraph:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 publish_vfx:
     name: '[vfx] Candidates Publish'
     agent:
@@ -242,7 +242,7 @@ publish_vfx:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 promote_vfx:
     name: '[vfx] Production Promote'
     agent:
@@ -262,7 +262,7 @@ promote_vfx:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 publish_config:
     name: '[config] Candidates Publish'
     agent:
@@ -280,7 +280,7 @@ publish_config:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 promote_config:
     name: '[config] Production Promote'
     agent:
@@ -300,7 +300,7 @@ promote_config:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 publish_lwrp:
     name: '[lwrp] Candidates Publish'
     agent:
@@ -318,7 +318,7 @@ publish_lwrp:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 promote_lwrp:
     name: '[lwrp] Production Promote'
     agent:
@@ -338,4 +338,4 @@ promote_lwrp:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
