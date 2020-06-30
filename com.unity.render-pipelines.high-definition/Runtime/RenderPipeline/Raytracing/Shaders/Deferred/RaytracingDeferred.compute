@@ -78,6 +78,7 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     PositionInputs posInput;
     posInput.positionWS = GetCameraRelativePositionWS(intersectionPositionWS);
     posInput.positionSS = currentCoord;
+    posInput.positionNDC = sourcePosInput.positionNDC;
 
     float3 V = -rayDirection;
 
