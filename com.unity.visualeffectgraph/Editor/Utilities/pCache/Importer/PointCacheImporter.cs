@@ -5,12 +5,17 @@ using System.IO;
 using System.Text;
 using System.Globalization;
 using UnityEngine;
+#if UNITY_2020_2_OR_NEWER
+using UnityEditor.AssetImporters;
+#else
+using UnityEditor.Experimental.AssetImporters;
+#endif
 
 
 namespace UnityEditor.Experimental.VFX.Utility
 {
-    [UnityEditor.AssetImporters.ScriptedImporter(1, "pcache")]
-    class PointCacheImporter : UnityEditor.AssetImporters.ScriptedImporter
+    [ScriptedImporter(1, "pcache")]
+    class PointCacheImporter : ScriptedImporter
     {
         public static T[] SubArray<T>(T[] data, int index, int length)
         {
