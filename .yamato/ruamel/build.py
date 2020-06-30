@@ -131,6 +131,8 @@ def create_project_specific_jobs(metafile_name):
 def create_project_all_jobs(metafile_name):
 
     metafile = load_yml(metafile_name)
+    if metafile.get('all') is None:
+        return
 
     yml = {}
     for editor in get_editors(metafile):
