@@ -15,7 +15,7 @@ After you add a **Cloud Layer** override, you must enable it in the override its
 
 ## Customizing the Cloud Map
 
-The Cloud Map is a 2D texture in LatLong layout (sometimes called Cylindrical or Equirectangular) that contains cloud color in the RGB channel and cloud coverage in the alpha channel.
+The Cloud Map is a 2D texture in LatLong layout (sometimes called Cylindrical or Equirectangular) that contains cloud color in the RGB channel and cloud coverage in the alpha channel. An example texture named `DefaultCloudLayer` is included in the package.
 If **Upper Hemisphere Only** is checked, the map is interpreted as being the upper half of a LatLong texture.
 
 <a name="CustomizingFlowmap"></a>
