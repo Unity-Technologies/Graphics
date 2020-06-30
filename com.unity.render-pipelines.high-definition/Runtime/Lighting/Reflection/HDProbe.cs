@@ -186,7 +186,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public RenderTexture realtimeTexture
         {
-            get => m_RealtimeTexture != null ? m_RealtimeTexture.rt : null;
+            get => m_RealtimeTexture != null ? m_RealtimeTexture : null;
             set
             {
                 if (m_RealtimeTexture != null)
@@ -238,7 +238,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 case ProbeSettings.Mode.Baked: return m_BakedTexture;
                 case ProbeSettings.Mode.Custom: return m_CustomTexture;
-                case ProbeSettings.Mode.Realtime: return realtimeTexture;
+                case ProbeSettings.Mode.Realtime: return m_RealtimeTexture;
                 default: throw new ArgumentOutOfRangeException();
             }
         }
