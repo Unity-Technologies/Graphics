@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using UnityEditor.ShaderGraph;
+using System.Linq;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -395,16 +396,26 @@ namespace UnityEditor.Rendering.HighDefinition
             DrawLitSurfaceOptions();
         }
 
+        bool AreMaterialsShaderGraphs() => materials.All(m => m.shader.IsShaderGraph());
+
+        /// <summary>Returns false if there are multiple materials selected and they have different default values for propName</summary>
+        float GetShaderDefaultFloatValue(string propName)
+        {
+            // It's okay to ignore all other materials here because if the material editor is displayed, the shader is the same for all materials
+            var shader = materials[0].shader;
+            return shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex(propName));
+        }
+
         void DrawAlphaCutoffGUI()
         {
             EditorGUI.BeginChangeCheck();
 
             // For shadergraphs we show this slider only if the feature is enabled in the shader settings.
             bool showAlphaClipThreshold = true;
-            var shader = materials[0].shader;
-            bool isShaderGraph = shader.IsShaderGraph();
+            
+            bool isShaderGraph = AreMaterialsShaderGraphs();
             if (isShaderGraph)
-                showAlphaClipThreshold = shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex(kAlphaCutoffEnabled)) > 0.0f;
+                showAlphaClipThreshold = GetShaderDefaultFloatValue(kAlphaCutoffEnabled) > 0.0f;
 
             if (showAlphaClipThreshold && alphaCutoffEnable != null)
                 materialEditor.ShaderProperty(alphaCutoffEnable, Styles.alphaCutoffEnableText);
@@ -421,7 +432,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     // For shadergraphs we show this slider only if the feature is enabled in the shader settings.
                     bool showUseShadowThreshold = useShadowThreshold != null;
                     if (isShaderGraph)
-                        showUseShadowThreshold = shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex(kUseShadowThreshold)) > 0.0f;
+                        showUseShadowThreshold = GetShaderDefaultFloatValue(kUseShadowThreshold) > 0.0f;
 
                     if (showUseShadowThreshold)
                         materialEditor.ShaderProperty(useShadowThreshold, Styles.useShadowThresholdText);
@@ -460,6 +471,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.indentLevel--;
             }
 
+            EditorGUI.showMixedValue = false;
+
             // Update the renderqueue when we change the alphaTest
             if (EditorGUI.EndChangeCheck())
             {
@@ -481,7 +494,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // TODO: does not work with multi-selection
             bool showBlendModePopup = refractionModel == null
                 || refractionModel.floatValue == 0
-                || HDRenderQueue.k_RenderQueue_PreRefraction.Contains(materials[0].renderQueue);
+                || materials.All(m => HDRenderQueue.k_RenderQueue_PreRefraction.Contains(m.renderQueue));
 
             SurfaceTypePopup();
 
@@ -489,7 +502,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent.Contains(renderQueue))
                 {
-                    if (!zTest.hasMixedValue && materials[0].GetTransparentZTest() != CompareFunction.Disabled)
+                    if (!zTest.hasMixedValue && materials.All(m => m.GetTransparentZTest() != CompareFunction.Disabled))
                     {
                         ShowAfterPostProcessZTestInfoBox();
                     }
@@ -531,17 +544,17 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (enableFogOnTransparent != null)
                     materialEditor.ShaderProperty(enableFogOnTransparent, Styles.enableTransparentFogText);
 
-                bool shaderHasBackThenFrontPass = materials[0].FindPass(HDShaderPassNames.s_TransparentBackfaceStr) != -1;
+                bool shaderHasBackThenFrontPass = materials.All(m => m.FindPass(HDShaderPassNames.s_TransparentBackfaceStr) != -1);
                 if (shaderHasBackThenFrontPass && transparentBackfaceEnable != null)
                     materialEditor.ShaderProperty(transparentBackfaceEnable, Styles.transparentBackfaceEnableText);
 
                 if ((m_Features & Features.ShowPrePassAndPostPass) != 0)
                 {
-                    bool shaderHasDepthPrePass = materials[0].FindPass(HDShaderPassNames.s_TransparentDepthPrepassStr) != -1;
+                    bool shaderHasDepthPrePass = materials.All(m => m.FindPass(HDShaderPassNames.s_TransparentDepthPrepassStr) != -1);
                     if (shaderHasDepthPrePass && transparentDepthPrepassEnable != null)
                         materialEditor.ShaderProperty(transparentDepthPrepassEnable, Styles.transparentDepthPrepassEnableText);
 
-                    bool shaderHasDepthPostPass = materials[0].FindPass(HDShaderPassNames.s_TransparentDepthPostpassStr) != -1;
+                    bool shaderHasDepthPostPass = materials.All(m => m.FindPass(HDShaderPassNames.s_TransparentDepthPostpassStr) != -1);
                     if (shaderHasDepthPostPass && transparentDepthPostpassEnable != null)
                         materialEditor.ShaderProperty(transparentDepthPostpassEnable, Styles.transparentDepthPostpassEnableText);
                 }
