@@ -132,7 +132,6 @@ namespace UnityEditor.Rendering.HighDefinition
             // Keywords for opt-out of decals and SSR:
             var decalsEnabled = material.GetDecalLayerMask() != DecalLayerMask.None;
             CoreUtils.SetKeyword(material, "_DISABLE_DECALS", !decalsEnabled);
-            CoreUtils.SetKeyword(material, "WRITE_DECAL_BUFFER", decalsEnabled);
 
             bool ssrEnabled = false;
             if (material.GetSurfaceType() == SurfaceType.Transparent)
