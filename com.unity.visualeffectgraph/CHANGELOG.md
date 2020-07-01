@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - De-nicified attribute name (conserve case) in Set Custom Attribute title
 - Changed the default "No Asset" message when opening the visual effect graph window
 - Subgraphs are not in hardcoded categories anymore : updated default subgraph templates + Samples to add meaningful categories.
+- Enum fields having headers show the header in the inspector as well.
 
 ## [7.5.0] - 2020-06-08
 
