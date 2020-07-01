@@ -1,0 +1,27 @@
+fileFormatVersion: 2
+guid: 9d7e025a2f4b70b488453430c44558aa
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 9801397f829a1ed42984340315cbf362, type: 3}
+  iesMetaData:
+    FileFormatVersion: LM-63-1991
+    IESPhotometricType: Type C
+    IESMaximumIntensity: 596.57
+    IESMaximumIntensityUnit: Lumens
+    Manufacturer: Manufacturing company unknown
+    LuminaireCatalogNumber: 
+    LuminaireDescription: 
+    LampCatalogNumber: 
+    LampDescription: 
+    PrefabLightType: 0
+    SpotAngle: 120
+    iesSize: 128
+    ApplyLightAttenuation: 1
+    UseIESMaximumIntensity: 1
+    CookieCompression: 2
+    LightAimAxisRotation: -90

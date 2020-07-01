@@ -1,0 +1,28 @@
+fileFormatVersion: 2
+guid: a7a62c7ad245079408b82c147e1c3083
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 9801397f829a1ed42984340315cbf362, type: 3}
+  iesMetaData:
+    FileFormatVersion: LM-63-1991
+    IESPhotometricType: Type C
+    IESMaximumIntensity: 68
+    IESMaximumIntensityUnit: Lumens
+    Manufacturer: LITHONIA - ESG MODEL HQM LAMPHEAD
+    LuminaireCatalogNumber: ELA CDS N0606
+    LuminaireDescription: SPECULAR REFLECTOR WITH TRANSLUCENT PLASTIC LENS
+    LampCatalogNumber: 
+    LampDescription: ONE GE#939 INCANDESCENT WEDGE MINIATURE LAMP.. LUMEN RATING
+      = 68 LMS. 6 VOLTS DC OPERATING AT .9 AMPS AND 5.4 WATTS
+    PrefabLightType: 0
+    SpotAngle: 120
+    iesSize: 128
+    ApplyLightAttenuation: 1
+    UseIESMaximumIntensity: 1
+    CookieCompression: 2
+    LightAimAxisRotation: -90
