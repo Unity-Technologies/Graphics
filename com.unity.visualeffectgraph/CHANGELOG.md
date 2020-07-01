@@ -126,6 +126,7 @@ The version number for this package has increased due to a version update of a r
 - De-nicified attribute name (conserve case) in Set Custom Attribute title
 - Changed the default "No Asset" message when opening the visual effect graph window
 - Subgraphs are not in hardcoded categories anymore : updated default subgraph templates + Samples to add meaningful categories.
+- Enum fields having headers show the header in the inspector as well.
 
 ## [7.1.1] - 2019-09-05
 ### Added
