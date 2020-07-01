@@ -21,7 +21,7 @@ handle_hdrp_exception()
     uppercased="HDRP"
 
 	# Retrieve first folder of the branch, e.g for "hdrp/something" it will match "hdrp"
-	first_folder="$(echo $local_branch | sed -n -r -e 's/(^.+)(\/.*)/\1/p')"
+	first_folder="$(echo $local_branch | sed -n -E -e 's/(^.+)(\/.*)/\1/p')"
 
     # hdrp/something does not follow the convention
     if [ "$first_folder" = "$lowercased" ];
@@ -41,8 +41,8 @@ handle_hdrp_exception()
 check_norm()
 {
     handle_hdrp_exception
-	match=`echo $local_branch | grep -E $valid_branch_regex | wc -l`
-    if test $remote_exists != 1 && test "$match" = 0 ;
+	is_valid=`echo $local_branch | grep -E $valid_branch_regex | wc -l`
+    if test $remote_exists -ne 1 && test $is_valid -eq 0 ;
     then
         echo "$message"
         exit 1
