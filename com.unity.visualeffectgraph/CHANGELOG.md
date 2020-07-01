@@ -125,6 +125,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the default "No Asset" message when opening the visual effect graph window
 - Subgraphs are not in hardcoded categories anymore : updated default subgraph templates + Samples to add meaningful categories.
 - Fix creation of StringPropertyRM
+- Enum fields having headers show the header in the inspector as well.
 
 ## [7.1.1] - 2019-09-05
 ### Added
