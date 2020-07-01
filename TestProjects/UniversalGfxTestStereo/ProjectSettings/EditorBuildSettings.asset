@@ -68,4 +68,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/022_xr_Static_Batching.unity
     guid: 673142619e30f4f1e8cb6883a726b00d
+  - enabled: 1
+    path: Assets/Scenes/126_SampleDepth.unity
+    guid: d66b74ae4e7264d62bdb2c4f56261030
   m_configObjects: {}

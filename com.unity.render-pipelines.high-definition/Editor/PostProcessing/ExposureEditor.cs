@@ -51,6 +51,7 @@ namespace UnityEditor.Rendering.HighDefinition
             else if (mode == (int)ExposureMode.Fixed)
             {
                 PropertyField(m_FixedExposure);
+                PropertyField(m_Compensation);
             }
             else
             {

@@ -33,8 +33,8 @@ namespace UnityEditor.Rendering.HighDefinition
         internal struct AttributesMesh
         {
             [Semantic("POSITION")]                  Vector3 positionOS;
-            [Semantic("NORMAL")][Optional]          Vector3 normalOS;
-            [Semantic("TANGENT")][Optional]         Vector4 tangentOS;       // Stores bi-tangent sign in w
+            [Semantic("NORMAL")]                    Vector3 normalOS;
+            [Semantic("TANGENT")]                   Vector4 tangentOS;       // Stores bi-tangent sign in w
             [Semantic("TEXCOORD0")][Optional]       Vector4 uv0;
             [Semantic("TEXCOORD1")][Optional]       Vector4 uv1;
             [Semantic("TEXCOORD2")][Optional]       Vector4 uv2;
@@ -841,6 +841,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             ShaderGenerator defines = new ShaderGenerator();
             {
+                defines.AddShaderChunk("// Shared Graph Keywords");
+                defines.AddShaderChunk(shaderKeywordDeclarations.ToString());
+                defines.AddShaderChunk(shaderKeywordPermutations.ToString());
+
                 defines.AddShaderChunk(string.Format("#define SHADERPASS {0}", pass.ShaderPassName), true);
                 if (pass.ExtraDefines != null)
                 {
@@ -893,10 +897,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 foreach (var include in pass.Includes)
                     shaderPassIncludes.AddShaderChunk(include);
             }
-
-            defines.AddShaderChunk("// Shared Graph Keywords");
-            defines.AddShaderChunk(shaderKeywordDeclarations.ToString());
-            defines.AddShaderChunk(shaderKeywordPermutations.ToString());
 
             // build graph code
             var graph = new ShaderGenerator();
@@ -1030,7 +1030,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Comment set of define for Forward Opaque pass in HDRP
         public static List<string> s_ExtraDefinesForwardOpaque = new List<string>()
         {
-            "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch",
+            "#pragma only_renderers d3d11 playstation xboxone vulkan metal switch",
             "#pragma multi_compile _ DEBUG_DISPLAY",
             "#pragma multi_compile _ LIGHTMAP_ON",
             "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
@@ -1043,7 +1043,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static List<string> s_ExtraDefinesForwardTransparent = new List<string>()
         {
-            "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch",
+            "#pragma only_renderers d3d11 playstation xboxone vulkan metal switch",
             "#pragma multi_compile _ DEBUG_DISPLAY",
             "#pragma multi_compile _ LIGHTMAP_ON",
             "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
@@ -1057,7 +1057,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static List<string> s_ExtraDefinesForwardMaterialDepthOrMotion = new List<string>()
         {
-            "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch",
+            "#pragma only_renderers d3d11 playstation xboxone vulkan metal switch",
             "#define WRITE_NORMAL_BUFFER",
             "#pragma multi_compile _ WRITE_MSAA_DEPTH",
             HDLitSubShader.DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
@@ -1065,7 +1065,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static List<string> s_ExtraDefinesDepthOrMotion = new List<string>()
         {
-            "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch",
+            "#pragma only_renderers d3d11 playstation xboxone vulkan metal switch",
             "#pragma multi_compile _ WRITE_NORMAL_BUFFER",
             "#pragma multi_compile _ WRITE_MSAA_DEPTH",
             HDLitSubShader.DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)

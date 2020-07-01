@@ -12,6 +12,7 @@
   * [Attributes](Attributes.md)
   * [Subgraph](Subgraph.md)
   * [Blackboard](Blackboard.md)
+  * [Sticky Notes](StickyNotes.md)
   * [Project Settings](VisualEffectProjectSettings.md)
   * [Preferences](VisualEffectPreferences.md)
 * [The Visual Effect Component](VisualEffectComponent.md)

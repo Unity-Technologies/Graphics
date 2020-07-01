@@ -279,5 +279,23 @@ namespace UnityEngine.Rendering
 
             return count != result.Count;
         }
+
+
+        /// <summary>
+        /// A custom hashing function that Unity uses to compare the state of parameters.
+        /// </summary>
+        /// <returns>A computed hash code for the current instance.</returns>
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 17;
+
+                for (int i = 0; i < components.Count; i++)
+                    hash = hash * 23 + components[i].GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }

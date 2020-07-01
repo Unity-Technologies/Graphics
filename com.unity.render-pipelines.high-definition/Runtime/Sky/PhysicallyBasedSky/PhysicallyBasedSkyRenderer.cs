@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static ComputeShader         s_GroundIrradiancePrecomputationCS;
         static ComputeShader         s_InScatteredRadiancePrecomputationCS;
-        static Material              s_PbrSkyMaterial;
+        Material                     s_PbrSkyMaterial;
         static MaterialPropertyBlock s_PbrSkyMaterialProperties;
 
         static GraphicsFormat s_ColorFormat = GraphicsFormat.R16G16B16A16_SFloat;
@@ -80,8 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition
             s_InScatteredRadiancePrecomputationCS = hdrpResources.shaders.inScatteredRadiancePrecomputationCS;
             s_PbrSkyMaterialProperties            = new MaterialPropertyBlock();
 
-            if (s_PbrSkyMaterial == null) // Material instance is static.
-                s_PbrSkyMaterial = CoreUtils.CreateEngineMaterial(hdrpResources.shaders.physicallyBasedSkyPS);
+            s_PbrSkyMaterial = CoreUtils.CreateEngineMaterial(hdrpResources.shaders.physicallyBasedSkyPS);
 
             Debug.Assert(s_GroundIrradiancePrecomputationCS    != null);
             Debug.Assert(s_InScatteredRadiancePrecomputationCS != null);
@@ -125,6 +124,8 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_InScatteredRadianceTables[2]); m_InScatteredRadianceTables[2] = null;
             RTHandles.Release(m_InScatteredRadianceTables[3]); m_InScatteredRadianceTables[3] = null;
             RTHandles.Release(m_InScatteredRadianceTables[4]); m_InScatteredRadianceTables[4] = null;
+
+            CoreUtils.Destroy(s_PbrSkyMaterial);
 
             m_LastPrecomputedBounce = 0;
         }

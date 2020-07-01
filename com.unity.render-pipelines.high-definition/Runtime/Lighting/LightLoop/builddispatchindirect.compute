@@ -1,6 +1,6 @@
 #pragma kernel BuildDispatchIndirect        BUILDINDIRECT=BuildDispatchIndirect         IS_DRAWPROCEDURALINDIRECT=0
 #pragma kernel BuildDrawProceduralIndirect  BUILDINDIRECT=BuildDrawProceduralIndirect   IS_DRAWPROCEDURALINDIRECT=1
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"

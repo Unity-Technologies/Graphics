@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Utilities;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
@@ -838,7 +839,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
                 else if (camera.cameraType == CameraType.SceneView)
                 {
-                    var mode = HDRenderPipelinePreferences.sceneViewAntialiasing;
+                    var mode = HDAdditionalSceneViewSettings.sceneViewAntialiasing;
 
                     if (mode == AntialiasingMode.TemporalAntialiasing && !animateMaterials)
                         antialiasing = AntialiasingMode.None;

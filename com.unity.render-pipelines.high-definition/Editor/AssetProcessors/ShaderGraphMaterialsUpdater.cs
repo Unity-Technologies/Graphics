@@ -55,13 +55,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     // Free the materials every 200 iterations, on big project loading all materials in memory can lead to a crash
                     if ((i % 200 == 0) && i != 0)
-                        EditorUtility.UnloadUnusedAssetsImmediate(false);
+                        EditorUtility.UnloadUnusedAssetsImmediate(true);
                 }
             }
             finally
             {
                 EditorUtility.ClearProgressBar();
-                EditorUtility.UnloadUnusedAssetsImmediate(false);
+                EditorUtility.UnloadUnusedAssetsImmediate(true);
             }
         }
     }

@@ -100,7 +100,7 @@ The navigation controls for the Node Workspace are similar to those that other g
   * **Duplicate**: Ctrl+D.
   * **Duplicate with edges**: Ctrl+Alt+D.
 
-### Adding Graph Elements
+### Adding graph elements
 
 To add graph elements, you can use any of the following methods:
 

@@ -10,7 +10,7 @@ Shader "Hidden/HDRP/DebugViewMaterialGBuffer"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -84,7 +84,7 @@ Shader "Hidden/HDRP/DebugViewMaterialGBuffer"
                 else if (bufferIndex == DEBUGVIEWGBUFFER_BAKE_DIFFUSE_LIGHTING_WITH_ALBEDO_PLUS_EMISSIVE)
                 {
                     result = builtinData.bakeDiffuseLighting;
-                    result *= exp2(_DebugExposure);
+                    result *= GetCurrentExposureMultiplier();
                     needLinearToSRGB = true;
                 }
 #ifdef SHADOWS_SHADOWMASK

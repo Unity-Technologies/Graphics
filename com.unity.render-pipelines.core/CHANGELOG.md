@@ -9,7 +9,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
-## [8.0.0] - 2020-05-25
+## [8.1.0] - 2020-04-21
+
+### Added
+- Add tooltips in LookDev's toolbar.
+
+### Fixed
+- Fixed issue when LookDev window is opened and the CoreRP Package is updated to a newer version.
+- Fixed copy/pasting of Volume Components when loading a new scene
+- Fix LookDev's camera button layout.
+- Fix LookDev's layout vanishing on domain reload.
+
+## [8.0.1] - 2020-02-25
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [8.0.0] - 2020-02-25
 
 ### Added
 - Add rough version of ContextualMenuDispatcher to solve conflict amongst SRP.
@@ -38,6 +54,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed duplicated entry for com.unity.modules.xr in the runtime asmdef file
 - Fixed the texture curve being destroyed from another thread than main (case 1211754)
 - Fixed unreachable code in TextureXR.useTexArray
+- Fixed GC pressure caused by `VolumeParameter<T>.GetHashCode()`
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.
@@ -135,4 +152,3 @@ The version number for this package has increased due to a version update of a r
 
 ### Changed
 - Moved root files into folders for easier maintenance
-

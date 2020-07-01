@@ -1,137 +1,142 @@
-<div style="border: solid 1px #999; border-radius:12px; background-color:#EEE; padding: 8px; padding-left:14px; color: #555; font-size:14px;"><b>Draft:</b> The content on this page is complete, but it has not been reviewed yet.</div>
 # Contexts
 
-Contexts are the main elements of the Graph Workflow logic (vertical) and define the succession and the relationships of operations and simulations. Every context defines one stage of computing, for example computing how many particles need to be spawned, creating new particles or updating all living particles.
+Contexts are the main element of the Visual Effect Graph's **processing** (vertical) workflow and determine how particles spawn and simulate. The way you organize Contexts on the graph defines order of operation for the processing workflow. For information on the processing workflow, see [Visual Effect Graph Logic](GraphLogicAndPhilosophy.md). Every Context defines one stage of computation. For example a Context can:
 
-Context connect to each other when there is meaning : After creating new particles, an Initialize context can connect to a Update Particle context, or directly to a Output Particle Context to render the particles without simulating them.
+* Calculate how many particles the effect should spawn.
+* Create new particles.
+* Update all living particles.
 
-## Creating and Connecting Contexts
+Contexts connect to one another sequentially to define the lifecycle of particles. After a graph creates new particles, the **Initialize** Context can connect to an **Update Particle** Context to simulate each particle. Also, the **Initialize** Context can instead connect directly to an **Output Particle** Context to render the particles without simulating any behavior.
 
-Contexts are Graph elements, so they can be created using the Right Click > Add Node Menu, Spacebar Menu or by making a workflow (vertical) connection from another context (providing only compatible contexts)
+## Creating and connecting Contexts
 
-Contexts connect to each other using the Ports at the top and the bottom.
+A Context is a type of [graph element](GraphLogicAndPhilosophy.md#graph-elements) so to create one, see [Adding graph elements](VisualEffectGraphWindow.md#adding-graph-elements).
+
+Contexts connect to one another in a vertical, linear order. To achieve this, they use [flow slots](). Depending on which part of the particle lifecycle a Context defines, it may have flow slots on its top, its bottom, or both.
 
 ## Configuring Contexts
 
-Adjusting Context [Settings](GraphLogicAndPhilosophy.md#settings) in the Node UI or the Inspector can change the way the Operator looks and behaves.
+To change the behavior of the Context, adjust its [settings](GraphLogicAndPhilosophy.md#settings) in the Node UI or the Inspector.
 
-> For instance, Changing the UV Mode of a `Quad Output` Context, from *Simple* to *FlipbookMotionBlend* will add Extra *Flipbook Size*, *Motion Vector Map* and *Motion Vector Scale* Properties to the Context Header.
+Some settings also change how the Context looks. For example in a **Quad Output** Context, if you set the UV Mode to **FlipbookMotionBlend**, Unity adds the following extra properties to the Context header: **Flipbook Size**, **Motion Vector Map**, and **Motion Vector Scale**.
 
-## Flow Compatibility
+## Flow compatibility
 
-Not all contexts can be connected altogether, in any order. Some rules apply to keep a consistent workflow:
+Not all Contexts can connect to one another. To keep a consistent workflow, the following rules apply:
 
-* Contexts connect by compatible input/output data type.
-* Events can connect to one or many events / initialize contexts.
-* Initialize contexts can have one or many SpawnEvent source or one or many GPUSpawnEvent source, but these data type are mutually exclusive.
-* Only One Initialize can be connected to one Update Context
-* You can connect any Output Contexts to a Initialize / Update context.
+* Contexts only connect to compatible input/output data types.
+* [Events](Events.md) can connect to one or many Events or **Initialize** Contexts.
+* **Initialize** Contexts can have one or many **SpawnEvent** sources or one or many **GPUSpawnEvent** sources, but these data type are mutually exclusive.
+* Only one **Initialize** Context can connect to one **Update** Context.
+* You can connect an **Output** Context to an **Initialize** or **Update** Context.
 
- Here is a recap table of the context compatibility:
+For a breakdown of context compatibility, see the table below.
 
 | Context            | Input Data Type                      | Output Data Type | Specific Comments                                            |
-| ------------------ | ------------------------------------ | ---------------- | ------------------------------------------------------------ |
-| Event              | None                                 | SpawnEvent (1+)  |                                                              |
-| Spawn              | SpawnEvent (1+)                      | SpawnEvent (1+)  | Two input pins, start and stop the spawn context             |
-| GPU Event          | None                                 | SpawnEvent       | Outputs to Initialize Context                                |
-| Initialize         | SpawnEvent (1+) / GPUSpawnEvent (1+) | Particle (1)     | Can output to Particle Update or Particle Output. Input types SpawnEvent/GPUSpawnEvent are mutually exclusive. |
-| Update             | Particle (1)                         | Particle (1+)    | Can output to a Particle Update or Particle Output           |
-| Particle Output    | Particle (1)                         | None             | Can either have input from an Initialize or Update           |
-| Static Mesh Output | None                                 | None             | Standalone Context                                           |
+| ---------------------- | --------------------------------------------- | ------------------- | ------------------------------------------------------------ |
+| **Event**              | **None**                                      | **SpawnEvent** (1+) | **None**                                                     |
+| **Spawn**              | **SpawnEvent** (1+)                           | **SpawnEvent** (1+) | Has two input flow slots which start and stop the **Spawn** context respectively. |
+| **GPU Event**          | **None**                                      | **SpawnEvent**      | Outputs to **Initialize** Context                            |
+| **Initialize**         | **SpawnEvent** (1+) or **GPUSpawnEvent** (1+) | **Particle** (1)    | Input types are either **SpawnEvent** or **GPUSpawnEvent**. These input types are mutually exclusive.<br/>Can output to **Particle Update** or **Particle Output**. |
+| **Update**             | **Particle** (1)                              | **Particle** (1+)   | Can output to a **Particle Update** or **Particle Output**.  |
+| **Particle Output**    | **Particle** (1)                              | **None**            | Can either have input from an **Initialize** or **Update** Context.<br/>No output. |
+| **Static Mesh Output** | **None**                                      | **None**            | Standalone Context.                                          |
 
-# Context Type Overview
+# Context type overview
 
-This section covers all the common settings of every kind of context. For more details about specific contexts, see [Context Library]()
+This section covers all the common settings for every kind of Context.
 
 ## Event
 
-Event Contexts only display a Name as a string that need to be called on the Component API in order to Send this event to the graph and activate a workflow from this Node.
+Event Contexts only display their name, which is a string. To trigger an Event Context and activate a workflow from it, use the Event Context's name in the [component API](ComponentApi.md). For information on how to do this, see [Sending Events](ComponentApi.md#sending-events).
 
 ## Spawn
 
-Spawn Contexts are standalone systems that have three States : Playing, Stopped and Delayed.
+Spawn Contexts are standalone systems that have three States: Running, Idle, and Waiting.
 
-* **Looping** (Running) state means that the Blocks are computed and will perform spawn of new particles
-* **Finished** (Idle) state means that the spawn machine is off and will not spawn particles
-* **DelayingBeforeLoop/DelayingAfterLoop** (Waiting) state stops spawning particles until the end of a user-set delay, then restarts spawning particles.
+* **Looping** (Running): This state means that Unity computes the Blocks in the Context and spawns new particles.
+* **Finished** (Idle): This state means that the spawn machine is off and does not compute Blocks in the Context or spawn particles.
+* **DelayingBeforeLoop/DelayingAfterLoop** (Waiting): This state pauses the Context for the duration of a delay time which you can specify. After the delay, the Context resumes, computes Blocks in the Context, and spawns particles.
 
-Spawn contexts can be customized using compatible **Blocks**.
+To customize **Spawn** Contexts, you can add compatible **Blocks** to them. For information on the Spawn Context API, see the [Script Reference](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/VFX.VFXSpawnerLoopState.html).
 
-You can find Spawn Context API Reference [here](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/VFX.VFXSpawnerLoopState.html).
+### Enabling and disabling
 
-### Turning On and Off
+Spawn Contexts expose two [flow slots](GraphLogicAndPhilosophy.md#processing-workflow-vertical-logic): **Start** and **Stop**:
 
-Spawn Contexts expose two [Flow Input Slots](GraphLogicAndPhilosophy.md#processing-workflow-vertical-logic): Start and Stop:
+- The **Start** input resets/starts the Spawn Context. If you do not connect anything to this flow slot, it implicitly uses the **OnPlay** [Event](Events.md). Using **Start** many times has the same effect as using it once.
+- The **Stop** input stops the Spawn System. If you do not connect anything to this flow slot, it implicitly uses the **OnStop** [Event](Events.md).
 
-- Start input **Resets** and/or **Start** the Spawn System : if not connected, it is implicitly bound to the `OnPlay` [Event](Events.md) . Hitting Start many times has the same effect as pushing it once.
-- Stop input **Stops** the Spawn System : if not connected, it is implicitly bound to the `OnStop` [Event](Events.md)
+### Looping and delaying
 
-### Looping and Delaying
+Each Spawn Context contains a state to determine when the Context spawns particles.
 
-Spawn contexts contains a state and will perform spawning particles based on a looping system.
+* The Spawn Context emits particles during loops of a particular duration. This means the internal spawn time resets when each loop starts. By default, the duration is **infinite**, but you can change this.<br/>To set the loop mode:
+  1. Select the Spawn Context in the graph.
+  2. In the Inspector, click the **Loop Duration** drop-down.
+  3. From the list, click either **Infinite**, **Constant**, or **Random**.
+* Spawn Contexts can perform one, many, or an infinite number of loops.<br/>To set the number of loops:
+  1. Select the Spawn Context in the graph.
+  2. In the Inspector, click the **Loop** drop-down.
+  3. From the list, click either **Infinite**, **Constant**, or **Random**.
+* Spawn Contexts can perform a delay before and after each loop. During a delay, the spawn time elapses normally but the Spawn Context does not spawn any particles.<br/>To set the delay duration:
+  1. Select the Spawn Context in the graph.
+  2. In the Inspector, click either the **Delay Before Loop** or **Delay After Loop** drop-down.
+  3. From the list, click either **None**, **Constant**, or **Random**.
 
-* The spawn context can emit during **loops of defined duration** (meaning the internal spawn time will reset at each loop's beginning) . By default the duration is **infinite**.
-  * In order to set the loop mode, select the context in the graph and change the loop duration popup in the Inspector. (Possible Values : Infinite, Constant, Random)
-* Spawn contexts can perform **one**, **many** or an **infinity** of **loops**.
-  * In order to set this setting, select the spawn context in the graph and change the Loop count popup in the Inspector (Possible Values : Infinite, Constant, Random)
-* Spawn contexts can perform a **delay** **before** and/or a**delay after** each loop. During a delay, the spawn time elapses normally but no spawn is performed.
-  * In order to set these setting, select the spawn context in the graph and change the Delay Before Loop and Delay After Loop popups in the Inspector (Possible Values: None, Constant, Random)
+If you set **Loop Duration**, **Loop**, **Delay Before Loop**, or **Delay After Loop** to either **Constant** or **Random**, the Spawn Context displays extra properties in its header to control each behavior. To evaluates the values you set, Unity uses the following rules:
 
-Here is a visual illustration of the Looping and Delay System.
+- If set, Unity evaluates **Loop Count** when the **Start** flow input of the Context triggers.
+- If set, Unity evaluates **Loop Duration** every time a loop starts.
+- If set, Unity evaluates **Loop Before/After Delay** every time a delay starts.
+
+For a visualization of the looping and delay system, see the following illustration:
 
 ![Figure explaining the Loop/Delay System](Images/LoopDelaySystem.png)
 
-Setting a loop count, loop duration and / or delays will display new connectable properties on the context's header. Evaluation of these values will follow these rules:
-
-* If set : **Loop Count** is evaluated when the Start workflow input of the context is hit.
-* If set : **Loop Duration** is evaluated every time a loop starts
-* If set : **Loop Delay** (Before/After) is evaluated every time a delay starts.
-
 ## GPU Event
 
-GPU Event contexts are experimental contexts that connect inputs to output GPU Events from other systems. They differ from Traditional Spawn as they are computed by the GPU.  Only one kind of Spawn can be connected to an Initialize Context (GPU Event and Spawn/Events are mutually Exclusive)
+GPU Event Contexts are experimental Contexts that connect inputs to output GPU Events from other systems. They differ from the normal Event Contexts in two ways:
 
-> GPU Event contexts cannot be customized with Blocks.
->
+* The GPU computes GPU Events and the CPU computes normal Events.
+* You can't customize GPU Event Contexts with Blocks.
+
+**Note**: When you connect Spawn Events to an Initialize Context, be aware that GPU Spawn Events and normal Spawn Events are mutually Exclusive. You can only connect one type of Spawn Event to an **Initialize** Context at the same time.
 
 ## Initialize
 
-Initialize Contexts will generate new particles based on **SpawnEvent** Data, computed from Events, Spawn or GPU Event contexts.
+Initialize Contexts generate new particles based on **SpawnEvent** Data, which Unity computes from Events, Spawn Contexts, or GPU Event Contexts.
 
-> For example: upon receiving an order of creation of 200 new particles from a spawn context, the context will be processed and will result in executing the context's Blocks for all 200 new particles.
+For example: If a Spawn Context states that the effect should create 200 new particles, the Initialize Context processes its Blocks for all 200 new particles.
 
-Initialize contexts can be customized using compatible **Blocks**.
+To customize **Initialize **Contexts, you can add compatible **Blocks** to them.
 
-Initialize contexts are the entry point of new systems. As such, they display information and configuration in their header:
+Initialize contexts are the entry point of new systems. As such, they display the following information and configuration details in their header:
 
 | Property/Setting   | Description                                 |
-| ------------------ | ------------------------------------------- |
-| Bounds (Property)  | Controls the Bounding box of the System     |
-| Capacity (Setting) | Controls the allocation count of the System |
-
-
+| ---------------------- | -------------------------------------------- |
+| **Bounds** (Property)  | Controls the Bounding box of the System.     |
+| **Capacity** (Setting) | Controls the allocation count of the System. |
 
 ## Update
 
-Update contexts update all living particles based on **Particle** Data computed from Initialize and Update Contexts. These contexts are executed every frame and will update every particle.
+Update Contexts update all living particles in the system based on **Particle** Data, which Unity computes from Initialize and Update Contexts. Unity executes Update Contexts, and thus updates every particle, every frame.
 
-Particle Update Contexts also process automatically some computations for particles in order to simplify common editing tasks.
+Particle Update Contexts also automatically process some computations for particles in order to simplify common editing tasks.
 
-Update contexts can be customized using compatible **Blocks**.
+To customize **Update** Contexts, you can add compatible **Blocks** to them.
 
 
 | Setting             | Description                                                  |
-| ------------------- | ------------------------------------------------------------ |
-| Integration         | None : No velocity Integration <br/>Euler : Applies simple Euler velocity integration to the particles positions every frame. |
-| Angular Integration | None : No velocity Integration <br/>Euler : Applies simple Euler angular velocity integration to the particles angles every frame. |
-| Age Particles       | If Age attribute is used, Controls whether update will make particles age over time |
-| Reap Particles      | If Age and Lifetime attributes are used, Control whether update will kill all particles which age is greater than its lifetime. |
+| ----------------------- | ------------------------------------------------------------ |
+| **Update Position** | Specifies whether Unity applies velocity integration to the particles. When enabled, Unity applies simple Euler velocity integration to each particle's position every frame. When disabled, Unity does not apply any velocity integration. |
+| **Update Rotation** | Specifies whether Unity applies angular integration to the particles. When enabled, Unity applies simple Euler integration to each particle's rotation every frame. When disabled, Unity does not apply any angular integration. |
+| **Age Particles**       | If the Context uses the Age attribute, this controls whether the Update Context makes particles age over time. |
+| **Reap Particles**      | If the Context uses the Age and Lifetime attributes, this control whether the Update Context removes a particles if the particle's age is greater than its lifetime. |
 
 
 ## Output
 
-Output Contexts renders a system with different modes and settings depending on Particle Data incoming from an **Initialize** or **Update** context. Every element will be rendered using a specific configuration as a specific primitive.
+Output Contexts render the particles in a system. They render the particles with different modes and settings depending on the particle Data from the **Initialize** and **Update** Contexts in the same system. It then renders the configuration as a particular primitive shape.
 
-Output contexts can be customized using compatible **Blocks**.
-
-For more information, and a comprehensive list of all output contexts and their settings, see [Output Contexts Reference]()
+To customize **Output** Contexts, you can add compatible **Blocks** to them.

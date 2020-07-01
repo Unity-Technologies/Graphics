@@ -2,7 +2,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "DepthOfFieldCommon.hlsl"
 
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
 #pragma kernel KMainFar           MAIN=KMainFar         FAR
 #pragma kernel KMainFarTiles      MAIN=KMainFarTiles    FAR USE_TILES

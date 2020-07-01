@@ -557,7 +557,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (hdPipeline == null)
                 return;
 
-            DiffusionProfileMaterialUI.OnGUI(diffusionProfileAsset[m_LayerIndex], diffusionProfileHash[m_LayerIndex]);
+            DiffusionProfileMaterialUI.OnGUI(materialEditor, diffusionProfileAsset[m_LayerIndex], diffusionProfileHash[m_LayerIndex], m_LayerIndex);
 
             // TODO: does not work with multi-selection
             if ((int)materialID.floatValue == (int)MaterialId.LitSSS && materials[0].GetSurfaceType() != SurfaceType.Transparent)

@@ -1059,6 +1059,9 @@ namespace UnityEditor.ShaderGraph
             if (other == null)
                 throw new ArgumentException("Can only replace with another AbstractMaterialGraph", "other");
 
+            concretePrecision = other.concretePrecision;
+            m_ActiveOutputNodeGuid = other.m_ActiveOutputNodeGuid;
+
             using (var removedInputsPooledObject = ListPool<Guid>.GetDisposable())
             {
                 var removedInputGuids = removedInputsPooledObject.value;

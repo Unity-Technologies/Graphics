@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
 
@@ -15,8 +16,9 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_LastComputedHash;
         bool m_NeedUpdateStaticLightingSky;
 
-        // This one contain only property values from overridden properties in the original profile component
-        public SkySettings m_SkySettings;
+        [NonSerialized]
+        public SkySettings m_SkySettings; // This one contain only property values from overridden properties in the original profile component
+        [NonSerialized]
         public SkySettings m_SkySettingsFromProfile;
 
         public SkySettings skySettings
