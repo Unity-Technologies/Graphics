@@ -662,6 +662,9 @@ namespace UnityEditor.Rendering.HighDefinition
                                     {
                                         additionalData.shapeHeight = widthHeight.y;
                                     }
+
+                                    light.areaSize = new Vector2(additionalData.shapeWidth, additionalData.shapeHeight);
+
                                     light.range = range;
                                 }
 
