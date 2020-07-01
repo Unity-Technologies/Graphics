@@ -702,6 +702,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed typo in the Render Pipeline Wizard under HDRP+VR
 - Change transparent SSR name in frame settings to avoid clipping. 
 - Fixed fallback for ray tracing and light layers (1258837).
+- Fixed missing include guards in shadow hlsl files.
+- Repaint the scene view whenever the scene exposure override is changed.
 - Fixed an error when clearing the SSGI history texture at creation time (1259930).
 
 ### Changed
