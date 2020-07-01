@@ -179,7 +179,7 @@ def create_package_jobs(metafile_name):
         job = Package_AllPackageCiJob(metafile["packages"], get_agent(metafile["agent_publish"]), metafile["platforms"], editor)
         yml[job.job_id] = job.yml
     
-    job = Package_PublishAllJob(metafile["packages"], get_agent(metafile["agent_publish_all"]))
+    job = Package_PublishAllJob(metafile["packages"], target_branch, get_agent(metafile["agent_publish_all"]))
     yml[job.job_id] = job.yml
 
     dump_yml(packages_filepath(), yml)
