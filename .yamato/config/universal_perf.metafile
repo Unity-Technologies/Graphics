@@ -1,0 +1,19 @@
+project:
+  name: URP_Performance
+  folder: URP_Performance
+test_platforms:
+  - performance_counters
+  - performance_memory
+  - performance_build
+platforms:
+  - name: Win
+    apis:
+      - DX11
+      - Vulkan
+  dependencies:
+    - platform: Win
+      api: DX11
+      test_platforms:
+        - performance_counters
+        - performance_memory
+        - performance_build

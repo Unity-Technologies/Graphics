@@ -1,13 +1,4 @@
 platforms:
-  - name: PS4
-    type: Unity::console::ps4
-    image: sdet/gamecode-ps4:latest
-    flavor: b1.large
-    setup: orbis-ctrl add %BOKKEN_DEVICE_IP%
-    components:
-      - editor
-      - il2cpp
-      - PS4
   - name: StandaloneWindows64
     type: Unity::VM::GPU
     image: sdet/gamecode_win10:stable
@@ -16,8 +7,8 @@ platforms:
       - editor
       - il2cpp
 projects:
-  - name: HDRP_PerformanceTests
-    folder: HDRP_PerformanceTests
+  - name: URP_Performance
+    folder: URP_Performance
 suites:
   - mode: playmode
     filter: Counters
@@ -41,7 +32,6 @@ suites:
 
 {{ project.name }}_{{ suite.filter }}_{{ platform.name }}:
   variables:
-    HDRP_BRANCH: HDRP/staging
     EDITOR_VERSION: trunk
   name : Run {{ suite.filter }} Performance on {{ platform.name }}
   agent:
@@ -56,14 +46,8 @@ suites:
       - unity-downloader-cli -u %EDITOR_VERSION% {% for component in platform.components %}-c {{ component }} {% endfor %} --wait
       - git config --system core.longpaths true
       - git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
-      - git submodule update --init --recursive --remote Graphics
-      - git submodule update --init --recursive --remote com.unity.render-pipelines.nda
       {% if 'CUSTOM-REVISION' != master %}
-      - cd .\Graphics\ && git checkout %HDRP_BRANCH% && cd ..
-      {% endif %}
-      {% if platform.name == 'PS4' %}
-      - xcopy .\com.unity.render-pipelines.nda\com.unity.render-pipelines.{{ platform.name }} .\Graphics\TestProjects\{{ project.folder }}\Packages\com.unity.render-pipelines.{{ platform.name }}\ /O /X /E /H /K
-      - xcopy .\com.unity.render-pipelines.nda\com.unity.shaderanalysis.{{ platform.name }}.nda .\Graphics\TestProjects\{{ project.folder }}\Packages\com.unity.shaderanalysis.{{ platform.name }}.nda\ /O /X /E /H /K
+      - cd .\Graphics\ && git checkout master && cd ..
       {% endif %}
       - mklink /J C:\Link .\Graphics
       - NetSh Advfirewall set allprofiles state off
@@ -76,10 +60,6 @@ suites:
       paths:
         - "**/test-results/**/*"
         - "**/test-results/PerformanceTestReport.html"
-  triggers:
-    recurring:
-      - branch: test-auto-perf
-        frequency: daily
 
 {% endif %}
 {% endfor %}

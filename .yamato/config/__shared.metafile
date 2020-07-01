@@ -16,6 +16,9 @@ test_platforms:
   playmode_XR: --suite=playmode --extra-editor-arg="-xr-tests"
   playmode_RenderGraph: --suite=playmode --extra-editor-arg="-rendergraph-tests"
   editmode: --suite=editor --platform=editmode
+  performance_counters: --suite=playmode --testfilter=Counters --performance-project-version=./Graphics --report-performance-data --performance-project-id=URP_Performance
+  performance_memory: --suite=playmode --testfilter=Memory --performance-project-version=./Graphics --report-performance-data --performance-project-id=URP_Performance
+  performance_build: --suite=Editor --testfilter=Build --performance-project-version=./Graphics --report-performance-data --performance-project-id=URP_Performance
 project_platforms:
   Win:
     name: Win
