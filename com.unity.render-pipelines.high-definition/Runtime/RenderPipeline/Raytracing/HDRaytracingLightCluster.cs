@@ -69,6 +69,9 @@ namespace UnityEngine.Rendering.HighDefinition
         int envLightCount = 0;
         int totalLightCount = 0;
         int numLightsPerCell = 0;
+        Bounds bounds = new Bounds();
+        Vector3 minBounds = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+        Vector3 maxBounds = new Vector3(-float.MaxValue, -float.MaxValue, -float.MaxValue);
 
         public HDRaytracingLightCluster()
         {
@@ -200,7 +203,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ResizeLightDataBuffer(int numLights)
         {
-            // Release the previous buffer 
+            // Release the previous buffer
             if (m_LightDataGPUArray != null)
             {
                 // If it is not null and it has already the right size, we are pretty much done
@@ -239,6 +242,23 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void OOBBToAABBBounds(Vector3 centerWS, Vector3 extents, Vector3 up, Vector3 right, Vector3 forward, ref Bounds outBounds)
+        {
+            // Reset the bounds of the AABB
+            bounds.min = minBounds;
+            bounds.max = maxBounds;
+
+            // Push the 8 corners of the oobb into the AABB
+            bounds.Encapsulate(centerWS + right * extents.x + up * extents.y + forward * extents.z);
+            bounds.Encapsulate(centerWS + right * extents.x + up * extents.y - forward * extents.z);
+            bounds.Encapsulate(centerWS + right * extents.x - up * extents.y + forward * extents.z);
+            bounds.Encapsulate(centerWS + right * extents.x - up * extents.y - forward * extents.z);
+            bounds.Encapsulate(centerWS - right * extents.x + up * extents.y + forward * extents.z);
+            bounds.Encapsulate(centerWS - right * extents.x + up * extents.y - forward * extents.z);
+            bounds.Encapsulate(centerWS - right * extents.x - up * extents.y + forward * extents.z);
+            bounds.Encapsulate(centerWS - right * extents.x - up * extents.y - forward * extents.z);
+        }
+
         void BuildGPULightVolumes(HDRayTracingLights rayTracingLights)
         {
             int totalNumLights = rayTracingLights.lightCount;
@@ -270,20 +290,35 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Reserve space in the cookie atlas
                     m_RenderPipeline.ReserveCookieAtlasTexture(currentLight, light);
 
+               
+                    // Grab the light range
                     float lightRange = light.range;
-                    m_LightVolumesCPUArray[realIndex].range = new Vector3(lightRange, lightRange, lightRange);
-                    m_LightVolumesCPUArray[realIndex].position = currentLight.gameObject.transform.position;
-                    m_LightVolumesCPUArray[realIndex].active = (currentLight.gameObject.activeInHierarchy ? 1 : 0);
-                    m_LightVolumesCPUArray[realIndex].lightIndex = (uint)lightIdx;
-
+                    
                     if (currentLight.type != HDLightType.Area)
                     {
+                        m_LightVolumesCPUArray[realIndex].range = new Vector3(lightRange, lightRange, lightRange);
+                        m_LightVolumesCPUArray[realIndex].position = currentLight.gameObject.transform.position;
+                        m_LightVolumesCPUArray[realIndex].active = (currentLight.gameObject.activeInHierarchy ? 1 : 0);
+                        m_LightVolumesCPUArray[realIndex].lightIndex = (uint)lightIdx;
                         m_LightVolumesCPUArray[realIndex].shape = 0;
                         m_LightVolumesCPUArray[realIndex].lightType = 0;
                         punctualLightCount++;
                     }
                     else
                     {
+                        // let's compute the oobb of the light influence volume first
+                        Vector3 oobbDimensions = new Vector3(currentLight.shapeWidth + 2 * lightRange, currentLight.shapeHeight + 2 * lightRange, lightRange); // One-sided
+                        Vector3 extents    = 0.5f * oobbDimensions;
+                        Vector3 oobbCenter = currentLight.gameObject.transform.position + extents.z * currentLight.gameObject.transform.forward;
+
+                        // Let's now compute an AABB that matches the previously defined OOBB
+                        OOBBToAABBBounds(oobbCenter, extents, currentLight.gameObject.transform.up, currentLight.gameObject.transform.right, currentLight.gameObject.transform.forward, ref bounds);
+
+                        // Fill the volume data
+                        m_LightVolumesCPUArray[realIndex].range = bounds.extents;
+                        m_LightVolumesCPUArray[realIndex].position = bounds.center;
+                        m_LightVolumesCPUArray[realIndex].active = (currentLight.gameObject.activeInHierarchy ? 1 : 0);
+                        m_LightVolumesCPUArray[realIndex].lightIndex = (uint)lightIdx;
                         m_LightVolumesCPUArray[realIndex].shape = 1;
                         m_LightVolumesCPUArray[realIndex].lightType = 1;
                         areaLightCount++;
@@ -697,7 +732,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDRenderPipeline.PreprocessProbeData(ref processedProbe, probeData, hdCamera);
 
                 var envLightData = new EnvLightData();
-                m_RenderPipeline.GetEnvLightData(cmd, hdCamera, processedProbe, m_RenderPipeline.m_CurrentDebugDisplaySettings, ref envLightData);
+                m_RenderPipeline.GetEnvLightData(cmd, hdCamera, processedProbe, ref envLightData);
 
                 // We make the light position camera-relative as late as possible in order
                 // to allow the preceding code to work with the absolute world space coordinates.

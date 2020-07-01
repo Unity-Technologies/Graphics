@@ -125,15 +125,28 @@ namespace UnityEditor.Rendering.HighDefinition
 
         private void OnDisable()
         {
-            foreach (var decalProjector in targets)
+            foreach (DecalProjector decalProjector in targets)
             {
-                (decalProjector as DecalProjector).OnMaterialChange -= UpdateMaterialEditor;
+                if (decalProjector != null)
+                    decalProjector.OnMaterialChange -= UpdateMaterialEditor;
             }
             s_Owner = null;
         }
 
         private void OnDestroy() =>
             DestroyImmediate(m_MaterialEditor);
+
+        public bool HasFrameBounds()
+        {
+            return true;
+        }
+
+        public Bounds OnGetFrameBounds()
+        {
+            DecalProjector decalProjector = target as DecalProjector;
+
+            return new Bounds(decalProjector.transform.position, handle.size);
+        }
 
         public void UpdateMaterialEditor()
         {

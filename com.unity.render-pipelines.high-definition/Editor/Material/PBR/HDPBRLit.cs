@@ -13,6 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true, true);
             }
 
+
             // Make sure all selected materials are initialized.
             string materialTag = "MotionVector";
             foreach (var obj in materialEditor.targets)
@@ -42,7 +43,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             if (DiffusionProfileMaterialUI.IsSupported(materialEditor))
-                DiffusionProfileMaterialUI.OnGUI(FindProperty("_DiffusionProfileAsset", props), FindProperty("_DiffusionProfileHash", props));
+                DiffusionProfileMaterialUI.OnGUI(materialEditor, FindProperty("_DiffusionProfileAsset", props), FindProperty("_DiffusionProfileHash", props), 0);
         }
     }
 }

@@ -96,7 +96,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Filter out properties we don't want to draw:
             PropertiesDefaultGUI(properties);
 
-            // If we change a property in a shadergraph, we trigger a material keyword reset 
+            // If we change a property in a shadergraph, we trigger a material keyword reset
             if (CheckPropertyChanged(properties))
             {
                 foreach (var material in materials)
@@ -221,7 +221,7 @@ namespace UnityEditor.Rendering.HighDefinition
         void DrawDiffusionProfileUI()
         {
             if (DiffusionProfileMaterialUI.IsSupported(materialEditor))
-                DiffusionProfileMaterialUI.OnGUI(FindProperty("_DiffusionProfileAsset"), FindProperty("_DiffusionProfileHash"));
+                DiffusionProfileMaterialUI.OnGUI(materialEditor, FindProperty("_DiffusionProfileAsset"), FindProperty("_DiffusionProfileHash"), 0);
         }
     }
 }

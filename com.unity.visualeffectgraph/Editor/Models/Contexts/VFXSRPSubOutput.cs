@@ -14,7 +14,7 @@ namespace UnityEditor.VFX
             if (owner == null)
                 throw new NullReferenceException("Owner cannot be null");
 
-            m_Owner = owner;    
+            m_Owner = owner;
         }
 
         private VFXAbstractRenderedOutput m_Owner;
@@ -48,7 +48,7 @@ namespace UnityEditor.VFX
                 case BlendMode.AlphaPremultiplied:
                     return "Transparent";
                 case BlendMode.Opaque:
-                    if(owner.hasAlphaClipping)
+                    if (owner.hasAlphaClipping)
                         return "AlphaTest";
                     else
                         return "Geometry";

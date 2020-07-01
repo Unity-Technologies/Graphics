@@ -156,10 +156,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     EditorGUI.BeginChangeCheck();
                     GUILayout.Label("Precision");
-                    graph.concretePrecision = (ConcretePrecision)EditorGUILayout.EnumPopup(graph.concretePrecision, GUILayout.Width(100f));
-                    GUILayout.Space(4);
+                    var precision = (ConcretePrecision)EditorGUILayout.EnumPopup(graph.concretePrecision, GUILayout.Width(100f));
                     if (EditorGUI.EndChangeCheck())
                     {
+                        m_Graph.owner.RegisterCompleteObjectUndo("Changed Graph Precision");
+                        graph.concretePrecision = precision;
+
                         var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
                         m_ColorManager.SetNodesDirty(nodeList);
                         graph.ValidateGraph();
@@ -514,14 +516,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_GraphView == null)
                 return;
 
+            IEnumerable<IShaderNodeView> theViews = m_GraphView.nodes.ToList().OfType<IShaderNodeView>();
+
             var dependentNodes = new List<AbstractMaterialNode>();
             NodeUtils.CollectNodesNodeFeedsInto(dependentNodes, inNode);
             foreach (var node in dependentNodes)
             {
-                var theViews = m_GraphView.nodes.ToList().OfType<IShaderNodeView>();
-                var viewsFound = theViews.Where(x => x.node.guid == node.guid).ToList();
-                foreach (var drawableNodeData in viewsFound)
-                    drawableNodeData.OnModified(scope);
+                var nodeView = theViews.FirstOrDefault(x => x.node.guid == node.guid);
+                if (nodeView != null)
+                    nodeView.OnModified(scope);
             }
         }
 

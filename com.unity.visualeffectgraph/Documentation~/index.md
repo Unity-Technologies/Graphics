@@ -3,7 +3,7 @@
 ![A visual effect made with the Visual Effect Graph.](Images/VisualEffectGraph.png)
 
 The Visual Effect Graph enables you to author visual effects using Node-based visual logic. You can use it for simple effects as well as very complex simulations.
-Unity stores Visual Effect Graphs in Visual Effect Assets that you can use on the [Visual Effect Component](VisualEffectComponent.md). You can use a Visual Effect Asset multiple times in your Scene. 
+Unity stores Visual Effect Graphs in Visual Effect Assets that you can use on the [Visual Effect Component](VisualEffectComponent.md). You can use a Visual Effect Asset multiple times in your Scene.
 
 ## Using a Visual Effect Graph
 Use a Visual Effect Graph to:

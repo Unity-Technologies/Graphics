@@ -17,14 +17,13 @@ namespace UnityEditor.VFX.UI
     internal class VFXSystemController : Controller<VFXUI>
     {
         VFXViewController m_ViewController;
-        public VFXSystemController(VFXViewController viewController,VFXUI model):base(model)
+        public VFXSystemController(VFXViewController viewController, VFXUI model) : base(model)
         {
             m_ViewController = viewController;
         }
 
         protected override void ModelChanged(UnityEngine.Object obj)
         {
-
         }
 
         public string title
@@ -35,7 +34,7 @@ namespace UnityEditor.VFX.UI
             }
             set
             {
-                if( value != title)
+                if (value != title)
                 {
                     m_ViewController.graph.UIInfos.SetNameOfSystem(contexts.Select(t => t.model), value);
                     VFXData data = contexts.First().model.GetData();

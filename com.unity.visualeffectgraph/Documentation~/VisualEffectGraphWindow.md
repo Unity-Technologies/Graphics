@@ -1,6 +1,6 @@
 # The Visual Effect Graph window
 
-The Visual Effect Graph window is the main window for Visual Effect Graph. This is where you can edit Visual Effect Graph Assets, and Subgraph Assets. The window displays a workspace that consists of the Systems, Contexts, and Operators that a  [Visual Effect Graph Asset](VisualEffectGraphAsset.md) contains. 
+The Visual Effect Graph window is the main window for Visual Effect Graph. This is where you can edit Visual Effect Graph Assets, and Subgraph Assets. The window displays a workspace that consists of the Systems, Contexts, and Operators that a  [Visual Effect Graph Asset](VisualEffectGraphAsset.md) contains.
 
 ![VisualEffectGraph-Window](Images/VisualEffectGraph-Window.png)
 
@@ -100,7 +100,7 @@ The navigation controls for the Node Workspace are similar to those that other g
   * **Duplicate**: Ctrl+D.
   * **Duplicate with edges**: Ctrl+Alt+D.
 
-### Adding Graph Elements
+### Adding graph elements
 
 To add graph elements, you can use any of the following methods:
 
@@ -120,4 +120,3 @@ You can manipulate graph elements in the workspace :
 #### Resizing elements
 
 Some elements, such as Sticky Notes, support resizing. To do this, click on any edge or corner, drag until you reach the desired element size, and release the mouse button.
-

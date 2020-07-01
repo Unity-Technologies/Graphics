@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
                 || type == typeof(Vector4)
                 || type == typeof(Vector3)
                 || type == typeof(Vector);
-                //Doesn't expose cast from float/uint (scalar) due to the automatic normalization
+            //Doesn't expose cast from float/uint (scalar) due to the automatic normalization
         }
 
         sealed protected override VFXExpression ConvertExpression(VFXExpression expression, VFXSlot sourceSlot)

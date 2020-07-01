@@ -97,8 +97,8 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
                 break;
             }
 
-			case 6: // octagon
-			{
+            case 6: // octagon
+            {
                 if (elementCount > 8192) // Due to 16bits indices (8 vertices per element)
                 {
                     const uint NB_PARTICLES_PER_INSTANCE = 1024;
@@ -111,7 +111,7 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
                     args.y = 1;
                 }
                 break;
-			}
+            }
 
             case 0xffffffff: // dispatch
             {

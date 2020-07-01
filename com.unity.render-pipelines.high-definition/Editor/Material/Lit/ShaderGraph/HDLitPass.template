@@ -333,6 +333,17 @@ Pass
 
         surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
+#if defined(DEBUG_DISPLAY) && !defined(SHADER_STAGE_RAY_TRACING)
+        if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
+        {
+            // TODO: need to update mip info
+            surfaceData.metallic = 0;
+        }
+
+        // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
+        // as it can modify attribute use for static lighting
+        ApplyDebugToSurfaceData(fragInputs.tangentToWorld, surfaceData);
+#endif
 
         // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
         // If user provide bent normal then we process a better term
@@ -347,18 +358,6 @@ Pass
 
 #ifdef _ENABLE_GEOMETRIC_SPECULAR_AA
         surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, fragInputs.tangentToWorld[2], surfaceDescription.SpecularAAScreenSpaceVariance, surfaceDescription.SpecularAAThreshold);
-#endif
-
-#if defined(DEBUG_DISPLAY) && !defined(SHADER_STAGE_RAY_TRACING)
-        if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
-        {
-            // TODO: need to update mip info
-            surfaceData.metallic = 0;
-        }
-
-        // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
-        // as it can modify attribute use for static lighting
-        ApplyDebugToSurfaceData(fragInputs.tangentToWorld, surfaceData);
 #endif
     }
 

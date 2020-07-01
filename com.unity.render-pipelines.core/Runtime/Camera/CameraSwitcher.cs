@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering
 
         void SetCameraIndex(int index)
         {
-            if (index > 0 || index < GetCameraCount())
+            if (index > 0 && index < GetCameraCount())
             {
                 m_CurrentCameraIndex = index;
 

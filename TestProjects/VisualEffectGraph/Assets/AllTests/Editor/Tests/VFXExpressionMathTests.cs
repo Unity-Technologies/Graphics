@@ -333,7 +333,6 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-
         public struct Min_Max_Expression_Folding_TestCase
         {
             internal string name;
@@ -347,7 +346,7 @@ namespace UnityEditor.VFX.Test
         };
 
         static private string[] k_Min_Max_Expression_Folding_TestCase_Names = Generate_Min_Max_Expression_Folding_TestCase().Select(o => o.name).ToArray();
-		
+
         static private IEnumerable<Min_Max_Expression_Folding_TestCase> Generate_Min_Max_Expression_Folding_TestCase()
         {
             var x = VFXBuiltInExpression.TotalTime;
@@ -370,7 +369,7 @@ namespace UnityEditor.VFX.Test
             yield return new Min_Max_Expression_Folding_TestCase() { name = "max(min(x, 0), 1)", expression = new VFXExpressionMax(new VFXExpressionMin(x, zero), one), saturateExpected = false };
             yield return new Min_Max_Expression_Folding_TestCase() { name = "max(1, min(x, 0))", expression = new VFXExpressionMax(one, new VFXExpressionMin(x, zero)), saturateExpected = false };
 
-            //Exotic cases 
+            //Exotic cases
             yield return new Min_Max_Expression_Folding_TestCase() { name = "min(min(x, 1), 0)", expression = new VFXExpressionMin(new VFXExpressionMin(x, one), zero), saturateExpected = false };
             yield return new Min_Max_Expression_Folding_TestCase() { name = "max(max(x, 1), 0)", expression = new VFXExpressionMax(new VFXExpressionMax(x, one), zero), saturateExpected = false };
             yield return new Min_Max_Expression_Folding_TestCase() { name = "max(add(x, 1), 0)", expression = new VFXExpressionMax(new VFXExpressionAdd(x, one), zero), saturateExpected = false };

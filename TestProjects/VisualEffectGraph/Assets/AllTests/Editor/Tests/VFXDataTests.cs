@@ -1,4 +1,4 @@
-﻿#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
+#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using NUnit.Framework;
 using UnityEngine;
@@ -160,6 +160,34 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(data.IsCurrentAttributeWritten(attrib2));
             Assert.IsFalse(data.IsCurrentAttributeWritten(attrib3));
             Assert.IsTrue(data.IsCurrentAttributeWritten(attrib4));
+        }
+
+        [Test]
+        public void CheckCapacityCannotBeZero()
+        {
+            var init = ScriptableObject.CreateInstance<ContextTestInit>();
+            var data = init.GetData();
+            data.SetSettingValue("capacity", 0u);
+            uint capacity = (uint)data.GetSettingValue("capacity");
+            Assert.NotZero(capacity);
+        }
+
+        [Test]
+        public void CheckStripCapacityCannotBeZero()
+        {
+            var init = ScriptableObject.CreateInstance<ContextTestInit>();
+            var data = init.GetData();
+            data.SetSettingValue("dataType", VFXDataParticle.DataType.ParticleStrip);
+            data.SetSettingValue("stripCapacity", 0u);
+            data.SetSettingValue("particlePerStripCount", 0u);
+
+            uint capacity = (uint)data.GetSettingValue("capacity");
+            uint stripCapacity = (uint)data.GetSettingValue("stripCapacity");
+            uint particlePerStripCount = (uint)data.GetSettingValue("particlePerStripCount");
+
+            Assert.NotZero(capacity);
+            Assert.NotZero(stripCapacity);
+            Assert.NotZero(particlePerStripCount);
         }
     }
 }

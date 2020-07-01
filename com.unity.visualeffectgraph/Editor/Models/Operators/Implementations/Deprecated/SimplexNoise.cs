@@ -42,7 +42,7 @@ namespace UnityEditor.VFX.Operator
             perlinNoise.SetSettingValue("dimensions", dimensions);
 
             // Transfer links
-            for (int i=0; i<6; i++)
+            for (int i = 0; i < 6; i++)
                 VFXSlot.CopyLinksAndValue(perlinNoise.GetInputSlot(i), GetInputSlot(i), true);
 
             VFXSlot.CopyLinksAndValue(perlinNoise.GetOutputSlot(0), GetOutputSlot(0), true);

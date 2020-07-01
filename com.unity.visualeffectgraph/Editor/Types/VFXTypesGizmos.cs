@@ -46,7 +46,7 @@ namespace UnityEditor.VFX
                 direction.direction = Vector3.up;
             }
 
-            
+
             Quaternion normalQuat = Quaternion.FromToRotation(Vector3.forward, direction.direction);
 
             Ray ray = HandleUtility.GUIPointToWorldRay(Vector2.one * 200);

@@ -85,7 +85,7 @@ namespace UnityEditor.VFX
             get
             {
                 IEnumerable<VFXPropertyWithValue> properties = base.inputProperties;
-                if(shaderGraph == null)
+                if (shaderGraph == null)
                     properties = properties.Concat(PropertiesFromType("OptionalInputProperties"));
 
                 if (primitiveType == VFXPrimitiveType.Octagon)
@@ -105,6 +105,5 @@ namespace UnityEditor.VFX
             if (primitiveType == VFXPrimitiveType.Octagon)
                 yield return slotExpressions.First(o => o.name == "cropFactor");
         }
-
     }
 }

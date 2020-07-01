@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using Utilities;
@@ -18,6 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// HDCamera class.
     /// This class holds all information for a given camera. Constants used for shading as well as buffers persistent from one frame to another etc.
     /// </summary>
+    [DebuggerDisplay("({camera.name})")]
     public class HDCamera
     {
         #region Public API
@@ -254,6 +256,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        HDAdditionalCameraData.ClearColorMode m_PreviousClearColorMode = HDAdditionalCameraData.ClearColorMode.None;
+
+
         internal Color backgroundColorHDR
         {
             get
@@ -466,6 +471,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             screenSize = new Vector4(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
             screenParams = new Vector4(screenSize.x, screenSize.y, 1 + screenSize.z, 1 + screenSize.w);
+
+            const int kMaxSampleCount = 8;
+            if (++taaFrameIndex >= kMaxSampleCount)
+                taaFrameIndex = 0;
 
             UpdateAllViewConstants();
             isFirstFrame = false;
@@ -863,9 +872,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // When changing antialiasing mode to TemporalAA we must reset the history, otherwise we get one frame of garbage
-            if (previousAntialiasing != antialiasing && antialiasing == AntialiasingMode.TemporalAntialiasing)
+            if ( (previousAntialiasing != antialiasing && antialiasing == AntialiasingMode.TemporalAntialiasing)
+                || (m_PreviousClearColorMode != clearColorMode))
             {
                 resetPostProcessingHistory = true;
+                m_PreviousClearColorMode = clearColorMode;
             }
         }
 
@@ -882,6 +893,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_XRViewConstants == null || m_XRViewConstants.Length != viewCount)
             {
                 m_XRViewConstants = new ViewConstants[viewCount];
+                resetPostProcessingHistory = true;
+                isFirstFrame = true;
             }
 
             UpdateAllViewConstants(IsTAAEnabled(), true);
@@ -1130,10 +1143,6 @@ namespace UnityEngine.Rendering.HighDefinition
             float jitterX = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 2) - 0.5f;
             float jitterY = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 3) - 0.5f;
             taaJitter = new Vector4(jitterX, jitterY, jitterX / actualWidth, jitterY / actualHeight);
-
-            const int kMaxSampleCount = 8;
-            if (++taaFrameIndex >= kMaxSampleCount)
-                taaFrameIndex = 0;
 
             Matrix4x4 proj;
 

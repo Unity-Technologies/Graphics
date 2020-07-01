@@ -185,6 +185,7 @@ Vector3PropertyRM VFXColorField
 
 Vector3PropertyRM.propertyrm VFXVector3Field.fieldContainer
 {
+    height: 20;
     flex: 0 0 auto;
 }
 

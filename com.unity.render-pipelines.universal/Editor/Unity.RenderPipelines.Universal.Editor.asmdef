@@ -22,6 +22,11 @@
             "name": "com.unity.postprocessing",
             "expression": "2.0.0",
             "define": "POST_PROCESSING_STACK_2_0_0_OR_NEWER"
+        },
+        {
+            "name": "com.unity.adaptiveperformance",
+            "expression": "2.0.0-preview.7",
+            "define": "ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER"
         }
     ]
 }

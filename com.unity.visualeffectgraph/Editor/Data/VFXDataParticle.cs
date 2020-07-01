@@ -195,7 +195,7 @@ namespace UnityEditor.VFX
     {
         public override VFXDataType type { get { return hasStrip ? VFXDataType.ParticleStrip : VFXDataType.Particle; } }
 
-        protected enum DataType
+        internal enum DataType
         {
             Particle,
             ParticleStrip
@@ -215,6 +215,14 @@ namespace UnityEditor.VFX
         protected override void OnSettingModified(VFXSetting setting)
         {
             base.OnSettingModified(setting);
+
+            if (setting.name == "capacity" && capacity == 0)
+                capacity = 1;
+            else if (setting.name == "stripCapacity" && stripCapacity == 0)
+                stripCapacity = 1;
+            else if (setting.name == "particlePerStripCount" && particlePerStripCount == 0)
+                particlePerStripCount = 1;
+
             if (hasStrip)
             {
                 if (setting.name == "dataType") // strip has just been set
@@ -273,7 +281,7 @@ namespace UnityEditor.VFX
 
             foreach (var context in owners)
                 if (context.contextType == VFXContextType.Output) // Consider only outputs
-                { 
+                {
                     var input = context.inputContexts.FirstOrDefault(); // Consider only one input at the moment because this is ensure by the data type (even if it may change in the future)
                     if (input != null && (input.outputType & context.inputType) != context.inputType)
                         toUnlink.Add(context);
@@ -302,7 +310,7 @@ namespace UnityEditor.VFX
             if (init == null)
                 return 0u;
 
-            var cpuCount = effectiveFlowInputLinks[init].SelectMany(t=>t.Select(u=>u.context)).Where(o => o.contextType == VFXContextType.Spawner).Count();
+            var cpuCount = effectiveFlowInputLinks[init].SelectMany(t => t.Select(u => u.context)).Where(o => o.contextType == VFXContextType.Spawner).Count();
             var gpuCount = effectiveFlowInputLinks[init].SelectMany(t => t.Select(u => u.context)).Where(o => o.contextType == VFXContextType.SpawnerGPU).Count();
 
             if (cpuCount != 0 && gpuCount != 0)
@@ -379,7 +387,6 @@ namespace UnityEditor.VFX
         {
             return VFXDeviceTarget.GPU;
         }
-
 
         uint m_SourceCount = 0xFFFFFFFFu;
 
@@ -609,7 +616,7 @@ namespace UnityEditor.VFX
 
             var initContext = m_Contexts.FirstOrDefault(o => o.contextType == VFXContextType.Init);
             if (initContext != null)
-                systemBufferMappings.AddRange(effectiveFlowInputLinks[initContext].SelectMany(t=>t.Select(u=>u.context)).Where(o => o.contextType == VFXContextType.Spawner).Select(o => new VFXMapping("spawner_input", contextSpawnToBufferIndex[o])));
+                systemBufferMappings.AddRange(effectiveFlowInputLinks[initContext].SelectMany(t => t.Select(u => u.context)).Where(o => o.contextType == VFXContextType.Spawner).Select(o => new VFXMapping("spawner_input", contextSpawnToBufferIndex[o])));
             if (m_Contexts.Count() > 0 && m_Contexts.First().contextType == VFXContextType.Init) // TODO This test can be removed once we ensure priorly the system is valid
             {
                 var mapper = contextToCompiledData[m_Contexts.First()].cpuMapper;

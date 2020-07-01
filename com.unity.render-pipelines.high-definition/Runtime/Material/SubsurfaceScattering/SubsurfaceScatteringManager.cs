@@ -350,10 +350,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Bind the textures for ray generation
                         cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._DepthTexture, sharedRTManager.GetDepthStencilBuffer());
                         cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._NormalBufferTexture, sharedRTManager.GetNormalBuffer());
-                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._GBufferTexture[0], m_GbufferManager.GetBuffer(0));
-                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._GBufferTexture[1], m_GbufferManager.GetBuffer(1));
-                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._GBufferTexture[2], m_GbufferManager.GetBuffer(2));
-                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._GBufferTexture[3], m_GbufferManager.GetBuffer(3));
                         cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._SSSBufferTexture, m_SSSColor);
                         cmd.SetGlobalTexture(HDShaderIDs._StencilTexture, sharedRTManager.GetDepthStencilBuffer(), RenderTextureSubElement.Stencil);
 

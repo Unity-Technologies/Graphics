@@ -10,7 +10,7 @@ namespace UnityEngine.VFX.Utility
         public ExposedProperty m_Property = "PreviousPosition";
         public Transform Target = null;
         Vector3 oldPosition;
-    
+
         protected override void OnEnable()
         {
             base.OnEnable();
@@ -19,7 +19,7 @@ namespace UnityEngine.VFX.Utility
 
         public override bool IsValid(VisualEffect component)
         {
-            return component.HasVector3(m_Property);
+            return Target != null && component.HasVector3(m_Property);
         }
 
         public override void UpdateBinding(VisualEffect component)
@@ -34,4 +34,3 @@ namespace UnityEngine.VFX.Utility
         }
     }
 }
-

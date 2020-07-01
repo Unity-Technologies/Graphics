@@ -21,12 +21,14 @@ class VFXManagerEditor : Editor
 
     void OnEnable()
     {
-        m_TimeProperties = new SerializedProperty[] {
+        m_TimeProperties = new SerializedProperty[]
+        {
             serializedObject.FindProperty("m_FixedTimeStep"),
             serializedObject.FindProperty("m_MaxDeltaTime")
         };
 
-        m_ShaderProperties = new SerializedProperty[] {
+        m_ShaderProperties = new SerializedProperty[]
+        {
             serializedObject.FindProperty("m_IndirectShader"),
             serializedObject.FindProperty("m_CopyBufferShader"),
             serializedObject.FindProperty("m_SortShader"),
@@ -40,7 +42,7 @@ class VFXManagerEditor : Editor
     public override void OnInspectorGUI()
     {
         // trying to detect a C++ reset by checking if all shaders have been reset to null
-        if(!m_ShaderProperties.Any(t => t != null && t.objectReferenceValue != null))
+        if (!m_ShaderProperties.Any(t => t != null && t.objectReferenceValue != null))
             CheckVFXManager();
 
         serializedObject.Update();

@@ -371,7 +371,7 @@ namespace UnityEditor.VFX
                 Debug.LogError(error);
             }
 
-            return modelDescs.OrderBy(o => o.name).ToList(); 
+            return modelDescs.OrderBy(o => o.name).ToList();
         }
 
         class LibrarySentinel : ScriptableObject
@@ -469,7 +469,7 @@ namespace UnityEditor.VFX
                     if (VFXViewPreference.advancedLogs)
                         Debug.Log(string.Format("Register {0} for VFX", SRPAssetTypeStr));
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     Debug.LogError(string.Format("Exception while registering VFXSRPBinder {0}: {1} - {2}", binderType, e, e.StackTrace));
                 }

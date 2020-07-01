@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const string endURL = ".html";
 
 
-        internal const string releaseVersion = "7.4";
+        internal const string releaseVersion = "7.5";
 
         internal static string GetPageLink(string pageName)
         {

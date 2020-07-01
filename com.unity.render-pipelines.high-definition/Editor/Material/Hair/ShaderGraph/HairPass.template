@@ -286,6 +286,17 @@ $include("SharedCode.template.hlsl")
 
         $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
 
+#ifdef DEBUG_DISPLAY
+        if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
+        {
+            // TODO: need to update mip info
+        }
+
+        // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
+        // as it can modify attribute use for static lighting
+        ApplyDebugToSurfaceData(fragInputs.tangentToWorld, surfaceData);
+#endif
+
 #if defined(_SPECULAR_OCCLUSION_CUSTOM)
         // Just use the value passed through via the slot (not active otherwise)
 #elif defined(_SPECULAR_OCCLUSION_FROM_AO_BENT_NORMAL)
@@ -297,17 +308,6 @@ $include("SharedCode.template.hlsl")
 
 #ifdef _ENABLE_GEOMETRIC_SPECULAR_AA
         surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, fragInputs.tangentToWorld[2], surfaceDescription.SpecularAAScreenSpaceVariance, surfaceDescription.SpecularAAThreshold);
-#endif
-
-#ifdef DEBUG_DISPLAY
-        if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
-        {
-            // TODO: need to update mip info
-        }
-
-        // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
-        // as it can modify attribute use for static lighting
-        ApplyDebugToSurfaceData(fragInputs.tangentToWorld, surfaceData);
 #endif
     }
 

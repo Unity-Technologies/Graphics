@@ -348,6 +348,24 @@ namespace UnityEngine.Rendering.HighDefinition
             return hash;
         }
 
+        /// <summary>
+        /// Returns the hash code of the sky parameters.
+        /// </summary>
+        /// <param name="camera">The camera we want to use to compute the hash of the sky.</param>
+        /// <returns>The hash code of the sky parameters.</returns>
+        public override int GetHashCode(Camera camera)
+        {
+            int hash = GetHashCode();
+            Vector3 cameraLocation = camera.transform.position;
+            float r = Vector3.Distance(cameraLocation, GetPlanetCenterPosition(cameraLocation));
+            float R = GetPlanetaryRadius();
+
+            bool isPbrSkyActive = r > R; // Disable sky rendering below the ground
+
+            hash = hash * 23 + isPbrSkyActive.GetHashCode();
+            return hash;
+        }
+
         /// <summary> Returns the hash code of the parameters of the sky. </summary>
         /// <returns> The hash code of the parameters of the sky. </returns>
         public override int GetHashCode()
