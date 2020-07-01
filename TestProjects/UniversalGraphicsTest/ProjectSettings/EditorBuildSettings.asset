@@ -92,7 +92,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/034_Shader_HighlightsEnvironmentGradientBaked.unity
     guid: e346f8573410f414ea2a8a4740526c88
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/035_Shader_TerrainShaders.unity
     guid: 770b86964e87d47e4bdbafa425ccd238
   - enabled: 1
