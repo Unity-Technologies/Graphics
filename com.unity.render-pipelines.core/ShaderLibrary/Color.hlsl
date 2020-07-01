@@ -412,7 +412,10 @@ real LogCToLinear_Precise(real x)
 {
     real o;
     if (x > LogC.e * LogC.cut + LogC.f)
-        o = (pow(10.0, (x - LogC.d) / LogC.c) - LogC.b) / LogC.a;
+    {
+        real powVal = pow(10.0, (x - LogC.d) / LogC.c);
+        o = (clamp(powVal, 0, powVal) - LogC.b) / LogC.a;
+    }
     else
         o = (x - LogC.f) / LogC.e;
     return o;
