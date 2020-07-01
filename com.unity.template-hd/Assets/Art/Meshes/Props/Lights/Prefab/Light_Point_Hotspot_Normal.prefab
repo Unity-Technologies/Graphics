@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1319547207420485836}
   - component: {fileID: 3769816593807863117}
   m_Layer: 0
-  m_Name: Light_Point_Hotspot_1000lm
+  m_Name: Light_Point_Hotspot_100cd
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -45,7 +45,7 @@ Light:
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 100
-  m_Range: 0.1
+  m_Range: 0.03
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
