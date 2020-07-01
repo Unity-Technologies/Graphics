@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
-  m_Name: HDRP Normal
+  m_Name: HDRP Quality Ultra
   m_EditorClassIdentifier: 
   m_Version: 16
   m_ObsoleteFrameSettings:
@@ -213,7 +213,7 @@ MonoBehaviour:
     lightLayerName0: Light LayerDefault
     lightLayerName1: InteriorOnly
     lightLayerName2: ExteriorOnly
-    lightLayerName3: Light Layer 3
+    lightLayerName3: LampsOnly
     lightLayerName4: Light Layer 4
     lightLayerName5: Light Layer 5
     lightLayerName6: Light Layer 6
