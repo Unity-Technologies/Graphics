@@ -569,7 +569,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             m_TexturePool.CheckFrameAllocation(onException, m_CurrentFrameIndex);
             m_ComputeBufferPool.CheckFrameAllocation(onException, m_CurrentFrameIndex);
+        }
 
+        internal void PurgeUnusedResources()
+        {
             // TODO RENDERGRAPH: Might not be ideal to purge stale resources every frame.
             // In case users enable/disable features along a level it might provoke performance spikes when things are reallocated...
             // Will be much better when we have actual resource aliasing and we can manage memory more efficiently.

@@ -90,8 +90,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         readonly static string[] floatPropertiesToSynchronize = {
-            "_UseShadowThreshold", kReceivesSSR, kReceivesSSRTransparent, kUseSplitLighting,
-            kTransparentDepthPrepassEnable, kTransparentDepthPostpassEnable
+            kUseSplitLighting
         };
 
         protected static void SynchronizeShaderGraphProperties(Material material)
@@ -100,6 +99,8 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var floatToSync in floatPropertiesToSynchronize)
                 if (material.HasProperty(floatToSync))
                     material.SetFloat(floatToSync, defaultProperties.GetFloat(floatToSync));
+
+            CoreUtils.Destroy(defaultProperties);
             defaultProperties = null;
         }
     }

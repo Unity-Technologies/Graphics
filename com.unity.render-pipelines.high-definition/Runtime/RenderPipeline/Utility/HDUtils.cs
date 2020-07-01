@@ -737,31 +737,37 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif
 
+        internal static bool IsMacOSVersionAtLeast(string os, int majorVersion, int minorVersion, int patchVersion)
+        {
+            int startIndex = os.LastIndexOf(" ");
+            var parts = os.Substring(startIndex + 1).Split('.');
+            int currentMajorVersion = Convert.ToInt32(parts[0]);
+            int currentMinorVersion = Convert.ToInt32(parts[1]);
+            int currentPatchVersion = Convert.ToInt32(parts[2]);
+
+            if (currentMajorVersion < majorVersion) return false;
+            if (currentMajorVersion > majorVersion) return true;
+            if (currentMinorVersion < minorVersion) return false;
+            if (currentMinorVersion > minorVersion) return true;
+            if (currentPatchVersion < patchVersion) return false;
+            if (currentPatchVersion > patchVersion) return true;
+            return true;
+        }
+
         internal static bool IsOperatingSystemSupported(string os)
         {
             // Metal support depends on OS version:
             // macOS 10.11.x doesn't have tessellation / earlydepthstencil support, early driver versions were buggy in general
             // macOS 10.12.x should usually work with AMD, but issues with Intel/Nvidia GPUs. Regardless of the GPU, there are issues with MTLCompilerService crashing with some shaders
-            // macOS 10.13.x is expected to work, and if it's a driver/shader compiler issue, there's still hope on getting it fixed to next shipping OS patch release
+            // macOS 10.13.x should work, but active development tests against current OS
             //
             // Has worked experimentally with iOS in the past, but it's not currently supported
             //
 
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
             {
-                if (os.StartsWith("Mac"))
-                {
-                    // TODO: Expose in C# version number, for now assume "Mac OS X 10.10.4" format with version 10 at least
-                    int startIndex = os.LastIndexOf(" ");
-                    var parts = os.Substring(startIndex + 1).Split('.');
-                    int a = Convert.ToInt32(parts[0]);
-                    int b = Convert.ToInt32(parts[1]);
-                    // In case in the future there's a need to disable specific patch releases
-                    // int c = Convert.ToInt32(parts[2]);
-
-                    if (a < 10 || b < 13)
-                        return false;
-                }
+                if (os.StartsWith("Mac") && !IsMacOSVersionAtLeast(os, 10, 13, 0))
+                    return false;
             }
 
             return true;

@@ -81,6 +81,8 @@ From Unity 2020.2, HDRP includes a new rectangular area shadow evaluation functi
 
 From Unity 2020.2, the macro ENABLE_RAYTRACING, SHADEROPTIONS_RAYTRACING, and RAYTRACING_ENABLED have been removed. A new multicompile is introduce for forward pass: SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON. This allow to enable raytracing effect without requiring edition of shader config file.
 
+From Unity 2020.2,SHADERPASS for TransparentDepthPrepass and TransparentDepthPostpass identification is using respectively SHADERPASS_TRANSPARENT_DEPTH_PREPASS and SHADERPASS_TRANSPARENT_DEPTH_POSTPASS. Previously it was SHADERPASS_DEPTH_ONLY. Define CUTOFF_TRANSPARENT_DEPTH_PREPASS and CUTOFF_TRANSPARENT_DEPTH_POSTPASS and been removed as the new path macro can now be used.
+
 ## Custom pass API
 
 The signature of the Execute function has changed to simplify the parameters, now it only takes a CustomPassContext as its input:

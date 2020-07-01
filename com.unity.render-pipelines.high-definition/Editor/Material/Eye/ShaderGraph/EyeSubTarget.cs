@@ -25,7 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
 
         protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
-        protected override string customInspector => "Rendering.HighDefinition.EyeGUI";
+        protected override string customInspector => "Rendering.HighDefinition.LightingShaderGraphGUI";
         protected override string subTargetAssetGuid => "864e4e09d6293cf4d98457f740bb3301";
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Eye;
         protected override string subShaderInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/Eye.hlsl";
