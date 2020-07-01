@@ -17,10 +17,8 @@ from jobs.abv.all_project_ci_nightly import ABV_AllProjectCiNightlyJob
 from jobs.abv.all_smoke_tests import ABV_AllSmokeTestsJob
 from jobs.abv.smoke_test import ABV_SmokeTestJob
 from jobs.abv.trunk_verification import ABV_TrunkVerificationJob
-from jobs.preview_publish.pb_publish import PreviewPublish_PublishJob
 from jobs.preview_publish.pb_promote import PreviewPublish_PromoteJob
 from jobs.preview_publish.pb_auto_version import PreviewPublish_AutoVersionJob
-from jobs.preview_publish.pb_publish_all_preview import PreviewPublish_PublishAllPreviewJob
 from jobs.preview_publish.pb_promote_all_preview import PreviewPublish_PromoteAllPreviewJob
 from jobs.preview_publish.pb_wait_for_nightly import PreviewPublish_WaitForNightlyJob
 from jobs.templates.template_pack import Template_PackJob
@@ -222,9 +220,6 @@ def create_preview_publish_jobs(metafile_name):
     job = PreviewPublish_AutoVersionJob(get_agent(metafile["agent_auto_version"]), metafile["packages"], target_branch, metafile["publishing"]["auto_version"])
     yml[job.job_id] = job.yml
 
-    job = PreviewPublish_PublishAllPreviewJob(metafile["packages"], target_branch, metafile["publishing"]["auto_publish"])
-    yml[job.job_id] = job.yml
-
     job = PreviewPublish_PromoteAllPreviewJob(metafile["packages"], target_branch, metafile["publishing"]["auto_publish"])
     yml[job.job_id] = job.yml
 
@@ -234,8 +229,6 @@ def create_preview_publish_jobs(metafile_name):
     for package in metafile["packages"]:
 
         if package["publish_source"] == True:
-            job = PreviewPublish_PublishJob(get_agent(metafile["agent_publish"]), package, metafile["platforms"], target_editor)
-            yml[job.job_id] = job.yml
 
             job = PreviewPublish_PromoteJob(get_agent(metafile["agent_promote"]), package,  metafile["platforms"], target_editor)
             yml[job.job_id] = job.yml
