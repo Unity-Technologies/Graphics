@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static IEnumerable<Type> KnownNodeTypes
+        public static IEnumerable<Type> knownNodeTypes
         {
             get => KnownTypeLookupTable.Keys;
         }
