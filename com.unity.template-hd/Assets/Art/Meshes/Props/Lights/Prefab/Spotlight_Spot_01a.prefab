@@ -24,22 +24,22 @@ PrefabInstance:
     - target: {fileID: 3995495870832584746, guid: d7af645ccfc58e14692b118dddb559b7,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 3995495870832584746, guid: d7af645ccfc58e14692b118dddb559b7,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: -0.0437
       objectReference: {fileID: 0}
     - target: {fileID: 3995495870832584746, guid: d7af645ccfc58e14692b118dddb559b7,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -0.0027
       objectReference: {fileID: 0}
     - target: {fileID: 3995495870832584746, guid: d7af645ccfc58e14692b118dddb559b7,
         type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.7071068
+      value: 0.72827625
       objectReference: {fileID: 0}
     - target: {fileID: 3995495870832584746, guid: d7af645ccfc58e14692b118dddb559b7,
         type: 3}
@@ -54,7 +54,7 @@ PrefabInstance:
     - target: {fileID: 3995495870832584746, guid: d7af645ccfc58e14692b118dddb559b7,
         type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.7071068
+      value: 0.6852837
       objectReference: {fileID: 0}
     - target: {fileID: 3995495870832584746, guid: d7af645ccfc58e14692b118dddb559b7,
         type: 3}
@@ -80,6 +80,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Light_Spot_1200lm
+      objectReference: {fileID: 0}
+    - target: {fileID: 7104975159769254344, guid: d7af645ccfc58e14692b118dddb559b7,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d7af645ccfc58e14692b118dddb559b7, type: 3}
@@ -273,15 +278,20 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 6384297014137675690}
     m_Modifications:
+    - target: {fileID: 1319547207420485836, guid: 03aad6501deca1e4bafc449a2d7073e5,
+        type: 3}
+      propertyPath: m_Intensity
+      value: 100
+      objectReference: {fileID: 0}
     - target: {fileID: 1332447828416647104, guid: 03aad6501deca1e4bafc449a2d7073e5,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1332447828416647104, guid: 03aad6501deca1e4bafc449a2d7073e5,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.0572
+      value: -0.0332
       objectReference: {fileID: 0}
     - target: {fileID: 1332447828416647104, guid: 03aad6501deca1e4bafc449a2d7073e5,
         type: 3}
@@ -328,10 +338,20 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3769816593807863117, guid: 03aad6501deca1e4bafc449a2d7073e5,
+        type: 3}
+      propertyPath: m_Intensity
+      value: 100
+      objectReference: {fileID: 0}
     - target: {fileID: 7097592091236896670, guid: 03aad6501deca1e4bafc449a2d7073e5,
         type: 3}
       propertyPath: m_Name
-      value: Light_Point_Hotspot_800lm
+      value: Light_Point_Hotspot_Normal
+      objectReference: {fileID: 0}
+    - target: {fileID: 7097592091236896670, guid: 03aad6501deca1e4bafc449a2d7073e5,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 03aad6501deca1e4bafc449a2d7073e5, type: 3}
