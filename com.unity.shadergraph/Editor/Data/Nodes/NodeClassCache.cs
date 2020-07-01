@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph
     {
         private static Dictionary<Type,List<ContextFilterableAttribute>> m_KnownTypeLookupTable;
 
-        private static Dictionary<Type, List<ContextFilterableAttribute>> KnownTypeLookupTable
+        private static Dictionary<Type, List<ContextFilterableAttribute>> s_KnownTypeLookupTable
         {
             get
             {
@@ -60,10 +60,10 @@ namespace UnityEditor.ShaderGraph
         private static void ReCacheKnownNodeTypes()
         {
             Profiler.BeginSample("NodeClassCache: Re-caching all known node types");
-            m_KnownTypeLookupTable = new Dictionary<Type, List<ContextFilterableAttribute>>();
+            m_KnownTypeLookupTable.Clear();
             foreach (Type nodeType in TypeCache.GetTypesDerivedFrom<AbstractMaterialNode>())
             { 
-               if (nodeType.IsClass && !nodeType.IsAbstract)
+               if (!nodeType.IsAbstract)
                {
                    List<ContextFilterableAttribute> filterableAttributes = new List<ContextFilterableAttribute>();
                    foreach(Attribute attribute in Attribute.GetCustomAttributes(nodeType))
