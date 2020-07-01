@@ -115,7 +115,11 @@ float3 PickSamplePoint(float2 uv, float randAddon, int index)
 float RawToLinearDepth(float rawDepth)
 {
     #if defined(_ORTHOGRAPHIC)
-        return ((_ProjectionParams.z - _ProjectionParams.y) * (1.0 - rawDepth) + _ProjectionParams.y);
+        #if UNITY_REVERSED_Z
+            return ((_ProjectionParams.z - _ProjectionParams.y) * (1.0 - rawDepth) + _ProjectionParams.y);
+        #else
+            return ((_ProjectionParams.z - _ProjectionParams.y) * (rawDepth) + _ProjectionParams.y);
+        #endif
     #else
         return LinearEyeDepth(rawDepth, _ZBufferParams);
     #endif
