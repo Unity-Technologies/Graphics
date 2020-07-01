@@ -80,10 +80,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingAccelerationStructure(reflectionShader, HDShaderIDs._RaytracingAccelerationStructureName, accelerationStructure);
 
             // Global reflection parameters
-            m_ShaderVariablesRayTracingCB._RaytracingIntensityClamp = settings.clampValue.value;
+            m_ShaderVariablesRayTracingCB._RaytracingIntensityClamp = settings.clampValue;
             m_ShaderVariablesRayTracingCB._RaytracingIncludeSky = settings.reflectSky.value ? 1 : 0;
             // Inject the ray generation data
-            m_ShaderVariablesRayTracingCB._RaytracingRayMaxLength = settings.rayLength.value;
+            m_ShaderVariablesRayTracingCB._RaytracingRayMaxLength = settings.rayLength;
             m_ShaderVariablesRayTracingCB._RaytracingNumSamples = settings.sampleCount.value;
             // Set the number of bounces for reflections
             m_ShaderVariablesRayTracingCB._RaytracingMaxRecursion = settings.bounceCount.value;
@@ -133,7 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.rayBinning = true;
             deferredParameters.layerMask.value = (int)RayTracingRendererFlag.Reflection;
             deferredParameters.diffuseLightingOnly = false;
-            deferredParameters.halfResolution = !settings.fullResolution.value;
+            deferredParameters.halfResolution = !settings.fullResolution;
             deferredParameters.rayCountType = (int)RayCountValues.ReflectionDeferred;
 
             // Camera data
@@ -156,12 +156,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (deferredParameters.viewCount > 1 && deferredParameters.rayBinning)
             {
                 deferredParameters.rayBinning = false;
-                Debug.LogWarning("Ray binning is not supported with XR single-pass rendering!");
             }
 
             deferredParameters.globalCB = m_ShaderVariablesRayTracingCB;
-            deferredParameters.globalCB._RaytracingRayMaxLength = settings.rayLength.value;
-            deferredParameters.globalCB._RaytracingIntensityClamp = settings.clampValue.value;
+            deferredParameters.globalCB._RaytracingRayMaxLength = settings.rayLength;
+            deferredParameters.globalCB._RaytracingIntensityClamp = settings.clampValue;
             deferredParameters.globalCB._RaytracingIncludeSky = settings.reflectSky.value ? 1 : 0;
             deferredParameters.globalCB._RaytracingPreExposition = 0;
             deferredParameters.globalCB._RaytracingDiffuseRay = 0;
@@ -199,7 +198,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingIntegrateReflection)))
             {
                 // Fetch the new sample kernel
-                if (settings.fullResolution.value)
+                if (settings.fullResolution)
                 {
                     currentKernel = transparent ? m_RaytracingReflectionsTransparentFullResKernel : m_RaytracingReflectionsFullResKernel;
                 }
@@ -220,14 +219,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(reflectionShaderCS, currentKernel, HDShaderIDs._StencilTexture, m_SharedRTManager.GetDepthStencilBuffer(), 0, RenderTextureSubElement.Stencil);
 
                 // Bind all the required scalars
-                m_ShaderVariablesRayTracingCB._RaytracingIntensityClamp = settings.clampValue.value;
+                m_ShaderVariablesRayTracingCB._RaytracingIntensityClamp = settings.clampValue;
                 m_ShaderVariablesRayTracingCB._RaytracingIncludeSky = settings.reflectSky.value ? 1 : 0;
                 ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                 // Bind the output buffers
                 cmd.SetComputeTextureParam(reflectionShaderCS, currentKernel, HDShaderIDs._RaytracingDirectionBuffer, intermediateBuffer1);
 
-                if (settings.fullResolution.value)
+                if (settings.fullResolution)
                 {
                     // Evaluate the dispatch parameters
                     numTilesXHR = (texWidth + (areaTileSize - 1)) / areaTileSize;
@@ -251,7 +250,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderRaytracingDeferredLighting(cmd, deferredParamters, deferredResources);
 
                 // Fetch the right filter to use
-                if (settings.fullResolution.value)
+                if (settings.fullResolution)
                 {
                     currentKernel = reflectionFilter.FindKernel("ReflectionIntegrationUpscaleFullRes");
                 }
@@ -268,8 +267,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(reflectionFilter, currentKernel, HDShaderIDs._BlueNoiseTexture, blueNoise.textureArray16RGB);
                 cmd.SetComputeTextureParam(reflectionFilter, currentKernel, "_RaytracingReflectionTexture", outputTexture);
                 cmd.SetComputeTextureParam(reflectionFilter, currentKernel, HDShaderIDs._ScramblingTexture, m_Asset.renderPipelineResources.textures.scramblingTex);
-                cmd.SetComputeIntParam(reflectionFilter, HDShaderIDs._SpatialFilterRadius, settings.upscaleRadius.value);
-                cmd.SetComputeIntParam(reflectionFilter, HDShaderIDs._RaytracingDenoiseRadius, settings.denoise.value ? settings.denoiserRadius.value : 0);
+                cmd.SetComputeIntParam(reflectionFilter, HDShaderIDs._SpatialFilterRadius, settings.upscaleRadius);
+                cmd.SetComputeIntParam(reflectionFilter, HDShaderIDs._RaytracingDenoiseRadius, settings.denoise ? settings.denoiserRadius : 0);
 
                 numTilesXHR = (texWidth + (areaTileSize - 1)) / areaTileSize;
                 numTilesYHR = (texHeight + (areaTileSize - 1)) / areaTileSize;
@@ -284,7 +283,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingFilterReflection)))
             {
-                if (settings.denoise.value && !transparent)
+                if (settings.denoise && !transparent)
                 {
                     // Grab the history buffer
                     RTHandle reflectionHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection)
@@ -300,7 +299,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
 
                     HDReflectionDenoiser reflectionDenoiser = GetReflectionDenoiser();
-                    reflectionDenoiser.DenoiseBuffer(cmd, hdCamera, settings.denoiserRadius.value, outputTexture, reflectionHistory, intermediateBuffer0, historyValidity: historyValidity);
+                    reflectionDenoiser.DenoiseBuffer(cmd, hdCamera, settings.denoiserRadius, outputTexture, reflectionHistory, intermediateBuffer0, historyValidity: historyValidity);
                     HDUtils.BlitCameraTexture(cmd, intermediateBuffer0, outputTexture);
                 }
             }
@@ -340,7 +339,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingFilterReflection)))
             {
-                if (settings.denoise.value && !transparent)
+                if (settings.denoise && !transparent)
                 {
                     // Grab the history buffer
                     RTHandle reflectionHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection)
@@ -356,7 +355,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
 
                     HDReflectionDenoiser reflectionDenoiser = GetReflectionDenoiser();
-                    reflectionDenoiser.DenoiseBuffer(cmd, hdCamera, settings.denoiserRadius.value, intermediateBuffer0, reflectionHistory, outputTexture, historyValidity: historyValidity);
+                    reflectionDenoiser.DenoiseBuffer(cmd, hdCamera, settings.denoiserRadius, intermediateBuffer0, reflectionHistory, outputTexture, historyValidity: historyValidity);
                 }
                 else
                 {

@@ -10,7 +10,7 @@ This repository is under active development. Everything is subject to change. Th
 
 ## Instructions
 
-At the moment we recommend using Shader Graph through the [SRP repository](https://github.com/Unity-Technologies/ScriptableRenderPipeline), which has the Shader Graph submodule setup as a submodule. Otherwise you will not have any Master Node backends available and thus your shaders will be pink. This also ensure that you get a compatible set of render pipeline and Shader Graph versions. Otherwise, carry on with the following instructions.
+At the moment we recommend using Shader Graph through the [SRP repository](https://github.com/Unity-Technologies/Graphics), which has the Shader Graph submodule setup as a submodule. Otherwise you will not have any Master Node backends available and thus your shaders will be pink. This also ensure that you get a compatible set of render pipeline and Shader Graph versions. Otherwise, carry on with the following instructions.
 
 **Requires Unity 2018.1 Beta**
 

@@ -66,7 +66,6 @@ class Copy : CustomPass
             new Vector4(0.5f, 0.5f, 0, 0), new Vector4(0.25f, 0.25f, 0.5f, 0.75f),
             1, 0
         );
-
     }
 
     protected override void Cleanup() => halfResTarget.Release();

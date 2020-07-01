@@ -13,6 +13,9 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     #pragma multi_compile_local _ SKY_MOTION
     #pragma multi_compile_local _ USE_FLOWMAP
 
+    #pragma multi_compile_local _ USE_CLOUD_MAP
+    #pragma multi_compile_local _ USE_CLOUD_MOTION
+
     #pragma multi_compile _ DEBUG_DISPLAY
     #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 
@@ -34,6 +37,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/CloudLayer/CloudLayer.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SDF2D.hlsl"
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -218,7 +222,8 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     float3 GetSkyColor(float3 dir)
     {
-        return GetDistordedSkyColor(dir);
+        float3 sky = GetDistordedSkyColor(dir);
+        return ApplyCloudLayer(dir, sky);
     }
 
     float4 GetColorWithRotation(float3 dir, float exposure, float2 cos_sin)
@@ -252,8 +257,8 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     float4 RenderSkyWithBackplate(Varyings input, float3 positionOnBackplate, float exposure, float3 originalDir, float blend, float depth)
     {
         // Reverse it to point into the scene
-        float3 offset = RotationUp(float3(_OffsetTexX, 0, _OffsetTexY), _CosSinPhiPlate);
-        float3 dir    = positionOnBackplate - float3(0, _ProjectionDistance + _GroundLevel, 0) + offset; // No need for normalization
+        float3 offset = RotationUp(float3(_OffsetTexX, 0.0, _OffsetTexY), _CosSinPhiPlate);
+        float3 dir    = positionOnBackplate - float3(0.0, _ProjectionDistance + _GroundLevel, 0.0) + offset; // No need for normalization
 
         PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
@@ -262,17 +267,17 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
         uint renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
         float3 shadow3;
-        ShadowLoopMin(shadowContext, posInput, float3(0, 1, 0), _ShadowFilter, renderingLayers, shadow3);
-        shadow = dot(shadow3, float3(1.0f/3.0f, 1.0f/3.0f, 1.0f/3.0f));
+        ShadowLoopMin(shadowContext, posInput, float3(0.0, 1.0, 0.0), _ShadowFilter, renderingLayers, shadow3);
+        shadow = dot(shadow3, float3(1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0));
 
-        float3 shadowColor = ComputeShadowColor(shadow, _ShadowTint, 0.0f);
+        float3 shadowColor = ComputeShadowColor(shadow, _ShadowTint, 0.0);
 
-        float3 output = lerp(            GetColorWithRotation(originalDir,                         exposure, _CosSinPhi).rgb,
-                             shadowColor*GetColorWithRotation(RotationUp(dir, _CosSinPhiPlateTex), exposure, _CosSinPhi).rgb, blend);
+        float3 output = lerp(              GetColorWithRotation(originalDir,                         exposure, _CosSinPhi).rgb,
+                             shadowColor * GetColorWithRotation(RotationUp(dir, _CosSinPhiPlateTex), exposure, _CosSinPhi).rgb, blend);
 
-        float3 ao = GetScreenSpaceAmbientOcclusionForBackplate(posInput.positionSS, originalDir.z, 1.0f);
+        float3 ao = GetScreenSpaceAmbientOcclusionForBackplate(posInput.positionSS, originalDir.z, 1.0);
 
-        return float4(ao*output, exposure);
+        return float4(ao * output, exposure);
     }
 
     float4 FragBaking(Varyings input) : SV_Target

@@ -72,6 +72,7 @@
     * [Decal](Master-Node-Decal)
     * [Fabric](Master-Node-Fabric)
     * [Hair](Master-Node-Hair)
+    * [Lit](Master-Node-Lit)
     * [Unlit](Master-Node-Unlit)
   * Shader Graph Nodes
     * [Emission](SGNode-Emission)
@@ -97,8 +98,12 @@
   * [Shadowmasks](Lighting-Mode-Shadowmask)
   * [Volumetric Lighting](Volumetric-Lighting)
   * [Physical Light Units and Intensities](Physical-Light-Units)
+  * IES
+    * [IES Profile](IES-Profile.md)
+    * [IES Importer](IES-Importer.md)
 * Camera
   * [HD Camera](HDRP-Camera)
+  * [Scene View Camera](Scene-View-Camera.md)
   * [Dynamic Resolution](Dynamic-Resolution)
   * [Motion Vectors](Motion-Vectors)
   * [Anti-Aliasing](Anti-Aliasing)

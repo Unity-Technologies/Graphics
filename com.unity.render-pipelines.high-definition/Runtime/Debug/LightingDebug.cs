@@ -184,6 +184,8 @@ namespace UnityEngine.Rendering.HighDefinition
         SceneEV100Values,
         /// <summary>Display the Histogram used for exposure.</summary>
         HistogramView,
+        /// <summary>Display an RGB histogram of the final image (after post-processing).</summary>
+        FinalImageHistogramView,
         /// <summary>Visualize the scene color weighted as the metering mode selected.</summary>
         MeteringWeighted,
 
@@ -317,15 +319,21 @@ namespace UnityEngine.Rendering.HighDefinition
         public ExposureDebugMode    exposureDebugMode = ExposureDebugMode.None;
         /// <summary>Exposure compensation to apply on current scene exposure.</summary>
         public float                debugExposure = 0.0f;
+        /// <summary>Debug lens attenuation factor for the virtual camera.</summary>
+        public float                debugLensAttenuation = 0.65f;
         /// <summary>Whether to show tonemap curve in the histogram debug view or not.</summary>
         public bool                 showTonemapCurveAlongHistogramView = true;
+        /// <summary>Whether to center the histogram debug view around the middle-grey point or not.</summary>
+        public bool                 centerHistogramAroundMiddleGrey = false;
+        /// <summary>Whether to show tonemap curve in the histogram debug view or not.</summary>
+        public bool                 displayFinalImageHistogramAsRGB = false;
 
         /// <summary>Display the light cookies atlas.</summary>
         public bool                 displayCookieAtlas = false;
         /// <summary>Display the light cookies cubemap array.</summary>
         public bool                 displayCookieCubeArray = false;
-        /// <summary>Index of the light cookie cubemap to display.</summary>
-        public uint                 cookieCubeArraySliceIndex = 0;
+        /// <summary>Index of the light cubemap to display.</summary>
+        public uint                 cubeArraySliceIndex = 0;
         /// <summary>Mip level of the cookie cubemap display.</summary>
         public uint                 cookieAtlasMipLevel = 0;
         /// <summary>Clear cookie atlas each frame.</summary>

@@ -8,6 +8,28 @@ namespace UnityEngine.Rendering
     public static class ColorUtils
     {
         /// <summary>
+        /// Calibration constant (K) used for our virtual reflected light meter. Modifying this will lead to a change on how average scene luminance
+        /// gets mapped to exposure. 
+        /// </summary>
+        static public float s_LightMeterCalibrationConstant = 12.5f;
+
+        /// <summary>
+        /// Factor used for our lens system w.r.t. exposure calculation. Modifying this will lead to a change on how linear exposure
+        /// multipliers are computed from EV100 values (and viceversa). s_LensAttenuation models transmission attenuation and lens vignetting.
+        /// Note that according to the standard ISO 12232, a lens saturates at s_LensAttenuation = 0.78f (under ISO 100). 
+        /// </summary>
+        static public float s_LensAttenuation = 0.65f;
+
+        /// <summary>
+        /// Scale applied to exposure caused by lens imperfection. It is computed from s_LensAttenuation as follow:
+        ///  (78 / ( S * q )) where S = 100 and q = s_LensAttenuation
+        /// </summary>
+        static public float lensImperfectionExposureScale
+        {
+            get => (78.0f / (100.0f * s_LensAttenuation));
+        }
+
+        /// <summary>
         /// An analytical model of chromaticity of the standard illuminant, by Judd et al.
         /// http://en.wikipedia.org/wiki/Standard_illuminant#Illuminant_series_D
         /// Slightly modifed to adjust it with the D65 white point (x=0.31271, y=0.32902).
@@ -215,10 +237,10 @@ namespace UnityEngine.Rendering
             // Compute the maximum luminance possible with H_sbs sensitivity
             // maxLum = 78 / ( S * q ) * N^2 / t
             //        = 78 / ( S * q ) * 2^ EV_100
-            //        = 78 / (100 * 0.65) * 2^ EV_100
-            //        = 1.2 * 2^ EV
+            //        = 78 / (100 * s_LensAttenuation) * 2^ EV_100
+            //        = lensImperfectionExposureScale * 2^ EV
             // Reference: http://en.wikipedia.org/wiki/Film_speed
-            float maxLuminance = 1.2f * Mathf.Pow(2.0f, EV100);
+            float maxLuminance = lensImperfectionExposureScale * Mathf.Pow(2.0f, EV100);
             return 1.0f / maxLuminance;
         }
 
@@ -231,10 +253,10 @@ namespace UnityEngine.Rendering
         {
             // Compute the maximum luminance possible with H_sbs sensitivity
             // EV_100 = log2(   S * q    / (78 * exposure) )
-            //        = log2( 100 * 0.65 / (78 * exposure) )
-            //        = log2(    1.0f    / (1.2 * exposure) )
+            //        = log2( 100 * s_LensAttenuation / (78 * exposure) )
+            //        = log2(    1.0f    / (lensImperfectionExposureScale * exposure) )
             // Reference: http://en.wikipedia.org/wiki/Film_speed
-            return Mathf.Log(1.0f / (1.2f * exposure), 2.0f);
+            return Mathf.Log(1.0f / (lensImperfectionExposureScale * exposure), 2.0f);
         }
 
         /// <summary>
@@ -244,13 +266,14 @@ namespace UnityEngine.Rendering
         /// <returns>An exposure value, in EV100.</returns>
         public static float ComputeEV100FromAvgLuminance(float avgLuminance)
         {
-            // We later use the middle gray at 12.7% in order to have
+            // The middle grey used will be determined by the s_LightMeterCalibrationConstant.
+            // The suggested (ISO 2720) range  is 10.64 to 13.4. Common values used by
+            // manufacturers range from 11.37 to 14. Ref: https://en.wikipedia.org/wiki/Light_meter
+            // The default is 12.5% as it is the closest to 12.7% in order to have
             // a middle gray at 18% with a sqrt(2) room for specular highlights
-            // But here we deal with the spot meter measuring the middle gray
-            // which is fixed at 12.5 for matching standard camera
-            // constructor settings (i.e. calibration constant K = 12.5)
-            // Reference: http://en.wikipedia.org/wiki/Film_speed
-            const float K = 12.5f; // Reflected-light meter calibration constant
+            // Note that this gives equivalent results as using an incident light meter
+            // with a calibration constant of C=314. 
+            float K = s_LightMeterCalibrationConstant;
             return Mathf.Log(avgLuminance * 100f / K, 2f);
         }
 

@@ -461,6 +461,8 @@ namespace UnityEditor.VFX
                 yield return new VFXMapping("sortPriority", sortPriority);
                 if (HasIndirectDraw())
                     yield return new VFXMapping("indirectDraw", 1);
+                if (HasStrips(false))
+                    yield return new VFXMapping("strips", 1);
             }
         }
     }

@@ -69,6 +69,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Subsurface
             public static GUIContent diffusionProfileText = new GUIContent("Diffusion Profile", "Specifies the Diffusion Profie HDRP uses to determine the behavior of the subsurface scattering/transmission effect.");
+            public static GUIContent subsurfaceEnableText = new GUIContent("Subsurface Scattering", "Enables the subsurface scattering on the material.");
             public static GUIContent subsurfaceMaskText = new GUIContent("Subsurface Mask", "Controls the overall strength of the subsurface scattering effect.");
             public static GUIContent subsurfaceMaskMapText = new GUIContent("Subsurface Mask Map", "Specifies the Subsurface mask map (R) for this Material - This map controls the strength of the subsurface scattering effect.");
             public static GUIContent thicknessText = new GUIContent("Thickness", "Controls the strength of the Thickness Map, low values allow some light to transmit through the object.");
