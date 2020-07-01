@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
-  m_Name: TemplateSceneSettings
+  m_Name: Volume Global
   m_EditorClassIdentifier: 
   components:
   - {fileID: 6640133647794636954}
@@ -19,6 +19,7 @@ MonoBehaviour:
   - {fileID: 1359070828411649799}
   - {fileID: 2759069934644561995}
   - {fileID: 8034478686085459342}
+  - {fileID: 2112682869544596416}
 --- !u!114 &1359070828411649799
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -42,6 +43,62 @@ MonoBehaviour:
   fogType:
     m_OverrideState: 1
     m_Value: 0
+--- !u!114 &2112682869544596416
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56b145d2b9ee1ac4f846968484e7485a, type: 3}
+  m_Name: ContactShadows
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  quality:
+    m_OverrideState: 0
+    m_Value: 1
+  enable:
+    m_OverrideState: 1
+    m_Value: 0
+  length:
+    m_OverrideState: 0
+    m_Value: 0.15
+    min: 0
+    max: 1
+  opacity:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+    max: 1
+  distanceScaleFactor:
+    m_OverrideState: 0
+    m_Value: 0.5
+    min: 0
+    max: 1
+  maxDistance:
+    m_OverrideState: 0
+    m_Value: 50
+    min: 0
+  minDistance:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+  fadeDistance:
+    m_OverrideState: 0
+    m_Value: 5
+    min: 0
+  fadeInDistance:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+  m_SampleCount:
+    m_OverrideState: 0
+    m_Value: 8
+    min: 4
+    max: 64
 --- !u!114 &2759069934644561995
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -105,7 +162,7 @@ MonoBehaviour:
     showEyeDropper: 1
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 400
+    m_Value: 40000
     min: 1
   enableVolumetricFog:
     m_OverrideState: 1
@@ -121,22 +178,22 @@ MonoBehaviour:
     min: 0
     max: 1
   depthExtent:
-    m_OverrideState: 0
-    m_Value: 64
+    m_OverrideState: 1
+    m_Value: 30
     min: 0.1
   sliceDistributionUniformity:
     m_OverrideState: 0
-    m_Value: 0.75
+    m_Value: 0.8
     min: 0
     max: 1
   screenResolutionPercentage:
     m_OverrideState: 0
-    m_Value: 12.5
+    m_Value: 16
     min: 6.25
     max: 100
   volumeSliceCount:
     m_OverrideState: 0
-    m_Value: 64
+    m_Value: 128
     min: 1
     max: 1024
   filter:
@@ -250,10 +307,10 @@ MonoBehaviour:
   m_AdvancedMode: 0
   mode:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0
   meteringMode:
     m_OverrideState: 1
-    m_Value: 2
+    m_Value: 0
   luminanceSource:
     m_OverrideState: 0
     m_Value: 1
@@ -264,11 +321,11 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 0
   limitMin:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 6
   limitMax:
-    m_OverrideState: 1
-    m_Value: 12
+    m_OverrideState: 0
+    m_Value: 13.32
   curveMap:
     m_OverrideState: 0
     m_Value:
@@ -286,6 +343,58 @@ MonoBehaviour:
       - serializedVersion: 3
         time: 20
         value: 20
+        inSlope: 1
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  limitMinCurveMap:
+    m_OverrideState: 0
+    m_Value:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: -10
+        value: -12
+        inSlope: 0
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 20
+        value: 18
+        inSlope: 1
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  limitMaxCurveMap:
+    m_OverrideState: 0
+    m_Value:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: -10
+        value: -8
+        inSlope: 0
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 20
+        value: 22
         inSlope: 1
         outSlope: 0
         tangentMode: 0
@@ -327,8 +436,8 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: {x: 0.5, y: 0.5}
   proceduralRadii:
-    m_OverrideState: 0
-    m_Value: {x: 0.15, y: 0.15}
+    m_OverrideState: 1
+    m_Value: {x: 0.5, y: 0.5}
   maskMinIntensity:
     m_OverrideState: 0
     m_Value: -30
@@ -336,8 +445,8 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 30
   proceduralSoftness:
-    m_OverrideState: 0
-    m_Value: 0.5
+    m_OverrideState: 1
+    m_Value: 0
     min: 0
 --- !u!114 &8034478686085459342
 MonoBehaviour:
