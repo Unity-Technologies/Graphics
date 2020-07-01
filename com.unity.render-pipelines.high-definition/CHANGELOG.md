@@ -702,6 +702,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed typo in the Render Pipeline Wizard under HDRP+VR
 - Change transparent SSR name in frame settings to avoid clipping. 
 - Fixed fallback for ray tracing and light layers (1258837).
+- Fixed Sorting Priority not displayed correctly in the DrawRenderers custom pass UI.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
