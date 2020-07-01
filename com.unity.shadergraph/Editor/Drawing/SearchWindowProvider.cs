@@ -63,7 +63,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void GenerateNodeEntries()
         {
-            Profiler.BeginSample("SearhWindowProvider.GenerateNodeEntries");
+            Profiler.BeginSample("SearchWindowProvider.GenerateNodeEntries");
             // First build up temporary data structure containing group & title as an array of strings (the last one is the actual title) and associated node type.
             List<NodeEntry> nodeEntries = new List<NodeEntry>();
             
@@ -99,7 +99,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
             }
             
-            foreach (var type in NodeClassCache.KnownNodeTypes)
+            foreach (var type in NodeClassCache.knownNodeTypes)
             {
                 if ((!type.IsClass || type.IsAbstract)
                     || type == typeof(PropertyNode)

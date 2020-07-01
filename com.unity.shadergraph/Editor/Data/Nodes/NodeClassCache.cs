@@ -6,7 +6,7 @@ using UnityEngine.Profiling;
 namespace UnityEditor.ShaderGraph
 {
     [InitializeOnLoad]
-    public static class NodeClassCache
+    internal static class NodeClassCache
     {
         private static Dictionary<Type,List<ContextFilterableAttribute>> m_KnownTypeLookupTable;
 
@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph
 
         public static IEnumerable<Type> knownNodeTypes
         {
-            get => KnownTypeLookupTable.Keys;
+            get => m_KnownTypeLookupTable.Keys;
         }
 
         public static IEnumerable<ContextFilterableAttribute> GetFilterableAttributesOnNodeType(Type nodeType)
@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph
                 throw new ArgumentNullException("Cannot get attributes on a null Type");
             }
 
-            if (KnownTypeLookupTable.TryGetValue(nodeType, out List<ContextFilterableAttribute> filterableAttributes))
+            if (m_KnownTypeLookupTable.TryGetValue(nodeType, out List<ContextFilterableAttribute> filterableAttributes))
             {
                 return filterableAttributes;
             }
@@ -60,7 +60,7 @@ namespace UnityEditor.ShaderGraph
         private static void ReCacheKnownNodeTypes()
         {
             Profiler.BeginSample("NodeClassCache: Re-caching all known node types");
-            m_KnownTypeLookupTable.Clear();
+            m_KnownTypeLookupTable = new Dictionary<Type, List<ContextFilterableAttribute>>();
             foreach (Type nodeType in TypeCache.GetTypesDerivedFrom<AbstractMaterialNode>())
             { 
                if (!nodeType.IsAbstract)
