@@ -19,18 +19,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
-            // TODO: We need to perform compute shader stripping as soon as it is possible. Most egregious case would be the shadow filtering quality for Deferred.compute
-
-            // Strip every useless shadow configs
-            var shadowInitParams = hdrpAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
-
-            foreach (var shadowVariant in m_ShadowVariants)
-            {
-                if (shadowVariant.Key != shadowInitParams.shadowFilteringQuality)
-                    if (inputData.shaderKeywordSet.IsEnabled(shadowVariant.Value))
-                        return true;
-            }
-
             // CAUTION: Pass Name and Lightmode name must match in master node and .shader.
             // HDRP use LightMode to do drawRenderer and pass name is use here for stripping!
 
@@ -84,6 +72,26 @@ namespace UnityEditor.Rendering.HighDefinition
             if (inputData.shaderKeywordSet.IsEnabled(m_SubsurfaceScattering) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportSubsurfaceScattering)
                 return true;
 
+            // SHADOW
+
+            // Strip every useless shadow configs
+            var shadowInitParams = hdrpAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
+
+            foreach (var shadowVariant in m_ShadowKeywords.ShadowVariants)
+            {
+                if (shadowVariant.Key != shadowInitParams.shadowFilteringQuality)
+                    if (inputData.shaderKeywordSet.IsEnabled(shadowVariant.Value))
+                        return true;
+            }
+
+            // Screen space shadow variant is exclusive, either we have a variant with dynamic if that support screen space shadow or not
+            // either we have a variant that don't support at all. We can't have both at the same time.
+            if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowOFFKeywords) && shadowInitParams.supportScreenSpaceShadows)
+                return true;
+
+            if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowONKeywords) && !shadowInitParams.supportScreenSpaceShadows)
+                return true;
+
             // DECAL
 
             // Identify when we compile a decal shader
@@ -135,6 +143,191 @@ namespace UnityEditor.Rendering.HighDefinition
             return false;
         }
     }
+
+#if UNITY_2020_2_OR_NEWER
+    class HDRPPreprocessComputeShaders : IPreprocessComputeShaders
+    {
+        struct ExportComputeShaderStrip : System.IDisposable
+        {
+            bool m_ExportLog;
+            string m_OutFile;
+            ComputeShader m_Shader;
+            string m_KernelName;
+            IList<ShaderCompilerData> m_InputData;
+            HDRPPreprocessComputeShaders m_PreProcess;
+
+            public ExportComputeShaderStrip(
+                bool exportLog,
+                string outFile,
+                ComputeShader shader,
+                string kernelName,
+                IList<ShaderCompilerData> inputData,
+                HDRPPreprocessComputeShaders preProcess
+            )
+            {
+                m_ExportLog = exportLog;
+                m_OutFile = outFile;
+                m_Shader = shader;
+                m_KernelName = kernelName;
+                m_InputData = inputData;
+                m_PreProcess = preProcess;
+
+                if (m_ExportLog)
+                {
+                    System.IO.File.AppendAllText(
+                        m_OutFile,
+                        $"{{ \"Compute shader\": \"{m_Shader.name}\", \"kernel\": \"{m_KernelName}\", \"variantIn\": {m_InputData.Count} }}\r\n"
+                    );
+                }
+            }
+
+            public void Dispose()
+            {
+                if (m_ExportLog)
+                {
+                    try
+                    {
+                        System.IO.File.AppendAllText(
+                            m_OutFile,
+                            $"{{ \"shader\": \"{m_Shader?.name}\",  \"kernel\": \"{m_KernelName}\", \"variantOut\": \"{m_InputData.Count}\", \"totalVariantIn\": \"{m_PreProcess?.m_TotalVariantsInputCount}\", \"totalVariantOut\": \"{m_PreProcess?.m_TotalVariantsOutputCount}\" }}\r\n"
+                        );
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogException(e);
+                    }
+                }
+            }
+        }
+
+        uint m_TotalVariantsInputCount;
+        uint m_TotalVariantsOutputCount;
+
+        protected ShadowKeywords m_ShadowKeywords = new ShadowKeywords();
+        protected ShaderKeyword m_EnableAlpha = new ShaderKeyword("ENABLE_ALPHA");
+        protected ShaderKeyword m_MSAA = new ShaderKeyword("ENABLE_MSAA");
+        protected ShaderKeyword m_ScreenSpaceShadowOFFKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_OFF");
+        protected ShaderKeyword m_ScreenSpaceShadowONKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_ON");
+
+        public int callbackOrder { get { return 0; } }
+
+        void LogShaderVariants(ComputeShader shader, string kernelName, ShaderVariantLogLevel logLevel, uint prevVariantsCount, uint currVariantsCount)
+        {
+            // We cannot yet differentiate whether a compute shader is HDRP specific or not. 
+            if (logLevel == ShaderVariantLogLevel.AllShaders || logLevel == ShaderVariantLogLevel.OnlyHDRPShaders)
+            {
+                float percentageCurrent = ((float)currVariantsCount / prevVariantsCount) * 100.0f;
+                float percentageTotal = ((float)m_TotalVariantsOutputCount / m_TotalVariantsInputCount) * 100.0f;
+
+                string result = string.Format("STRIPPING: {0} (kernel: {1}) -" +
+                        " Remaining shader variants = {2}/{3} = {4}% - Total = {5}/{6} = {7}%",
+                        shader.name, kernelName, currVariantsCount,
+                        prevVariantsCount, percentageCurrent, m_TotalVariantsOutputCount, m_TotalVariantsInputCount,
+                        percentageTotal);
+                Debug.Log(result);
+            }
+        }
+
+        // Modify this function to add more stripping clauses
+        internal bool StripShader(HDRenderPipelineAsset hdAsset, ComputeShader shader, string kernelName, ShaderCompilerData inputData)
+        {
+            // Strip every useless shadow configs
+            var shadowInitParams = hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
+
+            foreach (var shadowVariant in m_ShadowKeywords.ShadowVariants)
+            {
+                if (shadowVariant.Key != shadowInitParams.shadowFilteringQuality)
+                {
+                    if (inputData.shaderKeywordSet.IsEnabled(shadowVariant.Value))
+                        return true;
+                }
+            }
+
+            // Screen space shadow variant is exclusive, either we have a variant with dynamic if that support screen space shadow or not
+            // either we have a variant that don't support at all. We can't have both at the same time.
+            if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowOFFKeywords) && shadowInitParams.supportScreenSpaceShadows)
+                return true;
+
+            if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowONKeywords) && !shadowInitParams.supportScreenSpaceShadows)
+                return true;
+
+            if (inputData.shaderKeywordSet.IsEnabled(m_MSAA) && !hdAsset.currentPlatformRenderPipelineSettings.supportMSAA)
+            {
+                return true;
+            }
+
+            if (inputData.shaderKeywordSet.IsEnabled(m_EnableAlpha) && !hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public void OnProcessComputeShader(ComputeShader shader, string kernelName, IList<ShaderCompilerData> inputData)
+        {
+            if (HDRenderPipeline.currentAsset == null)
+                return;
+
+            var exportLog = ShaderBuildPreprocessor.hdrpAssets.Count > 0
+                && ShaderBuildPreprocessor.hdrpAssets.Any(hdrpAsset => hdrpAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled);
+
+            Stopwatch shaderStripingWatch = new Stopwatch();
+            shaderStripingWatch.Start();
+
+            using (new ExportComputeShaderStrip(exportLog, "Temp/compute-shader-strip.json", shader, kernelName, inputData, this))
+            {
+                var inputShaderVariantCount = inputData.Count;
+                var hdPipelineAssets = ShaderBuildPreprocessor.hdrpAssets;
+
+                if (hdPipelineAssets.Count == 0)
+                    return;
+
+                uint preStrippingCount = (uint)inputData.Count;
+
+                for (int i = 0; i < inputShaderVariantCount;)
+                {
+                    ShaderCompilerData input = inputData[i];
+
+                    bool removeInput = true;
+                    foreach (var hdAsset in hdPipelineAssets)
+                    {
+                        if (!StripShader(hdAsset, shader, kernelName, input))
+                        {
+                            removeInput = false;
+                            break;
+                        }
+                    }
+
+                    if (removeInput)
+                        inputData[i] = inputData[--inputShaderVariantCount];
+                    else
+                        ++i;
+                }
+
+                if (inputData is List<ShaderCompilerData> inputDataList)
+                {
+                    inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
+                }
+                else
+                {
+                    for (int i = inputData.Count - 1; i >= inputShaderVariantCount; --i)
+                        inputData.RemoveAt(i);
+                }
+
+                foreach (var hdAsset in hdPipelineAssets)
+                {
+                    if (hdAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)
+                    {
+                        m_TotalVariantsInputCount += preStrippingCount;
+                        m_TotalVariantsOutputCount += (uint)inputData.Count;
+                        LogShaderVariants(shader, kernelName, hdAsset.shaderVariantLogLevel, preStrippingCount, (uint)inputData.Count);
+                    }
+                }
+            }
+        }
+    }
+#endif // #if UNITY_2020_2_OR_NEWER
 
     class HDRPreprocessShaders : IPreprocessShaders
     {

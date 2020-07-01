@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [10.0.0] - 2019-06-10
+## [Unreleased]
 ### Added
 - Tooltips for Attributes
 - Custom Inspector for Spawn context, delay settings are more user friendly.
@@ -29,6 +29,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New built-in operator providing new times access
 - More efficient update modes inspector
 - Ability to read attribute in spawn context through graph
+- Added save button to save only the current visual effect graph.
+- Added Degrees / Radians conversion subgraphs in samples
+- uint parameter can be seen as an enum.
+- New TransformVector4 operator
+- New GetTextureDimensions operator
+- Output Event context for scripting API event retrieval.
 
 ### Fixed
 - Moved VFX Event Tester Window visibility to Component Play Controls SceneView Window
@@ -90,6 +96,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove some shader warnings
 - Fixed Sample Flipbook Texture File Names
 - Don't lose SRP output specific data when SRP package is not present
+- Fix visual effect graph when a subgraph or shader graph dependency changes
 - Support of flag settings in model inspector
 - height of initial event name.
 - fix colorfield height.
@@ -107,6 +114,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Disable Reset option in context menu for all VFXObject [Case 1251519](https://issuetracker.unity3d.com/product/unity/issues/guid/1251519/) & [Case 1251533](https://issuetracker.unity3d.com/product/unity/issues/guid/1251533/)
 - Avoid other NullReferenceException using property binders
 - Fix culture issues when generating attributes defines in shaders [Case 1222819](https://issuetracker.unity3d.com/product/unity/issues/guid/1222819/)
+- Move the VFXPropertyBinder from Update to LateUpdate [Case 1254340](https://issuetracker.unity3d.com/product/unity/issues/guid/1254340/)
+- Properties in blackboard are now exposed by default
+- Dissociated Colors for bool, uint and int
+- De-nicified attribute name (conserve case) in Set Custom Attribute title
+- Changed the default "No Asset" message when opening the visual effect graph window
+- Subgraphs are not in hardcoded categories anymore : updated default subgraph templates + Samples to add meaningful categories.
 - GPU Events fixes: now works as expected with immortal particles and ParticleID computation is correct [Case 1248346](https://issuetracker.unity3d.com/product/unity/issues/guid/1248346/)
 
 ## [7.1.1] - 2019-09-05

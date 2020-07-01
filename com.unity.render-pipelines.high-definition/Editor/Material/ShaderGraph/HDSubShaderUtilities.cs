@@ -70,16 +70,24 @@ namespace UnityEditor.Rendering.HighDefinition
         public static void AddStencilShaderProperties(PropertyCollector collector, SystemData systemData, LightingData lightingData, bool splitLighting)
         {
             bool ssrStencil = false;
-            bool receiveSSROpaque = false;
-            bool receiveSSRTransparent = false;
 
             if (lightingData != null)
             {
                 ssrStencil = systemData.surfaceType == SurfaceType.Opaque ? lightingData.receiveSSR : lightingData.receiveSSRTransparent;
-                receiveSSROpaque = lightingData.receiveSSR;
-                receiveSSRTransparent = lightingData.receiveSSRTransparent;
+                bool receiveSSROpaque = lightingData.receiveSSR;
+                bool receiveSSRTransparent = lightingData.receiveSSRTransparent;
+                bool receiveDecals = lightingData.receiveDecals;
+                bool blendPreserveSpecular = lightingData.blendPreserveSpecular;
+
+                // Don't add those property on Unlit
+                collector.AddToggleProperty(kUseSplitLighting, splitLighting);
+                collector.AddToggleProperty(kReceivesSSR, receiveSSROpaque);
+                collector.AddToggleProperty(kReceivesSSRTransparent, receiveSSRTransparent);
+                collector.AddToggleProperty(kEnableBlendModePreserveSpecularLighting, blendPreserveSpecular);
+                collector.AddToggleProperty(kSupportDecals, receiveDecals);
             }
 
+            // Configure render state
             BaseLitGUI.ComputeStencilProperties(ssrStencil, splitLighting, out int stencilRef, out int stencilWriteMask,
                 out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
                 out int stencilRefMV, out int stencilWriteMaskMV
@@ -101,15 +109,12 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddIntProperty("_StencilWriteMaskGBuffer", stencilWriteMaskGBuffer);
             collector.AddIntProperty("_StencilRefGBuffer", stencilRefGBuffer);
             collector.AddIntProperty("_ZTestGBuffer", 4);
-
-            collector.AddToggleProperty(kUseSplitLighting, splitLighting);
-            collector.AddToggleProperty(kReceivesSSR, receiveSSROpaque);
-            collector.AddToggleProperty(kReceivesSSRTransparent, receiveSSRTransparent);
         }
 
         public static void AddBlendingStatesShaderProperties(
             PropertyCollector collector, SurfaceType surface, BlendMode blend, int sortingPriority,
-            bool alphaToMask, bool transparentZWrite, TransparentCullMode transparentCullMode, CompareFunction zTest,
+            bool alphaToMask, bool transparentZWrite, TransparentCullMode transparentCullMode,
+            OpaqueCullMode opaqueCullMode, CompareFunction zTest,
             bool backThenFrontRendering, bool fogOnTransparent)
         {
             collector.AddFloatProperty("_SurfaceType", (int)surface);
@@ -133,6 +138,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 value = (int)transparentCullMode,
                 enumNames = {"Front", "Back"},
                 enumValues = {(int)TransparentCullMode.Front, (int)TransparentCullMode.Back},
+                hidden = true,
+            });
+            collector.AddShaderProperty(new Vector1ShaderProperty{
+                overrideReferenceName = kOpaqueCullMode,
+                floatType = FloatType.Enum,
+                value = (int)opaqueCullMode,
+                enumType = EnumType.CSharpEnum,
+                cSharpEnumType = typeof(OpaqueCullMode),
                 hidden = true,
             });
 

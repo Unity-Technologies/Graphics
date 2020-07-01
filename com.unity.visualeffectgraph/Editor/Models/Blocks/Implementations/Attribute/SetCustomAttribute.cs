@@ -58,7 +58,7 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                string attributeName = ObjectNames.NicifyVariableName(attribute);
+                string attributeName = attribute;
                 return VFXBlockUtility.GetNameString(Composition) + " " + attributeName + " " + VFXBlockUtility.GetNameString(Random) + " (" + AttributeType.ToString() + ")";
             }
         }

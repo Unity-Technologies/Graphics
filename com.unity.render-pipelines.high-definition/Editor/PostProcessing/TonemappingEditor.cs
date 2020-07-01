@@ -125,7 +125,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 PropertyField(m_LutContribution, EditorGUIUtility.TrTextContent("Contribution"));
 
-                EditorGUILayout.HelpBox("Use \"Edit > Render Pipeline > Render Selected Camera to Log EXR\" to export a log-encoded frame for external grading.", MessageType.Info);
+                EditorGUILayout.HelpBox("Use \"Edit > Render Pipeline > HD Render Pipeline > Render Selected Camera to Log EXR\" to export a log-encoded frame for external grading.", MessageType.Info);
             }
         }
 
@@ -142,7 +142,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
     sealed class ExrExportMenu
     {
-        [MenuItem("Edit/Render Pipeline/Render Selected Camera to Log EXR %#&e", priority = CoreUtils.editMenuPriority3)]
+        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Render Selected Camera to Log EXR %#&e")]
         static void Export()
         {
             var camera = Selection.activeGameObject?.GetComponent<Camera>();

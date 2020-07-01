@@ -5,12 +5,12 @@ using System.IO;
 using System.Text;
 using System.Globalization;
 using UnityEngine;
-using UnityEditor.Experimental.AssetImporters;
+
 
 namespace UnityEditor.VFXToolbox
 {
-    [ScriptedImporter(1, "vf")]
-    class VectorFieldImporter : ScriptedImporter
+    [UnityEditor.AssetImporters.ScriptedImporter(1, "vf")]
+    class VectorFieldImporter : UnityEditor.AssetImporters.ScriptedImporter
     {
         public enum VectorFieldOutputFormat
         {
@@ -32,7 +32,7 @@ namespace UnityEditor.VFXToolbox
             return result;
         }
 
-        public override void OnImportAsset(AssetImportContext ctx)
+        public override void OnImportAsset(UnityEditor.AssetImporters.AssetImportContext ctx)
         {
             byte[] bytes = File.ReadAllBytes(ctx.assetPath);
             int width = 1, height = 1, depth = 1;

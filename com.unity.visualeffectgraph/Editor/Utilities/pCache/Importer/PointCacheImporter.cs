@@ -5,12 +5,12 @@ using System.IO;
 using System.Text;
 using System.Globalization;
 using UnityEngine;
-using UnityEditor.Experimental.AssetImporters;
+
 
 namespace UnityEditor.Experimental.VFX.Utility
 {
-    [ScriptedImporter(1, "pcache")]
-    class PointCacheImporter : ScriptedImporter
+    [UnityEditor.AssetImporters.ScriptedImporter(1, "pcache")]
+    class PointCacheImporter : UnityEditor.AssetImporters.ScriptedImporter
     {
         public static T[] SubArray<T>(T[] data, int index, int length)
         {
@@ -77,7 +77,7 @@ namespace UnityEditor.Experimental.VFX.Utility
             while (!found_end_header);
         }
 
-        public override void OnImportAsset(AssetImportContext ctx)
+        public override void OnImportAsset(UnityEditor.AssetImporters.AssetImportContext ctx)
         {
             try
             {

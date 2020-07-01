@@ -9,7 +9,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: AxF_aniso
   m_Shader: {fileID: 4800000, guid: 6510c57cccce5674092bdc0dd1ae98c1, type: 3}
-  m_ShaderKeywords: _AXF_BRDF_TYPE_SVBRDF
+  m_ShaderKeywords: _AXF_BRDF_TYPE_SVBRDF _DISABLE_SSR_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -241,6 +241,7 @@ Material:
     - _IridescenceMask: 1
     - _IridescenceThickness: 1
     - _LinkDetailsWithBase: 1
+    - _MappingMode: 0
     - _MaterialID: 1
     - _MaterialTilingU: 2
     - _MaterialTilingV: 2
@@ -252,7 +253,9 @@ Material:
     - _PPDMinSamples: 5
     - _PPDPrimitiveLength: 1
     - _PPDPrimitiveWidth: 1
+    - _PlanarSpace: 0
     - _ReceivesSSR: 1
+    - _ReceivesSSRTransparent: 0
     - _RefractionModel: 0
     - _SSRefractionProjectionModel: 0
     - _SVBRDF_BRDFType: 0
@@ -318,6 +321,7 @@ Material:
     - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
+    - _MappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _Material_SO: {r: 2, g: 2, b: 0, a: 0}
     - _SVBRDF_AlphaMap_SO: {r: 1, g: 1, b: 0, a: 0}
     - _SVBRDF_AnisoRotationMap_SO: {r: 1, g: 1, b: 0, a: 0}
@@ -348,4 +352,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 4
+  version: 5
