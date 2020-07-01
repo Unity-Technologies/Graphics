@@ -86,5 +86,3 @@
 * [Building for consoles](Building-For-Consoles.md)
   
 * [Frequently asked questions (FAQ)](faq.md)
-
-* [Feature comparison with the Built-in Render Pipeline](universalrp-builtin-feature-comparison.md)
