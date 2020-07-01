@@ -6,16 +6,23 @@ using UnityEditor.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    abstract class MaterialUIBlock
+    /// <summary>
+    /// Base implementation of a material GUI block to be disabled in the material inspector.
+    /// </summary>
+    public abstract class MaterialUIBlock
     {
+        /// <summary>The current material editor.</summary>
         protected MaterialEditor        materialEditor;
+        /// <summary>The list of selected materials to edit.</summary>
         protected Material[]            materials;
+        /// <summary>The list of available properties in the selected materials.</summary>
         protected MaterialProperty[]    properties;
 
+        /// <summary>Parent of the UI block.</summary>
         protected MaterialUIBlockList   parent;
 
         [Flags]
-        public enum Expandable : uint
+        internal enum Expandable : uint
         {
             // Standard
             Base = 1<<0,
@@ -52,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
             LayeringOption3 = 1 << 30
         }
 
-        public void         Initialize(MaterialEditor materialEditor, MaterialProperty[] properties, MaterialUIBlockList parent)
+        internal void         Initialize(MaterialEditor materialEditor, MaterialProperty[] properties, MaterialUIBlockList parent)
         {
             this.materialEditor = materialEditor;
             this.parent = parent;
@@ -62,12 +69,18 @@ namespace UnityEditor.Rendering.HighDefinition
             materialEditor.InitExpandableState();
         }
 
-        public void         UpdateMaterialProperties(MaterialProperty[] properties)
+        internal void         UpdateMaterialProperties(MaterialProperty[] properties)
         {
             this.properties = properties;
             LoadMaterialProperties();
         }
 
+        /// <summary>
+        /// Find a material property in the list of available properties.
+        /// </summary>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="isMandatory">Is the property mandatory for your inspector.</param>
+        /// <returns>The material property found, null otherwise.</returns>
         protected MaterialProperty FindProperty(string propertyName, bool isMandatory = false)
         {
             // ShaderGUI.FindProperty is a protected member of ShaderGUI so we can't call it here:
@@ -83,6 +96,13 @@ namespace UnityEditor.Rendering.HighDefinition
             return null;
         }
 
+        /// <summary>
+        /// Find a material property with layering option
+        /// </summary>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="layerCount">Number of layers of the shader.</param>
+        /// <param name="isMandatory">Is the property mandatory for your inspector.</param>
+        /// <returns>The material property found, null otherwise.</returns>
         protected MaterialProperty[] FindPropertyLayered(string propertyName, int layerCount, bool isMandatory = false)
         {
             MaterialProperty[] properties = new MaterialProperty[layerCount];
@@ -99,7 +119,14 @@ namespace UnityEditor.Rendering.HighDefinition
             return properties;
         }
 
+        /// <summary>
+        /// Use this function to load the material properties you need in your block.
+        /// </summary>
         public abstract void LoadMaterialProperties();
+
+        /// <summary>
+        /// Draw the properties in your block.
+        /// </summary>
         public abstract void OnGUI();
     }
 }

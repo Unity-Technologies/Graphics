@@ -36,6 +36,6 @@ namespace UnityEditor.Rendering.HighDefinition
             UnlitGUI.SetupUnlitMaterialKeywordsAndPass(material);
         }
 
-        protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
+        internal override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
     }
 }

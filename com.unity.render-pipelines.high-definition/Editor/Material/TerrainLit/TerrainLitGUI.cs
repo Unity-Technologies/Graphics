@@ -374,6 +374,6 @@ namespace UnityEditor.Rendering.HighDefinition
             return true;
         }
 
-        protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
+        internal override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
     }
 } // namespace UnityEditor

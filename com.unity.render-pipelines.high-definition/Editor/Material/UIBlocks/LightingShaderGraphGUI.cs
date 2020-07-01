@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// <summary>
     /// Common GUI for Lit ShaderGraphs
     /// </summary>
-    class LightingShaderGraphGUI : HDShaderGUI
+    public class LightingShaderGraphGUI : HDShaderGUI
     {
         // For surface option shader graph we only want all unlit features but alpha clip and back then front rendering
         const SurfaceOptionUIBlock.Features   surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Lit
@@ -23,6 +23,11 @@ namespace UnityEditor.Rendering.HighDefinition
             new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, ~AdvancedOptionsUIBlock.Features.SpecularOcclusion)
         };
 
+        /// <summary>
+        /// Implement your custom GUI in this function.false You'll probably want to use the MaterialUIBlock to display a UI similar to HDRP shaders.
+        /// </summary>
+        /// <param name="materialEditor">The current material editor.</param>
+        /// <param name="props">The list of properties the material have.</param>
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             using (var changed = new EditorGUI.ChangeCheckScope())
@@ -32,6 +37,10 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Setups the keywords and passes for a Lit ShaderGraph material.
+        /// </summary>
+        /// <param name="material">The target material.</param>
         public static void SetupMaterialKeywordsAndPass(Material material)
         {
             SynchronizeShaderGraphProperties(material);
@@ -51,6 +60,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", material.GetInt(kAddPrecomputedVelocity) != 0);
         }
 
-        protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
+        internal override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
     }
 }

@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// <summary>
     /// Wrapper to handle Material UI Blocks, it will handle initialization of the blocks when drawing the GUI.
     /// </summary>
-    class MaterialUIBlockList : List<MaterialUIBlock>
+    public class MaterialUIBlockList : List<MaterialUIBlock>
     {
         [System.NonSerialized]
         bool                        m_Initialized = false;

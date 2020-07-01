@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </code>
     /// </example>
     /// </summary>
-    internal struct MaterialHeaderScope : IDisposable
+    public struct MaterialHeaderScope : IDisposable
     {
         public readonly bool expanded;
         bool spaceAtEnd;
@@ -26,6 +26,16 @@ namespace UnityEditor.Rendering.HighDefinition
         int oldIndentLevel;
 #endif
 
+        /// <summary>
+        /// Creates a material header scope to display the foldout in the material UI.
+        /// </summary>
+        /// <param name="title">Title of the header</param>
+        /// <param name="bitExpanded">Bit index to use for the</param>
+        /// <param name="materialEditor"></param>
+        /// <param name="spaceAtEnd"></param>
+        /// <param name="colorDot"></param>
+        /// <param name="subHeader"></param>
+        /// <returns></returns>
         public MaterialHeaderScope(string title, uint bitExpanded, MaterialEditor materialEditor, bool spaceAtEnd = true, Color colorDot = default(Color), bool subHeader = false)
         {
             bool beforeExpended = materialEditor.GetExpandedAreas(bitExpanded);
@@ -66,6 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 ++EditorGUI.indentLevel;
         }
 
+        /// <summary>Dispose</summary>
         void IDisposable.Dispose()
         {
             if (expanded)

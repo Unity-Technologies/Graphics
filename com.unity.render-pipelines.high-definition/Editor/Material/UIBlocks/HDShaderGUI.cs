@@ -17,14 +17,25 @@ namespace UnityEditor.Rendering.HighDefinition
     // of the material you must use Material UI Blocks, examples of doing so can be found in the classes UnlitGUI,
     // LitGUI or LayeredLitGUI.
 
-    abstract class HDShaderGUI : ShaderGUI
+    /// <summary>
+    /// Use this class to build your custom Shader GUI for HDRP.
+    /// You'll then be able to use the class that inherit from HDShaderGUI in the ShaderGraph Custom EditorGUI field.
+    /// </summary>
+    public abstract class HDShaderGUI : ShaderGUI
     {
-        protected bool m_FirstFrame = true;
+        internal protected bool m_FirstFrame = true;
 
         // The following set of functions are call by the ShaderGraph
         // It will allow to display our common parameters + setup keyword correctly for them
-        protected abstract void SetupMaterialKeywordsAndPassInternal(Material material);
 
+        internal abstract void SetupMaterialKeywordsAndPassInternal(Material material);
+
+        /// <summary>
+        /// This function is called when a new shader is assigned to your material.
+        /// </summary>
+        /// <param name="material">The current material.</param>
+        /// <param name="oldShader">Previous shader before assignation.</param>
+        /// <param name="newShader">The new incoming shader that will be assigned.</param>
         public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
         {
             base.AssignNewShaderToMaterial(material, oldShader, newShader);
@@ -34,6 +45,11 @@ namespace UnityEditor.Rendering.HighDefinition
             SetupMaterialKeywordsAndPassInternal(material);
         }
 
+        /// <summary>
+        /// Setup the keywords and passes for the material. It is required to call this function after changing a property on a material to ensure it's validity.
+        /// </summary>
+        /// <param name="changed">GUI.changed is the usual value for this parameter. If changed is false, the function will just exit.</param>
+        /// <param name="materials">The material to perform the setup on.</param>
         protected void ApplyKeywordsAndPassesIfNeeded(bool changed, Material[] materials)
         {
             // !!! HACK !!!
@@ -51,6 +67,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Called by unity when displaying the GUI. This method is sealed, use OnMaterialGUI instead
+        /// </summary>
         public sealed override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             if (!(RenderPipelineManager.currentPipeline is HDRenderPipeline))
@@ -63,8 +82,17 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Implement your custom GUI in this function.false You'll probably want to use the MaterialUIBlock to display a UI similar to HDRP shaders.
+        /// </summary>
+        /// <param name="materialEditor">The current material editor.</param>
+        /// <param name="props">The list of properties the material have.</param>
         protected abstract void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props);
 
+        /// <summary>
+        /// Reset the render queue of the material.
+        /// </summary>
+        /// <param name="material">The material which will be rested.</param>
         protected static void ResetMaterialCustomRenderQueue(Material material)
         {
             HDRenderQueue.RenderQueueType targetQueueType;
@@ -93,6 +121,10 @@ namespace UnityEditor.Rendering.HighDefinition
             kUseSplitLighting, kTransparentBackfaceEnable
         };
 
+        /// <summary>
+        /// For ShaderGraph Only, synchronize a set of properties that is needed for ShaderGraph materials to work correctly.
+        /// </summary>
+        /// <param name="material">The target material.</param>
         protected static void SynchronizeShaderGraphProperties(Material material)
         {
             var defaultProperties = new Material(material.shader);

@@ -38,6 +38,6 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // We don't have any keyword/pass to setup currently for decal shader graphs
-        protected override void SetupMaterialKeywordsAndPassInternal(Material material) {}
+        internal override void SetupMaterialKeywordsAndPassInternal(Material material) {}
     }
 }
