@@ -10,6 +10,7 @@ platforms:
     apis:
       - DX11
       - Vulkan
+all:
   dependencies:
     - platform: Win
       api: DX11
