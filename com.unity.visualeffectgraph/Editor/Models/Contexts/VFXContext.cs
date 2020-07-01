@@ -23,6 +23,7 @@ namespace UnityEditor.VFX
         Event = 1 << 5,
         SpawnerGPU = 1 << 6,
         Subgraph = 1 << 7,
+        Filter = 1 << 8,
 
         InitAndUpdate = Init | Update,
         InitAndUpdateAndOutput = Init | Update | Output,
@@ -99,8 +100,6 @@ namespace UnityEditor.VFX
 
         public override void OnEnable()
         {
-            base.OnEnable();
-
             int nbRemoved = 0;
             if (m_InputFlowSlot == null)
                 m_InputFlowSlot = Enumerable.Range(0, inputFlowCount).Select(_ => new VFXContextSlot()).ToArray();
@@ -121,6 +120,8 @@ namespace UnityEditor.VFX
                 SetDefaultData(false);
 
             m_UICollapsed = false;
+
+            base.OnEnable();
         }
 
         public bool doesGenerateShader                                  { get { return codeGeneratorTemplate != null; } }
