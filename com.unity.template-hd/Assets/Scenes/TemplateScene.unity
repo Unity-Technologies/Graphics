@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 3842.655, g: 4761.2495, b: 6301.9497, a: 1}
+  m_IndirectSpecularColor: {r: 3843.4988, g: 4762.023, b: 6302.403, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -152,12 +152,12 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
-  - {fileID: 1557555615}
   - {fileID: 2035111235}
   - {fileID: 1924871439}
   - {fileID: 594250630}
   - {fileID: 923137973}
   - {fileID: 406441789}
+  - {fileID: 1557555615}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2697,7 +2697,7 @@ MonoBehaviour:
       automaticScale: 1
       viewerScale: 1
     type: 0
-    mode: 0
+    mode: 1
     realtimeMode: 1
     lighting:
       multiplier: 1
@@ -3369,7 +3369,7 @@ Transform:
   - {fileID: 720476594}
   - {fileID: 2031323975}
   m_Father: {fileID: 1377783}
-  m_RootOrder: 5
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &426147143
 PrefabInstance:
@@ -5358,7 +5358,7 @@ Transform:
   - {fileID: 1827581735}
   - {fileID: 7099360530125308786}
   m_Father: {fileID: 1377783}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &603906600
 PrefabInstance:
@@ -9044,7 +9044,7 @@ Transform:
   - {fileID: 1491292262}
   - {fileID: 967166542}
   m_Father: {fileID: 1377783}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &929330546
 PrefabInstance:
@@ -9642,7 +9642,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &967166542
 Transform:
   m_ObjectHideFlags: 0
@@ -9688,7 +9688,7 @@ MonoBehaviour:
     distanceFadeStart: 16
     distanceFadeEnd: 32
     textureIndex: 0
-    textureOffset: {x: -0, y: -0, z: -0}
+    textureOffset: {x: -0.2955138, y: -29.55138, z: -0.5910276}
 --- !u!1001 &1000506294
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9937,7 +9937,7 @@ MonoBehaviour:
       automaticScale: 1
       viewerScale: 1
     type: 0
-    mode: 0
+    mode: 1
     realtimeMode: 1
     lighting:
       multiplier: 1
@@ -10657,7 +10657,7 @@ MonoBehaviour:
       automaticScale: 1
       viewerScale: 1
     type: 0
-    mode: 0
+    mode: 1
     realtimeMode: 1
     lighting:
       multiplier: 1
@@ -13992,7 +13992,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1377783}
-  m_RootOrder: 0
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!220 &1557555616
 LightProbeGroup:
@@ -14554,7 +14554,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1606155764}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 3.1, z: 0}
+  m_LocalPosition: {x: -1, y: 4, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1924871439}
@@ -14571,8 +14571,8 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 35.821358, y: 17.245106, z: 33.472454}
-  m_Center: {x: -0.09495163, y: 5.357374, z: 0.65751076}
+  m_Size: {x: 34, y: 16, z: 36}
+  m_Center: {x: 0, y: 5, z: 0}
 --- !u!114 &1606155767
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14736,7 +14736,7 @@ MonoBehaviour:
       automaticScale: 1
       viewerScale: 1
     type: 0
-    mode: 0
+    mode: 1
     realtimeMode: 1
     lighting:
       multiplier: 1
@@ -16739,8 +16739,8 @@ MonoBehaviour:
       automaticScale: 1
       viewerScale: 1
     type: 0
-    mode: 0
-    realtimeMode: 0
+    mode: 1
+    realtimeMode: 1
     lighting:
       multiplier: 1
       weight: 1
@@ -17682,7 +17682,7 @@ Transform:
   - {fileID: 5859121926156797422}
   - {fileID: 2582144458996412158}
   m_Father: {fileID: 1377783}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1924981516
 GameObject:
@@ -18293,8 +18293,8 @@ MonoBehaviour:
       automaticScale: 1
       viewerScale: 1
     type: 0
-    mode: 0
-    realtimeMode: 0
+    mode: 1
+    realtimeMode: 1
     lighting:
       multiplier: 1
       weight: 1
@@ -18905,7 +18905,7 @@ GameObject:
   - component: {fileID: 2035111234}
   - component: {fileID: 2035111237}
   m_Layer: 0
-  m_Name: Sunlight_Directional
+  m_Name: Directional Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -18985,7 +18985,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1377783}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 72.021, y: 385.523, z: 210.952}
 --- !u!114 &2035111237
 MonoBehaviour:
@@ -20419,8 +20419,8 @@ MonoBehaviour:
       automaticScale: 1
       viewerScale: 1
     type: 0
-    mode: 0
-    realtimeMode: 0
+    mode: 1
+    realtimeMode: 1
     lighting:
       multiplier: 1
       weight: 1
@@ -20681,8 +20681,8 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 27.625496, y: 8.7694435, z: 18.06297}
-  m_Center: {x: 5.612217, y: 1.3382874, z: 1.0384369}
+  m_Size: {x: 29, y: 10, z: 17}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1001 &1094294249876933868
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -20862,7 +20862,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5306068997847388863}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 59.45244, y: 3.9336886, z: 0.081027985}
+  m_LocalPosition: {x: 55, y: 3.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1924871439}
@@ -21190,8 +21190,8 @@ MonoBehaviour:
       automaticScale: 1
       viewerScale: 1
     type: 0
-    mode: 0
-    realtimeMode: 0
+    mode: 1
+    realtimeMode: 1
     lighting:
       multiplier: 1
       weight: 1
@@ -21555,8 +21555,8 @@ MonoBehaviour:
       automaticScale: 1
       viewerScale: 1
     type: 0
-    mode: 0
-    realtimeMode: 0
+    mode: 1
+    realtimeMode: 1
     lighting:
       multiplier: 1
       weight: 1
@@ -21849,7 +21849,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8772885058350565593}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 25.767437, y: 2.9986887, z: 0.071027756}
+  m_LocalPosition: {x: 30, y: 5, z: 1.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1924871439}
@@ -21872,8 +21872,8 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 26.140724, y: 9.55978, z: 14.360311}
-  m_Center: {x: -7.0178185, y: 0.588182, z: 2.863442}
+  m_Size: {x: 21, y: 8, z: 8}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &6535239024185873326
 GameObject:
   m_ObjectHideFlags: 0

@@ -246,10 +246,9 @@ MonoBehaviour:
       cookieTexArraySize: 16
       planarReflectionAtlasSize: 1024
       reflectionProbeCacheSize: 32
-      reflectionCubemapSize: 256
+      reflectionCubemapSize: 1024
       reflectionCacheCompressed: 1
-      planarReflectionCacheCompressed: 0
-      skyReflectionSize: 256
+      skyReflectionSize: 1024
       skyLightingOverrideLayerMask:
         serializedVersion: 2
         m_Bits: 0
