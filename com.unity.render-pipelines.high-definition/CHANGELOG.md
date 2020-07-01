@@ -705,6 +705,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Repaint the scene view whenever the scene exposure override is changed.
 - Fixed an error when clearing the SSGI history texture at creation time (1259930).
 - Fixed alpha to mask reset when toggling alpha test in the material UI.
+- Fixed an issue where opening the look dev window with the light theme would make the window blink and eventually crash unity.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
