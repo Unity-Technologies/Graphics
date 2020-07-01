@@ -21,6 +21,7 @@ namespace UnityEditor.ShaderGraph
 
         public override SlotValueType valueType { get { return SlotValueType.Texture3D; } }
         public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.Texture3D; } }
+        public override bool isDefaultValue => true;
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
         {}

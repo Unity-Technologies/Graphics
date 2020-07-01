@@ -1,22 +1,21 @@
-void BuildInputData(Varyings input, float3 normal, out InputData inputData)
+void BuildInputData(Varyings input, SurfaceDescription surfaceDescription, out InputData inputData)
 {
     inputData.positionWS = input.positionWS;
-#ifdef _NORMALMAP
-
-#if _NORMAL_DROPOFF_TS
-	// IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.
-    float crossSign = (input.tangentWS.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale();
-    float3 bitangent = crossSign * cross(input.normalWS.xyz, input.tangentWS.xyz);
-    inputData.normalWS = TransformTangentToWorld(normal, half3x3(input.tangentWS.xyz, bitangent, input.normalWS.xyz));
-#elif _NORMAL_DROPOFF_OS
-	inputData.normalWS = TransformObjectToWorldNormal(normal);
-#elif _NORMAL_DROPOFF_WS
-	inputData.normalWS = normal;
-#endif
+    #ifdef _NORMALMAP
     
-#else
-    inputData.normalWS = input.normalWS;
-#endif
+        #if _NORMAL_DROPOFF_TS
+        	// IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.
+            float crossSign = (input.tangentWS.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale();
+            float3 bitangent = crossSign * cross(input.normalWS.xyz, input.tangentWS.xyz);
+            inputData.normalWS = TransformTangentToWorld(surfaceDescription.NormalTS, half3x3(input.tangentWS.xyz, bitangent, input.normalWS.xyz));
+        #elif _NORMAL_DROPOFF_OS
+        	inputData.normalWS = TransformObjectToWorldNormal(surfaceDescription.NormalOS);
+        #elif _NORMAL_DROPOFF_WS
+        	inputData.normalWS = surfaceDescription.NormalWS;
+        #endif
+    #else
+        inputData.normalWS = input.normalWS;
+    #endif
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
     inputData.viewDirectionWS = SafeNormalize(input.viewDirectionWS);
 
@@ -50,11 +49,16 @@ FragmentOutput frag(PackedVaryings packedInput)
     SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
     #if _AlphaClip
-        clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
+        half alpha = surfaceDescription.Alpha;
+        clip(alpha - surfaceDescription.AlphaClipThreshold);
+    #elif _SURFACE_TYPE_TRANSPARENT
+        half alpha = surfaceDescription.Alpha;
+    #else
+        half alpha = 1;
     #endif
 
     InputData inputData;
-    BuildInputData(unpacked, surfaceDescription.Normal, inputData);
+    BuildInputData(unpacked, surfaceDescription, inputData);
 
     #ifdef _SPECULAR_SETUP
         float3 specular = surfaceDescription.Specular;
@@ -67,7 +71,7 @@ FragmentOutput frag(PackedVaryings packedInput)
     // in LitForwardPass GlobalIllumination (and temporarily LightingPhysicallyBased) are called inside UniversalFragmentPBR
     // in Deferred rendering we store the sum of these values (and of emission as well) in the GBuffer
     BRDFData brdfData;
-    InitializeBRDFData(surfaceDescription.Albedo, metallic, specular, surfaceDescription.Smoothness, surfaceDescription.Alpha, brdfData);
+    InitializeBRDFData(surfaceDescription.BaseColor, metallic, specular, surfaceDescription.Smoothness, alpha, brdfData);
     
     Light mainLight = GetMainLight(inputData.shadowCoord);                                      // TODO move this to a separate full-screen single gbuffer pass?
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0)); // TODO move this to a separate full-screen single gbuffer pass?

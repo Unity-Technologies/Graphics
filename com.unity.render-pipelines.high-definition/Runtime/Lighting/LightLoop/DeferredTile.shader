@@ -243,9 +243,12 @@ Shader "Hidden/HDRP/DeferredTile"
 
                 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
-                float3 diffuseLighting;
-                float3 specularLighting;
-                LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
+                LightLoopOutput lightLoopOutput;
+                LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
+
+                // Alias
+                float3 diffuseLighting = lightLoopOutput.diffuseLighting;
+                float3 specularLighting = lightLoopOutput.specularLighting;
 
                 diffuseLighting *= GetCurrentExposureMultiplier();
                 specularLighting *= GetCurrentExposureMultiplier();
@@ -302,6 +305,7 @@ Shader "Hidden/HDRP/DeferredTile"
             #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ SHADOWS_SHADOWMASK /// Variant with and without shadowmask
+            #pragma multi_compile SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
             #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 
             #define USE_FPTL_LIGHTLIST 1 // deferred opaque always use FPTL
@@ -405,9 +409,12 @@ Shader "Hidden/HDRP/DeferredTile"
 
                 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
-                float3 diffuseLighting;
-                float3 specularLighting;
-                LightLoop(V, posInput, preLightData, bsdfData, builtinData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, diffuseLighting, specularLighting);
+                LightLoopOutput lightLoopOutput;
+                LightLoop(V, posInput, preLightData, bsdfData, builtinData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, lightLoopOutput);
+
+                // Alias
+                float3 diffuseLighting = lightLoopOutput.diffuseLighting;
+                float3 specularLighting = lightLoopOutput.specularLighting;
 
                 diffuseLighting *= GetCurrentExposureMultiplier();
                 specularLighting *= GetCurrentExposureMultiplier();

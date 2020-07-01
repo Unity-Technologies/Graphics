@@ -5,6 +5,16 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Shadow Filtering Quality
+    /// </summary>
+    public enum HDShadowFilteringQuality
+    {
+        Low = 0,
+        Medium = 1,
+        High = 2,
+    }
+
     enum ShadowMapType
     {
         CascadedDirectional,
