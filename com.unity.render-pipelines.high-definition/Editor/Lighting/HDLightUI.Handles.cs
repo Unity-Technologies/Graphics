@@ -662,7 +662,6 @@ namespace UnityEditor.Rendering.HighDefinition
                                     {
                                         additionalData.shapeHeight = widthHeight.y;
                                     }
-
                                     light.range = range;
                                 }
 
