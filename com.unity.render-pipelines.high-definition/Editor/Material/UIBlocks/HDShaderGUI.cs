@@ -90,7 +90,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         readonly static string[] floatPropertiesToSynchronize = {
-            kUseSplitLighting, kTransparentBackfaceEnable
+            kUseSplitLighting
         };
 
         protected static void SynchronizeShaderGraphProperties(Material material)
@@ -99,12 +99,6 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var floatToSync in floatPropertiesToSynchronize)
                 if (material.HasProperty(floatToSync))
                     material.SetFloat(floatToSync, defaultProperties.GetFloat(floatToSync));
-
-            // Reset properties that are not enabled in the shader graph:
-            if (defaultProperties.HasProperty("_AlphaCutoffShadow") && defaultProperties.GetFloat("_AlphaCutoffShadow") == 0.0f)
-                material.SetFloat("_AlphaCutoffShadow", 0.0f);
-            if (defaultProperties.HasProperty(kTransparentWritingMotionVec) && defaultProperties.GetFloat(kTransparentWritingMotionVec) == 0.0f)
-                material.SetFloat(kTransparentWritingMotionVec, 0.0f);
 
             CoreUtils.Destroy(defaultProperties);
             defaultProperties = null;
