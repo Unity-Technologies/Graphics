@@ -14,7 +14,6 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using Node = UnityEditor.Experimental.GraphView.Node;
-using Drawing.Inspector.PropertyDrawers;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {

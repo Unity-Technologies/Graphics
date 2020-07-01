@@ -10,7 +10,7 @@ using UnityEditor.UIElements;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
 
-namespace Drawing.Inspector.PropertyDrawers
+namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
     [SGPropertyDrawer(typeof(AbstractMaterialNode))]
     public class AbstractMaterialNodePropertyDrawer : IPropertyDrawer
