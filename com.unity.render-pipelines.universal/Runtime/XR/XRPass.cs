@@ -33,11 +33,11 @@ namespace UnityEngine.Rendering.Universal
 
     internal struct XRView
     {
-        internal readonly Matrix4x4 projMatrix;
-        internal readonly Matrix4x4 viewMatrix;
-        internal readonly Rect viewport;
-        internal readonly Mesh occlusionMesh;
-        internal readonly int textureArraySlice;
+        internal Matrix4x4 projMatrix;
+        internal Matrix4x4 viewMatrix;
+        internal Rect viewport;
+        internal Mesh occlusionMesh;
+        internal int textureArraySlice;
 
         internal XRView(Matrix4x4 proj, Matrix4x4 view, Rect vp, int dstSlice)
         {
@@ -62,11 +62,20 @@ namespace UnityEngine.Rendering.Universal
             viewport.y      *= renderPass.renderTargetDesc.height;
             viewport.height *= renderPass.renderTargetDesc.height;
         }
+
+        internal void UpdateXRView(Matrix4x4 proj, Matrix4x4 view, Rect vp, int dstSlice)
+        {
+            projMatrix = proj;
+            viewMatrix = view;
+            viewport = vp;
+            occlusionMesh = null;
+            textureArraySlice = dstSlice;
+        }
     }
 
     class XRPass
     {
-        readonly List<XRView> views = new List<XRView>(2);
+        internal List<XRView> views = new List<XRView>(2);
 
         internal bool enabled      { get => views.Count > 0; }
         internal bool xrSdkEnabled { get; private set; }
@@ -152,6 +161,14 @@ namespace UnityEngine.Rendering.Universal
             passInfo.copyDepth = false;
 
             return passInfo;
+        }
+
+        internal void UpdateView(int viewId, Matrix4x4 proj, Matrix4x4 view, Rect vp, int textureArraySlice = -1)
+        {
+            if (viewId >= views.Count)
+                throw new NotImplementedException($"Invalid XR setup to update, trying to update non-existing xr view.");
+
+            views[viewId].UpdateXRView(proj, view, vp, textureArraySlice);
         }
 
         internal void AddView(Matrix4x4 proj, Matrix4x4 view, Rect vp, int textureArraySlice = -1)

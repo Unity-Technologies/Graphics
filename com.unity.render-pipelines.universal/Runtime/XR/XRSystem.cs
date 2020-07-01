@@ -203,7 +203,17 @@ namespace UnityEngine.Rendering.Universal
         // Used for camera stacking where we need to update the parameters per camera
         internal void UpdateFromCamera(ref XRPass xrPass, Camera camera)
         {
-            if (xrPass.enabled && display != null)
+            bool isGameCamera = (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR);
+            if (XRGraphicsAutomatedTests.enabled && XRGraphicsAutomatedTests.running && isGameCamera)
+            {
+                // XR test framework code path. Update 2nd view with camera's view projection data
+                Matrix4x4 projMatrix = camera.projectionMatrix;
+                Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
+                Rect      viewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight);
+                int       textureArraySlice = -1;
+                xrPass.UpdateView(1, projMatrix, viewMatrix, viewport, textureArraySlice);
+            }
+            else if (xrPass.enabled && display != null)
             {
                 display.GetRenderPass(xrPass.multipassId, out var renderPass);
                 display.GetCullingParameters(camera, renderPass.cullingPassIndex, out var cullingParams);
