@@ -2,8 +2,8 @@ from ...shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TES
 
 def _cmd_base(project_folder, components):
     return [
-        f'curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output {TEST_PROJECTS_DIR}/{project_folder}/utr.bat',
         f'git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects',
+        f'curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output {TEST_PROJECTS_DIR}/{project_folder}/utr.bat',
         f'pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade',
         f'cd {TEST_PROJECTS_DIR}/URP-Update-testing/{project_folder} && unity-downloader-cli --source-file ../../{PATH_UNITY_REVISION} {"".join([f"-c {c} " for c in components])} --wait --published-only'
     ]
