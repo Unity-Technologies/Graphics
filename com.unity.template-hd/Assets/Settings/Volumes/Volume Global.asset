@@ -217,6 +217,7 @@ MonoBehaviour:
   - {fileID: -2167125165479156652}
   - {fileID: 2868761228689672970}
   - {fileID: -3969488579639410846}
+  - {fileID: 1959655113031138520}
 --- !u!114 &1359070828411649799
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -240,6 +241,25 @@ MonoBehaviour:
   fogType:
     m_OverrideState: 1
     m_Value: 0
+--- !u!114 &1959655113031138520
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e17fad69ea181b4483974138b566975, type: 3}
+  m_Name: ScreenSpaceRefraction
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  screenFadeDistance:
+    m_OverrideState: 1
+    m_Value: 0.001
+    min: 0.001
+    max: 1
 --- !u!114 &2112682869544596416
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -385,7 +405,7 @@ MonoBehaviour:
     max: 1
   screenResolutionPercentage:
     m_OverrideState: 1
-    m_Value: 20
+    m_Value: 6.25
     min: 6.25
     max: 100
   volumeSliceCount:
