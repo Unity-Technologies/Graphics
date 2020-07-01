@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// <summary>
     /// GUI for HDRP Unlit shader graphs
     /// </summary>
-    class HDUnlitGUI : HDShaderGUI
+    public class HDUnlitGUI : HDShaderGUI
     {
         const SurfaceOptionUIBlock.Features surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Unlit;
 
@@ -21,6 +21,11 @@ namespace UnityEditor.Rendering.HighDefinition
             new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, ~AdvancedOptionsUIBlock.Features.SpecularOcclusion)
         };
 
+        /// <summary>
+        /// Implement your custom GUI in this function.false You'll probably want to use the MaterialUIBlock to display a UI similar to HDRP shaders.
+        /// </summary>
+        /// <param name="materialEditor">The current material editor.</param>
+        /// <param name="props">The list of properties the material have.</param>
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             using (var changed = new EditorGUI.ChangeCheckScope())
@@ -30,6 +35,10 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Setups the keywords and passes for a Unlit ShaderGraph material.
+        /// </summary>
+        /// <param name="material">The target material.</param>
         public static void SetupMaterialKeywordsAndPass(Material material)
         {
             SynchronizeShaderGraphProperties(material);
