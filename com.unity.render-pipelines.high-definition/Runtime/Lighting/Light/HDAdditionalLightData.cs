@@ -2827,6 +2827,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Force to clamp the shape if we changed the type of the light
             shapeWidth = m_ShapeWidth;
             shapeHeight = m_ShapeHeight;
+
+            legacyLight.areaSize = new Vector2(shapeWidth, shapeHeight);
         }
 
         /// <summary>
