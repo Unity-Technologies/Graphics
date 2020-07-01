@@ -702,7 +702,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed typo in the Render Pipeline Wizard under HDRP+VR
 - Change transparent SSR name in frame settings to avoid clipping. 
 - Fixed fallback for ray tracing and light layers (1258837).
-- Fixed unitialized ray tracing resources when using multiple HDRP assets (case 1259467).
+- Fixed unitialized ray tracing resources when using non-default HDRP asset (case 1259467).
 
 ### Changed
 - Improve MIP selection for decals on Transparents
