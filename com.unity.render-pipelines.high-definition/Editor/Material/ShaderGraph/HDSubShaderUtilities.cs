@@ -136,6 +136,7 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddFloatProperty("_AlphaSrcBlend", 1.0f);
             collector.AddFloatProperty("_AlphaDstBlend", 0.0f);
             collector.AddToggleProperty("_AlphaToMask", alphaToMask);
+            collector.AddToggleProperty("_AlphaToMaskInspectorValue", alphaToMask);
             collector.AddToggleProperty(kZWrite, (surface == SurfaceType.Transparent) ? transparentZWrite : true);
             collector.AddToggleProperty(kTransparentZWrite, transparentZWrite);
             collector.AddFloatProperty("_CullMode", (int)CullMode.Back);
