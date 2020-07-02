@@ -21,6 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent normalMapText = new GUIContent("Normal Map", "Specifies the normal map for this Material (BC7/BC5/DXT5(nm)).");
             public static GUIContent decalBlendText = new GUIContent("Global Opacity", "Controls the opacity of the entire decal.");
             public static GUIContent albedoModeText = new GUIContent("Affect BaseColor", "Base color + Opacity, Opacity only.");
+            public static GUIContent normalModeText = new GUIContent("Affect Normal", "TODO");
             public static GUIContent normalOpacityChannelText = new GUIContent("Normal Opacity Channel", "Specifies the source this Material uses as opacity for its Normal Map.");
             public static GUIContent smoothnessRemappingText = new GUIContent("Smoothness Remapping", "Controls a remap for the smoothness channel in the Mask Map.");
             public static GUIContent metallicText = new GUIContent("Metallic Scale", "Controls a scale factor for the metallic channel in the Mask Map.");
@@ -221,7 +222,6 @@ namespace UnityEditor.Rendering.HighDefinition
             // Detect any changes to the material
             EditorGUI.BeginChangeCheck();
             {
-                // TODO: does not work with multi-selection
                 materialEditor.TexturePropertySingleLine((materials[0].GetFloat(kAlbedoMode) == 1.0f) ? Styles.baseColorText : Styles.baseColorText2, baseColorMap, baseColor);
 
                 // Currently always display Albedo contribution as we have an albedo tint that apply
@@ -229,7 +229,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.ShaderProperty(albedoMode, Styles.albedoModeText);
                 EditorGUI.indentLevel--;
                 materialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);
-                if (materials[0].GetTexture(kNormalMap))
+                if (materials.All(m => m.GetTexture(kNormalMap)))
                 {
                     EditorGUI.indentLevel++;
                     normalBlendSrcValue = EditorGUILayout.Popup(Styles.normalOpacityChannelText, (int)normalBlendSrcValue, blendSourceNames);
@@ -237,7 +237,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 materialEditor.TexturePropertySingleLine(Styles.maskMapText[(int)maskBlendFlags], maskMap);
-                if (materials[0].GetTexture(kMaskMap))
+                if (materials.All(m => m.GetTexture(kMaskMap)))
                 {
                     EditorGUI.indentLevel++;
 
@@ -323,11 +323,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     materialEditor.ShaderProperty(emissiveExposureWeight, Styles.emissiveExposureWeightText);
                 }
 
-                EditorGUILayout.HelpBox(
-                    "Enable 'Metal and AO properties' in your HDRP Asset if you want to control the Metal and AO properties of decals.\nThere is a performance cost of enabling this option.",
-                    MessageType.Info);
+                if (!perChannelMask)
+                {
+                    EditorGUILayout.HelpBox("Enable 'Metal and AO properties' in your HDRP Asset if you want to control the Metal and AO properties of decals.\nThere is a performance cost of enabling this option.",
+                                            MessageType.Info);
+                }
             }
-
         }
     }
 }

@@ -129,6 +129,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float   angleOffset;             // Spot light
 
         public Vector3 forward;
+        public float   iesCut;                  // Spot light
+
         public GPULightType lightType;          // TODO: move this up?
 
         public Vector3 right;                   // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeWidth)
@@ -142,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float   rangeAttenuationBias;
 
         public CookieMode cookieMode;
-        public int     cookieIndex;             // Texture array index of the point and rectangle light cookies
+
         public int     shadowIndex;             // -1 if unused (TODO: 16 bit)
 
         public Vector4 cookieScaleOffset;       // coordinates of the cookie texture in the atlas

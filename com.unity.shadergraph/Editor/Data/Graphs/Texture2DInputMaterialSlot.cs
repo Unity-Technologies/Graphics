@@ -29,6 +29,8 @@ namespace UnityEditor.ShaderGraph
             set { m_DefaultType = value; }
         }
 
+        public override bool isDefaultValue => texture == null;
+
         public Texture2DInputMaterialSlot()
         {}
 

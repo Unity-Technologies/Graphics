@@ -1,6 +1,7 @@
 {
     "name": "Unity.Testing.VisualEffectGraph.Tests",
     "references": [
+        "Unity.RenderPipelines.Core.Runtime",
         "Unity.Testing.VisualEffectGraph",
         "Unity.VisualEffectGraph.Editor",
 		"Unity.VisualEffectGraph.Runtime",

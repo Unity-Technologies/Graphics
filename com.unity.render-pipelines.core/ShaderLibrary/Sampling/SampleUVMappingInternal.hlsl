@@ -30,7 +30,10 @@ real4 ADD_FUNC_SUFFIX(SampleUVMapping)(TEXTURE2D_PARAM(textureName, samplerName)
 
 // This version is use for the base normal map (BC5 or DXT5nm)
 #define ADD_NORMAL_FUNC_SUFFIX(Name) Name
-#if defined(UNITY_NO_DXT5nm)
+#if defined(UNITY_ASTC_NORMALMAP_ENCODING)
+#define UNPACK_NORMAL_FUNC UnpackNormalAG
+#define UNPACK_DERIVATIVE_FUNC UnpackDerivativeNormalAG
+#elif defined(UNITY_NO_DXT5nm)
 #define UNPACK_NORMAL_FUNC UnpackNormalRGB
 #define UNPACK_DERIVATIVE_FUNC UnpackDerivativeNormalRGB
 #else
