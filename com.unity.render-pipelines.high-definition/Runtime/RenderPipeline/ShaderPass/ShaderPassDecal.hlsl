@@ -54,7 +54,7 @@ void Frag(  PackedVaryingsToPS packedInput,
 
     if ((decalLayerMask & material.decalLayerMask) == 0)
     {
-        clipValue -= 1.0;
+        clipValue -= 2.0;
     }
 
     // Transform from relative world space to decal space (DS) to clip the decal
@@ -62,7 +62,7 @@ void Frag(  PackedVaryingsToPS packedInput,
     positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.5, 0.5);
     if (!(all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f)))
     {
-        clipValue -= 1.0; // helper lanes will be clipped
+        clipValue -= 2.0; // helper lanes will be clipped
     }
 
     // call clip as early as possible
