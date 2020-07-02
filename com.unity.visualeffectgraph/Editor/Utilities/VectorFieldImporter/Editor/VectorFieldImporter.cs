@@ -5,7 +5,12 @@ using System.IO;
 using System.Text;
 using System.Globalization;
 using UnityEngine;
+#if UNITY_2020_2_OR_NEWER
+using UnityEditor.AssetImporters;
+#else
 using UnityEditor.Experimental.AssetImporters;
+#endif
+
 
 namespace UnityEditor.VFXToolbox
 {
@@ -32,7 +37,7 @@ namespace UnityEditor.VFXToolbox
             return result;
         }
 
-        public override void OnImportAsset(AssetImportContext ctx)
+        public override void OnImportAsset(UnityEditor.AssetImporters.AssetImportContext ctx)
         {
             byte[] bytes = File.ReadAllBytes(ctx.assetPath);
             int width = 1, height = 1, depth = 1;

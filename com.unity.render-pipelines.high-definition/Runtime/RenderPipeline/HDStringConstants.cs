@@ -379,6 +379,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CustomDepthTexture = Shader.PropertyToID("_CustomDepthTexture");
         public static readonly int _CustomColorTexture = Shader.PropertyToID("_CustomColorTexture");
         public static readonly int _CustomPassInjectionPoint = Shader.PropertyToID("_CustomPassInjectionPoint");
+        public static readonly int _AfterPostProcessColorBuffer = Shader.PropertyToID("_AfterPostProcessColorBuffer");
 
         public static readonly int _InputCubemap = Shader.PropertyToID("_InputCubemap");
         public static readonly int _Mipmap = Shader.PropertyToID("_Mipmap");
@@ -905,6 +906,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kZTestDepthEqualForOpaque = "_ZTestDepthEqualForOpaque";
         public const string kBlendMode = "_BlendMode";
         public const string kAlphaToMask = "_AlphaToMask";
+        public const string kAlphaToMaskInspector = "_AlphaToMaskInspectorValue";
         public const string kEnableFogOnTransparent = "_EnableFogOnTransparent";
         public const string kDistortionDepthTest = "_DistortionDepthTest";
         public const string kDistortionEnable = "_DistortionEnable";
@@ -933,6 +935,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kAddPrecomputedVelocity = "_AddPrecomputedVelocity";
         public const string kShadowMatteFilter = "_ShadowMatteFilter";
         public const string kDepthOffsetEnable = "_DepthOffsetEnable";
+        public const string kDisplacementMode = "_DisplacementMode";
 
         public static readonly Color[] kLayerColors =
         {
