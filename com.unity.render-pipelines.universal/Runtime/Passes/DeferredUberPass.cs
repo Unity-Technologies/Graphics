@@ -20,8 +20,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         RenderTargetHandle m_DepthAttachment;
         DeferredLights m_DeferredLights;
 
-        ComputeShader m_GBufferInitCS;
-
         ShaderTagId[] m_ShaderTagIds = { 
             new ShaderTagId("UniversalGBuffer"),
         };
@@ -29,13 +27,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         const int tileWidth = 16;
         const int tileHeight = 16;
 
-        public DeferredUberPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, DeferredLights deferredLights, ComputeShader GBufferInitCS)
+        public DeferredUberPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, DeferredLights deferredLights)
         {
             base.renderPassEvent = evt;
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
             m_DeferredLights = deferredLights;
-            m_GBufferInitCS = GBufferInitCS;
         }
 
         public void Setup(ref RenderingData renderingData, RenderTargetHandle colorAttachment, RenderTargetHandle depthAttachment)
@@ -72,8 +69,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 cmd.SetViewProjectionMatrices(renderingData.cameraData.camera.worldToCameraMatrix, renderingData.cameraData.camera.projectionMatrix);
                 // Note: a special case might be required if(renderingData.cameraData.isStereoEnabled) - see reference in ScreenSpaceShadowResolvePass.Execute
-
-                cmd.DispatchComputePerTile(m_GBufferInitCS, 0, tileWidth, tileHeight, 1);
 
                 context.ExecuteCommandBuffer(cmd); // send the cmd to the scriptableRenderContext - this should be done *before* calling scriptableRenderContext.DrawRenderers
                 cmd.Clear();

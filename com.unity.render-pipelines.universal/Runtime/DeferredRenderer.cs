@@ -130,7 +130,7 @@ namespace UnityEngine.Rendering.Universal
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
             m_DeferredUberPass = new DeferredUberPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, 
-                data.opaqueLayerMask, m_DeferredLights, data.shaders.GBufferInitCS);
+                data.opaqueLayerMask, m_DeferredLights);
 
 #if UNITY_EDITOR
             m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass(RenderPassEvent.AfterRendering + 9, m_CopyDepthMaterial);

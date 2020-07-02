@@ -54,8 +54,6 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Utils/StencilDeferred.shader")]
             public Shader stencilDeferredPS;
 
-            [Reload("Shaders/GBufferInit.compute")]
-            public ComputeShader GBufferInitCS;
         }
 
         [Reload("Runtime/Data/PostProcessData.asset")]

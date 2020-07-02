@@ -228,6 +228,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma fragment LitGBufferPassFragment
             //#pragma enable_d3d11_debug_symbols
 
+            #define GBUFFER_IMBLOCK_WRITE
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitGBufferPass.hlsl"
             ENDHLSL
