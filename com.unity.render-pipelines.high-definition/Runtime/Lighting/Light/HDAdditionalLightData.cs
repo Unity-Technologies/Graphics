@@ -1430,7 +1430,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Plane[]             m_ShadowFrustumPlanes = new Plane[6];
 
         // temporary matrix that stores the previous light data (mainly used to discard history for ray traced screen space shadows)
-        [System.NonSerialized] internal Matrix4x4 previousTransform = new Matrix4x4();
+        [System.NonSerialized] internal Matrix4x4 previousTransform = Matrix4x4.identity;
         // Temporary index that stores the current shadow index for the light
         [System.NonSerialized] internal int shadowIndex = -1;
 
