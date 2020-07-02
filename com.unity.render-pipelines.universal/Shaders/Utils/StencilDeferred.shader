@@ -419,6 +419,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             #pragma multi_compile _FOG
             #pragma multi_compile FOG_LINEAR FOG_EXP FOG_EXP2
+            #pragma multi_compile_fragment _ METAL2_ENABLED
 
             #pragma vertex Vertex
             #pragma fragment FragFog
