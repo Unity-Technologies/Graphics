@@ -169,13 +169,13 @@ MonoBehaviour:
     m_Value: 8.5
   compensation:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0.5
   limitMin:
     m_OverrideState: 1
-    m_Value: 7
+    m_Value: 8
   limitMax:
     m_OverrideState: 1
-    m_Value: 10
+    m_Value: 11
   curveMap:
     m_OverrideState: 0
     m_Value:
@@ -321,7 +321,7 @@ MonoBehaviour:
     min: 0
   intensity:
     m_OverrideState: 1
-    m_Value: 0.2
+    m_Value: 0.3
     min: 0
     max: 1
   scatter:

@@ -18,7 +18,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &3545202306954010937
 Transform:
   m_ObjectHideFlags: 0
@@ -154,7 +154,7 @@ MonoBehaviour:
   SMAAQuality: 2
   dithering: 1
   stopNaNs: 1
-  taaSharpenStrength: 0.5
+  taaSharpenStrength: 0.2
   TAAQuality: 1
   taaHistorySharpening: 0.35
   taaAntiFlicker: 0.5
@@ -213,7 +213,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &3545202307361414934
 Transform:
   m_ObjectHideFlags: 0
@@ -252,7 +252,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &3545202307719224082
 Transform:
   m_ObjectHideFlags: 0
@@ -388,7 +388,7 @@ MonoBehaviour:
   SMAAQuality: 2
   dithering: 1
   stopNaNs: 1
-  taaSharpenStrength: 0.5
+  taaSharpenStrength: 0.2
   TAAQuality: 1
   taaHistorySharpening: 0.35
   taaAntiFlicker: 0.5
@@ -450,7 +450,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &3545202307997687173
 Transform:
   m_ObjectHideFlags: 0
@@ -458,8 +458,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3545202307997687172}
-  m_LocalRotation: {x: 0.034639694, y: 0.895183, z: 0.07069359, w: -0.43869108}
-  m_LocalPosition: {x: 40.431786, y: 0.99010277, z: 5.280796}
+  m_LocalRotation: {x: 0.036926508, y: 0.8967055, z: 0.07622538, w: -0.43444845}
+  m_LocalPosition: {x: 39.95788, y: 1.2413256, z: 5.7493534}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 3545202307361414934}
@@ -586,7 +586,7 @@ MonoBehaviour:
   SMAAQuality: 2
   dithering: 1
   stopNaNs: 1
-  taaSharpenStrength: 0.5
+  taaSharpenStrength: 0.2
   TAAQuality: 1
   taaHistorySharpening: 0.35
   taaAntiFlicker: 0.5
@@ -648,7 +648,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &3545202308409818490
 Transform:
   m_ObjectHideFlags: 0
@@ -784,7 +784,7 @@ MonoBehaviour:
   SMAAQuality: 2
   dithering: 1
   stopNaNs: 1
-  taaSharpenStrength: 0.5
+  taaSharpenStrength: 0.2
   TAAQuality: 1
   taaHistorySharpening: 0.35
   taaAntiFlicker: 0.5
@@ -854,13 +854,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3545202308498161297}
-  m_LocalRotation: {x: -0.086363554, y: 0.6736097, z: 0.079720765, w: 0.7296821}
-  m_LocalPosition: {x: 44.3771, y: 1.2345252, z: -0.22696507}
+  m_LocalRotation: {x: 0.04183443, y: -0.5914094, z: -0.031165563, w: -0.8046823}
+  m_LocalPosition: {x: 45.78042, y: 2.3553462, z: -1.408411}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 3545202307361414934}
   m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -13.34, y: 85.424, z: -0.001}
 --- !u!20 &3545202308498161293
 Camera:
   m_ObjectHideFlags: 0
@@ -982,7 +982,7 @@ MonoBehaviour:
   SMAAQuality: 2
   dithering: 1
   stopNaNs: 1
-  taaSharpenStrength: 0.5
+  taaSharpenStrength: 0.2
   TAAQuality: 1
   taaHistorySharpening: 0.35
   taaAntiFlicker: 0.5
@@ -1044,7 +1044,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &3545202308814811041
 Transform:
   m_ObjectHideFlags: 0
@@ -1052,8 +1052,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3545202308814811040}
-  m_LocalRotation: {x: -0.010209701, y: -0.40989357, z: 0.0045902585, w: -0.9120647}
-  m_LocalPosition: {x: -12.5095825, y: 4.93386, z: -6.211176}
+  m_LocalRotation: {x: 0.036380578, y: 0.24532843, z: -0.009058564, w: 0.9687148}
+  m_LocalPosition: {x: -7.7192316, y: 6.4824557, z: -11.839123}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 3545202307361414934}
@@ -1180,7 +1180,7 @@ MonoBehaviour:
   SMAAQuality: 2
   dithering: 1
   stopNaNs: 1
-  taaSharpenStrength: 0.5
+  taaSharpenStrength: 0.2
   TAAQuality: 1
   taaHistorySharpening: 0.35
   taaAntiFlicker: 0.5
