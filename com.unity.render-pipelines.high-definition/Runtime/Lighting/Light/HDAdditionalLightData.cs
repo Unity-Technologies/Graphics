@@ -2361,6 +2361,11 @@ namespace UnityEngine.Rendering.HighDefinition
             DisableCachedShadowSlot();
             m_ShadowMapRenderedSinceLastRequest = false;
 
+            if (emissiveMeshRenderer != null && !emissiveMeshRenderer.Equals(null))
+            {
+                emissiveMeshRenderer.gameObject.layer = m_AreaLightEmissiveMeshLayer;
+            }
+
 #if UNITY_EDITOR
             // If modification are due to change on prefab asset, we want to have prefab instances to self-update, but we cannot check in OnValidate if this is part of
             // prefab instance. So we delay the check on next update (and before teh LateUpdate logic)
