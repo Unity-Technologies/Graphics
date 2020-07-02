@@ -14517,7 +14517,7 @@ MonoBehaviour:
     distanceFadeStart: 20
     distanceFadeEnd: 30
     textureIndex: 0
-    textureOffset: {x: -0, y: -22.14617, z: 0}
+    textureOffset: {x: -0, y: -9.812092, z: 0}
 --- !u!1 &1518163832
 GameObject:
   m_ObjectHideFlags: 19
@@ -21242,10 +21242,20 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 714672050}
     m_Modifications:
+    - target: {fileID: 4533175117981471253, guid: 76336da601705b24888cb14d8af76073,
+        type: 3}
+      propertyPath: m_ShadowFadeDistance
+      value: 24
+      objectReference: {fileID: 0}
     - target: {fileID: 4939890636832620780, guid: 76336da601705b24888cb14d8af76073,
         type: 3}
       propertyPath: m_Name
       value: CeilingLamp_01
+      objectReference: {fileID: 0}
+    - target: {fileID: 6646959568256708385, guid: 76336da601705b24888cb14d8af76073,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8707388281747785984, guid: 76336da601705b24888cb14d8af76073,
         type: 3}
