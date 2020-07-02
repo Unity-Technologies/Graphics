@@ -100,7 +100,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmd.Clear();
                 CoreUtils.SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare, depthAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None);
                 context.ExecuteCommandBuffer(cmd);
+                filterSettings.renderQueueRange = RenderQueueRange.opaque;
                 context.DrawRenderers(renderingData.cullResults, ref depthDrawSettings, ref filterSettings);
+                filterSettings.renderQueueRange = RenderQueueRange.transparent;
 
                 SortingSettings sortSettings = combinedDrawSettings.sortingSettings;
                 GetTransparencySortingMode(camera, ref sortSettings);
