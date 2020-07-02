@@ -10,18 +10,6 @@ namespace UnityEditor.ShaderGraph
     {
         private static Dictionary<Type,List<ContextFilterableAttribute>> m_KnownTypeLookupTable;
 
-        private static Dictionary<Type, List<ContextFilterableAttribute>> s_KnownTypeLookupTable
-        {
-            get
-            {
-                if(m_KnownTypeLookupTable == null)
-                {
-                    ReCacheKnownNodeTypes();
-                }
-                return m_KnownTypeLookupTable;
-            }
-        }
-
         public static IEnumerable<Type> knownNodeTypes
         {
             get => m_KnownTypeLookupTable.Keys;
@@ -99,14 +87,6 @@ namespace UnityEditor.ShaderGraph
         {
             ReCacheKnownNodeTypes();
             //DebugPrintKnownNodes();
-            AssemblyReloadEvents.beforeAssemblyReload += Teardown;
-        }
-
-
-        private static void Teardown()
-        {
-            m_KnownTypeLookupTable = null;
-            AssemblyReloadEvents.beforeAssemblyReload -= Teardown;
         }
     }
 }
