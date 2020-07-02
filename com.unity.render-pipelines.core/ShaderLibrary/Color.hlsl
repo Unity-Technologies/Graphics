@@ -431,7 +431,7 @@ real3 LogCToLinear(real3 x)
     real clampedY = clamp(x.y, 0, x.y);
     real clampedZ = clamp(x.z, 0, x.z);
     real3 clampedVec = real3(clampedX, clampedY, clampedZ);
-    return (pow(10.0, (clampedVec - LogC.d) / LogC.c) - LogC.b) / LogC.a;
+    return 0;
 #endif
 }
 
