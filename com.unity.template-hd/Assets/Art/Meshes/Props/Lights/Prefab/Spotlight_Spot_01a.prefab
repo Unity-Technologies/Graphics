@@ -86,6 +86,11 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7800918859396210309, guid: d7af645ccfc58e14692b118dddb559b7,
+        type: 3}
+      propertyPath: showAdditionalSettings
+      value: 13
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d7af645ccfc58e14692b118dddb559b7, type: 3}
 --- !u!1001 &2153600787750253744
@@ -103,7 +108,7 @@ PrefabInstance:
     - target: {fileID: -8286866602418282587, guid: 4ad8548a0773a9647aa779c9b5e6cd54,
         type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8085209558490238270, guid: 4ad8548a0773a9647aa779c9b5e6cd54,
         type: 3}
@@ -133,7 +138,7 @@ PrefabInstance:
     - target: {fileID: -4274445788950559993, guid: 4ad8548a0773a9647aa779c9b5e6cd54,
         type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -4224231387315059391, guid: 4ad8548a0773a9647aa779c9b5e6cd54,
         type: 3}
@@ -203,7 +208,7 @@ PrefabInstance:
     - target: {fileID: -2442009484408551800, guid: 4ad8548a0773a9647aa779c9b5e6cd54,
         type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -927199367670048503, guid: 4ad8548a0773a9647aa779c9b5e6cd54,
         type: 3}
@@ -223,7 +228,7 @@ PrefabInstance:
     - target: {fileID: 5137415457938369313, guid: 4ad8548a0773a9647aa779c9b5e6cd54,
         type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5551014577142218206, guid: 4ad8548a0773a9647aa779c9b5e6cd54,
         type: 3}
@@ -278,11 +283,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 6384297014137675690}
     m_Modifications:
-    - target: {fileID: 1319547207420485836, guid: 03aad6501deca1e4bafc449a2d7073e5,
-        type: 3}
-      propertyPath: m_Intensity
-      value: 100
-      objectReference: {fileID: 0}
     - target: {fileID: 1332447828416647104, guid: 03aad6501deca1e4bafc449a2d7073e5,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -338,20 +338,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3769816593807863117, guid: 03aad6501deca1e4bafc449a2d7073e5,
-        type: 3}
-      propertyPath: m_Intensity
-      value: 100
-      objectReference: {fileID: 0}
     - target: {fileID: 7097592091236896670, guid: 03aad6501deca1e4bafc449a2d7073e5,
         type: 3}
       propertyPath: m_Name
       value: Light_Point_Hotspot_Normal
-      objectReference: {fileID: 0}
-    - target: {fileID: 7097592091236896670, guid: 03aad6501deca1e4bafc449a2d7073e5,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 03aad6501deca1e4bafc449a2d7073e5, type: 3}
