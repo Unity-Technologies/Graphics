@@ -81,8 +81,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Alpha Test
             // TODO: AlphaTest is in SystemData but Alpha to Mask is in BuiltinData?
             AddProperty(alphaCutoffEnableText, () => systemData.alphaTest, (newValue) => systemData.alphaTest = newValue);
-            AddProperty(useShadowThresholdText, () => builtinData.alphaTestShadow, (newValue) => builtinData.alphaTestShadow = newValue);
-            AddProperty(alphaToMaskText, () => builtinData.alphaToMask, (newValue) => builtinData.alphaToMask = newValue);
+            if (systemData.alphaTest)
+            { 
+                AddProperty(useShadowThresholdText, () => builtinData.alphaTestShadow, (newValue) => builtinData.alphaTestShadow = newValue);
+                AddProperty(alphaToMaskText, () => builtinData.alphaToMask, (newValue) => builtinData.alphaToMask = newValue);
+            }
 
             // Misc
             AddProperty(Styles.doubleSidedModeText, () => systemData.doubleSidedMode, (newValue) => systemData.doubleSidedMode = newValue);
