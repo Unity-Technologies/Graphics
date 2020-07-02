@@ -427,9 +427,11 @@ real3 LogCToLinear(real3 x)
         LogCToLinear_Precise(x.z)
     );
 #else
-    real clampedVal = (x - LogC.d) / LogC.c;
-    clampedVal = clamp(clampedVal, 0, clampedVal);
-    return (pow(10.0, clampedVal) - LogC.b) / LogC.a;
+    real clampedX = clamp(x.x, 0, x.x);
+    real clampedY = clamp(x.y, 0, x.y);
+    real clampedZ = clamp(x.z, 0, x.z);
+    real3 clampedVec = real3(clampedX, clampedY, clampedZ);
+    return (pow(10.0, (clampedVec - LogC.d) / LogC.c) - LogC.b) / LogC.a;
 #endif
 }
 
