@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         internal bool m_ReceiveDecals = true;
 
         [SerializeField]
-        DecalLayerMask m_DecalLayerMask;
+        DecalLayerMask m_DecalLayerMask = DecalLayerMask.Layer0;
         public DecalLayerMask decalLayerMask
         {
             get => m_DecalLayerMask;
