@@ -88,8 +88,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                         return;
 
                     registerUndo(displayName.text);
-                    var param = (Data)(object)evt.newValue;
-                    setter(param);
                     setter((Data)(object)new DecalLayerMask(evt.newValue));
                     onChange();
                 });
