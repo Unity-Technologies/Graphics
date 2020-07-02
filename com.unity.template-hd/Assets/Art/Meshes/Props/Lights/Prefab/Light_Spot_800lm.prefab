@@ -44,9 +44,9 @@ Light:
   m_Type: 0
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 254.64789
-  m_Range: 8
-  m_SpotAngle: 120
+  m_Intensity: 298.58563
+  m_Range: 6
+  m_SpotAngle: 110
   m_InnerSpotAngle: 1
   m_CookieSize: 10
   m_Shadows:
@@ -117,7 +117,7 @@ MonoBehaviour:
   m_Intensity: 800
   m_EnableSpotReflector: 1
   m_LuxAtDistance: 1
-  m_InnerSpotPercent: 80
+  m_InnerSpotPercent: 50
   m_SpotIESCutoffPercent: 100
   m_LightDimmer: 1
   m_VolumetricDimmer: 1

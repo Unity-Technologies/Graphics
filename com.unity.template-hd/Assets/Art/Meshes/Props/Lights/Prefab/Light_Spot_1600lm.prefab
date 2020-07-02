@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 9203907179793585638}
   - component: {fileID: 7800918859396210309}
   m_Layer: 0
-  m_Name: Light_Spot_1200lm
+  m_Name: Light_Spot_1600lm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -44,9 +44,9 @@ Light:
   m_Type: 0
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 534.65656
-  m_Range: 5
-  m_SpotAngle: 100
+  m_Intensity: 869.4223
+  m_Range: 8
+  m_SpotAngle: 90
   m_InnerSpotAngle: 1
   m_CookieSize: 10
   m_Shadows:
@@ -114,7 +114,7 @@ MonoBehaviour:
   m_PointlightHDType: 0
   m_SpotLightShape: 0
   m_AreaLightShape: 0
-  m_Intensity: 1200
+  m_Intensity: 1600
   m_EnableSpotReflector: 1
   m_LuxAtDistance: 1
   m_InnerSpotPercent: 60
