@@ -769,6 +769,9 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ObjectMotionVectors] &= motionVector && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentsWriteMotionVector] &= motionVector && !preview;
 
+            // Disable SSR when motion vectors are off
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSR] &= motionVector;
+
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Decals] &= renderPipelineSettings.supportDecals && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentPostpass] &= renderPipelineSettings.supportTransparentDepthPostpass && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Distortion] &= renderPipelineSettings.supportDistortion && !msaa && !preview;

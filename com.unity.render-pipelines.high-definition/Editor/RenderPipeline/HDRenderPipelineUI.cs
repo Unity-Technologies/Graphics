@@ -238,7 +238,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_SectionReflection(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSR, Styles.supportSSRContent);
+            using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportMotionVectors.boolValue))
+            {
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSR, Styles.supportSSRContent);
+                serialized.renderPipelineSettings.supportSSR.boolValue &= serialized.renderPipelineSettings.supportMotionVectors.boolValue;
+            }
+            
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportSSR.boolValue))
             {
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSRTransparent, Styles.supportSSRTransparentContent);
