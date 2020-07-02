@@ -265,20 +265,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2606308269258677512, guid: 43a2c40dd5bb4f6449d77cd82d533131,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 4294967295
-      objectReference: {fileID: 0}
     - target: {fileID: 2897031892463655715, guid: 43a2c40dd5bb4f6449d77cd82d533131,
         type: 3}
       propertyPath: m_Name
       value: Spotlight_Spot_01b
-      objectReference: {fileID: 0}
-    - target: {fileID: 2897031892463655715, guid: 43a2c40dd5bb4f6449d77cd82d533131,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 4294967295
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 43a2c40dd5bb4f6449d77cd82d533131, type: 3}
