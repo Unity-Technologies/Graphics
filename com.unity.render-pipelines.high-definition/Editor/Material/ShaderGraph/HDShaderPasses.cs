@@ -404,7 +404,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Collections
-                requiredFields = supportLighting ? CoreRequiredFields.LitFull : null,
+                requiredFields = GenerateRequiredFields(),
                 renderStates = CoreRenderStates.Forward,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = supportLighting ? CoreDefines.Forward : null,
@@ -413,6 +413,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 virtualTextureFeedback = true,
             };
+
+            FieldCollection GenerateRequiredFields()
+            {
+                if (supportLighting)
+                    return CoreRequiredFields.LitFull;
+                else
+                {
+                    return new FieldCollection
+                    {
+                        // TODO: add preprocessor protection for this interpolator: _TRANSPARENT_WRITES_MOTION_VEC
+                        HDStructFields.FragInputs.positionRWS,
+                    };
+                }
+            }
 
             IncludeCollection GenerateIncludes()
             {

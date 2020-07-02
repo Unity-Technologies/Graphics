@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 5
+  version: 6
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -108,6 +108,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 3f9313f68c2869648b020663f29c8420, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_682c430a1f3b4edb9668ccc6789ab479_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 3f9313f68c2869648b020663f29c8420, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_903E4D2D_Texture_1:
         m_Texture: {fileID: 2800000, guid: 3f9313f68c2869648b020663f29c8420, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -154,6 +158,7 @@ Material:
     - _AlphaDstBlend: 0
     - _AlphaSrcBlend: 1
     - _AlphaToMask: 1
+    - _AlphaToMaskInspectorValue: 1
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatMask: 0
