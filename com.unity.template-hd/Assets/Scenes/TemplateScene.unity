@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 5627.0938, g: 4076.5264, b: 3702.3542, a: 1}
+  m_IndirectSpecularColor: {r: 5626.0996, g: 4076.0732, b: 3702.2996, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -15594,7 +15594,7 @@ MonoBehaviour:
     distanceFadeStart: 20
     distanceFadeEnd: 30
     textureIndex: 0
-    textureOffset: {x: -0, y: -154.41412, z: 0}
+    textureOffset: {x: -0, y: -52.164433, z: 0}
 --- !u!1 &1518163832
 GameObject:
   m_ObjectHideFlags: 19
@@ -23985,10 +23985,25 @@ PrefabInstance:
       propertyPath: m_Materials.Array.data[2]
       value: 
       objectReference: {fileID: 2100000, guid: 51715d426647c0a469aa54fd0d386aa6, type: 2}
+    - target: {fileID: 3000524393225805470, guid: 4f699647e46f5b941b976d9a1beba4cc,
+        type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
     - target: {fileID: 3413977195110685305, guid: 4f699647e46f5b941b976d9a1beba4cc,
         type: 3}
       propertyPath: m_Name
       value: Ball_PF
+      objectReference: {fileID: 0}
+    - target: {fileID: 3413977195110685305, guid: 4f699647e46f5b941b976d9a1beba4cc,
+        type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 4325897608372888364, guid: 4f699647e46f5b941b976d9a1beba4cc,
+        type: 3}
+      propertyPath: m_Layer
+      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 7463582231431991560, guid: 4f699647e46f5b941b976d9a1beba4cc,
         type: 3}
@@ -24328,7 +24343,7 @@ MonoBehaviour:
         useOcclusionCulling: 1
         cullingMask:
           serializedVersion: 2
-          m_Bits: 4294967295
+          m_Bits: 311
         sceneCullingMaskOverride: 0
       invertFaceCulling: 0
       flipYMode: 0
