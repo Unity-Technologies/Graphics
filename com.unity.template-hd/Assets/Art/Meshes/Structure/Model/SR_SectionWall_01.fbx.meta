@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: a14c587d20d95c64b87da73879bf5894
+guid: 8af0f10b22758344ebdbaeb3d0a22c3a
 ModelImporter:
   serializedVersion: 20100
   internalIDToNameTable: []
@@ -12,38 +12,8 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: ConcreteBlock_Mat
-    second: {fileID: 2100000, guid: d4fffcc47328dd242af80b2682fb416b, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: ConcreteHoles_Mat
-    second: {fileID: 2100000, guid: cf59b8132f6cd2f49b8924afeed7674b, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
       name: ConcreteMatteGrey_Mat
     second: {fileID: 2100000, guid: f042a9897837021468ecfcb204be998e, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: ConcretePanel_Mat
-    second: {fileID: 2100000, guid: 322621a2a3702224d8fed07826ec883b, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: ConcretePanels_Mat
-    second: {fileID: 2100000, guid: 322621a2a3702224d8fed07826ec883b, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: ConcreteRough_Mat
-    second: {fileID: 2100000, guid: 2d5eb5266d7bdbf49a5a251d8dcecbeb, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: ConcreteSmooth_Mat
-    second: {fileID: 2100000, guid: 975c89d1f9e67f24a88b46d50fc95a09, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
@@ -52,33 +22,8 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: ConcreteTaupe_Mat
-    second: {fileID: 2100000, guid: 8803ecc3c0ada6f48bbd21e716f8522b, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: DarkWood_Mat
-    second: {fileID: 2100000, guid: e33cccf0d53e74c4d8ed2520d228620f, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Grey
-    second: {fileID: 2100000, guid: 21ecea468180d8f44bb49a637b7077a0, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
       name: SandBlastMetal_Mat
     second: {fileID: 2100000, guid: 2d17ebb7fe958ff4898d2c0cd1dddce9, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: WoodDark_Mat
-    second: {fileID: 2100000, guid: e33cccf0d53e74c4d8ed2520d228620f, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: WoodLight_Mat
-    second: {fileID: 2100000, guid: 4e5d77e737d61bc4582d0aff8c34e9ee, type: 2}
   materials:
     materialImportMode: 1
     materialName: 1
@@ -130,13 +75,13 @@ ModelImporter:
     minBoneWeight: 0.001
     meshOptimizationFlags: -1
     indexFormat: 0
-    secondaryUVAngleDistortion: 1
-    secondaryUVAreaDistortion: 1
-    secondaryUVHardAngle: 60
-    secondaryUVMarginMethod: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 1
     secondaryUVMinLightmapResolution: 40
     secondaryUVMinObjectScale: 1
-    secondaryUVPackMargin: 16
+    secondaryUVPackMargin: 4
     useFileScale: 1
   tangentSpace:
     normalSmoothAngle: 60
