@@ -412,14 +412,10 @@ real LogCToLinear_Precise(real x)
 {
     real o;
     if (x > LogC.e * LogC.cut + LogC.f)
-    {
-        real clampVal = x - LogC.d;
-        clampVal = clamp(clampVal, 0, clampVal);
-        o = (pow(10.0, (clampVal) / LogC.c) - LogC.b) / LogC.a;
-    }
+        o = (pow(10.0, (x - LogC.d) / LogC.c) - LogC.b) / LogC.a;
     else
         o = (x - LogC.f) / LogC.e;
-    return o;
+    return 0;
 }
 
 real3 LogCToLinear(real3 x)
@@ -431,13 +427,16 @@ real3 LogCToLinear(real3 x)
         LogCToLinear_Precise(x.z)
     );
 #else
-    return (pow(10.0, (x - LogC.d) / LogC.c) - LogC.b) / LogC.a;
+    real clampedVal = (x - LogC.d) / LogC.c;
+    clampedVal = clamp(clampedVal, 0, clampedVal);
+    return (pow(10.0, clampedVal) - LogC.b) / LogC.a;
 #endif
 }
 
 //-----------------------------------------------------------------------------
 // Utilities
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------
+-------------------
 
 real3 Desaturate(real3 value, real saturation)
 {
