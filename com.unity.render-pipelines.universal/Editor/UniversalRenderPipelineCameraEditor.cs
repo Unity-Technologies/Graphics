@@ -339,25 +339,26 @@ namespace UnityEditor.Rendering.Universal
         // I added these restrictions:
         // - Can not reference scene object outside scene
         // - Can not reference cross scenes
+        // - Can reference child objects if it is prefab
         Camera[] FindCamerasToReference(GameObject gameObject)
         {
             var scene = gameObject.scene;
 
-            // Usually prefabs do not have valid scene
-            if (!scene.IsValid())
-                return new Camera[0];
+            var notInScene = EditorUtility.IsPersistent(camera) && !scene.IsValid();
+            var inPreviewScene = EditorSceneManager.IsPreviewScene(scene) && scene.IsValid();
+            var inCurrentScene = !EditorUtility.IsPersistent(camera) && scene.IsValid();
 
             Camera[] cameras = Resources.FindObjectsOfTypeAll<Camera>();
             List<Camera> result = new List<Camera>();
-            if (!EditorSceneManager.IsPreviewScene(scene))
+            if (notInScene)
             {
                 foreach (var camera in cameras)
                 {
-                    if (!EditorUtility.IsPersistent(camera) && !EditorSceneManager.IsPreviewScene(camera.gameObject.scene) && camera.gameObject.scene == scene)
+                    if (camera.transform.IsChildOf(gameObject.transform))
                         result.Add(camera);
                 }
             }
-            else
+            else if (inPreviewScene)
             {
                 foreach (var camera in cameras)
                 {
@@ -365,6 +366,15 @@ namespace UnityEditor.Rendering.Universal
                         result.Add(camera);
                 }
             }
+            else if (inCurrentScene)
+            {
+                foreach (var camera in cameras)
+                {
+                    if (!EditorUtility.IsPersistent(camera) && !EditorSceneManager.IsPreviewScene(camera.gameObject.scene) && camera.gameObject.scene == scene)
+                        result.Add(camera);
+                }
+            }
+            
             return result.ToArray();
         }
 
