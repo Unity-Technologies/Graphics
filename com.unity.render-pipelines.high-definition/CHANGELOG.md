@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where editing the Look Dev default profile would not reflect directly in the Look Dev window.
 - Fixed an issue where manipulating the color wheels in a volume component would reset the cursor every time.
 - Fixed an issue where static sky lighting would not be updated for a new scene until it's reloaded at least once.
+- Fixed missing include guards in shadow hlsl files.
 - Fixed issue with light layers bigger than 8 (and above the supported range). 
 
 ### Changed
