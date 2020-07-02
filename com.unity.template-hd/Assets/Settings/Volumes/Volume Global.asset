@@ -433,7 +433,7 @@ MonoBehaviour:
     showEyeDropper: 1
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 500
+    m_Value: 2000
     min: 1
   enableVolumetricFog:
     m_OverrideState: 1
@@ -459,7 +459,7 @@ MonoBehaviour:
     max: 1
   screenResolutionPercentage:
     m_OverrideState: 1
-    m_Value: 6.25
+    m_Value: 12.5
     min: 6.25
     max: 100
   volumeSliceCount:
