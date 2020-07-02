@@ -1,6 +1,6 @@
 # Visualizing normal vectors
 
-The shader in this example visualizes the normal vector values on the mesh.
+The Unity shader in this example visualizes the normal vector values on the mesh.
 
 Use the ShaderLab code from section [URP unlit basic shader](writing-shaders-urp-basic-unlit-structure.md) and make the following changes to it:
 

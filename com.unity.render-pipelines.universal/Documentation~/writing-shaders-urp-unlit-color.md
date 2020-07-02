@@ -21,7 +21,7 @@ Use the ShaderLab code from section [URP unlit basic shader](writing-shaders-urp
 
 2. After declaring a property in the Properties block, it's necessary to declare it in the HLSL program block. 
     
-    > __NOTE__: To ensure that the shader is SRP Batcher compatible, declare all Material properties inside a single `CBUFFER` block with the name `UnityPerMaterial`.
+    > __NOTE__: To ensure that the Unity shader is SRP Batcher compatible, declare all Material properties inside a single `CBUFFER` block with the name `UnityPerMaterial`.
     
     Add the following code before the vertex shader:
 
@@ -81,9 +81,9 @@ Shader "Example/URPUnlitShaderColor"
                 float4 positionHCS  : SV_POSITION;
             };
 
-            // To make the shader SRP Batcher compatible, declare all properties
-            // related to a Material in a a single CBUFFER block with the name
-            // UnityPerMaterial.
+            // To make the Unity shader SRP Batcher compatible, declare all
+            // properties related to a Material in a a single CBUFFER block with 
+            // the name UnityPerMaterial.
             CBUFFER_START(UnityPerMaterial)
                 // The following line declares the _BaseColor variable, so that you
                 // can use it in the fragment shader.

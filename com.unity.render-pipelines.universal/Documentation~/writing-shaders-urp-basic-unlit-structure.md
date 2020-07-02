@@ -16,8 +16,8 @@ Shader "Example/URPUnlitShaderBasic"
     // The SubShader block containing the Shader code. 
     SubShader
     {
-        // Tags define when and under which conditions a SubShader block or a pass
-        // is executed.
+        // SubShader Tags define when and under which conditions a SubShader block or
+        // a pass is executed.
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalRenderPipeline" }
         
         Pass
@@ -88,7 +88,7 @@ The following section introduces you to the structure of this basic shader.
 
 ## Basic ShaderLab structure
 
-Unity shader assets are written in a Unity-specific language called [ShaderLab](https://docs.unity3d.com/Manual/SL-Shader.html). 
+Unity shaders are written in a Unity-specific language called [ShaderLab](https://docs.unity3d.com/Manual/SL-Shader.html). 
 
 The shader in this example has the following blocks:
 
@@ -122,7 +122,7 @@ In this example, the Properties block is empty, since this shader does not expos
 
 ### SubShader block
 
-A ShaderLab file contains one or more [SubShader](https://docs.unity3d.com/Manual/SL-SubShader.html) blocks. When rendering a mesh, Unity selects the first SubShader block that is compatible with the GPU on the target device.
+A ShaderLab file contains one or more [SubShader](https://docs.unity3d.com/Manual/SL-SubShader.html) blocks. When rendering a mesh, Unity selects the first SubShader that is compatible with the GPU on the target device.
 
 A SubShader block contains the __Tags__ element.
 
@@ -132,7 +132,7 @@ Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalRenderPipeline" }
 
 The `RenderPipeline` tag in this Shader instructs Unity to use this SubShader block only when the project is using the Universal Render Pipeline.
 
-For more information on Tags, see [ShaderLab: SubShader Tags](https://docs.unity3d.com/Manual/SL-SubShaderTags.html).
+For more information on SubShader Tags, see [ShaderLab: SubShader Tags](https://docs.unity3d.com/Manual/SL-SubShaderTags.html).
 
 ### Pass block
 
@@ -142,7 +142,7 @@ In this example, there is one Pass block that contains the HLSL program code. Fo
 
 This block contains the HLSL program code.
 
-> **NOTE**: SRP shaders support only the HLSL language.
+> **NOTE**: URP shaders support only the HLSL language.
 
 This block contains the `#include` declaration with the reference to the `Core.hlsl` file.
 
