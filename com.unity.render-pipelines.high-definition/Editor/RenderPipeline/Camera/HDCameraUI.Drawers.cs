@@ -378,7 +378,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 EditorGUI.BeginProperty(fieldRect, shutterSpeedContent, p.shutterSpeed);
                 {
-                    // if we we use (1 / second) units, then change the value for the disaply and then revert it back
+                    // if we we use (1 / second) units, then change the value for the display and then revert it back
                     if (m_ShutterSpeedState.value == ShutterSpeedUnit.OneOverSecond && p.shutterSpeed.floatValue > 0)
                         p.shutterSpeed.floatValue = 1.0f / p.shutterSpeed.floatValue;
                     EditorGUI.PropertyField(fieldRect, p.shutterSpeed, shutterSpeedContent);
