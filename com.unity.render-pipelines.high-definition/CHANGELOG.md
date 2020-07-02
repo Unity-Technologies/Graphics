@@ -862,6 +862,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Renamed the debug name from SSAO to ScreenSpaceAmbientOcclusion (1254974).
 - Added missing tooltips and improved the UI of the aperture control (case 1254916).
 - Fixed wrong tooltips in the Dof Volume (case 1256641).
+- Shutter speed can now be changed by dragging the mouse over the UI label (case 1245007).
 
 ## [7.1.1] - 2019-09-05
 
