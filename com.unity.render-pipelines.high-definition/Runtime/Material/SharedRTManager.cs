@@ -113,21 +113,26 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SetKeyword(m_DepthResolveMaterial, "_HAS_MOTION_VECTORS", m_MotionVectorsSupport);
             }
 
+            // TODO: try to save this memory allocation. We can't reuse GBuffer for now as it require an additional clear before the GBuffer pass, otherwise the buffer can contain garbage that can be misinterpreted
+            // if forward object are render (see test in HDRP_Test DecalNormalPatch buffer)
+            if (m_DecalsSupported)
+                m_DecalPrePassBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, useDynamicScale: true, name: "Decal PrePass Buffer");
+
             // If we are in the forward only mode
             if (!m_ReuseGBufferMemory)
             {
                 // In case of full forward we must allocate the render target for normal buffer (or reuse one already existing)
                 // TODO: Provide a way to reuse a render target
                 m_NormalRT = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, name: "NormalBuffer");
-                if (m_DecalsSupported)
-                    m_DecalPrePassBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, useDynamicScale: true, name: "Decal PrePass Buffer");
+              //  if (m_DecalsSupported)
+                //    m_DecalPrePassBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, useDynamicScale: true, name: "Decal PrePass Buffer");
             }
             else
             {
                 // When not forward only we should are using the normal buffer of the gbuffer
                 // In case of deferred, we must be in sync with NormalBuffer.hlsl and lit.hlsl files and setup the correct buffers
                 m_NormalRT = gbufferManager.GetNormalBuffer(0); // Normal + Roughness
-                m_DecalPrePassBuffer = gbufferManager.GetDecalBuffer(); // Data buffer as 8888
+               // m_DecalPrePassBuffer = gbufferManager.GetDecalBuffer(); // Data buffer as 8888
             }
         }
 
@@ -374,11 +379,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Cleanup()
         {
+            if (m_DecalsSupported)
+                RTHandles.Release(m_DecalPrePassBuffer);
+
             if (!m_ReuseGBufferMemory)
             {
                 RTHandles.Release(m_NormalRT);
-                if (m_DecalsSupported)
-                    RTHandles.Release(m_DecalPrePassBuffer);
+               // if (m_DecalsSupported)
+                //    RTHandles.Release(m_DecalPrePassBuffer);
             }
 
             if (m_MotionVectorsSupport)
