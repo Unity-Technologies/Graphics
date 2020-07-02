@@ -708,6 +708,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where opening the look dev window with the light theme would make the window blink and eventually crash unity.
 - Fixed fallback for ray tracing and light layers (1258837).
 - Fixed Sorting Priority not displayed correctly in the DrawRenderers custom pass UI.
+- Fixed glitch in Project settings window when selecting diffusion profiles in material section (case 1253090)
 
 ### Changed
 - Improve MIP selection for decals on Transparents
