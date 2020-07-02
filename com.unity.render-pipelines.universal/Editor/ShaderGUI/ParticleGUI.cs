@@ -255,7 +255,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             if(material.HasProperty("_BumpMap"))
                 useNormalMap = material.GetTexture("_BumpMap");
 
-            bool useGPUInstancing = false;// ShaderUtil.HasProceduralInstancing(material.shader); // TODO - make internal API public?
+            bool useGPUInstancing = ShaderUtil.HasProceduralInstancing(material.shader);
             if (useGPUInstancing && renderers.Count > 0)
             {
                 if (!renderers[0].enableGPUInstancing || renderers[0].renderMode != ParticleSystemRenderMode.Mesh)
@@ -316,7 +316,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 renderer.GetActiveVertexStreams(rendererStreams);
 
                 bool streamsValid;
-                if (useGPUInstancing && renderer.renderMode == ParticleSystemRenderMode.Mesh)// && renderer.supportsMeshInstancing) // TODO - make internal API public?
+                if (useGPUInstancing && renderer.renderMode == ParticleSystemRenderMode.Mesh && renderer.supportsMeshInstancing)
                     streamsValid = rendererStreams.SequenceEqual(instancedStreams);
                 else
                     streamsValid = rendererStreams.SequenceEqual(streams);
@@ -337,7 +337,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
                     foreach (ParticleSystemRenderer renderer in renderers)
                     {
-                        if (useGPUInstancing && renderer.renderMode == ParticleSystemRenderMode.Mesh)// && renderer.supportsMeshInstancing) // TODO - make internal API public?
+                        if (useGPUInstancing && renderer.renderMode == ParticleSystemRenderMode.Mesh && renderer.supportsMeshInstancing)
                             renderer.SetActiveVertexStreams(instancedStreams);
                         else
                             renderer.SetActiveVertexStreams(streams);
