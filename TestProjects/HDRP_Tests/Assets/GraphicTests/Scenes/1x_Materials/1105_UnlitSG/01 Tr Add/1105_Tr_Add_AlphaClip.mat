@@ -102,6 +102,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 2c14474f84cbaee46a02b4501a1c41b4, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_f618c06f5a0348b5a14ca301f792b4b4_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 2c14474f84cbaee46a02b4501a1c41b4, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SpecularColorMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -140,6 +144,7 @@ Material:
     - _AlphaDstBlend: 1
     - _AlphaSrcBlend: 1
     - _AlphaToMask: 0
+    - _AlphaToMaskInspectorValue: 0
     - _Anisotropy: 0
     - _BlendMode: 1
     - _CoatMask: 0
@@ -290,4 +295,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 5
+  version: 6
