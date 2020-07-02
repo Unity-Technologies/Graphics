@@ -756,7 +756,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // If we have an incomplete depth buffer use for decal we will need to do another copy
             // after the rendering of the GBuffer
             if ((   hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred) &&
-                    hdCamera.frameSettings.IsEnabled(FrameSettingsField.DepthPrepassWithDeferredRendering))
+                    !hdCamera.frameSettings.IsEnabled(FrameSettingsField.DepthPrepassWithDeferredRendering))
                 m_IsDepthBufferCopyValid = false;
 
             using (var builder = renderGraph.AddRenderPass<RenderDBufferPassData>("DBufferRender", out var passData, ProfilingSampler.Get(HDProfileId.DBufferRender)))
