@@ -754,7 +754,7 @@ MonoBehaviour:
   m_AdvancedMode: 0
   mode:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 2
   meteringMode:
     m_OverrideState: 1
     m_Value: 2
@@ -866,8 +866,8 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: {fileID: 0}
   histogramPercentages:
-    m_OverrideState: 0
-    m_Value: {x: 40, y: 90}
+    m_OverrideState: 1
+    m_Value: {x: 8, y: 90}
     min: 0
     max: 100
   histogramUseCurveRemapping:
