@@ -100,10 +100,25 @@ PrefabInstance:
       propertyPath: m_Name
       value: Light_Spot_800lm
       objectReference: {fileID: 0}
-    - target: {fileID: 7800918859396210309, guid: ac937fd9ae94a3a40b3a7185b6b1f0e2,
+    - target: {fileID: 9203907179793585638, guid: ac937fd9ae94a3a40b3a7185b6b1f0e2,
         type: 3}
-      propertyPath: showAdditionalSettings
-      value: 13
+      propertyPath: m_BoundingSphereOverride.x
+      value: -1.470674e-39
+      objectReference: {fileID: 0}
+    - target: {fileID: 9203907179793585638, guid: ac937fd9ae94a3a40b3a7185b6b1f0e2,
+        type: 3}
+      propertyPath: m_BoundingSphereOverride.y
+      value: -1.470752e-39
+      objectReference: {fileID: 0}
+    - target: {fileID: 9203907179793585638, guid: ac937fd9ae94a3a40b3a7185b6b1f0e2,
+        type: 3}
+      propertyPath: m_BoundingSphereOverride.z
+      value: -1.470775e-39
+      objectReference: {fileID: 0}
+    - target: {fileID: 9203907179793585638, guid: ac937fd9ae94a3a40b3a7185b6b1f0e2,
+        type: 3}
+      propertyPath: m_BoundingSphereOverride.w
+      value: -1.470797e-39
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ac937fd9ae94a3a40b3a7185b6b1f0e2, type: 3}
@@ -128,7 +143,7 @@ PrefabInstance:
     - target: {fileID: 1332447828416647104, guid: 428831fe459a18c49843bfc3af65bbc9,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.0071
+      value: 0.013
       objectReference: {fileID: 0}
     - target: {fileID: 1332447828416647104, guid: 428831fe459a18c49843bfc3af65bbc9,
         type: 3}
