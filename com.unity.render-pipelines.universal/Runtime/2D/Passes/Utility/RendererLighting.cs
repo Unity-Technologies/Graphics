@@ -267,16 +267,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         }
                     }
                 }
-
                 ReleaseShadowRenderTexture(cmdBuffer);
                 cmdBuffer.SetRenderTarget(renderTexture, depthTexture);
             }
         }
 
-        static private bool RenderLightSet(Camera camera, int blendStyleIndex, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights)
+        static private bool RenderLightSet(Camera camera, int blendStyleIndex, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, bool rtNeedsClear, Color clearColor, List<Light2D> lights)
         {
             bool renderedAnyLight = false;
-            
+
+
             foreach (var light in lights)
             {
                 if (light != null && light.lightType != Light2D.LightType.Global && light.blendStyleIndex == blendStyleIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
@@ -289,7 +289,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         if (lightMesh != null)
                         {
                             RenderShadows(cmdBuffer, layerToRender, light, light.shadowIntensity, renderTexture, renderTexture);
-
+                            
+                            if (!renderedAnyLight && rtNeedsClear)
+                            {
+                                cmdBuffer.ClearRenderTarget(false, true, clearColor);
+                            }
                             renderedAnyLight = true;
 
                             if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
@@ -318,6 +322,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         }
                     }
                 }
+            }
+
+            // If no lights were rendered, just clear the RenderTarget if needed
+            if (!renderedAnyLight && rtNeedsClear)
+            {
+                cmdBuffer.ClearRenderTarget(false, true, clearColor);
             }
 
             return renderedAnyLight;
@@ -512,15 +522,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 else
                     rtDirty = true;
 
-                if (s_LightRenderTargetsDirty[i] || rtDirty)
-                    cmdBuffer.ClearRenderTarget(false, true, clearColor);
-
                 rtDirty |= RenderLightSet(
                     camera,
                     i,
                     cmdBuffer,
                     layerToRender,
                     s_LightRenderTargets[i].Identifier(),
+                    (s_LightRenderTargetsDirty[i] || rtDirty),
+                    clearColor,
                     Light2D.GetLightsByBlendStyle(i)
                 );
 
