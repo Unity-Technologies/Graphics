@@ -3192,9 +3192,13 @@ namespace UnityEngine.Rendering.HighDefinition
             ref HDCullingResults cullingResults
         )
         {
+            if (camera.cameraType == CameraType.Reflection)
+            {
+                ScriptableRenderContext.EmitGeometryForCamera(camera);
+            }
 #if UNITY_EDITOR
             // emit scene view UI
-            if (camera.cameraType == CameraType.SceneView)
+            else if (camera.cameraType == CameraType.SceneView)
             {
                 ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
             }
