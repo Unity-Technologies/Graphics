@@ -389,7 +389,11 @@ namespace UnityEditor.ShaderGraph
                             if(renderState.TestActive(activeFields))
                             {
                                 renderStateBuilder.AppendLine(renderState.value);
-                                break;
+
+                                // Cull is the only render state type that causes a compilation error
+                                // when there are multiple Cull directive with different values in a pass.
+                                if (type == RenderStateType.Cull)
+                                    break;
                             }
                         }
                     }
