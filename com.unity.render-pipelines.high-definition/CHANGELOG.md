@@ -706,6 +706,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an error when clearing the SSGI history texture at creation time (1259930).
 - Fixed alpha to mask reset when toggling alpha test in the material UI.
 - Fixed an issue where opening the look dev window with the light theme would make the window blink and eventually crash unity.
+- Fixed fallback for ray tracing and light layers (1258837).
+- Fixed Sorting Priority not displayed correctly in the DrawRenderers custom pass UI.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -862,6 +864,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Renamed the debug name from SSAO to ScreenSpaceAmbientOcclusion (1254974).
 - Added missing tooltips and improved the UI of the aperture control (case 1254916).
 - Fixed wrong tooltips in the Dof Volume (case 1256641).
+- The `CustomPassLoadCameraColor` and `CustomPassSampleCameraColor` functions now returns the correct color buffer when used in after post process instead of the color pyramid (which didn't had post processes).
 
 ## [7.1.1] - 2019-09-05
 
