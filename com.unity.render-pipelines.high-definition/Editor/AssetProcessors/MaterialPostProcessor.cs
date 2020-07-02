@@ -433,16 +433,27 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void MigrateDecalLayerMask(Material material, HDShaderUtils.ShaderID id)
         {
-            if (material.HasProperty("_SupportDecals"))
+            var serializedObject = new SerializedObject(material);
+            bool supportDecal = false;
+            if (FindProperty(serializedObject, "_SupportDecals", SerializedType.Boolean).property != null)
             {
-                var serializedObject = new SerializedObject(material);
-                if (FindProperty(serializedObject, "_SupportDecals", SerializedType.Boolean).property != null)
+                supportDecal = GetSerializedBoolean(serializedObject, "_SupportDecals");
+                RemoveSerializedBoolean(serializedObject, "_SupportDecals");
+                serializedObject.ApplyModifiedProperties();
+                var decalLayerMask = supportDecal ? DecalLayerMask.Layer0 : DecalLayerMask.None;
+                material.SetDecalLayerMask(decalLayerMask);
+            }
+
+            if (supportDecal)
+            {
+                // Update material renderqueue to be in Decal renderqueue based on the value of decal property (see HDRenderQueue.cs)
+                if (material.renderQueue == ((int)UnityEngine.Rendering.RenderQueue.Geometry))
                 {
-                    var supportDecal = GetSerializedBoolean(serializedObject, "_SupportDecals");
-                    RemoveSerializedBoolean(serializedObject, "_SupportDecals");
-                    serializedObject.ApplyModifiedProperties();
-                    var decalLayerMask = supportDecal ? DecalLayerMask.Layer0 : DecalLayerMask.None;
-                    material.SetDecalLayerMask(decalLayerMask);
+                    material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Geometry + 225;
+                }
+                else if (material.renderQueue == ((int)UnityEngine.Rendering.RenderQueue.AlphaTest))
+                {
+                    material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest + 25;
                 }
             }
 

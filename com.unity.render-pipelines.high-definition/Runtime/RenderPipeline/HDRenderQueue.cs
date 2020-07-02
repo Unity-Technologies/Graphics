@@ -17,9 +17,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
             Opaque = UnityEngine.Rendering.RenderQueue.Geometry,
-            OpaqueDecal = UnityEngine.Rendering.RenderQueue.Geometry + 440, // Opaque Decal mean Opaque that can receive decal
+            OpaqueDecal = UnityEngine.Rendering.RenderQueue.Geometry + 225, // Opaque Decal mean Opaque that can receive decal
             OpaqueAlphaTest = UnityEngine.Rendering.RenderQueue.AlphaTest,
-            OpaqueDecalAlphaTest = UnityEngine.Rendering.RenderQueue.AlphaTest + 40,
+            OpaqueDecalAlphaTest = UnityEngine.Rendering.RenderQueue.AlphaTest + 25,
             // Warning: we must not change Geometry last value to stay compatible with occlusion
             OpaqueLast = UnityEngine.Rendering.RenderQueue.GeometryLast,
 

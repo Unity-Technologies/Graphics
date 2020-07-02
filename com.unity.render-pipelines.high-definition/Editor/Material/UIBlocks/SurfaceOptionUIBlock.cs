@@ -779,7 +779,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (decalLayerMask != null)
             {
+                EditorGUI.BeginChangeCheck();
                 DecalLayerMaskUI.GUILayoutMaterialProperty(Styles.decalLayerMaskText, decalLayerMask);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    var renderQueueType = HDRenderQueue.GetTypeByRenderQueueValue(renderQueue);
+                    renderQueue = HDRenderQueue.ChangeType(renderQueueType, (int)transparentSortPriority.floatValue, alphaCutoffEnable.floatValue == 1, materials[0].GetDecalLayerMask() != DecalLayerMask.None);
+                }
             }
 
             if (receivesSSR != null && receivesSSRTransparent != null)
