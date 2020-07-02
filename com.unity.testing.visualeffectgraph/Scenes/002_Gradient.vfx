@@ -608,6 +608,7 @@ MonoBehaviour:
   angularIntegration: 0
   ageParticles: 1
   reapParticles: 1
+  skipZeroDeltaUpdate: 0
 --- !u!114 &114256839563018454
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -683,7 +684,7 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots: []
   m_Label: 
-  m_Data: {fileID: 0}
+  m_Data: {fileID: 8926484042661614569}
   m_InputFlowSlot:
   - link: []
   - link: []
@@ -1051,7 +1052,7 @@ MonoBehaviour:
   - {fileID: 114256839563018454}
   - {fileID: 8926484042661614529}
   - {fileID: 8926484042661614545}
-  - {fileID: 114678802749606010}
+  - {fileID: 8926484042661614570}
   - {fileID: 8926484042661614558}
   - {fileID: 8926484042661614550}
   - {fileID: 114178798815217700}
@@ -1418,27 +1419,6 @@ MonoBehaviour:
   stripCapacity: 16
   particlePerStripCount: 16
   m_Space: 0
---- !u!114 &114678802749606010
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7d33fb94df928ef4c986f97607706b82, type: 3}
-  m_Name: VFXBuiltInParameter
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114498444751905048}
-  m_Children: []
-  m_UIPosition: {x: -2002.4573, y: -789.9169}
-  m_UICollapsed: 0
-  m_UISuperCollapsed: 0
-  m_InputSlots: []
-  m_OutputSlots:
-  - {fileID: 114935188349651816}
-  m_expressionOp: 7
 --- !u!114 &114682498221170742
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1999,40 +1979,6 @@ MonoBehaviour:
   - {fileID: 114738174461605902}
   m_OutputSlots: []
   m_Disabled: 0
---- !u!114 &114935188349651816
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: VFXSlotFloat
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114935188349651816}
-  m_MasterData:
-    m_Owner: {fileID: 114678802749606010}
-    m_Value:
-      m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
-          PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 
-    m_Space: 2147483647
-  m_Property:
-    name: TotalTime
-    m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-  m_Direction: 1
-  m_LinkedSlots:
-  - {fileID: 8926484042661614559}
 --- !u!114 &114947647007587088
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3273,7 +3219,7 @@ MonoBehaviour:
         PublicKeyToken=b77a5c561934e089
   m_Direction: 0
   m_LinkedSlots:
-  - {fileID: 114935188349651816}
+  - {fileID: 8926484042661614571}
 --- !u!114 &8926484042661614560
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3525,3 +3471,78 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   opaqueRenderQueue: 0
   transparentRenderQueue: 1
+--- !u!114 &8926484042661614569
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f68759077adc0b143b6e1c101e82065e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 114498444751905048}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  title: 
+  m_Owners:
+  - {fileID: 114265664867045136}
+--- !u!114 &8926484042661614570
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a72fbb93ebe17974e90a144ef2ec8ceb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 114498444751905048}
+  m_Children: []
+  m_UIPosition: {x: -2002.4573, y: -789.9169}
+  m_UICollapsed: 0
+  m_UISuperCollapsed: 0
+  m_InputSlots: []
+  m_OutputSlots:
+  - {fileID: 8926484042661614571}
+  m_BuiltInParameters: 4
+--- !u!114 &8926484042661614571
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661614571}
+  m_MasterData:
+    m_Owner: {fileID: 8926484042661614570}
+    m_Value:
+      m_Type:
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 0
+    m_Space: 2147483647
+  m_Property:
+    name: Total Time
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+  m_Direction: 1
+  m_LinkedSlots:
+  - {fileID: 8926484042661614559}

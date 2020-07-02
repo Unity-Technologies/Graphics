@@ -150,6 +150,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for multiple mapping modes in AxF.
 - Add support of lightlayers on indirect lighting controller
 - Added compute shader stripping.
+- Added Cull Mode option for opaque materials and ShaderGraphs. 
+- Added scene view exposure override.
+- Added support for exposure curve remapping for min/max limits.
+- Added presets for ray traced reflections.
+- Added final image histogram debug view (both luminance and RGB).
+- Added an example texture and rotation to the Cloud Layer volume override.
+- Added an option to extend the camera culling for skinned mesh animation in ray tracing effects (1258547).
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -684,6 +691,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a serialization issue, preventing quality level parameters to undo/redo and update scene view on change.
 - Fixed an exception occuring when a camera doesn't have an HDAdditionalCameraData (1254383).
 - Fixed ray tracing with XR single-pass.
+- Fixed warning in HDAdditionalLightData OnValidate (cases 1250864, 1244578)
+- Fixed a bug related to denoising ray traced reflections.
+- Fixed nullref in the layered lit material inspector.
+- Fixed an issue where manipulating the color wheels in a volume component would reset the cursor every time.
+- Fixed an issue where static sky lighting would not be updated for a new scene until it's reloaded at least once.
+- Fixed culling for decals when used in prefabs and edited in context.
+- Force to rebake probe with missing baked texture. (1253367)
+- Fix supported Mac platform detection to handle new major version (11.0) properly
+- Fixed typo in the Render Pipeline Wizard under HDRP+VR
+- Change transparent SSR name in frame settings to avoid clipping. 
+- Fixed missing include guards in shadow hlsl files.
+- Repaint the scene view whenever the scene exposure override is changed.
+- Fixed an error when clearing the SSGI history texture at creation time (1259930).
+- Fixed alpha to mask reset when toggling alpha test in the material UI.
+- Fixed an issue where opening the look dev window with the light theme would make the window blink and eventually crash unity.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -828,6 +850,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changing the default SSGI radius for the all configurations.
 - Changed the default parameters for quality RTGI to match expected behavior.
 - Add color clear pass while rendering XR occlusion mesh to avoid leaks.
+- Only use one texture for ray traced reflection upscaling.
+- Adjust the upscale radius based on the roughness value.
+- DXR: Changed the way the filter size is decided for directional, point and spot shadows.
+- Changed the default exposure mode to "Automatic (Histogram)", along with "Limit Min" to -4 and "Limit Max" to 16.
+- Replaced the default scene system with the builtin Scene Template feature.
+- Changed extensions of shader CAS include files.
+- Making the planar probe atlas's format match the color buffer's format.
+- Removing the planarReflectionCacheCompressed setting from asset.
+- SHADERPASS for TransparentDepthPrepass and TransparentDepthPostpass identification is using respectively SHADERPASS_TRANSPARENT_DEPTH_PREPASS and SHADERPASS_TRANSPARENT_DEPTH_POSTPASS
+- Renamed the debug name from SSAO to ScreenSpaceAmbientOcclusion (1254974).
+- Added missing tooltips and improved the UI of the aperture control (case 1254916).
+- Fixed wrong tooltips in the Dof Volume (case 1256641).
 
 ## [7.1.1] - 2019-09-05
 

@@ -242,7 +242,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(1, displayedName: "Screen Space Reflection", tooltip: "When enabled, Cameras using these Frame Settings calculate Screen Space Reflections (Depends on \"Screen Space Reflection\" in current HDRP Asset).")]
         SSR = 23,
         /// <summary>When enabled, Cameras using these Frame Settings calculate Transparent Screen Space Reflections.</summary>
-        [FrameSettingsField(1, displayedName: "Transparent Screen Space Reflection", customOrderInGroup: 25, positiveDependencies: new[] { SSR }, tooltip: "When enabled, Cameras using these Frame Settings calculate Screen Space Reflections on transparent objects.")]
+        [FrameSettingsField(1, displayedName: "On Transparent", customOrderInGroup: 25, positiveDependencies: new[] { SSR }, tooltip: "When enabled, Cameras using these Frame Settings calculate Screen Space Reflections on transparent objects.")]
         TransparentSSR = 94,
         /// <summary>When enabled, Cameras using these Frame Settings calculate Screen Space Ambient Occlusion.</summary>
         [FrameSettingsField(1, displayedName: "Screen Space Ambient Occlusion", tooltip: "When enabled, Cameras using these Frame Settings calculate Screen Space Ambient Occlusion (Depends on \"Screen Space Ambient Occlusion\" in current HDRP Asset).")]
@@ -789,7 +789,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.FPTLForForwardOpaque] &= !msaa;
 
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ProbeVolume] &= renderPipelineSettings.supportProbeVolume;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ProbeVolume] &= renderPipelineSettings.supportProbeVolume && (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled);
         }
 
         /// <summary>Aggregation is default with override of the renderer then sanitized depending on supported features of hdrpasset.</summary>
