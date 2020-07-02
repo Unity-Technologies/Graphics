@@ -19,20 +19,25 @@ namespace UnityEditor.VFX
                 return s_Values;
             }
         }
+        private static bool m_Searched; // the instance has been searched and it is null
         private static VFXResources s_Instance;
         private static Values s_Values;
 
         static void LoadUserResources()
         {
-            s_Instance = FindObjectOfType<VFXResources>();
-            if (s_Instance != null)
-                return;
-
-            foreach( var guid in AssetDatabase.FindAssets("t:VFXResources"))
+            if (s_Instance == null && (!m_Searched || !object.ReferenceEquals(s_Instance,null)))
+            // if instance is null and either it has never been searched or it was found but it has been destroyed since last time
             {
-                s_Instance = AssetDatabase.LoadAssetAtPath<VFXResources>(AssetDatabase.GUIDToAssetPath(guid));
-                if (s_Instance != null)
-                    return;
+                foreach (var guid in AssetDatabase.FindAssets("t:VFXResources"))
+                {
+                    s_Instance = AssetDatabase.LoadAssetAtPath<VFXResources>(AssetDatabase.GUIDToAssetPath(guid));
+                    if (s_Instance != null)
+                    {
+                        return;
+                    }
+                }
+                s_Instance = null;
+                m_Searched = true;
             }
         }
 
@@ -41,6 +46,7 @@ namespace UnityEditor.VFX
             if (AssetDatabase.FindAssets("t:VFXResources").Length > 1)
                 Debug.LogError("Having more than on VFXResources in you project is unsupported");
             s_Instance = this;
+            m_Searched = false;
         }
 
         public class Values
