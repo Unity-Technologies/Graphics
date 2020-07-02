@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.Universal
         int m_TotalVariantsInputCount;
         int m_TotalVariantsOutputCount;
 
-        static readonly string[] s_PostProcessingShaderGUIDS = new[]
+        static readonly HashSet<string> s_PostProcessingShaderGUIDS = new HashSet<string>
         {
             "5f1864addb451f54bae8c86d230f736e",// : Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Bloom.shader
             "2aed67ad60045d54ba3a00c91e2d2631",// : Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/BokehDepthOfField.shader
@@ -78,12 +78,9 @@ namespace UnityEditor.Rendering.Universal
             {
                 var path = AssetDatabase.GetAssetPath(shader);
                 var guid = AssetDatabase.AssetPathToGUID(path);
-                for (int i = 0; i < s_PostProcessingShaderGUIDS.Length; i++)
+                if (s_PostProcessingShaderGUIDS.Contains(guid))
                 {
-                    if (guid == s_PostProcessingShaderGUIDS[i])
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
 

@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.Universal
 
             public static readonly string missingRendererWarning = "The currently selected Renderer is missing form the Universal Render Pipeline asset.";
             public static readonly string noRendererError = "There are no valid Renderers available on the Universal Render Pipeline asset.";
-            public static readonly string disabledPostprocessing = "Post-processing is currently disabled on the current Universal Render Pipeline asset.";
+            public static readonly string disabledPostprocessing = "Post Processing is currently disabled on the current Universal Render Pipeline asset.";
 
             public static GUIContent[] cameraBackgroundType =
             {
