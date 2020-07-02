@@ -232,9 +232,27 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = supportLighting ? CoreDefines.DepthForwardOnly : null,
-                keywords = CoreKeywords.DepthForwardOnlyNoWriteNormal,
+                keywords = GenerateKeywords(),
                 includes = GenerateIncludes(),
             };
+
+            KeywordCollection GenerateKeywords()
+            {
+                var keywords = new KeywordCollection
+                {
+                    { CoreKeywords.HDBase },
+                    { CoreKeywordDescriptors.WriteMsaaDepth },
+                    // Note: normal buffer write is a define for forward only
+                    { CoreKeywordDescriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
+                };
+
+                if (supportLighting)
+                {
+                    keywords.Add(CoreKeywordDescriptors.WriteDecalBuffer);
+                }
+
+                return keywords;
+            }
 
             RenderStateCollection GenerateRenderState()
             {
@@ -358,14 +376,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 var keywords = new KeywordCollection
                 {
                     { CoreKeywords.HDBase },
-                    { CoreKeywordDescriptors.WriteDecalBuffer },
                     { CoreKeywordDescriptors.WriteMsaaDepth },
                     { CoreKeywordDescriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
                 };
 
-                // #pragma multi_compile _ WRITE_NORMAL_BUFFER for deferred
-                if (supportLighting && !supportForward)
-                    keywords.Add(CoreKeywordDescriptors.WriteNormalBuffer);
+                // #pragma multi_compile _ WRITE_DECAL_BUFFER for both deferred and forward
+                // #pragma multi_compile _ WRITE_NORMAL_BUFFER for deferred (forward is a define)
+                if (supportLighting)
+                {
+                    keywords.Add(CoreKeywordDescriptors.WriteDecalBuffer);
+                    if (!supportForward)
+                        keywords.Add(CoreKeywordDescriptors.WriteNormalBuffer);
+                }
                 
                 return keywords;
             }

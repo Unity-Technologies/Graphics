@@ -829,14 +829,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywordDescriptors.DebugDisplay },
         };
 
-        public static KeywordCollection DepthForwardOnlyNoWriteNormal = new KeywordCollection
-        {
-            { HDBase },
-            { CoreKeywordDescriptors.WriteDecalBuffer },
-            { CoreKeywordDescriptors.WriteMsaaDepth },
-            { CoreKeywordDescriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
-        };
-
         public static KeywordCollection ForwardBase = new KeywordCollection
         {
             { HDBase },
