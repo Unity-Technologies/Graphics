@@ -94,11 +94,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         RenderGraphDebugParams              m_RenderGraphDebug;
         RenderGraphLogger                   m_Logger;
         int                                 m_CurrentFrameIndex;
+        bool                                m_IsExecutingRenderGraph;
 
         RTHandle                            m_CurrentBackbuffer;
 
         internal RTHandle GetTexture(in TextureHandle handle)
         {
+            CheckRenderGraphExecution();
+
             if (!handle.IsValid())
                 return null;
 
@@ -107,6 +110,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal RendererList GetRendererList(in RendererListHandle handle)
         {
+            CheckRenderGraphExecution();
+
             if (!handle.IsValid() || handle >= m_RendererListResources.size)
                 return RendererList.nullRendererList;
 
@@ -115,6 +120,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal ComputeBuffer GetComputeBuffer(in ComputeBufferHandle handle)
         {
+            CheckRenderGraphExecution();
+
             if (!handle.IsValid())
                 return null;
 
@@ -152,9 +159,24 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return res.resource;
         }
 
-        internal void BeginRender(int width, int height, MSAASamples msaaSamples, int currentFrameIndex)
+        internal void BeginRender(int currentFrameIndex)
         {
             m_CurrentFrameIndex = currentFrameIndex;
+            m_IsExecutingRenderGraph = true;
+        }
+
+        internal void EndRender()
+        {
+            m_IsExecutingRenderGraph = false;
+        }
+
+        void CheckRenderGraphExecution()
+        {
+            // We assume that it's enough to only check in editor because we don't want to pay the cost at runtime.
+#if UNITY_EDITOR
+            if (!m_IsExecutingRenderGraph)
+                throw new InvalidOperationException("Invalid cast exception. Casting resource handles to actual resource is forbidden outside of render graph execution.");
+#endif
         }
 
         void CheckHandleValidity(in ResourceHandle res)

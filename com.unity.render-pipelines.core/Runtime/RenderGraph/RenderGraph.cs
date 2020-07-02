@@ -401,7 +401,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 m_Logger.Initialize();
 
-                m_Resources.BeginRender(parameters.renderingWidth, parameters.renderingHeight, parameters.msaaSamples, parameters.currentFrameIndex);
+                m_Resources.BeginRender(parameters.currentFrameIndex);
 
                 LogFrameInformation(parameters.renderingWidth, parameters.renderingHeight);
 
@@ -424,6 +424,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                 m_DebugParameters.logFrameInformation = false;
                 m_DebugParameters.logResources = false;
+
+                m_Resources.EndRender();
             }
         }
         #endregion
