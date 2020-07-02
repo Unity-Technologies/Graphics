@@ -8,6 +8,49 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         TextureHandle m_DebugFullScreenTexture;
 
+        class TransparencyOverdrawPassData
+        {
+            public TransparencyOverdrawParameters parameters;
+            public TextureHandle output;
+            public TextureHandle depthBuffer;
+            public RendererListHandle transparencyRL;
+            public RendererListHandle transparencyAfterPostRL;
+            public RendererListHandle transparencyLowResRL;
+        }
+
+        void RenderTransparencyOverdraw(RenderGraph renderGraph, TextureHandle depthBuffer, CullingResults cull, HDCamera hdCamera)
+        {
+            if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() && m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.TransparencyOverdraw)
+            {
+                TextureHandle transparencyOverdrawOutput = new TextureHandle();
+                using (var builder = renderGraph.AddRenderPass<TransparencyOverdrawPassData>("Transparency Overdraw", out var passData))
+                {
+                    passData.parameters = PrepareTransparencyOverdrawParameters(hdCamera, cull);
+                    passData.output = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GetColorBufferFormat() }));
+                    passData.depthBuffer = builder.ReadTexture(depthBuffer);
+                    passData.transparencyRL = builder.UseRendererList(renderGraph.CreateRendererList(passData.parameters.transparencyRL));
+                    passData.transparencyAfterPostRL = builder.UseRendererList(renderGraph.CreateRendererList(passData.parameters.transparencyAfterPostRL));
+                    passData.transparencyLowResRL = builder.UseRendererList(renderGraph.CreateRendererList(passData.parameters.transparencyLowResRL));
+
+                    builder.SetRenderFunc(
+                    (TransparencyOverdrawPassData data, RenderGraphContext ctx) =>
+                    {
+                        RenderTransparencyOverdraw( data.parameters,
+                                                    ctx.resources.GetTexture(data.output),
+                                                    ctx.resources.GetTexture(data.depthBuffer),
+                                                    ctx.resources.GetRendererList(data.transparencyRL),
+                                                    ctx.resources.GetRendererList(data.transparencyAfterPostRL),
+                                                    ctx.resources.GetRendererList(data.transparencyLowResRL),
+                                                    ctx.renderContext, ctx.cmd);
+                    });
+
+                    transparencyOverdrawOutput = passData.output;
+                }
+
+                PushFullScreenDebugTexture(renderGraph, transparencyOverdrawOutput, FullScreenDebugMode.TransparencyOverdraw);
+            }
+        }
+
         class ResolveFullScreenDebugPassData
         {
             public DebugParameters debugParameters;
@@ -242,8 +285,21 @@ namespace UnityEngine.Rendering.HighDefinition
             public FrameSettings frameSettings;
         }
 
-        void RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, TextureHandle output)
+        TextureHandle RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera)
         {
+            bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+            var output = renderGraph.CreateTexture(
+                new TextureDesc(Vector2.one, true, true)
+                {
+                    colorFormat = GetColorBufferFormat(),
+                    enableRandomWrite = !msaa,
+                    bindTextureMS = msaa,
+                    enableMSAA = msaa,
+                    clearBuffer = true,
+                    clearColor = Color.clear,
+                    name = msaa ? "CameraColorMSAA" : "CameraColor"
+                });
+
             if (m_CurrentDebugDisplaySettings.data.materialDebugSettings.IsDebugGBufferEnabled() && hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred)
             {
                 using (var builder = renderGraph.AddRenderPass<DebugViewMaterialData>("DebugViewMaterialGBuffer", out var passData, ProfilingSampler.Get(HDProfileId.DebugViewMaterialGBuffer)))
@@ -287,6 +343,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     });
                 }
             }
+
+            return output;
         }
 
         class PushFullScreenDebugPassData
@@ -336,11 +394,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (PushFullScreenDebugPassData data, RenderGraphContext ctx) =>
                 {
-                    var texture = ctx.resources.GetTexture(passData.input);
+                    var texture = ctx.resources.GetTexture(data.input);
                     if (data.mipIndex != -1)
-                        HDUtils.BlitCameraTexture(ctx.cmd, texture, ctx.resources.GetTexture(passData.output), data.mipIndex);
+                        HDUtils.BlitCameraTexture(ctx.cmd, texture, ctx.resources.GetTexture(data.output), data.mipIndex);
                     else
-                        HDUtils.BlitCameraTexture(ctx.cmd, texture, ctx.resources.GetTexture(passData.output));
+                        HDUtils.BlitCameraTexture(ctx.cmd, texture, ctx.resources.GetTexture(data.output));
                 });
 
                 m_DebugFullScreenTexture = passData.output;
