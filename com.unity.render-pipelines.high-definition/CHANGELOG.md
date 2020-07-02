@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where static sky lighting would not be updated for a new scene until it's reloaded at least once.
 - Fixed missing include guards in shadow hlsl files.
 - Fixed issue with light layers bigger than 8 (and above the supported range). 
+- Fixed an issue where opening the look dev window with the light theme would make the window blink and eventually crash unity.
 
 ### Changed
 - Shadowmask and realtime reflection probe property are hide in Quality settings
