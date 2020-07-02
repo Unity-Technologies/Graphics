@@ -81,6 +81,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: SR_SectionCeiling_01
       objectReference: {fileID: 0}
+    - target: {fileID: 7639866193682894716, guid: a6dcdb995d91897419a0bac2b341b35d,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: -3865539209554581723, guid: a6dcdb995d91897419a0bac2b341b35d, type: 3}
     - {fileID: -9056370132753696056, guid: a6dcdb995d91897419a0bac2b341b35d, type: 3}

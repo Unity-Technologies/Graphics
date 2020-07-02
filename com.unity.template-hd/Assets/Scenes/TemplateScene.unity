@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 5629.658, g: 4078.4443, b: 3703.9011, a: 1}
+  m_IndirectSpecularColor: {r: 5636.2383, g: 4081.4756, b: 3704.1667, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -97,7 +97,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000000, guid: 999d277782676de4788f90d750bdd278,
+  m_LightingDataAsset: {fileID: 112000000, guid: 8e8e38e9a61d87f4e92081214bfdc51d,
     type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: 4f77aae7ab85bc04e82fe0f960982e9c,
     type: 2}
@@ -2320,6 +2320,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: SR_SectionFloor_01
+      objectReference: {fileID: 0}
+    - target: {fileID: 3722073005601458399, guid: 891647357ef0cc044acf9aa1be7b2d40,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 891647357ef0cc044acf9aa1be7b2d40, type: 3}
@@ -6988,7 +6993,7 @@ GameObject:
   - component: {fileID: 680141238}
   - component: {fileID: 680141237}
   m_Layer: 0
-  m_Name: Volume Stairs
+  m_Name: Volume Room 2 Stairs
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8572,7 +8577,7 @@ GameObject:
   - component: {fileID: 812970925}
   - component: {fileID: 812970924}
   m_Layer: 0
-  m_Name: Volume Corridor
+  m_Name: Volume Room 3 Corridor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -15317,7 +15322,7 @@ MonoBehaviour:
     distanceFadeStart: 20
     distanceFadeEnd: 30
     textureIndex: 0
-    textureOffset: {x: -0, y: -26.380812, z: 0}
+    textureOffset: {x: -0, y: -89.52436, z: 0}
 --- !u!1 &1518163832
 GameObject:
   m_ObjectHideFlags: 19
