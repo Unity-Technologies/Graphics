@@ -50,13 +50,6 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: iOS Tracked issue (023)
-  - FilteredScene: {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: iOS Tracked issue (035)
   - FilteredScene: {fileID: 102900000, guid: 7a8ef7ce062f0465b9e493dd5730cecb, type: 3}
     ColorSpace: -1
     BuildPlatform: 9
@@ -78,13 +71,6 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: iOS Tracked issue  (055)
-  - FilteredScene: {fileID: 102900000, guid: ef200bbb51f946647ac204267d52a9bd, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: iOS Tracked issue (057)
   - FilteredScene: {fileID: 102900000, guid: 9f750aafa54d07a43b7601615bb2c7ea, type: 3}
     ColorSpace: -1
     BuildPlatform: 9
@@ -120,20 +106,6 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: OSX Standalone won't work with back buffer capture
-  - FilteredScene: {fileID: 102900000, guid: f5310a9ab278ec748b2091bf7ba966a7, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: iOS tracked regression (117)
-  - FilteredScene: {fileID: 102900000, guid: e1fb4b913911b734b88f86697de1b94a, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: iOS tracked regression (118)
   - FilteredScene: {fileID: 102900000, guid: c7b61419ee9382545afe530714fda0c2, type: 3}
     ColorSpace: -1
     BuildPlatform: 9
@@ -388,6 +360,6 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 9
     GraphicsDevice: 16
-    XrSdk: None 
+    XrSdk: None
     StereoModes: 0
     Reason: iOS tracked regression (scene 111 - 1256906)
