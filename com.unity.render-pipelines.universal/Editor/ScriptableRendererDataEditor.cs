@@ -126,7 +126,6 @@ namespace UnityEditor.Rendering.Universal
                         AssetDatabase.SaveAssets();
 
                         // Triggers update for sub-asset name change
-                        // TODO: Investigate for better alternative as AssetDatabase for some reason do not trigger this change
                         ProjectWindowUtil.ShowCreatedAsset(target);
                     }
                     editor.DrawDefaultInspector();
