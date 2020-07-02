@@ -127,7 +127,6 @@ Varyings LitGBufferPassVertex(Attributes input)
 }
 
 
-
 // Used in Standard (Physically Based) shader
 FragmentOutput LitGBufferPassFragment(Varyings input)
 {
@@ -150,17 +149,26 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
 
     // in LitForwardPass GlobalIllumination (and temporarily LightingPhysicallyBased) are called inside UniversalFragmentPBR
     // in Deferred rendering we store the sum of these values (and of emission as well) in the GBuffer
-    BRDFData brdfData;
+    BRDFData brdfData = (BRDFData)0;
     InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
-    
+
+    // Copy brdf data for gbuffer in case a clear coat is applied
+    BRDFData brdfDataGbuffer = brdfData;
+    BRDFData brdfDataClearCoat = (BRDFData)0;
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
+    // base brdfData is modified here, rely on the compiler to eliminate dead computation by InitializeBRDFData()
+    InitializeBRDFDataClearCoat(surfaceData.clearCoatMask, surfaceData.clearCoatSmoothness, brdfData, brdfDataClearCoat);
+#endif
+
     Light mainLight = GetMainLight(inputData.shadowCoord);                                      // TODO move this to a separate full-screen single gbuffer pass?
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0)); // TODO move this to a separate full-screen single gbuffer pass?
 
-    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.normalWS, inputData.viewDirectionWS);
+    half3 color = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask, inputData.bakedGI, surfaceData.occlusion, inputData.normalWS, inputData.viewDirectionWS);
 
-    color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS, specularHighlightsOff); // TODO move this to a separate full-screen single gbuffer pass?
+    // Single directional Mainlight
+    color += LightingPhysicallyBased(brdfData, brdfDataClearCoat, mainLight, inputData.normalWS, inputData.viewDirectionWS, surfaceData.clearCoatMask, specularHighlightsOff); // TODO move this to a separate full-screen single gbuffer pass?
 
-    return BRDFDataToGbuffer(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color);
+    return BRDFDataToGbuffer(brdfDataGbuffer, inputData, surfaceData.smoothness, surfaceData.emission + color, surfaceData.clearCoatMask);
 }
 
 #endif

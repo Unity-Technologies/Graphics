@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
@@ -15,6 +16,23 @@ using static Unity.Mathematics.math;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
+    public struct KeywordScope : IDisposable
+    {
+        private CommandBuffer m_Cmd;
+        private string m_Keyword;
+        public KeywordScope( CommandBuffer cmd, string keyword)
+        {
+            m_Cmd = cmd;
+            m_Keyword = keyword;
+            m_Cmd.EnableShaderKeyword(m_Keyword);
+        }
+
+        public void Dispose()
+        {
+            m_Cmd.DisableShaderKeyword(m_Keyword);
+        }
+    }
+
     // Customization per platform.
     static class DeferredConfig
     {
@@ -1180,13 +1198,16 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_FullscreenMesh == null)
                 m_FullscreenMesh = CreateFullscreenMesh();
 
-            using (new ProfilingScope(cmd, m_ProfilingSamplerDeferredStencilPass))
+            using( new KeywordScope(cmd, ShaderKeywordStrings._CLEARCOAT) )
             {
-                NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
+                using (new ProfilingScope(cmd, m_ProfilingSamplerDeferredStencilPass))
+                {
+                    NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
 
-                RenderStencilDirectionalLights(cmd, visibleLights, renderingData.lightData.mainLightIndex);
-                RenderStencilPointLights(cmd, visibleLights);
-                RenderStencilSpotLights(cmd, visibleLights);
+                    RenderStencilDirectionalLights(cmd, visibleLights, renderingData.lightData.mainLightIndex);
+                    RenderStencilPointLights(cmd, visibleLights);
+                    RenderStencilSpotLights(cmd, visibleLights);
+                }
             }
 
             Profiler.EndSample();

@@ -14,6 +14,7 @@
 
 #define kMaterialFlagReceiveShadowsOff     1
 #define kMaterialFlagSpecularHighlightsOff 2
+#define kMaterialFlagClearCoat             4
 
 struct FragmentOutput
 {
@@ -30,7 +31,7 @@ float PackMaterialFlags(uint materialFlags)
 
 uint UnpackMaterialFlags(float packedMaterialFlags)
 {
-    return uint(packedMaterialFlags * 255.0h);
+    return uint((packedMaterialFlags * 255.0h) + 0.5);
 }
 
 // This will encode SurfaceData into GBuffer
@@ -109,17 +110,17 @@ SurfaceData SurfaceDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer
 }
 
 // This will encode SurfaceData into GBuffer
-FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half smoothness, half3 globalIllumination)
+FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half smoothness, half3 globalIllumination, half clearCoatMask)
 {
 #if _GBUFFER_NORMALS_OCT
     float2 octNormalWS = PackNormalOctQuadEncode(inputData.normalWS); // values between [-1, +1], must use fp32 on Nintendo Switch.
     float2 remappedOctNormalWS = octNormalWS * 0.5 + 0.5;             // values between [ 0,  1]
     half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);
-    half packedSmoothness = smoothness;
 #else
     half3 packedNormalWS = inputData.normalWS;                       // values between [-1,  1]
-    half packedSmoothness = smoothness * 2.0h - 1.0h;
 #endif
+
+    half packedSmoothness = smoothness;
 
     uint materialFlags = 0;
 
@@ -136,6 +137,11 @@ FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half sm
     specular = 0.0.xxx;
 #endif
 
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
+    if(clearCoatMask > 0)
+        materialFlags |= kMaterialFlagClearCoat;
+#endif
+
     FragmentOutput output;
     output.GBuffer0 = half4(brdfData.diffuse.rgb, PackMaterialFlags(materialFlags)); // diffuse         diffuse         diffuse         materialFlags   (sRGB rendertarget)
     output.GBuffer1 = half4(specular, brdfData.reflectivity);                        // specular        specular        specular        reflectivity    (sRGB rendertarget)
@@ -143,6 +149,12 @@ FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half sm
     output.GBuffer3 = half4(globalIllumination, 0);                                  // GI              GI              GI              [not_available] (lighting buffer)
 
     return output;
+}
+
+// Backwards compatibility
+FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half smoothness, half3 globalIllumination)
+{
+    return BRDFDataToGbuffer(brdfData, inputData, smoothness, globalIllumination, 0.0f);
 }
 
 // This decodes the Gbuffer into a SurfaceData struct
@@ -153,15 +165,11 @@ BRDFData BRDFDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer2)
     half3 specular = gbuffer1.rgb;
     half reflectivity = gbuffer1.a;
     half oneMinusReflectivity = 1.0h - reflectivity;
-#if _GBUFFER_NORMALS_OCT
     half smoothness = gbuffer2.a;
-#else
-    half smoothness = gbuffer2.a * 0.5h + 0.5h;
-#endif
 
-    BRDFData brdfData;
+    BRDFData brdfData = (BRDFData)0;
     half alpha = 1.0; // NOTE: alpha can get modfied, forward writes it out (_ALPHAPREMULTIPLY_ON).
-    InitializeBRDFDataDirect(gbuffer0.rgb, gbuffer1.rgb, reflectivity, oneMinusReflectivity, smoothness, alpha, brdfData);
+    InitializeBRDFDataDirect(diffuse, specular, reflectivity, oneMinusReflectivity, smoothness, alpha, brdfData);
 
     return brdfData;
 }
@@ -177,7 +185,7 @@ InputData InputDataFromGbufferAndWorldPosition(half4 gbuffer2, float3 wsPos)
     half2 octNormalWS = remappedOctNormalWS.xy * 2.0h - 1.0h;    // values between [-1, +1]
     inputData.normalWS = UnpackNormalOctQuadEncode(octNormalWS);
 #else
-    inputData.normalWS = gbuffer2.xyz;  // values between [-1, +1]
+    inputData.normalWS = normalize(gbuffer2.xyz);  // values between [-1, +1]
 #endif
 
     inputData.viewDirectionWS = normalize(GetCameraPositionWS() - wsPos.xyz);

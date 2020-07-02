@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xr.enabled)
                 return xr.GetProjMatrix(viewIndex);
-#endif      
+#endif
             return m_ProjectionMatrix;
         }
 
@@ -226,13 +226,13 @@ namespace UnityEngine.Rendering.Universal
         public Vector4 attenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation (for SpotLights)
         public Vector3 spotDirection;   // for spotLights
         public int lightIndex;
-    }    
+    }
 
     internal static class ShaderPropertyId
     {
         public static readonly int glossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
         public static readonly int subtractiveShadowColor = Shader.PropertyToID("_SubtractiveShadowColor");
-        
+
         public static readonly int ambientSkyColor = Shader.PropertyToID("unity_AmbientSky");
         public static readonly int ambientEquatorColor = Shader.PropertyToID("unity_AmbientEquator");
         public static readonly int ambientGroundColor = Shader.PropertyToID("unity_AmbientGround");
@@ -242,7 +242,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int cosTime = Shader.PropertyToID("_CosTime");
         public static readonly int deltaTime = Shader.PropertyToID("unity_DeltaTime");
         public static readonly int timeParameters = Shader.PropertyToID("_TimeParameters");
-        
+
         public static readonly int scaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
         public static readonly int worldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
         public static readonly int screenParams = Shader.PropertyToID("_ScreenParams");
@@ -322,6 +322,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _POINT = "_POINT";
         public static readonly string _DEFERRED_ADDITIONAL_LIGHT_SHADOWS = "_DEFERRED_ADDITIONAL_LIGHT_SHADOWS";
         public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
+        public static readonly string _CLEARCOAT = "_CLEARCOAT";
 
         // XR
         public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";    }

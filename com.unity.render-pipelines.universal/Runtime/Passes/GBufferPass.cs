@@ -78,6 +78,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 else
                     gbufferCommands.DisableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
 
+                // TODO: detect if we have any objects with coat active.
+                gbufferCommands.EnableShaderKeyword(ShaderKeywordStrings._CLEARCOAT);
+
                 gbufferCommands.SetViewProjectionMatrices(renderingData.cameraData.camera.worldToCameraMatrix, renderingData.cameraData.camera.projectionMatrix);
 
                 context.ExecuteCommandBuffer(gbufferCommands); // send the gbufferCommands to the scriptableRenderContext - this should be done *before* calling scriptableRenderContext.DrawRenderers

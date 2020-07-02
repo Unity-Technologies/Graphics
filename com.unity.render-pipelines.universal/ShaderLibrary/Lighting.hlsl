@@ -328,21 +328,9 @@ half3 ConvertF0ForClearCoat15(half3 f0)
 #endif
 }
 
-inline void InitializeBRDFDataClearCoat(half clearCoatMask, half clearCoatSmoothness, inout BRDFData baseBRDFData, out BRDFData outBRDFData)
+inline void ModifyBaseBRDFDataClearCoat(half clearCoatMask, inout BRDFData baseBRDFData)
 {
-    // Calculate Roughness of Clear Coat layer
-    outBRDFData.diffuse             = kDielectricSpec.aaa; // 1 - kDielectricSpec
-    outBRDFData.specular            = kDielectricSpec.rgb;
-    outBRDFData.reflectivity        = kDielectricSpec.r;
-
-    outBRDFData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(clearCoatSmoothness);
-    outBRDFData.roughness           = max(PerceptualRoughnessToRoughness(outBRDFData.perceptualRoughness), HALF_MIN_SQRT);
-    outBRDFData.roughness2          = max(outBRDFData.roughness * outBRDFData.roughness, HALF_MIN);
-    outBRDFData.normalizationTerm   = outBRDFData.roughness * 4.0h + 2.0h;
-    outBRDFData.roughness2MinusOne  = outBRDFData.roughness2 - 1.0h;
-    outBRDFData.grazingTerm         = saturate(clearCoatSmoothness + kDielectricSpec.x);
-
-// Relatively small effect, cut it for lower quality
+    // Relatively small effect, cut it for lower quality
 #if !defined(SHADER_API_MOBILE)
     // Modify Roughness of base layer using coat IOR
     half ieta                        = lerp(1.0h, CLEAR_COAT_IETA, clearCoatMask);
@@ -361,6 +349,23 @@ inline void InitializeBRDFDataClearCoat(half clearCoatMask, half clearCoatSmooth
     // Darken/saturate base layer using coat to surface reflectance (vs. air to surface)
     baseBRDFData.specular = lerp(baseBRDFData.specular, ConvertF0ForClearCoat15(baseBRDFData.specular), clearCoatMask);
     // TODO: what about diffuse? at least in specular workflow diffuse should be recalculated as it directly depends on it.
+}
+
+inline void InitializeBRDFDataClearCoat(half clearCoatMask, half clearCoatSmoothness, inout BRDFData baseBRDFData, out BRDFData outBRDFData)
+{
+    // Calculate Roughness of Clear Coat layer
+    outBRDFData.diffuse             = kDielectricSpec.aaa; // 1 - kDielectricSpec
+    outBRDFData.specular            = kDielectricSpec.rgb;
+    outBRDFData.reflectivity        = kDielectricSpec.r;
+
+    outBRDFData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(clearCoatSmoothness);
+    outBRDFData.roughness           = max(PerceptualRoughnessToRoughness(outBRDFData.perceptualRoughness), HALF_MIN_SQRT);
+    outBRDFData.roughness2          = max(outBRDFData.roughness * outBRDFData.roughness, HALF_MIN);
+    outBRDFData.normalizationTerm   = outBRDFData.roughness * 4.0h + 2.0h;
+    outBRDFData.roughness2MinusOne  = outBRDFData.roughness2 - 1.0h;
+    outBRDFData.grazingTerm         = saturate(clearCoatSmoothness + kDielectricSpec.x);
+
+    ModifyBaseBRDFDataClearCoat( clearCoatMask, baseBRDFData );
 }
 
 // Computes the specular term for EnvironmentBRDF
@@ -617,18 +622,21 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
     half3 color = EnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, fresnelTerm);
 
 #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
-    half3 coatIndirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfDataClearCoat.perceptualRoughness, occlusion);
-    // TODO: "grazing term" causes problems on full roughness
-    half3 coatColor = EnvironmentBRDFClearCoat(brdfDataClearCoat, clearCoatMask, coatIndirectSpecular, fresnelTerm);
+    [branch] if (clearCoatMask > 0)
+    {
+        half3 coatIndirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfDataClearCoat.perceptualRoughness, occlusion);
+        // TODO: "grazing term" causes problems on full roughness
+        half3 coatColor = EnvironmentBRDFClearCoat(brdfDataClearCoat, clearCoatMask, coatIndirectSpecular, fresnelTerm);
 
-    // Blend with base layer using khronos glTF recommended way using NoV
-    // Smooth surface & "ambiguous" lighting
-    // NOTE: fresnelTerm (above) is pow4 instead of pow5, but should be ok as blend weight.
-    half coatFresnel = kDielectricSpec.x + kDielectricSpec.a * fresnelTerm;
-    return color * (1.0 - coatFresnel * clearCoatMask) + coatColor;
-#else
-    return color;
+        // Blend with base layer using khronos glTF recommended way using NoV
+        // Smooth surface & "ambiguous" lighting
+        // NOTE: fresnelTerm (above) is pow4 instead of pow5, but should be ok as blend weight.
+        half coatFresnel = kDielectricSpec.x + kDielectricSpec.a * fresnelTerm;
+        color = color * (1.0 - coatFresnel * clearCoatMask) + coatColor;
+    }
 #endif
+
+    return color;
 }
 
 // Backwards compatiblity
@@ -678,19 +686,22 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
         brdf += brdfData.specular * DirectBRDFSpecular(brdfData, normalWS, lightDirectionWS, viewDirectionWS);
 
 #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
-        // Clear coat evaluates the specular a second timw and has some common terms with the base specular.
-        // We rely on the compiler to merge these and compute them only once.
-        half brdfCoat = kDielectricSpec.r * DirectBRDFSpecular(brdfDataClearCoat, normalWS, lightDirectionWS, viewDirectionWS);
+        if(clearCoatMask > 0)
+        {
+            // Clear coat evaluates the specular a second timw and has some common terms with the base specular.
+            // We rely on the compiler to merge these and compute them only once.
+            half brdfCoat = kDielectricSpec.r * DirectBRDFSpecular(brdfDataClearCoat, normalWS, lightDirectionWS, viewDirectionWS);
 
-        // Mix clear coat and base layer using khronos glTF recommended formula
-        // https://github.com/KhronosGroup/glTF/blob/master/extensions/2.0/Khronos/KHR_materials_clearcoat/README.md
-        // Use NoV for direct too instead of LoH as an optimization (NoV is light invariant).
-        half NoV = saturate(dot(normalWS, viewDirectionWS));
-        // Use slightly simpler fresnelTerm (Pow4 vs Pow5) as a small optimization.
-        // It is matching fresnel used in the GI/Env, so should produce a consistent clear coat blend (env vs. direct)
-        half coatFresnel = kDielectricSpec.x + kDielectricSpec.a * Pow4(1.0 - NoV);
-        // the glTF recommended way
-        brdf = brdf * (1.0 - clearCoatMask * coatFresnel) + brdfCoat * clearCoatMask;
+            // Mix clear coat and base layer using khronos glTF recommended formula
+            // https://github.com/KhronosGroup/glTF/blob/master/extensions/2.0/Khronos/KHR_materials_clearcoat/README.md
+            // Use NoV for direct too instead of LoH as an optimization (NoV is light invariant).
+            half NoV = saturate(dot(normalWS, viewDirectionWS));
+            // Use slightly simpler fresnelTerm (Pow4 vs Pow5) as a small optimization.
+            // It is matching fresnel used in the GI/Env, so should produce a consistent clear coat blend (env vs. direct)
+            half coatFresnel = kDielectricSpec.x + kDielectricSpec.a * Pow4(1.0 - NoV);
+            // the glTF recommended way
+            brdf = brdf * (1.0 - clearCoatMask * coatFresnel) + brdfCoat * clearCoatMask;
+        }
 #endif // _CLEARCOAT
     }
 #endif // _SPECULARHIGHLIGHTS_OFF
