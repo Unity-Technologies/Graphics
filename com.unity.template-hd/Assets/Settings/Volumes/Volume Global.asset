@@ -355,7 +355,7 @@ MonoBehaviour:
     min: 0
   minDistance:
     m_OverrideState: 1
-    m_Value: 5
+    m_Value: 8
     min: 0
   fadeDistance:
     m_OverrideState: 0
@@ -363,7 +363,7 @@ MonoBehaviour:
     min: 0
   fadeInDistance:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 2
     min: 0
   m_SampleCount:
     m_OverrideState: 0
@@ -433,7 +433,7 @@ MonoBehaviour:
     showEyeDropper: 1
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 3000
+    m_Value: 500
     min: 1
   enableVolumetricFog:
     m_OverrideState: 1
@@ -911,7 +911,7 @@ MonoBehaviour:
   m_AdvancedMode: 0
   maxShadowDistance:
     m_OverrideState: 1
-    m_Value: 128
+    m_Value: 64
     min: 0
   directionalTransmissionMultiplier:
     m_OverrideState: 0
@@ -925,22 +925,22 @@ MonoBehaviour:
     max: 4
   cascadeShadowSplit0:
     m_OverrideState: 1
-    m_Value: 0.03125
+    m_Value: 0.046875
   cascadeShadowSplit1:
     m_OverrideState: 1
-    m_Value: 0.125
+    m_Value: 0.140625
   cascadeShadowSplit2:
     m_OverrideState: 1
-    m_Value: 0.25
+    m_Value: 0.375
   cascadeShadowBorder0:
     m_OverrideState: 1
-    m_Value: 0.5
+    m_Value: 0.6666667
   cascadeShadowBorder1:
     m_OverrideState: 1
-    m_Value: 0.16666667
+    m_Value: 0.33333334
   cascadeShadowBorder2:
     m_OverrideState: 1
-    m_Value: 0.125
+    m_Value: 0.13333334
   cascadeShadowBorder3:
     m_OverrideState: 0
     m_Value: 0

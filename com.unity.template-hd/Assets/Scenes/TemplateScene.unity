@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 3843.1746, g: 4762.281, b: 6303.012, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -7661,6 +7661,11 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 64
       objectReference: {fileID: 0}
+    - target: {fileID: 2783000264598635044, guid: 2658dc79455b4694e9b38cd7b9453ff0,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3609132858886281218, guid: 2658dc79455b4694e9b38cd7b9453ff0,
         type: 3}
       propertyPath: m_RenderingLayerMask
@@ -7680,6 +7685,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_StaticEditorFlags
       value: 64
+      objectReference: {fileID: 0}
+    - target: {fileID: 5458761457199449238, guid: 2658dc79455b4694e9b38cd7b9453ff0,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6233257718770741736, guid: 2658dc79455b4694e9b38cd7b9453ff0,
         type: 3}
@@ -7760,6 +7770,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_StaticEditorFlags
       value: 64
+      objectReference: {fileID: 0}
+    - target: {fileID: 7585118853056521111, guid: 2658dc79455b4694e9b38cd7b9453ff0,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7730005617096243705, guid: 2658dc79455b4694e9b38cd7b9453ff0,
         type: 3}
@@ -14194,6 +14209,31 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 738646681595172698, guid: 573ac53c334415945bf239de2c2f0511,
+        type: 3}
+      propertyPath: physicalParameters.m_BladeCount
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 738646681595172698, guid: 573ac53c334415945bf239de2c2f0511,
+        type: 3}
+      propertyPath: physicalParameters.m_Anamorphism
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 738646681595172699, guid: 573ac53c334415945bf239de2c2f0511,
+        type: 3}
+      propertyPath: m_FocalLength
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 738646681595172699, guid: 573ac53c334415945bf239de2c2f0511,
+        type: 3}
+      propertyPath: field of view
+      value: 53.130104
+      objectReference: {fileID: 0}
+    - target: {fileID: 738646681595172699, guid: 573ac53c334415945bf239de2c2f0511,
+        type: 3}
+      propertyPath: m_projectionMatrixMode
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 738646681744756154, guid: 573ac53c334415945bf239de2c2f0511,
         type: 3}
       propertyPath: m_Name
@@ -14461,11 +14501,11 @@ MonoBehaviour:
   m_Version: 2
   parameters:
     albedo: {r: 0.9686873, g: 1, b: 0.83647794, a: 1}
-    meanFreePath: 25
+    meanFreePath: 10
     anisotropy: 0
     volumeMask: {fileID: 11700000, guid: 6039ee80a9a8a0f41b4297ca0dd5a90c, type: 2}
-    textureScrollingSpeed: {x: 0, y: 0, z: 0}
-    textureTiling: {x: 1, y: 1, z: 1}
+    textureScrollingSpeed: {x: 0, y: 0.3, z: 0}
+    textureTiling: {x: 5, y: 5, z: 5}
     positiveFade: {x: 0.5, y: 0.5, z: 0.5}
     negativeFade: {x: 0.5, y: 0.5, z: 0.5}
     m_EditorUniformFade: 4
@@ -14474,10 +14514,10 @@ MonoBehaviour:
     m_EditorAdvancedFade: 0
     size: {x: 8, y: 8, z: 8}
     invertFade: 0
-    distanceFadeStart: 10000
-    distanceFadeEnd: 10000
+    distanceFadeStart: 20
+    distanceFadeEnd: 30
     textureIndex: 0
-    textureOffset: {x: -0, y: -0, z: 0}
+    textureOffset: {x: -0, y: -167.24336, z: 0}
 --- !u!1 &1518163832
 GameObject:
   m_ObjectHideFlags: 19
@@ -20735,7 +20775,7 @@ MonoBehaviour:
   m_InnerSpotPercent: 0
   m_SpotIESCutoffPercent: 100
   m_LightDimmer: 1
-  m_VolumetricDimmer: 3
+  m_VolumetricDimmer: 1
   m_LightUnit: 2
   m_FadeDistance: 10000
   m_AffectDiffuse: 1
@@ -20801,7 +20841,7 @@ MonoBehaviour:
   m_ShadowTint: {r: 0, g: 0, b: 0, a: 1}
   m_PenumbraTint: 0
   m_NormalBias: 0.05
-  m_SlopeBias: 0.2
+  m_SlopeBias: 0.5
   m_ShadowUpdateMode: 0
   m_BarnDoorAngle: 90
   m_BarnDoorLength: 0.05
@@ -22622,10 +22662,20 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3545202308409818493, guid: 209e18a6787294340960162067455c85,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3545202308498161297, guid: 209e18a6787294340960162067455c85,
         type: 3}
       propertyPath: m_IsActive
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3545202308814811040, guid: 209e18a6787294340960162067455c85,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 209e18a6787294340960162067455c85, type: 3}
@@ -22709,17 +22759,17 @@ PrefabInstance:
     - target: {fileID: 7463582231431991560, guid: 4f699647e46f5b941b976d9a1beba4cc,
         type: 3}
       propertyPath: m_LocalScale.x
-      value: 1
+      value: 0.25
       objectReference: {fileID: 0}
     - target: {fileID: 7463582231431991560, guid: 4f699647e46f5b941b976d9a1beba4cc,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: 1
+      value: 0.25
       objectReference: {fileID: 0}
     - target: {fileID: 7463582231431991560, guid: 4f699647e46f5b941b976d9a1beba4cc,
         type: 3}
       propertyPath: m_LocalScale.z
-      value: 1
+      value: 0.25
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4f699647e46f5b941b976d9a1beba4cc, type: 3}
