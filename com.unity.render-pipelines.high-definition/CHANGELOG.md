@@ -709,6 +709,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed fallback for ray tracing and light layers (1258837).
 - Fixed Sorting Priority not displayed correctly in the DrawRenderers custom pass UI.
 - Fixed glitch in Project settings window when selecting diffusion profiles in material section (case 1253090)
+- Fixed errors when switching area light to disk shape while an area emissive mesh was displayed.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
