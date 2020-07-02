@@ -229,51 +229,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 8707388281747785984}
     m_Modifications:
-    - target: {fileID: 1526240796000064953, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
-        type: 3}
-      propertyPath: m_InnerSpotPercent
-      value: 75
-      objectReference: {fileID: 0}
-    - target: {fileID: 1526240796000064953, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
-        type: 3}
-      propertyPath: m_LightlayersMask
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 1526240796000064953, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
-        type: 3}
-      propertyPath: m_ShadowResolution.m_Override
-      value: 1024
-      objectReference: {fileID: 0}
-    - target: {fileID: 1526240796000064953, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
-        type: 3}
-      propertyPath: m_ShadowFadeDistance
-      value: 12
-      objectReference: {fileID: 0}
-    - target: {fileID: 1978862352675334064, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
-        type: 3}
-      propertyPath: m_Intensity
-      value: 257.6779
-      objectReference: {fileID: 0}
-    - target: {fileID: 1978862352675334064, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
-        type: 3}
-      propertyPath: m_SpotAngle
-      value: 150
-      objectReference: {fileID: 0}
-    - target: {fileID: 1978862352675334064, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
-        type: 3}
-      propertyPath: m_RenderingLayerMask
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 1978862352675334064, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
-        type: 3}
-      propertyPath: m_BoundingSphereOverride.w
-      value: 1e-45
-      objectReference: {fileID: 0}
-    - target: {fileID: 1978862352675334064, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
-        type: 3}
-      propertyPath: m_Range
-      value: 7
-      objectReference: {fileID: 0}
     - target: {fileID: 6030349360826037165, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -349,35 +304,15 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 8707388281747785984}
     m_Modifications:
-    - target: {fileID: 1526240796000064953, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
+    - target: {fileID: 1978862352675334064, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
         type: 3}
-      propertyPath: m_ShadowFadeDistance
-      value: 12
-      objectReference: {fileID: 0}
-    - target: {fileID: 1526240796000064953, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
-        type: 3}
-      propertyPath: m_InnerSpotPercent
-      value: 84.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 1526240796000064953, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
-        type: 3}
-      propertyPath: m_LightlayersMask
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 1526240796000064953, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
-        type: 3}
-      propertyPath: m_ShadowResolution.m_Override
-      value: 1024
+      propertyPath: m_BoundingSphereOverride.x
+      value: 5.65e-43
       objectReference: {fileID: 0}
     - target: {fileID: 1978862352675334064, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
         type: 3}
-      propertyPath: m_Range
-      value: 7
-      objectReference: {fileID: 0}
-    - target: {fileID: 1978862352675334064, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
-        type: 3}
-      propertyPath: m_RenderingLayerMask
-      value: 3
+      propertyPath: m_BoundingSphereOverride.w
+      value: 1.3e-44
       objectReference: {fileID: 0}
     - target: {fileID: 6030349360826037165, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
         type: 3}
@@ -529,40 +464,20 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 8707388281747785984}
     m_Modifications:
-    - target: {fileID: 1526240796000064953, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
-        type: 3}
-      propertyPath: m_ShadowFadeDistance
-      value: 12
-      objectReference: {fileID: 0}
-    - target: {fileID: 1978862352675334064, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
-        type: 3}
-      propertyPath: m_BoundingSphereOverride.x
-      value: 8.74e-43
-      objectReference: {fileID: 0}
     - target: {fileID: 1978862352675334064, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
         type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: 1.4033e-41
+      value: -49153
       objectReference: {fileID: 0}
     - target: {fileID: 1978862352675334064, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
         type: 3}
       propertyPath: m_BoundingSphereOverride.z
-      value: 8.74e-43
+      value: 5.63e-43
       objectReference: {fileID: 0}
     - target: {fileID: 1978862352675334064, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
         type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 7.542145
-      objectReference: {fileID: 0}
-    - target: {fileID: 1978862352675334064, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
-        type: 3}
-      propertyPath: m_Range
-      value: 7
-      objectReference: {fileID: 0}
-    - target: {fileID: 1978862352675334064, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
-        type: 3}
-      propertyPath: m_RenderingLayerMask
-      value: 3
+      value: 4.1447607e+15
       objectReference: {fileID: 0}
     - target: {fileID: 6030349360826037165, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
         type: 3}
