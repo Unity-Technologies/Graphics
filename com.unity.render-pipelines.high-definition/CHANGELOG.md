@@ -96,6 +96,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing include guards in shadow hlsl files.
 - Fixed issue with light layers bigger than 8 (and above the supported range). 
 - Fixed an issue where decals were duplicated in prefab isolation mode.
+- Fixed culling for decals when used in prefabs and edited in context.
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
