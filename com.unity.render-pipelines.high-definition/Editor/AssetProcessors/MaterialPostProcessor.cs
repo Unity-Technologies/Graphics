@@ -394,7 +394,7 @@ namespace UnityEditor.Rendering.HighDefinition
             const string kSupportDecals = "_SupportDecals";
 
             // Take the opportunity to remove _SupportDecals from Unlit as it is not suppose to be here
-            if (ShaderUtils.IsUnlitHDRPShader(material.shader))
+            if (HDShaderUtils.IsUnlitHDRPShader(material.shader))
             {               
                 var serializedMaterial = new SerializedObject(material);
                 if (TryFindProperty(serializedMaterial, kSupportDecals, SerializedType.Integer, out var property, out _, out _))

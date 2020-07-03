@@ -140,19 +140,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return null;
         }
 
-        public RTHandle GetDecalBuffer()
-        {
-            for (int gbufferIndex = 0; gbufferIndex < m_BufferCount; ++gbufferIndex)
-            {
-                if (m_GBufferUsage[gbufferIndex] == GBufferUsage.Data)
-                {
-                    return m_RTs[gbufferIndex];
-                }
-            }
-
-            return null;
-        }
-
         public RTHandle GetSubsurfaceScatteringBuffer(int index)
         {
             int currentIndex = 0;

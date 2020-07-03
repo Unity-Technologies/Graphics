@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override string renderQueue
         {
-            get => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(systemData.renderingPass, systemData.sortPriority, systemData.alphaTest, lightingData.decalLayerMask != DecalLayerMask.None));
+            get => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(systemData.renderingPass, systemData.sortPriority, systemData.alphaTest, lightingData.receiveDecals));
         }
 
         protected override string renderType => HDRenderTypeTags.HDLitShader.ToString();

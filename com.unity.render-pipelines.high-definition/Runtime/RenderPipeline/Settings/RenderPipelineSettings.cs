@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
             customBufferFormat = CustomBufferFormat.R8G8B8A8,
             supportedLitShaderMode = SupportedLitShaderMode.DeferredOnly,
             supportDecals = true,
-            supportDecalLayers = false;
+            supportDecalLayers = false,
             decalLayerName0 = "Decal Layer default",
             decalLayerName1 = "Decal Layer 1",
             decalLayerName2 = "Decal Layer 2",
