@@ -426,8 +426,8 @@ float3x3 GetEulerMatrix(float3 angles)
 
 float4x4 GetTRSMatrix(float3 pos, float3 angles, float3 scale)
 {
-	float3x3 rotAndScale = GetEulerMatrix(radians(angles));
-	rotAndScale = mul(rotAndScale,GetScaleMatrix(scale));
+    float3x3 rotAndScale = GetEulerMatrix(radians(angles));
+    rotAndScale = mul(rotAndScale,GetScaleMatrix(scale));
     return float4x4(
         float4(rotAndScale[0],pos.x),
         float4(rotAndScale[1],pos.y),
@@ -526,7 +526,7 @@ VFXUVData GetUVData(float2 flipBookSize, float2 invFlipBookSize, float2 uv, floa
     data.uvs.zw = GetSubUV(frameIndex + 1, uv, flipBookSize, invFlipBookSize);
     data.blend = frameBlend;
 #endif
-	
+
     return data;
 }
 

@@ -42,8 +42,8 @@ namespace UnityEditor.VFX
 
             return VFXValue.Constant(matrix);
         }
-		
-		public override string GetCodeString(string[] parents)
+
+        public override string GetCodeString(string[] parents)
         {
             return string.Format("GetTRSMatrix({0}, {1}, {2})", parents[0], parents[1], parents[2]);
         }

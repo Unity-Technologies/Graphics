@@ -62,7 +62,7 @@ namespace UnityEditor.VFX
 
         public void RefreshShader(Shader shader)
         {
-            if( this.shader == shader)
+            if (this.shader == shader)
             {
                 //Get back the correct shader C# object after the importer created a new one with the same instance ID as the old one.
                 if (!object.ReferenceEquals(shader, null))
@@ -72,7 +72,6 @@ namespace UnityEditor.VFX
                 data.RefreshShader();
             }
         }
-            
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
@@ -80,7 +79,7 @@ namespace UnityEditor.VFX
             {
                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(Mesh), "mesh"), VFXResources.defaultResources.mesh);
                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(Transform), "transform"), Transform.defaultValue);
-                yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "subMeshMask",new VFXPropertyAttribute(VFXPropertyAttribute.Type.kBitField)), uint.MaxValue);
+                yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "subMeshMask", new VFXPropertyAttribute(VFXPropertyAttribute.Type.kBitField)), uint.MaxValue);
 
                 if (shader != null)
                 {
@@ -216,7 +215,6 @@ namespace UnityEditor.VFX
 
                                 if (expr != null)
                                     mapper.AddExpression(expr, name, -1);
-
                             }
                         }
                     }

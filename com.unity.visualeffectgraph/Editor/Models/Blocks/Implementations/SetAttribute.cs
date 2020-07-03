@@ -111,7 +111,7 @@ namespace UnityEditor.VFX.Block
             else
                 builder.Append("Inherit Source ");
 
-            builder.Append( ObjectNames.NicifyVariableName(attribute));
+            builder.Append(ObjectNames.NicifyVariableName(attribute));
             if (!libraryName && currentAttribute.variadic == VFXVariadic.True)
                 builder.AppendFormat(".{0}", channels.ToString());
 
@@ -310,7 +310,7 @@ namespace UnityEditor.VFX.Block
 
                         TooltipAttribute tooltip = null;
 
-                        if( field != null)
+                        if (field != null)
                             tooltip = field.GetCustomAttributes(typeof(TooltipAttribute), false).Cast<TooltipAttribute>().FirstOrDefault();
 
                         if (attrib.Equals(VFXAttribute.Color))
@@ -322,10 +322,10 @@ namespace UnityEditor.VFX.Block
                         }
                         else
                         {
-                            if(tooltip != null)
+                            if (tooltip != null)
                                 attr = VFXPropertyAttribute.Create(tooltip);
                         }
-                            
+
 
                         Type slotType = VFXExpression.TypeToType(attrib.type);
                         object content = attrib.value.GetContent();

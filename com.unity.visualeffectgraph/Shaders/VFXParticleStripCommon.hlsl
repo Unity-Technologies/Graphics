@@ -7,37 +7,37 @@
 
 struct StripData
 {
-	uint stripIndex;
-	uint capacity;
-	uint firstIndex;
-	uint nextIndex;
+    uint stripIndex;
+    uint capacity;
+    uint firstIndex;
+    uint nextIndex;
 };
 
 #if HAS_STRIPS
 const StripData GetStripDataFromStripIndex(uint stripIndex, uint capacity)
 {
-	StripData stripData = (StripData)0;
-	stripData.stripIndex = stripIndex;
+    StripData stripData = (StripData)0;
+    stripData.stripIndex = stripIndex;
     stripData.capacity = capacity;
-	stripData.firstIndex = STRIP_DATA(STRIP_FIRST_INDEX,stripData.stripIndex);
-	stripData.nextIndex = STRIP_DATA(STRIP_NEXT_INDEX,stripData.stripIndex);
-	return stripData;
+    stripData.firstIndex = STRIP_DATA(STRIP_FIRST_INDEX,stripData.stripIndex);
+    stripData.nextIndex = STRIP_DATA(STRIP_NEXT_INDEX,stripData.stripIndex);
+    return stripData;
 }
 
 const StripData GetStripDataFromParticleIndex(uint particleIndex, uint capacity)
 {
-	uint stripIndex = particleIndex / capacity;
-	return GetStripDataFromStripIndex(stripIndex, capacity);
+    uint stripIndex = particleIndex / capacity;
+    return GetStripDataFromStripIndex(stripIndex, capacity);
 }
 
 uint GetParticleIndex(uint relativeIndex, const StripData data)
 {
-	return data.stripIndex * data.capacity + (relativeIndex + data.firstIndex) % data.capacity;
+    return data.stripIndex * data.capacity + (relativeIndex + data.firstIndex) % data.capacity;
 }
 
 uint GetRelativeIndex(uint particleIndex, const StripData data)
 {
-	return (data.capacity + particleIndex - data.firstIndex) % data.capacity;
+    return (data.capacity + particleIndex - data.firstIndex) % data.capacity;
 }
 
 #if HAS_ATTRIBUTES

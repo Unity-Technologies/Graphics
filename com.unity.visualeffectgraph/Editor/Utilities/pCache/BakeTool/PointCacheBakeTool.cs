@@ -6,7 +6,7 @@ namespace UnityEditor.Experimental.VFX.Utility
 {
     partial class PointCacheBakeTool : EditorWindow
     {
-        [MenuItem("Window/Visual Effects/Utilities/Point Cache Bake Tool",false,3012)]
+        [MenuItem("Window/Visual Effects/Utilities/Point Cache Bake Tool", false, 3012)]
         static void OpenWindow()
         {
             GetWindow<PointCacheBakeTool>();

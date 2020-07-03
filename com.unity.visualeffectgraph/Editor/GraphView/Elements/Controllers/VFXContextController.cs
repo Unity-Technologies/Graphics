@@ -113,15 +113,14 @@ namespace UnityEditor.VFX.UI
             {
                 // Prevent breaking the editor opening.
                 try
-                { 
+                {
                     SyncFlowAnchors();
                     model.ResyncSlots(true);
                 }
-                    catch (Exception e)
+                catch (Exception e)
                 {
                     Debug.LogException(e);
                 }
-
             }
         }
 
@@ -136,7 +135,7 @@ namespace UnityEditor.VFX.UI
                     m_FlowInputAnchors.Add(inAnchor);
                     viewController.RegisterFlowAnchorController(inAnchor);
                 }
-                while(this.model.inputFlowSlot.Length < m_FlowInputAnchors.Count)
+                while (this.model.inputFlowSlot.Length < m_FlowInputAnchors.Count)
                 {
                     var removedAnchor = m_FlowInputAnchors[m_FlowInputAnchors.Count - 1];
                     removedAnchor.OnDisable();

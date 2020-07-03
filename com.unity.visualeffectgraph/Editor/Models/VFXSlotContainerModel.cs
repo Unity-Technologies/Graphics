@@ -359,7 +359,7 @@ namespace UnityEditor.VFX
 
                     // Try to find a slot that can be implicitely converted
                     if (srcSlot == null)
-                        srcSlot = existingSlots.FirstOrDefault(s => VFXConverter.CanConvertTo(s.property.type,dstSlot.property.type));
+                        srcSlot = existingSlots.FirstOrDefault(s => VFXConverter.CanConvertTo(s.property.type, dstSlot.property.type));
 
                     if (srcSlot != null)
                     {

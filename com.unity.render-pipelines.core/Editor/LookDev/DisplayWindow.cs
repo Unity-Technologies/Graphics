@@ -3,6 +3,8 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
+using RenderPipelineManager = UnityEngine.Rendering.RenderPipelineManager;
+
 namespace UnityEditor.Rendering.LookDev
 {
     /// <summary>Interface that must implement the viewer to communicate with the compositor and data management</summary>
@@ -51,11 +53,21 @@ namespace UnityEditor.Rendering.LookDev
 
             internal static readonly GUIContent k_WindowTitleAndIcon = EditorGUIUtility.TrTextContentWithIcon("Look Dev", CoreEditorUtils.LoadIcon(k_IconFolder, "LookDev", forceLowRes: true));
 
-            internal static readonly Texture2D k_Layout1Icon = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "Layout1", forceLowRes: true);
-            internal static readonly Texture2D k_Layout2Icon = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "Layout2", forceLowRes: true);
-            internal static readonly Texture2D k_LayoutVerticalIcon = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LayoutVertical", forceLowRes: true);
-            internal static readonly Texture2D k_LayoutHorizontalIcon = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LayoutHorizontal", forceLowRes: true);
-            internal static readonly Texture2D k_LayoutStackIcon = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LayoutCustom", forceLowRes: true);
+            internal static readonly (Texture2D icon, string tooltip) k_Layout1Icon =
+                (CoreEditorUtils.LoadIcon(Style.k_IconFolder, "Layout1", forceLowRes: true),
+                "First view");
+            internal static readonly (Texture2D icon, string tooltip) k_Layout2Icon =
+                (CoreEditorUtils.LoadIcon(Style.k_IconFolder, "Layout2", forceLowRes: true),
+                "Second view");
+            internal static readonly (Texture2D icon, string tooltip) k_LayoutVerticalIcon =
+                (CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LayoutVertical", forceLowRes: true),
+                "Both views split vertically");
+            internal static readonly (Texture2D icon, string tooltip) k_LayoutHorizontalIcon =
+                (CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LayoutHorizontal", forceLowRes: true),
+                "Both views split horizontally");
+            internal static readonly (Texture2D icon, string tooltip) k_LayoutStackIcon =
+                (CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LayoutCustom", forceLowRes: true),
+                "Both views stacked");
 
             internal static readonly Texture2D k_Camera1Icon = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "Camera1", forceLowRes: true);
             internal static readonly Texture2D k_Camera2Icon = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "Camera2", forceLowRes: true);
@@ -66,6 +78,7 @@ namespace UnityEditor.Rendering.LookDev
             internal static readonly Texture2D k_RenderdocIcon = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "RenderDoc", forceLowRes: true);
             internal const string k_RenderDocLabel = " Content";
 
+            internal const string k_CameraSyncTooltip = "Synchronize camera movement amongst views";
             internal const string k_CameraMenuSync1On2 = "Align Camera 1 with Camera 2";
             internal const string k_CameraMenuSync2On1 = "Align Camera 2 with Camera 1";
             internal const string k_CameraMenuReset = "Reset Cameras";
@@ -200,8 +213,28 @@ namespace UnityEditor.Rendering.LookDev
             remove => OnUpdateRequestedInternal -= value;
         }
 
+        StyleSheet styleSheet = null;
+        StyleSheet styleSheetLight = null;
+
         void OnEnable()
         {
+            //Stylesheet             
+            // Try to load stylesheet. Timing can be odd while upgrading packages (case 1219692).
+            // In this case, it will be fixed in OnGUI. Though it can spawn error while reimporting assets.
+            // Waiting for filter on stylesheet (case 1228706) to remove last error.
+            if (styleSheet == null || styleSheet.Equals(null))
+            {
+                styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss);
+                if (styleSheet != null && !styleSheet.Equals(null))
+                    rootVisualElement.styleSheets.Add(styleSheet);
+            }
+            if (!EditorGUIUtility.isProSkin && styleSheetLight != null && !styleSheetLight.Equals(null))
+            {
+                styleSheetLight = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss_personal_overload);
+                if (styleSheetLight != null && !styleSheetLight.Equals(null))
+                    rootVisualElement.styleSheets.Add(styleSheetLight);
+            }
+
             //Call the open function to configure LookDev
             // in case the window where open when last editor session finished.
             // (Else it will open at start and has nothing to display).
@@ -212,15 +245,6 @@ namespace UnityEditor.Rendering.LookDev
 
             // /!\ be sure to have a minSize that will allow a non negative sized viewport even with side panel open
             this.minSize = new Vector2(600, 400);
-
-            rootVisualElement.styleSheets.Add(
-                AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss));
-
-            if (!EditorGUIUtility.isProSkin)
-            {
-                rootVisualElement.styleSheets.Add(
-                    AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss_personal_overload));
-            }
 
             CreateToolbar();
 
@@ -235,9 +259,15 @@ namespace UnityEditor.Rendering.LookDev
 
             ApplyLayout(viewLayout);
             ApplySidePanelChange(layout.showedSidePanel);
+
+            Undo.undoRedoPerformed += FullRefreshEnvironmentList;
         }
 
-        void OnDisable() => OnClosedInternal?.Invoke();
+        void OnDisable()
+        {
+            Undo.undoRedoPerformed -= FullRefreshEnvironmentList;
+            OnClosedInternal?.Invoke();
+        }
 
         void CreateToolbar()
         {
@@ -258,6 +288,7 @@ namespace UnityEditor.Rendering.LookDev
             cameraMenu.variant = ToolbarMenu.Variant.Popup;
             var cameraToggle = new ToolbarToggle() { name = Style.k_CameraButtonName };
             cameraToggle.value = LookDev.currentContext.cameraSynced;
+            cameraToggle.tooltip = Style.k_CameraSyncTooltip;
 
             //Note: when having Image on top of the Toggle nested in the Menu, RegisterValueChangedCallback is not called
             //cameraToggle.RegisterValueChangedCallback(evt => LookDev.currentContext.cameraSynced = evt.newValue);
@@ -271,8 +302,8 @@ namespace UnityEditor.Rendering.LookDev
             cameraToggle.Add(new Image() { image = Style.k_Camera1Icon });
             cameraToggle.Add(new Image() { image = Style.k_LinkIcon });
             cameraToggle.Add(new Image() { image = Style.k_Camera2Icon });
-            cameraMenu.Add(cameraToggle);
             cameraMenu.Add(cameraSeparator);
+            cameraMenu.Add(cameraToggle);
             cameraMenu.menu.AppendAction(Style.k_CameraMenuSync1On2,
                 (DropdownMenuAction a) => LookDev.currentContext.SynchronizeCameraStates(ViewIndex.Second),
                 DropdownMenuAction.AlwaysEnabled);
@@ -375,9 +406,11 @@ namespace UnityEditor.Rendering.LookDev
             m_NoEnvironment1 = new Label(Style.k_DragAndDropEnvironment);
             m_NoEnvironment1.style.flexGrow = 1;
             m_NoEnvironment1.style.unityTextAlign = TextAnchor.MiddleCenter;
+            m_NoEnvironment1.style.whiteSpace = WhiteSpace.Normal;
             m_NoEnvironment2 = new Label(Style.k_DragAndDropEnvironment);
             m_NoEnvironment2.style.flexGrow = 1;
             m_NoEnvironment2.style.unityTextAlign = TextAnchor.MiddleCenter;
+            m_NoEnvironment2.style.whiteSpace = WhiteSpace.Normal;
             m_Views[(int)ViewIndex.First].Add(m_NoObject1);
             m_Views[(int)ViewIndex.First].Add(m_NoEnvironment1);
             m_Views[(int)ViewIndex.Second].Add(m_NoObject2);
@@ -458,6 +491,9 @@ namespace UnityEditor.Rendering.LookDev
         Vector2 m_LastSecondViewSize = new Vector2();
         void IViewDisplayer.SetTexture(ViewCompositionIndex index, Texture texture)
         {
+            if (texture == null)
+                return;
+
             bool updated = false;
             switch (index)
             {
@@ -589,6 +625,81 @@ namespace UnityEditor.Rendering.LookDev
             }
         }
 
-        void OnGUI() => OnUpdateRequestedInternal?.Invoke();
+        void OnGUI()
+        {
+            //Stylesheet             
+            // [case 1219692] if LookDev is open while reimporting CoreRP package,
+            // stylesheet can be null. In this case, we can have a null stylesheet
+            // registered as it got destroyed. Reloading it. As we cannot just 
+            // remove a null entry, we must filter and reconstruct the while list.
+            if (styleSheet == null || styleSheet.Equals(null)
+                || (!EditorGUIUtility.isProSkin && (styleSheetLight == null || styleSheetLight.Equals(null))))
+            {
+                // While (case 1228706) is still on going, we sill close and reopen the look dev.
+                // This will prevent spawning error at frame.
+                LookDev.Close();
+                LookDev.Open();
+                return;
+
+                // Following lines is the correct fix if UIElement filter garbage collected Stylesheet.
+
+                //System.Collections.Generic.List<StyleSheet> usedStyleSheets = new System.Collections.Generic.List<StyleSheet>();
+                //int currentCount = rootVisualElement.styleSheets.count;
+                //for (int i = 0; i < currentCount; ++i)
+                //{
+                //    StyleSheet sheet = rootVisualElement.styleSheets[i];
+                //    if (sheet != null && !sheet.Equals(null))
+                //        usedStyleSheets.Add(sheet);
+                //}
+                //rootVisualElement.styleSheets.Clear();
+                //foreach (StyleSheet sheet in usedStyleSheets)
+                //    rootVisualElement.styleSheets.Add(sheet);
+
+                //styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss);
+                //if (styleSheet != null && !styleSheet.Equals(null))
+                //{
+                //    rootVisualElement.styleSheets.Add(styleSheet);
+                //    if (!EditorGUIUtility.isProSkin)
+                //    {
+                //        rootVisualElement.styleSheets.Add(
+                //            AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss_personal_overload));
+                //    }
+                //}
+
+                //if (styleSheet == null || styleSheet.Equals(null))
+                //{
+                //    styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss);
+                //    if (styleSheet != null && !styleSheet.Equals(null))
+                //        rootVisualElement.styleSheets.Add(styleSheet);
+                //}
+                //if (!EditorGUIUtility.isProSkin && styleSheetLight != null && !styleSheetLight.Equals(null))
+                //{
+                //    styleSheetLight = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss_personal_overload);
+                //    if (styleSheetLight != null && !styleSheetLight.Equals(null))
+                //        rootVisualElement.styleSheets.Add(styleSheetLight);
+                //}
+            }
+            else
+            {
+                //deal with missing style when domain reload...
+                if (!rootVisualElement.styleSheets.Contains(styleSheet))
+                    rootVisualElement.styleSheets.Add(styleSheet);
+                if (!EditorGUIUtility.isProSkin && !rootVisualElement.styleSheets.Contains(styleSheetLight))
+                    rootVisualElement.styleSheets.Add(styleSheetLight);
+            }
+
+            // [case 1245086] Guard in case the SRP asset is set to null (or to a not supported SRP) when the lookdev window is already open
+            // Note: After an editor reload, we might get a null OnUpdateRequestedInternal and null SRP for a couple of frames, hence the check. 
+            if (!LookDev.supported && OnUpdateRequestedInternal !=null)
+            {
+                // Print an error and close the Lookdev window (to avoid spamming the console)
+                Debug.LogError($"LookDev is not supported by this Scriptable Render Pipeline: "
+                    + (RenderPipelineManager.currentPipeline == null ? "No SRP in use" : RenderPipelineManager.currentPipeline.ToString()));
+                LookDev.Close();
+                return;
+            }
+
+            OnUpdateRequestedInternal?.Invoke();
+        }
     }
 }

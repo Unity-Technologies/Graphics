@@ -108,9 +108,9 @@ namespace UnityEditor.VFX
 
         public string GetNameOfSystem(IEnumerable<VFXContext> contexts)
         {
-            if(systemInfos != null)
+            if (systemInfos != null)
             {
-                foreach(var context in contexts)
+                foreach (var context in contexts)
                 {
                     var system = systemInfos.Find(t => t.contexts.Contains(context));
                     if (system != null)
@@ -122,7 +122,7 @@ namespace UnityEditor.VFX
 
         public void SetNameOfSystem(IEnumerable<VFXContext> contexts, string name)
         {
-            if( systemInfos == null)
+            if (systemInfos == null)
             {
                 systemInfos = new List<SystemInfo>();
             }
@@ -135,25 +135,25 @@ namespace UnityEditor.VFX
                     system.title = name;
 
                     // we found a matching system, clean all other of these contexts
-                    foreach( var s in systemInfos)
+                    foreach (var s in systemInfos)
                     {
-                        if( s != system)
+                        if (s != system)
                         {
-                            if( s.contexts.Intersect(contexts) != null)
+                            if (s.contexts.Intersect(contexts) != null)
                             {
                                 s.contexts = s.contexts.Except(contexts).ToArray();
                             }
                         }
                     }
 
-                    if( string.IsNullOrEmpty(name))
+                    if (string.IsNullOrEmpty(name))
                     {
                         systemInfos.Remove(system);
                     }
                     return;
                 }
             }
-            if( ! string.IsNullOrEmpty(name) )
+            if (!string.IsNullOrEmpty(name))
             {
                 // no system contains any of the contexts. Add a new one.
                 systemInfos.Add(new SystemInfo() { contexts = contexts.ToArray(), title = name });

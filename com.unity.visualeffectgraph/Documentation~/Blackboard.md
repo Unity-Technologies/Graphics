@@ -6,7 +6,7 @@ Properties you define in the Blackboard are global variables that you can use mu
 
 ![Blackboard-Properties](Images/Blackboard-Properties.png)
 
-Properties in the Blackboard are either **constants** or **exposed**. If you make a property exposed, you can see and edit it on the [Visual Effect Component](VisualEffectComponent.md) as well as via the C# API. 
+Properties in the Blackboard are either **constants** or **exposed**. If you make a property exposed, you can see and edit it on the [Visual Effect Component](VisualEffectComponent.md) as well as via the C# API.
 
 To differentiate between exposed properties and constants, the Blackboard displays a green dot on the left of an exposed property's label.
 
@@ -74,4 +74,3 @@ To edit a property value, you need to override it. To do this, enable the checkb
 ### Using Gizmos
 
 You can use Gizmos to edit certain advanced property types. To enable Gizmo editing, click the **Show Property Gizmos** button. To use a Gizmo to edit a compatible property, click the **Edit** button next to the property.
-

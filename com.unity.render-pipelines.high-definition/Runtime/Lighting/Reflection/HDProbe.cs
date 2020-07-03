@@ -248,7 +248,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public RenderData renderData => GetRenderData(mode);
         /// <summary>
-        /// Get the render data of a specific mode
+        /// Get the render data of a specific mode.
+        /// 
+        /// Note: The HDProbe stores only one RenderData per mode, even for view dependent probes with multiple viewers.
+        /// In that case, make sure that you have set the RenderData relative to the expected viewer before rendering.
+        /// Otherwise the data retrieved by this function will be wrong. 
         /// </summary>
         /// <param name="targetMode">The mode to query</param>
         /// <returns>The requested render data</returns>
@@ -264,7 +268,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
         /// <summary>
-        /// Set the render data for a specific mode
+        /// Set the render data for a specific mode.
+        ///
+        /// Note: The HDProbe stores only one RenderData per mode, even for view dependent probes with multiple viewers.
+        /// In that case, make sure that you have set the RenderData relative to the expected viewer before rendering.
         /// </summary>
         /// <param name="targetMode">The mode to update</param>
         /// <param name="renderData">The data to set</param>
@@ -420,6 +427,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// be rendered the next time it will influence a camera rendering.
         /// </summary>
         public void RequestRenderNextUpdate() => m_WasRenderedSinceLastOnDemandRequest = false;
+
+        // Forces the re-rendering for both OnDemand and OnEnable
+        internal void ForceRenderingNextUpdate()
+        {
+            m_WasRenderedSinceLastOnDemandRequest = false;
+            wasRenderedAfterOnEnable = false;
+        }
 
         void UpdateProbeName()
         {

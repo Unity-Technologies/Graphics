@@ -74,8 +74,6 @@ namespace UnityEditor.VFX.Block
             {
                 foreach (var p in GetExpressionsFromSlots(this))
                 {
-
-
                     yield return p;
                 }
 

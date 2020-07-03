@@ -147,7 +147,7 @@ namespace UnityEditor.VFX
     class VFXExpressionGetBufferFromMainCamera : VFXExpression
     {
         public VFXExpressionGetBufferFromMainCamera() : this(VFXCameraBufferTypes.None)
-        { }
+        {}
 
         public VFXExpressionGetBufferFromMainCamera(VFXCameraBufferTypes bufferType) : base(VFXExpression.Flags.InvalidOnGPU)
         {
@@ -167,5 +167,4 @@ namespace UnityEditor.VFX
         protected override int[] additionnalOperands { get { return new int[] { (int)m_BufferType }; } }
         private VFXCameraBufferTypes m_BufferType;
     }
-
 }

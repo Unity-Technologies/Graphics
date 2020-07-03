@@ -378,9 +378,8 @@ MultipleSourcePopupField > MultipleDifferentValue:hover
 
 #cameraMenu
 {
-    flex-direction: row;
+    flex-direction: row-reverse;
     padding: 0px;
-    padding-right: 16px;
 }
 
 #cameraButton

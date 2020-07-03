@@ -231,7 +231,7 @@ namespace UnityEditor.VFX.Test
             var graph = CreateGraph_And_System();
 
             yield return null;
-        
+
             while (m_mainObject.GetComponent<VisualEffect>() != null)
             {
                 UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
@@ -241,14 +241,14 @@ namespace UnityEditor.VFX.Test
             Assert.DoesNotThrow(() => VisualEffectUtility.GetSpawnerState(vfxComponent, 0));
 
             yield return null;
-        
+
             //Plug a GPU instruction on bounds, excepting an exception while recompiling
             var getPositionDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.modelType == typeof(VFXAttributeParameter) && o.name.Contains(VFXAttribute.Position.name));
             var getPosition = getPositionDesc.CreateInstance();
             graph.AddChild(getPosition);
             var initializeContext = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault();
             Assert.AreEqual(VFXValueType.Float3, initializeContext.inputSlots[0][0].valueType);
-        
+
             getPosition.outputSlots[0].Link(initializeContext.inputSlots[0][0]);
 
             //LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("Exception while compiling expression graph:*")); < Incorrect with our katana configuration
@@ -312,9 +312,9 @@ namespace UnityEditor.VFX.Test
             vfx.visualEffectAsset = asset;
 
             int maxFrame = 512;
-            while ((    vfx.culled
+            while ((vfx.culled
                     ||  currentObject.GetComponent<VFXRenderer>().bounds.extents.x == 0.0f)
-                    &&  --maxFrame > 0)
+                   &&  --maxFrame > 0)
             {
                 yield return null;
             }

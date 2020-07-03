@@ -32,17 +32,13 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             SerializedObject serializedObject;
             public SerializedProperty skyUniqueID;
-
-            public VolumeProfile volumeProfile
-            {
-                get => (serializedObject.targetObject as StaticLightingSky).profile;
-                set => (serializedObject.targetObject as StaticLightingSky).profile = value;
-            }
+            public SerializedProperty profile;
 
             public SerializedStaticLightingSky(StaticLightingSky staticLightingSky)
             {
                 serializedObject = new SerializedObject(staticLightingSky);
                 skyUniqueID = serializedObject.FindProperty("m_StaticLightingSkyUniqueID");
+                profile = serializedObject.FindProperty("m_Profile");
             }
 
             public void Apply() => serializedObject.ApplyModifiedProperties();
@@ -174,10 +170,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 ++EditorGUI.indentLevel;
 
                 //cannot use SerializeProperty due to logic in the property
-                var profile = m_SerializedActiveSceneLightingSky.volumeProfile;
-                var newProfile = EditorGUILayout.ObjectField(EditorGUIUtility.TrTextContent("Profile"), profile, typeof(VolumeProfile), allowSceneObjects: false) as VolumeProfile;
+                var profile = m_SerializedActiveSceneLightingSky.profile.objectReferenceValue;
+                var newProfile = EditorGUILayout.ObjectField(EditorGUIUtility.TrTextContent("Profile"), m_SerializedActiveSceneLightingSky.profile.objectReferenceValue, typeof(VolumeProfile), allowSceneObjects: false) as VolumeProfile;
                 if (profile != newProfile)
-                    m_SerializedActiveSceneLightingSky.volumeProfile = newProfile;
+                    m_SerializedActiveSceneLightingSky.profile.objectReferenceValue = newProfile;
 
                 using (new EditorGUI.DisabledScope(m_SkyClassNames.Count == 1)) // Only "None"
                 {
@@ -204,7 +200,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SkyClassNames.Add(new GUIContent("None"));
             m_SkyUniqueIDs.Add(0);
 
-            VolumeProfile profile = m_SerializedActiveSceneLightingSky.volumeProfile;
+            VolumeProfile profile = m_SerializedActiveSceneLightingSky.profile.objectReferenceValue as VolumeProfile;
             if (profile != null)
             {
                 var skyTypesDict = SkyManager.skyTypesDict;

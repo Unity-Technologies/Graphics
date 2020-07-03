@@ -327,7 +327,7 @@ namespace UnityEditor.Experimental.VFX.Utility
                         throw new InvalidOperationException("Cannot Find FindIndexOfArea");
 
                     if (m_accumulatedAreaTriangles[mid] >= area &&
-                        (mid == 0 || (m_accumulatedAreaTriangles[mid-1] < area)))
+                        (mid == 0 || (m_accumulatedAreaTriangles[mid - 1] < area)))
                     {
                         return mid;
                     }

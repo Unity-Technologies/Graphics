@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -24,9 +25,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_RenderTextureDescriptor = baseDescriptor;
             m_RenderTextureDescriptor.depthBufferBits = 0;
             m_RenderTextureDescriptor.msaaSamples = 1;
-            m_RenderTextureDescriptor.colorFormat = RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.R8)
-                ? RenderTextureFormat.R8
-                : RenderTextureFormat.ARGB32;
+            m_RenderTextureDescriptor.graphicsFormat = RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8_UNorm, FormatUsage.Linear | FormatUsage.Render)
+                ? GraphicsFormat.R8_UNorm
+                : GraphicsFormat.B8G8R8A8_UNorm;
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)

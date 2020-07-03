@@ -75,6 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderWireFrame,
         PushToColorPicker,
         ResolveMSAAColor,
+        ResolveMSAAMotionVector,
         ResolveMSAADepth,
         ConvolveReflectionProbe,
         ConvolvePlanarReflectionProbe,

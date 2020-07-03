@@ -87,9 +87,9 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
             }
         #endif
 
+        // global wind
         if (windQuality > WIND_QUALITY_NONE)
         {
-            // global wind
             finalPosition = GlobalWind(finalPosition, treePos, true, rotatedWindVector, _ST_WindGlobal.x);
         }
     #endif

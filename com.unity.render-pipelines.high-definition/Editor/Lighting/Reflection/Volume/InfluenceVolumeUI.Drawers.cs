@@ -17,7 +17,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var provider = new TProvider();
 
-            
             EditorGUILayout.PropertyField(serialized.shape, shapeContent);
             switch ((InfluenceShape)serialized.shape.intValue)
             {
@@ -57,7 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_SectionShapeBox(SerializedInfluenceVolume serialized, Editor owner, bool drawOffset, bool drawNormal, bool drawFace)
         {
             bool advanced = serialized.editorAdvancedModeEnabled.boolValue;
-            
+
             //small piece of init logic previously in the removed Drawer_InfluenceAdvancedSwitch
             s_BoxBaseHandle.monoHandle = false;
             s_BoxInfluenceHandle.monoHandle = !advanced;
@@ -71,6 +70,13 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.boxSize, boxSizeContent);
             if (EditorGUI.EndChangeCheck())
             {
+                Vector3 localSize = serialized.boxSize.vector3Value;
+                for (int i = 0; i < 3; ++i)
+                {
+                    localSize[i] = Mathf.Max(Mathf.Epsilon, localSize[i]);
+                }
+                serialized.boxSize.vector3Value = localSize;
+
                 Vector3 blendPositive = serialized.boxBlendDistancePositive.vector3Value;
                 Vector3 blendNegative = serialized.boxBlendDistanceNegative.vector3Value;
                 Vector3 blendNormalPositive = serialized.boxBlendNormalDistancePositive.vector3Value;
@@ -112,7 +118,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.EndHorizontal();
 
             GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-            
+
             EditorGUILayout.PropertyField(serialized.editorAdvancedModeEnabled, manipulatonTypeContent);
 
             EditorGUILayout.BeginHorizontal();
@@ -152,7 +158,7 @@ namespace UnityEditor.Rendering.HighDefinition
             SerializedProperty editorSimplifiedModeBlendDistance = isNormal ? serialized.editorSimplifiedModeBlendNormalDistance : serialized.editorSimplifiedModeBlendDistance;
             Vector3 bdp = blendDistancePositive.vector3Value;
             Vector3 bdn = blendDistanceNegative.vector3Value;
-            
+
             //resync to be sure prefab revert will keep syncs
             if (serialized.editorAdvancedModeEnabled.boolValue)
             {
@@ -218,7 +224,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_SectionShapeSphere(SerializedInfluenceVolume serialized, Editor owner, bool drawOffset, bool drawNormal)
         {
-
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PropertyField(serialized.sphereRadius, radiusContent);
             HDProbeUI.Drawer_ToolBarButton(HDProbeUI.ToolBar.InfluenceShape, owner, GUILayout.Width(28f), GUILayout.MinHeight(22f));

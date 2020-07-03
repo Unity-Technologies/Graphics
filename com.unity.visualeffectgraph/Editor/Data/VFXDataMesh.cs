@@ -31,7 +31,7 @@ namespace UnityEditor.VFX
             if (m_Shader != null)
             {
                 string assetPath = AssetDatabase.GetAssetPath(m_Shader);
-                if( ! string.IsNullOrEmpty(assetPath))
+                if (!string.IsNullOrEmpty(assetPath))
                     shaderGUID = AssetDatabase.AssetPathToGUID(assetPath);
             }
             else
@@ -50,15 +50,15 @@ namespace UnityEditor.VFX
         public override void OnEnable()
         {
             base.OnEnable();
-            if( ! object.ReferenceEquals(shader,null)) // try to get back the correct object from the instance id in case we point on a "null" ScriptableObject which can exists because of reimport.
+            if (!object.ReferenceEquals(shader, null)) // try to get back the correct object from the instance id in case we point on a "null" ScriptableObject which can exists because of reimport.
                 shader = EditorUtility.InstanceIDToObject(shader.GetInstanceID()) as Shader;
 
-            if ( shader == null && !string.IsNullOrEmpty(shaderGUID))
+            if (shader == null && !string.IsNullOrEmpty(shaderGUID))
             {
                 // restore shader from saved GUID in case of loss
                 string assetPath = AssetDatabase.GUIDToAssetPath(shaderGUID);
-                if( !string.IsNullOrEmpty(assetPath))
-                shader = AssetDatabase.LoadAssetAtPath<Shader>(assetPath);
+                if (!string.IsNullOrEmpty(assetPath))
+                    shader = AssetDatabase.LoadAssetAtPath<Shader>(assetPath);
             }
 
             if (shader == null) shader = VFXResources.defaultResources.shader;

@@ -488,7 +488,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return shape;
         }
 
-        static internal LightStats GetLightStatsByLayer(int layer)
+        static internal LightStats GetLightStatsByLayer(int layer, Camera camera = null)
         {
             LightStats returnStats = new LightStats();
             for(int blendStyleIndex = 0; blendStyleIndex < Light2DManager.lights.Length; blendStyleIndex++)
@@ -498,19 +498,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
                     Light2D light = lights[lightIndex];
 
-                    if (light.IsLitLayer(layer))
+                    if (light.IsLitLayer(layer) && ((camera != null && light.lightType != LightType.Global) ? light.IsLightVisible(camera) : true))
                     {
                         returnStats.totalLights++;
                         if (light.useNormalMap)
                             returnStats.totalNormalMapUsage++;
                         if (light.volumeOpacity > 0)
                             returnStats.totalVolumetricUsage++;
+
+                        uint blendStyleUsed = (uint)(1 << light.blendStyleIndex);
+                        returnStats.blendStylesUsed |= blendStyleUsed;
                     }
-
-                    uint blendStyleUsed = (uint)(1 << light.blendStyleIndex);
-                    returnStats.blendStylesUsed |= blendStyleUsed;
                 }
-
             }
             return returnStats;
         }
