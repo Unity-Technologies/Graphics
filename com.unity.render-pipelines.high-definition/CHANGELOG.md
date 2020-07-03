@@ -32,6 +32,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing include guards in shadow hlsl files.
 - Fixed issue with light layers bigger than 8 (and above the supported range). 
 - Fixed an issue where decals were duplicated in prefab isolation mode.
+- Fixed issue with light layers bigger than 8 (and above the supported range).
+- Fixed the valid TRS test failing due to variable not being initialized to the identity matrix in RTShadows (1220600).
 
 ### Changed
 - Shadowmask and realtime reflection probe property are hide in Quality settings
