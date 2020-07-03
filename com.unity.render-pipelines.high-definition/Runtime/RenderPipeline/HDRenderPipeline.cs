@@ -1,3 +1,5 @@
+//#define HAVE_DEFAULT_RENDERING_LAYER_MASK
+
 using System.Collections.Generic;
 using UnityEngine.VFX;
 using System;
@@ -14,6 +16,7 @@ using UnityEditor.Rendering;
 #if ENABLE_VIRTUALTEXTURES
 using UnityEngine.Rendering.VirtualTexturing;
 #endif
+
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -117,6 +120,10 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_PreviousLightsUseLinearIntensity;
         bool m_PreviousLightsUseColorTemperature;
         bool m_PreviousSRPBatcher;
+
+#if HAVE_DEFAULT_RENDERING_LAYER_MASK
+        uint m_PreviousDefaultRenderingLayerMask;
+#endif
         ShadowmaskMode m_PreviousShadowMaskMode;
 
         bool m_FrameSettingsHistoryEnabled = false;
@@ -803,6 +810,10 @@ namespace UnityEngine.Rendering.HighDefinition
             GraphicsSettings.lightsUseColorTemperature = true;
             m_PreviousSRPBatcher = GraphicsSettings.useScriptableRenderPipelineBatching;
             GraphicsSettings.useScriptableRenderPipelineBatching = m_Asset.enableSRPBatcher;
+#if  HAVE_DEFAULT_RENDERING_LAYER_MASK
+            m_PreviousDefaultRenderingLayerMask = GraphicsSettings.defaultRenderingLayerMask;
+            GraphicsSettings.defaultRenderingLayerMask = ShaderVariablesGlobal.DefaultRenderingLayerMask;
+#endif
 
             // In case shadowmask mode isn't setup correctly, force it to correct usage (as there is no UI to fix it)
             m_PreviousShadowMaskMode = QualitySettings.shadowmaskMode;
@@ -927,6 +938,9 @@ namespace UnityEngine.Rendering.HighDefinition
             GraphicsSettings.lightsUseLinearIntensity = m_PreviousLightsUseLinearIntensity;
             GraphicsSettings.lightsUseColorTemperature = m_PreviousLightsUseColorTemperature;
             GraphicsSettings.useScriptableRenderPipelineBatching = m_PreviousSRPBatcher;
+#if HAVE_DEFAULT_RENDERING_LAYER_MASK
+            GraphicsSettings.defaultRenderingLayerMask = m_PreviousDefaultRenderingLayerMask;
+#endif
             QualitySettings.shadowmaskMode = m_PreviousShadowMaskMode;
 
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
