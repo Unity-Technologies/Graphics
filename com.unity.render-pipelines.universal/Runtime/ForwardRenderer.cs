@@ -41,6 +41,7 @@ namespace UnityEngine.Rendering.Universal
         RenderTargetHandle m_DepthTexture;
         RenderTargetHandle m_OpaqueColor;
         RenderTargetHandle m_AfterPostProcessColor;
+        RenderTargetHandle m_AfterFinalPostProcessColor;
         RenderTargetHandle m_ColorGradingLut;
 
         ForwardLights m_ForwardLights;
@@ -102,6 +103,7 @@ namespace UnityEngine.Rendering.Universal
             m_DepthTexture.Init("_CameraDepthTexture");
             m_OpaqueColor.Init("_CameraOpaqueTexture");
             m_AfterPostProcessColor.Init("_AfterPostProcessTexture");
+            m_AfterFinalPostProcessColor.Init("_AfterFinalPostProcessTexture");
             m_ColorGradingLut.Init("_InternalGradingLut");
             m_ForwardLights = new ForwardLights();
 
@@ -319,9 +321,12 @@ namespace UnityEngine.Rendering.Universal
             bool applyFinalPostProcessing = anyPostProcessing && lastCameraInTheStack &&
                                      renderingData.cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
 
+            // Avoid doing post-processing on full swapchain resolution if upscaling.
+            bool upscaling = renderingData.postProcessingData.useRenderScale && renderingData.cameraData.renderScale < 0.9f;
+
             // When post-processing is enabled we can use the stack to resolve rendering to camera target (screen or RT).
             // However when there are render passes executing after post we avoid resolving to screen so rendering continues (before sRGBConvertion etc)
-            bool resolvePostProcessingToCameraTarget = !hasCaptureActions && !hasPassesAfterPostProcessing && !applyFinalPostProcessing;
+            bool resolvePostProcessingToCameraTarget = !hasCaptureActions && !hasPassesAfterPostProcessing && !applyFinalPostProcessing && !upscaling;
 
             if (lastCameraInTheStack)
             {
@@ -348,19 +353,22 @@ namespace UnityEngine.Rendering.Universal
                 // Do FXAA or any other final post-processing effect that might need to run after AA.
                 if (applyFinalPostProcessing)
                 {
-                    m_FinalPostProcessPass.SetupFinalPass(sourceForFinalPass);
+                    var destination = upscaling ? m_AfterFinalPostProcessColor : RenderTargetHandle.CameraTarget;
+                    m_FinalPostProcessPass.SetupFinalPass(sourceForFinalPass, destination);
                     EnqueuePass(m_FinalPostProcessPass);
+                    sourceForFinalPass = destination;
                 }
 
                 // if post-processing then we already resolved to camera target while doing post.
                 // Also only do final blit if camera is not rendering to RT.
                 bool cameraTargetResolved =
+                    !upscaling &&
                     // final PP always blit to camera target
-                    applyFinalPostProcessing ||
+                    (applyFinalPostProcessing ||
                     // no final PP but we have PP stack. In that case it blit unless there are render pass after PP
                     (applyPostProcessing && !hasPassesAfterPostProcessing) ||
                     // offscreen camera rendering to a texture, we don't need a blit pass to resolve to screen
-                    m_ActiveCameraColorAttachment == RenderTargetHandle.GetCameraTarget(cameraData.xr);
+                    m_ActiveCameraColorAttachment == RenderTargetHandle.GetCameraTarget(cameraData.xr));
 
                 // We need final blit to resolve to screen
                 if (!cameraTargetResolved)

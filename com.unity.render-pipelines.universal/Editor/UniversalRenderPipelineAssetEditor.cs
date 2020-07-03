@@ -36,6 +36,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent hdrText = EditorGUIUtility.TrTextContent("HDR", "Controls the global HDR settings.");
             public static GUIContent msaaText = EditorGUIUtility.TrTextContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing settings.");
             public static GUIContent renderScaleText = EditorGUIUtility.TrTextContent("Render Scale", "Scales the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution.");
+            public static GUIContent postProcessingScaleText = EditorGUIUtility.TrTextContent("Scale Post-processing", "Perform all post-processing effects at the downscaled render scale resolution. If this is unchecked, some effects may be performed at native resolution. Enabling this can improve frame times at the cost of increased bandwidth.");
 
             // Main light
             public static GUIContent mainLightRenderingModeText = EditorGUIUtility.TrTextContent("Main Light", "Main light is the brightest directional light.");
@@ -108,6 +109,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_HDR;
         SerializedProperty m_MSAA;
         SerializedProperty m_RenderScale;
+        SerializedProperty m_PostProcessingScale;
 
         SerializedProperty m_MainLightRenderingModeProp;
         SerializedProperty m_MainLightShadowsSupportedProp;
@@ -181,6 +183,7 @@ namespace UnityEditor.Rendering.Universal
             m_HDR = serializedObject.FindProperty("m_SupportsHDR");
             m_MSAA = serializedObject.FindProperty("m_MSAA");
             m_RenderScale = serializedObject.FindProperty("m_RenderScale");
+            m_PostProcessingScale = serializedObject.FindProperty("m_PostProcessingScale");
 
             m_MainLightRenderingModeProp = serializedObject.FindProperty("m_MainLightRenderingMode");
             m_MainLightShadowsSupportedProp = serializedObject.FindProperty("m_MainLightShadowsSupported");
@@ -258,6 +261,9 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.PropertyField(m_HDR, Styles.hdrText);
                 EditorGUILayout.PropertyField(m_MSAA, Styles.msaaText);
                 m_RenderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, m_RenderScale.floatValue, UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_PostProcessingScale, Styles.postProcessingScaleText);
+                EditorGUI.indentLevel--;
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();

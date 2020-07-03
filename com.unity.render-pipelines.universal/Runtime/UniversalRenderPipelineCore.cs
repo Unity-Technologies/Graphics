@@ -273,6 +273,7 @@ namespace UnityEngine.Rendering.Universal
     {
         public ColorGradingMode gradingMode;
         public int lutSize;
+        public bool useRenderScale;
     }
 
     public static class ShaderKeywordStrings
