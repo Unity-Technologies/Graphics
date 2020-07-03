@@ -13,9 +13,6 @@ def create_preview_publish_ymls(metafile):
     job = PreviewPublish_AutoVersionJob(metafile["agent_auto_version"], metafile["packages"], metafile["target_branch"], metafile["publishing"]["auto_version"])
     yml[job.job_id] = job.yml
 
-    job = PreviewPublish_PublishAllPreviewJob(metafile["packages"], metafile["target_branch"], metafile["publishing"]["auto_publish"])
-    yml[job.job_id] = job.yml
-
     job = PreviewPublish_PromoteAllPreviewJob(metafile["packages"], metafile["target_branch"], metafile["publishing"]["auto_publish"])
     yml[job.job_id] = job.yml
 
@@ -25,8 +22,6 @@ def create_preview_publish_ymls(metafile):
     for package in metafile["packages"]:
 
         if package["publish_source"] == True:
-            job = PreviewPublish_PublishJob(metafile["agent_publish"], package, metafile["platforms"], metafile["target_editor"])
-            yml[job.job_id] = job.yml
 
             job = PreviewPublish_PromoteJob(metafile["agent_promote"], package,  metafile["platforms"], metafile["target_editor"])
             yml[job.job_id] = job.yml
