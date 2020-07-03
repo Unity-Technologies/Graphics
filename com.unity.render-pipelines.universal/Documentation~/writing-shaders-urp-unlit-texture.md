@@ -62,7 +62,7 @@ Use the ShaderLab code from section [URP unlit shader with color input](writing-
     }
     ```
 
-Now you can select a texture in the __Base Map__ field in the Inspector window and the shader draws that texture on the mesh.
+Now you can select a texture in the __Base Map__ field in the Inspector window. The shader draws that texture on the mesh.
 
 ![Base Map texture on a Material](Images/shader-examples/unlit-shader-tutorial-texture-with-scene.jpg)
 
@@ -72,8 +72,8 @@ Below is the complete ShaderLab code for this example.
 // This shader draws a texture on the mesh.
 Shader "Example/URPUnlitShaderTexture"
 {
-    // The _BaseMap variable is visible as a field called Base Map in the Inspector window
-    // on a Material.  
+    // The _BaseMap variable is visible in the Material's Inspector, as a field
+    // called Base Map.
     Properties
     { 
         _BaseMap("Base Map", 2D) = "white"

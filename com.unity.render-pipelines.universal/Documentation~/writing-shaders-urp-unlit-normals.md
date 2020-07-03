@@ -43,7 +43,7 @@ Use the ShaderLab code from section [URP unlit basic shader](writing-shaders-urp
 
     ![Rendering normals without compression](Images/shader-examples/unlit-shader-tutorial-normals-uncompressed.jpg)
 
-    A part of the capsule is black. This is because in those points all three components of the normal vector are negative. The next step shows how to render values in those areas as well.
+    A part of the capsule is black. This is because in those points, all three components of the normal vector are negative. The next step shows how to render values in those areas as well.
 
 5. To render negative normal vector components, use the compression technique. To compress the range of normal component values `(-1..1)` to color value range `(0..1)`, change the following line:
 
@@ -57,7 +57,7 @@ Use the ShaderLab code from section [URP unlit basic shader](writing-shaders-urp
     color.rgb = IN.normal * 0.5 + 0.5;
     ```
 
-Now Unity renders the normal vector vales as colors on the mesh.
+Now Unity renders the normal vector values as colors on the mesh.
 
 ![Rendering normals with compression](Images/shader-examples/unlit-shader-tutorial-normals.jpg)
 
@@ -100,7 +100,7 @@ Shader "Example/URPUnlitShaderNormal"
             {                
                 Varyings OUT;                
                 OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);       
-                // Using the TransformObjectToWorldNormal function to transform the
+                // Use the TransformObjectToWorldNormal function to transform the
                 // normals from object to world space. This function is from the 
                 // SpaceTransforms.hlsl file, which is referenced in Core.hlsl.
                 OUT.normal = TransformObjectToWorldNormal(IN.normal);                

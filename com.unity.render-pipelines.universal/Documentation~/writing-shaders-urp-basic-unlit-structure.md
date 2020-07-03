@@ -2,14 +2,14 @@
 
 This example shows a basic URP-compatible shader. This shader fills the mesh shape with a color predefined in the shader code.
 
-To see the shader in action, copy and paste the following ShadeLab code into the Shader asset.
+To see the shader in action, copy and paste the following ShaderLab code into the Shader asset.
 
 ```c++
 // This shader fills the mesh shape with a color predefined in the code.
 Shader "Example/URPUnlitShaderBasic"
 {
-    // The properties block of the shader. In this example this block is empty since 
-    // the output color is predefined in the fragment shader code.
+    // The properties block of the shader. In this example this block is empty 
+    // because the output color is predefined in the fragment shader code.
     Properties
     { }
 
