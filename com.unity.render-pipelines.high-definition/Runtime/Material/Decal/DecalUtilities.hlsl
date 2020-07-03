@@ -204,8 +204,6 @@ DecalData FetchDecal(uint index)
 
 DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
 {
-    uint decalLayerMask = GetMeshRenderingDecalLayer();
-
     uint mask = 0;
     // the code in the macros, gets moved inside the conditionals by the compiler
     FETCH_DBUFFER(DBuffer, _DBufferTexture, int2(posInput.positionSS.xy));
@@ -240,6 +238,8 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
     // get world space ddx/ddy for adjacent pixels to be used later in mipmap lod calculation
     float3 positionRWSDdx = ddx(positionRWS);
     float3 positionRWSDdy = ddy(positionRWS);
+
+    uint decalLayerMask = GetMeshRenderingDecalLayer();
 
     // Scalarized loop. All decals that are in a tile/cluster touched by any pixel in the wave are loaded (scalar load), only the ones relevant to current thread/pixel are processed.
     // For clarity, the following code will follow the convention: variables starting with s_ are wave uniform (meant for scalar register),

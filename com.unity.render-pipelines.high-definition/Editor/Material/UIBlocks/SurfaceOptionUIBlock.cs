@@ -478,7 +478,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 var renderQueueType = HDRenderQueue.GetTypeByRenderQueueValue(renderQueue);
 
-                renderQueue = HDRenderQueue.ChangeType(renderQueueType, (int)transparentSortPriority.floatValue, alphaCutoffEnable.floatValue == 1, materials[0].GetDecalLayerMask() != DecalLayerMask.None);
+                bool receiveDecal = materials[0].HasProperty(kSupportDecals) && material.GetFloat(kSupportDecals) > 0.0f;
+                renderQueue = HDRenderQueue.ChangeType(renderQueueType, (int)transparentSortPriority.floatValue, alphaCutoffEnable.floatValue == 1, receiveDecal);
             }
         }
 

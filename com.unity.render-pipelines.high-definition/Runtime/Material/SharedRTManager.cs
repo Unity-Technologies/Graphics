@@ -245,7 +245,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Request the normal buffer (MSAA or not)
         public RTHandle GetDecalPrepassBuffer(bool isMSAA = false)
         {
-            Debug.Assert(m_DecalLayersSupported);
             if (isMSAA)
             {
                 Debug.Assert(m_MSAASupported);

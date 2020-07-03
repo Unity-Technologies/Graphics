@@ -129,22 +129,22 @@ namespace UnityEngine.Rendering.HighDefinition
         void BindMotionVectorPassColorBuffers(in RenderGraphBuilder builder, in PrepassOutput prepassOutput, TextureHandle decalBuffer, HDCamera hdCamera)
         {
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-            bool decalEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
+            bool decalLayerEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers);
 
             if (msaa)
             {
                 builder.UseColorBuffer(prepassOutput.depthAsColor, 0);
                 builder.UseColorBuffer(prepassOutput.motionVectorsBuffer, 1);
-                if (decalEnabled)
+                if (decalLayerEnabled)
                     builder.UseColorBuffer(decalBuffer, 2);
-                builder.UseColorBuffer(prepassOutput.normalBuffer, decalEnabled? 3 : 2);
+                builder.UseColorBuffer(prepassOutput.normalBuffer, decalLayerEnabled ? 3 : 2);
             }
             else
             {
                 builder.UseColorBuffer(prepassOutput.motionVectorsBuffer, 0);
-                if (decalEnabled)
+                if (decalLayerEnabled)
                     builder.UseColorBuffer(decalBuffer, 1);
-                builder.UseColorBuffer(prepassOutput.normalBuffer, decalEnabled ? 2 : 1);
+                builder.UseColorBuffer(prepassOutput.normalBuffer, decalLayerEnabled ? 2 : 1);
             }
         }
 
@@ -249,7 +249,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public FrameSettings        frameSettings;
             public bool                 msaaEnabled;
-            public bool                 decalEnabled;
+            public bool                 decalLayersEnabled;
             public bool                 hasDepthDeferredPass;
             public TextureHandle        depthBuffer;
             public TextureHandle        depthAsColorBuffer;
@@ -270,18 +270,18 @@ namespace UnityEngine.Rendering.HighDefinition
             var depthPrepassParameters = PrepareDepthPrepass(cull, hdCamera);
 
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-            bool decalEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
+            bool decalLayersEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers);
 
             using (var builder = renderGraph.AddRenderPass<DepthPrepassData>(depthPrepassParameters.passName, out var passData, ProfilingSampler.Get(depthPrepassParameters.profilingId)))
             {
                 passData.frameSettings = hdCamera.frameSettings;
                 passData.msaaEnabled = msaa;
-                passData.decalEnabled = decalEnabled;
+                passData.decalLayersEnabled = decalLayersEnabled;
                 passData.hasDepthDeferredPass = depthPrepassParameters.hasDepthDeferredPass;
 
                 passData.depthBuffer = builder.UseDepthBuffer(output.depthBuffer, DepthAccess.ReadWrite);
                 passData.normalBuffer = builder.WriteTexture(CreateNormalBuffer(renderGraph, msaa));
-                if (decalEnabled)
+                if (decalLayersEnabled)
                     passData.decalBuffer = builder.WriteTexture(CreateDecalPrepassBuffer(renderGraph, msaa));
                 // This texture must be used because reading directly from an MSAA Depth buffer is way to expensive.
                 // The solution that we went for is writing the depth in an additional color buffer (10x cheaper to solve on ps4)
@@ -301,7 +301,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 output.depthBuffer = passData.depthBuffer;
                 output.depthAsColor = passData.depthAsColorBuffer;
                 output.normalBuffer = passData.normalBuffer;
-                if (decalEnabled)
+                if (decalLayersEnabled)
                     decalBuffer = passData.decalBuffer;
                 else
                     decalBuffer = new TextureHandle();
@@ -310,24 +310,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 (DepthPrepassData data, RenderGraphContext context) =>
                 {
                     RenderTargetIdentifier[] deferredMrt = null;
-                    if (data.hasDepthDeferredPass && data.decalEnabled)
+                    if (data.hasDepthDeferredPass && data.decalLayersEnabled)
                     {
                         deferredMrt = context.renderGraphPool.GetTempArray<RenderTargetIdentifier>(1);
                         deferredMrt[0] = context.resources.GetTexture(data.decalBuffer);
                     }
 
-                    var forwardMrt = context.renderGraphPool.GetTempArray<RenderTargetIdentifier>((data.msaaEnabled ? 2 : 1) + (data.decalEnabled ? 1 : 0));
+                    var forwardMrt = context.renderGraphPool.GetTempArray<RenderTargetIdentifier>((data.msaaEnabled ? 2 : 1) + (data.decalLayersEnabled ? 1 : 0));
                     if (data.msaaEnabled)
                     {
                         forwardMrt[0] = context.resources.GetTexture(data.depthAsColorBuffer);
                         forwardMrt[1] = context.resources.GetTexture(data.normalBuffer);
-                        if (data.decalEnabled)
+                        if (data.decalLayersEnabled)
                             forwardMrt[2] = context.resources.GetTexture(data.decalBuffer);
                     }
                     else
                     {
                         forwardMrt[0] = context.resources.GetTexture(data.normalBuffer);
-                        if (data.decalEnabled)
+                        if (data.decalLayersEnabled)
                             forwardMrt[1] = context.resources.GetTexture(data.decalBuffer);
                     }
 
@@ -761,7 +761,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<RenderDBufferPassData>("DBufferRender", out var passData, ProfilingSampler.Get(HDProfileId.DBufferRender)))
             {
-                passData.parameters = PrepareRenderDBufferParameters();
+                passData.parameters = PrepareRenderDBufferParameters(hdCamera);
                 passData.meshDecalsRendererList = builder.UseRendererList(renderGraph.CreateRendererList(PrepareMeshDecalsRendererList(cullingResults, hdCamera, use4RTs)));
                 SetupDBufferTargets(renderGraph, passData, use4RTs, ref output, builder);
                 passData.decalBuffer = builder.ReadTexture(decalBuffer);

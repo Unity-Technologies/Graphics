@@ -44,17 +44,18 @@ void Frag(  PackedVaryingsToPS packedInput,
 	float depth = LoadCameraDepth(input.positionSS.xy);
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
-    // Clip the decal if it does not pass the decal layer mask of the receiving material.
-    // Decal layer of the decal
-    uint decalLayerMask = uint(UNITY_ACCESS_INSTANCED_PROP(Decal, _DecalLayerMaskFromDecal).x);
-
-    // Decal layer mask accepted by the receiving material
-    DecalPrepassData material;
-    DecodeFromDecalPrepass(posInput.positionSS, material);
-
-    if ((decalLayerMask & material.decalLayerMask) == 0)
+    if (_EnableDecalLayers)
     {
-        clipValue -= 2.0;
+        // Clip the decal if it does not pass the decal layer mask of the receiving material.
+        // Decal layer of the decal
+        uint decalLayerMask = uint(UNITY_ACCESS_INSTANCED_PROP(Decal, _DecalLayerMaskFromDecal).x);
+
+        // Decal layer mask accepted by the receiving material
+        DecalPrepassData material;
+        DecodeFromDecalPrepass(posInput.positionSS, material);
+
+        if ((decalLayerMask & material.decalLayerMask) == 0)
+            clipValue -= 2.0;
     }
 
     // Transform from relative world space to decal space (DS) to clip the decal
