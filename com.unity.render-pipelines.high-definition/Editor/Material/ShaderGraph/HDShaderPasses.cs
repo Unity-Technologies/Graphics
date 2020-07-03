@@ -238,7 +238,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             RenderStateCollection GenerateRenderState()
             {
-                var renderState = CoreRenderStates.DepthOnly;
+                var renderState = new RenderStateCollection{ CoreRenderStates.DepthOnly };
 
                 if (!supportLighting)
                 {
