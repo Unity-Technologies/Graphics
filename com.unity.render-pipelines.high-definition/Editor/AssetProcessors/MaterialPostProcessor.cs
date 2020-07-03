@@ -194,6 +194,7 @@ namespace UnityEditor.Rendering.HighDefinition
              RenderQueueUpgrade,
              ShaderGraphStack,
              MoreMaterialSurfaceOptionFromShaderGraph,
+             AlphaToMaskUIFix,
         };
 
         #region Migrations
@@ -418,6 +419,15 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             HDShaderUtils.ResetMaterialKeywords(material);
+        }
+
+        static void AlphaToMaskUIFix(Material material, HDShaderUtils.ShaderID id)
+        {
+            if (material.HasProperty(kAlphaToMask) && material.HasProperty(kAlphaToMaskInspector))
+            {
+                material.SetFloat(kAlphaToMaskInspector, material.GetFloat(kAlphaToMask));
+                HDShaderUtils.ResetMaterialKeywords(material);
+            }
         }
 
         #region Serialization_API
