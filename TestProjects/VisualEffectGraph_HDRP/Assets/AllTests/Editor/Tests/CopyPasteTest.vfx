@@ -414,6 +414,7 @@ MonoBehaviour:
   angularIntegration: 0
   ageParticles: 1
   reapParticles: 1
+  skipZeroDeltaUpdate: 0
 --- !u!114 &114694642589639208
 MonoBehaviour:
   m_ObjectHideFlags: 1
