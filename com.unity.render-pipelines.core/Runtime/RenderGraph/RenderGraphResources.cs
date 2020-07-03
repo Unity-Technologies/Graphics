@@ -41,6 +41,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     [DebuggerDisplay("Texture ({handle})")]
     public struct TextureHandle
     {
+        private static TextureHandle s_NullHandle = new TextureHandle();
+
+        /// <summary>
+        /// Returns a null texture handle
+        /// </summary>
+        /// <returns>A null texture handle.</returns>
+        public static TextureHandle nullHandle { get { return s_NullHandle; } }
+
         internal ResourceHandle handle;
 
         internal TextureHandle(int handle) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.Texture); }

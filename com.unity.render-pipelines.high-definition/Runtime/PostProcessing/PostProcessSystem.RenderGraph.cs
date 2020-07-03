@@ -345,10 +345,14 @@ namespace UnityEngine.Rendering.HighDefinition
                             passData.depthBuffer = builder.ReadTexture(depthBuffer);
                             passData.motionVecTexture = builder.ReadTexture(motionVectors);
                             passData.depthMipChain = builder.ReadTexture(depthBufferMipChain);
-                            passData.prevHistory = renderGraph.ImportTexture(prevHistory);
-                            passData.nextHistory = renderGraph.ImportTexture(nextHistory);
-                            passData.prevMVLen = renderGraph.ImportTexture(prevMVLen);
-                            passData.nextMVLen = renderGraph.ImportTexture(nextMVLen);
+                            passData.prevHistory = builder.ReadTexture(renderGraph.ImportTexture(prevHistory));
+                            if (passData.parameters.camera.resetPostProcessingHistory)
+                            {
+                                passData.prevHistory = builder.WriteTexture(passData.prevHistory);
+                            }
+                            passData.nextHistory = builder.WriteTexture(renderGraph.ImportTexture(nextHistory));
+                            passData.prevMVLen = builder.ReadTexture(renderGraph.ImportTexture(prevMVLen));
+                            passData.nextMVLen = builder.WriteTexture(renderGraph.ImportTexture(nextMVLen));
 
                             TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "TAA Destination");
                             passData.destination = builder.WriteTexture(dest); ;

@@ -1305,7 +1305,6 @@ namespace UnityEngine.Rendering.HighDefinition
     
             var sourceTex = colorBuffer;
 
-            // NOTE: Breakpoint here.
             kernel = exposureParameters.exposurePreparationKernel;
             cmd.SetComputeIntParams(cs, HDShaderIDs._Variants,  exposureParameters.exposureVariants);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PreviousExposureTexture, prevExposure);

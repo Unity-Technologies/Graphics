@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.blueNoise,
                 inputColor,
                 afterPostProcessBuffer,
-                prepassOutput.depthBuffer,
+                prepassOutput.resolvedDepthBuffer,
                 prepassOutput.depthPyramidTexture,
                 prepassOutput.resolvedMotionVectorsBuffer,
                 dest,
