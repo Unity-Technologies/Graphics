@@ -281,6 +281,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var area = OverridableFrameSettingsArea.GetGroupContent(1, defaultFrameSettings, serialized);
             area.AmmendInfo(FrameSettingsField.Shadowmask, overrideable: () => hdrpSettings.supportShadowMask);
             area.AmmendInfo(FrameSettingsField.SSR, overrideable: () => hdrpSettings.supportSSR);
+            area.AmmendInfo(FrameSettingsField.TransparentSSR, overrideable: () => (hdrpSettings.supportSSR && hdrpSettings.supportSSRTransparent));
             area.AmmendInfo(FrameSettingsField.SSAO, overrideable: () => hdrpSettings.supportSSAO);
 
             // SSS
