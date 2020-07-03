@@ -145,7 +145,7 @@ Material:
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 0.35
-    - _DetailNormalScale: 1
+    - _DetailNormalScale: 0
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
     - _DiffusionProfileHash: 0
