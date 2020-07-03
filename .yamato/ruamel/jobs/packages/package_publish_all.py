@@ -4,12 +4,12 @@ from ..shared.yml_job import YMLJob
 
 class Package_PublishAllJob():
     
-    def __init__(self, packages, agent):
+    def __init__(self, packages, target_branch, agent):
         self.job_id = package_job_id_publish_all()
-        self.yml = self.get_job_definition(packages, agent).get_yml()
+        self.yml = self.get_job_definition(packages, target_branch, agent).get_yml()
 
 
-    def get_job_definition(self, packages, agent):
+    def get_job_definition(self, packages, target_branch, agent):
 
         # construct job
         job = YMLJob()
@@ -19,6 +19,7 @@ class Package_PublishAllJob():
         job.add_commands([
                 f'git tag v$(cd com.unity.render-pipelines.core && node -e "console.log(require(\'./package.json\').version)")',
                 f'git push origin --tags'])
+        job.add_trigger_recurrent(target_branch, 'daily')
         return job
 
 
