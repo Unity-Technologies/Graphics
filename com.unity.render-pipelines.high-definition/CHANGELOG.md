@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with completely black AO on double sided materials when normal mode is set to None.
 - Fixed issue with culling layer mask of area light's emissive mesh 
 - Fixed for area light not updating baked light result when modifying with gizmo.
+- Fixed errors when switching area light to disk shape while an area emissive mesh was displayed.
 
 ### Changed
 - Changed extensions of shader CAS include files.
