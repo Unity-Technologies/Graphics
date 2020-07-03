@@ -32,7 +32,7 @@ def create_package_ymls(metafile):
         job = Package_AllPackageCiJob(metafile["packages"], metafile["agent_publish"], metafile["platforms"], editor)
         yml[job.job_id] = job.yml
     
-    job = Package_PublishAllJob(metafile["packages"], metafile["agent_publish_all"])
+    job = Package_PublishAllJob(metafile["packages"], metafile["target_branch"], metafile["agent_publish_all"])
     yml[job.job_id] = job.yml
 
     yml_files[packages_filepath()] = yml

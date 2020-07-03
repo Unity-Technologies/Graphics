@@ -23,7 +23,7 @@ def _unfold_individual_agents(metafile, shared, root_keys=[]):
     # unfold all agents marked as keys directly under metafile
     for key, value in metafile.items():
         if 'agent' in key.lower():
-            metafile[key] = shared['non_project_agents'][value]
+            metafile[key] = dict(shared['non_project_agents'][value])
     
     # unfold any agents marked under any of the other keys (max 1 level depth)
     for root_key in root_keys:
