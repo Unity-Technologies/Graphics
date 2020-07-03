@@ -66,6 +66,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - 2D shaders now use half-precision floats whenever precise results are not necessary.
 - Removed the ETC1_EXTERNAL_ALPHA variant from Shader Graph Sprite shaders.
 - Eliminated GC allocations caused by the 2D Renderer.
+- Removed the SHADER_HINT_NICE_QUALITY variant and moved the control over to the shader qualities using _SHADER_QUALITY_LOW, _SHADER_QUALITY_MEDIUM and _SHADER_QUALITY_HIGH.
 
 ### Fixed
 - Fixed a performance problem with ShaderPreprocessor with large amount of active shader variants in the project 
