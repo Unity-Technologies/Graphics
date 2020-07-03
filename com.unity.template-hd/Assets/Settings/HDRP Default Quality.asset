@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
-  m_Name: HDRP Quality Ultra
+  m_Name: HDRP Default Quality
   m_EditorClassIdentifier: 
   m_Version: 16
   m_ObsoleteFrameSettings:
@@ -151,7 +151,7 @@ MonoBehaviour:
   m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
     type: 2}
   m_RenderPipelineRayTracingResources: {fileID: 0}
-  m_DefaultVolumeProfile: {fileID: 11400000, guid: 582adbd84082fdb4faf7cd4beb1ccd14,
+  m_DefaultVolumeProfile: {fileID: 11400000, guid: 7f342610b85f4164f808a1f380dcc668,
     type: 2}
   m_DefaultLookDevProfile: {fileID: 11400000, guid: 254c4fe87beb7be4fa72e1681edbed02,
     type: 2}
@@ -222,7 +222,7 @@ MonoBehaviour:
     supportTransparentBackface: 1
     supportTransparentDepthPrepass: 1
     supportTransparentDepthPostpass: 1
-    colorBufferFormat: 48
+    colorBufferFormat: 74
     supportCustomPass: 1
     customBufferFormat: 12
     supportedLitShaderMode: 2
@@ -244,11 +244,11 @@ MonoBehaviour:
       pointCookieSize: 256
       cookieAtlasLastValidMip: 0
       cookieTexArraySize: 16
-      planarReflectionAtlasSize: 1024
+      planarReflectionAtlasSize: 512
       reflectionProbeCacheSize: 32
-      reflectionCubemapSize: 512
+      reflectionCubemapSize: 256
       reflectionCacheCompressed: 1
-      skyReflectionSize: 1024
+      skyReflectionSize: 512
       skyLightingOverrideLayerMask:
         serializedVersion: 2
         m_Bits: 0
@@ -271,7 +271,7 @@ MonoBehaviour:
         shadowAtlasResolution: 4096
         shadowAtlasDepthBits: 16
         useDynamicViewportRescale: 1
-      cachedPunctualLightShadowAtlas: 2048
+      cachedPunctualLightShadowAtlas: 4096
       cachedAreaLightShadowAtlas: 1024
       shadowResolutionDirectional:
         m_Values: 00010000000200000004000000080000
@@ -412,7 +412,7 @@ MonoBehaviour:
   enableSRPBatcher: 1
   shaderVariantLogLevel: 0
   availableMaterialQualityLevels: -1
-  m_DefaultMaterialQualityLevel: 2
+  m_DefaultMaterialQualityLevel: 4
   diffusionProfileSettings: {fileID: 0}
   diffusionProfileSettingsList:
   - {fileID: 11400000, guid: 26bdddf49760c61438938733f07fa2a2, type: 2}
