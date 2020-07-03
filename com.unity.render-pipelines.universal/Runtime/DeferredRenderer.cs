@@ -415,6 +415,8 @@ namespace UnityEngine.Rendering.Universal
             EnqueuePass(m_DeferredUberPass);
 
             EnqueuePass(m_DrawSkyboxPass);
+
+            EnqueuePass(m_RenderTransparentForwardPass);
         }
 
         /// <inheritdoc />
