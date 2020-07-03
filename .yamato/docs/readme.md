@@ -317,7 +317,6 @@ packages:
   - ...
 
 # agents for specific jobs,referring to __shared.metafile
-agent_publish: package_ci_win_large
 agent_promote: package_ci_win_large
 agent_auto_version: package_ci_ubuntu_large
 
