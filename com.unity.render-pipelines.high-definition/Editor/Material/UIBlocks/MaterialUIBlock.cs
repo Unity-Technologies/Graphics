@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// <summary>
     /// Base implementation of a material GUI block to be disabled in the material inspector.
     /// </summary>
-    public abstract class MaterialUIBlock
+    abstract class MaterialUIBlock
     {
         /// <summary>The current material editor.</summary>
         protected MaterialEditor        materialEditor;
