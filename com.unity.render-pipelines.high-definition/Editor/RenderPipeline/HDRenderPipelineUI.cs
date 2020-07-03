@@ -415,8 +415,6 @@ namespace UnityEditor.Rendering.HighDefinition
             ++EditorGUI.indentLevel;
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportDecals.boolValue))
             {
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportDecalLayers, Styles.supportDecalLayersContent);
-
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.decalSettings.drawDistance, Styles.drawDistanceContent);
                 if (EditorGUI.EndChangeCheck())
@@ -438,6 +436,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.lightLoopSettings.maxDecalsOnScreen, Styles.maxDecalContent);
                 if (EditorGUI.EndChangeCheck())
                     serialized.renderPipelineSettings.lightLoopSettings.maxDecalsOnScreen.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.maxDecalsOnScreen.intValue, 1, HDRenderPipeline.k_MaxDecalsOnScreen);
+
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportDecalLayers, Styles.supportDecalLayersContent);
+
+                using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportDecalLayers.boolValue))
+                {
+                    ++EditorGUI.indentLevel;
+                    HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName0, serialized.renderPipelineSettings.lightLayerName0);
+                    HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName1, serialized.renderPipelineSettings.lightLayerName1);
+                    HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName2, serialized.renderPipelineSettings.lightLayerName2);
+                    HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName3, serialized.renderPipelineSettings.lightLayerName3);
+                    HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName4, serialized.renderPipelineSettings.lightLayerName4);
+                    HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName5, serialized.renderPipelineSettings.lightLayerName5);
+                    HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName6, serialized.renderPipelineSettings.lightLayerName6);
+                    HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName7, serialized.renderPipelineSettings.lightLayerName7);
+                    --EditorGUI.indentLevel;
+                }
             }
             --EditorGUI.indentLevel;
         }
