@@ -97,7 +97,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000002, guid: 88e28b21814c04d229366a5dd9fdd78f,
+  m_LightingDataAsset: {fileID: 112000002, guid: 9d4983486bfccd441b5e2888589fe5bb,
     type: 2}
   m_UseShadowmask: 0
 --- !u!196 &4
@@ -1226,8 +1226,6 @@ MonoBehaviour:
     PerPixelCorrectnessThreshold: 0.005
     AverageCorrectnessThreshold: 0.001
     UseHDR: 0
-    UseBackBuffer: 0
-    ImageResolution: 0
   WaitFrames: 0
 --- !u!1 &1970829629
 GameObject:
