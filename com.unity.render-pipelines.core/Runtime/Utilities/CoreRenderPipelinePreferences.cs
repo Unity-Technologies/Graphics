@@ -10,13 +10,20 @@ namespace UnityEngine.Rendering
 
 #if UNITY_EDITOR
     using UnityEditor;
-
+    class Styles
+    {
+        public static readonly GUIContent userDefaults = EditorGUIUtility.TrTextContent("Use Defaults");
+    }
     public static class CoreRenderPipelinePreferences
     {
         static bool m_Loaded = false;
 
-        static Color s_VolumeGizmoColor = new Color(0.2f, 0.8f, 0.1f, 0.5f);
-        static Color s_PreviewCameraBackgroundColor = new Color(49.0f / 255.0f, 49.0f / 255.0f, 49.0f / 255.0f, 0.0f);
+        // Added default Colors so that they can be reverted back to these values
+        static Color s_VolumeGizmoColorDefault = new Color(0.2f, 0.8f, 0.1f, 0.5f);
+        static Color s_PreviewCameraBackgroundColorDefault = new Color(82.0f / 255.0f, 82.0f / 255.0f, 82.0f / 255.0f, 0.0f);
+        static Color s_VolumeGizmoColor = s_VolumeGizmoColorDefault;
+        static Color s_PreviewCameraBackgroundColor = s_PreviewCameraBackgroundColorDefault;
+
         public static Color volumeGizmoColor
         {
             get => s_VolumeGizmoColor;
@@ -54,11 +61,28 @@ namespace UnityEngine.Rendering
                 {
                     if (!m_Loaded)
                         Load();
-                    EditorGUIUtility.labelWidth = 170;
-                    volumeGizmoColor = EditorGUILayout.ColorField("Volume Gizmo Color", volumeGizmoColor);
-                    previewBackgroundColor = EditorGUILayout.ColorField("Preview Background Color", previewBackgroundColor);
+
+                    Rect r = EditorGUILayout.GetControlRect();
+                    r.xMin = 10;
+                    EditorGUIUtility.labelWidth = 251;
+                    volumeGizmoColor = EditorGUI.ColorField(r, "Volume Gizmo Color", volumeGizmoColor);
+
+                    Rect re = EditorGUILayout.GetControlRect();
+                    re.xMin = 10;
+                    previewBackgroundColor = EditorGUI.ColorField(re, "Preview Background Color", previewBackgroundColor);
+                    
+                    if (GUILayout.Button(Styles.userDefaults, GUILayout.Width(120)))
+                    {
+                        RevertColors();
+                    }
                 }
             };
+        }
+
+        static void RevertColors()
+        {
+            volumeGizmoColor = s_VolumeGizmoColorDefault;
+            previewBackgroundColor = s_PreviewCameraBackgroundColorDefault;
         }
 
         static CoreRenderPipelinePreferences()
