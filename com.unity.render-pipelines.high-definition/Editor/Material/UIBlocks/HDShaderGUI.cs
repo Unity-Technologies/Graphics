@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// Use this class to build your custom Shader GUI for HDRP.
     /// You'll then be able to use the class that inherit from HDShaderGUI in the ShaderGraph Custom EditorGUI field.
     /// </summary>
-    public abstract class HDShaderGUI : ShaderGUI
+    internal abstract class HDShaderGUI : ShaderGUI
     {
         internal protected bool m_FirstFrame = true;
 

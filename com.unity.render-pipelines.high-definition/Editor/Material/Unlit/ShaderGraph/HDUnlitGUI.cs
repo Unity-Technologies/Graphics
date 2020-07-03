@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// <summary>
     /// GUI for HDRP Unlit shader graphs
     /// </summary>
-    public class HDUnlitGUI : HDShaderGUI
+    internal class HDUnlitGUI : HDShaderGUI
     {
         const SurfaceOptionUIBlock.Features surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Unlit;
 
@@ -45,6 +45,6 @@ namespace UnityEditor.Rendering.HighDefinition
             UnlitGUI.SetupUnlitMaterialKeywordsAndPass(material);
         }
 
-        internal override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
+        protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
     }
 }

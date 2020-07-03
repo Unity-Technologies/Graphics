@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </code>
     /// </example>
     /// </summary>
-    public struct MaterialHeaderScope : IDisposable
+    internal struct MaterialHeaderScope : IDisposable
     {
         public readonly bool expanded;
         bool spaceAtEnd;
