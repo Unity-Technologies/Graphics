@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 5626.543, g: 4076.456, b: 3702.5027, a: 1}
+  m_IndirectSpecularColor: {r: 5634.33, g: 4080.2021, b: 3703.8386, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -2606,7 +2606,7 @@ MonoBehaviour:
       multiplier: 1
       weight: 1
       lightLayer: 1
-      fadeDistance: 10000
+      fadeDistance: 40
       rangeCompressionFactor: 1
     influence:
       m_EditorAdvancedModeBlendDistancePositive: {x: 1, y: 1, z: 1}
@@ -3081,7 +3081,7 @@ MonoBehaviour:
       multiplier: 1
       weight: 1
       lightLayer: 255
-      fadeDistance: 10000
+      fadeDistance: 70
       rangeCompressionFactor: 1
     influence:
       m_EditorAdvancedModeBlendDistancePositive: {x: 2.52, y: 1, z: 1}
@@ -8551,7 +8551,7 @@ MonoBehaviour:
       multiplier: 1
       weight: 1
       lightLayer: 1
-      fadeDistance: 10000
+      fadeDistance: 40
       rangeCompressionFactor: 1
     influence:
       m_EditorAdvancedModeBlendDistancePositive: {x: 1, y: 1, z: 1}
@@ -9271,7 +9271,7 @@ MonoBehaviour:
       multiplier: 1
       weight: 1
       lightLayer: 1
-      fadeDistance: 10000
+      fadeDistance: 40
       rangeCompressionFactor: 1
     influence:
       m_EditorAdvancedModeBlendDistancePositive: {x: 1, y: 1, z: 1}
@@ -11168,7 +11168,7 @@ MonoBehaviour:
       multiplier: 1
       weight: 1
       lightLayer: 255
-      fadeDistance: 10000
+      fadeDistance: 70
       rangeCompressionFactor: 1
     influence:
       m_EditorAdvancedModeBlendDistancePositive: {x: 2.52, y: 1, z: 1}
@@ -12627,8 +12627,8 @@ MonoBehaviour:
     meanFreePath: 10
     anisotropy: 0
     volumeMask: {fileID: 11700000, guid: 6039ee80a9a8a0f41b4297ca0dd5a90c, type: 2}
-    textureScrollingSpeed: {x: 0, y: 0.3, z: 0}
-    textureTiling: {x: 5, y: 5, z: 5}
+    textureScrollingSpeed: {x: 0, y: 0.1, z: 0}
+    textureTiling: {x: 1, y: 1, z: 1}
     positiveFade: {x: 0.5, y: 0.5, z: 0.5}
     negativeFade: {x: 0.5, y: 0.5, z: 0.5}
     m_EditorUniformFade: 4
@@ -12640,7 +12640,7 @@ MonoBehaviour:
     distanceFadeStart: 20
     distanceFadeEnd: 30
     textureIndex: 0
-    textureOffset: {x: -0, y: -56.750355, z: 0}
+    textureOffset: {x: -0, y: -40.81688, z: 0}
 --- !u!1 &1518163832
 GameObject:
   m_ObjectHideFlags: 19
@@ -13532,7 +13532,7 @@ MonoBehaviour:
       multiplier: 1
       weight: 1
       lightLayer: 3
-      fadeDistance: 10000
+      fadeDistance: 70
       rangeCompressionFactor: 1
     influence:
       m_EditorAdvancedModeBlendDistancePositive: {x: 1, y: 0, z: 0}
@@ -14024,7 +14024,7 @@ MonoBehaviour:
       multiplier: 1
       weight: 1
       lightLayer: 1
-      fadeDistance: 10000
+      fadeDistance: 40
       rangeCompressionFactor: 1
     influence:
       m_EditorAdvancedModeBlendDistancePositive: {x: 1, y: 1, z: 1}
@@ -15928,7 +15928,7 @@ MonoBehaviour:
       multiplier: 1
       weight: 1
       lightLayer: 7
-      fadeDistance: 10000
+      fadeDistance: 100
       rangeCompressionFactor: 1
     influence:
       m_EditorAdvancedModeBlendDistancePositive: {x: 1, y: 1, z: 1}
@@ -17121,7 +17121,7 @@ MonoBehaviour:
       multiplier: 1
       weight: 1
       lightLayer: 255
-      fadeDistance: 10000
+      fadeDistance: 70
       rangeCompressionFactor: 1
     influence:
       m_EditorAdvancedModeBlendDistancePositive: {x: 2.52, y: 1, z: 1}
@@ -19817,7 +19817,7 @@ MonoBehaviour:
       multiplier: 1
       weight: 1
       lightLayer: 1
-      fadeDistance: 10000
+      fadeDistance: 70
       rangeCompressionFactor: 1
     influence:
       m_EditorAdvancedModeBlendDistancePositive: {x: 2.52, y: 1, z: 1}
@@ -20672,7 +20672,7 @@ MonoBehaviour:
       multiplier: 1
       weight: 1
       lightLayer: 7
-      fadeDistance: 10000
+      fadeDistance: 40
       rangeCompressionFactor: 1
     influence:
       m_EditorAdvancedModeBlendDistancePositive: {x: 1, y: 1, z: 1}
@@ -21037,7 +21037,7 @@ MonoBehaviour:
       multiplier: 1
       weight: 1
       lightLayer: 7
-      fadeDistance: 10000
+      fadeDistance: 100
       rangeCompressionFactor: 1
     influence:
       m_EditorAdvancedModeBlendDistancePositive: {x: 1, y: 1, z: 1}
