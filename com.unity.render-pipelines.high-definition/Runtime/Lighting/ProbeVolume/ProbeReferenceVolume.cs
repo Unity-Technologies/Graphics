@@ -238,18 +238,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 m_TmpBricks[0].Clear();
-                SubdivideBricks(m_TmpBricks[1], m_TmpBricks[0]);
-
-                // Cull out of bounds bricks
-                Profiler.BeginSample("Cull bricks");
-                for (int i = m_TmpBricks[0].Count - 1; i >= 0; i--)
+                if( m_TmpBricks[1].Count > 0 )
                 {
-                    if (!ProbeVolumePositioning.OBBIntersect(ref m_Transform, m_TmpBricks[0][i], ref volume))
+                    Debug.Log( "Calling SubdivideBricks with " + m_TmpBricks[1].Count + " bricks." );
+                    SubdivideBricks(m_TmpBricks[1], m_TmpBricks[0]);
+
+                    // Cull out of bounds bricks
+                    Profiler.BeginSample("Cull bricks");
+                    for (int i = m_TmpBricks[0].Count - 1; i >= 0; i--)
                     {
-                        m_TmpBricks[0].RemoveAt(i);
+                        if (!ProbeVolumePositioning.OBBIntersect(ref m_Transform, m_TmpBricks[0][i], ref volume))
+                        {
+                            m_TmpBricks[0].RemoveAt(i);
+                        }
                     }
+                    Profiler.EndSample();
                 }
-                Profiler.EndSample();
             }
             Profiler.EndSample();
         }
