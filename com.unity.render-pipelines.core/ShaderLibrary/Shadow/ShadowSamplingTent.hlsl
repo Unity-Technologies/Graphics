@@ -1,3 +1,5 @@
+#ifndef SHADOW_SAMPLING_TENT_INCLUDED
+#define SHADOW_SAMPLING_TENT_INCLUDED
 // ------------------------------------------------------------------
 //  PCF Filtering Tent Functions
 // ------------------------------------------------------------------
@@ -242,3 +244,4 @@ void SampleShadow_ComputeSamples_Tent_7x7(real4 shadowMapTexture_TexelSize, real
     fetchesWeights[14] = fetchesWeightsU.z * fetchesWeightsV.w;
     fetchesWeights[15] = fetchesWeightsU.w * fetchesWeightsV.w;
 }
+#endif
