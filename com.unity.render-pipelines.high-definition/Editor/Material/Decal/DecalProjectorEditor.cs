@@ -347,7 +347,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 EditorGUILayout.PropertyField(m_Size, k_SizeContent);
                 EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
-                EditorGUILayout.PropertyField(m_DecalLayerMask, k_DecalLayerMaskContent);
+
+                HDRenderPipelineAsset hdrp = HDRenderPipeline.currentAsset;
+                if (hdrp != null)
+                {
+                    using (new EditorGUI.DisabledScope(!(hdrp.currentPlatformRenderPipelineSettings.supportDecals && hdrp.currentPlatformRenderPipelineSettings.supportDecalLayers)))
+                    {
+                        EditorGUILayout.PropertyField(m_DecalLayerMask, k_DecalLayerMaskContent);
+                    }
+                }
 
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(m_DrawDistanceProperty, k_DistanceContent);
