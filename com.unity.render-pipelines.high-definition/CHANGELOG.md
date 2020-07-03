@@ -152,6 +152,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix issue causing blocky artifacts when decals affect metallic and are applied on material with specular color workflow.
 - Appropriately constraint blend distance of reflection probe while editing with the inspector (case 1248931)
 - Fixed errors when switching area light to disk shape while an area emissive mesh was displayed.
+- PBR Sky now doesn't go black when going below sea level, but it instead freezes calculation as if on the horizon. 
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
