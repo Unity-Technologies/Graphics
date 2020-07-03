@@ -1025,12 +1025,16 @@ namespace UnityEngine.Rendering.HighDefinition
             if (isFixed)
             {
                 parameters.exposureParams2 = new Vector4(0.0f, 0.0f, ColorUtils.lensImperfectionExposureScale, ColorUtils.s_LightMeterCalibrationConstant);
-                if (m_Exposure.mode.value == ExposureMode.Fixed)
+                if (m_Exposure.mode.value == ExposureMode.Fixed
+#if UNITY_EDITOR
+                    || HDAdditionalSceneViewSettings.sceneExposureOverriden && hdCamera.camera.cameraType == CameraType.SceneView
+#endif
+                    )
                 {
                     parameters.exposureReductionKernel = parameters.exposureCS.FindKernel("KFixedExposure");
                     parameters.exposureParams = new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_Exposure.fixedExposure.value, 0f, 0f);
 #if UNITY_EDITOR
-                    if (HDAdditionalSceneViewSettings.sceneExposureOverriden)
+                    if (HDAdditionalSceneViewSettings.sceneExposureOverriden && hdCamera.camera.cameraType == CameraType.SceneView)
                     {
                         parameters.exposureParams = new Vector4(0.0f, HDAdditionalSceneViewSettings.sceneExposure, 0f, 0f);
                     }
