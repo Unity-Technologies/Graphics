@@ -10,7 +10,7 @@ def _cmd_base(project, components):
 
 
 def cmd_not_standalone(project, platform, api, test_platform_args):
-    base = _cmd_base(project["folder"], project["name"], platform["components"])
+    base = _cmd_base(project, platform["components"])
     base.extend([
         f'cd {TEST_PROJECTS_DIR}/{project["folder"]}/{project["name"]} && utr {test_platform_args} --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}'
     ])
@@ -18,7 +18,7 @@ def cmd_not_standalone(project, platform, api, test_platform_args):
     return base
 
 def cmd_standalone(project, platform, api, test_platform_args):
-    base = _cmd_base(project["folder"], project["name"], platform["components"])
+    base = _cmd_base(project, platform["components"])
     base.append('git clone https://github.cds.internal.unity3d.com/sophia/{project["folder"]}.git TestProjects')
 
     base.extend([
@@ -28,7 +28,7 @@ def cmd_standalone(project, platform, api, test_platform_args):
 
 
 def cmd_standalone_build(project, platform, api, test_platform_args):
-    base = _cmd_base(project["folder"], project["name"], platform["components"])
+    base = _cmd_base(project, platform["components"])
 
     base.extend([
         f'cd {TEST_PROJECTS_DIR}/{project["folder"]}/{project["name"]}   && utr {test_platform_args}Windows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindows{api}Linear" --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS} --timeout=1200 --player-save-path=../../{PATH_PLAYERS} --build-only'
