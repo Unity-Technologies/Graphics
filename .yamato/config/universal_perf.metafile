@@ -3,8 +3,8 @@ project:
   folder: URP_Performance
 test_platforms:
   - performance_counters
-  - performance_memory
-  - performance_build
+  #- performance_memory
+  #- performance_build
 platforms:
   - name: Win
     apis:
@@ -16,5 +16,5 @@ all:
       api: DX11
       test_platforms:
         - performance_counters
-        - performance_memory
-        - performance_build
+        #- performance_memory
+        #- performance_build
