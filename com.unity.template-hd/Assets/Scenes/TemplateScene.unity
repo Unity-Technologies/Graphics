@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 5634.33, g: 4080.2021, b: 3703.8386, a: 1}
+  m_IndirectSpecularColor: {r: 5635.5703, g: 4081.046, b: 3704.0105, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -465,6 +465,11 @@ PrefabInstance:
       propertyPath: m_CastShadows
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 843067730090540905, guid: db49c7ad52a21284cb71b76086c3353f,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
     - target: {fileID: 6350056842790500276, guid: db49c7ad52a21284cb71b76086c3353f,
         type: 3}
       propertyPath: m_Name
@@ -608,6 +613,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 906649024}
     m_Modifications:
+    - target: {fileID: 1968944439225960423, guid: 21070906cbcbb6541b8cf1d24a5c4fbc,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
     - target: {fileID: 2210832531695253830, guid: 21070906cbcbb6541b8cf1d24a5c4fbc,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1893,6 +1903,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2650383239350323068, guid: 891647357ef0cc044acf9aa1be7b2d40,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
     - target: {fileID: 3722073005601458399, guid: 891647357ef0cc044acf9aa1be7b2d40,
         type: 3}
       propertyPath: m_Name
@@ -1902,6 +1917,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3722073005601458399, guid: 891647357ef0cc044acf9aa1be7b2d40,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
+    - target: {fileID: 7535134321928802053, guid: 891647357ef0cc044acf9aa1be7b2d40,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 891647357ef0cc044acf9aa1be7b2d40, type: 3}
@@ -2629,8 +2654,8 @@ MonoBehaviour:
       m_BoxBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
       m_BoxSideFadePositive: {x: 1, y: 1, z: 1}
       m_BoxSideFadeNegative: {x: 1, y: 1, z: 1}
-      m_SphereRadius: 11.33
-      m_SphereBlendDistance: 2
+      m_SphereRadius: 13
+      m_SphereBlendDistance: 3
       m_SphereBlendNormalDistance: 0
     proxy:
       m_CSVersion: 1
@@ -2866,7 +2891,7 @@ ReflectionProbe:
   m_TimeSlicingMode: 0
   m_Resolution: 128
   m_UpdateFrequency: 0
-  m_BoxSize: {x: 22.66, y: 22.66, z: 22.66}
+  m_BoxSize: {x: 26, y: 26, z: 26}
   m_BoxOffset: {x: 0, y: 0, z: 0}
   m_NearClip: 0.3
   m_FarClip: 1000
@@ -2955,7 +2980,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 326594296}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 18, y: 2, z: 0.5}
+  m_LocalPosition: {x: 18, y: 5.03, z: -0.36}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1425786420}
@@ -3090,16 +3115,16 @@ MonoBehaviour:
       m_EditorAdvancedModeBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
       m_EditorAdvancedModeBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
       m_EditorSimplifiedModeBlendNormalDistance: 0
-      m_EditorAdvancedModeEnabled: 1
+      m_EditorAdvancedModeEnabled: 0
       m_EditorAdvancedModeFaceFadePositive: {x: 1, y: 1, z: 1}
       m_EditorAdvancedModeFaceFadeNegative: {x: 1, y: 1, z: 1}
       m_Version: 1
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
-      m_Shape: 1
-      m_BoxSize: {x: 15.982697, y: 12.722867, z: 18.589764}
-      m_BoxBlendDistancePositive: {x: 2.52, y: 1, z: 1}
-      m_BoxBlendDistanceNegative: {x: 2.6951256, y: 1, z: 1}
+      m_Shape: 0
+      m_BoxSize: {x: 12.400002, y: 12.27, z: 8.430547}
+      m_BoxBlendDistancePositive: {x: 1, y: 1, z: 1}
+      m_BoxBlendDistanceNegative: {x: 1, y: 1, z: 1}
       m_BoxBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
       m_BoxBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
       m_BoxSideFadePositive: {x: 1, y: 1, z: 1}
@@ -3116,7 +3141,7 @@ MonoBehaviour:
       m_SphereRadius: 1
     proxySettings:
       useInfluenceVolumeAsProxyVolume: 1
-      capturePositionProxySpace: {x: 0, y: 0, z: 0}
+      capturePositionProxySpace: {x: 0, y: -2.8803825, z: 0.6234225}
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
@@ -3341,7 +3366,7 @@ ReflectionProbe:
   m_TimeSlicingMode: 0
   m_Resolution: 128
   m_UpdateFrequency: 0
-  m_BoxSize: {x: 12, y: 12, z: 12}
+  m_BoxSize: {x: 12.400002, y: 12.27, z: 8.430547}
   m_BoxOffset: {x: 0, y: 0, z: 0}
   m_NearClip: 0.3
   m_FarClip: 1000
@@ -4652,6 +4677,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: TR_SectionB_01
       objectReference: {fileID: 0}
+    - target: {fileID: 6763497481495130190, guid: dd7bc729052fb0349850831c3c596d60,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
     - target: {fileID: 8110425016416769263, guid: dd7bc729052fb0349850831c3c596d60,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -5430,6 +5460,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_CastShadows
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2039331287020930634, guid: 34ae16c55c6bb5c499850a48a9da2858,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
       objectReference: {fileID: 0}
     - target: {fileID: 2119695552278669691, guid: 34ae16c55c6bb5c499850a48a9da2858,
         type: 3}
@@ -6284,6 +6319,16 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 906649024}
     m_Modifications:
+    - target: {fileID: 2032402220143765135, guid: 52d08675f56360346935de397874b4e2,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
+    - target: {fileID: 2711701545633919536, guid: 52d08675f56360346935de397874b4e2,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
     - target: {fileID: 6037338303886651795, guid: 52d08675f56360346935de397874b4e2,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -6988,6 +7033,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6506099750115093319, guid: c176f53f0f3a90a448b849e5d0e0af46,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
       objectReference: {fileID: 0}
     - target: {fileID: 8493635754120082323, guid: c176f53f0f3a90a448b849e5d0e0af46,
         type: 3}
@@ -8255,6 +8305,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 906649024}
     m_Modifications:
+    - target: {fileID: 2371176872863964239, guid: cd71e9a7b3e576847bee371f47119db8,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
     - target: {fileID: 4815497566155810433, guid: cd71e9a7b3e576847bee371f47119db8,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -8349,6 +8404,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: SR_Pillar_02
+      objectReference: {fileID: 0}
+    - target: {fileID: 6872169437490098588, guid: 8194a612473962d47a362dd51f8ab4cd,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
       objectReference: {fileID: 0}
     - target: {fileID: 8703141978557015717, guid: 8194a612473962d47a362dd51f8ab4cd,
         type: 3}
@@ -8574,8 +8634,8 @@ MonoBehaviour:
       m_BoxBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
       m_BoxSideFadePositive: {x: 1, y: 1, z: 1}
       m_BoxSideFadeNegative: {x: 1, y: 1, z: 1}
-      m_SphereRadius: 11.33
-      m_SphereBlendDistance: 2
+      m_SphereRadius: 13
+      m_SphereBlendDistance: 3
       m_SphereBlendNormalDistance: 0
     proxy:
       m_CSVersion: 1
@@ -8811,7 +8871,7 @@ ReflectionProbe:
   m_TimeSlicingMode: 0
   m_Resolution: 128
   m_UpdateFrequency: 0
-  m_BoxSize: {x: 22.66, y: 22.66, z: 22.66}
+  m_BoxSize: {x: 26, y: 26, z: 26}
   m_BoxOffset: {x: 0, y: 0, z: 0}
   m_NearClip: 0.3
   m_FarClip: 1000
@@ -9002,6 +9062,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: SR_Pillar_03
+      objectReference: {fileID: 0}
+    - target: {fileID: 6872169437490098588, guid: 8194a612473962d47a362dd51f8ab4cd,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
       objectReference: {fileID: 0}
     - target: {fileID: 8703141978557015717, guid: 8194a612473962d47a362dd51f8ab4cd,
         type: 3}
@@ -9294,8 +9359,8 @@ MonoBehaviour:
       m_BoxBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
       m_BoxSideFadePositive: {x: 1, y: 1, z: 1}
       m_BoxSideFadeNegative: {x: 1, y: 1, z: 1}
-      m_SphereRadius: 11.33
-      m_SphereBlendDistance: 2
+      m_SphereRadius: 13
+      m_SphereBlendDistance: 3
       m_SphereBlendNormalDistance: 0
     proxy:
       m_CSVersion: 1
@@ -9531,7 +9596,7 @@ ReflectionProbe:
   m_TimeSlicingMode: 0
   m_Resolution: 128
   m_UpdateFrequency: 0
-  m_BoxSize: {x: 22.66, y: 22.66, z: 22.66}
+  m_BoxSize: {x: 26, y: 26, z: 26}
   m_BoxOffset: {x: 0, y: 0, z: 0}
   m_NearClip: 0.3
   m_FarClip: 1000
@@ -9640,6 +9705,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: SR_Pillar_01
+      objectReference: {fileID: 0}
+    - target: {fileID: 6872169437490098588, guid: 8194a612473962d47a362dd51f8ab4cd,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
       objectReference: {fileID: 0}
     - target: {fileID: 8703141978557015717, guid: 8194a612473962d47a362dd51f8ab4cd,
         type: 3}
@@ -11684,10 +11754,25 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 906649024}
     m_Modifications:
+    - target: {fileID: 2782458481585470134, guid: 8e1c9195acf59394aaf785cdb5fe8c84,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
+    - target: {fileID: 3643281215179823450, guid: 8e1c9195acf59394aaf785cdb5fe8c84,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
     - target: {fileID: 6245405139126777595, guid: 8e1c9195acf59394aaf785cdb5fe8c84,
         type: 3}
       propertyPath: m_Name
       value: SR_SectionWall_01
+      objectReference: {fileID: 0}
+    - target: {fileID: 6245405139126777595, guid: 8e1c9195acf59394aaf785cdb5fe8c84,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
       objectReference: {fileID: 0}
     - target: {fileID: 6987188838134842600, guid: 8e1c9195acf59394aaf785cdb5fe8c84,
         type: 3}
@@ -12023,6 +12108,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 906649024}
     m_Modifications:
+    - target: {fileID: 1781738700157651319, guid: 92e859c764174cf4385acf2f713357cc,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
     - target: {fileID: 5358883105248097538, guid: 92e859c764174cf4385acf2f713357cc,
         type: 3}
       propertyPath: m_Name
@@ -12640,7 +12730,7 @@ MonoBehaviour:
     distanceFadeStart: 20
     distanceFadeEnd: 30
     textureIndex: 0
-    textureOffset: {x: -0, y: -40.81688, z: 0}
+    textureOffset: {x: -0, y: -134.93468, z: 0}
 --- !u!1 &1518163832
 GameObject:
   m_ObjectHideFlags: 19
@@ -14047,8 +14137,8 @@ MonoBehaviour:
       m_BoxBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
       m_BoxSideFadePositive: {x: 1, y: 1, z: 1}
       m_BoxSideFadeNegative: {x: 1, y: 1, z: 1}
-      m_SphereRadius: 11.33
-      m_SphereBlendDistance: 2
+      m_SphereRadius: 13
+      m_SphereBlendDistance: 3
       m_SphereBlendNormalDistance: 0
     proxy:
       m_CSVersion: 1
@@ -14284,7 +14374,7 @@ ReflectionProbe:
   m_TimeSlicingMode: 0
   m_Resolution: 128
   m_UpdateFrequency: 0
-  m_BoxSize: {x: 22.66, y: 22.66, z: 22.66}
+  m_BoxSize: {x: 26, y: 26, z: 26}
   m_BoxOffset: {x: 0, y: 0, z: 0}
   m_NearClip: 0.3
   m_FarClip: 1000
@@ -16763,6 +16853,11 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 6562230865071876762, guid: 7e9b6f9789d8de649bcf0487d29fd33f,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
     - target: {fileID: 8842934981969102177, guid: 7e9b6f9789d8de649bcf0487d29fd33f,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -16833,6 +16928,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 906649024}
     m_Modifications:
+    - target: {fileID: 1968944439225960423, guid: 21070906cbcbb6541b8cf1d24a5c4fbc,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
     - target: {fileID: 2210832531695253830, guid: 21070906cbcbb6541b8cf1d24a5c4fbc,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -16995,7 +17095,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1909621619}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 20, y: 8.75, z: 1}
+  m_LocalPosition: {x: 19.192, y: 9.065, z: 0.93}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1425786420}
@@ -17144,7 +17244,7 @@ MonoBehaviour:
       m_BoxBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
       m_BoxSideFadePositive: {x: 1, y: 1, z: 1}
       m_BoxSideFadeNegative: {x: 1, y: 1, z: 1}
-      m_SphereRadius: 6
+      m_SphereRadius: 4.9
       m_SphereBlendDistance: 2
       m_SphereBlendNormalDistance: 0
     proxy:
@@ -17381,7 +17481,7 @@ ReflectionProbe:
   m_TimeSlicingMode: 0
   m_Resolution: 128
   m_UpdateFrequency: 0
-  m_BoxSize: {x: 12, y: 12, z: 12}
+  m_BoxSize: {x: 9.8, y: 9.8, z: 9.8}
   m_BoxOffset: {x: 0, y: 0, z: 0}
   m_NearClip: 0.3
   m_FarClip: 1000
@@ -18089,6 +18189,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3298799193239403644, guid: b31afbf48d7a11249b84d842fad98e9c,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
       objectReference: {fileID: 0}
     - target: {fileID: 3745676244986809596, guid: b31afbf48d7a11249b84d842fad98e9c,
         type: 3}
@@ -18884,6 +18989,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 906649024}
     m_Modifications:
+    - target: {fileID: 4594111693260382465, guid: 573008edd81fd004a85a9b75a149b49f,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
     - target: {fileID: 6489513866886783320, guid: 573008edd81fd004a85a9b75a149b49f,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -18943,6 +19053,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: SR_SectionCeiling_01
+      objectReference: {fileID: 0}
+    - target: {fileID: 7805929622441612107, guid: 573008edd81fd004a85a9b75a149b49f,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
+    - target: {fileID: 8463274595219637566, guid: 573008edd81fd004a85a9b75a149b49f,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 573008edd81fd004a85a9b75a149b49f, type: 3}
@@ -19011,15 +19131,35 @@ PrefabInstance:
       propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2283712091605681478, guid: b831ff5e0c2d5474595dad56ae83ee76,
+        type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 6424579251153448236, guid: b831ff5e0c2d5474595dad56ae83ee76,
+        type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
     - target: {fileID: 6517734457645817909, guid: b831ff5e0c2d5474595dad56ae83ee76,
         type: 3}
       propertyPath: m_StaticEditorFlags
       value: 4294967295
       objectReference: {fileID: 0}
+    - target: {fileID: 6517734457645817909, guid: b831ff5e0c2d5474595dad56ae83ee76,
+        type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
     - target: {fileID: 6639430846922888772, guid: b831ff5e0c2d5474595dad56ae83ee76,
         type: 3}
       propertyPath: m_Name
       value: GlassCase_01
+      objectReference: {fileID: 0}
+    - target: {fileID: 6639430846922888772, guid: b831ff5e0c2d5474595dad56ae83ee76,
+        type: 3}
+      propertyPath: m_Layer
+      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 7672065538470372439, guid: b831ff5e0c2d5474595dad56ae83ee76,
         type: 3}
@@ -19075,6 +19215,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8396117730628006279, guid: b831ff5e0c2d5474595dad56ae83ee76,
+        type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 8735928142549112891, guid: b831ff5e0c2d5474595dad56ae83ee76,
+        type: 3}
+      propertyPath: m_Layer
+      value: 9
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b831ff5e0c2d5474595dad56ae83ee76, type: 3}
@@ -19521,6 +19671,11 @@ PrefabInstance:
       propertyPath: m_CastShadows
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 843067730090540905, guid: db49c7ad52a21284cb71b76086c3353f,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
     - target: {fileID: 6350056842790500276, guid: db49c7ad52a21284cb71b76086c3353f,
         type: 3}
       propertyPath: m_Name
@@ -19858,10 +20013,10 @@ MonoBehaviour:
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
     resolution: 512
     cameraSettings:
-      customRenderingSettings: 0
+      customRenderingSettings: 1
       renderingPathCustomFrameSettings:
         bitDatas:
-          data1: 70280697347917
+          data1: 70280160476997
           data2: 4539628424926265344
         lodBias: 1
         lodBiasMode: 0
@@ -19875,7 +20030,7 @@ MonoBehaviour:
         materialQuality: 0
       renderingPathCustomFrameSettingsOverrideMask:
         mask:
-          data1: 0
+          data1: 939524096
           data2: 0
       bufferClearing:
         clearColorMode: 0
@@ -19972,7 +20127,7 @@ MonoBehaviour:
     camera:
       camera: 0
   m_ProxyVolume: {fileID: 0}
-  m_BakedTexture: {fileID: 8900000, guid: a353b46de548e07409494fc6780e5f48, type: 3}
+  m_BakedTexture: {fileID: 8900000, guid: b00a8436d7ab21d4e8de675d20319f6b, type: 3}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
     m_WorldToCameraRHS:
@@ -20090,7 +20245,7 @@ PrefabInstance:
     - target: {fileID: 3742074988062821673, guid: 5f7cc295896e7b24cb6789747b49090a,
         type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 0
+      value: 4294967295
       objectReference: {fileID: 0}
     - target: {fileID: 4656321152676187855, guid: 5f7cc295896e7b24cb6789747b49090a,
         type: 3}
@@ -21348,7 +21503,7 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 21, y: 8, z: 7}
+  m_Size: {x: 21.5, y: 8, z: 7}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &6535239024185873326
 GameObject:
