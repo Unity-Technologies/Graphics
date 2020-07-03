@@ -49,12 +49,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var renderingPassList = HDSubShaderUtilities.GetRenderingPassList(systemData.surfaceType == SurfaceType.Opaque, false);
             var renderingPassValue = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.GetOpaqueEquivalent(systemData.renderingPass) : HDRenderQueue.GetTransparentEquivalent(systemData.renderingPass);
             var renderQueueType = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
-            context.AddProperty(renderingPassText, new PopupField<HDRenderQueue.RenderQueueType>(renderingPassList, renderQueueType, HDSubShaderUtilities.RenderQueueName, HDSubShaderUtilities.RenderQueueName) { value = renderingPassValue }, (evt) =>
+            string key = "";
+            var rederingPassLine = new LockableBaseField<BaseField<HDRenderQueue.RenderQueueType>, HDRenderQueue.RenderQueueType>(new PopupField<HDRenderQueue.RenderQueueType>(renderingPassList, renderQueueType, HDSubShaderUtilities.RenderQueueName, HDSubShaderUtilities.RenderQueueName) { value = renderingPassValue }, key);
+            context.AddProperty(renderingPassText, rederingPassLine, (evt) =>
             {
                 registerUndo(renderingPassText);
                 if(systemData.TryChangeRenderingPass(evt.newValue))
                     onChange();
             });
+            (rederingPassLine as ILockable).InitLockPosition();
 
             if (systemData.surfaceType == SurfaceType.Transparent)
             {

@@ -81,6 +81,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     setter(evt.newValue);
                     onChange();
                 });
+                (elem as ILockable).InitLockPosition();
             }
             else
             {
@@ -92,6 +93,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     setter((Data)(object)evt.newValue);
                     onChange();
                 });
+                (elemEnum as ILockable).InitLockPosition();
             }
         }
 
@@ -145,7 +147,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected abstract int foldoutIndex { get; }
     }
 
-    public class LockableBaseField<TBaseField, TValueType> : BaseField<TValueType>
+    internal interface ILockable
+    {
+        void InitLockPosition();
+    }
+
+    internal class LockableBaseField<TBaseField, TValueType> : BaseField<TValueType>, ILockable
         where TBaseField : BaseField<TValueType>
     {
         public new static readonly string ussClassName = "unity-lockable";
@@ -163,7 +170,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             m_LockArea = new LockArea(lockInitValue, RegisterChange);
 
             Add(m_ContainedField);
-            Add(m_LockArea);
 
             //styling
             this.Q(className: "unity-base-field__input").style.flexGrow = 0;
@@ -171,6 +177,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             style.marginLeft = 0;
             style.marginRight = 0;
             m_ContainedField.style.flexGrow = 1;
+        }
+        
+        public void InitLockPosition()
+        {
+            //HACK to move the lock into the parent container
+            VisualElement lineContainer = this;
+            while (lineContainer != null && lineContainer.name != "container")
+                lineContainer = lineContainer.hierarchy.parent;
+            if (lineContainer == null)
+                lineContainer = this;
+            
+            lineContainer.Add(m_LockArea);
+            m_LockArea.style.position = Position.Absolute;
+            m_LockArea.style.left = 0;
         }
 
         public new virtual TValueType value
@@ -202,7 +222,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
     }
 
-    public class LockArea : Image
+    class LockArea : Image
     {
         public new static readonly string ussClassName = "unity-lock-area";
         
@@ -222,8 +242,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             style.width = 14;
             style.minWidth = 14;
             style.maxWidth = 14;
-            style.position = Position.Absolute;
-            style.right = -15;
 
             UpdateDisplay();
             this.AddManipulator(new ToggleClickManipulator(Toggle));
