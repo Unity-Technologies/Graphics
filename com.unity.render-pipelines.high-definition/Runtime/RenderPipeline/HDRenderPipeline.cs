@@ -2686,6 +2686,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // Perform the voxelization step which fills the density 3D texture.
                     VolumeVoxelizationPass(hdCamera, cmd, m_FrameCount);
+					
+					// Inject Programmable density volumes here.
+                    CustomDensityVolumesManager.ApplyCustomDensityVolumes(hdCamera, cmd, m_FrameCount);
                 }
 
                 // Render the volumetric lighting.

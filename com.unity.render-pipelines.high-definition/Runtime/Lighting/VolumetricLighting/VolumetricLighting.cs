@@ -212,7 +212,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeBuffer                 m_VisibleVolumeDataBuffer       = null;
 
         // These two buffers do not depend on the frameID and are therefore shared by all views.
-        RTHandle                      m_DensityBuffer;
+        internal RTHandle             m_DensityBuffer;
         RTHandle                      m_LightingBuffer;
         Vector3Int                    m_CurrentVolumetricBufferSize;
 
@@ -834,7 +834,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        struct VolumetricLightingParameters
+        internal struct VolumetricLightingParameters
         {
             public ComputeShader                volumetricLightingCS;
             public ComputeShader                volumetricLightingFilteringCS;
@@ -850,7 +850,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ShaderVariablesLightList     lightListCB;
         }
 
-        VolumetricLightingParameters PrepareVolumetricLightingParameters(HDCamera hdCamera, int frameIndex)
+        internal VolumetricLightingParameters PrepareVolumetricLightingParameters(HDCamera hdCamera, int frameIndex)
         {
             var parameters = new VolumetricLightingParameters();
 
