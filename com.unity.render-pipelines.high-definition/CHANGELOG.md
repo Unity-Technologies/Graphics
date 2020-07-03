@@ -712,6 +712,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with light layers bigger than 8 (and above the supported range). 
 - Fixed issue with culling layer mask of area light's emissive mesh 
 - Fixed errors when switching area light to disk shape while an area emissive mesh was displayed.
+- Fixed default frame settings MSAA toggle for reflection probes (case 1247631)
 
 ### Changed
 - Improve MIP selection for decals on Transparents
