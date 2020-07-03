@@ -81,5 +81,5 @@ all:
       test_platforms:
         - playmode
         - playmode_XR
-    - project: HDRP_Hybrid
-      all: true
+    #- project: HDRP_Hybrid
+    #  all: true
