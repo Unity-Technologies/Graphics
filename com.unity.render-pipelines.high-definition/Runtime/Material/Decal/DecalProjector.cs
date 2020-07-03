@@ -131,11 +131,11 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        DecalLayerMask m_DecalLayerMask = DecalLayerMask.Layer0;
+        DecalLayerEnum m_DecalLayerMask = DecalLayerEnum.LightLayerDefault;
         /// <summary>
         /// The layer of the decal.
         /// </summary>
-        public DecalLayerMask decalLayerMask
+        public DecalLayerEnum decalLayerMask
         {
             get => m_DecalLayerMask;
             set => m_DecalLayerMask = value;

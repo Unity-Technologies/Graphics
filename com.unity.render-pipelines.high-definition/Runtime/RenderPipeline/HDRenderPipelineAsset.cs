@@ -263,6 +263,29 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [System.NonSerialized]
+        string[] m_DecalLayerNames = null;
+        /// <summary>
+        /// Names used for display of light layers.
+        /// </summary>
+        public string[] decalLayerNames
+        {
+            get
+            {
+                if (m_DecalLayerNames == null)
+                {
+                    m_DecalLayerNames = new string[8];
+                }
+
+                for (int i = 0; i < 8; ++i)
+                {
+                    m_DecalLayerNames[i] = renderingLayerNames[i + 8];
+                }
+
+                return m_DecalLayerNames;
+            }
+        }
+
         /// <summary>HDRP default shader.</summary>
         public override Shader defaultShader
             => m_RenderPipelineResources?.shaders.defaultPS;

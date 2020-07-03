@@ -6,6 +6,31 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>Decal Layers.</summary>
+    public enum DecalLayerEnum
+    {
+        /// <summary>The light will no affect any object.</summary>
+        Nothing = 0,   // Custom name for "Nothing" option
+        /// <summary>Decal Layer 0.</summary>
+        LightLayerDefault = 1 << 0,
+        /// <summary>Decal Layer 1.</summary>
+        DecalLayer1 = 1 << 1,
+        /// <summary>Decal Layer 2.</summary>
+        DecalLayer2 = 1 << 2,
+        /// <summary>Decal Layer 3.</summary>
+        DecalLayer3 = 1 << 3,
+        /// <summary>Decal Layer 4.</summary>
+        DecalLayer4 = 1 << 4,
+        /// <summary>Decal Layer 5.</summary>
+        DecalLayer5 = 1 << 5,
+        /// <summary>Decal Layer 6.</summary>
+        DecalLayer6 = 1 << 6,
+        /// <summary>Decal Layer 7.</summary>
+        DecalLayer7 = 1 << 7,
+        /// <summary>Everything.</summary>
+        Everything = 0xFF, // Custom name for "Everything" option
+    }
+
     class DecalSystem
     {
         // Relies on the order shader passes are declared in Decal.shader and DecalSubshader.cs
@@ -424,7 +449,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void UpdateCachedData(Matrix4x4 localToWorld, Quaternion rotation, Matrix4x4 sizeOffset, float drawDistance,
                 float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, DecalHandle handle,
-                int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerMask decalLayerMask)
+                int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerEnum decalLayerMask)
             {
                 int index = handle.m_Index;
                 m_CachedDecalToWorld[index] = localToWorld * sizeOffset;
@@ -459,7 +484,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void UpdateCachedData(Transform transform, Matrix4x4 sizeOffset, float drawDistance,
                 float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, DecalHandle handle,
-                int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerMask decalLayerMask)
+                int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerEnum decalLayerMask)
             {
                 if (m_Material == null)
                     return;
@@ -470,7 +495,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public DecalHandle AddDecal(Matrix4x4 localToWorld, Quaternion rotation, Matrix4x4 sizeOffset, float drawDistance,
                 float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, int materialID,
-                int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerMask decalLayerMask)
+                int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerEnum decalLayerMask)
             {
                 // increase array size if no space left
                 if (m_DecalsCount == m_Handles.Length)
@@ -860,7 +885,7 @@ namespace UnityEngine.Rendering.HighDefinition
             private Vector4[] m_CachedUVScaleBias = new Vector4[kDecalBlockSize]; // xy - scale, zw bias
             private bool[] m_CachedAffectsTransparency = new bool[kDecalBlockSize];
             private int[] m_CachedLayerMask = new int[kDecalBlockSize];
-            private DecalLayerMask[] m_CachedDecalLayerMask = new DecalLayerMask[kDecalBlockSize];
+            private DecalLayerEnum[] m_CachedDecalLayerMask = new DecalLayerEnum[kDecalBlockSize];
             private ulong[] m_CachedSceneLayerMask = new ulong[kDecalBlockSize];
             private float[] m_CachedFadeFactor = new float[kDecalBlockSize];
             private Material m_Material;
@@ -925,7 +950,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         DecalHandle AddDecal(Matrix4x4 localToWorld, Quaternion rotation, Matrix4x4 sizeOffset, float drawDistance,
             float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, Material material,
-            int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerMask decalLayerMask)
+            int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerEnum decalLayerMask)
         {
             SetupMipStreamingSettings(material, true);
 
@@ -944,7 +969,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public DecalHandle AddDecal(Vector3 position, Quaternion rotation, Vector3 scale, Matrix4x4 sizeOffset, float drawDistance,
             float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, Material material,
-            int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerMask decalLayerMask)
+            int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerEnum decalLayerMask)
         {
             return AddDecal(Matrix4x4.TRS(position, rotation, scale), rotation, sizeOffset, drawDistance,
                 fadeScale, uvScaleBias, affectsTransparency, material,
@@ -953,7 +978,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public DecalHandle AddDecal(Transform transform, Matrix4x4 sizeOffset, float drawDistance,
             float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, Material material,
-            int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerMask decalLayerMask)
+            int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerEnum decalLayerMask)
         {
             return AddDecal(transform.localToWorldMatrix, transform.rotation, sizeOffset, drawDistance,
                 fadeScale, uvScaleBias, affectsTransparency, material,
@@ -981,7 +1006,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateCachedData(Matrix4x4 localToWorld, Quaternion rotation, Matrix4x4 sizeOffset, float drawDistance,
             float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, DecalHandle handle,
-            int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerMask decalLayerMask)
+            int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerEnum decalLayerMask)
         {
             if (!DecalHandle.IsValid(handle))
                 return;
@@ -998,7 +1023,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void UpdateCachedData(Vector3 position, Quaternion rotation, Matrix4x4 sizeOffset, float drawDistance,
             float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, DecalHandle handle,
-            int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerMask decalLayerMask)
+            int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerEnum decalLayerMask)
         {
              UpdateCachedData(Matrix4x4.TRS(position,  rotation, Vector3.one), rotation, sizeOffset, drawDistance,
                  fadeScale, uvScaleBias, affectsTransparency, handle,
@@ -1007,7 +1032,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void UpdateCachedData(Transform transform, Matrix4x4 sizeOffset, float drawDistance,
             float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, DecalHandle handle,
-            int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerMask decalLayerMask)
+            int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerEnum decalLayerMask)
         {
             UpdateCachedData(Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one)/*transform.localToWorldMatrix*/, transform.rotation, sizeOffset, drawDistance,
                 fadeScale, uvScaleBias, affectsTransparency, handle,
