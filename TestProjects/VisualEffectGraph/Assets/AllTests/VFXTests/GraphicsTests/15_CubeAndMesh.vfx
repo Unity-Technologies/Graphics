@@ -1437,6 +1437,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_UIInfos: {fileID: 114122344245984846}
   m_ParameterInfo: []
+  m_ImportDependencies: []
   m_GraphVersion: 4
   m_saved: 1
   m_SubgraphDependencies: []
@@ -1968,7 +1969,7 @@ MonoBehaviour:
   - {fileID: 114811204679409306}
   m_Shader: {fileID: -6465566751694194690, guid: a1f88376c5c975644a8bea93ca9eecde,
     type: 3}
-  shaderGUID: a1f88376c5c975644a8bea93ca9eecde
+  m_ShaderName: Shader Graphs/Rim
 --- !u!114 &114782034906201374
 MonoBehaviour:
   m_ObjectHideFlags: 1

@@ -703,11 +703,11 @@ namespace UnityEditor.VFX
                 owner.Invalidate(this, cause);
         }
 
-        public void UpdateAttributes(VFXPropertyAttributes attributes,bool notify)
+        public void UpdateAttributes(VFXPropertyAttribute[] attributes,bool notify)
         {
             if (notify)
             {
-                if (!m_Property.attributes.IsEqual(attributes))
+                if (!VFXPropertyAttribute.IsEqual(m_Property.attributes, attributes))
                 {
                     m_Property.attributes = attributes;
                     Invalidate(InvalidationCause.kUIChangedTransient); // TODO This will trigger a setDirty while it shouldn't as property attributes are not serialized

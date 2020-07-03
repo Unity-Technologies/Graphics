@@ -52,22 +52,21 @@ namespace UnityEditor.VFX
                 .Select(o => o.Value(a))).ToArray();
         }
 
-        public bool IsEqual(VFXPropertyAttributes other)
+        public static bool IsEqual(VFXPropertyAttribute[] one,VFXPropertyAttribute[] other)
         {
-            if (m_Flag != other.m_Flag)
+
+            if (one == null)
+                return other == null;
+
+            if (other == null)
                 return false;
 
-            if (m_AllAttributes == null)
-                return other.m_AllAttributes == null;
-
-            if (other.m_AllAttributes == null)
+            // assume if they are equal, they will be in the same order.
+            if (one.Length != other.Length)
                 return false;
 
-            if (m_AllAttributes.Length != other.m_AllAttributes.Length)
-                return false;
-
-            for (int i = 0; i < m_AllAttributes.Length; ++i)
-                if (!m_AllAttributes[i].Equals(other.m_AllAttributes[i]))
+            for (int i = 0; i < one.Length; ++i)
+                if (!one[i].Equals(other[i]))
                     return false;
 
             return true;
