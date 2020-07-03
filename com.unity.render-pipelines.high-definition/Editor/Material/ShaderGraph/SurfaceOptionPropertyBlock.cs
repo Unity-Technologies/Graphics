@@ -92,7 +92,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Misc Cont.
             if (lightingData != null)
             {
-                AddProperty(decalLayerMaskText, () => lightingData.decalLayerMask, (newValue) => lightingData.decalLayerMask = newValue);
+                AddProperty(supportDecalsText, () => lightingData.receiveDecals, (newValue) => lightingData.receiveDecals = newValue);
 
                 if (systemData.surfaceType == SurfaceType.Transparent)
                     AddProperty(receivesSSRTransparentText, () => lightingData.receiveSSRTransparent, (newValue) => lightingData.receiveSSRTransparent = newValue);

@@ -25,14 +25,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         // Obsolete for Migration
         [SerializeField]
-        internal bool m_ReceiveDecals = true;
-
-        [SerializeField]
-        DecalLayerMask m_DecalLayerMask = DecalLayerMask.Layer0;
-        public DecalLayerMask decalLayerMask
+        bool m_ReceiveDecals = true;
+        public bool receiveDecals
         {
-            get => m_DecalLayerMask;
-            set => m_DecalLayerMask = value;
+            get => m_ReceiveDecals;
+            set => m_ReceiveDecals = value;
         }
 
         [SerializeField]

@@ -42,7 +42,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Create UIElement from type:
             BaseField<Data> elem = null;
             BaseField<Enum> elemEnum = null;
-            BaseField<int> elemMask = null;
 
             switch (getter())
             {
@@ -65,7 +64,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 case StackLit.BaseParametrization e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
                 case StackLit.DualSpecularLobeParametrization e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
                 case OpaqueCullMode e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                case DecalLayerMask e: elemMask = new MaskField(new List<string>(DecalLayerMask.LayerNames), 1) { value = (int)e, tooltip = displayName.tooltip } as BaseField<int>; break;
                 default: throw new Exception($"Can't create UI field for type {getter().GetType()}, please add it if it's relevant. If you can't consider using TargetPropertyGUIContext.AddProperty instead.");
             }
 
@@ -77,18 +75,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                     registerUndo(displayName.text);
                     setter(evt.newValue);
-                    onChange();
-                });
-            }
-            else if (elemMask != null)
-            {
-                context.AddProperty<int>(displayName.text, indentLevel, elemMask, (evt) =>
-                {
-                    if (Equals(getter(), evt.newValue))
-                        return;
-
-                    registerUndo(displayName.text);
-                    setter((Data)(object)new DecalLayerMask(evt.newValue));
                     onChange();
                 });
             }

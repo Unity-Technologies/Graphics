@@ -67,16 +67,6 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
-        public static void AddDecalLayerMaskProperty(this PropertyCollector collector, int defaultValue)
-        {
-            collector.AddShaderProperty(new Vector1ShaderProperty {
-                value = defaultValue,
-                hidden = true,
-                displayName = "Decal Layer Mask",
-                overrideReferenceName = kDecalLayerMask,
-            });
-        }
-
         public static void AddStencilShaderProperties(PropertyCollector collector, SystemData systemData, LightingData lightingData, bool splitLighting)
         {
             bool ssrStencil = false;
@@ -86,7 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 ssrStencil = systemData.surfaceType == SurfaceType.Opaque ? lightingData.receiveSSR : lightingData.receiveSSRTransparent;
                 bool receiveSSROpaque = lightingData.receiveSSR;
                 bool receiveSSRTransparent = lightingData.receiveSSRTransparent;
-                int decalLayerMask = (int)lightingData.decalLayerMask;
+                bool receiveDecals = lightingData.receiveDecals;
                 bool blendPreserveSpecular = lightingData.blendPreserveSpecular;
 
                 // Don't add those property on Unlit
@@ -94,7 +84,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 collector.AddToggleProperty(kReceivesSSR, receiveSSROpaque);
                 collector.AddToggleProperty(kReceivesSSRTransparent, receiveSSRTransparent);
                 collector.AddToggleProperty(kEnableBlendModePreserveSpecularLighting, blendPreserveSpecular);
-                collector.AddDecalLayerMaskProperty(decalLayerMask);
+                collector.AddToggleProperty(kSupportDecals, receiveDecals);
             }
 
             // Configure render state

@@ -85,7 +85,6 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     uint _CascadeShadowCount;
     int _DirectionalShadowIndex;
     uint _EnableLightLayers;
-    uint _EnableDecalLayers;
     uint _EnableSkyReflection;
     uint _EnableSSRefraction;
     float _SSRefractionInvScreenWeightDistance;
@@ -144,12 +143,12 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     int _ProbeVolumeLeakMitigationMode;
     float _ProbeVolumeBilateralFilterWeightMin;
     float _ProbeVolumeBilateralFilterWeight;
-    float _Pad8;
+    uint _EnableDecalLayers;
     float4 _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7];
     int _TransparentCameraOnlyMotionVectors;
+    float _Pad8;
     float _Pad9;
     float _Pad10;
-    float _Pad11;
 CBUFFER_END
 
 

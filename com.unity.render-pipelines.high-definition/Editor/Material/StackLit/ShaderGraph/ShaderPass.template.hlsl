@@ -148,7 +148,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
             $SurfaceDescription.Alpha: alpha = surfaceDescription.Alpha;
 
             // Both uses and modifies 'surfaceData.normalWS'.
-            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, uint(_DecalLayerMask), alpha);
+            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
             ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
         }
     #endif

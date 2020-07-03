@@ -97,7 +97,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent ppdPrimitiveLength = new GUIContent("Primitive Length", "Sets the length of the primitive (with the scale of 1) to which HDRP applies per-pixel displacement mapping. For example, the standard quad is 1 x 1 meter, while the standard plane is 10 x 10 meters.");
             public static GUIContent ppdPrimitiveWidth = new GUIContent("Primitive Width", "Sets the width of the primitive (with the scale of 1) to which HDRP applies per-pixel displacement mapping. For example, the standard quad is 1 x 1 meter, while the standard plane is 10 x 10 meters.");
 
-            public static GUIContent decalLayerMaskText = new GUIContent("Decal Layer Mask", "Decal with a matching Decal Layer Mask value will affect this material.");
+            public static GUIContent supportDecalsText = new GUIContent("Receive Decals", "Enable to allow Materials to receive decals.");
 
             public static GUIContent enableGeometricSpecularAAText = new GUIContent("Geometric Specular AA", "When enabled, HDRP reduces specular aliasing on high density meshes (particularly useful when the not using a normal map).");
             public static GUIContent specularAAScreenSpaceVarianceText = new GUIContent("Screen space variance", "Controls the strength of the Specular AA reduction. Higher values give a more blurry result and less aliasing.");
@@ -150,8 +150,8 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty doubleSidedNormalMode = null;
         const string kDoubleSidedNormalMode = "_DoubleSidedNormalMode";
         MaterialProperty materialID  = null;
-        MaterialProperty decalLayerMask;
-        const string kDecalLayerMask = HDMaterialProperties.kDecalLayerMask;
+        MaterialProperty supportDecals = null;
+        const string kSupportDecals = "_SupportDecals";
         MaterialProperty enableGeometricSpecularAA = null;
         const string kEnableGeometricSpecularAA = "_EnableGeometricSpecularAA";
         MaterialProperty specularAAScreenSpaceVariance = null;
@@ -346,9 +346,9 @@ namespace UnityEditor.Rendering.HighDefinition
             tessellationMode = FindProperty(kTessellationMode);
 
             // Decal
-            if ((m_Features & Features.DecalLayerMask) != 0)
+            if ((m_Features & Features.ReceiveDecal) != 0)
             {
-                decalLayerMask = FindProperty(kDecalLayerMask);
+                supportDecals = FindProperty(kSupportDecals);
             }
 
             // specular AA
@@ -609,7 +609,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var mode = (SurfaceType)surfaceType.floatValue;
             var renderQueueType = HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue);
             bool alphaTest = material.HasProperty(kAlphaCutoffEnabled) && material.GetFloat(kAlphaCutoffEnabled) > 0.0f;
-            DecalLayerMask decalLayerMask = material.GetDecalLayerMask();
+            bool receiveDecal = material.HasProperty(kSupportDecals) && material.GetFloat(kSupportDecals) > 0.0f;
 
             // Shader graph only property, used to transfer the render queue from the shader graph to the material,
             // because we can't use the renderqueue from the shader as we have to keep the renderqueue on the material side.
@@ -639,7 +639,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     default:
                         throw new ArgumentException("Unknown SurfaceType");
                 }
-                renderQueue = HDRenderQueue.ChangeType(targetQueueType, (int)transparentSortPriority.floatValue, alphaTest, material.GetDecalLayerMask() != DecalLayerMask.None);
+                renderQueue = HDRenderQueue.ChangeType(targetQueueType, (int)transparentSortPriority.floatValue, alphaTest, receiveDecal);
             }
             EditorGUI.showMixedValue = false;
 
@@ -667,7 +667,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         materialEditor.RegisterPropertyChangeUndo("Rendering Pass");
                         renderQueueType = HDRenderQueue.ConvertFromOpaqueRenderQueue(newRenderQueueOpaqueType);
-                        renderQueue = HDRenderQueue.ChangeType(renderQueueType, alphaTest: alphaTest, receiveDecal: material.GetDecalLayerMask() != DecalLayerMask.None);
+                        renderQueue = HDRenderQueue.ChangeType(renderQueueType, alphaTest: alphaTest, receiveDecal: receiveDecal);
                     }
                     break;
                 case SurfaceType.Transparent:
@@ -777,14 +777,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            if (decalLayerMask != null)
+            if (supportDecals != null)
             {
                 EditorGUI.BeginChangeCheck();
-                DecalLayerMaskUI.GUILayoutMaterialProperty(Styles.decalLayerMaskText, decalLayerMask);
+                materialEditor.ShaderProperty(supportDecals, Styles.supportDecalsText);
                 if (EditorGUI.EndChangeCheck())
                 {
                     var renderQueueType = HDRenderQueue.GetTypeByRenderQueueValue(renderQueue);
-                    renderQueue = HDRenderQueue.ChangeType(renderQueueType, (int)transparentSortPriority.floatValue, alphaCutoffEnable.floatValue == 1, materials[0].GetDecalLayerMask() != DecalLayerMask.None);
+                    renderQueue = HDRenderQueue.ChangeType(renderQueueType, (int)transparentSortPriority.floatValue, alphaCutoffEnable.floatValue == 1, supportDecals.floatValue > 0.0f);
                 }
             }
 
