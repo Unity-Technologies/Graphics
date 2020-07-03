@@ -44,7 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             builtinData.alphaToMask = eyeMasterNode.m_AlphaToMask;
 
             lightingData.blendPreserveSpecular = eyeMasterNode.m_BlendPreserveSpecular;
-            lightingData.decalLayerMask = eyeMasterNode.m_ReceiveDecals ? DecalLayerMask.Layer0 : DecalLayerMask.None;
+            lightingData.receiveDecals = eyeMasterNode.m_ReceiveDecals;
             lightingData.receiveSSR = eyeMasterNode.m_ReceivesSSR;
             lightingData.receiveSSRTransparent = eyeMasterNode.m_ReceivesSSRTransparent;
             lightingData.specularOcclusionMode = eyeMasterNode.m_SpecularOcclusionMode;

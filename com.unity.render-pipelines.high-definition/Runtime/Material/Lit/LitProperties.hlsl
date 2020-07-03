@@ -151,8 +151,6 @@ float _EnableGeometricSpecularAA;
 float _SpecularAAScreenSpaceVariance;
 float _SpecularAAThreshold;
 
-uint _DecalLayerMask;
-
 // Raytracing
 float _RayTracing;
 

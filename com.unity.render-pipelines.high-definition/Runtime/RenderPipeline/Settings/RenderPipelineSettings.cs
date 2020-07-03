@@ -90,6 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
             customBufferFormat = CustomBufferFormat.R8G8B8A8,
             supportedLitShaderMode = SupportedLitShaderMode.DeferredOnly,
             supportDecals = true,
+            supportDecalLayers = false;
             msaaSampleCount = MSAASamples.None,
             supportMotionVectors = true,
             supportRuntimeDebugDisplay = true,
@@ -187,6 +188,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Engine
         /// <summary>Support decals.</summary>
         public bool supportDecals;
+        /// <summary>Support decal Layers.</summary>
+        public bool supportDecalLayers;
 
         /// <summary>Number of samples when using MSAA.</summary>
         public MSAASamples msaaSampleCount;

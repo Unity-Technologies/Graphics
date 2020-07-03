@@ -195,48 +195,37 @@ namespace UnityEditor.Rendering.HighDefinition
              ShaderGraphStack,
              MoreMaterialSurfaceOptionFromShaderGraph,
              AlphaToMaskUIFix,
-             MigrateDecalLayerMask
+             MigrateDecalRenderQueue
         };
 
         #region Migrations
+
+        //example migration method:
+        //static void Example(Material material, HDShaderUtils.ShaderID id)
+        //{
+        //    const string kSupportDecals = "_SupportDecals";
+        //    var serializedMaterial = new SerializedObject(material);
+        //    if (!TryFindProperty(serializedMaterial, kSupportDecals, SerializedType.Integer, out var property, out _, out _))
+        //        return;
+
+        //    // Caution: order of operation is important, we need to keep the current value of the property (if done after it is 0)
+        //    // then we remove it and apply the result
+        //    // then we can modify the material (otherwise the material change are lost)
+        //    bool supportDecal = property.floatValue == 1.0f;
+
+        //    RemoveSerializedInt(serializedMaterial, kSupportDecals);
+        //    serializedMaterial.ApplyModifiedProperties();
+
+        //    // We need to reset the custom RenderQueue to take into account the move to specific RenderQueue for Opaque with Decal.
+        //    // this should be handled correctly with reset below
+        //    HDShaderUtils.ResetMaterialKeywords(material);
+        //}
+        //}
 
         static void StencilRefactor(Material material, HDShaderUtils.ShaderID id)
         {
             HDShaderUtils.ResetMaterialKeywords(material);
         }
-        //example migration method, remove it after first real migration
-        //static void EmissiveIntensityToColor(Material material, ShaderID id)
-        //{
-        //    switch(id)
-        //    {
-        //        case ShaderID.Lit:
-        //        case ShaderID.LitTesselation:
-        //            var emissiveIntensity = material.GetFloat("_EmissiveIntensity");
-        //            var emissiveColor = Color.black;
-        //            if (material.HasProperty("_EmissiveColor"))
-        //                emissiveColor = material.GetColor("_EmissiveColor");
-        //            emissiveColor *= emissiveIntensity;
-        //            emissiveColor.a = 1.0f;
-        //            material.SetColor("_EmissiveColor", emissiveColor);
-        //            material.SetColor("_EmissionColor", Color.white);
-        //            break;
-        //    }
-        //}
-        //
-        //static void Serialization_API_Usage(Material material, ShaderID id)
-        //{
-        //    switch(id)
-        //    {
-        //        case ShaderID.Unlit:
-        //            var serializedObject = new SerializedObject(material);
-        //            AddSerializedInt(serializedObject, "former", 42);
-        //            RenameSerializedScalar(serializedObject, "former", "new");
-        //            Debug.Log(GetSerializedInt(serializedObject, "new"));
-        //            RemoveSerializedInt(serializedObject, "new");
-        //            serializedObject.ApplyModifiedProperties();
-        //            break;
-        //    }
-        //}
 
         static void ZWriteForTransparent(Material material, HDShaderUtils.ShaderID id)
         {
@@ -372,7 +361,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Synchronize properties we exposed from SG to the material
                 ResetFloatProperty(kReceivesSSR);
                 ResetFloatProperty(kReceivesSSRTransparent);
-                ResetFloatProperty("_SupportDecals");
+                ResetFloatProperty(kEnableDecals);
                 ResetFloatProperty(kEnableBlendModePreserveSpecularLighting);
                 ResetFloatProperty(kTransparentWritingMotionVec);
                 ResetFloatProperty(kAddPrecomputedVelocity);
@@ -400,32 +389,28 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void MigrateDecalLayerMask(Material material, HDShaderUtils.ShaderID id)
+        static void MigrateDecalRenderQueue(Material material, HDShaderUtils.ShaderID id)
         {
             const string kSupportDecals = "_SupportDecals";
-            var serializedMaterial = new SerializedObject(material);
-            if (!TryFindProperty(serializedMaterial, kSupportDecals, SerializedType.Integer, out var property, out _, out _))
-                return;
 
-            // Caution: order of operation is important, we need to keep the current value of the property (if done after it is 0)
-            // then we remove it and apply the result
-            // then we can modify the material (otherwise the material change are lost)
-            bool supportDecal = property.floatValue == 1.0f;
+            // Take the opportunity to remove _SupportDecals from Unlit as it is not suppose to be here
+            if (ShaderUtils.IsUnlitHDRPShader(material.shader))
+            {               
+                var serializedMaterial = new SerializedObject(material);
+                if (TryFindProperty(serializedMaterial, kSupportDecals, SerializedType.Integer, out var property, out _, out _))
+                {
+                    RemoveSerializedInt(serializedMaterial, kSupportDecals);
+                    serializedMaterial.ApplyModifiedProperties();
+                }
+            }
 
-            RemoveSerializedInt(serializedMaterial, kSupportDecals);
-            serializedMaterial.ApplyModifiedProperties();
-
-            // We still have Unlit material that have a supportDecal but don't support it in practice
-            // To fix this we check if kDecalLayerMask is supported on the Material
-            // Before setting it
-            if (material.HasProperty(kDecalLayerMask))
+            if (material.HasProperty(kSupportDecals))
             {
-                var decalLayerMask = supportDecal ? DecalLayerMask.Layer0 : DecalLayerMask.None;
-                material.SetDecalLayerMask(decalLayerMask);
+                bool supportDecal = material.GetFloat(kSupportDecals) > 0.0f;
 
                 if (supportDecal)
                 {
-                    // Update material renderqueue to be in Decal renderqueue based on the value of decal property (see HDRenderQueue.cs)
+                    // Update material render queue to be in Decal render queue based on the value of decal property (see HDRenderQueue.cs)
                     if (material.renderQueue == ((int)UnityEngine.Rendering.RenderQueue.Geometry))
                     {
                         material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Geometry + 225;
@@ -437,8 +422,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            // We need to reset the custom RenderQueue to take into account the move to specific RenderQueue for Opaque with Decal.
-            // this should be handled correctly with reset below
             HDShaderUtils.ResetMaterialKeywords(material);
         }
 

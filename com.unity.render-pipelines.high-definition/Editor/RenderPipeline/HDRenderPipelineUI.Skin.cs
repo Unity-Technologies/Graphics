@@ -102,6 +102,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportLitShaderModeContent = EditorGUIUtility.TrTextContent("Lit Shader Mode", "Specifies the rendering modes HDRP supports for Lit Shaders. HDRP removes all allocated memory and Shader variants for modes you do not specify.");
             public static readonly GUIContent MSAASampleCountContent = EditorGUIUtility.TrTextContent("Multisample Anti-aliasing Quality", "Specifies the maximum quality HDRP supports for MSAA. Set Lit Shader Mode to Forward Only or Both to use this feature.");
             public static readonly GUIContent supportDecalContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates Shader variants and memory to the decals buffer and cluster decal. This allows you to use decals in your Unity Project.");
+            public static readonly GUIContent supportDecalLayersContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates Shader variants and memory to the decals layers buffer. This allows you to use decal layers in your Unity Project.");
             public static readonly GUIContent supportMotionVectorContent = EditorGUIUtility.TrTextContent("Motion Vectors", "When enabled, HDRP allocates memory for processing motion vectors which it uses for Motion Blur, TAA, and temporal re-projection of various effect like SSR.");
             public static readonly GUIContent supportRuntimeDebugDisplayContent = EditorGUIUtility.TrTextContent("Runtime Debug Display", "When disabled, HDRP removes all debug display Shader variants when you build for the Unity Player. This decreases build time.");
             public static readonly GUIContent supportDitheringCrossFadeContent = EditorGUIUtility.TrTextContent("Dithering Cross-fade", "When disabled, HDRP removes all dithering cross fade Shader variants when you build for the Unity Player. This decreases build time.");
@@ -221,6 +222,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 //k_SupportLightLayerContent is special case handled separately
                 { MSAASampleCountContent             , memoryDrawback },
                 { supportDecalContent                , string.Format("{0}, {1}", memoryDrawback, lotDBufferDrawback) },
+                { supportDecalLayersContent          , string.Format("{0}, {1}", memoryDrawback, lotShaderVariantDrawback, lotDBufferDrawback) },
                 { metalAndAOContent                  , string.Format("{0}, {1}", memoryDrawback, dBufferDrawback) },
                 { supportMotionVectorContent         , memoryDrawback },
                 { supportRuntimeDebugDisplayContent  , shaderVariantDrawback },

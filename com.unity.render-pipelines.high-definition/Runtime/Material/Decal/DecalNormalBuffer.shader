@@ -61,10 +61,10 @@ Shader "Hidden/HDRP/Material/Decal/DecalNormalBuffer"
             uint2 positionSS = uint2(input.texcoord * _ScreenSize.xy);
             float4 normalbuffer = _NormalBuffer[COORD_TEXTURE2D_X(positionSS)];
             NormalData normalData;
-            DecodeFromNormalBuffer(normalbuffer, uint2(0, 0), normalData);
+            DecodeFromNormalBuffer(normalbuffer, normalData);
             normalData.normalWS.xyz = normalize(normalData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
             normalData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness) * decalSurfaceData.mask.w + decalSurfaceData.mask.z);
-            EncodeIntoNormalBuffer(normalData, uint2(0, 0), normalbuffer);
+            EncodeIntoNormalBuffer(normalData, normalbuffer);
             _NormalBuffer[COORD_TEXTURE2D_X(positionSS)] = normalbuffer;
         }
 

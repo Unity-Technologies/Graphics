@@ -1433,7 +1433,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetKeyword(cmd, "WRITE_NORMAL_BUFFER", hdCamera.frameSettings.litShaderMode == LitShaderMode.Forward);
 
             // Raise the decal buffer flag only if we have decal enabled
-            CoreUtils.SetKeyword(cmd, "WRITE_DECAL_BUFFER", hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals));
+            CoreUtils.SetKeyword(cmd, "WRITE_DECAL_BUFFER", hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers));
 
             // Raise or remove the depth msaa flag based on the frame setting
             CoreUtils.SetKeyword(cmd, "WRITE_MSAA_DEPTH", hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
@@ -5260,7 +5260,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // Clear the decal buffer
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers))
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ClearDecalBuffer)))
                         CoreUtils.SetRenderTarget(cmd, m_SharedRTManager.GetDecalPrepassBuffer(), ClearFlag.Color, Color.clear);

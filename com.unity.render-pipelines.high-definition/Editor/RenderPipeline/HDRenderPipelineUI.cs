@@ -415,6 +415,8 @@ namespace UnityEditor.Rendering.HighDefinition
             ++EditorGUI.indentLevel;
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportDecals.boolValue))
             {
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportDecalLayers, Styles.supportDecalLayersContent);
+
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.decalSettings.drawDistance, Styles.drawDistanceContent);
                 if (EditorGUI.EndChangeCheck())
@@ -1004,6 +1006,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 builder.AppendLine().AppendFormat(supportedFormaterMultipleValue, Styles.decalsSubTitle.text);
             else if (serialized.renderPipelineSettings.supportDecals.boolValue)
                 builder.AppendLine().AppendFormat(supportedFormater, Styles.decalsSubTitle.text, Styles.supportDrawbacks[Styles.supportDecalContent]);
+
+            if (serialized.renderPipelineSettings.supportDecalLayers.hasMultipleDifferentValues)
+                builder.AppendLine().AppendFormat(supportedFormaterMultipleValue, Styles.decalsSubTitle.text);
+            else if (serialized.renderPipelineSettings.supportDecals.boolValue && serialized.renderPipelineSettings.supportDecalLayers.boolValue)
+                builder.AppendLine().AppendFormat(supportedFormater, Styles.decalsSubTitle.text, Styles.supportDrawbacks[Styles.supportDecalLayersContent]);
 
             if (serialized.renderPipelineSettings.decalSettings.perChannelMask.hasMultipleDifferentValues)
                 builder.AppendLine().AppendFormat(supportedFormaterMultipleValue, Styles.decalsMetalAndAOSubTitle.text);

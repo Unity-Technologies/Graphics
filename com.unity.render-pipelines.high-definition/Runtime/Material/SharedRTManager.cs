@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_ReuseGBufferMemory = false;
         bool m_MotionVectorsSupport = false;
         bool m_MSAASupported = false;
-        bool m_DecalsSupported;
+        bool m_DecalLayersSupported;
         MSAASamples m_MSAASamples = MSAASamples.None;
 
         // Arrays of RTIDs that are used to set render targets (when MSAA and when not MSAA)
@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MSAASamples = m_MSAASupported ? settings.msaaSampleCount : MSAASamples.None;
             m_MotionVectorsSupport = settings.supportMotionVectors;
             m_ReuseGBufferMemory = settings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly;
-            m_DecalsSupported = settings.supportDecals;
+            m_DecalLayersSupported = settings.supportDecals && settings.supportDecalLayers;
 
             // Create the depth/stencil buffer
             m_CameraDepthStencilBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, DepthBits.Depth32, dimension: TextureXR.dimension, useDynamicScale: true, name: "CameraDepthStencil");
@@ -107,7 +107,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(resources.shaders.colorResolvePS);
                 m_MotionVectorResolve = CoreUtils.CreateEngineMaterial(resources.shaders.resolveMotionVecPS);
 
-                if (m_DecalsSupported)
+                if (m_DecalLayersSupported)
                     m_DecalPrePassBufferMSAA = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableMSAA: true, useDynamicScale: true, name: "Decal PrePass Buffer MSAA");
 
                 CoreUtils.SetKeyword(m_DepthResolveMaterial, "_HAS_MOTION_VECTORS", m_MotionVectorsSupport);
@@ -115,7 +115,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // TODO: try to save this memory allocation. We can't reuse GBuffer for now as it require an additional clear before the GBuffer pass, otherwise the buffer can contain garbage that can be misinterpreted
             // if forward object are render (see test in HDRP_Test DecalNormalPatch buffer)
-            if (m_DecalsSupported)
+            if (m_DecalLayersSupported)
                 m_DecalPrePassBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, useDynamicScale: true, name: "Decal PrePass Buffer");
 
             // If we are in the forward only mode
@@ -124,15 +124,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 // In case of full forward we must allocate the render target for normal buffer (or reuse one already existing)
                 // TODO: Provide a way to reuse a render target
                 m_NormalRT = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, name: "NormalBuffer");
-              //  if (m_DecalsSupported)
-                //    m_DecalPrePassBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, useDynamicScale: true, name: "Decal PrePass Buffer");
             }
             else
             {
                 // When not forward only we should are using the normal buffer of the gbuffer
                 // In case of deferred, we must be in sync with NormalBuffer.hlsl and lit.hlsl files and setup the correct buffers
                 m_NormalRT = gbufferManager.GetNormalBuffer(0); // Normal + Roughness
-               // m_DecalPrePassBuffer = gbufferManager.GetDecalBuffer(); // Data buffer as 8888
             }
         }
 
@@ -156,13 +153,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     Debug.Assert(m_MSAASupported);
                     mrts.Add(m_DepthAsColorMSAART.nameID);
                     mrts.Add(m_NormalMSAART.nameID);
-                    if (frameSettings.IsEnabled(FrameSettingsField.Decals))
+                    if (frameSettings.IsEnabled(FrameSettingsField.DecalLayers))
                         mrts.Add(m_DecalPrePassBufferMSAA);
                 }
                 else
                 {
                     mrts.Add(m_NormalRT.nameID);
-                    if (frameSettings.IsEnabled(FrameSettingsField.Decals))
+                    if (frameSettings.IsEnabled(FrameSettingsField.DecalLayers))
                         mrts.Add(m_DecalPrePassBuffer);
                 }
 
@@ -187,7 +184,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public RenderTargetIdentifier[] GetDepthPrepassDeferredRTI(FrameSettings frameSettings)
         {
             // In deferred we did nothing if decal aren't enabled
-            if (!frameSettings.IsEnabled(FrameSettingsField.Decals))
+            if (!frameSettings.IsEnabled(FrameSettingsField.DecalLayers))
                 return null;
 
             // Note: In deferred we can't have MSAA
@@ -213,14 +210,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     Debug.Assert(m_MSAASupported);
                     mrts.Add(m_DepthAsColorMSAART.nameID);
                     mrts.Add(m_MotionVectorsMSAART.nameID);
-                    if (frameSettings.IsEnabled(FrameSettingsField.Decals))
+                    if (frameSettings.IsEnabled(FrameSettingsField.DecalLayers))
                         mrts.Add(m_DecalPrePassBufferMSAA.nameID);
                     mrts.Add(m_NormalMSAART.nameID);
                 }
                 else
                 {
                     mrts.Add(m_MotionVectorsRT.nameID);
-                    if (frameSettings.IsEnabled(FrameSettingsField.Decals))
+                    if (frameSettings.IsEnabled(FrameSettingsField.DecalLayers))
                         mrts.Add(m_DecalPrePassBuffer.nameID);
                     mrts.Add(m_NormalRT.nameID);
                 }
@@ -248,7 +245,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Request the normal buffer (MSAA or not)
         public RTHandle GetDecalPrepassBuffer(bool isMSAA = false)
         {
-            Debug.Assert(m_DecalsSupported);
+            Debug.Assert(m_DecalLayersSupported);
             if (isMSAA)
             {
                 Debug.Assert(m_MSAASupported);
@@ -379,14 +376,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Cleanup()
         {
-            if (m_DecalsSupported)
+            if (m_DecalLayersSupported)
                 RTHandles.Release(m_DecalPrePassBuffer);
 
             if (!m_ReuseGBufferMemory)
             {
                 RTHandles.Release(m_NormalRT);
-               // if (m_DecalsSupported)
-                //    RTHandles.Release(m_DecalPrePassBuffer);
             }
 
             if (m_MotionVectorsSupport)
@@ -416,7 +411,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.Destroy(m_ColorResolveMaterial);
                 CoreUtils.Destroy(m_MotionVectorResolve);
 
-                if(m_DecalsSupported)
+                if (m_DecalLayersSupported)
                     RTHandles.Release(m_DecalPrePassBufferMSAA);
             }
         }

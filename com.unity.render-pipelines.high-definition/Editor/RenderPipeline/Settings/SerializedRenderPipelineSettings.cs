@@ -42,6 +42,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty customBufferFormat;
 
         public SerializedProperty supportDecals;
+        public SerializedProperty supportDecalLayers;
+        
         public bool supportMSAA => MSAASampleCount.GetEnumValue<UnityEngine.Rendering.MSAASamples>() != UnityEngine.Rendering.MSAASamples.None;
         public SerializedProperty MSAASampleCount;
         public SerializedProperty supportMotionVectors;
@@ -104,6 +106,7 @@ namespace UnityEditor.Rendering.HighDefinition
             supportedLitShaderMode          = root.Find((RenderPipelineSettings s) => s.supportedLitShaderMode);
 
             supportDecals                   = root.Find((RenderPipelineSettings s) => s.supportDecals);
+            supportDecalLayers              = root.Find((RenderPipelineSettings s) => s.supportDecalLayers);
             MSAASampleCount                 = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);
             supportMotionVectors            = root.Find((RenderPipelineSettings s) => s.supportMotionVectors);
             supportRuntimeDebugDisplay      = root.Find((RenderPipelineSettings s) => s.supportRuntimeDebugDisplay);

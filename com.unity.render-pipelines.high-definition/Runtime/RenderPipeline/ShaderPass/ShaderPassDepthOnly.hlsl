@@ -115,7 +115,7 @@ void Frag(  PackedVaryingsToPS packedInput
     #endif
 
     #if defined(WRITE_NORMAL_BUFFER)
-    EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surfaceData), posInput.positionSS, outNormalBuffer);
+    EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surfaceData), outNormalBuffer);
     #endif
 
     #if defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)
@@ -124,7 +124,7 @@ void Frag(  PackedVaryingsToPS packedInput
     // However it would be painful to have to add a function like ConvertSurfaceDataToDecalPrepassData() to every Material to return geomNormalWS anyway
     // Here we will put the constrain that any Material requiring to support Decal, will need to have geomNormalWS as member of surfaceData (and we already require normalWS anyway)
     decalPrepassData.geomNormalWS = surfaceData.geomNormalWS;
-    decalPrepassData.decalLayerMask = _DecalLayerMask;
+    decalPrepassData.decalLayerMask = GetRenderingDecalLayers();
     EncodeIntoDecalPrepassBuffer(decalPrepassData, outDecalBuffer);
     #endif
 

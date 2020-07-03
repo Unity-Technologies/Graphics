@@ -123,7 +123,8 @@ namespace UnityEditor.Rendering.HighDefinition
             // DECAL
 
             // Strip the decal prepass variant when decals are disabled
-            if (inputData.shaderKeywordSet.IsEnabled(m_WriteDecalBuffer) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportDecals)
+            if (inputData.shaderKeywordSet.IsEnabled(m_WriteDecalBuffer) &&
+                    !(hdrpAsset.currentPlatformRenderPipelineSettings.supportDecals && hdrpAsset.currentPlatformRenderPipelineSettings.supportDecalLayers))
                 return true;
 
             // Identify when we compile a decal shader

@@ -281,6 +281,19 @@ float GetInversePreviousExposureMultiplier()
     return rcp(exposure + (exposure == 0.0)); // zero-div guard
 }
 
+// Helper function for Rendering Layers
+
+// Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active if save in a buffer
+uint GetMeshRenderingLightLayer()
+{
+    return _EnableLightLayers ? (asuint(unity_RenderingLayer.x) & 0x000000FF) : DEFAULT_LIGHT_LAYERS;
+}
+
+uint GetMeshRenderingDecalLayer()
+{
+    return _EnableDecalLayers ? ((asuint(unity_RenderingLayer.x) & 0x0000FF00) >> 8) : DEFAULT_DEECAL_LAYERS;
+}
+
 // Helper function for indirect control volume
 float GetIndirectDiffuseMultiplier(uint renderingLayers)
 {

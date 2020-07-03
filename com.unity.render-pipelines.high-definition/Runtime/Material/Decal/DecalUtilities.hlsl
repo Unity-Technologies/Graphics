@@ -202,8 +202,10 @@ DecalData FetchDecal(uint index)
 }
 #endif
 
-DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, uint decalLayerMask, inout float alpha)
+DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
 {
+    uint decalLayerMask = GetMeshRenderingDecalLayer();
+
     uint mask = 0;
     // the code in the macros, gets moved inside the conditionals by the compiler
     FETCH_DBUFFER(DBuffer, _DBufferTexture, int2(posInput.positionSS.xy));

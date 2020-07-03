@@ -540,7 +540,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
     outGBuffer0 = float4(surfaceData.baseColor, surfaceData.specularOcclusion);
 
     // This encode normalWS and PerceptualSmoothness into GBuffer1
-    EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surfaceData), positionSS, outGBuffer1);
+    EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surfaceData), outGBuffer1);
 
     // RT2 - 8:8:8:8
     uint materialFeatureId;
@@ -793,7 +793,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     float3 baseColor = inGBuffer0.rgb;
 
     NormalData normalData;
-    DecodeFromNormalBuffer(inGBuffer1, positionSS, normalData);
+    DecodeFromNormalBuffer(inGBuffer1, normalData);
     bsdfData.normalWS = normalData.normalWS;
     bsdfData.geomNormalWS = bsdfData.normalWS; // No geometric normal in deferred, use normal map
     bsdfData.perceptualRoughness = normalData.perceptualRoughness;

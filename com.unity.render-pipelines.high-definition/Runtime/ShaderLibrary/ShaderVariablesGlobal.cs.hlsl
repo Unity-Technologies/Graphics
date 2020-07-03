@@ -85,6 +85,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     uint _CascadeShadowCount;
     int _DirectionalShadowIndex;
     uint _EnableLightLayers;
+    uint _EnableDecalLayers;
     uint _EnableSkyReflection;
     uint _EnableSSRefraction;
     float _SSRefractionInvScreenWeightDistance;
