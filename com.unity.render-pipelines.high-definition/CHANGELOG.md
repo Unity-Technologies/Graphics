@@ -11,7 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Appropriately constraint blend distance of reflection probe while editing with the inspector (case 1248931)
 - Fixed fallback for ray tracing and light layers (1258837).
 - Fixed Sorting Priority not displayed correctly in the DrawRenderers custom pass UI.
-
+- Fixed default frame settings MSAA toggle for reflection probes (case 1247631)
+	
 ### Changed
 - The `CustomPassLoadCameraColor` and `CustomPassSampleCameraColor` functions now returns the correct color buffer when used in after post process instead of the color pyramid (which didn't had post processes).
 
