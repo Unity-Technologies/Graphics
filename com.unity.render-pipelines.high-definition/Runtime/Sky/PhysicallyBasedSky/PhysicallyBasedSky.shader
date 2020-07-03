@@ -74,7 +74,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         // TODO: Not sure it's possible to precompute cam rel pos since variables
         // in the two constant buffers may be set at a different frequency?
-        const float3 O = _WorldSpaceCameraPos1 - _PlanetCenterPosition;
+        const float3 O = _WorldSpaceCameraPos1 - _PlanetCenterPosition.xyz;
         const float3 V = GetSkyViewDirWS(input.positionCS.xy);
 
         bool renderSunDisk = _RenderSunDisk != 0;
@@ -181,7 +181,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     radiance += _GroundEmissionMultiplier * ts.rgb;
                 }
 
-                float3 albedo = _GroundAlbedo;
+                float3 albedo = _GroundAlbedo.xyz;
 
                 if (_HasGroundAlbedoTexture)
                 {
@@ -224,8 +224,9 @@ Shader "Hidden/HDRP/Sky/PbrSky"
             EvaluatePbrAtmosphere(_WorldSpaceCameraPos1, V, distAlongRay, renderSunDisk, skyColor, skyOpacity);
         }
 
+        // Hacky way to boost the clouds for PBR sky
+        skyColor += ApplyCloudLayer(-V, 0) * 1000;
         skyColor += radiance * (1 - skyOpacity);
-        skyColor = ApplyCloudLayer(-V, skyColor);
         skyColor *= _IntensityMultiplier;
 
         return float4(skyColor, 1.0);
