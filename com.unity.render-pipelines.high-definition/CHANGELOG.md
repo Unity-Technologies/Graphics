@@ -715,6 +715,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the transparent SSR dependency not being properly disabled according to the asset dependencies (1260271).
 - Fixed issue with completely black AO on double sided materials when normal mode is set to None.
 - Fixed UI drawing of the quaternion (1251235)
+- Fixed sky asserts with XR multipass
 
 ### Changed
 - Improve MIP selection for decals on Transparents
