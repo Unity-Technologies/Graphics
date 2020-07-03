@@ -637,48 +637,48 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                // Contrast Adaptive Sharpen Upscaling
-                if (dynResHandler.DynamicResolutionEnabled() &&
-                    dynResHandler.filter == DynamicResUpscaleFilter.ContrastAdaptiveSharpen)
+                hdCamera.resetPostProcessingHistory = false;
+            }
+
+            // Contrast Adaptive Sharpen Upscaling
+            if (dynResHandler.DynamicResolutionEnabled() &&
+                dynResHandler.filter == DynamicResUpscaleFilter.ContrastAdaptiveSharpen)
+            {
+                using (var builder = renderGraph.AddRenderPass<CASData>("Contrast Adaptive Sharpen", out var passData, ProfilingSampler.Get(HDProfileId.ContrastAdaptiveSharpen)))
                 {
-                    using (var builder = renderGraph.AddRenderPass<CASData>("Contrast Adaptive Sharpen", out var passData, ProfilingSampler.Get(HDProfileId.ContrastAdaptiveSharpen)))
-                    {
-                        passData.source = builder.ReadTexture(source);
-                        passData.parameters = PrepareContrastAdaptiveSharpeningParameters(hdCamera);
-                        TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Contrast Adaptive Sharpen Destination");
-                        passData.destination = builder.WriteTexture(dest); ;
-
-                        builder.SetRenderFunc(
-                        (CASData data, RenderGraphContext ctx) =>
-                        {
-                            DoContrastAdaptiveSharpening(data.parameters, ctx.cmd, ctx.resources.GetTexture(data.source), ctx.resources.GetTexture(data.destination));
-                        });
-
-                        source = passData.destination;
-                    }
-                }
-
-                using (var builder = renderGraph.AddRenderPass<FinalPassData>("Final Pass", out var passData, ProfilingSampler.Get(HDProfileId.FinalPost)))
-                {
-                    passData.parameters = PrepareFinalPass(hdCamera, blueNoise, flipY);
                     passData.source = builder.ReadTexture(source);
-                    passData.afterPostProcessTexture = builder.ReadTexture(afterPostProcessTexture);
-                    passData.alphaTexture = builder.ReadTexture(alphaTexture);
-                    passData.destination = builder.WriteTexture(finalRT);
+                    passData.parameters = PrepareContrastAdaptiveSharpeningParameters(hdCamera);
+                    TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Contrast Adaptive Sharpen Destination");
+                    passData.destination = builder.WriteTexture(dest); ;
 
                     builder.SetRenderFunc(
-                    (FinalPassData data, RenderGraphContext ctx) =>
+                    (CASData data, RenderGraphContext ctx) =>
                     {
-                        DoFinalPass(data.parameters,
-                                        ctx.resources.GetTexture(data.source),
-                                        ctx.resources.GetTexture(data.afterPostProcessTexture),
-                                        ctx.resources.GetTexture(data.destination),
-                                        ctx.resources.GetTexture(data.alphaTexture),
-                                        ctx.cmd);
+                        DoContrastAdaptiveSharpening(data.parameters, ctx.cmd, ctx.resources.GetTexture(data.source), ctx.resources.GetTexture(data.destination));
                     });
-                }
 
-                hdCamera.resetPostProcessingHistory = false;
+                    source = passData.destination;
+                }
+            }
+
+            using (var builder = renderGraph.AddRenderPass<FinalPassData>("Final Pass", out var passData, ProfilingSampler.Get(HDProfileId.FinalPost)))
+            {
+                passData.parameters = PrepareFinalPass(hdCamera, blueNoise, flipY);
+                passData.source = builder.ReadTexture(source);
+                passData.afterPostProcessTexture = builder.ReadTexture(afterPostProcessTexture);
+                passData.alphaTexture = builder.ReadTexture(alphaTexture);
+                passData.destination = builder.WriteTexture(finalRT);
+
+                builder.SetRenderFunc(
+                (FinalPassData data, RenderGraphContext ctx) =>
+                {
+                    DoFinalPass(data.parameters,
+                                    ctx.resources.GetTexture(data.source),
+                                    ctx.resources.GetTexture(data.afterPostProcessTexture),
+                                    ctx.resources.GetTexture(data.destination),
+                                    ctx.resources.GetTexture(data.alphaTexture),
+                                    ctx.cmd);
+                });
             }
         }
 
