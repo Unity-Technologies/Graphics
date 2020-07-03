@@ -62,6 +62,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed AxF handling of roughness for Blinn-Phong type materials
 - Fixed AxF UI errors when surface type is switched to transparent
 - Fix issue that caused sky to incorrectly render when using a custom projection matrix.
+- Fixed issue with completely black AO on double sided materials when normal mode is set to None.
 
 ### Changed
 - Shadowmask and realtime reflection probe property are hide in Quality settings
