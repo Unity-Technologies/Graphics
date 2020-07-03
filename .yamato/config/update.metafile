@@ -9,8 +9,8 @@ platforms:
     apis:
       - DX11
       - Vulkan
-  - name: OSX
-    apis:
-      - OpenGLCore
-      - Metal
+#  - name: OSX
+#    apis:
+#      - OpenGLCore
+#      - Metal
 
