@@ -25,6 +25,7 @@ The version number for this package has increased due to a version update of a r
 - Fix space issues with blocks and operators taking a camera as input
 - Generated shaderName are now consistent with displayed system names
 - Don't lose SRP output specific data when SRP package is not present
+- Add cleaner Update Mode inspector [Case 1258463](https://issuetracker.unity3d.com/product/unity/issues/guid/1258463/)
 
 ## [8.0.1] - 2020-02-25
 
