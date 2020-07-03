@@ -6242,7 +6242,7 @@ PrefabInstance:
     - target: {fileID: -1504981713932161579, guid: 0b169a69f4f407145aa55021891e64fa,
         type: 3}
       propertyPath: m_CastShadows
-      value: 1
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: -1504981713932161579, guid: 0b169a69f4f407145aa55021891e64fa,
         type: 3}
@@ -12640,7 +12640,7 @@ MonoBehaviour:
     distanceFadeStart: 20
     distanceFadeEnd: 30
     textureIndex: 0
-    textureOffset: {x: -0, y: -39.936413, z: 0}
+    textureOffset: {x: -0, y: -56.750355, z: 0}
 --- !u!1 &1518163832
 GameObject:
   m_ObjectHideFlags: 19
