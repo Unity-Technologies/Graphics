@@ -1194,8 +1194,8 @@ namespace UnityEngine.Rendering.HighDefinition
             float screenDiagonal = 0.5f * (camera.actualHeight + camera.actualWidth);
 
             proceduralParams1 = new Vector4(proceduralCenter.x, proceduralCenter.y,
-                m_Exposure.proceduralRadii.value.x * screenDiagonal,
-                m_Exposure.proceduralRadii.value.y * screenDiagonal);
+                m_Exposure.proceduralRadii.value.x * camera.actualWidth,
+                m_Exposure.proceduralRadii.value.y * camera.actualHeight);
 
             proceduralParams2 = new Vector4(1.0f / m_Exposure.proceduralSoftness.value, LightUtils.ConvertEvToLuminance(m_Exposure.maskMinIntensity.value), LightUtils.ConvertEvToLuminance(m_Exposure.maskMaxIntensity.value), 0.0f);
         }

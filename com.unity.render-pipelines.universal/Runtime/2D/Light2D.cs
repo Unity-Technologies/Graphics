@@ -118,6 +118,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     /// 
     [ExecuteAlways, DisallowMultipleComponent]
     [AddComponentMenu("Rendering/2D/Light 2D (Experimental)")]
+    [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DLightProperties.html")]
     sealed public partial class Light2D : MonoBehaviour
     {
         /// <summary>
