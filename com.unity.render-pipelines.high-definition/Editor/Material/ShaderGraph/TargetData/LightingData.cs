@@ -23,7 +23,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_BlendPreserveSpecular = value;
         }
 
-        // Obsolete for Migration
         [SerializeField]
         bool m_ReceiveDecals = true;
         public bool receiveDecals

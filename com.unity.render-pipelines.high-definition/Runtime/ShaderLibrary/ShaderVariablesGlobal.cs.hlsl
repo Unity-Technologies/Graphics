@@ -7,7 +7,10 @@
 //
 // UnityEngine.Rendering.HighDefinition.ShaderVariablesGlobal:  static fields
 //
-#define DEFAULT_LIGHT_LAYERS (255)
+#define RENDERING_LIGHT_LAYERS_MASK (255)
+#define RENDERING_LIGHT_LAYERS_MASK_SHIFT (0)
+#define RENDERING_DECAL_LAYERS_MASK (65280)
+#define RENDERING_DECAL_LAYERS_MASK_SHIFT (8)
 #define MAX_ENV2DLIGHT (32)
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesGlobal

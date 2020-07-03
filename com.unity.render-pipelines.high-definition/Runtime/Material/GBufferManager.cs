@@ -8,8 +8,6 @@ namespace UnityEngine.Rendering.HighDefinition
         None,
         SubsurfaceScattering,
         Normal,
-        Data,
-        Lighting,
         LightLayers,
         ShadowMask
         #if ENABLE_VIRTUALTEXTURES

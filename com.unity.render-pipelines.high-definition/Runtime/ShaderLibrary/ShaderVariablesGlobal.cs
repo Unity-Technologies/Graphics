@@ -29,7 +29,10 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL(needAccessors = false, generateCBuffer = true, constantRegister = (int)ConstantRegister.Global)]
     unsafe struct ShaderVariablesGlobal
     {
-        public const int defaultLightLayers = 0xFF;
+        public const int RenderingLightLayersMask       = 0x000000FF;
+        public const int RenderingLightLayersMaskShift  = 0;
+        public const int RenderingDecalLayersMask       = 0x0000FF00;
+        public const int RenderingDecalLayersMaskShift  = 8;
 
         // TODO: put commonly used vars together (below), and then sort them by the frequency of use (descending).
         // Note: a matrix is 4 * 4 * 4 = 64 bytes (1x cache line), so no need to sort those.
