@@ -3,6 +3,10 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/CustomShading.hlsl"
 
+#ifndef DIVIDE_BY_PI
+#define DIVIDE_BY_PI 1
+#endif
+
 // defined in latest URP
 #if SHADER_LIBRARY_VERSION_MAJOR < 9
 // Computes the world space view direction (pointing towards the viewer).
@@ -45,12 +49,10 @@ Varyings SurfaceVertex(Attributes IN)
     OUT.positionWS = vertexInput.positionWS;
     OUT.normalWS = vertexNormalInput.normalWS;
 
-#ifdef _NORMALMAP
     // tangentOS.w contains the normal sign used to construct mikkTSpace
     // We compute bitangent per-pixel to match convertion of Unity SRP.
     // https://medium.com/@bgolus/generating-perfect-normal-maps-for-unity-f929e673fc57
     OUT.tangentWS = float4(vertexNormalInput.tangentWS, IN.tangentOS.w * GetOddNegativeScale());
-#endif
 
     OUT.positionCS = vertexInput.positionCS;
     return OUT;
@@ -77,12 +79,25 @@ Varyings SurfaceVertexShadowCaster(Attributes IN)
 {
     Varyings OUT = SurfaceVertex(IN);
     OUT.positionCS = GetShadowPositionHClip(IN);
-    return OUT;    
+    return OUT;
+}
+
+CustomSurfaceData GetSurfaceData(Varyings IN)
+{
+    CustomSurfaceData surfaceData;
+    surfaceData.diffuse = half3(1, 1, 1);
+    surfaceData.reflectance = half3(0.04, 0.04, 0.04);
+    surfaceData.normalWS = normalize(IN.normalWS);
+    surfaceData.ao = 1.0;
+    surfaceData.roughness = 0.5;
+    surfaceData.emission = half3(0, 0, 0);
+    surfaceData.alpha = 1.0;
+    return surfaceData;
 }
 
 half4 CalculateColor(Varyings IN)
 {
-    CustomSurfaceData surfaceData;
+    CustomSurfaceData surfaceData = GetSurfaceData(IN);
     SurfaceFunction(IN, surfaceData);
 
     LightingData lightingData;

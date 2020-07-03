@@ -71,13 +71,23 @@ Shader ""Hidden/GraphErrorShader2""
     public const string k_LightingFunction = @"
     half3 LightingFunction(CustomSurfaceData surfaceData, LightingData lightingData, half3 viewDirectionWS)
     {
+#if DIVIDE_BY_PI
         half3 diffuse = surfaceData.diffuse * Lambert();
+#else
+        half3 diffuse = surfaceData.diffuse * LambertNoPI();
+#endif
+
+        half3 NdotV = saturate(dot(surfaceData.normalWS, viewDirectionWS)) + HALF_MIN;
 
         // CookTorrance
+#if DIVIDE_BY_PI
         // inline D_GGX + V_SmithJoingGGX for better code generations
-        half3 NdotV = saturate(dot(surfaceData.normalWS, viewDirectionWS)) + HALF_MIN;
         half DV = DV_SmithJointGGX(lightingData.NdotH, lightingData.NdotL, NdotV, surfaceData.roughness);
-
+#else
+        half D = D_GGXNoPI(lightingData.NdotH, surfaceData.roughness);
+        half V = V_SmithJointGGX(lightingData.NdotL, NdotV, surfaceData.roughness);
+        half DV = D * V;
+#endif
         // for microfacet fresnel we use H instead of N. In this case LdotH == VdotH, we use LdotH as it
         // seems to be more widely used convetion in the industry.
         half3 F = F_Schlick(surfaceData.reflectance, lightingData.LdotH);
@@ -151,6 +161,9 @@ Shader ""Hidden/GraphErrorShader2""
     string GetShaderBlock(string shaderSnippet, string section)
     {
         int shaderNameTokenIndex = shaderSnippet.IndexOf(section, StringComparison.Ordinal);
+        if (shaderNameTokenIndex == -1)
+            return "";
+        
         int startNameIndex = shaderSnippet.IndexOf("{", shaderNameTokenIndex + section.Length, StringComparison.Ordinal);
         int depth = 0;
         int endNameIndex = startNameIndex;
