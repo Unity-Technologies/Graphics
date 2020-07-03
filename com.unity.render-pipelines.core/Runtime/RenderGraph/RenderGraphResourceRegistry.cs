@@ -13,7 +13,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             public bool imported;
             public int  cachedHash;
-            public int  shaderProperty;
             public int  transientPassIndex;
             public bool wasReleased;
 
@@ -21,7 +20,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 imported = false;
                 cachedHash = -1;
-                shaderProperty = 0;
                 transientPassIndex = -1;
                 wasReleased = false;
             }
@@ -205,12 +203,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         // Texture Creation/Import APIs are internal because creation should only go through RenderGraph
-        internal TextureHandle ImportTexture(RTHandle rt, int shaderProperty = 0)
+        internal TextureHandle ImportTexture(RTHandle rt)
         {
             int newHandle = AddNewResource(m_Resources[(int)RenderGraphResourceType.Texture], out TextureResource texResource);
             texResource.resource = rt;
             texResource.imported = true;
-            texResource.shaderProperty = shaderProperty;
 
             return new TextureHandle(newHandle, this);
         }
@@ -242,13 +239,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return result;
         }
 
-        internal TextureHandle CreateTexture(in TextureDesc desc, int shaderProperty = 0, int transientPassIndex = -1)
+        internal TextureHandle CreateTexture(in TextureDesc desc, int transientPassIndex = -1)
         {
             ValidateTextureDesc(desc);
 
             int newHandle = AddNewResource(m_Resources[(int)RenderGraphResourceType.Texture], out TextureResource texResource);
             texResource.desc = desc;
-            texResource.shaderProperty = shaderProperty;
             texResource.transientPassIndex = transientPassIndex;
             return new TextureHandle(newHandle, this);
         }
@@ -402,32 +398,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 m_ComputeBufferPool.RegisterFrameAllocation(hashCode, resource.resource);
                 LogComputeBufferCreation(resource.resource);
             }
-        }
-
-        void SetGlobalTextures(RenderGraphContext rgContext, List<ResourceHandle> textures, bool bindDummyTexture)
-        {
-            foreach (var resource in textures)
-            {
-                var resourceDesc = GetTextureResource(resource);
-                if (resourceDesc.shaderProperty != 0)
-                {
-                    if (resourceDesc.resource != null)
-                    {
-                        rgContext.cmd.SetGlobalTexture(resourceDesc.shaderProperty, bindDummyTexture ? TextureXR.GetMagentaTexture() : resourceDesc.resource);
-                    }
-                }
-            }
-        }
-
-
-        internal void PreRenderPassSetGlobalTextures(RenderGraphContext rgContext, List<ResourceHandle> textures)
-        {
-            SetGlobalTextures(rgContext, textures, false);
-        }
-
-        internal void PostRenderPassUnbindGlobalTextures(RenderGraphContext rgContext, List<ResourceHandle> textures)
-        {
-            SetGlobalTextures(rgContext, textures, true);
         }
 
         internal void ReleaseTexture(RenderGraphContext rgContext, int index)
