@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // The following set of functions are call by the ShaderGraph
         // It will allow to display our common parameters + setup keyword correctly for them
 
-        internal abstract void SetupMaterialKeywordsAndPassInternal(Material material);
+        protected abstract void SetupMaterialKeywordsAndPassInternal(Material material);
 
         /// <summary>
         /// This function is called when a new shader is assigned to your material.

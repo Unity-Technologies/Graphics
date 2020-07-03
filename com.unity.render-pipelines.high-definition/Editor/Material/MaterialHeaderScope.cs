@@ -29,13 +29,12 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// Creates a material header scope to display the foldout in the material UI.
         /// </summary>
-        /// <param name="title">Title of the header</param>
-        /// <param name="bitExpanded">Bit index to use for the</param>
-        /// <param name="materialEditor"></param>
-        /// <param name="spaceAtEnd"></param>
-        /// <param name="colorDot"></param>
-        /// <param name="subHeader"></param>
-        /// <returns></returns>
+        /// <param name="title">Title of the header.</param>
+        /// <param name="bitExpanded">Bit index to use for the.</param>
+        /// <param name="materialEditor">The current material editor.</param>
+        /// <param name="spaceAtEnd">Do the block shows a space at the bottom of it's UI.</param>
+        /// <param name="colorDot">Display a colored dot like in the layered UI material</param>
+        /// <param name="subHeader">Is sub-header, affects the style of the header</param>
         public MaterialHeaderScope(string title, uint bitExpanded, MaterialEditor materialEditor, bool spaceAtEnd = true, Color colorDot = default(Color), bool subHeader = false)
         {
             bool beforeExpended = materialEditor.GetExpandedAreas(bitExpanded);
