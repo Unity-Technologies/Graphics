@@ -151,6 +151,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Force to rebake probe with missing baked texture. (1253367)
 - Fix issue causing blocky artifacts when decals affect metallic and are applied on material with specular color workflow.
 - Appropriately constraint blend distance of reflection probe while editing with the inspector (case 1248931)
+- Fixed errors when switching area light to disk shape while an area emissive mesh was displayed.
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
