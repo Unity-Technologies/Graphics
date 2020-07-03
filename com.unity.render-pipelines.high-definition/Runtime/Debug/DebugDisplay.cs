@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Minimum Full Screen Lighting debug mode value (used internally).</summary>
         MinLightingFullScreenDebug,
         /// <summary>Display Screen Space Ambient Occlusion buffer.</summary>
-        SSAO,
+        ScreenSpaceAmbientOcclusion,
         /// <summary>Display Screen Space Reflections buffer.</summary>
         ScreenSpaceReflections,
         /// <summary>Display the Transparent Screen Space Reflections buffer.</summary>
@@ -981,8 +981,20 @@ namespace UnityEngine.Rendering.HighDefinition
                             setter = value => data.lightingDebugSettings.centerHistogramAroundMiddleGrey = value
                         });
                 }
+                if (data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView)
+                {
+                    exposureFoldout.children.Add(
+                        new DebugUI.BoolField()
+                        {
+                            displayName = "Display RGB Histogram",
+                            getter = () => data.lightingDebugSettings.displayFinalImageHistogramAsRGB,
+                            setter = value => data.lightingDebugSettings.displayFinalImageHistogramAsRGB = value
+                        });
 
-            exposureFoldout.children.Add(
+                }
+
+
+                exposureFoldout.children.Add(
                     new DebugUI.FloatField
                     {
                         displayName = "Debug Lens Attenuation",

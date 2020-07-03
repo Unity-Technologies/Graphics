@@ -67,6 +67,7 @@ Material:
     - _AlphaDstBlend: 1
     - _AlphaSrcBlend: 1
     - _AlphaToMask: 0
+    - _AlphaToMaskInspectorValue: 0
     - _Blend: 2
     - _BlendMode: 1
     - _BumpScale: 1
@@ -101,6 +102,7 @@ Material:
     - _IncludeIndirectLighting: 1
     - _Metallic: 0
     - _OcclusionStrength: 1
+    - _OpaqueCullMode: 2
     - _PreRefractionPass: 0
     - _ReceiveShadows: 1
     - _SampleGI: 0
@@ -147,4 +149,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 4
+  version: 6

@@ -33,6 +33,7 @@
 #pragma kernel Deferred_Indirect_Fptl_Variant28     SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant28     USE_INDIRECT    VARIANT=28
 
 #pragma multi_compile _ SHADOWS_SHADOWMASK
+#pragma multi_compile SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
 
 #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 
