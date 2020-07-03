@@ -29,6 +29,8 @@ namespace UnityEditor.VFX.Block
             }
         }
 
+        protected override bool needDirectionWrite => true;
+
         public override string source
         {
             get

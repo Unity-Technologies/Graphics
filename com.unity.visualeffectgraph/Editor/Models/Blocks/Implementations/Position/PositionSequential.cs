@@ -38,6 +38,11 @@ namespace UnityEditor.VFX.Block
             Custom
         }
 
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on Position. The input value can overwrite, add to, multiply with, or blend with the existing attribute value.")]
+        public AttributeCompositionMode compositionPosition = AttributeCompositionMode.Add;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on TargetPosition. The input value can overwrite, add to, multiply with, or blend with the existing attribute value.")]
+        public AttributeCompositionMode compositionTargetPosition = AttributeCompositionMode.Add;
 
         [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         [Tooltip("Specifies the type of shape to use for the position sequence.")]
@@ -58,12 +63,6 @@ namespace UnityEditor.VFX.Block
         [SerializeField, VFXSetting]
         [Tooltip("Specifies how the sequence should behave at the end. It can either wrap back to the beginning, clamp, or continue in a mirrored direction.")]
         private VFXOperatorUtility.SequentialAddressingMode mode = VFXOperatorUtility.SequentialAddressingMode.Clamp;
-
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on Position. The input value can overwrite, add to, multiply with, or blend with the existing attribute value.")]
-        public AttributeCompositionMode compositionPosition = AttributeCompositionMode.Add;
-
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on TargetPosition. The input value can overwrite, add to, multiply with, or blend with the existing attribute value.")]
-        public AttributeCompositionMode compositionTargetPosition = AttributeCompositionMode.Add;               
 
         public override string name { get { return string.Format("{0} Position (Sequential : {1})",VFXBlockUtility.GetNameString(compositionPosition), shape); } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.InitAndUpdateAndOutput; } }
@@ -278,7 +277,8 @@ namespace UnityEditor.VFX.Block
 
                 if (writeTargetPosition)
                 {
-                    source += VFXBlockUtility.GetComposeString(compositionPosition, "targetPosition", s_computedTargetPosition, "blendTargetPosition");
+                    source += "\n";
+                    source += VFXBlockUtility.GetComposeString(compositionTargetPosition, "targetPosition", s_computedTargetPosition, "blendTargetPosition");
                 }
                 return source;
             }

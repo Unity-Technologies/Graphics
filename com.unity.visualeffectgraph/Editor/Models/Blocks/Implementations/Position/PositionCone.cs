@@ -81,16 +81,16 @@ float hNorm = 0.0f;
                 else if (spawnMode == SpawnMode.Random)
                 {
                     float distributionExponent = positionMode == PositionMode.Surface ? 2.0f : 3.0f;
-                    outSource += @"
+                    outSource += $@"
 float hNorm = 0.0f;
 if (abs(ArcCone_radius0 - ArcCone_radius1) > VFX_EPSILON)
-{
+{{
     // Uniform distribution on cone
     float heightFactor = ArcCone_radius0 / max(VFX_EPSILON,ArcCone_radius1);
     float heightFactorPow = pow(heightFactor, {distributionExponent});
     hNorm = pow(heightFactorPow + (1.0f - heightFactorPow) * RAND, rcp({distributionExponent}));
     hNorm = (hNorm - heightFactor) / (1.0f - heightFactor); // remap on [0,1]
-}
+}}
 else
     hNorm = RAND; // Uniform distribution on cylinder
 ";
