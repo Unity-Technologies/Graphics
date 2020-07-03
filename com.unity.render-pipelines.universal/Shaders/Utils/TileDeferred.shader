@@ -223,6 +223,15 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
         #if defined(_LIT)
             BRDFData brdfData = BRDFDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
+
+            half clearCoatMask = (materialFlags & kMaterialFlagClearCoat) ? 1.0 : 0.0;
+            half clearCoatSmoothness = 1;
+            BRDFData brdfDataClearCoat = (BRDFData)0;
+            #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
+            [branch] if(clearCoatMask > 0)   // TODO: if worth it?
+                InitializeBRDFDataClearCoat(clearCoatMask, clearCoatSmoothness, brdfData, brdfDataClearCoat );
+            #endif
+
         #elif defined(_SIMPLELIT)
             SurfaceData surfaceData = SurfaceDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2, kLightingSimpleLit);
         #endif
@@ -241,7 +250,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 [branch] if (dot(L, L) < light.radius2)
                 {
                     Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, materialReceiveShadowsOff);
-                    color += LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS, materialSpecularHighlightsOff);
+                    color += LightingPhysicallyBased(brdfData, brdfDataClearCoat, unityLight, inputData.normalWS, inputData.viewDirectionWS, clearCoatMask, materialSpecularHighlightsOff);
                 }
             }
             while(++li < input.relLightOffsets.y);

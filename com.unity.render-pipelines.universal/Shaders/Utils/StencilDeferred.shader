@@ -172,7 +172,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             half clearCoatSmoothness = 1;
             BRDFData brdfDataClearCoat = (BRDFData)0;
             #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
-            if(clearCoatMask > 0)   // TODO: if worth it?
+            [branch] if(clearCoatMask > 0)   // TODO: if worth it?
                 InitializeBRDFDataClearCoat(clearCoatMask, clearCoatSmoothness, brdfData, brdfDataClearCoat );
             #endif
 
