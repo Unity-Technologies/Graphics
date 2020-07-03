@@ -148,7 +148,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 if (stackLitData.coatNormal)
                 {
-                    blockMap.Add(HDBlockFields.SurfaceDescription.CoatNormal, StackLitMasterNode1.CoatNormalSlotId);
+                    blockMap.Add(HDBlockFields.SurfaceDescription.CoatNormalTS, StackLitMasterNode1.CoatNormalSlotId);
                 }
 
                 blockMap.Add(HDBlockFields.SurfaceDescription.CoatMask, StackLitMasterNode1.CoatMaskSlotId);

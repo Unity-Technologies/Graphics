@@ -1,6 +1,9 @@
 #ifndef __BUILTINGIUTILITIES_HLSL__
 #define __BUILTINGIUTILITIES_HLSL__
 
+// Include the IndirectDiffuseMode enum
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.cs.hlsl"
+
 #ifdef SHADERPASS
 #if ((SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS) && (SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD)) || \
      ((SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP) && (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING || SHADERPASS == SHADERPASS_FORWARD))
@@ -83,48 +86,9 @@ void EvaluateLightProbeBuiltin(float3 positionRWS, float3 normalWS, float3 backN
     }
     else
     {
-#if RAYTRACING_ENABLED
-        if (unity_ProbeVolumeParams.w == 1.0)
-            SampleProbeVolumeSH9(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, backNormalWS, GetProbeVolumeWorldToObject(),
-                unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz, bakeDiffuseLighting, backBakeDiffuseLighting);
-        else
-#endif
-            SampleProbeVolumeSH4(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, backNormalWS, GetProbeVolumeWorldToObject(),
-                unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz, bakeDiffuseLighting, backBakeDiffuseLighting);
+        SampleProbeVolumeSH4(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, backNormalWS, GetProbeVolumeWorldToObject(),
+            unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz, bakeDiffuseLighting, backBakeDiffuseLighting);
     }
-}
-
-void EvaluateProbeVolumes(  PositionInputs posInputs, float3 normalWS, float3 backNormalWS, uint renderingLayers,
-                            inout float3 bakeDiffuseLighting, inout float3 backBakeDiffuseLighting, inout float probeVolumeHierarchyWeight)
-{
-    // SHADEROPTIONS_PROBE_VOLUMES can be defined in ShaderConfig.cs.hlsl but set to 0 for disabled.
-    #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
-        // If probe volumes are evaluated in the lightloop, we place a sentinel value to detect that no lightmap data is present at the current pixel,
-        // and we can safely overwrite baked data value with value from probe volume evaluation in light loop.
-        return UNINITIALIZED_GI;
-    #elif SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
-        #ifdef SHADERPASS
-        #if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD
-
-        #if SHADERPASS == SHADERPASS_GBUFFER || (SHADERPASS == SHADERPASS_FORWARD && defined(USE_FPTL_LIGHTLIST))
-        // posInputs.tileCoord will be zeroed out in GBuffer pass.
-        // posInputs.tileCoord will be incorrect for probe volumes (which use clustered) in forward if forward lightloop is using FTPL lightlist (i.e: in ForwardOnly lighting configuration). 
-        // Need to manually compute tile coord here.
-        float2 positionSS = posInputs.positionNDC.xy * _ScreenSize.xy;
-        uint2 tileCoord = uint2(positionSS) / ProbeVolumeGetTileSize();
-        posInputs.tileCoord = tileCoord;
-        #endif
-
-        // TODO: In a future PR, we will update EvaluateProbeVolumes to support a single call that evaluates front and back facing normals.
-        // For now, we simply call Evaluate 2x, and pay the additional cost when backBakeDiffuseLighting is in use.
-        float backProbeVolumeHierarchyWeight = probeVolumeHierarchyWeight;
-        bakeDiffuseLighting += EvaluateProbeVolumesMaterialPass(posInputs, normalWS, renderingLayers, probeVolumeHierarchyWeight);
-        backBakeDiffuseLighting += EvaluateProbeVolumesMaterialPass(posInputs, backNormalWS, renderingLayers, backProbeVolumeHierarchyWeight);
-
-        EvaluateProbeVolumeAmbientProbeFallback(normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting, probeVolumeHierarchyWeight);
-        #endif
-        #endif // #ifdef SHADERPASS
-    #endif
 }
 
 // No need to initialize bakeDiffuseLighting and backBakeDiffuseLighting must be initialize outside the function
@@ -138,15 +102,24 @@ void SampleBakedGI(
     out float3 bakeDiffuseLighting,
     out float3 backBakeDiffuseLighting)
 {
+    bakeDiffuseLighting = float3(0, 0, 0);
+    backBakeDiffuseLighting = float3(0, 0, 0);
+
+    // Check if we are RTGI in which case we don't want to read GI at all (We rely fully on the raytrace effect)
+    // The check need to be here to work with both regular shader and shader graph
+    // Note: with Probe volume it will prevent to add the UNINITIALIZED_GI tag and
+    // the ProbeVolume will not be evaluate in the lightloop which is the desired behavior
+#if !defined(_SURFACE_TYPE_TRANSPARENT)
+    if (_IndirectDiffuseMode == INDIRECTDIFFUSEMODE_RAYTRACE)
+        return ;
+#endif
+
     float3 positionRWS = posInputs.positionWS;
 
 #define SAMPLE_LIGHTMAP (defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON))
-#define SAMPLE_PROBEVOLUME (SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE != PROBEVOLUMESEVALUATIONMODES_DISABLED) \
+#define SAMPLE_PROBEVOLUME (SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS) \
     && (!SAMPLE_LIGHTMAP || SHADEROPTIONS_PROBE_VOLUMES_ADDITIVE_BLENDING)
 #define SAMPLE_PROBEVOLUME_BUILTIN (!SAMPLE_LIGHTMAP && !SAMPLE_PROBEVOLUME)
-
-    bakeDiffuseLighting = float3(0, 0, 0);
-    backBakeDiffuseLighting = float3(0, 0, 0);
 
 #if SAMPLE_LIGHTMAP
     EvaluateLightmap(positionRWS, normalWS, backNormalWS, uvStaticLightmap, uvDynamicLightmap, bakeDiffuseLighting, backBakeDiffuseLighting);
@@ -162,12 +135,38 @@ void SampleBakedGI(
 
 #else // PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS || PROBEVOLUMESEVALUATIONMODES_DISABLED
 #if SAMPLE_PROBEVOLUME
+    if (_EnableProbeVolumes)
+    {
 #if SAMPLE_LIGHTMAP
-    float probeVolumeHierarchyWeight = 1.0f;
+        float probeVolumeHierarchyWeight = 1.0f;
 #else
-    float probeVolumeHierarchyWeight = 0.0f;
+        float probeVolumeHierarchyWeight = 0.0f;
 #endif
-    EvaluateProbeVolumes(posInputs, normalWS, backNormalWS, renderingLayers, bakeDiffuseLighting, backBakeDiffuseLighting, probeVolumeHierarchyWeight);
+
+#ifdef SHADERPASS
+#if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD
+#if SHADERPASS == SHADERPASS_GBUFFER || (SHADERPASS == SHADERPASS_FORWARD && defined(USE_FPTL_LIGHTLIST))
+        // posInputs.tileCoord will be zeroed out in GBuffer pass.
+        // posInputs.tileCoord will be incorrect for probe volumes (which use clustered) in forward if forward lightloop is using FTPL lightlist (i.e: in ForwardOnly lighting configuration). 
+        // Need to manually compute tile coord here.
+        float2 positionSS = posInputs.positionNDC.xy * _ScreenSize.xy;
+        uint2 tileCoord = uint2(positionSS) / ProbeVolumeGetTileSize();
+        posInputs.tileCoord = tileCoord;
+        #endif
+
+        ProbeVolumeEvaluateSphericalHarmonics(
+            posInputs,
+            normalWS,
+            backNormalWS,
+            renderingLayers,
+            probeVolumeHierarchyWeight,
+            bakeDiffuseLighting,
+            backBakeDiffuseLighting
+        );
+#endif
+
+#endif
+    }
 #endif
 
 #if SAMPLE_PROBEVOLUME_BUILTIN

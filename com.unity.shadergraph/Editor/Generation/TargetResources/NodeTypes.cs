@@ -150,6 +150,9 @@ namespace UnityEditor.ShaderGraph
                 typeof(Texture2DAssetNode ),
                 typeof(Texture3DAssetNode ),
                 typeof(SampleVirtualTextureNode ),
+#if PROCEDURAL_VT_IN_GRAPH
+                typeof(ProceduralVirtualTextureNode ),
+#endif // PROCEDURAL_VT_IN_GRAPH
             };
 
             public static NodeTypeCollection MeshDeformation = new NodeTypeCollection()

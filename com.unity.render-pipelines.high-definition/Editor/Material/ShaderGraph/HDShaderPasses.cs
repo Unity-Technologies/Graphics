@@ -130,6 +130,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 lightMode = "ShadowCaster",
                 useInPreview = false,
 
+                validPixelBlocks  = new BlockFieldDescriptor[]
+                {
+                    BlockFields.SurfaceDescription.Alpha,
+                    BlockFields.SurfaceDescription.AlphaClipThreshold,
+                    HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow,
+                    HDBlockFields.SurfaceDescription.DepthOffset,
+                },
+
                 // Collections
                 renderStates = CoreRenderStates.ShadowCaster,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
@@ -171,6 +179,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_LIGHT_TRANSPORT",
                 lightMode = "META",
                 useInPreview = false,
+
+                // We don't need any vertex inputs on meta pass:
+                validVertexBlocks = new BlockFieldDescriptor[0],
 
                 // Collections
                 requiredFields = CoreRequiredFields.Meta,
@@ -218,12 +229,30 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 requiredFields = GenerateRequiredFields(),
-                renderStates = CoreRenderStates.DepthOnly,
+                renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = supportLighting ? CoreDefines.DepthMotionVectors : null,
                 keywords = CoreKeywords.DepthMotionVectorsNoNormal,
                 includes = GenerateIncludes(),
             };
+
+            RenderStateCollection GenerateRenderState()
+            {
+                var renderState = new RenderStateCollection{ CoreRenderStates.DepthOnly };
+
+                if (!supportLighting)
+                {
+                    // Caution: When using MSAA we have normal and depth buffer bind.
+                    // Unlit objects need to NOT write in normal buffer (or write 0) - Disable color mask for this RT
+                    // Note: ShaderLab doesn't allow to have a variable on the second parameter of ColorMask
+                    // - When MSAA: disable target 1 (normal buffer)
+                    // - When no MSAA: disable target 0 (normal buffer) and 1 (unused)
+                    renderState.Add(RenderState.ColorMask("ColorMask [_ColorMaskNormal]"));
+                    renderState.Add(RenderState.ColorMask("ColorMask 0 1"));
+                }
+
+                return renderState;
+            }
 
             FieldCollection GenerateRequiredFields()
             {
@@ -267,7 +296,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
 #region Motion Vectors
 
-        public static PassDescriptor GenerateMotionVectors(bool supportLighting)
+        public static PassDescriptor GenerateMotionVectors(bool supportLighting, bool supportForward)
         {
             return new PassDescriptor
             {
@@ -280,18 +309,41 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = CoreRequiredFields.LitFull,
                 renderStates = GenerateRenderState(),
-                defines = supportLighting ? CoreDefines.DepthMotionVectors : null,
+                defines = GenerateDefines(),
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 keywords = GenerateKeywords(),
                 includes = GenerateIncludes(),
             };
 
+            DefineCollection GenerateDefines()
+            {
+                if (!supportLighting)
+                    return null;
+
+                var defines = new DefineCollection
+                {
+                    { RayTracingNode.GetRayTracingKeyword(), 0 },
+                };
+
+                //  #define WRITE_NORMAL_BUFFER for forward
+                if (supportForward)
+                    defines.Add(CoreKeywordDescriptors.WriteNormalBuffer, 1);
+                
+                return defines;
+            }
+
             RenderStateCollection GenerateRenderState()
             {
-                var renderState = CoreRenderStates.MotionVectors;
+                var renderState = new RenderStateCollection();
+                renderState.Add(CoreRenderStates.MotionVectors);
     
                 if (!supportLighting)
                 {
+                    // Caution: When using MSAA we have motion vector, normal and depth buffer bind.
+                    // Unlit objects need to NOT write in normal buffer (or write 0) - Disable color mask for this RT
+                    // Note: ShaderLab doesn't allow to have a variable on the second parameter of ColorMask
+                    // - When MSAA: disable target 2 (normal buffer)
+                    // - When no MSAA: disable target 1 (normal buffer) and 2 (unused)
                     renderState.Add(RenderState.ColorMask("ColorMask [_ColorMaskNormal] 1"));
                     renderState.Add(RenderState.ColorMask("ColorMask 0 2"));
                 }
@@ -308,7 +360,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { CoreKeywordDescriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
                 };
 
-                if (supportLighting)
+                // #pragma multi_compile _ WRITE_NORMAL_BUFFER for deferred
+                if (supportLighting && !supportForward)
                     keywords.Add(CoreKeywordDescriptors.WriteNormalBuffer);
                 
                 return keywords;
@@ -340,7 +393,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
 #region Forward Only
 
-        public static PassDescriptor GenereateForwardOnlyPass(bool supportLighting)
+        public static PassDescriptor GenerateForwardOnlyPass(bool supportLighting)
         {
             return new PassDescriptor
             { 
@@ -351,15 +404,29 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Collections
-                requiredFields = supportLighting ? CoreRequiredFields.LitFull : null,
+                requiredFields = GenerateRequiredFields(),
                 renderStates = CoreRenderStates.Forward,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = supportLighting ? CoreDefines.Forward : null,
                 keywords = supportLighting ? CoreKeywords.Forward : UnlitForwardKeywords,
                 includes = GenerateIncludes(),
 
-                virtualTextureFeedback = supportLighting ? false : true,
+                virtualTextureFeedback = true,
             };
+
+            FieldCollection GenerateRequiredFields()
+            {
+                if (supportLighting)
+                    return CoreRequiredFields.LitFull;
+                else
+                {
+                    return new FieldCollection
+                    {
+                        // TODO: add preprocessor protection for this interpolator: _TRANSPARENT_WRITES_MOTION_VEC
+                        HDStructFields.FragInputs.positionRWS,
+                    };
+                }
+            }
 
             IncludeCollection GenerateIncludes()
             {
@@ -395,7 +462,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { CoreKeywords.HDBase },
             { CoreKeywordDescriptors.DebugDisplay },
-            { CoreKeywordDescriptors.Shadow, new FieldCondition(HDFields.EnableShadowMatte, true) },
+            { CoreKeywordDescriptors.Shadow, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true) },
         };
 
 #endregion
@@ -416,8 +483,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = CoreRequiredFields.LitMinimal,
                 renderStates = CoreRenderStates.TransparentBackface,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
-                defines = CoreDefines.Forward,
-                keywords = CoreKeywords.Forward,
+                defines = CoreDefines.BackThenFront,
+                keywords = supportLighting ? CoreKeywords.BackThenFrontTransparent : UnlitForwardKeywords,
                 includes = GenerateIncludes(),
             };
 
@@ -461,27 +528,50 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 // Definition
                 displayName = "TransparentDepthPrepass",
-                referenceName = "SHADERPASS_DEPTH_ONLY",
+                referenceName = "SHADERPASS_TRANSPARENT_DEPTH_PREPASS",
                 lightMode = "TransparentDepthPrepass",
                 useInPreview = true,
+
+                validPixelBlocks = supportLighting ?
+                    new BlockFieldDescriptor[]
+                    {
+                        BlockFields.SurfaceDescription.Alpha,
+                        HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,
+                        BlockFields.SurfaceDescription.AlphaClipThreshold,
+                        HDBlockFields.SurfaceDescription.DepthOffset,
+                        BlockFields.SurfaceDescription.NormalTS,
+                        BlockFields.SurfaceDescription.NormalWS,
+                        BlockFields.SurfaceDescription.NormalOS,
+                        BlockFields.SurfaceDescription.Smoothness,
+                    } :
+                    new BlockFieldDescriptor[]
+                    {
+                        BlockFields.SurfaceDescription.Alpha,
+                        HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,
+                        BlockFields.SurfaceDescription.AlphaClipThreshold,
+                        HDBlockFields.SurfaceDescription.DepthOffset,
+                    },
 
                 // Collections
                 requiredFields = TransparentDepthPrepassFields,
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
-                defines = GenerateDefines(),
-                keywords = CoreKeywords.HDBase,
+                defines = CoreDefines.TransparentDepthPrepass,
+                keywords = GenerateKeywords(),
                 includes = GenerateIncludes(),
             };
 
-            DefineCollection GenerateDefines()
+            KeywordCollection GenerateKeywords()
             {
-                var defines = new DefineCollection{ { RayTracingNode.GetRayTracingKeyword(), 0 } };
+                KeywordCollection keywords = new KeywordCollection { CoreKeywords.HDBase };
 
-                if (supportLighting)
-                    defines.Add(CoreKeywordDescriptors.WriteNormalBufferDefine, 1, new FieldCondition(HDFields.DisableSSRTransparent, false));
+                // For now we can generate WriteNormalBuffer the way we want with SG generator
+                // as it require a conditional define. So instead it is hard coded in
+                // ShaderPass.template. Looks for SHADERPASS_TRANSPARENT_DEPTH_PREPASS in the file
+                //if (supportLighting)
+                //    keywords.Add(CoreKeywordDescriptors.WriteNormalBuffer);
 
-                return defines;
+                return keywords;
             }
 
             RenderStateCollection GenerateRenderState()
@@ -502,6 +592,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 if (!supportLighting)
                 {
+                    // Caution: When using MSAA we have normal and depth buffer bind.
+                    // Unlit objects need to NOT write in normal buffer (or write 0) - Disable color mask for this RT
+                    // Note: ShaderLab doesn't allow to have a variable on the second parameter of ColorMask
+                    // - When MSAA: disable target 1 (normal buffer)
+                    // - When no MSAA: disable target 0 (normal buffer) and 1 (unused)
                     renderState.Add(RenderState.ColorMask("ColorMask [_ColorMaskNormal]"));
                     renderState.Add(RenderState.ColorMask("ColorMask 0 1"));
                 }
@@ -557,14 +652,22 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 // Definition
                 displayName = "TransparentDepthPostpass",
-                referenceName = "SHADERPASS_DEPTH_ONLY",
+                referenceName = "SHADERPASS_TRANSPARENT_DEPTH_POSTPASS",
                 lightMode = "TransparentDepthPostpass",
                 useInPreview = true,
+
+                validPixelBlocks = new BlockFieldDescriptor[]
+                {
+                    BlockFields.SurfaceDescription.Alpha,
+                    HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass,
+                    HDBlockFields.SurfaceDescription.DepthOffset,
+                    BlockFields.SurfaceDescription.AlphaClipThreshold,
+                },
 
                 // Collections
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
-                defines = CoreDefines.ShaderGraphRaytracingHigh,
+                defines = CoreDefines.TransparentDepthPostpass,
                 keywords = CoreKeywords.HDBase,
                 includes = GenerateIncludes(),
             };
@@ -723,7 +826,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 requiredFields = CoreRequiredFields.LitMinimal,
-                renderStates = CoreRenderStates.ForwardColorMask,
+                renderStates = CoreRenderStates.Forward,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.Forward,
                 keywords = CoreKeywords.Forward,
@@ -815,22 +918,48 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 pragmas = CorePragmas.RaytracingBasic,
-                defines = supportLighting ? GenerateDefines() : null,
-                keywords = CoreKeywords.RaytracingIndirect,
-                includes = CoreIncludes.Raytracing,
-                requiredFields = new FieldCollection(){ HDFields.ShaderPass.RaytracingIndirect },
+                defines = supportLighting ? RaytracingIndirectDefines : null,
+                keywords = supportLighting ? CoreKeywords.RaytracingIndirect : CoreKeywords.RaytracingIndirectUnlit,
+                includes = GenerateIncludes(),
             };
 
-            DefineCollection GenerateDefines()
+            IncludeCollection GenerateIncludes()
             {
-                return new DefineCollection
+                var includes = new IncludeCollection { CoreIncludes.RaytracingCorePregraph };
+
+                includes.Add(CoreIncludes.kRaytracingIntersection, IncludeLocation.Pregraph);
+
+                if (supportLighting)
                 {
-                    { Defines.shadowLow },
-                    { Defines.raytracingLow },
-                    { CoreKeywordDescriptors.HasLightloop, 1 },
-                };
+                    includes.Add(CoreIncludes.kLighting, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph);
+                }
+
+                // Each material has a specific hlsl file that should be included pre-graph and holds the lighting model
+                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                // We need to then include the ray tracing missing bits for the lighting models (based on which lighting model)
+                includes.Add(CoreIncludes.kRaytracingPlaceholder, IncludeLocation.Pregraph);
+                // We want to have the ray tracing light loop if this is an indirect sub-shader or a forward one and it is not the unlit shader
+                if (supportLighting)
+                    includes.Add(CoreIncludes.kRaytracingLightLoop, IncludeLocation.Pregraph);
+
+                includes.Add(CoreIncludes.CoreUtility);
+                includes.Add(CoreIncludes.kRaytracingCommon, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+
+                // post graph includes
+                includes.Add(CoreIncludes.kPassRaytracingIndirect, IncludeLocation.Postgraph);
+
+                return includes;
             }
         }
+
+        public static DefineCollection RaytracingIndirectDefines = new DefineCollection
+        {
+            { Defines.shadowLow },
+            { Defines.raytracingLow },
+            { CoreKeywordDescriptors.HasLightloop, 1 },
+        };
 
 #endregion
 
@@ -854,9 +983,30 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingVisibilityDefines : null,
                 keywords = CoreKeywords.RaytracingVisiblity,
-                requiredFields = new FieldCollection(){ HDFields.ShaderPass.RaytracingVisibility },
-                includes = CoreIncludes.Raytracing,
+                includes = GenerateIncludes(),
             };
+
+            IncludeCollection GenerateIncludes()
+            {
+                var includes = new IncludeCollection { CoreIncludes.RaytracingCorePregraph };
+
+                // We want the generic payload if this is not a gbuffer or a subsurface subshader
+                includes.Add(CoreIncludes.kRaytracingIntersection, IncludeLocation.Pregraph);
+
+                // Each material has a specific hlsl file that should be included pre-graph and holds the lighting model
+                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                // We need to then include the ray tracing missing bits for the lighting models (based on which lighting model)
+                includes.Add(CoreIncludes.kRaytracingPlaceholder, IncludeLocation.Pregraph);
+
+                includes.Add(CoreIncludes.CoreUtility);
+                includes.Add(CoreIncludes.kRaytracingCommon, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+
+                // post graph includes
+                includes.Add(CoreIncludes.kPassRaytracingVisbility, IncludeLocation.Postgraph);
+
+                return includes;
+            }
         }
 
         public static DefineCollection RaytracingVisibilityDefines = new DefineCollection
@@ -885,16 +1035,49 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingForwardDefines : null,
-                keywords = CoreKeywords.RaytracingGBufferForward,
-                includes = CoreIncludes.Raytracing,
-                requiredFields = new FieldCollection(){ HDFields.ShaderPass.RaytracingForward },
+                keywords = supportLighting ? CoreKeywords.RaytracingForward : CoreKeywords.RaytracingForwardUnlit,
+                includes = GenerateIncludes(),
             };
+
+            IncludeCollection GenerateIncludes()
+            {
+                var includes = new IncludeCollection { CoreIncludes.RaytracingCorePregraph };
+
+                // We want the generic payload if this is not a gbuffer or a subsurface subshader
+                includes.Add(CoreIncludes.kRaytracingIntersection, IncludeLocation.Pregraph);
+
+                // We want to have the lighting include if this is an indirect sub-shader, a forward one or the path tracing (and this is not an unlit)
+                if (supportLighting)
+                {
+                    includes.Add(CoreIncludes.kLighting, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph);
+                }
+
+                // Each material has a specific hlsl file that should be included pre-graph and holds the lighting model
+                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                // We need to then include the ray tracing missing bits for the lighting models (based on which lighting model)
+                includes.Add(CoreIncludes.kRaytracingPlaceholder, IncludeLocation.Pregraph);
+
+                // We want to have the ray tracing light loop if this is an indirect sub-shader or a forward one and it is not the unlit shader
+                if (supportLighting)
+                    includes.Add(CoreIncludes.kRaytracingLightLoop, IncludeLocation.Pregraph);
+
+                includes.Add(CoreIncludes.CoreUtility);
+                includes.Add(CoreIncludes.kRaytracingCommon, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+
+                // post graph includes
+                includes.Add(CoreIncludes.kPassRaytracingForward, IncludeLocation.Postgraph);
+
+                return includes;
+            }
         }
+
 
         public static DefineCollection RaytracingForwardDefines = new DefineCollection
         {
             { Defines.shadowLow },
-            { RayTracingNode.GetRayTracingKeyword(), 0 },
+            { Defines.raytracingHigh },
             { CoreKeywordDescriptors.HasLightloop, 1 },
         };
 
@@ -919,10 +1102,38 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingGBufferDefines : null,
-                keywords = CoreKeywords.RaytracingGBufferForward,
-                includes = CoreIncludes.Raytracing,
-                requiredFields = new FieldCollection(){ HDFields.ShaderPass.RayTracingGBuffer },
+                keywords = supportLighting ? CoreKeywords.RaytracingGBuffer : CoreKeywords.RaytracingGBufferUnlit,
+                includes = GenerateIncludes(),
             };
+
+            IncludeCollection GenerateIncludes()
+            {
+                var includes = new IncludeCollection { CoreIncludes.RaytracingCorePregraph };
+
+                includes.Add(CoreIncludes.kRaytracingIntersectionGBuffer, IncludeLocation.Pregraph);
+
+                // Each material has a specific hlsl file that should be included pre-graph and holds the lighting model
+                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+
+                // We want to have the normal buffer include if this is a gbuffer and unlit shader
+                if (!supportLighting)
+                    includes.Add(CoreIncludes.kNormalBuffer, IncludeLocation.Pregraph);
+                    
+                // If this is the gbuffer sub-shader, we want the standard lit data
+                includes.Add(CoreIncludes.kStandardLit, IncludeLocation.Pregraph);
+
+                // We need to then include the ray tracing missing bits for the lighting models (based on which lighting model)
+                includes.Add(CoreIncludes.kRaytracingPlaceholder, IncludeLocation.Pregraph);
+
+                includes.Add(CoreIncludes.CoreUtility);
+                includes.Add(CoreIncludes.kRaytracingCommon, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+
+                // post graph includes
+                includes.Add(CoreIncludes.kPassRaytracingGBuffer, IncludeLocation.Postgraph);
+
+                return includes;
+            }
         }
 
         public static DefineCollection RaytracingGBufferDefines = new DefineCollection
@@ -953,15 +1164,43 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingPathTracingDefines : null,
                 keywords = CoreKeywords.HDBaseNoCrossFade,
-                includes = CoreIncludes.Raytracing,
-                requiredFields = new FieldCollection(){ HDFields.ShaderPass.RaytracingPathTracing },
+                includes = GenerateIncludes(),
             };
+
+            IncludeCollection GenerateIncludes()
+            {
+                var includes = new IncludeCollection { CoreIncludes.RaytracingCorePregraph };
+
+                // We want the generic payload if this is not a gbuffer or a subsurface subshader
+                includes.Add(CoreIncludes.kRaytracingIntersection, IncludeLocation.Pregraph);
+
+                // We want to have the lighting include if this is an indirect sub-shader, a forward one or the path tracing (and this is not an unlit)
+                if (supportLighting)
+                {
+                    includes.Add(CoreIncludes.kLighting, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph);
+                }
+
+                // Each material has a specific hlsl file that should be included pre-graph and holds the lighting model
+                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                // We need to then include the ray tracing missing bits for the lighting models (based on which lighting model)
+                includes.Add(CoreIncludes.kRaytracingPlaceholder, IncludeLocation.Pregraph);
+
+                includes.Add(CoreIncludes.CoreUtility);
+                includes.Add(CoreIncludes.kRaytracingCommon, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+
+                // post graph includes
+                includes.Add(CoreIncludes.kPassPathTracing, IncludeLocation.Postgraph);
+
+                return includes;
+            }
         }
 
         public static DefineCollection RaytracingPathTracingDefines = new DefineCollection
         {
             { Defines.shadowLow },
-            { RayTracingNode.GetRayTracingKeyword(), 0 },
+            { Defines.raytracingHigh },
             { CoreKeywordDescriptors.HasLightloop, 1 },
         };
 
@@ -981,7 +1220,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Template
                 // passTemplatePath = passTemplatePath,
-                // sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+                // sharedTemplateDirectories = passTemplateMaterialDirectories,
 
                 // //Port mask
                 // validVertexBlocks = CoreBlockMasks.Vertex,
@@ -990,10 +1229,31 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 //Collections
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = RaytracingSubsurfaceDefines,
-                keywords = CoreKeywords.RaytracingGBufferForward,
-                includes = CoreIncludes.Raytracing,
-                requiredFields = new FieldCollection(){ HDFields.ShaderPass.RaytracingSubSurface },
+                keywords = CoreKeywords.RaytracingForward,
+                includes = GenerateIncludes(),
             };
+
+            IncludeCollection GenerateIncludes()
+            {
+                var includes = new IncludeCollection { CoreIncludes.RaytracingCorePregraph };
+
+                // We want the sub-surface payload if we are in the subsurface sub shader
+                includes.Add(CoreIncludes.kRaytracingIntersectionSubSurface, IncludeLocation.Pregraph);
+
+                // Each material has a specific hlsl file that should be included pre-graph and holds the lighting model
+                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                // We need to then include the ray tracing missing bits for the lighting models (based on which lighting model)
+                includes.Add(CoreIncludes.kRaytracingPlaceholder, IncludeLocation.Pregraph);
+
+                includes.Add(CoreIncludes.CoreUtility);
+                includes.Add(CoreIncludes.kRaytracingCommon, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+
+                // post graph includes
+                includes.Add(CoreIncludes.kPassRaytracingSubSurface, IncludeLocation.Postgraph);
+
+                return includes;
+            }
         }
 
         public static DefineCollection RaytracingSubsurfaceDefines = new DefineCollection
@@ -1014,8 +1274,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static DefineCollection shadowHigh = new DefineCollection { {CoreKeywordDescriptors.Shadow, 2} };
 
             // Raytracing Quality
-            public static DefineCollection raytracingLow = new DefineCollection { {RayTracingNode.GetRayTracingKeyword(), 0} };
-            public static DefineCollection raytracingHigh = new DefineCollection { {RayTracingNode.GetRayTracingKeyword(), 1} };
+            public static DefineCollection raytracingLow = new DefineCollection { {RayTracingNode.GetRayTracingKeyword(), 1} };
+            public static DefineCollection raytracingHigh = new DefineCollection { {RayTracingNode.GetRayTracingKeyword(), 0} };
         }
 
 #endregion

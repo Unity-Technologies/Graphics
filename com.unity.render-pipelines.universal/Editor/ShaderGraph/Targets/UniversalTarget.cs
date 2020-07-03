@@ -320,7 +320,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // Template
             passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-            sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
+            sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
             // Port Mask
             validVertexBlocks = CoreBlockMasks.Vertex,
@@ -345,7 +345,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // Template
             passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-            sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
+            sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
             // Port Mask
             validVertexBlocks = CoreBlockMasks.Vertex,

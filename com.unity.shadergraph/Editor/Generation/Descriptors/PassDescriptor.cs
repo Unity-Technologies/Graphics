@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph
 
         // Templates
         public string passTemplatePath;
-        public string sharedTemplateDirectory;
+        public string[] sharedTemplateDirectories;
 
         // Port mask
         public BlockFieldDescriptor[] validVertexBlocks;

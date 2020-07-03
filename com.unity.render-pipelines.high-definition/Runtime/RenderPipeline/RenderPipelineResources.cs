@@ -90,7 +90,6 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Lighting/ProbeVolume/DebugDisplayProbeVolume.shader")]
             public Shader debugDisplayProbeVolumePS;
 
-
             [Reload("Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.compute")]
             public ComputeShader subsurfaceScatteringCS;                // Disney SSS
             [Reload("Runtime/Material/SubsurfaceScattering/CombineLighting.shader")]
@@ -229,6 +228,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader histogramExposureCS;
             [Reload("Runtime/PostProcessing/Shaders/ApplyExposure.compute")]
             public ComputeShader applyExposureCS;
+            [Reload("Runtime/PostProcessing/Shaders/DebugHistogramImage.compute")]
+            public ComputeShader debugImageHistogramCS;
             [Reload("Runtime/PostProcessing/Shaders/UberPost.compute")]
             public ComputeShader uberPostCS;
             [Reload("Runtime/PostProcessing/Shaders/LutBuilder3D.compute")]
@@ -285,6 +286,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader SMAAPS;
             [Reload("Runtime/PostProcessing/Shaders/TemporalAntialiasing.shader")]
             public Shader temporalAntialiasingPS;
+
+            // Physicaly based DoF
+            [Reload("Runtime/PostProcessing/Shaders/DoFCircleOfConfusion.compute")]
+            public ComputeShader dofCircleOfConfusion;
+            [Reload("Runtime/PostProcessing/Shaders/DoFGather.compute")]
+            public ComputeShader dofGatherCS;
+            [Reload("Runtime/PostProcessing/Shaders/DoFCoCPyramid.compute")]
+            public ComputeShader DoFCoCPyramidCS;
 
             [Reload("Runtime/PostProcessing/Shaders/ContrastAdaptiveSharpen.compute")]
             public ComputeShader contrastAdaptiveSharpenCS;
@@ -387,6 +396,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             [Reload("Runtime/RenderPipelineResources/Texture/DefaultHDRISky.exr")]
             public Cubemap     defaultHDRISky;
+
+            [Reload("Runtime/RenderPipelineResources/Texture/DefaultCloudLayer.asset")]
+            public CustomRenderTexture defaultCloudLayer;
         }
 
         [Serializable, ReloadGroup]
@@ -399,7 +411,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             [Reload("Runtime/RenderPipelineResources/defaultDiffusionProfile.asset")]
             public DiffusionProfileSettings defaultDiffusionProfile;
-            
+
             //Area Light Emissive Meshes
             [Reload("Runtime/RenderPipelineResources/Mesh/Cylinder.fbx")]
             public Mesh emissiveCylinderMesh;

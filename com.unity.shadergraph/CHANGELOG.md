@@ -123,6 +123,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where changeing the default value on a keyword would reset the node input type to vec4 (https://fogbugz.unity3d.com/f/cases/1216760/)
 - Fixed a soft lock when you open a graph when the blackboard hidden.
 - Fixed an issue where keyboard navigation in the Create Node menu no longer worked. [1253544]
+- Preview correctly shows unassigned VT texture result, no longer ignores null textures
+- Don't allow duplicate VT layer names when renaming layers
+- Moved VT layer TextureType to the VTProperty from the SampleVT node
+- Fixed the squished UI of VT property layers
+- Disallow Save As and Convert to Subgraph that would create recursive dependencies
 
 ## [7.1.1] - 2019-09-05
 ### Added

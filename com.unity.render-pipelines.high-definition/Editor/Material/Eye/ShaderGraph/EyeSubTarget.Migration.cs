@@ -27,8 +27,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Previous master node wasn't having any renderingPass. Assign it correctly now.
             systemData.renderingPass = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
             systemData.alphaTest = eyeMasterNode.m_AlphaTest;
-            systemData.alphaTestDepthPrepass = eyeMasterNode.m_AlphaTestDepthPrepass;
-            systemData.alphaTestDepthPostpass = eyeMasterNode.m_AlphaTestDepthPostpass;
+            systemData.transparentDepthPrepass = eyeMasterNode.m_AlphaTestDepthPrepass;
+            systemData.transparentDepthPostpass = eyeMasterNode.m_AlphaTestDepthPostpass;
             systemData.sortPriority = eyeMasterNode.m_SortPriority;
             systemData.doubleSidedMode = eyeMasterNode.m_DoubleSidedMode;
             systemData.transparentZWrite = eyeMasterNode.m_ZWrite;
@@ -63,7 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { EyeMasterNode1.SlotMask.Albedo, BlockFields.SurfaceDescription.BaseColor },
                 { EyeMasterNode1.SlotMask.SpecularOcclusion, HDBlockFields.SurfaceDescription.SpecularOcclusion },
                 { EyeMasterNode1.SlotMask.Normal, BlockFields.SurfaceDescription.NormalTS }, 
-                { EyeMasterNode1.SlotMask.IrisNormal, HDBlockFields.SurfaceDescription.IrisNormal }, 
+                { EyeMasterNode1.SlotMask.IrisNormal, HDBlockFields.SurfaceDescription.IrisNormalTS }, 
                 { EyeMasterNode1.SlotMask.BentNormal, HDBlockFields.SurfaceDescription.BentNormal },
                 { EyeMasterNode1.SlotMask.Smoothness, BlockFields.SurfaceDescription.Smoothness }, 
                 { EyeMasterNode1.SlotMask.IOR, HDBlockFields.SurfaceDescription.IOR },

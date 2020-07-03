@@ -48,6 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected abstract string renderType { get; }
         protected abstract string renderQueue { get; }
         protected abstract string templatePath { get; }
+        protected abstract string[] templateMaterialDirectories { get; }
 
         public virtual string identifier => GetType().Name;
 
@@ -78,10 +79,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void GetFields(ref TargetFieldContext context)
         {
             // Common properties between all HD master nodes
-            // Surface Type
-            context.AddField(Fields.SurfaceOpaque,         systemData.surfaceType == SurfaceType.Opaque);
-            context.AddField(Fields.SurfaceTransparent,    systemData.surfaceType != SurfaceType.Opaque);
-
             // Dots
             context.AddField(HDFields.DotsInstancing,      systemData.dotsInstancing);
         }

@@ -222,7 +222,6 @@ namespace UnityEditor.Rendering.HighDefinition
             // Detect any changes to the material
             EditorGUI.BeginChangeCheck();
             {
-                // TODO: does not work with multi-selection
                 materialEditor.TexturePropertySingleLine((materials[0].GetFloat(kAlbedoMode) == 1.0f) ? Styles.baseColorText : Styles.baseColorText2, baseColorMap, baseColor);
 
                 // Currently always display Albedo contribution as we have an albedo tint that apply
@@ -230,7 +229,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.ShaderProperty(albedoMode, Styles.albedoModeText);
                 EditorGUI.indentLevel--;
                 materialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);
-                if (materials[0].GetTexture(kNormalMap))
+                if (materials.All(m => m.GetTexture(kNormalMap)))
                 {
                     EditorGUI.indentLevel++;
                     normalBlendSrcValue = EditorGUILayout.Popup(Styles.normalOpacityChannelText, (int)normalBlendSrcValue, blendSourceNames);
@@ -238,7 +237,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 materialEditor.TexturePropertySingleLine(Styles.maskMapText[(int)maskBlendFlags], maskMap);
-                if (materials[0].GetTexture(kMaskMap))
+                if (materials.All(m => m.GetTexture(kMaskMap)))
                 {
                     EditorGUI.indentLevel++;
 
@@ -324,11 +323,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     materialEditor.ShaderProperty(emissiveExposureWeight, Styles.emissiveExposureWeightText);
                 }
 
-                EditorGUILayout.HelpBox(
-                    "Enable 'Metal and AO properties' in your HDRP Asset if you want to control the Metal and AO properties of decals.\nThere is a performance cost of enabling this option.",
-                    MessageType.Info);
+                if (!perChannelMask)
+                {
+                    EditorGUILayout.HelpBox("Enable 'Metal and AO properties' in your HDRP Asset if you want to control the Metal and AO properties of decals.\nThere is a performance cost of enabling this option.",
+                                            MessageType.Info);
+                }
             }
-
         }
     }
 }
