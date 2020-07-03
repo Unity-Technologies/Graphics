@@ -78,6 +78,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Finalizer.
         /// </summary>
         ~TextureCurve() {}
 

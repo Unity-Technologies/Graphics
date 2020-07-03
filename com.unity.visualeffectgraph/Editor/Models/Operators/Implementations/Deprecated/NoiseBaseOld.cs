@@ -157,6 +157,7 @@ namespace UnityEditor.VFX.Operator
                         properties = PropertiesFromType(nameof(InputProperties3D));
 
                     properties = properties.Concat(PropertiesFromType(nameof(InputPropertiesCommon)));
+
                 }
                 else
                 {

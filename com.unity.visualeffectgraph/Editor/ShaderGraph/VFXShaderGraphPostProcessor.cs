@@ -36,6 +36,7 @@ namespace UnityEditor.VFX
 
             try
             {
+
                 if (!disableImportDependentVFX)
                 {
                     var modifiedShaderGraphs = new HashSet<ShaderGraphVfxAsset>();

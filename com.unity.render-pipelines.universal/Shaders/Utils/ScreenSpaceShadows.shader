@@ -18,7 +18,13 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
-        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
+
+#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+        TEXTURE2D_ARRAY_FLOAT(_CameraDepthTexture);
+#else
+        TEXTURE2D_FLOAT(_CameraDepthTexture);
+#endif
+        SAMPLER(sampler_CameraDepthTexture);
 
         struct Attributes
         {

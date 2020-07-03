@@ -78,18 +78,14 @@ To install URP as a dependency of the Project:
 * Open the Project Manifest file using a text editor.
 * At the top of the dependencies section, add the following entry:
 
-```json
-"com.unity.render-pipelines.universal": "[Version number you noted earlier]"
-```
+`com.unity.render-pipelines.universal`: `[Version number you noted earlier]`,
 
 So, for example, if the version of URP was 7.1.1, your dependencies section would look like this:
 
-```json
-"dependencies": {
-    "com.unity.render-pipelines.universal": "7.1.1",
-    ...
-}
-```
+`dependencies`: {
+    `com.unity.render-pipelines.universal`: `7.1.1`,
+    …
+},
 
 This marks the version of URP that you have installed as a dependency of the Project. You can now safely remove LWRP.
 

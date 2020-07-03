@@ -9,35 +9,35 @@ namespace UnityEngine.Rendering
     /// </summary>
     public interface IBitArray
     {
-        /// <summary>Gets the capacity of this BitArray. This is the number of bits that are usable.</summary>
+        /// <summary>Number of elements in the bit array.</summary>
         uint capacity { get; }
-        /// <summary>Return `true` if all the bits of this BitArray are set to 0. Returns `false` otherwise.</summary>
+        /// <summary>True if all bits are 0.</summary>
         bool allFalse { get; }
-        /// <summary>Return `true` if all the bits of this BitArray are set to 1. Returns `false` otherwise.</summary>
+        /// <summary>True if all bits are 1.</summary>
         bool allTrue { get; }
         /// <summary>
-        /// An indexer that allows access to the bit at a given index. This provides both read and write access.
+        /// Returns the state of the bit at a specific index.
         /// </summary>
         /// <param name="index">Index of the bit.</param>
         /// <returns>State of the bit at the provided index.</returns>
         bool this[uint index] { get; set; }
-        /// <summary>Writes the bits in the array in a human-readable form. This is as a string of 0s and 1s packed by 8 bits. This is useful for debugging.</summary>
+        /// <summary>Returns the bit array in a human readable form.</summary>
         string humanizedData { get; }
 
         /// <summary>
-        /// Perform an AND bitwise operation between this BitArray and the one you pass into the function and return the result. Both BitArrays must have the same capacity. This will not change current BitArray values.
+        /// Bit-wise And operation.
         /// </summary>
-        /// <param name="other">BitArray with which to the And operation.</param>
+        /// <param name="other">Bit array with which to the And operation.</param>
         /// <returns>The resulting bit array.</returns>
         IBitArray BitAnd(IBitArray other);
         /// <summary>
-        /// Perform an OR bitwise operation between this BitArray and the one you pass into the function and return the result. Both BitArrays must have the same capacity. This will not change current BitArray values.
+        /// Bit-wise Or operation.
         /// </summary>
-        /// <param name="other">BitArray with which to the Or operation.</param>
+        /// <param name="other">Bit array with which to the Or operation.</param>
         /// <returns>The resulting bit array.</returns>
         IBitArray BitOr(IBitArray other);
         /// <summary>
-        /// Return the BitArray with every bit inverted.
+        /// Invert the bit array.
         /// </summary>
         /// <returns></returns>
         IBitArray BitNot();

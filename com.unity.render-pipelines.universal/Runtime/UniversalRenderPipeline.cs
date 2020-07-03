@@ -38,6 +38,15 @@ namespace UnityEngine.Rendering.Universal
             public static int _TimeParameters;
         }
 
+        static internal class PerCameraBuffer
+        {
+            // TODO: This needs to account for stereo rendering
+            public static int _InvCameraViewProj;
+            public static int _ScaledScreenParams;
+            public static int _ScreenParams;
+            public static int _WorldSpaceCameraPos;
+        }
+
         public const string k_ShaderTagName = "UniversalPipeline";
 
         const string k_RenderCameraTag = "Render Camera";
@@ -67,15 +76,28 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // These limits have to match same limits in Input.hlsl
-        const int k_MaxVisibleAdditionalLightsMobile    = 32;
-        const int k_MaxVisibleAdditionalLightsNonMobile = 256;
+        const int k_MaxVisibleAdditionalLightsSSBO  = 256;
+        const int k_MaxVisibleAdditionalLightsUBO   = 32;
         public static int maxVisibleAdditionalLights
         {
             get
             {
-                // GLES can be selected as platform on Windows (not a mobile platform) but uniform buffer size so we must use a low light count.
-                return (Application.isMobilePlatform || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
-                    ? k_MaxVisibleAdditionalLightsMobile : k_MaxVisibleAdditionalLightsNonMobile;
+                // There are some performance issues by using SSBO in mobile.
+                // Also some GPUs don't supports SSBO in vertex shader.
+                if (RenderingUtils.useStructuredBuffer)
+                    return k_MaxVisibleAdditionalLightsSSBO;
+
+                // We don't use SSBO in D3D because we can't figure out without adding shader variants if platforms is D3D10.
+                // We don't use SSBO on Nintendo Switch as UBO path is faster.
+                // However here we use same limits as SSBO path.
+                var deviceType = SystemInfo.graphicsDeviceType;
+                if (deviceType == GraphicsDeviceType.Direct3D11 || deviceType == GraphicsDeviceType.Direct3D12 ||
+                    deviceType == GraphicsDeviceType.Switch)
+                    return k_MaxVisibleAdditionalLightsSSBO;
+
+                // We use less limits for mobile as some mobile GPUs have small SP cache for constants
+                // Using more than 32 might cause spilling to main memory.
+                return k_MaxVisibleAdditionalLightsUBO;
             }
         }
 
@@ -97,6 +119,11 @@ namespace UnityEngine.Rendering.Universal
             PerFrameBuffer._CosTime = Shader.PropertyToID("_CosTime");
             PerFrameBuffer.unity_DeltaTime = Shader.PropertyToID("unity_DeltaTime");
             PerFrameBuffer._TimeParameters = Shader.PropertyToID("_TimeParameters");
+
+            PerCameraBuffer._InvCameraViewProj = Shader.PropertyToID("_InvCameraViewProj");
+            PerCameraBuffer._ScreenParams = Shader.PropertyToID("_ScreenParams");
+            PerCameraBuffer._ScaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
+            PerCameraBuffer._WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
 
             // Let engine know we have MSAA on for cases where we support MSAA backbuffer
             if (QualitySettings.antiAliasing != asset.msaaSampleCount)
@@ -177,19 +204,16 @@ namespace UnityEngine.Rendering.Universal
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
             SetupPerFrameShaderConstants();
-
 #if ENABLE_VR && ENABLE_XR_MODULE
             SetupXRStates();
+            if(xrSkipRender)
+                return;
 #endif
 
             SortCameras(cameras);
             for (int i = 0; i < cameras.Length; ++i)
             {
                 var camera = cameras[i];
-#if ENABLE_VR && ENABLE_XR_MODULE
-                if (IsStereoEnabled(camera) && xrSkipRender)
-                    continue;
-#endif
                 if (IsGameCamera(camera))
                 {
                     RenderCameraStack(renderContext, camera);
@@ -230,12 +254,8 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            InitializeCameraData(camera, additionalCameraData, true, out var cameraData);
-#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
-            if (asset.useAdaptivePerformance)
-                ApplyAdaptivePerformance(ref cameraData);
-#endif
-            RenderSingleCamera(context, cameraData, cameraData.postProcessEnabled);
+            InitializeCameraData(camera, additionalCameraData, out var cameraData);
+            RenderSingleCamera(context, cameraData, true, cameraData.postProcessEnabled);
         }
 
         /// <summary>
@@ -243,8 +263,9 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="context">Render context used to record commands during execution.</param>
         /// <param name="cameraData">Camera rendering data. This might contain data inherited from a base camera.</param>
+        /// <param name="requiresBlitToBackbuffer">True if this is the last camera in the stack rendering, false otherwise.</param>
         /// <param name="anyPostProcessingEnabled">True if at least one camera has post-processing enabled in the stack, false otherwise.</param>
-        static void RenderSingleCamera(ScriptableRenderContext context, CameraData cameraData, bool anyPostProcessingEnabled)
+        static void RenderSingleCamera(ScriptableRenderContext context, CameraData cameraData, bool requiresBlitToBackbuffer, bool anyPostProcessingEnabled)
         {
             Camera camera = cameraData.camera;
             var renderer = cameraData.renderer;
@@ -257,8 +278,7 @@ namespace UnityEngine.Rendering.Universal
             if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out var cullingParameters))
                 return;
 
-            ScriptableRenderer.current = renderer;
-            bool isSceneViewCamera = cameraData.isSceneViewCamera;
+            SetupPerCameraShaderConstants(cameraData);
 
             ProfilingSampler sampler = (asset.debugLevel >= PipelineDebugLevel.Profiling) ? new ProfilingSampler(camera.name): _CameraProfilingSampler;
             CommandBuffer cmd = CommandBufferPool.Get(sampler.name);
@@ -272,19 +292,14 @@ namespace UnityEngine.Rendering.Universal
 
 #if UNITY_EDITOR
                 // Emit scene view UI
-                if (isSceneViewCamera)
+                if (cameraData.isSceneViewCamera)
                 {
                     ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
                 }
 #endif
 
                 var cullResults = context.Cull(ref cullingParameters);
-                InitializeRenderingData(asset, ref cameraData, ref cullResults, anyPostProcessingEnabled, out var renderingData);
-
-#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
-                if (asset.useAdaptivePerformance)
-                    ApplyAdaptivePerformance(ref renderingData);
-#endif
+                InitializeRenderingData(asset, ref cameraData, ref cullResults, requiresBlitToBackbuffer, anyPostProcessingEnabled, out var renderingData);
 
                 renderer.Setup(context, ref renderingData);
                 renderer.Execute(context, ref renderingData);
@@ -293,8 +308,6 @@ namespace UnityEngine.Rendering.Universal
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
             context.Submit();
-
-            ScriptableRenderer.current = null;
         }
 
         /// <summary>
@@ -345,22 +358,16 @@ namespace UnityEngine.Rendering.Universal
                             if (data == null || data.renderType != CameraRenderType.Overlay)
                             {
                                 Debug.LogWarning(string.Format("Stack can only contain Overlay cameras. {0} will skip rendering.", currCamera.name));
-                                continue;
                             }
-
-                            var currCameraRendererType = data?.scriptableRenderer.GetType();
-                            if (currCameraRendererType != baseCameraRendererType)
+                            else if (data?.scriptableRenderer.GetType() != baseCameraRendererType)
                             {
-                                var renderer2DType = typeof(Experimental.Rendering.Universal.Renderer2D);
-                                if (currCameraRendererType != renderer2DType && baseCameraRendererType != renderer2DType)
-                                {
-                                    Debug.LogWarning(string.Format("Only cameras with compatible renderer types can be stacked. {0} will skip rendering", currCamera.name));
-                                    continue;
-                                }
+                                Debug.LogWarning(string.Format("Only cameras with the same renderer type as the base camera can be stacked. {0} will skip rendering", currCamera.name));
                             }
-
-                            anyPostProcessingEnabled |= data.renderPostProcessing;
-                            lastActiveOverlayCameraIndex = i;
+                            else
+                            {
+                                anyPostProcessingEnabled |= data.renderPostProcessing;
+                                lastActiveOverlayCameraIndex = i;
+                            }
                         }
                     }
                 }
@@ -386,12 +393,8 @@ namespace UnityEngine.Rendering.Universal
             VFX.VFXManager.PrepareCamera(baseCamera);
 #endif
             UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
-            InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
-#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
-            if (asset.useAdaptivePerformance)
-                ApplyAdaptivePerformance(ref baseCameraData);
-#endif
-            RenderSingleCamera(context, baseCameraData, anyPostProcessingEnabled);
+            InitializeCameraData(baseCamera, baseCameraAdditionalData, out var baseCameraData);
+            RenderSingleCamera(context, baseCameraData, !isStackedRendering, anyPostProcessingEnabled);
             EndCameraRendering(context, baseCamera);
 
             if (!isStackedRendering)
@@ -418,8 +421,8 @@ namespace UnityEngine.Rendering.Universal
                     VFX.VFXManager.PrepareCamera(currCamera);
 #endif
                     UpdateVolumeFramework(currCamera, currCameraData);
-                    InitializeAdditionalCameraData(currCamera, currCameraData, lastCamera, ref overlayCameraData);
-                    RenderSingleCamera(context, overlayCameraData, anyPostProcessingEnabled);
+                    InitializeAdditionalCameraData(currCamera, currCameraData, ref overlayCameraData);
+                    RenderSingleCamera(context, overlayCameraData, lastCamera, anyPostProcessingEnabled);
                     EndCameraRendering(context, currCamera);
                 }
             }
@@ -491,11 +494,11 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        static void InitializeCameraData(Camera camera, UniversalAdditionalCameraData additionalCameraData, bool resolveFinalTarget, out CameraData cameraData)
+        static void InitializeCameraData(Camera camera, UniversalAdditionalCameraData additionalCameraData, out CameraData cameraData)
         {
             cameraData = new CameraData();
             InitializeStackedCameraData(camera, additionalCameraData, ref cameraData);
-            InitializeAdditionalCameraData(camera, additionalCameraData, resolveFinalTarget, ref cameraData);
+            InitializeAdditionalCameraData(camera, additionalCameraData, ref cameraData);
         }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -547,15 +550,14 @@ namespace UnityEngine.Rendering.Universal
             var settings = asset;
             cameraData.targetTexture = baseCamera.targetTexture;
             cameraData.isStereoEnabled = IsStereoEnabled(baseCamera);
-            cameraData.cameraType = baseCamera.cameraType;
-            cameraData.isSceneViewCamera = cameraData.cameraType == CameraType.SceneView;
+            cameraData.isSceneViewCamera = baseCamera.cameraType == CameraType.SceneView;
+
             cameraData.numberOfXRPasses = 1;
             cameraData.isXRMultipass = false;
 
-            bool isSceneViewCamera = cameraData.isSceneViewCamera;
-
 #if ENABLE_VR && ENABLE_VR_MODULE
-            if (cameraData.isStereoEnabled && !isSceneViewCamera && !CanXRSDKUseSinglePass(baseCamera) && XR.XRSettings.stereoRenderingMode == XR.XRSettings.StereoRenderingMode.MultiPass)
+            if (cameraData.isStereoEnabled && !cameraData.isSceneViewCamera &&
+                !CanXRSDKUseSinglePass(baseCamera) && XR.XRSettings.stereoRenderingMode == XR.XRSettings.StereoRenderingMode.MultiPass)
             {
                 cameraData.numberOfXRPasses = 2;
                 cameraData.isXRMultipass = true;
@@ -565,7 +567,7 @@ namespace UnityEngine.Rendering.Universal
             ///////////////////////////////////////////////////////////////////
             // Environment and Post-processing settings                       /
             ///////////////////////////////////////////////////////////////////
-            if (isSceneViewCamera)
+            if (cameraData.isSceneViewCamera)
             {
                 cameraData.volumeLayerMask = 1; // "Default"
                 cameraData.volumeTrigger = null;
@@ -634,19 +636,27 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="camera">Camera to initialize settings from.</param>
         /// <param name="additionalCameraData">Additional camera data component to initialize settings from.</param>
-        /// <param name="resolveFinalTarget">True if this is the last camera in the stack and rendering should resolve to camera target.</param>
         /// <param name="cameraData">Settings to be initilized.</param>
-        static void InitializeAdditionalCameraData(Camera camera, UniversalAdditionalCameraData additionalCameraData, bool resolveFinalTarget, ref CameraData cameraData)
+        static void InitializeAdditionalCameraData(Camera camera, UniversalAdditionalCameraData additionalCameraData, ref CameraData cameraData)
         {
             var settings = asset;
             cameraData.camera = camera;
 
             bool anyShadowsEnabled = settings.supportsMainLightShadows || settings.supportsAdditionalLightShadows;
             cameraData.maxShadowDistance = Mathf.Min(settings.shadowDistance, camera.farClipPlane);
-            cameraData.maxShadowDistance = (anyShadowsEnabled && cameraData.maxShadowDistance >= camera.nearClipPlane) ? cameraData.maxShadowDistance : 0.0f;
+            cameraData.maxShadowDistance = (anyShadowsEnabled && cameraData.maxShadowDistance >= camera.nearClipPlane) ?
+                cameraData.maxShadowDistance : 0.0f;
 
-            bool isSceneViewCamera = cameraData.isSceneViewCamera;
-            if (isSceneViewCamera)
+            cameraData.viewMatrix = camera.worldToCameraMatrix;
+
+            // Overlay cameras inherit viewport from base.
+            // If the viewport is different between them we might need to patch the projection
+            // matrix to prevent squishing when rendering objects in overlay cameras.
+            cameraData.projectionMatrix = (!camera.orthographic && !cameraData.isStereoEnabled && cameraData.pixelRect != camera.pixelRect) ?
+                Matrix4x4.Perspective(camera.fieldOfView, cameraData.aspectRatio, camera.nearClipPlane, camera.farClipPlane) :
+                camera.projectionMatrix;
+
+            if (cameraData.isSceneViewCamera)
             {
                 cameraData.renderType = CameraRenderType.Base;
                 cameraData.clearDepth = true;
@@ -677,8 +687,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Disable depth and color copy. We should add it in the renderer instead to avoid performance pitfalls
             // of camera stacking breaking render pass execution implicitly.
-            bool isOverlayCamera = (cameraData.renderType == CameraRenderType.Overlay);
-            if (isOverlayCamera)
+            if (cameraData.renderType == CameraRenderType.Overlay)
             {
                 cameraData.requiresDepthTexture = false;
                 cameraData.requiresOpaqueTexture = false;
@@ -703,29 +712,11 @@ namespace UnityEngine.Rendering.Universal
             bool depthRequiredForPostFX = CheckPostProcessForDepth(cameraData);
 #endif
 
-            cameraData.requiresDepthTexture |= isSceneViewCamera || depthRequiredForPostFX;
-            cameraData.resolveFinalTarget = resolveFinalTarget;
-
-            Matrix4x4 projectionMatrix = camera.projectionMatrix;
-
-            // Overlay cameras inherit viewport from base.
-            // If the viewport is different between them we might need to patch the projection to adjust aspect ratio
-            // matrix to prevent squishing when rendering objects in overlay cameras.
-            if (isOverlayCamera && !camera.orthographic && !cameraData.isStereoEnabled && cameraData.pixelRect != camera.pixelRect)
-            {
-                // m00 = (cotangent / aspect), therefore m00 * aspect gives us cotangent.
-                float cotangent = camera.projectionMatrix.m00 * camera.aspect;
-
-                // Get new m00 by dividing by base camera aspectRatio.
-                float newCotangent = cotangent / cameraData.aspectRatio;
-                projectionMatrix.m00 = newCotangent;
-            }
-
-            cameraData.SetViewAndProjectionMatrix(camera.worldToCameraMatrix, projectionMatrix);
+            cameraData.requiresDepthTexture |= cameraData.isSceneViewCamera || depthRequiredForPostFX;
         }
 
         static void InitializeRenderingData(UniversalRenderPipelineAsset settings, ref CameraData cameraData, ref CullingResults cullResults,
-            bool anyPostProcessingEnabled, out RenderingData renderingData)
+            bool requiresBlitToBackbuffer, bool anyPostProcessingEnabled, out RenderingData renderingData)
         {
             var visibleLights = cullResults.visibleLights;
 
@@ -765,6 +756,9 @@ namespace UnityEngine.Rendering.Universal
             InitializePostProcessingData(settings, out renderingData.postProcessingData);
             renderingData.supportsDynamicBatching = settings.supportsDynamicBatching;
             renderingData.perObjectData = GetPerObjectLightFlags(renderingData.lightData.additionalLightsCount);
+
+            bool isOffscreenCamera = cameraData.targetTexture != null && !cameraData.isSceneViewCamera;
+            renderingData.resolveFinalTarget = requiresBlitToBackbuffer;
             renderingData.postProcessingEnabled = anyPostProcessingEnabled;
 #pragma warning disable // avoid warning because killAlphaInFinalBlit has attribute Obsolete
             renderingData.killAlphaInFinalBlit = false;
@@ -940,70 +934,24 @@ namespace UnityEngine.Rendering.Universal
             Shader.SetGlobalVector(PerFrameBuffer._SubtractiveShadowColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.subtractiveShadowColor));
         }
 
-#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
-        static void ApplyAdaptivePerformance(ref CameraData cameraData)
+        static void SetupPerCameraShaderConstants(in CameraData cameraData)
         {
-            var noFrontToBackOpaqueFlags = SortingCriteria.SortingLayer | SortingCriteria.RenderQueue | SortingCriteria.OptimizeStateChanges | SortingCriteria.CanvasOrder;
-            if (AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipFrontToBackSorting)
-                cameraData.defaultOpaqueSortFlags = noFrontToBackOpaqueFlags;
+            Camera camera = cameraData.camera;
 
-            var MaxShadowDistanceMultiplier = AdaptivePerformance.AdaptivePerformanceRenderSettings.MaxShadowDistanceMultiplier;
-            cameraData.maxShadowDistance *= MaxShadowDistanceMultiplier;
+            Rect pixelRect = cameraData.pixelRect;
+            float scaledCameraWidth = (float)pixelRect.width * cameraData.renderScale;
+            float scaledCameraHeight = (float)pixelRect.height * cameraData.renderScale;
+            Shader.SetGlobalVector(PerCameraBuffer._ScaledScreenParams, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f + 1.0f / scaledCameraWidth, 1.0f + 1.0f / scaledCameraHeight));
+            Shader.SetGlobalVector(PerCameraBuffer._WorldSpaceCameraPos, camera.transform.position);
+            float cameraWidth = (float)pixelRect.width;
+            float cameraHeight = (float)pixelRect.height;
+            Shader.SetGlobalVector(PerCameraBuffer._ScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
 
-            var RenderScaleMultiplier = AdaptivePerformance.AdaptivePerformanceRenderSettings.RenderScaleMultiplier;
-            cameraData.renderScale *= RenderScaleMultiplier;
-
-            // TODO
-            if (!cameraData.isStereoEnabled)
-            {
-                cameraData.cameraTargetDescriptor.width = (int)(cameraData.camera.pixelWidth * cameraData.renderScale);
-                cameraData.cameraTargetDescriptor.height = (int)(cameraData.camera.pixelHeight * cameraData.renderScale);
-            }
-
-            var antialiasingQualityIndex = (int)cameraData.antialiasingQuality - AdaptivePerformance.AdaptivePerformanceRenderSettings.AntiAliasingQualityBias;
-            if (antialiasingQualityIndex < 0)
-                cameraData.antialiasing = AntialiasingMode.None;
-            cameraData.antialiasingQuality = (AntialiasingQuality)Mathf.Clamp(antialiasingQualityIndex, (int)AntialiasingQuality.Low, (int)AntialiasingQuality.High);
+            Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
+            Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
+            Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
+            Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
+            Shader.SetGlobalMatrix(PerCameraBuffer._InvCameraViewProj, invViewProjMatrix);
         }
-        static void ApplyAdaptivePerformance(ref RenderingData renderingData)
-        {
-            if (AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipDynamicBatching)
-                renderingData.supportsDynamicBatching = false;
-
-            var MainLightShadowmapResolutionMultiplier = AdaptivePerformance.AdaptivePerformanceRenderSettings.MainLightShadowmapResolutionMultiplier;
-            renderingData.shadowData.mainLightShadowmapWidth = (int)(renderingData.shadowData.mainLightShadowmapWidth * MainLightShadowmapResolutionMultiplier);
-            renderingData.shadowData.mainLightShadowmapHeight = (int)(renderingData.shadowData.mainLightShadowmapHeight * MainLightShadowmapResolutionMultiplier);
-
-            var MainLightShadowCascadesCountBias = AdaptivePerformance.AdaptivePerformanceRenderSettings.MainLightShadowCascadesCountBias;
-            renderingData.shadowData.mainLightShadowCascadesCount = Mathf.Clamp(renderingData.shadowData.mainLightShadowCascadesCount - MainLightShadowCascadesCountBias, 0, 4);
-
-            var shadowQualityIndex = AdaptivePerformance.AdaptivePerformanceRenderSettings.ShadowQualityBias;
-            for (int i = 0; i < shadowQualityIndex; i++)
-            {
-                if (renderingData.shadowData.supportsSoftShadows)
-                {
-                    renderingData.shadowData.supportsSoftShadows = false;
-                    continue;
-                }
-
-                if (renderingData.shadowData.supportsAdditionalLightShadows)
-                {
-                    renderingData.shadowData.supportsAdditionalLightShadows = false;
-                    continue;
-                }
-
-                if (renderingData.shadowData.supportsMainLightShadows)
-                {
-                    renderingData.shadowData.supportsMainLightShadows = false;
-                    continue;
-                }
-
-                break;
-            }
-
-            if (AdaptivePerformance.AdaptivePerformanceRenderSettings.LutBias >= 1 && renderingData.postProcessingData.lutSize == 32)
-                renderingData.postProcessingData.lutSize = 16;
-        }
-#endif
     }
 }

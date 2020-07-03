@@ -46,6 +46,7 @@ namespace UnityEditor.VFX.Block
                     yield return parameter;
 
                 yield return new VFXNamedExpression(VFXBuiltInExpression.DeltaTime, "deltaTime");
+
             }
         }
 
@@ -98,3 +99,4 @@ eventCount = min(eventCount,1);
         }
     }
 }
+

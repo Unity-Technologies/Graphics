@@ -463,13 +463,5 @@ namespace UnityEditor.Rendering.LookDev
                 ((IEnvironmentDisplayer)this).Repaint();
             }
         }
-
-        void FullRefreshEnvironmentList()
-        {
-            if (LookDev.currentContext.environmentLibrary != null)
-                LookDev.currentContext.FullReimportEnvironmentLibrary();
-            
-            ((IEnvironmentDisplayer)this).Repaint();
-        }
     }
 }

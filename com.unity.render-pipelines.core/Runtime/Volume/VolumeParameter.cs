@@ -234,7 +234,7 @@ namespace UnityEngine.Rendering
                 int hash = 17;
                 hash = hash * 23 + overrideState.GetHashCode();
 
-                if (!EqualityComparer<T>.Default.Equals(value, default)) // Catches null for references with boxing of value types
+                if (!ReferenceEquals(value, null))
                     hash = hash * 23 + value.GetHashCode();
 
                 return hash;

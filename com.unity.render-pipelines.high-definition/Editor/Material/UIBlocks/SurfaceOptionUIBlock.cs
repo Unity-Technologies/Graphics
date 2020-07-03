@@ -26,7 +26,6 @@ namespace UnityEditor.Rendering.HighDefinition
             ReceiveSSR                  = 1 << 8,
             ShowAfterPostProcessPass    = 1 << 9,
             Unlit                       = Surface | BlendMode | DoubleSided | DoubleSidedNormalMode | AlphaCutoff | AlphaCutoffShadowThreshold | AlphaCutoffThreshold | BackThenFrontRendering | ShowAfterPostProcessPass,
-            ShowPrePassAndPostPass      = 1 << 11,
             Lit                         = All,
             All                         = ~0,
         }
@@ -402,14 +401,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     if (transparentDepthPrepassEnable != null && transparentDepthPrepassEnable.floatValue == 1.0f)
                     {
-                        if (alphaCutoffPrepass != null)
-                            materialEditor.ShaderProperty(alphaCutoffPrepass, Styles.alphaCutoffPrepassText);
+                        materialEditor.ShaderProperty(alphaCutoffPrepass, Styles.alphaCutoffPrepassText);
                     }
 
                     if (transparentDepthPostpassEnable != null && transparentDepthPostpassEnable.floatValue == 1.0f)
                     {
-                        if (alphaCutoffPostpass != null)
-                            materialEditor.ShaderProperty(alphaCutoffPostpass, Styles.alphaCutoffPostpassText);
+                        materialEditor.ShaderProperty(alphaCutoffPostpass, Styles.alphaCutoffPostpassText);
                     }
                 }
                 EditorGUI.indentLevel--;
@@ -486,14 +483,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (transparentBackfaceEnable != null)
                     materialEditor.ShaderProperty(transparentBackfaceEnable, Styles.transparentBackfaceEnableText);
 
-                if ((m_Features & Features.ShowPrePassAndPostPass) != 0)
-                {
-                    if (transparentDepthPrepassEnable != null)
-                        materialEditor.ShaderProperty(transparentDepthPrepassEnable, Styles.transparentDepthPrepassEnableText);
+                if (transparentDepthPrepassEnable != null)
+                    materialEditor.ShaderProperty(transparentDepthPrepassEnable, Styles.transparentDepthPrepassEnableText);
 
-                    if (transparentDepthPostpassEnable != null)
-                        materialEditor.ShaderProperty(transparentDepthPostpassEnable, Styles.transparentDepthPostpassEnableText);
-                }
+                if (transparentDepthPostpassEnable != null)
+                    materialEditor.ShaderProperty(transparentDepthPostpassEnable, Styles.transparentDepthPostpassEnableText);
 
                 if (transparentWritingMotionVec != null)
                     materialEditor.ShaderProperty(transparentWritingMotionVec, Styles.transparentWritingMotionVecText);

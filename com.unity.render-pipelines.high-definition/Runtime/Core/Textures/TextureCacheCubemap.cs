@@ -189,9 +189,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.Destroy(m_CubeBlitMaterial);
             }
 
-            CoreUtils.Destroy(m_BlitCubemapFaceMaterial);
-
-            CoreUtils.Destroy(m_Cache);
+            m_Cache.Release();
         }
 
         private bool TransferToPanoCache(CommandBuffer cmd, int sliceIndex, Texture[] textureArray)

@@ -90,22 +90,12 @@ namespace UnityEditor.Rendering.LookDev
                 InternalEditorUtility.SaveToSerializedFileAndForget(new[] { currentContext }, path, true);
         }
 
-        /// <summary>Open the LookDev window</summary>
+        /// <summary>open the LookDev window</summary>
         public static void Open()
         {
-            var Window = EditorWindow.GetWindow<DisplayWindow>();
-            s_ViewDisplayer = Window;
-            s_EnvironmentDisplayer = Window;
+            s_ViewDisplayer = EditorWindow.GetWindow<DisplayWindow>();
+            s_EnvironmentDisplayer = EditorWindow.GetWindow<DisplayWindow>();
             ConfigureLookDev(reloadWithTemporaryID: false);
-        }
-
-        /// <summary>Close the LookDev window</summary>
-        public static void Close()
-        {
-            (s_ViewDisplayer as EditorWindow)?.Close();
-            s_ViewDisplayer = null;
-            (s_EnvironmentDisplayer as EditorWindow)?.Close();
-            s_EnvironmentDisplayer = null;
         }
 
         [Callbacks.DidReloadScripts]
@@ -141,7 +131,7 @@ namespace UnityEditor.Rendering.LookDev
                     () => WaitingSRPReloadForConfiguringRenderer(maxAttempt, reloadWithTemporaryID, ++attemptNumber);
             else
             {
-                Close();
+                (s_ViewDisplayer as EditorWindow)?.Close();
 
                 throw new System.Exception("LookDev is not supported by this Scriptable Render Pipeline: "
                     + (RenderPipelineManager.currentPipeline == null ? "No SRP in use" : RenderPipelineManager.currentPipeline.ToString()));
@@ -158,7 +148,8 @@ namespace UnityEditor.Rendering.LookDev
 
         static void LinkViewDisplayer()
         {
-            EditorApplication.playModeStateChanged += state => Close();
+            EditorApplication.playModeStateChanged += state =>
+                (s_ViewDisplayer as EditorWindow)?.Close();
 
             s_ViewDisplayer.OnClosed += () =>
             {

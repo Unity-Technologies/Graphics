@@ -33,7 +33,7 @@ struct SpeedTreeVertexOutput
         half3 viewDirWS             : TEXCOORD4;
     #endif
 
-    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+    #ifdef _MAIN_LIGHT_SHADOWS
         float4 shadowCoord          : TEXCOORD6;
     #endif
 
@@ -146,7 +146,6 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
             #if defined(EFFECT_BILLBOARD) && defined(UNITY_INSTANCING_ENABLED)
                 globalWindTime += UNITY_ACCESS_INSTANCED_PROP(STWind, _GlobalWindTime);
             #endif
-
             windyPosition = GlobalWind(windyPosition, treePos, true, rotatedWindVector, globalWindTime);
             input.vertex.xyz = windyPosition;
         }
@@ -231,12 +230,11 @@ SpeedTreeVertexOutput SpeedTree8Vert(SpeedTreeVertexInput input)
         output.viewDirWS = viewDirWS;
     #endif
 
-    output.positionWS = vertexInput.positionWS;
-
-    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+    #ifdef _MAIN_LIGHT_SHADOWS
         output.shadowCoord = GetShadowCoord(vertexInput);
     #endif
 
+    output.positionWS = vertexInput.positionWS;
     output.clipPos = vertexInput.positionCS;
 
     return output;
@@ -284,13 +282,11 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
     inputData.viewDirectionWS = SafeNormalize(inputData.viewDirectionWS);
 #endif
 
-    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-        inputData.shadowCoord = input.interpolated.shadowCoord;
-    #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-        inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
-    #else
-        inputData.shadowCoord = float4(0, 0, 0, 0);
-    #endif
+#ifdef _MAIN_LIGHT_SHADOWS
+    inputData.shadowCoord = input.interpolated.shadowCoord;
+#else
+    inputData.shadowCoord = float4(0, 0, 0, 0);
+#endif
 
     inputData.fogCoord = input.interpolated.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.interpolated.fogFactorAndVertexLight.yzw;
@@ -379,8 +375,6 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
 
     half4 color = UniversalFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
-    color.a = OutputAlpha(color.a);
-
     return color;
 }
 

@@ -35,7 +35,7 @@ namespace UnityEditor.VFX
 
         static void SetVisibility(bool visible)
         {
-            if (visible != s_Visible)
+            if(visible != s_Visible)
             {
                 s_Visible = visible;
                 EditorPrefs.SetBool(PreferenceName, visible);
@@ -114,6 +114,7 @@ namespace UnityEditor.VFX
         {
             m_Attributes.Add(new EventAttribute(name as string, EventAttributeType.Color, Color.white));
         }
+
 
         static void DrawWindow(SceneView sceneView)
         {
@@ -288,6 +289,7 @@ namespace UnityEditor.VFX
                 m_Effect.Stop(attrib);
             else
                 m_Effect.SendEvent(name, attrib);
+
         }
 
         static class Contents
@@ -311,5 +313,8 @@ namespace UnityEditor.VFX
                 rightButton.fontSize = 12;
             }
         }
+
     }
+
 }
+

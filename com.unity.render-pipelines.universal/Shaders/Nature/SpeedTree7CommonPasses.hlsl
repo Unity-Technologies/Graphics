@@ -40,7 +40,7 @@ struct SpeedTreeVertexOutput
         half3 viewDirWS             : TEXCOORD4;
     #endif
 
-    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+    #ifdef _MAIN_LIGHT_SHADOWS
         float4 shadowCoord          : TEXCOORD6;
     #endif
 
@@ -145,7 +145,6 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
 
     half4 color = UniversalFragmentBlinnPhong(inputData, diffuseColor.rgb, half4(0, 0, 0, 0), 0, 0, diffuse.a);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
-    color.a = OutputAlpha(color.a);
 
     return color;
 }

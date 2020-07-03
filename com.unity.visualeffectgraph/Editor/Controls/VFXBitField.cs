@@ -5,15 +5,17 @@ using UnityEditor.UIElements;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 namespace UnityEditor.VFX
-{
+{ 
     class BitFieldAttribute : System.Attribute
     {
+
     }
 }
 
 namespace UnityEditor.VFX.UI
 {
-    abstract class VFXBitField<T, U> : VFXControl<U>
+
+    abstract class VFXBitField<T,U> : VFXControl<U>
     {
         protected VisualElement[] m_Buttons;
         protected VisualElement m_Background;
@@ -30,7 +32,7 @@ namespace UnityEditor.VFX.UI
             Add(m_Label);
 
             Add(m_Background);
-            var buttonContainer = new VisualElement() { name = "button-container" , pickingMode = PickingMode.Ignore};
+            var buttonContainer = new VisualElement() { name = "button-container" ,pickingMode = PickingMode.Ignore};
             Add(buttonContainer);
             for (int i = 0; i < m_Buttons.Length; ++i)
             {
@@ -47,7 +49,7 @@ namespace UnityEditor.VFX.UI
             {
                 backgroundItem = new VisualElement();
                 backgroundItem.style.flexGrow = backgroundItem.style.flexShrink = 1;
-                if (i != m_Buttons.Length - 1)
+                if( i != m_Buttons.Length -1)
                     backgroundItem.style.paddingLeft = 1;
                 SetupBkgnd(backgroundItem, i);
                 m_Background.Add(backgroundItem);
@@ -74,7 +76,6 @@ namespace UnityEditor.VFX.UI
             button.RegisterCallback<MouseEnterEvent>(e => m_Label.text = index.ToString());
             button.RegisterCallback<MouseLeaveEvent>(e => m_Label.text = "");
         }
-
         void SetupBkgnd(VisualElement button, int index)
         {
             button.RegisterCallback<MouseEnterEvent>(e => m_Label.text = index.ToString());
@@ -91,7 +92,7 @@ namespace UnityEditor.VFX.UI
             customStyle.TryGetValue(s_BitImage, out m_BitImage);
             customStyle.TryGetValue(s_BitBkgndImage, out m_BitBkgndImage);
 
-            for (int i = 0; i < m_Background.childCount - 1; ++i)
+            for(int i = 0; i < m_Background.childCount -1; ++i)
                 m_Background.ElementAt(i).style.backgroundImage = m_BitBkgndImage;
 
             ValueToGUI(true);
@@ -108,7 +109,7 @@ namespace UnityEditor.VFX.UI
             set
             {
                 m_Indeterminate = value;
-                foreach (var button in m_Buttons)
+                foreach( var button in m_Buttons)
                 {
                     button.visible = !m_Indeterminate;
                 }
@@ -116,14 +117,14 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFX32BitField : VFXBitField<uint, long>
+    class VFX32BitField : VFXBitField<uint,long>
     {
         protected override void ValueToGUI(bool force)
         {
             uint value = (uint)this.value;
             for (int i = 0; i < m_Buttons.Length; ++i)
             {
-                m_Buttons[i].style.backgroundImage = (value & 1u << i) != 0 ? m_BitImage : null;
+                m_Buttons[i].style.backgroundImage = (value & 1u<<i) != 0? m_BitImage : null;
             }
         }
 
@@ -131,7 +132,6 @@ namespace UnityEditor.VFX.UI
         {
             value = value ^ (1u << i);
         }
-
         protected override void CheckAll(DropdownMenuAction a)
         {
             value = 0xFFFFFFFF;

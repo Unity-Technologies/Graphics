@@ -32,8 +32,8 @@ void GetNormalWS(FragInputs input, float3 normalTS, out float3 normalWS, float3 
     normalTS.xy *= flipSign;
 #endif // _DOUBLESIDED_ON
 
-    // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalized)
-    normalWS = SafeNormalize(TransformTangentToWorld(normalTS, input.tangentToWorld));
+    // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
+    normalWS = normalize(TransformTangentToWorld(normalTS, input.tangentToWorld));
 
 #endif // SURFACE_GRADIENT
 }

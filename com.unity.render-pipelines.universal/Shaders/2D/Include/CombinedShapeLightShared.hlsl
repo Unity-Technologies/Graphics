@@ -3,11 +3,9 @@
 
 half _HDREmulationScale;
 half _UseSceneLighting;
-half4 _RendererColor;
 
 half4 CombinedShapeLightShared(half4 color, half4 mask, half2 lightingUV)
 {
-    color = color * _RendererColor; // This is needed for sprite shape
 
 #if USE_SHAPE_LIGHT_TYPE_0
     half4 shapeLight0 = SAMPLE_TEXTURE2D(_ShapeLightTexture0, sampler_ShapeLightTexture0, lightingUV);
@@ -85,6 +83,7 @@ half4 CombinedShapeLightShared(half4 color, half4 mask, half2 lightingUV)
     finalOutput.a = color.a;
 
     finalOutput = finalOutput *_UseSceneLighting + (1 - _UseSceneLighting)*color;
-    return max(0, finalOutput);
+    return finalOutput;
 }
 #endif
+

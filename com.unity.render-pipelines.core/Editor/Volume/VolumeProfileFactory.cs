@@ -56,22 +56,12 @@ namespace UnityEditor.Rendering
             {
                 var scenePath = Path.GetDirectoryName(scene.path);
                 var extPath = scene.name;
-                var profilePath = scenePath + Path.DirectorySeparatorChar + extPath;
+                var profilePath = scenePath + "/" + extPath;
 
                 if (!AssetDatabase.IsValidFolder(profilePath))
-                {
-                    var directories = profilePath.Split(Path.DirectorySeparatorChar);
-                    string rootPath = "";
-                    foreach (var directory in directories)
-                    {
-                        var newPath = rootPath + directory;
-                        if (!AssetDatabase.IsValidFolder(newPath))
-                            AssetDatabase.CreateFolder(rootPath.TrimEnd(Path.DirectorySeparatorChar), directory);
-                        rootPath = newPath + Path.DirectorySeparatorChar;
-                    }
-                }  
+                    AssetDatabase.CreateFolder(scenePath, extPath);
 
-                path = profilePath + Path.DirectorySeparatorChar;
+                path = profilePath + "/";
             }
 
             path += targetName + " Profile.asset";

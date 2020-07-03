@@ -44,7 +44,7 @@ namespace  UnityEditor.VFX.UI
         new void Clear()
         {
             m_DefaultCategory.Clear();
-            if (m_OutputCategory != null)
+            if( m_OutputCategory != null)
                 m_OutputCategory.Clear();
 
             foreach (var cat in m_Categories)
@@ -108,11 +108,12 @@ namespace  UnityEditor.VFX.UI
 
             resizer.RemoveFromHierarchy();
 
-            if (s_LayoutManual != null)
+            if(s_LayoutManual != null)
                 s_LayoutManual.SetValue(this, false);
 
             m_AddButton.SetEnabled(false);
         }
+
 
         Label m_PathLabel;
         TextField m_PathTextField;
@@ -175,7 +176,7 @@ namespace  UnityEditor.VFX.UI
             m_PathLabel.text = newPath;
         }
 
-        static System.Reflection.PropertyInfo s_LayoutManual = typeof(VisualElement).GetProperty("isLayoutManual", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+        static System.Reflection.PropertyInfo s_LayoutManual = typeof(VisualElement).GetProperty("isLayoutManual",System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
 
         void OnKeyDown(KeyDownEvent e)
         {
@@ -424,7 +425,7 @@ namespace  UnityEditor.VFX.UI
             //TODO sort elements
             foreach (var row in rows)
             {
-                if (category == m_DefaultCategory || category == m_OutputCategory)
+                if( category == m_DefaultCategory || category == m_OutputCategory)
                     controller.SetParametersOrder(row.controller, index++, category == m_DefaultCategory);
                 else
                     controller.SetParametersOrder(row.controller, index++, category == m_DefaultCategory ? "" : category.title);
@@ -437,7 +438,7 @@ namespace  UnityEditor.VFX.UI
             {
                 m_OutputCategory.expanded = !m_OutputCategory.expanded;
 
-                PlayerPrefs.SetInt("VFX.blackboard.outputexpanded", m_OutputCategory.expanded ? 1 : 0);
+                PlayerPrefs.SetInt("VFX.blackboard.outputexpanded", m_OutputCategory.expanded?1:0);
             }
             else
                 controller.SetCategoryExpanded(category.title, expanded);
@@ -476,7 +477,7 @@ namespace  UnityEditor.VFX.UI
                 return;
             }
 
-            if (controller.model.subgraph is VisualEffectSubgraphOperator && m_OutputCategory == null)
+             if( controller.model.subgraph is VisualEffectSubgraphOperator && m_OutputCategory == null)
             {
                 m_OutputCategory = new VFXBlackboardCategory() { title = "Output" };
                 m_OutputCategory.headerVisible = true;
@@ -484,7 +485,7 @@ namespace  UnityEditor.VFX.UI
                 Add(m_OutputCategory);
                 m_OutputCategory.AddToClassList("output");
             }
-            else if (!(controller.model.subgraph is VisualEffectSubgraphOperator) && m_OutputCategory != null)
+            else if(!(controller.model.subgraph is VisualEffectSubgraphOperator) && m_OutputCategory != null )
             {
                 Remove(m_OutputCategory);
                 m_OutputCategory = null;
@@ -530,7 +531,7 @@ namespace  UnityEditor.VFX.UI
                     cat.PlaceInFront(prevCat);
                 prevCat = cat;
             }
-            if (m_OutputCategory != null)
+            if(m_OutputCategory != null)
                 m_OutputCategory.PlaceInFront(prevCat);
 
             foreach (var cat in newCategories)
@@ -547,6 +548,7 @@ namespace  UnityEditor.VFX.UI
             }
 
             m_PathLabel.text = controller.graph.categoryPath;
+                
         }
 
         public override void UpdatePresenterPosition()

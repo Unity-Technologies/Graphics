@@ -86,7 +86,6 @@ namespace UnityEditor.VFX.UI
         public VFXParameterOutputDataAnchorController(VFXSlot model, VFXParameterNodeController sourceNode, bool hidden) : base(model, sourceNode, hidden)
         {
         }
-
         public override Direction direction
         { get { return Direction.Output; } }
     }
@@ -95,7 +94,6 @@ namespace UnityEditor.VFX.UI
         public VFXParameterInputDataAnchorController(VFXSlot model, VFXParameterNodeController sourceNode, bool hidden) : base(model, sourceNode, hidden)
         {
         }
-
         public override Direction direction
         { get { return Direction.Input; } }
     }
@@ -135,7 +133,7 @@ namespace UnityEditor.VFX.UI
         protected override VFXDataAnchorController AddDataAnchor(VFXSlot slot, bool input, bool hidden)
         {
             VFXDataAnchorController newAnchor;
-            if (input)
+            if ( input)
                 newAnchor = new VFXParameterInputDataAnchorController(slot, this, hidden);
             else
                 newAnchor = new VFXParameterOutputDataAnchorController(slot, this, hidden);
@@ -146,7 +144,7 @@ namespace UnityEditor.VFX.UI
 
         public override string title
         {
-            get { return parentController.isOutput ? inputPorts.First().name : outputPorts.First().name; }
+            get { return parentController.isOutput? inputPorts.First().name : outputPorts.First().name; }
         }
 
         public string exposedName
@@ -227,7 +225,6 @@ namespace UnityEditor.VFX.UI
         bool IPropertyRMProvider.expandableIfShowsEverything { get { return false; } }
 
 
-        IEnumerable<int> IPropertyRMProvider.filteredOutEnumerators { get { return null; } }
         public object value
         {
             get
@@ -277,17 +274,15 @@ namespace UnityEditor.VFX.UI
                 m_GizmoableAnchors.Add(m_ParentController);
             }
         }
-
         public override void OnEdgeFromInputGoingToBeRemoved(VFXDataAnchorController myInput)
         {
             base.OnEdgeFromInputGoingToBeRemoved(myInput);
-            if (parentController.isOutput)
+            if(parentController.isOutput)
                 infos.linkedSlots.RemoveAll(t => t.inputSlot == myInput.model);
         }
-
         public override void OnEdgeFromOutputGoingToBeRemoved(VFXDataAnchorController myOutput, VFXDataAnchorController otherInput)
         {
-            base.OnEdgeFromOutputGoingToBeRemoved(myOutput, otherInput);
+            base.OnEdgeFromOutputGoingToBeRemoved(myOutput,otherInput);
             if (!parentController.isOutput)
                 infos.linkedSlots.RemoveAll(t => t.outputSlot == myOutput.model && t.inputSlot == otherInput.model);
         }

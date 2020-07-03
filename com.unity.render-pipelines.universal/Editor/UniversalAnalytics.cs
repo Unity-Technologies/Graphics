@@ -60,11 +60,8 @@ namespace UnityEditor.Rendering.Universal
                         rendererDatas.Add(rendererData.GetType().ToString());
                         foreach (ScriptableRendererFeature rendererFeature in rendererData.rendererFeatures)
                         {
-                            if (rendererFeature != null)
-                            {
-                                rendererFeaturesAmount++;
-                                renderFeatures.Add(rendererFeature.GetType().ToString());
-                            }
+                            rendererFeaturesAmount++;
+                            renderFeatures.Add(rendererFeature.GetType().ToString());
                         }
                     }
                 }

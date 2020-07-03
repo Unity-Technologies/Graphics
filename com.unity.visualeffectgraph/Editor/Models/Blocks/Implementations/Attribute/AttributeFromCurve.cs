@@ -177,6 +177,7 @@ namespace UnityEditor.VFX.Block
 
                     default:
                         break;
+
                 }
             }
         }

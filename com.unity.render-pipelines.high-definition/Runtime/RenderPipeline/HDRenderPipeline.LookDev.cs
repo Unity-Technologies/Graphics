@@ -5,10 +5,6 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline : IDataProvider
     {
-#if UNITY_EDITOR
-        int m_LookDevVolumeProfileHash = -1;
-#endif
-
         struct LookDevDataForHDRP
         {
             public HDAdditionalCameraData additionalCameraData;
@@ -17,65 +13,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public HDRISky sky;
             public Volume volume;
         }
-
-#if UNITY_EDITOR
-        bool UpdateVolumeProfile(Volume volume, out VisualEnvironment visualEnvironment, out HDRISky sky)
-        {
-            HDRenderPipelineAsset hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-            if (hdrpAsset.defaultLookDevProfile == null)
-                hdrpAsset.defaultLookDevProfile = hdrpAsset.renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile;
-
-            int newHashCode = hdrpAsset.defaultLookDevProfile.GetHashCode();
-            if (newHashCode != m_LookDevVolumeProfileHash)
-            {
-                VolumeProfile oldProfile = volume.sharedProfile;
-
-                m_LookDevVolumeProfileHash = newHashCode;
-
-                VolumeProfile profile = ScriptableObject.Instantiate(hdrpAsset.defaultLookDevProfile);
-                volume.sharedProfile = profile;
-
-                // Remove potentially existing components in the user profile.
-                if (profile.TryGet(out visualEnvironment))
-                    profile.Remove<VisualEnvironment>();
-
-                if (profile.TryGet(out sky))
-                    profile.Remove<HDRISky>();
-
-                // If there was a profile before we needed to re-instantiate the new profile, we need to copy the data over for sky settings.
-                if (oldProfile != null)
-                {
-                    if (oldProfile.TryGet(out HDRISky oldSky))
-                    {
-                        sky = Object.Instantiate(oldSky);
-                        profile.components.Add(sky);
-                    }
-                    if (oldProfile.TryGet(out VisualEnvironment oldVisualEnv))
-                    {
-                        visualEnvironment = Object.Instantiate(oldVisualEnv);
-                        profile.components.Add(visualEnvironment);
-                    }
-
-                    CoreUtils.Destroy(oldProfile);
-                }
-                else
-                {
-                    visualEnvironment = profile.Add<VisualEnvironment>();
-                    visualEnvironment.skyType.Override((int)SkyType.HDRI);
-                    visualEnvironment.skyAmbientMode.Override(SkyAmbientMode.Dynamic);
-                    sky = profile.Add<HDRISky>();
-                }
-
-                return true;
-            }
-            else
-            {
-                visualEnvironment = null;
-                sky = null;
-                return false;
-            }
-        }
-#endif
 
         /// <summary>
         /// This hook allows HDRP to init the scene when creating the view
@@ -114,11 +51,24 @@ namespace UnityEngine.Rendering.HighDefinition
             volume.priority = float.MaxValue;
             volume.enabled = false;
 
-
 #if UNITY_EDITOR
-            // Make sure we invalidate the current volume when first loading a scene.
-            m_LookDevVolumeProfileHash = -1;
-            UpdateVolumeProfile(volume, out var visualEnvironment, out var sky);
+            HDRenderPipelineAsset hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            if (hdrpAsset.defaultLookDevProfile == null)
+                hdrpAsset.defaultLookDevProfile = hdrpAsset.renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile;
+            VolumeProfile profile = ScriptableObject.Instantiate(hdrpAsset.defaultLookDevProfile);
+            volume.sharedProfile = profile;
+
+            VisualEnvironment visualEnvironment;
+            if (profile.TryGet(out visualEnvironment))
+                profile.Remove<VisualEnvironment>();
+            visualEnvironment = profile.Add<VisualEnvironment>();
+            visualEnvironment.skyType.Override((int)SkyType.HDRI);
+            visualEnvironment.skyAmbientMode.Override(SkyAmbientMode.Dynamic);
+
+            HDRISky sky;
+            if (profile.TryGet(out sky))
+                profile.Remove<HDRISky>();
+            sky = profile.Add<HDRISky>();
 
             SRI.SRPData = new LookDevDataForHDRP()
             {
@@ -129,7 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 volume = volume
             };
 #else
-            //remove unassigned warnings when building
+            //remove unasigned warnings when building
             SRI.SRPData = new LookDevDataForHDRP()
             {
                 additionalCameraData = null,
@@ -172,15 +122,6 @@ namespace UnityEngine.Rendering.HighDefinition
         void IDataProvider.OnBeginRendering(StageRuntimeInterface SRI)
         {
             LookDevDataForHDRP data = (LookDevDataForHDRP)SRI.SRPData;
-#if UNITY_EDITOR
-            // The default volume can change in the HDRP asset so if it does we need to re-instantiate it.
-            if (UpdateVolumeProfile(data.volume, out var visualEnv, out var sky))
-            {
-                data.sky = sky;
-                data.visualEnvironment = visualEnv;
-                SRI.SRPData = data;
-            }
-#endif
             data.volume.enabled = true;
         }
 

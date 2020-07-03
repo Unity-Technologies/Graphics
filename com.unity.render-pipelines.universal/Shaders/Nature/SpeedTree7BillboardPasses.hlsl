@@ -13,7 +13,7 @@ void InitializeData(inout SpeedTreeVertexInput input, out half2 outUV, out half 
     float3 eyeVec = normalize(unity_BillboardCameraPosition - worldPos);
     float3 billboardTangent = normalize(float3(-eyeVec.z, 0, eyeVec.x));            // cross(eyeVec, {0,1,0})
     float3 billboardNormal = float3(billboardTangent.z, 0, -billboardTangent.x);    // cross({0,1,0},billboardTangent)
-    float angle = atan2(billboardNormal.z, billboardNormal.x);                     // signed angle between billboardNormal to {0,0,1}
+    float3 angle = atan2(billboardNormal.z, billboardNormal.x);                     // signed angle between billboardNormal to {0,0,1}
     angle += angle < 0 ? 2 * SPEEDTREE_PI : 0;
 #else
     float3 billboardTangent = unity_BillboardTangent;
@@ -31,9 +31,7 @@ void InitializeData(inout SpeedTreeVertexInput input, out half2 outUV, out half 
 
 #ifdef ENABLE_WIND
     if (_WindQuality * _WindEnabled > 0)
-    {
         billboardPos = GlobalWind(billboardPos, worldPos, true, _ST_WindVector.xyz, input.texcoord1.w);
-    }
 #endif
 
     input.vertex.xyz += billboardPos;
@@ -101,7 +99,7 @@ SpeedTreeVertexOutput SpeedTree7Vert(SpeedTreeVertexInput input)
 
     output.clipPos = vertexInput.positionCS;
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+#ifdef _MAIN_LIGHT_SHADOWS
     output.shadowCoord = GetShadowCoord(vertexInput);
 #endif
 

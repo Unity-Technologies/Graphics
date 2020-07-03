@@ -57,11 +57,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 materialEditor.ShaderProperty(particleProps.flipbookMode, ParticleGUI.Styles.flipbookMode);
                 ParticleGUI.FadingOptions(material, materialEditor, particleProps);
                 ParticleGUI.DoVertexStreamsArea(material, m_RenderersUsingThisMaterial);
-
-                if (EditorGUI.EndChangeCheck())
-                {
-                    MaterialChanged(material);
-                }
             }
             base.DrawAdvancedOptions(material);
         }

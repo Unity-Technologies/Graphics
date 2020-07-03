@@ -6,8 +6,6 @@ using UnityEngine.TestTools;
 using UnityEngine.XR;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.SceneManagement;
-using UnityEngine.Rendering.Universal;
-using UnityEngine.Experimental.Rendering.Universal;
 
 public class UniversalGraphicsTests
 {
@@ -28,7 +26,7 @@ public class UniversalGraphicsTests
 
         var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x=>x.GetComponent<Camera>());
         var settings = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
-        Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");        
+        Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
 
         Scene scene = SceneManager.GetActiveScene();
 
@@ -60,38 +58,27 @@ public class UniversalGraphicsTests
             yield return null;
         }
 
-        int waitFrames = settings.WaitFrames;
-
-        if (settings.ImageComparisonSettings.UseBackBuffer && settings.WaitFrames < 1)
-        {
-            waitFrames = 1;
-        }
-        for (int i = 0; i < waitFrames; i++)
-            yield return new WaitForEndOfFrame();
+        for (int i = 0; i < settings.WaitFrames; i++)
+            yield return null;
 
         ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), settings.ImageComparisonSettings);
 
+#if CHECK_ALLOCATIONS_WHEN_RENDERING
         // Does it allocate memory when it renders what's on the main camera?
         bool allocatesMemory = false;
         var mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-
-        // 2D Renderer is currently allocating memory, skip it as it will always fail GC alloc tests.
-        var additionalCameraData = mainCamera.GetUniversalAdditionalCameraData();
-        bool is2DRenderer = additionalCameraData.scriptableRenderer is Renderer2D;
-        
-        if (!is2DRenderer)
+        try
         {
-            try
-            {
-                ImageAssert.AllocatesMemory(mainCamera, settings?.ImageComparisonSettings);
-            }
-            catch (AssertionException)
-            {
-                allocatesMemory = true;
-            }
-            if (allocatesMemory)
-                Assert.Fail("Allocated memory when rendering what is on main camera");
+            ImageAssert.AllocatesMemory(mainCamera, settings?.ImageComparisonSettings);
         }
+        catch (AssertionException)
+        {
+            allocatesMemory = true;
+        }
+        if (allocatesMemory)
+            Assert.Fail("Allocated memory when rendering what is on main camera");
+#endif
+
     }
 
 #if UNITY_EDITOR

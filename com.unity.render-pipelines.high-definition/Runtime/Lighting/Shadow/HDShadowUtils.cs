@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
             splitData.shadowCascadeBlendCullingFactor = .6f;
 
             // get lightDir
-            lightDir = visibleLight.GetForward();
+            lightDir = visibleLight.light.transform.forward;
             // TODO: At some point this logic should be moved to C#, then the parameters cullResults and lightIndex can be removed as well
             //       For directional lights shadow data is extracted from the cullResults, so that needs to be somehow provided here.
             //       Check ScriptableShadowsUtility.cpp ComputeDirectionalShadowMatricesAndCullingPrimitives(...) for details.
@@ -230,7 +230,7 @@ namespace UnityEngine.Rendering.HighDefinition
             splitData.cullingSphere.Set(0.0f, 0.0f, 0.0f, float.NegativeInfinity);
             splitData.cullingPlaneCount = 0;
             // get lightDir
-            lightDir = vl.GetForward();
+            lightDir = vl.light.transform.forward;
             // calculate view
             Matrix4x4 scaleMatrix = Matrix4x4.identity;
             scaleMatrix.m22 = -1.0f;
@@ -253,9 +253,9 @@ namespace UnityEngine.Rendering.HighDefinition
             splitData.cullingSphere.Set(0.0f, 0.0f, 0.0f, float.NegativeInfinity);
 
             // get lightDir
-            lightDir = vl.GetForward();
+            lightDir = vl.light.transform.forward;
             // calculate the view matrices
-            Vector3 lpos = vl.GetPosition();
+            Vector3 lpos = vl.light.transform.position;
             view = kCubemapFaces[faceIdx];
             Vector3 inverted_viewpos = kCubemapFaces[faceIdx].MultiplyPoint(-lpos);
             view.SetColumn(3, new Vector4(inverted_viewpos.x, inverted_viewpos.y, inverted_viewpos.z, 1.0f));

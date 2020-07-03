@@ -19,7 +19,6 @@ namespace UnityEditor.VFX.UI
             anchor.AddManipulator(anchor.m_EdgeConnector);
             return anchor;
         }
-
         VisualElement m_Icon;
 
         protected VFXOutputDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type, VFXNodeUI node) : base(anchorOrientation, anchorDirection, type, node)
@@ -64,7 +63,7 @@ namespace UnityEditor.VFX.UI
                     var line = new VisualElement();
                     line.style.width = 1;
                     line.name = "line";
-                    line.style.marginLeft = PropertyRM.depthOffset - 2;
+                    line.style.marginLeft = PropertyRM.depthOffset-2;
                     line.style.marginRight = 0;
 
                     Insert(3, line);
@@ -75,7 +74,7 @@ namespace UnityEditor.VFX.UI
 
             if (controller.expandable)
             {
-                if (controller.expandedSelf)
+                if( controller.expandedSelf)
                 {
                     AddToClassList("icon-expanded");
                 }
@@ -94,7 +93,7 @@ namespace UnityEditor.VFX.UI
             else
             {
                 m_Icon.style.backgroundImage = null;
-                if (m_ExpandClickable != null)
+                if( m_ExpandClickable != null)
                 {
                     m_Icon.RemoveManipulator(m_ExpandClickable);
                     m_ExpandClickable = null;

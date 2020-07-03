@@ -201,16 +201,7 @@ namespace UnityEditor.Rendering
                 }*/
                 parser.Lexer.EvaluateConditionalCompilation = true;
 
-                try
-                {
-                    parser.Parse();
-                }
-                catch
-                {
-                    Debug.LogWarning($"Unable to parse {fileName}.  Please not that C# 6.0 syntax is not yet supported by this tool.");
-                    return;
-                }
-
+                parser.Parse();
                 try
                 {
                     var visitor = new NamespaceVisitor();

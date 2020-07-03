@@ -111,13 +111,11 @@ namespace UnityEditor.VFX
         public bool HasSorting()        { return (sort == SortMode.On || (sort == SortMode.Auto && (blendMode == BlendMode.Alpha || blendMode == BlendMode.AlphaPremultiplied))) && !HasStrips(true); }
         int IVFXSubRenderer.sortPriority
         {
-            get
-            {
+            get {
                 return sortPriority;
             }
-            set
-            {
-                if (sortPriority != value)
+            set {
+                if(sortPriority != value)
                 {
                     sortPriority = value;
                     Invalidate(InvalidationCause.kSettingChanged);
@@ -228,9 +226,9 @@ namespace UnityEditor.VFX
                 foreach (var property in PropertiesFromType(GetInputPropertiesTypeName()))
                     yield return property;
 
-                if (colorMapping == ColorMappingMode.GradientMapped)
+                if(colorMapping == ColorMappingMode.GradientMapped)
                 {
-                    foreach (var property in PropertiesFromType("InputPropertiesGradientMapped"))
+                    foreach(var property in PropertiesFromType("InputPropertiesGradientMapped"))
                         yield return property;
                 }
 
@@ -242,7 +240,7 @@ namespace UnityEditor.VFX
                         case UVMode.FlipbookBlend:
                         case UVMode.FlipbookMotionBlend:
                             yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "flipBookSize"), new Vector2(4, 4));
-                            if (uvMode == UVMode.FlipbookMotionBlend)
+                            if(uvMode == UVMode.FlipbookMotionBlend)
                             {
                                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(Texture2D), "motionVectorMap"));
                                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "motionVectorScale"), 1.0f);
@@ -271,7 +269,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                switch (colorMapping)
+                switch(colorMapping)
                 {
                     case ColorMappingMode.Default:
                         yield return "VFX_COLORMAPPING_DEFAULT";

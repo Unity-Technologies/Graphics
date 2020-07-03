@@ -18,6 +18,7 @@ namespace UnityEditor.VFX.UI
 
     abstract class SubGraphCache
     {
+
         protected SubGraphCache()
         {
         }
@@ -40,14 +41,10 @@ namespace UnityEditor.VFX.UI
         protected List<Item> m_Items = new List<Item>();
         protected bool m_UptoDate = false;
 
-        public IEnumerable<Item> items
-        {
-            get
-            {
+        public IEnumerable<Item> items { get {
                 UpdateCache();
                 return m_Items;
-            }
-        }
+            } }
 
         protected abstract void UpdateCache();
 
@@ -75,7 +72,7 @@ namespace UnityEditor.VFX.UI
             return Enumerable.Empty<Item>();
         }
     }
-    class SubGraphCache<T> : SubGraphCache where T : VisualEffectObject
+    class SubGraphCache<T> : SubGraphCache where T : VisualEffectObject 
     {
         protected override void UpdateCache()
         {
@@ -84,7 +81,7 @@ namespace UnityEditor.VFX.UI
             foreach (var guid in guids)
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
-                if (!path.StartsWith(VisualEffectAssetEditorUtility.templatePath))
+                if( ! path.StartsWith(VisualEffectAssetEditorUtility.templatePath))
                 {
                     T asset = AssetDatabase.LoadAssetAtPath<T>(path);
                     if (asset != null)
@@ -95,7 +92,7 @@ namespace UnityEditor.VFX.UI
                         if (item.category == null)
                             item.category = "";
 
-                        if (typeof(T) == typeof(VisualEffectSubgraphBlock))
+                        if ( typeof(T) == typeof(VisualEffectSubgraphBlock))
                         {
                             VFXBlockSubgraphContext blockContext = asset.GetResource().GetOrCreateGraph().children.OfType<VFXBlockSubgraphContext>().FirstOrDefault();
 
@@ -107,6 +104,7 @@ namespace UnityEditor.VFX.UI
                         }
                         else
                             m_Items.Add(item);
+
                     }
                 }
             }
@@ -200,12 +198,12 @@ namespace UnityEditor.VFX.UI
 
                 descriptorsOperator = descriptorsOperator.Concat(SubGraphCache.GetItems(typeof(VisualEffectSubgraphOperator)).Select(
                     t => new Descriptor()
-                    {
-                        modelDescriptor = t.path,
-                        category = "Operator/Subgraph Operator/" + t.category,
-                        name = t.name
-                    }
-                ));
+                        {
+                            modelDescriptor = t.path,
+                            category = "Operator/Subgraph Operator/" + t.category,
+                            name = t.name
+                        }
+                    ));
 
                 descs = descs.Concat(descriptorsOperator.OrderBy(o => o.category + o.name));
             }
@@ -223,7 +221,7 @@ namespace UnityEditor.VFX.UI
             }
             if (m_AcceptedTypes == null)
             {
-                var systemFiles = System.IO.Directory.GetFiles(VisualEffectAssetEditorUtility.templatePath).Where(t => Path.GetExtension(t) == VisualEffectResource.Extension).Select(t => t.Replace("\\", "/"));
+                var systemFiles = System.IO.Directory.GetFiles(VisualEffectAssetEditorUtility.templatePath).Where(t=> Path.GetExtension(t) == VisualEffectResource.Extension).Select(t => t.Replace("\\", "/"));
 
                 var systemDesc = systemFiles.Select(t => new Descriptor() { modelDescriptor = t.Replace(VisualEffectGraphPackageInfo.fileSystemPackagePath, VisualEffectGraphPackageInfo.assetPackagePath), category = "System", name = System.IO.Path.GetFileNameWithoutExtension(t) });
 

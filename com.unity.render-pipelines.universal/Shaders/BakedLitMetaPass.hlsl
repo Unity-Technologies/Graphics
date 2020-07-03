@@ -46,7 +46,7 @@ Varyings LightweightVertexMeta(Attributes input)
 
 half4 LightweightFragmentMetaBakedLit(Varyings input) : SV_Target
 {
-    return UniversalFragmentMetaBakedLit(input);
+    return LightweightFragmentMetaBakedLit(input);
 }
 
 #endif

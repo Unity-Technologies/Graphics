@@ -27,19 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Display indirect diffuse occlusion.</summary>
         IndirectDiffuseOcclusion,
         /// <summary>Display indirect specular occlusion.</summary>
-        IndirectSpecularOcclusion,
-        /// <summary>Display only direct diffuse lighting.</summary>
-        DirectDiffuseLighting,
-        /// <summary>Display only direct specular lighting.</summary>
-        DirectSpecularLighting,
-        /// <summary>Display only indirect diffuse lighting.</summary>
-        IndirectDiffuseLighting,
-        /// <summary>Display only reflection.</summary>
-        ReflectionLighting,
-        /// <summary>Display only refraction.</summary>
-        RefractionLighting,
-        /// <summary>Display only Emissive lighting.</summary>
-        EmissiveLighting
+        IndirectSpecularOcclusion
     }
 
     /// <summary>
@@ -212,7 +200,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Maximum number of lights against which the light overdraw gradient is displayed.</summary>
         public uint                 maxDebugLightCount = 24;
 
-        /// <summary>Exposure compensation to apply on current scene exposure.</summary>
+        /// <summary>Exposure used for lighting debug modes.</summary>
         public float                debugExposure = 0.0f;
 
         /// <summary>Display the light cookies atlas.</summary>
@@ -250,9 +238,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Internal APIs
         internal bool IsDebugDisplayRemovePostprocess()
         {
-            return  debugLightingMode == DebugLightingMode.LuxMeter || debugLightingMode == DebugLightingMode.LuminanceMeter ||
-                    debugLightingMode == DebugLightingMode.VisualizeCascade || debugLightingMode == DebugLightingMode.VisualizeShadowMasks ||
-                    debugLightingMode == DebugLightingMode.IndirectDiffuseOcclusion || debugLightingMode == DebugLightingMode.IndirectSpecularOcclusion;
+            return debugLightingMode != DebugLightingMode.None && debugLightingMode != DebugLightingMode.MatcapView;
         }
 
     }

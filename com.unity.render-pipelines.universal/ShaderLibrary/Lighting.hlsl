@@ -458,7 +458,7 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness,
 #if !defined(UNITY_USE_NATIVE_HDR)
     half3 irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
 #else
-    half3 irradiance = encodedIrradiance.rgb;
+    half3 irradiance = encodedIrradiance.rbg;
 #endif
 
     return irradiance * occlusion;

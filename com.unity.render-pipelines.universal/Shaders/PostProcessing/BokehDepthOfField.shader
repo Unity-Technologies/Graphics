@@ -11,7 +11,6 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
-        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
         // Do not change this without changing PostProcessPass.PrepareBokehKernel()
         #define SAMPLE_COUNT            42
@@ -23,6 +22,8 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
         TEXTURE2D_X(_MainTex);
         TEXTURE2D_X(_DofTexture);
         TEXTURE2D_X(_FullCoCTexture);
+
+        TEXTURE2D_X_FLOAT(_CameraDepthTexture);
 
         float4 _MainTex_TexelSize;
         float4 _DofTexture_TexelSize;
@@ -38,23 +39,8 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-            uint w;
-            uint h;
-#if defined(SHADER_API_GLCORE)
-            // GetDimensions will use textureQueryLevels in OpenGL and that's not
-            // supported in OpenGL 4.1 or below. In that case we use _MainTex_TexelSize
-            // which is fine as we don't support dynamic scaling in OpenGL.
-            w = _MainTex_TexelSize.z;
-            h = _MainTex_TexelSize.w;
-#elif defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-            uint x;
-            _CameraDepthTexture.GetDimensions(w, h, x);
-#else
-            _CameraDepthTexture.GetDimensions(w, h);
-#endif
-
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
-            float depth = LOAD_TEXTURE2D_X(_CameraDepthTexture, float2(w, h) * uv).x;
+            float depth = LOAD_TEXTURE2D_X(_CameraDepthTexture, _MainTex_TexelSize.zw * uv).x;
             float linearEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
 
             half coc = (1.0 - FocusDist / linearEyeDepth) * MaxCoC;
@@ -307,11 +293,11 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             ENDHLSL
         }
     }
-
+        
     // SM3.5 fallbacks - needed because of the use of Gather
     SubShader
     {
-        Tags { "RenderPipeline" = "UniversalPipeline" }
+        Tags { "RenderPipeline" = "LightweightPipeline" }
         LOD 100
         ZTest Always ZWrite Off Cull Off
 

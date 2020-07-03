@@ -49,7 +49,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         const int k_MaxPyramidSize = 16;
         readonly GraphicsFormat m_DefaultHDRFormat;
         bool m_UseRGBM;
-        readonly GraphicsFormat m_SMAAEdgeFormat;
         readonly GraphicsFormat m_GaussianCoCFormat;
         Matrix4x4 m_PrevViewProjM = Matrix4x4.identity;
         bool m_ResetHistory;
@@ -92,12 +91,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     : GraphicsFormat.R8G8B8A8_UNorm;
                 m_UseRGBM = true;
             }
-
-            // Only two components are needed for edge render texture, but on some vendors four components may be faster.
-            if (SystemInfo.IsFormatSupported(GraphicsFormat.R8G8_UNorm, FormatUsage.Render) && SystemInfo.graphicsDeviceVendor.ToLowerInvariant().Contains("arm"))
-                m_SMAAEdgeFormat = GraphicsFormat.R8G8_UNorm;
-            else
-                m_SMAAEdgeFormat = GraphicsFormat.R8G8B8A8_UNorm;
 
             if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_UNorm, FormatUsage.Linear | FormatUsage.Render))
                 m_GaussianCoCFormat = GraphicsFormat.R16_UNorm;
@@ -247,7 +240,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             bool tempTarget2Used = false;
             int source = m_Source.id;
             int destination = -1;
-            bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
             // Utilities to simplify intermediate target management
             int GetSource() => source;
@@ -265,7 +257,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // Avoid using m_Source.id as new destination, it may come with a depth buffer that we don't want, may have MSAA that we don't want etc
                     cmd.GetTemporaryRT(ShaderConstants._TempTarget2, GetStereoCompatibleDescriptor(), FilterMode.Bilinear);
                     destination = ShaderConstants._TempTarget2;
-                    tempTarget2Used = true;
+                    tempTarget2Used = true; 
                 }
 
                 return destination;
@@ -299,7 +291,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             // Depth of Field
-            if (m_DepthOfField.IsActive() && !isSceneViewCamera)
+            if (m_DepthOfField.IsActive() && !cameraData.isSceneViewCamera)
             {
                 var markerName = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian
                     ? URPProfileId.GaussianDepthOfField
@@ -313,7 +305,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             // Motion blur
-            if (m_MotionBlur.IsActive() && !isSceneViewCamera)
+            if (m_MotionBlur.IsActive() && !cameraData.isSceneViewCamera)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MotionBlur)))
                 {
@@ -324,7 +316,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Panini projection is done as a fullscreen pass after all depth-based effects are done
             // and before bloom kicks in
-            if (m_PaniniProjection.IsActive() && !isSceneViewCamera)
+            if (m_PaniniProjection.IsActive() && !cameraData.isSceneViewCamera)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.PaniniProjection)))
                 {
@@ -348,7 +340,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 // Setup other effects constants
-                SetupLensDistortion(m_Materials.uber, isSceneViewCamera);
+                SetupLensDistortion(m_Materials.uber, cameraData.isSceneViewCamera);
                 SetupChromaticAberration(m_Materials.uber);
                 SetupVignette(m_Materials.uber);
                 SetupColorGrading(cmd, ref renderingData, m_Materials.uber);
@@ -374,7 +366,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetRenderTarget(cameraTarget, colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
 
                 // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
-                bool finishPostProcessOnScreen = cameraData.resolveFinalTarget || (m_Destination == RenderTargetHandle.CameraTarget || m_HasFinalPass == true);
+                bool finishPostProcessOnScreen = renderingData.resolveFinalTarget || (m_Destination == RenderTargetHandle.CameraTarget || m_HasFinalPass == true);
 
                 if (m_IsStereo)
                 {
@@ -478,7 +470,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 stencil = m_Depth.Identifier();
                 tempDepthBits = 0;
             }
-            cmd.GetTemporaryRT(ShaderConstants._EdgeTexture, GetStereoCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, m_SMAAEdgeFormat, tempDepthBits), FilterMode.Point);
+            cmd.GetTemporaryRT(ShaderConstants._EdgeTexture, GetStereoCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8G8B8A8_UNorm, tempDepthBits), FilterMode.Point);
             cmd.GetTemporaryRT(ShaderConstants._BlendTexture, GetStereoCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8G8B8A8_UNorm), FilterMode.Point);
 
             // Prepare for manual blit
@@ -652,7 +644,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetGlobalVector(ShaderConstants._CoCParams, new Vector4(P, maxCoC, maxRadius, rcpAspect));
 
             // Prepare the bokeh kernel constant buffer
-            int hash = m_DepthOfField.GetHashCode();
+            int hash = m_DepthOfField.GetHashCode(); // TODO: GC fix
             if (hash != m_BokehHash)
             {
                 m_BokehHash = hash;

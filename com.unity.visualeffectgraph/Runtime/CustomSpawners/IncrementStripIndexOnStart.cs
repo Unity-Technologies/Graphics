@@ -27,6 +27,7 @@ class IncrementStripIndexOnStart : VFXSpawnerCallbacks
     }
 
     public override void OnUpdate(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
-    {
+    {  
+
     }
 }

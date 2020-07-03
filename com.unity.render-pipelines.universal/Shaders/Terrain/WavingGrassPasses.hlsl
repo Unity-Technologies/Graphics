@@ -26,7 +26,7 @@ struct GrassVertexOutput
 
     half4 fogFactorAndVertexLight   : TEXCOORD5; // x: fogFactor, yzw: vertex light
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+#ifdef _MAIN_LIGHT_SHADOWS
     float4 shadowCoord              : TEXCOORD6;
 #endif
     half4 color                     : TEXCOORD7;
@@ -46,16 +46,13 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
 #endif
 
     inputData.normalWS = NormalizeNormalPerPixel(input.normal);
-    inputData.viewDirectionWS = viewDirWS;
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+    inputData.viewDirectionWS = viewDirWS;
+#ifdef _MAIN_LIGHT_SHADOWS
     inputData.shadowCoord = input.shadowCoord;
-#elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-    inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
 #else
     inputData.shadowCoord = float4(0, 0, 0, 0);
 #endif
-
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
@@ -89,7 +86,7 @@ void InitializeVertData(GrassVertexInput input, inout GrassVertexOutput vertData
     half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
     vertData.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+#ifdef _MAIN_LIGHT_SHADOWS
     vertData.shadowCoord = GetShadowCoord(vertexInput);
 #endif
 }

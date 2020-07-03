@@ -318,9 +318,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [DebuggerDisplay("{mask.humanizedData}")]
     public struct FrameSettingsOverrideMask
     {
-        /// <summary>Gets the underlying BitArray HDRP uses to store the override mask and thus specific which field is overridden or not.
-        /// Note: BitArray128 is implements IBitArray and therefore has the scripting API described below. It is recomended to use the interface as the exact BitArray con evolve from one version of the package to another as the we need more capacity here.
-        /// </summary>
+        /// <summary>Mask of overridden values.</summary>
         [SerializeField]
         public BitArray128 mask;
     }
@@ -503,54 +501,59 @@ namespace UnityEngine.Rendering.HighDefinition
         BitArray128 bitDatas;
 
         /// <summary>
-        /// If <c>lodBiasMode</c> is <c>LODBiasMode.Fixed</c>, then this value overwrites <c>QualitySettings.lodBias</c>.
-        /// If <c>lodBiasMode</c> is <c>LODBiasMode.ScaleQualitySettings</c>, then this value scales <c>QualitySettings.lodBias</c>.
+        /// if <c>lodBiasMode == LODBiasMode.Fixed</c>, then this value will overwrite <c>QualitySettings.lodBias</c>
+        /// if <c>lodBiasMode == LODBiasMode.ScaleQualitySettings</c>, then this value will scale <c>QualitySettings.lodBias</c>
         /// </summary>
         [SerializeField]
         public float lodBias;
-        /// <summary>Specifies how HDRP calculates <c>QualitySettings.lodBias</c>.</summary>
+        /// <summary>Define how the <c>QualitySettings.lodBias</c> value is set.</summary>
         [SerializeField]
         public LODBiasMode lodBiasMode;
-        /// <summary>The quality level the rendering component uses when it fetches the quality setting value.</summary>
+        /// <summary>The quality level to use when fetching the quality setting value.</summary>
         [SerializeField]
         public int lodBiasQualityLevel;
         /// <summary>
-        /// If <c>maximumLODLevelMode</c> is <c>MaximumLODLevelMode.FromQualitySettings</c>, then this value overwrites <c>QualitySettings.maximumLODLevel</c>
-        /// If <c>maximumLODLevelMode</c> is <c>MaximumLODLevelMode.OffsetQualitySettings</c>, then this value offsets <c>QualitySettings.maximumLODLevel</c>
+        /// if <c>maximumLODLevelMode == MaximumLODLevelMode.FromQualitySettings</c>, then this value will overwrite <c>QualitySettings.maximumLODLevel</c>
+        /// if <c>maximumLODLevelMode == MaximumLODLevelMode.OffsetQualitySettings</c>, then this value will offset <c>QualitySettings.maximumLODLevel</c>
         /// </summary>
         [SerializeField]
         public int maximumLODLevel;
-        /// <summary>Specifies how HDRP calculates <c>QualitySettings.maximumLODLevel</c>.</summary>
+        /// <summary>Define how the <c>QualitySettings.maximumLODLevel</c> value is set.</summary>
         [SerializeField]
         public MaximumLODLevelMode maximumLODLevelMode;
-        /// <summary>The maximum quality level the rendering component uses when it fetches the quality setting value.</summary>
+        /// <summary>The quality level to use when fetching the quality setting value.</summary>
         [SerializeField]
         public int maximumLODLevelQualityLevel;
 
         /// <summary>
-        /// The material quality level this rendering component uses.
-        /// If <c>materialQuality == 0</c>, the rendering component uses the material quality from the current quality settings in the HDRP Asset.
+        /// The material quality level to use for this rendering.
+        /// if <c>materialQuality == 0</c>, then the material quality from the current quality settings
+        /// (in HDRP Asset) will be used.
         /// </summary>
         public MaterialQuality materialQuality;
 
-        /// <summary>Specifies the rendering path this rendering component uses. Here you can use the <c>LitShaderMode</c> enum to specify whether the rendering component uses forward or deferred rendering.</summary>
+        /// <summary>Helper to see binary saved data on LitShaderMode as a LitShaderMode enum.</summary>
         public LitShaderMode litShaderMode
         {
             get => bitDatas[(uint)FrameSettingsField.LitShaderMode] ? LitShaderMode.Deferred : LitShaderMode.Forward;
             set => bitDatas[(uint)FrameSettingsField.LitShaderMode] = value == LitShaderMode.Deferred;
         }
 
-        /// <summary>Gets the stored override value for the passed in Frame Setting. Use this to access boolean values.</summary>
+        /// <summary>
+        /// <summary>Get stored data for this field.</summary>
+        /// </summary>
         /// <param name="field">Requested field.</param>
         /// <returns>True if the field is enabled.</returns>
         public bool IsEnabled(FrameSettingsField field) => bitDatas[(uint)field];
-        /// <summary>Sets the stored override value for the passed in Frame Setting. Use this to access boolean values.</summary>
+        /// <summary>
+        /// <summary>Set stored data for this field.</summary>
+        /// </summary>
         /// <param name="field">Requested field.</param>
         /// <param name="value">State to set to the field.</param>
         public void SetEnabled(FrameSettingsField field, bool value) => bitDatas[(uint)field] = value;
 
         /// <summary>
-        /// Calculates the LOD bias value to use.
+        /// Compute the LOD bias value to use
         /// </summary>
         /// <param name="hdrp">The HDRP Assets to use</param>
         /// <returns>The LOD Bias to use</returns>
@@ -567,7 +570,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Calculates the Maximum LOD level to use.
+        /// Compute the Maximum LOD level to use
         /// </summary>
         /// <param name="hdrp">The HDRP Asset to use</param>
         /// <returns>The Maximum LOD level to use.</returns>
@@ -729,7 +732,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Equality operator between two FrameSettings. Return `true` if equivalent. (comparison of content).
+        /// Equality operator.
         /// </summary>
         /// <param name="a">First frame settings.</param>
         /// <param name="b">Second frame settings.</param>
@@ -745,7 +748,7 @@ namespace UnityEngine.Rendering.HighDefinition
             && a.materialQuality == b.materialQuality;
 
         /// <summary>
-        /// Inequality operator between two FrameSettings. Return `true` if different. (comparison of content).
+        /// Inequality operator.
         /// </summary>
         /// <param name="a">First frame settings.</param>
         /// <param name="b">Second frame settings.</param>
@@ -761,7 +764,7 @@ namespace UnityEngine.Rendering.HighDefinition
             || a.materialQuality != b.materialQuality;
 
         /// <summary>
-        /// Equality operator between two FrameSettings. Return `true` if equivalent. (comparison of content).
+        /// Equality operator.
         /// </summary>
         /// <param name="obj">Frame Settings to compare to.</param>
         /// <returns>True if both settings are equal.</returns>
@@ -777,7 +780,7 @@ namespace UnityEngine.Rendering.HighDefinition
             && materialQuality.Equals(((FrameSettings)obj).materialQuality);
 
         /// <summary>
-        /// Returns the hash code of this object.
+        /// Returns the hash code of the frame settings.
         /// </summary>
         /// <returns>Hash code of the frame settings.</returns>
         public override int GetHashCode()

@@ -39,8 +39,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 RTHandles.Release(m_TempDownsamplePyramid[i]);
                 m_TempDownsamplePyramid[i] = null;
             }
-
-            CoreUtils.Destroy(m_ColorPyramidPSMat);
         }
 
         private int tmpTargetCount

@@ -72,9 +72,6 @@ namespace UnityEditor.VFX.UI
         }
         bool IPropertyRMProvider.expandableIfShowsEverything { get { return false; } }
 
-
-        IEnumerable<int> IPropertyRMProvider.filteredOutEnumerators { get { return (m_Owner as VFXModel).GetFilteredOutEnumerators(name); } }
-
         public virtual string iconName
         {
             get { return portType.Name; }

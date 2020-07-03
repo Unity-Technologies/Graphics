@@ -33,12 +33,14 @@ namespace UnityEditor.VFX.Block
                 case Signature.Bool: return VFXValueType.Boolean;
             }
         }
+
     }
 
 
     [VFXInfo(category = "Attribute/Set", experimental = true)]
     class SetCustomAttribute : VFXBlock
     {
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Delayed]
         public string attribute = "CustomAttribute";
 
@@ -80,7 +82,7 @@ namespace UnityEditor.VFX.Block
 
         static private string GenerateLocalAttributeName(string name)
         {
-            return "_" + name[0].ToString().ToUpper() + name.Substring(1);
+            return "_"+name[0].ToString().ToUpper() + name.Substring(1);
         }
 
         public override string source

@@ -20,6 +20,8 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXBasicEvent : VFXContext
     {
+
+
         [VFXSetting, PushButton(typeof(LaunchEventBehavior), "Send"), Delayed]
         public string eventName = VisualEffectAsset.PlayEventName;
 

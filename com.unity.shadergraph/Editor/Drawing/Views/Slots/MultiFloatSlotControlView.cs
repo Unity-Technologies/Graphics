@@ -70,12 +70,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
                         m_Node.Dirty(ModificationScope.Node);
                     }
                 });
-            // Reset UndoGroup when done editing input field & update title
+            // Reset UndoGroup when done editing input field
             field.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
-            {
-                m_Node.owner.owner.isDirty = true;
-                m_UndoGroup = -1;
-            });
+                {
+                    m_UndoGroup = -1;
+                });
             Add(field);
         }
     }

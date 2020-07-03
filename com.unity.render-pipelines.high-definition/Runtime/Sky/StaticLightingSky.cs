@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
 
@@ -16,9 +15,8 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_LastComputedHash;
         bool m_NeedUpdateStaticLightingSky;
 
-        [NonSerialized]
-        public SkySettings m_SkySettings; // This one contain only property values from overridden properties in the original profile component
-        [NonSerialized]
+        // This one contain only property values from overridden properties in the original profile component
+        public SkySettings m_SkySettings;
         public SkySettings m_SkySettingsFromProfile;
 
         public SkySettings skySettings
@@ -125,9 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var profileSkyParameters = m_SkySettingsFromProfile.parameters;
 
                 var defaultVolume = HDRenderPipeline.GetOrCreateDefaultVolume();
-                SkySettings defaultSky = null;
-                if (defaultVolume.sharedProfile != null) // This can happen with old projects.
-                    defaultVolume.sharedProfile.TryGet(skyType, out defaultSky);
+                defaultVolume.sharedProfile.TryGet(skyType, out SkySettings defaultSky);
                 var defaultSkyParameters = defaultSky != null ? defaultSky.parameters : null; // Can be null if the profile does not contain the component.
 
                 // Seems to inexplicably happen sometimes on domain reload.

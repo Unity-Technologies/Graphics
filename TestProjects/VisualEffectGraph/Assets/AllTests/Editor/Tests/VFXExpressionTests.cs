@@ -13,6 +13,8 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     class VFXExpressionTests
     {
+
+
         [Test]
         public void ProcessStoreValue()
         {

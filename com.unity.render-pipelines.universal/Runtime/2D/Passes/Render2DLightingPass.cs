@@ -86,7 +86,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmd.SetGlobalFloat("_HDREmulationScale", m_Renderer2DData.hdrEmulationScale);
                 cmd.SetGlobalFloat("_InverseHDREmulationScale", 1.0f / m_Renderer2DData.hdrEmulationScale);
                 cmd.SetGlobalFloat("_UseSceneLighting", isLitView ? 1.0f : 0.0f);
-                cmd.SetGlobalColor("_RendererColor", Color.white);
                 RendererLighting.SetShapeLightShaderGlobals(cmd);
 
                 context.ExecuteCommandBuffer(cmd);
@@ -115,27 +114,25 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     int layerToRender = s_SortingLayers[i].id;
 
                     Light2D.LightStats lightStats;
-                    lightStats = Light2D.GetLightStatsByLayer(layerToRender, camera);
+                    lightStats = Light2D.GetLightStatsByLayer(layerToRender);
 
+                    // Allocate our blend style textures
                     cmd.Clear();
                     for (int blendStyleIndex = 0; blendStyleIndex < blendStylesCount; blendStyleIndex++)
                     {
                         uint blendStyleMask = (uint)(1 << blendStyleIndex);
-                        bool blendStyleUsed = (lightStats.blendStylesUsed & blendStyleMask) > 0;
-
-                        if (blendStyleUsed && !hasBeenInitialized[blendStyleIndex])
+                        if ((lightStats.blendStylesUsed & blendStyleMask) > 0 && !hasBeenInitialized[blendStyleIndex])
                         {
                             RendererLighting.CreateBlendStyleRenderTexture(cmd, blendStyleIndex);
                             hasBeenInitialized[blendStyleIndex] = true;
                         }
-
-                        RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleUsed);
                     }
                     context.ExecuteCommandBuffer(cmd);
 
+
                     // Start Rendering
                     if (lightStats.totalNormalMapUsage > 0)
-                        RendererLighting.RenderNormals(context, renderingData.cullResults, normalsDrawSettings, filterSettings, depthAttachment);
+                        RendererLighting.RenderNormals(context, renderingData.cullResults, normalsDrawSettings, filterSettings);
 
                     cmd.Clear();
                     if (lightStats.totalLights > 0)
@@ -147,7 +144,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         RendererLighting.ClearDirtyLighting(cmd, lightStats.blendStylesUsed);
                     }
 
-                    CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment, ClearFlag.None, Color.white);
+                    CoreUtils.SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None, Color.white);
                     context.ExecuteCommandBuffer(cmd);
 
                     Profiler.BeginSample("RenderSpritesWithLighting - Draw Transparent Renderers");
@@ -158,7 +155,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     {
 
                         cmd.Clear();
-                        RendererLighting.RenderLightVolumes(camera, cmd, layerToRender, colorAttachment, depthAttachment, lightStats.blendStylesUsed);
+                        RendererLighting.RenderLightVolumes(camera, cmd, layerToRender, colorAttachment, lightStats.blendStylesUsed);
                         context.ExecuteCommandBuffer(cmd);
                         cmd.Clear();
                     }
@@ -180,13 +177,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 CommandBuffer cmd = CommandBufferPool.Get("Render Unlit");
                 DrawingSettings unlitDrawSettings = CreateDrawingSettings(k_ShaderTags, ref renderingData, SortingCriteria.CommonTransparent);
 
-                CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment, ClearFlag.None, Color.white);
+                CoreUtils.SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None, Color.white);
                 cmd.SetGlobalTexture("_ShapeLightTexture0", Texture2D.blackTexture);
                 cmd.SetGlobalTexture("_ShapeLightTexture1", Texture2D.blackTexture);
                 cmd.SetGlobalTexture("_ShapeLightTexture2", Texture2D.blackTexture);
                 cmd.SetGlobalTexture("_ShapeLightTexture3", Texture2D.blackTexture);
                 cmd.SetGlobalFloat("_UseSceneLighting", isLitView ? 1.0f : 0.0f);
-                cmd.SetGlobalColor("_RendererColor", Color.white);
                 cmd.EnableShaderKeyword("USE_SHAPE_LIGHT_TYPE_0");
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);

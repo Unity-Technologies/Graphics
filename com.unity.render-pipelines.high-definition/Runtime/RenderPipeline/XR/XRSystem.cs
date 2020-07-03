@@ -74,15 +74,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         internal static void XRSystemInit()
         {
-        	if (GraphicsSettings.currentRenderPipeline == null)
-                return;
             SubsystemManager.GetInstances(displayList);
 
             for (int i = 0; i < displayList.Count; i++)
-            {
                 displayList[i].disableLegacyRenderer = true;
-                displayList[i].sRGB = true;
-            }
         }
 #endif
 
@@ -193,7 +188,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 display = displayList[0];
                 display.disableLegacyRenderer = true;
-                //display.textureLayout = XRDisplaySubsystem.TextureLayout.Texture2DArray;
 
                 return display.running;
             }
