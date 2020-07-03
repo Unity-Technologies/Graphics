@@ -710,7 +710,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Sorting Priority not displayed correctly in the DrawRenderers custom pass UI.
 - Fixed glitch in Project settings window when selecting diffusion profiles in material section (case 1253090)
 - Fixed issue with light layers bigger than 8 (and above the supported range). 
-- Fixed issue with culling layer mask of area light's emissive mesh 
+- Fixed issue with culling layer mask of area light's emissive mesh
+- Fixed errors when switching area light to disk shape while an area emissive mesh was displayed. 
 - Fixed overused the atlas for Animated/Render Target Cookies (1259930).
 
 ### Changed
