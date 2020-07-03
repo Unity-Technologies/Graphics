@@ -33,12 +33,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(unpacked);
     SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
-#ifdef UNIVERSAL_USELEGACYSPRITEBLOCKS
-    half4 color = surfaceDescription.SpriteColor;
-#else
-    half4 color = half4(surfaceDescription.BaseColor, surfaceDescription.Alpha);
-#endif
+    surfaceDescription.Color *= unpacked.color;
 
-    color *= unpacked.color;
-    return CombinedShapeLightShared(color, surfaceDescription.SpriteMask, unpacked.screenPosition.xy / unpacked.screenPosition.w);
+    return CombinedShapeLightShared(surfaceDescription.Color, surfaceDescription.Mask, unpacked.screenPosition.xy / unpacked.screenPosition.w);
 }

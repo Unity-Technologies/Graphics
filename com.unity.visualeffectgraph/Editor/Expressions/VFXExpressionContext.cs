@@ -16,27 +16,27 @@ namespace UnityEditor.VFX
         CPUEvaluation = 1 << 1,
         ConstantFolding = 1 << 2,
         GPUDataTransformation = 1 << 3,
-        PatchReadToEventAttribute = 1 << 4
     }
 
     abstract partial class VFXExpression
     {
         public class Context
         {
+            public VFXExpressionContextOption Options { get { return m_ReductionOptions; } }
+
             private bool Has(VFXExpressionContextOption options)
             {
-                return (m_ReductionOptions & options) == options;
+                return (Options & options) == options;
             }
 
             private bool HasAny(VFXExpressionContextOption options)
             {
-                return (m_ReductionOptions & options) != 0;
+                return (Options & options) != 0;
             }
 
-            public Context(VFXExpressionContextOption reductionOption, List<VFXLayoutElementDesc> globalEventAttibutes = null)
+            public Context(VFXExpressionContextOption reductionOption = VFXExpressionContextOption.Reduction)
             {
                 m_ReductionOptions = reductionOption;
-                m_GlobalEventAttribute = globalEventAttibutes;
 
                 if (Has(VFXExpressionContextOption.CPUEvaluation) && Has(VFXExpressionContextOption.GPUDataTransformation))
                     throw new ArgumentException("Invalid reduction options");
@@ -62,13 +62,9 @@ namespace UnityEditor.VFX
                     foreach (var exp in m_EndExpressions)
                         Compile(exp);
 
-                    if (HasAny(VFXExpressionContextOption.GPUDataTransformation | VFXExpressionContextOption.PatchReadToEventAttribute))
-                    {
-                        var gpuTransformation = Has(VFXExpressionContextOption.GPUDataTransformation);
-                        var spawnEventPath = Has(VFXExpressionContextOption.PatchReadToEventAttribute);
+                    if (Has(VFXExpressionContextOption.GPUDataTransformation))
                         foreach (var exp in m_EndExpressions)
-                            m_ReducedCache[exp] = PatchVFXExpression(GetReduced(exp), gpuTransformation, spawnEventPath, m_GlobalEventAttribute);
-                    }
+                            m_ReducedCache[exp] = InsertGPUTransformation(GetReduced(exp));
                 }
                 finally
                 {
@@ -106,54 +102,33 @@ namespace UnityEditor.VFX
                 return reducedParents.All(e => (e.m_Flags & (flag | Flags.InvalidOnCPU)) == flag);
             }
 
-            private static VFXExpression PatchVFXExpression(VFXExpression input, bool insertGPUTransformation, bool patchReadAttributeForSpawn, IEnumerable<VFXLayoutElementDesc> globalEventAttribute)
+            private VFXExpression InsertGPUTransformation(VFXExpression exp)
             {
-                if (insertGPUTransformation)
+                switch (exp.valueType)
                 {
-                    switch (input.valueType)
-                    {
-                        case VFXValueType.ColorGradient:
-                            input = new VFXExpressionBakeGradient(input);
-                            break;
-                        case VFXValueType.Curve:
-                            input = new VFXExpressionBakeCurve(input);
-                            break;
-                        default: break;
-                    }
+                    case VFXValueType.ColorGradient:
+                        return new VFXExpressionBakeGradient(exp);
+                    case VFXValueType.Curve:
+                        return new VFXExpressionBakeCurve(exp);
+                    default:
+                        return exp;
                 }
-
-                if (patchReadAttributeForSpawn && input is VFXAttributeExpression)
-                {
-                    var attribute = input as VFXAttributeExpression;
-                    if (attribute.attributeLocation == VFXAttributeLocation.Current)
-                    {
-                        if (globalEventAttribute == null)
-                            throw new InvalidOperationException("m_GlobalEventAttribute is null");
-
-                        var layoutDesc = globalEventAttribute.FirstOrDefault(o => o.name == attribute.attributeName);
-                        if (layoutDesc.name != attribute.attributeName)
-                            throw new InvalidOperationException("Unable to find " + attribute.attributeName + " in globalEventAttribute");
-
-                        input = new VFXReadEventAttributeExpression(attribute.attribute, layoutDesc.offset.element);
-                    }
-                }
-
-                return input;
             }
 
             public VFXExpression Compile(VFXExpression expression)
             {
-                var gpuTransformation = Has(VFXExpressionContextOption.GPUDataTransformation);
-                var patchReadAttributeForSpawn = Has(VFXExpressionContextOption.PatchReadToEventAttribute);
-
                 VFXExpression reduced;
                 if (!m_ReducedCache.TryGetValue(expression, out reduced))
                 {
                     var parents = expression.parents.Select(e =>
                     {
                         var parent = Compile(e);
-                        bool currentGPUTransformation = gpuTransformation && expression.IsAny(VFXExpression.Flags.NotCompilableOnCPU) && !parent.IsAny(VFXExpression.Flags.NotCompilableOnCPU);
-                        parent = PatchVFXExpression(parent, currentGPUTransformation, patchReadAttributeForSpawn, m_GlobalEventAttribute);
+
+                        if (Has(VFXExpressionContextOption.GPUDataTransformation)
+                            && expression.IsAny(VFXExpression.Flags.NotCompilableOnCPU)
+                            && !parent.IsAny(VFXExpression.Flags.NotCompilableOnCPU))
+                            parent = InsertGPUTransformation(parent);
+
                         return parent;
                     }).ToArray();
 
@@ -216,7 +191,6 @@ namespace UnityEditor.VFX
             private Dictionary<VFXExpression, VFXExpression> m_ReducedCache = new Dictionary<VFXExpression, VFXExpression>();
             private HashSet<VFXExpression> m_EndExpressions = new HashSet<VFXExpression>();
 
-            private IEnumerable<VFXLayoutElementDesc> m_GlobalEventAttribute;
             private VFXExpressionContextOption m_ReductionOptions;
         }
     }

@@ -53,10 +53,8 @@ namespace UnityEngine.Rendering.Universal
         [Reload("Runtime/Data/PostProcessData.asset")]
         public PostProcessData postProcessData = null;
 
-#if ENABLE_VR && ENABLE_XR_MODULE
         [Reload("Runtime/Data/XRSystemData.asset")]
         public XRSystemData xrSystemData = null;
-#endif
 
         public ShaderResources shaders = null;
 
@@ -72,9 +70,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
                 ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
-#if ENABLE_VR && ENABLE_XR_MODULE
                 ResourceReloader.TryReloadAllNullIn(xrSystemData, UniversalRenderPipelineAsset.packagePath);
-#endif
             }
 #endif
             return new ForwardRenderer(this);
@@ -143,9 +139,7 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
             ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
             ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
-#if ENABLE_VR && ENABLE_XR_MODULE
             ResourceReloader.TryReloadAllNullIn(xrSystemData, UniversalRenderPipelineAsset.packagePath);
-#endif
 #endif
         }
     }

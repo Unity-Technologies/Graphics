@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
-using UnityEditor.Rendering.HighDefinition.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -27,13 +26,17 @@ namespace UnityEditor.Rendering.HighDefinition
             // Cache Shader Graph lookup data so we don't continually keep reloading graphs from disk.
             // TODO: Should really be able to answer the questions "is shader graph" and "uses HDLitMasterNode" without
             //       hitting disk on every invoke.
-            if (shader.IsShaderGraph())
+            if (!m_ShaderGraphMasterNodeType.TryGetValue(shader, out var shaderGraphMasterNodeType))
             {
-                if(shader.TryGetMetadataOfType<HDMetadata>(out var obj))
+                if (shader.IsShaderGraph())
                 {
-                    isBuiltInLit |= obj.shaderID == HDShaderUtils.ShaderID.SG_Lit;
+                    string shaderPath = AssetDatabase.GetAssetPath(shader);
+                    shaderGraphMasterNodeType = GraphUtil.GetOutputNodeType(shaderPath);
                 }
+
+                m_ShaderGraphMasterNodeType[shader] = shaderGraphMasterNodeType;
             }
+            isBuiltInLit |= shaderGraphMasterNodeType == typeof(HDLitMasterNode);
 
             // Caution: Currently only HDRP/TerrainLit is using keyword _ALPHATEST_ON with multi compile, we shouldn't test any other built in shader
             if (isBuiltInTerrainLit)

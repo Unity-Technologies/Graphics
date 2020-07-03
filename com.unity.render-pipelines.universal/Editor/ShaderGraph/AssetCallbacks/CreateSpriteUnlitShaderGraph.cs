@@ -1,26 +1,13 @@
-﻿using System;
 using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.Rendering.Universal.ShaderGraph
+namespace UnityEditor.Experimental.Rendering.Universal
 {
-    static class CreateSpriteUnlitShaderGraph
+    class CreateSpriteUnlitShaderGraph
     {
-        [MenuItem("Assets/Create/Shader/Universal Render Pipeline/Sprite Unlit Shader Graph", false, 300)]
-        public static void CreateSpriteUnlitGraph()
+        [MenuItem("Assets/Create/Shader/2D Renderer/Sprite Unlit Graph (Experimental)", false, 208)]
+        public static void CreateMaterialGraph()
         {
-            var target = (UniversalTarget)Activator.CreateInstance(typeof(UniversalTarget));
-            target.TrySetActiveSubTarget(typeof(UniversalSpriteUnlitSubTarget));
-
-            var blockDescriptors = new [] 
-            { 
-                BlockFields.VertexDescription.Position,
-                BlockFields.VertexDescription.Normal,
-                BlockFields.VertexDescription.Tangent,
-                BlockFields.SurfaceDescription.BaseColor,
-                BlockFields.SurfaceDescription.Alpha,
-            };
-
-            GraphUtil.CreateNewGraphWithOutputs(new [] {target}, blockDescriptors);
+            GraphUtil.CreateNewGraph(new SpriteUnlitMasterNode());
         }
     }
 }

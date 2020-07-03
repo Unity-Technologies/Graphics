@@ -43,9 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Ambient Occlusion
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingAmbientOcclusion.raytrace")]
-        public RayTracingShader aoRaytracingRT;
-        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingAmbientOcclusion.compute")]
-        public ComputeShader aoRaytracingCS;
+        public RayTracingShader aoRaytracing;
 
         // Sub-Surface Scattering
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RayTracingSubSurface.raytrace")]
@@ -86,6 +84,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Filtering for reflections
         [Reload("Runtime/RenderPipelineResources/Texture/ReflectionKernelMapping.png")]
         public Texture2D reflectionFilterMapping;
+        [Reload("Runtime/RenderPipelineResources/Texture/ShadowKernelMapping.asset")]
+        public Texture3D shadowFilterMapping;
+        
 
 #if UNITY_EDITOR
         [UnityEditor.CustomEditor(typeof(HDRenderPipelineRayTracingResources))]

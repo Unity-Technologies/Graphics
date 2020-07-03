@@ -255,7 +255,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void RenderOcclusionMeshes(CommandBuffer cmd, Color clearColor, RTHandle colorBuffer, RTHandle depthBuffer)
+        internal void RenderOcclusionMeshes(CommandBuffer cmd, RTHandle depthBuffer)
         {
             if (enabled && xrSdkEnabled && occlusionMeshMaterial != null)
             {
@@ -267,8 +267,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         if (views[viewId].occlusionMesh != null)
                         {
-                            CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer, ClearFlag.None, clearColor, 0, CubemapFace.Unknown, viewId);
-                            cmd.SetGlobalVector(HDShaderIDs._ClearColor, clearColor);
+                            CoreUtils.SetRenderTarget(cmd, depthBuffer, ClearFlag.None, 0, CubemapFace.Unknown, viewId);
                             cmd.DrawMesh(views[viewId].occlusionMesh, m, occlusionMeshMaterial);
                         }
                     }

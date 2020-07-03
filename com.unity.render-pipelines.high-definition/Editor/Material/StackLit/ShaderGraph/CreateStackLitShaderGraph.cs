@@ -1,34 +1,13 @@
-﻿using System;
 using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
+namespace UnityEditor.Rendering.HighDefinition
 {
     static class CreateStackLitShaderGraph
     {
-        [MenuItem("Assets/Create/Shader/HDRP/StackLit Shader Graph", false, 208)]
-        public static void CreateStackLitGraph()
+        [MenuItem("Assets/Create/Shader/HDRP/StackLit Graph", false, 208)]
+        public static void CreateMaterialGraph()
         {
-            var target = (HDTarget)Activator.CreateInstance(typeof(HDTarget));
-            target.TrySetActiveSubTarget(typeof(StackLitSubTarget));
-
-            var blockDescriptors = new [] 
-            { 
-                BlockFields.VertexDescription.Position,
-                BlockFields.VertexDescription.Normal,
-                BlockFields.VertexDescription.Tangent,
-                BlockFields.SurfaceDescription.BaseColor,
-                BlockFields.SurfaceDescription.NormalTS,
-                HDBlockFields.SurfaceDescription.BentNormal,
-                HDBlockFields.SurfaceDescription.Tangent,
-                BlockFields.SurfaceDescription.Metallic,
-                HDBlockFields.SurfaceDescription.DielectricIor,
-                BlockFields.SurfaceDescription.Smoothness,
-                BlockFields.SurfaceDescription.Emission,
-                BlockFields.SurfaceDescription.Occlusion,
-                BlockFields.SurfaceDescription.Alpha,
-            };
-
-            GraphUtil.CreateNewGraphWithOutputs(new [] {target}, blockDescriptors);
+            GraphUtil.CreateNewGraph(new StackLitMasterNode());
         }
     }
 }

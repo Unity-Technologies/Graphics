@@ -10,7 +10,5 @@ namespace UnityEngine.VFX.Test
 
         public int captureFrameRate = defaultCaptureFrameRate;
         public float simulateTime = defaultSimulateTime;
-
-        public bool xrCompatible = true;
     }
 }

@@ -102,26 +102,18 @@ namespace UnityEditor.ShaderGraph
 
     class NewGraphAction : EndNameEditAction
     {
-        Target[] m_Targets;
-        public Target[] targets
+        AbstractMaterialNode m_Node;
+        public AbstractMaterialNode node
         {
-            get => m_Targets;
-            set => m_Targets = value;
-        }
-
-        BlockFieldDescriptor[] m_Blocks;
-        public BlockFieldDescriptor[] blocks
-        {
-            get => m_Blocks;
-            set => m_Blocks = value;
+            get { return m_Node; }
+            set { m_Node = value; }
         }
 
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
             var graph = new GraphData();
-            graph.AddContexts();
-            graph.InitializeOutputs(m_Targets, m_Blocks);
-            
+            graph.AddNode(node);
+            graph.outputNode = node;
             graph.path = "Shader Graphs";
             FileUtilities.WriteShaderGraphToDisk(pathName, graph);
             AssetDatabase.Refresh();
@@ -133,29 +125,6 @@ namespace UnityEditor.ShaderGraph
 
     static class GraphUtil
     {
-        internal static bool CheckForRecursiveDependencyOnPendingSave(string saveFilePath, IEnumerable<SubGraphNode> subGraphNodes, string context = null)
-        {
-            var overwriteGUID = AssetDatabase.AssetPathToGUID(saveFilePath);
-            if (!string.IsNullOrEmpty(overwriteGUID))
-            {
-                foreach (var sgNode in subGraphNodes)
-                {
-                    if ((sgNode.asset.assetGuid == overwriteGUID) || sgNode.asset.descendents.Contains(overwriteGUID))
-                    {
-                        if (context != null)
-                        {
-                            Debug.LogWarning(context + " CANCELLED to avoid a generating a reference loop:  the SubGraph '" + sgNode.asset.name + "' references the target file '" + saveFilePath + "'");
-                            EditorUtility.DisplayDialog(
-                                context + " CANCELLED",
-                                "Saving the file would generate a reference loop, because the SubGraph '" + sgNode.asset.name + "' references the target file '" + saveFilePath + "'", "Cancel");
-                        }
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
         internal static string ConvertCamelCase(string text, bool preserveAcronyms)
         {
             if (string.IsNullOrEmpty(text))
@@ -174,40 +143,41 @@ namespace UnityEditor.ShaderGraph
             return newText.ToString();
         }
 
-        public static void CreateNewGraph()
+        public static void CreateNewGraph(AbstractMaterialNode node)
         {
             var graphItem = ScriptableObject.CreateInstance<NewGraphAction>();
-            graphItem.targets = null;
+            graphItem.node = node;
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, graphItem,
                 string.Format("New Shader Graph.{0}", ShaderGraphImporter.Extension), null, null);
         }
 
-        public static void CreateNewGraphWithOutputs(Target[] targets, BlockFieldDescriptor[] blockDescriptors)
+        public static Type GetOutputNodeType(string path)
         {
-            var graphItem = ScriptableObject.CreateInstance<NewGraphAction>();
-            graphItem.targets = targets;
-            graphItem.blocks = blockDescriptors;
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, graphItem,
-                string.Format("New Shader Graph.{0}", ShaderGraphImporter.Extension), null, null);
-        }
-
-        public static bool TryGetMetadataOfType<T>(this Shader shader, out T obj) where T : ScriptableObject
-        {
-            obj = null;
-            if(!shader.IsShaderGraph())
-                return false;
-
-            var path = AssetDatabase.GetAssetPath(shader);
+            ShaderGraphMetadata metadata = null;
             foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(path))
             {
-                if (asset is T metadataAsset)
+                if (asset is ShaderGraphMetadata metadataAsset)
                 {
-                    obj = metadataAsset;
-                    return true;
+                    metadata = metadataAsset;
+                    break;
                 }
             }
 
-            return false;
+            if (metadata == null)
+            {
+                return null;
+            }
+
+            var outputNodeTypeName = metadata.outputNodeTypeName;
+            foreach (var type in TypeCache.GetTypesDerivedFrom<IMasterNode>())
+            {
+                if (type.FullName == outputNodeTypeName)
+                {
+                    return type;
+                }
+            }
+
+            return null;
         }
 
         public static bool IsShaderGraph(this Shader shader)
@@ -381,6 +351,25 @@ namespace UnityEditor.ShaderGraph
                 };
                 p.Start();
             }
+        }
+
+        public static string CurrentPipelinePreferredShaderGUI(IMasterNode masterNode)
+        {
+            foreach (var target in (masterNode as AbstractMaterialNode).owner.validTargets)
+            {
+                if (target.IsPipelineCompatible(GraphicsSettings.currentRenderPipeline))
+                {
+                    var context = new TargetSetupContext();
+                    context.SetMasterNode(masterNode);
+                    target.Setup(ref context);
+
+                    var defaultShaderGUI = context.defaultShaderGUI;
+                    if (!string.IsNullOrEmpty(defaultShaderGUI))
+                        return defaultShaderGUI;
+                }
+            }
+
+            return null;
         }
 
         //

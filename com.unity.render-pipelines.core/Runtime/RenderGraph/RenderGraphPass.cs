@@ -26,34 +26,23 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public int              colorBufferMaxIndex { get; protected set; } = -1;
         public int              refCount { get; protected set; }
 
-        public List<ResourceHandle>[] resourceReadLists = new List<ResourceHandle>[(int)RenderGraphResourceType.Count];
-        public List<ResourceHandle>[] resourceWriteLists = new List<ResourceHandle>[(int)RenderGraphResourceType.Count];
-        public List<ResourceHandle>[] transientResourceList = new List<ResourceHandle>[(int)RenderGraphResourceType.Count];
-
+        public List<TextureHandle>          textureReadList = new List<TextureHandle>();
+        public List<TextureHandle>          textureWriteList = new List<TextureHandle>();
+        public List<TextureHandle>          transientTextureList = new List<TextureHandle>();
+        public List<ComputeBufferHandle>    bufferReadList = new List<ComputeBufferHandle>();
+        public List<ComputeBufferHandle>    bufferWriteList = new List<ComputeBufferHandle>();
         public List<RendererListHandle>     usedRendererListList = new List<RendererListHandle>();
-
-        public RenderGraphPass()
-        {
-            for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
-            {
-                resourceReadLists[i] = new List<ResourceHandle>();
-                resourceWriteLists[i] = new List<ResourceHandle>();
-                transientResourceList[i] = new List<ResourceHandle>();
-            }
-        }
 
         public void Clear()
         {
             name = "";
             index = -1;
             customSampler = null;
-            for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
-            {
-                resourceReadLists[i].Clear();
-                resourceWriteLists[i].Clear();
-                transientResourceList[i].Clear();
-            }
-
+            textureReadList.Clear();
+            textureWriteList.Clear();
+            bufferReadList.Clear();
+            bufferWriteList.Clear();
+            transientTextureList.Clear();
             usedRendererListList.Clear();
             enableAsyncCompute = false;
             allowPassPruning = true;
@@ -68,19 +57,31 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        public void AddResourceWrite(in ResourceHandle res)
+        public void AddTextureWrite(TextureHandle texture)
         {
-            resourceWriteLists[res.iType].Add(res);
+            textureWriteList.Add(texture);
+            refCount++;
         }
 
-        public void AddResourceRead(in ResourceHandle res)
+        public void AddTextureRead(TextureHandle texture)
         {
-            resourceReadLists[res.iType].Add(res);
+            textureReadList.Add(texture);
         }
 
-        public void AddTransientResource(in ResourceHandle res)
+        public void AddBufferWrite(ComputeBufferHandle buffer)
         {
-            transientResourceList[res.iType].Add(res);
+            bufferWriteList.Add(buffer);
+            refCount++;
+        }
+
+        public void AddTransientTexture(TextureHandle texture)
+        {
+            transientTextureList.Add(texture);
+        }
+
+        public void AddBufferRead(ComputeBufferHandle buffer)
+        {
+            bufferReadList.Add(buffer);
         }
 
         public void UseRendererList(RendererListHandle rendererList)
@@ -103,16 +104,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             Debug.Assert(index < RenderGraph.kMaxMRTCount && index >= 0);
             colorBufferMaxIndex = Math.Max(colorBufferMaxIndex, index);
             colorBuffers[index] = resource;
-            AddResourceWrite(resource.handle);
+            AddTextureWrite(resource);
         }
 
         public void SetDepthBuffer(TextureHandle resource, DepthAccess flags)
         {
             depthBuffer = resource;
             if ((flags & DepthAccess.Read) != 0)
-                AddResourceRead(resource.handle);
+                AddTextureRead(resource);
             if ((flags & DepthAccess.Write) != 0)
-                AddResourceWrite(resource.handle);
+                AddTextureWrite(resource);
         }
     }
 

@@ -1,4 +1,4 @@
-Shader "Hidden/ColorPyramidPS"
+Shader "ColorPyramidPS"
 {
     SubShader
     {

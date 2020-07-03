@@ -1,3 +1,8 @@
+.unity-label {
+    padding: 5px 2px 2px;
+    margin: 2px 4px;
+}
+
 .InspectorView {
     position:absolute;
     justify-content: flex-start;
@@ -7,12 +12,12 @@
     border-bottom-width: 1px;
     border-radius: 5px;
     flex-direction: column;
-    background-color: #2E2E2E;
+    background-color: #2b2b2b;
     border-color: #191919;
     min-width: 100px;
     min-height: 100px;
     width: 300px;
-    height: 200px;
+    height: 300px;
 }
 
 .InspectorView > .mainContainer {
@@ -34,11 +39,15 @@
 
 .InspectorView > .mainContainer > #content > #header {
     flex-direction: row;
-    justify-content: space-between;
+    align-items: stretch;
     background-color: #393939;
-    padding: 8px;
-    border-top-left-radius: 6px;
-    border-top-right-radius: 6px;
+    border-bottom-width: 1px;
+    border-color: #212121;
+    border-top-right-radius: 4px;
+    border-top-left-radius: 4px;
+    padding-left: 1px;
+    padding-top: 4px;
+    padding-bottom: 2px;
 }
 
 #labelContainer {
@@ -48,19 +57,11 @@
 }
 
 #titleLabel {
-    font-size: 14px;
-    color: rgb(180, 180, 180);
-    padding: 1px 2px 2px;
+    font-size : 14px;
+    color: #c1c1c1;
 }
 
-.MainFoldout {
-    background-color: #383838;
-    border-color: #1F1F1F;
-    border-top-width: 1px;
-}
-
-.InspectorView #NodeSettingsContainer
-{
-    width: 0;
-    min-width: 100%;
+#subTitleLabel {
+    font-size: 11px;
+    color: #606060;
 }

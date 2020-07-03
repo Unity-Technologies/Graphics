@@ -21,8 +21,6 @@ namespace UnityEditor.ShaderGraph
             set { m_Cubemap.cubemap = value; }
         }
 
-        public override bool isDefaultValue => cubemap == null;
-
         public CubemapInputMaterialSlot()
         {}
 

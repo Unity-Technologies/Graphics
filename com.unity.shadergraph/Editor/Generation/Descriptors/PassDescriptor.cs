@@ -12,11 +12,11 @@ namespace UnityEditor.ShaderGraph
 
         // Templates
         public string passTemplatePath;
-        public string[] sharedTemplateDirectories;
+        public string sharedTemplateDirectory;
 
         // Port mask
-        public BlockFieldDescriptor[] validVertexBlocks;
-        public BlockFieldDescriptor[] validPixelBlocks;
+        public int[] vertexPorts;
+        public int[] pixelPorts;
 
         // Collections
         public StructCollection structs;

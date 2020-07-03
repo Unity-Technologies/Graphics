@@ -42,12 +42,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     builtinData.emissiveColor = _EmissiveColor;
 #endif
 
-    // Note: The code below is used only with EmmissiveMesh generated from Area Light with the option in the UX - So this code don't need
-    // to be present for shader graph
-#if SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT || SHADERPASS == SHADERPASS_RAYTRACING_GBUFFER || SHADERPASS == SHADERPASS_RAYTRACING_FORWARD
+#if SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT || SHADERPASS == SHADERPASS_RAYTRACING_GBUFFER
     builtinData.emissiveColor *= _IncludeIndirectLighting;
-#elif SHADERPASS == SHADERPASS_PATH_TRACING
-    if (rayCone.spreadAngle < 0.0)
+#elif SHADERPASS == SHADERPASS_RAYTRACING_FORWARD || SHADERPASS == SHADERPASS_PATH_TRACING
+    if(rayCone.spreadAngle < 0.0)
     {
         builtinData.emissiveColor *= _IncludeIndirectLighting;
     }
@@ -70,8 +68,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
         surfaceData.color = GetTextureDataDebug(_DebugMipMapMode, unlitColorMapUv, _UnlitColorMap, _UnlitColorMap_TexelSize, _UnlitColorMap_MipInfo, surfaceData.color);
     }
 #endif
-
-    ApplyDebugToBuiltinData(builtinData);
 
     RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
 }

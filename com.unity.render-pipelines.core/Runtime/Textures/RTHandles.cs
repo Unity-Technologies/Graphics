@@ -231,16 +231,6 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Allocate a RTHandle from a regular RenderTexture for the default RTHandle system.
-        /// </summary>
-        /// <param name="tex">Input texture</param>
-        /// <returns>A new RTHandle referencing the input texture.</returns>
-        public static RTHandle Alloc(RenderTexture tex)
-        {
-            return s_DefaultInstance.Alloc(tex);
-        }
-
-        /// <summary>
         /// Allocate a RTHandle from a regular render target identifier for the default RTHandle system.
         /// </summary>
         /// <param name="tex">Input render target identifier.</param>

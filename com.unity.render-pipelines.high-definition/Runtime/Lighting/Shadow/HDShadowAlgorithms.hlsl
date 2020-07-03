@@ -1,5 +1,3 @@
-#ifndef HD_SHADOW_ALGORITHMS_INCLUDED
-#define HD_SHADOW_ALGORITHMS_INCLUDED
 // Configure which shadow algorithms to use per shadow level quality
 
 // Since we use slope-scale bias, the constant bias is for now set as a small fixed value
@@ -326,4 +324,3 @@ float EvalShadow_SampleClosestDistance_Punctual(HDShadowData sd, Texture2D tex, 
 
     return distance(occluderPosWS, lightPositionWS);
 }
-#endif

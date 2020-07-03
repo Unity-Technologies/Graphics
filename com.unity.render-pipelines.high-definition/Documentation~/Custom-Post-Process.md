@@ -100,8 +100,6 @@ The **injectionPoint** override allows you to specify where in the pipeline HDRP
 
 * **AfterOpaqueAndSky.**
 
-* **BeforeTAA.**
-
 * **BeforePostProcess.**
 
 * **AfterPostProcess**.

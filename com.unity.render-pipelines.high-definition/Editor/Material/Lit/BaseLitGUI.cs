@@ -11,7 +11,9 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         // Properties for Base Lit material keyword setup
         protected const string kDoubleSidedNormalMode = "_DoubleSidedNormalMode";
+        protected const string kDepthOffsetEnable = "_DepthOffsetEnable";
 
+        protected const string kDisplacementMode = "_DisplacementMode";
         protected const string kDisplacementLockObjectScale = "_DisplacementLockObjectScale";
         protected const string kDisplacementLockTilingScale = "_DisplacementLockTilingScale";
 

@@ -1,5 +1,3 @@
-#ifndef HD_SHADOW_SAMPLING_INCLUDED
-#define HD_SHADOW_SAMPLING_INCLUDED
 // Various shadow sampling logic.
 // Again two versions, one for dynamic resource indexing, one for static resource access.
 
@@ -330,4 +328,3 @@ float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, f
 //  shadowData.shadowFilterParams0.z = shadowRequest.maxDepthBias;
 
 // #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDIMS.hlsl"
-#endif

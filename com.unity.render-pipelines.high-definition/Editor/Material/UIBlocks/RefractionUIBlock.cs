@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
-using System.Linq;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -11,7 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class RefractionUIBlock : MaterialUIBlock
     {
-        internal static class Styles
+        protected static class Styles
         {
             public static string refractionModelText = "Refraction Model";
             public static GUIContent refractionIorText = new GUIContent("Index Of Refraction", "Controls the index of refraction for this Material.");
@@ -64,8 +63,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnGUI()
         {
-            var isPrepass = materials.All(m => HDRenderQueue.k_RenderQueue_PreRefraction.Contains(m.renderQueue));
-
+            // TODO: this does not works with multiple materials !
+            var isPrepass = HDRenderQueue.k_RenderQueue_PreRefraction.Contains(materials[0].renderQueue);
             if (refractionModel != null
                 // Refraction is not available for pre-refraction objects
                 && !isPrepass)

@@ -5,6 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
     class DBufferManager : MRTBufferManager
     {
         ComputeBuffer   m_PropertyMaskBuffer;
+        int m_PropertyMaskBufferSize;
         ComputeShader   m_ClearPropertyMaskBufferShader;
         int m_ClearPropertyMaskBufferKernel;
 
@@ -41,11 +42,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public int GetPropertyMaskBufferSize(int width, int height)
+        public int propertyMaskBufferSize
         {
-            int propertyMaskBufferSize = ((width + 7) / 8) * ((height + 7) / 8);
-            propertyMaskBufferSize = ((propertyMaskBufferSize + 63) / 64) * 64;
-            return propertyMaskBufferSize;
+            get
+            {
+                return m_PropertyMaskBufferSize;
+            }
         }
 
         public override void CreateBuffers()
@@ -76,9 +78,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void AllocResolutionDependentBuffers(int width, int height)
+        public void AllocResolutionDependentBuffers(HDCamera hdCamera, int width, int height)
         {
-            m_PropertyMaskBuffer = new ComputeBuffer(GetPropertyMaskBufferSize(width, height), 4);
+            m_PropertyMaskBufferSize = ((width + 7) / 8) * ((height + 7) / 8);
+            m_PropertyMaskBufferSize = ((m_PropertyMaskBufferSize + 63) / 64) * 64; // round off to nearest multiple of 64 for ease of use in CS
+            m_PropertyMaskBuffer = new ComputeBuffer(m_PropertyMaskBufferSize, 4);
         }
 
         override public void DestroyBuffers()

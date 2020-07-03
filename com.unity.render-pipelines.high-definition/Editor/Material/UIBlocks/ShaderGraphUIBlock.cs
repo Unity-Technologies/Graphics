@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
-using System.Linq;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -29,7 +28,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public const string header = "Exposed Properties";
             public static readonly GUIContent bakedEmission = new GUIContent("Baked Emission", "");
-            public static readonly GUIContent motionVectorForVertexAnimationText = new GUIContent("Motion Vector For Vertex Animation", "When enabled, HDRP will correctly handle velocity for vertex animated object. Only enable if there is vertex animation in the ShaderGraph.");
         }
 
         Expandable  m_ExpandableBit;
@@ -119,7 +117,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 // If the shader graph have a double sided flag, then we don't display this field.
                 // The double sided GI value will be synced with the double sided property during the SetupBaseUnlitKeywords()
-                if (!materials.All(m => m.HasProperty(kDoubleSidedEnable)))
+                if (!materials[0].HasProperty(kDoubleSidedEnable))
                     materialEditor.DoubleSidedGIField();
             }
 
@@ -129,7 +127,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if ((m_Features & Features.MotionVector) != 0)
                 DrawMotionVectorToggle();
 
-            if ((m_Features & Features.ShadowMatte) != 0 && materials.All(m => m.HasProperty(kShadowMatteFilter)))
+            if ((m_Features & Features.ShadowMatte) != 0 && materials[0].HasProperty(kShadowMatteFilter))
                 DrawShadowMatteToggle();
         }
 
@@ -152,40 +150,47 @@ namespace UnityEditor.Rendering.HighDefinition
             EmissionUIBlock.BakedEmissionEnabledProperty(materialEditor);
         }
 
+        // Track additional velocity state. See SG-ADDITIONALVELOCITY-NOTE
+        bool m_AddPrecomputedVelocity = false;
+
         void DrawMotionVectorToggle()
         {
-            // We have no way to setup motion vector pass to be false by default for a shader graph
-            // So here we workaround it with materialTag system by checking if a tag exist to know if it is
-            // the first time we display this information. And thus setup the MotionVector Pass to false.
+            // I absolutely don't know what this is meant to do
             const string materialTag = "MotionVector";
-            
-            string tag = materials[0].GetTag(materialTag, false, "Nothing");
-            if (tag == "Nothing")
+            foreach (var material in materials)
             {
-                materials[0].SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, false);
-                materials[0].SetOverrideTag(materialTag, "User");
+                string tag = material.GetTag(materialTag, false, "Nothing");
+                if (tag == "Nothing")
+                {
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, false);
+                    material.SetOverrideTag(materialTag, "User");
+                }
             }
 
-            //In the case of additional velocity data we will enable the motion vector pass.
-            bool addPrecomputedVelocity = false;
-            if (materials[0].HasProperty(kAddPrecomputedVelocity))
-            {
-                addPrecomputedVelocity = materials[0].GetInt(kAddPrecomputedVelocity) != 0;
-            }
-
-            bool currentMotionVectorState = materials[0].GetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr);
-            bool enabled = currentMotionVectorState || addPrecomputedVelocity;
-
+            // If using multi-select, apply toggled material to all materials.
+            bool enabled = materials[0].GetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr);
             EditorGUI.BeginChangeCheck();
+            enabled = EditorGUILayout.Toggle("Motion Vector For Vertex Animation", enabled);
 
-            using (new EditorGUI.DisabledScope(addPrecomputedVelocity))
+            // SG-ADDITIONALVELOCITY-NOTE:
+            // We would like to automatically enable the motion vector pass (handled on material UI side)
+            // in case we add precomputed velocity in a graph. Due to serialization of material, changing
+            // a value in between shadergraph compilations would have no effect on a material, so we instead
+            // inform the motion vector UI via the existence of the property at all and query against that.
+            bool hasPrecomputedVelocity = materials[0].HasProperty(kAddPrecomputedVelocity);
+            if (m_AddPrecomputedVelocity != hasPrecomputedVelocity)
             {
-                enabled = EditorGUILayout.Toggle(Styles.motionVectorForVertexAnimationText, enabled);
+                enabled |= hasPrecomputedVelocity;
+                m_AddPrecomputedVelocity = hasPrecomputedVelocity;
+                GUI.changed = true;
             }
 
-            if (EditorGUI.EndChangeCheck() || currentMotionVectorState != enabled)
+            if (EditorGUI.EndChangeCheck())
             {
-                materials[0].SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, enabled);
+                foreach (var material in materials)
+                {
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, enabled);
+                }
             }
         }
 

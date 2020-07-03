@@ -4,8 +4,8 @@
     internal struct SubShaderDescriptor
     {
         public string pipelineTag;
-        public string renderType;
-        public string renderQueue;
+        public string renderQueueOverride;
+        public string renderTypeOverride;
         public bool generatesPreview;
         public PassCollection passes;
     }

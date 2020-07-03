@@ -40,8 +40,6 @@ namespace UnityEditor.ShaderGraph
 
         public Gradient defaultValue { get { return m_DefaultValue; } }
 
-        public override bool isDefaultValue => value.Equals(defaultValue);
-
         public override VisualElement InstantiateControl()
         {
             return new GradientSlotControlView(this);

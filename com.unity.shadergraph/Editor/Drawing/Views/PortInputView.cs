@@ -57,7 +57,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             Add(m_Container);
 
-            m_Container.Add(new VisualElement() { name = "disabledOverlay", pickingMode = PickingMode.Ignore });
             RegisterCallback<CustomStyleResolvedEvent>(OnCustomStyleResolved);
         }
 

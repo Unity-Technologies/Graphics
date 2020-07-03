@@ -26,15 +26,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             canPasteSerializedData = CanPasteSerializedDataImplementation;
             unserializeAndPaste = UnserializeAndPasteImplementation;
             deleteSelection = DeleteSelectionImplementation;
-            elementsInsertedToStackNode = ElementsInsertedToStackNode;
             RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
             RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
             RegisterCallback<MouseMoveEvent>(OnMouseMoveEvent);
-        }
-
-        protected override bool canCutSelection
-        {
-            get { return selection.OfType<IShaderNodeView>().Any(x => x.node.canCutNode) || selection.OfType<Group>().Any() || selection.OfType<BlackboardField>().Any(); }
         }
 
         protected override bool canCopySelection
@@ -42,23 +36,26 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return selection.OfType<IShaderNodeView>().Any(x => x.node.canCopyNode) || selection.OfType<Group>().Any() || selection.OfType<BlackboardField>().Any(); }
         }
 
-        public MaterialGraphView(GraphData graph, Action previewUpdateDelegate) : this()
+        public MaterialGraphView(GraphData graph) : this()
         {
             this.graph = graph;
-            this.m_PreviewManagerUpdateDelegate = previewUpdateDelegate;
         }
 
         [Inspectable("GraphData", null)]
         public GraphData graph { get; private set; }
 
         Action m_InspectorUpdateDelegate;
-        Action m_PreviewManagerUpdateDelegate;
 
         public string inspectorTitle => this.graph.path;
 
         public object GetObjectToInspect()
         {
-            return graph;
+            return this.graph;
+        }
+
+        public PropertyInfo[] GetPropertyInfo()
+        {
+            return this.GetType().GetProperties();
         }
 
         public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
@@ -72,17 +69,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void ChangeTargetSettings()
         {
-            var activeBlocks = graph.GetActiveBlocksForAllActiveTargets();
-            if (ShaderGraphPreferences.autoAddRemoveBlocks)
-            {
-                graph.AddRemoveBlocksFromActiveList(activeBlocks);
-            }
-
-            graph.UpdateActiveBlocks(activeBlocks);
-            this.m_PreviewManagerUpdateDelegate();
             this.m_InspectorUpdateDelegate();
         }
-
         void ChangeConcretePrecision(ConcretePrecision newValue)
         {
             var graphEditorView = this.GetFirstAncestorOfType<GraphEditorView>();
@@ -107,24 +95,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public Action onConvertToSubgraphClick { get; set; }
         public Vector2 cachedMousePosition { get; private set; }
-
-        // GraphView has UQueryState<Node> nodes built in to query for Nodes
-        // We need this for Contexts but we might as well cast it to a list once
-        public List<ContextView> contexts { get; set; }
-
-        // We have to manually update Contexts
-        // Currently only called during GraphEditorView ctor as our Contexts are static
-        public void UpdateContextList()
-        {
-            var contextQuery = contentViewContainer.Query<ContextView>().Build();
-            contexts = contextQuery.ToList();
-        }
-
-        // We need a way to access specific ContextViews
-        public ContextView GetContext(ContextData contextData)
-        {
-            return contexts.FirstOrDefault(s => s.contextData == contextData);
-        }
 
         public override List<Port> GetCompatiblePorts(Port startAnchor, NodeAdapter nodeAdapter)
         {
@@ -249,10 +219,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if (selectedObject is Group)
                             return DropdownMenuAction.Status.Disabled;
                         GraphElement ge = selectedObject as GraphElement;
-                        if (ge.userData is BlockNode)
-                        {
-                            return DropdownMenuAction.Status.Disabled;
-                        }
                         if (ge.userData is IGroupItem)
                         {
                             filteredSelection.Add(ge);
@@ -345,10 +311,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             List<AbstractMaterialNode> endNodes = new List<AbstractMaterialNode>();
             if (!graph.isSubGraph)
             {
-                var nodeView = graph.GetNodes<BlockNode>();
-                foreach (BlockNode blockNode in nodeView)
+                var nodeView = graph.GetNodes<IMasterNode>();
+                foreach (IMasterNode masterNode in nodeView)
                 {
-                    endNodes.Add(blockNode as AbstractMaterialNode);
+                    endNodes.Add(masterNode as AbstractMaterialNode);
                 }
             }
             else
@@ -1149,12 +1115,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         #endregion
-
-        void ElementsInsertedToStackNode(StackNode stackNode, int insertIndex, IEnumerable<GraphElement> elements)
-        {
-            var contextView = stackNode as ContextView;
-            contextView.InsertElements(insertIndex, elements);
-        }
     }
 
     static class GraphViewExtensions

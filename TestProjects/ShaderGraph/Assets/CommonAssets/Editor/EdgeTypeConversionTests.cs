@@ -39,6 +39,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         TestGraphObject m_Object;
         GraphData m_Graph;
         CustomFunctionNode m_CFNode;
+        UnlitMasterNode m_MasterNode;
 
         [SetUp]
         public void LoadGraph()
@@ -50,6 +51,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.NotNull(m_Graph, $"Invalid graph data found for {kGraphName}");
             m_CFNode = m_Graph.GetNodes<CustomFunctionNode>().FirstOrDefault();
             Assert.NotNull(m_CFNode, $"No CustomFunctionNode found in {kGraphName}.");
+            m_MasterNode = m_Graph.GetNodes<UnlitMasterNode>().FirstOrDefault();
+            Assert.NotNull(m_MasterNode, $"No UnlitMasterNode found in {kGraphName}.");
         }
 
         [Test]
@@ -113,8 +116,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 var redirNode = RedirectNodeData.Create(m_Graph, outputSlot.valueType, Vector2.zero, edge.inputSlot, edge.outputSlot, null);
 
                 m_Graph.ValidateGraph();
-                CompileNodeShader(m_CFNode, GenerationMode.Preview, m_CFNode.name);
-                CompileNodeShader(null, GenerationMode.ForReals, "Master Stack Shader");
+                CompileNodeShader(m_CFNode, GenerationMode.Preview);
+                CompileNodeShader(m_MasterNode, GenerationMode.ForReals);
 
                 // Verify all errors are expected
                 foreach (var message in m_Graph.messageManager.GetNodeMessages())
@@ -136,9 +139,9 @@ namespace UnityEditor.ShaderGraph.UnitTests
             }
         }
 
-        void CompileNodeShader(AbstractMaterialNode node, GenerationMode mode, string nodeName)
+        void CompileNodeShader(AbstractMaterialNode node, GenerationMode mode)
         {
-            var generator = new Generator(m_Graph, node, mode, nodeName);
+            var generator = new Generator(m_Graph, node, mode, node.name);
             var shader = ShaderUtil.CreateShaderAsset(generator.generatedShader, true);
             shader.hideFlags = HideFlags.HideAndDontSave;
             var mat = new Material(shader) {hideFlags = HideFlags.HideAndDontSave};

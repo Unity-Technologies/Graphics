@@ -5,7 +5,6 @@ using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using System.Reflection;
 using System.Linq.Expressions;
-using System.Linq;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -246,7 +245,15 @@ namespace UnityEditor.Rendering.HighDefinition
             
             // Calculate isMixed
             bool enabled = materials[0].globalIlluminationFlags == MaterialGlobalIlluminationFlags.BakedEmissive;
-            bool isMixed = materials.Any(m => m.globalIlluminationFlags != materials[0].globalIlluminationFlags);
+            bool isMixed = false;
+            for (int i = 1; i < materials.Length; i++)
+            {
+                if ((materials[i].globalIlluminationFlags == MaterialGlobalIlluminationFlags.BakedEmissive) != enabled)
+                {
+                    isMixed = true;
+                    break;
+                }
+            }
 
             // initial checkbox for enabling/disabling emission
             EditorGUI.BeginChangeCheck();
@@ -268,7 +275,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             materialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, color);
 
-            if (materials.All(m => m.GetTexture(kEmissiveColorMap)))
+            // TODO: does not support multi-selection
+            if (materials[0].GetTexture(kEmissiveColorMap))
             {
                 EditorGUI.indentLevel++;
                 if (UVEmissive != null) // Unlit does not have UVEmissive

@@ -17,14 +17,9 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
     #if _AlphaClip
-        half alpha = surfaceDescription.Alpha;
-        clip(alpha - surfaceDescription.AlphaClipThreshold);
-    #elif _SURFACE_TYPE_TRANSPARENT
-        half alpha = surfaceDescription.Alpha;
-    #else
-        half alpha = 1;
+        clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
     #endif
 
-    half4 color = half4(surfaceDescription.BaseColor, alpha);
+    half4 color = half4(surfaceDescription.Albedo, surfaceDescription.Alpha);
     return color;
 }

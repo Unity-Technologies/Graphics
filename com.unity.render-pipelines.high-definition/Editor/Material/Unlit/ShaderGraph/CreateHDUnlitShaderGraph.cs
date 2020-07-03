@@ -1,27 +1,15 @@
-﻿using System;
+using System.IO;
+using UnityEditor.ProjectWindowCallback;
 using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
+namespace UnityEditor.Rendering.HighDefinition
 {
-    static class CreateUnlitShaderGraph
+    static class CreateHDUnlitShaderGraph
     {
-        [MenuItem("Assets/Create/Shader/HDRP/Unlit Shader Graph", false, 208)]
-        public static void CreateHDUnlitGraph()
+        [MenuItem("Assets/Create/Shader/HDRP/Unlit Graph", false, 208)]
+        public static void CreateMaterialGraph()
         {
-            var target = (HDTarget)Activator.CreateInstance(typeof(HDTarget));
-            target.TrySetActiveSubTarget(typeof(HDUnlitSubTarget));
-
-            var blockDescriptors = new [] 
-            { 
-                BlockFields.VertexDescription.Position,
-                BlockFields.VertexDescription.Normal,
-                BlockFields.VertexDescription.Tangent,
-                BlockFields.SurfaceDescription.BaseColor,
-                BlockFields.SurfaceDescription.Emission,
-                BlockFields.SurfaceDescription.Alpha,
-            };
-
-            GraphUtil.CreateNewGraphWithOutputs(new [] {target}, blockDescriptors);
+            GraphUtil.CreateNewGraph(new HDUnlitMasterNode());
         }
     }
 }

@@ -24,15 +24,19 @@
 // Tile size of this compute
 #define SHADOW_DENOISER_TILE_SIZE 8
 
+// Texture used to adjust the filter size to avoid overblurring
+TEXTURE3D(_ShadowFilterMapping);
+
+// This value is the maximal distance value that the filter supports
+#define RAY_TRACING_LIGHT_MAX_DISTANCE 50.0f
+#define RAY_TRACING_OCCLUDER_MAX_DISTANCE 10.0f
+
 // Ray tracing input textures
 TEXTURE2D_X(_DenoiseInputTexture);
 TEXTURE2D_X(_DistanceTexture);
 
 // Generic denoiser inputs
 int _DenoiserFilterRadius;
-
-// Camera FOV
-float _CameraFOV;
 
 #if DIRECTIONAL_LIGHT
     // Inputs for directional lights
@@ -62,38 +66,34 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     // Read the center pixel0
     const BilateralData center = TapBilateralData(centerCoord);
 
-    // Get the world space positon of the center pixel to filter
-    const float3 positionWS = GetAbsolutePositionWS(center.position);
+    // Compute the normalized view vector
+    float distanceValue = clamp(length(_WorldSpaceCameraPos - center.position) / RAY_TRACING_LIGHT_MAX_DISTANCE, 0.0, 1.0);
 
 #if DIRECTIONAL_LIGHT
-    // For the directonal light, the solid angle can be used directly 
-    float lightSolidAngle = _DirectionalLightAngle;
+    // Evaluate the normalized solid angle of the light
+    float lightSolidAngle = _DirectionalLightAngle / (PI * 0.5f);
 #else
     // Compute the light vector
-    float lightPointDistance = length(_SphereLightPosition - positionWS);
+    float lightPointDistance = clamp(length(_SphereLightPosition - GetAbsolutePositionWS(center.position)) / RAY_TRACING_LIGHT_MAX_DISTANCE, 0.0, 1.0);
+
     // Evaluate the normalized solid angle of the light
-    float lightSolidAngle = atan(_SphereLightRadius / lightPointDistance);
+    float lightSolidAngle = atan(_SphereLightRadius / lightPointDistance) / PI;
 #endif
-    // Compute the distances we need for our filtering
-    const float distanceCameraToPlane = length(positionWS - _WorldSpaceCameraPos);
-    const float distancePlaneToObject = LOAD_TEXTURE2D_X(_DistanceTexture, centerCoord).x;
 
-    // Compute the cone footprint on the image reflection plane for this configuration
-    const float brdfConeRadius = tan(lightSolidAngle * 0.5) * distancePlaneToObject * 2.0f;
+    // Grab the normalized/clamped distance between the point and its occluder
+    float averageSurfaceDistance = clamp(LOAD_TEXTURE2D_X(_DistanceTexture, centerCoord).x / RAY_TRACING_OCCLUDER_MAX_DISTANCE, 0.0, 1.0);
 
-    // We need to compute the view cone radius
-    const float viewConeRadius = brdfConeRadius * distanceCameraToPlane / (distancePlaneToObject + distanceCameraToPlane);
+    // Compute the 3d uv value that we shall be using
+    float3 mappingUV = float3(averageSurfaceDistance, lightSolidAngle, distanceValue);
 
-    // Compute the view cone's half angle. This matches the FOV angle to see exactly the half of the cone (The tangent could be precomputed in the table)
-    const float viewConeHalfAngle = FastATanPos(viewConeRadius / distanceCameraToPlane);
-    // Given the camera's fov and pixel resolution convert the viewConeHalfAngle to a number of pixels
-    const float pixelDistance = viewConeHalfAngle / _CameraFOV * _ScreenSize.x;
+    // Fetch the shadow scaling value
+    float2 radiusScale = SAMPLE_TEXTURE3D_LOD(_ShadowFilterMapping, s_trilinear_clamp_sampler, mappingUV, 0.0f).xy;
 
     // Evaluate the radius that should be used for the filter
     #if FINAL_PASS
-        const float radius = clamp(pixelDistance, 1, _DenoiserFilterRadius);
+        const float radius = _DenoiserFilterRadius * radiusScale.x;
     #else
-        const float radius = clamp(pixelDistance, 1, _DenoiserFilterRadius);
+        const float radius = _DenoiserFilterRadius * radiusScale.y;
     #endif
 
     // Compute the sigma value for our filter

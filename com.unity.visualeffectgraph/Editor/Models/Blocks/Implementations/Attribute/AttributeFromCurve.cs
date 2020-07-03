@@ -3,7 +3,6 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
-using System.Globalization;
 
 namespace UnityEditor.VFX.Block
 {
@@ -214,7 +213,7 @@ namespace UnityEditor.VFX.Block
 
         static private string GenerateLocalAttributeName(string name)
         {
-            return name[0].ToString().ToUpper(CultureInfo.InvariantCulture) + name.Substring(1);
+            return name[0].ToString().ToUpper() + name.Substring(1);
         }
 
         public override string source

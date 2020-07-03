@@ -57,15 +57,12 @@ namespace UnityEditor.ShaderGraph
         // this is used for properties exposed to the Material in the shaderlab Properties{} block
         internal override void AppendPropertyBlockStrings(ShaderStringBuilder builder)
         {
-            if (!value.procedural)
+            // adds properties in this format so: [TextureStack.MyStack(0)] [NoScaleOffset] Layer0("Layer0", 2D) = "white" {}
+            for (int layer = 0; layer < value.layers.Count; layer++)
             {
-                // adds properties in this format so: [TextureStack.MyStack(0)] [NoScaleOffset] Layer0("Layer0", 2D) = "white" {}
-                for (int layer = 0; layer < value.layers.Count; layer++)
-                {
-                    string layerName = value.layers[layer].layerName;
-                    string layerRefName = value.layers[layer].layerRefName;
-                    builder.AppendLine($"{hideTagString}[TextureStack.{referenceName}({layer})][NoScaleOffset]{layerRefName}(\"{layerName}\", 2D) = \"white\" {{}}");
-                }
+                string layerName = value.layers[layer].layerName;
+                string layerRefName = value.layers[layer].layerRefName;
+                builder.AppendLine($"{hideTagString}[TextureStack.{referenceName}({layer})][NoScaleOffset]{layerRefName}(\"{layerName}\", 2D) = \"white\" {{}}");
             }
         }
 
@@ -92,19 +89,14 @@ namespace UnityEditor.ShaderGraph
             int numLayers = value.layers.Count;
             if (numLayers > 0)
             {
-                if (!value.procedural)
+                // declare regular texture properties (for fallback case)
+                for (int i = 0; i < value.layers.Count; i++)
                 {
-                    // declare regular texture properties (for fallback case)
-                    for (int i = 0; i < value.layers.Count; i++)
-                    {
-                        string layerRefName = value.layers[i].layerRefName;
-                        builder.AppendLine(
-                            $"TEXTURE2D({layerRefName}); SAMPLER(sampler{layerRefName}); {concretePrecision.ToShaderString()}4 {layerRefName}_TexelSize;");
-                    }
+                    string layerRefName = value.layers[i].layerRefName;
+                    builder.AppendLine(
+                        $"TEXTURE2D({layerRefName}); SAMPLER(sampler{layerRefName}); {concretePrecision.ToShaderString()}4 {layerRefName}_TexelSize;");
                 }
-
                 // declare texture stack
-                builder.AppendIndentation();
                 builder.Append("DECLARE_STACK");
                 builder.Append((numLayers <= 1) ? "" : numLayers.ToString());
                 builder.Append("(");
@@ -116,24 +108,10 @@ namespace UnityEditor.ShaderGraph
                     builder.Append(value.layers[i].layerRefName);
                 }
                 builder.Append(")");
-                builder.Append(delimiter);
-                builder.AppendNewLine();
+                builder.AppendLine(delimiter);      // TODO: don't like delimiter, pretty sure it's not necessary if we invert the defaults on GEtPropertyDeclaration / GetPropertyArgument string
 
                 // declare the actual virtual texture property "variable" as a macro define to the BuildVTProperties function
-                builder.AppendIndentation();
-                builder.Append("#define ");
-                builder.Append(referenceName);
-                builder.Append(" AddTextureType(BuildVTProperties_");
-                builder.Append(referenceName);
-                builder.Append("()");
-                for (int i = 0; i < value.layers.Count; i++)
-                {
-                    builder.Append(",");
-                    builder.Append("TEXTURETYPE_");
-                    builder.Append(value.layers[i].layerTextureType.ToString().ToUpper());
-                }
-                builder.Append(")");
-                builder.AppendNewLine();
+                builder.AppendLine("#define " + referenceName + " BuildVTProperties_" + referenceName + "()");
             }
         }
 
@@ -146,7 +124,7 @@ namespace UnityEditor.ShaderGraph
         // argument string used to pass this property to a subgraph
         internal override string GetPropertyAsArgumentString()
         {
-            return "VTPropertyWithTextureType " + referenceName;
+            return "VTProperty " + referenceName;
         }
 
         // if a blackboard property is deleted, or copy/pasted, all node instances of it are replaced with this:

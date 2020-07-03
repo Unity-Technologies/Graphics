@@ -333,7 +333,7 @@ namespace UnityEditor.VFX
                     var slot = existingSlots.Find(s => p.property.Equals(s.property));
                     if (slot != null)
                     {
-                        slot.UpdateAttributes(p.property.attributes,notify);
+                        slot.UpdateAttributes(p.property.attributes);
                         existingSlots.Remove(slot);
                     }
                     else
@@ -383,8 +383,7 @@ namespace UnityEditor.VFX
             {
                 // Update properties
                 for (int i = 0; i < nbSlots; ++i)
-                    currentSlots[i].UpdateAttributes(expectedProperties[i].property.attributes,notify);
-                    
+                    currentSlots[i].UpdateAttributes(expectedProperties[i].property.attributes);
             }
 
             return recreate;

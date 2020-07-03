@@ -709,12 +709,10 @@ namespace UnityEditor.VFX
                 owner.Invalidate(this, cause);
         }
 
-        public void UpdateAttributes(VFXPropertyAttributes attributes,bool notify)
+        public void UpdateAttributes(VFXPropertyAttributes attributes)
         {
             m_FieldInfoCache = null; // this is call by syncslot. at this point the type of our master slot might have changed.
             m_Property.attributes = attributes;
-            if(notify)
-                Invalidate(InvalidationCause.kUIChanged);
         }
 
         protected override void OnAdded()

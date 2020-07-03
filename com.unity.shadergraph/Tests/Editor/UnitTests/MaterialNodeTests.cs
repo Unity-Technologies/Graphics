@@ -44,7 +44,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             public override SlotValueType valueType { get; }
             public override ConcreteSlotValueType concreteValueType { get; }
-            public override bool isDefaultValue { get; }
         }
 
         [OneTimeSetUp]
@@ -59,7 +58,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
             m_Graph = new GraphData();
             m_NodeA = new TestNode();
             m_Graph.AddNode(m_NodeA);
-            m_NodeA.SetOverrideActiveState(AbstractMaterialNode.ActiveState.ExplicitActive);
         }
 
         [Test]

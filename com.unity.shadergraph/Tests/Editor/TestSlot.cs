@@ -22,8 +22,6 @@ namespace UnityEditor.ShaderGraph
             get { return ConcreteSlotValueType.Vector4; }
         }
 
-        public override bool isDefaultValue => true;
-
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
         {
         }

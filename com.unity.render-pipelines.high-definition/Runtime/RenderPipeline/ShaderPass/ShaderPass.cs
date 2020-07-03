@@ -11,8 +11,6 @@ namespace UnityEngine.Rendering.HighDefinition
         ForwardUnlit,
         DeferredLighting,
         DepthOnly,
-        TransparentDepthPrepass,
-        TransparentDepthPostpass,
         MotionVectors,
         Distortion,
         LightTransport,

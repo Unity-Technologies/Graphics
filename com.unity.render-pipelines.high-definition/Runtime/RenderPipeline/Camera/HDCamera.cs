@@ -370,19 +370,22 @@ namespace UnityEngine.Rendering.HighDefinition
             return antialiasing == AntialiasingMode.TemporalAntialiasing;
         }
 
-        internal bool IsSSREnabled(bool transparent = false)
+        internal bool IsSSREnabled()
         {
             var ssr = volumeStack.GetComponent<ScreenSpaceReflection>();
-            if (!transparent)
-                return frameSettings.IsEnabled(FrameSettingsField.SSR) && ssr.enabled.value;
-            else
-                return frameSettings.IsEnabled(FrameSettingsField.TransparentSSR) && ssr.enabled.value;
+            return frameSettings.IsEnabled(FrameSettingsField.SSR) && ssr.enabled.value;
         }
 
         internal bool IsSSGIEnabled()
         {
             var ssgi = volumeStack.GetComponent<GlobalIllumination>();
             return frameSettings.IsEnabled(FrameSettingsField.SSGI) && ssgi.enable.value;
+        }
+
+        internal bool IsTransparentSSREnabled()
+        {
+            var ssr = volumeStack.GetComponent<ScreenSpaceReflection>();
+            return frameSettings.IsEnabled(FrameSettingsField.TransparentSSR) && ssr.enabled.value;
         }
 
         internal bool IsVolumetricReprojectionEnabled()
@@ -451,8 +454,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // Reinit the system.
                     colorPyramidHistoryIsValid = false;
-                    // Since we nuke all history we must inform the post process system too.
-                    resetPostProcessingHistory = true;
 
                     HDRenderPipeline.DestroyVolumetricHistoryBuffers(this);
 
@@ -663,9 +664,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float exposureMultiplierForProbes = 1.0f / Mathf.Max(probeRangeCompressionFactor, 1e-6f);
             cb._ProbeExposureScale  = exposureMultiplierForProbes;
-
-            cb._TransparentCameraOnlyMotionVectors = (frameSettings.IsEnabled(FrameSettingsField.MotionVectors) &&
-                                                      !frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector)) ? 1 : 0;
         }
 
 
@@ -755,7 +753,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<ExecuteCaptureActionsPassData>("Execute Capture Actions", out var passData))
             {
                 var inputDesc = renderGraph.GetTextureDesc(input);
-                var rtHandleScale = RTHandles.rtHandleProperties.rtHandleScale;
+                var rtHandleScale = renderGraph.rtHandleProperties.rtHandleScale;
                 passData.viewportScale = new Vector2(rtHandleScale.x, rtHandleScale.y);
                 passData.blitMaterial = HDUtils.GetBlitMaterial(inputDesc.dimension);
                 passData.recorderCaptureActions = m_RecorderCaptureActions;
@@ -1272,10 +1270,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             float verticalFoV = camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
-            if (!camera.usePhysicalProperties)
-            {
-                verticalFoV = Mathf.Atan(-1.0f / viewConstants.projMatrix[1, 1]) * 2;
-            }
             Vector2 lensShift = camera.GetGateFittedLensShift();
 
             return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, resolution, viewConstants.viewMatrix, false, aspect);

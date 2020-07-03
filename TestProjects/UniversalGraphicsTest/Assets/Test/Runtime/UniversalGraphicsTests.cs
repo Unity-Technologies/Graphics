@@ -6,7 +6,6 @@ using UnityEngine.TestTools;
 using UnityEngine.XR;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.SceneManagement;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Experimental.Rendering.Universal;
 
@@ -25,9 +24,9 @@ public class UniversalGraphicsTests
 
     public IEnumerator Run(GraphicsTestCase testCase)
     {
-#if ENABLE_VR
+#if ENABLE_VR && ENABLE_XR_MODULE
         // XRTODO: Fix XR tests on macOS or disable them from Yamato directly
-        if (XRGraphicsAutomatedTests.enabled && (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer))
+        if (XRSystem.testModeEnabled && (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer))
             Assert.Ignore("Universal XR tests do not run on macOS.");
 #endif
         SceneManager.LoadScene(testCase.ScenePath);
@@ -37,14 +36,14 @@ public class UniversalGraphicsTests
 
         var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x=>x.GetComponent<Camera>());
         var settings = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
-        Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
+        Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");        
 
-#if ENABLE_VR
-        if (XRGraphicsAutomatedTests.enabled)
+#if ENABLE_VR && ENABLE_XR_MODULE
+        if (XRSystem.testModeEnabled)
         {
             if (settings.XRCompatible)
             {
-                XRGraphicsAutomatedTests.running = true;
+                XRSystem.automatedTestRunning = true;
             }
             else
             {
@@ -105,11 +104,11 @@ public class UniversalGraphicsTests
         UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
     }
 
-#if ENABLE_VR
+#if ENABLE_VR && ENABLE_XR_MODULE
     [TearDown]
     public void ResetSystemState()
     {
-        XRGraphicsAutomatedTests.running = false;
+        XRSystem.automatedTestRunning = false;
     }
 #endif
 #endif

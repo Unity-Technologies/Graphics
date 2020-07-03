@@ -3,7 +3,6 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
-using System.Globalization;
 
 namespace UnityEditor.VFX.Block
 {
@@ -58,7 +57,7 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                string attributeName = attribute;
+                string attributeName = ObjectNames.NicifyVariableName(attribute);
                 return VFXBlockUtility.GetNameString(Composition) + " " + attributeName + " " + VFXBlockUtility.GetNameString(Random) + " (" + AttributeType.ToString() + ")";
             }
         }
@@ -81,7 +80,7 @@ namespace UnityEditor.VFX.Block
 
         static private string GenerateLocalAttributeName(string name)
         {
-            return "_" + name[0].ToString().ToUpper(CultureInfo.InvariantCulture) + name.Substring(1);
+            return "_" + name[0].ToString().ToUpper() + name.Substring(1);
         }
 
         public override string source

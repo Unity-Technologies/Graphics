@@ -299,7 +299,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
 
-        internal void Render(CommandBuffer cmd, HDCamera camera, ScriptableRenderContext renderContext, RTHandle depthTexture, RTHandle normalBuffer, in ShaderVariablesRaytracing globalRTCB, int frameCount)
+        internal void Render(CommandBuffer cmd, HDCamera camera, ScriptableRenderContext renderContext, in ShaderVariablesRaytracing globalRTCB, int frameCount)
         {
             var settings = camera.volumeStack.GetComponent<AmbientOcclusion>();
 
@@ -314,7 +314,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, globalRTCB, renderContext, frameCount);
                 else
                 {
-                    Dispatch(cmd, camera, depthTexture, normalBuffer, frameCount);
+                    Dispatch(cmd, camera, frameCount);
                     PostDispatchWork(cmd, camera);
                 }
             }
@@ -347,7 +347,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ShaderVariablesAmbientOcclusion cb;
         }
 
-        RenderAOParameters PrepareRenderAOParameters(HDCamera camera, Vector2 historySize, int frameCount, in HDUtils.PackedMipChainInfo depthMipInfo)
+        RenderAOParameters PrepareRenderAOParameters(HDCamera camera, Vector2 historySize, int frameCount)
         {
             var parameters = new RenderAOParameters();
 
@@ -435,12 +435,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 0
             );
 
+            var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+            var depthMipInfo = hdrp.sharedRTManager.GetDepthBufferMipChainInfo();
             cb._FirstTwoDepthMipOffsets = new Vector4(depthMipInfo.mipLevelOffsets[1].x, depthMipInfo.mipLevelOffsets[1].y, depthMipInfo.mipLevelOffsets[2].x, depthMipInfo.mipLevelOffsets[2].y);
 
             parameters.bilateralUpsample = settings.bilateralUpsample;
             parameters.gtaoCS = m_Resources.shaders.GTAOCS;
             parameters.gtaoCS.shaderKeywords = null;
-            parameters.temporalAccumulation = settings.temporalAccumulation.value && camera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors);
+            parameters.temporalAccumulation = settings.temporalAccumulation.value;
 
             if (parameters.temporalAccumulation)
             {
@@ -494,14 +496,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void RenderAO(in RenderAOParameters      parameters,
                                 RTHandle                packedDataTexture,
-                                RTHandle                depthTexture,
-                                RTHandle                normalBuffer,
+                                RenderPipelineResources resources,
                                 CommandBuffer           cmd)
         {
             ConstantBuffer.Push(cmd, parameters.cb, parameters.gtaoCS, HDShaderIDs._ShaderVariablesAmbientOcclusion);
             cmd.SetComputeTextureParam(parameters.gtaoCS, parameters.gtaoKernel, HDShaderIDs._AOPackedData, packedDataTexture);
-            cmd.SetComputeTextureParam(parameters.gtaoCS, parameters.gtaoKernel, HDShaderIDs._NormalBufferTexture, normalBuffer);
-            cmd.SetComputeTextureParam(parameters.gtaoCS, parameters.gtaoKernel, HDShaderIDs._CameraDepthTexture, depthTexture);
 
             const int groupSizeX = 8;
             const int groupSizeY = 8;
@@ -599,7 +598,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void Dispatch(CommandBuffer cmd, HDCamera camera, RTHandle depthTexture, RTHandle normalBuffer, int frameCount)
+        internal void Dispatch(CommandBuffer cmd, HDCamera camera, int frameCount)
         {
             var settings = camera.volumeStack.GetComponent<AmbientOcclusion>();
             if (IsActive(camera, settings))
@@ -615,11 +614,10 @@ namespace UnityEngine.Rendering.HighDefinition
                                                       currentHistory.referenceSize.y * currentHistory.scaleFactor.y);
                     var rtScaleForHistory = camera.historyRTHandleProperties.rtHandleScale;
 
-                    var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-                    var aoParameters = PrepareRenderAOParameters(camera, historySize * rtScaleForHistory, frameCount, hdrp.sharedRTManager.GetDepthBufferMipChainInfo());
+                    var aoParameters = PrepareRenderAOParameters(camera, historySize * rtScaleForHistory, frameCount);
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.HorizonSSAO)))
                     {
-                        RenderAO(aoParameters, m_PackedDataTex, depthTexture, normalBuffer, cmd);
+                        RenderAO(aoParameters, m_PackedDataTex, m_Resources, cmd);
                     }
 
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DenoiseSSAO)))
@@ -665,7 +663,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var aoTexture = IsActive(camera, settings) ? m_AmbientOcclusionTex : TextureXR.GetBlackTexture();
             cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, aoTexture);
             // TODO: All the push debug stuff should be centralized somewhere
-            (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(camera, cmd, aoTexture, FullScreenDebugMode.ScreenSpaceAmbientOcclusion);
+            (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(camera, cmd, aoTexture, FullScreenDebugMode.SSAO);
         }
     }
 }

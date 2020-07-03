@@ -15,7 +15,6 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using Node = UnityEditor.Experimental.GraphView.Node;
-using Drawing.Inspector.PropertyDrawers;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -32,6 +31,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_PreviewFiller;
         VisualElement m_ControlsDivider;
         IEdgeConnectorListener m_ConnectorListener;
+        VisualElement m_SettingsContainer;
+        bool m_ShowSettings = false;
+        VisualElement m_SettingsButton;
+        VisualElement m_Settings;
+        VisualElement m_NodeSettingsView;
 
         MaterialGraphView m_GraphView;
 
@@ -53,9 +57,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             node = inNode;
             viewDataKey = node.objectId;
             UpdateTitle();
-
-            // Add disabled overlay
-            Add(new VisualElement() { name = "disabledOverlay", pickingMode = PickingMode.Ignore });
 
             // Add controls container
             var controlsContainer = new VisualElement { name = "controls" };
@@ -130,6 +131,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             base.expanded = node.drawState.expanded;
             AddSlots(node.GetSlots<MaterialSlot>());
 
+            SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
+
             if (node is SubGraphNode)
             {
                 RegisterCallback<MouseDownEvent>(OnSubGraphDoubleClick);
@@ -137,18 +140,61 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_TitleContainer = this.Q("title");
 
-            if(node is BlockNode blockData)
+            if (node is IMasterNode)
             {
-                AddToClassList("blockData");
-                m_TitleContainer.RemoveFromHierarchy();
-            }
-            else
-            {
-                SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
+                AddToClassList("master");
+                bool validTarget = false;
+                foreach(Target activeTarget in node.owner.validTargets)
+                {
+                    //if we have a valid active target implementation and render pipeline, don't display the error
+                    if (activeTarget.IsPipelineCompatible(GraphicsSettings.currentRenderPipeline))
+                    {
+                        validTarget = true;
+                        break;
+                    }
+                }
+
+                //if no active target implementations are valid with the current pipeline, display the error
+                m_GraphView.graph.messageManager?.ClearAllFromProvider(this);
+                if (!validTarget)
+                {
+                    m_GraphView.graph.messageManager?.AddOrAppendError(this, node.objectId,
+                        new ShaderMessage("The active Master Node is not compatible with the current Render Pipeline," +
+                                          " or no Render Pipeline is assigned." +
+                                          " Assign a Render Pipeline in the graphics settings that is compatible with this Master Node.",
+                            ShaderCompilerMessageSeverity.Error));
+                }
             }
 
-            // Update active state
-            SetActive(node.isActive);
+            m_NodeSettingsView = new NodeSettingsView();
+            m_NodeSettingsView.visible = false;
+            Add(m_NodeSettingsView);
+
+            m_SettingsButton = new VisualElement {name = "settings-button"};
+                m_SettingsButton.Add(new VisualElement {name = "icon"});
+
+            m_Settings = new VisualElement();
+            AddDefaultSettings();
+
+            // Add Node type specific settings
+            var nodeTypeSettings = node as IHasSettings;
+            if (nodeTypeSettings != null)
+                m_Settings.Add(nodeTypeSettings.CreateSettingsElement());
+
+            // Add manipulators
+            m_SettingsButton.AddManipulator(new Clickable(() =>
+                {
+                    UpdateSettingsExpandedState();
+                }));
+
+            if(m_Settings.childCount > 0)
+            {
+                    m_ButtonContainer = new VisualElement {name = "button-container"};
+                m_ButtonContainer.style.flexDirection = FlexDirection.Row;
+                m_ButtonContainer.Add(m_SettingsButton);
+                m_ButtonContainer.Add(m_CollapseButton);
+                m_TitleContainer.Add(m_ButtonContainer);
+            }
 
             // Register OnMouseHover callbacks for node highlighting
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
@@ -181,50 +227,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             badge.AttachTo(m_TitleContainer, SpriteAlignment.RightCenter);
         }
 
-        public void SetActive(bool state)
-        {
-            // Setup
-            var disabledString = "disabled";
-            var portDisabledString = "inactive";
-
-
-            if (!state)
-            {
-                // Add elements to disabled class list
-                AddToClassList(disabledString);
-
-                var inputPorts = inputContainer.Query<ShaderPort>().ToList();
-                foreach (var port in inputPorts)
-                {
-                    port.AddToClassList(portDisabledString);
-                }
-                var outputPorts = outputContainer.Query<ShaderPort>().ToList();
-                foreach (var port in outputPorts)
-                {
-                    port.AddToClassList(portDisabledString);
-                }
-            }
-            else
-            {
-                // Remove elements from disabled class list
-                RemoveFromClassList(disabledString);
-
-                var inputPorts = inputContainer.Query<ShaderPort>().ToList();
-                foreach (var port in inputPorts)
-                {
-                    port.RemoveFromClassList(portDisabledString);
-                }
-                var outputPorts = outputContainer.Query<ShaderPort>().ToList();
-                foreach (var port in outputPorts)
-                {
-                    port.RemoveFromClassList(portDisabledString);
-                }
-
-            }
-        }
-
-
-
         public void ClearMessage()
         {
             var badge = this.Q<IconBadge>();
@@ -254,6 +256,17 @@ namespace UnityEditor.ShaderGraph.Drawing
             return m_TitleContainer.resolvedStyle.borderBottomColor;
         }
 
+        void OnGeometryChanged(GeometryChangedEvent evt)
+        {
+            // style.positionTop and style.positionLeft are in relation to the parent,
+            // so we translate the layout of the settings button to be in the coordinate
+            // space of the settings view's parent.
+
+            var settingsButtonLayout = m_SettingsButton.ChangeCoordinatesTo(m_NodeSettingsView.parent, m_SettingsButton.layout);
+            m_NodeSettingsView.style.top = settingsButtonLayout.yMax - 18f;
+            m_NodeSettingsView.style.left = settingsButtonLayout.xMin - 16f;
+        }
+
         void OnSubGraphDoubleClick(MouseDownEvent evt)
         {
             if (evt.clickCount == 2 && evt.button == 0)
@@ -266,8 +279,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         public Node gvNode => this;
-
-        [Inspectable("Node", null)]
         public AbstractMaterialNode node { get; private set; }
 
         public override bool expanded
@@ -300,7 +311,15 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (evt.target is Node)
             {
-                var canViewShader = node.hasPreview || node is SubGraphOutputNode;
+                var isMaster = node is IMasterNode;
+                var isActive = node == node.owner.outputNode;
+                if (isMaster)
+                {
+                    evt.menu.AppendAction("Set Active", SetMasterAsActive,
+                        _ => isActive ? DropdownMenuAction.Status.Checked : DropdownMenuAction.Status.Normal);
+                }
+
+                var canViewShader = node.hasPreview || node is IMasterNode || node is SubGraphOutputNode;
                 evt.menu.AppendAction("Copy Shader", CopyToClipboard,
                     _ => canViewShader ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Hidden,
                     GenerationMode.ForReals);
@@ -317,6 +336,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             base.BuildContextualMenu(evt);
+        }
+
+        void SetMasterAsActive(DropdownMenuAction action)
+        {
+            node.owner.owner.RegisterCompleteObjectUndo("Change Active Master");
+            node.owner.outputNode = node;
         }
 
         void CopyToClipboard(DropdownMenuAction action)
@@ -346,30 +371,93 @@ namespace UnityEditor.ShaderGraph.Drawing
             return generator.generatedShader;
         }
 
-        void SetNodesAsDirty()
+        void AddDefaultSettings()
         {
-            var editorView = GetFirstAncestorOfType<GraphEditorView>();
-            var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
-            editorView.colorManager.SetNodesDirty(nodeList);
+            PropertySheet ps = new PropertySheet();
+            bool hasDefaultSettings = false;
+
+            if(node.canSetPrecision)
+            {
+                hasDefaultSettings = true;
+                ps.Add(new PropertyRow(new Label("Precision")), (row) =>
+                {
+                    row.Add(new EnumField(node.precision), (field) =>
+                    {
+                        field.RegisterValueChangedCallback(evt =>
+                        {
+                            if (evt.newValue.Equals(node.precision))
+                                return;
+
+                            var editorView = GetFirstAncestorOfType<GraphEditorView>();
+                            var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
+
+                            editorView.colorManager.SetNodesDirty(nodeList);
+                            node.owner.owner.RegisterCompleteObjectUndo("Change precision");
+                            node.precision = (Precision)evt.newValue;
+                            node.owner.ValidateGraph();
+                            editorView.colorManager.UpdateNodeViews(nodeList);
+                            node.Dirty(ModificationScope.Graph);
+                        });
+                    });
+                });
+            }
+
+            if(hasDefaultSettings)
+                m_Settings.Add(ps);
         }
 
-        void UpdateNodeViews()
+        void RecreateSettings()
         {
-            var editorView = GetFirstAncestorOfType<GraphEditorView>();
-            var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
-            editorView.colorManager.UpdateNodeViews(nodeList);
+            m_Settings.RemoveFromHierarchy();
+            m_Settings = new PropertySheet();
+
+            // Add default settings
+            AddDefaultSettings();
+
+            // Add Node type specific settings
+            var nodeTypeSettings = node as IHasSettings;
+            if (nodeTypeSettings != null)
+                m_Settings.Add(nodeTypeSettings.CreateSettingsElement());
+
+            m_NodeSettingsView.Add(m_Settings);
         }
+
+        void UpdateSettingsExpandedState()
+        {
+            m_ShowSettings = !m_ShowSettings;
+            if (m_ShowSettings)
+            {
+                m_NodeSettingsView.Add(m_Settings);
+                m_NodeSettingsView.visible = true;
+                m_SettingsButton.AddToClassList("clicked");
+                RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+                OnGeometryChanged(null);
+            }
+            else
+            {
+                m_Settings.RemoveFromHierarchy();
+                m_NodeSettingsView.visible = false;
+                m_SettingsButton.RemoveFromClassList("clicked");
+                UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+            }
+        }
+
 
         public object GetObjectToInspect()
         {
-            return node;
+            return this.node;
+        }
+
+        public PropertyInfo[] GetPropertyInfo()
+        {
+            return this.node.GetType().GetProperties();
         }
 
         public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
         {
-            if (propertyDrawer is AbstractMaterialNodePropertyDrawer nodePropertyDrawer)
+            if (propertyDrawer is ShaderGUIOverridePropertyDrawer shaderGuiOverridePropertyDrawer)
             {
-                nodePropertyDrawer.GetPropertyData(SetNodesAsDirty, UpdateNodeViews);
+                shaderGuiOverridePropertyDrawer.GetPropertyData(node);
             }
         }
 
@@ -407,7 +495,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public bool CanToggleNodeExpanded()
         {
-            return !(node is BlockNode) && m_CollapseButton.enabledInHierarchy;
+            return m_CollapseButton.enabledInHierarchy;
         }
 
         void UpdatePreviewExpandedState(bool expanded)
@@ -448,7 +536,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         public void OnModified(ModificationScope scope)
         {
             UpdateTitle();
-            SetActive(node.isActive);
             if (node.hasPreview)
                 UpdatePreviewExpandedState(node.previewExpanded);
 
@@ -459,6 +546,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // Update slots to match node modification
                 case ModificationScope.Topological:
                 {
+                    RecreateSettings();
+
                     var slots = node.GetSlots<MaterialSlot>().ToList();
 
                     var inputPorts = inputContainer.Query<ShaderPort>().ToList();
@@ -540,16 +629,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     portContainer.Add(portInputView);
                     portContainer.Add(port);
                     inputContainer.Add(portContainer);
-
-                    // Update active state
-                    if(node.isActive)
-                    {
-                        portInputView.RemoveFromClassList("disabled");
-                    }
-                    else
-                    {
-                        portInputView.AddToClassList("disabled");
-                    }
                 }
                 port.OnDisconnect = OnEdgeDisconnected;
             }

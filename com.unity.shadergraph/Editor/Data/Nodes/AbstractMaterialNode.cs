@@ -28,12 +28,6 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         bool m_HasError;
 
-        [NonSerialized]
-        bool m_IsValid = true;
-
-        [NonSerialized]
-        bool m_IsActive = true;
-
         [SerializeField]
         List<JsonData<MaterialSlot>> m_Slots = new List<JsonData<MaterialSlot>>();
 
@@ -98,6 +92,7 @@ namespace UnityEditor.ShaderGraph
 
         private ConcretePrecision m_ConcretePrecision = ConcretePrecision.Float;
 
+        [Inspectable("Precision", ConcretePrecision.Float)]
         public ConcretePrecision concretePrecision
         {
             get => m_ConcretePrecision;
@@ -141,7 +136,7 @@ namespace UnityEditor.ShaderGraph
 
         public virtual bool allowedInSubGraph
         {
-            get { return !(this is BlockNode); }
+            get { return !(this is IMasterNode); }
         }
 
         public virtual bool allowedInMainGraph
@@ -160,114 +155,8 @@ namespace UnityEditor.ShaderGraph
             protected set { m_HasError = value; }
         }
 
-        public virtual bool isActive
-        {
-            get { return m_IsActive; }
-        }
-
-        //There are times when isActive needs to be set to a value explicitly, and
-        //not be changed by active forest parsing (what we do when we need to figure out
-        //what nodes should or should not be active, usually from an edit; see NodeUtils).
-        //In this case, we allow for explicit setting of an active value that cant be overriden.
-        //Implicit implies that active forest parsing can edit the nodes isActive property
-        public enum ActiveState
-        {
-            Implicit = 0,
-            ExplicitInactive = 1,
-            ExplicitActive = 2
-        }
-
-        private ActiveState m_ActiveState = ActiveState.Implicit;
-        public ActiveState activeState
-        {
-            get => m_ActiveState;
-        }
-
-        public void SetOverrideActiveState(ActiveState overrideState, bool updateConnections = true)
-        {
-            if(m_ActiveState == overrideState)
-            {
-                return;
-            }
-
-            m_ActiveState = overrideState;
-            switch (m_ActiveState)
-            {
-                case ActiveState.Implicit:
-                    if (updateConnections)
-                    {
-                        NodeUtils.ReevaluateActivityOfConnectedNodes(this);
-                    }
-                    break;
-                case ActiveState.ExplicitInactive:
-                    if(m_IsActive == false)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        m_IsActive = false;
-                        Dirty(ModificationScope.Node);
-                        if (updateConnections)
-                        {
-                            NodeUtils.ReevaluateActivityOfConnectedNodes(this);
-                        }
-                        break;
-                    }
-                case ActiveState.ExplicitActive:
-                    if(m_IsActive == true)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        m_IsActive = true;
-                        Dirty(ModificationScope.Node);
-                        if (updateConnections)
-                        {
-                            NodeUtils.ReevaluateActivityOfConnectedNodes(this);
-                        }
-                        break;
-                    }
-            }
-        }
-
-        public void SetActive(bool value, bool updateConnections = true)
-        {
-            if (m_IsActive == value)
-                return;
-
-            if(m_ActiveState != ActiveState.Implicit)
-            {
-                Debug.LogError($"Cannot set IsActive on Node {this} when value is explicitly overriden by ActiveState {m_ActiveState}");
-                return;
-            }
-
-            // Update this node
-            m_IsActive = value;
-            Dirty(ModificationScope.Node);
-
-            if (updateConnections)
-            {
-                NodeUtils.ReevaluateActivityOfConnectedNodes(this);
-            }
-
-        }
-
-
-        public virtual bool isValid
-        {
-            get { return m_IsValid; }
-            set
-            {
-                if(m_IsValid == value)
-                    return;
-
-                m_IsValid = value;
-            }
-        }
-
-
+        //needed for HDRP material update system
+        public virtual object saveContext => null;
 
         string m_DefaultVariableName;
         string m_NameForDefaultVariableName;
@@ -336,9 +225,9 @@ namespace UnityEditor.ShaderGraph
         public void GetSlots<T>(List<T> foundSlots) where T : MaterialSlot
         {
             foreach (var slot in m_Slots.SelectValue())
-            {
+        {
                 if (slot is T materialSlot)
-                {
+            {
                     foundSlots.Add(materialSlot);
                 }
             }
@@ -349,7 +238,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var inputSlot in this.GetInputSlots<MaterialSlot>())
             {
                 var edges = owner.GetEdges(inputSlot.slotReference);
-                if (edges.Any(e => e.outputSlot.node.isActive))
+                if (edges.Any())
                     continue;
 
                 inputSlot.AddDefaultProperty(properties, generationMode);
@@ -368,6 +257,7 @@ namespace UnityEditor.ShaderGraph
             if (inputSlot == null)
                 return string.Empty;
 
+            // TODO: GetEdges() puts the edges in 3+ Lists before returning them...  seems a bit wasteful
             var edges = owner.GetEdges(inputSlot.slotReference);
 
             if (edges.Any())
@@ -386,6 +276,7 @@ namespace UnityEditor.ShaderGraph
             if (inputSlot == null)
                 return null;
 
+            // TODO: GetEdges() puts the edges in 3+ Lists before returning them...  seems a bit wasteful
             var edges = owner.GetEdges(inputSlot.slotReference);
             if (edges.Any())
             {
@@ -404,12 +295,7 @@ namespace UnityEditor.ShaderGraph
                     return redirectNode.GetSlotProperty(RedirectNodeData.kInputSlotID);
                 }
 
-#if PROCEDURAL_VT_IN_GRAPH
-                if (fromNode is ProceduralVirtualTextureNode pvtNode)
-                {
-                    return pvtNode.AsShaderProperty();
-                }
-#endif // PROCEDURAL_VT_IN_GRAPH
+                // TODO: what if it's from a subgraph?  should probably disallow that
 
                 return null;
             }
@@ -423,22 +309,7 @@ namespace UnityEditor.ShaderGraph
             if (slot == null)
                 return string.Empty;
 
-                if (fromSocketRef.node.isActive)
             return GenerationUtils.AdaptNodeOutput(this, slot.id, valueType);
-                else
-                    return slot.GetDefaultValue(generationMode);
-        }
-
-        public AbstractMaterialNode GetInputNodeFromSlot(int inputSlotId)
-        {
-            var inputSlot = FindSlot<MaterialSlot>(inputSlotId);
-            if (inputSlot == null)
-                return null;
-
-            var edges = owner.GetEdges(inputSlot.slotReference).ToArray();
-            var fromSocketRef = edges[0].outputSlot;
-            var fromNode = fromSocketRef.node;
-            return fromNode;
         }
 
         public static ConcreteSlotValueType ConvertDynamicVectorInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)
@@ -515,7 +386,7 @@ namespace UnityEditor.ShaderGraph
                 foreach (var inputSlot in tempSlots)
                 {
                     // If input port doesnt have an edge use the Graph's precision for that input
-                    var edges = owner?.GetEdges(inputSlot.slotReference).ToList();
+                    var edges = owner.GetEdges(inputSlot.slotReference).ToList();
                     if (!edges.Any())
                     {
                         precisionsToCompare.Add((int)owner.concretePrecision);
@@ -669,7 +540,7 @@ namespace UnityEditor.ShaderGraph
         public virtual void Concretize()
         {
             hasError = false;
-            owner?.ClearErrorsForNode(this);
+            owner.ClearErrorsForNode(this);
             EvaluateConcretePrecision();
             EvaluateDynamicMaterialSlots();
             if(!hasError)
@@ -684,7 +555,6 @@ namespace UnityEditor.ShaderGraph
         }
 
         public int version { get; set; }
-        public virtual bool canCutNode => true;
         public virtual bool canCopyNode => true;
 
         protected virtual void CalculateNodeHasError()
@@ -866,15 +736,10 @@ namespace UnityEditor.ShaderGraph
                 m_NodeVersion = GetCompiledNodeVersion();
             }
 
-
-
-            // UpdateNodeAfterDeserialization();
-        }
-
-        public void SetupSlots()
-        {
             foreach (var s in m_Slots.SelectValue())
                 s.owner = this;
+
+            // UpdateNodeAfterDeserialization();
         }
 
         public virtual void UpdateNodeAfterDeserialization()
@@ -892,13 +757,5 @@ namespace UnityEditor.ShaderGraph
         }
 
         public virtual void Setup() {}
-
-        protected void EnqueSlotsForSerialization()
-        {
-            foreach(var slot in m_Slots)
-            {
-                slot.OnBeforeSerialize();
-            }
-        }
     }
 }

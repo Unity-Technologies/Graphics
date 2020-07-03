@@ -3,7 +3,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    internal sealed class SerializedVirtualTexturingSettings
+    public sealed class SerializedVirtualTexturingSettings
     {
         public SerializedProperty root;
 

@@ -211,6 +211,7 @@ namespace UnityEditor.ShaderGraph
                 concretePrecision = precision.ToConcrete();
             else
                 concretePrecision = owner.concretePrecision;
-        }
+            }
+
     }
 }

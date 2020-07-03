@@ -30,7 +30,7 @@ struct ProbeVolumeEngineData
     float3 resolution;
     uint lightLayers;
     float3 resolutionInverse;
-    float normalBiasWS;
+    float unused;
 };
 
 //
@@ -92,9 +92,9 @@ float3 GetResolutionInverse(ProbeVolumeEngineData value)
 {
     return value.resolutionInverse;
 }
-float GetNormalBiasWS(ProbeVolumeEngineData value)
+float GetUnused(ProbeVolumeEngineData value)
 {
-    return value.normalBiasWS;
+    return value.unused;
 }
 
 #endif

@@ -165,15 +165,13 @@ void KHistogramReduce(uint3 dispatchThreadId : SV_DispatchThreadID)
         w = max(w, 1e-4f);
         float avgEV = evProcessedSum * rcp(w);
 
-        float minExposure = ParamExposureLimitMin;
-        float maxExposure = ParamExposureLimitMax;
         if (ParamEvaluateMode == 2)
         {
-            avgEV = CurveRemap(avgEV, minExposure, maxExposure);
+            avgEV = CurveRemap(avgEV);
         }
 
         float exposure = AdaptExposure(avgEV - ParamExposureCompensation);
-        exposure = clamp(exposure, minExposure, maxExposure);
+        exposure = clamp(exposure, ParamExposureLimitMin, ParamExposureLimitMax);
         _OutputTexture[uint2(0, 0)] = float2(ConvertEV100ToExposure(exposure, LensImperfectionExposureScale), exposure);
 #ifdef OUTPUT_DEBUG_DATA
         _ExposureDebugTexture[uint2(0, 0)] = float2(avgEV - ParamExposureCompensation, 0.0f);

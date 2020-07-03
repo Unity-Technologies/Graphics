@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
-using System.Linq;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -102,7 +101,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             materialEditor.TexturePropertySingleLine(Styles.detailMapNormalText, detailMap[m_LayerIndex]);
 
-            if (materials.All(m => m.GetTexture(isLayeredLit ? kDetailMap + m_LayerIndex : kDetailMap)))
+            // TODO: does not work with multi-selection
+            if (materials[0].GetTexture(isLayeredLit ? kDetailMap + m_LayerIndex : kDetailMap))
             {
                 EditorGUI.indentLevel++;
 
@@ -134,7 +134,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.TextureScaleOffsetProperty(detailMap[m_LayerIndex]);
                 if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel && (UVDetail[m_LayerIndex].floatValue != UVBase[m_LayerIndex].floatValue))
                 {
-                    if (materials.All(m => m.GetTexture(isLayeredLit ? kDetailMap + m_LayerIndex : kDetailMap)))
+                    if (materials[0].GetTexture(isLayeredLit ? kDetailMap + m_LayerIndex : kDetailMap))
                         EditorGUILayout.HelpBox(Styles.perPixelDisplacementDetailsWarning.text, MessageType.Warning);
                 }
                 materialEditor.ShaderProperty(detailAlbedoScale[m_LayerIndex], Styles.detailAlbedoScaleText);

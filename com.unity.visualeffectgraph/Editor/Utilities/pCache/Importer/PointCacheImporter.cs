@@ -5,12 +5,7 @@ using System.IO;
 using System.Text;
 using System.Globalization;
 using UnityEngine;
-#if UNITY_2020_2_OR_NEWER
-using UnityEditor.AssetImporters;
-#else
 using UnityEditor.Experimental.AssetImporters;
-#endif
-
 
 namespace UnityEditor.Experimental.VFX.Utility
 {
@@ -82,7 +77,7 @@ namespace UnityEditor.Experimental.VFX.Utility
             while (!found_end_header);
         }
 
-        public override void OnImportAsset(UnityEditor.AssetImporters.AssetImportContext ctx)
+        public override void OnImportAsset(AssetImportContext ctx)
         {
             try
             {

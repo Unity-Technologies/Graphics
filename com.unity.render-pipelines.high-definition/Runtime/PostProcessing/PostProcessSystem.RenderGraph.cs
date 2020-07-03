@@ -300,7 +300,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                             ctx.resources.GetTexture(data.source),
                                             ctx.resources.GetTexture(data.destination),
                                             ctx.resources.GetTexture(data.logLut),
-                                            ctx.resources.GetTexture(data.source),  // TODO: TMP VALUE, should be bloom texture and will be as soon as PP is ported to rendergraph.
                                             ctx.cmd);
                     });
 
