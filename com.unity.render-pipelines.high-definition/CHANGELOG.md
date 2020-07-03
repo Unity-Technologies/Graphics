@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -872,6 +872,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added missing tooltips and improved the UI of the aperture control (case 1254916).
 - Fixed wrong tooltips in the Dof Volume (case 1256641).
 - The `CustomPassLoadCameraColor` and `CustomPassSampleCameraColor` functions now returns the correct color buffer when used in after post process instead of the color pyramid (which didn't had post processes).
+- PBR Sky now doesn't go black when going below sea level, but it instead freezes calculation as if on the horizon. 
 
 ## [7.1.1] - 2019-09-05
 
