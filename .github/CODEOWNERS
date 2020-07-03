@@ -10,11 +10,12 @@
 /com.unity.render-pipelines.universal/Editor/ShaderGraph/MasterNodes @Unity-Technologies/2d-graphics
 
 # Shader Graph
-/com.unity.shadergraph/ @Unity-Technologies/shader-graph @Unity-Technologies/gfx-qa-bellevue
+/com.unity.shadergraph/ @Unity-Technologies/shader-graph
 
 # Test systems
 /.yamato/ @Unity-Technologies/gfx-sdets
 /katana-ci/ @Unity-Technologies/gfx-sdets
+/git-hooks/ @Unity-Technologies/gfx-sdets
 /com.unity.testframework.graphics/ @Unity-Technologies/gfx-sdets
 
 # LWRP (Legacy)

@@ -201,7 +201,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            CullMode doubleSidedOffMode = (surfaceType == SurfaceType.Transparent) ? material.GetTransparentCullMode() : CullMode.Back;
+            CullMode doubleSidedOffMode = (surfaceType == SurfaceType.Transparent) ? material.GetTransparentCullMode() : material.GetOpaqueCullMode();
 
             bool isBackFaceEnable = material.HasProperty(kTransparentBackfaceEnable) && material.GetFloat(kTransparentBackfaceEnable) > 0.0f && surfaceType == SurfaceType.Transparent;
             bool doubleSidedEnable = material.HasProperty(kDoubleSidedEnable) && material.GetFloat(kDoubleSidedEnable) > 0.0f;
@@ -300,7 +300,8 @@ namespace UnityEditor.Rendering.HighDefinition
             if (material.HasProperty(kTransparentDepthPrepassEnable))
             {
                 bool depthWriteEnable = (material.GetFloat(kTransparentDepthPrepassEnable) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrepassStr, depthWriteEnable);
+                bool ssrTransparent = material.HasProperty(kReceivesSSRTransparent) ? (material.GetFloat(kReceivesSSRTransparent) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent) : false;
+                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrepassStr, depthWriteEnable || ssrTransparent);
             }
 
             if (material.HasProperty(kTransparentDepthPostpassEnable))
@@ -320,8 +321,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool rayTracingEnable = (material.GetFloat(kRayTracing) > 0.0f);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_RayTracingPrepassStr, rayTracingEnable);
             }
-            
+
             // Shader graphs materials have their own management of motion vector pass in the material inspector
+            // (see DrawMotionVectorToggle())
             if (!material.shader.IsShaderGraph())
             {
                 //In the case of additional velocity data we will enable the motion vector pass.
@@ -337,9 +339,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // don't do any vertex deformation but we can still have
                 // skinning / morph target
                 material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, addPrecomputedVelocity);
-
              }
-
         }
 
     }

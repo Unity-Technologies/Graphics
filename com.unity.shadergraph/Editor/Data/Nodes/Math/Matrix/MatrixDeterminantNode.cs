@@ -11,6 +11,7 @@ namespace UnityEditor.ShaderGraph
             name = "Matrix Determinant";
         }
 
+        public override bool hasPreview => false;
 
         protected override MethodInfo GetFunctionToConvert()
         {

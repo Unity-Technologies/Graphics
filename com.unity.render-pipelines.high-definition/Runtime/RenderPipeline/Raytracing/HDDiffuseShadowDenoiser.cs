@@ -1,5 +1,3 @@
-using UnityEngine.Experimental.Rendering;
-
 namespace UnityEngine.Rendering.HighDefinition
 {
     class HDDiffuseShadowDenoiser
@@ -10,7 +8,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // The resources quired by this component
         ComputeShader m_ShadowDenoiser;
-        Texture3D m_ShadowFilterMapping;
 
         // Kernels that we are using
         int m_BilateralFilterHSingleDirectionalKernel;
@@ -32,7 +29,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RenderPipeline = renderPipeline;
 
             m_ShadowDenoiser = rpRTResources.diffuseShadowDenoiserCS;
-            m_ShadowFilterMapping = rpRTResources.shadowFilterMapping;
 
             m_BilateralFilterHSingleDirectionalKernel = m_ShadowDenoiser.FindKernel("BilateralFilterHSingleDirectional");
             m_BilateralFilterVSingleDirectionalKernel = m_ShadowDenoiser.FindKernel("BilateralFilterVSingleDirectional");
@@ -66,6 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Convert the angular diameter of the directional light to radians (from degrees)
             float lightAngle = angularDiameter * Mathf.PI / 180.0f;
+            float cameraFOV = hdCamera.camera.fieldOfView * Mathf.PI / 180.0f;
 
             // Horizontal pass of the bilateral filter
             int m_KernelFilter = singleChannel ? m_BilateralFilterHSingleDirectionalKernel : m_BilateralFilterHColorDirectionalKernel;
@@ -73,13 +70,13 @@ namespace UnityEngine.Rendering.HighDefinition
             // Bind input uniforms
             cmd.SetComputeFloatParam(m_ShadowDenoiser, HDShaderIDs._DirectionalLightAngle, lightAngle);
             cmd.SetComputeIntParam(m_ShadowDenoiser, HDShaderIDs._DenoiserFilterRadius, kernelSize);
+            cmd.SetComputeFloatParam(m_ShadowDenoiser, HDShaderIDs._CameraFOV, cameraFOV);
 
             // Bind Input Textures
             cmd.SetComputeTextureParam(m_ShadowDenoiser, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
             cmd.SetComputeTextureParam(m_ShadowDenoiser, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
             cmd.SetComputeTextureParam(m_ShadowDenoiser, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, noisySignal);
             cmd.SetComputeTextureParam(m_ShadowDenoiser, m_KernelFilter, HDShaderIDs._DistanceTexture, distanceSignal);
-            cmd.SetComputeTextureParam(m_ShadowDenoiser, m_KernelFilter, HDShaderIDs._ShadowFilterMapping, m_ShadowFilterMapping);
 
             // Bind output textures
             cmd.SetComputeTextureParam(m_ShadowDenoiser, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, intermediateBuffer0);
@@ -93,13 +90,13 @@ namespace UnityEngine.Rendering.HighDefinition
             // Bind input uniforms
             cmd.SetComputeIntParam(m_ShadowDenoiser, HDShaderIDs._DenoiserFilterRadius, kernelSize);
             cmd.SetComputeFloatParam(m_ShadowDenoiser, HDShaderIDs._DirectionalLightAngle, lightAngle);
+            cmd.SetComputeFloatParam(m_ShadowDenoiser, HDShaderIDs._CameraFOV, cameraFOV);
 
             // Bind Input Textures
             cmd.SetComputeTextureParam(m_ShadowDenoiser, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
             cmd.SetComputeTextureParam(m_ShadowDenoiser, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
             cmd.SetComputeTextureParam(m_ShadowDenoiser, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, intermediateBuffer0);
             cmd.SetComputeTextureParam(m_ShadowDenoiser, m_KernelFilter, HDShaderIDs._DistanceTexture, distanceSignal);
-            cmd.SetComputeTextureParam(m_ShadowDenoiser, m_KernelFilter, HDShaderIDs._ShadowFilterMapping, m_ShadowFilterMapping);
 
             // Bind output textures
             cmd.SetComputeTextureParam(m_ShadowDenoiser, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, outputSignal);
@@ -124,17 +121,19 @@ namespace UnityEngine.Rendering.HighDefinition
             int numTilesX = (texWidth + (areaTileSize - 1)) / areaTileSize;
             int numTilesY = (texHeight + (areaTileSize - 1)) / areaTileSize;
 
+            float cameraFOV = hdCamera.camera.fieldOfView * Mathf.PI / 180.0f;
+
             // Bind input uniforms
             cmd.SetComputeIntParam(m_ShadowDenoiser, HDShaderIDs._DenoiserFilterRadius, kernelSize);
             cmd.SetComputeVectorParam(m_ShadowDenoiser, HDShaderIDs._SphereLightPosition, lightPosition);
             cmd.SetComputeFloatParam(m_ShadowDenoiser, HDShaderIDs._SphereLightRadius, lightRadius);
+            cmd.SetComputeFloatParam(m_ShadowDenoiser, HDShaderIDs._CameraFOV, cameraFOV);
 
             // Bind Input Textures
             cmd.SetComputeTextureParam(m_ShadowDenoiser, m_BilateralFilterHSingleSphereKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
             cmd.SetComputeTextureParam(m_ShadowDenoiser, m_BilateralFilterHSingleSphereKernel, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
             cmd.SetComputeTextureParam(m_ShadowDenoiser, m_BilateralFilterHSingleSphereKernel, HDShaderIDs._DenoiseInputTexture, noisySignal);
             cmd.SetComputeTextureParam(m_ShadowDenoiser, m_BilateralFilterHSingleSphereKernel, HDShaderIDs._DistanceTexture, distanceSignal);
-            cmd.SetComputeTextureParam(m_ShadowDenoiser, m_BilateralFilterHSingleSphereKernel, HDShaderIDs._ShadowFilterMapping, m_ShadowFilterMapping);
 
             // Bind output textures
             cmd.SetComputeTextureParam(m_ShadowDenoiser, m_BilateralFilterHSingleSphereKernel, HDShaderIDs._DenoiseOutputTextureRW, intermediateBuffer0);
@@ -146,12 +145,12 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeIntParam(m_ShadowDenoiser, HDShaderIDs._DenoiserFilterRadius, kernelSize);
             cmd.SetComputeVectorParam(m_ShadowDenoiser, HDShaderIDs._SphereLightPosition, lightPosition);
             cmd.SetComputeFloatParam(m_ShadowDenoiser, HDShaderIDs._SphereLightRadius, lightRadius);
+            cmd.SetComputeFloatParam(m_ShadowDenoiser, HDShaderIDs._CameraFOV, cameraFOV);
 
             cmd.SetComputeTextureParam(m_ShadowDenoiser, m_BilateralFilterVSingleSphereKernel, HDShaderIDs._DenoiseInputTexture, intermediateBuffer0);
             cmd.SetComputeTextureParam(m_ShadowDenoiser, m_BilateralFilterVSingleSphereKernel, HDShaderIDs._DistanceTexture, distanceSignal);
             cmd.SetComputeTextureParam(m_ShadowDenoiser, m_BilateralFilterVSingleSphereKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
             cmd.SetComputeTextureParam(m_ShadowDenoiser, m_BilateralFilterVSingleSphereKernel, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
-            cmd.SetComputeTextureParam(m_ShadowDenoiser, m_BilateralFilterVSingleSphereKernel, HDShaderIDs._ShadowFilterMapping, m_ShadowFilterMapping);
 
             // Bind output textures
             cmd.SetComputeTextureParam(m_ShadowDenoiser, m_BilateralFilterVSingleSphereKernel, HDShaderIDs._DenoiseOutputTextureRW, outputSignal);

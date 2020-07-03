@@ -13,6 +13,14 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_hdriSky;
         SerializedDataParameter m_UpperHemisphereLuxValue;
         SerializedDataParameter m_UpperHemisphereLuxColor;
+
+        SerializedDataParameter m_EnableCloudMotion;
+        SerializedDataParameter m_Procedural;
+        SerializedDataParameter m_Flowmap;
+        SerializedDataParameter m_UpperHemisphereOnly;
+        SerializedDataParameter m_ScrollDirection;
+        SerializedDataParameter m_ScrollSpeed;
+
         SerializedDataParameter m_EnableBackplate;
         SerializedDataParameter m_BackplateType;
         SerializedDataParameter m_GroundLevel;
@@ -26,6 +34,9 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_DirLightShadow;
         SerializedDataParameter m_RectLightShadow;
         SerializedDataParameter m_ShadowTint;
+
+        GUIContent[]    m_DistortionModes = { new GUIContent("Procedural"), new GUIContent("Flowmap") };
+        int[]           m_DistortionModeValues = { 1, 0 };
 
         RTHandle m_IntensityTexture;
         Material m_IntegrateHDRISkyMaterial; // Compute the HDRI sky intensity in lux for the skybox
@@ -45,6 +56,13 @@ namespace UnityEditor.Rendering.HighDefinition
             m_hdriSky                   = Unpack(o.Find(x => x.hdriSky));
             m_UpperHemisphereLuxValue   = Unpack(o.Find(x => x.upperHemisphereLuxValue));
             m_UpperHemisphereLuxColor   = Unpack(o.Find(x => x.upperHemisphereLuxColor));
+
+            m_EnableCloudMotion         = Unpack(o.Find(x => x.enableDistortion));
+            m_Procedural                = Unpack(o.Find(x => x.procedural));
+            m_Flowmap                   = Unpack(o.Find(x => x.flowmap));
+            m_UpperHemisphereOnly       = Unpack(o.Find(x => x.upperHemisphereOnly));
+            m_ScrollDirection           = Unpack(o.Find(x => x.scrollDirection));
+            m_ScrollSpeed               = Unpack(o.Find(x => x.scrollSpeed));
 
             m_EnableBackplate           = Unpack(o.Find(x => x.enableBackplate));
             m_BackplateType             = Unpack(o.Find(x => x.backplateType));
@@ -103,12 +121,21 @@ namespace UnityEditor.Rendering.HighDefinition
             m_UpperHemisphereLuxColor.value.vector3Value *= 0.5f; // Arbitrary 25% to not have too dark or too bright shadow
         }
 
+        bool IsFlowmapFormatInvalid(SerializedDataParameter map)
+        {
+            if (!map.overrideState.boolValue || map.value.objectReferenceValue == null)
+                return false;
+            var tex = map.value.objectReferenceValue;
+            if (tex.GetType() == typeof(RenderTexture))
+                return (tex as RenderTexture).dimension != TextureDimension.Tex2D;
+            return tex.GetType() != typeof(Texture2D);
+        }
+
         public override void OnInspectorGUI()
         {
             EditorGUI.BeginChangeCheck();
             {
                 PropertyField(m_hdriSky);
-                base.CommonSkySettingsGUI();
             }
             bool updateDefaultShadowTint = false;
             if (EditorGUI.EndChangeCheck())
@@ -116,6 +143,34 @@ namespace UnityEditor.Rendering.HighDefinition
                 GetUpperHemisphereLuxValue();
                 updateDefaultShadowTint = true;
             }
+
+            PropertyField(m_EnableCloudMotion);
+            if (m_EnableCloudMotion.value.boolValue)
+            {
+                EditorGUI.indentLevel++;
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    DrawOverrideCheckbox(m_Procedural);
+                    using (new EditorGUI.DisabledScope(!m_Procedural.overrideState.boolValue))
+                        m_Procedural.value.boolValue = EditorGUILayout.IntPopup(new GUIContent("Distortion Mode"), (int)m_Procedural.value.intValue, m_DistortionModes, m_DistortionModeValues) == 1;
+                }
+
+                if (!m_Procedural.value.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    PropertyField(m_Flowmap);
+                    if (IsFlowmapFormatInvalid(m_Flowmap))
+                        EditorGUILayout.HelpBox("The flowmap needs to be a 2D Texture in LatLong layout.", MessageType.Info);
+                    PropertyField(m_UpperHemisphereOnly);
+                    EditorGUI.indentLevel--;
+                }
+
+                PropertyField(m_ScrollDirection);
+                PropertyField(m_ScrollSpeed);
+                EditorGUI.indentLevel--;
+            }
+            base.CommonSkySettingsGUI();
 
             if (isInAdvancedMode)
             {

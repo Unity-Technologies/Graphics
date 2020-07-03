@@ -15,13 +15,13 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         private RenderTargetHandle source { get; set; }
         private RenderTargetHandle destination { get; set; }
+        internal bool AllocateRT  { get; set; }
         Material m_CopyDepthMaterial;
         const string m_ProfilerTag = "Copy Depth";
 
-        int m_ScaleBiasId = Shader.PropertyToID("_ScaleBiasRT");
-
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
+            AllocateRT = true;
             m_CopyDepthMaterial = copyDepthMaterial;
             renderPassEvent = evt;
         }
@@ -43,9 +43,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             descriptor.colorFormat = RenderTextureFormat.Depth;
             descriptor.depthBufferBits = 32; //TODO: do we really need this. double check;
             descriptor.msaaSamples = 1;
-            cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
+            if (this.AllocateRT)
+                cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
 
-            ConfigureTarget(destination.Identifier());
+            // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
+            ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1));
+            ConfigureClear(ClearFlag.None, Color.black);
         }
 
         /// <inheritdoc/>
@@ -105,8 +108,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             // scaleBias.z = bias
             // scaleBias.w = unused
             float flipSign = (cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
-            Vector4 scaleBias = (flipSign < 0.0f) ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f) : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
-            cmd.SetGlobalVector(m_ScaleBiasId, scaleBias);
+            Vector4 scaleBiasRt = (flipSign < 0.0f) ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f) : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
+            cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
 
             cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
 
@@ -120,7 +123,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
-            cmd.ReleaseTemporaryRT(destination.id);
+            if (this.AllocateRT)
+                cmd.ReleaseTemporaryRT(destination.id);
             destination = RenderTargetHandle.CameraTarget;
         }
     }

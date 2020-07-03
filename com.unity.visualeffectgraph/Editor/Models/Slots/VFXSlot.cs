@@ -709,10 +709,12 @@ namespace UnityEditor.VFX
                 owner.Invalidate(this, cause);
         }
 
-        public void UpdateAttributes(VFXPropertyAttribute[] attributes)
+        public void UpdateAttributes(VFXPropertyAttributes attributes,bool notify)
         {
             m_FieldInfoCache = null; // this is call by syncslot. at this point the type of our master slot might have changed.
             m_Property.attributes = attributes;
+            if(notify)
+                Invalidate(InvalidationCause.kUIChanged);
         }
 
         protected override void OnAdded()
@@ -993,7 +995,7 @@ namespace UnityEditor.VFX
 
         public void SetOutExpression(VFXExpression exp, HashSet<VFXSlot> toInvalidate, VFXCoordinateSpace convertToSpace = (VFXCoordinateSpace)int.MaxValue)
         {
-            exp = VFXPropertyAttribute.ApplyToExpressionGraph(m_Property.attributes, exp);
+            exp = m_Property.attributes.ApplyToExpressionGraph(exp);
             if (convertToSpace != (VFXCoordinateSpace)int.MaxValue)
             {
                 exp = ConvertSpace(exp, this, convertToSpace);

@@ -176,6 +176,92 @@ void RayGenIntegration()
     _SsrLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor, weightValue);
 }
 
+[shader("raygeneration")]
+void RayGenIntegrationTransparent()
+{
+    // Grab the dimensions of the current dispatch
+    uint3 LaunchIndex = DispatchRaysIndex();
+    uint3 LaunchDim = DispatchRaysDimensions();
+
+    UNITY_XR_ASSIGN_VIEW_INDEX(LaunchIndex.z);
+
+    // Compute the pixel coordinate to evaluate
+    uint2 currentCoord = uint2(LaunchIndex.x, LaunchDim.y - LaunchIndex.y - 1);
+
+    // Clear the output color texture
+    _SsrLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, 0.0);
+
+    // Read the depth value
+    float depthValue  = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).r;
+
+    // This point is part of the background, we don't really care
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
+        return;
+
+    // Does this pixel have SSS?
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
+    if ((stencilValue & _SsrStencilBit) == 0)
+        return;
+
+    // Convert this to a world space position
+    PositionInputs posInput = GetPositionInput(currentCoord, 1.0/LaunchDim.xy, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    float distanceToCamera = length(posInput.positionWS);
+
+    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
+
+    // Compute the incident vector on the surfaces
+    float3 viewWS = normalize(_WorldSpaceCameraPos - positionWS);
+
+    // Decode the world space normal
+    NormalData normalData;
+    DecodeFromNormalBuffer(currentCoord, normalData);
+
+    // If this value is beyond the smothness that we allow, no need to compute it
+    float perceptualSmoothness = PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness);
+    if (_RaytracingReflectionMinSmoothness > perceptualSmoothness)
+        return;
+
+    // Compute the reflected direction
+    float3 reflectionDir = reflect(-viewWS, normalData.normalWS);
+       
+    // Make sure the new ray is taken into account in the ray counters
+    if (_RayCountEnabled > 0)
+    {
+        uint3 counterIdx = uint3(currentCoord, INDEX_TEXTURE2D_ARRAY_X(RAYCOUNTVALUES_REFLECTION_FORWARD));
+        _RayCountTexture[counterIdx] = _RayCountTexture[counterIdx] + 1;
+    }
+
+    // Create the ray descriptor for this pixel
+    RayDesc rayDescriptor;
+    rayDescriptor.Origin = positionWS + normalData.normalWS * _RaytracingRayBias;
+    rayDescriptor.Direction = reflectionDir;
+    rayDescriptor.TMin = 0.0;
+    rayDescriptor.TMax = _RaytracingRayMaxLength;
+
+    // Create and init the RayIntersection structure for this
+    RayIntersection rayIntersection;
+    rayIntersection.color = float3(0.0, 0.0, 0.0);
+    rayIntersection.incidentDirection = rayDescriptor.Direction;
+    rayIntersection.origin = rayDescriptor.Origin;
+    rayIntersection.t = -1.0;
+    rayIntersection.remainingDepth = 1;
+    rayIntersection.sampleIndex = 0;
+    rayIntersection.pixelCoord = currentCoord;
+
+    // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
+    rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle;
+    rayIntersection.cone.width = distanceToCamera * _RaytracingPixelSpreadAngle;
+
+    // Evaluate the ray intersection
+    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_REFLECTION, 0, 1, 0, rayDescriptor, rayIntersection);
+
+    // Expose and clamp the final color
+    float3 finalColor = clamp(rayIntersection.color * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp) * GetInverseCurrentExposureMultiplier();
+
+    // We store the sampled color and the weight that shall be used for it (1.0)
+    _SsrLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor, 1.0);
+}
+
 [shader("closesthit")]
 void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {

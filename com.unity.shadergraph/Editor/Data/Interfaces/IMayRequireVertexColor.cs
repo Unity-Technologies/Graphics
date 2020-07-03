@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph
 
     static class MayRequireVertexColorExtensions
     {
-        public static bool RequiresVertexColor(this ISlot slot)
+        public static bool RequiresVertexColor(this MaterialSlot slot)
         {
             var mayRequireVertexColor = slot as IMayRequireVertexColor;
             return mayRequireVertexColor != null && mayRequireVertexColor.RequiresVertexColor();

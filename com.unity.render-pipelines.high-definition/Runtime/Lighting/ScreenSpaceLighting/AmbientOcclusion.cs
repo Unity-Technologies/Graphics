@@ -53,22 +53,62 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls the length of ray traced ambient occlusion rays.
         /// </summary>
-        public ClampedFloatParameter rayLength = new ClampedFloatParameter(0.5f, 0f, 50f);
+        public float rayLength
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_RayLength.value;
+                else
+                    return GetLightingQualitySettings().RTAORayLength[(int)quality.value];
+            }
+            set { m_RayLength.value = value; }
+        }
 
         /// <summary>
         /// Number of samples for evaluating the effect.
         /// </summary>
-        public ClampedIntParameter sampleCount = new ClampedIntParameter(4, 1, 64);
+        public int sampleCount
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_SampleCount.value;
+                else
+                    return GetLightingQualitySettings().RTAOSampleCount[(int)quality.value];
+            }
+            set { m_SampleCount.value = value; }
+        }
 
         /// <summary>
         /// Defines if the ray traced ambient occlusion should be denoised.
         /// </summary>
-        public BoolParameter denoise = new BoolParameter(false);
+        public bool denoise
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_Denoise.value;
+                else
+                    return GetLightingQualitySettings().RTAODenoise[(int)quality.value];
+            }
+            set { m_Denoise.value = value; }
+        }
 
         /// <summary>
         /// Controls the radius of the ray traced ambient occlusion denoiser.
         /// </summary>
-        public ClampedFloatParameter denoiserRadius = new ClampedFloatParameter(0.5f, 0.001f, 1.0f);
+        public float denoiserRadius
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_DenoiserRadius.value;
+                else
+                    return GetLightingQualitySettings().RTAODenoiserRadius[(int)quality.value];
+            }
+            set { m_DenoiserRadius.value = value; }
+        }
 
         /// <summary>
         /// Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction). Increasing the value can lead to detection
@@ -148,22 +188,29 @@ namespace UnityEngine.Rendering.HighDefinition
             set { m_DirectionCount.value = value; }
         }
 
+        // SSAO
         [SerializeField, FormerlySerializedAs("stepCount")]
         private ClampedIntParameter m_StepCount = new ClampedIntParameter(6, 2, 32);
-
         [SerializeField, FormerlySerializedAs("fullResolution")]
         private BoolParameter m_FullResolution = new BoolParameter(false);
-
         [SerializeField, FormerlySerializedAs("maximumRadiusInPixels")]
         private ClampedIntParameter m_MaximumRadiusInPixels = new ClampedIntParameter(40, 16, 256);
-
         // Temporal only parameter
         [SerializeField, FormerlySerializedAs("bilateralUpsample")]
         private BoolParameter m_BilateralUpsample = new BoolParameter(true);
-
         // Non-temporal only parameters
         [SerializeField, FormerlySerializedAs("directionCount")]
         private ClampedIntParameter m_DirectionCount = new ClampedIntParameter(2, 1, 6);
+
+        // RTAO
+        [SerializeField, FormerlySerializedAs("rayLength")]
+        private ClampedFloatParameter m_RayLength = new ClampedFloatParameter(0.5f, 0f, 50f);
+        [SerializeField, FormerlySerializedAs("sampleCount")]
+        public ClampedIntParameter m_SampleCount = new ClampedIntParameter(1, 1, 64);
+        [SerializeField, FormerlySerializedAs("denoise")]
+        public BoolParameter m_Denoise = new BoolParameter(true);
+        [SerializeField, FormerlySerializedAs("denoiserRadius")]
+        public ClampedFloatParameter m_DenoiserRadius = new ClampedFloatParameter(1.0f, 0.001f, 1.0f);
     }
 
     partial class AmbientOcclusionSystem
@@ -234,6 +281,17 @@ namespace UnityEngine.Rendering.HighDefinition
             ReleaseRT();
         }
 
+        internal void InitializeNonRenderGraphResources()
+        {
+            float scaleFactor = m_RunningFullRes ? 1.0f : 0.5f;
+            AllocRT(scaleFactor);
+        }
+
+        internal void CleanupNonRenderGraphResources()
+        {
+            ReleaseRT();
+        }
+
         internal void InitRaytracing(HDRenderPipeline renderPipeline)
         {
             m_RaytracingAmbientOcclusion.Init(renderPipeline);
@@ -241,7 +299,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
 
-        internal void Render(CommandBuffer cmd, HDCamera camera, ScriptableRenderContext renderContext, int frameCount)
+        internal void Render(CommandBuffer cmd, HDCamera camera, ScriptableRenderContext renderContext, RTHandle depthTexture, RTHandle normalBuffer, in ShaderVariablesRaytracing globalRTCB, int frameCount)
         {
             var settings = camera.volumeStack.GetComponent<AmbientOcclusion>();
 
@@ -253,10 +311,10 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
                 if (camera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value)
-                    m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, renderContext, frameCount);
+                    m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, globalRTCB, renderContext, frameCount);
                 else
                 {
-                    Dispatch(cmd, camera, frameCount);
+                    Dispatch(cmd, camera, depthTexture, normalBuffer, frameCount);
                     PostDispatchWork(cmd, camera);
                 }
             }
@@ -289,7 +347,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ShaderVariablesAmbientOcclusion cb;
         }
 
-        RenderAOParameters PrepareRenderAOParameters(HDCamera camera, RTHandleProperties rtHandleProperties, Vector2 historySize, int frameCount)
+        RenderAOParameters PrepareRenderAOParameters(HDCamera camera, Vector2 historySize, int frameCount, in HDUtils.PackedMipChainInfo depthMipInfo)
         {
             var parameters = new RenderAOParameters();
 
@@ -377,14 +435,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 0
             );
 
-            var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-            var depthMipInfo = hdrp.sharedRTManager.GetDepthBufferMipChainInfo();
             cb._FirstTwoDepthMipOffsets = new Vector4(depthMipInfo.mipLevelOffsets[1].x, depthMipInfo.mipLevelOffsets[1].y, depthMipInfo.mipLevelOffsets[2].x, depthMipInfo.mipLevelOffsets[2].y);
 
             parameters.bilateralUpsample = settings.bilateralUpsample;
             parameters.gtaoCS = m_Resources.shaders.GTAOCS;
             parameters.gtaoCS.shaderKeywords = null;
-            parameters.temporalAccumulation = settings.temporalAccumulation.value;
+            parameters.temporalAccumulation = settings.temporalAccumulation.value && camera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors);
 
             if (parameters.temporalAccumulation)
             {
@@ -438,11 +494,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void RenderAO(in RenderAOParameters      parameters,
                                 RTHandle                packedDataTexture,
-                                RenderPipelineResources resources,
+                                RTHandle                depthTexture,
+                                RTHandle                normalBuffer,
                                 CommandBuffer           cmd)
         {
             ConstantBuffer.Push(cmd, parameters.cb, parameters.gtaoCS, HDShaderIDs._ShaderVariablesAmbientOcclusion);
             cmd.SetComputeTextureParam(parameters.gtaoCS, parameters.gtaoKernel, HDShaderIDs._AOPackedData, packedDataTexture);
+            cmd.SetComputeTextureParam(parameters.gtaoCS, parameters.gtaoKernel, HDShaderIDs._NormalBufferTexture, normalBuffer);
+            cmd.SetComputeTextureParam(parameters.gtaoCS, parameters.gtaoKernel, HDShaderIDs._CameraDepthTexture, depthTexture);
 
             const int groupSizeX = 8;
             const int groupSizeY = 8;
@@ -540,7 +599,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void Dispatch(CommandBuffer cmd, HDCamera camera, int frameCount)
+        internal void Dispatch(CommandBuffer cmd, HDCamera camera, RTHandle depthTexture, RTHandle normalBuffer, int frameCount)
         {
             var settings = camera.volumeStack.GetComponent<AmbientOcclusion>();
             if (IsActive(camera, settings))
@@ -556,10 +615,11 @@ namespace UnityEngine.Rendering.HighDefinition
                                                       currentHistory.referenceSize.y * currentHistory.scaleFactor.y);
                     var rtScaleForHistory = camera.historyRTHandleProperties.rtHandleScale;
 
-                    var aoParameters = PrepareRenderAOParameters(camera, RTHandles.rtHandleProperties, historySize * rtScaleForHistory, frameCount);
+                    var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+                    var aoParameters = PrepareRenderAOParameters(camera, historySize * rtScaleForHistory, frameCount, hdrp.sharedRTManager.GetDepthBufferMipChainInfo());
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.HorizonSSAO)))
                     {
-                        RenderAO(aoParameters, m_PackedDataTex, m_Resources, cmd);
+                        RenderAO(aoParameters, m_PackedDataTex, depthTexture, normalBuffer, cmd);
                     }
 
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DenoiseSSAO)))

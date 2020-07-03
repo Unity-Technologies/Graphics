@@ -29,6 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // MSAA resolve materials
         Material m_DepthResolveMaterial  = null;
         Material m_ColorResolveMaterial = null;
+        Material m_MotionVectorResolve = null;
 
         // Flags that defines if we are using a local texture or external
         bool m_ReuseGBufferMemory = false;
@@ -94,9 +95,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Create the required resolve materials
                 m_DepthResolveMaterial = CoreUtils.CreateEngineMaterial(resources.shaders.depthValuesPS);
                 m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(resources.shaders.colorResolvePS);
-            }
+                m_MotionVectorResolve = CoreUtils.CreateEngineMaterial(resources.shaders.resolveMotionVecPS);
 
-            AllocateCoarseStencilBuffer(RTHandles.maxWidth, RTHandles.maxHeight, TextureXR.slices);
+                CoreUtils.SetKeyword(m_DepthResolveMaterial, "_HAS_MOTION_VECTORS", m_MotionVectorsSupport);
+            }
 
             // If we are in the forward only mode
             if (!m_ReuseGBufferMemory)
@@ -294,7 +296,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_CameraDepthStencilBuffer);
             RTHandles.Release(m_CameraDepthBufferMipChain);
             RTHandles.Release(m_CameraHalfResDepthBuffer);
-            DisposeCoarseStencilBuffer();
 
             if (m_MSAASupported)
             {
@@ -308,6 +309,7 @@ namespace UnityEngine.Rendering.HighDefinition
                  // Do not forget to release the materials
                 CoreUtils.Destroy(m_DepthResolveMaterial);
                 CoreUtils.Destroy(m_ColorResolveMaterial);
+                CoreUtils.Destroy(m_MotionVectorResolve);
             }
         }
 
@@ -342,22 +344,48 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.Assert(m_MSAASupported);
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ResolveMSAADepth)))
                 {
-                    // Grab the RTIs and set the output render targets
-                    m_RTIDs3[0] = m_CameraDepthValuesBuffer.nameID;
-                    m_RTIDs3[1] = m_NormalRT.nameID;
-                    m_RTIDs3[2] = m_MotionVectorsRT.nameID;
-                    CoreUtils.SetRenderTarget(cmd, m_RTIDs3, m_CameraDepthStencilBuffer);
+                    if (m_MotionVectorsSupport)
+                    {
+                        // Grab the RTIs and set the output render targets
+                        m_RTIDs3[0] = m_CameraDepthValuesBuffer.nameID;
+                        m_RTIDs3[1] = m_NormalRT.nameID;
+                        m_RTIDs3[2] = m_MotionVectorsRT.nameID;
+                        CoreUtils.SetRenderTarget(cmd, m_RTIDs3, m_CameraDepthStencilBuffer);
 
-                    // Set the input textures
+                        // Set the motion vector input texture
+                        Shader.SetGlobalTexture(HDShaderIDs._MotionVectorTextureMS, m_MotionVectorsMSAART);
+                    }
+                    else
+                    {
+                        // Grab the RTIs and set the output render targets
+                        m_RTIDs2[0] = m_CameraDepthValuesBuffer.nameID;
+                        m_RTIDs2[1] = m_NormalRT.nameID;
+                        CoreUtils.SetRenderTarget(cmd, m_RTIDs2, m_CameraDepthStencilBuffer);
+                    }
+
+                    // Set the depth and normal input textures
                     Shader.SetGlobalTexture(HDShaderIDs._NormalTextureMS, m_NormalMSAART);
                     Shader.SetGlobalTexture(HDShaderIDs._DepthTextureMS, m_DepthAsColorMSAART);
-                    Shader.SetGlobalTexture(HDShaderIDs._MotionVectorTextureMS, m_MotionVectorsMSAART);
 
-                    // Resolve the depth and normal buffers
+                    // Resolve the buffers
                     cmd.DrawProcedural(Matrix4x4.identity, m_DepthResolveMaterial, SampleCountToPassIndex(m_MSAASamples), MeshTopology.Triangles, 3, 1);
                 }
             }
         }
+
+        public void ResolveMotionVectorTexture(CommandBuffer cmd, HDCamera hdCamera)
+        {
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) && m_MotionVectorsSupport)
+            {
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ResolveMSAAMotionVector)))
+                {
+                    CoreUtils.SetRenderTarget(cmd, m_MotionVectorsRT);
+                    Shader.SetGlobalTexture(HDShaderIDs._MotionVectorTextureMS, m_MotionVectorsMSAART);
+                    cmd.DrawProcedural(Matrix4x4.identity, m_MotionVectorResolve, SampleCountToPassIndex(m_MSAASamples), MeshTopology.Triangles, 3, 1);
+                }
+            }
+        }
+
         public void ResolveMSAAColor(CommandBuffer cmd, HDCamera hdCamera, RTHandle msaaTarget, RTHandle simpleTarget)
         {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))

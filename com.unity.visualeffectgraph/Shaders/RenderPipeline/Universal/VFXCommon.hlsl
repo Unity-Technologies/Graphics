@@ -25,11 +25,6 @@ void VFXEncodeMotionVector(float2 velocity, out float4 outBuffer)
     outBuffer = (float4)0.0f;
 }
 
-float3 GetCurrentViewPosition()
-{
-    return UNITY_MATRIX_I_V._14_24_34;
-}
-
 float4 VFXTransformPositionWorldToClip(float3 posWS)
 {
     return TransformWorldToHClip(posWS);

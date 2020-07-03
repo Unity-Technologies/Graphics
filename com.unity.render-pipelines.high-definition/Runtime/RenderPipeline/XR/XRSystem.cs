@@ -39,13 +39,6 @@ namespace UnityEngine.Rendering.HighDefinition
         MaterialPropertyBlock mirrorViewMaterialProperty = new MaterialPropertyBlock();
 #endif
 
-        // Set by test framework
-        internal static bool automatedTestRunning = false;
-
-        // Used by test framework and to enable debug features
-        static bool testModeEnabledInitialization { get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-xr-tests"); }
-        internal static bool testModeEnabled = testModeEnabledInitialization;
-
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
         internal static bool dumpDebugInfo = false;
         internal static List<string> passDebugInfos = new List<string>(8);
@@ -73,12 +66,20 @@ namespace UnityEngine.Rendering.HighDefinition
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         internal static void XRSystemInit()
         {
+        	if (GraphicsSettings.currentRenderPipeline == null)
+                return;
+
+        #if UNITY_2020_2_OR_NEWER
+            SubsystemManager.GetSubsystems(displayList);
+        #else
             SubsystemManager.GetInstances(displayList);
+        #endif
 
             for (int i = 0; i < displayList.Count; i++)
             {
                 displayList[i].disableLegacyRenderer = true;
                 displayList[i].sRGB = true;
+                displayList[i].textureLayout = XRDisplaySubsystem.TextureLayout.Texture2DArray;
             }
         }
 #endif
@@ -96,7 +97,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 #endif
 
-            if (testModeEnabled)
+            if (XRGraphicsAutomatedTests.enabled)
                 maxViews = Math.Max(maxViews, 2);
 
             return maxViews;
@@ -112,7 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 ReleaseFrame();
             }
 
-            if ((singlePassTestModeActive || automatedTestRunning) && testModeEnabled)
+            if ((singlePassTestModeActive || XRGraphicsAutomatedTests.running) && XRGraphicsAutomatedTests.enabled)
                 SetCustomLayout(LayoutSinglePassTestMode);
             else
                 SetCustomLayout(null);
@@ -161,7 +162,12 @@ namespace UnityEngine.Rendering.HighDefinition
         bool RefreshXrSdk()
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
+
+        #if UNITY_2020_2_OR_NEWER
+            SubsystemManager.GetSubsystems(displayList);
+        #else
             SubsystemManager.GetInstances(displayList);
+        #endif
 
             if (displayList.Count > 0)
             {

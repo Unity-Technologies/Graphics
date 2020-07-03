@@ -132,7 +132,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>Allocate texture if required.</summary>
-        /// <param name="textures">A buffer of texture ready to use.</param>
+        /// <param name="textures">A buffer of textures ready to use.</param>
+        /// <param name="customPassTextures">A buffer of textures ready to use for custom pass AOVs.</param>
         public void AllocateTargetTexturesIfRequired(ref List<RTHandle> textures, ref List<RTHandle> customPassTextures)
         {
             if (!isValid || textures == null)
@@ -275,6 +276,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Execute the frame pass callback. It assumes that the textures are properly initialized and filled.</summary>
         /// <param name="cmd">The command buffer to use.</param>
         /// <param name="framePassTextures">The textures to use.</param>
+        /// <param name="customPassTextures">The custom pass AOV textures to use.</param>
         /// <param name="outputProperties">The properties computed for this frame.</param>
         public void Execute(CommandBuffer cmd, List<RTHandle> framePassTextures, List<RTHandle> customPassTextures, RenderOutputProperties outputProperties)
         {

@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
-        public static void OnGUI(MaterialProperty diffusionProfileAsset, MaterialProperty diffusionProfileHash)
+        public static void OnGUI(MaterialEditor materialEditor, MaterialProperty diffusionProfileAsset, MaterialProperty diffusionProfileHash, int profileIndex)
         {
             // We can't cache these fields because of several edge cases like undo/redo or pressing escape in the object picker
             string guid = HDUtils.ConvertVector4ToGUID(diffusionProfileAsset.vectorValue);
@@ -42,6 +42,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 // encode back GUID and it's hash
                 diffusionProfileAsset.vectorValue = newGuid;
                 diffusionProfileHash.floatValue = hash;
+
+                // Update external reference.
+                foreach (var target in materialEditor.targets)
+                {
+                    MaterialExternalReferences matExternalRefs = MaterialExternalReferences.GetMaterialExternalReferences(target as Material);
+                    matExternalRefs.SetDiffusionProfileReference(profileIndex, diffusionProfile);
+                }
             }
 
             DrawDiffusionProfileWarning(diffusionProfile);

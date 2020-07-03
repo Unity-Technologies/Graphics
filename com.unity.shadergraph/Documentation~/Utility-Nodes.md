@@ -10,7 +10,7 @@
 | [All](All-Node.md) | [And](And-Node.md) |
 |:-------------|:------|
 | ![Image](images/AllNodeThumb.png) | ![Image](images/AndNodeThumb.png) |
-| Provides a preview window and passes the input value through without modification. | Provides a reference to a Sub-graph asset. |
+| Returns true if all components of the input In are non-zero. | Returns true if both the inputs A and B are true. |
 |[**Any**](Any-Node.md)|[**Branch**](Branch-Node.md)|
 |![Image](images/AnyNodeThumb.png)|![Image](images/BranchNodeThumb.png)|
 |Returns true if any of the components of the input In are non-zero.|Provides a dynamic branch to the shader.|

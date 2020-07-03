@@ -43,9 +43,10 @@ namespace UnityEditor.Rendering.HighDefinition
             Editor m_CachedDefaultVolumeProfileEditor;
             Editor m_CachedLookDevVolumeProfileEditor;
             ReorderableList m_BeforeTransparentCustomPostProcesses;
+            ReorderableList m_BeforeTAACustomPostProcesses;
             ReorderableList m_BeforePostProcessCustomPostProcesses;
             ReorderableList m_AfterPostProcessCustomPostProcesses;
-            int m_CurrentVolumeProfileHash;
+            int m_CurrentVolumeProfileInstanceID;
 
             public void OnGUI(string searchContext)
             {
@@ -75,6 +76,13 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 m_ScrollViewPosition = Vector2.zero;
                 InitializeCustomPostProcessesLists();
+
+                var editorResources = HDRenderPipeline.defaultAsset.renderPipelineEditorResources;
+                if (!EditorUtility.IsPersistent(editorResources))
+                {
+                    var editorResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset";
+                    HDRenderPipeline.defaultAsset.renderPipelineEditorResources = AssetDatabase.LoadAssetAtPath<HDRenderPipelineEditorResources>(editorResourcesPath);
+                }
             }
 
             void InitializeCustomPostProcessesLists()
@@ -96,6 +104,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 InitList(ref m_BeforeTransparentCustomPostProcesses, hdrpAsset.beforeTransparentCustomPostProcesses, "After Opaque And Sky", CustomPostProcessInjectionPoint.AfterOpaqueAndSky);
+                InitList(ref m_BeforeTAACustomPostProcesses, hdrpAsset.beforeTAACustomPostProcesses, "Before TAA", CustomPostProcessInjectionPoint.BeforeTAA);
                 InitList(ref m_BeforePostProcessCustomPostProcesses, hdrpAsset.beforePostProcessCustomPostProcesses, "Before Post Process", CustomPostProcessInjectionPoint.BeforePostProcess);
                 InitList(ref m_AfterPostProcessCustomPostProcesses, hdrpAsset.afterPostProcessCustomPostProcesses, "After Post Process", CustomPostProcessInjectionPoint.AfterPostProcess);
 
@@ -150,6 +159,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     return;
 
                 m_BeforeTransparentCustomPostProcesses.DoLayoutList();
+                m_BeforeTAACustomPostProcesses.DoLayoutList();
                 m_BeforePostProcessCustomPostProcesses.DoLayoutList();
                 m_AfterPostProcessCustomPostProcesses.DoLayoutList();
             }
@@ -209,9 +219,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.EndHorizontal();
 
                 // The state of the profile can change without the asset reference changing so in this case we need to reset the editor.
-                if (m_CurrentVolumeProfileHash != asset.GetHashCode() && m_CachedDefaultVolumeProfileEditor != null)
+                if (m_CurrentVolumeProfileInstanceID != asset.GetInstanceID() && m_CachedDefaultVolumeProfileEditor != null)
                 {
-                    m_CurrentVolumeProfileHash = asset.GetHashCode();
+                    m_CurrentVolumeProfileInstanceID = asset.GetInstanceID();
                     m_CachedDefaultVolumeProfileEditor = null;
                 }
 

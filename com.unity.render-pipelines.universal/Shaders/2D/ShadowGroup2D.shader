@@ -36,6 +36,7 @@ Shader "Hidden/ShadowGroup2D"
                 float3 vertex : POSITION;
                 float4 tangent: TANGENT;
                 float2 uv : TEXCOORD0;
+                float4 extrusion : COLOR;
             };
 
             struct Varyings
@@ -49,7 +50,7 @@ Shader "Hidden/ShadowGroup2D"
             float4 _MainTex_ST;
 
             uniform float3 _LightPos;
-            uniform float  _LightRadius;
+            uniform float  _ShadowRadius;
 
             Varyings vert (Attributes v)
             {
@@ -58,19 +59,36 @@ Shader "Hidden/ShadowGroup2D"
                 float3 lightDir = _LightPos - vertexWS;
                 lightDir.z = 0;
 
+                // Start of code to see if this point should be extruded
                 float3 lightDirection = normalize(lightDir);  
 
-                float3 endpoint = vertexWS + (_LightRadius * -lightDirection);
+                float3 endpoint = vertexWS + (_ShadowRadius * -lightDirection);
 
                 float3 worldTangent = TransformObjectToWorldDir(v.tangent.xyz);
-
                 float sharedShadowTest = saturate(ceil(dot(lightDirection, worldTangent)));
-                float3 sharedShadowOffset = sharedShadowTest * _LightRadius * -lightDirection;
+
+                // Start of code to calculate offset
+                float3 vertexWS0 = TransformObjectToWorld(float3(v.extrusion.xy, 0));
+                float3 vertexWS1 = TransformObjectToWorld(float3(v.extrusion.zw, 0));
+                float3 shadowDir0 = vertexWS0 - _LightPos;
+                shadowDir0.z = 0;
+                shadowDir0 = normalize(shadowDir0);
+
+                float3 shadowDir1 = vertexWS1 -_LightPos;
+                shadowDir1.z = 0;
+                shadowDir1 = normalize(shadowDir1);
+
+                float3 shadowDir = normalize(shadowDir0 + shadowDir1);
+
+
+                float3 sharedShadowOffset = sharedShadowTest * _ShadowRadius * shadowDir;
 
                 float3 position;
                 position = vertexWS + sharedShadowOffset;
 
                 o.vertex = TransformWorldToHClip(position);
+
+
 
                 // RGB - R is shadow value (to support soft shadows), G is Self Shadow Mask, B is No Shadow Mask
                 o.color = 1; // v.color;

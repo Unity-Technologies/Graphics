@@ -36,6 +36,7 @@ When you create an HDRP Asset, open it in the Inspector to edit its properties.
 
 | **Property**                            | **Description**                                              |
 | --------------------------------------- | ------------------------------------------------------------ |
+| **Color Buffer Format**                 | The format of the color buffer that HDRP will use for rendering, using R16G16B16A16 instead of R11G11B10 will double the memory usage but help you to avoid banding. R16G16B16A16 is also required for [Alpha-Output](Alpha-Output.md).|
 | **Lit Shader Mode**                     | Use the drop-down to choose which mode HDRP uses for the [Lit Shader](Lit-Shader.html).<br />&#8226; **Forward Only**: forces HDRP to only use forward rendering for Lit Shaders.<br />&#8226; **Deferred Only**: forces HDRP to use deferred rendering for Lit Shaders (HDRP still renders advanced Materials using forward rendering).<br />&#8226; **Both**: allows the Camera to use deferred and forward rendering.<br /><br />Select **Both** to allow you to switch between forward and deferred rendering for Lit Shaders at runtime per Camera. Selecting a specific mode reduces build time and Shader memory because HDRP requires less Shader variants, but it is not possible to switch from one mode to the other at runtime. |
 | **- Multisample Anti-aliasing Quality** | Use the drop-down to set the number of samples HDRP uses for multisample anti-aliasing (MSAA). The larger the sample count, the better the quality. Select **None** to disable MSAA.<br />This property is only visible when **Lit Shader Mode** is set to **Forward Only** or **Both**. |
 | **Motion Vectors**                      | Enable the checkbox to make HDRP support motion vectors. HDRP uses motion vectors for effects like screen space reflection (SSR) and motion blur. When disabled, motion blur has no effect and HDRP calculates SSR with lower quality. |
@@ -65,7 +66,7 @@ These settings control the draw distance and resolution of the decals atlas that
 | **- Atlas Width**                            | The Decal Atlas width. This atlas stores all decals that project onto transparent surfaces. |
 | **- Atlas Height**                           | The Decal Atlas height. This atlas stores all decals that project onto transparent surfaces. |
 | **- Metal and Ambient Occlusion properties** | Enable the checkbox to allow decals to affect metallic and ambient occlusion Material properties. Enabling this feature has a performance impact. |
-| **- Maximum** **Decals on Screen**           | The maximum number of decals you can have on screen at one time. |
+| **- Maximum Clustered Decals on Screen**     | The maximum number of clustered decals that can affect transparent GameObjects on screen. Clustered decals refer to a list of decals that HDRP uses when it renders transparent GameObjects. |
 
 <a name="DynamicResolution"></a>
 
@@ -75,7 +76,7 @@ These settings control the draw distance and resolution of the decals atlas that
 | ------------------------------- | ------------------------------------------------------------ |
 | **Enable**                      | Enable the checkbox to make HDRP support dynamic resolution in your Unity Project. |
 | **- Dynamic Resolution Type**   | Use the drop-down to select the type of dynamic resolution HDRP uses:<br />&#8226; **Software**: This option allocates render targets to accommodate the maximum resolution possible, then rescales the viewport accordingly. This allows the viewport to render at varying resolutions. |
-| **- Upscale Filter**            | Use the drop-down to select the filter that HDRP uses for upscaling.<br />&#8226; **Bilinear**: A low quality upsample. The least resource intensive option.<br />&#8226; **Catmull-Rom**: A bicubic upsample with 4 taps.<br />&#8226; **Lanczos**: A sharp upsample. This method can potentially introduce artifacts so you should not use it for extreme upsampling cases for example, when the screen percentage is less than 50%.<br />&#8226; **Contrast Adaptive Sharpen**: An ultra sharp upsample. Not meant for screen percenatage less than 50% and will still sharpen when screen percentage is set to 100% |
+| **- Upscale Filter**            | Use the drop-down to select the filter that HDRP uses for upscaling.<br />&#8226; **Bilinear**: A low quality upsample. The least resource intensive option.<br />&#8226; **Catmull-Rom**: A bicubic upsample with 4 taps.<br />&#8226; **Lanczos**: A sharp upsample. This method can potentially introduce artifacts so you should not use it for extreme upsampling cases for example, when the screen percentage is less than 50%.<br />&#8226; **Contrast Adaptive Sharpen**: An ultra sharp upsample. This option is not meant for screen percentages less than 50% and still sharpens when the screen percentage is set to 100%. This uses **FidelityFX (CAS) AMD™**. For information about FidelityFX and Contrast Adaptive Sharpening, see [AMD FidelityFX](https://www.amd.com/en/technologies/radeon-software-fidelityfx). |
 | **- Minimum Screen Percentage** | The minimum screen percentage that dynamic resolution can reach. |
 | **- Maximum Screen Percentage** | The maximum screen percentage that dynamic resolution can reach. This value must be higher than the **Min Screen Percentage**. |
 | **- Force Screen Percentage**   | Enable the checkbox to force HDRP to use a specific screen percentage for dynamic resolution. This feature is useful for debugging dynamic resolution. |
@@ -123,7 +124,6 @@ Use the Reflection settings to configure the max number and resolution of the pr
 | **Compress Reflection Probe Cache**        | Enable the checkbox to compress the [Reflection Probe](Reflection-Probe.html) cache in order to save space on disk. |
 | **Reflection Cubemap Size**                | Use the drop-down to select the maximum resolution of individual Reflection Probe[ ](https://docs.unity3d.com/Manual/class-Cubemap.html)[cubemaps](https://docs.unity3d.com/Manual/class-Cubemap.html). |
 | **Probe Cache Size**                       | The maximum size of the Probe Cache. Defines how many Probe cube maps HDRP can save in cache. |
-| **Compress Planar Reflection Probe Cache** | Enable the checkbox to compress the [Planar Reflection Probe](Planar-Reflection-Probe.html) cache in order to save space on disk. |
 | **Planar Reflection Atlas Size**           | Use the drop-down to select the resolution of the planar probe atlas. It defines how many reflection probe you'll be able to render at once and at which resolution.  |
 | **Max Planar Reflection On Screen**        | The maximum number of planar reflections on screen at once. |
 | **Planar Probe Cache Size**                | The maximum size of the Planer Reflection Probe cache. Defines how many Probe textures HDRP can save in cache. |
@@ -218,3 +218,10 @@ Use these settings to enable or disable settings relating to lighting in HDRP.
 | **Grading LUT Size**   | The size of the internal and external color grading lookup textures (LUTs). This size is fixed for the Project. You can not mix and match LUT sizes, so decide on a size before you start the color grading process. The default value, **32**, provides a good balance of speed and quality. |
 | **Grading LUT Format** | Use the drop-down to select the format to encode the color grading LUTs with. Lower precision formats are faster and use less memory at the expense of color precision. These formats directly map to their equivalent in the built-in [GraphicsFormat](https://docs.unity3d.com/ScriptReference/Experimental.Rendering.GraphicsFormat.html) enum value. |
 | **Buffer Format** |  Use the drop-down to select the format of the color buffers that are used in the post-processing passes. Lower precision formats are faster and use less memory at the expense of color precision. These formats directly map to their equivalent in the built-in [GraphicsFormat](https://docs.unity3d.com/ScriptReference/Experimental.Rendering.GraphicsFormat.html) enum value. 
+
+## Virtual Texturing
+
+| **Property**            | **Description**                                                 |
+| ----------------------- | --------------------------------------------------------------- |
+| **CPU Cache Size**      | Amount of CPU memory (in MB) that can be allocated by the Streaming Virtual Texturing system to cache texture data. |
+| **GPU Cache Size per Format** | Amount of GPU memory (in MB) that can be allocated per format by the Streaming Virtual Texturing system to cache texture data. The value assigned to None is used for all unspecified formats. |

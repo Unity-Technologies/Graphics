@@ -2,6 +2,7 @@
 #define UNIVERSAL_SPEEDTREE8_PASSES_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
 
 struct SpeedTreeVertexInput
 {
@@ -146,6 +147,7 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
             #if defined(EFFECT_BILLBOARD) && defined(UNITY_INSTANCING_ENABLED)
                 globalWindTime += UNITY_ACCESS_INSTANCED_PROP(STWind, _GlobalWindTime);
             #endif
+
             windyPosition = GlobalWind(windyPosition, treePos, true, rotatedWindVector, globalWindTime);
             input.vertex.xyz = windyPosition;
         }
@@ -213,7 +215,7 @@ SpeedTreeVertexOutput SpeedTree8Vert(SpeedTreeVertexInput input)
     half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
-    half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
+    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
 
     #ifdef EFFECT_BUMP
         real sign = input.tangent.w * GetOddNegativeScale();
@@ -296,7 +298,11 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
     inputData.bakedGI = half3(0, 0, 0); // No GI currently.
 }
 
+#ifdef GBUFFER
+FragmentOutput SpeedTree8Frag(SpeedTreeFragmentInput input)
+#else
 half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
+#endif
 {
     UNITY_SETUP_INSTANCE_ID(input.interpolated);
 
@@ -376,11 +382,29 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     InputData inputData;
     InitializeInputData(input, normalTs, inputData);
 
+#ifdef GBUFFER
+    // in LitForwardPass GlobalIllumination (and temporarily LightingPhysicallyBased) are called inside UniversalFragmentPBR
+    // in Deferred rendering we store the sum of these values (and of emission as well) in the GBuffer
+    BRDFData brdfData;
+    InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
+    
+    Light mainLight = GetMainLight(inputData.shadowCoord);                                      // TODO move this to a separate full-screen single gbuffer pass?
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0)); // TODO move this to a separate full-screen single gbuffer pass?
+
+    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
+
+    color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS, false); // TODO move this to a separate full-screen single gbuffer pass?
+
+    return BRDFDataToGbuffer(brdfData, inputData, smoothness, emission + color);
+
+#else
     half4 color = UniversalFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a);
 
     return color;
+
+#endif
 }
 
 half4 SpeedTree8FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target
