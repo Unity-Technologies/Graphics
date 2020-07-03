@@ -1588,6 +1588,52 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region Depth Of Field
+
+        struct DepthOfFieldParameters
+        {
+
+            public ComputeShader dofKernelCS;
+            public ComputeShader dofCoCCS;
+            public ComputeShader dofCoCReprojectCS;
+            public ComputeShader dofDilateCS;
+            public ComputeShader dofMipCS;
+            public ComputeShader dofMipSafeCS;
+            public ComputeShader dofPrefilterCS;
+            public ComputeShader dofTileMaxCS;
+            public ComputeShader dofGatherCS;
+            public ComputeShader dofCombineCS;
+            public ComputeShader dofPrecombineFarCS;
+            public ComputeShader dofClearIndirectArgsCS;
+
+            public bool nearLayerActive;
+            public bool farLayerActive;
+            public bool highQualityFiltering;
+            public bool useTiles;
+
+            public int farSampleCount;
+            public int nearSampleCount;
+        }
+
+        DepthOfFieldParameters PrepareDoFParameters(HDCamera camera)
+        {
+            DepthOfFieldParameters parameters = new DepthOfFieldParameters();
+
+            parameters.dofKernelCS = m_Resources.shaders.depthOfFieldKernelCS;
+            parameters.dofCoCCS = m_Resources.shaders.depthOfFieldCoCCS;
+            parameters.dofCoCReprojectCS = m_Resources.shaders.depthOfFieldCoCReprojectCS;
+            parameters.dofDilateCS = m_Resources.shaders.depthOfFieldDilateCS;
+            parameters.dofMipCS = m_Resources.shaders.depthOfFieldMipCS;
+            parameters.dofMipSafeCS = m_Resources.shaders.depthOfFieldMipSafeCS;
+            parameters.dofPrefilterCS = m_Resources.shaders.depthOfFieldPrefilterCS;
+            parameters.dofTileMaxCS = m_Resources.shaders.depthOfFieldTileMaxCS;
+            parameters.dofGatherCS = m_Resources.shaders.depthOfFieldGatherCS;
+            parameters.dofCombineCS = m_Resources.shaders.depthOfFieldCombineCS;
+            parameters.dofPrecombineFarCS = m_Resources.shaders.depthOfFieldPreCombineFarCS;
+            parameters.dofClearIndirectArgsCS = m_Resources.shaders.depthOfFieldClearIndirectArgsCS;
+
+            return parameters;
+        }
+
         //
         // Reference used:
         //   "A Lens and Aperture Camera Model for Synthetic Image Generation" [Potmesil81]
