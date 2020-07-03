@@ -229,6 +229,16 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 8707388281747785984}
     m_Modifications:
+    - target: {fileID: 1526240796000064953, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
+        type: 3}
+      propertyPath: m_ShadowUpdateMode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1978862352675334064, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
+        type: 3}
+      propertyPath: m_UseViewFrustumForShadowCasterCull
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6030349360826037165, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -304,16 +314,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 8707388281747785984}
     m_Modifications:
-    - target: {fileID: 1978862352675334064, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
-        type: 3}
-      propertyPath: m_BoundingSphereOverride.x
-      value: 5.65e-43
-      objectReference: {fileID: 0}
-    - target: {fileID: 1978862352675334064, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
-        type: 3}
-      propertyPath: m_BoundingSphereOverride.w
-      value: 1.3e-44
-      objectReference: {fileID: 0}
     - target: {fileID: 6030349360826037165, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
         type: 3}
       propertyPath: m_LocalPosition.x

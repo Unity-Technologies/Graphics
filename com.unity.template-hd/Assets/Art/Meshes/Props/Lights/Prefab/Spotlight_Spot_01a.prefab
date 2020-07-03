@@ -358,5 +358,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Light_Point_Hotspot_Normal
       objectReference: {fileID: 0}
+    - target: {fileID: 7097592091236896670, guid: 03aad6501deca1e4bafc449a2d7073e5,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 03aad6501deca1e4bafc449a2d7073e5, type: 3}
