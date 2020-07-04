@@ -140,7 +140,7 @@ void Frag(  PackedVaryingsToPS packedInput
     // However it would be painful to have to add a function like ConvertSurfaceDataToDecalPrepassData() to every Material to return geomNormalWS anyway
     // Here we will put the constrain that any Material requiring to support Decal, will need to have geomNormalWS as member of surfaceData (and we already require normalWS anyway)
     decalPrepassData.geomNormalWS = surfaceData.geomNormalWS;
-    decalPrepassData.decalLayerMask = GetRenderingDecalLayer();
+    decalPrepassData.decalLayerMask = GetMeshRenderingDecalLayer();
     #endif
     EncodeIntoDecalPrepassBuffer(decalPrepassData, outDecalBuffer);
 #endif
