@@ -3,12 +3,12 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Utility", "High Definition Render Pipeline", "Eye", "IrisOutOfBoundColorClamp")]
+    [Title("Utility", "High Definition Render Pipeline", "Eye", "IrisOutOfBoundColorClamp (Preview)")]
     class IrisOutOfBoundColorClamp : CodeFunctionNode
     {
         public IrisOutOfBoundColorClamp()
         {
-            name = "Iris Out Of Bound Color Clamp";
+            name = "Iris Out Of Bound Color Clamp (Preview)";
         }
 
         public override bool hasPreview

@@ -3,12 +3,12 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Utility", "High Definition Render Pipeline", "Eye", "EyeSurfaceTypeDebug")]
+    [Title("Utility", "High Definition Render Pipeline", "Eye", "EyeSurfaceTypeDebug (Preview)")]
     class EyeSurfaceTypeDebug : CodeFunctionNode
     {
         public EyeSurfaceTypeDebug()
         {
-            name = "Eye Surface Type Debug";
+            name = "Eye Surface Type Debug (Preview)";
         }
 
         public override bool hasPreview

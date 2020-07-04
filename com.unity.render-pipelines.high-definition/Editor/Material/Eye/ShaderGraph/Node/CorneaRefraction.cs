@@ -3,12 +3,12 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Utility", "High Definition Render Pipeline", "Eye", "CorneaRefraction")]
+    [Title("Utility", "High Definition Render Pipeline", "Eye", "CorneaRefraction (Preview)")]
     class CorneaRefraction : CodeFunctionNode
     {
         public CorneaRefraction()
         {
-            name = "Cornea Refraction";
+            name = "Cornea Refraction (Preview)";
         }
 
         public override bool hasPreview

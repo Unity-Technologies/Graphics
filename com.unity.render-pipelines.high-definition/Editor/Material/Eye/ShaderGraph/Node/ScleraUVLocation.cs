@@ -3,12 +3,12 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Utility", "High Definition Render Pipeline", "Eye", "ScleraUVLocation")]
+    [Title("Utility", "High Definition Render Pipeline", "Eye", "ScleraUVLocation (Preview)")]
     class ScleraUVLocation : CodeFunctionNode
     {
         public ScleraUVLocation()
         {
-            name = "Sclera UV Location";
+            name = "Sclera UV Location (Preview)";
         }
 
         public override bool hasPreview

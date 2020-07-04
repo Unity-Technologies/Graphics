@@ -3,12 +3,12 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Utility", "High Definition Render Pipeline", "Eye", "IrisUVLocation")]
+    [Title("Utility", "High Definition Render Pipeline", "Eye", "IrisUVLocation (Preview)")]
     class IrisUVLocation : CodeFunctionNode
     {
         public IrisUVLocation()
         {
-            name = "Iris UV Location";
+            name = "Iris UV Location (Preview)";
         }
 
         public override bool hasPreview

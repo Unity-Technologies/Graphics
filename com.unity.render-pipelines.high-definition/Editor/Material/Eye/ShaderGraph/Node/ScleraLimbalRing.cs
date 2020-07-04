@@ -3,12 +3,12 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Utility", "High Definition Render Pipeline", "Eye", "ScleraLimbalRing")]
+    [Title("Utility", "High Definition Render Pipeline", "Eye", "ScleraLimbalRing (Preview)")]
     class ScleraLimbalRing : CodeFunctionNode
     {
         public ScleraLimbalRing()
         {
-            name = "Sclera Limbal Ring";
+            name = "Sclera Limbal Ring (Preview)";
         }
 
         public override bool hasPreview
