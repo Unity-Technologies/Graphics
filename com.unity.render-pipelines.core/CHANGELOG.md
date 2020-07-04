@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed division by zero in `V_SmithJointGGX` function.
 - Fixed null reference exception in LookDev when setting the SRP to one not implementing LookDev (case 1245086)
 - Fix LookDev's undo/redo on EnvironmentLibrary (case 1234725)
+- Fix a compil error on OpenGL ES2 in directional lightmap sampling shader code
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.

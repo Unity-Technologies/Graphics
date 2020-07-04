@@ -44,6 +44,11 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 
+    interface IDefaultFrameSettingsType
+    {
+        FrameSettingsRenderType GetFrameSettingsType();
+    }
+
     partial class FrameSettingsUI
     {
         enum Expandable
@@ -131,14 +136,9 @@ namespace UnityEditor.Rendering.HighDefinition
         static FrameSettings GetDefaultFrameSettingsFor(Editor owner)
         {
             HDRenderPipelineAsset hdrpAsset = GetHDRPAssetFor(owner);
-            if (owner is IHDProbeEditor)
-            {
-                if ((owner as IHDProbeEditor).GetTarget(owner.target).mode == ProbeSettings.Mode.Realtime)
-                    return hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.RealtimeReflection);
-                else
-                    return hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.CustomOrBakedReflection);
-            }
-            return hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+            return owner is IDefaultFrameSettingsType getType
+                ? hdrpAsset.GetDefaultFrameSettings(getType.GetFrameSettingsType())
+                : hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
         }
 
         static void Drawer_SectionRenderingSettings(SerializedFrameSettings serialized, Editor owner, bool withOverride)
@@ -280,6 +280,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var area = OverridableFrameSettingsArea.GetGroupContent(1, defaultFrameSettings, serialized);
             area.AmmendInfo(FrameSettingsField.Shadowmask, overrideable: () => hdrpSettings.supportShadowMask);
             area.AmmendInfo(FrameSettingsField.SSR, overrideable: () => hdrpSettings.supportSSR);
+            area.AmmendInfo(FrameSettingsField.TransparentSSR, overrideable: () => (hdrpSettings.supportSSR && hdrpSettings.supportSSRTransparent));
             area.AmmendInfo(FrameSettingsField.SSAO, overrideable: () => hdrpSettings.supportSSAO);
 
             // SSS

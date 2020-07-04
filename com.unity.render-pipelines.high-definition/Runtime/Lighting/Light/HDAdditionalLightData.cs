@@ -2507,6 +2507,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RefreshCachedShadow();
 
+            if (emissiveMeshRenderer != null && !emissiveMeshRenderer.Equals(null))
+            {
+                emissiveMeshRenderer.gameObject.layer = m_AreaLightEmissiveMeshLayer;
+            }
+
 #if UNITY_EDITOR
             // If modification are due to change on prefab asset, we want to have prefab instances to self-update, but we cannot check in OnValidate if this is part of
             // prefab instance. So we delay the check on next update (and before teh LateUpdate logic)
@@ -2827,6 +2832,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Force to clamp the shape if we changed the type of the light
             shapeWidth = m_ShapeWidth;
             shapeHeight = m_ShapeHeight;
+
+            legacyLight.areaSize = new Vector2(shapeWidth, shapeHeight);
         }
 
         /// <summary>

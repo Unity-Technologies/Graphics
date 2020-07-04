@@ -88,8 +88,6 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     ZERO_INITIALIZE(BuiltinData, builtinData);
     uint  featureFlags = UINT_MAX;
     DecodeFromGBuffer(currentCoord, featureFlags, bsdfData, builtinData);
-    // We do not support light layers for the performance mode, so we override what was read from the file.
-    builtinData.renderingLayers = DEFAULT_LIGHT_LAYERS;
 
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
