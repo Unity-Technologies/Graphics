@@ -133,6 +133,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_DOTSInstancing = value;
         }
 
+        [SerializeField]
+        ShaderGraphVersion m_Version = MigrationDescription.LastVersion<ShaderGraphVersion>();
+        public ShaderGraphVersion version
+        {
+            get => m_Version;
+            set => m_Version = value;
+        }
+
         internal int inspectorFoldoutMask;
     }
 
