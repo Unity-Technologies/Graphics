@@ -222,7 +222,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Color, hdCamera, colorBuffer, aovBuffers);
 
-            TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, colorBuffer, prepassOutput.resolvedDepthBuffer, backBuffer, cullingResults, hdCamera);
+            TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, colorBuffer, backBuffer, cullingResults, hdCamera);
 
             // TODO RENDERGRAPH
             //// If requested, compute histogram of the very final image

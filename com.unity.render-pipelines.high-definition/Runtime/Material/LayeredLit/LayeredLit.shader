@@ -273,6 +273,7 @@ Shader "HDRP/LayeredLit"
         [HideInInspector] _DstBlend ("__dst", Float) = 0.0
         [HideInInspector] _AlphaSrcBlend("__alphaSrc", Float) = 1.0
         [HideInInspector] _AlphaDstBlend("__alphaDst", Float) = 0.0
+        [HideInInspector][ToggleUI]_AlphaToMaskInspectorValue("_AlphaToMaskInspectorValue", Float) = 0 // Property used to save the alpha to mask state in the inspector
         [HideInInspector][ToggleUI]_AlphaToMask("__alphaToMask", Float) = 0
 
         [HideInInspector][ToggleUI] _ZWrite ("__zw", Float) = 1.0
