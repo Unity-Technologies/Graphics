@@ -81,31 +81,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Light_Spot_1600lm
       objectReference: {fileID: 0}
-    - target: {fileID: 7104975159769254344, guid: d7af645ccfc58e14692b118dddb559b7,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7800918859396210309, guid: d7af645ccfc58e14692b118dddb559b7,
-        type: 3}
-      propertyPath: showAdditionalSettings
-      value: 13
-      objectReference: {fileID: 0}
-    - target: {fileID: 7800918859396210309, guid: d7af645ccfc58e14692b118dddb559b7,
-        type: 3}
-      propertyPath: m_ShapeRadius
-      value: 0.05
-      objectReference: {fileID: 0}
-    - target: {fileID: 9203907179793585638, guid: d7af645ccfc58e14692b118dddb559b7,
-        type: 3}
-      propertyPath: m_Intensity
-      value: 869.4223
-      objectReference: {fileID: 0}
-    - target: {fileID: 9203907179793585638, guid: d7af645ccfc58e14692b118dddb559b7,
-        type: 3}
-      propertyPath: m_ShadowRadius
-      value: 0.05
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d7af645ccfc58e14692b118dddb559b7, type: 3}
 --- !u!1001 &2153600787750253744
