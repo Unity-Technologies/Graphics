@@ -120,6 +120,11 @@ PrefabInstance:
       propertyPath: m_BoundingSphereOverride.w
       value: -1.470797e-39
       objectReference: {fileID: 0}
+    - target: {fileID: 9203907179793585638, guid: ac937fd9ae94a3a40b3a7185b6b1f0e2,
+        type: 3}
+      propertyPath: m_Shadows.m_Type
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ac937fd9ae94a3a40b3a7185b6b1f0e2, type: 3}
 --- !u!4 &4284347996942521181 stripped
@@ -138,12 +143,12 @@ PrefabInstance:
     - target: {fileID: 1332447828416647104, guid: 428831fe459a18c49843bfc3af65bbc9,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1332447828416647104, guid: 428831fe459a18c49843bfc3af65bbc9,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.013
+      value: 0.0073
       objectReference: {fileID: 0}
     - target: {fileID: 1332447828416647104, guid: 428831fe459a18c49843bfc3af65bbc9,
         type: 3}
