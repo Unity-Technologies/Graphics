@@ -799,6 +799,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     ShaderUtil.UpdateShaderAsset(shaderData.shader, shaderStr, false);
                 }
 
+                CoreUtils.Destroy(shaderData.mat);
+
                 if (shaderData.mat == null)
                 {
                     shaderData.mat = new Material(shaderData.shader) { hideFlags = HideFlags.HideAndDontSave };
