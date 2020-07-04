@@ -24,7 +24,7 @@ PrefabInstance:
     - target: {fileID: -8647043633376803227, guid: d2564ebb3beeaca47b554810141df024,
         type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 1
+      value: 4294967295
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: d2564ebb3beeaca47b554810141df024,
         type: 3}
@@ -86,6 +86,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: FR_SectionA_01
       objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: d2564ebb3beeaca47b554810141df024,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
     - target: {fileID: 1318949605540873887, guid: d2564ebb3beeaca47b554810141df024,
         type: 3}
       propertyPath: m_Materials.Array.data[2]
@@ -95,6 +100,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_RenderingLayerMask
       value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 7265261095723189473, guid: d2564ebb3beeaca47b554810141df024,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: -7485920066851254716, guid: d2564ebb3beeaca47b554810141df024, type: 3}

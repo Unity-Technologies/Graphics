@@ -24,7 +24,7 @@ PrefabInstance:
     - target: {fileID: -4216859302048453862, guid: 9ef6089f32dde634788c6de453630fa1,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 27
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 9ef6089f32dde634788c6de453630fa1,
         type: 3}
@@ -34,12 +34,12 @@ PrefabInstance:
     - target: {fileID: -4216859302048453862, guid: 9ef6089f32dde634788c6de453630fa1,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 5.5
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 9ef6089f32dde634788c6de453630fa1,
         type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 9ef6089f32dde634788c6de453630fa1,
         type: 3}
@@ -99,7 +99,12 @@ PrefabInstance:
     - target: {fileID: 7125724832524893219, guid: 9ef6089f32dde634788c6de453630fa1,
         type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 0
+      value: 4294967295
+      objectReference: {fileID: 0}
+    - target: {fileID: 8413644878144644682, guid: 9ef6089f32dde634788c6de453630fa1,
+        type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: -3978648277978914827, guid: 9ef6089f32dde634788c6de453630fa1, type: 3}

@@ -273,7 +273,7 @@ MonoBehaviour:
   m_AdvancedMode: 0
   temperature:
     m_OverrideState: 1
-    m_Value: -20
+    m_Value: -10
     min: -100
     max: 100
   tint:
