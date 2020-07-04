@@ -214,6 +214,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Light_Point_Bulb (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 4913237776817256236, guid: b868dedbc9c0a3f469e82cc2ad6f200a,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b868dedbc9c0a3f469e82cc2ad6f200a, type: 3}
 --- !u!4 &2059510699080700851 stripped
@@ -233,6 +238,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_ShadowUpdateMode
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1526240796000064953, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
+        type: 3}
+      propertyPath: m_ShadowFadeDistance
+      value: 24
       objectReference: {fileID: 0}
     - target: {fileID: 1978862352675334064, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
         type: 3}
@@ -298,6 +308,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Light_Point_1200lm
+      objectReference: {fileID: 0}
+    - target: {fileID: 8645195672665254029, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dbe8cbbfe4750f4429ff7e163423dfe6, type: 3}
@@ -448,6 +463,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Light_Point_Bulb (2)
+      objectReference: {fileID: 0}
+    - target: {fileID: 4913237776817256236, guid: b868dedbc9c0a3f469e82cc2ad6f200a,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b868dedbc9c0a3f469e82cc2ad6f200a, type: 3}
@@ -613,6 +633,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Light_Point_Bulb
+      objectReference: {fileID: 0}
+    - target: {fileID: 4913237776817256236, guid: b868dedbc9c0a3f469e82cc2ad6f200a,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b868dedbc9c0a3f469e82cc2ad6f200a, type: 3}
