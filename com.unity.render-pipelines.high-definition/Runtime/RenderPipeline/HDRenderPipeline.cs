@@ -1633,6 +1633,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     cullingResults = req.cullingResults;
                                     skipClearCullingResults.Add(req.index);
                                     needCulling = false;
+                                    m_SkyManager.UpdateCurrentSkySettings(hdCamera);
                                 }
                             }
                         }
