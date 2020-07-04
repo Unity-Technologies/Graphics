@@ -122,7 +122,7 @@ MonoBehaviour:
   m_LightDimmer: 1
   m_VolumetricDimmer: 1
   m_LightUnit: 0
-  m_FadeDistance: 32
+  m_FadeDistance: 40
   m_AffectDiffuse: 1
   m_AffectSpecular: 1
   m_NonLightmappedOnly: 0
@@ -206,7 +206,7 @@ MonoBehaviour:
   useOldInspector: 0
   useVolumetric: 0
   featuresFoldout: 1
-  showAdditionalSettings: 9
+  showAdditionalSettings: 13
   m_AreaLightEmissiveMeshShadowCastingMode: 0
   m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0
   m_AreaLightEmissiveMeshLayer: -1

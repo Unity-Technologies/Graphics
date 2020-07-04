@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 5635.574, g: 3849.405, b: 3639.1824, a: 1}
+  m_IndirectSpecularColor: {r: 5633.1055, g: 3847.6394, b: 3638.1511, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -3578,7 +3578,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1924871439}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!135 &340953101
 SphereCollider:
@@ -3591,7 +3591,7 @@ SphereCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 3
+  m_Radius: 2
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &340953102
 MonoBehaviour:
@@ -3607,7 +3607,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isGlobal: 0
   priority: 4
-  blendDistance: 2
+  blendDistance: 3
   weight: 1
   sharedProfile: {fileID: 11400000, guid: 5727d3e07f75c3744b6cc8a1e55850a9, type: 2}
 --- !u!1 &344763853
@@ -6032,7 +6032,6 @@ GameObject:
   m_Component:
   - component: {fileID: 581876911}
   - component: {fileID: 581876910}
-  - component: {fileID: 581876912}
   m_Layer: 0
   m_Name: Volume Global
   m_TagString: Untagged
@@ -6071,19 +6070,6 @@ Transform:
   m_Father: {fileID: 1924871439}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &581876912
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 581876909}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 86.72072, y: 19.377449, z: 38.346977}
-  m_Center: {x: 23.381248, y: -4.1158867, z: -4.9969635}
 --- !u!1001 &585178749
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6688,7 +6674,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1924871439}
-  m_RootOrder: 4
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!135 &680141237
 SphereCollider:
@@ -14000,14 +13986,14 @@ MonoBehaviour:
   m_Version: 2
   parameters:
     albedo: {r: 0.9686873, g: 1, b: 0.83647794, a: 1}
-    meanFreePath: 30
+    meanFreePath: 20
     anisotropy: 0
     volumeMask: {fileID: 11700000, guid: 6039ee80a9a8a0f41b4297ca0dd5a90c, type: 2}
     textureScrollingSpeed: {x: 0, y: 0.1, z: 0}
     textureTiling: {x: 1, y: 1, z: 1}
-    positiveFade: {x: 0.5, y: 0.5, z: 0.5}
-    negativeFade: {x: 0.5, y: 0.5, z: 0.5}
-    m_EditorUniformFade: 4
+    positiveFade: {x: 0.375, y: 0.375, z: 0.375}
+    negativeFade: {x: 0.375, y: 0.375, z: 0.375}
+    m_EditorUniformFade: 3
     m_EditorPositiveFade: {x: 0.125, y: 0.05709362, z: 0.0625}
     m_EditorNegativeFade: {x: 0, y: 0, z: 0.0625}
     m_EditorAdvancedFade: 0
@@ -14016,7 +14002,7 @@ MonoBehaviour:
     distanceFadeStart: 30
     distanceFadeEnd: 40
     textureIndex: 0
-    textureOffset: {x: -0, y: -24.854773, z: 0}
+    textureOffset: {x: -0, y: -60.00243, z: 0}
 --- !u!1001 &1504255721
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -19883,9 +19869,9 @@ Transform:
   m_Children:
   - {fileID: 581876911}
   - {fileID: 1606155765}
+  - {fileID: 680141236}
   - {fileID: 5859121926156797422}
   - {fileID: 340953100}
-  - {fileID: 680141236}
   - {fileID: 812970923}
   - {fileID: 2582144458996412158}
   m_Father: {fileID: 1377783}
@@ -23114,12 +23100,52 @@ PrefabInstance:
     - target: {fileID: 3545202307361414937, guid: 209e18a6787294340960162067455c85,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3545202308409818493, guid: 209e18a6787294340960162067455c85,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3545202308814811040, guid: 209e18a6787294340960162067455c85,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3545202308814811041, guid: 209e18a6787294340960162067455c85,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.015462708
+      objectReference: {fileID: 0}
+    - target: {fileID: 3545202308814811041, guid: 209e18a6787294340960162067455c85,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.5116882
+      objectReference: {fileID: 0}
+    - target: {fileID: 3545202308814811041, guid: 209e18a6787294340960162067455c85,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.009212209
+      objectReference: {fileID: 0}
+    - target: {fileID: 3545202308814811041, guid: 209e18a6787294340960162067455c85,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.8589827
+      objectReference: {fileID: 0}
+    - target: {fileID: 3545202308814811041, guid: 209e18a6787294340960162067455c85,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -16.552824
+      objectReference: {fileID: 0}
+    - target: {fileID: 3545202308814811041, guid: 209e18a6787294340960162067455c85,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 4.7577524
+      objectReference: {fileID: 0}
+    - target: {fileID: 3545202308814811041, guid: 209e18a6787294340960162067455c85,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -5.2043815
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 209e18a6787294340960162067455c85, type: 3}
@@ -24059,7 +24085,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1924871439}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &6006519896751425108 stripped
 Transform:
