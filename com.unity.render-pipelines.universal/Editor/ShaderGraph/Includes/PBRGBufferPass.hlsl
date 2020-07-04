@@ -28,6 +28,7 @@ void BuildInputData(Varyings input, SurfaceDescription surfaceDescription, out I
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.sh, inputData.normalWS);
+    inputData.normalizedScreenSpaceUV = input.positionCS.xy;
 }
 
 PackedVaryings vert(Attributes input)
@@ -40,7 +41,7 @@ PackedVaryings vert(Attributes input)
 }
 
 FragmentOutput frag(PackedVaryings packedInput)
-{    
+{
     Varyings unpacked = UnpackVaryings(packedInput);
     UNITY_SETUP_INSTANCE_ID(unpacked);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(unpacked);
@@ -63,7 +64,7 @@ FragmentOutput frag(PackedVaryings packedInput)
     #ifdef _SPECULAR_SETUP
         float3 specular = surfaceDescription.Specular;
         float metallic = 1;
-    #else   
+    #else
         float3 specular = 0;
         float metallic = surfaceDescription.Metallic;
     #endif
