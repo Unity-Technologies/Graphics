@@ -712,9 +712,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with light layers bigger than 8 (and above the supported range). 
 - Fixed issue with culling layer mask of area light's emissive mesh 
 - Fixed errors when switching area light to disk shape while an area emissive mesh was displayed.
+- Fixed default frame settings MSAA toggle for reflection probes (case 1247631)
 - Fixed the transparent SSR dependency not being properly disabled according to the asset dependencies (1260271).
 - Fixed issue with completely black AO on double sided materials when normal mode is set to None.
 - Fixed UI drawing of the quaternion (1251235)
+- Fix an issue with the quality mode and perf mode on RTR and RTGI and getting rid of unwanted nans (1256923).
+- Fixed unitialized ray tracing resources when using non-default HDRP asset (case 1259467).
+- Fixed for area light not updating baked light result when modifying with gizmo.
+- Fixed overused the atlas for Animated/Render Target Cookies (1259930).
 - Fixed sky asserts with XR multipass
 
 ### Changed
@@ -874,6 +879,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed wrong tooltips in the Dof Volume (case 1256641).
 - The `CustomPassLoadCameraColor` and `CustomPassSampleCameraColor` functions now returns the correct color buffer when used in after post process instead of the color pyramid (which didn't had post processes).
 - PBR Sky now doesn't go black when going below sea level, but it instead freezes calculation as if on the horizon. 
+- Fixed an issue with quality setting foldouts not opening when clicking on them (1253088).
 
 ## [7.1.1] - 2019-09-05
 
