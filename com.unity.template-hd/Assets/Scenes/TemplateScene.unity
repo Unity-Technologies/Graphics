@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 5632.6426, g: 3847.405, b: 3637.0574, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -2771,7 +2771,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 323302898}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 31.58, y: 2.94, z: 6.25}
+  m_LocalPosition: {x: 32.83, y: 2.94, z: 6.25}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1425786420}
@@ -2900,7 +2900,7 @@ MonoBehaviour:
       fadeDistance: 100
       rangeCompressionFactor: 1
     influence:
-      m_EditorAdvancedModeBlendDistancePositive: {x: 0.5, y: 0.1, z: 0}
+      m_EditorAdvancedModeBlendDistancePositive: {x: 3.9, y: 0.1, z: 0}
       m_EditorAdvancedModeBlendDistanceNegative: {x: 0, y: 0, z: 1.11}
       m_EditorSimplifiedModeBlendDistance: 1
       m_EditorAdvancedModeBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
@@ -2913,8 +2913,8 @@ MonoBehaviour:
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
       m_Shape: 0
-      m_BoxSize: {x: 16, y: 6.13, z: 8.5}
-      m_BoxBlendDistancePositive: {x: 0.5, y: 0.1, z: 0}
+      m_BoxSize: {x: 18.74, y: 6.13, z: 8.5}
+      m_BoxBlendDistancePositive: {x: 3.9, y: 0.1, z: 0}
       m_BoxBlendDistanceNegative: {x: 0, y: 0, z: 1.11}
       m_BoxBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
       m_BoxBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
@@ -3157,7 +3157,7 @@ ReflectionProbe:
   m_TimeSlicingMode: 0
   m_Resolution: 128
   m_UpdateFrequency: 0
-  m_BoxSize: {x: 16, y: 6.13, z: 8.5}
+  m_BoxSize: {x: 18.74, y: 6.13, z: 8.5}
   m_BoxOffset: {x: 0, y: 0, z: 0}
   m_NearClip: 0.3
   m_FarClip: 1000
@@ -14069,7 +14069,7 @@ MonoBehaviour:
     distanceFadeStart: 30
     distanceFadeEnd: 40
     textureIndex: 0
-    textureOffset: {x: -0, y: -3.2522285, z: 0}
+    textureOffset: {x: -0, y: -47.487206, z: 0}
 --- !u!1001 &1504255721
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -15115,11 +15115,10 @@ MonoBehaviour:
       rangeCompressionFactor: 1
     influence:
       m_EditorAdvancedModeBlendDistancePositive: {x: 2.964642, y: 0, z: 0}
-      m_EditorAdvancedModeBlendDistanceNegative: {x: 0.68660975, y: 0, z: 0}
+      m_EditorAdvancedModeBlendDistanceNegative: {x: 0.94, y: 0, z: 0}
       m_EditorSimplifiedModeBlendDistance: 0
       m_EditorAdvancedModeBlendNormalDistancePositive: {x: 2.905892, y: 0, z: 0}
-      m_EditorAdvancedModeBlendNormalDistanceNegative: {x: 0.00000047683716, y: 0,
-        z: 0}
+      m_EditorAdvancedModeBlendNormalDistanceNegative: {x: 0.2, y: 0, z: 0}
       m_EditorSimplifiedModeBlendNormalDistance: 0
       m_EditorAdvancedModeEnabled: 1
       m_EditorAdvancedModeFaceFadePositive: {x: 1, y: 1, z: 1}
@@ -15130,9 +15129,9 @@ MonoBehaviour:
       m_Shape: 0
       m_BoxSize: {x: 8.96, y: 9.39432, z: 16.5}
       m_BoxBlendDistancePositive: {x: 2.964642, y: 0, z: 0}
-      m_BoxBlendDistanceNegative: {x: 0.68660975, y: 0, z: 0}
+      m_BoxBlendDistanceNegative: {x: 0.94, y: 0, z: 0}
       m_BoxBlendNormalDistancePositive: {x: 2.905892, y: 0, z: 0}
-      m_BoxBlendNormalDistanceNegative: {x: 0.00000047683716, y: 0, z: 0}
+      m_BoxBlendNormalDistanceNegative: {x: 0.2, y: 0, z: 0}
       m_BoxSideFadePositive: {x: 1, y: 1, z: 1}
       m_BoxSideFadeNegative: {x: 1, y: 1, z: 1}
       m_SphereRadius: 8
@@ -15983,7 +15982,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1638447525}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 35.39, y: 3.9, z: -2.14}
+  m_LocalPosition: {x: 35.55, y: 3.9, z: -1.569}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1425786420}
@@ -16112,7 +16111,7 @@ MonoBehaviour:
       fadeDistance: 100
       rangeCompressionFactor: 1
     influence:
-      m_EditorAdvancedModeBlendDistancePositive: {x: 0.14852381, y: 2.8543315, z: 1.2557535}
+      m_EditorAdvancedModeBlendDistancePositive: {x: 0.46, y: 2.8543315, z: 1.17}
       m_EditorAdvancedModeBlendDistanceNegative: {x: 1.895411, y: 0, z: 0}
       m_EditorSimplifiedModeBlendDistance: 0.62
       m_EditorAdvancedModeBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
@@ -16125,8 +16124,8 @@ MonoBehaviour:
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
       m_Shape: 0
-      m_BoxSize: {x: 6.8, y: 8, z: 8.749748}
-      m_BoxBlendDistancePositive: {x: 0.14852381, y: 2.8543315, z: 1.2557535}
+      m_BoxSize: {x: 7, y: 8, z: 10}
+      m_BoxBlendDistancePositive: {x: 0.46, y: 2.8543315, z: 1.17}
       m_BoxBlendDistanceNegative: {x: 1.895411, y: 0, z: 0}
       m_BoxBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
       m_BoxBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
@@ -16369,7 +16368,7 @@ ReflectionProbe:
   m_TimeSlicingMode: 0
   m_Resolution: 128
   m_UpdateFrequency: 0
-  m_BoxSize: {x: 6.8, y: 8, z: 8.749748}
+  m_BoxSize: {x: 7, y: 8, z: 10}
   m_BoxOffset: {x: 0, y: 0, z: 0}
   m_NearClip: 0.3
   m_FarClip: 1000
@@ -21723,7 +21722,7 @@ PrefabInstance:
     - target: {fileID: 4939890636832620780, guid: 76336da601705b24888cb14d8af76073,
         type: 3}
       propertyPath: m_Name
-      value: CeilingLamp_01
+      value: CeilingLamp
       objectReference: {fileID: 0}
     - target: {fileID: 4939890636832620780, guid: 76336da601705b24888cb14d8af76073,
         type: 3}
@@ -23133,12 +23132,47 @@ PrefabInstance:
     - target: {fileID: 3545202307361414937, guid: 209e18a6787294340960162067455c85,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3545202308814811040, guid: 209e18a6787294340960162067455c85,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3545202308814811041, guid: 209e18a6787294340960162067455c85,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.0058788434
+      objectReference: {fileID: 0}
+    - target: {fileID: 3545202308814811041, guid: 209e18a6787294340960162067455c85,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.1998858
+      objectReference: {fileID: 0}
+    - target: {fileID: 3545202308814811041, guid: 209e18a6787294340960162067455c85,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.0011998331
+      objectReference: {fileID: 0}
+    - target: {fileID: 3545202308814811041, guid: 209e18a6787294340960162067455c85,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.9798009
+      objectReference: {fileID: 0}
+    - target: {fileID: 3545202308814811041, guid: 209e18a6787294340960162067455c85,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -7.04682
+      objectReference: {fileID: 0}
+    - target: {fileID: 3545202308814811041, guid: 209e18a6787294340960162067455c85,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 4.8106875
+      objectReference: {fileID: 0}
+    - target: {fileID: 3545202308814811041, guid: 209e18a6787294340960162067455c85,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -10.733536
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 209e18a6787294340960162067455c85, type: 3}
