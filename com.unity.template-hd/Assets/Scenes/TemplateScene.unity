@@ -14016,7 +14016,7 @@ MonoBehaviour:
     distanceFadeStart: 30
     distanceFadeEnd: 40
     textureIndex: 0
-    textureOffset: {x: -0, y: -11.591264, z: 0}
+    textureOffset: {x: -0, y: -24.854773, z: 0}
 --- !u!1001 &1504255721
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -23110,6 +23110,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Review Cameras
+      objectReference: {fileID: 0}
+    - target: {fileID: 3545202307361414937, guid: 209e18a6787294340960162067455c85,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3545202308814811040, guid: 209e18a6787294340960162067455c85,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 209e18a6787294340960162067455c85, type: 3}
