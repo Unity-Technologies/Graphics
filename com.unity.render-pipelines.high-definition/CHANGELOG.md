@@ -718,6 +718,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed UI drawing of the quaternion (1251235)
 - Fix an issue with the quality mode and perf mode on RTR and RTGI and getting rid of unwanted nans (1256923).
 - Fixed unitialized ray tracing resources when using non-default HDRP asset (case 1259467).
+- Fixed for area light not updating baked light result when modifying with gizmo.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
