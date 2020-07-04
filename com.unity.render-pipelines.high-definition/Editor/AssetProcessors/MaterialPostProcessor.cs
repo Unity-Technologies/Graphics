@@ -77,6 +77,9 @@ namespace UnityEditor.Rendering.HighDefinition
                                                         " Please see the Material upgrade guide in the HDRP documentation for more information.", "Ok");
                         }
 
+                        // When we open a project from scratch all the material have been converted and we don't need to do it two time.
+                        // However if we update with an open editor from the package manager we must call reimport
+                        // as we can't know, we are always calling reimport resulting in unecessary work when opening a project
                         ReimportAllMaterials();
                     }
 
