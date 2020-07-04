@@ -115,13 +115,13 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(0, autoName: Decals, customOrderInGroup: 6, tooltip: "When enabled, HDRP processes a decal render pass for Cameras using these Frame Settings.")]
         Decals = 12,
         /// <summary>When enabled, Cameras that use these Frame Settings make use of DecalLayers.</summary>
-        [FrameSettingsField(0, autoName: DecalLayers, tooltip: "When enabled, Cameras that use these Frame Settings make use of DecalLayers (Depends on \"Decal Layers\" in current HDRP Asset).")]
+        [FrameSettingsField(0, autoName: DecalLayers, customOrderInGroup: 6, positiveDependencies: new[] { Decals }, tooltip: "When enabled, Cameras that use these Frame Settings make use of DecalLayers (Depends on \"Decal Layers\" in current HDRP Asset).")]
         DecalLayers = 50,
         /// <summary>When enabled, HDRP processes a transparent prepass for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, autoName: TransparentPrepass, customOrderInGroup: 7, tooltip: "When enabled, HDRP processes a transparent prepass for Cameras using these Frame Settings.")]
         TransparentPrepass = 8,
         /// <summary>When enabled, HDRP processes a transparent postpass for Cameras using these Frame Settings.</summary>
-        [FrameSettingsField(0, autoName: TransparentPostpass, customOrderInGroup: 8, tooltip: "When enabled, HDRP processes a transparent postpass for Cameras using these Frame Settings.")]
+        [FrameSettingsField(0, autoName: TransparentPostpass, customOrderInGroup: 7, tooltip: "When enabled, HDRP processes a transparent postpass for Cameras using these Frame Settings.")]
         TransparentPostpass = 9,
         /// <summary>When enabled, HDRP processes a transparent pass in a lower resolution for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, displayedName: "Low Resolution Transparent", customOrderInGroup: 9, tooltip: "When enabled, HDRP processes a transparent pass in a lower resolution for Cameras using these Frame Settings.")]
@@ -776,7 +776,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentsWriteMotionVector] &= motionVector && !preview;
 
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Decals] &= renderPipelineSettings.supportDecals && !preview;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.DecalLayers] &= renderPipelineSettings.supportDecals && renderPipelineSettings.supportDecalLayers && !preview && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Decals];
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.DecalLayers] &= renderPipelineSettings.supportDecalLayers && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Decals];
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentPostpass] &= renderPipelineSettings.supportTransparentDepthPostpass && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Distortion] &= renderPipelineSettings.supportDistortion && !msaa && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LowResTransparent] &= renderPipelineSettings.lowresTransparentSettings.enabled;
