@@ -6942,7 +6942,7 @@ PrefabInstance:
     - target: {fileID: 3163352547752738580, guid: 045bfee370fc8c84ca955348ca9f3fd9,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 1.945
+      value: 1.934
       objectReference: {fileID: 0}
     - target: {fileID: 3163352547752738580, guid: 045bfee370fc8c84ca955348ca9f3fd9,
         type: 3}
@@ -13219,6 +13219,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlayerControllerFPS
       objectReference: {fileID: 0}
+    - target: {fileID: 738646681744756154, guid: 573ac53c334415945bf239de2c2f0511,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 738646681744756156, guid: 573ac53c334415945bf239de2c2f0511,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -14002,7 +14007,7 @@ MonoBehaviour:
     distanceFadeStart: 30
     distanceFadeEnd: 40
     textureIndex: 0
-    textureOffset: {x: -0, y: -60.00243, z: 0}
+    textureOffset: {x: -0, y: -2.1869895, z: 0}
 --- !u!1001 &1504255721
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -18370,7 +18375,7 @@ MonoBehaviour:
       m_SphereRadius: 1
     proxySettings:
       useInfluenceVolumeAsProxyVolume: 1
-      capturePositionProxySpace: {x: 0.2517357, y: -0.9168289, z: 0}
+      capturePositionProxySpace: {x: 0.2517357, y: -0.8951576, z: -0.22794715}
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
