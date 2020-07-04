@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix issue that caused sky to incorrectly render when using a custom projection matrix.
 - Fixed issue with completely black AO on double sided materials when normal mode is set to None.
 - Fixed issue with culling layer mask of area light's emissive mesh 
+- Fixed for area light not updating baked light result when modifying with gizmo.
 
 ### Changed
 - Changed extensions of shader CAS include files.
