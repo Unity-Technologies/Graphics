@@ -13866,7 +13866,7 @@ MonoBehaviour:
     distanceFadeStart: 50
     distanceFadeEnd: 60
     textureIndex: 0
-    textureOffset: {x: -0, y: -7.2110786, z: 0}
+    textureOffset: {x: -0, y: -13.31169, z: 0}
 --- !u!1001 &1504255721
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -18234,7 +18234,7 @@ MonoBehaviour:
       m_SphereRadius: 1
     proxySettings:
       useInfluenceVolumeAsProxyVolume: 1
-      capturePositionProxySpace: {x: 0.2517357, y: -0.8951576, z: -0.22794715}
+      capturePositionProxySpace: {x: -0.3440361, y: -0.31767154, z: -0.22794715}
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
