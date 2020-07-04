@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue that failed compilation when XR is disabled.
 - Fixed an issue where only one of the two lookdev views would update when changing the default lookdev volume profile
 - Fix Amplitude -> Min/Max parametrization conversion
+- Fixed sky asserts with XR multipass
  
 ### Changed
 - The `CustomPassLoadCameraColor` and `CustomPassSampleCameraColor` functions now returns the correct color buffer when used in after post process instead of the color pyramid (which didn't had post processes).
