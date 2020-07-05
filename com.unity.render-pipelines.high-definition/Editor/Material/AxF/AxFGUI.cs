@@ -36,7 +36,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
-            new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: SurfaceOptionUIBlock.Features.Unlit | SurfaceOptionUIBlock.Features.ReceiveSSR),
+            new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: SurfaceOptionUIBlock.Features.Unlit | SurfaceOptionUIBlock.Features.ReceiveDecal | SurfaceOptionUIBlock.Features.ReceiveSSR),
             new AxfSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Input),
             new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.Instancing | AdvancedOptionsUIBlock.Features.SpecularOcclusion | AdvancedOptionsUIBlock.Features.AddPrecomputedVelocity),
         };
@@ -131,7 +131,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Keywords for opt-out of decals and SSR:
             bool decalsEnabled = material.HasProperty(kEnableDecals) && material.GetFloat(kEnableDecals) > 0.0f;
-            CoreUtils.SetKeyword(material, "_DISABLE_DECALS", decalsEnabled == false);
+            CoreUtils.SetKeyword(material, "_DISABLE_DECALS", !decalsEnabled);
+
             bool ssrEnabled = false;
             if (material.GetSurfaceType() == SurfaceType.Transparent)
                 ssrEnabled = material.HasProperty(kReceivesSSRTransparent) ? material.GetFloat(kReceivesSSRTransparent) != 0 : false;
