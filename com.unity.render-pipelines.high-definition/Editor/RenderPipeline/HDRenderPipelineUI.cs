@@ -602,6 +602,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_SectionDepthOfFieldQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             m_ShowDoFLowQualitySection = EditorGUILayout.Foldout(m_ShowDoFLowQualitySection, Styles.lowQualityContent, true);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowDoFLowQualitySection);
             if (m_ShowDoFLowQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.Low;
@@ -609,6 +610,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             m_ShowDoFMediumQualitySection = EditorGUILayout.Foldout(m_ShowDoFMediumQualitySection, Styles.mediumQualityContent, true);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowDoFMediumQualitySection);
             if (m_ShowDoFMediumQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.Medium;
@@ -616,6 +618,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             m_ShowDoFHighQualitySection = EditorGUILayout.Foldout(m_ShowDoFHighQualitySection, Styles.highQualityContent, true);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowDoFHighQualitySection);
             if (m_ShowDoFHighQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.High;
@@ -630,18 +633,21 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_SectionMotionBlurQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             m_ShowMotionBlurLowQualitySection = EditorGUILayout.Foldout(m_ShowMotionBlurLowQualitySection, Styles.lowQualityContent, true);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowMotionBlurLowQualitySection);
             if (m_ShowMotionBlurLowQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.Low;
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.MotionBlurSampleCount.GetArrayElementAtIndex(quality), Styles.sampleCountQuality);
             }
             m_ShowMotionBlurMediumQualitySection = EditorGUILayout.Foldout(m_ShowMotionBlurMediumQualitySection, Styles.mediumQualityContent, true);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowMotionBlurMediumQualitySection);
             if (m_ShowMotionBlurMediumQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.Medium;
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.MotionBlurSampleCount.GetArrayElementAtIndex(quality), Styles.sampleCountQuality);
             }
             m_ShowMotionBlurHighQualitySection = EditorGUILayout.Foldout(m_ShowMotionBlurHighQualitySection, Styles.highQualityContent, true);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowMotionBlurHighQualitySection);
             if (m_ShowMotionBlurHighQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.High;
@@ -662,18 +668,21 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_SectionBloomQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             m_ShowBloomLowQualitySection = EditorGUILayout.Foldout(m_ShowBloomLowQualitySection, Styles.lowQualityContent, true);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowBloomLowQualitySection);
             if (m_ShowBloomLowQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.Low;
                 DrawBloomQualitySetting(serialized, quality);
             }
             m_ShowBloomMediumQualitySection = EditorGUILayout.Foldout(m_ShowBloomMediumQualitySection, Styles.mediumQualityContent, true);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowBloomMediumQualitySection);
             if (m_ShowBloomMediumQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.Medium;
                 DrawBloomQualitySetting(serialized, quality);
             }
             m_ShowBloomHighQualitySection = EditorGUILayout.Foldout(m_ShowBloomHighQualitySection, Styles.highQualityContent, true);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowBloomHighQualitySection);
             if (m_ShowBloomHighQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.High;
@@ -688,18 +697,21 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_SectionChromaticAberrationQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             m_ShowChromaticAberrationLowQualitySection = EditorGUILayout.Foldout(m_ShowChromaticAberrationLowQualitySection, Styles.lowQualityContent, true);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowChromaticAberrationLowQualitySection);
             if (m_ShowChromaticAberrationLowQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.Low;
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.ChromaticAbMaxSamples.GetArrayElementAtIndex(quality), Styles.maxSamplesQuality);
             }
             m_ShowChromaticAberrationMediumQualitySection = EditorGUILayout.Foldout(m_ShowChromaticAberrationMediumQualitySection, Styles.mediumQualityContent, true);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowChromaticAberrationMediumQualitySection);
             if (m_ShowChromaticAberrationMediumQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.Medium;
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.ChromaticAbMaxSamples.GetArrayElementAtIndex(quality), Styles.maxSamplesQuality);
             }
             m_ShowChromaticAberrationHighQualitySection = EditorGUILayout.Foldout(m_ShowChromaticAberrationHighQualitySection, Styles.highQualityContent, true);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowChromaticAberrationHighQualitySection);
             if (m_ShowChromaticAberrationHighQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.High;
@@ -720,9 +732,22 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.AOBilateralUpsample.GetArrayElementAtIndex(tier), Styles.AOBilateralUpsample);
         }
 
+        static void CheckFoldoutClick(Rect foldoutRect, ref bool foldoutFlag)
+        {
+            var e = Event.current;
+            if (e.type == EventType.MouseDown && e.button == 0)
+            {
+                if (foldoutRect.Contains(e.mousePosition))
+                {
+                    foldoutFlag = !foldoutFlag;
+                }
+            }
+        }
+
         static void Drawer_SectionSSAOQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             m_ShowAOLowQualitySection = EditorGUILayout.Foldout(m_ShowAOLowQualitySection, Styles.lowQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowAOLowQualitySection);
             if (m_ShowAOLowQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.Low;
@@ -730,6 +755,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             m_ShowAOMediumQualitySection = EditorGUILayout.Foldout(m_ShowAOMediumQualitySection, Styles.mediumQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowAOMediumQualitySection);
             if (m_ShowAOMediumQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.Medium;
@@ -737,6 +763,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             m_ShowAOHighQualitySection = EditorGUILayout.Foldout(m_ShowAOHighQualitySection, Styles.highQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowAOHighQualitySection);
             if (m_ShowAOHighQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.High;
@@ -751,6 +778,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_SectionContactShadowQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             m_ShowContactShadowLowQualitySection = EditorGUILayout.Foldout(m_ShowContactShadowLowQualitySection, Styles.lowQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowContactShadowLowQualitySection);
             if (m_ShowContactShadowLowQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.Low;
@@ -758,6 +786,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             m_ShowContactShadowMediumQualitySection = EditorGUILayout.Foldout(m_ShowContactShadowMediumQualitySection, Styles.mediumQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowContactShadowMediumQualitySection);
             if (m_ShowContactShadowMediumQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.Medium;
@@ -765,6 +794,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             m_ShowContactShadowHighQualitySection = EditorGUILayout.Foldout(m_ShowContactShadowHighQualitySection, Styles.highQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowContactShadowHighQualitySection);
             if (m_ShowContactShadowHighQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.High;
@@ -779,6 +809,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_SectionSSRQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             m_ShowSSRLowQualitySection = EditorGUILayout.Foldout(m_ShowSSRLowQualitySection, Styles.lowQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowSSRLowQualitySection);
             if (m_ShowSSRLowQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.Low;
@@ -786,6 +817,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             m_ShowSSRMediumQualitySection = EditorGUILayout.Foldout(m_ShowSSRMediumQualitySection, Styles.mediumQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowSSRMediumQualitySection);
             if (m_ShowSSRMediumQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.Medium;
@@ -793,6 +825,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             m_ShowSSRHighQualitySection = EditorGUILayout.Foldout(m_ShowSSRHighQualitySection, Styles.highQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowSSRHighQualitySection);
             if (m_ShowSSRHighQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.High;

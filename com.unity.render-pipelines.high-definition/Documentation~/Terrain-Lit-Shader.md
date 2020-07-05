@@ -28,7 +28,7 @@ To use a Terrain Lit Material, you must assign it to a Terrain:
 
 | **Property**       | **Description**                                              |
 | ------------------ | ------------------------------------------------------------ |
-| **Decal Layer Mask** | Decal Projectors with matching Decal Layer Mask will affect this material (See [Decal Projector](Decal-Projector.html)). Decal meshes will affect this material if the value is different from `None`. |
+| **Receive Decals** | Enable the checkbox to allow HDRP to draw decals on this Material’s surface. |
 
 ### Terrain
 
