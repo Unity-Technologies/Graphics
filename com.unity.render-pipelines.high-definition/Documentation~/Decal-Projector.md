@@ -45,7 +45,7 @@ Using the Inspector allows you to change all of the Decal Projector properties, 
 
 ## Limitations
 
-- Decal Projector can affect Opaque Material with both a Decal shader and a Master Node Decal. It can affect Transparent Material only with a Decal shader. 
+- Decal Projector can affect Opaque Material with both a [Decal Shader](Decal-Shader.md) or a [Master Node Decal](Master-Node-Decal.md). It can affect Transparent Material only with a Decal shader. 
 - Decal Projector support [Decal Layers](Decal.md)
 - Decal Emissive isn't supported on Transparent Material. 
 - When you project a decal onto a surface, the emissive component of the decal affects the surface regardless of whether you enable **Receive Decal** on the surface's Material or not. Decal Layers allow to disable receive of Emissive Decal.
