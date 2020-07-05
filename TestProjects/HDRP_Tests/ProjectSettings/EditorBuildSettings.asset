@@ -147,6 +147,15 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1708_DecalsSG_on_SG.unity
     guid: 4462c9729d14bc14ebe49f7bc1069d4b
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1709_DecalLayer_Forward.unity
+    guid: fc98b50f488187f459732a09b7fc72ac
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1709_DecalLayer_ForwardMSAA.unity
+    guid: a79c122fed0bac741bd804ab2c433660
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1709_DecalLayer_Deferred.unity
+    guid: 4aef154006852e04da889d8191349fd4
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1710_Decals_Normal_Patch.unity
     guid: 439ce9822b2644f4ea064429ed2c5955
   - enabled: 1
