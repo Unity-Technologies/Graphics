@@ -63,7 +63,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                                                                        + typeof(DiffusionProfileNode)
                                                                        + typeof(ExposureNode)
                                                                        + typeof(EmissionNode)
-                                                                       + typeof(ParallaxOcclusionMappingNode);
+                                                                       + typeof(ParallaxOcclusionMappingNode)
+                                                                       + typeof(CirclePupilAnimation)
+                                                                       + typeof(CorneaRefraction)
+                                                                       + typeof(EyeSurfaceTypeDebug)
+                                                                       + typeof(IrisLimbalRing)
+                                                                       + typeof(IrisOffset)
+                                                                       + typeof(IrisOutOfBoundColorClamp)
+                                                                       + typeof(IrisUVLocation)
+                                                                       + typeof(ScleraIrisBlend)
+                                                                       + typeof(ScleraLimbalRing)
+                                                                       + typeof(ScleraUVLocation);
 
         public override bool IsNodeAllowedByTarget(Type nodeType)
         {
