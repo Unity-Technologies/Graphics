@@ -81,7 +81,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     ),
                 CED.FoldoutGroup(Styles.lightingSectionTitle, Expandable.Lighting, k_ExpandedState,
                     CED.Group(GroupOption.Indent, Drawer_SectionLightingUnsorted),
-                    CED.FoldoutGroup(Styles.lightLayerSubTitle, Expandable.LightLayer, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionLightLayers),
                     CED.FoldoutGroup(Styles.cookiesSubTitle, Expandable.Cookie, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionCookies),
                     CED.FoldoutGroup(Styles.reflectionsSubTitle, Expandable.Reflection, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionReflection),
                     CED.FoldoutGroup(Styles.skySubTitle, Expandable.Sky, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionSky),
@@ -193,13 +192,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             //EditorGUILayout.PropertyField(serialized.enableSRPBatcher, k_SRPBatcher);
             EditorGUILayout.PropertyField(serialized.shaderVariantLogLevel, Styles.GeneralSection.shaderVariantLogLevel);
-        }
 
-        static void Drawer_SectionLightLayers(SerializedHDRenderPipelineAsset serialized, Editor owner)
-        {
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportLightLayers, Styles.supportLightLayerContent);
-
-            using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportLightLayers.boolValue))
+            m_ShowLightLayerNames = EditorGUILayout.Foldout(m_ShowLightLayerNames, Styles.lightLayerNamesText, true);
+            if (m_ShowLightLayerNames)
             {
                 ++EditorGUI.indentLevel;
                 HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName0, serialized.renderPipelineSettings.lightLayerName0);
@@ -210,6 +205,21 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName5, serialized.renderPipelineSettings.lightLayerName5);
                 HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName6, serialized.renderPipelineSettings.lightLayerName6);
                 HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName7, serialized.renderPipelineSettings.lightLayerName7);
+                --EditorGUI.indentLevel;
+            }
+
+            m_ShowDecalLayerNames = EditorGUILayout.Foldout(m_ShowDecalLayerNames, Styles.decalLayerNamesText, true);
+            if (m_ShowDecalLayerNames)
+            {
+                ++EditorGUI.indentLevel;
+                HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName0, serialized.renderPipelineSettings.decalLayerName0);
+                HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName1, serialized.renderPipelineSettings.decalLayerName1);
+                HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName2, serialized.renderPipelineSettings.decalLayerName2);
+                HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName3, serialized.renderPipelineSettings.decalLayerName3);
+                HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName4, serialized.renderPipelineSettings.decalLayerName4);
+                HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName5, serialized.renderPipelineSettings.decalLayerName5);
+                HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName6, serialized.renderPipelineSettings.decalLayerName6);
+                HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName7, serialized.renderPipelineSettings.decalLayerName7);
                 --EditorGUI.indentLevel;
             }
         }
@@ -302,6 +312,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        static private bool m_ShowLightLayerNames = false;
+        static private bool m_ShowDecalLayerNames = false;
         static private bool m_ShowDirectionalLightSection = false;
         static private bool m_ShowPunctualLightSection = false;
         static private bool m_ShowAreaLightSection = false;
@@ -436,6 +448,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.lightLoopSettings.maxDecalsOnScreen, Styles.maxDecalContent);
                 if (EditorGUI.EndChangeCheck())
                     serialized.renderPipelineSettings.lightLoopSettings.maxDecalsOnScreen.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.maxDecalsOnScreen.intValue, 1, HDRenderPipeline.k_MaxDecalsOnScreen);
+
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportDecalLayers, Styles.supportDecalLayersContent);
             }
             --EditorGUI.indentLevel;
         }
@@ -881,6 +895,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportVolumetrics, Styles.supportVolumetricContent);
 
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportLightLayers, Styles.supportLightLayerContent);
+
             if (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled)
             {
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
@@ -1037,6 +1053,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 builder.AppendLine().AppendFormat(supportedFormaterMultipleValue, Styles.decalsSubTitle.text);
             else if (serialized.renderPipelineSettings.supportDecals.boolValue)
                 builder.AppendLine().AppendFormat(supportedFormater, Styles.decalsSubTitle.text, Styles.supportDrawbacks[Styles.supportDecalContent]);
+
+            if (serialized.renderPipelineSettings.supportDecalLayers.hasMultipleDifferentValues)
+                builder.AppendLine().AppendFormat(supportedFormaterMultipleValue, Styles.decalsSubTitle.text);
+            else if (serialized.renderPipelineSettings.supportDecals.boolValue && serialized.renderPipelineSettings.supportDecalLayers.boolValue)
+                builder.AppendLine().AppendFormat(supportedFormater, Styles.decalsSubTitle.text, Styles.supportDrawbacks[Styles.supportDecalLayersContent]);
 
             if (serialized.renderPipelineSettings.decalSettings.perChannelMask.hasMultipleDifferentValues)
                 builder.AppendLine().AppendFormat(supportedFormaterMultipleValue, Styles.decalsMetalAndAOSubTitle.text);

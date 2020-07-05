@@ -3588,6 +3588,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool sunLightShadow = sunLightData != null && m_CurrentShadowSortedSunLightIndex >= 0;
             cb._DirectionalShadowIndex = sunLightShadow ? m_CurrentShadowSortedSunLightIndex : -1;
             cb._EnableLightLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? 1u : 0u;
+            cb._EnableDecalLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers) ? 1u : 0u;            
             cb._EnvLightSkyEnabled = m_SkyManager.IsLightingSkyValid(hdCamera) ? 1 : 0;
 
             const float C = (float)(1 << k_Log2NumClusters);

@@ -32,6 +32,7 @@ These settings determine the method that the Cameras and Reflection Probes using
 | **Opaque Objects**                  | Enable the checkbox to make HDRP render Materials that have their **Surface Type** set to **Opaque**. If you disable this settings, Cameras/Reflection Probes using these Frame Settings do not render any opaque GameObjects. |
 | **Transparent Objects**             | Enable the checkbox to make HDRP render Materials that have their **Surface Type** set to **Transparent**. If you disable this setting, Cameras/Reflection Probes using these Frame Settings do not render any transparent GameObjects. |
 | **Decals**                          | Enable the checkbox to make HDRP process decals. Enable this on cameras that you want to render decals. |
+| **Decal Layers**                    | Enable the checkbox to make HDRP process Decal Layers. |
 | **Transparent Prepass**             | Enable the checkbox to make HDRP perform a Transparent Prepass. Enabling this feature causes HDRP to add polygons from transparent Materials to the depth buffer to improve sorting. |
 | **Transparent Postpass**            | Enable the checkbox to make HDRP perform a Transparent Postpass. Enabling this feature causes HDRP to add polygons to the depth buffer that post-processing uses. |
 | **Low Resolution Transparent**      | Enable the checkbox to allow HDRP to perform a low resolution render pass. If you disable this checkbox, HDRP renders transparent Materials using the **Low Resolution** render pass in full resolution. |

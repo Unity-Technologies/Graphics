@@ -157,6 +157,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added final image histogram debug view (both luminance and RGB).
 - Added an example texture and rotation to the Cloud Layer volume override.
 - Added an option to extend the camera culling for skinned mesh animation in ray tracing effects (1258547).
+- Added decal layer system similar to light layer. Mesh will receive a decal when both decal layer mask matches.
 - Added shader graph nodes for rendering a complex eye shader.
 
 ### Fixed
