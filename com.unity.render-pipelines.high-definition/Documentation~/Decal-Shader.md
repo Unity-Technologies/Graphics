@@ -1,8 +1,6 @@
 # Decal Shader
 
-The High Definition Render Pipeline (HDRP) includes the [Decal Projector](Decal-Projector.html) component, which you can use to project specific Materials into your Scene to create realistic-looking decals. These Materials must use the **HDRP/Decal** Shader. Use this Shader to create decal Materials that you can place, or project, into your Scene.
-
-A Decal shader can be use on a [Decal Projector](Decal-Projector.html) or a Decal Mesh.
+![](Images/HDRPFeatures-DecalShader.png)
 
 ## Properties
 
