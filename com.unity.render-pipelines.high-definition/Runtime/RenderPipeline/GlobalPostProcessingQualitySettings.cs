@@ -33,6 +33,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         }
 
+        internal static int GetScalableSettingLevelParameterValue(int level, bool useOverride)
+        {
+            return useOverride ? LevelCount : (int)level;
+        }
+
         /// <summary>
         /// Level and Override.
         /// </summary>
@@ -42,7 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
             set
             {
                 var (level, useOverride) = value;
-                this.value = useOverride ? LevelCount : (int)level;
+                this.value = GetScalableSettingLevelParameterValue(level, useOverride);
             }
         }
     }

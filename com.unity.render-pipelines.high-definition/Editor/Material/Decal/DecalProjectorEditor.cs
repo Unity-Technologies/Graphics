@@ -19,6 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_AffectsTransparencyProperty;
         SerializedProperty m_Size;
         SerializedProperty m_FadeFactor;
+        SerializedProperty m_DecalLayerMask;
 
         int layerMask => (target as Component).gameObject.layer;
         bool layerMaskHasMultipleValue
@@ -121,6 +122,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_AffectsTransparencyProperty = serializedObject.FindProperty("m_AffectsTransparency");
             m_Size = serializedObject.FindProperty("m_Size");
             m_FadeFactor = serializedObject.FindProperty("m_FadeFactor");
+            m_DecalLayerMask = serializedObject.FindProperty("m_DecalLayerMask");
         }
 
         private void OnDisable()
@@ -259,7 +261,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         // Smoothly update the decal image projected
                         Matrix4x4 sizeOffset = Matrix4x4.Translate(decalProjector.decalOffset) * Matrix4x4.Scale(decalProjector.decalSize);
-                        DecalSystem.instance.UpdateCachedData(decalProjector.position, decalProjector.rotation, sizeOffset, decalProjector.drawDistance, decalProjector.fadeScale, decalProjector.uvScaleBias, decalProjector.affectsTransparency, decalProjector.Handle, decalProjector.gameObject.layer, decalProjector.fadeFactor);
+                        DecalSystem.instance.UpdateCachedData(decalProjector.position, decalProjector.rotation, sizeOffset, decalProjector.drawDistance, decalProjector.fadeScale, decalProjector.uvScaleBias, decalProjector.affectsTransparency, decalProjector.Handle, decalProjector.gameObject.layer, decalProjector.gameObject.sceneCullingMask, decalProjector.fadeFactor, decalProjector.decalLayerMask);
                     }
                 }
             }
@@ -345,6 +347,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 EditorGUILayout.PropertyField(m_Size, k_SizeContent);
                 EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
+
+                HDRenderPipelineAsset hdrp = HDRenderPipeline.currentAsset;
+                if (hdrp != null)
+                {
+                    using (new EditorGUI.DisabledScope(!(hdrp.currentPlatformRenderPipelineSettings.supportDecals && hdrp.currentPlatformRenderPipelineSettings.supportDecalLayers)))
+                    {
+                        EditorGUILayout.PropertyField(m_DecalLayerMask, k_DecalLayerMaskContent);
+                    }
+                }
 
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(m_DrawDistanceProperty, k_DistanceContent);

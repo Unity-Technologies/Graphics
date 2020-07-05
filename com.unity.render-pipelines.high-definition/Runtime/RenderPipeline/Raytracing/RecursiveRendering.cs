@@ -38,5 +38,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Minmal Smoothness for Reflection. If the surface has a smoothness value below this threshold, a reflection ray will not be case and it will fallback on other techniques.")]
         public ClampedFloatParameter minSmoothness = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+
+        RecursiveRendering()
+        {
+            displayName = "Recursive Rendering (Preview)";
+        }
     }
 }

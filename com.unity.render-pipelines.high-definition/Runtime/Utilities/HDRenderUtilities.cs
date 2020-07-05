@@ -354,9 +354,25 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="planarSize">The size of the texture</param>
         /// <returns>The texture used as planar reflection probe target</returns>
-        public static RenderTexture CreatePlanarProbeRenderTarget(int planarSize)
+        public static RenderTexture CreatePlanarProbeRenderTarget(int planarSize, GraphicsFormat format)
         {
-            return new RenderTexture(planarSize, planarSize, 1, GraphicsFormat.R16G16B16A16_SFloat)
+            return new RenderTexture(planarSize, planarSize, 1, format)
+            {
+                dimension = TextureDimension.Tex2D,
+                enableRandomWrite = true,
+                useMipMap = true,
+                autoGenerateMips = false
+            };
+        }
+
+        /// <summary>
+        /// Create the depth texture used as target for a realtime planar reflection probe.
+        /// </summary>
+        /// <param name="planarSize">The size of the texture</param>
+        /// <returns>The texture used as planar reflection probe target</returns>
+        public static RenderTexture CreatePlanarProbeDepthRenderTarget(int planarSize)
+        {
+            return new RenderTexture(planarSize, planarSize, 1, GraphicsFormat.R32_SFloat)
             {
                 dimension = TextureDimension.Tex2D,
                 enableRandomWrite = true,

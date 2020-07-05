@@ -6,8 +6,8 @@ This template also includes the new Shadergraph tool, Post-Processing stack, sev
 
 This Project Template uses the following features:
 
-* High Definition Render Pipeline - For more information, see the <a href="https://github.com/Unity-Technologies/ScriptableRenderPipeline/wiki">wiki</a> on the Scriptable Render Pipeline repository.
-* Shader Graph tool - This tool allows you to create shaders using a visual node editor instead of writing code. For more information on the Shader Graph, see the <a href="https://github.com/Unity-Technologies/ShaderGraph/wiki">wiki</a> on the Shader Graph repository.
+* High Definition Render Pipeline - For more information, see the [HDRP documentation](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html).
+* Shader Graph tool - This tool allows you to create shaders using a visual node editor instead of writing code. For more information on the Shader Graph, see the [Shader Graph documentation](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html).
 * Post-processing stack - The Post-Processing Stack enables artists and designers to apply full -screen filters to scenes using an artist-friendly interface. For more information, see the <a href="https://github.com/Unity-Technologies/PostProcessing/wiki">wiki</a>  on the Post-Processing GitHub repository.
 
 ## Using the _High Definition Project Template_ ##
