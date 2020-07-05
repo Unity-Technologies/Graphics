@@ -99,7 +99,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             vertices[centerIndex] = Vector3.zero;
             colors[centerIndex] = color;
             float radiansPerSide = 2 * Mathf.PI / sides;
-            
+
             for (int i = 0; i < sides; i++)
             {
                 float endAngle = (i + 1) * radiansPerSide;
@@ -275,17 +275,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 Vector3 point = shapePath[i];
 
                 // We are making degenerate triangles which will be extruded by the shader
-                finalVertices.Add(point);        
-                finalVertices.Add(point);        
+                finalVertices.Add(point);
+                finalVertices.Add(point);
 
-                finalIndices.Add(aIndex);  
-                finalIndices.Add(bIndex);  
-                finalIndices.Add(dIndex);  
+                finalIndices.Add(aIndex);
+                finalIndices.Add(bIndex);
+                finalIndices.Add(dIndex);
 
                 finalIndices.Add(dIndex);
                 finalIndices.Add(cIndex);
                 finalIndices.Add(aIndex);
-                
+
                 Color aColor = new Color(0, 0, 0, 1);
                 Color bColor = new Color(extrusionDirs[i].x, extrusionDirs[i].y, 0, 0);
 
@@ -332,7 +332,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Transform transformToCheck = shadowCaster.transform.parent;
             while(transformToCheck != null)
             {
-                CompositeShadowCaster2D currentGroup = transformToCheck.GetComponent<CompositeShadowCaster2D>();
+                CompositeShadowCaster2D.CompositeShadowCaster2DsByTransform.TryGetValue(transformToCheck,
+                    out CompositeShadowCaster2D currentGroup);
                 if (currentGroup != null)
                     retGroup = currentGroup;
 
@@ -348,7 +349,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             ShadowCasterGroup2D newShadowCasterGroup = FindTopMostCompositeShadowCaster(shadowCaster) as ShadowCasterGroup2D;
 
             if (newShadowCasterGroup == null)
-                newShadowCasterGroup = shadowCaster.GetComponent<ShadowCaster2D>();
+                newShadowCasterGroup = shadowCaster;
 
             if (newShadowCasterGroup != null && shadowCasterGroup != newShadowCasterGroup)
             {

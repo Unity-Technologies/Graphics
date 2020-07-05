@@ -35,6 +35,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         int m_PreviousShadowGroup = 0;
         bool m_PreviousCastsShadows = true;
         int m_PreviousPathHash = 0;
+        Renderer m_Renderer;
 
 
         /// <summary>
@@ -88,11 +89,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 m_ApplyToSortingLayers = SetDefaultSortingLayers();
 
             Bounds bounds = new Bounds(transform.position, Vector3.one);
-            
-            Renderer renderer = GetComponent<Renderer>();
-            if (renderer != null)
+
+            m_Renderer = GetComponent<Renderer>();
+            m_HasRenderer = renderer != null;
+            if (m_HasRenderer)
             {
-                bounds = renderer.bounds;
+                bounds = m_Renderer.bounds;
             }
             else
             {
@@ -134,9 +136,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public void Update()
         {
-            Renderer renderer = GetComponent<Renderer>();
-            m_HasRenderer = renderer != null;
-
             bool rebuildMesh = LightUtility.CheckForChange(m_ShapePathHash, ref m_PreviousPathHash);
             if (rebuildMesh)
                 ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
