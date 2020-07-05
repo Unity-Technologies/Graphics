@@ -1,6 +1,6 @@
 # Decal Projector
 
-The High Definition Render Pipeline (HDRP) includes the Decal Projector component, which allows you to project specific Materials (decals) into the Scene. Decals are Materials that use the [HDRP/Decal Shader](Decal-Shader.html). When the Decal Projector component projects decals into the Scene, they interact with the Scene’s lighting and wrap around Meshes. You can use thousands of decals in your Scene simultaneously because HDRP instances them. This means that the rendering process is not resource intensive as long as the decals use the same Material.
+The High Definition Render Pipeline (HDRP) includes the Decal Projector component, which allows you to project specific Materials (decals) into the Scene. Decals are Materials that use the [Decal Shader](Decal-Shader.md) or [Master Node Decal](Master-Node-Decal.md). When the Decal Projector component projects decals into the Scene, they interact with the Scene’s lighting and wrap around Meshes. You can use thousands of decals in your Scene simultaneously because HDRP instances them. This means that the rendering process is not resource intensive as long as the decals use the same Material.
 
 ![](Images/DecalProjector1.png)
 
@@ -45,6 +45,9 @@ Using the Inspector allows you to change all of the Decal Projector properties, 
 
 ## Limitations
 
+- Decal Projector can affect Opaque Material with both a Decal shader and a Master Node Decal. It can affect Transparent Material only with a Decal shader. 
+- Decal Projector support [Decal Layers](Decal.md)
+- Decal Emissive isn't supported on Transparent Material. 
+- When you project a decal onto a surface, the emissive component of the decal affects the surface regardless of whether you enable **Receive Decal** on the surface's Material or not. Decal Layers allow to disable receive of Emissive Decal.
 - If you project a decal onto a transparent surface, HDRP ignores the decal's Texture tiling.
-- When you project a decal onto a surface, the emissive component of the decal affects the surface regardless of whether you enable **Receive Decal** on the surface's Material or not.
 - In **Project Settings > Graphics**, if **Instancing Variants** is set to **Strip All**, Unity strips the Decal Shader this component references when you build your Project. This happens even if you include the Shader in the **Always Included Shaders** list. If Unity strips the Shader during the build process, the decal does not appear in your built Application.
