@@ -994,7 +994,7 @@
             "m_Guid": ""
         }
     },
-    "m_Path": "HDRP",
+    "m_Path": "HDRP/Fabric",
     "m_ConcretePrecision": 0,
     "m_OutputNode": {
         "m_Id": ""
