@@ -29,10 +29,22 @@ To override the Frame Settings for Cameras and set Decal Layers on an individual
 After you enable Decal Layers, you can then use them to decouple Meshes from certain Decal Projector in your Scene. To do this:
 
 1. Click on a Decal Projector in the Hierarchy or the Scene view to view it in the Inspector.
-2. Use the **Decal Layer Mask** property drop-down to select which Decal Layers this Light affects.
+2. Use the **Decal Layer** property drop-down to select which Decal Layers this Light affects.
 4. Click on a Mesh Renderer or Terrain in the Hierarchy or the Scene view to view it in the Inspector.
 5. Use the **Rendering Layer Mask** drop-down (See [MeshRenderer](https://docs.unity3d.com/Manual/class-MeshRenderer.html) for GameObjects or [OtherSettings](https://docs.unity3d.com/Manual/terrain-OtherSettings.html) for Terrain) to select which Decal Layers affect this Mesh Renderer or Terrain. When you enable Decal Layers, a Decal only affects a Mesh Renderer or Terrain if they both use a matching Decal Layer.
 
 ## Renaming Decal Layers
 
-By default, in the UI for Decals Projector, Mesh Renderers or Terrain, Decal Layers are named **Decal Layer 1-7**. To more easily differentiate between them, you can give each Decal Layer a specific name. To do this, open the [Default Settings Windows](Default-Settings-Window.md), and go to **Decal Layers Name**. Here you can set the name of each Decal Layer individually.
+By default, in the UI for Decals Projector, Mesh Renderers or Terrain, Decal Layers are named **Decal Layer 1-7**. To more easily differentiate between them, you can give each Decal Layer a specific name. To do this, open the [Default Settings Windows](Default-Settings-Window.md), and go to **Decal Layer Names**. Here you can set the name of each Decal Layer individually.
+
+## Enable/Disable Decal and Performance
+
+Enabling Decal Layers require increase memory, have a GPU performance cost and generate more Shader Variant (so increase build time).
+
+A Decal Shader or a Master Node Decal have a **Receive Decals** property allowing to disable Decal on those Material independently of the Decal Layers system. Disabling Decal with the Decal Layer system via **Rendering Layer Mask** of Mesh Renderer or Terrain don't save any performance. To save performance it is required to disable **Receive Decals** on the Material.
+
+Implementation detail: Decal require to render depth in a Depth Prepass to apply on Opaque Material causing an extra CPU cost. Only Material with **Receive Decals** enable will render in the Depth Prepass unless there is a force of a full Depth Prepass. If Decal is disable with Decal Layers system, it will still render in the Depth Prepass. Only the **Receive Decals** from Material allow to save performance.
+
+## Migration of data previous to Unity 2020.2
+
+Before Unity 2020.2 the default value when creating a Mesh Renderer or Terrain of **Rendering Layer Mask** don't include any of the Decal Layer flags. Consequence, when enabling Decal Layers with those data they default to not receive any Decals. Later version have **Decal Layer Default** enable by default.

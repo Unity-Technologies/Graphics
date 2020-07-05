@@ -42,7 +42,7 @@ You can now use the **Light Layers** drop-down in the **Shadows** section to set
 
 ## Renaming Light Layers
 
-By default, in the UI for Lights, Mesh Renderers or Terrain, Light Layers are named **Light Layer 1-7**. To more easily differentiate between them, you can give each Light Layer a specific name. To do this, open the [Default Settings Windows](Default-Settings-Window.md), and go to **Light Layers Name**. Here you can set the name of each Light Layer individually.
+By default, in the UI for Lights, Mesh Renderers or Terrain, Light Layers are named **Light Layer 1-7**. To more easily differentiate between them, you can give each Light Layer a specific name. To do this, open the [Default Settings Windows](Default-Settings-Window.md), and go to **Light Layer Names**. Here you can set the name of each Light Layer individually.
 
 ## Example scenario for Light Layers
 
