@@ -7173,7 +7173,7 @@ PrefabInstance:
     - target: {fileID: -927199367670048503, guid: 0b169a69f4f407145aa55021891e64fa,
         type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 0
+      value: 4294967295
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0b169a69f4f407145aa55021891e64fa, type: 3}
@@ -13935,7 +13935,7 @@ MonoBehaviour:
     distanceFadeStart: 50
     distanceFadeEnd: 60
     textureIndex: 0
-    textureOffset: {x: -0, y: -27.68849, z: 0}
+    textureOffset: {x: -0, y: -0, z: 0}
 --- !u!1001 &1504255721
 PrefabInstance:
   m_ObjectHideFlags: 0
