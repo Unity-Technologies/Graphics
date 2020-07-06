@@ -1,6 +1,6 @@
 # Writing custom shaders
 
-This section contains guidelines that help you to get started with writing shaders for URP.
+This section contains guidelines that help you to get started with writing shaders for Universal Render Pipeline (URP).
 
 The section contains the following topics:
 

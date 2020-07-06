@@ -2,7 +2,7 @@
 
 The Unity shader in this example visualizes the normal vector values on the mesh.
 
-Use the ShaderLab code from section [URP unlit basic shader](writing-shaders-urp-basic-unlit-structure.md) and make the following changes to it:
+Use the Unity shader source file from section [URP unlit basic shader](writing-shaders-urp-basic-unlit-structure.md) and make the following changes to the ShaderLab code:
 
 1. In `struct Attributes`, which is the input structure for the vertex shader in this example, declare the variable containing the normal vector for each vertex.
 

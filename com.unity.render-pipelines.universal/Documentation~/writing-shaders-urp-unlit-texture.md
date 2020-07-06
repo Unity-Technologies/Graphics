@@ -1,8 +1,8 @@
 # Drawing a texture
 
-The shader in this example draws a texture on the mesh.
+The Unity shader in this example draws a texture on the mesh.
 
-Use the ShaderLab code from section [URP unlit shader with color input](writing-shaders-urp-unlit-color.md) and make the following changes to it:
+Use the Unity shader source file from section [URP unlit shader with color input](writing-shaders-urp-unlit-color.md) and make the following changes to the ShaderLab code:
 
 1. In the Properties block, replace the existing code with the `_BaseMap` property definition.
 
@@ -36,7 +36,7 @@ Use the ShaderLab code from section [URP unlit shader with color input](writing-
 
 4. For tiling and offset to work, it's necessary to declare the texture property with the `_ST` suffix in the 'CBUFFER' block. The `_ST` suffix is necessary because some macros (for example, `TRANSFORM_TEX`) use it.
 
-    > __NOTE__: To ensure that the Unity shader is SRP Batcher compatible, declare all Material properties inside a single `CBUFFER` block with the name `UnityPerMaterial`.
+    > __NOTE__: To ensure that the Unity shader is SRP Batcher compatible, declare all Material properties inside a single `CBUFFER` block with the name `UnityPerMaterial`. For more information on the SRP Batcher, see the page [Scriptable Render Pipeline (SRP) Batcher](https://docs.unity3d.com/Manual/SRPBatcher.html).
     
     ```c++
     CBUFFER_START(UnityPerMaterial)

@@ -8,7 +8,7 @@ To see the shader in action, copy and paste the following ShaderLab code into th
 // This shader fills the mesh shape with a color predefined in the code.
 Shader "Example/URPUnlitShaderBasic"
 {
-    // The properties block of the shader. In this example this block is empty 
+    // The properties block of the Unity shader. In this example this block is empty
     // because the output color is predefined in the fragment shader code.
     Properties
     { }
@@ -78,11 +78,11 @@ Shader "Example/URPUnlitShaderBasic"
 }
 ```
 
-The shader paints the GameObject dark red (RGB value (0.5, 0, 0)).
+The fragment shader colors the GameObject dark red (RGB value (0.5, 0, 0)).
 
 ![The shader paints the GameObject dark red](Images/shader-examples/unlit-shader-tutorial-basic-hardcoded-color.jpg)
 
-The following section introduces you to the structure of this basic shader.
+The following section introduces you to the structure of this basic Unity shader.
 
 <a name="basic-shaderlab-structure"></a>
 
@@ -90,7 +90,7 @@ The following section introduces you to the structure of this basic shader.
 
 Unity shaders are written in a Unity-specific language called [ShaderLab](https://docs.unity3d.com/Manual/SL-Shader.html). 
 
-The shader in this example has the following blocks:
+The Unity shader in this example has the following blocks:
 
 * [Shader](#shader)
 * [Properties](#properties)
@@ -102,13 +102,13 @@ The shader in this example has the following blocks:
 
 ### Shader block
 
-A ShaderLab file starts with the `Shader` declaration.
+ShaderLab code starts with the `Shader` declaration.
 
 ```c++
 Shader "Example/URPUnlitShaderBasic"
 ```
 
-The path in this declaration determines the location of the shader in the Shader menu on a Material.
+The path in this declaration determines the display name and location of the Unity shader in the Shader menu on a Material.
 
 ![location of the shader in the Shader menu on a Material](Images/shader-examples/urp-material-ui-shader-path.png)
 
@@ -118,19 +118,19 @@ The path in this declaration determines the location of the shader in the Shader
 
 The [Properties](https://docs.unity3d.com/Manual/SL-Properties.html) block contains the declarations of properties that users can set in the Inspector window on a Material.
 
-In this example, the Properties block is empty, since this shader does not expose any Material properties that a user can define. TODO:reference to Color. 
+In this example, the Properties block is empty, because this Unity shader does not expose any Material properties that a user can define. 
 
 ### SubShader block
 
-A ShaderLab file contains one or more [SubShader](https://docs.unity3d.com/Manual/SL-SubShader.html) blocks. When rendering a mesh, Unity selects the first SubShader that is compatible with the GPU on the target device.
+A Unity shader source file contains one or more [SubShader](https://docs.unity3d.com/Manual/SL-SubShader.html) blocks. When rendering a mesh, Unity selects the first SubShader that is compatible with the GPU on the target device.
 
-A SubShader block contains the __Tags__ element.
+A SubShader block can optionally contain a SubShader Tags block. Use the `Tags` keyword to declare a SubShader Tags block.
 
 ```
 Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalRenderPipeline" }
 ```
 
-The `RenderPipeline` tag in this Shader instructs Unity to use this SubShader block only when the project is using the Universal Render Pipeline.
+A SubShader Tag with a name of `RenderPipeline` tells Unity which render pipelines to use this SubShader with, and the value of `UniversalRenderPipeline` indicates that Unity should use this SubShader with URP.
 
 For more information on SubShader Tags, see [ShaderLab: SubShader Tags](https://docs.unity3d.com/Manual/SL-SubShaderTags.html).
 
@@ -150,9 +150,9 @@ This block contains the `#include` declaration with the reference to the `Core.h
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 ```
 
-The `Core.hlsl` file contains definitions of frequently used HLSL macros and functions, and also contains #include references to other HLSL files (for example, Common.hlsl, SpaceTransforms.hlsl, etc.).
+The `Core.hlsl` file contains definitions of frequently used HLSL macros and functions, and also contains #include references to other HLSL files (for example, `Common.hlsl` and  `SpaceTransforms.hlsl`).
 
-For example the vertex shader in the HLSL program uses the `TransformObjectToHClip` function from the `SpaceTransforms.hlsl` file. The  function transforms vertex positions from object space to homogenous space:
+For example, the vertex shader in the HLSL code uses the `TransformObjectToHClip` function from the `SpaceTransforms.hlsl` file. The function transforms vertex positions from object space to homogenous space:
 
 ```c++
 Varyings vert(Attributes IN)
@@ -163,7 +163,7 @@ Varyings vert(Attributes IN)
 }
 ```
 
-The fragment shader in this basic HLSL program outputs the single color predefined in the code:
+The fragment shader in this basic HLSL code outputs the single color predefined in the code:
 
 ```c++
 half4 frag() : SV_Target
