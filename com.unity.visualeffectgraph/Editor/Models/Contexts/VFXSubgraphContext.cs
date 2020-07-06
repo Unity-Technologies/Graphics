@@ -400,6 +400,14 @@ namespace UnityEditor.VFX
                 base.OnInvalidate(model, cause);
         }
 
+        public override void CheckGraphBeforeImport()
+        {
+            base.CheckGraphBeforeImport();
+            // If the graph is reimported it can be because one of its depedency such as the subgraphs, has been changed.
+
+            ResyncSlots(true);
+        }
+
         public override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true)
         {
             base.CollectDependencies(objs, ownedOnly);

@@ -91,7 +91,7 @@ namespace UnityEditor.ShaderGraph
                         s.AppendLine("$precision3 inToNormal = ((((In + ddx(In)) - In) * crossY) + (((In + ddy(In)) - In) * crossX)) * sign(d);");
                         s.AppendLine("inToNormal.y *= -1.0;");
                         s.AppendNewLine();
-                        s.AppendLine("Out = normalize((d * TangentMatrix[2].xyz) - inToNormal);");
+                        s.AppendLine("Out = SafeNormalize((d * TangentMatrix[2].xyz) - inToNormal);");
 
                         if(outputSpace == OutputSpace.Tangent)
                             s.AppendLine("Out = TransformWorldToTangent(Out, TangentMatrix);");

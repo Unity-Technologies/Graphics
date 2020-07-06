@@ -81,7 +81,6 @@ MonoBehaviour:
   castShadows: 0
   useExposureWeight: 0
   shaderGraph: {fileID: 0}
-  shadergraphGUID: 
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &114158099937248418
@@ -381,6 +380,7 @@ MonoBehaviour:
     min: -Infinity
     max: Infinity
     descendantCount: 0
+  m_ImportDependencies: []
   m_GraphVersion: 4
   m_saved: 1
   m_SubgraphDependencies: []
@@ -3225,7 +3225,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614651}
   m_Shader: {fileID: -6465566751694194690, guid: e8d2fa5de61e54f428b1db8db540bba8,
     type: 3}
-  shaderGUID: e8d2fa5de61e54f428b1db8db540bba8
+  m_ShaderName: Shader Graphs/Unlit
 --- !u!114 &8926484042661614673
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6777,7 +6777,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614803}
   m_Shader: {fileID: -6465566751694194690, guid: e8d2fa5de61e54f428b1db8db540bba8,
     type: 3}
-  shaderGUID: e8d2fa5de61e54f428b1db8db540bba8
+  m_ShaderName: Shader Graphs/Unlit
 --- !u!114 &8926484042661614825
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11412,7 +11412,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615063}
   m_Shader: {fileID: -6465566751694194690, guid: e8d2fa5de61e54f428b1db8db540bba8,
     type: 3}
-  shaderGUID: e8d2fa5de61e54f428b1db8db540bba8
+  m_ShaderName: Shader Graphs/Unlit
 --- !u!114 &8926484042661615083
 MonoBehaviour:
   m_ObjectHideFlags: 0

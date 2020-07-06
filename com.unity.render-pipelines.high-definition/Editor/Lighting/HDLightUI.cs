@@ -767,7 +767,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            if (useBaking && UnityEditor.EditorSettings.disableCookiesInLightmapper)
+            if (useBaking && !UnityEditor.EditorSettings.enableCookiesInLightmapper)
                 EditorGUILayout.HelpBox(s_Styles.cookieBaking, MessageType.Warning);
             if (cookie.width != cookie.height)
                 EditorGUILayout.HelpBox(s_Styles.cookieNonPOT, MessageType.Warning);

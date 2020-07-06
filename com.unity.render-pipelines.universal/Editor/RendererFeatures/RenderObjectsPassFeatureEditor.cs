@@ -21,7 +21,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 		    //Filters
 		    public static GUIContent renderQueueFilter = new GUIContent("Queue", "Only render objects in the selected render queue range.");
 		    public static GUIContent layerMask = new GUIContent("Layer Mask", "Only render objects in a layer that match the given layer mask.");
-		    public static GUIContent shaderPassFilter = new GUIContent("Shader Passes", "Controls which shader passes to use when rendering objects. The name given here must match the LightMode tag in a shader pass.");
+		    public static GUIContent shaderPassFilter = new GUIContent("LightMode Tags", "Controls which shader passes to render by filtering by LightMode tag.");
 
 		    //Render Options
 		    public static GUIContent overrideMaterial = new GUIContent("Material", "Choose an override material, every renderer will be rendered with this material.");
@@ -33,7 +33,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 		    public static GUIContent depthState = new GUIContent("Depth Test", "Choose a new depth test function.");
 
 		    //Camera Settings
-		    public static GUIContent overrideCamera = new GUIContent("Camera", "Override camera matrices.");
+            public static GUIContent overrideCamera = new GUIContent("Camera", "Override camera matrices. Toggling this setting will make camera use perspective projection.");
 		    public static GUIContent cameraFOV = new GUIContent("Field Of View", "The camera's view angle measured in degrees along vertical axis.");
 		    public static GUIContent positionOffset = new GUIContent("Position Offset", "Position offset to apply to the original camera's position.");
 		    public static GUIContent restoreCamera = new GUIContent("Restore", "Restore to the original camera matrices after the execution of the render passes added by this feature.");

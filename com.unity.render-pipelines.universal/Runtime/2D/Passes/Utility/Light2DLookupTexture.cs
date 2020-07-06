@@ -1,5 +1,6 @@
 using UnityEditor;
 using System.IO;
+using UnityEngine.Rendering.Universal;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
@@ -12,13 +13,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             const float WIDTH = 256;
             const float HEIGHT = 256;
-            TextureFormat textureFormat = TextureFormat.ARGB32;
-            if (SystemInfo.SupportsTextureFormat(TextureFormat.RGBAHalf))
-                textureFormat = TextureFormat.RGBAHalf;
-            else if (SystemInfo.SupportsTextureFormat(TextureFormat.RGBAFloat))
-                textureFormat = TextureFormat.RGBAFloat;
+            GraphicsFormat textureFormat = GraphicsFormat.R8G8B8A8_UNorm;
+            if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.SetPixels))
+                textureFormat = GraphicsFormat.R16G16B16A16_SFloat;
+            else if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R32G32B32A32_SFloat, FormatUsage.SetPixels))
+                textureFormat = GraphicsFormat.R32G32B32A32_SFloat;
 
-            s_PointLightLookupTexture = new Texture2D((int)WIDTH, (int)HEIGHT, textureFormat, false);
+            s_PointLightLookupTexture = new Texture2D((int)WIDTH, (int)HEIGHT, textureFormat, TextureCreationFlags.None);
             s_PointLightLookupTexture.filterMode = FilterMode.Bilinear;
             s_PointLightLookupTexture.wrapMode = TextureWrapMode.Clamp;
             if (s_PointLightLookupTexture != null)
@@ -70,8 +71,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             const float WIDTH = 2048;
             const float HEIGHT = 192;
 
-            TextureFormat textureFormat = TextureFormat.ARGB32;
-            s_FalloffLookupTexture = new Texture2D((int)WIDTH, (int)HEIGHT-64, textureFormat, false);
+            GraphicsFormat textureFormat = GraphicsFormat.R8G8B8A8_SRGB;
+            s_FalloffLookupTexture = new Texture2D((int)WIDTH, (int)HEIGHT-64, textureFormat, TextureCreationFlags.None);
             s_FalloffLookupTexture.filterMode = FilterMode.Bilinear;
             s_FalloffLookupTexture.wrapMode = TextureWrapMode.Clamp;
             if (s_FalloffLookupTexture != null)
@@ -81,9 +82,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     float baseValue = (float)(y+32) / (float)(HEIGHT+64);
                     float lineValue = -baseValue + 1;
                     float exponent = Mathf.Log(lineValue) / Mathf.Log(baseValue);
-
-                    if (y == HEIGHT - 1)
-                        textureFormat = TextureFormat.ARGB32;
 
                     for (int x=0;x<WIDTH;x++)
                     {
