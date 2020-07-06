@@ -79,6 +79,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     gbufferCommands.DisableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
 
                 // TODO: detect if we have any objects with coat active.
+                // TODO: verify if this is really required as _CLEARCOAT is already set in the material if it's enabled
                 gbufferCommands.EnableShaderKeyword(ShaderKeywordStrings._CLEARCOAT);
 
                 gbufferCommands.SetViewProjectionMatrices(renderingData.cameraData.camera.worldToCameraMatrix, renderingData.cameraData.camera.projectionMatrix);

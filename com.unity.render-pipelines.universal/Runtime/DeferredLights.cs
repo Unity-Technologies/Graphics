@@ -1198,6 +1198,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_FullscreenMesh == null)
                 m_FullscreenMesh = CreateFullscreenMesh();
 
+            // TODO: verify if this is really required as _CLEARCOAT is already set in the material if it's enabled
             using( new KeywordScope(cmd, ShaderKeywordStrings._CLEARCOAT) )
             {
                 using (new ProfilingScope(cmd, m_ProfilingSamplerDeferredStencilPass))

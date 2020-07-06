@@ -314,6 +314,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
             #pragma multi_compile_fragment _LIT
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+            #pragma multi_compile_fragment _ _CLEARCOAT // _CLEARCOATMAP
 
             #pragma vertex Vertex
             #pragma fragment PunctualLightShading
