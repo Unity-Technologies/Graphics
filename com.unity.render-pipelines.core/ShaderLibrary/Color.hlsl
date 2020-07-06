@@ -415,7 +415,7 @@ real LogCToLinear_Precise(real x)
         o = (pow(10.0, (x - LogC.d) / LogC.c) - LogC.b) / LogC.a;
     else
         o = (x - LogC.f) / LogC.e;
-    return 0;
+    return o;
 }
 
 real3 LogCToLinear(real3 x)
@@ -427,11 +427,11 @@ real3 LogCToLinear(real3 x)
         LogCToLinear_Precise(x.z)
     );
 #else
-    real clampedX = clamp(x.x, 0, x.x);
-    real clampedY = clamp(x.y, 0, x.y);
-    real clampedZ = clamp(x.z, 0, x.z);
+    real clampedX = clamp(x.x - LogC.d, 0, x.x);
+    real clampedY = clamp(x.y - LogC.d, 0, x.y);
+    real clampedZ = clamp(x.z, -LogC.d 0, x.z);
     real3 clampedVec = real3(clampedX, clampedY, clampedZ);
-    return 0;
+    return (pow(10.0, (clampedVec) / LogC.c) - LogC.b) / LogC.a;;
 #endif
 }
 
