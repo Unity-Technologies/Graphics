@@ -1,6 +1,6 @@
 # What's new in version 10.0
 
-This page contains an overview of new features, improvements, and issues resolved in version 10 of the High Definition Render Pipeline.
+This page contains an overview of new features, improvements, and issues resolved in version 10 of the High Definition Render Pipeline (HDRP).
 
 ## Features
 
