@@ -351,8 +351,7 @@ BilateralData TapBilateralData(uint2 coordSS)
     if ((NORMAL_WEIGHT > 0.0) || (PLANE_WEIGHT > 0.0))
     {
         NormalData normalData;
-        const float4 normalBuffer = LOAD_TEXTURE2D_X(_NormalBufferTexture, coordSS);
-        DecodeFromNormalBuffer(normalBuffer, coordSS, normalData);
+        DecodeFromNormalBuffer(coordSS, normalData);
         key.normal = normalData.normalWS;
     }
 
