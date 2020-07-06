@@ -1,0 +1,44 @@
+{
+    "name": "VFXGraph.OutputEventHandlers",
+    "rootNamespace": "",
+    "references": [
+        "GUID:d04eb9c554ad44ceab303cecf0c0cf82",
+        "GUID:457756d89b35d2941b3e7b37b4ece6f1",
+        "GUID:4307f53044263cf4b835bd812fc161a4"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.render-pipelines.high-definition",
+            "expression": "10.0.0",
+            "define": "HDRP"
+        },
+        {
+            "name": "com.unity.render-pipelines.universal",
+            "expression": "10.0.0",
+            "define": "URP"
+        },
+        {
+            "name": "com.unity.cinemachine",
+            "expression": "2.6.0",
+            "define": "CINEMACHINE"
+        },
+        {
+            "name": "com.unity.modules.physics",
+            "expression": "1.0.0",
+            "define": "PHYSICS"
+        },
+        {
+            "name": "com.unity.modules.audio",
+            "expression": "1.0.0",
+            "define": "AUDIO"
+        }
+    ],
+    "noEngineReferences": false
+}
