@@ -173,9 +173,10 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float dR = maxRadius * rcp(numRings);
     float stratum = fmod(posInputs.positionSS.x + posInputs.positionSS.y, 2.0f);
-    // Note: gradient noise seems to give worse results than s
-    float noise = InterleavedGradientNoise(posInputs.positionSS.xy, 0);
-    float noise2 = InterleavedGradientNoise(posInputs.positionSS.xy, 9);
+
+    int sampleOffset = _TaaFrameInfo.w != 0.0 ? _TaaFrameInfo.z : 0;
+    float noise = InterleavedGradientNoise(posInputs.positionSS.xy, sampleOffset);
+    float noise2 = InterleavedGradientNoise(posInputs.positionSS.xy, 8 + sampleOffset);
 
     // Iterate over the octaweb pattern and gather the DoF samples
     for (float ring = 1; ring <= numRings; ring += 1.0)

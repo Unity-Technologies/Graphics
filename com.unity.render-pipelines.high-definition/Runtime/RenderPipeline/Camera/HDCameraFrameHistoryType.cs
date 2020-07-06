@@ -41,6 +41,10 @@ namespace UnityEngine.Rendering.HighDefinition
         RayTracedSubSurface,
         /// <summary>Path tracing buffer.</summary>
         PathTracing,
+        /// <summary>Temporal antialiasing history after DoF.</summary>
+        TemporalAntialiasingPostDoF,
+        /// <summary>Velocity magnitude history used for TAA velocity weighting (after DoF).</summary>
+        TAAMotionVectorMagnitudePostDoF,
         /// <summary>Number of history buffers.</summary>
         Count
     }

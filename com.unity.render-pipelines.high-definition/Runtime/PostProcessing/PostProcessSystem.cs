@@ -617,8 +617,23 @@ namespace UnityEngine.Rendering.HighDefinition
                             DoDepthOfField(cmd, camera, source, destination, taaEnabled);
                             PoolSource(ref source, destination);
                         }
-                    }
 
+                        // When DoF is enabled, TAA runs two times, first to stabilize the color buffer before DoF and tthen after DoF to accumulate aperture samples
+                        if (taaEnabled)
+                        {
+                            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.TemporalAntialiasing)))
+                            {
+                                var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
+                                var taaParams = PrepareTAAParameters(camera);
+                                GrabTemporalAntialiasingHistoryTexturesPostDoF(camera, out var prevHistory, out var nextHistory);
+                                GrabVelocityMagnitudeHistoryTexturesPostDoF(camera, out var prevMVLen, out var nextMVLen);
+                                DoTemporalAntialiasing(taaParams, cmd, source, destination, motionVecTexture, depthBuffer, depthMipChain, prevHistory, nextHistory, prevMVLen, nextMVLen);
+                                PoolSource(ref source, destination);
+                            }
+                        }
+
+                    }
+                    
                     // Motion blur after depth of field for aesthetic reasons (better to see motion
                     // blurred bokeh rather than out of focus motion blur)
                     if (m_MotionBlur.IsActive() && m_AnimatedMaterialsEnabled && !camera.resetPostProcessingHistory && m_MotionBlurFS)
@@ -1589,6 +1604,38 @@ namespace UnityEngine.Rendering.HighDefinition
                 ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitude, Allocator, 2);
             previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitude);
         }
+
+        void GrabTemporalAntialiasingHistoryTexturesPostDoF(HDCamera camera, out RTHandle previous, out RTHandle next)
+        {
+            RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
+            {
+                return rtHandleSystem.Alloc(
+                    Vector2.one, TextureXR.slices, DepthBits.None, dimension: TextureXR.dimension,
+                    filterMode: FilterMode.Bilinear, colorFormat: m_ColorFormat,
+                    enableRandomWrite: true, useDynamicScale: true, name: $"{id} TAA History"
+                );
+            }
+
+            next = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.TemporalAntialiasingPostDoF)
+                ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.TemporalAntialiasingPostDoF, Allocator, 2);
+            previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.TemporalAntialiasingPostDoF);
+        }
+
+        void GrabVelocityMagnitudeHistoryTexturesPostDoF(HDCamera camera, out RTHandle previous, out RTHandle next)
+        {
+            RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
+            {
+                return rtHandleSystem.Alloc(
+                    Vector2.one, TextureXR.slices, DepthBits.None, dimension: TextureXR.dimension,
+                    filterMode: FilterMode.Bilinear, colorFormat: GraphicsFormat.R16_SFloat,
+                    enableRandomWrite: true, useDynamicScale: true, name: $"{id} Velocity magnitude"
+                );
+            }
+
+            next = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitudePostDoF)
+                ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitudePostDoF, Allocator, 2);
+            previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitudePostDoF);
+        }
         #endregion
 
         #region Depth Of Field
@@ -2323,7 +2370,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     cs.EnableKeyword("ENABLE_ALPHA");
 
                 kernel = cs.FindKernel("KMain");
-                float sampleCount = Mathf.Max(m_DepthOfField.nearSampleCount, m_DepthOfField.farSampleCount);
+                // We use more samples when TAA is disabled, to hide undersampling
+                float sampleMultipleier = taaEnabled ? 1 : 2;
+                float sampleCount = sampleMultipleier * Mathf.Max(m_DepthOfField.nearSampleCount, m_DepthOfField.farSampleCount);
                 float mipLevel = Mathf.Ceil(Mathf.Log(cocLimit, 2));
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, cocLimit, mipLevel, 0.0f));
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
