@@ -5,9 +5,9 @@ def _cmd_base(project_folder, components):
         f'git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-testing',
         f'curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output {TEST_PROJECTS_DIR}/{project_folder}/URP-Update-testing/utr.bat',
         f'pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade',
-        f'copy com.unity.render-pipelines.core {TEST_PROJECTS_DIR}/URP-Update-testing/{project_folder}/Packages',
-        f'copy com.unity.render-pipelines.universal {TEST_PROJECTS_DIR}/URP-Update-testing/{project_folder}/Packages',
-        f'copy com.unity.shadergraph {TEST_PROJECTS_DIR}/URP-Update-testing/{project_folder}/Packages',
+        f'Xcopy /E /I com.unity.render-pipelines.core {TEST_PROJECTS_DIR}/URP-Update-testing/{project_folder}/Packages',
+        f'Xcopy /E /I com.unity.render-pipelines.universal {TEST_PROJECTS_DIR}/URP-Update-testing/{project_folder}/Packages',
+        f'Xcopy /E /I com.unity.shadergraph {TEST_PROJECTS_DIR}/URP-Update-testing/{project_folder}/Packages',
         f'cd {TEST_PROJECTS_DIR}/URP-Update-testing/{project_folder} && unity-downloader-cli --source-file ../../../{PATH_UNITY_REVISION} {"".join([f"-c {c} " for c in components])} --wait --published-only'
     ]
 
