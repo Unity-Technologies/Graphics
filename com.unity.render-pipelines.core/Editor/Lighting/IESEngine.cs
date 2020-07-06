@@ -1,7 +1,7 @@
 using System.IO;
 using Unity.Collections;
 using UnityEditor;
-
+using UnityEditor.Experimental.AssetImporters;
 using UnityEngine;
 
 namespace UnityEditor.Rendering
@@ -189,9 +189,9 @@ namespace UnityEditor.Rendering
             // Default values set by the TextureGenerationSettings constructor can be found in this file on GitHub:
             // https://github.com/Unity-Technologies/UnityCsReference/blob/master/Editor/Mono/AssetPipeline/TextureGenerator.bindings.cs
 
-            var settings = new UnityEditor.AssetImporters.TextureGenerationSettings(type);
+            var settings = new TextureGenerationSettings(type);
 
-            UnityEditor.AssetImporters.SourceTextureInformation textureInfo = settings.sourceTextureInformation;
+            SourceTextureInformation textureInfo = settings.sourceTextureInformation;
             textureInfo.containsAlpha = true;
             textureInfo.height = height;
             textureInfo.width = width;
@@ -214,7 +214,7 @@ namespace UnityEditor.Rendering
             platformSettings.resizeAlgorithm = TextureResizeAlgorithm.Bilinear;
             platformSettings.textureCompression = compression;
 
-            UnityEditor.AssetImporters.TextureGenerationOutput output = UnityEditor.AssetImporters.TextureGenerator.GenerateTexture(settings, colorBuffer);
+            TextureGenerationOutput output = TextureGenerator.GenerateTexture(settings, colorBuffer);
 
             if (output.importWarnings.Length > 0)
             {
