@@ -122,6 +122,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public DepthOfFieldResolution[] DoFResolution   = new DepthOfFieldResolution[s_QualitySettingCount];
         /// <summary>Use Depth of field high quality filtering for each quality level.</summary>
         public bool[] DoFHighQualityFiltering           = new bool[s_QualitySettingCount];
+        /// <summary>Use Depth of field high physically based setting for each quality level.</summary>
+        public bool[] DoFPhysicallyBased = new bool[s_QualitySettingCount];
 
         /* Motion Blur */
         /// <summary>Motion Blur sample count for each quality level.</summary>

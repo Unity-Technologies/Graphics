@@ -614,24 +614,23 @@ namespace UnityEngine.Rendering.HighDefinition
                         using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfField)))
                         {
                             var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
-                            DoDepthOfField(cmd, camera, source, destination, taaEnabled);
+                            if (!m_DepthOfField.physicallyBased)
+                                DoDepthOfField(cmd, camera, source, destination, taaEnabled);
+                            else
+                                DoPhysicallyBasedDepthOfField(cmd, camera, source, destination, taaEnabled);
                             PoolSource(ref source, destination);
-                        }
 
-                        // When DoF is enabled, TAA runs two times, first to stabilize the color buffer before DoF and tthen after DoF to accumulate aperture samples
-                        if (taaEnabled)
-                        {
-                            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.TemporalAntialiasing)))
+                            // When physically based DoF is enabled, TAA runs two times, first to stabilize the color buffer before DoF and then after DoF to accumulate more aperture samples
+                            if (taaEnabled && m_DepthOfField.physicallyBased)
                             {
-                                var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
+                                var taaDestination = m_Pool.Get(Vector2.one, m_ColorFormat);
                                 var taaParams = PrepareTAAParameters(camera);
                                 GrabTemporalAntialiasingHistoryTexturesPostDoF(camera, out var prevHistory, out var nextHistory);
                                 GrabVelocityMagnitudeHistoryTexturesPostDoF(camera, out var prevMVLen, out var nextMVLen);
-                                DoTemporalAntialiasing(taaParams, cmd, source, destination, motionVecTexture, depthBuffer, depthMipChain, prevHistory, nextHistory, prevMVLen, nextMVLen);
-                                PoolSource(ref source, destination);
+                                DoTemporalAntialiasing(taaParams, cmd, source, taaDestination, motionVecTexture, depthBuffer, depthMipChain, prevHistory, nextHistory, prevMVLen, nextMVLen);
+                                PoolSource(ref source, taaDestination);
                             }
                         }
-
                     }
                     
                     // Motion blur after depth of field for aesthetic reasons (better to see motion
