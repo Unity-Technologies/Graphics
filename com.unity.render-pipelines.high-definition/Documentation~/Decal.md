@@ -6,7 +6,7 @@ The High Definition Render Pipeline (HDRP) includes Decal Mesh and the [Decal Pr
 
 **Limitation and compatibility**
 
-Decal Projector can affect Opaque Material with both a Decal shader and a Master Node Decal. It can affect Transparent Material only with a Decal shader. Emissive isn't supported on Transparent Material. Decal Projector support Decal Layers.
+Decal Projector can affect Opaque Material with both a Decal shader and a Master Node Decal. It can affect Transparent Material only with a Decal shader. Emissive isn't supported on Transparent Material. Decal Projector support Decal Layers. The **ReceiveDecals** property of Material don't affect an Emissive Decal. Emissive are always render, only Decal Layers allow a surface to disable them.
 Decal Mesh can affect only Opaque Material with both a Decal shader and a Master Node Decal. Decal Mesh don't support Decal Layers.
 
 # Decal Layers
