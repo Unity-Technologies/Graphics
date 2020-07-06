@@ -9,7 +9,7 @@ pwd_repo=`git rev-parse --show-toplevel`
 if [ $? != 0 ]; then
 	exit 1
 fi
-source_folder="$pwd_repo/git-hooks/"
+source_folder="$pwd_repo/Tools/git-hooks/"
 cd $source_folder
 target_folder="$pwd_repo/.git/hooks"
 

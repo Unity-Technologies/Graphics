@@ -5,9 +5,9 @@
 
 $pwdRepoCommand = "git rev-parse --show-toplevel"
 $pwdRepo = Invoke-Expression -Command $pwdRepoCommand
-$installFolder = Join-Path $pwdRepo "git-hooks/"
+$installFolder = Join-Path $pwdRepo "Tools/git-hooks/"
 Set-Location -Path $installFolder
-$hooksFolder = "../.git/hooks/"
+$hooksFolder = Join-Path $pwdRepo ".git/hooks/"
 
 # Create directories in .git/hooks/ to match the filesystem inside git-hooks/
 $folders = Get-ChildItem -Recurse -Directory -ErrorAction SilentlyContinue
