@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -6,14 +6,44 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Added
+- Added a function (HDRenderPipeline.ResetRTHandleReferenceSize) to reset the reference size of RTHandle systems.
 
 ### Fixed
+- Fixed issue with reflection probes in realtime time mode with OnEnable baking having wrong lighting with sky set to dynamic (case 1238047).
+- Fixed corrupted values on LayeredLit when using Vertex Color multiply mode to multiply and MSAA is activated. 
 - Fixed a cause of NaN when a normal of 0-length is generated (usually via shadergraph).
 - Fixed a bug where not all entries were generated for the Attributes Struct in Shader Graph shaders. (case 1250275)
 - VFX: Removed irrelevant queues in render queue selection from HDRP outputs
 - VFX: Motion Vector are correctly renderered with MSAA [Case 1240754](https://issuetracker.unity3d.com/product/unity/issues/guid/1240754/)
+- Fixed shadowmask UI now correctly showing shadowmask disable
+- Fixed the indirect diffuse texture not being ignored when it should (ray tracing disabled).
+- Fixed a performance issue with stochastic ray traced area shadows.
+- Made more explicit the warning about raytracing and asynchronous compute. Also fixed the condition in which it appears.
+- Fixed a null ref exception in static sky when the default volume profile is invalid.
+- Fixed an error about procedural sky being logged by mistake.
+- Fixed flickering of the game/scene view when lookdev is running.
+- Fixed some GCAlloc in the debug window.
+- Removed logic in the UI to disable parameters for contact shadows and fog volume components as it was going against the concept of the volume system.
+- Fixed over consumption of GPU memory by the Physically Based Sky.
+- Put more information in Camera background type tooltip and fixed inconsistent exposure behavior when changing bg type.
+- Fixed an issue where asset preview could be rendered white because of static lighting sky.
+- Fixed an issue where static lighting was not updated when removing the static lighting sky profile.
+- Fixed SceneView Draw Modes not being properly updated after opening new scene view panels or changing the editor layout.
+- Fixed depth prepass and postpass being disabled after changing the shader in the material UI.
+- Fix an issue in reading the gbuffer for ray traced subsurface scattering (case 1248358).
+- Fixed an issue where editing the Look Dev default profile would not reflect directly in the Look Dev window.
+- Fixed an issue where manipulating the color wheels in a volume component would reset the cursor every time.
+- Fixed an issue where static sky lighting would not be updated for a new scene until it's reloaded at least once.
+- Fixed missing include guards in shadow hlsl files.
+- Fixed issue with light layers bigger than 8 (and above the supported range). 
+- Fixed an issue where decals were duplicated in prefab isolation mode.
+- Fixed the valid TRS test failing due to variable not being initialized to the identity matrix in RTShadows (1220600).
+
+### Changed
+- Shadowmask and realtime reflection probe property are hide in Quality settings
+- Made the StaticLightingSky class public so that users can change it by script for baking purpose.
+- Changed default exposure compensation to 0.
 
 ## [8.1.0] - 2020-04-21
 
@@ -80,7 +110,6 @@ The version number for this package has increased due to a version update of a r
 - Fixed scalarization code for contact shadows
 - Fix MaterialBalls having same guid issue
 - Fix spelling and grammatical errors in material samples
-- Fixed SceneView Draw Modes not being properly updated after opening new scene view panels or changing the editor layout.
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.

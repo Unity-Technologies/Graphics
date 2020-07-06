@@ -103,6 +103,12 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly PostProcessSystem m_PostProcessSystem;
         readonly XRSystem m_XRSystem;
 
+        // Keep track of previous Graphic and QualitySettings value to reset when switching to another pipeline
+        bool m_PreviousLightsUseLinearIntensity;
+        bool m_PreviousLightsUseColorTemperature;
+        bool m_PreviousSRPBatcher;
+        ShadowmaskMode m_PreviousShadowMaskMode;
+
         bool m_FrameSettingsHistoryEnabled = false;
 #if UNITY_EDITOR
         bool m_PreviousEnableCookiesInLightmapper = false;
@@ -561,6 +567,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif
 
+        /// <summary>
+        /// Resets the reference size of the internal RTHandle System.
+        /// This allows users to reduce the memory footprint of render textures after doing a super sampled rendering pass for example.
+        /// </summary>
+        /// <param name="width">New width of the internal RTHandle System.</param>
+        /// <param name="height">New height of the internal RTHandle System.</param>
+        public void ResetRTHandleReferenceSize(int width, int height)
+        {
+            RTHandles.ResetReferenceSize(width, height);
+            HDCamera.ResetAllHistoryRTHandleSystems(width, height);
+            if (m_RenderGraph != null)
+                m_RenderGraph.ResetRTHandleReferenceSize(width, height);
+        }
+
         void InitializeRenderTextures()
         {
             RenderPipelineSettings settings = m_Asset.currentPlatformRenderPipelineSettings;
@@ -663,16 +683,22 @@ namespace UnityEngine.Rendering.HighDefinition
             Shader.globalRenderPipeline = "HDRenderPipeline";
 
             // HD use specific GraphicsSettings
+            m_PreviousLightsUseLinearIntensity = GraphicsSettings.lightsUseLinearIntensity;
             GraphicsSettings.lightsUseLinearIntensity = true;
+            m_PreviousLightsUseColorTemperature = GraphicsSettings.lightsUseColorTemperature;
             GraphicsSettings.lightsUseColorTemperature = true;
-
+            m_PreviousSRPBatcher = GraphicsSettings.useScriptableRenderPipelineBatching;
             GraphicsSettings.useScriptableRenderPipelineBatching = m_Asset.enableSRPBatcher;
+
+            // In case shadowmask mode isn't setup correctly, force it to correct usage (as there is no UI to fix it)
+            m_PreviousShadowMaskMode = QualitySettings.shadowmaskMode;
+            QualitySettings.shadowmaskMode = ShadowmaskMode.DistanceShadowmask;
 
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures()
             {
                 reflectionProbeModes = SupportedRenderingFeatures.ReflectionProbeModes.Rotation,
                 defaultMixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.IndirectOnly,
-                mixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.IndirectOnly | SupportedRenderingFeatures.LightmapMixedBakeModes.Shadowmask,
+                mixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.IndirectOnly | (m_Asset.currentPlatformRenderPipelineSettings.supportShadowMask ? SupportedRenderingFeatures.LightmapMixedBakeModes.Shadowmask : 0),
                 lightmapBakeTypes = LightmapBakeType.Baked | LightmapBakeType.Mixed | LightmapBakeType.Realtime,
                 lightmapsModes = LightmapsMode.NonDirectional | LightmapsMode.CombinedDirectional,
                 lightProbeProxyVolumes = true,
@@ -688,6 +714,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 , overridesLODBias = true
                 , overridesMaximumLODLevel = true
                 , terrainDetailUnsupported = true
+                , overridesShadowmask = true // Don't display the shadow mask UI in Quality Settings
+                , overridesRealtimeReflectionProbes = true // Don't display the real time reflection probes checkbox UI in Quality Settings
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
@@ -781,10 +809,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Shader.globalRenderPipeline = "";
 
-            SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
+            GraphicsSettings.lightsUseLinearIntensity = m_PreviousLightsUseLinearIntensity;
+            GraphicsSettings.lightsUseColorTemperature = m_PreviousLightsUseColorTemperature;
+            GraphicsSettings.useScriptableRenderPipelineBatching = m_PreviousSRPBatcher;
+            QualitySettings.shadowmaskMode = m_PreviousShadowMaskMode;
 
-            // Reset srp batcher state just in case
-            GraphicsSettings.useScriptableRenderPipelineBatching = false;
+            SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
 
             Lightmapping.ResetDelegate();
 
@@ -955,7 +985,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Dispose of Render Pipeline can be call either by OnValidate() or by OnDisable().
             // Inside an OnValidate() call we can't call a DestroyImmediate().
             // Here we are releasing our singleton to not leak while doing a domain reload.
-            // However this is doing a call to DestroyImmediate(). 
+            // However this is doing a call to DestroyImmediate().
             // To workaround this, and was we only leak with Singleton while doing domain reload (and not in OnValidate)
             // we are detecting if we are in an OnValidate call and releasing the Singleton only if it is not the case.
             if (!m_Asset.isInOnValidateCall)
@@ -1055,6 +1085,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Bind the camera's ray tracing frame index
                     cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, RayTracingFrameIndex(hdCamera));
+                }
+                else
+                {
+                    cmd.SetGlobalInt(HDShaderIDs._RaytracedIndirectDiffuse, 0);
                 }
                 cmd.SetGlobalFloat(HDShaderIDs._ContactShadowOpacity, m_ContactShadows.opacity.value);
             }
@@ -1613,6 +1647,14 @@ namespace UnityEngine.Rendering.HighDefinition
                             continue;
                         }
 
+                        // HACK! We render the probe until we know the ambient probe for the associated sky context is ready.
+                        // For one-off rendering the dynamic ambient probe will be set to black until they are not processed, leading to faulty rendering.
+                        // So we enqueue another rendering and then we will not set the probe texture until we have rendered with valid ambient probe.
+                        if (!m_SkyManager.HasSetValidAmbientProbe(hdCamera))
+                        {
+                            visibleProbe.ForceRenderingNextUpdate();
+                        }
+
                         hdCamera.parentCamera = parentCamera; // Used to inherit the properties of the view
 
                         HDAdditionalCameraData hdCam;
@@ -1659,26 +1701,30 @@ namespace UnityEngine.Rendering.HighDefinition
                             // TODO: store DecalCullResult
                         };
 
-                        // As we render realtime texture on GPU side, we must tag the texture so our texture array cache detect that something have change
-                        visibleProbe.realtimeTexture.IncrementUpdateCount();
+                        if (m_SkyManager.HasSetValidAmbientProbe(hdCamera))
+                        {
+                            // As we render realtime texture on GPU side, we must tag the texture so our texture array cache detect that something have change
+                            visibleProbe.realtimeTexture.IncrementUpdateCount();
 
-                        if (cameraSettings.Count > 1)
-                        {
-                            var face = (CubemapFace)j;
-                            request.target = new RenderRequest.Target
+                            if (cameraSettings.Count > 1)
                             {
-                                copyToTarget = visibleProbe.realtimeTexture,
-                                face = face
-                            };
-                        }
-                        else
-                        {
-                            request.target = new RenderRequest.Target
+                                var face = (CubemapFace)j;
+                                request.target = new RenderRequest.Target
+                                {
+                                    copyToTarget = visibleProbe.realtimeTexture,
+                                    face = face
+                                };
+                            }
+                            else
                             {
-                                id = visibleProbe.realtimeTexture,
-                                face = CubemapFace.Unknown
-                            };
+                                request.target = new RenderRequest.Target
+                                {
+                                    id = visibleProbe.realtimeTexture,
+                                    face = CubemapFace.Unknown
+                                };
+                            }
                         }
+
                         renderRequests.Add(request);
 
 
@@ -1960,7 +2006,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PostProcessSystem.BeginFrame(cmd, hdCamera, this);
 
             ApplyDebugDisplaySettings(hdCamera, cmd);
-            m_SkyManager.UpdateCurrentSkySettings(hdCamera);
 
             SetupCameraProperties(hdCamera, renderContext, cmd);
 
@@ -2737,6 +2782,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     hdProbeCullState = HDProbeSystem.PrepareCull(camera);
 
                 // We need to set the ambient probe here because it's passed down to objects during the culling process.
+                skyManager.UpdateCurrentSkySettings(hdCamera);
                 skyManager.SetupAmbientProbe(hdCamera);
 
                 using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.CullResultsCull)))
@@ -3122,7 +3168,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // We still bind black textures to make sure that something is bound (can be a problem on some platforms)
                 m_DbufferManager.BindBlackTextures(cmd);
-                
+
                 // Bind buffer to make sure that something is bound .
                 cmd.SetGlobalBuffer(HDShaderIDs._DecalPropertyMaskBufferSRV, m_DbufferManager.propertyMaskBuffer);
 
