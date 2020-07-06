@@ -127,6 +127,14 @@ This version of HDRP adds support for emissive maps with parallax occlusion mapp
 
 HDRP now includes a new sample that contains example fabric materials. You can use these materials as references to more quickly develop fabric materials for your application.
 
+### Decal layers
+
+This version of HDRP introduces decal layers which allow you to specify which decals affect which Materials on a layer by layer basis.
+
+### Eye Shader Graph
+
+HDRP now includes an eye Shader Graph which you can use to create a realistic eye Material. There are also new HDRP-specific Shader Graph nodes which allow you to more easier customize this eye Shader Graph.
+
 ### HDRI Flowmap
 
 The [HDRI Sky](Override-HDRI-Sky.md) override now contains a new property to allow you to apply a flowmap to the sky cubemap.
