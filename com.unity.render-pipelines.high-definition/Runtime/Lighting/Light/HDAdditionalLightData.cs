@@ -2673,7 +2673,9 @@ namespace UnityEngine.Rendering.HighDefinition
             shapeWidth = m_ShapeWidth;
             shapeHeight = m_ShapeHeight;
 
+#if UNITY_EDITOR
             legacyLight.areaSize = new Vector2(shapeWidth, shapeHeight);
+#endif
         }
 
         /// <summary>
