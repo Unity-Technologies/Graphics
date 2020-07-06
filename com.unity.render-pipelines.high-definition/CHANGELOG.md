@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a function (HDRenderPipeline.ResetRTHandleReferenceSize) to reset the reference size of RTHandle systems.
 
 ### Fixed
+- Fixed issue with reflection probes in realtime time mode with OnEnable baking having wrong lighting with sky set to dynamic (case 1238047).
+- Fixed corrupted values on LayeredLit when using Vertex Color multiply mode to multiply and MSAA is activated. 
+- Fixed a cause of NaN when a normal of 0-length is generated (usually via shadergraph).
+- Fixed a bug where not all entries were generated for the Attributes Struct in Shader Graph shaders. (case 1250275)
+- VFX: Removed irrelevant queues in render queue selection from HDRP outputs
+- VFX: Motion Vector are correctly renderered with MSAA [Case 1240754](https://issuetracker.unity3d.com/product/unity/issues/guid/1240754/)
 - Fixed shadowmask UI now correctly showing shadowmask disable
 - Fixed the indirect diffuse texture not being ignored when it should (ray tracing disabled).
 - Fixed a performance issue with stochastic ray traced area shadows.
@@ -32,19 +38,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing include guards in shadow hlsl files.
 - Fixed issue with light layers bigger than 8 (and above the supported range). 
 - Fixed an issue where decals were duplicated in prefab isolation mode.
-- Fixed issue with light layers bigger than 8 (and above the supported range).
 - Fixed the valid TRS test failing due to variable not being initialized to the identity matrix in RTShadows (1220600).
 
 ### Changed
 - Shadowmask and realtime reflection probe property are hide in Quality settings
 - Made the StaticLightingSky class public so that users can change it by script for baking purpose.
 - Changed default exposure compensation to 0.
-
-### Fixed
-- Fixed a cause of NaN when a normal of 0-length is generated (usually via shadergraph).
-- Fixed a bug where not all entries were generated for the Attributes Struct in Shader Graph shaders. (case 1250275)
-- VFX: Removed irrelevant queues in render queue selection from HDRP outputs
-- VFX: Motion Vector are correctly renderered with MSAA [Case 1240754](https://issuetracker.unity3d.com/product/unity/issues/guid/1240754/)
 
 ## [8.1.0] - 2020-04-21
 
@@ -687,8 +686,6 @@ The version number for this package has increased due to a version update of a r
 - Added a fix script to handle the warning 'referenced script in (GameObject 'SceneIDMap') is missing'
 - Fix Wizard load when none selected for RenderPipelineAsset
 - Fixed issue with unclear naming of debug menu for decals.
-- Fixed issue with reflection probes in realtime time mode with OnEnable baking having wrong lighting with sky set to dynamic (case 1238047).
-- Fixed corrupted values on LayeredLit when using Vertex Color multiply mode to multiply and MSAA is activated. 
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
