@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -52,6 +53,7 @@ namespace UnityEngine.Rendering.HighDefinition
     ///         Comp Always
     ///         Pass Replace
     /// </summary>
+    [Flags]
     public enum UserStencilUsage
     {
         /// <summary>User stencil bit 0.</summary>

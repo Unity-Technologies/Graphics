@@ -71,6 +71,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public ShaderPass shaderPass = ShaderPass.Forward;
 
+        public bool overrideStencilState = false;
+        public int stencilWriteValue;
+
         int fadeValueId;
 
         static ShaderTagId[] forwardShaderTags;
@@ -146,12 +149,26 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             var mask = overrideDepthState ? RenderStateMask.Depth : 0;
-            mask |= overrideDepthState && !depthWrite ? RenderStateMask.Stencil : 0;
+            mask |= (overrideDepthState && !depthWrite) || overrideStencilState ? RenderStateMask.Stencil : 0;
+
+            var stencilState = new StencilState(false);
+
+            if (overrideStencilState)
+            {
+                // Configure stencil to write to custom bits
+                stencilState.enabled = true;
+                stencilState.compareFunctionBack = stencilState.compareFunctionFront = CompareFunction.Always;
+                // Avoid writing to unauthorized stencil bits
+                stencilState.writeMask = targetDepthBuffer == TargetBuffer.Custom ? (byte)255 : (byte)(UserStencilUsage.UserBit0 | UserStencilUsage.UserBit1);
+                stencilState.passOperationBack = stencilState.passOperationFront = StencilOp.Replace;
+            }
+
             var stateBlock = new RenderStateBlock(mask)
             {
                 depthState = new DepthState(depthWrite, depthCompareFunction),
                 // We disable the stencil when the depth is overwritten but we don't write to it, to prevent writing to the stencil.
-                stencilState = new StencilState(false),
+                stencilState = stencilState,
+                stencilReference = stencilWriteValue,
             };
 
             PerObjectData renderConfig = ctx.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask) ? HDUtils.k_RendererConfigurationBakedLightingWithShadowMask : HDUtils.k_RendererConfigurationBakedLighting;

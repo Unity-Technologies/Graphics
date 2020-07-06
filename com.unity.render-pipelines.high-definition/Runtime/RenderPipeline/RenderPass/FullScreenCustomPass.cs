@@ -26,6 +26,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public bool             fetchColorBuffer;
 
+        public bool             overrideStencil;
+        public int              stencilReferenceValue;
+        public CompareFunction  stencilCompareFunction = CompareFunction.Equal;
+        public StencilOp        stencilPassOperation = StencilOp.Keep;
+        public StencilOp        stencilFailOperation = StencilOp.Keep;
+
         int fadeValueId;
 
         /// <summary>
@@ -58,8 +64,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     SetRenderTargetAuto(ctx.cmd);
                 }
 
-                fullscreenPassMaterial.SetFloat(fadeValueId, fadeValue);
-                CoreUtils.DrawFullScreen(ctx.cmd, fullscreenPassMaterial, shaderPassId: fullscreenPassMaterial.FindPass(materialPassName));
+                int stencilMask = targetDepthBuffer == TargetBuffer.Custom ? 255 : (int)(UserStencilUsage.UserBit0 | UserStencilUsage.UserBit1);
+                ctx.cmd.SetGlobalInt(HDShaderIDs._StencilReadMask, stencilMask);
+                ctx.cmd.SetGlobalInt(HDShaderIDs._StencilWriteMask, stencilMask);
+                ctx.cmd.SetGlobalInt(HDShaderIDs._StencilRef, stencilReferenceValue);
+                ctx.cmd.SetGlobalInt(HDShaderIDs._StencilCmp, (int)stencilCompareFunction);
+                ctx.cmd.SetGlobalInt(HDShaderIDs._StencilPass, (int)stencilPassOperation);
+                ctx.cmd.SetGlobalInt(HDShaderIDs._StencilFail, (int)stencilFailOperation);
+                ctx.propertyBlock.SetFloat(fadeValueId, fadeValue);
+                CoreUtils.DrawFullScreen(ctx.cmd, fullscreenPassMaterial, ctx.propertyBlock, shaderPassId: fullscreenPassMaterial.FindPass(materialPassName));
             }
         }
 
