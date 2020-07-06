@@ -17,11 +17,11 @@ check_shaders_on_windows()
 
 echo "Shader includes path checking. This will make sure that all #include refer to an existing path (case sensitive)."
 echo "Checking your OS..."
-case "$OSTYPE" in
-  *"solaris"*)  echo "Solaris detected. There's no script to check shader includes for this OS." ;;
-  "darwin"*)    echo "OSX detected. There's no script to check shader includes for this OS." ;; 
-  "linux-gnu"*) echo "Linux detected. There's no script to check shader includes for this OS." ;;
-  "bsd"*)       echo "BSD detected. There's no script to check shader includes for this OS." ;;
-  "msys"*)      check_shaders_on_windows ;;
-  *)            echo "unknown OS: $OSTYPE detected. There's no script to check shader includes for this OS." ;;
+uname_out="$(uname -s)"
+case "${uname_out}" in
+    Linux*)     echo "Linux detected. There's no script to check shader includes for this OS." ;;
+    Darwin*)    echo "OSX detected. There's no script to check shader includes for this OS." ;; 
+    CYGWIN*)    check_shaders_on_windows ;;
+    MINGW*)     check_shaders_on_windows ;;
+    *)          echo "unknown OS: $uname_out detected. There's no script to check shader includes for this OS." ;;
 esac
