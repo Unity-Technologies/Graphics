@@ -45,6 +45,8 @@ struct PackedVaryingsToDS
 #ifdef VARYINGS_NEED_PASS
     PackedVaryingsPassToDS vpass;
 #endif
+
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 PackedVaryingsToDS PackVaryingsToDS(VaryingsToDS input)
@@ -55,6 +57,7 @@ PackedVaryingsToDS PackVaryingsToDS(VaryingsToDS input)
     output.vpass = PackVaryingsPassToDS(input.vpass);
 #endif
 
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
     return output;
 }
 
