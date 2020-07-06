@@ -155,6 +155,8 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
     half3 result = albedo.rgb + emission;
     half fogFactor = input.positionWS.w;
     result = MixFogColor(result, half3(0, 0, 0), fogFactor);
+    albedo.a = OutputAlpha(albedo.a);
+
     return half4(result, albedo.a);
 }
 

@@ -4,6 +4,19 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [7.5.0] - 2020-06-08
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+### Fixed
+- Fixed an issue where only unique names of cameras could be added to the camera stack.
+
+## [7.4.1] - 2020-06-03
+
+### Fixed
+- Removed invalid meta file
+
 ## [7.4.0] - 2020-05-22
 
 ### Added
@@ -16,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix LookDev's layout vanishing on domain reload.
 - Fixed null reference exception in LookDev when setting the SRP to one not implementing LookDev (case 1245086)
 - Fix LookDev's undo/redo on EnvironmentLibrary (case 1234725)
+- Fixed issue with the shader TransformWorldToHClipDir function computing the wrong result.
 
 ## [7.3.0] - 2020-03-11
 

@@ -4,6 +4,16 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [7.5.0] - 2020-06-08
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [7.4.1] - 2020-06-03
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [7.4.0] - 2020-05-22
 
 ### Added
@@ -91,6 +101,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Tentative fix for missing include in depth of field shaders.
 - Fix an issue in reading the gbuffer for ray traced subsurface scattering (case 1248358).
 - Cloned volume profile from read only assets are created in the root of the project. (case 1154961)
+- Fixed Wizard check on default volume profile to also check it is not the default one in package.
+- Fixed a bug where not all entries were generated for the Attributes Struct in Shader Graph shaders. (case 1250275)
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
@@ -317,6 +329,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with MipRatio debug mode showing _DebugMatCapTexture not being set.
 - Fixed missing initialization of input params in Blit for VR.
 - Fix Inf source in LTC for area lights.
+- Fixed light layers not correctly disabled when the lightlayers is set to Nothing and Lightlayers isn't enabled in HDRP Asset
+- Fixed a wrong condition in CameraSwitcher, potentially causing out of bound exceptions.
+- Fixed an issue where editing the Look Dev default profile would not reflect directly in the Look Dev window.
+- Fix supported Mac platform detection to handle new major version (11.0) properly
 
 ### Changed
 - Hide unused LOD settings in Quality Settings legacy window.

@@ -43,7 +43,7 @@ all_project_ci_{{ editor.version }}:
     - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#All_{{ project.name }}_{{ editor.version }}
       rerun: always
   {% endfor %}
-    - path: .yamato/upm-ci-packages.yml#all_package_ci
+    - path: .yamato/upm-ci-packages.yml#all_package_ci_{{ editor.version }}
       rerun: always
   artifacts:
     logs:
@@ -65,7 +65,7 @@ all_project_ci_nightly:
   {% endfor %}
     - path: .yamato/upm-ci-abv.yml#all_smoke_tests_2019.3
       rerun: always
-    - path: .yamato/upm-ci-packages.yml#all_package_ci
+    - path: .yamato/upm-ci-packages.yml#all_package_ci_2019.3
       rerun: always
   triggers:
     recurring:
