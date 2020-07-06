@@ -1,0 +1,64 @@
+abv: # specify the editor versions for which to create the expression trigger for all_project_ci job
+  trigger_editors:
+    - fast-2020.1
+  projects:
+    - name: Universal
+    - name: Universal_Stereo
+    - name: ShaderGraph
+    - name: ShaderGraph_Stereo
+    - name: HDRP
+    - name: VFXMain
+    - name: VFX_LWRP
+nightly:
+  allowed_editors: # specify the editor versions for which to create nightly jobs
+    - 2020.1
+  extra_dependencies: # additional project jobs to run nightly (in addition to ABV and smoke tests)
+    - project: Universal
+      platform: Android
+      api: OpenGLES3
+      test_platforms:
+        - Standalone
+    - project: Universal
+      platform: Android
+      api: Vulkan
+      test_platforms:
+        - Standalone
+smoke_test: # specifications for smoke tests
+  folder: SRP_SmokeTest
+  agent: sdet_win_large # used for editmode
+  agent_gpu: sdet_win_large_gpu  # used for non-editmode
+  test_platforms:
+    - Standalone
+    - playmode
+    - editmode
+trunk_verification: # jobs to include in trunk verification job
+  dependencies:
+    - project: Universal
+      platform: Win
+      api: DX11
+      test_platforms:
+        - playmode
+        - editmode
+    - project: ShaderGraph
+      platform: Win
+      api: DX11
+      test_platforms:
+        - playmode
+        - editmode
+    - project: HDRP
+      platform: Win
+      api: DX11
+      test_platforms:
+        - playmode
+        - editmode
+    - project: VFXMain
+      platform: Win
+      api: DX11
+      test_platforms:
+        - playmode
+        - editmode
+    - project: VFX_LWRP
+      platform: Win
+      api: DX11
+      test_platforms:
+        - playmode

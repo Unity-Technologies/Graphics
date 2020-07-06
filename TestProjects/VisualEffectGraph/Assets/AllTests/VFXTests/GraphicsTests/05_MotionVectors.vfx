@@ -2409,7 +2409,7 @@ MonoBehaviour:
     descendantCount: 2
   - name: center
     path: Sphere_center
-    tooltip: The centre of the sphere.
+    tooltip: Sets the center of the sphere.
     sheetType: m_Vector3f
     realType: Vector3
     defaultValue:
@@ -2422,7 +2422,7 @@ MonoBehaviour:
     descendantCount: 0
   - name: radius
     path: Sphere_radius
-    tooltip: The radius of the sphere.
+    tooltip: Sets the radius of the sphere.
     sheetType: m_Float
     realType: Single
     defaultValue:
@@ -2433,6 +2433,7 @@ MonoBehaviour:
     min: -Infinity
     max: Infinity
     descendantCount: 0
+  m_ImportDependencies: []
   m_GraphVersion: 4
   m_saved: 1
   m_SubgraphDependencies: []
