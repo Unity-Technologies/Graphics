@@ -1,0 +1,27 @@
+project:
+  name: VFX_LWRP
+  folder: VisualEffectGraph_LWRP
+test_platforms:
+  - Standalone
+  - playmode
+#  - editmode
+platforms:
+  - name: Win
+    apis:
+      - DX11
+      - Vulkan
+  - name: OSX 
+    apis:
+      - Metal
+      - OpenGLCore
+  - name: Linux
+    apis: 
+      - Vulkan
+      - OpenGLCore
+all:
+  dependencies:
+    - platform: Win
+      api: DX11
+      test_platforms:
+        - Standalone
+        - playmode
