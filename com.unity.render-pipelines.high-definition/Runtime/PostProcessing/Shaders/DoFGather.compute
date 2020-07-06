@@ -78,7 +78,7 @@ float GetCoCRadius(int2 positionSS, out int bucketIndex)
 {
     float CoCRadius = LOAD_TEXTURE2D_X(_InputCoCTexture, positionSS).x;
     bucketIndex = GetCoCBucket(CoCRadius);
-    return abs(CoCRadius);
+    return CoCRadius;
 }
 
 float GetCoCMaxRadius(int2 positionSS)
@@ -102,8 +102,8 @@ float GetSampleWeight(float cocRadius)
     if (cocRadius == 0.0) return 0.0;
 
     float pixelRadius = 0.7071f;
-    float singlePixelArea = PI * pixelRadius * pixelRadius;
-    float diskArea = PI * cocRadius * cocRadius;
+    float singlePixelArea = 4 * PI * pixelRadius * pixelRadius;
+    float diskArea = 4 * PI * cocRadius * cocRadius;
     return diskArea >= singlePixelArea ? rcp(diskArea) : rcp(singlePixelArea);
 }
 
@@ -158,10 +158,10 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     // Record the central sample
     {
-        float weight = GetSampleWeight(centerCoc);
+        float weight = GetSampleWeight(abs(centerCoc));
         totalColor[bucketIndex].xyz = centerColor.xyz * weight;
         totalColor[bucketIndex].w = weight;
-        maxCoC[bucketIndex] = centerCoc;
+        maxCoC[bucketIndex] = abs(centerCoc);
         prevRingWeight[bucketIndex] = weight;
 #ifdef ENABLE_ALPHA
         totalAlpha[bucketIndex] = centerColor.w;
@@ -189,7 +189,6 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
         float dAng = 2.0f * PI / (ring * RING_DENSITY);
 
-        // for high sample counts, checkerboarding looks better
 #ifndef GRADIENT_NOISE
         float radius = ring * scaledRad + stratum * scaledRad;
         float ringOffset = 0.5 * fmod(ring, 2.0f) * dAng;
@@ -227,16 +226,15 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
             float sampleCoC = GetCoCRadius(sampleTC, sampleBucket);
 
 #ifdef COC_FAR_CLAMPING
-            if (sampleBucket < 1)
-                sampleCoC = clamp(sampleCoC, 0, centerCoc);
+            sampleCoC = min(sampleCoC, centerCoc), sampleCoC;
 #endif
 
-            if (sampleCoC > radius)
+            if (abs(sampleCoC) > radius)
             {
-                float weight = GetSampleWeight(sampleCoC);
+                float weight = GetSampleWeight(abs(sampleCoC));
                 RING_COLOR[sampleBucket].xyz += sampleColor.xyz * weight;
                 RING_COLOR[sampleBucket].w += weight;
-                RING_MAXCOC[sampleBucket] = max(RING_MAXCOC[sampleBucket], sampleCoC);
+                RING_MAXCOC[sampleBucket] = max(RING_MAXCOC[sampleBucket], abs(sampleCoC));
                 RING_HITS[sampleBucket] += 1.0;
 #ifdef ENABLE_ALPHA
                 RING_ALPHA[sampleBucket] = sampleColor.w * weight;
@@ -245,10 +243,10 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 #ifdef UNIFORM_WEIGHTS
             else
             {
-                RING_COLOR[sampleBucket].xyz += RING_COLOR[sampleBucket].xyz / RING_COLOR[sampleBucket].w;
+                RING_COLOR[sampleBucket].xyz += RING_COLOR[sampleBucket].w > 0 ? RING_COLOR[sampleBucket].xyz / RING_COLOR[sampleBucket].w : 0;
                 RING_COLOR[sampleBucket].w += 1.0f;
 #ifdef ENABLE_ALPHA
-                RING_ALPHA[sampleBucket] += RING_ALPHA[sampleBucket] / RING_COLOR[sampleBucket].w;
+                RING_ALPHA[sampleBucket] += RING_COLOR[sampleBucket].w > 0 ? RING_ALPHA[sampleBucket] / RING_COLOR[sampleBucket].w : 0;
 #endif
             }
 #endif
