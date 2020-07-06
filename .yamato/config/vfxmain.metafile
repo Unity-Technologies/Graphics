@@ -1,0 +1,26 @@
+project:
+  name: VFXMain
+  folder: VisualEffectGraph
+test_platforms:
+  - Standalone
+  - playmode
+  - editmode
+platforms:
+  - name: Win
+    apis:
+      - DX11
+      - Vulkan
+  - name: OSX 
+    apis:
+      - Metal
+  - name: Linux
+    apis: 
+      - Vulkan
+all:
+  dependencies:
+    - platform: Win
+      api: DX11
+      test_platforms:
+        - Standalone
+        - editmode
+        - playmode
