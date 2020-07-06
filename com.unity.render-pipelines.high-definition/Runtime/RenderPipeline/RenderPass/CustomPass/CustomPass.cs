@@ -71,8 +71,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         MaterialPropertyBlock userMaterialPropertyBlock;
 
-        MaterialPropertyBlock userMaterialPropertyBlock;
-
         /// <summary>
         /// Mirror of the value in the CustomPassVolume where this custom pass is listed
         /// </summary>
