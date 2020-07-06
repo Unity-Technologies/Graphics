@@ -43,7 +43,17 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter    scrollDirection     = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
         /// <summary>Speed of the distortion.</summary>
         [Tooltip("Sets the cloud scrolling speed. The higher the value, the faster the clouds will move.")]
-        public MinFloatParameter        scrollSpeed         = new MinFloatParameter(2.0f, 0.0f);
+        public MinFloatParameter        scrollSpeed         = new MinFloatParameter(1.0f, 0.0f);
+
+        /// <summary>Enable to have cloud shadow.</summary>
+        [Tooltip("Enable or disable cloud shadows.")]
+        public BoolParameter            cloudShadows        = new BoolParameter(false);
+        /// <summary>Controls the opacity of the cloud shadows.</summary>
+        [Tooltip("Controls the opacity of the cloud shadows.")]
+        public ClampedFloatParameter    shadowOpacity       = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        /// <summary>Controls the tiling of the cloud shadows.</summary>
+        [Tooltip("Controls the tiling of the cloud shadows.")]
+        public MinFloatParameter        shadowTiling        = new MinFloatParameter(200.0f, 0.0f);
 
 
         private float scrollFactor = 0.0f, lastTime = 0.0f;
@@ -60,9 +70,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>The shader parameters of the cloud layer.</returns>
         public Vector4 GetParameters()
         {
-                scrollFactor += scrollSpeed.value * (Time.time - lastTime) * 0.01f;
-                lastTime = Time.time;
-
                 float rot = -Mathf.Deg2Rad*scrollDirection.value;
                 float upper = upperHemisphereOnly.value ? 1.0f : -1.0f;
                 return new Vector4(upper * (rotation.value / 360.0f + 1), scrollFactor, Mathf.Cos(rot), Mathf.Sin(rot));
@@ -75,6 +82,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (layer != null && layer.enabled.value == true)
             {
+                layer.scrollFactor += layer.scrollSpeed.value * (Time.time - layer.lastTime) * 0.01f;
+                layer.lastTime = Time.time;
+
                 Vector4 cloudParam = layer.GetParameters();
                 Vector4 cloudParam2 = layer.tint.value;
                 cloudParam2.w = layer.intensityMultiplier.value;
@@ -102,6 +112,28 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal void SetComputeParams(CommandBuffer cmd, ComputeShader cs, int kernel)
+        {
+            Vector4 cloudParam = GetParameters();
+
+            cs.EnableKeyword("USE_CLOUD_MAP");
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CloudMap, cloudMap.value);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._CloudParam, cloudParam);
+            cmd.SetComputeFloatParam(cs, HDShaderIDs._CloudShadowOpacity, shadowOpacity.value);
+            cmd.SetComputeFloatParam(cs, HDShaderIDs._CloudShadowTiling, shadowTiling.value);
+
+            if (enableDistortion.value == true)
+            {
+                cs.EnableKeyword("USE_CLOUD_MOTION");
+                if (procedural.value == true)
+                    cs.DisableKeyword("USE_CLOUD_MAP");
+                else
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CloudFlowmap, flowmap.value);
+            }
+            else
+                cs.DisableKeyword("USE_CLOUD_MOTION");
+        }
+
         /// <summary>
         /// Returns the hash code of the HDRI sky parameters.
         /// </summary>
@@ -112,33 +144,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             unchecked
             {
-#if UNITY_2019_3 // In 2019.3, when we call GetHashCode on a VolumeParameter it generate garbage (due to the boxing of the generic parameter)
-                hash = cloudMap.value != null ? hash * 23 + cloudMap.value.GetHashCode() : hash;
-                hash = flowmap.value != null ? hash * 23 + flowmap.value.GetHashCode() : hash;
-                hash = hash * 23 + enabled.value.GetHashCode();
-                hash = hash * 23 + upperHemisphereOnly.value.GetHashCode();
-                hash = hash * 23 + tint.value.GetHashCode();
-                hash = hash * 23 + intensityMultiplier.value.GetHashCode();
-                hash = hash * 23 + rotation.value.GetHashCode();
-                hash = hash * 23 + enableDistortion.value.GetHashCode();
-                hash = hash * 23 + procedural.value.GetHashCode();
-                hash = hash * 23 + scrollDirection.value.GetHashCode();
-                hash = hash * 23 + scrollSpeed.value.GetHashCode();
-
-                hash = cloudMap.value != null ? hash * 23 + cloudMap.overrideState.GetHashCode() : hash;
-                hash = flowmap.value != null ? hash * 23 + flowmap.overrideState.GetHashCode() : hash;
-                hash = hash * 23 + enabled.overrideState.GetHashCode();
-                hash = hash * 23 + upperHemisphereOnly.overrideState.GetHashCode();
-                hash = hash * 23 + tint.overrideState.GetHashCode();
-                hash = hash * 23 + intensityMultiplier.overrideState.GetHashCode();
-                hash = hash * 23 + rotation.overrideState.GetHashCode();
-                hash = hash * 23 + enableDistortion.overrideState.GetHashCode();
-                hash = hash * 23 + procedural.overrideState.GetHashCode();
-                hash = hash * 23 + scrollDirection.overrideState.GetHashCode();
-                hash = hash * 23 + scrollSpeed.overrideState.GetHashCode();
-#else
-                hash = cloudMap.value != null ? hash * 23 + cloudMap.GetHashCode() : hash;
-                hash = flowmap.value != null ? hash * 23 + flowmap.GetHashCode() : hash;
+                hash = hash * 23 + cloudMap.GetHashCode();
+                hash = hash * 23 + flowmap.GetHashCode();
                 hash = hash * 23 + enabled.GetHashCode();
                 hash = hash * 23 + upperHemisphereOnly.GetHashCode();
                 hash = hash * 23 + tint.GetHashCode();
@@ -148,7 +155,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + procedural.GetHashCode();
                 hash = hash * 23 + scrollDirection.GetHashCode();
                 hash = hash * 23 + scrollSpeed.GetHashCode();
-#endif
+                hash = hash * 23 + cloudShadows.GetHashCode();
+                hash = hash * 23 + shadowOpacity.GetHashCode();
+                hash = hash * 23 + shadowTiling.GetHashCode();
             }
 
             return hash;

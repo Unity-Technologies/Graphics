@@ -412,6 +412,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _Flowmap = Shader.PropertyToID("_Flowmap");
         public static readonly int _FlowmapParam = Shader.PropertyToID("_FlowmapParam");
+        public static readonly int _CloudShadow = Shader.PropertyToID("_CloudShadow");
+        public static readonly int _CloudShadowOpacity = Shader.PropertyToID("_CloudShadowOpacity");
+        public static readonly int _CloudShadowTiling = Shader.PropertyToID("_CloudShadowTiling");
         public static readonly int _CloudMap = Shader.PropertyToID("_CloudMap");
         public static readonly int _CloudFlowmap = Shader.PropertyToID("_CloudFlowmap");
         public static readonly int _CloudParam = Shader.PropertyToID("_CloudParam");

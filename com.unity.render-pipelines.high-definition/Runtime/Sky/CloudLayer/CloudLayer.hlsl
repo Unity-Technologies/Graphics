@@ -19,12 +19,13 @@ float4 _CloudParam2; // xyz tint, w intensity
 
 #define USE_CLOUD_LAYER         defined(USE_CLOUD_MAP) || (!defined(USE_CLOUD_MAP) && defined(USE_CLOUD_MOTION))
 
-float3 sampleCloud(float3 dir, float3 sky)
+float4 sampleCloud(float3 dir)
 {
     float2 coords = GetLatLongCoords(dir, _CloudUpperHemisphere);
     coords.x = frac(coords.x + _CloudRotation);
     float4 cloudLayerColor = SAMPLE_TEXTURE2D_LOD(_CloudMap, sampler_CloudMap, coords, 0);
-    return lerp(sky, sky + cloudLayerColor.rgb * _CloudTint * _CloudIntensity, cloudLayerColor.a);
+    cloudLayerColor.rgb *= _CloudTint * _CloudIntensity * cloudLayerColor.a;
+    return cloudLayerColor;
 }
 
 float3 CloudRotationUp(float3 p, float2 cos_sin)
@@ -35,46 +36,53 @@ float3 CloudRotationUp(float3 p, float2 cos_sin)
     return float3(dot(rotDirX, p), p.y, dot(rotDirY, p));
 }
 
-float3 GetDistordedCloudColor(float3 dir, float3 sky)
+float4 GetDistordedCloudColor(float3 dir)
 {
 #if USE_CLOUD_MOTION
-    if (dir.y >= 0 || !_CloudUpperHemisphere)
-    {
-        float2 alpha = frac(float2(_CloudScrollFactor, _CloudScrollFactor + 0.5)) - 0.5;
+    float2 alpha = frac(float2(_CloudScrollFactor, _CloudScrollFactor + 0.5)) - 0.5;
 
 #ifdef USE_CLOUD_MAP
-        float3 tangent = normalize(cross(dir, float3(0.0, 1.0, 0.0)));
-        float3 bitangent = cross(tangent, dir);
+    float3 tangent = normalize(cross(dir, float3(0.0, 1.0, 0.0)));
+    float3 bitangent = cross(tangent, dir);
 
-        float3 windDir = CloudRotationUp(dir, _CloudScrollDirection);
-        float2 flow = SAMPLE_TEXTURE2D_LOD(_CloudFlowmap, sampler_CloudFlowmap, GetLatLongCoords(windDir, _CloudUpperHemisphere), 0).rg * 2.0 - 1.0;
+    float3 windDir = CloudRotationUp(dir, _CloudScrollDirection);
+    float2 flow = SAMPLE_TEXTURE2D_LOD(_CloudFlowmap, sampler_CloudFlowmap, GetLatLongCoords(windDir, _CloudUpperHemisphere), 0).rg * 2.0 - 1.0;
 
-        float3 dd = flow.x * tangent + flow.y * bitangent;
+    float3 dd = flow.x * tangent + flow.y * bitangent;
 #else
-        float3 windDir = CloudRotationUp(float3(0, 0, 1), _CloudScrollDirection);
-        windDir.x *= -1.0;
-        float3 dd = windDir*sin(dir.y*PI*0.5);
+    float3 windDir = CloudRotationUp(float3(0, 0, 1), _CloudScrollDirection);
+    windDir.x *= -1.0;
+    float3 dd = windDir*sin(dir.y*PI*0.5);
 #endif
 
-        // Sample twice
-        float3 color1 = sampleCloud(normalize(dir - alpha.x * dd), sky);
-        float3 color2 = sampleCloud(normalize(dir - alpha.y * dd), sky);
+    // Sample twice
+    float4 color1 = sampleCloud(normalize(dir - alpha.x * dd));
+    float4 color2 = sampleCloud(normalize(dir - alpha.y * dd));
 
-        // Blend color samples
-        sky = lerp(color1, color2, abs(2.0 * alpha.x));
-    }
-    return sky;
+    // Blend color samples
+    return lerp(color1, color2, abs(2.0 * alpha.x));
 
 #else
-    return sampleCloud(dir, sky);
+    return sampleCloud(dir);
 #endif
+}
+
+float GetCloudOpacity(float3 dir)
+{
+#if USE_CLOUD_LAYER
+    if (dir.y >= 0 || !_CloudUpperHemisphere)
+        return GetDistordedCloudColor(dir).a;
+    else
+#endif
+
+    return 0;
 }
 
 float3 ApplyCloudLayer(float3 dir, float3 sky)
 {
 #if USE_CLOUD_LAYER
     if (dir.y >= 0 || !_CloudUpperHemisphere)
-        sky = GetDistordedCloudColor(dir, sky);
+        sky += GetDistordedCloudColor(dir).rgb;
 #endif
 
     return sky;

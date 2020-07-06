@@ -153,6 +153,10 @@ namespace UnityEngine.Rendering.HighDefinition
         int                     m_ComputeAmbientProbeKernel;
         CubemapArray            m_BlackCubemapArray;
 
+        ComputeShader           m_RenderCloudShadowCS;
+        int                     m_RenderCloudShadowKernel;
+        RTHandle                m_CloudShadowTexture;
+
         // 2 by default: Static sky + one dynamic. Will grow if needed.
         DynamicArray<CachedSkyContext> m_CachedSkyContexts = new DynamicArray<CachedSkyContext>(2);
 
@@ -295,6 +299,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             InitializeBlackCubemapArray();
+
+            m_RenderCloudShadowCS = hdrp.renderPipelineResources.shaders.renderCloudShadowCS;
+            m_RenderCloudShadowKernel = m_RenderCloudShadowCS.FindKernel("RenderCloudShadow");
+            m_CloudShadowTexture = RTHandles.Alloc(Vector2.one, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R8_UNorm, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: "Cloud Shadows");
         }
 
         void InitializeBlackCubemapArray()
@@ -326,6 +334,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Cleanup()
         {
+            RTHandles.Release(m_CloudShadowTexture);
+
             CoreUtils.Destroy(m_StandardSkyboxMaterial);
             CoreUtils.Destroy(m_BlitCubemapMaterial);
             CoreUtils.Destroy(m_OpaqueAtmScatteringMaterial);
@@ -553,6 +563,27 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        // We do our own hash here because we don't want to test every single parameter of the cloud layer.
+        int GetCloudLayerHashCode(CloudLayer layer)
+        {
+            unchecked
+            {
+                int hash = 13;
+                hash = hash * 23 + layer.cloudMap.GetHashCode();
+                hash = hash * 23 + layer.flowmap.GetHashCode();
+                hash = hash * 23 + layer.enabled.GetHashCode();
+                hash = hash * 23 + layer.upperHemisphereOnly.GetHashCode();
+                hash = hash * 23 + layer.tint.GetHashCode();
+                hash = hash * 23 + layer.intensityMultiplier.GetHashCode();
+                hash = hash * 23 + layer.rotation.GetHashCode();
+                hash = hash * 23 + layer.enableDistortion.GetHashCode();
+                hash = hash * 23 + layer.procedural.GetHashCode();
+                hash = hash * 23 + layer.scrollDirection.GetHashCode();
+                hash = hash * 23 + layer.scrollSpeed.GetHashCode();
+
+                return hash;
+            }
+        }
 
         void AllocateNewRenderingContext(SkyUpdateContext skyContext, int slot, int newHash, bool supportConvolution, in SphericalHarmonicsL2 previousAmbientProbe, string name)
         {
@@ -670,8 +701,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 sunHash = GetSunLightHashCode(sunLight);
 
             int cloudHash = 0;
-            if (skyContext.cloudLayer != null && skyContext.skyRenderer.SupportCloudLayer)
-                cloudHash = skyContext.cloudLayer.GetHashCode();
+            if (skyContext.cloudLayer != null && skyContext.skyRenderer.SupportDynamicCloudLayer)
+                cloudHash = GetCloudLayerHashCode(skyContext.cloudLayer);
 
             // For planar reflections we want to use the parent position for hash.
             Camera cameraForHash = camera.camera;
@@ -961,6 +992,29 @@ namespace UnityEngine.Rendering.HighDefinition
                     HDUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial, colorBuffer, depthBuffer, m_OpaqueAtmScatteringBlock, isMSAA ? 1 : 0);
                 }
             }
+        }
+
+        public void RenderCloudShadow(HDCamera hdCamera, Light sunLight, RTHandle depthBuffer, DebugDisplaySettings debugSettings, CommandBuffer cmd)
+        {
+            var skyContext = hdCamera.visualSky;
+            if (skyContext.IsValid() && sunLight != null && skyContext.cloudLayer != null && skyContext.cloudLayer.cloudShadows.value)
+            {
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderCloudShadow)))
+                {
+                    skyContext.cloudLayer.SetComputeParams(cmd, m_RenderCloudShadowCS, m_RenderCloudShadowKernel);
+                    cmd.SetComputeTextureParam(m_RenderCloudShadowCS, m_RenderCloudShadowKernel, HDShaderIDs._CloudShadow, m_CloudShadowTexture);
+
+                    const int groupSizeX = 8;
+                    const int groupSizeY = 8;
+                    int threadGroupX = ((int)hdCamera.actualWidth + (groupSizeX - 1)) / groupSizeX;
+                    int threadGroupY = ((int)hdCamera.actualHeight + (groupSizeY - 1)) / groupSizeY;
+
+                    cmd.DispatchCompute(m_RenderCloudShadowCS, m_RenderCloudShadowKernel, threadGroupX, threadGroupY, 1);
+                }
+                cmd.SetGlobalTexture(HDShaderIDs._CloudShadow, m_CloudShadowTexture);
+            }
+            else
+                cmd.SetGlobalTexture(HDShaderIDs._CloudShadow, TextureXR.GetBlackUIntTexture());
         }
 
         static public StaticLightingSky GetStaticLightingSky()
