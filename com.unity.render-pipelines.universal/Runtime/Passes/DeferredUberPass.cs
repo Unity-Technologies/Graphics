@@ -48,10 +48,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void ConfigureTileParameters(ScriptableRenderContext context)
         {
-            // It seems that half will be converted to float on metal platform
-            // TODO: figure out why
             int threadGroupMemoryLength = 0;
-            int imageBlockSampleLength = 40;
+            int imageBlockSampleLength = 8*3+16;
             context.SetTileParams(tileWidth, tileHeight, threadGroupMemoryLength, imageBlockSampleLength);
         }
 

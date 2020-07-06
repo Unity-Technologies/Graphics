@@ -323,7 +323,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
         }
 
-        void SetupMatrixConstants(CommandBuffer cmd, ref RenderingData renderingData)
+        void SetupMatrixConstants(CommandBuffer cmd, ref RenderingData renderingData, bool isUsingImageBlock=false)
         {
             Matrix4x4 proj;
             Matrix4x4 view;
@@ -350,7 +350,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             //Matrix4x4 gpuProj = GL.GetGPUProjectionMatrix(proj, false); // This function not work for orthographic projection, so make we our own!
             Matrix4x4 gpuProj = new Matrix4x4(
                 new Vector4(1.0f, 0.0f, 0.0f, 0.0f),
-                new Vector4(0.0f, (SystemInfo.graphicsUVStartsAtTop || isGL ? 1.0f : -1.0f), 0.0f, 0.0f),
+                new Vector4(0.0f, (!isUsingImageBlock && (SystemInfo.graphicsUVStartsAtTop || isGL) ? 1.0f : -1.0f), 0.0f, 0.0f),
                 new Vector4(0.0f, 0.0f, (SystemInfo.usesReversedZBuffer ? -1.0f : 1.0f) * 0.5f, 0.0f),
                 new Vector4(0.0f, 0.0f, 0.5f, 1.0f)
             ) * proj;
@@ -795,39 +795,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void ExecuteDeferredPass(ScriptableRenderContext context, ref RenderingData renderingData, CommandBuffer cmd) { 
 
-            // NOTE: Because we're not rendering upside down, we have to use the
-            // correct _ScreenToWorld matrix ...
+            SetupMatrixConstants(cmd, ref renderingData, isUsingImageBlock: true);
 
-            // if we're sampling from a texture, then we have to take into account uv start
-            // because we're reading from imageblock, we have no such issue ..
-
-            Matrix4x4 proj;
-            Matrix4x4 view;
-
-            proj = renderingData.cameraData.camera.projectionMatrix;
-            view = renderingData.cameraData.camera.worldToCameraMatrix;
-
-            //Matrix4x4 gpuProj = GL.GetGPUProjectionMatrix(proj, false); // This function not work for orthographic projection, so make we our own!
-            Matrix4x4 gpuProj = new Matrix4x4(
-                new Vector4(1.0f, 0.0f, 0.0f, 0.0f),
-                new Vector4(0.0f, -1.0f, 0.0f, 0.0f),
-                new Vector4(0.0f, 0.0f, (SystemInfo.usesReversedZBuffer ? -1.0f : 1.0f) * 0.5f, 0.0f),
-                new Vector4(0.0f, 0.0f, 0.5f, 1.0f)
-            ) * proj;
-            
-
-            // xy coordinates in range [-1; 1] go to pixel coordinates.
-            Matrix4x4 toScreen = new Matrix4x4(
-                new Vector4(0.5f * m_RenderWidth, 0.0f, 0.0f, 0.0f),
-                new Vector4(0.0f, 0.5f * m_RenderHeight, 0.0f, 0.0f),
-                new Vector4(0.0f, 0.0f, 1.0f, 0.0f),
-                new Vector4(0.5f * m_RenderWidth, 0.5f * m_RenderHeight, 0.0f, 1.0f)
-            );
-
-            Matrix4x4 clipToWorld = Matrix4x4.Inverse(toScreen * gpuProj * view);
-            cmd.SetGlobalMatrix(ShaderConstants._ScreenToWorld, clipToWorld);
-
-            RenderStencilLights(context, cmd, ref renderingData);
+            RenderStencilLights(context, cmd, ref renderingData, isUsingImageBlock: true);
             RenderFog(context, cmd, ref renderingData);
             ++m_EyeIndex;
         }
@@ -1152,7 +1122,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             Profiler.EndSample();
         }
 
-        void RenderStencilLights(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData)
+        void RenderStencilLights(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData, bool isUsingImageBlock=false)
         {
             if (m_StencilDeferredMaterial == null)
             {
@@ -1176,15 +1146,15 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
 
-                RenderStencilDirectionalLights(cmd, visibleLights, renderingData.lightData.mainLightIndex);
-                RenderStencilPointLights(cmd, visibleLights);
-                RenderStencilSpotLights(cmd, visibleLights);
+                RenderStencilDirectionalLights(cmd, visibleLights, renderingData.lightData.mainLightIndex, isUsingImageBlock: isUsingImageBlock);
+                RenderStencilPointLights(cmd, visibleLights, isUsingImageBlock: isUsingImageBlock);
+                RenderStencilSpotLights(cmd, visibleLights, isUsingImageBlock: isUsingImageBlock);
             }
 
             Profiler.EndSample();
         }
 
-        void RenderStencilDirectionalLights(CommandBuffer cmd, NativeArray<VisibleLight> visibleLights, int mainLightIndex)
+        void RenderStencilDirectionalLights(CommandBuffer cmd, NativeArray<VisibleLight> visibleLights, int mainLightIndex, bool isUsingImageBlock=false)
         {
             cmd.EnableShaderKeyword(ShaderKeywordStrings._DIRECTIONAL);
 
@@ -1207,14 +1177,21 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalVector(ShaderConstants._LightDirection, -(Vector3)vl.localToWorldMatrix.GetColumn(2));
 
                 // Lighting pass.
-                cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 3); // Lit
-                cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 4); // SimpleLit
+                if (!isUsingImageBlock)
+                {
+                    cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 3); // Lit
+                    cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 4); // SimpleLit
+                }
+                else
+                {
+                    cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 3); // Lit
+                }
             }
 
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DIRECTIONAL);
         }
 
-        void RenderStencilPointLights(CommandBuffer cmd, NativeArray<VisibleLight> visibleLights)
+        void RenderStencilPointLights(CommandBuffer cmd, NativeArray<VisibleLight> visibleLights, bool isUsingImageBlock=false)
         {
             cmd.EnableShaderKeyword(ShaderKeywordStrings._POINT);
 
@@ -1252,18 +1229,25 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalVector(ShaderConstants._LightAttenuation, lightAttenuation);
                 cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
 
-                // Stencil pass.
-                cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 0);
+                if (!isUsingImageBlock)
+                {
+                    // Stencil pass.
+                    cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 0);
 
-                // Lighting pass.
-                cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 1); // Lit
-                cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 2); // SimpleLit
+                    // Lighting pass.
+                    cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 1); // Lit
+                    cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 2); // SimpleLit
+                }
+                else
+                {
+                    cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 6); // Lit
+                }
             }
 
             cmd.DisableShaderKeyword(ShaderKeywordStrings._POINT);
         }
 
-        void RenderStencilSpotLights(CommandBuffer cmd, NativeArray<VisibleLight> visibleLights)
+        void RenderStencilSpotLights(CommandBuffer cmd, NativeArray<VisibleLight> visibleLights, bool isUsingImageBlock=false)
         {
             cmd.EnableShaderKeyword(ShaderKeywordStrings._SPOT);
 
@@ -1303,12 +1287,19 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalVector(ShaderConstants._LightDirection, new Vector3(lightSpotDir4.x, lightSpotDir4.y, lightSpotDir4.z));
                 cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
 
-                // Stencil pass.
-                cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 0);
+                if (!isUsingImageBlock)
+                {
+                    // Stencil pass.
+                    cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 0);
 
-                // Lighting pass.
-                cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 1); // Lit
-                cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 2); // SimpleLit
+                    // Lighting pass.
+                    cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 1); // Lit
+                    cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 2); // SimpleLit
+                }
+                else
+                {
+                    cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 6); // Lit
+                }
             }
 
             cmd.DisableShaderKeyword(ShaderKeywordStrings._SPOT);

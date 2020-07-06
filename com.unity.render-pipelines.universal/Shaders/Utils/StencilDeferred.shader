@@ -237,5 +237,47 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             ENDHLSL
         }
+
+        // 6 - Deferred Punctual Light (Lit), Without stencil volume test
+        Pass
+        {
+            Name "Deferred Punctual Light (Lit)"
+
+            ZTest GEqual
+            ZWrite Off
+            Cull Front
+            Blend One One, Zero One
+            BlendOp Add, Add
+
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
+            Stencil {
+                Ref 32       // 0b00100000
+                WriteMask 0  // 0b00010000
+                ReadMask 112 // 0b01100000
+                Comp Equal
+                Pass Zero
+                Fail Keep
+                ZFail Keep
+            }
+
+            HLSLPROGRAM
+
+            #pragma multi_compile _POINT _SPOT
+            #pragma multi_compile_fragment _LIT
+            #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
+            #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+            #pragma multi_compile_fragment _ METAL2_ENABLED
+            
+            #pragma vertex Vertex
+            #pragma fragment DeferredShading
+            //#pragma enable_d3d11_debug_symbols
+
+            #define GBUFFER_IMBLOCK_READ
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferredInclude.hlsl"
+
+            ENDHLSL
+        }
     }
 }
