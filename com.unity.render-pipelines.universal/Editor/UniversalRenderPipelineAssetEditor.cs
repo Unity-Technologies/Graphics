@@ -465,8 +465,6 @@ namespace UnityEditor.Rendering.Universal
 
             list.onCanRemoveCallback = li => { return li.count > 1; };
 
-            list.onCanAddCallback = li => { return li.count < UniversalRenderPipeline.maxScriptableRenderers; };
-
             list.onRemoveCallback = li =>
             {
                 if (li.serializedProperty.arraySize - 1 != m_DefaultRendererProp.intValue)
