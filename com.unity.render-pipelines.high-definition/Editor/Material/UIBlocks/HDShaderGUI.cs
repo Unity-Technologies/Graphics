@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
     /// <summary>
     /// Use this class to build your custom Shader GUI for HDRP.
-    /// You'll then be able to use the class that inherit from HDShaderGUI in the ShaderGraph Custom EditorGUI field.
+    /// You can use a class that inherits from HDShaderGUI in the Shader Graph Custom EditorGUI field.
     /// </summary>
     internal abstract class HDShaderGUI : ShaderGUI
     {
@@ -31,11 +31,11 @@ namespace UnityEditor.Rendering.HighDefinition
         protected abstract void SetupMaterialKeywordsAndPassInternal(Material material);
 
         /// <summary>
-        /// This function is called when a new shader is assigned to your material.
+        /// Unity calls this function when you assign a new shader to the material.
         /// </summary>
         /// <param name="material">The current material.</param>
-        /// <param name="oldShader">Previous shader before assignation.</param>
-        /// <param name="newShader">The new incoming shader that will be assigned.</param>
+        /// <param name="oldShader">The shader the material currently uses.</param>
+        /// <param name="newShader">The new shader to assign to the material.</param>
         public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
         {
             base.AssignNewShaderToMaterial(material, oldShader, newShader);
@@ -46,10 +46,10 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Setup the keywords and passes for the material. It is required to call this function after changing a property on a material to ensure it's validity.
+        /// Sets up the keywords and passes for the material. You must call this function after you change a property on a material to ensure it's validity.
         /// </summary>
         /// <param name="changed">GUI.changed is the usual value for this parameter. If changed is false, the function will just exit.</param>
-        /// <param name="materials">The material to perform the setup on.</param>
+        /// <param name="materials">The materials to perform the setup on.</param>
         protected void ApplyKeywordsAndPassesIfNeeded(bool changed, Material[] materials)
         {
             // !!! HACK !!!
@@ -68,7 +68,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Called by unity when displaying the GUI. This method is sealed, use OnMaterialGUI instead
+        /// Unity calls this function when it displays the GUI. This method is sealed so you cannot override it. To implement your custom GUI, use OnMaterialGUI instead.
         /// </summary>
         public sealed override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
@@ -83,16 +83,16 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Implement your custom GUI in this function.false You'll probably want to use the MaterialUIBlock to display a UI similar to HDRP shaders.
+        /// Implement your custom GUI in this function. To display a UI similar to HDRP shaders, use a MaterialUIBlock.
         /// </summary>
         /// <param name="materialEditor">The current material editor.</param>
-        /// <param name="props">The list of properties the material have.</param>
+        /// <param name="props">The list of properties the material has.</param>
         protected abstract void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props);
 
         /// <summary>
         /// Reset the render queue of the material.
         /// </summary>
-        /// <param name="material">The material which will be rested.</param>
+        /// <param name="material">The material to reset the render queue of.</param>
         protected static void ResetMaterialCustomRenderQueue(Material material)
         {
             HDRenderQueue.RenderQueueType targetQueueType;
@@ -122,7 +122,7 @@ namespace UnityEditor.Rendering.HighDefinition
         };
 
         /// <summary>
-        /// For ShaderGraph Only, synchronize a set of properties that is needed for ShaderGraph materials to work correctly.
+        /// Synchronize a set of properties that Unity requires for Shader Graph materials to work correctly. This function is for Shader Graph only.
         /// </summary>
         /// <param name="material">The target material.</param>
         protected static void SynchronizeShaderGraphProperties(Material material)

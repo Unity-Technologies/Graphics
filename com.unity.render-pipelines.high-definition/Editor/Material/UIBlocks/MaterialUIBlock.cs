@@ -79,7 +79,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// Find a material property in the list of available properties.
         /// </summary>
         /// <param name="propertyName">Name of the property.</param>
-        /// <param name="isMandatory">Is the property mandatory for your inspector.</param>
+        /// <param name="isMandatory">Specifies whether the property is mandatory for your Inspector.</param>
         /// <returns>The material property found, null otherwise.</returns>
         protected MaterialProperty FindProperty(string propertyName, bool isMandatory = false)
         {
@@ -101,7 +101,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         /// <param name="propertyName">Name of the property.</param>
         /// <param name="layerCount">Number of layers of the shader.</param>
-        /// <param name="isMandatory">Is the property mandatory for your inspector.</param>
+        /// <param name="isMandatory">Specifies whether the property is mandatory for your Inspector.</param>
         /// <returns>The material property found, null otherwise.</returns>
         protected MaterialProperty[] FindPropertyLayered(string propertyName, int layerCount, bool isMandatory = false)
         {
@@ -125,7 +125,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public abstract void LoadMaterialProperties();
 
         /// <summary>
-        /// Draw the properties in your block.
+        /// Renders the properties in your block.
         /// </summary>
         public abstract void OnGUI();
     }
