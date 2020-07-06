@@ -722,6 +722,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed unitialized ray tracing resources when using non-default HDRP asset (case 1259467).
 - Fixed overused the atlas for Animated/Render Target Cookies (1259930).
 - Fixed sky asserts with XR multipass
+- Fixed custom pass re-ordering issues.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
