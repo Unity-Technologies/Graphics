@@ -11,7 +11,9 @@
 #define DirectBDRF     DirectBRDF
 
 // Deprecated: not using consistent naming convention
-#define unity_MatrixIP unity_MatrixInvP
-#define unity_MatrixIVP unity_MatrixInvVP
+#if defined(USING_STEREO_MATRICES)
+#define unity_StereoMatrixIP unity_StereoMatrixInvP
+#define unity_StereoMatrixIVP unity_StereoMatrixInvVP
+#endif
 
 #endif // UNIVERSAL_DEPRECATED_INCLUDED
