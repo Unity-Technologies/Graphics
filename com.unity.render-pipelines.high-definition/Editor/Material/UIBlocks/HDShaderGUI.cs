@@ -85,7 +85,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 float sortingPriority = material.GetFloat(kTransparentSortPriority);
                 bool alphaTest = material.GetFloat(kAlphaCutoffEnabled) > 0.5f;
-                material.renderQueue = HDRenderQueue.ChangeType(targetQueueType, (int)sortingPriority, alphaTest);
+                bool decalEnable = material.HasProperty(kEnableDecals) && material.GetFloat(kEnableDecals) > 0.0f;
+                material.renderQueue = HDRenderQueue.ChangeType(targetQueueType, (int)sortingPriority, alphaTest, decalEnable);
             }
         }
 

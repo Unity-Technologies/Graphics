@@ -100,6 +100,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(normalDesc, msaa ? HDShaderIDs._NormalTextureMS : HDShaderIDs._NormalBufferTexture);
         }
 
+        TextureHandle CreateDecalPrepassBuffer(RenderGraph renderGraph, bool msaa)
+        {
+            TextureDesc decalDesc = new TextureDesc(Vector2.one, true, true)
+                { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = true, clearColor = Color.black, bindTextureMS = msaa, enableMSAA = msaa, enableRandomWrite = !msaa, name = msaa ? "DecalPrepassBufferMSAA" : "DecalPrepassBuffer" };
+            return renderGraph.CreateTexture(decalDesc);
+        }
+
         TextureHandle CreateMotionVectorBuffer(RenderGraph renderGraph, bool msaa, bool clear)
         {
             TextureDesc motionVectorDesc = new TextureDesc(Vector2.one, true, true)
@@ -119,20 +126,25 @@ namespace UnityEngine.Rendering.HighDefinition
             builder.UseColorBuffer(prepassOutput.normalBuffer, index++);
         }
 
-        void BindMotionVectorPassColorBuffers(in RenderGraphBuilder builder, in PrepassOutput prepassOutput, HDCamera hdCamera)
+        void BindMotionVectorPassColorBuffers(in RenderGraphBuilder builder, in PrepassOutput prepassOutput, TextureHandle decalBuffer, HDCamera hdCamera)
         {
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+            bool decalLayerEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers);
 
             if (msaa)
             {
                 builder.UseColorBuffer(prepassOutput.depthAsColor, 0);
                 builder.UseColorBuffer(prepassOutput.motionVectorsBuffer, 1);
-                builder.UseColorBuffer(prepassOutput.normalBuffer, 2);
+                if (decalLayerEnabled)
+                    builder.UseColorBuffer(decalBuffer, 2);
+                builder.UseColorBuffer(prepassOutput.normalBuffer, decalLayerEnabled ? 3 : 2);
             }
             else
             {
                 builder.UseColorBuffer(prepassOutput.motionVectorsBuffer, 0);
-                builder.UseColorBuffer(prepassOutput.normalBuffer, 1);
+                if (decalLayerEnabled)
+                    builder.UseColorBuffer(decalBuffer, 1);
+                builder.UseColorBuffer(prepassOutput.normalBuffer, decalLayerEnabled ? 2 : 1);
             }
         }
 
@@ -177,13 +189,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     probeVolumeListOutput = BuildGPULightList(m_RenderGraph, hdCamera, m_ProbeVolumeClusterData, m_ProbeVolumeCount, ref m_ShaderVariablesProbeVolumeLightListCB, result.depthBuffer, result.stencilBuffer, result.gbuffer);
                 }
 
-                bool shouldRenderMotionVectorAfterGBuffer = RenderDepthPrepass(renderGraph, cullingResults, hdCamera, ref result);
+                bool shouldRenderMotionVectorAfterGBuffer = RenderDepthPrepass(renderGraph, cullingResults, hdCamera, ref result, out var decalBuffer);
 
                 if (!shouldRenderMotionVectorAfterGBuffer)
                 {
                     // If objects motion vectors are enabled, this will render the objects with motion vector into the target buffers (in addition to the depth)
                     // Note: An object with motion vector must not be render in the prepass otherwise we can have motion vector write that should have been rejected
-                    RenderObjectsMotionVectors(renderGraph, cullingResults, hdCamera, result);
+                    RenderObjectsMotionVectors(renderGraph, cullingResults, hdCamera, decalBuffer, result);
                 }
 
                 // If we have MSAA, we need to complete the motion vector buffer before buffer resolves, hence we need to run camera mv first.
@@ -199,7 +211,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // At this point in forward all objects have been rendered to the prepass (depth/normal/motion vectors) so we can resolve them
                 ResolvePrepassBuffers(renderGraph, hdCamera, ref result);
 
-                RenderDBuffer(renderGraph, hdCamera, ref result, cullingResults);
+                RenderDBuffer(renderGraph, hdCamera, decalBuffer, ref result, cullingResults);
 
                 RenderGBuffer(renderGraph, sssBuffer, ref result, probeVolumeListOutput, cullingResults, hdCamera);
 
@@ -218,7 +230,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (shouldRenderMotionVectorAfterGBuffer)
                 {
                     // See the call RenderObjectsMotionVectors() above and comment
-                    RenderObjectsMotionVectors(renderGraph, cullingResults, hdCamera, result);
+                    RenderObjectsMotionVectors(renderGraph, cullingResults, hdCamera, decalBuffer, result);
                 }
 
                 // In case we don't have MSAA, we always run camera motion vectors when is safe to assume Object MV are rendered
@@ -237,13 +249,15 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public FrameSettings        frameSettings;
             public bool                 msaaEnabled;
-            public bool                 hasDepthOnlyPrepass;
+            public bool                 decalLayersEnabled;
+            public bool                 hasDepthDeferredPass;
             public TextureHandle        depthBuffer;
             public TextureHandle        depthAsColorBuffer;
             public TextureHandle        normalBuffer;
+            public TextureHandle        decalBuffer;
 
-            public RendererListHandle   rendererListMRT;
-            public RendererListHandle   rendererListDepthOnly;
+            public RendererListHandle   rendererListDepthForward;
+            public RendererListHandle   rendererListDepthDeferred;
         }
 
         // RenderDepthPrepass render both opaque and opaque alpha tested based on engine configuration.
@@ -251,20 +265,24 @@ namespace UnityEngine.Rendering.HighDefinition
         // Lit Deferred: We always render depth prepass for alpha tested (optimization), other deferred material are render based on engine configuration.
         // Forward opaque with deferred renderer (DepthForwardOnly pass): We always render all materials
         // True is returned if motion vector must be rendered after GBuffer pass
-        bool RenderDepthPrepass(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, ref PrepassOutput output)
+        bool RenderDepthPrepass(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, ref PrepassOutput output, out TextureHandle decalBuffer)
         {
             var depthPrepassParameters = PrepareDepthPrepass(cull, hdCamera);
 
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+            bool decalLayersEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers);
 
             using (var builder = renderGraph.AddRenderPass<DepthPrepassData>(depthPrepassParameters.passName, out var passData, ProfilingSampler.Get(depthPrepassParameters.profilingId)))
             {
                 passData.frameSettings = hdCamera.frameSettings;
                 passData.msaaEnabled = msaa;
-                passData.hasDepthOnlyPrepass = depthPrepassParameters.hasDepthOnlyPass;
+                passData.decalLayersEnabled = decalLayersEnabled;
+                passData.hasDepthDeferredPass = depthPrepassParameters.hasDepthDeferredPass;
 
                 passData.depthBuffer = builder.UseDepthBuffer(output.depthBuffer, DepthAccess.ReadWrite);
                 passData.normalBuffer = builder.WriteTexture(CreateNormalBuffer(renderGraph, msaa));
+                if (decalLayersEnabled)
+                    passData.decalBuffer = builder.WriteTexture(CreateDecalPrepassBuffer(renderGraph, msaa));
                 // This texture must be used because reading directly from an MSAA Depth buffer is way to expensive.
                 // The solution that we went for is writing the depth in an additional color buffer (10x cheaper to solve on ps4)
                 if (msaa)
@@ -273,39 +291,55 @@ namespace UnityEngine.Rendering.HighDefinition
                         { colorFormat = GraphicsFormat.R32_SFloat, clearBuffer = true, clearColor = Color.black, bindTextureMS = true, enableMSAA = true, name = "DepthAsColorMSAA" }, HDShaderIDs._DepthTextureMS));
                 }
 
-                if (passData.hasDepthOnlyPrepass)
+                if (passData.hasDepthDeferredPass)
                 {
-                    passData.rendererListDepthOnly = builder.UseRendererList(renderGraph.CreateRendererList(depthPrepassParameters.depthOnlyRendererListDesc));
+                    passData.rendererListDepthDeferred = builder.UseRendererList(renderGraph.CreateRendererList(depthPrepassParameters.depthDeferredRendererListDesc));
                 }
 
-                passData.rendererListMRT = builder.UseRendererList(renderGraph.CreateRendererList(depthPrepassParameters.mrtRendererListDesc));
+                passData.rendererListDepthForward = builder.UseRendererList(renderGraph.CreateRendererList(depthPrepassParameters.depthForwardRendererListDesc));
 
                 output.depthBuffer = passData.depthBuffer;
                 output.depthAsColor = passData.depthAsColorBuffer;
                 output.normalBuffer = passData.normalBuffer;
+                if (decalLayersEnabled)
+                    decalBuffer = passData.decalBuffer;
+                else
+                    decalBuffer = new TextureHandle();
 
                 builder.SetRenderFunc(
                 (DepthPrepassData data, RenderGraphContext context) =>
                 {
-                    var mrt = context.renderGraphPool.GetTempArray<RenderTargetIdentifier>(data.msaaEnabled ? 2 : 1);
+                    RenderTargetIdentifier[] deferredMrt = null;
+                    if (data.hasDepthDeferredPass && data.decalLayersEnabled)
+                    {
+                        deferredMrt = context.renderGraphPool.GetTempArray<RenderTargetIdentifier>(1);
+                        deferredMrt[0] = context.resources.GetTexture(data.decalBuffer);
+                    }
+
+                    var forwardMrt = context.renderGraphPool.GetTempArray<RenderTargetIdentifier>((data.msaaEnabled ? 2 : 1) + (data.decalLayersEnabled ? 1 : 0));
                     if (data.msaaEnabled)
                     {
-                        mrt[0] = context.resources.GetTexture(data.depthAsColorBuffer);
-                        mrt[1] = context.resources.GetTexture(data.normalBuffer);
+                        forwardMrt[0] = context.resources.GetTexture(data.depthAsColorBuffer);
+                        forwardMrt[1] = context.resources.GetTexture(data.normalBuffer);
+                        if (data.decalLayersEnabled)
+                            forwardMrt[2] = context.resources.GetTexture(data.decalBuffer);
                     }
                     else
                     {
-                        mrt[0] = context.resources.GetTexture(data.normalBuffer);
+                        forwardMrt[0] = context.resources.GetTexture(data.normalBuffer);
+                        if (data.decalLayersEnabled)
+                            forwardMrt[1] = context.resources.GetTexture(data.decalBuffer);
                     }
 
                     bool useRayTracing = data.frameSettings.IsEnabled(FrameSettingsField.RayTracing);
 
                     RenderDepthPrepass(context.renderContext, context.cmd, data.frameSettings
-                                    , mrt
+                                    , deferredMrt
+                                    , forwardMrt
                                     , context.resources.GetTexture(data.depthBuffer)
-                                    , context.resources.GetRendererList(data.rendererListDepthOnly)
-                                    , context.resources.GetRendererList(data.rendererListMRT)
-                                    , data.hasDepthOnlyPrepass
+                                    , context.resources.GetRendererList(data.rendererListDepthDeferred)
+                                    , context.resources.GetRendererList(data.rendererListDepthForward)
+                                    , data.hasDepthDeferredPass
                                     );
                 });
             }
@@ -320,7 +354,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public RendererListHandle   rendererList;
         }
 
-        void RenderObjectsMotionVectors(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, in PrepassOutput output)
+        void RenderObjectsMotionVectors(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, TextureHandle decalBuffer, in PrepassOutput output)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ObjectMotionVectors))
                 return;
@@ -333,7 +367,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.frameSettings = hdCamera.frameSettings;
                 passData.depthBuffer = builder.UseDepthBuffer(output.depthBuffer, DepthAccess.ReadWrite);
-                BindMotionVectorPassColorBuffers(builder, output, hdCamera);
+                BindMotionVectorPassColorBuffers(builder, output, decalBuffer, hdCamera);
 
                 RenderStateBlock? stateBlock = null;
                 if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.AlphaToMask))
@@ -646,6 +680,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public RendererListHandle       meshDecalsRendererList;
             public TextureHandle            depthStencilBuffer;
             public ComputeBufferHandle      propertyMaskBuffer;
+            public TextureHandle            decalBuffer;            
         }
 
         struct DBufferOutput
@@ -701,7 +736,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return dBufferOutput;
         }
 
-        void RenderDBuffer(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output, CullingResults cullingResults)
+        void RenderDBuffer(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle decalBuffer, ref PrepassOutput output, CullingResults cullingResults)
         {
             bool use4RTs = m_Asset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
 
@@ -718,11 +753,18 @@ namespace UnityEngine.Rendering.HighDefinition
             // We need to copy depth buffer texture if we want to bind it at this stage
             CopyDepthBufferIfNeeded(renderGraph, hdCamera, ref output);
 
+            // If we have an incomplete depth buffer use for decal we will need to do another copy
+            // after the rendering of the GBuffer
+            if ((   hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred) &&
+                    !hdCamera.frameSettings.IsEnabled(FrameSettingsField.DepthPrepassWithDeferredRendering))
+                m_IsDepthBufferCopyValid = false;
+
             using (var builder = renderGraph.AddRenderPass<RenderDBufferPassData>("DBufferRender", out var passData, ProfilingSampler.Get(HDProfileId.DBufferRender)))
             {
-                passData.parameters = PrepareRenderDBufferParameters();
+                passData.parameters = PrepareRenderDBufferParameters(hdCamera);
                 passData.meshDecalsRendererList = builder.UseRendererList(renderGraph.CreateRendererList(PrepareMeshDecalsRendererList(cullingResults, hdCamera, use4RTs)));
                 SetupDBufferTargets(renderGraph, passData, use4RTs, ref output, builder);
+                passData.decalBuffer = builder.ReadTexture(decalBuffer);
 
                 builder.SetRenderFunc(
                 (RenderDBufferPassData data, RenderGraphContext context) =>
@@ -746,7 +788,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                     resources.GetTexture(data.depthStencilBuffer),
                                     resources.GetRendererList(data.meshDecalsRendererList),
                                     resources.GetComputeBuffer(data.propertyMaskBuffer),
-                                    context.renderContext,
+                                    resources.GetTexture(data.decalBuffer),
+                                    context.renderContext,                                    
                                     context.cmd);
                 });
             }
