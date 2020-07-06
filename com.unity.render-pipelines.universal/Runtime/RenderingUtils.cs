@@ -118,7 +118,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 Matrix4x4 inverseViewMatrix = Matrix4x4.Inverse(viewMatrix);
                 Matrix4x4 inverseProjectionMatrix = Matrix4x4.Inverse(projectionMatrix);
-                Matrix4x4 inverseViewProjection = Matrix4x4.Inverse(viewAndProjectionMatrix);
+                Matrix4x4 inverseViewProjection = inverseViewMatrix * inverseProjectionMatrix;
                 cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewMatrix, inverseViewMatrix);
                 cmd.SetGlobalMatrix(ShaderPropertyId.inverseProjectionMatrix, inverseProjectionMatrix);
                 cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewAndProjectionMatrix, inverseViewProjection);

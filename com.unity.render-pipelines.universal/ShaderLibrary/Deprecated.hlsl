@@ -10,4 +10,8 @@
 #define kDieletricSpec kDielectricSpec
 #define DirectBDRF     DirectBRDF
 
+// Deprecated: not using consistent naming convention
+#define unity_MatrixIP unity_MatrixInvP
+#define unity_MatrixIVP unity_MatrixInvVP
+
 #endif // UNIVERSAL_DEPRECATED_INCLUDED
