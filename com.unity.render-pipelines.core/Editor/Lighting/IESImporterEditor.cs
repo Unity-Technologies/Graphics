@@ -1,6 +1,6 @@
 using System.Reflection;
 using UnityEditor;
-using UnityEditor.Experimental.AssetImporters;
+
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -95,7 +95,7 @@ namespace UnityEditor.Rendering
         /// Callback called on the Implemented IESImporterEditor (currently on HDRP Only)
         /// </summary>
         /// <param name="scriptedImporter">The current specialized scripted importer using the common code</param>
-        public void CommonOnInspectorGUI(ScriptedImporterEditor scriptedImporter)
+        public void CommonOnInspectorGUI(UnityEditor.AssetImporters.ScriptedImporterEditor scriptedImporter)
         {
             scriptedImporter.serializedObject.Update();
 
@@ -237,7 +237,7 @@ namespace UnityEditor.Rendering
         /// <param name="r">Rect of the Preview</param>
         /// <param name="target">ScriptedImporter targeted</param>
         /// <param name="setupRenderPipelinePreviewLightIntensity">Delegate provided by the Rendering Pipeline to setup the Light Intensity</param>
-        public void CommonOnPreviewGUI(Rect r, GUIStyle background, ScriptedImporter target,
+        public void CommonOnPreviewGUI(Rect r, GUIStyle background, UnityEditor.AssetImporters.ScriptedImporter target,
                                         SetupRenderPipelinePreviewLightIntensity setupRenderPipelinePreviewLightIntensity)
         {
             if (Event.current.type == EventType.Repaint)

@@ -1,6 +1,6 @@
 using System.IO;
 using UnityEditor;
-using UnityEditor.Experimental.AssetImporters;
+
 using UnityEngine;
 
 namespace UnityEditor.Rendering
@@ -9,8 +9,8 @@ namespace UnityEditor.Rendering
     /// Common class use to share code between implementation of IES Importeres
     /// </summary>
     [System.Serializable]
-    [ScriptedImporter(1, "ies")]
-    public partial class IESImporter : ScriptedImporter
+    [UnityEditor.AssetImporters.ScriptedImporter(1, "ies")]
+    public partial class IESImporter : UnityEditor.AssetImporters.ScriptedImporter
     {
         /// <summary>
         /// IES Engine
@@ -26,13 +26,13 @@ namespace UnityEditor.Rendering
         /// Delegate prototype which will be sent by the pipeline implementation of the IES Importer
         /// Must be initialized during the creation of the SRP
         /// </summary>
-        public static event System.Action<AssetImportContext, string, bool, string, float, Light, Texture> createRenderPipelinePrefabLight;
+        public static event System.Action<UnityEditor.AssetImporters.AssetImportContext, string, bool, string, float, Light, Texture> createRenderPipelinePrefabLight;
 
         /// <summary>
         /// Common method performing the import of the asset
         /// </summary>
         /// <param name="ctx">Asset importer context.</param>
-        public override void OnImportAsset(AssetImportContext ctx)
+        public override void OnImportAsset(UnityEditor.AssetImporters.AssetImportContext ctx)
         {
             engine.TextureGenerationType = TextureImporterType.Default;
 

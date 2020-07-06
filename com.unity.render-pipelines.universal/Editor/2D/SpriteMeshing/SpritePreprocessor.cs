@@ -141,13 +141,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
             sprite.SetVertexAttribute(UnityEngine.Rendering.VertexAttribute.Position, nativeVertices);
             sprite.SetVertexAttribute(UnityEngine.Rendering.VertexAttribute.TexCoord0, nativeUVs);
             sprite.SetIndices(nativeIndices);
-
-            int meshCount = sprite.GetSubmeshCount();
-            if (meshCount == 1)
-                sprite.AddSubmesh();
-
             sprite.ModifySubmesh(0, allVertices.Count, 0, colorTriangles.Count, 0);
-            sprite.ModifySubmesh(0, allVertices.Count, colorTriangles.Count, depthTriangles.Count, 1);
+
+            if (depthTriangles.Count > 0)
+            {
+                int meshCount = sprite.GetSubmeshCount();
+                if (meshCount == 1)
+                    sprite.AddSubmesh();
+                sprite.ModifySubmesh(0, allVertices.Count, colorTriangles.Count, depthTriangles.Count, 1);
+            }
 
             nativeVertices.Dispose();
             nativeUVs.Dispose();
