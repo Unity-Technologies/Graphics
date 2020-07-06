@@ -80,7 +80,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         /// <param name="propertyName">Name of the property.</param>
         /// <param name="isMandatory">Specifies whether the property is mandatory for your Inspector.</param>
-        /// <returns>The material property found, null otherwise.</returns>
+        /// <returns>Returns the material property if it exists. Returns null otherwise.</returns>
         protected MaterialProperty FindProperty(string propertyName, bool isMandatory = false)
         {
             // ShaderGUI.FindProperty is a protected member of ShaderGUI so we can't call it here:
@@ -102,7 +102,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="propertyName">Name of the property.</param>
         /// <param name="layerCount">Number of layers of the shader.</param>
         /// <param name="isMandatory">Specifies whether the property is mandatory for your Inspector.</param>
-        /// <returns>The material property found, null otherwise.</returns>
+        /// <returns>Returns the material property if it exists. Returns null otherwise.</returns>
         protected MaterialProperty[] FindPropertyLayered(string propertyName, int layerCount, bool isMandatory = false)
         {
             MaterialProperty[] properties = new MaterialProperty[layerCount];

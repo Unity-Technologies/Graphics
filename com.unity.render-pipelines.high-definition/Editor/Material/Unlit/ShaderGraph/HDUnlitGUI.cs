@@ -25,7 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// Implement your custom GUI in this function. To display a UI similar to HDRP shaders, use a MaterialUIBlock.
         /// </summary>
         /// <param name="materialEditor">The current material editor.</param>
-        /// <param name="props">The list of properties the material have.</param>
+        /// <param name="props">The list of properties the material has.</param>
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             using (var changed = new EditorGUI.ChangeCheckScope())

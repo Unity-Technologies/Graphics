@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// Sets up the keywords and passes for the material. You must call this function after you change a property on a material to ensure it's validity.
         /// </summary>
-        /// <param name="changed">GUI.changed is the usual value for this parameter. If changed is false, the function will just exit.</param>
+        /// <param name="changed">GUI.changed is the usual value for this parameter. If this value is false, the function just exits.</param>
         /// <param name="materials">The materials to perform the setup on.</param>
         protected void ApplyKeywordsAndPassesIfNeeded(bool changed, Material[] materials)
         {
