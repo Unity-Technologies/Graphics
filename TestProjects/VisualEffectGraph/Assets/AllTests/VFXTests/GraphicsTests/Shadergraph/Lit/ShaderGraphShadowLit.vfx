@@ -177,6 +177,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_UIInfos: {fileID: 114340500867371532}
   m_ParameterInfo: []
+  m_ImportDependencies: []
   m_GraphVersion: 4
   m_saved: 1
   m_SubgraphDependencies: []
@@ -1144,7 +1145,6 @@ MonoBehaviour:
   useExposureWeight: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 512f82f171764c6479b3c00a0ed7479a,
     type: 3}
-  shadergraphGUID: 512f82f171764c6479b3c00a0ed7479a
   materialType: 0
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 0}
@@ -1293,7 +1293,6 @@ MonoBehaviour:
   useExposureWeight: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 512f82f171764c6479b3c00a0ed7479a,
     type: 3}
-  shadergraphGUID: 512f82f171764c6479b3c00a0ed7479a
   materialType: 0
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 0}
@@ -1801,7 +1800,6 @@ MonoBehaviour:
   useExposureWeight: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 512f82f171764c6479b3c00a0ed7479a,
     type: 3}
-  shadergraphGUID: 512f82f171764c6479b3c00a0ed7479a
   materialType: 0
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 0}
@@ -2240,7 +2238,6 @@ MonoBehaviour:
   useExposureWeight: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 512f82f171764c6479b3c00a0ed7479a,
     type: 3}
-  shadergraphGUID: 512f82f171764c6479b3c00a0ed7479a
   materialType: 0
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 0}
