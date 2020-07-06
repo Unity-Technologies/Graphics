@@ -128,23 +128,26 @@ namespace UnityEngine.Rendering.HighDefinition
         class RenderOcclusionMeshesPassData
         {
             public HDCamera hdCamera;
+            public TextureHandle colorBuffer;
             public TextureHandle depthBuffer;
+            public Color clearColor;
         }
 
-        void RenderXROcclusionMeshes(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer)
+        void RenderXROcclusionMeshes(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer)
         {
             if (hdCamera.xr.enabled && m_Asset.currentPlatformRenderPipelineSettings.xrSettings.occlusionMesh)
             {
                 using (var builder = renderGraph.AddRenderPass<RenderOcclusionMeshesPassData>("XR Occlusion Meshes", out var passData))
                 {
                     passData.hdCamera = hdCamera;
+                    passData.colorBuffer = builder.WriteTexture(colorBuffer);
                     passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Write);
+                    passData.clearColor = GetColorBufferClearColor(hdCamera);
 
                     builder.SetRenderFunc(
                     (RenderOcclusionMeshesPassData data, RenderGraphContext ctx) =>
                     {
-                        // TODO RENDERGRAPH : XR occlusion mesh also need to write to color buffer
-                        //data.hdCamera.xr.RenderOcclusionMeshes(ctx.cmd, ctx.resources.GetTexture(data.depthBuffer));
+                        data.hdCamera.xr.RenderOcclusionMeshes(ctx.cmd, data.clearColor, ctx.resources.GetTexture(data.colorBuffer), ctx.resources.GetTexture(data.depthBuffer));
                     });
                 }
             }

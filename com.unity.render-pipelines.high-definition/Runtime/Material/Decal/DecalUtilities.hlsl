@@ -1,4 +1,5 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
 
 #ifndef SCALARIZE_LIGHT_LOOP
 #define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
@@ -238,6 +239,8 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
     float3 positionRWSDdx = ddx(positionRWS);
     float3 positionRWSDdy = ddy(positionRWS);
 
+    uint decalLayerMask = GetMeshRenderingDecalLayer();
+
     // Scalarized loop. All decals that are in a tile/cluster touched by any pixel in the wave are loaded (scalar load), only the ones relevant to current thread/pixel are processed.
     // For clarity, the following code will follow the convention: variables starting with s_ are wave uniform (meant for scalar register),
     // v_ are variables that might have different value for each thread in the wave (meant for vector registers).
@@ -275,6 +278,7 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
 #endif // SCALARIZE_LIGHT_LOOP
 
         DecalData s_decalData = FetchDecal(s_decalIdx);
+        bool isRejected = (s_decalData.decalLayerMask & decalLayerMask) == 0;
 
         // If current scalar and vector decal index match, we process the decal. The v_decalListOffset for current thread is increased.
         // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
@@ -282,7 +286,8 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
         if (s_decalIdx >= v_decalIdx)
         {
             v_decalListOffset++;
-            EvalDecalMask(posInput, positionRWSDdx, positionRWSDdy, s_decalData, DBuffer0, DBuffer1, DBuffer2, DBuffer3, mask, alpha);
+            if (!isRejected)
+                EvalDecalMask(posInput, positionRWSDdx, positionRWSDdy, s_decalData, DBuffer0, DBuffer1, DBuffer2, DBuffer3, mask, alpha);
         }
 
     }
