@@ -52,51 +52,71 @@ namespace UnityEditor.VFX
                 .Select(o => o.Value(a))).ToArray();
         }
 
-        public static VFXExpression ApplyToExpressionGraph(VFXPropertyAttribute[] attributes, VFXExpression exp)
+        public static bool IsEqual(VFXPropertyAttribute[] one,VFXPropertyAttribute[] other)
         {
-            if (attributes != null)
-            {
-                foreach (VFXPropertyAttribute attribute in attributes)
+
+            if (one == null)
+                return other == null;
+
+            if (other == null)
+                return false;
+
+            // assume if they are equal, they will be in the same order.
+            if (one.Length != other.Length)
+                return false;
+
+            for (int i = 0; i < one.Length; ++i)
+                if (!one[i].Equals(other[i]))
+                    return false;
+
+            return true;
+        }
+
+        public static VFXExpression ApplyToExpressionGraph(VFXPropertyAttribute[] attributes, VFXExpression exp)
                 {
+            if (attributes != null)
+        {
+                foreach (VFXPropertyAttribute attribute in attributes)
+            {
                     switch (attribute.m_Type)
-                    {
+                {
                         case Type.kRange:
-                            switch (exp.valueType)
-                            {
-                                case VFXValueType.Int32:
+                    switch (exp.valueType)
+                    {
+                        case VFXValueType.Int32:
                                     exp = VFXOperatorUtility.Clamp(exp, VFXValue.Constant((int)attribute.m_Min), VFXValue.Constant((int)attribute.m_Max), false);
-                                    break;
-                                case VFXValueType.Uint32:
+                            break;
+                        case VFXValueType.Uint32:
                                     exp = VFXOperatorUtility.Clamp(exp, VFXValue.Constant((uint)attribute.m_Min), VFXValue.Constant((uint)attribute.m_Max), false);
-                                    break;
-                                case VFXValueType.Float:
-                                case VFXValueType.Float2:
-                                case VFXValueType.Float3:
-                                case VFXValueType.Float4:
+                            break;
+                        case VFXValueType.Float:
+                        case VFXValueType.Float2:
+                        case VFXValueType.Float3:
+                        case VFXValueType.Float4:
                                     exp = VFXOperatorUtility.Clamp(exp, VFXValue.Constant(attribute.m_Min), VFXValue.Constant(attribute.m_Max));
-                                    break;
-                                default:
-                                    throw new NotImplementedException(string.Format("Cannot use RangeAttribute on value of type: {0}", exp.valueType));
-                            }
+                            break;
+                        default:
+                            throw new NotImplementedException(string.Format("Cannot use RangeAttribute on value of type: {0}", exp.valueType));
+                    }
                             break;
                         case Type.kMin:
-                            switch (exp.valueType)
-                            {
-                                case VFXValueType.Int32:
+                    switch (exp.valueType)
+                    {
+                        case VFXValueType.Int32:
                                     exp = new VFXExpressionMax(exp, VFXValue.Constant((int)attribute.m_Min));
-                                    break;
-                                case VFXValueType.Uint32:
+                            break;
+                        case VFXValueType.Uint32:
                                     exp = new VFXExpressionMax(exp, VFXValue.Constant((uint)attribute.m_Min));
-                                    break;
-                                case VFXValueType.Float:
-                                case VFXValueType.Float2:
-                                case VFXValueType.Float3:
-                                case VFXValueType.Float4:
+                            break;
+                        case VFXValueType.Float:
+                        case VFXValueType.Float2:
+                        case VFXValueType.Float3:
+                        case VFXValueType.Float4:
                                     exp = new VFXExpressionMax(exp, VFXOperatorUtility.CastFloat(VFXValue.Constant(attribute.m_Min), exp.valueType));
-                                    break;
-                                default:
-                                    throw new NotImplementedException(string.Format("Cannot use MinAttribute on value of type: {0}", exp.valueType));
-                            }
+                            break;
+                        default:
+                            throw new NotImplementedException(string.Format("Cannot use MinAttribute on value of type: {0}", exp.valueType));
+                    }
                             break;
                         case Type.kNormalize:
                             exp = VFXOperatorUtility.Normalize(exp);
@@ -110,7 +130,7 @@ namespace UnityEditor.VFX
                             break;
                         default:
                             throw new NotImplementedException();
-                    }
+                }
                 }
             }
 
@@ -121,7 +141,7 @@ namespace UnityEditor.VFX
         {
             string tooltipAddon = "";
             if (attributes != null)
-            {
+                {
                 foreach (VFXPropertyAttribute attribute in attributes)
                 {
                     switch (attribute.m_Type)
@@ -132,13 +152,13 @@ namespace UnityEditor.VFX
                             tooltipAddon += string.Format(CultureInfo.InvariantCulture, " (Min: {0})", attribute.m_Min);
                             break;
                         case Type.kNormalize:
-                            tooltipAddon += " (Normalized)";
+                        tooltipAddon += " (Normalized)";
                             break;
                         case Type.kTooltip:
                             tooltip = attribute.m_Tooltip;
                             break;
                         case Type.kAngle:
-                            tooltipAddon += " (Angle)";
+                        tooltipAddon += " (Angle)";
                             break;
                         case Type.kColor:
                         case Type.kRegex:
@@ -149,7 +169,7 @@ namespace UnityEditor.VFX
                             throw new NotImplementedException();
                     }
                 }
-            }
+                }
 
             if (string.IsNullOrEmpty(tooltip))
                 tooltip = label;
@@ -160,7 +180,7 @@ namespace UnityEditor.VFX
         public static Vector2 FindRange(VFXPropertyAttribute[] attributes)
         {
             if (attributes != null)
-            {
+        {
                 VFXPropertyAttribute attribute = attributes.FirstOrDefault(o => o.m_Type == Type.kRange);
                 if (attribute != null)
                     return new Vector2(attribute.m_Min, attribute.m_Max);
@@ -174,18 +194,18 @@ namespace UnityEditor.VFX
         }
 
         public static bool IsAngle(VFXPropertyAttribute[] attributes)
-        {
+            {
             if (attributes != null)
                 return attributes.Any(o => o.m_Type == Type.kAngle);
             return false;
-        }
+            }
 
         public static bool IsColor(VFXPropertyAttribute[] attributes)
-        {
+            {
             if (attributes != null)
                 return attributes.Any(o => o.m_Type == Type.kColor);
             return false;
-        }
+            }
 
         public static bool IsDelayed(VFXPropertyAttribute[] attributes)
         {
@@ -207,8 +227,8 @@ namespace UnityEditor.VFX
             {
                 var attrib = attributes.FirstOrDefault(o => o.m_Type == Type.kRegex);
                 if (attrib != null)
-                {
-                    string str = (string)obj;
+            {
+                string str = (string)obj;
                     str = Regex.Replace(str, attrib.m_Regex, "");
                     return str.Substring(0, Math.Min(str.Length, attrib.m_RegexMaxLength));
                 }

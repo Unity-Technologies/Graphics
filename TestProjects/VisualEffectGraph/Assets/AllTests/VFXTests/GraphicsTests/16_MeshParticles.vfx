@@ -1511,7 +1511,7 @@ MonoBehaviour:
   - {fileID: 114155846815806328}
   m_Shader: {fileID: -6465566751694194690, guid: a1f88376c5c975644a8bea93ca9eecde,
     type: 3}
-  m_ShaderName: 
+  m_ShaderName: Shader Graphs/Rim
 --- !u!114 &114330014756498278
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1812,7 +1812,7 @@ MonoBehaviour:
   - {fileID: 114515421661568980}
   m_Shader: {fileID: -6465566751694194690, guid: a1f88376c5c975644a8bea93ca9eecde,
     type: 3}
-  m_ShaderName: 
+  m_ShaderName: Shader Graphs/Rim
 --- !u!114 &114402011493172982
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4522,7 +4522,7 @@ MonoBehaviour:
   - {fileID: 114291945608062826}
   m_Shader: {fileID: -6465566751694194690, guid: a1f88376c5c975644a8bea93ca9eecde,
     type: 3}
-  m_ShaderName: 
+  m_ShaderName: Shader Graphs/Rim
 --- !u!114 &114927614131177854
 MonoBehaviour:
   m_ObjectHideFlags: 1
