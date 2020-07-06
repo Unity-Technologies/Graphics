@@ -228,6 +228,22 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.EndProperty();
         }
 
+        internal static void DrawDecalLayerMask_Internal(Rect rect, GUIContent label, SerializedProperty property)
+        {
+            if (HDRenderPipeline.defaultAsset == null)
+                return ;
+
+            EditorGUI.BeginProperty(rect, label, property);
+
+            EditorGUI.BeginChangeCheck();
+            int changedValue = EditorGUI.MaskField(rect, label ?? GUIContent.none, property.intValue, HDRenderPipeline.defaultAsset.decalLayerNames);
+            if (EditorGUI.EndChangeCheck())
+                property.intValue = changedValue;
+
+            EditorGUI.EndProperty();
+        }
+        
+
         /// <summary>
         /// Should be placed between BeginProperty / EndProperty
         /// </summary>
@@ -252,9 +268,9 @@ namespace UnityEditor.Rendering.HighDefinition
             Rect lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
             EditorGUI.BeginProperty(lineRect, label, property);
             EditorGUI.BeginChangeCheck();
-            string lightLayerName0 = EditorGUI.DelayedTextField(lineRect, label, property.stringValue);
+            string value = EditorGUI.DelayedTextField(lineRect, label, property.stringValue);
             if (EditorGUI.EndChangeCheck())
-                property.stringValue = lightLayerName0;
+                property.stringValue = value;
             EditorGUI.EndProperty();
         }
 
