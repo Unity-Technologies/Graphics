@@ -23,7 +23,7 @@ function Get-CanonicalPath
     param($Path)
 
     if ($Path -is [string]) {
-        $Path = (Resolve-Path $Path).Path
+        $Path = (Resolve-Path $Path -erroraction 'silentlycontinue').Path 
     }
 
     $pathInfo = [System.IO.DirectoryInfo]$Path
@@ -56,31 +56,44 @@ function Write-Results {
     #> 
     param ($Results)
 
-    if ($Results[0] -eq $true) {
+    if ($Results[0] -gt 0) {
         # At least one shader was not found, so issue a report 
         $logFile = Join-Path $srpRoot "check-shader-includes.log"
         if ([System.IO.File]::Exists($logFile)) {
             "An old log file already exists. Deleting it..."
             Remove-Item $logFile
         }
-        "Shader includes check report issued on: $((Get-Date).ToString())`n" | Out-File -Append $logFile
+        "Shader includes check report issued on: $((Get-Date).ToString())" | Out-File -Append $logFile
+        "{0} shader(s) not found on the filesystem" -f $Results[0] | Out-File -Append $logFile
+
+        # First, dump missing shaders
         foreach ($file in $Results[1]) {
             # Reminder 
             # $file[0] --> FilePath
             # $file[1] --> Array of {[0]: PathToShader as written in the file (case insensitive), [1]: ShaderStatus}
+            if ($file[1].Count -gt 0) {
+                foreach ($shaderInclude in $file[1]) {
+                    if ($shaderInclude."ShaderStatus" -eq [ShaderStatus]::NotFound) {
+                        "[Warning] [{0}] Found include for [{1}] and it does not match the filesystem (check the case sensitivity)." -f $file[0], $shaderInclude."PathToShader" | Out-File -Append $logFile
+                    } 
+                }
+            } 
+        }
+
+        # Then, dump the shaders that we successfully found
+        "`n" | Out-File -Append $logFile
+        foreach ($file in $Results[1]) {
             if ($file[1].count -gt 0) {
                 foreach ($shaderInclude in $file[1]) {
                     if ($shaderInclude."ShaderStatus" -eq [ShaderStatus]::Found) {
                         "[OK] [{0}] Found include for [{1}] and it matches the filesystem (case sensitive)." -f $file[0], $shaderInclude."PathToShader" | Out-File -Append $logFile 
-                    } else {
-                        "[Warning] [{0}] Found include for [{1}] and it does not match the filesystem (check the case sensitivity)." -f $file[0], $shaderInclude."PathToShader" | Out-File -Append $logFile
-                    }
+                    } 
                 }
             } else {
                 "[OK] [{0}] - No shader include found in this file. Skipped shader includes checks." -f $file[0] | Out-File -Append $logFile
             }
-            "`n" | Out-File -Append $logFile
         }
+
         "FAILED - There may be an error with the shader includes in the files you're trying to commit. A report was generated in $logFile."
         exit 1 # Block commit
     } else {
@@ -96,20 +109,48 @@ function Find-MatchesInFile {
             Find and matches pattern in given file
     #> 
     param($File)
-
-    $regex = '(?<=#include\s\").+\.hlsl' 
     
-    $searchResult = Select-String -Path $File -Pattern $regex
+    $globalRegex = '(.+)?#include\s\".+.hlsl'
+    $isCommentRegex = '^(\/|\*).+$'
+    $pathRegex = '(?<=#include\s\").+\.hlsl' 
+    
+    $searchResult = Select-String -Path $File -Pattern $globalRegex
     [System.Collections.ArrayList]$shaderIncludesOfFile = @()
-
     if ($null -ne $searchResult)
     {
         foreach ($match in $searchResult.Matches) {
-            $strippedFilePath = $match.Value.Replace("Packages/", "")
-            $caseInsensitivePath = Join-Path $srpRoot $strippedFilePath
-            $caseSensitivePath = Get-CanonicalPath -Path "$caseInsensitivePath"
+            $isCommentTestResults = $match.Value | Select-String -Pattern $isCommentRegex
+            if ($null -ne $isCommentTestResults) {
+                # Do not consider comments
+                continue
+            }
+            $pathResults = $match.Value | Select-String -Pattern $pathRegex
+            if ($null -eq $pathResults) {
+                continue
+            }
+
+            $strippedFilePath = $pathResults.Matches[0].Value.Replace('"', "")
+            $matchAsbolutePathPreffix = $strippedFilePath | Select-String -Pattern 'Packages'
+            if ($matchAsbolutePathPreffix.Matches.Count -gt 0) {
+                # The include is "absolute", e.g. "Packages/com.unity.some-package/some-shader.hlsl"
+                # Concat repository root to the filename to find the file (stripping "Packages")
+                $caseInsensitivePath = Join-Path $srpRoot $strippedFilePath.Replace("Packages", "")
+            } else {
+                # The include is "relative", e.g "./some-shader.hlsl"
+                # Concat the location of the file to the filename to find the file
+                $fileObject = [System.IO.FileInfo]$File
+                $fileLocation = $fileObject.FullName.Replace($fileObject.Name, "")
+                $caseInsensitivePath = Join-Path $fileLocation $strippedFilePath
+            }
+
             [hashtable]$shaderIncludeProperty = @{}
             $shaderIncludeProperty.Add('PathToShader', $caseInsensitivePath)
+            try {
+                $caseSensitivePath = Get-CanonicalPath -Path "$caseInsensitivePath"
+            } catch {
+                $shaderIncludeProperty.Add('ShaderStatus', [ShaderStatus]::NotFound)
+                continue
+            }
             if (!($caseInsensitivePath -ceq $caseSensitivePath)) {
                 # Case sensitive-d path does not match case insensitive path on disk
                 $shaderIncludeProperty.Add('ShaderStatus', [ShaderStatus]::NotFound)
@@ -134,18 +175,20 @@ function Find-Matches {
     #> 
     param($Files)
 
+    $allowedExtensions = ".compute",".shader",".cs",".hlsl",".json"
     [System.Collections.ArrayList]$processedFiles = @()
-    $atLeastOneShaderNotFound = $false # This flag will allow us to decide whether or not to issue a report 
+    $nbShaderNotFound = 0
+
     foreach ($file in $Files) {
-        $fileResults = Find-MatchesInFile -File $file
-        $processedFiles.Add($fileResults) | Out-Null
-        $nbShaderNotFound = [Linq.Enumerable]::Any([object[]]$fileResults[1], [Func[object,bool]]{ param($shaderInclude) $shaderInclude."ShaderStatus" -eq [ShaderStatus]::NotFound })
-        if ($nbShaderNotFound -gt 0) {
-            $atLeastOneShaderNotFound = $true
+        if ($allowedExtensions -contains [io.path]::GetExtension($file))
+        {
+            $fileResults = Find-MatchesInFile -File $file
+            $processedFiles.Add($fileResults) | Out-Null
+            $nbShaderNotFound += [Linq.Enumerable]::Count([object[]]$fileResults[1], [Func[object,bool]]{ param($shaderInclude) $shaderInclude."ShaderStatus" -eq [ShaderStatus]::NotFound })
         }
     }
-    
-    $atLeastOneShaderNotFound
+
+    $nbShaderNotFound
     (,$processedFiles) # Treat array as a single output variable, instead of one variable per array item
 }
 
@@ -182,7 +225,7 @@ function Main
 }
 
 # Make sure we're still in the repository in case of custom powershell
-# configuration on the client. (e.g. profile.ps1 that cd's to as specific dir. at startup)
+# configuration on the client. (e.g. profile.ps1 that cd's to a specific dir. at startup)
 if ($null -ne $args[0]) {
     # If comming from the git hook, just take the argument sent by the shell script
     Set-Location -Path $args[0]
