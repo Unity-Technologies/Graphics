@@ -19,6 +19,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Normal,
         /// <summary>Depth buffer.</summary>
         Depth,
+        /// <summary>Mip one of the depth buffer .</summary>
+        Depth1,
         /// <summary>Ambient Occlusion buffer.</summary>
         AmbientOcclusion,
         /// <summary>Ray traced ambient occlusion buffer.</summary>

@@ -94,6 +94,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 propertyBlock.SetTexture(HDShaderIDs._Source, source);
                 propertyBlock.SetVector(HDShaderIDs._SourceScaleBias, sourceScaleBias);
+                SetSourceSize(propertyBlock, source);
                 ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, downSamplePassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
             }
         }
@@ -132,10 +133,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 SetRenderTargetWithScaleBias(ctx, propertyBlock, destination, destScaleBias, ClearFlag.None, destMip);
 
-                Vector2 sourceSize = source.GetScaledSize(source.rtHandleProperties.currentViewportSize);
                 propertyBlock.SetTexture(HDShaderIDs._Source, source);
                 propertyBlock.SetVector(HDShaderIDs._SourceScaleBias, sourceScaleBias);
-                propertyBlock.SetVector(HDShaderIDs._SourceSize, new Vector4(sourceSize.x, sourceSize.y, 1.0f / sourceSize.x, 1.0f / sourceSize.y));
+                SetSourceSize(propertyBlock, source);
                 ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, copyPassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
             }
         }
@@ -181,6 +181,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 propertyBlock.SetBuffer(HDShaderIDs._GaussianWeights, GetGaussianWeights(sampleCount));
                 propertyBlock.SetFloat(HDShaderIDs._SampleCount, sampleCount);
                 propertyBlock.SetFloat(HDShaderIDs._Radius, radius);
+                SetSourceSize(propertyBlock, source);
                 ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, verticalBlurPassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
             }
         }
@@ -226,6 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 propertyBlock.SetBuffer(HDShaderIDs._GaussianWeights, GetGaussianWeights(sampleCount));
                 propertyBlock.SetFloat(HDShaderIDs._SampleCount, sampleCount);
                 propertyBlock.SetFloat(HDShaderIDs._Radius, radius);
+                SetSourceSize(propertyBlock, source);
                 ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, horizontalBlurPassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
             }
         }
@@ -313,7 +315,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 rendererConfiguration = renderConfig,
                 renderQueueRange = GetRenderQueueRangeFromRenderQueueType(renderQueueFilter),
-                sortingCriteria = SortingCriteria.BackToFront,
+                sortingCriteria = SortingCriteria.CommonOpaque,
                 overrideMaterial = overrideMaterial,
                 overrideMaterialPassIndex = overrideMaterialIndex,
                 excludeObjectMotionVectors = false,
@@ -432,18 +434,17 @@ namespace UnityEngine.Rendering.HighDefinition
             ctx.cmd.DrawProcedural(Matrix4x4.identity, fullscreenMaterial, fullscreenMaterialPassIndex, MeshTopology.Quads, 4, 1, ctx.propertyBlock);
         }
 
-        /// <summary>
-        /// Disable the multi pass rendering (use in XR)
+        /// Disable the single-pass rendering (use in XR)
         /// </summary>
-        public struct DisableMultiPassRendering : IDisposable
+        public struct DisableSinglePassRendering : IDisposable
         {
             CustomPassContext m_Context;
 
             /// <summary>
-            /// Disable the multi pass rendering (use in XR)
+            /// Disable the single-pass rendering (use in XR)
             /// </summary>
             /// <param name="ctx">Custom Pass Context.</param>
-            public DisableMultiPassRendering(in CustomPassContext ctx)
+            public DisableSinglePassRendering(in CustomPassContext ctx)
             {
                 m_Context = ctx;
                 if (ctx.hdCamera.xr.enabled)
@@ -451,7 +452,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             /// <summary>
-            /// Re-enable the multi-pass rendering if it was enabled
+            /// Re-enable the single-pass rendering if it was enabled
             /// </summary>
             void IDisposable.Dispose()
             {
@@ -495,7 +496,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else if (targetDepth != null)
                 CoreUtils.SetRenderTarget(ctx.cmd, targetDepth, clearFlag);
 
-            using (new DisableMultiPassRendering(ctx))
+            using (new DisableSinglePassRendering(ctx))
             {
                 using (new HDRenderPipeline.OverrideCameraRendering(ctx.cmd, view))
                 {
@@ -623,6 +624,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             block.SetVector(HDShaderIDs._ViewportSize, new Vector4(destSize.x, destSize.y, 1.0f / destSize.x, 1.0f / destSize.y));
             block.SetVector(HDShaderIDs._ViewportScaleBias, new Vector4(1.0f / destScaleBias.x, 1.0f / destScaleBias.y, destScaleBias.z, destScaleBias.w));
+        }
+        
+        static void SetSourceSize(MaterialPropertyBlock block, RTHandle source)
+        {
+            Vector2 sourceSize = source.GetScaledSize(source.rtHandleProperties.currentViewportSize);
+            block.SetVector(HDShaderIDs._SourceSize, new Vector4(sourceSize.x, sourceSize.y, 1.0f / sourceSize.x, 1.0f / sourceSize.y));
+            block.SetVector(HDShaderIDs._SourceScaleFactor, new Vector4(source.scaleFactor.x, source.scaleFactor.y, 1.0f / source.scaleFactor.x, 1.0f / source.scaleFactor.y));
         }
     }
 }

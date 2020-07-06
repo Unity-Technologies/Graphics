@@ -5,15 +5,18 @@ Shader "Hidden/HDRP/CustomPassUtils"
     #pragma vertex Vert
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
     #pragma enable_d3d11_debug_symbols
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassCommon.hlsl"
 
     TEXTURE2D_X(_Source);
     float       _SourceMip;
+    float4      _ViewPortSize; // We need the viewport size because we have a non fullscreen render target (blur buffers are downsampled in half res)
     float4      _SourceScaleBias;
+    float4      _ViewportScaleBias;
     float4      _SourceSize;
+    float4      _SourceScaleFactor;
 
     float           _Radius;
     float           _SampleCount;
@@ -21,13 +24,17 @@ Shader "Hidden/HDRP/CustomPassUtils"
 
     float2 GetScaledUVs(Varyings varyings)
     {
-        // Apply source scale and bias
-        return GetViewportScaledUVs(varyings.positionCS) * _SourceScaleBias.xy + _SourceScaleBias.zw;
+        // Remap UV from part of the screen (due to viewport scale / offset) to 0 - 1
+        float2 uv01 = (varyings.positionCS.xy * _RTHandleScale.xy * _ViewPortSize.zw - _ViewportScaleBias.zw) * _ViewportScaleBias.xy;
+        float2 uv = uv01;
+
+        // Apply scale and bias
+        return uv * _SourceScaleBias.xy + _SourceScaleBias.zw;
     }
 
     float4 Copy(Varyings varyings) : SV_Target
     {
-        float2 uv01 = (varyings.positionCS.xy * _ViewportSize.zw - _ViewportScaleBias.zw) * _ViewportScaleBias.xy;
+        float2 uv01 = (varyings.positionCS.xy * _ViewPortSize.zw - _ViewportScaleBias.zw) * _ViewportScaleBias.xy;
         // Apply scale and bias
         float2 uv = uv01 * _SourceScaleBias.xy + _SourceScaleBias.zw;
 
@@ -38,9 +45,11 @@ Shader "Hidden/HDRP/CustomPassUtils"
     float2 ClampUVs(float2 uv)
     {
         // Clamp UV to the current viewport:
+        // Note that uv here are scaled with _RTHandleScale.xy to support sampling from RTHandle
         float2 offset = _ViewportScaleBias.zw * _RTHandleScale.xy;
-        float2 halfPixelSize = _ViewportSize.zw / 2;
-        uv = clamp(uv, offset + halfPixelSize, rcp(_ViewportScaleBias.xy) * _RTHandleScale.xy + offset - halfPixelSize);
+        float2 size = rcp(_ViewportScaleBias.xy) * _RTHandleScale.xy;
+        float2 halfPixelSize = _SourceSize.zw * _RTHandleScale.xy / 2 * _SourceScaleFactor.zw;
+        uv = clamp(uv, offset + halfPixelSize, size + offset - halfPixelSize);
         return saturate(uv);
     }
 

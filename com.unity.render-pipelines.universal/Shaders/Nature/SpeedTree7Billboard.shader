@@ -77,6 +77,48 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
 
         Pass
         {
+            Name "GBuffer"
+            Tags{"LightMode" = "UniversalGBuffer"}
+
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
+            // This is a SimpleLit material.
+            Stencil {
+                Ref 64       // 0b01000000
+                WriteMask 96 // 0b01100000
+                Comp Always
+                Pass Replace
+                Fail Keep
+                ZFail Keep
+            }
+
+            HLSLPROGRAM
+
+            #pragma vertex SpeedTree7Vert
+            #pragma fragment SpeedTree7Frag
+
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+            //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile __ BILLBOARD_FACE_CAMERA_POS
+            #pragma multi_compile __ LOD_FADE_CROSSFADE
+            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+
+            #pragma shader_feature_local EFFECT_BUMP
+            #pragma shader_feature_local EFFECT_HUE_VARIATION
+
+            #define ENABLE_WIND
+            #define GBUFFER
+
+            #include "SpeedTree7BillboardInput.hlsl"
+            #include "SpeedTree7BillboardPasses.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
             Name "DepthOnly"
             Tags{"LightMode" = "DepthOnly"}
 

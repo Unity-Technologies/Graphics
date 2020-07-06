@@ -25,6 +25,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader debugFullScreenPS;
             [Reload("Runtime/Debug/DebugColorPicker.Shader")]
             public Shader debugColorPickerPS;
+            [Reload("Runtime/Debug/DebugExposure.Shader")]
+            public Shader debugExposurePS;
             [Reload("Runtime/Debug/DebugLightVolumes.Shader")]
             public Shader debugLightVolumePS;
             [Reload("Runtime/Debug/DebugLightVolumes.compute")]
@@ -88,7 +90,6 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Lighting/ProbeVolume/DebugDisplayProbeVolume.shader")]
             public Shader debugDisplayProbeVolumePS;
 
-
             [Reload("Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.compute")]
             public ComputeShader subsurfaceScatteringCS;                // Disney SSS
             [Reload("Runtime/Material/SubsurfaceScattering/CombineLighting.shader")]
@@ -143,7 +144,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader inScatteredRadiancePrecomputationCS;
             [Reload("Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSky.shader")]
             public Shader        physicallyBasedSkyPS;
-
+            [Reload("Runtime/Lighting/PlanarReflectionFiltering.compute")]
+            public ComputeShader planarReflectionFilteringCS;
             // Material
             [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_GGXDisneyDiffuse.shader")]
             public Shader preIntegratedFGD_GGXDisneyDiffusePS;
@@ -204,11 +206,16 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAOBlurAndUpsample.compute")]
             public ComputeShader GTAOBlurAndUpsample;
 
+            [Reload("Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.compute")]
+            public ComputeShader screenSpaceGlobalIlluminationCS;
+
             // MSAA Shaders
             [Reload("Runtime/RenderPipeline/RenderPass/MSAA/DepthValues.shader")]
             public Shader depthValuesPS;
             [Reload("Runtime/RenderPipeline/RenderPass/MSAA/ColorResolve.shader")]
             public Shader colorResolvePS;
+            [Reload("Runtime/RenderPipeline/RenderPass/MSAA/MotionVecResolve.shader")]
+            public Shader resolveMotionVecPS;
 
             // Post-processing
             [Reload("Runtime/PostProcessing/Shaders/AlphaCopy.compute")]
@@ -217,8 +224,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader nanKillerCS;
             [Reload("Runtime/PostProcessing/Shaders/Exposure.compute")]
             public ComputeShader exposureCS;
+            [Reload("Runtime/PostProcessing/Shaders/HistogramExposure.compute")]
+            public ComputeShader histogramExposureCS;
             [Reload("Runtime/PostProcessing/Shaders/ApplyExposure.compute")]
             public ComputeShader applyExposureCS;
+            [Reload("Runtime/PostProcessing/Shaders/DebugHistogramImage.compute")]
+            public ComputeShader debugImageHistogramCS;
             [Reload("Runtime/PostProcessing/Shaders/UberPost.compute")]
             public ComputeShader uberPostCS;
             [Reload("Runtime/PostProcessing/Shaders/LutBuilder3D.compute")]
@@ -276,8 +287,20 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/PostProcessing/Shaders/TemporalAntialiasing.shader")]
             public Shader temporalAntialiasingPS;
 
+            // Physicaly based DoF
+            [Reload("Runtime/PostProcessing/Shaders/DoFCircleOfConfusion.compute")]
+            public ComputeShader dofCircleOfConfusion;
+            [Reload("Runtime/PostProcessing/Shaders/DoFGather.compute")]
+            public ComputeShader dofGatherCS;
+            [Reload("Runtime/PostProcessing/Shaders/DoFCoCPyramid.compute")]
+            public ComputeShader DoFCoCPyramidCS;
+
             [Reload("Runtime/PostProcessing/Shaders/ContrastAdaptiveSharpen.compute")]
             public ComputeShader contrastAdaptiveSharpenCS;
+#if ENABLE_VIRTUALTEXTURES
+            [Reload("Runtime/VirtualTexturing/Shaders/DownsampleVTFeedback.compute")]
+            public ComputeShader VTFeedbackDownsample;
+#endif
 
             // Accumulation
             [Reload("Runtime/RenderPipeline/Accumulation/Shaders/Accumulation.compute")]
@@ -290,6 +313,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader chromaKeyingPS;
             [Reload("Runtime/Compositor/Shaders/CustomClear.shader")]
             public Shader customClearPS;
+
+            // Denoising
+            [Reload("Runtime/Lighting/ScreenSpaceLighting/SSGIDenoiser.compute")]
+            public ComputeShader ssGIDenoiserCS;
+            [Reload("Runtime/Lighting/ScreenSpaceLighting/BilateralUpsample.compute")]
+            public ComputeShader bilateralUpsampleCS;
 
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
             // used compute shaders up to date (prefer editor-only usage)
@@ -367,6 +396,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             [Reload("Runtime/RenderPipelineResources/Texture/DefaultHDRISky.exr")]
             public Cubemap     defaultHDRISky;
+
+            [Reload("Runtime/RenderPipelineResources/Texture/DefaultCloudLayer.asset")]
+            public CustomRenderTexture defaultCloudLayer;
         }
 
         [Serializable, ReloadGroup]
@@ -379,7 +411,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             [Reload("Runtime/RenderPipelineResources/defaultDiffusionProfile.asset")]
             public DiffusionProfileSettings defaultDiffusionProfile;
-            
+
             //Area Light Emissive Meshes
             [Reload("Runtime/RenderPipelineResources/Mesh/Cylinder.fbx")]
             public Mesh emissiveCylinderMesh;

@@ -85,6 +85,7 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
     output.fogCoord = (half)input.positionWS.w;
     output.vertexLighting = half3(0.0h, 0.0h, 0.0h);
     output.bakedGI = SampleSHPixel(input.vertexSH, output.normalWS);
+    output.normalizedScreenSpaceUV = input.clipPos.xy;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -101,8 +102,8 @@ VaryingsParticle ParticlesLitVertex(AttributesParticle input)
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal, input.tangent);
-    half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
 
+    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
 #if !SHADER_HINT_NICE_QUALITY
     viewDirWS = SafeNormalize(viewDirWS);
 #endif
@@ -164,12 +165,10 @@ half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
     InputData inputData = (InputData)0;
     InitializeInputData(input, surfaceData.normalTS, inputData);
 
-    half4 color = UniversalFragmentPBR(inputData, surfaceData.albedo,
-        surfaceData.metallic, half3(0, 0, 0), surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
-
+    half4 color = UniversalFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, half3(0, 0, 0), surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a);
-    
+
     return color;
 }
 

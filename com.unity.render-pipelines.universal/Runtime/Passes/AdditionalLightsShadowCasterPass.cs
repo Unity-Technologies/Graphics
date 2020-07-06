@@ -42,6 +42,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         List<int> m_AdditionalShadowCastingLightIndices = new List<int>();
         List<int> m_AdditionalShadowCastingLightIndicesMap = new List<int>();
+        // Get the shadow light index for a visible light index, or -1.
+        List<int> m_ShadowCastingLightIndicesMap = new List<int>();
+
         bool m_SupportsBoxFilterForShadows;
         const string m_ProfilerTag = "Render Additional Shadows";
         ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
@@ -89,6 +92,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_AdditionalLightsShadowData == null || m_AdditionalLightsShadowData.Length < additionalLightsCount)
                 m_AdditionalLightsShadowData = new ShaderInput.ShadowData[additionalLightsCount];
 
+            // By default visible lights do not have shadow light indices.
+            for (int i = 0; i < visibleLights.Length; ++i)
+                m_ShadowCastingLightIndicesMap.Add(-1);
+
             int validShadowCastingLights = 0;
             bool supportsSoftShadows = renderingData.shadowData.supportsSoftShadows;
             for (int i = 0; i < visibleLights.Length && m_AdditionalShadowCastingLightIndices.Count < additionalLightsCount; ++i)
@@ -106,9 +113,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // We need to iterate the lights even though additional lights are disabled because
                     // cullResults.GetShadowCasterBounds() does the fence sync for the shadow culling jobs.
                     if (!renderingData.shadowData.supportsAdditionalLightShadows)
-                    {
                         continue;
-                    }
 
                     if (IsValidShadowCastingLight(ref renderingData.lightData, i))
                     {
@@ -170,6 +175,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_AdditionalLightSlices[shadowCastingLightIndex].viewMatrix = identity;
                     m_AdditionalLightSlices[shadowCastingLightIndex].projectionMatrix = identity;
                 }
+
+                m_ShadowCastingLightIndicesMap[i] = isValidShadowSlice ? shadowCastingLightIndex : -1;
             }
 
             // Lights that need to be rendered in the shadow map atlas
@@ -248,11 +255,19 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
+        public int GetShadowLightIndexFromLightIndex(int visibleLightIndex)
+        {
+            if (visibleLightIndex < 0 || visibleLightIndex >= m_ShadowCastingLightIndicesMap.Count)
+                return -1;
+            return m_ShadowCastingLightIndicesMap[visibleLightIndex];
+        }
+
         void Clear()
         {
             m_AdditionalShadowCastingLightIndices.Clear();
             m_AdditionalShadowCastingLightIndicesMap.Clear();
             m_AdditionalLightsShadowmapTexture = null;
+            m_ShadowCastingLightIndicesMap.Clear();
         }
 
         void RenderAdditionalShadowmapAtlas(ref ScriptableRenderContext context, ref CullingResults cullResults, ref LightData lightData, ref ShadowData shadowData)

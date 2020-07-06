@@ -1,0 +1,76 @@
+# all_package_ci needs dependencies for package_test_dependencies (currently commented out due to breaking)
+packages:
+  - name: Core
+    id: core
+    packagename: com.unity.render-pipelines.core
+    dependencies:
+      - core
+  - name: Lightweight
+    id: lwrp
+    packagename: com.unity.render-pipelines.lightweight
+    dependencies:
+      - core
+      - shadergraph
+      - universal
+      - lwrp
+    hascodependencies: 1
+  - name: ShaderGraph
+    id: shadergraph
+    packagename: com.unity.shadergraph
+    dependencies:
+      - core
+      - shadergraph
+    hascodependencies: 1
+  - name: HDRP
+    id: hdrp
+    packagename: com.unity.render-pipelines.high-definition
+    dependencies:
+      - core
+      - shadergraph
+      - vfx
+      - config
+      - hdrp
+    hascodependencies: 1
+  - name: Universal
+    id: universal
+    packagename: com.unity.render-pipelines.universal
+    dependencies:
+      - core
+      - shadergraph
+      - universal
+    hascodependencies: 1
+  - name: VFX
+    id: vfx
+    packagename: com.unity.visualeffectgraph
+    dependencies:
+      - core
+      - shadergraph
+      - vfx
+    hascodependencies: 1
+  - name: Config
+    id: config
+    packagename: com.unity.render-pipelines.high-definition-config
+    dependencies:
+      - core
+      - config
+    hascodependencies: 1
+platforms:
+    - name: Win
+      os: windows
+      components:
+      - editor
+      - il2cpp
+      agent_default: package_ci_win_large
+      copycmd: copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      editorpath: .\.Editor
+    - name: OSX
+      os: macos
+      components:
+      - editor
+      - il2cpp
+      agent_default: package_ci_mac
+      copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
+      editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
+agent_pack: package_ci_win_large 
+agent_publish: package_ci_win_large 
+agent_publish_all: package_ci_ubuntu_large 

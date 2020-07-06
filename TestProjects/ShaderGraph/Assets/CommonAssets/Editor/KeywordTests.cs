@@ -221,7 +221,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             foreach(KeywordNode keywordNode in keywordNodes)
             {
-                ShaderKeyword keyword = m_Graph.keywords.Where(x => x.guid == keywordNode.keywordGuid).FirstOrDefault();
+                ShaderKeyword keyword = keywordNode.keyword;
                 if(keyword == null)
                 {
                     Assert.Fail("No matching Keyword found in graph.");
@@ -292,10 +292,10 @@ namespace UnityEditor.ShaderGraph.UnitTests
             }
 
             var keywordNodes = m_Graph.GetNodes<KeywordNode>().ToList();
-            KeywordNode booleanANode = keywordNodes.Where(x => x.keywordGuid == booleanAKeyword.guid).FirstOrDefault();
-            KeywordNode booleanBNode = keywordNodes.Where(x => x.keywordGuid == booleanBKeyword.guid).FirstOrDefault();
-            KeywordNode enumANode = keywordNodes.Where(x => x.keywordGuid == enumAKeyword.guid).FirstOrDefault();
-            KeywordNode enumBNode = keywordNodes.Where(x => x.keywordGuid == enumBKeyword.guid).FirstOrDefault();
+            KeywordNode booleanANode = keywordNodes.Where(x => x.keyword == booleanAKeyword).FirstOrDefault();
+            KeywordNode booleanBNode = keywordNodes.Where(x => x.keyword == booleanBKeyword).FirstOrDefault();
+            KeywordNode enumANode = keywordNodes.Where(x => x.keyword == enumAKeyword).FirstOrDefault();
+            KeywordNode enumBNode = keywordNodes.Where(x => x.keyword == enumBKeyword).FirstOrDefault();
             if(booleanANode == null || booleanBNode == null || enumANode == null || enumBNode == null)
             {
                 Assert.Fail("One or more Keywords Nodes not in graph.");
@@ -329,8 +329,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
             }
 
             var keywordNodes = m_Graph.GetNodes<KeywordNode>().ToList();
-            KeywordNode enumANode = keywordNodes.Where(x => x.keywordGuid == enumAKeyword.guid).FirstOrDefault();
-            KeywordNode enumBNode = keywordNodes.Where(x => x.keywordGuid == enumBKeyword.guid).FirstOrDefault();
+            KeywordNode enumANode = keywordNodes.Where(x => x.keyword == enumAKeyword).FirstOrDefault();
+            KeywordNode enumBNode = keywordNodes.Where(x => x.keyword == enumBKeyword).FirstOrDefault();
             if (enumANode == null || enumBNode == null)
             {
                 Assert.Fail("One or more Keywords Nodes not in graph.");
@@ -353,8 +353,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
             enumANode.UpdateNode();
             enumBNode.UpdateNode();
 
-            Assert.AreEqual(7, enumANode.GetSlots<ISlot>().Count(), "Enum A Node has incorrect # of entries after adding");
-            Assert.AreEqual(6, enumBNode.GetSlots<ISlot>().Count(), "Enum B Node has incorrect # of entries after adding");
+            Assert.AreEqual(7, enumANode.GetSlots<MaterialSlot>().Count(), "Enum A Node has incorrect # of entries after adding");
+            Assert.AreEqual(6, enumBNode.GetSlots<MaterialSlot>().Count(), "Enum B Node has incorrect # of entries after adding");
 
             enumAKeyword.entries.Remove(newEntry1);
             enumAKeyword.entries.Remove(newEntry2);
@@ -367,8 +367,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
             enumANode.UpdateNode();
             enumBNode.UpdateNode();
 
-            Assert.AreEqual(4, enumANode.GetSlots<ISlot>().Count(), "Enum A Node has incorrect # of entries after removing");
-            Assert.AreEqual(5, enumBNode.GetSlots<ISlot>().Count(), "Enum B Node has incorrect # of entries after removing");
+            Assert.AreEqual(4, enumANode.GetSlots<MaterialSlot>().Count(), "Enum A Node has incorrect # of entries after removing");
+            Assert.AreEqual(5, enumBNode.GetSlots<MaterialSlot>().Count(), "Enum B Node has incorrect # of entries after removing");
         }
     }
 }

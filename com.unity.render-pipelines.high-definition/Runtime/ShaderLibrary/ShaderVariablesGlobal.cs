@@ -6,6 +6,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Global = 0,
         XR = 1,
         PBRSky = 2,
+        RayTracing = 3,
+        RayTracingLightLoop = 4,
     }
 
     // We need to keep the number of different constant buffers low.
@@ -21,12 +23,17 @@ namespace UnityEngine.Rendering.HighDefinition
     // All data is aligned on Vector4 size, arrays elements included.
     // - Shader side structure will be padded for anything not aligned to Vector4. Add padding accordingly.
     // - Base element size for array should be 4 components of 4 bytes (Vector4 or Vector4Int basically) otherwise the array will be interlaced with padding on shader side.
+    // - In Metal the float3 and float4 are both actually sized and aligned to 16 bytes, whereas for Vulkan/SPIR-V, the alignment is the same. Do not use Vector3!
     // Try to keep data grouped by access and rendering system as much as possible (fog params or light params together for example).
     // => Don't move a float parameter away from where it belongs for filling a hole. Add padding in this case.
     [GenerateHLSL(needAccessors = false, generateCBuffer = true, constantRegister = (int)ConstantRegister.Global)]
     unsafe struct ShaderVariablesGlobal
     {
-        public const int defaultLightLayers = 0xFF;
+        public const int RenderingLightLayersMask       = 0x000000FF;
+        public const int RenderingLightLayersMaskShift  = 0;
+        public const int RenderingDecalLayersMask       = 0x0000FF00;
+        public const int RenderingDecalLayersMaskShift  = 8;
+        public const int DefaultRenderingLayerMask      = 0x0101;       
 
         // TODO: put commonly used vars together (below), and then sort them by the frequency of use (descending).
         // Note: a matrix is 4 * 4 * 4 = 64 bytes (1x cache line), so no need to sort those.
@@ -47,10 +54,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Matrix4x4 _PrevInvViewProjMatrix; // non-jittered
 
 #if !USING_STEREO_MATRICES
-        public Vector3 _WorldSpaceCameraPos_Internal;
-        public float   _Pad0;
-        public Vector3 _PrevCamPosRWS_Internal;
-        public float _Pad1;
+        public Vector4 _WorldSpaceCameraPos_Internal;
+        public Vector4 _PrevCamPosRWS_Internal;
 #endif
         public Vector4 _ScreenSize;                 // { w, h, 1 / w, 1 / h }
 
@@ -116,13 +121,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public float    _MaxFogDistance;
         public Vector4  _FogColor; // color in rgb
         public float    _FogColorMode;
-        public Vector3  _Pad2;
+        public float    _Pad0;
+        public float    _Pad1;
+        public float    _Pad2;
         public Vector4  _MipFogParameters;
-        public Vector3  _HeightFogBaseScattering;
+        public Vector4  _HeightFogBaseScattering;
         public float    _HeightFogBaseExtinction;
-        public Vector2  _HeightFogExponents; // { 1/H, H }
         public float    _HeightFogBaseHeight;
         public float    _GlobalFogAnisotropy;
+        public float    _Pad3;
+        public Vector2  _HeightFogExponents; // { 1/H, H }
+        public float    _Pad4;
+        public float    _Pad5;
 
         // VBuffer
         public Vector4  _VBufferViewportSize;           // { w, h, 1/w, 1/h }
@@ -141,6 +151,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _ShadowAtlasSize;
         public Vector4 _CascadeShadowAtlasSize;
         public Vector4 _AreaShadowAtlasSize;
+        public Vector4 _CachedShadowAtlasSize;
+        public Vector4 _CachedAreaShadowAtlasSize;
 
         [HLSLArray(s_MaxEnv2DLight, typeof(Matrix4x4))]
         public fixed float _Env2DCaptureVP[s_MaxEnv2DLight * 4 * 4];
@@ -170,12 +182,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public float    _ReplaceDiffuseForIndirect;
 
         public Vector4 _AmbientOcclusionParam; // xyz occlusion color, w directLightStrenght
-        public Vector4 _IndirectLightingMultiplier; // .x indirect diffuse multiplier (use with indirect lighting volume controler)
+
+        public float _IndirectDiffuseLightingMultiplier;
+        public uint _IndirectDiffuseLightingLayers;
+        public float _ReflectionLightingMultiplier;
+        public uint _ReflectionLightingLayers;
 
         public float _MicroShadowOpacity;
         public uint  _EnableProbeVolumes;
         public uint  _ProbeVolumeCount;
-        public float _Pad5;
+        public float _Pad6;
 
         public Vector4  _CookieAtlasSize;
         public Vector4  _CookieAtlasData;
@@ -195,7 +211,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint     _NumTileClusteredX;
         public uint     _NumTileClusteredY;
         public int      _EnvSliceSize;
-        public float    _Pad6;
+        public float    _Pad7;
 
         // Subsurface scattering
         // Use float4 to avoid any packing issue between compute and pixel shaders
@@ -228,8 +244,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector4 _CoarseStencilBufferSize;
 
-        public int      _RaytracedIndirectDiffuse; // Uniform variables that defines if we should be using the raytraced indirect diffuse
-        public int      _UseRayTracedReflections;
+        public int      _IndirectDiffuseMode; // Match IndirectDiffuseMode enum in LightLoop.cs
+        public int      _EnableRayTracedReflections;
         public int      _RaytracingFrameIndex;  // Index of the current frame [0, 7]
         public uint     _EnableRecursiveRayTracing;
 
@@ -239,11 +255,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4  _ProbeVolumeAtlasOctahedralDepthResolutionAndInverse;
 
         public int      _ProbeVolumeLeakMitigationMode;
-        public float    _ProbeVolumeNormalBiasWS;
         public float    _ProbeVolumeBilateralFilterWeightMin;
         public float    _ProbeVolumeBilateralFilterWeight;
+        public uint     _EnableDecalLayers;
 
         [HLSLArray(7, typeof(Vector4))]
         public fixed float _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7 * 4]; // 3 bands of SH, packed for storing global ambient probe lighting as fallback to probe volumes.
+
+        public int      _TransparentCameraOnlyMotionVectors;
+        public float    _Pad8;
+        public float    _Pad9;
+        public float    _Pad10;
     }
 }

@@ -55,7 +55,7 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
 
     // TODO: Not sure it's possible to precompute cam rel pos since variables
     // in the two constant buffers may be set at a different frequency?
-    const float3 O     = worldSpaceCameraPos - _PlanetCenterPosition;
+    const float3 O     = worldSpaceCameraPos - _PlanetCenterPosition.xyz;
     const float  tFrag = abs(distAlongRay); // Clear the "hit ground" flag
 
     float3 N; float r; // These params correspond to the entry point
@@ -115,7 +115,7 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
         // We may have swapped X and Y.
         float2 ch = abs(ch0 - ch1);
 
-        float3 optDepth = ch.x * H.x * _AirSeaLevelExtinction
+        float3 optDepth = ch.x * H.x * _AirSeaLevelExtinction.xyz
                         + ch.y * H.y * _AerosolSeaLevelExtinction;
 
         skyOpacity = 1 - TransmittanceFromOpticalDepth(optDepth); // from 'tEntry' to 'tFrag'
@@ -242,7 +242,7 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
         float nrmAngle = Remap01(chiAngle, rcpLen, start * rcpLen);
         // float angle = saturate((0.5 * PI) - acos(cosChi) * rcp(0.5 * PI));
 
-        skyColor *= ExpLerp(_HorizonTint, _ZenithTint, nrmAngle, _HorizonZenithShiftPower, _HorizonZenithShiftScale);
+        skyColor *= ExpLerp(_HorizonTint.rgb, _ZenithTint.rgb, nrmAngle, _HorizonZenithShiftPower, _HorizonZenithShiftScale);
     }
 }
 
@@ -279,13 +279,13 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
         {
             float4 value = SampleVBuffer(TEXTURE3D_ARGS(_VBufferLighting, s_linear_clamp_sampler),
                                          posInput.positionNDC,
-                                         fogFragDist,   
+                                         fogFragDist,
                                          _VBufferViewportSize,
                                          _VBufferLightingViewportScale.xyz,
                                          _VBufferLightingViewportLimit.xyz,
                                          _VBufferDistanceEncodingParams,
                                          _VBufferDistanceDecodingParams,
-                                         true, false);
+                                         true, true, false);
 
             // TODO: add some slowly animated noise (dither?) to the reconstructed value.
             // TODO: re-enable tone mapping after implementing pre-exposure.
@@ -310,7 +310,7 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
             // integral is wrong, as it means that shadow rays are not volumetrically shadowed.
             // This will result in fog looking overly bright.
 
-            float3 volAlbedo = _HeightFogBaseScattering / _HeightFogBaseExtinction;
+            float3 volAlbedo = _HeightFogBaseScattering.xyz / _HeightFogBaseExtinction;
             float  odFallback = OpticalDepthHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
                 _HeightFogExponents, cosZenith, startHeight, distDelta);
             float  trFallback = TransmittanceFromOpticalDepth(odFallback);
@@ -333,7 +333,7 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
         // Convert it to distance along the ray. Doesn't work with tilt shift, etc.
         float tFrag = posInput.linearDepth * rcp(dot(-V, GetViewForwardDir1(UNITY_MATRIX_V)));
 
-        EvaluatePbrAtmosphere(_WorldSpaceCameraPos, V, tFrag, false, skyColor, skyOpacity);
+        EvaluatePbrAtmosphere(_WorldSpaceCameraPos.xyz, V, tFrag, false, skyColor, skyOpacity);
         skyColor *= _IntensityMultiplier * GetCurrentExposureMultiplier();
 
         // Rendering of fog and atmospheric scattering cannot really be decoupled.

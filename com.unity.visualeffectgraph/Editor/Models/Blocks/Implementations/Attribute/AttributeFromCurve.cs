@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
+using System.Globalization;
 
 namespace UnityEditor.VFX.Block
 {
@@ -213,7 +214,7 @@ namespace UnityEditor.VFX.Block
 
         static private string GenerateLocalAttributeName(string name)
         {
-            return name[0].ToString().ToUpper() + name.Substring(1);
+            return name[0].ToString().ToUpper(CultureInfo.InvariantCulture) + name.Substring(1);
         }
 
         public override string source
@@ -359,7 +360,7 @@ namespace UnityEditor.VFX.Block
                 }
 
                 if (SampleMode == CurveSampleMode.BySpeed)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "SpeedRange", VFXPropertyAttribute.Create(new MinAttribute(0.0f))), new Vector2(0.0f, 1.0f));
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "SpeedRange", new MinAttribute(0.0f)), new Vector2(0.0f, 1.0f));
                 else if (SampleMode == CurveSampleMode.Custom)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "SampleTime"));
                 else if (SampleMode == CurveSampleMode.RandomConstantPerParticle)
