@@ -478,7 +478,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 var renderQueueType = HDRenderQueue.GetTypeByRenderQueueValue(renderQueue);
 
-                renderQueue = HDRenderQueue.ChangeType(renderQueueType, (int)transparentSortPriority.floatValue, alphaCutoffEnable.floatValue == 1);
+                bool receiveDecal = materials[0].HasProperty(kSupportDecals) && materials[0].GetFloat(kSupportDecals) > 0.0f;
+                renderQueue = HDRenderQueue.ChangeType(renderQueueType, (int)transparentSortPriority.floatValue, alphaCutoffEnable.floatValue == 1, receiveDecal);
             }
         }
 
@@ -609,6 +610,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var mode = (SurfaceType)surfaceType.floatValue;
             var renderQueueType = HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue);
             bool alphaTest = material.HasProperty(kAlphaCutoffEnabled) && material.GetFloat(kAlphaCutoffEnabled) > 0.0f;
+            bool receiveDecal = material.HasProperty(kSupportDecals) && material.GetFloat(kSupportDecals) > 0.0f;
 
             // Shader graph only property, used to transfer the render queue from the shader graph to the material,
             // because we can't use the renderqueue from the shader as we have to keep the renderqueue on the material side.
@@ -638,7 +640,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     default:
                         throw new ArgumentException("Unknown SurfaceType");
                 }
-                renderQueue = HDRenderQueue.ChangeType(targetQueueType, (int)transparentSortPriority.floatValue, alphaTest);
+                renderQueue = HDRenderQueue.ChangeType(targetQueueType, (int)transparentSortPriority.floatValue, alphaTest, receiveDecal);
             }
             EditorGUI.showMixedValue = false;
 
@@ -666,7 +668,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         materialEditor.RegisterPropertyChangeUndo("Rendering Pass");
                         renderQueueType = HDRenderQueue.ConvertFromOpaqueRenderQueue(newRenderQueueOpaqueType);
-                        renderQueue = HDRenderQueue.ChangeType(renderQueueType, alphaTest: alphaTest);
+                        renderQueue = HDRenderQueue.ChangeType(renderQueueType, alphaTest: alphaTest, receiveDecal: receiveDecal);
                     }
                     break;
                 case SurfaceType.Transparent:
@@ -778,7 +780,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (supportDecals != null)
             {
+                EditorGUI.BeginChangeCheck();
                 materialEditor.ShaderProperty(supportDecals, Styles.supportDecalsText);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    var renderQueueType = HDRenderQueue.GetTypeByRenderQueueValue(renderQueue);
+                    renderQueue = HDRenderQueue.ChangeType(renderQueueType, (int)transparentSortPriority.floatValue, alphaCutoffEnable.floatValue == 1, supportDecals.floatValue > 0.0f);
+                }
             }
 
             if (receivesSSR != null && receivesSSRTransparent != null)
