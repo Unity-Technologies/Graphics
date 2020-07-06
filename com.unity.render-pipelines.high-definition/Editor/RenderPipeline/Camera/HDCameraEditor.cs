@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
         Camera m_PreviewCamera;
         HDAdditionalCameraData m_PreviewAdditionalCameraData;
 
-        public override void OnEnable()
+        protected override void OnEnable()
         {
             base.OnEnable();
             m_SerializedCamera = new SerializedHDCamera(m_SerializedExtension);
@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_PreviewAdditionalCameraData.isEditorCameraPreview = true;
         }
 
-        public override void OnInspectorGUI()
+        protected override void OnInspectorGUI()
         {
             m_SerializedCamera.Update();
 
@@ -37,7 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SerializedCamera.Apply();
         }
 
-        void OnDisable()
+        protected override void OnDisable()
         {
             if (m_PreviewTexture != null)
             {
