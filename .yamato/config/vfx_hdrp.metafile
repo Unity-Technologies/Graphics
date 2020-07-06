@@ -1,10 +1,10 @@
 project:
-  name: VFX_LWRP
-  folder: VisualEffectGraph_LWRP
+  name: VFX_HDRP
+  folder: VisualEffectGraph_HDRP
 test_platforms:
   - Standalone
   - playmode
-#  - editmode
+  - editmode
 platforms:
   - name: Win
     apis:
@@ -13,22 +13,14 @@ platforms:
   - name: OSX 
     apis:
       - Metal
-      - OpenGLCore
   - name: Linux
     apis: 
       - Vulkan
-      - OpenGLCore
-#  - name: Android
-#    apis: 
-#      - Vulkan
-#      - OpenGLES3
-#  - name: iPhone
-#    apis: 
-#      - Metal
 all:
   dependencies:
     - platform: Win
       api: DX11
       test_platforms:
         - Standalone
+        - editmode
         - playmode

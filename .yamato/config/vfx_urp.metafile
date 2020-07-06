@@ -1,10 +1,10 @@
 project:
-  name: VFXMain
-  folder: VisualEffectGraph
+  name: VFX_URP
+  folder: VisualEffectGraph_URP
 test_platforms:
   - Standalone
   - playmode
-  - editmode
+#  - editmode
 platforms:
   - name: Win
     apis:
@@ -13,14 +13,22 @@ platforms:
   - name: OSX 
     apis:
       - Metal
+      - OpenGLCore
   - name: Linux
     apis: 
       - Vulkan
+      - OpenGLCore
+#  - name: Android
+#    apis: 
+#      - Vulkan
+#      - OpenGLES3
+#  - name: iPhone
+#    apis: 
+#      - Metal
 all:
   dependencies:
     - platform: Win
       api: DX11
       test_platforms:
         - Standalone
-        - editmode
         - playmode
