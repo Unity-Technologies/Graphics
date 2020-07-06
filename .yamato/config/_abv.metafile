@@ -3,7 +3,6 @@ abv: # specify the editor versions for which to create the expression trigger fo
     - fast-2019.3
   projects:
     - name: Universal
-    - name: Universal_Stereo
     - name: ShaderGraph
     - name: HDRP
     - name: VFXMain

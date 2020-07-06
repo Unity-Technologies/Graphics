@@ -79,8 +79,6 @@ all_project_ci_2019.3:
          rerun: on-new-revision
       -  path: .yamato/all-universal.yml#All_Universal_2019.3
          rerun: on-new-revision
-      -  path: .yamato/all-universal_stereo.yml#All_Universal_Stereo_2019.3
-         rerun: on-new-revision
       -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_2019.3
          rerun: on-new-revision
       -  path: .yamato/all-hdrp.yml#All_HDRP_2019.3
@@ -201,8 +199,6 @@ all_project_ci_fast-2019.3:
          rerun: on-new-revision
       -  path: .yamato/all-universal.yml#All_Universal_fast-2019.3
          rerun: on-new-revision
-      -  path: .yamato/all-universal_stereo.yml#All_Universal_Stereo_fast-2019.3
-         rerun: on-new-revision
       -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_fast-2019.3
          rerun: on-new-revision
       -  path: .yamato/all-hdrp.yml#All_HDRP_fast-2019.3
@@ -314,8 +310,6 @@ all_project_ci_CUSTOM-REVISION:
       -  path: .yamato/_packages.yml#all_package_ci_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-universal.yml#All_Universal_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/all-universal_stereo.yml#All_Universal_Stereo_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_CUSTOM-REVISION
          rerun: always
