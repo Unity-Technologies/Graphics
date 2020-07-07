@@ -1,0 +1,16 @@
+project:
+  name: URPUpdate_BoatAttack
+  folder: BoatAttack-19-4
+test_platforms:
+  - playmode
+  - editmode
+platforms:
+  - name: Win
+    apis:
+      - DX11
+      - Vulkan
+#  - name: OSX
+#    apis:
+#      - OpenGLCore
+#      - Metal
+
