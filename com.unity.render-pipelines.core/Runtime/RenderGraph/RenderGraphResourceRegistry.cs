@@ -659,6 +659,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 #endif
         }
 
+        internal void ResetRTHandleReferenceSize(int width, int height)
+        {
+            m_RTHandleSystem.ResetReferenceSize(width, height);
+        }
+
         internal void Cleanup()
         {
             foreach (var value in m_TexturePool)
