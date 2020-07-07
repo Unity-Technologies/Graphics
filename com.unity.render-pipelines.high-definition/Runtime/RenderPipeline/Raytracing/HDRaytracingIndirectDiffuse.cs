@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(indirectDiffuseCS, indirectDiffuseKernel, HDShaderIDs._GBufferTexture[3], m_GbufferManager.GetBuffer(3));
 
                 IndirectLightingController indirectLightingController = hdCamera.volumeStack.GetComponent<IndirectLightingController>();
-                cmd.SetComputeFloatParam(indirectDiffuseCS, HDShaderIDs._IndirectDiffuseLightingMultiplier, indirectLightingController.indirectDiffuseLightingMultiplier.value);
+                cmd.SetComputeFloatParam(indirectDiffuseCS, HDShaderIDs._IndirectDiffuseLightingMultiplier, indirectLightingController.indirectDiffuseIntensity.value);
                 cmd.SetComputeIntParam(indirectDiffuseCS, HDShaderIDs._IndirectDiffuseLightingLayers, hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? (int)indirectLightingController.GetIndirectDiffuseLightingLayers() : -1);
                 cmd.SetComputeFloatParam(indirectDiffuseCS, HDShaderIDs._ReflectionLightingMultiplier, indirectLightingController.reflectionLightingMultiplier.value);
                 cmd.SetComputeIntParam(indirectDiffuseCS, HDShaderIDs._ReflectionLightingLayers, hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? (int)indirectLightingController.GetReflectionLightingLayers() : -1);

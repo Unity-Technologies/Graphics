@@ -1048,7 +1048,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 hdCamera.SetupGlobalParams(cmd, m_FrameCount);
 
                 IndirectLightingController indirectLightingController = hdCamera.volumeStack.GetComponent<IndirectLightingController>();
-                cmd.SetGlobalFloat(HDShaderIDs._IndirectDiffuseLightingMultiplier, indirectLightingController.indirectDiffuseLightingMultiplier.value);
+                cmd.SetGlobalFloat(HDShaderIDs._IndirectDiffuseLightingMultiplier, indirectLightingController.indirectDiffuseIntensity.value);
                 cmd.SetGlobalInt(HDShaderIDs._IndirectDiffuseLightingLayers, hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? (int)indirectLightingController.GetIndirectDiffuseLightingLayers() : -1);
                 cmd.SetGlobalFloat(HDShaderIDs._ReflectionLightingMultiplier, indirectLightingController.reflectionLightingMultiplier.value);
                 cmd.SetGlobalInt(HDShaderIDs._ReflectionLightingLayers, hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? (int)indirectLightingController.GetReflectionLightingLayers() : -1);

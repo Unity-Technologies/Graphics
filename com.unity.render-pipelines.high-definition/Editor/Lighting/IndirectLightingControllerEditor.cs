@@ -20,13 +20,13 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var o = new PropertyFetcher<IndirectLightingController>(serializedObject);
 
-            m_IndirectDiffuseLightingMultiplier = Unpack(o.Find(x => x.indirectDiffuseLightingMultiplier));
+            m_IndirectDiffuseLightingMultiplier = Unpack(o.Find(x => x.indirectDiffuseIntensity));
             m_IndirectDiffuseLightingLayers = Unpack(o.Find(x => x.indirectDiffuseLightingLayers));
 
             m_ReflectionLightingMultiplier = Unpack(o.Find(x => x.reflectionLightingMultiplier));
             m_ReflectionLightingLayers = Unpack(o.Find(x => x.reflectionLightingLayers));
 
-            m_ReflectionProbeIntensityMultiplier = Unpack(o.Find(x => x.reflectionProbeIntensityMultiplier));
+            m_ReflectionProbeIntensityMultiplier = Unpack(o.Find(x => x.indirectSpecularIntensity));
         }
 
         public override void OnInspectorGUI()
