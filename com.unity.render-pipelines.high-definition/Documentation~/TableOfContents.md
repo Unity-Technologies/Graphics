@@ -55,6 +55,7 @@
   * [Mask Map and Detail Map](Mask-Map-and-Detail-Map)
   * [Material Type](Material-Type)
   * [Renderer and Material Priority](Renderer-And-Material-Priority)
+  * [Decal](Decal)
   * [Surface Type](Surface-Type)
   * Subsurface Scattering
     * [Subsurface Scattering Materials](Subsurface-Scattering)

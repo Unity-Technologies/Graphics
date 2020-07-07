@@ -325,7 +325,7 @@ real3 SampleDirectionalLightmap(TEXTURE2D_PARAM(lightmapTex, lightmapSampler), T
     float3 backNormalWSUnused = 0.0;
     real3 bakeDiffuseLighting = 0.0;
     real3 backBakeDiffuseLightingUnused = 0.0;
-    SampleDirectionalLightmap(  lightmapTex, lightmapSampler, lightmapDirTex, lightmapDirSampler, uv, transform,
+    SampleDirectionalLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), TEXTURE2D_ARGS(lightmapDirTex, lightmapDirSampler), uv, transform,
                                 normalWS, backNormalWSUnused, encodedLightmap, decodeInstructions, bakeDiffuseLighting, backBakeDiffuseLightingUnused);
 
     return bakeDiffuseLighting;

@@ -120,6 +120,9 @@ EditorBuildSettings:
     path: Assets/Scenes/708_ShadowExtendedCulling.unity
     guid: 9095cdd3e135b094aa41b57eb22c8144
   - enabled: 1
+    path: Assets/Scenes/709_CameraExtendedCulling.unity
+    guid: ae8985d60efd64a4eabcad184745808a
+  - enabled: 1
     path: Assets/Scenes/801_SubSurfaceScatteringDeferred.unity
     guid: c939ce56b901d264baab16d584624b30
   - enabled: 1
