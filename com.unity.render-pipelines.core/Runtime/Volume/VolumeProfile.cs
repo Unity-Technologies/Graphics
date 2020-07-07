@@ -297,5 +297,18 @@ namespace UnityEngine.Rendering
                 return hash;
             }
         }
+
+        internal int GetComponentListHashCode()
+        {
+            unchecked
+            {
+                int hash = 17;
+
+                for (int i = 0; i < components.Count; i++)
+                    hash = hash * 23 + components[i].GetType().GetHashCode();
+
+                return hash;
+            }
+        }
     }
 }

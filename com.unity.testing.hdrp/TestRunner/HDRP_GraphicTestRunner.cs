@@ -58,6 +58,9 @@ public class HDRP_GraphicTestRunner
             yield return null;
         }
 
+        // Reset temporal effects on hdCamera
+        HDCamera.GetOrCreate(camera).Reset();
+
         for (int i=0 ; i<settings.waitFrames ; ++i)
             yield return null;
 

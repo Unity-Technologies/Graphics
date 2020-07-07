@@ -85,7 +85,7 @@ namespace UnityEditor.VFX.Block
             {
                 string Source = @"
 float3 nextPos = position + velocity * deltaTime;
-float3 viewPos = mul(VFXToView,float4(nextPos,1.0f));
+float3 viewPos = mul(VFXToView,float4(nextPos,1.0f)).xyz;
 
 float4 projPos = mul(ViewToClip,float4(viewPos,1.0f));
 projPos.xyz /= projPos.w;

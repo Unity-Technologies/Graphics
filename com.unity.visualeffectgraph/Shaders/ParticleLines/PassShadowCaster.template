@@ -40,7 +40,7 @@ ${VFXEnd}
 	{
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		VFXTransformPSInputs(i);
-		float alpha = VFXGetFragmentColor(i);
+		float alpha = VFXGetFragmentColor(i).a;
 		VFXClipFragmentColor(alpha,i);
 		return 0;
 	}

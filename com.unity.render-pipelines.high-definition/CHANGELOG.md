@@ -4,18 +4,27 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [8.2.0] - 2020-07-07
 
 ### Added
 - Added a function (HDRenderPipeline.ResetRTHandleReferenceSize) to reset the reference size of RTHandle systems.
+- Added support for AxF measurements importing into texture resources tilings.
+- Added Layer parameter on Area Light to modify Layer of generated Emissive Mesh
+- Added support for multiple mapping modes in AxF.
+- Add support of lightlayers on indirect lighting controller
 
 ### Fixed
+- Fixed issue with reflection probes in realtime time mode with OnEnable baking having wrong lighting with sky set to dynamic (case 1238047).
+- Fixed corrupted values on LayeredLit when using Vertex Color multiply mode to multiply and MSAA is activated. 
+- Fixed a cause of NaN when a normal of 0-length is generated (usually via shadergraph).
+- Fixed a bug where not all entries were generated for the Attributes Struct in Shader Graph shaders. (case 1250275)
+- VFX: Removed irrelevant queues in render queue selection from HDRP outputs
+- VFX: Motion Vector are correctly renderered with MSAA [Case 1240754](https://issuetracker.unity3d.com/product/unity/issues/guid/1240754/)
 - Fixed shadowmask UI now correctly showing shadowmask disable
 - Fixed the indirect diffuse texture not being ignored when it should (ray tracing disabled).
 - Fixed a performance issue with stochastic ray traced area shadows.
 - Made more explicit the warning about raytracing and asynchronous compute. Also fixed the condition in which it appears.
 - Fixed a null ref exception in static sky when the default volume profile is invalid.
-- Fixed an error about procedural sky being logged by mistake.
 - Fixed flickering of the game/scene view when lookdev is running.
 - Fixed some GCAlloc in the debug window.
 - Removed logic in the UI to disable parameters for contact shadows and fog volume components as it was going against the concept of the volume system.
@@ -27,16 +36,49 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed depth prepass and postpass being disabled after changing the shader in the material UI.
 - Fix an issue in reading the gbuffer for ray traced subsurface scattering (case 1248358).
 - Fixed an issue where editing the Look Dev default profile would not reflect directly in the Look Dev window.
+- Fixed an issue where manipulating the color wheels in a volume component would reset the cursor every time.
+- Fixed an issue where static sky lighting would not be updated for a new scene until it's reloaded at least once.
+- Fixed missing include guards in shadow hlsl files.
+- Fixed issue with light layers bigger than 8 (and above the supported range). 
+- Fixed an issue where decals were duplicated in prefab isolation mode.
+- Fixed the valid TRS test failing due to variable not being initialized to the identity matrix in RTShadows (1220600).
+- Fixed cookie texture not updated when changing an import settings (srgb for example).
+- Fixed transparent motion vectors not working when in MSAA.
+- Fixed an invalid rotation in Planar Reflection Probe editor display, that was causing an error message (case 1182022)
+- Fix conflicts with Handles manipulation when performing a Reset in DecalComponent (case 1238833)
+- Fix error when removing DecalProjector from component contextual menu (case 1243960)
+- Fixed issue when switching back to custom sensor type in physical camera settings (case 1244350).
+- Fixed the prefab integration of custom passes (Prefab Override Highlight not working as expected).
+- Fixed issue with post process when running in RGBA16 and an object with additive blending is in the scene.
+- Fixed issue with sceneview camera settings not being saved after Editor restart.
+- Fixed issue that caused not all baked reflection to be deleted upon clicking "Clear Baked Data" in the lighting menu (case 1136080)
+- Fixed the light overlap scene view draw mode (wasn't working at all).
+- Fixed error when undo a Reflection Probe removal in a prefab instance. (case 1244047)
+- Fixed various multi-editing issues when changing Emission parameters.
+- Fixed issue that prevented cubemap thumbnails from rendering (only on D3D11 and Metal).
+- Fixed Microshadow not working correctly in deferred with LightLayers
+- Tentative fix for missing include in depth of field shaders.
+- Fixed Wizard check on default volume profile to also check it is not the default one in package.
+- Fixed light layers not correctly disabled when the lightlayers is set to Nothing and Lightlayers isn't enabled in HDRP Asset
+- Fixed AxF handling of roughness for Blinn-Phong type materials
+- Fixed AxF UI errors when surface type is switched to transparent
+- Fix issue that caused sky to incorrectly render when using a custom projection matrix.
+- Fixed issue with completely black AO on double sided materials when normal mode is set to None.
+- Fixed issue with culling layer mask of area light's emissive mesh 
+- Fixed UI drawing of the quaternion (1251235)
+- The `CustomPassLoadCameraColor` and `CustomPassSampleCameraColor` functions now returns the correct color buffer when used in after post process instead of the color pyramid (which didn't had post processes).
+- Fixed for area light not updating baked light result when modifying with gizmo.
+- Fixed issue with white flash when enabling SSR.
 - Fix inconsistencies with transparent motion vectors and opaque by allowing camera only transparent motion vectors.
 
 ### Changed
 - Shadowmask and realtime reflection probe property are hide in Quality settings
 - Made the StaticLightingSky class public so that users can change it by script for baking purpose.
 - Changed default exposure compensation to 0.
-
-### Fixed
-- Fixed a cause of NaN when a normal of 0-length is generated (usually via shadergraph).
-- Fixed a bug where not all entries were generated for the Attributes Struct in Shader Graph shaders. (case 1250275)
+- Improved performance of reflection probe management when using a lot of probes.
+- MSAA Within Forward Frame Setting is now enabled by default on Cameras when new Render Pipeline Asset is created
+- Cloned volume profile from read only assets are created in the root of the project. (case 1154961)
+- Lit and LayeredLit tessellation cross lod fade don't used dithering anymore between LOD but fade the tessellation height instead. Allow a smoother transition
 
 ## [8.1.0] - 2020-04-21
 
@@ -103,6 +145,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed scalarization code for contact shadows
 - Fix MaterialBalls having same guid issue
 - Fix spelling and grammatical errors in material samples
+- Fixed issues with scene view and transparent motion vectors.
+- Pre-warm the RTHandle system to reduce the amount of memory allocations and the total memory needed at all points. 
+- Workaround an issue caused by GetKernelThreadGroupSizes  failing to retrieve correct group size. 
+- Fixed transparent motion vector framesetting not sanitized.
+- Fix reflection probe frame settings override
+- Fixed wrong order of post process frame settings.
+- Force to rebake probe with missing baked texture. (1253367)
+- Fix issue causing blocky artifacts when decals affect metallic and are applied on material with specular color workflow.
+- Appropriately constraint blend distance of reflection probe while editing with the inspector (case 1248931)
+- Fixed errors when switching area light to disk shape while an area emissive mesh was displayed.
+- PBR Sky now doesn't go black when going below sea level, but it instead freezes calculation as if on the horizon. 
+- Fixed UI drawing of the quaternion (1251235)
+- Fixed taaFrameIndex and XR tests 4052 and 4053
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
@@ -341,6 +396,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue with MipRatio debug mode showing _DebugMatCapTexture not being set.
 - Fixed missing initialization of input params in Blit for VR.
 - Fix Inf source in LTC for area lights.
+- Fix supported Mac platform detection to handle new major version (11.0) properly
 
 ### Changed
 - Hide unused LOD settings in Quality Settings legacy window.
@@ -678,8 +734,6 @@ The version number for this package has increased due to a version update of a r
 - Added a fix script to handle the warning 'referenced script in (GameObject 'SceneIDMap') is missing'
 - Fix Wizard load when none selected for RenderPipelineAsset
 - Fixed issue with unclear naming of debug menu for decals.
-- Fixed issue with reflection probes in realtime time mode with OnEnable baking having wrong lighting with sky set to dynamic (case 1238047).
-- Fixed corrupted values on LayeredLit when using Vertex Color multiply mode to multiply and MSAA is activated. 
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
