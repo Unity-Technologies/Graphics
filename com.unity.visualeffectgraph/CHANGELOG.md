@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [10.0.0] - 2019-06-10
+## [Unreleased]
 ### Added
 - Tooltips for Attributes
 - Custom Inspector for Spawn context, delay settings are more user friendly.
@@ -29,7 +29,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New built-in operator providing new times access
 - More efficient update modes inspector
 - Ability to read attribute in spawn context through graph
+- Added save button to save only the current visual effect graph.
 - Added Degrees / Radians conversion subgraphs in samples
+- uint parameter can be seen as an enum.
+- New TransformVector4 operator
+- New GetTextureDimensions operator
+- Output Event context for scripting API event retrieval.
+- per-particle GPU Frustum culling
+- Compute culling of particle which have their alive attribute set to false in output
+- Mesh and lit mesh outputs can now have up to 4 differents meshes that can be set per Particle (Experimental)
+- Screen space per particle LOD on mesh and lit mesh outputs (Experimental)
 
 ### Fixed
 - Moved VFX Event Tester Window visibility to Component Play Controls SceneView Window
@@ -115,6 +124,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - De-nicified attribute name (conserve case) in Set Custom Attribute title
 - Changed the default "No Asset" message when opening the visual effect graph window
 - Subgraphs are not in hardcoded categories anymore : updated default subgraph templates + Samples to add meaningful categories.
+- Fix creation of StringPropertyRM
+- Enum fields having headers show the header in the inspector as well.
 
 ## [7.1.1] - 2019-09-05
 ### Added
