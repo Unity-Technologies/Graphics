@@ -74,8 +74,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>The non oblique projection matrix for a particular camera.</returns>
         public delegate Matrix4x4 NonObliqueProjectionGetter(Camera camera);
 
-        Camera m_Camera;
-
         /// <summary>
         /// Clear mode for the camera background.
         /// </summary>
@@ -427,7 +425,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Note camera's preview camera is registered with preview type but then change to game type that lead to issue.
                 // Do not attempt to not register them till this issue persist.
                 m_CameraRegisterName = name;
-                if (m_Camera.cameraType != CameraType.Preview && m_Camera.cameraType != CameraType.Reflection)
+                if (camera.cameraType != CameraType.Preview && camera.cameraType != CameraType.Reflection)
                 {
                     DebugDisplaySettings.RegisterCamera(this);
                     VolumeDebugSettings.RegisterCamera(this);
@@ -442,7 +440,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Note camera's preview camera is registered with preview type but then change to game type that lead to issue.
                 // Do not attempt to not register them till this issue persist.
-                if (m_Camera.cameraType != CameraType.Preview && m_Camera?.cameraType != CameraType.Reflection)
+                if (camera.cameraType != CameraType.Preview && camera?.cameraType != CameraType.Reflection)
                 {
                     VolumeDebugSettings.UnRegisterCamera(this);
                     DebugDisplaySettings.UnRegisterCamera(this);
@@ -459,12 +457,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // When HDR option is enabled, Unity render in FP16 then convert to 8bit with a stretch copy (this cause banding as it should be convert to sRGB (or other color appropriate color space)), then do a final shader with sRGB conversion
             // When LDR, unity render in 8bitSRGB, then do a final shader with sRGB conversion
             // What should be done is just in our Post process we convert to sRGB and store in a linear 10bit, but require C++ change...
-            m_Camera = camera;
-            if (m_Camera == null)
-                return;
 
-            m_Camera.allowMSAA = false; // We don't use this option in HD (it is legacy MSAA) and it produce a warning in the inspector UI if we let it
-            m_Camera.allowHDR = false;
+            camera.allowMSAA = false; // We don't use this option in HD (it is legacy MSAA) and it produce a warning in the inspector UI if we let it
+            camera.allowHDR = false;
 
             RegisterDebug();
 
@@ -534,7 +529,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>Requested buffer as a RTHandle. Can be null if the buffer is not available.</returns>
         public RTHandle GetGraphicsBuffer(BufferAccessType type)
         {
-            HDCamera hdCamera = HDCamera.GetOrCreate(m_Camera);
+            HDCamera hdCamera = HDCamera.GetOrCreate(camera);
             if ((type & BufferAccessType.Color) != 0)
                 return  hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
             else if ((type & BufferAccessType.Depth) != 0)
