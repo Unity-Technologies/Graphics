@@ -109,14 +109,14 @@ namespace UnityEditor.Rendering.Universal
                 if (displayContent)
                 {
                     EditorGUI.BeginChangeCheck();
-                    var propertyName = serializedFeature.FindProperty("m_Name");
-                    propertyName.stringValue = ValidateName(EditorGUILayout.DelayedTextField(Styles.PassNameField, propertyName.stringValue));
+                    SerializedProperty nameProperty = serializedRendererFeaturesEditor.FindProperty("m_Name");
+                    nameProperty.stringValue = ValidateName(EditorGUILayout.DelayedTextField(Styles.PassNameField, propertyName.stringValue));
                     if (EditorGUI.EndChangeCheck())
                     {
                         hasChangedProperties = true;
 
                         // We need to update sub-asset name
-                        obj.name = propertyName.stringValue;
+                        obj.name = nameProperty.stringValue;
                         AssetDatabase.SaveAssets();
 
                         // Triggers update for sub-asset name change
