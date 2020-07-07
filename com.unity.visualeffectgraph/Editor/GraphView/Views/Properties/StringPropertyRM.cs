@@ -134,8 +134,9 @@ namespace UnityEditor.VFX.UI
                 m_StringFieldPushButton = new VFXStringFieldPushButton(m_Label, pushButtonProvider.action, pushButtonProvider.buttonName);
                 if (isDelayed)
                 {
-                    m_StringFieldPushButton.textfield.Q("unity-text-input").RegisterCallback<BlurEvent>(OnFocusLost);
-                    m_StringFieldPushButton.textfield.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnKeyDown);
+                    VisualElement input = m_StringFieldPushButton.textfield.Q("unity-text-input");
+                    input.RegisterCallback<BlurEvent>(OnFocusLost);
+                    input.RegisterCallback<KeyDownEvent>(OnKeyDown);
                 }
                 return m_StringFieldPushButton;
             }
@@ -144,10 +145,53 @@ namespace UnityEditor.VFX.UI
                 m_StringField = new VFXStringField(m_Label);
                 if (isDelayed)
                 {
-                    m_StringField.textfield.Q("unity-text-input").RegisterCallback<BlurEvent>(OnFocusLost);
-                    m_StringField.textfield.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnKeyDown);
+                    VisualElement input = m_StringField.textfield.Q("unity-text-input");
+                    input.RegisterCallback<BlurEvent>(OnFocusLost);
+                    input.RegisterCallback<KeyDownEvent>(OnKeyDown);
                 }
                 return m_StringField;
+            }
+        }
+
+        public override bool isDelayed {
+            get => base.isDelayed;
+
+            set
+            {
+                if (base.isDelayed != value)
+                {
+                    base.isDelayed = value;
+
+                    if (m_StringField != null)
+                    {
+                        VisualElement input = m_StringField.textfield.Q("unity-text-input");
+                        if (isDelayed)
+                        {
+                            input.RegisterCallback<BlurEvent>(OnFocusLost);
+                            input.RegisterCallback<KeyDownEvent>(OnKeyDown);
+                        }
+                        else
+                        {
+                            input.UnregisterCallback<BlurEvent>(OnFocusLost);
+                            input.UnregisterCallback<KeyDownEvent>(OnKeyDown);
+                        }
+                    }
+
+                    if( m_StringFieldPushButton != null)
+                    {
+                        VisualElement input = m_StringFieldPushButton.textfield.Q("unity-text-input");
+                        if (isDelayed)
+                        {
+                            input.RegisterCallback<BlurEvent>(OnFocusLost);
+                            input.RegisterCallback<KeyDownEvent>(OnKeyDown);
+                        }
+                        else
+                        {
+                            input.UnregisterCallback<BlurEvent>(OnFocusLost);
+                            input.UnregisterCallback<KeyDownEvent>(OnKeyDown);
+                        }
+                    }
+                }
             }
         }
 
