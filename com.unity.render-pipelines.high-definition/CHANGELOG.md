@@ -62,6 +62,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed light layers not correctly disabled when the lightlayers is set to Nothing and Lightlayers isn't enabled in HDRP Asset
 - Fixed AxF handling of roughness for Blinn-Phong type materials
 - Fixed AxF UI errors when surface type is switched to transparent
+- Fixed a bug where connections to the `Normal` slot on *Stack Lit Master* node would be lost when changing normal space. 
 - Fix issue that caused sky to incorrectly render when using a custom projection matrix.
 - Fixed issue with completely black AO on double sided materials when normal mode is set to None.
 - Fixed issue with culling layer mask of area light's emissive mesh 
