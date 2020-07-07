@@ -9,6 +9,26 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     {
         static readonly ShaderTagId s_EmptyName = new ShaderTagId("");
 
+        static RenderGraphResourceRegistry m_CurrentRegistry;
+        internal static RenderGraphResourceRegistry current
+        {
+            get
+            {
+                // We assume that it's enough to only check in editor because we don't want to pay the cost at runtime.
+#if UNITY_EDITOR
+                if (m_CurrentRegistry == null)
+                {
+                    throw new InvalidOperationException("Current Render Graph Resource Registry is not set. You are probably trying to cast a Render Graph handle to a resource outside of a Render Graph Pass.");
+                }
+#endif
+                return m_CurrentRegistry;
+            }
+            set
+            {
+                m_CurrentRegistry = value; 
+            }
+        }
+
         class IRenderGraphResource
         {
             public bool imported;
@@ -94,14 +114,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         RenderGraphDebugParams              m_RenderGraphDebug;
         RenderGraphLogger                   m_Logger;
         int                                 m_CurrentFrameIndex;
-        bool                                m_IsExecutingRenderGraph;
 
         RTHandle                            m_CurrentBackbuffer;
 
         internal RTHandle GetTexture(in TextureHandle handle)
         {
-            CheckRenderGraphExecution();
-
             if (!handle.IsValid())
                 return null;
 
@@ -110,8 +127,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal RendererList GetRendererList(in RendererListHandle handle)
         {
-            CheckRenderGraphExecution();
-
             if (!handle.IsValid() || handle >= m_RendererListResources.size)
                 return RendererList.nullRendererList;
 
@@ -120,8 +135,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal ComputeBuffer GetComputeBuffer(in ComputeBufferHandle handle)
         {
-            CheckRenderGraphExecution();
-
             if (!handle.IsValid())
                 return null;
 
@@ -162,21 +175,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal void BeginRender(int currentFrameIndex)
         {
             m_CurrentFrameIndex = currentFrameIndex;
-            m_IsExecutingRenderGraph = true;
+            current = this;
         }
 
         internal void EndRender()
         {
-            m_IsExecutingRenderGraph = false;
-        }
-
-        void CheckRenderGraphExecution()
-        {
-            // We assume that it's enough to only check in editor because we don't want to pay the cost at runtime.
-#if UNITY_EDITOR
-            if (!m_IsExecutingRenderGraph)
-                throw new InvalidOperationException("Invalid cast exception. Casting resource handles to actual resource is forbidden outside of render graph execution.");
-#endif
+            current = null;
         }
 
         void CheckHandleValidity(in ResourceHandle res)
@@ -212,7 +216,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             texResource.imported = true;
             texResource.shaderProperty = shaderProperty;
 
-            return new TextureHandle(newHandle, this);
+            return new TextureHandle(newHandle);
         }
 
         internal TextureHandle ImportBackbuffer(RenderTargetIdentifier rt)
@@ -226,7 +230,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             texResource.resource = m_CurrentBackbuffer;
             texResource.imported = true;
 
-            return new TextureHandle(newHandle, this);
+            return new TextureHandle(newHandle);
         }
 
         int AddNewResource<ResType>(DynamicArray<IRenderGraphResource> resourceArray, out ResType outRes) where ResType : IRenderGraphResource, new()
@@ -250,7 +254,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             texResource.desc = desc;
             texResource.shaderProperty = shaderProperty;
             texResource.transientPassIndex = transientPassIndex;
-            return new TextureHandle(newHandle, this);
+            return new TextureHandle(newHandle);
         }
 
         internal int GetTextureResourceCount()
@@ -273,7 +277,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             ValidateRendererListDesc(desc);
 
             int newHandle = m_RendererListResources.Add(new RendererListResource(desc));
-            return new RendererListHandle(newHandle, this);
+            return new RendererListHandle(newHandle);
         }
 
         internal ComputeBufferHandle ImportComputeBuffer(ComputeBuffer computeBuffer)
@@ -282,7 +286,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             bufferResource.resource = computeBuffer;
             bufferResource.imported = true;
 
-            return new ComputeBufferHandle(newHandle, this);
+            return new ComputeBufferHandle(newHandle);
         }
 
         internal ComputeBufferHandle CreateComputeBuffer(in ComputeBufferDesc desc, int transientPassIndex = -1)
@@ -293,7 +297,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             bufferResource.desc = desc;
             bufferResource.transientPassIndex = transientPassIndex;
 
-            return new ComputeBufferHandle(newHandle, this);
+            return new ComputeBufferHandle(newHandle);
         }
 
         internal ComputeBufferDesc GetComputeBufferResourceDesc(in ResourceHandle handle)
@@ -446,7 +450,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                         var clearFlag = resource.desc.depthBufferBits != DepthBits.None ? ClearFlag.Depth : ClearFlag.Color;
                         // Not ideal to do new TextureHandle here but GetTexture is a public API and we rather have it take an explicit TextureHandle parameters.
                         // Everywhere else internally int is better because it allows us to share more code.
-                        CoreUtils.SetRenderTarget(rgContext.cmd, GetTexture(new TextureHandle(index, this)), clearFlag, Color.magenta);
+                        CoreUtils.SetRenderTarget(rgContext.cmd, GetTexture(new TextureHandle(index)), clearFlag, Color.magenta);
                     }
                 }
 

@@ -20,18 +20,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public RenderGraphResourceType type { get; private set; }
         public int iType { get { return (int)type; } }
 
-        internal RenderGraphResourceRegistry registry;
-
-        internal ResourceHandle(int value, RenderGraphResourceType type, RenderGraphResourceRegistry registry)
+        internal ResourceHandle(int value, RenderGraphResourceType type)
         {
             index = value;
             this.type = type;
-            this.registry = registry;
             m_IsValid = true;
         }
 
         public static implicit operator int(ResourceHandle handle) => handle.index;
-        public bool IsValid() => m_IsValid && registry != null;
+        public bool IsValid() => m_IsValid;
     }
 
     // BEHOLD C# COPY PASTA
@@ -54,23 +51,23 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal ResourceHandle handle;
 
-        internal TextureHandle(int handle, RenderGraphResourceRegistry registry) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.Texture, registry); }
+        internal TextureHandle(int handle) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.Texture); }
 
         /// <summary>
         /// Cast to RTHandle
         /// </summary>
         /// <param name="texture">Input TextureHandle.</param>
-        public static implicit operator RTHandle(TextureHandle texture) => texture.IsValid() ? texture.handle.registry.GetTexture(texture) : null;
+        public static implicit operator RTHandle(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
         /// <summary>
         /// Cast to RenderTargetIdentifier
         /// </summary>
         /// <param name="texture">Input TextureHandle.</param>
-        public static implicit operator RenderTargetIdentifier(TextureHandle texture) => texture.IsValid() ? texture.handle.registry.GetTexture(texture) : null;
+        public static implicit operator RenderTargetIdentifier(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
         /// <summary>
         /// Cast to RenderTexture
         /// </summary>
         /// <param name="texture">Input TextureHandle.</param>
-        public static implicit operator RenderTexture(TextureHandle texture) => texture.IsValid() ? texture.handle.registry.GetTexture(texture) : null;
+        public static implicit operator RenderTexture(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
 
         /// <summary>
         /// Return true if the handle is valid.
@@ -87,13 +84,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     {
         internal ResourceHandle handle;
 
-        internal ComputeBufferHandle(int handle, RenderGraphResourceRegistry registry) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.ComputeBuffer, registry); }
+        internal ComputeBufferHandle(int handle) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.ComputeBuffer); }
 
         /// <summary>
         /// Cast to ComputeBuffer
         /// </summary>
         /// <param name="buffer">Input ComputeBufferHandle</param>
-        public static implicit operator ComputeBuffer(ComputeBufferHandle buffer) => buffer.IsValid() ? buffer.handle.registry.GetComputeBuffer(buffer) : null;
+        public static implicit operator ComputeBuffer(ComputeBufferHandle buffer) => buffer.IsValid() ? RenderGraphResourceRegistry.current.GetComputeBuffer(buffer) : null;
 
         /// <summary>
         /// Return true if the handle is valid.
@@ -110,8 +107,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     {
         bool m_IsValid;
         internal int handle { get; private set; }
-        internal RenderGraphResourceRegistry registry;
-        internal RendererListHandle(int handle, RenderGraphResourceRegistry registry) { this.handle = handle; m_IsValid = true; this.registry = registry; }
+        internal RendererListHandle(int handle) { this.handle = handle; m_IsValid = true; }
         /// <summary>
         /// Conversion to int.
         /// </summary>
@@ -119,7 +115,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <returns>The integer representation of the handle.</returns>
         public static implicit operator int(RendererListHandle handle) { return handle.handle; }
 
-        public static implicit operator RendererList(RendererListHandle rendererList) => rendererList.IsValid() ? rendererList.registry.GetRendererList(rendererList) : RendererList.nullRendererList;
+        public static implicit operator RendererList(RendererListHandle rendererList) => rendererList.IsValid() ? RenderGraphResourceRegistry.current.GetRendererList(rendererList) : RendererList.nullRendererList;
 
         /// <summary>
         /// Return true if the handle is valid.
