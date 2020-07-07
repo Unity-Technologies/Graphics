@@ -723,7 +723,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed overused the atlas for Animated/Render Target Cookies (1259930).
 - Fixed sky asserts with XR multipass
 - Fixed for area light not updating baked light result when modifying with gizmo.
-- Fixed robustness issue with GetOddNegativeScale() in ray tracing (that was impacting normal mapping).
+- Fixed robustness issue with GetOddNegativeScale() in ray tracing, which was impacting normal mapping (1261160).
 
 ### Changed
 - Improve MIP selection for decals on Transparents
