@@ -136,7 +136,6 @@ namespace UnityEngine.Rendering.Universal
             // Enable XR layout only for game camera
             bool isGameCamera = (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR);
             bool xrSupported = isGameCamera && camera.targetTexture == null;
-
             if (XRGraphicsAutomatedTests.enabled && XRGraphicsAutomatedTests.running && isGameCamera && LayoutSinglePassTestMode(cameraData, new XRLayout() { camera = camera, xrSystem = this }))
             {
                 // test layout in used
@@ -368,7 +367,7 @@ namespace UnityEngine.Rendering.Universal
         {
             Camera camera = frameLayout.camera;
 
-            if (camera == null || camera != Camera.main)
+            if (camera == null)
                 return false;
 
             if (camera.TryGetCullingParameters(false, out var cullingParams))
@@ -382,7 +381,12 @@ namespace UnityEngine.Rendering.Universal
                     RenderTextureDescriptor rtDesc = cameraData.cameraTargetDescriptor;
                     rtDesc.dimension = TextureDimension.Tex2DArray;
                     rtDesc.volumeDepth = 2;
-
+                    // If camera is render to subrect, we create temp texture matching native back buffer size instead of intermediate pixel rect size
+                    if(!cameraData.isDefaultViewport)
+                    {
+                        rtDesc.width = (int)(rtDesc.width / cameraData.camera.rect.width);
+                        rtDesc.height = (int)(rtDesc.height / cameraData.camera.rect.height);
+                    }
                     testRenderTexture = RenderTexture.GetTemporary(rtDesc);
                 }
 
