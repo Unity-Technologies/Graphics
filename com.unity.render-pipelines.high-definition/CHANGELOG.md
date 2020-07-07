@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a function (HDRenderPipeline.ResetRTHandleReferenceSize) to reset the reference size of RTHandle systems.
 - Added support for AxF measurements importing into texture resources tilings.
 - Added Layer parameter on Area Light to modify Layer of generated Emissive Mesh
+- Added support for multiple mapping modes in AxF.
 
 ### Fixed
 - Fixed issue with reflection probes in realtime time mode with OnEnable baking having wrong lighting with sky set to dynamic (case 1238047).
@@ -58,6 +59,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Tentative fix for missing include in depth of field shaders.
 - Fixed Wizard check on default volume profile to also check it is not the default one in package.
 - Fixed light layers not correctly disabled when the lightlayers is set to Nothing and Lightlayers isn't enabled in HDRP Asset
+- Fixed AxF handling of roughness for Blinn-Phong type materials
+- Fixed AxF UI errors when surface type is switched to transparent
 
 ### Changed
 - Shadowmask and realtime reflection probe property are hide in Quality settings
@@ -133,6 +136,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed scalarization code for contact shadows
 - Fix MaterialBalls having same guid issue
 - Fix spelling and grammatical errors in material samples
+- Fixed issues with scene view and transparent motion vectors.
+- Pre-warm the RTHandle system to reduce the amount of memory allocations and the total memory needed at all points. 
+- Workaround an issue caused by GetKernelThreadGroupSizes  failing to retrieve correct group size. 
+- Fixed transparent motion vector framesetting not sanitized.
+- Fix reflection probe frame settings override
+- Fixed wrong order of post process frame settings.
+- Force to rebake probe with missing baked texture. (1253367)
+- Fix issue causing blocky artifacts when decals affect metallic and are applied on material with specular color workflow.
+- Appropriately constraint blend distance of reflection probe while editing with the inspector (case 1248931)
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.

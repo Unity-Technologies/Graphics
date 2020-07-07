@@ -119,6 +119,8 @@ namespace UnityEditor.Rendering.HighDefinition
             //   a. If we have to remove a baked data
             //   b. If we have to bake a probe
             // 4. Bake all required probes
+            //   a. Bake probe that were added or modified
+            //   b. Bake probe with a missing baked texture
             // 5. Remove unused baked data
             // 6. Update probe assets
 
@@ -135,10 +137,30 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // == 2. ==
             var states = stackalloc HDProbeBakingState[bakedProbeCount];
+            // A list of indices of probe we may want to force to rebake, even if the hashes matches.
+            // Usually, add a probe when something external to its state or the world state forces the bake.
+            var probeForcedToBakeIndices = stackalloc int[bakedProbeCount];
+            var probeForcedToBakeIndicesCount = 0;
+            var probeForcedToBakeIndicesList = new ListBuffer<int>(
+                probeForcedToBakeIndices,
+                &probeForcedToBakeIndicesCount,
+                bakedProbeCount
+            );
+
             ComputeProbeInstanceID(bakedProbes, states);
             ComputeProbeSettingsHashes(bakedProbes, states);
             // TODO: Handle bounce dependency here
             ComputeProbeBakingHashes(bakedProbeCount, allProbeDependencyHash, states);
+
+            // Force to rebake probe with missing baked texture
+            for (var i = 0; i < bakedProbeCount; ++i)
+            {
+                var instanceId = states[i].instanceID;
+                var probe = (HDProbe)EditorUtility.InstanceIDToObject(instanceId);
+                if (probe.bakedTexture != null && !probe.bakedTexture.Equals(null)) continue;
+
+                probeForcedToBakeIndicesList.TryAdd(i);
+            }
 
             CoreUnsafeUtils.QuickSort<HDProbeBakingState, Hash128, HDProbeBakingState.ProbeBakingHash>(
                 bakedProbeCount, states
@@ -173,7 +195,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            if (operationCount > 0)
+            if (operationCount > 0 || probeForcedToBakeIndicesList.Count > 0)
             {
                 // == 4. ==
                 var cubemapSize = (int)hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
@@ -185,33 +207,66 @@ namespace UnityEditor.Rendering.HighDefinition
                     0
                 );
 
-                // Render probes
-                for (int i = 0; i < addCount; ++i)
+                // Compute indices of probes to bake: added, modified probe or with a missing baked texture.
+                var toBakeIndices = stackalloc int[bakedProbeCount];
+                var toBakeIndicesCount = 0;
+                var toBakeIndicesList = new ListBuffer<int>(toBakeIndices, &toBakeIndicesCount, bakedProbeCount);
+                {
+                    // Note: we will add probes from change check and baked texture missing check.
+                    //   So we can add at most 2 time the probe in the list.
+                    var toBakeIndicesTmp = stackalloc int[bakedProbeCount * 2];
+                    var toBakeIndicesTmpCount = 0;
+                    var toBakeIndicesTmpList =
+                        new ListBuffer<int>(toBakeIndicesTmp, &toBakeIndicesTmpCount, bakedProbeCount * 2);
+
+                    // Add the indices from the added or modified detection check
+                    toBakeIndicesTmpList.TryCopyFrom(addIndices, addCount);
+                    // Add the probe with missing baked texture check
+                    probeForcedToBakeIndicesList.TryCopyTo(toBakeIndicesTmpList);
+
+                    // Sort indices
+                    toBakeIndicesTmpList.QuickSort();
+                    // Add to final list without the duplicates
+                    var lastValue = int.MaxValue;
+                    for (var i = 0; i < toBakeIndicesTmpList.Count; ++i)
+                    {
+                        if (lastValue == toBakeIndicesTmpList.GetUnchecked(i))
+                            // Skip duplicates
+                            continue;
+
+                        lastValue = toBakeIndicesTmpList.GetUnchecked(i);
+                        toBakeIndicesList.TryAdd(lastValue);
+                    }
+                }
+
+                // Render probes that were added or modified
+                for (int i = 0; i < toBakeIndicesList.Count; ++i)
                 {
                     handle.EnterStage(
                         (int)BakingStages.ReflectionProbes,
                         string.Format("Reflection Probes | {0} jobs", addCount),
-                        i / (float)addCount
+                        i / (float)toBakeIndicesCount
                     );
 
-                    var index = addIndices[i];
+                    var index = toBakeIndicesList.GetUnchecked(i);
                     var instanceId = states[index].instanceID;
                     var probe = (HDProbe)EditorUtility.InstanceIDToObject(instanceId);
                     var cacheFile = GetGICacheFileForHDProbe(states[index].probeBakingHash);
-                    var planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget((int)probe.resolution);
 
                     // Get from cache or render the probe
                     if (!File.Exists(cacheFile))
+                    {
+                        var planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget((int)probe.resolution);
                         RenderAndWriteToFile(probe, cacheFile, cubeRT, planarRT);
-
-                    planarRT.Release();
+                        planarRT.Release();
+                    }
                 }
                 cubeRT.Release();
 
                 // Copy texture from cache
-                for (int i = 0; i < addCount; ++i)
+                for (int i = 0; i < toBakeIndicesList.Count; ++i)
                 {
-                    var index = addIndices[i];
+                    var index = toBakeIndicesList.GetUnchecked(i);
                     var instanceId = states[index].instanceID;
                     var probe = (HDProbe)EditorUtility.InstanceIDToObject(instanceId);
                     var cacheFile = GetGICacheFileForHDProbe(states[index].probeBakingHash);
@@ -235,7 +290,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     AssetDatabase.StartAssetEditing();
                     for (int i = 0; i < bakedProbeCount; ++i)
                     {
-                        var index = addIndices[i];
+                        var index = toBakeIndicesList.GetUnchecked(i);
                         var instanceId = states[index].instanceID;
                         var probe = (HDProbe)EditorUtility.InstanceIDToObject(instanceId);
                         var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
@@ -246,9 +301,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 // Import assets
                 AssetDatabase.StartAssetEditing();
-                for (int i = 0; i < addCount; ++i)
+                for (int i = 0; i < toBakeIndicesList.Count; ++i)
                 {
-                    var index = addIndices[i];
+                    var index = toBakeIndicesList.GetUnchecked(i);
                     var instanceId = states[index].instanceID;
                     var probe = (HDProbe)EditorUtility.InstanceIDToObject(instanceId);
                     var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
@@ -275,9 +330,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     targetBakedStates[targetI++] = m_HDProbeBakedStates[i];
                 }
                 // Add new baked states
-                for (int i = 0; i < addCount; ++i)
+                for (int i = 0; i < toBakeIndicesList.Count; ++i)
                 {
-                    var state = states[addIndices[i]];
+                    var state = states[toBakeIndicesList.GetUnchecked(i)];
                     targetBakedStates[targetI++] = new HDProbeBakedState
                     {
                         instanceID = state.instanceID,
