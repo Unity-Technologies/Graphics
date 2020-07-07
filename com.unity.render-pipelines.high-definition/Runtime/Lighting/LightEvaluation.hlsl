@@ -237,9 +237,6 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
     return color;
 }
 
-TEXTURE2D_X(_CloudShadow);
-SAMPLER(sampler_CloudShadow);
-
 SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, PositionInputs posInput,
                                         DirectionalLightData light, BuiltinData builtinData, float3 N)
 {
@@ -295,8 +292,8 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
         g_DebugShadowAttenuation = shadow;
 #endif
 
-    shadow *= 1.0f - LOAD_TEXTURE2D_X_LOD(_CloudShadow, posInput.positionSS, 0).r;
-    //shadow *= 1.0f - SAMPLE_TEXTURE2D_X_LOD(_CloudShadow, sampler_CloudShadow, posInput.positionNDC, 0).r;
+    // If _CloudShadow is not bound, read returns 0, so shadow is not modified
+    shadow *= 1.0f - _CloudShadow[0];
 
     return shadow;
 #else // LIGHT_EVALUATION_NO_SHADOWS

@@ -14,6 +14,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public CubemapArray skyboxBSDFCubemapArray { get; private set; }
         public bool supportsConvolution { get; private set; } = false;
 
+        public ComputeBuffer cloudShadowResult { get; private set; }
+
         internal bool ambientProbeIsReady = false;
 
         public SkyRenderingContext(int resolution, int bsdfCount, bool supportsConvolution, SphericalHarmonicsL2 ambientProbe, string name)
@@ -38,6 +40,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     name = "SkyboxCubemapConvolution"
                 };
             }
+
+            cloudShadowResult = new ComputeBuffer(1, 4);
         }
 
         public void Cleanup()
@@ -49,6 +53,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             ambientProbeResult.Release();
+            cloudShadowResult.Release();
         }
 
         public void ClearAmbientProbe()

@@ -15,6 +15,8 @@ StructuredBuffer<DirectionalLightData> _DirectionalLightDatas;
 StructuredBuffer<LightData>            _LightDatas;
 StructuredBuffer<EnvLightData>         _EnvLightDatas;
 
+StructuredBuffer<float> _CloudShadow;
+
 // Used by directional and spot lights
 TEXTURE2D(_CookieAtlas);
 
