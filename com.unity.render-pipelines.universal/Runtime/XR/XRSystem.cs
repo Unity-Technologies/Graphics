@@ -211,31 +211,34 @@ namespace UnityEngine.Rendering.Universal
                 Rect      viewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight);
                 int       textureArraySlice = -1;
                 xrPass.UpdateView(1, projMatrix, viewMatrix, viewport, textureArraySlice);
+
+                // Update culling params for this xr pass using camera's culling params
+                camera.TryGetCullingParameters(false, out var cullingParams);
+                //// Disable legacy stereo culling path
+                cullingParams.cullingOptions &= ~CullingOptions.Stereo;
+                xrPass.UpdateCullingParams(0, cullingParams);
             }
             else if (xrPass.enabled && display != null)
             {
                 display.GetRenderPass(xrPass.multipassId, out var renderPass);
                 display.GetCullingParameters(camera, renderPass.cullingPassIndex, out var cullingParams);
-
                 // Disable legacy stereo culling path
                 cullingParams.cullingOptions &= ~CullingOptions.Stereo;
 
+                xrPass.UpdateCullingParams(cullingPassId: renderPass.cullingPassIndex, cullingParams);
                 if (xrPass.singlePassEnabled)
                 {
-                    xrPass = XRPass.Create(renderPass, multipassId: xrPass.multipassId, cullingParams, occlusionMeshMaterial);
 
                     for (int renderParamIndex = 0; renderParamIndex < renderPass.GetRenderParameterCount(); ++renderParamIndex)
                     {
                         renderPass.GetRenderParameter(camera, renderParamIndex, out var renderParam);
-                        xrPass.AddView(renderPass, renderParam);
+                        xrPass.UpdateView(renderParamIndex, renderParam);
                     }
                 }
                 else
                 {
                     renderPass.GetRenderParameter(camera, 0, out var renderParam);
-
-                    xrPass = XRPass.Create(renderPass, multipassId: xrPass.multipassId, cullingParams, occlusionMeshMaterial);
-                    xrPass.AddView(renderPass, renderParam);
+                    xrPass.UpdateView(0, renderParam);
                 }
             }
         }
@@ -381,7 +384,7 @@ namespace UnityEngine.Rendering.Universal
                     RenderTextureDescriptor rtDesc = cameraData.cameraTargetDescriptor;
                     rtDesc.dimension = TextureDimension.Tex2DArray;
                     rtDesc.volumeDepth = 2;
-                    // If camera is render to subrect, we create temp texture matching native back buffer size instead of intermediate pixel rect size
+                    // If camera renders to subrect, we adjust size to match back buffer
                     if(!cameraData.isDefaultViewport)
                     {
                         rtDesc.width = (int)(rtDesc.width / cameraData.camera.rect.width);

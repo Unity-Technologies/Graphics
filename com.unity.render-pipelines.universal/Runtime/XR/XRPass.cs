@@ -71,6 +71,21 @@ namespace UnityEngine.Rendering.Universal
             occlusionMesh = null;
             textureArraySlice = dstSlice;
         }
+
+        internal void UpdateXRView(XRPass xrPass, XRDisplaySubsystem.XRRenderParameter renderParameter)
+        {
+            projMatrix = renderParameter.projection;
+            viewMatrix = renderParameter.view;
+            viewport = renderParameter.viewport;
+            occlusionMesh = renderParameter.occlusionMesh;
+            textureArraySlice = renderParameter.textureArraySlice;
+
+            // Convert viewport from normalized to screen space
+            viewport.x      *= xrPass.renderTargetDesc.width;
+            viewport.width  *= xrPass.renderTargetDesc.width;
+            viewport.y      *= xrPass.renderTargetDesc.height;
+            viewport.height *= xrPass.renderTargetDesc.height;
+        }
     }
 
     class XRPass
@@ -163,12 +178,26 @@ namespace UnityEngine.Rendering.Universal
             return passInfo;
         }
 
+        internal void UpdateView(int viewId, XRDisplaySubsystem.XRRenderParameter xrSdkRenderParameter)
+        {
+            if (viewId >= views.Count)
+                throw new NotImplementedException($"Invalid XR setup to update, trying to update non-existing xr view.");
+
+            views[viewId].UpdateXRView(this, xrSdkRenderParameter);
+        }
+
         internal void UpdateView(int viewId, Matrix4x4 proj, Matrix4x4 view, Rect vp, int textureArraySlice = -1)
         {
             if (viewId >= views.Count)
                 throw new NotImplementedException($"Invalid XR setup to update, trying to update non-existing xr view.");
 
             views[viewId].UpdateXRView(proj, view, vp, textureArraySlice);
+        }
+
+        internal void UpdateCullingParams(int cullingPassId, ScriptableCullingParameters cullingParams)
+        {
+            this.cullingPassId = cullingPassId;
+            this.cullingParams = cullingParams;
         }
 
         internal void AddView(Matrix4x4 proj, Matrix4x4 view, Rect vp, int textureArraySlice = -1)
