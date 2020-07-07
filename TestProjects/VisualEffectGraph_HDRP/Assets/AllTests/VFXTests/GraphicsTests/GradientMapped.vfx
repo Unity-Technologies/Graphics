@@ -669,6 +669,8 @@ MonoBehaviour:
   sortPriority: 1
   sort: 0
   indirectDraw: 0
+  computeCulling: 0
+  frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   shaderGraph: {fileID: 0}
@@ -2682,6 +2684,8 @@ MonoBehaviour:
   sortPriority: 2
   sort: 0
   indirectDraw: 0
+  computeCulling: 0
+  frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   useTargetOffset: 1
@@ -3118,6 +3122,8 @@ MonoBehaviour:
   sortPriority: 3
   sort: 0
   indirectDraw: 0
+  computeCulling: 0
+  frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   useTargetOffset: 1
@@ -3974,6 +3980,8 @@ MonoBehaviour:
   sortPriority: 0
   sort: 0
   indirectDraw: 0
+  computeCulling: 0
+  frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
 --- !u!114 &8926484042661614843
@@ -4257,6 +4265,8 @@ MonoBehaviour:
   sortPriority: 4
   sort: 0
   indirectDraw: 0
+  computeCulling: 0
+  frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
 --- !u!114 &8926484042661614882
@@ -4492,10 +4502,10 @@ MonoBehaviour:
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
-  - {fileID: 8926484042661614921}
-  - {fileID: 8926484042661614922}
   - {fileID: 8926484042661614941}
   - {fileID: 8926484042661615036}
+  - {fileID: 8926484042661614921}
+  - {fileID: 8926484042661614922}
   - {fileID: 8926484042661614920}
   m_OutputSlots: []
   m_Label: Mesh
@@ -4520,9 +4530,13 @@ MonoBehaviour:
   sortPriority: 5
   sort: 0
   indirectDraw: 0
+  computeCulling: 0
+  frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   shaderGraph: {fileID: 0}
+  MeshCount: 1
+  lod: 0
 --- !u!114 &8926484042661614920
 MonoBehaviour:
   m_ObjectHideFlags: 0

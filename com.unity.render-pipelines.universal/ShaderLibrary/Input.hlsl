@@ -24,6 +24,7 @@ struct InputData
     half    fogCoord;
     half3   vertexLighting;
     half3   bakedGI;
+    float2  normalizedScreenSpaceUV;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -44,6 +45,9 @@ half4 _MainLightColor;
 // w is used for knowing whether the object is opaque(1) or alpha blended(0)
 half4 _DrawObjectPassData;
 
+// xyz are currently unused
+// w directLightStrength
+half4 _AmbientOcclusionParam;
 
 half4 _AdditionalLightsCount;
 

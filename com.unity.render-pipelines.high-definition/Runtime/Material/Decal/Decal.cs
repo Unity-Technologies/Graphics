@@ -83,5 +83,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 remappingAOS;
         public Vector4 scalingMAB; // metalness, alpha basemap, blue mask map
         public Vector3 blendParams; // x normal blend source, y mask blend source, z mask blend mode
+        public uint decalLayerMask;
     };
 }
