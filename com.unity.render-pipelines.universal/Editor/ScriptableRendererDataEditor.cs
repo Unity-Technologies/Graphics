@@ -110,7 +110,7 @@ namespace UnityEditor.Rendering.Universal
                 {
                     EditorGUI.BeginChangeCheck();
                     SerializedProperty nameProperty = serializedRendererFeaturesEditor.FindProperty("m_Name");
-                    nameProperty.stringValue = ValidateName(EditorGUILayout.DelayedTextField(Styles.PassNameField, propertyName.stringValue));
+                    nameProperty.stringValue = ValidateName(EditorGUILayout.DelayedTextField(Styles.PassNameField, nameProperty.stringValue));
                     if (EditorGUI.EndChangeCheck())
                     {
                         hasChangedProperties = true;
