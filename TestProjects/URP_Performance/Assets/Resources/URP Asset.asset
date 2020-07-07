@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 887bac95e5e1dbd45b80fc9604f8f3b7, type: 3}
-  m_Name: New Test Scene Asset
+  m_Name: URP Asset
   m_EditorClassIdentifier: 
   counterTestSuite:
     scenes:
@@ -30,9 +30,9 @@ MonoBehaviour:
       alias: 
   memoryTestSuite:
     scenes:
-    - scene: 
-      sceneLabels: 
-      scenePath: 
+    - scene: SampleScene
+      sceneLabels: Default
+      scenePath: Assets/Scenes/SampleScene.unity
       enabled: 1
     srpAssets:
     - asset: {fileID: 11400000, guid: 19ba41d7c0026c3459d37c2fe90c55a0, type: 2}
@@ -46,9 +46,9 @@ MonoBehaviour:
       alias: 
   buildTestSuite:
     scenes:
-    - scene: 
-      sceneLabels: 
-      scenePath: 
+    - scene: SampleScene
+      sceneLabels: Default
+      scenePath: Assets/Scenes/SampleScene.unity
       enabled: 1
     srpAssets:
     - asset: {fileID: 11400000, guid: 19ba41d7c0026c3459d37c2fe90c55a0, type: 2}
