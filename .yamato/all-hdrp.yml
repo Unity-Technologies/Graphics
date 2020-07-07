@@ -18,7 +18,11 @@ All_HDRP_2020.1:
          rerun: on-new-revision
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_2020.1
          rerun: on-new-revision
+      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_2020.1
+         rerun: on-new-revision
       -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_2020.1
+         rerun: on-new-revision
+      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_Standalone_2020.1
          rerun: on-new-revision
       -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_2020.1
          rerun: on-new-revision
@@ -39,7 +43,11 @@ All_HDRP_fast-2020.1:
          rerun: on-new-revision
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_fast-2020.1
          rerun: on-new-revision
+      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_fast-2020.1
+         rerun: on-new-revision
       -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_fast-2020.1
+         rerun: on-new-revision
+      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_Standalone_fast-2020.1
          rerun: on-new-revision
       -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_fast-2020.1
          rerun: on-new-revision
@@ -60,7 +68,11 @@ All_HDRP_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_CUSTOM-REVISION
          rerun: always
+      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_CUSTOM-REVISION
+         rerun: always
       -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_Standalone_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_CUSTOM-REVISION
          rerun: always
