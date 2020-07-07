@@ -283,6 +283,10 @@ namespace UnityEditor.Rendering.Universal
         public void OnPreprocessBuild(BuildReport report)
         {
             FetchAllSupportedFeatures();
+            if (EditorUserBuildSettings.GetBuildPlatformSupportsMultiview(EditorUserBuildSettings.activeBuildTarget))
+                ShaderUtil.SetSRPSupportsMultiview(true);
+            else if (EditorUserBuildSettings.GetBuildPlatformSupportsSinglePassInstancing(EditorUserBuildSettings.activeBuildTarget))
+                ShaderUtil.SetSRPSupportsSPI(true);
         }
 
         private static void FetchAllSupportedFeatures()

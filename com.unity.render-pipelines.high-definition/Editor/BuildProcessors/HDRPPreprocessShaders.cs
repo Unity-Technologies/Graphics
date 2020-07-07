@@ -646,6 +646,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public void OnPreprocessBuild(BuildReport report)
         {
             GetAllValidHDRPAssets();
+            if (EditorUserBuildSettings.GetBuildPlatformSupportsSinglePassInstancing(EditorUserBuildSettings.activeBuildTarget))
+                ShaderUtil.SetSRPSupportsSPI(true);
         }
     }
 }
