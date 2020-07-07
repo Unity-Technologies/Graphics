@@ -422,7 +422,58 @@ namespace UnityEditor.Rendering.HighDefinition
                         cam.focalLength.floatValue = focalLengthVal;
                 }
 
-                EditorGUILayout.PropertyField(p.aperture, apertureContent);
+                // Custom layout for aperture
+                var rect = EditorGUILayout.BeginHorizontal();
+                {
+                    // Magic values/offsets to get the UI look consistent
+                    const float textRectSize = 80;
+                    const float textRectPaddingRight = 62;
+                    const float unitRectPaddingRight = 97;
+                    const float sliderPaddingLeft = 2;
+                    const float sliderPaddingRight = 77;
+
+                    var labelRect = rect;
+                    labelRect.width = EditorGUIUtility.labelWidth;
+                    labelRect.height = EditorGUIUtility.singleLineHeight;
+                    EditorGUI.LabelField(labelRect, apertureContent);
+
+                    GUI.SetNextControlName("ApertureSlider");
+                    var sliderRect = rect;
+                    sliderRect.x += labelRect.width + sliderPaddingLeft;
+                    sliderRect.width = rect.width - labelRect.width - sliderPaddingRight;
+                    float newVal = GUI.HorizontalSlider(sliderRect, p.aperture.floatValue, HDPhysicalCamera.kMinAperture, HDPhysicalCamera.kMaxAperture);
+
+                    // keep only 2 digits of precision, like the otehr editor fields
+                    newVal = Mathf.Floor(100 * newVal) / 100.0f;
+
+                    if (p.aperture.floatValue != newVal)
+                    {
+                        p.aperture.floatValue = newVal;
+                        // Note: We need to move the focus when the slider changes, otherwise the textField will not update
+                        GUI.FocusControl("ApertureSlider");
+                    }
+
+                    var unitRect = rect;
+                    unitRect.x += rect.width - unitRectPaddingRight;
+                    unitRect.width = textRectSize;
+                    unitRect.height = EditorGUIUtility.singleLineHeight;
+                    EditorGUI.LabelField(unitRect, "f /", EditorStyles.label);
+
+                    var textRect = rect;
+                    textRect.x = rect.width - textRectPaddingRight;
+                    textRect.width = textRectSize;
+                    textRect.height = EditorGUIUtility.singleLineHeight;
+                    string newAperture = EditorGUI.TextField(textRect, p.aperture.floatValue.ToString());
+                    try
+                    {
+                        p.aperture.floatValue = Mathf.Clamp(float.Parse(newAperture), HDPhysicalCamera.kMinAperture, HDPhysicalCamera.kMaxAperture);
+                    }
+                    catch
+                    { }
+                }
+
+                EditorGUILayout.EndHorizontal();
+                EditorGUILayout.Space(EditorGUIUtility.singleLineHeight);
                 EditorGUILayout.PropertyField(cam.lensShift, lensShiftContent);
             }
 

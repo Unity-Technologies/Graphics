@@ -68,6 +68,10 @@ namespace UnityEngine.Rendering
         /// <returns>RenderTexture representation of the RTHandle.</returns>
         public static implicit operator RenderTexture(RTHandle handle)
         {
+            // If RTHandle is null then conversion should give a null RenderTexture
+            if (handle == null)
+                return null;
+
             Debug.Assert(handle.rt != null, "RTHandle was created using a regular Texture and is used as a RenderTexture");
             return handle.rt;
         }
@@ -79,6 +83,10 @@ namespace UnityEngine.Rendering
         /// <returns>Texture representation of the RTHandle.</returns>
         public static implicit operator Texture(RTHandle handle)
         {
+            // If RTHandle is null then conversion should give a null Texture
+            if (handle == null)
+                return null;
+
             Debug.Assert(handle.m_ExternalTexture != null || handle.rt != null);
             return (handle.rt != null) ? handle.rt : handle.m_ExternalTexture;
         }
@@ -146,6 +154,7 @@ namespace UnityEngine.Rendering
             }
         }
 
+#if UNITY_2020_2_OR_NEWER
         /// <summary>
         /// Switch the render target to fast memory on platform that have it.
         /// </summary>
@@ -160,10 +169,8 @@ namespace UnityEngine.Rendering
             bool copyContents = false
             )
         {
-#if UNITY_2020_2_OR_NEWER
             residencyFraction = Mathf.Clamp01(residencyFraction);
             cmd.SwitchIntoFastMemory(m_RT, flags, residencyFraction, copyContents);
-#endif
         }
 
         /// <summary>
@@ -187,9 +194,9 @@ namespace UnityEngine.Rendering
         /// <param name="copyContents">Whether the content of render target are copied or not when switching out fast memory.</param>
         public void SwitchOutFastMemory(CommandBuffer cmd, bool copyContents = true)
         {
-#if UNITY_2020_2_OR_NEWER
             cmd.SwitchOutOfFastMemory(m_RT, copyContents);
-#endif
         }
+#endif
+
     }
 }

@@ -36,6 +36,7 @@ When you create an HDRP Asset, open it in the Inspector to edit its properties.
 
 | **Property**                            | **Description**                                              |
 | --------------------------------------- | ------------------------------------------------------------ |
+| **Color Buffer Format**                 | The format of the color buffer that HDRP will use for rendering, using R16G16B16A16 instead of R11G11B10 will double the memory usage but help you to avoid banding. R16G16B16A16 is also required for [Alpha-Output](Alpha-Output.md).|
 | **Lit Shader Mode**                     | Use the drop-down to choose which mode HDRP uses for the [Lit Shader](Lit-Shader.html).<br />&#8226; **Forward Only**: forces HDRP to only use forward rendering for Lit Shaders.<br />&#8226; **Deferred Only**: forces HDRP to use deferred rendering for Lit Shaders (HDRP still renders advanced Materials using forward rendering).<br />&#8226; **Both**: allows the Camera to use deferred and forward rendering.<br /><br />Select **Both** to allow you to switch between forward and deferred rendering for Lit Shaders at runtime per Camera. Selecting a specific mode reduces build time and Shader memory because HDRP requires less Shader variants, but it is not possible to switch from one mode to the other at runtime. |
 | **- Multisample Anti-aliasing Quality** | Use the drop-down to set the number of samples HDRP uses for multisample anti-aliasing (MSAA). The larger the sample count, the better the quality. Select **None** to disable MSAA.<br />This property is only visible when **Lit Shader Mode** is set to **Forward Only** or **Both**. |
 | **Motion Vectors**                      | Enable the checkbox to make HDRP support motion vectors. HDRP uses motion vectors for effects like screen space reflection (SSR) and motion blur. When disabled, motion blur has no effect and HDRP calculates SSR with lower quality. |
@@ -81,25 +82,13 @@ These settings control the draw distance and resolution of the decals atlas that
 | **- Force Screen Percentage**   | Enable the checkbox to force HDRP to use a specific screen percentage for dynamic resolution. This feature is useful for debugging dynamic resolution. |
 | **- Forced Screen Percentage**  | The specific screen percentage that HDRP uses for dynamic resolution. This property is only visible when you enable the **Force Screen Percentage**.. |
 
-
-
 ## Lighting
 
 | **Property**                       | **Description**                                              |
 | ---------------------------------- | ------------------------------------------------------------ |
 | **Screen Space Ambient Occlusion** | Enable the checkbox to make HDRP support screen space ambient occlusion (SSAO). SSAO is a technique for approximating ambient occlusion efficiently in real time. |
 | **Volumetrics**                    | Enable the checkbox to make HDRP support volumetrics. This allows you to use **Volumetric Fog** for the **Fog Type** in the [Visual Environment](Override-Visual-Environment.html). |
-| **- high quality**                 | Enable the checkbox to increase the resolution of volumetrics. This increases the quality of fog effects, but increases the resource intensity greatly. |
-| **Light Layers**                   | Enable the checkbox to make HDRP support Light Layers. You can assign a Layer to a Light which then only lights up Mesh Renderers with a matching rendering Layer. |
-
-### Light Layers
-
-Light Layers are used to separate lighting into different layers in order to make object only reacting to certain lights.
-
-| **Property**           | **Description**                                              |
-| ---------------------- | ------------------------------------------------------------ |
-| **Enable**             | Enable the checkbox to make HDRP support Light Layers. You can assign a Layer to a Light which then only lights up Mesh Renderers with a matching rendering Layer. |
-| **Light Layer Name i** | The name displayed on light and meshes when using this HDRenderPipelineAsset. |
+| **Light Layers**                   | Enable the checkbox to make HDRP support Light Layers. You can assign a Layer to a Light which then only lights up Mesh Renderers or Terrain with a matching rendering Layer. |
 
 ### Cookies
 
@@ -123,7 +112,6 @@ Use the Reflection settings to configure the max number and resolution of the pr
 | **Compress Reflection Probe Cache**        | Enable the checkbox to compress the [Reflection Probe](Reflection-Probe.html) cache in order to save space on disk. |
 | **Reflection Cubemap Size**                | Use the drop-down to select the maximum resolution of individual Reflection Probe[ ](https://docs.unity3d.com/Manual/class-Cubemap.html)[cubemaps](https://docs.unity3d.com/Manual/class-Cubemap.html). |
 | **Probe Cache Size**                       | The maximum size of the Probe Cache. Defines how many Probe cube maps HDRP can save in cache. |
-| **Compress Planar Reflection Probe Cache** | Enable the checkbox to compress the [Planar Reflection Probe](Planar-Reflection-Probe.html) cache in order to save space on disk. |
 | **Planar Reflection Atlas Size**           | Use the drop-down to select the resolution of the planar probe atlas. It defines how many reflection probe you'll be able to render at once and at which resolution.  |
 | **Max Planar Reflection On Screen**        | The maximum number of planar reflections on screen at once. |
 | **Planar Probe Cache Size**                | The maximum size of the Planer Reflection Probe cache. Defines how many Probe textures HDRP can save in cache. |

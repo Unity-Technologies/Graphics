@@ -1,7 +1,7 @@
 # Blackboard
 
 ## Description
-The Blackboard lists [Properties](https://docs.unity3d.com/Manual/SL-Properties.html) and [Keywords](Keywords) available for use in the graph. Here, you can define a range of Property and Keyword types, and the corresponding names, attributes, and default values. You can also expose Properties and Keywords to Materials that use the shader.
+The Blackboard lists [Properties](https://docs.unity3d.com/Manual/SL-Properties.html) and [Keywords](Keywords) available for use in the graph. Here, you can define a range of Property and Keyword types. 
 
 To change the path of a [Shader Graph Asset](Shader-Graph-Asset), click on its path field in the Blackboard, and enter the new path. The Unity Editor uses the Shader Graph path to list the corresponding Shader Graph Asset in the Material Inspector's **Shader** drop-down menu. Similarly, you can change the path field of a [Sub Graph](Sub-graph). The Editor uses the Sub Graph path to list the corresponding Sub Graph Asset in the [Create Node Menu](Create-Node-Menu).
 

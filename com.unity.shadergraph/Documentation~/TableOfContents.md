@@ -5,7 +5,9 @@
     * [Shader Graph Window](Shader-Graph-Window)  
         * [Blackboard](Blackboard)  
         * [Master Preview](Master-Preview) 
+        * [Graph Inspector](Internal-Inspector.md)
     * [Create Node Menu](Create-Node-Menu)
+    * [Master Stack](Master-Stack)
     * [Sticky Notes](Sticky-Notes)
     * [Sub Graph](Sub-graph)     
     * [Color Modes](Color-Modes)
@@ -13,6 +15,8 @@
     * [Custom Function Node](Custom-Function-Node)
     * [Shader Graph Preferences](Shader-Graph-Preferences)
     * [Samples](ShaderGraph-Samples.md)
+* Upgrade Guides
+  * [Upgrading to Shader Graph 10.0.x](Upgrade-Guide-10-0-x)
 * Inside Shader Graph  
     * [Shader Graph Asset](Shader-Graph-Asset) 
     * [Sub Graph Asset](Sub-graph-Asset)
@@ -20,7 +24,6 @@
         * [Port](Port)  
         * [Custom Port Menu](Custom-Port-Menu)
         * [Edge](Edge)  
-    * [Master Node](Master-Node)
     * [Property Types](Property-Types) 
     * [Keywords](Keywords) 
     * [Data Types](Data-Types)
@@ -113,9 +116,6 @@
             * [Texture 2D Array Asset](Texture-2D-Array-Asset-Node)  
             * [Texture 2D Asset](Texture-2D-Asset-Node)  
             * [Texture 3D Asset](Texture-3D-Asset-Node)  
-    * [Master](Master-Nodes)
-        * [PBR](PBR-Master-Node)  
-        * [Unlit](Unlit-Master-Node)  
     * [Math](Math-Nodes) 
         * Advanced
             * [Absolute](Absolute-Node)  
@@ -234,3 +234,5 @@
         * [Tiling And Offset](Tiling-And-Offset-Node)
         * [Triplanar](Triplanar-Node)  
         * [Twirl](Twirl-Node)
+    * [Block Nodes](Block-Node)
+      * [Built In](Built-In-Blocks)

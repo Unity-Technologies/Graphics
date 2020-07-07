@@ -32,8 +32,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override string renderQueue
         {
-            get => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(systemData.renderingPass, systemData.sortPriority, systemData.alphaTest));
+            get => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(systemData.renderingPass, systemData.sortPriority, systemData.alphaTest, false));
         }
+
+        protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/ShaderPass.template";
 
         protected virtual bool supportForward => false;
         protected virtual bool supportLighting => false;
@@ -43,6 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected abstract string subShaderInclude { get; }
         protected virtual string postDecalsInclude => null;
+        protected virtual string raytracingInclude => null;
         protected abstract FieldDescriptor subShaderField { get; }
 
         public override void Setup(ref TargetSetupContext context)
@@ -76,31 +79,26 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     HDShaderPasses.GenerateSceneSelection(supportLighting),
                     HDShaderPasses.GenerateMotionVectors(supportLighting, supportForward),
                     { HDShaderPasses.GenerateBackThenFront(supportLighting), new FieldCondition(HDFields.TransparentBackFace, true)},
-                    { HDShaderPasses.GenerateTransparentDepthPostpass(supportLighting), new FieldCondition(HDFields.TransparentDepthPostPass, true) },
+                    { HDShaderPasses.GenerateTransparentDepthPostpass(supportLighting), new FieldCondition(HDFields.TransparentDepthPostPass, true)}
                 };
 
                 if (supportLighting)
                 {
-                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting), new FieldCondition[]{
-                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
-                                                            new FieldCondition(HDFields.DisableSSRTransparent, true) });
-                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting), new FieldCondition[]{
-                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
-                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) });
-                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting), new FieldCondition[]{
-                                                            new FieldCondition(HDFields.TransparentDepthPrePass, false),
-                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) });
-                }
+                    // We always generate the TransparentDepthPrepass as it can be use with SSR transparent
+                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(true));
+                }                
                 else
                 {
-                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting), new FieldCondition(HDFields.TransparentDepthPrePass, true));
+                    // We only generate the pass if requested
+                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(false), new FieldCondition(HDFields.TransparentDepthPrePass, true));
                 }
 
                 if (supportForward)
                 {
                     passes.Add(HDShaderPasses.GenerateDepthForwardOnlyPass(supportLighting));
-                    passes.Add(HDShaderPasses.GenereateForwardOnlyPass(supportLighting));
+                    passes.Add(HDShaderPasses.GenerateForwardOnlyPass(supportLighting));
                 }
+
                 if (supportDistortion)
                     passes.Add(HDShaderPasses.GenerateDistortionPass(supportLighting), new FieldCondition(HDFields.TransparentDistortion, true));
 
@@ -147,7 +145,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var passDescriptor = passes[i].descriptor;
                 passDescriptor.passTemplatePath = templatePath;
-                passDescriptor.sharedTemplateDirectory = HDTarget.sharedTemplateDirectory;
+                passDescriptor.sharedTemplateDirectories = templateMaterialDirectories;
 
                 // Add the subShader to enable fields that depends on it
                 var originalRequireFields = passDescriptor.requiredFields;
@@ -168,6 +166,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                         include.descriptor.value = subShaderInclude;
                     if (include.descriptor.value == CoreIncludes.kPostDecalsPlaceholder)
                         include.descriptor.value = postDecalsInclude;
+                    if (include.descriptor.value == CoreIncludes.kRaytracingPlaceholder)
+                        include.descriptor.value = raytracingInclude;
 
                     if (!String.IsNullOrEmpty(include.descriptor.value))
                         finalIncludes.Add(include.descriptor.value, include.descriptor.location, include.fieldConditions);
@@ -203,39 +203,47 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (supportDistortion)
                 AddDistortionFields(ref context);
 
+            // Mark the shader as unlit so we can remove lighting in FieldConditions
+            if (!supportLighting)
+                context.AddField(HDFields.Unlit);
+
             // Common properties between all "surface" master nodes (everything except decal right now)
-            context.AddField(HDStructFields.FragInputs.IsFrontFace,         systemData.doubleSidedMode != DoubleSidedMode.Disabled && context.pass.referenceName != "SHADERPASS_MOTION_VECTORS");
-
-            // Blend Mode
-            context.AddField(Fields.BlendAdd,                       systemData.surfaceType != SurfaceType.Opaque && systemData.blendMode == BlendMode.Additive);
-            context.AddField(Fields.BlendAlpha,                     systemData.surfaceType != SurfaceType.Opaque && systemData.blendMode == BlendMode.Alpha);
-            context.AddField(Fields.BlendPremultiply,               systemData.surfaceType != SurfaceType.Opaque && systemData.blendMode == BlendMode.Premultiply);
-
-            // We always generate the keyword ALPHATEST_ON
-            context.AddField(Fields.AlphaTest,                      systemData.alphaTest
-                && (context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold)
-                    || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow)
-                || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass)
-                || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass)));
+            context.AddField(HDStructFields.FragInputs.IsFrontFace, systemData.doubleSidedMode != DoubleSidedMode.Disabled && context.pass.referenceName != "SHADERPASS_MOTION_VECTORS");
 
             // Double Sided
-            context.AddField(HDFields.DoubleSided,                  systemData.doubleSidedMode != DoubleSidedMode.Disabled);
+            context.AddField(HDFields.DoubleSided, systemData.doubleSidedMode != DoubleSidedMode.Disabled);
 
-            context.AddField(HDFields.DoAlphaTestPrepass,           systemData.alphaTest && systemData.alphaTestDepthPrepass && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass));
-            context.AddField(HDFields.DoAlphaTestPostpass,          systemData.alphaTest && systemData.alphaTestDepthPostpass && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass));
-            context.AddField(HDFields.DoAlphaTestShadow,            systemData.alphaTest && builtinData.alphaTestShadow && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow));
+            // We always generate the keyword ALPHATEST_ON. All the variant of AlphaClip (shadow, pre/postpass) are only available if alpha test is on.
+            context.AddField(Fields.AlphaTest, systemData.alphaTest
+                                                && (context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold)
+                                                    || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow)
+                                                    || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass)
+                                                    || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass)));
 
-            context.AddField(HDFields.TransparentDepthPrePass,      systemData.surfaceType != SurfaceType.Opaque && systemData.alphaTestDepthPrepass);
-            context.AddField(HDFields.TransparentDepthPostPass,     systemData.surfaceType != SurfaceType.Opaque && systemData.alphaTestDepthPostpass);
+            // All the DoAlphaXXX field drive the generation of which code to use for alpha test in the template
+            // Regular alpha test is only done if artist haven't ask to use the specific alpha test shadow one
+            bool isShadowPass               = context.pass.lightMode == "ShadowCaster";
+            bool isTransparentDepthPrepass  = context.pass.lightMode == "TransparentDepthPrepass";
+
+            // Shadow use the specific alpha test only if user have ask to override it
+            context.AddField(HDFields.DoAlphaTestShadow,    systemData.alphaTest && builtinData.alphaTestShadow && isShadowPass &&
+                                                            context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow));
+            // Pre/post pass always use the specific alpha test provided for those pass
+            context.AddField(HDFields.DoAlphaTestPrepass,   systemData.alphaTest && systemData.transparentDepthPrepass && isTransparentDepthPrepass &&
+                                                            context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass));           
 
             // Features & Misc
-            context.AddField(Fields.LodCrossFade,                   systemData.supportLodCrossFade);
-            context.AddField(Fields.VelocityPrecomputed,            builtinData.addPrecomputedVelocity);
-            context.AddField(HDFields.TransparentWritesMotionVec,   systemData.surfaceType != SurfaceType.Opaque && builtinData.transparentWritesMotionVec);
-            context.AddField(Fields.AlphaToMask,                    systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) && builtinData.alphaToMask);
-            context.AddField(HDFields.DepthOffset,                  builtinData.depthOffset && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.DepthOffset));
-            context.AddField(HDFields.AlphaFog,                     systemData.surfaceType != SurfaceType.Opaque && builtinData.transparencyFog);
-            context.AddField(HDFields.TransparentBackFace,          systemData.surfaceType != SurfaceType.Opaque && builtinData.backThenFrontRendering);
+            context.AddField(Fields.LodCrossFade,           systemData.supportLodCrossFade);
+            context.AddField(Fields.AlphaToMask,            systemData.alphaTest);
+            context.AddField(HDFields.TransparentBackFace,  builtinData.backThenFrontRendering);
+            context.AddField(HDFields.TransparentDepthPrePass, systemData.transparentDepthPrepass);
+            context.AddField(HDFields.TransparentDepthPostPass, systemData.transparentDepthPostpass);
+
+            context.AddField(HDFields.DepthOffset, builtinData.depthOffset && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.DepthOffset));
+
+            // Depth offset needs positionRWS and is now a multi_compile
+            if (builtinData.depthOffset)
+                context.AddField(HDStructFields.FragInputs.positionRWS);
         }
 
         protected void AddDistortionFields(ref TargetFieldContext context)
@@ -266,18 +274,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, systemData.alphaTest);
 
             // Alpha Test
-            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,
-                systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPrepass
-                && (context.pass != null && context.pass.Value.lightMode == "TransparentDepthPrepass"));
-            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass,
-                systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPostpass
-                && (context.pass != null && context.pass.Value.lightMode == "TransparentDepthPostpass"));
-            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow,
-                systemData.alphaTest && builtinData.alphaTestShadow
-                && (context.pass != null && context.pass.Value.lightMode == "ShadowCaster"));
+            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass, systemData.alphaTest && systemData.transparentDepthPrepass);
+            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass, systemData.alphaTest && systemData.transparentDepthPostpass);
+            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow, systemData.alphaTest && builtinData.alphaTestShadow);
 
             // Misc
-            context.AddBlock(HDBlockFields.SurfaceDescription.DepthOffset,          builtinData.depthOffset);
+            context.AddBlock(HDBlockFields.SurfaceDescription.DepthOffset, builtinData.depthOffset);
         }
 
         protected void AddDistortionBlocks(ref TargetActiveBlockContext context)
@@ -315,20 +317,31 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             });
 
             //See SG-ADDITIONALVELOCITY-NOTE
-            if (builtinData.addPrecomputedVelocity)
+            collector.AddShaderProperty(new BooleanShaderProperty
             {
-                collector.AddShaderProperty(new BooleanShaderProperty
-                {
-                    value = true,
-                    hidden = true,
-                    overrideReferenceName = kAddPrecomputedVelocity,
-                });
-            }
+                value = builtinData.addPrecomputedVelocity,
+                hidden = true,
+                overrideReferenceName = kAddPrecomputedVelocity,
+            });
+
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                value = builtinData.depthOffset,
+                hidden = true,
+                overrideReferenceName = kDepthOffsetEnable
+            });
+
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                value = builtinData.transparentWritesMotionVec,
+                hidden = true,
+                overrideReferenceName = kTransparentWritingMotionVec
+            });
 
             // Common properties for all "surface" master nodes
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, systemData.alphaTest, builtinData.alphaTestShadow);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, systemData.doubleSidedMode);
-            HDSubShaderUtilities.AddPrePostPassProperties(collector, systemData.alphaTestDepthPrepass, systemData.alphaTestDepthPostpass);
+            HDSubShaderUtilities.AddPrePostPassProperties(collector, systemData.transparentDepthPrepass, systemData.transparentDepthPostpass);
 
             // Add all shader properties required by the inspector
             HDSubShaderUtilities.AddBlendingStatesShaderProperties(
@@ -339,6 +352,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 builtinData.alphaToMask,
                 systemData.transparentZWrite,
                 systemData.transparentCullMode,
+                systemData.opaqueCullMode,
                 systemData.zTest,
                 builtinData.backThenFrontRendering,
                 builtinData.transparencyFog
@@ -356,12 +370,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             material.SetFloat(kEnableFogOnTransparent, builtinData.transparencyFog ? 1.0f : 0.0f);
             material.SetFloat(kZTestTransparent, (int)systemData.zTest);
             material.SetFloat(kTransparentCullMode, (int)systemData.transparentCullMode);
+            material.SetFloat(kOpaqueCullMode, (int)systemData.opaqueCullMode);
             material.SetFloat(kTransparentZWrite, systemData.transparentZWrite ? 1.0f : 0.0f);
 
             // No sorting priority for shader graph preview
-            material.renderQueue = (int)HDRenderQueue.ChangeType(systemData.renderingPass, offset: 0, alphaTest: systemData.alphaTest);
+            material.renderQueue = (int)HDRenderQueue.ChangeType(systemData.renderingPass, offset: 0, alphaTest: systemData.alphaTest, false);
 
-            HDLitGUI.SetupMaterialKeywordsAndPass(material);
+            LightingShaderGraphGUI.SetupMaterialKeywordsAndPass(material);
         }
     }
 }

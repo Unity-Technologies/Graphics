@@ -18,6 +18,14 @@ Currently, the only publicly accessible variables in the `ShaderVariablesGlobal`
 
 From Unity 2020.2, if you create a new [HDRP Asset](HDRP-Asset.md), the **MSAA Within Forward** Frame Setting is enabled by default.
 
+## Decal
+
+From Unity 2020.2, Decal no longer require a full Depth Prepass. Only Material with **Receive Decals** enable will be render during the Depth Prepass. Unless other option force it.
+
+From Unity 2020.2, A new Decal Layer system is supported. It is disable by default. This Decal Layers system make use of the **Rendering Layer Mask** from Mesh Renderer and Terrain. The default value of this property prior of 2020.2 don't include any Decal Layer flags. Consequence is that when enabling this feature, no meshes will receives decal until configure correctly. A script **Edit > Render Pipeline/HD Render Pipeline > Upgrade from Previous Version > Enable Decal Layer Default on all loaded Mesh Renderer and Terrain** is provided to convert the already created Meshes as well a version to apply only on a selection. Newly created Mesh Renderer or Terrain have the have **Decal Layer Default** enable by default.
+
+Warning: 2020.2.0b1 Isn't including the modification for the default value of **Rendering Layer Mask**. Creating new Meshes in this version don't have the correct flag.
+
 ## Lighting
 
 From Unity 2020.2, if you disable the sky override used as the **Static Lighting Sky** in the **Lighting** window, the sky no longer affects the baked lighting. Previously, the sky affected the baked lighting even when it was disabled.
@@ -29,6 +37,8 @@ Select your [HDRP Asset](HDRP-Asset.md).
 In the Inspector, go to Lighting > Cookies.
 In the 2D Atlas Size drop-down, select a larger cookie resolution.
 
+From Unity 2020.2, the texture format of the color buffer selected in HDRP asset is apply to planar reflection probe. Previously planar reflection probe where always using float16 rendertarget.
+
 ## Shadows
 
 From Unity 2020.2, it is no longer necessary to change the [HDRP Config package](HDRP-Config-Package.md) to set the [shadow filtering quality](HDRP-Asset.md#FilteringQualities) for deferred rendering. Instead, you can now change the filtering quality directly on the [HDRP Asset](HDRP-Asset.md#FilteringQualities). Note if you previously had not set the shadow filtering quality to **Medium** on the HDRP Asset, the automatic project upgrade process changes the shadow quality which means you may need to manually change it back to its original value.
@@ -36,6 +46,14 @@ From Unity 2020.2, it is no longer necessary to change the [HDRP Config package]
 HDRP now stores OnEnable and OnDemand shadows in a separate atlas and more API is available to handle them. For more information, see [Shadows in HDRP](Shadows-in-HDRP.md).
 
 The shader function `SampleShadow_PCSS` now requires you to pass in an additional float2 parameter which contains the shadow atlas resolution in x and the inverse of the atlas resolution in y.
+
+## Shader config file
+
+From Unity 2020.2, due to the change of shadow map, the enum HDShadowFilteringQuality have been moved to HDShadowManager.cs and the variables ShaderConfig.s_DeferredShadowFiltering as well as the option ShaderOptions.DeferredShadowFiltering have been removed from the code as they have no impact anymore.
+
+From Unity 2020.2, a new option is available named ColoredShadow. It allows you to control whether a shadow is chromatic or monochrome. ColoredShadow is enabled by default and currently only works with [Ray-traced shadows](Ray-Traced-Shadows.md). Note that colored shadows are more resource-intensive to process than standard shadows.
+
+From Unity 2020.2, the Raytracing option and equivalent generated shader macro SHADEROPTIONS_RAYTRACING have been removed. It is not longer require to edit shader config file to use Raytracing features of HDRP.
 
 ## Shader code
 
@@ -66,6 +84,14 @@ BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceDat
 
 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 ```
+
+From Unity 2020.2, HDRP includes a new rectangular area shadow evaluation function, EvaluateShadow_RectArea. The GetAreaLightAttenuation() function has been renamed to GetRectAreaShadowAttenuation(). Also the type DirectionalShadowType have been renamed SHADOW_TYPE.
+
+From Unity 2020.2, the macro ENABLE_RAYTRACING, SHADEROPTIONS_RAYTRACING, and RAYTRACING_ENABLED have been removed. A new multicompile is introduce for forward pass: SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON. This allow to enable raytracing effect without requiring edition of shader config file.
+
+From Unity 2020.2,SHADERPASS for TransparentDepthPrepass and TransparentDepthPostpass identification is using respectively SHADERPASS_TRANSPARENT_DEPTH_PREPASS and SHADERPASS_TRANSPARENT_DEPTH_POSTPASS. Previously it was SHADERPASS_DEPTH_ONLY. Define CUTOFF_TRANSPARENT_DEPTH_PREPASS and CUTOFF_TRANSPARENT_DEPTH_POSTPASS and been removed as the new path macro can now be used.
+
+From Unity 2020.2, a new multi compile is added on Depth Prepass and Motion vector pass to allow to support the Decal Layer feature. Those pass require to add #pragma multi_compile _ WRITE_DECAL_BUFFER.
 
 ## Custom pass API
 

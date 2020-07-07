@@ -57,7 +57,7 @@ namespace UnityEditor.ShaderGraph
 
                 // Templates
                 passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Collections
                 structs = new StructCollection

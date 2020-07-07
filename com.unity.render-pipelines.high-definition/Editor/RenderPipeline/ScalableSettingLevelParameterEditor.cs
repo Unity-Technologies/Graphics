@@ -22,13 +22,14 @@ namespace UnityEditor.Rendering.HighDefinition
             rect.y += 2;
             rect.width -= 3;
 
-            o.levelAndOverride = SerializedScalableSettingValueUI.LevelFieldGUI(
+            var levelAndOverride = SerializedScalableSettingValueUI.LevelFieldGUI(
                 rect,
                 title,
                 ScalableSettingSchema.GetSchemaOrNull(ScalableSettingSchemaId.With3Levels),
                 level,
                 useOverride
             );
+            value.intValue = ScalableSettingLevelParameter.GetScalableSettingLevelParameterValue(levelAndOverride.level, levelAndOverride.useOverride);
             return true;
         }
     }

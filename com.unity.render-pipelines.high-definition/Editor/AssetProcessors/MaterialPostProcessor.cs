@@ -77,6 +77,9 @@ namespace UnityEditor.Rendering.HighDefinition
                                                         " Please see the Material upgrade guide in the HDRP documentation for more information.", "Ok");
                         }
 
+                        // When we open a project from scratch all the material have been converted and we don't need to do it two time.
+                        // However if we update with an open editor from the package manager we must call reimport
+                        // as we can't know, we are always calling reimport resulting in unecessary work when opening a project
                         ReimportAllMaterials();
                     }
 
@@ -193,78 +196,39 @@ namespace UnityEditor.Rendering.HighDefinition
              ZWriteForTransparent,
              RenderQueueUpgrade,
              ShaderGraphStack,
+             MoreMaterialSurfaceOptionFromShaderGraph,
+             AlphaToMaskUIFix,
+             MigrateDecalRenderQueue
         };
 
         #region Migrations
 
-        // Not used currently:
-        // TODO: Script like this must also work with embed material in scene (i.e we need to catch
-        // .unity scene and load material and patch in memory. And it must work with perforce
-        // i.e automatically checkout all those files).
-        static void SpecularOcclusionMode(Material material, HDShaderUtils.ShaderID id)
-        {
-            switch (id)
-            {
-                case HDShaderUtils.ShaderID.Lit:
-                case HDShaderUtils.ShaderID.LayeredLit:
-                case HDShaderUtils.ShaderID.LitTesselation:
-                case HDShaderUtils.ShaderID.LayeredLitTesselation:
-                    var serializedObject = new SerializedObject(material);
-                    var specOcclusionMode = 1;
-                    if (FindProperty(serializedObject, "_EnableSpecularOcclusion", SerializedType.Boolean).property != null)
-                    {
-                        var enableSpecOcclusion = GetSerializedBoolean(serializedObject, "_EnableSpecularOcclusion");
-                        if (enableSpecOcclusion)
-                        {
-                            specOcclusionMode = 2;
-                        }
-                        RemoveSerializedBoolean(serializedObject, "_EnableSpecularOcclusion");
-                        serializedObject.ApplyModifiedProperties();
-                    }
-                    material.SetInt("_SpecularOcclusionMode", specOcclusionMode);
+        //example migration method:
+        //static void Example(Material material, HDShaderUtils.ShaderID id)
+        //{
+        //    const string kSupportDecals = "_SupportDecals";
+        //    var serializedMaterial = new SerializedObject(material);
+        //    if (!TryFindProperty(serializedMaterial, kSupportDecals, SerializedType.Integer, out var property, out _, out _))
+        //        return;
 
-                    HDShaderUtils.ResetMaterialKeywords(material);
-                    break;
-            }
-        }
+        //    // Caution: order of operation is important, we need to keep the current value of the property (if done after it is 0)
+        //    // then we remove it and apply the result
+        //    // then we can modify the material (otherwise the material change are lost)
+        //    bool supportDecal = property.floatValue == 1.0f;
+
+        //    RemoveSerializedInt(serializedMaterial, kSupportDecals);
+        //    serializedMaterial.ApplyModifiedProperties();
+
+        //    // We need to reset the custom RenderQueue to take into account the move to specific RenderQueue for Opaque with Decal.
+        //    // this should be handled correctly with reset below
+        //    HDShaderUtils.ResetMaterialKeywords(material);
+        //}
+        //}
 
         static void StencilRefactor(Material material, HDShaderUtils.ShaderID id)
         {
             HDShaderUtils.ResetMaterialKeywords(material);
         }
-        //example migration method, remove it after first real migration
-        //static void EmissiveIntensityToColor(Material material, ShaderID id)
-        //{
-        //    switch(id)
-        //    {
-        //        case ShaderID.Lit:
-        //        case ShaderID.LitTesselation:
-        //            var emissiveIntensity = material.GetFloat("_EmissiveIntensity");
-        //            var emissiveColor = Color.black;
-        //            if (material.HasProperty("_EmissiveColor"))
-        //                emissiveColor = material.GetColor("_EmissiveColor");
-        //            emissiveColor *= emissiveIntensity;
-        //            emissiveColor.a = 1.0f;
-        //            material.SetColor("_EmissiveColor", emissiveColor);
-        //            material.SetColor("_EmissionColor", Color.white);
-        //            break;
-        //    }
-        //}
-        //
-        //static void Serialization_API_Usage(Material material, ShaderID id)
-        //{
-        //    switch(id)
-        //    {
-        //        case ShaderID.Unlit:
-        //            var serializedObject = new SerializedObject(material);
-        //            AddSerializedInt(serializedObject, "former", 42);
-        //            RenameSerializedScalar(serializedObject, "former", "new");
-        //            Debug.Log(GetSerializedInt(serializedObject, "new"));
-        //            RemoveSerializedInt(serializedObject, "new");
-        //            serializedObject.ApplyModifiedProperties();
-        //            break;
-        //    }
-        //}
 
         static void ZWriteForTransparent(Material material, HDShaderUtils.ShaderID id)
         {
@@ -393,6 +357,77 @@ namespace UnityEditor.Rendering.HighDefinition
             HDShaderUtils.ResetMaterialKeywords(material);
         }
 
+        static void MoreMaterialSurfaceOptionFromShaderGraph(Material material, HDShaderUtils.ShaderID id)
+        {
+            if (material.shader.IsShaderGraph())
+            {
+                // Synchronize properties we exposed from SG to the material
+                ResetFloatProperty(kReceivesSSR);
+                ResetFloatProperty(kReceivesSSRTransparent);
+                ResetFloatProperty(kEnableDecals);
+                ResetFloatProperty(kEnableBlendModePreserveSpecularLighting);
+                ResetFloatProperty(kTransparentWritingMotionVec);
+                ResetFloatProperty(kAddPrecomputedVelocity);
+                ResetFloatProperty(kDepthOffsetEnable);
+            }
+
+            void ResetFloatProperty(string propName)
+            {
+                int propIndex = material.shader.FindPropertyIndex(propName);
+                if (propIndex == -1)
+                    return;
+                float defaultValue = material.shader.GetPropertyDefaultFloatValue(propIndex);
+                material.SetFloat(propName, defaultValue);
+            }
+
+            HDShaderUtils.ResetMaterialKeywords(material);
+        }
+
+        static void AlphaToMaskUIFix(Material material, HDShaderUtils.ShaderID id)
+        {
+            if (material.HasProperty(kAlphaToMask) && material.HasProperty(kAlphaToMaskInspector))
+            {
+                material.SetFloat(kAlphaToMaskInspector, material.GetFloat(kAlphaToMask));
+                HDShaderUtils.ResetMaterialKeywords(material);
+            }
+        }
+
+        static void MigrateDecalRenderQueue(Material material, HDShaderUtils.ShaderID id)
+        {
+            const string kSupportDecals = "_SupportDecals";
+
+            // Take the opportunity to remove _SupportDecals from Unlit as it is not suppose to be here
+            if (HDShaderUtils.IsUnlitHDRPShader(material.shader))
+            {               
+                var serializedMaterial = new SerializedObject(material);
+                if (TryFindProperty(serializedMaterial, kSupportDecals, SerializedType.Integer, out var property, out _, out _))
+                {
+                    RemoveSerializedInt(serializedMaterial, kSupportDecals);
+                    serializedMaterial.ApplyModifiedProperties();
+                }
+            }
+
+            if (material.HasProperty(kSupportDecals))
+            {
+                bool supportDecal = material.GetFloat(kSupportDecals) > 0.0f;
+
+                if (supportDecal)
+                {
+                    // Update material render queue to be in Decal render queue based on the value of decal property (see HDRenderQueue.cs)
+                    if (material.renderQueue == ((int)UnityEngine.Rendering.RenderQueue.Geometry))
+                    {
+                        material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Geometry + 225;
+                    }
+                    else if (material.renderQueue == ((int)UnityEngine.Rendering.RenderQueue.AlphaTest))
+                    {
+                        material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest + 25;
+                    }
+                }
+            }
+
+            HDShaderUtils.ResetMaterialKeywords(material);
+        }
+
         #region Serialization_API
         //Methods in this region interact on the serialized material
         //without filtering on what used shader knows
@@ -408,9 +443,9 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // do not use directly in migration function
-        static SerializedProperty FindBase(SerializedObject material, SerializedType type)
+        static bool TryFindBase(SerializedObject material, SerializedType type, out SerializedProperty propertyBase)
         {
-            var propertyBase = material.FindProperty("m_SavedProperties");
+            propertyBase = material.FindProperty("m_SavedProperties");
 
             switch (type)
             {
@@ -418,40 +453,54 @@ namespace UnityEditor.Rendering.HighDefinition
                 case SerializedType.Integer:
                 case SerializedType.Float:
                     propertyBase = propertyBase.FindPropertyRelative("m_Floats");
-                    break;
+                    return true;
                 case SerializedType.Color:
                 case SerializedType.Vector:
                     propertyBase = propertyBase.FindPropertyRelative("m_Colors");
-                    break;
+                    return true;
                 case SerializedType.Texture:
                     propertyBase = propertyBase.FindPropertyRelative("m_TexEnvs");
-                    break;
-                default:
-                    throw new ArgumentException($"Unknown SerializedType {type}");
+                    return true;
             }
 
+            return false;
+        }
+
+        static SerializedProperty FindBase(SerializedObject material, SerializedType type)
+        {
+            if (!TryFindBase(material, type, out var propertyBase))
+                throw new ArgumentException($"Unknown SerializedType {type}");
             return propertyBase;
         }
 
         // do not use directly in migration function
-        static (SerializedProperty property, int index, SerializedProperty parent) FindProperty(SerializedObject material, string propertyName, SerializedType type)
+        static bool TryFindProperty(SerializedObject material, string propertyName, SerializedType type, out SerializedProperty property, out int indexOf, out SerializedProperty propertyBase)
         {
-            var propertyBase = FindBase(material, type);
+            propertyBase = FindBase(material, type);
 
-            SerializedProperty property = null;
+            property = null;
             int maxSearch = propertyBase.arraySize;
-            int indexOf = 0;
+            indexOf = 0;
             for (; indexOf < maxSearch; ++indexOf)
             {
                 property = propertyBase.GetArrayElementAtIndex(indexOf);
                 if (property.FindPropertyRelative("first").stringValue == propertyName)
                     break;
             }
+
             if (indexOf == maxSearch)
-                throw new ArgumentException($"Unknown property: {propertyName}");
+                return false;
 
             property = property.FindPropertyRelative("second");
-            return (property, indexOf, propertyBase);
+            return true;
+        }
+
+        static (SerializedProperty property, int index, SerializedProperty parent) FindProperty(SerializedObject material, string propertyName, SerializedType type)
+        {
+            if (!TryFindProperty(material, propertyName, type, out var property, out var index, out var parent))
+                throw new ArgumentException($"Unknown property: {propertyName}");
+
+            return (property, index, parent);
         }
 
         static Color GetSerializedColor(SerializedObject material, string propertyName)
