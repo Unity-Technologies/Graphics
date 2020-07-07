@@ -63,8 +63,6 @@ namespace UnityEditor.ShaderGraph
             VtAddressMode_Wrap = 0,
             [InspectorName("Clamp")]
             VtAddressMode_Clamp = 1,
-            [InspectorName("Udim")]
-            VtAddressMode_Udim = 2
         }
 
         public enum FilterMode
