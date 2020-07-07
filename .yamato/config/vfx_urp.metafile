@@ -1,6 +1,6 @@
 project:
-  name: VFX_LWRP
-  folder: VisualEffectGraph_LWRP
+  name: VFX_URP
+  folder: VisualEffectGraph_URP
 test_platforms:
   - Standalone
   - playmode
