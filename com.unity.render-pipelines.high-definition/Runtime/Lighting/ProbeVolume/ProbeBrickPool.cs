@@ -133,6 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static DataLocation CreateDataLocation(int numProbes, bool compressed)
         {
+            Debug.Assert(numProbes != 0);
             Debug.Assert(numProbes % kBrickProbeCountTotal == 0);
 
             int numBricks = numProbes / kBrickProbeCountTotal;
