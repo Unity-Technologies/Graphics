@@ -80,7 +80,7 @@ Shader "Example/URPUnlitShaderBasic"
 
 The fragment shader colors the GameObject dark red (RGB value (0.5, 0, 0)).
 
-![The shader paints the GameObject dark red](Images/shader-examples/unlit-shader-tutorial-basic-hardcoded-color.jpg)
+![The shader paints the GameObject dark red](Images/shader-examples/unlit-shader-tutorial-basic-hardcoded-color.png)
 
 The following section introduces you to the structure of this basic Unity shader.
 
