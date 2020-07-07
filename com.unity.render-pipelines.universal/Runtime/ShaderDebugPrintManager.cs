@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.Universal
         private const int FramesInFlight = 4;
         private const int MaxBufferElements = 1024 * 16; // 16KB - must match the shader size definition
 
-        private List<GraphicsBuffer> m_outputBuffers = new List<GraphicsBuffer>();
+        private List<GraphicsBuffer> m_OutputBuffers = new List<GraphicsBuffer>();
 
         private List<Rendering.AsyncGPUReadbackRequest> m_readbackRequests =
             new List<Rendering.AsyncGPUReadbackRequest>();
@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering.Universal
         {
             for (int i = 0; i < FramesInFlight; i++)
             {
-                m_outputBuffers.Add(new GraphicsBuffer(GraphicsBuffer.Target.Structured, MaxBufferElements, 4));
+                m_OutputBuffers.Add(new GraphicsBuffer(GraphicsBuffer.Target.Structured, MaxBufferElements, 4));
                 m_readbackRequests.Add(new Rendering.AsyncGPUReadbackRequest());
             }
         }
@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering.Universal
                 m_readbackRequests[index].WaitForCompletion();
             }
 
-            cmd.SetRandomWriteTarget(DebugUAVSlot, m_outputBuffers[index]);
+            cmd.SetRandomWriteTarget(DebugUAVSlot, m_OutputBuffers[index]);
 
             ClearShaderDebugPrintBuffer();
         }
@@ -95,7 +95,7 @@ namespace UnityEngine.Rendering.Universal
                 int index = m_FrameCounter % FramesInFlight;
                 NativeArray<uint> data = new NativeArray<uint>(1, Allocator.Temp);
                 data[0] = 0;
-                m_outputBuffers[index].SetData(data, 0, 0, 1);
+                m_OutputBuffers[index].SetData(data, 0, 0, 1);
                 m_FrameCleared = true;
             }
         }
@@ -229,7 +229,7 @@ namespace UnityEngine.Rendering.Universal
         public void EndFrame()
         {
             int index = m_FrameCounter % FramesInFlight;
-            m_readbackRequests[index] = Rendering.AsyncGPUReadback.Request(m_outputBuffers[index], BufferReadComplete);
+            m_readbackRequests[index] = Rendering.AsyncGPUReadback.Request(m_OutputBuffers[index], BufferReadComplete);
 
             m_FrameCounter++;
             m_FrameCleared = false;

@@ -1,11 +1,13 @@
 #ifndef SHADER_DEBUG_PRINT_INCLUDED
 #define SHADER_DEBUG_PRINT_INCLUDED
 
-// Include this header to any shader to enable debug printing values from shader code to console
+// Include this header to any shader to enable debug printing values from shader code to console.
+//
+// Select threads/pixels to print using plain 'if'.
 //
 // Example:
 // float4 colorRGBA = float4(0.1, 0.2, 0.3, 0.4);
-// if(all(int2(pixel.xy) == int2(100, 100))
+// if(all(int2(pixel.xy) == int2(100, 100)))
 //     ShaderDebugPrint(ShaderDebugTag('C','o','l'), colorRGBA);
 // ----
 // Output:
@@ -14,11 +16,13 @@
 // Output buffer bound into "last" slot by convention
 RWStructuredBuffer<uint> shaderDebugOutputData : register(u7);
 
-
 static const uint MaxShaderDebugOutputElements = 1024 * 16; // 16KB - must match the C# side buffer size (16KB / 4 (bytes per uint) / 6 (uints, header+tag+payload) == 682 uint4s)
+
 // Input Constants
+CBUFFER_START(ShaderDebugPrintInput)
 float4 _ShaderDebugPrintInputMouse;
 int    _ShaderDebugPrintInputFrame;
+CBUFFER_END
 
 // Mouse coordinates in pixels
 // Relative to game view surface/rendertarget
