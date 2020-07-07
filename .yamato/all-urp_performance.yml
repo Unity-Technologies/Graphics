@@ -8,15 +8,27 @@ All_URP_Performance_trunk:
     dependencies:
       -  path: .yamato/urp_performance-win-dx11.yml#URP_Performance_Win_DX11_performance_counters_trunk
          rerun: on-new-revision
+      -  path: .yamato/urp_performance-win-dx11.yml#URP_Performance_Win_DX11_performance_memory_trunk
+         rerun: on-new-revision
+      -  path: .yamato/urp_performance-win-dx11.yml#URP_Performance_Win_DX11_performance_build_trunk
+         rerun: on-new-revision
 All_URP_Performance_fast-trunk:
     name: All URP_Performance CI - fast-trunk
     dependencies:
       -  path: .yamato/urp_performance-win-dx11.yml#URP_Performance_Win_DX11_performance_counters_fast-trunk
          rerun: on-new-revision
+      -  path: .yamato/urp_performance-win-dx11.yml#URP_Performance_Win_DX11_performance_memory_fast-trunk
+         rerun: on-new-revision
+      -  path: .yamato/urp_performance-win-dx11.yml#URP_Performance_Win_DX11_performance_build_fast-trunk
+         rerun: on-new-revision
 All_URP_Performance_CUSTOM-REVISION:
     name: All URP_Performance CI - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/urp_performance-win-dx11.yml#URP_Performance_Win_DX11_performance_counters_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/urp_performance-win-dx11.yml#URP_Performance_Win_DX11_performance_memory_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/urp_performance-win-dx11.yml#URP_Performance_Win_DX11_performance_build_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
