@@ -625,8 +625,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 var taaDestination = m_Pool.Get(Vector2.one, m_ColorFormat);
                                 var taaParams = PrepareTAAParameters(camera);
-                                GrabTemporalAntialiasingHistoryTexturesPostDoF(camera, out var prevHistory, out var nextHistory);
-                                GrabVelocityMagnitudeHistoryTexturesPostDoF(camera, out var prevMVLen, out var nextMVLen);
+                                bool postDof = true;
+                                GrabTemporalAntialiasingHistoryTextures(camera, out var prevHistory, out var nextHistory, postDof);
+                                GrabVelocityMagnitudeHistoryTextures(camera, out var prevMVLen, out var nextMVLen, postDof);
                                 DoTemporalAntialiasing(taaParams, cmd, source, taaDestination, motionVecTexture, depthBuffer, depthMipChain, prevHistory, nextHistory, prevMVLen, nextMVLen);
                                 PoolSource(ref source, taaDestination);
                             }
@@ -1572,7 +1573,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.ClearRandomWriteTargets();
         }
 
-        void GrabTemporalAntialiasingHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)
+        void GrabTemporalAntialiasingHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next, bool postDoF = false)
         {
             RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
             {
@@ -1583,12 +1584,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 );
             }
 
-            next = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.TemporalAntialiasing)
-                ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.TemporalAntialiasing, Allocator, 2);
-            previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.TemporalAntialiasing);
+            int historyType = (int)(postDoF ?
+                HDCameraFrameHistoryType.TemporalAntialiasing : HDCameraFrameHistoryType.TemporalAntialiasingPostDoF);
+
+            next = camera.GetCurrentFrameRT(historyType)
+                ?? camera.AllocHistoryFrameRT(historyType, Allocator, 2);
+            previous = camera.GetPreviousFrameRT(historyType);
         }
 
-        void GrabVelocityMagnitudeHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)
+        void GrabVelocityMagnitudeHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next, bool postDoF = false)
         {
             RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
             {
@@ -1599,41 +1603,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 );
             }
 
-            next = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitude)
-                ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitude, Allocator, 2);
-            previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitude);
-        }
+            int historyType = (int) (postDoF ?
+                HDCameraFrameHistoryType.TAAMotionVectorMagnitude : HDCameraFrameHistoryType.TAAMotionVectorMagnitudePostDoF);
 
-        void GrabTemporalAntialiasingHistoryTexturesPostDoF(HDCamera camera, out RTHandle previous, out RTHandle next)
-        {
-            RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
-            {
-                return rtHandleSystem.Alloc(
-                    Vector2.one, TextureXR.slices, DepthBits.None, dimension: TextureXR.dimension,
-                    filterMode: FilterMode.Bilinear, colorFormat: m_ColorFormat,
-                    enableRandomWrite: true, useDynamicScale: true, name: $"{id} TAA History"
-                );
-            }
-
-            next = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.TemporalAntialiasingPostDoF)
-                ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.TemporalAntialiasingPostDoF, Allocator, 2);
-            previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.TemporalAntialiasingPostDoF);
-        }
-
-        void GrabVelocityMagnitudeHistoryTexturesPostDoF(HDCamera camera, out RTHandle previous, out RTHandle next)
-        {
-            RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
-            {
-                return rtHandleSystem.Alloc(
-                    Vector2.one, TextureXR.slices, DepthBits.None, dimension: TextureXR.dimension,
-                    filterMode: FilterMode.Bilinear, colorFormat: GraphicsFormat.R16_SFloat,
-                    enableRandomWrite: true, useDynamicScale: true, name: $"{id} Velocity magnitude"
-                );
-            }
-
-            next = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitudePostDoF)
-                ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitudePostDoF, Allocator, 2);
-            previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitudePostDoF);
+            next = camera.GetCurrentFrameRT(historyType)
+                ?? camera.AllocHistoryFrameRT(historyType, Allocator, 2);
+            previous = camera.GetPreviousFrameRT(historyType);
         }
         #endregion
 
