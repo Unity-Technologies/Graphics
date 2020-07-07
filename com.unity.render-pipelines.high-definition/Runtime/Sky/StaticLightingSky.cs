@@ -4,10 +4,13 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Class controlling which sky is used for static and baked lighting.
+    /// </summary>
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Static-Lighting-Sky" + Documentation.endURL)]
     [ExecuteAlways]
     [AddComponentMenu("")] // Hide this object from the Add Component menu
-    class StaticLightingSky : MonoBehaviour
+    public class StaticLightingSky : MonoBehaviour
     {
         [SerializeField]
         VolumeProfile m_Profile;
@@ -16,12 +19,10 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_LastComputedHash;
         bool m_NeedUpdateStaticLightingSky;
 
-        [NonSerialized]
-        public SkySettings m_SkySettings; // This one contain only property values from overridden properties in the original profile component
-        [NonSerialized]
-        public SkySettings m_SkySettingsFromProfile;
+        SkySettings m_SkySettings; // This one contain only property values from overridden properties in the original profile component
+        SkySettings m_SkySettingsFromProfile;
 
-        public SkySettings skySettings
+        internal SkySettings skySettings
         {
             get
             {
@@ -42,7 +43,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         List<SkySettings> m_VolumeSkyList = new List<SkySettings>();
 
-
+        /// <summary>
+        /// Volume profile where the sky settings used for static lighting will be fetched.
+        /// </summary>
         public VolumeProfile profile
         {
             get
@@ -69,6 +72,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Unique ID of the sky used for static lighting.
+        /// The unique ID should be for a sky that is present in the profile. See SkySettings.GetUniqueID to get the ID per sky type.
+        /// </summary>
         public int staticLightingSkyUniqueID
         {
             get
@@ -125,7 +132,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 var profileSkyParameters = m_SkySettingsFromProfile.parameters;
 
                 var defaultVolume = HDRenderPipeline.GetOrCreateDefaultVolume();
-                defaultVolume.sharedProfile.TryGet(skyType, out SkySettings defaultSky);
+                SkySettings defaultSky = null;
+                if (defaultVolume.sharedProfile != null) // This can happen with old projects.
+                    defaultVolume.sharedProfile.TryGet(skyType, out defaultSky);
                 var defaultSkyParameters = defaultSky != null ? defaultSky.parameters : null; // Can be null if the profile does not contain the component.
 
                 // Seems to inexplicably happen sometimes on domain reload.
