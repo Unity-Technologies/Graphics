@@ -364,8 +364,19 @@ namespace UnityEditor.Rendering
             var pos = new Vector2(Event.current.mousePosition.x, Camera.current.pixelHeight - Event.current.mousePosition.y);
             if (Physics.Raycast(Camera.current.ScreenPointToRay(pos), out RaycastHit hit))
             {
-                plane = -(Handles.inverseMatrix * hit.normal).normalized;
-                plane.w = Vector3.Dot((Vector3)(Handles.inverseMatrix * hit.point) - center, plane) + 0.05f;
+                Vector3 localHit = (Vector3)(Handles.inverseMatrix * hit.point) - center;
+                Vector3 localNormal = (Handles.inverseMatrix * hit.normal).normalized;
+                float planeDist = Vector3.Dot(localHit, localNormal);
+                if (planeDist < 0)
+                {
+                    plane = -localNormal;
+                    plane.w = -planeDist + 0.05f;
+                }
+                else
+                {
+                    plane = localNormal;
+                    plane.w = planeDist - 0.05f;
+                }
                 return true;
             }
             return false;
