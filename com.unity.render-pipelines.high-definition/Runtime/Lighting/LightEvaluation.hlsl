@@ -279,7 +279,7 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
         shadow = light.nonLightMappedOnly ? min(shadowMask, shadow) : shadow;
     #endif
 
-        shadow = lerp(shadowMask, shadow, light.shadowDimmer);
+        shadow = lerp(shadowMask.SHADOW_TYPE_REPLICATE, shadow, light.shadowDimmer);
     }
 
     // Transparents have no contact shadow information

@@ -24,6 +24,9 @@ Pass
     $splice(PassKeywords)
     $splice(GraphKeywords)
 
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+
     // Defines
     $Material.AffectsAlbedo:                #define _MATERIAL_AFFECTS_ALBEDO 1
     $Material.AffectsNormal:                #define _MATERIAL_AFFECTS_NORMAL 1
