@@ -420,6 +420,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Reinit the system.
                     colorPyramidHistoryIsValid = false;
                     volumetricHistoryIsValid = false;
+                    // Since we nuke all history we must inform the post process system too.
+                    resetPostProcessingHistory = true;
 
                     // The history system only supports the "nuke all" option.
                     m_HistoryRTSystem.Dispose();
