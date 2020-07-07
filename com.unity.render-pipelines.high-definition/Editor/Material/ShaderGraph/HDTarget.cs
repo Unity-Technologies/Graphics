@@ -824,13 +824,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywordDescriptors.DebugDisplay },
         };
 
-        public static KeywordCollection DepthMotionVectorsNoNormal = new KeywordCollection
-        {
-            { HDBase },
-            { CoreKeywordDescriptors.WriteMsaaDepth },
-            { CoreKeywordDescriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
-        };
-
         public static KeywordCollection ForwardBase = new KeywordCollection
         {
             { HDBase },
@@ -910,7 +903,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywordDescriptors.SceneSelectionPass, 1 },
         };
 
-        public static DefineCollection DepthMotionVectors = new DefineCollection
+        public static DefineCollection DepthForwardOnly = new DefineCollection
         {
             { RayTracingNode.GetRayTracingKeyword(), 0 },
             { CoreKeywordDescriptors.WriteNormalBuffer, 1 },
@@ -1066,6 +1059,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             displayName = "Write MSAA Depth",
             referenceName = "WRITE_MSAA_DEPTH",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static KeywordDescriptor WriteDecalBuffer = new KeywordDescriptor()
+        {
+            displayName = "Write Decal Buffer",
+            referenceName = "WRITE_DECAL_BUFFER",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,

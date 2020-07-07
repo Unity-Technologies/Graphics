@@ -38,11 +38,6 @@ namespace UnityEditor.VFX
             { typeof(uint), new[] {typeof(int), typeof(float), typeof(Vector2), typeof(Vector3), typeof(Position), typeof(Vector), typeof(Vector4), typeof(Color)} },
         };
 
-        public sealed override void OnEnable()
-        {
-            base.OnEnable();
-        }
-
         static public IEnumerable<Type> GetTypeAffinityList(Type type)
         {
             Type[] affinity = null;
@@ -83,6 +78,37 @@ namespace UnityEditor.VFX
         {
             return GetDefaultValueForType(type);
         }
+    }
+
+    abstract class VFXOperatorDynamicType : VFXOperatorDynamicOperand, IVFXOperatorUniform
+    {
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
+        protected SerializableType m_Type;
+
+        public override void OnEnable()
+        {
+            if (m_Type == null) // Lazy init at this stage is suitable because inputProperties access is done with SyncSlot
+            {
+                m_Type = defaultValueType;
+            }
+            base.OnEnable();
+        }
+
+        public Type GetOperandType()
+        {
+            return m_Type;
+        }
+
+        public void SetOperandType(Type type)
+        {
+            if (!validTypes.Contains(type))
+                throw new InvalidOperationException();
+
+            m_Type = type;
+            Invalidate(InvalidationCause.kSettingChanged);
+        }
+
+        abstract public IEnumerable<int> staticSlotIndex { get; }
     }
 
     abstract class VFXOperatorNumeric : VFXOperatorDynamicOperand
