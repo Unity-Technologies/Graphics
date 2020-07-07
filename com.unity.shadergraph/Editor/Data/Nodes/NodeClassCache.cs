@@ -5,6 +5,7 @@ using UnityEngine.Profiling;
 
 namespace UnityEditor.ShaderGraph
 {
+    [GenerationAPI]
     [InitializeOnLoad]
     internal static class NodeClassCache
     {
