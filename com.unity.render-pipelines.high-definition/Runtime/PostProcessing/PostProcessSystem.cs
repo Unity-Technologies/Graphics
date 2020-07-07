@@ -2222,25 +2222,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_Pool.Recycle(fullresCoC); // Already cleaned up if TAA is enabled
         }
 
-        static void GrabCoCHistory(HDCamera camera, out RTHandle previous, out RTHandle next, bool mipMaps = false)
+        static void GrabCoCHistory(HDCamera camera, out RTHandle previous, out RTHandle next)
         {
             RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
             {
                 return rtHandleSystem.Alloc(
                     Vector2.one, TextureXR.slices, DepthBits.None, GraphicsFormat.R16_SFloat,
-                    dimension: TextureXR.dimension, enableRandomWrite: true, useMipMap: mipMaps, useDynamicScale: true, name: $"{id} CoC History"
+                    dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, name: $"{id} CoC History"
                 );
             }
 
             next = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC)
                 ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC, Allocator, 2);
 
-            if (mipMaps == true && next.rt.mipmapCount == 1)
-            {
-                // if the user switches techniques on-the-fly, the rt might have been allocated previously whitout mips
-                camera.ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC);
-                next = camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC, Allocator, 2);
-            }
             previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC);
         }
 
@@ -2306,25 +2300,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
             }
 
-            if (taaEnabled)
-            {
-                GrabCoCHistory(camera, out var prevCoCTex, out var nextCoCTex, true);
-                Vector2 cocHistoryScale = new Vector2(camera.historyRTHandleProperties.rtHandleScale.z, camera.historyRTHandleProperties.rtHandleScale.w);
-
-                cs = m_Resources.shaders.depthOfFieldCoCReprojectCS;
-                kernel = cs.FindKernel("KMain");
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(camera.resetPostProcessingHistory ? 0f : 0.91f, cocHistoryScale.x, cocHistoryScale.y, 0f));
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputHistoryCoCTexture, prevCoCTex);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputCoCTexture, nextCoCTex);
-                cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
-
-                // Cleanup the main CoC texture as we don't need it anymore and use the
-                // re-projected one instead for the following steps
-                m_Pool.Recycle(fullresCoC);
-                fullresCoC = nextCoCTex;
-            }
-
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldPyramid)))
             {
                 // To have an adaptive gather radius, we need estimates for the the min and max CoC that intersect a pixel.
@@ -2362,8 +2337,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
             }
 
-            if (!taaEnabled)
-                m_Pool.Recycle(fullresCoC);  // Already cleaned up if TAA is enabled
+            m_Pool.Recycle(fullresCoC);
         }
         #endregion
 
