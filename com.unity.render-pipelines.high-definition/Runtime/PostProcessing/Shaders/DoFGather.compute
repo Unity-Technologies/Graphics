@@ -26,7 +26,6 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 #define CENTER_DENSITY
 #define RING_DENSITY 8.0
 //#define OCTAWEB_SORTING
-//#define COC_FAR_CLAMPING
 //#define UNIFORM_WEIGHTS
 //#define ADAPTIVE_RADIUS
 
@@ -45,6 +44,7 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 
 #define GROUP_RES  8u
 #define GROUP_SIZE (GROUP_RES * GROUP_RES)
+
 
 int GetCoCBucket(float cocSize)
 {
@@ -101,8 +101,8 @@ float GetSampleWeight(float cocRadius)
     if (cocRadius == 0.0) return 0.0;
 
     float pixelRadius = 0.7071f;
-    float singlePixelArea = 4 * PI * pixelRadius * pixelRadius;
-    float diskArea = 4 * PI * cocRadius * cocRadius;
+    float singlePixelArea = PI * pixelRadius * pixelRadius;
+    float diskArea = PI * cocRadius * cocRadius;
     return diskArea >= singlePixelArea ? rcp(diskArea) : rcp(singlePixelArea);
 }
 
@@ -224,11 +224,6 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
             int sampleBucket = 0;
             CTYPE sampleColor = LOAD_TEXTURE2D_X(_InputTexture, sampleTC).CTYPE_SWIZZLE;
             float sampleCoC = GetCoCRadius(sampleTC, sampleBucket);
-
-#ifdef COC_FAR_CLAMPING
-            if (centerCoc >= 0)
-                sampleCoC = min(sampleCoC, centerCoc);
-#endif
 
             if (abs(sampleCoC) >= radius)
             {
