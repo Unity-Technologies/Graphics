@@ -24,8 +24,6 @@ namespace UnityEngine.Rendering.Universal
 {
     public sealed partial class UniversalRenderPipeline : RenderPipeline
     {
-// color for lines
-        //internal static PrefColor s_SnappingLineColor = new PrefColor("General/Graph Snapping Line Color", 68 / 255f, 192 / 255f, 255 / 255f, 0.2f);
         public const string k_ShaderTagName = "UniversalPipeline";
 
         const string k_RenderCameraTag = "Render Camera";
@@ -278,22 +276,22 @@ namespace UnityEngine.Rendering.Universal
             // necessarily the last active one as it users might disable it.
             int lastActiveOverlayCameraIndex = -1;
             if (cameraStack != null)
+            {
+                var baseCameraRendererType = baseCameraAdditionalData?.scriptableRenderer.GetType();
+
+                for (int i = 0; i < cameraStack.Count; ++i)
                 {
-                    var baseCameraRendererType = baseCameraAdditionalData?.scriptableRenderer.GetType();
+                    Camera currCamera = cameraStack[i];
 
-                    for (int i = 0; i < cameraStack.Count; ++i)
+                    if (currCamera != null && currCamera.isActiveAndEnabled)
                     {
-                        Camera currCamera = cameraStack[i];
+                        currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var data);
 
-                        if (currCamera != null && currCamera.isActiveAndEnabled)
+                        if (data == null || data.renderType != CameraRenderType.Overlay)
                         {
-                            currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var data);
-
-                            if (data == null || data.renderType != CameraRenderType.Overlay)
-                            {
-                                Debug.LogWarning(string.Format("Stack can only contain Overlay cameras. {0} will skip rendering.", currCamera.name));
+                            Debug.LogWarning(string.Format("Stack can only contain Overlay cameras. {0} will skip rendering.", currCamera.name));
                             continue;
-                            }
+                        }
 
                         var currCameraRendererType = data?.scriptableRenderer.GetType();
                         if (currCameraRendererType != baseCameraRendererType)
@@ -304,13 +302,13 @@ namespace UnityEngine.Rendering.Universal
                                 Debug.LogWarning(string.Format("Only cameras with compatible renderer types can be stacked. {0} will skip rendering", currCamera.name));
                                 continue;
                             }
-                            }
-
-                                anyPostProcessingEnabled |= data.renderPostProcessing;
-                                lastActiveOverlayCameraIndex = i;
-                            }
                         }
+
+                        anyPostProcessingEnabled |= data.renderPostProcessing;
+                        lastActiveOverlayCameraIndex = i;
                     }
+                }
+            }
 
 
             bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
@@ -342,50 +340,50 @@ namespace UnityEngine.Rendering.Universal
                     baseCameraData.cameraTargetDescriptor.msaaSamples = originalTargetDesc.msaaSamples;
                 }
 #endif
-            BeginCameraRendering(context, baseCamera);
+                BeginCameraRendering(context, baseCamera);
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
-            //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
-            VFX.VFXManager.PrepareCamera(baseCamera);
+                //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
+                VFX.VFXManager.PrepareCamera(baseCamera);
 #endif
-            UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
+                UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
                 if (asset.useAdaptivePerformance)
                     ApplyAdaptivePerformance(ref baseCameraData);
 #endif
-            RenderSingleCamera(context, baseCameraData, anyPostProcessingEnabled);
-            EndCameraRendering(context, baseCamera);
+                RenderSingleCamera(context, baseCameraData, anyPostProcessingEnabled);
+                EndCameraRendering(context, baseCamera);
 
                 if (isStackedRendering)
                 {
-            for (int i = 0; i < cameraStack.Count; ++i)
-            {
-                var currCamera = cameraStack[i];
-                if (!currCamera.isActiveAndEnabled)
-                    continue;
+                    for (int i = 0; i < cameraStack.Count; ++i)
+                    {
+                        var currCamera = cameraStack[i];
+                        if (!currCamera.isActiveAndEnabled)
+                            continue;
 
-                currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var currCameraData);
-                // Camera is overlay and enabled
-                if (currCameraData != null)
-                {
-                    // Copy base settings from base camera data and initialize initialize remaining specific settings for this camera type.
-                    CameraData overlayCameraData = baseCameraData;
-                    bool lastCamera = i == lastActiveOverlayCameraIndex;
+                        currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var currCameraData);
+                        // Camera is overlay and enabled
+                        if (currCameraData != null)
+                        {
+                            // Copy base settings from base camera data and initialize initialize remaining specific settings for this camera type.
+                            CameraData overlayCameraData = baseCameraData;
+                            bool lastCamera = i == lastActiveOverlayCameraIndex;
 #if ENABLE_VR && ENABLE_XR_MODULE
                             if (baseCameraData.xr.enabled)
                                 m_XRSystem.UpdateFromCamera(ref overlayCameraData.xr, currCamera);
 #endif
-                    BeginCameraRendering(context, currCamera);
+                            BeginCameraRendering(context, currCamera);
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
-                    //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
-                    VFX.VFXManager.PrepareCamera(currCamera);
+                            //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
+                            VFX.VFXManager.PrepareCamera(currCamera);
 #endif
-                    UpdateVolumeFramework(currCamera, currCameraData);
-                    InitializeAdditionalCameraData(currCamera, currCameraData, lastCamera, ref overlayCameraData);
-                    RenderSingleCamera(context, overlayCameraData, anyPostProcessingEnabled);
-                    EndCameraRendering(context, currCamera);
+                            UpdateVolumeFramework(currCamera, currCameraData);
+                            InitializeAdditionalCameraData(currCamera, currCameraData, lastCamera, ref overlayCameraData);
+                            RenderSingleCamera(context, overlayCameraData, anyPostProcessingEnabled);
+                            EndCameraRendering(context, currCamera);
+                        }
+                    }
                 }
-            }
-        }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (baseCameraData.xr.enabled)
