@@ -589,7 +589,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
         // 2nd quadrant (Sin >  0, Cos <= 0): AnisoGGX(α, β, γ) == AnisoGGX(β, α, γ + Pi * 1/2)
         // 3rd quadrant (Sin <= 0, Cos <  0): AnisoGGX(α, β, γ) == AnisoGGX(α, β, γ + Pi)
         // 4th quadrant (Sin <  0, Cos >= 0): AnisoGGX(α, β, γ) == AnisoGGX(β, α, γ + Pi * 3/2)
-        // Handling of interval end-points may be less rigorous to simplify programming.
+        // Handling of the interval end-points may be less rigorous to simplify programming.
         // The only requirement is that the handling is consistent throughout.
         bool quad2or4 = (sinFrame * cosFrame) < 0;
 
@@ -609,7 +609,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
         float uintAniso  = round(surfaceData.anisotropy * 127.5 + 127.5);
               uintAniso  = quad2or4 ? 255 - uintAniso : uintAniso;
         // We cannot represent the anisotropy value of 0 exactly, but it is of little
-        // importance since you could just use the isotropic material for that purpose.
+        // importance since you can just use the isotropic material for that purpose.
         float anisotropy = uintAniso * rcp(255);
     #endif
 
