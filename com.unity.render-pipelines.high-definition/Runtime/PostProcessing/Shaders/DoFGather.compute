@@ -29,16 +29,14 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 //#define UNIFORM_WEIGHTS
 //#define ADAPTIVE_RADIUS
 
-// DO NOT EDIT: Helper defines so we can have one code path when OCTAWEB_SORTING is enabled or disabled.
+// Helper defines so we can have one code path when OCTAWEB_SORTING is enabled or disabled.
 #ifndef OCTAWEB_SORTING
     #define RING_COLOR totalColor
     #define RING_MAXCOC maxCoC
-    #define RING_HITS totalHits
     #define RING_ALPHA totalAlpha
 #else
     #define RING_COLOR ringColor
     #define RING_MAXCOC ringMaxCoC
-    #define RING_HITS ringHits
     #define RING_ALPHA ringAlpha
 #endif
 
@@ -113,7 +111,7 @@ float2 PointInCircle(float angle)
 
 float GetNumSamples(float radius)
 {
-    //TODO: needs to take into account the density push towards the center (when enabled) 
+    // Note: should also take into account the density push towards the center (if enabled), this needs to be fixed at some pointss
     float numRings = _Params.x;
     float maxRadius = _Params.y;
 
@@ -149,7 +147,6 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         totalColor[i] = 0.0f;
         maxCoC[i] = 0.0f;
         prevRingWeight[i] = 0.0f;
-        totalHits[i] = 0.0f;
 #ifdef ENABLE_ALPHA
         totalAlpha[i] = 0.0f;
 #endif
@@ -159,7 +156,6 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     {
         float weight = GetSampleWeight(abs(centerCoc));
         totalColor[bucketIndex] = float4(centerColor.xyz * weight, weight);
-        totalHits[bucketIndex] = 1.0f;
         maxCoC[bucketIndex] = abs(centerCoc);
         prevRingWeight[bucketIndex] = weight;
 #ifdef ENABLE_ALPHA
@@ -202,7 +198,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         float ringMaxCoC[NUM_BUCKETS];
         float ringHits[NUM_BUCKETS];
 #ifdef ENABLE_ALPHA
-        float4 ringAlpha[NUM_BUCKETS];
+        float ringAlpha[NUM_BUCKETS];
 #endif
 
         for (int i = 0; i < NUM_BUCKETS; ++i)
@@ -230,7 +226,9 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
                 float weight = GetSampleWeight(abs(sampleCoC));
                 RING_COLOR[sampleBucket] += float4(sampleColor.xyz * weight, weight);
                 RING_MAXCOC[sampleBucket] = max(RING_MAXCOC[sampleBucket], abs(sampleCoC));
-                RING_HITS[sampleBucket] += 1.0;
+#ifdef OCTAWEB_SORTING
+                ringHits[sampleBucket] += 1.0;
+#endif
 #ifdef ENABLE_ALPHA
                 RING_ALPHA[sampleBucket] = sampleColor.w * weight;
 #endif
@@ -241,7 +239,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         for (int j = 0; j < NUM_BUCKETS; ++j)
         {
             float currentAvg = RING_COLOR[j].w * rcp(ring * RING_DENSITY);;
-            float prevAvg = (ring < numRings) ? prevRingWeight[j] : 0;
+            float prevAvg = (ring < numRings) ? prevRingWeight[j] : currentAvg;
             float occlusion = saturate(prevAvg - currentAvg);
             float alpha = ringHits[j] * rcp(ring * RING_DENSITY);
 
@@ -256,9 +254,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
 
     // Now compute the final color by combining the near, far and in-focus buckets with proper blending
-    // Far range
-    float3 outColor = totalColor[0].xyz;
-    float  totalW = totalColor[0].w;
+    float4 outColor = totalColor[0];
 #ifdef ENABLE_ALPHA
     float outAlpha = totalAlpha[0];
 #endif
@@ -267,16 +263,15 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     for (int j = 1; j < NUM_BUCKETS; ++j)
     {
         float alpha = saturate(totalColor[j].w * rcp(GetNumSamples(maxCoC[j])) * rcp(GetSampleWeight(maxCoC[j])));
-        outColor.xyz = (1.0 - alpha) * outColor.xyz + alpha * totalColor[j].xyz;
-        totalW = (1.0 - alpha) * totalW + alpha * totalColor[j].w;
+        outColor = (1.0 - alpha) * outColor + alpha * totalColor[j];
 #ifdef ENABLE_ALPHA
         outAlpha = (1.0 - alpha) * outAlpha + alpha * totalAlpha[j];
 #endif
     }
-    outColor.xyz = outColor.xyz * rcp(totalW);
+    outColor.xyz = outColor.xyz* rcp(outColor.w);
 
 #ifdef ENABLE_ALPHA
-    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = float4(outColor.xyz, outAlpha * rcp(totalW));
+    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = float4(outColor.xyz, outAlpha * rcp(outColor.w));
 #else
     _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = outColor.xyz;
 #endif
