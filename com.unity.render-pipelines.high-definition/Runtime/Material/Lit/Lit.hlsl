@@ -7,7 +7,7 @@
 // Those define allow to include desired SSS/Transmission functions
 #define MATERIAL_INCLUDE_SUBSURFACESCATTERING
 #define MATERIAL_INCLUDE_TRANSMISSION
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl" //For IsUninitializedGI 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl" //For IsUninitializedGI
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
@@ -580,8 +580,8 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
         float cosFrame = dot(surfaceData.tangentWS, frame[0]);
 
         // Define AnisoGGX(α, β, γ), where:
-        // α is the linear roughness corresponding to the direction of the tangent;
-        // β is the linear roughness corresponding to the direction of the bi-tangent;
+        // α is the roughness corresponding to the direction of the tangent;
+        // β is the roughness corresponding to the direction of the bi-tangent;
         // γ is the angle of rotation of the tangent frame around the normal.
         //
         // The following symmetry relations exist:
@@ -590,12 +590,26 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
         // 3rd quadrant (Sin <= 0, Cos <  0): AnisoGGX(α, β, γ) == AnisoGGX(α, β, γ + Pi)
         // 4th quadrant (Sin <  0, Cos >= 0): AnisoGGX(α, β, γ) == AnisoGGX(β, α, γ + Pi * 3/2)
         // Handling of interval end-points may be less rigorous to simplify programming.
-        // The only requirement is that the handling is consistent.
+        // The only requirement is that the handling is consistent throughout.
         bool quad2or4 = (sinFrame * cosFrame) < 0;
 
         // Anisotropy = (α - β) / (α + β).
         // Exchanging the roughness values α and β is equivalent to negating the value of anisotropy.
-        float anisotropy = quad2or4 ? -surfaceData.anisotropy : surfaceData.anisotropy;
+    #if 0
+        // To avoid shading seams at the locations where anisotropy changes its sign,
+        // its magnitude must be the same (on both sides) after reconstruction from the G-buffer.
+        // This means that the hardware unit must perform rounding accurately (and consistently)
+        // before storing the value in the G-buffer.
+        float sfltAniso  = quad2or4 ? -surfaceData.anisotropy : surfaceData.anisotropy;
+        float anisotropy = sfltAniso * 0.5 + 0.5;
+    #else
+        // It turns out, certain hardware has poor rounding behavior:
+        // https://microsoft.github.io/DirectX-Specs/d3d/archive/D3D11_3_FunctionalSpec.htm#3.2.3.6%20FLOAT%20-%3E%20UNORM
+        // Therefore, we must round manually to avoid the seams.
+        float uintAniso  = round(surfaceData.anisotropy * 127.5 + 127.5);
+              uintAniso  = quad2or4 ? 255 - uintAniso : uintAniso;
+        float anisotropy = uintAniso * rcp(255);
+    #endif
 
         // We need to convert the values of Sin and Cos to those appropriate for the 1st quadrant.
         // To go from Q3 to Q1, we must rotate by Pi, so taking the absolute value suffices.
@@ -605,7 +619,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
         // sin [and cos] are approximately linear up to [after] Pi/4 ± Pi.
         float sinOrCos = min(abs(sinFrame), abs(cosFrame)) * sqrt(2);
 
-        outGBuffer2.rgb = float3(anisotropy * 0.5 + 0.5,
+        outGBuffer2.rgb = float3(anisotropy,
                                  sinOrCos,
                                  PackFloatInt8bit(surfaceData.metallic, storeSin ? 1 : 0, 8));
     }
@@ -1746,8 +1760,8 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     // In case this material has a clear coat, we shou not be using the specularFGD. The condition for it is a combination
     // of a materia feature and the coat mask.
     float clampedNdotV = ClampNdotV(preLightData.NdotV);
-    lighting.specularReflected = ssrLighting.rgb * (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) ? 
-                                                    lerp(preLightData.specularFGD, F_Schlick(CLEAR_COAT_F0, clampedNdotV), bsdfData.coatMask) 
+    lighting.specularReflected = ssrLighting.rgb * (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) ?
+                                                    lerp(preLightData.specularFGD, F_Schlick(CLEAR_COAT_F0, clampedNdotV), bsdfData.coatMask)
                                                     : preLightData.specularFGD);
     reflectionHierarchyWeight  = ssrLighting.a;
 
