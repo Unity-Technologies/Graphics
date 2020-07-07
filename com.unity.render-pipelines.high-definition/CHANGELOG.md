@@ -69,6 +69,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The `CustomPassLoadCameraColor` and `CustomPassSampleCameraColor` functions now returns the correct color buffer when used in after post process instead of the color pyramid (which didn't had post processes).
 - Fixed for area light not updating baked light result when modifying with gizmo.
 - Fixed issue with white flash when enabling SSR.
+- Fix inconsistencies with transparent motion vectors and opaque by allowing camera only transparent motion vectors.
 
 ### Changed
 - Shadowmask and realtime reflection probe property are hide in Quality settings
