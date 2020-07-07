@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// Creates a material header scope to display the foldout in the material UI.
         /// </summary>
         /// <param name="title">Title of the header.</param>
-        /// <param name="bitExpanded">Bit index to use for the.</param>
+        /// <param name="bitExpanded">Bit index to store the state of header (collapsed or opened) in the Editor Prefs.</param>
         /// <param name="materialEditor">The current material editor.</param>
         /// <param name="spaceAtEnd">Set this to true to make the block include space at the bottom of its UI. Set to false to not include any space.</param>
         /// <param name="colorDot">Specify a color to display a dot, like in the layered UI.</param>
