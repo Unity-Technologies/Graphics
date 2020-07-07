@@ -22,13 +22,13 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 
 // A set of Defines to fine-tune the algorithm
 #define NUM_BUCKETS 3
-//#define COC_FAR_CLAMPING
+#define GRADIENT_NOISE
 #define CENTER_DENSITY
 #define RING_DENSITY 8.0
+//#define OCTAWEB_SORTING
+//#define COC_FAR_CLAMPING
 //#define UNIFORM_WEIGHTS
 //#define ADAPTIVE_RADIUS
-#define GRADIENT_NOISE
-//#define OCTAWEB_SORTING
 
 // DO NOT EDIT: Helper defines so we can have one code path when OCTAWEB_SORTING is enabled or disabled.
 #ifndef OCTAWEB_SORTING
@@ -45,7 +45,6 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 
 #define GROUP_RES  8u
 #define GROUP_SIZE (GROUP_RES * GROUP_RES)
-
 
 int GetCoCBucket(float cocSize)
 {
@@ -179,7 +178,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     float noise2 = InterleavedGradientNoise(posInputs.positionSS.xy, 8 + sampleOffset);
 
     // Iterate over the octaweb pattern and gather the DoF samples
-    for (float ring = 1; ring <= numRings; ring += 1.0)
+    for (float ring = numRings; ring > 0; ring -= 1.0)
     {
         float scaledRad = dR;
 
@@ -244,43 +243,18 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         }
 
 #ifdef OCTAWEB_SORTING
-        // Far bucket
+        for (int j = 0; j < NUM_BUCKETS; ++j)
         {
-            totalColor[0] += RING_COLOR[0];
-            maxCoC[0] = max(maxCoC[0], RING_MAXCOC[0]);
-            totalHits[0] += RING_HITS[0];
-#ifdef ENABLE_ALPHA
-            totalAlpha[0] += RING_ALPHA[0];
-#endif
-        }
-
-        // In-focus bucket
-        {
-            totalColor[1] += RING_COLOR[1];
-            maxCoC[1] = max(maxCoC[1], RING_MAXCOC[1]);
-            totalHits[1] += RING_HITS[1];
-#ifdef ENABLE_ALPHA
-            totalAlpha[1] += RING_ALPHA[1];
-#endif
-        }
-
-        // Near bucket
-        {
-            float currentAvg = RING_COLOR[2].w * rcp(ring * RING_DENSITY);
-            float prevAvg = prevRingWeight[2] * ((ring > 1) ? rcp((ring - 1.0) * RING_DENSITY) : 1);
+            float currentAvg = RING_COLOR[j].w * rcp(ring * RING_DENSITY);;
+            float prevAvg = (ring < numRings) ? prevRingWeight[j] : 0;
             float occlusion = saturate(prevAvg - currentAvg);
-            //float alpha = saturate(RING_COLOR[2].w * rcp(GetNumSamples(RING_MAXCOC[2])) * rcp(getSampleWeight(RING_MAXCOC[2])));
-            float alpha = ringHits[2] * rcp(ring * RING_DENSITY);
-
-            //totalColor[2] += RING_COLOR[2];
-            maxCoC[2] = max(maxCoC[2], RING_MAXCOC[2]);
-            totalHits[2] += RING_HITS[2];
+            float alpha = ringHits[j] * rcp(ring * RING_DENSITY);
 
             float blendFactor = 1.0 - alpha * occlusion;
-            totalColor[2] = blendFactor * totalColor[2] + RING_COLOR[2];
-            prevRingWeight[2] = ringColor[2].w;
+            totalColor[j] = blendFactor * totalColor[j] + RING_COLOR[j];
+            prevRingWeight[j] = currentAvg;
 #ifdef ENABLE_ALPHA
-            totalAlpha[2] += blendFactor * totalAlpha[2] + RING_ALPHA[2];
+            totalAlpha[j] += blendFactor * totalAlpha[j] + RING_ALPHA[j];
 #endif
         }
 #endif
