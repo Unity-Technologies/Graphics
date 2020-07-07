@@ -59,6 +59,12 @@ public class NewSky : SkySettings
         }
         return hash;
     }
+    
+    public override int GetHashCode(Camera camera)
+    {
+        // Implement if your sky depends on the camera settings (like position for instance)
+        return GetHashCode();
+    }
 }
 
 ```
@@ -159,6 +165,10 @@ class NewSkyRenderer : SkyRenderer
 }
 
 ```
+### Important note:
+If your sky renderer has to manage heavy data (like precomputed textures or similar things) then particular care has to be taken. Indeed, one instance of the renderer will exist per camera so by default if this data is a member of the renderer, it willl also be duplicated in memory.
+Since each sky renderer can have very different needs, the responsbility to share this kind of data is the renderer's and need to be implemented by the user.
+
 <a name="RenderingShader"></a>
 
 ## Sky rendering Shader
