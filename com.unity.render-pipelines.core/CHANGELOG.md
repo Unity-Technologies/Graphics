@@ -22,6 +22,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed null reference exception in LookDev when setting the SRP to one not implementing LookDev (case 1245086)
 - Fix LookDev's undo/redo on EnvironmentLibrary (case 1234725)
 - Fixed a wrong condition in CameraSwitcher, potentially causing out of bound exceptions.
+- Fixed issue with blue line in prefabs for volume mode.
 
 ## [8.0.1] - 2020-02-25
 
