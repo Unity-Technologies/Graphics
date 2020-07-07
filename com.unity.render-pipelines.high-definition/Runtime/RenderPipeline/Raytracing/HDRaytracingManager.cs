@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -109,6 +108,8 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_RayTracingIntermediateBufferRGBA2;
         RTHandle m_RayTracingIntermediateBufferRGBA3;
         RTHandle m_RayTracingIntermediateBufferRGBA4;
+
+        ShaderVariablesRaytracingLightLoop m_ShaderVariablesRaytracingLightLoopCB = new ShaderVariablesRaytracingLightLoop();
 
         internal void InitRayTracingManager()
         {
@@ -538,7 +539,7 @@ namespace UnityEngine.Rendering.HighDefinition
         #endif
             return hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 8;
         }
-        
+
         internal bool RayTracingLightClusterRequired(HDCamera hdCamera)
         {
             ScreenSpaceReflection reflSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
@@ -547,10 +548,10 @@ namespace UnityEngine.Rendering.HighDefinition
             PathTracing pathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
             SubSurfaceScattering subSurface = hdCamera.volumeStack.GetComponent<SubSurfaceScattering>();
 
-            return (m_ValidRayTracingState && (reflSettings.rayTracing.value 
-                                                || giSettings.rayTracing.value 
-                                                || recursiveSettings.enable.value 
-                                                || pathTracingSettings.enable.value 
+            return (m_ValidRayTracingState && (reflSettings.rayTracing.value
+                                                || giSettings.rayTracing.value
+                                                || recursiveSettings.enable.value
+                                                || pathTracingSettings.enable.value
                                                 || subSurface.rayTracing.value));
         }
 
@@ -577,7 +578,23 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_RayTracingLightCluster.BuildRayTracingLightData(cmd, hdCamera, m_RayTracingLights, debugDisplaySettings);
                 m_ValidRayTracingCluster = true;
+
+                UpdateShaderVariablesRaytracingLightLoopCB(hdCamera, cmd);
+				
+				m_RayTracingLightCluster.BuildLightClusterBuffer(cmd, hdCamera, m_RayTracingLights);
             }
+        }
+
+        void UpdateShaderVariablesRaytracingLightLoopCB(HDCamera hdCamera, CommandBuffer cmd)
+        {
+            m_ShaderVariablesRaytracingLightLoopCB._MinClusterPos = m_RayTracingLightCluster.GetMinClusterPos();
+            m_ShaderVariablesRaytracingLightLoopCB._LightPerCellCount = (uint)m_RayTracingLightCluster.GetLightPerCellCount();
+            m_ShaderVariablesRaytracingLightLoopCB._MaxClusterPos = m_RayTracingLightCluster.GetMaxClusterPos();
+            m_ShaderVariablesRaytracingLightLoopCB._PunctualLightCountRT = (uint)m_RayTracingLightCluster.GetPunctualLightCount();
+            m_ShaderVariablesRaytracingLightLoopCB._AreaLightCountRT = (uint)m_RayTracingLightCluster.GetAreaLightCount();
+            m_ShaderVariablesRaytracingLightLoopCB._EnvLightCountRT = (uint)m_RayTracingLightCluster.GetEnvLightCount();
+
+            ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRaytracingLightLoopCB, HDShaderIDs._ShaderVariablesRaytracingLightLoop);
         }
 
         internal RayTracingAccelerationStructure RequestAccelerationStructure()

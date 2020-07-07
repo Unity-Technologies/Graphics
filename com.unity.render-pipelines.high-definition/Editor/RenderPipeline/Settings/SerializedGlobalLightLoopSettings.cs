@@ -11,18 +11,16 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty cookieFormat;
         public SerializedProperty cookieAtlasLastValidMip;
         public SerializedProperty pointCookieSize;
-        public SerializedProperty cubeCookieTexArraySize;
         public SerializedProperty reflectionProbeCacheSize;
         public SerializedProperty reflectionCubemapSize;
         public SerializedProperty reflectionCacheCompressed;
         public SerializedProperty planarReflectionAtlasSize;
-        public SerializedProperty planarReflectionCacheCompressed;
         public SerializedProperty skyReflectionSize;
         public SerializedProperty skyLightingOverrideLayerMask;
         public SerializedProperty supportFabricConvolution;
         public SerializedProperty maxDirectionalLightsOnScreen;
         public SerializedProperty maxPunctualLightsOnScreen;
-        public SerializedProperty maxAreaLightsOnScreen; 
+        public SerializedProperty maxAreaLightsOnScreen;
         public SerializedProperty maxEnvLightsOnScreen;
         public SerializedProperty maxDecalsOnScreen;
         public SerializedProperty maxPlanarReflectionOnScreen;
@@ -35,14 +33,12 @@ namespace UnityEditor.Rendering.HighDefinition
             cookieFormat = root.Find((GlobalLightLoopSettings s) => s.cookieFormat);
             cookieAtlasLastValidMip = root.Find((GlobalLightLoopSettings s) => s.cookieAtlasLastValidMip);
             pointCookieSize = root.Find((GlobalLightLoopSettings s) => s.pointCookieSize);
-            cubeCookieTexArraySize = root.Find((GlobalLightLoopSettings s) => s.cubeCookieTexArraySize);
 
             reflectionProbeCacheSize = root.Find((GlobalLightLoopSettings s) => s.reflectionProbeCacheSize);
             reflectionCubemapSize = root.Find((GlobalLightLoopSettings s) => s.reflectionCubemapSize);
             reflectionCacheCompressed = root.Find((GlobalLightLoopSettings s) => s.reflectionCacheCompressed);
 
             planarReflectionAtlasSize = root.Find((GlobalLightLoopSettings s) => s.planarReflectionAtlasSize);
-            planarReflectionCacheCompressed = root.Find((GlobalLightLoopSettings s) => s.planarReflectionCacheCompressed);
 
             skyReflectionSize = root.Find((GlobalLightLoopSettings s) => s.skyReflectionSize);
             skyLightingOverrideLayerMask = root.Find((GlobalLightLoopSettings s) => s.skyLightingOverrideLayerMask);

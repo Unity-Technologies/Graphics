@@ -9,7 +9,7 @@
 #define kLightingInvalid  -1  // No dynamic lighting: can aliase any other material type as they are skipped using stencil
 #define kLightingSimpleLit 2  // Simple lit shader
 // clearcoat 3
-// backscatter 4 
+// backscatter 4
 // skin 5
 
 #define kMaterialFlagReceiveShadowsOff     1
@@ -160,7 +160,8 @@ BRDFData BRDFDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer2)
 #endif
 
     BRDFData brdfData;
-    InitializeBRDFDataDirect(gbuffer0.rgb, gbuffer1.rgb, reflectivity, oneMinusReflectivity, smoothness, 1.0, brdfData);
+    half alpha = 1.0; // NOTE: alpha can get modfied, forward writes it out (_ALPHAPREMULTIPLY_ON).
+    InitializeBRDFDataDirect(gbuffer0.rgb, gbuffer1.rgb, reflectivity, oneMinusReflectivity, smoothness, alpha, brdfData);
 
     return brdfData;
 }

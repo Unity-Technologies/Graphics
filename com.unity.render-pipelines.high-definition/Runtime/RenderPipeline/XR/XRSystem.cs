@@ -39,13 +39,6 @@ namespace UnityEngine.Rendering.HighDefinition
         MaterialPropertyBlock mirrorViewMaterialProperty = new MaterialPropertyBlock();
 #endif
 
-        // Set by test framework
-        internal static bool automatedTestRunning = false;
-
-        // Used by test framework and to enable debug features
-        static bool testModeEnabledInitialization { get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-xr-tests"); }
-        internal static bool testModeEnabled = testModeEnabledInitialization;
-
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
         internal static bool dumpDebugInfo = false;
         internal static List<string> passDebugInfos = new List<string>(8);
@@ -104,7 +97,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 #endif
 
-            if (testModeEnabled)
+            if (XRGraphicsAutomatedTests.enabled)
                 maxViews = Math.Max(maxViews, 2);
 
             return maxViews;
@@ -120,7 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 ReleaseFrame();
             }
 
-            if ((singlePassTestModeActive || automatedTestRunning) && testModeEnabled)
+            if ((singlePassTestModeActive || XRGraphicsAutomatedTests.running) && XRGraphicsAutomatedTests.enabled)
                 SetCustomLayout(LayoutSinglePassTestMode);
             else
                 SetCustomLayout(null);

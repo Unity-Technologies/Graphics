@@ -84,6 +84,7 @@ namespace UnityEditor.VFX
             InvalidOnCPU =    1 << 4, // Expression can be evaluated on CPU
             InvalidConstant = 1 << 5, // Expression can be folded (for UI) but constant folding is forbidden
             PerElement =      1 << 6, // Expression is per element
+            PerSpawn =        1 << 7, // Expression relies on event attribute or spawn context
             NotCompilableOnCPU = InvalidOnCPU | PerElement //Helper to filter out invalid expression on CPU
         }
 
@@ -208,6 +209,12 @@ namespace UnityEditor.VFX
             {
                 //Mesh API can modify the vertex count & layout.
                 //Thus, all mesh related expression should never been constant folded while generating code.
+                // The same goes for textures
+                case VFXValueType.Texture2D:
+                case VFXValueType.Texture2DArray:
+                case VFXValueType.Texture3D:
+                case VFXValueType.TextureCube:
+                case VFXValueType.TextureCubeArray:
                 case VFXValueType.Mesh:
                     return false;
             }
@@ -335,12 +342,11 @@ namespace UnityEditor.VFX
         }
 
         // Only do that when constructing an instance if needed
-        private void Initialize(Flags additionalFlags, VFXExpression[] parents)
+        private void Initialize(VFXExpression[] parents)
         {
             m_Parents = parents;
             SimplifyWithCacheParents();
 
-            m_Flags |= additionalFlags;
             PropagateParentsFlags();
             m_HashCodeCached = false; // as expression is mutated
         }
@@ -375,7 +381,7 @@ namespace UnityEditor.VFX
                 return this;
 
             var reduced = CreateNewInstance();
-            reduced.Initialize(m_Flags, reducedParents);
+            reduced.Initialize(reducedParents);
             return reduced;
         }
 
@@ -537,7 +543,7 @@ namespace UnityEditor.VFX
                 {
                     foldable &= parent.Is(Flags.Foldable);
 
-                    const Flags propagatedFlags = Flags.NotCompilableOnCPU | Flags.InvalidConstant;
+                    const Flags propagatedFlags = Flags.NotCompilableOnCPU | Flags.InvalidConstant | Flags.PerSpawn;
                     m_Flags |= parent.m_Flags & propagatedFlags;
                     
                     if (parent.IsAny(Flags.NotCompilableOnCPU) && parent.Is(Flags.InvalidOnGPU))

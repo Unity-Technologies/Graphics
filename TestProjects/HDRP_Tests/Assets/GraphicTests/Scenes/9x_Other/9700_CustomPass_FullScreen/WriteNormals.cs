@@ -11,10 +11,9 @@ class WriteNormals : CustomPass
     {
     }
 
-    protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult)
+    protected override void Execute(CustomPassContext ctx)
     {
-        var normal = GetNormalBuffer();
-        HDUtils.DrawFullScreen(cmd, material, normal);
+        HDUtils.DrawFullScreen(ctx.cmd, material, ctx.cameraNormalBuffer);
     }
 
     protected override void Cleanup()

@@ -65,6 +65,7 @@ Shader "Example/URPUnlitShaderBasic"
             }
 
             // The fragment shader definition.
+            
             half4 frag() : SV_Target
             {
                 // Defining the color variable and returning it.

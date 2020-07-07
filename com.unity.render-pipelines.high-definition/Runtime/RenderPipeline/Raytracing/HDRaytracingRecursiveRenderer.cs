@@ -77,14 +77,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._OwenScrambledTexture, m_Asset.renderPipelineResources.textures.owenScrambledRGBATex);
                 cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._ScramblingTexture, m_Asset.renderPipelineResources.textures.scramblingTex);
 
-                // Inject the ray generation data
-                cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rtSettings.rayBias.value);
-                cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayMaxLength, recursiveSettings.rayLength.value);
-                cmd.SetGlobalFloat(HDShaderIDs._RaytracingMaxRecursion, recursiveSettings.maxDepth.value);
-                cmd.SetGlobalFloat(HDShaderIDs._RaytracingCameraNearPlane, hdCamera.camera.nearClipPlane);
-                cmd.SetGlobalFloat(HDShaderIDs._RaytracingReflectionMinSmoothness, recursiveSettings.minSmoothness.value);
-
-                // Set the data for the ray generation
+                // Update Global Constant Buffer.
+                m_ShaderVariablesRayTracingCB._RaytracingRayMaxLength = recursiveSettings.rayLength.value;
+                m_ShaderVariablesRayTracingCB._RaytracingMaxRecursion = recursiveSettings.maxDepth.value;
+                ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                 // Fecth the temporary buffers we shall be using
                 RTHandle flagBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.R0);
@@ -94,11 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Set ray count texture
                 RayCountManager rayCountManager = GetRayCountManager();
-                cmd.SetGlobalInt(HDShaderIDs._RayCountEnabled, rayCountManager.RayCountIsEnabled());
                 cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._RayCountTexture, rayCountManager.GetRayCountTexture());
-
-                // Compute an approximate pixel spread angle value (in radians)
-                cmd.SetGlobalFloat(HDShaderIDs._RaytracingPixelSpreadAngle, GetPixelSpreadAngle(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight));
 
                 // LightLoop data
                 lightCluster.BindLightClusterData(cmd);

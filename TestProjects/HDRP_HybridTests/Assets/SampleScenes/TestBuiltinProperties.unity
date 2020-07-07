@@ -338,6 +338,7 @@ MonoBehaviour:
   m_ShadowUpdateMode: 0
   m_BarnDoorAngle: 90
   m_BarnDoorLength: 0.05
+  m_preserveCachedShadow: 0
   m_ShadowCascadeRatios:
   - 0.05
   - 0.2
@@ -356,6 +357,7 @@ MonoBehaviour:
   showAdditionalSettings: 0
   m_AreaLightEmissiveMeshShadowCastingMode: 0
   m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0
+  m_AreaLightEmissiveMeshLayer: -1
 --- !u!108 &922682372
 Light:
   m_ObjectHideFlags: 0
@@ -908,4 +910,6 @@ MonoBehaviour:
     PerPixelCorrectnessThreshold: 0.001
     AverageCorrectnessThreshold: 0.0015
     UseHDR: 0
-  WaitFrames: 800
+    UseBackBuffer: 0
+    ImageResolution: 0
+  WaitFrames: 50

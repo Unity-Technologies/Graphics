@@ -79,7 +79,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     gbufferCommands.DisableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
 
                 gbufferCommands.SetViewProjectionMatrices(renderingData.cameraData.camera.worldToCameraMatrix, renderingData.cameraData.camera.projectionMatrix);
-                // Note: a special case might be required if(renderingData.cameraData.isStereoEnabled) - see reference in ScreenSpaceShadowResolvePass.Execute
 
                 context.ExecuteCommandBuffer(gbufferCommands); // send the gbufferCommands to the scriptableRenderContext - this should be done *before* calling scriptableRenderContext.DrawRenderers
                 gbufferCommands.Clear();
@@ -88,10 +87,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 ref CameraData cameraData = ref renderingData.cameraData;
                 Camera camera = cameraData.camera;
-                if (cameraData.isStereoEnabled)
-                {
-                    context.StartMultiEye(camera, eyeIndex);
-                }
 
                 context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings/*, ref m_RenderStateBlock*/);
             }
