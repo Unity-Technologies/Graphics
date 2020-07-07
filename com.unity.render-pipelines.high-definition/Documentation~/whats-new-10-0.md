@@ -74,11 +74,11 @@ Note that the graph should not contain nodes that rely on screen-space different
 
 This version of HDRP includes scalability settings for fog and subsurface scattering. These settings allow for more control over the performance and quality of volumetric lighting.
 
-### Screen-space global illumination
+### Screen-space global illumination (in preview)
 
-This version of HDRP introduces screen-space global illumination (SSGI) as a fallback for ray-traced global illumination (RTGI). It is an algorithm that accesses indirect diffuse lighting the environment generates. It works in the same way as the [Screen Space Reflection override](Override-Screen-Space-Reflection.md) in that it uses ray marching to calculate the result.
+This version of HDRP introduces screen-space global illumination (SSGI) as a fallback for ray-traced global illumination (RTGI). It is an algorithm that accesses indirect diffuse lighting the environment generates. It works in the same way as the [Screen Space Reflection](Override-Screen-Space-Reflection.md) in that it uses ray marching to calculate the result.
 
-Since this feature is a fallback for RTGI, for more information, see [Ray-traced Global Illumination](Ray-Traced-Global-Illumination.md).
+Since this feature is a fallback for RTGI, for more information, see [Ray-traced Global Illumination](Ray-Traced-Global-Illumination.md). This feature is still in preview.
 
 ### Custom Pass AOV Export
 
@@ -123,13 +123,17 @@ For more information, see the [Light component documentation](Light-Component.md
 
 This version of HDRP adds support for emissive maps with parallax occlusion mapping.
 
-### Fabric material examples
+### Screen-space reflection on Transparent Material
 
-HDRP now includes a new sample that contains example fabric materials. You can use these materials as references to more quickly develop fabric materials for your application.
+HDRP's screen-space reflection (SSR) solution now support transparent materials. This is useful for transparent surfaces such as windows or water.
+
+### Fabric and Hair material examples
+
+HDRP now includes a new sample that contains example fabric and hair materials. You can use these materials as references to more quickly develop fabric and hair materials for your application.
 
 ### Decal layers
 
-This version of HDRP introduces decal layers which allow you to specify which decals affect which Materials on a layer by layer basis.
+This version of HDRP introduces decal layers which allow you to specify which decals affect which Materials on a layer by layer basis. See [Decal](Decal.md) section for more detail.
 
 ### Eye Shader Graph
 
@@ -184,15 +188,23 @@ HDRP now supports colored ray-traced shadows for transparent and transmissive Ga
 
 For more information, see [ray-traced shadows](Ray-Traced-Shadows.md).
 
-#### Screen-space reflection and ray-traced reflection
+#### ray-traced reflection on Transparent Material
 
-HDRP's screen-space reflection (SSR) and ray-traced reflection (RTR) solutions now support transparent materials. This is useful for transparent surfaces such as windows or water.
+HDRP's ray-traced reflection (RTR) solution now support transparent materials. This is useful for transparent surfaces such as windows or water.
+
+#### Virtual Reality (VR)
+
+Ray tracing now support VR. It is however not recommended as the performance is very slow.
 
 ### Scene view Camera properties
 
 The HDRP-specific Scene view Camera properties, such as anti-aliasing mode and stop NaNs, are no longer in the preferences window and are instead in the [Scene view camera](https://docs.unity3d.com/Manual/SceneViewCamera.html) settings menu.
 
 For information on HDRP's Scene view Camera properties, see [Scene view Camera](Scene-View-Camera.md).
+
+### Shadow caching system
+
+Shadow atlas and shadow caching management have been improve. Cascade shadow can now be stagerred (Cascades can update at different frequency). Shadow that are cached (OnEnable option) render everything they can see independently of the main view. More API control have been added. See detail in [Shadows](Shadows-in-HDRP.md)
 
 ### Compute shaders now use multi-compile
 
@@ -211,6 +223,14 @@ In the past, HDRP experienced stability issues for DirectX12, Vulkan, Metal, Lin
 ### Lightloop optimization
 
 In terms of performance, one of the most resource intensive operations for HDRP is processing lights before it sends them to the GPU. For many high-end projects that include a lot of lights in their Scene, this is particularly problematic. This version of HDRP introduces an optimization that reduces the resource intensity of the light loop by up to 80% which drastically improves CPU performance in the vast majority of cases.
+
+### Decal optimization
+
+In terms of performance, HDRP no longer force a full depth prepass with Deferred Lit Mode when Decals are enabled. Only Decals with **Receive Decals** property enabled in Material will render in the Prepass.
+
+### Constant buffer setup optimization
+
+In terms of performance, preparing and sending the shader data for the GPU is intensive. HDRP is now using a new C# constant buffer API allowing to setuping the various shader uniform in a single call instead of multiple one.
 
 ### Temporal anti-aliasing
 
