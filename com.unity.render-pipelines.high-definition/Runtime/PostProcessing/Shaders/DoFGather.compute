@@ -253,14 +253,13 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 #endif
     }
 
-    // Now compute the final color by combining the near, far and in-focus buckets with proper blending
-    float4 outColor = totalColor[0];
+    float4 outColor = 0;
 #ifdef ENABLE_ALPHA
-    float outAlpha = totalAlpha[0];
+    float outAlpha = 0;
 #endif
 
-    // back to front alpha blending of the other buckets
-    for (int j = 1; j < NUM_BUCKETS; ++j)
+    // back to front alpha blending of the near, far and in-focus buckets
+    for (int j = 0; j < NUM_BUCKETS; ++j)
     {
         float alpha = saturate(totalColor[j].w * rcp(GetNumSamples(maxCoC[j])) * rcp(GetSampleWeight(maxCoC[j])));
         outColor = (1.0 - alpha) * outColor + alpha * totalColor[j];
