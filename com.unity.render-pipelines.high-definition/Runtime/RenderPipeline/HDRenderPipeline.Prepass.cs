@@ -313,7 +313,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (data.hasDepthDeferredPass && data.decalLayersEnabled)
                     {
                         deferredMrt = context.renderGraphPool.GetTempArray<RenderTargetIdentifier>(1);
-                        deferredMrt[0] = context.resources.GetTexture(data.decalBuffer);
+                        deferredMrt[0] = data.decalBuffer;
                     }
 
                     var forwardMrt = context.renderGraphPool.GetTempArray<RenderTargetIdentifier>((data.msaaEnabled ? 2 : 1) + (data.decalLayersEnabled ? 1 : 0));
@@ -780,7 +780,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     data.depthStencilBuffer,
                                     data.meshDecalsRendererList,
                                     data.propertyMaskBuffer,
-                                    resources.GetTexture(data.decalBuffer),
+                                    data.decalBuffer,
                                     context.renderContext,                                    
                                     context.cmd);
                 });

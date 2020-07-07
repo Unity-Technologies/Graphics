@@ -213,7 +213,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                     (GuardBandPassData data, RenderGraphContext ctx) =>
                     {
-                        ClearWithGuardBands(data.parameters, ctx.cmd, ctx.resources.GetTexture(data.source));
+                        ClearWithGuardBands(data.parameters, ctx.cmd, data.source);
                     });
 
                     source = passData.source;
@@ -238,7 +238,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         builder.SetRenderFunc(
                         (StopNaNPassData data, RenderGraphContext ctx) =>
                         {
-                            DoStopNaNs(data.parameters, ctx.cmd, ctx.resources.GetTexture(data.source), ctx.resources.GetTexture(data.destination));
+                            DoStopNaNs(data.parameters, ctx.cmd, data.source, data.destination);
                         });
 
                         source = passData.destination;
@@ -271,10 +271,10 @@ namespace UnityEngine.Rendering.HighDefinition
                             builder.SetRenderFunc(
                                 (DynamicExposureData data, RenderGraphContext ctx) =>
                                 {
-                                    DoHistogramBasedExposure(data.parameters, ctx.cmd, ctx.resources.GetTexture(data.source),
-                                                                                       ctx.resources.GetTexture(data.prevExposure),
-                                                                                       ctx.resources.GetTexture(data.nextExposure),
-                                                                                       ctx.resources.GetTexture(data.exposureDebugData));
+                                    DoHistogramBasedExposure(data.parameters, ctx.cmd, data.source,
+                                                                                       data.prevExposure,
+                                                                                       data.nextExposure,
+                                                                                       data.exposureDebugData);
                                 });
                         }
                         else
@@ -287,11 +287,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             builder.SetRenderFunc(
                                 (DynamicExposureData data, RenderGraphContext ctx) =>
                                 {
-                                    DoDynamicExposure(data.parameters, ctx.cmd, ctx.resources.GetTexture(data.source),
-                                                                                ctx.resources.GetTexture(data.prevExposure),
-                                                                                ctx.resources.GetTexture(data.nextExposure),
-                                                                                ctx.resources.GetTexture(data.tmpTarget1024),
-                                                                                ctx.resources.GetTexture(data.tmpTarget32));
+                                    DoDynamicExposure(data.parameters, ctx.cmd, data.source,
+                                                                                data.prevExposure,
+                                                                                data.nextExposure,
+                                                                                data.tmpTarget1024,
+                                                                                data.tmpTarget32);
                                 });
                         }
                     }
@@ -312,7 +312,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             builder.SetRenderFunc(
                             (ApplyExposureData data, RenderGraphContext ctx) =>
                             {
-                                ApplyExposure(data.parameters, ctx.cmd, ctx.resources.GetTexture(data.source), ctx.resources.GetTexture(data.destination), ctx.resources.GetTexture(data.prevExposure));
+                                ApplyExposure(data.parameters, ctx.cmd, data.source, data.destination, data.prevExposure);
                             });
 
                             source = passData.destination;
@@ -364,15 +364,15 @@ namespace UnityEngine.Rendering.HighDefinition
                             builder.SetRenderFunc(
                             (TemporalAntiAliasingData data, RenderGraphContext ctx) =>
                             {
-                                DoTemporalAntialiasing(data.parameters, ctx.cmd, ctx.resources.GetTexture(data.source),
-                                                                                 ctx.resources.GetTexture(data.destination),
-                                                                                 ctx.resources.GetTexture(data.motionVecTexture),
-                                                                                 ctx.resources.GetTexture(data.depthBuffer),
-                                                                                 ctx.resources.GetTexture(data.depthMipChain),
-                                                                                 ctx.resources.GetTexture(data.prevHistory),
-                                                                                 ctx.resources.GetTexture(data.nextHistory),
-                                                                                 ctx.resources.GetTexture(data.prevMVLen),
-                                                                                 ctx.resources.GetTexture(data.nextMVLen));
+                                DoTemporalAntialiasing(data.parameters, ctx.cmd, data.source,
+                                                                                 data.destination,
+                                                                                 data.motionVecTexture,
+                                                                                 data.depthBuffer,
+                                                                                 data.depthMipChain,
+                                                                                 data.prevHistory,
+                                                                                 data.nextHistory,
+                                                                                 data.prevMVLen,
+                                                                                 data.nextMVLen);
                             });
 
                             source = passData.destination;
@@ -397,11 +397,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             builder.SetRenderFunc(
                             (SMAAData data, RenderGraphContext ctx) =>
                             {
-                                DoSMAA(data.parameters, ctx.cmd, ctx.resources.GetTexture(data.source),
-                                                                 ctx.resources.GetTexture(data.smaaEdgeTex),
-                                                                 ctx.resources.GetTexture(data.smaaBlendTex),
-                                                                 ctx.resources.GetTexture(data.destination),
-                                                                 ctx.resources.GetTexture(data.depthBuffer));
+                                DoSMAA(data.parameters, ctx.cmd, data.source,
+                                                                 data.smaaEdgeTex,
+                                                                 data.smaaBlendTex,
+                                                                 data.destination,
+                                                                 data.depthBuffer);
                             });
 
                             source = passData.destination;
@@ -477,14 +477,14 @@ namespace UnityEngine.Rendering.HighDefinition
                         builder.SetRenderFunc(
                         (MotionBlurData data, RenderGraphContext ctx) =>
                         {
-                            DoMotionBlur(data.parameters, ctx.cmd, ctx.resources.GetTexture(data.source),
-                                                                   ctx.resources.GetTexture(data.destination),
-                                                                   ctx.resources.GetTexture(data.motionVecTexture),
-                                                                   ctx.resources.GetTexture(data.preppedMotionVec),
-                                                                   ctx.resources.GetTexture(data.minMaxTileVel),
-                                                                   ctx.resources.GetTexture(data.maxTileNeigbourhood),
-                                                                   ctx.resources.GetTexture(data.tileToScatterMax),
-                                                                   ctx.resources.GetTexture(data.tileToScatterMin));
+                            DoMotionBlur(data.parameters, ctx.cmd, data.source,
+                                                                   data.destination,
+                                                                   data.motionVecTexture,
+                                                                   data.preppedMotionVec,
+                                                                   data.minMaxTileVel,
+                                                                   data.maxTileNeigbourhood,
+                                                                   data.tileToScatterMax,
+                                                                   data.tileToScatterMin);
                         });
 
                         source = passData.destination;
@@ -508,7 +508,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         builder.SetRenderFunc(
                         (PaniniProjectionData data, RenderGraphContext ctx) =>
                         {
-                            DoPaniniProjection(data.parameters, ctx.cmd, ctx.resources.GetTexture(data.source), ctx.resources.GetTexture(data.destination));
+                            DoPaniniProjection(data.parameters, ctx.cmd, data.source, data.destination);
                         });
 
                         source = passData.destination;
@@ -536,11 +536,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             for(int i=0; i<data.parameters.bloomMipCount; ++i)
                             {
-                                bloomMipDown[i] = ctx.resources.GetTexture(data.mipsDown[i]);
-                                bloomMipUp[i]   = ctx.resources.GetTexture(data.mipsUp[i]);
+                                bloomMipDown[i] = data.mipsDown[i];
+                                bloomMipUp[i]   = data.mipsUp[i];
                             }
 
-                            DoBloom(data.parameters, ctx.cmd, ctx.resources.GetTexture(data.source), bloomMipDown, bloomMipUp);
+                            DoBloom(data.parameters, ctx.cmd, data.source, bloomMipDown, bloomMipUp);
                         });
 
                         bloomTexture = passData.mipsUp[0];
@@ -627,7 +627,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         builder.SetRenderFunc(
                         (FXAAData data, RenderGraphContext ctx) =>
                         {
-                            DoFXAA(data.parameters, ctx.cmd, ctx.resources.GetTexture(data.source), ctx.resources.GetTexture(data.destination));
+                            DoFXAA(data.parameters, ctx.cmd, data.source, data.destination);
                         });
 
                         source = passData.destination;
@@ -651,7 +651,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                     (CASData data, RenderGraphContext ctx) =>
                     {
-                        DoContrastAdaptiveSharpening(data.parameters, ctx.cmd, ctx.resources.GetTexture(data.source), ctx.resources.GetTexture(data.destination));
+                        DoContrastAdaptiveSharpening(data.parameters, ctx.cmd, data.source, data.destination);
                     });
 
                     source = passData.destination;
