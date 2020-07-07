@@ -108,7 +108,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 error: "Default scene prefab must be set to create HD templated scene!");
             public static readonly ConfigStyle hdrpVolumeProfile = new ConfigStyle(
                 label: "Default volume profile",
-                error: "Default volume profile must be assigned in the HDRP asset!");
+                error: "Default volume profile must be assigned in the HDRP asset! Also, for it to be editable, it should be outside of package.");
 
             public static readonly ConfigStyle vrLegacyVRSystem = new ConfigStyle(
                 label: "Legacy VR System",
@@ -125,7 +125,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 messageType: MessageType.Info);
             public static readonly ConfigStyle vrSinglePassInstancing = new ConfigStyle(
                 label: "Single-Pass Instancing",
-                error: "Single-Pass Instancing must be enabled in Occulus Pluggin.\nGo in Edit > Project Settings > XR Plugin Manager > Oculus and change Stereo Rendering Mode to Single Pass Instanced.\n(This can't be verified by the Wizard)",
+                error: "Single-Pass Instancing must be enabled in Oculus Pluggin.\nGo in Edit > Project Settings > XR Plugin Manager > Oculus and change Stereo Rendering Mode to Single Pass Instanced.\n(This can't be verified by the Wizard)",
                 messageType: MessageType.Info);
             public static readonly ConfigStyle vrLegacyHelpersPackage = new ConfigStyle(
                 label: "XR Legacy Helpers Package",

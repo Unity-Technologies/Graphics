@@ -797,7 +797,14 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 get
                 {
-                    return this.m_Material.GetInt("_DrawOrder");
+                    if (m_IsHDRenderPipelineDecal)
+                    {
+                        return this.m_Material.GetInt("_DrawOrder");
+                    }
+                    else
+                    {
+                        return 0;
+                    }
                 }
             }
 
