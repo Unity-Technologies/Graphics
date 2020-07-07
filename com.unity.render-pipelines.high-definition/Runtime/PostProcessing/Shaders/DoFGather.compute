@@ -159,8 +159,8 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     // Record the central sample
     {
         float weight = GetSampleWeight(abs(centerCoc));
-        totalColor[bucketIndex].xyz = centerColor.xyz * weight;
-        totalColor[bucketIndex].w = weight;
+        totalColor[bucketIndex] = float4(centerColor.xyz * weight, weight);
+        totalHits[bucketIndex] = 1.0f;
         maxCoC[bucketIndex] = abs(centerCoc);
         prevRingWeight[bucketIndex] = weight;
 #ifdef ENABLE_ALPHA
@@ -227,14 +227,14 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
             float sampleCoC = GetCoCRadius(sampleTC, sampleBucket);
 
 #ifdef COC_FAR_CLAMPING
-            sampleCoC = min(sampleCoC, centerCoc), sampleCoC;
+            if (centerCoc >= 0)
+                sampleCoC = min(sampleCoC, centerCoc);
 #endif
 
-            if (abs(sampleCoC) > radius)
+            if (abs(sampleCoC) >= radius)
             {
                 float weight = GetSampleWeight(abs(sampleCoC));
-                RING_COLOR[sampleBucket].xyz += sampleColor.xyz * weight;
-                RING_COLOR[sampleBucket].w += weight;
+                RING_COLOR[sampleBucket] += float4(sampleColor.xyz * weight, weight);
                 RING_MAXCOC[sampleBucket] = max(RING_MAXCOC[sampleBucket], abs(sampleCoC));
                 RING_HITS[sampleBucket] += 1.0;
 #ifdef ENABLE_ALPHA
