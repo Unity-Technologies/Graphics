@@ -16,7 +16,7 @@ class PreviewPublish_PromoteJob():
 
         # define dependencies
         dependencies = [
-            f'{pb_filepath()}#{pb_job_id_publish(package["name"])}',
+            f'{packages_filepath()}#{package_job_id_publish(package["name"])}',
             f'{packages_filepath()}#{package_job_id_pack(package["name"])}']
             
         for platform in platforms:
@@ -24,7 +24,7 @@ class PreviewPublish_PromoteJob():
         
         # construct job
         job = YMLJob()
-        job.set_name(f'[{package["name"]}] Production Promote')
+        job.set_name(f'[{package["name"]}] Preview - Production Promote')
         job.set_agent(agent)
         job.add_var_custom('UPMCI_PROMOTION', 1)
         job.add_dependencies(dependencies)
