@@ -15,6 +15,18 @@ namespace UnityEditor.Rendering.HighDefinition
         BTF,
     }
 
+    internal enum AxFMappingMode
+    {
+        UV0,
+        UV1,
+        UV2,
+        UV3,
+        PlanarXY,
+        PlanarYZ,
+        PlanarZX,
+        Triplanar,
+    }
+
     /// <summary>
     /// GUI for HDRP AxF materials
     /// </summary>
@@ -50,6 +62,34 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kEnableGeometricSpecularAA = "_EnableGeometricSpecularAA";
         const string kSpecularOcclusionMode = "_SpecularOcclusionMode"; // match AdvancedOptionsUIBlock.kSpecularOcclusionMode : TODO move both to HDStringConstants.
 
+        const string kMappingMode = "_MappingMode";
+        const string kMappingMask = "_MappingMask";
+        const string kPlanarSpace = "_PlanarSpace";
+
+        static public Vector4 AxFMappingModeToMask(AxFMappingMode mappingMode)
+        {
+            Vector4 mask = Vector4.zero;
+            if (mappingMode <= AxFMappingMode.UV3)
+            {
+                float X,Y,Z,W;
+                X = (mappingMode == AxFMappingMode.UV0) ? 1.0f : 0.0f;
+                Y = (mappingMode == AxFMappingMode.UV1) ? 1.0f : 0.0f;
+                Z = (mappingMode == AxFMappingMode.UV2) ? 1.0f : 0.0f;
+                W = (mappingMode == AxFMappingMode.UV3) ? 1.0f : 0.0f;
+                mask = new Vector4(X, Y, Z, W);
+            }
+            else if (mappingMode < AxFMappingMode.Triplanar)
+            {
+                float X,Y,Z,W;
+                X = (mappingMode == AxFMappingMode.PlanarYZ) ? 1.0f : 0.0f;
+                Y = (mappingMode == AxFMappingMode.PlanarZX) ? 1.0f : 0.0f;
+                Z = (mappingMode == AxFMappingMode.PlanarXY) ? 1.0f : 0.0f;
+                W = 0.0f;
+                mask = new Vector4(X, Y, Z, W);
+            }
+            return mask;
+        }
+        
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
         static public void SetupMaterialKeywordsAndPass(Material material)
         {
@@ -61,6 +101,33 @@ namespace UnityEditor.Rendering.HighDefinition
             CoreUtils.SetKeyword(material, "_AXF_BRDF_TYPE_SVBRDF", BRDFType == AxfBrdfType.SVBRDF);
             CoreUtils.SetKeyword(material, "_AXF_BRDF_TYPE_CAR_PAINT", BRDFType == AxfBrdfType.CAR_PAINT);
             CoreUtils.SetKeyword(material, "_AXF_BRDF_TYPE_BTF", BRDFType == AxfBrdfType.BTF);
+
+
+            // Mapping Modes:
+            AxFMappingMode mappingMode = (AxFMappingMode)material.GetFloat(kMappingMode);
+
+            // Make sure the mask is synched:
+            material.SetVector(kMappingMask, AxFMappingModeToMask(mappingMode));
+
+            bool mappingIsPlanar = (mappingMode >= AxFMappingMode.PlanarXY) && (mappingMode < AxFMappingMode.Triplanar);
+            bool planarIsLocal = (material.GetFloat(kPlanarSpace) > 0.0f);
+
+            CoreUtils.SetKeyword(material, "_MAPPING_PLANAR", mappingIsPlanar);
+            CoreUtils.SetKeyword(material, "_MAPPING_TRIPLANAR", mappingMode == AxFMappingMode.Triplanar);
+
+            if (mappingIsPlanar || mappingMode == AxFMappingMode.Triplanar)
+            {
+                CoreUtils.SetKeyword(material, "_PLANAR_LOCAL", planarIsLocal);
+            }
+
+            // Note: for ShaderPass defines for vertmesh/varyingmesh setup, we still use the same 
+            // defines _REQUIRE_UV2 and _REQUIRE_UV3, and thus if eg _REQUIRE_UV3 is defined, _REQUIRE_UV2 will
+            // be assumed to be needed. But here in the AxFData sampling code, we use these to indicate precisely
+            // the single set used (if not using planar/triplanar) only and thus add _REQUIRE_UV1.
+            // Extra UVs might be transfered but we only need and support a single set at a time for the whole material.
+            CoreUtils.SetKeyword(material, "_REQUIRE_UV1", mappingMode == AxFMappingMode.UV1);
+            CoreUtils.SetKeyword(material, "_REQUIRE_UV2", mappingMode == AxFMappingMode.UV2);
+            CoreUtils.SetKeyword(material, "_REQUIRE_UV3", mappingMode == AxFMappingMode.UV3);
 
             // Keywords for opt-out of decals and SSR:
             bool decalsEnabled = material.HasProperty(kEnableDecals) && material.GetFloat(kEnableDecals) > 0.0f;

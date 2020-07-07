@@ -66,13 +66,9 @@ void RayGenSubSurface()
     PositionInputs posInput = GetPositionInput(currentPixelCoord, 1.0/LaunchDim.xy, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
     posInput.positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
-    // Read the bsdf data and builtin data from the gbuffer
-    BSDFData bsdfData;
-    ZERO_INITIALIZE(BSDFData, bsdfData);
-    BuiltinData builtinData;
-    ZERO_INITIALIZE(BuiltinData, builtinData);
-    uint featureFlags = MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING;
-    DecodeFromGBuffer(currentPixelCoord, featureFlags, bsdfData, builtinData);
+    // Read the normal data
+    NormalData normalData;
+    DecodeFromNormalBuffer(currentPixelCoord, normalData);
 
     // Read the SSS Data
     SSSData sssData;
@@ -88,7 +84,7 @@ void RayGenSubSurface()
 
     // Do our walk
     ScatteringResult scatteringResult;
-    ScatteringWalk(bsdfData.normalWS, bsdfData.diffuseColor, scatteringDistance, currentPixelCoord, globalSampleIndex, posInput.positionWS, scatteringResult);
+    ScatteringWalk(normalData.normalWS, sssData.diffuseColor, scatteringDistance, currentPixelCoord, globalSampleIndex, posInput.positionWS, scatteringResult);
 
     // Normalize the throughput
     scatteringResult.outputThroughput /= (float)_RaytracingNumSamples;

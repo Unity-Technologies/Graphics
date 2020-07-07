@@ -324,7 +324,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal RenderGraphResourceRegistry(bool supportMSAA, MSAASamples initialSampleCount, RenderGraphDebugParams renderGraphDebug, RenderGraphLogger logger)
         {
-            m_RTHandleSystem.Initialize(1, 1, supportMSAA, initialSampleCount);
+            // We initialize to screen width/height to avoid multiple realloc that can lead to inflated memory usage (as releasing of memory is delayed).
+            m_RTHandleSystem.Initialize(Screen.width, Screen.height, supportMSAA, initialSampleCount);
             m_RenderGraphDebug = renderGraphDebug;
             m_Logger = logger;
         }
@@ -657,6 +658,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 }
             }
 #endif
+        }
+
+        internal void ResetRTHandleReferenceSize(int width, int height)
+        {
+            m_RTHandleSystem.ResetReferenceSize(width, height);
         }
 
         internal void Cleanup()

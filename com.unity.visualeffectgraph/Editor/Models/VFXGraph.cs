@@ -30,7 +30,7 @@ namespace UnityEditor.VFX
                 resource.GetOrCreateGraph().SanitizeForImport();
             }
         }
-
+        
         static string[] OnAddResourceDependencies(string assetPath)
         {
             VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
@@ -108,23 +108,25 @@ namespace UnityEditor.VFX
             return vfxAssets;
         }
 
-        [MenuItem("Edit/Visual Effects//Rebuild All Visual Effect Graphs", priority = 320)]
+        [MenuItem("Edit/Visual Effects//Rebuild And Save All Visual Effect Graphs", priority = 320)]
         public static void Build()
         {
             var vfxAssets = GetAllVisualEffectAssets();
 
-            AssetDatabase.StartAssetEditing();
             foreach (var vfxAsset in vfxAssets)
             {
                 if (VFXViewPreference.advancedLogs)
                     Debug.Log(string.Format("Recompile VFX asset: {0} ({1})", vfxAsset, AssetDatabase.GetAssetPath(vfxAsset)));
 
-                VFXExpression.ClearCache();
-                vfxAsset.GetResource().GetOrCreateGraph().UpdateSubAssets();
-                EditorUtility.SetDirty(vfxAsset);
-                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(vfxAsset));
+                var resource = vfxAsset.GetResource();
+                if (resource != null)
+                {
+                    resource.GetOrCreateGraph().SanitizeGraph();
+                    EditorUtility.SetDirty(resource);
+                }
             }
-            AssetDatabase.StopAssetEditing();
+
+            VFXExpression.ClearCache();
             AssetDatabase.SaveAssets();
         }
     }
@@ -430,7 +432,8 @@ namespace UnityEditor.VFX
             }
 
             if (cause != VFXModel.InvalidationCause.kExpressionInvalidated &&
-                cause != VFXModel.InvalidationCause.kExpressionGraphChanged)
+                cause != VFXModel.InvalidationCause.kExpressionGraphChanged &&
+                cause != VFXModel.InvalidationCause.kUIChangedTransient)
             {
                 EditorUtility.SetDirty(this);
             }
@@ -684,6 +687,10 @@ namespace UnityEditor.VFX
                     }
                 }
             }
+
+            foreach(var child in children)
+                child.CheckGraphBeforeImport();
+
             SanitizeGraph();
         }
         public void CompileForImport()
