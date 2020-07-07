@@ -58,8 +58,7 @@ Note: The AxF Importer imports every Texture as half float, linear, sRGB gamut (
 
 | **Property**          | **Description**                                              |
 | --------------------- | ------------------------------------------------------------ |
-| **Material Tiling U** | Sets the tile rate along the x-axis for every Texture in the **Surface Inputs** section. HDRP uses this value to tile the Textures along the x-axis of the Material’s surface, in object space. |
-| **Material Tiling V** | Sets the tile rate along the y-axis for every Texture in the **Surface Inputs** section. HDRP uses this value to tile the Textures along the y-axis of the Material’s surface, in object space. |
+| **Main Tiling & Offset** | Sets the tiling rate (xy) and offsets (zw) for every Texture in the **Surface Inputs** section. HDRP uses these values to tile the Textures along the xy-axes of the Material’s surface, in the object's tangent space. Each texture property can also specify additional tiling and offset values that are applied on top of these main values (Texture property-specific tiling rates are multiplied and offsets are added to the main values set here)  |
 | **BRDF Type**         | Controls the main AxF Material representation.<br/>&#8226; **SVBRDF**: For information on the properties Unity makes visible when you select this option, see [BRDF Type - SVBRDF](#SVBRDF).<br/>&#8226;**CAR_PAINT**: For information on the properties Unity makes visible when you select this option, see [BRDF Type - CAR_PAINT](#CAR_PAINT). |
 
 <a name="SVBRDF"></a>

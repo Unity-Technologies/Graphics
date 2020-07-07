@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added a function (HDRenderPipeline.ResetRTHandleReferenceSize) to reset the reference size of RTHandle systems.
+- Added support for AxF measurements importing into texture resources tilings.
+- Added Layer parameter on Area Light to modify Layer of generated Emissive Mesh
 
 ### Fixed
 - Fixed issue with reflection probes in realtime time mode with OnEnable baking having wrong lighting with sky set to dynamic (case 1238047).
@@ -21,7 +23,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a performance issue with stochastic ray traced area shadows.
 - Made more explicit the warning about raytracing and asynchronous compute. Also fixed the condition in which it appears.
 - Fixed a null ref exception in static sky when the default volume profile is invalid.
-- Fixed an error about procedural sky being logged by mistake.
 - Fixed flickering of the game/scene view when lookdev is running.
 - Fixed some GCAlloc in the debug window.
 - Removed logic in the UI to disable parameters for contact shadows and fog volume components as it was going against the concept of the volume system.
@@ -39,11 +40,33 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with light layers bigger than 8 (and above the supported range). 
 - Fixed an issue where decals were duplicated in prefab isolation mode.
 - Fixed the valid TRS test failing due to variable not being initialized to the identity matrix in RTShadows (1220600).
+- Fixed cookie texture not updated when changing an import settings (srgb for example).
+- Fixed transparent motion vectors not working when in MSAA.
+- Fixed an invalid rotation in Planar Reflection Probe editor display, that was causing an error message (case 1182022)
+- Fix conflicts with Handles manipulation when performing a Reset in DecalComponent (case 1238833)
+- Fix error when removing DecalProjector from component contextual menu (case 1243960)
+- Fixed issue when switching back to custom sensor type in physical camera settings (case 1244350).
+- Fixed the prefab integration of custom passes (Prefab Override Highlight not working as expected).
+- Fixed issue with post process when running in RGBA16 and an object with additive blending is in the scene.
+- Fixed issue with sceneview camera settings not being saved after Editor restart.
+- Fixed issue that caused not all baked reflection to be deleted upon clicking "Clear Baked Data" in the lighting menu (case 1136080)
+- Fixed the light overlap scene view draw mode (wasn't working at all).
+- Fixed error when undo a Reflection Probe removal in a prefab instance. (case 1244047)
+- Fixed various multi-editing issues when changing Emission parameters.
+- Fixed issue that prevented cubemap thumbnails from rendering (only on D3D11 and Metal).
+- Fixed Microshadow not working correctly in deferred with LightLayers
+- Tentative fix for missing include in depth of field shaders.
+- Fixed Wizard check on default volume profile to also check it is not the default one in package.
+- Fixed light layers not correctly disabled when the lightlayers is set to Nothing and Lightlayers isn't enabled in HDRP Asset
 
 ### Changed
 - Shadowmask and realtime reflection probe property are hide in Quality settings
 - Made the StaticLightingSky class public so that users can change it by script for baking purpose.
 - Changed default exposure compensation to 0.
+- Improved performance of reflection probe management when using a lot of probes.
+- MSAA Within Forward Frame Setting is now enabled by default on Cameras when new Render Pipeline Asset is created
+- Cloned volume profile from read only assets are created in the root of the project. (case 1154961)
+- Lit and LayeredLit tessellation cross lod fade don't used dithering anymore between LOD but fade the tessellation height instead. Allow a smoother transition
 
 ## [8.1.0] - 2020-04-21
 
