@@ -608,6 +608,8 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
         // Therefore, we must round manually to avoid the seams.
         float uintAniso  = round(surfaceData.anisotropy * 127.5 + 127.5);
               uintAniso  = quad2or4 ? 255 - uintAniso : uintAniso;
+        // We cannot represent the anisotropy value of 0 exactly, but it is of little
+        // importance since you could just use the isotropic material for that purpose.
         float anisotropy = uintAniso * rcp(255);
     #endif
 
