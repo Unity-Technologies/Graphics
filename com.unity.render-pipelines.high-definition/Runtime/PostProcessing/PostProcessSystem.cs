@@ -2259,6 +2259,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             next = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC)
                 ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC, Allocator, 2);
+
+            if (mipMaps == true && next.rt.mipmapCount == 1)
+            {
+                // if the user switches techniques on-the-fly, the rt might have been allocated previously whitout mips
+                camera.ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC);
+                next = camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC, Allocator, 2);
+            }
             previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC);
         }
 
