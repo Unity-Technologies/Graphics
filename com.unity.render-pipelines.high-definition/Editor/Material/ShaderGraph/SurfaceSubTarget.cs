@@ -40,13 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected virtual bool supportForward => false;
         protected virtual bool supportLighting => false;
         protected virtual bool supportDistortion => false;
-        protected virtual bool supportPathtracing => false;
-        protected virtual bool supportRaytracing => true;
-
-        protected abstract string subShaderInclude { get; }
-        protected virtual string postDecalsInclude => null;
-        protected virtual string raytracingInclude => null;
-        protected abstract FieldDescriptor subShaderField { get; }
+        protected override bool supportRaytracing => true;
 
         public override void Setup(ref TargetSetupContext context)
         {
@@ -134,66 +128,37 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)
+        protected override void CollectPassKeywords(ref PassDescriptor pass)
         {
-            if (String.IsNullOrEmpty(subShaderDescriptor.pipelineTag))
-                subShaderDescriptor.pipelineTag = HDRenderPipeline.k_ShaderTagName;
-            
-            var passes = subShaderDescriptor.passes.ToArray();
-            PassCollection finalPasses = new PassCollection();
-            for (int i = 0; i < passes.Length; i++)
+            pass.keywords.Add(CoreKeywordDescriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true));
+
+            if (pass.IsDepthOrMV())
             {
-                var passDescriptor = passes[i].descriptor;
-                passDescriptor.passTemplatePath = templatePath;
-                passDescriptor.sharedTemplateDirectories = templateMaterialDirectories;
-
-                // Add the subShader to enable fields that depends on it
-                var originalRequireFields = passDescriptor.requiredFields;
-                // Duplicate require fields to avoid unwanted shared list modification
-                passDescriptor.requiredFields = new FieldCollection();
-                if (originalRequireFields != null)
-                    foreach (var field in originalRequireFields)
-                        passDescriptor.requiredFields.Add(field.field);
-                passDescriptor.requiredFields.Add(subShaderField);
-
-                IncludeCollection finalIncludes = new IncludeCollection();
-                var includeList = passDescriptor.includes.Select(include => include.descriptor).ToList();
-
-                // Replace include placeholders if necessary:
-                foreach (var include in passDescriptor.includes)
-                {
-                    if (include.descriptor.value == CoreIncludes.kPassPlaceholder)
-                        include.descriptor.value = subShaderInclude;
-                    if (include.descriptor.value == CoreIncludes.kPostDecalsPlaceholder)
-                        include.descriptor.value = postDecalsInclude;
-                    if (include.descriptor.value == CoreIncludes.kRaytracingPlaceholder)
-                        include.descriptor.value = raytracingInclude;
-
-                    if (!String.IsNullOrEmpty(include.descriptor.value))
-                        finalIncludes.Add(include.descriptor.value, include.descriptor.location, include.fieldConditions);
-                }
-                passDescriptor.includes = finalIncludes;
-
-                // Replace valid pixel blocks by automatic thing so we don't have to write them
-                var tmpCtx = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), passDescriptor);
-                GetActiveBlocks(ref tmpCtx);
-                if (passDescriptor.validPixelBlocks == null)
-                    passDescriptor.validPixelBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Fragment).ToArray();
-                if (passDescriptor.validVertexBlocks == null)
-                    passDescriptor.validVertexBlocks = CoreBlockMasks.Vertex;
-
-                // Set default values for HDRP "surface" passes:
-                if (passDescriptor.structs == null)
-                    passDescriptor.structs = CoreStructCollections.Default;
-                if (passDescriptor.fieldDependencies == null)
-                    passDescriptor.fieldDependencies = CoreFieldDependencies.Default;
-
-                finalPasses.Add(passDescriptor, passes[i].fieldConditions);
+                pass.keywords.Add(CoreKeywordDescriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true));
+                pass.keywords.Add(CoreKeywordDescriptors.WriteMsaaDepth);
             }
 
-            subShaderDescriptor.passes = finalPasses;
+            pass.keywords.Add(CoreKeywordDescriptors.SurfaceTypeTransparent);
+            pass.keywords.Add(CoreKeywordDescriptors.BlendMode);
+            pass.keywords.Add(CoreKeywordDescriptors.DoubleSided, new FieldCondition(HDFields.Unlit, false));
+            pass.keywords.Add(CoreKeywordDescriptors.DepthOffset, new FieldCondition(HDFields.DepthOffset, true));
+            pass.keywords.Add(CoreKeywordDescriptors.AddPrecomputedVelocity);
+            pass.keywords.Add(CoreKeywordDescriptors.TransparentWritesMotionVector);
+            pass.keywords.Add(CoreKeywordDescriptors.FogOnTransparent);
 
-            return subShaderDescriptor;
+            if (pass.IsLightingOrMaterial())
+                pass.keywords.Add(CoreKeywordDescriptors.DebugDisplay);
+            
+            if (!pass.IsDXR())
+                pass.keywords.Add(CoreKeywordDescriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true));
+
+            if (pass.lightMode == HDShaderPassNames.s_MotionVectorsStr)
+            {
+                if (supportForward)
+                    pass.defines.Add(CoreKeywordDescriptors.WriteNormalBuffer, 1, new FieldCondition(HDFields.Unlit, false));
+                else
+                    pass.keywords.Add(CoreKeywordDescriptors.WriteNormalBuffer, new FieldCondition(HDFields.Unlit, false));
+            }
         }
 
         public override void GetFields(ref TargetFieldContext context)
