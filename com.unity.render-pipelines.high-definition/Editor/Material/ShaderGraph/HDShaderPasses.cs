@@ -231,14 +231,32 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = GenerateRequiredFields(),
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV2Only,
-                defines = supportLighting ? CoreDefines.DepthMotionVectors : null,
-                keywords = CoreKeywords.DepthMotionVectorsNoNormal,
+                defines = supportLighting ? CoreDefines.DepthForwardOnly : null,
+                keywords = GenerateKeywords(),
                 includes = GenerateIncludes(),
             };
 
+            KeywordCollection GenerateKeywords()
+            {
+                var keywords = new KeywordCollection
+                {
+                    { CoreKeywords.HDBase },
+                    { CoreKeywordDescriptors.WriteMsaaDepth },
+                    // Note: normal buffer write is a define for forward only
+                    { CoreKeywordDescriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
+                };
+
+                if (supportLighting)
+                {
+                    keywords.Add(CoreKeywordDescriptors.WriteDecalBuffer);
+                }
+
+                return keywords;
+            }
+
             RenderStateCollection GenerateRenderState()
             {
-                var renderState = CoreRenderStates.DepthOnly;
+                var renderState = new RenderStateCollection{ CoreRenderStates.DepthOnly };
 
                 if (!supportLighting)
                 {
@@ -325,9 +343,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { RayTracingNode.GetRayTracingKeyword(), 0 },
                 };
 
-                //  #define WRITE_NORMAL_BUFFER for forward
+                //  #define WRITE_NORMAL_BUFFER for motion vector in forward case
                 if (supportForward)
+                {
                     defines.Add(CoreKeywordDescriptors.WriteNormalBuffer, 1);
+                }                    
                 
                 return defines;
             }
@@ -360,9 +380,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { CoreKeywordDescriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
                 };
 
-                // #pragma multi_compile _ WRITE_NORMAL_BUFFER for deferred
-                if (supportLighting && !supportForward)
-                    keywords.Add(CoreKeywordDescriptors.WriteNormalBuffer);
+                // #pragma multi_compile _ WRITE_DECAL_BUFFER for both deferred and forward
+                // #pragma multi_compile _ WRITE_NORMAL_BUFFER for deferred (forward is a define)
+                if (supportLighting)
+                {
+                    keywords.Add(CoreKeywordDescriptors.WriteDecalBuffer);
+                    if (!supportForward)
+                        keywords.Add(CoreKeywordDescriptors.WriteNormalBuffer);
+                }
                 
                 return keywords;
             }
@@ -404,7 +429,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Collections
-                requiredFields = supportLighting ? CoreRequiredFields.LitFull : null,
+                requiredFields = GenerateRequiredFields(),
                 renderStates = CoreRenderStates.Forward,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = supportLighting ? CoreDefines.Forward : null,
@@ -413,6 +438,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 virtualTextureFeedback = true,
             };
+
+            FieldCollection GenerateRequiredFields()
+            {
+                if (supportLighting)
+                    return CoreRequiredFields.LitFull;
+                else
+                {
+                    return new FieldCollection
+                    {
+                        // TODO: add preprocessor protection for this interpolator: _TRANSPARENT_WRITES_MOTION_VEC
+                        HDStructFields.FragInputs.positionRWS,
+                    };
+                }
+            }
 
             IncludeCollection GenerateIncludes()
             {
@@ -732,6 +771,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywords.HDBase },
             { CoreKeywordDescriptors.WriteMsaaDepth },
             { CoreKeywordDescriptors.WriteNormalBuffer },
+            { CoreKeywordDescriptors.WriteDecalBuffer },
             { CoreKeywordDescriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
         };
 

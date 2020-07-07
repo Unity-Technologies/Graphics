@@ -18,6 +18,14 @@ Currently, the only publicly accessible variables in the `ShaderVariablesGlobal`
 
 From Unity 2020.2, if you create a new [HDRP Asset](HDRP-Asset.md), the **MSAA Within Forward** Frame Setting is enabled by default.
 
+## Decal
+
+From Unity 2020.2, decals no longer require a full Depth Prepass. HDRP only renders Materials with **Receive Decals** enabled during the Depth Prepass. Unless other options force it.
+
+From Unity 2020.2, A new Decal Layer system is supported. It is disable by default. This Decal Layers system make use of the **Rendering Layer Mask** from Mesh Renderer and Terrain. The default value of this property prior of 2020.2 don't include any Decal Layer flags. Consequence is that when enabling this feature, no meshes will receives decal until configure correctly. A script **Edit > Render Pipeline/HD Render Pipeline > Upgrade from Previous Version > Enable Decal Layer Default on all loaded Mesh Renderer and Terrain** is provided to convert the already created Meshes as well a version to apply only on a selection. Newly created Mesh Renderer or Terrain have the have **Decal Layer Default** enable by default.
+
+Warning: 2020.2.0b1 does not include the modification for the default value of Rendering Layer Mask. If you use this version of Unity and create a new Mesh Renderer or Terrain, they do have the correct flag.
+
 ## Lighting
 
 From Unity 2020.2, if you disable the sky override used as the **Static Lighting Sky** in the **Lighting** window, the sky no longer affects the baked lighting. Previously, the sky affected the baked lighting even when it was disabled.
@@ -82,6 +90,8 @@ From Unity 2020.2, HDRP includes a new rectangular area shadow evaluation functi
 From Unity 2020.2, the macro ENABLE_RAYTRACING, SHADEROPTIONS_RAYTRACING, and RAYTRACING_ENABLED have been removed. A new multicompile is introduce for forward pass: SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON. This allow to enable raytracing effect without requiring edition of shader config file.
 
 From Unity 2020.2,SHADERPASS for TransparentDepthPrepass and TransparentDepthPostpass identification is using respectively SHADERPASS_TRANSPARENT_DEPTH_PREPASS and SHADERPASS_TRANSPARENT_DEPTH_POSTPASS. Previously it was SHADERPASS_DEPTH_ONLY. Define CUTOFF_TRANSPARENT_DEPTH_PREPASS and CUTOFF_TRANSPARENT_DEPTH_POSTPASS and been removed as the new path macro can now be used.
+
+Unity 2020.2 introduces a new multi-compile for Depth Prepass and Motion vector pass to allow for support of the Decal Layers feature. These passes now require you to add #pragma multi_compile _ WRITE_DECAL_BUFFER.
 
 ## Custom pass API
 

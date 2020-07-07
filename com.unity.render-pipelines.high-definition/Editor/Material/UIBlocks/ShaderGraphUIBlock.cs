@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
+using System.Linq;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -118,7 +119,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 // If the shader graph have a double sided flag, then we don't display this field.
                 // The double sided GI value will be synced with the double sided property during the SetupBaseUnlitKeywords()
-                if (!materials[0].HasProperty(kDoubleSidedEnable))
+                if (!materials.All(m => m.HasProperty(kDoubleSidedEnable)))
                     materialEditor.DoubleSidedGIField();
             }
 
@@ -128,7 +129,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if ((m_Features & Features.MotionVector) != 0)
                 DrawMotionVectorToggle();
 
-            if ((m_Features & Features.ShadowMatte) != 0 && materials[0].HasProperty(kShadowMatteFilter))
+            if ((m_Features & Features.ShadowMatte) != 0 && materials.All(m => m.HasProperty(kShadowMatteFilter)))
                 DrawShadowMatteToggle();
         }
 
