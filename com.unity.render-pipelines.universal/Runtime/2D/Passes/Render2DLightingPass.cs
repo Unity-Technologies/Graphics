@@ -88,6 +88,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmd.SetGlobalFloat("_InverseHDREmulationScale", 1.0f / m_Renderer2DData.hdrEmulationScale);
                 cmd.SetGlobalFloat("_UseSceneLighting", isLitView ? 1.0f : 0.0f);
                 cmd.SetGlobalColor("_RendererColor", Color.white);
+                cmd.SetGlobalFloat("_CustomDepth", 1.0f);
                 RendererLighting.SetShapeLightShaderGlobals(cmd);
 
                 context.ExecuteCommandBuffer(cmd);
