@@ -64,7 +64,6 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
-  - {fileID: 0}
   - {fileID: 8926484042661614528}
   cullMode: 0
   zWriteMode: 0

@@ -186,7 +186,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     input.texCoord1 = (_UVMappingMask.y + _UVDetailsMappingMask.y) > 0 ? input.texCoord1 : 0;
 #endif
 
-#if !defined(SHADER_STAGE_RAY_TRACING)
+// Don't dither if displaced tessellation (we're fading out the displacement instead to match the next LOD)
+#if !defined(SHADER_STAGE_RAY_TRACING) && !defined(_TESSELLATION_DISPLACEMENT)
 #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
     LODDitheringTransition(ComputeFadeMaskSeed(V, posInput.positionSS), unity_LODFade.x);
 #endif
