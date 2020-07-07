@@ -679,6 +679,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int                      dBufferCount;
             public RendererListHandle       meshDecalsRendererList;
             public TextureHandle            depthStencilBuffer;
+            public TextureHandle            depthTexture;
             public ComputeBufferHandle      propertyMaskBuffer;
             public TextureHandle            decalBuffer;            
         }
@@ -765,6 +766,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.meshDecalsRendererList = builder.UseRendererList(renderGraph.CreateRendererList(PrepareMeshDecalsRendererList(cullingResults, hdCamera, use4RTs)));
                 SetupDBufferTargets(renderGraph, passData, use4RTs, ref output, builder);
                 passData.decalBuffer = builder.ReadTexture(decalBuffer);
+                passData.depthTexture = builder.ReadTexture(output.depthPyramidTexture);
 
                 builder.SetRenderFunc(
                 (RenderDBufferPassData data, RenderGraphContext context) =>
@@ -786,6 +788,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     rti,
                                     rt,
                                     resources.GetTexture(data.depthStencilBuffer),
+                                    resources.GetTexture(data.depthTexture),
                                     resources.GetRendererList(data.meshDecalsRendererList),
                                     resources.GetComputeBuffer(data.propertyMaskBuffer),
                                     resources.GetTexture(data.decalBuffer),
