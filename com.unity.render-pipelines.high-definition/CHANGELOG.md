@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -159,6 +159,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an option to extend the camera culling for skinned mesh animation in ray tracing effects (1258547).
 - Added decal layer system similar to light layer. Mesh will receive a decal when both decal layer mask matches.
 - Added shader graph nodes for rendering a complex eye shader.
+- Added functionality to change the background color of previews.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
