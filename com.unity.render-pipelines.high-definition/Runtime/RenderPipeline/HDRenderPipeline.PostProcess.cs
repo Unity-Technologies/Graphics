@@ -15,8 +15,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderPostProcess(    RenderGraph     renderGraph,
+                                            PrepassOutput   prepassOutput,
                                             TextureHandle   inputColor,
-                                            TextureHandle   depthBuffer,
                                             TextureHandle   backBuffer,
                                             CullingResults  cullResults,
                                             HDCamera        hdCamera)
@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.afterPostProcessBuffer = builder.UseColorBuffer(renderGraph.CreateTexture(
                         new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, clearBuffer = true, clearColor = Color.black, name = "OffScreen AfterPostProcess" }), 0);
                     if (passData.parameters.useDepthBuffer)
-                        passData.depthStencilBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
+                        passData.depthStencilBuffer = builder.UseDepthBuffer(prepassOutput.depthBuffer, DepthAccess.ReadWrite);
                     passData.opaqueAfterPostprocessRL = builder.UseRendererList(renderGraph.CreateRendererList(passData.parameters.opaqueAfterPPDesc));
                     passData.transparentAfterPostprocessRL = builder.UseRendererList(renderGraph.CreateRendererList(passData.parameters.transparentAfterPPDesc));
 
@@ -60,7 +60,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.blueNoise,
                 inputColor,
                 afterPostProcessBuffer,
-                depthBuffer,
+                prepassOutput.resolvedDepthBuffer,
+                prepassOutput.depthPyramidTexture,
+                prepassOutput.resolvedMotionVectorsBuffer,
                 dest,
                 parameters.flipYInPostProcess
             );

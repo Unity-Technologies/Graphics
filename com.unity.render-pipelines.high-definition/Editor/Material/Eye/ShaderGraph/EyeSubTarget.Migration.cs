@@ -27,8 +27,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Previous master node wasn't having any renderingPass. Assign it correctly now.
             systemData.renderingPass = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
             systemData.alphaTest = eyeMasterNode.m_AlphaTest;
-            systemData.alphaTestDepthPrepass = eyeMasterNode.m_AlphaTestDepthPrepass;
-            systemData.alphaTestDepthPostpass = eyeMasterNode.m_AlphaTestDepthPostpass;
+            systemData.transparentDepthPrepass = eyeMasterNode.m_AlphaTestDepthPrepass;
+            systemData.transparentDepthPostpass = eyeMasterNode.m_AlphaTestDepthPostpass;
             systemData.sortPriority = eyeMasterNode.m_SortPriority;
             systemData.doubleSidedMode = eyeMasterNode.m_DoubleSidedMode;
             systemData.transparentZWrite = eyeMasterNode.m_ZWrite;

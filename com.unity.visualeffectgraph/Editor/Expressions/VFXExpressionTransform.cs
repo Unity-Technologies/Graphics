@@ -439,8 +439,8 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionTransformVector4(VFXExpression matrix, VFXExpression position)
-            : base(VFXExpression.Flags.InvalidOnCPU, new VFXExpression[] { matrix, position }) // TODO add CPU implementation in C++
+        public VFXExpressionTransformVector4(VFXExpression matrix, VFXExpression vec)
+            : base(VFXExpression.Flags.None, new VFXExpression[] { matrix, vec })
         {
         }
 
@@ -448,26 +448,26 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOperation.None;
+                return VFXExpressionOperation.TransformVector4;
             }
         }
-
-        sealed public override VFXValueType valueType { get { return VFXValueType.Float4; } }
 
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             var matrixReduce = constParents[0];
-            var positionReduce = constParents[1];
+            var vReduce = constParents[1];
 
             var matrix = matrixReduce.Get<Matrix4x4>();
-            var position = VFXValue.Constant<Vector4>(positionReduce.Get<Vector4>());
+            var vec = vReduce.Get<Vector4>();
 
-            var dstX = VFXOperatorUtility.Dot(VFXValue.Constant<Vector4>(matrix.GetRow((0))), position);
-            var dstY = VFXOperatorUtility.Dot(VFXValue.Constant<Vector4>(matrix.GetRow((1))), position);
-            var dstZ = VFXOperatorUtility.Dot(VFXValue.Constant<Vector4>(matrix.GetRow((2))), position);
-            var dstW = VFXOperatorUtility.Dot(VFXValue.Constant<Vector4>(matrix.GetRow((3))), position);
+            // No multiply Vector4 in Unity API :(
+            Vector4 dst = new Vector4();
+            dst.x = Vector4.Dot(matrix.GetRow(0), vec);
+            dst.y = Vector4.Dot(matrix.GetRow(1), vec);
+            dst.z = Vector4.Dot(matrix.GetRow(2), vec);
+            dst.w = Vector4.Dot(matrix.GetRow(3), vec);
 
-            return new VFXExpressionCombine(dstX, dstY, dstZ, dstW);
+            return VFXValue.Constant(dst);
         }
 
         public override string GetCodeString(string[] parents)
