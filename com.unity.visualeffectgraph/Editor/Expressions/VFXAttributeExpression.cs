@@ -59,6 +59,8 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute AngularVelocityZ        = new VFXAttribute("angularVelocityZ", VFXValueType.Float, VFXVariadic.BelongsToVariadic);
         [Tooltip("The current index of the flipbook. This attribute is used if ‘UV Mode’ in the output is set to use flipbooks.")]
         public static readonly VFXAttribute TexIndex                = new VFXAttribute("texIndex", VFXValueType.Float);
+        [Tooltip("The current index of the mesh. This attribute is used with multi mesh outputs.")]
+        public static readonly VFXAttribute MeshIndex               = new VFXAttribute("meshIndex", VFXValueType.Uint32);
         [Tooltip("The point around which the particle rotates, moves, or is scaled. By default, this is the center of the particle.")]
         public static readonly VFXAttribute PivotX                  = new VFXAttribute("pivotX", VFXValue.Constant(0.0f), VFXVariadic.BelongsToVariadic);
         [Tooltip("The point around which the particle rotates, moves, or is scaled. By default, this is the center of the particle.")]

@@ -263,6 +263,7 @@ namespace UnityEditor.VFX.UI
 
         VFXNodeProvider m_NodeProvider;
         VisualElement m_Toolbar;
+        ToolbarButton m_SaveButton;
 
         private bool m_IsRuntimeMode = false;
         private bool m_ForceShaderValidation = false;
@@ -340,6 +341,11 @@ namespace UnityEditor.VFX.UI
             compileButton.style.unityTextAlign = TextAnchor.MiddleLeft;
             compileButton.text = "Compile";
             m_Toolbar.Add(compileButton);
+
+            m_SaveButton = new ToolbarButton(OnSave);
+            m_SaveButton.style.unityTextAlign = TextAnchor.MiddleLeft;
+            m_SaveButton.text = "Save";
+            m_Toolbar.Add(m_SaveButton);
 
             var spacer = new ToolbarSpacer();
             spacer.style.width = 12f;
@@ -1145,6 +1151,51 @@ namespace UnityEditor.VFX.UI
                 VFXGraph.explicitCompile = true;
                 AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(controller.model));
                 VFXGraph.explicitCompile = false;
+            }
+        }
+
+
+        void OnSave()
+        {
+            OnCompile();
+            var graphToSave = new HashSet<VFXGraph>();
+            GetGraphsRecursively(controller.graph,graphToSave);
+
+            foreach(var graph in graphToSave)
+            {
+                graph.GetResource().WriteAsset();
+                graph.OnSaved();
+            }
+        }
+
+        void GetGraphsRecursively(VFXGraph start,HashSet<VFXGraph> graphs)
+        {
+            if (graphs.Contains(start))
+                return;
+            graphs.Add(start);
+            foreach(var child in start.children)
+            {
+                if (child is VFXSubgraphOperator ope)
+                {
+                    var graph = ope.subgraph.GetResource().GetOrCreateGraph();
+                    GetGraphsRecursively(graph, graphs);
+                }
+                else if (child is VFXSubgraphContext subCtx)
+                {
+                    var graph = subCtx.subgraph.GetResource().GetOrCreateGraph();
+                    GetGraphsRecursively(graph, graphs);
+                }
+                else if( child is VFXContext ctx)
+                {
+                    foreach( var block in ctx.children.Cast<VFXBlock>())
+                    {
+                        if( block is VFXSubgraphBlock subBlock)
+                        {
+                            var graph = subBlock.subgraph.GetResource().GetOrCreateGraph();
+                            GetGraphsRecursively(graph, graphs);
+                        }
+                    }
+                }
             }
         }
 
