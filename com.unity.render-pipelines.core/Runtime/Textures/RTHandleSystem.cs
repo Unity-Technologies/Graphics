@@ -143,7 +143,19 @@ namespace UnityEngine.Rendering
         /// <param name="width">Reference rendering width for subsequent rendering.</param>
         /// <param name="height">Reference rendering height for subsequent rendering.</param>
         /// <param name="msaaSamples">Number of MSAA samples for multisampled textures for subsequent rendering.</param>
-        public void SetReferenceSize(int width, int height, MSAASamples msaaSamples, bool reset = false)
+        public void SetReferenceSize(int width, int height, MSAASamples msaaSamples)
+        {
+            SetReferenceSize(width, height, msaaSamples, false);
+        }
+
+        /// <summary>
+        /// Sets the reference rendering size for subsequent rendering for the RTHandle System
+        /// </summary>
+        /// <param name="width">Reference rendering width for subsequent rendering.</param>
+        /// <param name="height">Reference rendering height for subsequent rendering.</param>
+        /// <param name="msaaSamples">Number of MSAA samples for multisampled textures for subsequent rendering.</param>
+        /// <param name="reset">If set to true, the new width and height will override the old values even if they are not bigger.</param>
+        public void SetReferenceSize(int width, int height, MSAASamples msaaSamples, bool reset)
         {
             m_RTHandleProperties.previousViewportSize = m_RTHandleProperties.currentViewportSize;
             m_RTHandleProperties.previousRenderTargetSize = m_RTHandleProperties.currentRenderTargetSize;
