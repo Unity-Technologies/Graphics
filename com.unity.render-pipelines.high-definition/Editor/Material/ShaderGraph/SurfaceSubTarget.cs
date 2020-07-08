@@ -42,6 +42,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected virtual bool supportDistortion => false;
         protected override bool supportRaytracing => true;
 
+        protected override int ComputeMaterialNeedsUpdateHash()
+        {
+            // Alpha test is currently the only property in buitin data to trigger the material upgrade script.
+            int hash = systemData.alphaTest.GetHashCode();
+            return hash;
+        }
+
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("f4df7e8f9b8c23648ae50cbca0221e47")); // SurfaceSubTarget.cs
@@ -194,15 +201,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.DoAlphaTestShadow,    systemData.alphaTest && builtinData.alphaTestShadow && isShadowPass &&
                                                             context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow));
             // Pre/post pass always use the specific alpha test provided for those pass
-            context.AddField(HDFields.DoAlphaTestPrepass,   systemData.alphaTest && systemData.transparentDepthPrepass && isTransparentDepthPrepass &&
+            context.AddField(HDFields.DoAlphaTestPrepass,   systemData.alphaTest && builtinData.transparentDepthPrepass && isTransparentDepthPrepass &&
                                                             context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass));           
 
             // Features & Misc
-            context.AddField(Fields.LodCrossFade,           systemData.supportLodCrossFade);
+            context.AddField(Fields.LodCrossFade,           builtinData.supportLodCrossFade);
             context.AddField(Fields.AlphaToMask,            systemData.alphaTest);
             context.AddField(HDFields.TransparentBackFace,  builtinData.backThenFrontRendering);
-            context.AddField(HDFields.TransparentDepthPrePass, systemData.transparentDepthPrepass);
-            context.AddField(HDFields.TransparentDepthPostPass, systemData.transparentDepthPostpass);
+            context.AddField(HDFields.TransparentDepthPrePass, builtinData.transparentDepthPrepass);
+            context.AddField(HDFields.TransparentDepthPostPass, builtinData.transparentDepthPostpass);
 
             context.AddField(HDFields.DepthOffset, builtinData.depthOffset && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.DepthOffset));
 
@@ -239,8 +246,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, systemData.alphaTest);
 
             // Alpha Test
-            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass, systemData.alphaTest && systemData.transparentDepthPrepass);
-            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass, systemData.alphaTest && systemData.transparentDepthPostpass);
+            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass, systemData.alphaTest && builtinData.transparentDepthPrepass);
+            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass, systemData.alphaTest && builtinData.transparentDepthPostpass);
             context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow, systemData.alphaTest && builtinData.alphaTestShadow);
 
             // Misc
@@ -306,7 +313,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Common properties for all "surface" master nodes
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, systemData.alphaTest, builtinData.alphaTestShadow);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, systemData.doubleSidedMode);
-            HDSubShaderUtilities.AddPrePostPassProperties(collector, systemData.transparentDepthPrepass, systemData.transparentDepthPostpass);
+            HDSubShaderUtilities.AddPrePostPassProperties(collector, builtinData.transparentDepthPrepass, builtinData.transparentDepthPostpass);
 
             // Add all shader properties required by the inspector
             HDSubShaderUtilities.AddBlendingStatesShaderProperties(
@@ -342,6 +349,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             material.renderQueue = (int)HDRenderQueue.ChangeType(systemData.renderingPass, offset: 0, alphaTest: systemData.alphaTest, false);
 
             LightingShaderGraphGUI.SetupMaterialKeywordsAndPass(material);
+        }
+
+        internal override void MigrateTo(ShaderGraphVersion version)
+        {
+            base.MigrateTo(version);
+
+            if (version == ShaderGraphVersion.MoveCrossFadePrePostPassAndAlphaClipToBuiltinData)
+            {
+#pragma warning disable 618
+                builtinData.transparentDepthPrepass = systemData.m_TransparentDepthPrepass;
+                builtinData.transparentDepthPostpass = systemData.m_TransparentDepthPostpass;
+                builtinData.supportLodCrossFade = systemData.m_SupportLodCrossFade;
+#pragma warning restore 618
+            }
         }
     }
 }

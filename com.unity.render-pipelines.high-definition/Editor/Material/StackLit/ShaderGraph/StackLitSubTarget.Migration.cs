@@ -32,10 +32,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.transparentZWrite = stackLitMasterNode.m_ZWrite;
             systemData.transparentCullMode = stackLitMasterNode.m_transparentCullMode;
             systemData.zTest = stackLitMasterNode.m_ZTest;
-            systemData.supportLodCrossFade = stackLitMasterNode.m_SupportLodCrossFade;
             systemData.dotsInstancing = stackLitMasterNode.m_DOTSInstancing;
             systemData.materialNeedsUpdateHash = stackLitMasterNode.m_MaterialNeedsUpdateHash;
 
+            builtinData.supportLodCrossFade = stackLitMasterNode.m_SupportLodCrossFade;
             builtinData.transparencyFog = stackLitMasterNode.m_TransparencyFog;
             builtinData.distortion = stackLitMasterNode.m_Distortion;
             builtinData.distortionMode = stackLitMasterNode.m_DistortionMode;
