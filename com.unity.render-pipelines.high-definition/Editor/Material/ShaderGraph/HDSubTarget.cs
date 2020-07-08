@@ -89,7 +89,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(subTargetAssetGuid));
             context.SetDefaultShaderGUI(customInspector);
 
-            Debug.Log("Migration step: " + systemData.version);
             if (migrationSteps.Migrate(this))
                 OnBeforeSerialize();
 
