@@ -155,6 +155,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Settings
             public readonly GUIContent enableShadowMap = new GUIContent("Enable", "When enabled, this Light casts shadows.");
+            public readonly GUIContent enableCapsuleShadows = new GUIContent("Enable Capsule Shadows", "When enabled, this Light casts capsule shadows.");
 
             public Styles()
             {

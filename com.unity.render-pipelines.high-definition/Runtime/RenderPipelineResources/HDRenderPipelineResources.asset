@@ -31,6 +31,8 @@ MonoBehaviour:
     copyChannelCS: {fileID: 7200000, guid: a4d45eda75e8e474dbe24a31f741f3b4, type: 3}
     screenSpaceReflectionsCS: {fileID: 7200000, guid: d1de9ac7d9016204da289affe9677942, type: 3}
     applyDistortionPS: {fileID: 4800000, guid: 02ae56f4306413c4a96dcf005cde1971, type: 3}
+    capsuleOcclusionCS: {fileID: 7200000, guid: 14f9e512649e39c40ba08ebf3c6719b8, type: 3}
+    capsuleShadowLUTGeneratorCS: {fileID: 7200000, guid: a3a9adce5c03fa24a9d39f090a896886, type: 3}
     clearDispatchIndirectCS: {fileID: 7200000, guid: fc1f553acb80a6446a32d33e403d0656, type: 3}
     clearLightListsCS: {fileID: 7200000, guid: 743eb3491795b9545955695d591195a1, type: 3}
     buildDispatchIndirectCS: {fileID: 7200000, guid: 4eb1b418be7044c40bb5200496c50f14, type: 3}
@@ -142,7 +144,7 @@ MonoBehaviour:
     dofGatherCS: {fileID: 7200000, guid: 1e6b16a7970a1494db74b1d3d007d1cc, type: 3}
     DoFCoCPyramidCS: {fileID: 7200000, guid: df41a69211c03fe479b63a8bed3bfbb4, type: 3}
     contrastAdaptiveSharpenCS: {fileID: 7200000, guid: 560896aec2f412c48995be35551a4ac6, type: 3}
-    VTFeedbackDownsample: {fileID: 7200000, guid: 32d963548086c2c439aeb23a93e9a00a, type: 3}
+      type: 3}
     accumulationCS: {fileID: 7200000, guid: ed80add7a217efa468d137d6f7c668f3, type: 3}
     alphaInjectionPS: {fileID: 4800000, guid: 4edd96259a5e8b44c90479928f0cd11e, type: 3}
     chromaKeyingPS: {fileID: 4800000, guid: 49feb6b111e82ec4eb6d3d08e4b6903e, type: 3}

@@ -221,7 +221,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private bool m_HistoryReady = false;
         private RTHandle m_PackedDataTex;
         private RTHandle m_PackedDataBlurred;
-        private RTHandle m_AmbientOcclusionTex;
+        public RTHandle m_AmbientOcclusionTex;
         private RTHandle m_FinalHalfRes;
 
         private bool m_RunningFullRes = false;

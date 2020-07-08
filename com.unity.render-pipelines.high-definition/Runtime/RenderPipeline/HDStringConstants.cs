@@ -116,6 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DirectionalLightDatas = Shader.PropertyToID("_DirectionalLightDatas");
         public static readonly int _LightDatas = Shader.PropertyToID("_LightDatas");
         public static readonly int _EnvLightDatas = Shader.PropertyToID("_EnvLightDatas");
+        public static readonly int _CapsuleOccludersDatas = Shader.PropertyToID("_CapsuleOccludersDatas");
 
         public static readonly int _ProbeVolumeBounds = Shader.PropertyToID("_ProbeVolumeBounds");
         public static readonly int _ProbeVolumeDatas = Shader.PropertyToID("_ProbeVolumeDatas");
@@ -203,6 +204,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DecalPrepassTexture = Shader.PropertyToID("_DecalPrepassTexture");
         public static readonly int _DecalPrepassTextureMS = Shader.PropertyToID("_DecalPrepassTextureMS");
 
+        // Capsule occlusions
+        public static readonly int _LUTGenParameters = Shader.PropertyToID("_LUTGenParameters");
+        public static readonly int _CapsuleShadowLUT = Shader.PropertyToID("_CapsuleShadowLUT");
+        public static readonly int _CapsuleShadowParameters = Shader.PropertyToID("_CapsuleShadowParameters");
+        public static readonly int _CapsuleShadowParameters2 = Shader.PropertyToID("_CapsuleShadowParameters2");
+        public static readonly int _CapsuleOcclusions = Shader.PropertyToID("_CapsuleOcclusions");
+        public static readonly int _CapsuleOcclusionIntensities = Shader.PropertyToID("_CapsuleOcclusionIntensities");
 
         public static readonly int _WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
         public static readonly int _PrevCamPosRWS = Shader.PropertyToID("_PrevCamPosRWS");
@@ -244,6 +252,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CameraSssDiffuseLightingBuffer = Shader.PropertyToID("_CameraSssDiffuseLightingTexture");
         public static readonly int _CameraFilteringBuffer          = Shader.PropertyToID("_CameraFilteringTexture");
         public static readonly int _IrradianceSource               = Shader.PropertyToID("_IrradianceSource");
+        public static readonly int _CapsuleOcclusionsTexture       = Shader.PropertyToID("_CapsuleOcclusionsTexture");
 
         // Planar reflection filtering
         public static readonly int _ReflectionColorMipChain = Shader.PropertyToID("_ReflectionColorMipChain");

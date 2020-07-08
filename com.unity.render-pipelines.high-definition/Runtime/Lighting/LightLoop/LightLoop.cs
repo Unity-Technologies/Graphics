@@ -66,6 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Area,
         Env,
         ProbeVolume,
+        CapsuleOccluder,
         Decal,
         DensityVolume, // WARNING: Currently lightlistbuild.compute assumes density volume is the last element in the LightCategory enum. Do not append new LightCategory types after DensityVolume. TODO: Fix .compute code.
         Count
@@ -203,10 +204,12 @@ namespace UnityEngine.Rendering.HighDefinition
         EnvironmentAndAreaAndPunctual = 7,
 		/// <summary>Probe Volumes.</summary>
         ProbeVolumes = 8,
+        /// <summary>Capsule Occluders.</summary>
+        CapsuleOccluder = 16,
         /// <summary>Decals.</summary>
-        Decal = 16,
+        Decal = 32,
         /// <summary>Density Volumes.</summary>
-        DensityVolumes = 32
+        DensityVolumes = 64
     };
 
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
@@ -234,8 +237,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public uint         _DensityVolumeIndexShift;
         public uint         _ProbeVolumeIndexShift;
+        public uint         _CapsuleOccluderIndexShift;
         public uint         _Pad0_SVLL;
-        public uint         _Pad1_SVLL;
     }
 
     internal struct ProcessedLightData
@@ -630,6 +633,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_TotalLightCount = 0;
         int m_DensityVolumeCount = 0;
         int m_ProbeVolumeCount = 0;
+        int m_CapsuleOccluderCount = 0;
         bool m_EnableBakeShadowMask = false; // Track if any light require shadow mask. In this case we will need to enable the keyword shadow mask
 
         ComputeShader buildScreenAABBShader { get { return defaultResources.shaders.buildScreenAABBCS; } }
@@ -1405,6 +1409,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             lightData.range = light.range;
 
+            lightData.hasCapsuleShadows = m_CapsuleOcclusionSystem.IsLightCurrentLightCastingShadows(additionalLightData) ? 1 : 0;
+
             if (additionalLightData.applyRangeAttenuation)
             {
                 lightData.rangeAttenuationScale = 1.0f / (light.range * light.range);
@@ -2062,6 +2068,44 @@ namespace UnityEngine.Rendering.HighDefinition
             m_lightList.lightsPerView[viewIndex].lightVolumes.Add(lightVolumeData);
         }
 
+        void CreateSphereVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, float normalBiasDilation, out LightVolumeData volumeData, out SFiniteLightBound bound)
+        {
+            volumeData = new LightVolumeData();
+            bound = new SFiniteLightBound();
+
+            // Used in Probe Volumes:
+            // Conservatively dilate bounds used for tile / cluster assignment by normal bias.
+            // Otherwise, surfaces could bias outside of valid data within a tile.
+            var extentConservativeX = obb.extentX + normalBiasDilation;
+
+            // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
+            var positionVS = worldToView.MultiplyPoint(obb.center);
+            var rightVS    = worldToView.MultiplyVector(obb.right);
+            var upVS       = worldToView.MultiplyVector(obb.up);
+            var forwardVS  = Vector3.Cross(upVS, rightVS);
+            var extents    = new Vector3(extentConservativeX, extentConservativeX, extentConservativeX);
+
+            volumeData.lightVolume   = (uint)LightVolumeType.Sphere;
+            volumeData.lightCategory = (uint)category;
+            volumeData.featureFlags  = (uint)featureFlags;
+
+            bound.center   = positionVS;
+            bound.boxAxisX = extentConservativeX * rightVS;
+            bound.boxAxisY = extentConservativeX * upVS;
+            bound.boxAxisZ = extentConservativeX * forwardVS;
+            bound.radius   = extentConservativeX;
+            bound.scaleXY.Set(1.0f, 1.0f);
+
+            // The culling system culls pixels that are further
+            //   than a threshold to the box influence extents.
+            // So we use an arbitrary threshold here (k_BoxCullingExtentOffset)
+            volumeData.lightPos     = positionVS;
+            volumeData.lightAxisX   = rightVS;
+            volumeData.lightAxisY   = upVS;
+            volumeData.lightAxisZ   = forwardVS;
+            volumeData.radiusSq = extentConservativeX * extentConservativeX;
+        }
+
         void CreateBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, float normalBiasDilation, out LightVolumeData volumeData, out SFiniteLightBound bound)
         {
             volumeData = new LightVolumeData();
@@ -2359,6 +2403,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var hdShadowSettings = hdCamera.volumeStack.GetComponent<HDShadowSettings>();
 
+            // De-register and previously referenced capsule shadow casters. They may no longer be valid this frame.
+            m_CapsuleOcclusionSystem.ClearLightForShadows();
+
             // TODO: Refactor shadow management
             // The good way of managing shadow:
             // Here we sort everyone and we decide which light is important or not (this is the responsibility of the lightloop)
@@ -2409,6 +2456,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_DebugSelectedLightShadowCount = shadowRequestCount;
                     }
 #endif
+                }
+
+                if(additionalLightData.isLightForCapsuleShadows)
+                {
+                    m_CapsuleOcclusionSystem.SetLightForShadows(additionalLightData, gpuLightType == GPULightType.Directional);
                 }
 
                 // Directional rendering side, it is separated as it is always visible so no volume to handle here
@@ -2662,7 +2714,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Return true if BakedShadowMask are enabled
         bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults,
-        HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, ProbeVolumeList probeVolumes, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
+        HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, ProbeVolumeList probeVolumes, CapsuleOccluderList capsuleOccluders, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
         {
             var debugLightFilter = debugDisplaySettings.GetDebugLightFilterMode();
             var hasDebugLightFilter = debugLightFilter != DebugLightFilterMode.None;
@@ -2746,6 +2798,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Inject density volumes into the clustered data structure for efficient look up.
                 m_DensityVolumeCount = densityVolumes.bounds != null ? densityVolumes.bounds.Count : 0;
                 m_ProbeVolumeCount = probeVolumes.bounds != null ? probeVolumes.bounds.Count : 0;
+                m_CapsuleOccluderCount = capsuleOccluders.bounds != null ? capsuleOccluders.bounds.Count : 0;
 
                 bool probeVolumeNormalBiasEnabled = false;
                 if (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled)
@@ -2793,6 +2846,15 @@ namespace UnityEngine.Rendering.HighDefinition
                             m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
                         }
                     }
+
+                    for (int i = 0, n = m_CapsuleOccluderCount; i < n; i++)
+                    {
+                        // Capsule Occluders volumes are not lights and therefore should not affect light classification.
+                        LightFeatureFlags featureFlags = 0;
+                        CreateSphereVolumeDataAndBound(capsuleOccluders.bounds[i], LightCategory.CapsuleOccluder, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
+                        m_lightList.lightsPerView[viewIndex].lightVolumes.Add(volumeData);
+                        m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
+                    }
                 }
 
                 m_TotalLightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_DensityVolumeCount;
@@ -2800,6 +2862,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     m_TotalLightCount += m_ProbeVolumeCount;
                 }
+                m_TotalLightCount += m_CapsuleOccluderCount;
 
                 Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].bounds.Count);
                 Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].lightVolumes.Count);
@@ -3329,6 +3392,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     ? (m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_DensityVolumeCount)
                     : 0;
             cb._ProbeVolumeIndexShift = (uint)probeVolumeIndexShift;
+
+            int capsuleOccluderIndexShift = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_DensityVolumeCount + m_ProbeVolumeCount;
+            cb._CapsuleOccluderIndexShift = (uint)capsuleOccluderIndexShift;
 
             // Copy the constant buffer into the parameter struct.
             parameters.lightListCB = cb;

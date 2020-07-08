@@ -290,4 +290,44 @@ void SampleCone(real2 u, real cosHalfAngle,
     rcpPdf = TWO_PI * (1 - cosHalfAngle);
 }
 
+// A Simpler and Exact Sampling Routine for the GGX Distribution of Visible Normals
+// https://hal.archives-ouvertes.fr/hal-01509746/document
+// https://schuttejoe.github.io/post/ggximportancesamplingpart2/
+real3 SampleDirectionGGXDistributionOfVisibleNormals(
+    real2 u,
+    real3x3 tangentToWorld,
+    real3 viewDirectionTS,
+    real roughness)
+{
+    // Stretch the view vector so we are sampling as though roughness==1
+    real3 v = normalize(real3(roughness * viewDirectionTS.x, roughness * viewDirectionTS.y, viewDirectionTS.z));
+
+    // Construct an orthonormal basis about v.
+    real3 tangent = (v.z < 0.9999f)
+        ? normalize(cross(v, real3(0.0f, 0.0f, 1.0f)))
+        : real3(1.0f, 0.0f, 0.0f);
+    real3 bitangent = normalize(cross(tangent, v));
+
+    // Choose a point on a disk with each half of the disk weighted
+    // proportionally to its projection onto direction v
+    real a = 1.0f / (1.0f + v.z);
+
+    // Note / TODO: Could pre-condition u.x to be sqrt(u.x) to avoid evaluating at runtime.
+    real r = sqrt(u.x);
+    real phi = (u.y < a)
+        ? ((u.y / a) * PI)
+        : (PI + (u.y - a) / (1.0f - a) * PI);
+    real p1 = r * cos(phi);
+    real p2 = r * sin(phi) * ((u.y < a) ? 1.0f : v.z);
+
+    // Calculate the normal in this stretched tangent space.
+    real3 normal = p1 * tangent + p2 * bitangent + sqrt(max(0.0f, 1.0f - p1 * p1 - p2 * p2)) * v;
+
+    // Unstretch and normalize the normal.
+    real3 halfVectorTS = normalize(real3(roughness * normal.x, roughness * normal.y, max(0.0f, normal.z)));
+    real3 reflectionDirectionTS = reflect(-viewDirectionTS, halfVectorTS);
+    real3 reflectionDirectionWS = mul(tangentToWorld, reflectionDirectionTS);
+    return reflectionDirectionWS;
+}
+
 #endif // UNITY_SAMPLING_INCLUDED

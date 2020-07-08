@@ -286,6 +286,7 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly SkyManager m_SkyManager = new SkyManager();
         internal SkyManager skyManager { get { return m_SkyManager; } }
         readonly AmbientOcclusionSystem m_AmbientOcclusionSystem;
+        readonly CapsuleOcclusionSystem m_CapsuleOcclusionSystem;
 
         // Debugging
         MaterialPropertyBlock m_SharedPropertyBlock = new MaterialPropertyBlock();
@@ -466,6 +467,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SharedRTManager.Build(asset);
             m_PostProcessSystem = new PostProcessSystem(asset, defaultResources);
             m_AmbientOcclusionSystem = new AmbientOcclusionSystem(asset, defaultResources);
+            m_CapsuleOcclusionSystem = new CapsuleOcclusionSystem(asset, defaultResources);
 
             // Initialize various compute shader resources
             m_SsrTracingKernel      = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsTracing");
@@ -505,6 +507,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializeVolumetricLighting();
             InitializeSubsurfaceScattering();
+            m_CapsuleOcclusionSystem.InitializeCapsuleOccluders();
 
             m_DebugDisplaySettings.RegisterDebug();
 #if UNITY_EDITOR
@@ -1130,6 +1133,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_XRSystem.Cleanup();
             m_SkyManager.Cleanup();
             CleanupVolumetricLighting();
+            m_CapsuleOcclusionSystem.CleanupCapsuleOccluders();
             CleanupProbeVolumes();
 
             for(int bsdfIdx = 0; bsdfIdx < m_IBLFilterArray.Length; ++bsdfIdx)
@@ -1140,6 +1144,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PostProcessSystem.Cleanup();
             m_AmbientOcclusionSystem.Cleanup();
             m_BlueNoise.Cleanup();
+            m_CapsuleOcclusionSystem.Cleanup();
 
             HDCamera.ClearAll();
 
@@ -1314,6 +1319,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ShaderVariablesGlobalCB._EnableRecursiveRayTracing = 0;
             }
 
+            m_CapsuleOcclusionSystem.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB, hdCamera);
+
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
         }
 
@@ -1323,7 +1330,6 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCamera.UpdateShaderVariablesXRCB(ref m_ShaderVariablesXRCB);
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesXRCB, HDShaderIDs._ShaderVariablesXR);
         }
-
 
         void UpdateShaderVariablesRaytracingCB(HDCamera hdCamera, CommandBuffer cmd)
         {
@@ -2338,6 +2344,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // The NewFrame must be after the VolumeManager update and before Resize because it uses properties set in NewFrame
             LightLoopNewFrame(cmd, hdCamera);
 
+            // Init the required resources for capsule occlusion (if needed)
+            m_CapsuleOcclusionSystem.GenerateCapsuleSoftShadowsLUT(cmd, hdCamera);
+
             // Apparently scissor states can leak from editor code. As it is not used currently in HDRP (apart from VR). We disable scissor at the beginning of the frame.
             cmd.DisableScissorRect();
 
@@ -2361,13 +2370,16 @@ namespace UnityEngine.Rendering.HighDefinition
             // Cache probe volume list as a member variable so it can be accessed inside of async compute tasks.
             SetProbeVolumeList(probeVolumes);
 
+            // Capsule Occluders
+            CapsuleOccluderList capsuleOccluderList = m_CapsuleOcclusionSystem.PrepareVisibleCapsuleOccludersList(hdCamera, cmd, hdCamera.time);
+
             // Note: Legacy Unity behave like this for ShadowMask
             // When you select ShadowMask in Lighting panel it recompile shaders on the fly with the SHADOW_MASK keyword.
             // However there is no C# function that we can query to know what mode have been select in Lighting Panel and it will be wrong anyway. Lighting Panel setup what will be the next bake mode. But until light is bake, it is wrong.
             // Currently to know if you need shadow mask you need to go through all visible lights (of CullResult), check the LightBakingOutput struct and look at lightmapBakeType/mixedLightingMode. If one light have shadow mask bake mode, then you need shadow mask features (i.e extra Gbuffer).
             // It mean that when we build a standalone player, if we detect a light with bake shadow mask, we generate all shader variant (with and without shadow mask) and at runtime, when a bake shadow mask light is visible, we dynamically allocate an extra GBuffer and switch the shader.
             // So the first thing to do is to go through all the light: PrepareLightsForGPU
-            bool enableBakeShadowMask = PrepareLightsForGPU(cmd, hdCamera, cullingResults, hdProbeCullingResults, densityVolumes, probeVolumes, m_CurrentDebugDisplaySettings, aovRequest);
+            bool enableBakeShadowMask = PrepareLightsForGPU(cmd, hdCamera, cullingResults, hdProbeCullingResults, densityVolumes, probeVolumes, capsuleOccluderList, m_CurrentDebugDisplaySettings, aovRequest);
 
             UpdateGlobalConstantBuffers(hdCamera, cmd);
 
@@ -2709,6 +2721,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     var motionVectors = m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors ? m_SharedRTManager.GetMotionVectorsBuffer() : TextureXR.GetBlackTexture();
                     m_AmbientOcclusionSystem.Render(cmd, hdCamera, renderContext, m_SharedRTManager.GetDepthTexture(), m_SharedRTManager.GetNormalBuffer(), motionVectors, m_ShaderVariablesRayTracingCB, m_FrameCount);
                 }
+
+                // TODO: For now not async, but should be an option.
+                // TODO: This global set should probably be done once as multiple passes might need it set (e.g. contact shadows)
+                cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, m_TileAndClusterData.lightList);
+                m_CapsuleOcclusionSystem.RenderCapsuleOcclusions(cmd, hdCamera, m_AmbientOcclusionSystem.m_AmbientOcclusionTex);
+                m_CapsuleOcclusionSystem.PushGlobalTextures(cmd, hdCamera);
+                m_CapsuleOcclusionSystem.PushDebugTextures(cmd, hdCamera, m_AmbientOcclusionSystem.m_AmbientOcclusionTex);
 
                 // Run the contact shadows here as they need the light list
                 HDUtils.CheckRTCreated(m_ContactShadowBuffer);
