@@ -112,7 +112,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         RenderGraphDebugParams              m_RenderGraphDebug;
         RenderGraphLogger                   m_Logger;
         int                                 m_CurrentFrameIndex;
-        bool                                m_IsExecutingRenderGraph;
 
         RTHandle                            m_CurrentBackbuffer;
 
@@ -214,7 +213,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             texResource.resource = rt;
             texResource.imported = true;
 
-            return new TextureHandle(newHandle, this);
+            return new TextureHandle(newHandle);
         }
 
         internal TextureHandle ImportBackbuffer(RenderTargetIdentifier rt)
@@ -228,7 +227,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             texResource.resource = m_CurrentBackbuffer;
             texResource.imported = true;
 
-            return new TextureHandle(newHandle, this);
+            return new TextureHandle(newHandle);
         }
 
         int AddNewResource<ResType>(DynamicArray<IRenderGraphResource> resourceArray, out ResType outRes) where ResType : IRenderGraphResource, new()
@@ -251,7 +250,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             int newHandle = AddNewResource(m_Resources[(int)RenderGraphResourceType.Texture], out TextureResource texResource);
             texResource.desc = desc;
             texResource.transientPassIndex = transientPassIndex;
-            return new TextureHandle(newHandle, this);
+            return new TextureHandle(newHandle);
         }
 
         internal int GetTextureResourceCount()
@@ -274,7 +273,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             ValidateRendererListDesc(desc);
 
             int newHandle = m_RendererListResources.Add(new RendererListResource(desc));
-            return new RendererListHandle(newHandle, this);
+            return new RendererListHandle(newHandle);
         }
 
         internal ComputeBufferHandle ImportComputeBuffer(ComputeBuffer computeBuffer)
@@ -283,7 +282,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             bufferResource.resource = computeBuffer;
             bufferResource.imported = true;
 
-            return new ComputeBufferHandle(newHandle, this);
+            return new ComputeBufferHandle(newHandle);
         }
 
         internal ComputeBufferHandle CreateComputeBuffer(in ComputeBufferDesc desc, int transientPassIndex = -1)
@@ -294,7 +293,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             bufferResource.desc = desc;
             bufferResource.transientPassIndex = transientPassIndex;
 
-            return new ComputeBufferHandle(newHandle, this);
+            return new ComputeBufferHandle(newHandle);
         }
 
         internal ComputeBufferDesc GetComputeBufferResourceDesc(in ResourceHandle handle)
@@ -421,7 +420,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                         var clearFlag = resource.desc.depthBufferBits != DepthBits.None ? ClearFlag.Depth : ClearFlag.Color;
                         // Not ideal to do new TextureHandle here but GetTexture is a public API and we rather have it take an explicit TextureHandle parameters.
                         // Everywhere else internally int is better because it allows us to share more code.
-                        CoreUtils.SetRenderTarget(rgContext.cmd, GetTexture(new TextureHandle(index, this)), clearFlag, Color.magenta);
+                        CoreUtils.SetRenderTarget(rgContext.cmd, GetTexture(new TextureHandle(index)), clearFlag, Color.magenta);
                     }
                 }
 

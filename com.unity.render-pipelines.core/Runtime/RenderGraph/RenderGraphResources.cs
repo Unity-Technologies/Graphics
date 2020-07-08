@@ -20,18 +20,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public RenderGraphResourceType type { get; private set; }
         public int iType { get { return (int)type; } }
 
-        internal RenderGraphResourceRegistry registry;
-
-        internal ResourceHandle(int value, RenderGraphResourceType type, RenderGraphResourceRegistry registry)
+        internal ResourceHandle(int value, RenderGraphResourceType type)
         {
             index = value;
             this.type = type;
-            this.registry = registry;
             m_IsValid = true;
         }
 
         public static implicit operator int(ResourceHandle handle) => handle.index;
-        public bool IsValid() => m_IsValid && registry != null;
+        public bool IsValid() => m_IsValid;
     }
 
     // BEHOLD C# COPY PASTA
@@ -54,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal ResourceHandle handle;
 
-        internal TextureHandle(int handle, RenderGraphResourceRegistry registry) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.Texture, registry); }
+        internal TextureHandle(int handle) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.Texture); }
 
         /// <summary>
         /// Cast to RTHandle
@@ -87,7 +84,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     {
         internal ResourceHandle handle;
 
-        internal ComputeBufferHandle(int handle, RenderGraphResourceRegistry registry) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.ComputeBuffer, registry); }
+        internal ComputeBufferHandle(int handle) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.ComputeBuffer); }
 
         /// <summary>
         /// Cast to ComputeBuffer
@@ -110,8 +107,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     {
         bool m_IsValid;
         internal int handle { get; private set; }
-        internal RenderGraphResourceRegistry registry;
-        internal RendererListHandle(int handle, RenderGraphResourceRegistry registry) { this.handle = handle; m_IsValid = true; this.registry = registry; }
+        internal RendererListHandle(int handle) { this.handle = handle; m_IsValid = true; }
         /// <summary>
         /// Conversion to int.
         /// </summary>
