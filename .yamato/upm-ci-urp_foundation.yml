@@ -115,6 +115,7 @@ Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}:
     {% endif %}
 
     - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }}Windows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindows{{ win_api.name }}Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
+    - cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
   artifacts:
     logs:
       paths:
@@ -149,6 +150,7 @@ Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}:
     {% endif %}
 
     - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }} --extra-editor-arg="{{ win_api.cmd }}" --testproject=. --editor-location=.Editor --artifacts_path=test-results
+    - cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
   artifacts:
     logs:
       paths:
