@@ -12,12 +12,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Indirect diffuse lighting multiplier, between 0 and 1</summary>
         public MinFloatParameter indirectDiffuseIntensity = new MinFloatParameter(1.0f, 0.0f);
         /// Controls which layer will be affected by the indirect diffuse lighting multiplier 
-        public LightLayerEnumParameter indirectDiffuseLightingLayers = new LightLayerEnumParameter(LightLayerEnum.LightLayerDefault);
+        public LightLayerEnumParameter indirectDiffuseLightingLayers = new LightLayerEnumParameter(LightLayerEnum.Everything); // Default to everything to not have migration issue
 
         /// <summary>Reflection lighting multiplier, between 0 and 1</summary>
         public MinFloatParameter reflectionLightingMultiplier = new MinFloatParameter(1.0f, 0.0f);
         /// Controls which layer will be affected by the reflection lighting multiplier 
-        public LightLayerEnumParameter reflectionLightingLayers = new LightLayerEnumParameter(LightLayerEnum.LightLayerDefault);
+        public LightLayerEnumParameter reflectionLightingLayers = new LightLayerEnumParameter(LightLayerEnum.Everything); // Default to everything to not have migration issue
 
         /// <summary>Reflection probe intensity multiplier, between 0 and 1</summary>
         public MinFloatParameter indirectSpecularIntensity = new MinFloatParameter(1.0f, 0.0f);
