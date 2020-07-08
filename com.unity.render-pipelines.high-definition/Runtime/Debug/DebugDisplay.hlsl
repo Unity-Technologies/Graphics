@@ -266,6 +266,8 @@ bool ShouldFlipDebugTexture()
 
 void IncrementVertexDensityCounter(float4 positionCS)
 {
+// Texture atomics are not supported on metal
+#if !defined(SHADER_API_METAL)
     positionCS.xyz /= positionCS.w;
     float3 ndc = float3(positionCS.xy * float2(0.5, (_ProjectionParams.x > 0) ? 0.5 : -0.5) + 0.5, positionCS.z);
     // If vertex is in viewport
@@ -274,11 +276,14 @@ void IncrementVertexDensityCounter(float4 positionCS)
         uint2 pixel = (uint2)(ndc.xy * _ScreenSize.xy);
         InterlockedAdd(_DebugDisplayUAV[COORD_TEXTURE2D_X(pixel)], 1);
     }
+#endif
 }
 
 // https://blog.selfshadow.com/2012/11/12/counting-quads/
 void IncrementQuadOverdrawCounter(uint2 positionSS, uint primitiveID)
 {
+// Texture atomics are not supported on metal
+#if !defined(SHADER_API_METAL)
     uint2 quad = positionSS & ~1;
     uint  prevID, thisID = primitiveID + 1;
 
@@ -305,6 +310,7 @@ void IncrementQuadOverdrawCounter(uint2 positionSS, uint primitiveID)
 
     if (lockCount)
         InterlockedAdd(_DebugDisplayUAV[COORD_TEXTURE2D_X(quad)], 1);
+#endif
 }
 
 #endif

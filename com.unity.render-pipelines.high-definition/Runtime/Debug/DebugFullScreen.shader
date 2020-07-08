@@ -323,27 +323,33 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     uint2 quad = (uint2)input.positionCS.xy & ~1;
                     float4 color = (float4)0;
 
+                    // Texture atomics are not supported on metal
+#if !defined(SHADER_API_METAL)
                     float quadCost = (float)_DebugDisplayUAV[COORD_TEXTURE2D_X(quad)];
                     if (all(((uint2)input.positionCS.xy & 1) == 0)) // Write only once per quad
                     {
                         _DebugDisplayUAV[COORD_TEXTURE2D_X(quad)] = 0; // Overdraw
                         _DebugDisplayUAV[COORD_TEXTURE2D_X(quad+1)] = 0; // Lock
                     }
-
                     if ((quadCost > 0.001))
                         color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / _QuadOverdrawMaxQuadCost) * quadCost), 1.0, 1.0));
+#endif
+
                     return color;
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_VERTEX_DENSITY)
                 {
                     uint2 quad = (uint2)input.positionCS;
                     float4 color = (float4)0;
+                    // Texture atomics are not supported on metal
 
+#if !defined(SHADER_API_METAL)
                     float density = (float)_DebugDisplayUAV[COORD_TEXTURE2D_X(quad)];
                     _DebugDisplayUAV[COORD_TEXTURE2D_X(quad)] = 0;
-
                     if ((density > 0.001))
                         color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / _VertexDensityMaxPixelCost) * density), 1.0, 1.0));
+#endif
+
                     return color;
                 }
 

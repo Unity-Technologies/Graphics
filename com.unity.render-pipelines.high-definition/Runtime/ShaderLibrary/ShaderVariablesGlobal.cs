@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.HighDefinition
         
         // Can be set to 0 to globally "disable" tessellation
         // Because the DepthPrepass doesn't have a DEBUG_DISPLAY variant, it is the only way to disable it for debug modes
-        public float _GlobalTessellationFactorMultiplier;
+        public float    _GlobalTessellationFactorMultiplier;
         
         public float    _Pad8;
         public float    _Pad9;

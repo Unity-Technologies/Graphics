@@ -3916,7 +3916,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderForwardEmissive(CullingResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            bool debugDisplay = m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled();
+            bool debugDisplay = m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() && SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal;
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ForwardEmissive)))
             {
                 bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
@@ -3966,7 +3966,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     // we must override the state here.
 
                     CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.All, Color.clear);
-                    cmd.SetRandomWriteTarget(5, TextureXR.GetBlackUIntTexture());
+                    bool isMetal = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal;
+                    if (!isMetal)
+                        cmd.SetRandomWriteTarget(5, TextureXR.GetBlackUIntTexture());
 
                     // Render Opaque forward
                     var rendererListOpaque = RendererList.Create(CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_AllForwardOpaquePassNames, m_CurrentRendererConfigurationBakedLighting, stateBlock: m_DepthStateOpaque));
@@ -3976,7 +3978,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     var rendererListTransparent = RendererList.Create(CreateTransparentRendererListDesc(cull, hdCamera.camera, m_AllTransparentPassNames, m_CurrentRendererConfigurationBakedLighting));
                     DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListTransparent);
 
-                    cmd.ClearRandomWriteTargets();
+                    if (!isMetal)
+                        cmd.ClearRandomWriteTargets();
                 }
             }
         }
@@ -4351,7 +4354,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, lightListBuffer);
 
             CoreUtils.SetRenderTarget(cmd, renderTarget, depthBuffer);
-            if (debugDisplay)
+            bool isMetal = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal;
+            if (debugDisplay && !isMetal)
                 cmd.SetRandomWriteTarget(5, TextureXR.GetBlackUIntTexture());
 
             if (opaque)
@@ -4359,7 +4363,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else
                 DrawTransparentRendererList(renderContext, cmd, frameSettings, rendererList);
 
-            if (debugDisplay)
+            if (debugDisplay && !isMetal)
                 cmd.ClearRandomWriteTargets();
         }
 
@@ -5102,11 +5106,14 @@ namespace UnityEngine.Rendering.HighDefinition
             mpb.SetFloat(HDShaderIDs._QuadOverdrawMaxQuadCost, (float)parameters.debugDisplaySettings.data.maxQuadCost);
             mpb.SetFloat(HDShaderIDs._VertexDensityMaxPixelCost, (float)parameters.debugDisplaySettings.data.maxVertexDensity);
 
-            cmd.SetRandomWriteTarget(5, parameters.debugDisplayUAV);
+            bool isMetal = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal;
+            if (!isMetal)
+                cmd.SetRandomWriteTarget(5, parameters.debugDisplayUAV);
 
             HDUtils.DrawFullScreen(cmd, parameters.debugFullScreenMaterial, output, mpb, 0);
 
-            cmd.ClearRandomWriteTargets();
+            if (!isMetal)
+                cmd.ClearRandomWriteTargets();
         }
 
         static void ResolveColorPickerDebug(in DebugParameters  parameters,
