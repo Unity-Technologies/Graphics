@@ -47,6 +47,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader screenSpaceReflectionsCS;
             [Reload("Runtime/RenderPipeline/RenderPass/Distortion/ApplyDistortion.shader")]
             public Shader applyDistortionPS;
+            [Reload("Runtime/Lighting/CapsuleShadows/Shaders/CapsuleOcclusion.compute")]
+            public ComputeShader capsuleOcclusionCS;
+            [Reload("Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadowLUT.compute")]
+            public ComputeShader capsuleShadowLUTGeneratorCS;
+
 
             // Lighting tile pass
             [Reload("Runtime/Lighting/LightLoop/cleardispatchindirect.compute")]

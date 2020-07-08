@@ -145,6 +145,14 @@ Shader "Hidden/HDRP/DebugFullScreen"
                 {
                     return 1.0f - SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).xxxx;
                 }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_CAPSULE_SOFT_SHADOWS)
+                {
+                    return SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).yyyy;
+                }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_CAPSULE_SPECULAR_OCCLUSION)
+                {
+                    return SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).xxxx;
+                }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_NAN_TRACKER)
                 {
                     float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);

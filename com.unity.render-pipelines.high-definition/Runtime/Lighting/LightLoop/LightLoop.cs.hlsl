@@ -19,9 +19,10 @@
 #define LIGHTCATEGORY_AREA (1)
 #define LIGHTCATEGORY_ENV (2)
 #define LIGHTCATEGORY_PROBE_VOLUME (3)
-#define LIGHTCATEGORY_DECAL (4)
-#define LIGHTCATEGORY_DENSITY_VOLUME (5)
-#define LIGHTCATEGORY_COUNT (6)
+#define LIGHTCATEGORY_CAPSULE_OCCLUDER (4)
+#define LIGHTCATEGORY_DECAL (5)
+#define LIGHTCATEGORY_DENSITY_VOLUME (6)
+#define LIGHTCATEGORY_COUNT (7)
 
 //
 // UnityEngine.Rendering.HighDefinition.LightFeatureFlags:  static fields
@@ -110,8 +111,8 @@ CBUFFER_START(ShaderVariablesLightList)
     uint _DecalIndexShift;
     uint _DensityVolumeIndexShift;
     uint _ProbeVolumeIndexShift;
+    uint _CapsuleOccluderIndexShift;
     uint _Pad0_SVLL;
-    uint _Pad1_SVLL;
 CBUFFER_END
 
 //
