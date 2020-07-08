@@ -33,11 +33,11 @@ namespace UnityEngine.Rendering.Universal
 
     internal struct XRView
     {
-        internal Matrix4x4 projMatrix;
-        internal Matrix4x4 viewMatrix;
-        internal Rect viewport;
-        internal Mesh occlusionMesh;
-        internal int textureArraySlice;
+        internal readonly Matrix4x4 projMatrix;
+        internal readonly Matrix4x4 viewMatrix;
+        internal readonly Rect viewport;
+        internal readonly Mesh occlusionMesh;
+        internal readonly int textureArraySlice;
 
         internal XRView(Matrix4x4 proj, Matrix4x4 view, Rect vp, int dstSlice)
         {
