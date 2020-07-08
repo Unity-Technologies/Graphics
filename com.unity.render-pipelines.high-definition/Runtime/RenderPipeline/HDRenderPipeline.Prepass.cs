@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle CreateDecalPrepassBuffer(RenderGraph renderGraph, bool msaa)
         {
             TextureDesc decalDesc = new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = true, clearColor = Color.black, bindTextureMS = msaa, enableMSAA = msaa, enableRandomWrite = !msaa, name = msaa ? "DecalPrepassBufferMSAA" : "DecalPrepassBuffer" };
+                { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = true, clearColor = Color.clear, bindTextureMS = false, enableMSAA = msaa, enableRandomWrite = !msaa, name = msaa ? "DecalPrepassBufferMSAA" : "DecalPrepassBuffer" };
             return renderGraph.CreateTexture(decalDesc);
         }
 
@@ -304,7 +304,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (decalLayersEnabled)
                     decalBuffer = passData.decalBuffer;
                 else
-                    decalBuffer = new TextureHandle();
+                    decalBuffer = renderGraph.defaultResources.blackTextureXR;
 
                 builder.SetRenderFunc(
                 (DepthPrepassData data, RenderGraphContext context) =>
@@ -673,6 +673,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int                      dBufferCount;
             public RendererListHandle       meshDecalsRendererList;
             public TextureHandle            depthStencilBuffer;
+            public TextureHandle            depthTexture;
             public ComputeBufferHandle      propertyMaskBuffer;
             public TextureHandle            decalBuffer;            
         }
@@ -759,6 +760,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.meshDecalsRendererList = builder.UseRendererList(renderGraph.CreateRendererList(PrepareMeshDecalsRendererList(cullingResults, hdCamera, use4RTs)));
                 SetupDBufferTargets(renderGraph, passData, use4RTs, ref output, builder);
                 passData.decalBuffer = builder.ReadTexture(decalBuffer);
+                passData.depthTexture = builder.ReadTexture(output.depthPyramidTexture);
 
                 builder.SetRenderFunc(
                 (RenderDBufferPassData data, RenderGraphContext context) =>
@@ -778,6 +780,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     rti,
                                     rt,
                                     data.depthStencilBuffer,
+                                    data.depthTexture,
                                     data.meshDecalsRendererList,
                                     data.propertyMaskBuffer,
                                     data.decalBuffer,

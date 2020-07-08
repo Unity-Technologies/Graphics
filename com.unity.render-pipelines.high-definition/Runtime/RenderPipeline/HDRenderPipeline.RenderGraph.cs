@@ -798,11 +798,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public RendererListHandle rendererList;
         }
 
-        void RenderForwardEmissive( RenderGraph                 renderGraph,
-                                    HDCamera                    hdCamera,
+        void RenderForwardEmissive( RenderGraph     renderGraph,
+                                    HDCamera        hdCamera,
                                     TextureHandle   colorBuffer,
                                     TextureHandle   depthStencilBuffer,
-                                    CullingResults              cullingResults)
+                                    CullingResults  cullingResults)
         {
             using (var builder = renderGraph.AddRenderPass<RenderForwardEmissivePassData>("ForwardEmissive", out var passData, ProfilingSampler.Get(HDProfileId.ForwardEmissive)))
             {
@@ -814,11 +814,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 builder.SetRenderFunc(
                     (RenderForwardEmissivePassData data, RenderGraphContext context) =>
-                    {
-                        HDUtils.DrawRendererList(context.renderContext, context.cmd, data.rendererList);
-                        if (data.enableDecals)
-                            DecalSystem.instance.RenderForwardEmissive(context.cmd);
-                    });
+                {
+                    HDUtils.DrawRendererList(context.renderContext, context.cmd, data.rendererList);
+                    if (data.enableDecals)
+                        DecalSystem.instance.RenderForwardEmissive(context.cmd);
+                });
             }
         }
 
