@@ -1,4 +1,6 @@
 * [High Definition Render Pipeline](index)
+* [What's new](whats-new.md)
+  * [10.0](whats-new-10-0.md)
 * Features
   * [Features List](HDRP-Features)
   * [Comparison with the Built-in Render Pipeline](Feature-Comparison)
@@ -55,6 +57,7 @@
   * [Mask Map and Detail Map](Mask-Map-and-Detail-Map)
   * [Material Type](Material-Type)
   * [Renderer and Material Priority](Renderer-And-Material-Priority)
+  * [Decal](Decal)
   * [Surface Type](Surface-Type)
   * Subsurface Scattering
     * [Subsurface Scattering Materials](Subsurface-Scattering)
@@ -98,8 +101,12 @@
   * [Shadowmasks](Lighting-Mode-Shadowmask)
   * [Volumetric Lighting](Volumetric-Lighting)
   * [Physical Light Units and Intensities](Physical-Light-Units)
+  * IES
+    * [IES Profile](IES-Profile.md)
+    * [IES Importer](IES-Importer.md)
 * Camera
   * [HD Camera](HDRP-Camera)
+  * [Scene View Camera](Scene-View-Camera.md)
   * [Dynamic Resolution](Dynamic-Resolution)
   * [Motion Vectors](Motion-Vectors)
   * [Anti-Aliasing](Anti-Aliasing)
