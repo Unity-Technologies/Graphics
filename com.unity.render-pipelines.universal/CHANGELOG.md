@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where URP Simple Lit shader had attributes swapped incorrectly for BaseMap and BaseColor properties.
 - Fixed an issue where camera stacking with MSAA on OpenGL resulted in a black screen. [Case 1250602](https://issuetracker.unity3d.com/issues/urp-camera-stacking-results-in-black-screen-when-msaa-and-opengl-graphics-api-are-used).
 - Fixed an issue where Model Importer Materials used the Standard Shader from the Built-in Render Pipeline instead of URP Lit shader when the import happened at Editor startup.
+- Fixed an issue causing shadows to be incorrectly rendered when a light was close to the shadow caster.
 
 ## [8.1.0] - 2020-04-21
 
