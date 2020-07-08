@@ -94,7 +94,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="buffer">Input ComputeBufferHandle</param>
         public static implicit operator ComputeBuffer(ComputeBufferHandle buffer) => buffer.IsValid() ? RenderGraphResourceRegistry.current.GetComputeBuffer(buffer) : null;
-        public static implicit operator ComputeBuffer(ComputeBufferHandle buffer) => buffer.IsValid() ? buffer.handle.registry.GetComputeBuffer(buffer) : null;
 
         /// <summary>
         /// Return true if the handle is valid.
@@ -121,7 +120,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public static implicit operator int(RendererListHandle handle) { return handle.handle; }
 
         public static implicit operator RendererList(RendererListHandle rendererList) => rendererList.IsValid() ? RenderGraphResourceRegistry.current.GetRendererList(rendererList) : RendererList.nullRendererList;
-        public static implicit operator RendererList(RendererListHandle rendererList) => rendererList.IsValid() ? rendererList.registry.GetRendererList(rendererList) : RendererList.nullRendererList;
 
         /// <summary>
         /// Return true if the handle is valid.

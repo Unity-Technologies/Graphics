@@ -118,8 +118,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal RTHandle GetTexture(in TextureHandle handle)
         {
-            CheckRenderGraphExecution();
-
             if (!handle.IsValid())
                 return null;
 
@@ -128,8 +126,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal RendererList GetRendererList(in RendererListHandle handle)
         {
-            CheckRenderGraphExecution();
-
             if (!handle.IsValid() || handle >= m_RendererListResources.size)
                 return RendererList.nullRendererList;
 
@@ -138,8 +134,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal ComputeBuffer GetComputeBuffer(in ComputeBufferHandle handle)
         {
-            CheckRenderGraphExecution();
-
             if (!handle.IsValid())
                 return null;
 
