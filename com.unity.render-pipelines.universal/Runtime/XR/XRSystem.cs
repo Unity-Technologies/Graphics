@@ -208,7 +208,7 @@ namespace UnityEngine.Rendering.Universal
                 // XR test framework code path. Update 2nd view with camera's view projection data
                 Matrix4x4 projMatrix = cameraData.camera.projectionMatrix;
                 Matrix4x4 viewMatrix = cameraData.camera.worldToCameraMatrix;
-                Rect      viewport = new Rect(cameraData.pixelRect.x, cameraData.pixelRect.y, cameraData.pixelWidth, cameraData.pixelHeight);
+                Rect      viewport = new Rect(0, 0, testRenderTexture.width, testRenderTexture.height);
                 int       textureArraySlice = -1;
                 xrPass.UpdateView(1, projMatrix, viewMatrix, viewport, textureArraySlice);
 
@@ -431,7 +431,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     projMatrix = camera.projectionMatrix,
                     viewMatrix = camera.worldToCameraMatrix,
-                    viewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight),
+                    viewport = new Rect(0, 0, testRenderTexture.width, testRenderTexture.height),
                     textureArraySlice = -1
                 };
 
