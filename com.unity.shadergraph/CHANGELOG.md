@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed 
 - Fixed undo not being recorded properly for setting active master node, graph precision, and node defaults.
+- Fixed a bug where the object selector for Custom Function Nodes did not update correctly. [1176129](https://issuetracker.unity3d.com/product/unity/issues/guid/1176129/)
 
 ## [8.1.0] - 2020-04-21
 
