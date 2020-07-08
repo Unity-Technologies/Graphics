@@ -2,15 +2,17 @@
 
 The Ambient Occlusion post-processing effect darkens creases, holes, intersections and surfaces that are close to each other. In the real world, such areas tend to block out or occlude ambient light, so they appear darker.
 
-URP implements the real-time Screen Space Ambient Occlusion (SSAO) post-processing effect.
+URP implements the real-time Screen Space Ambient Occlusion (SSAO) post-processing effect as a Renderer Feature.
+
+> **NOTE**: The SSAO effect is a Renderer Feature and works independently from the post-processing effects in URP. This effect does not depend on or interact with Volumes.
 
 The following images show a scene with the Ambient Occlusion effect turned off and on.
 
-![Scene with Ambient Occlusion effect turned off.](Images/post-proc/ssao/scene-ssao-off.jpg)
+![Scene with Ambient Occlusion effect turned off.](Images/post-proc/ssao/scene-ssao-off.png)
 
-![Scene with Ambient Occlusion effect turned on.](Images/post-proc/ssao/scene-ssao-on.jpg)
+![Scene with Ambient Occlusion effect turned on.](Images/post-proc/ssao/scene-ssao-on.png)
 
-## Configuring the effect
+## Adding the SSAO effect to a Renderer
 
 URP implements the Ambient Occlusion post-processing effect as a Renderer Feature.
 
@@ -32,5 +34,8 @@ To use the Ambient Occlusion post-processing effect in your project:
 
     ![SSAO Renderer Feature.](Images/post-proc/ssao/ssao-renderer-feature-created.png)
 
-Now your project uses the Ambient Occlusion post-processing effect.
+Now Cameras that use the Renderer with the SSAO Renderer Feature have the Ambient Occlusion effect.
+
+## Properties
+
 
