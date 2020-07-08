@@ -708,7 +708,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class UpsampleTransparentPassData
         {
-            public Material                     upsampleMaterial;
+            public Material         upsampleMaterial;
             public TextureHandle    colorBuffer;
             public TextureHandle    lowResTransparentBuffer;
             public TextureHandle    downsampledDepthBuffer;
@@ -743,6 +743,20 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        class SetGlobalColorPassData
+        {
+            public TextureHandle colorBuffer;
+        }
+
+        void SetGlobalColorForCustomPass(RenderGraph renderGraph, TextureHandle colorBuffer)
+        {
+            using (var builder = renderGraph.AddRenderPass<SetGlobalColorPassData>("SetGlobalColorForCustomPass", out var passData))
+            {
+                passData.colorBuffer = builder.ReadTexture(colorBuffer);
+                builder.SetRenderFunc( (SetGlobalColorPassData data, RenderGraphContext context) => { context.cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, data.colorBuffer); });
+            }
+        }
+
         TextureHandle RenderTransparency(   RenderGraph                 renderGraph,
                                             HDCamera                    hdCamera,
                                             TextureHandle               colorBuffer,
@@ -763,9 +777,9 @@ namespace UnityEngine.Rendering.HighDefinition
             //RenderRayTracingPrepass(cullingResults, hdCamera, renderContext, cmd, true);
             //RaytracingRecursiveRender(hdCamera, cmd, renderContext, cullingResults);
 
-            // TODO RENDERGRAPH
-            //// To allow users to fetch the current color buffer, we temporarily bind the camera color buffer
-            //cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, m_CameraColorBuffer);
+            // TODO RENDERGRAPH: Remove this when we properly convert custom passes to full render graph with explicit color buffer reads.
+            // To allow users to fetch the current color buffer, we temporarily bind the camera color buffer
+            SetGlobalColorForCustomPass(renderGraph, currentColorPyramid);
 
             RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.normalBuffer, customPassCullingResults, CustomPassInjectionPoint.BeforePreRefraction, aovRequest, aovBuffers);
 
