@@ -44,6 +44,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     [DebuggerDisplay("Texture ({handle})")]
     public struct TextureHandle
     {
+        private static TextureHandle s_NullHandle = new TextureHandle();
+
+        /// <summary>
+        /// Returns a null texture handle
+        /// </summary>
+        /// <returns>A null texture handle.</returns>
+        public static TextureHandle nullHandle { get { return s_NullHandle; } }
+
         internal ResourceHandle handle;
 
         internal TextureHandle(int handle, RenderGraphResourceRegistry registry) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.Texture, registry); }
@@ -52,17 +60,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Cast to RTHandle
         /// </summary>
         /// <param name="texture">Input TextureHandle.</param>
-        public static implicit operator RTHandle(TextureHandle texture) => texture.IsValid() ? texture.handle.registry.GetTexture(texture) : null;
+        public static implicit operator RTHandle(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
         /// <summary>
         /// Cast to RenderTargetIdentifier
         /// </summary>
         /// <param name="texture">Input TextureHandle.</param>
-        public static implicit operator RenderTargetIdentifier(TextureHandle texture) => texture.IsValid() ? texture.handle.registry.GetTexture(texture) : null;
+        public static implicit operator RenderTargetIdentifier(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
         /// <summary>
         /// Cast to RenderTexture
         /// </summary>
         /// <param name="texture">Input TextureHandle.</param>
-        public static implicit operator RenderTexture(TextureHandle texture) => texture.IsValid() ? texture.handle.registry.GetTexture(texture) : null;
+        public static implicit operator RenderTexture(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
 
         /// <summary>
         /// Return true if the handle is valid.
@@ -85,6 +93,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Cast to ComputeBuffer
         /// </summary>
         /// <param name="buffer">Input ComputeBufferHandle</param>
+        public static implicit operator ComputeBuffer(ComputeBufferHandle buffer) => buffer.IsValid() ? RenderGraphResourceRegistry.current.GetComputeBuffer(buffer) : null;
         public static implicit operator ComputeBuffer(ComputeBufferHandle buffer) => buffer.IsValid() ? buffer.handle.registry.GetComputeBuffer(buffer) : null;
 
         /// <summary>
@@ -111,6 +120,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <returns>The integer representation of the handle.</returns>
         public static implicit operator int(RendererListHandle handle) { return handle.handle; }
 
+        public static implicit operator RendererList(RendererListHandle rendererList) => rendererList.IsValid() ? RenderGraphResourceRegistry.current.GetRendererList(rendererList) : RendererList.nullRendererList;
         public static implicit operator RendererList(RendererListHandle rendererList) => rendererList.IsValid() ? rendererList.registry.GetRendererList(rendererList) : RendererList.nullRendererList;
 
         /// <summary>

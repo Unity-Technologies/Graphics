@@ -9,6 +9,26 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     {
         static readonly ShaderTagId s_EmptyName = new ShaderTagId("");
 
+        static RenderGraphResourceRegistry m_CurrentRegistry;
+        internal static RenderGraphResourceRegistry current
+        {
+            get
+            {
+                // We assume that it's enough to only check in editor because we don't want to pay the cost at runtime.
+#if UNITY_EDITOR
+                if (m_CurrentRegistry == null)
+                {
+                    throw new InvalidOperationException("Current Render Graph Resource Registry is not set. You are probably trying to cast a Render Graph handle to a resource outside of a Render Graph Pass.");
+                }
+#endif
+                return m_CurrentRegistry;
+            }
+            set
+            {
+                m_CurrentRegistry = value; 
+            }
+        }
+
         class IRenderGraphResource
         {
             public bool imported;
@@ -160,21 +180,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal void BeginRender(int currentFrameIndex)
         {
             m_CurrentFrameIndex = currentFrameIndex;
-            m_IsExecutingRenderGraph = true;
+            current = this;
         }
 
         internal void EndRender()
         {
-            m_IsExecutingRenderGraph = false;
-        }
-
-        void CheckRenderGraphExecution()
-        {
-            // We assume that it's enough to only check in editor because we don't want to pay the cost at runtime.
-#if UNITY_EDITOR
-            if (!m_IsExecutingRenderGraph)
-                throw new InvalidOperationException("Invalid cast exception. Casting resource handles to actual resource is forbidden outside of render graph execution.");
-#endif
+            current = null;
         }
 
         void CheckHandleValidity(in ResourceHandle res)
