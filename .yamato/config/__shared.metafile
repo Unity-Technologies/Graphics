@@ -51,6 +51,8 @@ project_platforms:
       type: Unity::metal::macmini
       image: slough-ops/macos-10.14-xcode:stable
       flavor: m1.mac
+    exclude_test_platforms:
+      - editmode
   OSX_OpenGLCore:
     name: OSX
     os: macos
