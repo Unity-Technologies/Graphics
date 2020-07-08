@@ -314,7 +314,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal void EndCamera(CommandBuffer cmd, Camera camera)
+        internal void EndCamera(CommandBuffer cmd, CameraData cameraData)
         {
             if (!enabled)
                 return;
@@ -326,7 +326,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 using (new ProfilingScope(cmd, _XRCustomMirrorProfilingSampler))
                 {
-                    customMirrorView(this, cmd, camera.targetTexture, camera.pixelRect);
+                    customMirrorView(this, cmd, cameraData.targetTexture, cameraData.pixelRect);
                 }
             }
         }
