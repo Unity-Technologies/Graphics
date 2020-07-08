@@ -6,7 +6,7 @@ from ..shared.yml_job import YMLJob
 class Template_TestJob():
     
     def __init__(self, template, platform, editor):
-        self.job_id = template_job_id_test(template["id"],platform["name"],editor["version"])
+        self.job_id = template_job_id_test(template["id"],platform["os"],editor["version"])
         self.yml = self.get_job_definition(template, platform, editor).get_yml()
 
     
@@ -30,7 +30,7 @@ class Template_TestJob():
         # construct job
         job = YMLJob()
         job.set_name(f'Test { template["name"] } {platform["name"]} {editor["version"]}')
-        job.set_agent(platform['agent_default'])
+        job.set_agent(platform['agent_package'])
         job.add_dependencies(dependencies)
         job.add_commands(commands)
         job.add_artifacts_test_results()

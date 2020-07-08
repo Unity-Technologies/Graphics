@@ -45,6 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 systemData.TryChangeRenderingPass(systemData.renderingPass);
             });
 
+            context.globalIndentLevel++;
             var renderingPassList = HDSubShaderUtilities.GetRenderingPassList(systemData.surfaceType == SurfaceType.Opaque, false);
             var renderingPassValue = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.GetOpaqueEquivalent(systemData.renderingPass) : HDRenderQueue.GetTransparentEquivalent(systemData.renderingPass);
             var renderQueueType = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
@@ -57,7 +58,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             if (systemData.surfaceType == SurfaceType.Transparent)
             {
-                context.globalIndentLevel++;
                 AddProperty(blendModeText, () => systemData.blendMode, (newValue) => systemData.blendMode = newValue);
                 AddProperty(enableTransparentFogText, () => builtinData.transparencyFog, (newValue) => builtinData.transparencyFog = newValue);
                 AddProperty(transparentZTestText, () => systemData.zTest, (newValue) => systemData.zTest = newValue);
@@ -65,14 +65,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 AddProperty(transparentCullModeText, () => systemData.transparentCullMode, (newValue) => systemData.transparentCullMode = newValue);
                 AddProperty(transparentSortPriorityText, () => systemData.sortPriority, (newValue) => systemData.sortPriority = HDRenderQueue.ClampsTransparentRangePriority(newValue));
                 AddProperty(transparentBackfaceEnableText, () => builtinData.backThenFrontRendering, (newValue) => builtinData.backThenFrontRendering = newValue);
-                AddProperty(transparentDepthPrepassEnableText, () => systemData.alphaTestDepthPrepass, (newValue) => systemData.alphaTestDepthPrepass = newValue);
-                AddProperty(transparentDepthPostpassEnableText, () => systemData.alphaTestDepthPostpass, (newValue) => systemData.alphaTestDepthPostpass = newValue);
+                AddProperty(transparentDepthPrepassEnableText, () => systemData.transparentDepthPrepass, (newValue) => systemData.transparentDepthPrepass = newValue);
+                AddProperty(transparentDepthPostpassEnableText, () => systemData.transparentDepthPostpass, (newValue) => systemData.transparentDepthPostpass = newValue);
                 AddProperty(transparentWritingMotionVecText, () => builtinData.transparentWritesMotionVec, (newValue) => builtinData.transparentWritesMotionVec = newValue);
 
                 if (lightingData != null)
                     AddProperty(enableBlendModePreserveSpecularLightingText, () => lightingData.blendPreserveSpecular, (newValue) => lightingData.blendPreserveSpecular = newValue);
-                context.globalIndentLevel--;
             }
+            else
+            {
+                AddProperty(opaqueCullModeText, () => systemData.opaqueCullMode, (newValue) => systemData.opaqueCullMode = newValue);
+            }
+            context.globalIndentLevel--;
 
             // Alpha Test
             // TODO: AlphaTest is in SystemData but Alpha to Mask is in BuiltinData?

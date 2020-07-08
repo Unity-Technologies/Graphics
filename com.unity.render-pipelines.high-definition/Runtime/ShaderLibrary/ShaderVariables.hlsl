@@ -26,13 +26,15 @@
 
 #define UNITY_LIGHTMODEL_AMBIENT (glstate_lightmodel_ambient * 2)
 
-// This only defines the ray tracing macro on the platforms that support ray tracing this should be dx12
-#if (SHADEROPTIONS_RAYTRACING && (defined(SHADER_API_D3D11) || defined(SHADER_API_D3D12)) && !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL))
-#define RAYTRACING_ENABLED (1)
-#define DirectionalShadowType float3
+// Define the type for shadow (either colored shadow or monochrome shadow)
+#if SHADEROPTIONS_COLORED_SHADOW
+#define SHADOW_TYPE real3
+#define SHADOW_TYPE_SWIZZLE xyz
+#define SHADOW_TYPE_REPLICATE xxx
 #else
-#define RAYTRACING_ENABLED (0)
-#define DirectionalShadowType float
+#define SHADOW_TYPE real
+#define SHADOW_TYPE_SWIZZLE x
+#define SHADOW_TYPE_REPLICATE x
 #endif
 
 #if defined(SHADER_STAGE_RAY_TRACING)
@@ -277,6 +279,32 @@ float GetInversePreviousExposureMultiplier()
 {
     float exposure = GetPreviousExposureMultiplier();
     return rcp(exposure + (exposure == 0.0)); // zero-div guard
+}
+
+// Helper function for Rendering Layers
+#define DEFAULT_LIGHT_LAYERS (RENDERING_LIGHT_LAYERS_MASK >> RENDERING_LIGHT_LAYERS_MASK_SHIFT)
+#define DEFAULT_DECAL_LAYERS (RENDERING_DECAL_LAYERS_MASK >> RENDERING_DECAL_LAYERS_MASK_SHIFT)
+
+// Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active if save in a buffer
+uint GetMeshRenderingLightLayer()
+{
+    return _EnableLightLayers ? (asuint(unity_RenderingLayer.x) & RENDERING_LIGHT_LAYERS_MASK) >> RENDERING_LIGHT_LAYERS_MASK_SHIFT : DEFAULT_LIGHT_LAYERS;
+}
+
+uint GetMeshRenderingDecalLayer()
+{
+    return _EnableDecalLayers ? ((asuint(unity_RenderingLayer.x) & RENDERING_DECAL_LAYERS_MASK) >> RENDERING_DECAL_LAYERS_MASK_SHIFT) : DEFAULT_DECAL_LAYERS;
+}
+
+// Helper function for indirect control volume
+float GetIndirectDiffuseMultiplier(uint renderingLayers)
+{
+    return (_IndirectDiffuseLightingLayers & renderingLayers) ? _IndirectDiffuseLightingMultiplier : 1.0f;
+}
+
+float GetIndirectSpecularMultiplier(uint renderingLayers)
+{
+    return (_ReflectionLightingLayers & renderingLayers) ? _ReflectionLightingMultiplier : 1.0f;
 }
 
 // Functions to clamp UVs to use when RTHandle system is used.

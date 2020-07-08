@@ -52,15 +52,13 @@ void SPATIAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID , uint2 groupTh
 #if HALF_RES
     // Get the posinputs of the current version of the pixel
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, asuint(_DepthPyramidFirstMipLevelOffset) + centerCoord).r;
-    float4 normalCompressed = LOAD_TEXTURE2D_X(_NormalBufferTexture, centerCoord * 2 );
     NormalData normalData;
-    DecodeFromNormalBuffer(normalCompressed, 0, normalData);
+    DecodeFromNormalBuffer(centerCoord * 2, normalData);
 #else
     // Get the posinputs of the current version of the pixel
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
-    float4 normalCompressed = LOAD_TEXTURE2D_X(_NormalBufferTexture, centerCoord);
     NormalData normalData;
-    DecodeFromNormalBuffer(normalCompressed, 0, normalData);
+    DecodeFromNormalBuffer(centerCoord, normalData);
 #endif
 
     // If the current point we are processing is a background point or the whole history should be discarded for an other reason, we invalidate the history
@@ -106,14 +104,12 @@ void SPATIAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID , uint2 groupTh
             // Read the depth of the tap pixel
 #if HALF_RES
             float tapDepth = LOAD_TEXTURE2D_X(_DepthTexture, asuint(_DepthPyramidFirstMipLevelOffset) + tapCoord).r;
-            float4 normalCompressedTap = LOAD_TEXTURE2D_X(_NormalBufferTexture, tapCoord * 2);
             NormalData normalDataTap;
-            DecodeFromNormalBuffer(normalCompressedTap, 0, normalDataTap);
+            DecodeFromNormalBuffer(tapCoord * 2, normalDataTap);
 #else
             float tapDepth = LOAD_TEXTURE2D_X(_DepthTexture, tapCoord).r;
-            float4 normalCompressedTap = LOAD_TEXTURE2D_X(_NormalBufferTexture, tapCoord);
             NormalData normalDataTap;
-            DecodeFromNormalBuffer(normalCompressedTap, 0, normalDataTap);
+            DecodeFromNormalBuffer(tapCoord, normalDataTap);
 #endif
             // Convert the tapped depth to linear for weight evaluation
             float tapz01 = Linear01Depth(tapDepth, _ZBufferParams);

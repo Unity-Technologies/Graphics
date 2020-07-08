@@ -29,5 +29,7 @@ all:
     - platform: OSX
       api: OpenGLCore
       test_platforms:
-        - editmode   
+        - editmode 
+    - project: ShaderGraph_Stereo
+      all: true  
 

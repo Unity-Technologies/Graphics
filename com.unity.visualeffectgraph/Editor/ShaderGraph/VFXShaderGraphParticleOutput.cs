@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.ShaderGraph;
@@ -150,6 +151,14 @@ namespace UnityEditor.VFX
             }
         }
 
+        public override void CheckGraphBeforeImport()
+        {
+            base.CheckGraphBeforeImport();
+            // If the graph is reimported it can be because one of its depedency such as the shadergraphs, has been changed.
+
+            ResyncSlots(true);
+        }
+
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
@@ -269,7 +278,7 @@ namespace UnityEditor.VFX
                     {
                         var portInfo = shaderGraph.GetOutput(port);
                         if (!string.IsNullOrEmpty(portInfo.referenceName))
-                            yield return $"HAS_SHADERGRAPH_PARAM_{portInfo.referenceName.ToUpper()}";
+                            yield return $"HAS_SHADERGRAPH_PARAM_{portInfo.referenceName.ToUpper(CultureInfo.InvariantCulture)}";
                     }
 
                     bool needsPosWS = false;
@@ -289,10 +298,10 @@ namespace UnityEditor.VFX
                         bool hasNormalPort = pixelPorts.Any(t => t == ShaderGraphVfxAsset.NormalSlotId) && shaderGraph.HasOutput(ShaderGraphVfxAsset.NormalSlotId);
 
                         if (readsNormal || readsTangent || hasNormalPort) // needs normal
-                            yield return $"SHADERGRAPH_NEEDS_NORMAL_{kvPass.Key.ToUpper()}";
+                            yield return $"SHADERGRAPH_NEEDS_NORMAL_{kvPass.Key.ToUpper(CultureInfo.InvariantCulture)}";
 
                         if (readsTangent || hasNormalPort) // needs tangent
-                            yield return $"SHADERGRAPH_NEEDS_TANGENT_{kvPass.Key.ToUpper()}";
+                            yield return $"SHADERGRAPH_NEEDS_TANGENT_{kvPass.Key.ToUpper(CultureInfo.InvariantCulture)}";
 
                         needsPosWS |= graphCode.requirements.requiresPosition != NeededCoordinateSpace.None ||
                             graphCode.requirements.requiresScreenPosition ||
@@ -429,7 +438,7 @@ namespace UnityEditor.VFX
                     {
                         var portInfo = shaderGraph.GetOutput(port);
                         if (!string.IsNullOrEmpty(portInfo.referenceName))
-                            yield return new KeyValuePair<string, VFXShaderWriter>($"${{SHADERGRAPH_PARAM_{portInfo.referenceName.ToUpper()}}}", new VFXShaderWriter($"{portInfo.referenceName}_{portInfo.id}"));
+                            yield return new KeyValuePair<string, VFXShaderWriter>($"${{SHADERGRAPH_PARAM_{portInfo.referenceName.ToUpper(CultureInfo.InvariantCulture)}}}", new VFXShaderWriter($"{portInfo.referenceName}_{portInfo.id}"));
                     }
 
                     foreach (var kvPass in graphCodes)
@@ -442,7 +451,7 @@ namespace UnityEditor.VFX
                         if (graphCode.requirements.requiresDepthTexture)
                             preProcess.WriteLine("#define REQUIRE_DEPTH_TEXTURE");
                         preProcess.WriteLine("${VFXShaderGraphFunctionsInclude}\n");
-                        yield return new KeyValuePair<string, VFXShaderWriter>("${SHADERGRAPH_PIXEL_CODE_" + kvPass.Key.ToUpper() + "}", new VFXShaderWriter(preProcess.ToString() + graphCode.code));
+                        yield return new KeyValuePair<string, VFXShaderWriter>("${SHADERGRAPH_PIXEL_CODE_" + kvPass.Key.ToUpper(CultureInfo.InvariantCulture) + "}", new VFXShaderWriter(preProcess.ToString() + graphCode.code));
 
                         var callSG = new VFXShaderWriter("//Call Shader Graph\n");
                         callSG.builder.AppendLine($"{shaderGraph.inputStructName} INSG = ({shaderGraph.inputStructName})0;");
@@ -563,7 +572,7 @@ i.VFX_VARYING_ALPHATHRESHOLD = OUTSG.AlphaClipThreshold_7;
 #endif");
                         }
 
-                        yield return new KeyValuePair<string, VFXShaderWriter>("${SHADERGRAPH_PIXEL_CALL_" + kvPass.Key.ToUpper() + "}", callSG);
+                        yield return new KeyValuePair<string, VFXShaderWriter>("${SHADERGRAPH_PIXEL_CALL_" + kvPass.Key.ToUpper(CultureInfo.InvariantCulture) + "}", callSG);
                     }
                 }
             }

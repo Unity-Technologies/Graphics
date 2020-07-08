@@ -143,7 +143,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     return color;
                 }
                 // SSAO
-                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_SSAO)
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_AMBIENT_OCCLUSION)
                 {
                     return 1.0f - SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).xxxx;
                 }
