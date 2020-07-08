@@ -200,20 +200,20 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Used for camera stacking where we need to update the parameters per camera
-        internal void UpdateFromCamera(ref XRPass xrPass, Camera camera)
+        internal void UpdateFromCamera(ref XRPass xrPass, CameraData cameraData)
         {
-            bool isGameCamera = (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR);
+            bool isGameCamera = (cameraData.camera.cameraType == CameraType.Game || cameraData.camera.cameraType == CameraType.VR);
             if (XRGraphicsAutomatedTests.enabled && XRGraphicsAutomatedTests.running && isGameCamera)
             {
                 // XR test framework code path. Update 2nd view with camera's view projection data
-                Matrix4x4 projMatrix = camera.projectionMatrix;
-                Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
-                Rect      viewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight);
+                Matrix4x4 projMatrix = cameraData.camera.projectionMatrix;
+                Matrix4x4 viewMatrix = cameraData.camera.worldToCameraMatrix;
+                Rect      viewport = new Rect(cameraData.pixelRect.x, cameraData.pixelRect.y, cameraData.pixelWidth, cameraData.pixelHeight);
                 int       textureArraySlice = -1;
                 xrPass.UpdateView(1, projMatrix, viewMatrix, viewport, textureArraySlice);
 
                 // Update culling params for this xr pass using camera's culling params
-                camera.TryGetCullingParameters(false, out var cullingParams);
+                cameraData.camera.TryGetCullingParameters(false, out var cullingParams);
                 //// Disable legacy stereo culling path
                 cullingParams.cullingOptions &= ~CullingOptions.Stereo;
                 xrPass.UpdateCullingParams(0, cullingParams);
@@ -221,7 +221,7 @@ namespace UnityEngine.Rendering.Universal
             else if (xrPass.enabled && display != null)
             {
                 display.GetRenderPass(xrPass.multipassId, out var renderPass);
-                display.GetCullingParameters(camera, renderPass.cullingPassIndex, out var cullingParams);
+                display.GetCullingParameters(cameraData.camera, renderPass.cullingPassIndex, out var cullingParams);
                 // Disable legacy stereo culling path
                 cullingParams.cullingOptions &= ~CullingOptions.Stereo;
 
@@ -231,14 +231,14 @@ namespace UnityEngine.Rendering.Universal
 
                     for (int renderParamIndex = 0; renderParamIndex < renderPass.GetRenderParameterCount(); ++renderParamIndex)
                     {
-                        renderPass.GetRenderParameter(camera, renderParamIndex, out var renderParam);
-                        xrPass.UpdateView(renderParamIndex, renderParam);
+                        renderPass.GetRenderParameter(cameraData.camera, renderParamIndex, out var renderParam);
+                        xrPass.UpdateView(renderParamIndex, renderPass, renderParam);
                     }
                 }
                 else
                 {
-                    renderPass.GetRenderParameter(camera, 0, out var renderParam);
-                    xrPass.UpdateView(0, renderParam);
+                    renderPass.GetRenderParameter(cameraData.camera, 0, out var renderParam);
+                    xrPass.UpdateView(0, renderPass, renderParam);
                 }
             }
         }
@@ -424,7 +424,7 @@ namespace UnityEngine.Rendering.Universal
                     cullingPassId = 0,
                     cullingParameters = cullingParams,
                     renderTarget = testRenderTexture,
-                    renderTargetIsRenderTexture = false, //Mimics eye texture here(backbuffer type)
+                    renderTargetIsRenderTexture = true,
                     customMirrorView = copyToTestRenderTexture
                 };
 

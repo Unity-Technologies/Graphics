@@ -374,10 +374,6 @@ namespace UnityEngine.Rendering.Universal
                             // Copy base settings from base camera data and initialize initialize remaining specific settings for this camera type.
                             CameraData overlayCameraData = baseCameraData;
                             bool lastCamera = i == lastActiveOverlayCameraIndex;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                            if (baseCameraData.xr.enabled)
-                                m_XRSystem.UpdateFromCamera(ref overlayCameraData.xr, currCamera);
-#endif
                             BeginCameraRendering(context, currCamera);
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
                             //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
@@ -385,6 +381,10 @@ namespace UnityEngine.Rendering.Universal
 #endif
                             UpdateVolumeFramework(currCamera, currCameraData);
                             InitializeAdditionalCameraData(currCamera, currCameraData, lastCamera, ref overlayCameraData);
+#if ENABLE_VR && ENABLE_XR_MODULE
+                            if (baseCameraData.xr.enabled)
+                                m_XRSystem.UpdateFromCamera(ref overlayCameraData.xr, overlayCameraData);
+#endif
                             RenderSingleCamera(context, overlayCameraData, anyPostProcessingEnabled);
                             EndCameraRendering(context, currCamera);
                         }

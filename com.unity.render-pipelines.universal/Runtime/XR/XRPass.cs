@@ -62,30 +62,6 @@ namespace UnityEngine.Rendering.Universal
             viewport.y      *= renderPass.renderTargetDesc.height;
             viewport.height *= renderPass.renderTargetDesc.height;
         }
-
-        internal void UpdateXRView(Matrix4x4 proj, Matrix4x4 view, Rect vp, int dstSlice)
-        {
-            projMatrix = proj;
-            viewMatrix = view;
-            viewport = vp;
-            occlusionMesh = null;
-            textureArraySlice = dstSlice;
-        }
-
-        internal void UpdateXRView(XRPass xrPass, XRDisplaySubsystem.XRRenderParameter renderParameter)
-        {
-            projMatrix = renderParameter.projection;
-            viewMatrix = renderParameter.view;
-            viewport = renderParameter.viewport;
-            occlusionMesh = renderParameter.occlusionMesh;
-            textureArraySlice = renderParameter.textureArraySlice;
-
-            // Convert viewport from normalized to screen space
-            viewport.x      *= xrPass.renderTargetDesc.width;
-            viewport.width  *= xrPass.renderTargetDesc.width;
-            viewport.y      *= xrPass.renderTargetDesc.height;
-            viewport.height *= xrPass.renderTargetDesc.height;
-        }
     }
 
     class XRPass
@@ -178,12 +154,12 @@ namespace UnityEngine.Rendering.Universal
             return passInfo;
         }
 
-        internal void UpdateView(int viewId, XRDisplaySubsystem.XRRenderParameter xrSdkRenderParameter)
+        internal void UpdateView(int viewId, XRDisplaySubsystem.XRRenderPass xrSdkRenderPass, XRDisplaySubsystem.XRRenderParameter xrSdkRenderParameter)
         {
             if (viewId >= views.Count)
                 throw new NotImplementedException($"Invalid XR setup to update, trying to update non-existing xr view.");
 
-            views[viewId].UpdateXRView(this, xrSdkRenderParameter);
+            views[viewId] = new XRView(xrSdkRenderPass, xrSdkRenderParameter);
         }
 
         internal void UpdateView(int viewId, Matrix4x4 proj, Matrix4x4 view, Rect vp, int textureArraySlice = -1)
@@ -191,7 +167,7 @@ namespace UnityEngine.Rendering.Universal
             if (viewId >= views.Count)
                 throw new NotImplementedException($"Invalid XR setup to update, trying to update non-existing xr view.");
 
-            views[viewId].UpdateXRView(proj, view, vp, textureArraySlice);
+            views[viewId] = new XRView(proj, view, vp, textureArraySlice);
         }
 
         internal void UpdateCullingParams(int cullingPassId, ScriptableCullingParameters cullingParams)
