@@ -168,7 +168,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderForwardEmissive(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, cullingResults);
 
-                RenderSky(m_RenderGraph, hdCamera, colorBuffer, volumetricLighting, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture);
+                RenderSky(m_RenderGraph, hdCamera, colorBuffer, volumetricLighting, prepassOutput.depthBuffer, msaa ? prepassOutput.depthAsColor : prepassOutput.depthPyramidTexture);
 
                 // Send all the geometry graphics buffer to client systems if required (must be done after the pyramid and before the transparent depth pre-pass)
                 SendGeometryGraphicsBuffers(m_RenderGraph, prepassOutput.normalBuffer, prepassOutput.depthPyramidTexture, hdCamera);
@@ -976,6 +976,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public HDCamera             hdCamera;
             public TextureHandle        volumetricLighting;
             public TextureHandle        colorBuffer;
+            public TextureHandle        depthTexture;
             public TextureHandle        depthStencilBuffer;
             public TextureHandle        intermediateBuffer;
             public DebugDisplaySettings debugDisplaySettings;
@@ -997,13 +998,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.hdCamera = hdCamera;
                 passData.volumetricLighting = builder.ReadTexture(volumetricLighting);
                 passData.colorBuffer = builder.WriteTexture(colorBuffer);
+                passData.depthTexture = builder.WriteTexture(depthTexture);
                 passData.depthStencilBuffer = builder.WriteTexture(depthStencilBuffer);
                 passData.intermediateBuffer = builder.CreateTransientTexture(colorBuffer);
                 passData.debugDisplaySettings = m_CurrentDebugDisplaySettings;
                 passData.skyManager = m_SkyManager;
                 passData.frameCount = m_FrameCount;
-
-                builder.ReadTexture(depthTexture);
 
                 builder.SetRenderFunc(
                 (RenderSkyPassData data, RenderGraphContext context) =>
@@ -1016,7 +1016,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (Fog.IsFogEnabled(data.hdCamera) || Fog.IsPBRFogEnabled(data.hdCamera))
                     {
                         var pixelCoordToViewDirWS = data.hdCamera.mainViewConstants.pixelCoordToViewDirWS;
-                        data.skyManager.RenderOpaqueAtmosphericScattering(context.cmd, data.hdCamera, data.colorBuffer, data.volumetricLighting, data.intermediateBuffer, data.depthStencilBuffer, pixelCoordToViewDirWS, data.hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
+                        data.skyManager.RenderOpaqueAtmosphericScattering(context.cmd, data.hdCamera, data.colorBuffer, data.depthTexture, data.volumetricLighting, data.intermediateBuffer, data.depthStencilBuffer, pixelCoordToViewDirWS, data.hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
                     }
                 });
             }
