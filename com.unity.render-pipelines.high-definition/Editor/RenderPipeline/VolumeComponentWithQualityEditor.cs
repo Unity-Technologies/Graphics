@@ -33,12 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // they will continue to work, but the preset settings will not be reflected in the UI.
             if (EditorGUI.EndChangeCheck())
             {
-                // The ScalableSettingLevelParameterEditor updates the value of the referenced object directly (and not the reflected one),
-                // so this is what we have to do to get the new value selected by the user:
-                var o = m_QualitySetting.GetObjectRef<ScalableSettingLevelParameter>();
-                var (preset, custom) = o.levelAndOverride;
-                int newQualityLevel = custom ? 3 : preset;
-                m_QualitySetting.value.intValue = newQualityLevel;
+                int newQualityLevel = m_QualitySetting.value.intValue;
 
                 if (newQualityLevel == k_CustomQuality)
                 {
