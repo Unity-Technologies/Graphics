@@ -151,7 +151,7 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
     Light light;
     light.direction = lightDirection;
     light.distanceAttenuation = attenuation;
-    light.shadowAttenuation = AdditionalLightRealtimeShadow(perObjectLightIndex, positionWS);
+    light.shadowAttenuation = AdditionalLightRealtimeShadow(perObjectLightIndex, positionWS, lightDirection);
     light.color = color;
 
     // In case we're using light probes, we can sample the attenuation from the `unity_ProbesOcclusion`

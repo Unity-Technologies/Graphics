@@ -62,7 +62,16 @@ namespace UnityEngine.Rendering.Universal
         public static bool ExtractSpotLightMatrix(ref CullingResults cullResults, ref ShadowData shadowData, int shadowLightIndex, out Matrix4x4 shadowMatrix, out Matrix4x4 viewMatrix, out Matrix4x4 projMatrix)
         {
             ShadowSplitData splitData;
-            bool success = cullResults.ComputeSpotShadowMatricesAndCullingPrimitives(shadowLightIndex, out viewMatrix, out projMatrix, out splitData);
+            bool success = cullResults.ComputeSpotShadowMatricesAndCullingPrimitives(shadowLightIndex, out viewMatrix, out projMatrix, out splitData); // returns false if input parameters are incorrect (rare)
+            shadowMatrix = GetShadowTransform(projMatrix, viewMatrix);
+            return success;
+        }
+
+
+        public static bool ExtractPointLightMatrix(ref CullingResults cullResults, ref ShadowData shadowData, int shadowLightIndex, CubemapFace cubemapFace, float fovBias, out Matrix4x4 shadowMatrix, out Matrix4x4 viewMatrix, out Matrix4x4 projMatrix)
+        {
+            ShadowSplitData splitData;
+            bool success = cullResults.ComputePointShadowMatricesAndCullingPrimitives(shadowLightIndex, cubemapFace, fovBias, out viewMatrix, out projMatrix, out splitData); // returns false if input parameters are incorrect (rare)
             shadowMatrix = GetShadowTransform(projMatrix, viewMatrix);
             return success;
         }
@@ -140,9 +149,21 @@ namespace UnityEngine.Rendering.Universal
                 // Depending on how big the light range is, it will be good enough with some tweaks in bias
                 frustumSize = Mathf.Tan(shadowLight.spotAngle * 0.5f * Mathf.Deg2Rad) * shadowLight.range;
             }
+            else if (shadowLight.lightType == LightType.Point)
+            {
+                // [Copied from above case:]
+                // "For perspective projections, shadow texel size varies with depth
+                //  It will only work well if done in receiver side in the pixel shader. Currently UniversalRP
+                //  do bias on caster side in vertex shader. When we add shader quality tiers we can properly
+                //  handle this. For now, as a poor approximation we do a constant bias and compute the size of
+                //  the frustum as if it was orthogonal considering the size at mid point between near and far planes.
+                //  Depending on how big the light range is, it will be good enough with some tweaks in bias"
+                const float cubeFaceAngle = 90; // TODO investigate if is this a good approach / compare with HDRP approach
+                frustumSize = Mathf.Tan(cubeFaceAngle * 0.5f * Mathf.Deg2Rad) * shadowLight.range;
+            }
             else
             {
-                Debug.LogWarning("Only spot and directional shadow casters are supported in universal pipeline");
+                Debug.LogWarning("Only point, spot and directional shadow casters are supported in universal pipeline");
                 frustumSize = 0.0f;
             }
 
@@ -168,6 +189,7 @@ namespace UnityEngine.Rendering.Universal
 
         public static void SetupShadowCasterConstantBuffer(CommandBuffer cmd, ref VisibleLight shadowLight, Vector4 shadowBias)
         {
+            //if(shadowLight.lightType==LightType.Spot) // TODO: Investigate potential optimization: Try to skip direction extraction for point lights
             Vector3 lightDirection = -shadowLight.localToWorldMatrix.GetColumn(2);
             cmd.SetGlobalVector("_ShadowBias", shadowBias);
             cmd.SetGlobalVector("_LightDirection", new Vector4(lightDirection.x, lightDirection.y, lightDirection.z, 0.0f));

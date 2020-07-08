@@ -246,7 +246,9 @@ half MainLightRealtimeShadow(float4 shadowCoord)
     return SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, false);
 }
 
-half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
+// returns 0.0 if position is in light's shadow
+// returns 1.0 if position is in light
+half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection)
 {
 #if !defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
     return 1.0h;
@@ -255,7 +257,12 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
     ShadowSamplingData shadowSamplingData = GetAdditionalLightShadowSamplingData();
 
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-    lightIndex = _AdditionalShadowsIndices[lightIndex];
+
+    // With the introduction of point light shadows, the number of shadow slices becomes different from the number of punctual lights.
+    // Therefore light data and shadow slice data must be stored in different structured buffers (of different sizes).
+    // TODO: check and fix "Structured Buffers" code path - Possibly use one SSBO for light data and one for shadow slice data (same as UBO code path)
+
+    lightIndex = _AdditionalShadowsIndices[lightIndex]; // shadow slice index
 
     // We have to branch here as otherwise we would sample buffer with lightIndex == -1.
     // However this should be ok for platforms that store light in SSBO.
@@ -264,11 +271,25 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
         return 1.0;
 
     float4 shadowCoord = mul(_AdditionalShadowsBuffer[lightIndex].worldToShadowMatrix, float4(positionWS, 1.0));
+
 #else
-    float4 shadowCoord = mul(_AdditionalLightsWorldToShadow[lightIndex], float4(positionWS, 1.0));
-#endif
 
     half4 shadowParams = GetAdditionalLightShadowParams(lightIndex);
+
+    int shadowSliceIndex = shadowParams.w;
+
+    // Test if this is a point light - Keep in sync with AdditionalLightsShadowCasterPass.LightTypeIdentifierInShadowParams_Point
+    // TODO: Investigate potential optimization: Try solutions that do not require branching, and compare performances
+    if (shadowParams.z)
+    {
+        // This is a point light, we have to find out which shadow slice to sample from
+        float cubemapFaceId = CubeMapFaceID(-lightDirection);
+        shadowSliceIndex += cubemapFaceId;
+    }
+    float4 shadowCoord = mul(_AdditionalLightsWorldToShadow[shadowSliceIndex], float4(positionWS, 1.0));
+
+#endif
+
     return SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_AdditionalLightsShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, true);
 }
 

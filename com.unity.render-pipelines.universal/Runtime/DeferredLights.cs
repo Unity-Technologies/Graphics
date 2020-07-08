@@ -1313,6 +1313,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     out lightAttenuation, out lightSpotDir4);
 
                 int shadowLightIndex = m_AdditionalLightsShadowCasterPass != null ? m_AdditionalLightsShadowCasterPass.GetShadowLightIndexFromLightIndex(visLightIndex) : -1;
+                // TODO: Point Light Shadows integration to Deferred Renderer - For point lights, there are 6 shadow light indices: { (shadowLightIndex - 5), (shadowLightIndex - 4), ... , (shadowLightIndex) }
                 if (vl.light && vl.light.shadows != LightShadows.None && shadowLightIndex >= 0)
                     cmd.EnableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
                 else
@@ -1360,6 +1361,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     out lightAttenuation, out lightSpotDir4);
 
                 int shadowLightIndex = m_AdditionalLightsShadowCasterPass != null ? m_AdditionalLightsShadowCasterPass.GetShadowLightIndexFromLightIndex(visLightIndex) : -1;
+                // TODO: Point Light Shadows integration to Deferred Renderer - For point lights, there are 6 shadow light indices: { (shadowLightIndex - 5), (shadowLightIndex - 4), ... , (shadowLightIndex) }
                 if (vl.light && vl.light.shadows != LightShadows.None && shadowLightIndex >= 0)
                     cmd.EnableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
                 else
