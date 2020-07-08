@@ -217,10 +217,6 @@ namespace UnityEditor.Rendering
             platformSettings.maxTextureSize = 2048;
             platformSettings.resizeAlgorithm = TextureResizeAlgorithm.Bilinear;
             platformSettings.textureCompression = compression;
-            if (shape == TextureImporterShape.TextureCube)
-            {
-                platformSettings.format = TextureImporterFormat.Automatic;
-            }
 
             TextureGenerationOutput output = TextureGenerator.GenerateTexture(settings, colorBuffer);
 
