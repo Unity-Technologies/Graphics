@@ -48,6 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO RENDERGRAPH
             // Not really good to bind things globally here (makes lifecycle of the textures fuzzy)
             // Probably better to bind it explicitly where needed (deferred lighting and forward/debug passes)
+            // We can probably remove this when we have only one code path and can clean things up a bit.
             BindShadowGlobalResources(renderGraph, result);
 
             return result;

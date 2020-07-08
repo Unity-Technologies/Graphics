@@ -349,8 +349,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     }
                 }
 
-                //// Try to update name when re-using a texture.
-                //// TODO RENDERGRAPH: Check if that actually works.
+                // Try to update name when re-using a texture.
+                // TODO RENDERGRAPH: Check if that actually works.
                 //resource.rt.name = name;
 
                 resource.cachedHash = hashCode;
@@ -510,7 +510,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         void ValidateComputeBufferDesc(in ComputeBufferDesc desc)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-            // TODO RENDERGRAPH: Check actual condition on stride.
             if (desc.stride % 4 != 0)
             {
                 throw new ArgumentException("Invalid Compute Buffer creation descriptor: Compute Buffer stride must be at least 4.");
