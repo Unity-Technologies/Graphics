@@ -61,10 +61,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             // Invalidate everything
             colorBufferMaxIndex = -1;
-            depthBuffer = new TextureHandle();
+            depthBuffer = TextureHandle.nullHandle;
             for (int i = 0; i < RenderGraph.kMaxMRTCount; ++i)
             {
-                colorBuffers[i] = new TextureHandle();
+                colorBuffers[i] = TextureHandle.nullHandle;
             }
         }
 

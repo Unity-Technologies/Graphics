@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal TextureHandle RenderShadows(RenderGraph renderGraph, CullingResults cullResults, in ShaderVariablesGlobal globalCB, FrameSettings frameSettings, string shadowPassName)
         {
-            TextureHandle result = new TextureHandle();
+            TextureHandle result = TextureHandle.nullHandle;
 
             if (m_ShadowRequests.Count == 0)
                 return result;

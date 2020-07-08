@@ -570,7 +570,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     return passData.densityBuffer;
                 }
             }
-            return new TextureHandle();
+            return TextureHandle.nullHandle;
         }
 
         class VolumetricLightingPassData
