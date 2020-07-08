@@ -972,6 +972,10 @@ namespace UnityEditor.Rendering.HighDefinition
             var hdrp = HDRenderPipeline.currentAsset;
             bool newShadowsEnabled = DrawEnableShadowMap(serialized, owner);
 
+            serialized.isCapsuleShadowLight.boolValue =  EditorGUILayout.Toggle(s_Styles.enableCapsuleShadows, serialized.isCapsuleShadowLight.boolValue);
+
+
+
             using (new EditorGUI.DisabledScope(!newShadowsEnabled))
             {
                 EditorGUILayout.PropertyField(serialized.shadowUpdateMode, s_Styles.shadowUpdateMode);

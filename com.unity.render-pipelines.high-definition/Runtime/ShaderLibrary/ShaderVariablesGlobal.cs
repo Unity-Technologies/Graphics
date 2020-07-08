@@ -178,6 +178,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float    _ReplaceDiffuseForIndirect;
 
         public Vector4 _AmbientOcclusionParam; // xyz occlusion color, w directLightStrenght
+        public Vector4 _CapsuleOcclusionParams; // x: Whether shadows are direct or indirect (for directional shadow map)  y: whether to apply spec occlusion or not. z: soft shadow intensity w: unused for now. 
 
         public float _IndirectDiffuseLightingMultiplier;
         public uint _IndirectDiffuseLightingLayers;
