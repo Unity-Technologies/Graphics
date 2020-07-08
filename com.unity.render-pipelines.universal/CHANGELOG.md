@@ -7,37 +7,38 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Added
-- Added option to enable/disable Adaptive Performance when it's package is available.
+- Added an option to enable/disable Adaptive Performance when the Adaptive Performance package is available in the project.
+- Added new sections to documentation: [Writing custom shaders](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@8.2/manual/writing-custom-shaders-urp.html), and [Using the beginCameraRendering event](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@8.2/manual/using-begincamerarendering.html).
 
 ### Changed
 - The 2D Renderer now supports camera stacking.
-- The pipeline is now computing tangent space in per fragment.
+- URP is now computing tangent space per fragment.
 
 ### Fixed
-- Fixed an issue where grid lines were being drawn on top of opaque objects in the preview window [case 1240723](https://issuetracker.unity3d.com/issues/urp-grid-is-rendered-in-front-of-the-model-in-the-inspector-animation-preview-window-when-depth-or-opaque-texture-is-enabled)
-- Fixed an issue where objects in the preview window were being affected by layer mask settings in the default renderer [case 1204376](https://issuetracker.unity3d.com/issues/urp-prefab-preview-is-blank-when-a-custom-forward-renderer-data-and-default-layer-mask-is-mixed-are-used)
-- Fixed issues with performance when importing fbx files
-- Fixed issues with NullReferenceException happening with URP shaders
-- Fixed an issue where the emission value in particle shaders would not update in the editor without entering playmode.
+- Fixed an issue where grid lines were drawn on top of opaque objects in the preview window. [Case 1240723](https://issuetracker.unity3d.com/issues/urp-grid-is-rendered-in-front-of-the-model-in-the-inspector-animation-preview-window-when-depth-or-opaque-texture-is-enabled).
+- Fixed an issue where objects in the preview window were affected by layer mask settings in the default renderer. [Case 1204376](https://issuetracker.unity3d.com/issues/urp-prefab-preview-is-blank-when-a-custom-forward-renderer-data-and-default-layer-mask-is-mixed-are-used).
+- Fixed issues with performance when importing fbx files.
+- Fixed issues with NullReferenceException happening with URP shaders.
+- Fixed an issue where the emission value in particle shaders would not update in the editor without entering Play mode.
 - Fixed SceneView Draw Modes not being properly updated after opening new scene view panels or changing the editor layout.
 - Fixed issue on Nintendo Switch where maximum number of visible lights in C# code did not match maximum number in shader code.
 - Fixed GLES shaders compilation failing on Windows platform (not a mobile platform) due to uniform count limit.
-- Fixed an issue where preset button could still be used, when it is not supposed to. [case 1246261](https://issuetracker.unity3d.com/issues/urp-reset-functionality-does-not-work-for-renderobject-preset-asset)
-- Fixed an issue that causes viewport to not work correctly when rendering to textures. [case 1225103](https://issuetracker.unity3d.com/issues/urp-the-viewport-rect-isnt-correctly-applied-when-the-camera-is-outputting-into-a-rendertexture)
+- Fixed an issue where the preset button could still be used, when it was not supposed to. [Case 1246261](https://issuetracker.unity3d.com/issues/urp-reset-functionality-does-not-work-for-renderobject-preset-asset).
+- Fixed an issue that caused viewport to not work correctly when rendering to textures. [Case 1225103](https://issuetracker.unity3d.com/issues/urp-the-viewport-rect-isnt-correctly-applied-when-the-camera-is-outputting-into-a-rendertexture).
 - Fixed an issue that caused incorrect sampling of HDR reflection probe textures.
-- Fixed UI text of RenderObjects feature to display LightMode tag instead of Shader Pass Name. [case 1201696](https://issuetracker.unity3d.com/issues/render-feature-slash-pass-ui-has-a-field-for-shader-pass-name-when-it-actually-expects-shader-pass-lightmode)
-- Fixed an issue that caused memory allocations when sorting cameras. [case 1226448](https://issuetracker.unity3d.com/issues/2d-renderer-using-more-than-one-camera-that-renders-out-to-a-render-texture-creates-gc-alloc-every-frame)
-- Fixed an issue that caused the inverse view and projection matrix to output wrong values in some platforms. [case 1243990](https://issuetracker.unity3d.com/issues/urp-8-dot-1-breaks-unity-matrix-i-vp)
+- Fixed UI text of RenderObjects feature to display LightMode tag instead of Shader Pass Name. [Case 1201696](https://issuetracker.unity3d.com/issues/render-feature-slash-pass-ui-has-a-field-for-shader-pass-name-when-it-actually-expects-shader-pass-lightmode).
+- Fixed an issue that caused memory allocations when sorting cameras. [Case 1226448](https://issuetracker.unity3d.com/issues/2d-renderer-using-more-than-one-camera-that-renders-out-to-a-render-texture-creates-gc-alloc-every-frame).
+- Fixed an issue that caused the inverse view and projection matrix to output wrong values in some platforms. [Case 1243990](https://issuetracker.unity3d.com/issues/urp-8-dot-1-breaks-unity-matrix-i-vp).
 - Fixed an issue where only unique names of cameras could be added to the camera stack.
-- Fixed an issue with URP switching such that every avaiable URP makes a total set of supported features such that all URPs are taken into consideration. [case 1157420](https://issuetracker.unity3d.com/issues/lwrp-srp-switching-doesnt-work-even-with-manually-adding-shadervariants-per-scene)
+- Fixed an issue with URP switching so that every available URP makes a total set of supported features, so that all URPs are taken into consideration. [Case 1157420](https://issuetracker.unity3d.com/issues/lwrp-srp-switching-doesnt-work-even-with-manually-adding-shadervariants-per-scene).
 - Fixed an issue that caused incorrect sampling of HDR reflection probe textures.
-- Fixed an issue that caused Android GLES to render blank screen when Depth texture was enabled without Opaque texture [case 1219325](https://issuetracker.unity3d.com/issues/scene-is-not-rendered-on-android-8-and-9-when-depth-texture-is-enabled-in-urp-asset)
-- Fixed an issue where XR multipass throws errors saying that it doesn't support camera stack spamming.
-- Metallic slider on the Lit shader is now linear meaning correct values are used for PBR.
-- Fixed issue where using DOF at the same time as Dynamic Scaling, the depth buffer was sampled with incorrect UVs. [case 1225467](https://issuetracker.unity3d.com/product/unity/issues/guid/1225467/)
+- Fixed an issue that caused Android GLES to render blank screen when Depth texture was enabled without Opaque texture. [Case 1219325](https://issuetracker.unity3d.com/issues/scene-is-not-rendered-on-android-8-and-9-when-depth-texture-is-enabled-in-urp-asset).
+- Fixed an issue where XR multipass repeatedly throws error messages "Multi pass stereo mode doesn't support Camera Stacking".
+- Metallic slider on the Lit shader is now linear, so that correct values are used for PBR.
+- Fixed an issue where using DOF at the same time as Dynamic Scaling, the depth buffer was sampled with incorrect UVs. [Case 1225467](https://issuetracker.unity3d.com/product/unity/issues/guid/1225467/).
 - Fixed an issue where URP Simple Lit shader had attributes swapped incorrectly for BaseMap and BaseColor properties.
-- Fixed an issue where camera stacking with MSAA on OpenGL resulted in a black screen. [case 1250602](https://issuetracker.unity3d.com/issues/urp-camera-stacking-results-in-black-screen-when-msaa-and-opengl-graphics-api-are-used)
-- Fixed issue with Model Importer materials using the Legacy standard shader instead of URP's Lit shader when import happens at Editor startup.
+- Fixed an issue where camera stacking with MSAA on OpenGL resulted in a black screen. [Case 1250602](https://issuetracker.unity3d.com/issues/urp-camera-stacking-results-in-black-screen-when-msaa-and-opengl-graphics-api-are-used).
+- Fixed an issue where Model Importer Materials used the Standard Shader from the Built-in Render Pipeline instead of URP Lit shader when the import happened at Editor startup.
 
 ## [8.1.0] - 2020-04-21
 
