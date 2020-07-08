@@ -18,7 +18,7 @@ _Microgeometry_ - Surfaces have geometry at a microscopic level. Some objects ha
 
 When light hits a a rendered object's surface, part of the light is reflected and part is refracted. The reflected light is called _specular reflection_. This varies depending on the camera direction and the point at which the light hits a surface, also called the [angle of incidence](<https://en.wikipedia.org/wiki/Angle_of_incidence_(optics)>). In this shading model, the shape of specular highlight is approximated with a [GGX function](https://blogs.unity3d.com/2016/01/25/ggx-in-unity-5-3/). 
 
-For metal objects, the surface absorbs and changes the light. For non-metallic objects, also called [dialetic](<https://en.wikipedia.org/wiki/Dielectric>) objects, the surface reflects parts of the light.
+For metal objects, the surface absorbs and changes the light. For non-metallic objects, also called [dielectric](<https://en.wikipedia.org/wiki/Dielectric>) objects, the surface reflects parts of the light.
 
 Light attenuation is only affected by the light intensity. This means that you don’t have to increase the range of your light to control the attenuation.
 
