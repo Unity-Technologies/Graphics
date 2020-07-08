@@ -210,12 +210,12 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (!UsesQualitySettings())
                 {
-                    return m_PhysicallyBased.value && focusMode.value == DepthOfFieldMode.UsePhysicalCamera;
+                    return m_PhysicallyBased.value;
                 }
                 else
                 {
                     int qualityLevel = (int)quality.levelAndOverride.level;
-                    return GetPostProcessingQualitySettings().DoFPhysicallyBased[qualityLevel] && focusMode.value == DepthOfFieldMode.UsePhysicalCamera;
+                    return GetPostProcessingQualitySettings().DoFPhysicallyBased[qualityLevel];
                 }
             }
             set { m_PhysicallyBased.value = value; }

@@ -96,7 +96,7 @@ float GetSampleWeight(float cocRadius)
     return 1.0f;
 #endif
 
-    if (cocRadius == 0.0) return 0.0;
+    if (cocRadius == 0.0) return 1.0;
 
     float pixelRadius = 0.7071f;
     float singlePixelArea = PI * pixelRadius * pixelRadius;

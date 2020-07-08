@@ -10,6 +10,7 @@
 
 CBUFFER_START(cb0)
 float4 _Params;
+float4 _Params2;
 CBUFFER_END
 
 // outpute texture
@@ -50,7 +51,27 @@ void KMainCoCManual(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    //TODO
+    float depth = LoadCameraDepth(dispatchThreadId.xy);
+    // Note: we can avoid explicit linearization by merging it with the other computations
+    float linearEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
 
-    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = 0.0f;
+    const float FarStart    = _Params.x;
+    const float NearEnd     = _Params.y;
+    const float FarRange    = _Params.z;   // 1 / (FarEnd - FarStart)
+    const float NearRange   = _Params.w;  // 1 / (NearStart - NearEnd)
+
+    const float NearMaxRadius   = _Params2.x;
+    const float FarMaxRadius    = _Params2.y;
+
+    float CoC = 0;
+    if (linearEyeDepth > FarStart)
+    {
+        CoC = FarMaxRadius * saturate((linearEyeDepth - FarStart) * FarRange);
+    }
+    else if (linearEyeDepth < NearEnd)
+    {
+        CoC = - NearMaxRadius * saturate((linearEyeDepth - NearEnd) * NearRange);
+    }
+
+    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = CoC;
 }

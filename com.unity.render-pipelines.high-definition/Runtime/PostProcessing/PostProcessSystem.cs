@@ -2293,7 +2293,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     float nearStart = Mathf.Min(m_DepthOfField.nearFocusStart.value, nearEnd - 1e-5f);
                     float farStart = Mathf.Max(m_DepthOfField.farFocusStart.value, nearEnd);
                     float farEnd = Mathf.Max(m_DepthOfField.farFocusEnd.value, farStart + 1e-5f);
-                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(nearStart, nearEnd, farStart, farEnd));
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(farStart, nearEnd, 1.0f / (farEnd - farStart), 1.0f / (nearStart - nearEnd)));
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(m_DepthOfField.nearMaxBlur, m_DepthOfField.farMaxBlur, 0, 0));
                 }
 
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, fullresCoC);
