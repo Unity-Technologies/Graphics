@@ -452,9 +452,10 @@ namespace UnityEngine.Rendering.Universal
             cullingParameters.maximumVisibleLights = 0xFFFF;
             cullingParameters.shadowDistance = cameraData.maxShadowDistance;
 
-            // if (enableSinglePassDeferred) {
-            //     cullingParameters.cullingOptions &= (~CullingOptions.NeedsLighting);
-            // }
+            // NOTE: should disable per object light culling, a.t.m, this also affect reflection probes
+            if (enableSinglePassDeferred) {
+                cullingParameters.cullingOptions |= CullingOptions.DisablePerObjectCulling;
+            }
         }
 
         /// <inheritdoc />
