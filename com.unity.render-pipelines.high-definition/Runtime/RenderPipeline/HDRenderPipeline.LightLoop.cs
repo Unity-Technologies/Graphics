@@ -261,6 +261,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public int                          gbufferCount;
             public int                          lightLayersTextureIndex;
+            public int                          shadowMaskTextureIndex;
             public TextureHandle[]              gbuffer = new TextureHandle[8];
 
             public ComputeBufferHandle          lightListBuffer;
@@ -311,6 +312,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.lightingBuffers = ReadLightingBuffers(lightingBuffers, builder);
 
                 passData.lightLayersTextureIndex = gbuffer.lightLayersTextureIndex;
+                passData.shadowMaskTextureIndex = gbuffer.shadowMaskTextureIndex;
                 passData.gbufferCount = gbuffer.gBufferCount;
                 for (int i = 0; i < gbuffer.gBufferCount; ++i)
                     passData.gbuffer[i] = builder.ReadTexture(gbuffer.mrt[i]);
@@ -352,6 +354,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetGlobalTexture(HDShaderIDs._LightLayersTexture, data.gbuffer[data.lightLayersTextureIndex]);
                     else
                         context.cmd.SetGlobalTexture(HDShaderIDs._LightLayersTexture, TextureXR.GetWhiteTexture());
+
+                    if (data.shadowMaskTextureIndex != -1)
+                        context.cmd.SetGlobalTexture(HDShaderIDs._ShadowMaskTexture, data.gbuffer[data.shadowMaskTextureIndex]);
+                    else
+                        context.cmd.SetGlobalTexture(HDShaderIDs._ShadowMaskTexture, TextureXR.GetWhiteTexture());
 
                     // TODO RENDERGRAPH: Remove these SetGlobal and properly send these textures to the deferred passes and bind them directly to compute shaders.
                     // This can wait that we remove the old code path.

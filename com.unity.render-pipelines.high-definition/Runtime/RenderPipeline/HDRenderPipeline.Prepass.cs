@@ -404,6 +404,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle[] mrt;
             public int gBufferCount;
             public int lightLayersTextureIndex;
+            public int shadowMaskTextureIndex;
         }
 
         void SetupGBufferTargets(RenderGraph renderGraph, HDCamera hdCamera, GBufferPassData passData, TextureHandle sssBuffer, ref PrepassOutput prepassOutput, FrameSettings frameSettings, RenderGraphBuilder builder)
@@ -439,6 +440,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }), 3);
 
             prepassOutput.gbuffer.lightLayersTextureIndex = -1;
+            prepassOutput.gbuffer.shadowMaskTextureIndex = -1;
             int currentIndex = 4;
             if (lightLayers)
             {
@@ -450,7 +452,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.gbufferRT[currentIndex] = builder.UseColorBuffer(renderGraph.CreateTexture(
                     new TextureDesc(Vector2.one, true, true) { colorFormat = Builtin.GetShadowMaskBufferFormat(), clearBuffer = clearGBuffer, clearColor = Color.clear, name = "ShadowMasks" }), currentIndex);
-                currentIndex++;
+                prepassOutput.gbuffer.shadowMaskTextureIndex = currentIndex++;
             }
 
             prepassOutput.gbuffer.gBufferCount = currentIndex;
