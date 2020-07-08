@@ -30,7 +30,7 @@ namespace UnityEditor.VFX.UI
         }
 
         protected VFXBaseSliderField<U> m_Slider;
-        protected TextValueField<U> m_TextField;
+        protected TextValueField<U>     m_TextField;
 
         protected abstract INotifyValueChanged<U> CreateSimpleField(out TextValueField<U> textField);
         protected abstract INotifyValueChanged<U> CreateSliderField(out VFXBaseSliderField<U> slider);
@@ -109,6 +109,7 @@ namespace UnityEditor.VFX.UI
             }
             if (m_TooltipHolder != null && m_Value != null)
                 m_TooltipHolder.tooltip = m_Value.ToString();
+
             base.UpdateGUI(force);
         }
 
@@ -167,10 +168,48 @@ namespace UnityEditor.VFX.UI
         public UintPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
+        public override float GetPreferredControlWidth()
+        {
+            if (m_Provider.attributes.Is(VFXPropertyAttributes.Type.Enum))
+                return 120;
+
+            return base.GetPreferredControlWidth() ;
+        }
+        protected VFXEnumValuePopup m_EnumPopup;
+
+        public override INotifyValueChanged<long> CreateField()
+        {
+            INotifyValueChanged<long> result;
+            if (m_Provider.attributes.Is(VFXPropertyAttributes.Type.Enum))
+            {
+                result = m_EnumPopup = new VFXEnumValuePopup();
+                m_EnumPopup.enumValues = m_Provider.attributes.FindEnum();
+            }
+            else
+                result = base.CreateField();
+            return result;
+        }
 
         protected override bool RangeShouldCreateSlider(Vector2 range)
         {
             return base.RangeShouldCreateSlider(range) && (uint)range.x < (uint)range.y;
+        }
+
+        public override bool IsCompatible(IPropertyRMProvider provider)
+        {
+            if (!base.IsCompatible(provider)) return false;
+
+
+            if (m_Provider.attributes.Is(VFXPropertyAttributes.Type.Enum) == (m_EnumPopup == null))
+                return false;
+
+            if(m_Provider.attributes.Is(VFXPropertyAttributes.Type.Enum))
+            {
+                string[] enumValues = m_Provider.attributes.FindEnum();
+
+                return Enumerable.SequenceEqual(enumValues, m_EnumPopup.enumValues);
+            }
+            return true;
         }
 
         protected override INotifyValueChanged<long> CreateSimpleField(out TextValueField<long> textField)

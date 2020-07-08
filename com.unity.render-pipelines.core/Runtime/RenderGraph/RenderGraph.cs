@@ -22,7 +22,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// <summary>
     /// This struct specifies the context given to every render pass.
     /// </summary>
-    public ref struct RenderGraphContext
+    public class RenderGraphContext
     {
         ///<summary>Scriptable Render Context used for rendering.</summary>
         public ScriptableRenderContext      renderContext;
@@ -197,6 +197,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         RenderGraphDefaultResources             m_DefaultResources = new RenderGraphDefaultResources();
         Dictionary<int, ProfilingSampler>       m_DefaultProfilingSamplers = new Dictionary<int, ProfilingSampler>();
         bool                                    m_ExecutionExceptionWasRaised;
+        RenderGraphContext                      m_RenderGraphContext = new RenderGraphContext();
 
         // Compiled Render Graph info.
         DynamicArray<CompiledResourceInfo>[]    m_CompiledResourcesInfos = new DynamicArray<CompiledResourceInfo>[(int)RenderGraphResourceType.Count];
@@ -810,12 +811,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         // Execute the compiled render graph
         void ExecuteRenderGraph(ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            RenderGraphContext rgContext = new RenderGraphContext();
-            rgContext.cmd = cmd;
-            rgContext.renderContext = renderContext;
-            rgContext.renderGraphPool = m_RenderGraphPool;
-            rgContext.resources = m_Resources;
-            rgContext.defaultResources = m_DefaultResources;
+            m_RenderGraphContext.cmd = cmd;
+            m_RenderGraphContext.renderContext = renderContext;
+            m_RenderGraphContext.renderGraphPool = m_RenderGraphPool;
+            m_RenderGraphContext.resources = m_Resources;
+            m_RenderGraphContext.defaultResources = m_DefaultResources;
 
             for (int passIndex = 0; passIndex < m_CompiledPassInfos.size; ++passIndex)
             {
@@ -830,14 +830,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                 try
                 {
-                    using (new ProfilingScope(rgContext.cmd, passInfo.pass.customSampler))
+                    using (new ProfilingScope(m_RenderGraphContext.cmd, passInfo.pass.customSampler))
                     {
                         LogRenderPassBegin(passInfo);
                         using (new RenderGraphLogIndent(m_Logger))
                         {
-                            PreRenderPassExecute(passInfo, ref rgContext);
-                            passInfo.pass.Execute(rgContext);
-                            PostRenderPassExecute(cmd, ref passInfo, ref rgContext);
+                            PreRenderPassExecute(passInfo, m_RenderGraphContext);
+                            passInfo.pass.Execute(m_RenderGraphContext);
+                            PostRenderPassExecute(cmd, ref passInfo, m_RenderGraphContext);
                         }
                     }
                 }
@@ -895,7 +895,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        void PreRenderPassExecute(in CompiledPassInfo passInfo, ref RenderGraphContext rgContext)
+        void PreRenderPassExecute(in CompiledPassInfo passInfo, RenderGraphContext rgContext)
         {
             // TODO RENDERGRAPH merge clear and setup here if possible
             RenderGraphPass pass = passInfo.pass;
@@ -930,7 +930,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        void PostRenderPassExecute(CommandBuffer mainCmd, ref CompiledPassInfo passInfo, ref RenderGraphContext rgContext)
+        void PostRenderPassExecute(CommandBuffer mainCmd, ref CompiledPassInfo passInfo, RenderGraphContext rgContext)
         {
             RenderGraphPass pass = passInfo.pass;
 
