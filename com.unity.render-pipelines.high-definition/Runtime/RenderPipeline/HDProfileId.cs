@@ -184,5 +184,8 @@ namespace UnityEngine.Rendering.HighDefinition
         CustomPostProcessAfterPP,
         CustomPostProcessAfterOpaqueAndSky,
         ContrastAdaptiveSharpen,
+        //this is capsule occluders section
+        PrepareVisibleCapsuleOccludersList,
+        CapsuleOcclusion,
     }
 }

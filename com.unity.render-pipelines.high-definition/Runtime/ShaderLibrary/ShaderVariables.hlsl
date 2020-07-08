@@ -144,6 +144,8 @@ SAMPLER(samplerunity_ProbeVolumeSH);
 TEXTURE2D(_ExposureTexture);
 TEXTURE2D(_PrevExposureTexture);
 
+TEXTURE2D_X(_CapsuleOcclusionsTexture);
+
 // ----------------------------------------------------------------------------
 
 // Define that before including all the sub systems ShaderVariablesXXX.hlsl files in order to include constant buffer properties.

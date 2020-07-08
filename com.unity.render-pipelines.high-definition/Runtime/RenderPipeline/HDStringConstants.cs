@@ -157,6 +157,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _PunctualLightCount = Shader.PropertyToID("_PunctualLightCount");
         public static readonly int _AreaLightCount = Shader.PropertyToID("_AreaLightCount");
         public static readonly int _EnvLightDatas = Shader.PropertyToID("_EnvLightDatas");
+        public static readonly int _CapsuleOccludersDatas = Shader.PropertyToID("_CapsuleOccludersDatas");
         public static readonly int _EnvLightCount = Shader.PropertyToID("_EnvLightCount");
         public static readonly int _EnvProxyCount = Shader.PropertyToID("_EnvProxyCount");
         public static readonly int _NumTileBigTileX = Shader.PropertyToID("_NumTileBigTileX");
@@ -283,6 +284,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DecalPropertyMaskBuffer = Shader.PropertyToID("_DecalPropertyMaskBuffer");
         public static readonly int _DecalPropertyMaskBufferSRV = Shader.PropertyToID("_DecalPropertyMaskBufferSRV");
 
+        // Capsule occlusions
+        public static readonly int _LUTGenParameters = Shader.PropertyToID("_LUTGenParameters");
+        public static readonly int _CapsuleShadowLUT = Shader.PropertyToID("_CapsuleShadowLUT");
+        public static readonly int _CapsuleShadowParameters = Shader.PropertyToID("_CapsuleShadowParameters");
+        public static readonly int _CapsuleShadowParameters2 = Shader.PropertyToID("_CapsuleShadowParameters2");
+        public static readonly int _CapsuleOcclusions = Shader.PropertyToID("_CapsuleOcclusions");
+        public static readonly int _CapsuleOcclusionIntensities = Shader.PropertyToID("_CapsuleOcclusionIntensities");
 
         public static readonly int _WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
         public static readonly int _PrevCamPosRWS = Shader.PropertyToID("_PrevCamPosRWS");
@@ -336,6 +344,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CameraSssDiffuseLightingBuffer = Shader.PropertyToID("_CameraSssDiffuseLightingTexture");
         public static readonly int _CameraFilteringBuffer          = Shader.PropertyToID("_CameraFilteringTexture");
         public static readonly int _IrradianceSource               = Shader.PropertyToID("_IrradianceSource");
+        public static readonly int _CapsuleOcclusionsTexture       = Shader.PropertyToID("_CapsuleOcclusionsTexture");
 
         public static readonly int _EnableDecals = Shader.PropertyToID("_EnableDecals");
         public static readonly int _DecalAtlasResolution = Shader.PropertyToID("_DecalAtlasResolution");

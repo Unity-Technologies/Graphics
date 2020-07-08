@@ -64,6 +64,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty evsmVarianceBias;
         public SerializedProperty evsmBlurPasses;
 
+        public SerializedProperty isCapsuleShadowLight;
+
         // Improved moment shadows data
         public SerializedProperty lightAngle;
         public SerializedProperty kernelSize;
@@ -350,6 +352,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Layers
                 linkLightLayers = o.Find("m_LinkShadowLayers");
                 lightlayersMask = o.Find("m_LightlayersMask");
+
+                isCapsuleShadowLight = o.Find((HDAdditionalLightData l) => l.isLightForCapsuleShadows);
 
                 // Shadow datas:
                 shadowDimmer = o.Find("m_ShadowDimmer");
