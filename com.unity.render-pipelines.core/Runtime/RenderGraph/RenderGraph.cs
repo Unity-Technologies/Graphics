@@ -20,7 +20,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     }
 
     /// <summary>
-    /// This struct specifies the context given to every render pass.
+    /// This class specifies the context given to every render pass.
     /// </summary>
     public class RenderGraphContext
     {
@@ -30,8 +30,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public CommandBuffer                cmd;
         ///<summary>Render Graph pooll used for temporary data.</summary>
         public RenderGraphObjectPool        renderGraphPool;
-        ///<summary>Render Graph Resource Registry used for accessing resources.</summary>
-        public RenderGraphResourceRegistry  resources;
         ///<summary>Render Graph default resources.</summary>
         public RenderGraphDefaultResources  defaultResources;
     }
@@ -403,7 +401,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 m_Logger.Initialize();
 
-                m_Resources.BeginRender(parameters.renderingWidth, parameters.renderingHeight, parameters.msaaSamples, parameters.currentFrameIndex);
+                m_Resources.BeginRender(parameters.currentFrameIndex);
 
                 LogFrameInformation(parameters.renderingWidth, parameters.renderingHeight);
 
@@ -426,6 +424,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                 m_DebugParameters.logFrameInformation = false;
                 m_DebugParameters.logResources = false;
+
+                m_Resources.EndRender();
             }
         }
         #endregion
@@ -814,7 +814,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_RenderGraphContext.cmd = cmd;
             m_RenderGraphContext.renderContext = renderContext;
             m_RenderGraphContext.renderGraphPool = m_RenderGraphPool;
-            m_RenderGraphContext.resources = m_Resources;
             m_RenderGraphContext.defaultResources = m_DefaultResources;
 
             for (int passIndex = 0; passIndex < m_CompiledPassInfos.size; ++passIndex)

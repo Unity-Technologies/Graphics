@@ -17,6 +17,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string s_TransparentBackfaceStr = "TransparentBackface";
         public static readonly string s_TransparentDepthPostpassStr = "TransparentDepthPostpass";
         public static readonly string s_RayTracingPrepassStr = "RayTracingPrepass";
+        public static readonly string s_RayTracingVisibilityStr = "VisibilityDXR";
+        public static readonly string s_PathTracingDXRStr = "PathTracingDXR";
         public static readonly string s_MetaStr = "META";
         public static readonly string s_ShadowCasterStr = "ShadowCaster";
         public static readonly string s_MeshDecalsMStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh_M];

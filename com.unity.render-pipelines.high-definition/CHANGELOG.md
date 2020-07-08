@@ -723,6 +723,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed unitialized ray tracing resources when using non-default HDRP asset (case 1259467).
 - Fixed overused the atlas for Animated/Render Target Cookies (1259930).
 - Fixed sky asserts with XR multipass
+- Fixed for area light not updating baked light result when modifying with gizmo.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -882,6 +883,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The `CustomPassLoadCameraColor` and `CustomPassSampleCameraColor` functions now returns the correct color buffer when used in after post process instead of the color pyramid (which didn't had post processes).
 - PBR Sky now doesn't go black when going below sea level, but it instead freezes calculation as if on the horizon. 
 - Fixed an issue with quality setting foldouts not opening when clicking on them (1253088).
+- Shutter speed can now be changed by dragging the mouse over the UI label (case 1245007).
 
 ## [7.1.1] - 2019-09-05
 

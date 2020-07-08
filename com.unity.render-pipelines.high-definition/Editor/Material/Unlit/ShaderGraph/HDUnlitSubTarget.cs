@@ -79,6 +79,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
+        protected override void CollectPassKeywords(ref PassDescriptor pass)
+        {
+            base.CollectPassKeywords(ref pass);
+
+            if (pass.IsForward())
+                pass.keywords.Add(CoreKeywordDescriptors.Shadow, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true));
+        }
+
         public override void GetFields(ref TargetFieldContext context)
         {
             base.GetFields(ref context);
