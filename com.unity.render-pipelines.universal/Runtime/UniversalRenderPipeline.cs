@@ -338,9 +338,19 @@ namespace UnityEngine.Rendering.Universal
                         baseCameraData.cameraTargetDescriptor.graphicsFormat = originalTargetDesc.graphicsFormat;
                     }
                     baseCameraData.cameraTargetDescriptor.msaaSamples = originalTargetDesc.msaaSamples;
+                    // Update cameraData for XR
+                    Rect cameraRect = baseCamera.rect;
+                    Rect xrViewport = baseCameraData.xr.GetViewport();
+                    baseCameraData.pixelRect = new Rect(cameraRect.x * xrViewport.width + xrViewport.x,
+                                                        cameraRect.y * xrViewport.height + xrViewport.y,
+                                                        cameraRect.width * xrViewport.width,
+                                                        cameraRect.height * xrViewport.height);
+                    baseCameraData.pixelWidth  = (int)(cameraRect.width * xrViewport.width);
+                    baseCameraData.pixelHeight = (int)(cameraRect.height * xrViewport.height);
+                    baseCameraData.aspectRatio = (float)baseCameraData.pixelWidth / (float)baseCameraData.pixelHeight;
                 }
 #endif
-                BeginCameraRendering(context, baseCamera);
+            BeginCameraRendering(context, baseCamera);
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
                 //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
                 VFX.VFXManager.PrepareCamera(baseCamera);
