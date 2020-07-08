@@ -10,6 +10,7 @@ using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
+using static UnityEditor.Rendering.HighDefinition.HDFields;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -17,14 +18,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public DecalSubTarget() => displayName = "Decal";
 
-        public static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Decal/ShaderGraph/DecalPass.template";
-
-        protected override string templatePath => passTemplatePath;
+        protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Decal/ShaderGraph/DecalPass.template";
+        protected override string[] templateMaterialDirectories =>  new string[]
+        {
+            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates",
+            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/"
+        };
         protected override string subTargetAssetGuid => "3ec927dfcb5d60e4883b2c224857b6c2";
         protected override string customInspector => "Rendering.HighDefinition.DecalGUI";
         protected override string renderType => HDRenderTypeTags.Opaque.ToString();
-        protected override string renderQueue => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, decalData.drawOrder, false));
+        protected override string renderQueue => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, decalData.drawOrder, false, false));
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Lit;
+        protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Decal Subshader", "");
+        protected override string subShaderInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl";
 
         // Material Data
         DecalData m_DecalData;
@@ -45,20 +51,34 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override IEnumerable<SubShaderDescriptor> EnumerateSubShaders()
         {
-            yield return SubShaders.Decal;
+            yield return PostProcessSubShader(SubShaders.Decal);
         }
+
+        protected override void CollectPassKeywords(ref PassDescriptor pass)
+        {
+            pass.keywords.Add(CoreKeywordDescriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true));
+        }
+
+        public static FieldDescriptor AffectsAlbedo =           new FieldDescriptor(kMaterial, "AffectsAlbedo", "_MATERIAL_AFFECTS_ALBEDO 1");
+        public static FieldDescriptor AffectsNormal =           new FieldDescriptor(kMaterial, "AffectsNormal", "_MATERIAL_AFFECTS_NORMAL 1");
+        public static FieldDescriptor AffectsEmission =         new FieldDescriptor(kMaterial, "AffectsEmission", "_MATERIAL_AFFECTS_EMISSION 1");
+        public static FieldDescriptor AffectsMetal =            new FieldDescriptor(kMaterial, "AffectsMetal", "");
+        public static FieldDescriptor AffectsAO =               new FieldDescriptor(kMaterial, "AffectsAO", "");
+        public static FieldDescriptor AffectsSmoothness =       new FieldDescriptor(kMaterial, "AffectsSmoothness", "");
+        public static FieldDescriptor AffectsMaskMap =          new FieldDescriptor(kMaterial, "AffectsMaskMap", "_MATERIAL_AFFECTS_MASKMAP 1");
+        public static FieldDescriptor DecalDefault =            new FieldDescriptor(kMaterial, "DecalDefault", "");
 
         public override void GetFields(ref TargetFieldContext context)
         {
             // Decal properties
-            context.AddField(HDFields.AffectsAlbedo,        decalData.affectsAlbedo);
-            context.AddField(HDFields.AffectsNormal,        decalData.affectsNormal);
-            context.AddField(HDFields.AffectsEmission,      decalData.affectsEmission);
-            context.AddField(HDFields.AffectsMetal,         decalData.affectsMetal);
-            context.AddField(HDFields.AffectsAO,            decalData.affectsAO);
-            context.AddField(HDFields.AffectsSmoothness,    decalData.affectsSmoothness);
-            context.AddField(HDFields.AffectsMaskMap,       decalData.affectsSmoothness || decalData.affectsMetal || decalData.affectsAO);
-            context.AddField(HDFields.DecalDefault,         decalData.affectsAlbedo || decalData.affectsNormal || decalData.affectsMetal ||
+            context.AddField(AffectsAlbedo,        decalData.affectsAlbedo);
+            context.AddField(AffectsNormal,        decalData.affectsNormal);
+            context.AddField(AffectsEmission,      decalData.affectsEmission);
+            context.AddField(AffectsMetal,         decalData.affectsMetal);
+            context.AddField(AffectsAO,            decalData.affectsAO);
+            context.AddField(AffectsSmoothness,    decalData.affectsSmoothness);
+            context.AddField(AffectsMaskMap,       decalData.affectsSmoothness || decalData.affectsMetal || decalData.affectsAO);
+            context.AddField(DecalDefault,         decalData.affectsAlbedo || decalData.affectsNormal || decalData.affectsMetal ||
                                                                     decalData.affectsAO || decalData.affectsSmoothness );
         }
 
@@ -110,16 +130,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             public static SubShaderDescriptor Decal = new SubShaderDescriptor()
             {
-                pipelineTag = HDRenderPipeline.k_ShaderTagName,
                 generatesPreview = true,
                 passes = new PassCollection
                 {
-                    { DecalPasses.Projector3RT, new FieldCondition(HDFields.DecalDefault, true) },
-                    { DecalPasses.Projector4RT, new FieldCondition(HDFields.DecalDefault, true) },
-                    { DecalPasses.ProjectorEmissive, new FieldCondition(HDFields.AffectsEmission, true) },
-                    { DecalPasses.Mesh3RT, new FieldCondition(HDFields.DecalDefault, true) },
-                    { DecalPasses.Mesh4RT, new FieldCondition(HDFields.DecalDefault, true) },
-                    { DecalPasses.MeshEmissive, new FieldCondition(HDFields.AffectsEmission, true) },
+                    { DecalPasses.Projector3RT, new FieldCondition(DecalDefault, true) },
+                    { DecalPasses.Projector4RT, new FieldCondition(DecalDefault, true) },
+                    { DecalPasses.ProjectorEmissive, new FieldCondition(AffectsEmission, true) },
+                    { DecalPasses.Mesh3RT, new FieldCondition(DecalDefault, true) },
+                    { DecalPasses.Mesh4RT, new FieldCondition(DecalDefault, true) },
+                    { DecalPasses.MeshEmissive, new FieldCondition(AffectsEmission, true) },
                     { DecalPasses.Preview, new FieldCondition(Fields.IsPreview, true) },
                 },
             };
@@ -138,10 +157,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_DBUFFER_PROJECTOR",
                 lightMode = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferProjector3RT],
                 useInPreview = false,
-
-                // Template
-                passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentDefault,
@@ -162,10 +177,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_DBUFFER_PROJECTOR",
                 lightMode = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferProjector4RT],
                 useInPreview = false,
-
-                // Template
-                passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentDefault,
@@ -189,10 +200,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 lightMode = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_ProjectorEmissive],
                 useInPreview = false,
 
-                // Template
-                passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
-
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentEmissive,
 
@@ -213,10 +220,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_DBUFFER_MESH",
                 lightMode = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferMesh3RT],
                 useInPreview = false,
-
-                // Template
-                passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentDefault,
@@ -241,10 +244,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 lightMode = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferMesh4RT],
                 useInPreview = false,
 
-                // Template
-                passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
-
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentDefault,
 
@@ -268,10 +267,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 lightMode = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_MeshEmissive],
                 useInPreview = false,
 
-                // Template
-                passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
-
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentMeshEmissive,
 
@@ -293,10 +288,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_FORWARD_PREVIEW",
                 lightMode = "ForwardOnly",
                 useInPreview = true,
-
-                // Template
-                passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentMeshEmissive,
@@ -411,37 +402,37 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // ColorMask per Affects Channel
                 { RenderState.ColorMask(s_DecalColorMasks[0]), new FieldCondition[] {
-                    new FieldCondition(HDFields.AffectsMetal, false),
-                    new FieldCondition(HDFields.AffectsAO, false),
-                    new FieldCondition(HDFields.AffectsSmoothness, false) } },
+                    new FieldCondition(AffectsMetal, false),
+                    new FieldCondition(AffectsAO, false),
+                    new FieldCondition(AffectsSmoothness, false) } },
                 { RenderState.ColorMask(s_DecalColorMasks[1]), new FieldCondition[] {
-                    new FieldCondition(HDFields.AffectsMetal, true),
-                    new FieldCondition(HDFields.AffectsAO, false),
-                    new FieldCondition(HDFields.AffectsSmoothness, false) } },
+                    new FieldCondition(AffectsMetal, true),
+                    new FieldCondition(AffectsAO, false),
+                    new FieldCondition(AffectsSmoothness, false) } },
                 { RenderState.ColorMask(s_DecalColorMasks[2]), new FieldCondition[] {
-                    new FieldCondition(HDFields.AffectsMetal, false),
-                    new FieldCondition(HDFields.AffectsAO, true),
-                    new FieldCondition(HDFields.AffectsSmoothness, false) } },
+                    new FieldCondition(AffectsMetal, false),
+                    new FieldCondition(AffectsAO, true),
+                    new FieldCondition(AffectsSmoothness, false) } },
                 { RenderState.ColorMask(s_DecalColorMasks[3]), new FieldCondition[] {
-                    new FieldCondition(HDFields.AffectsMetal, true),
-                    new FieldCondition(HDFields.AffectsAO, true),
-                    new FieldCondition(HDFields.AffectsSmoothness, false) } },
+                    new FieldCondition(AffectsMetal, true),
+                    new FieldCondition(AffectsAO, true),
+                    new FieldCondition(AffectsSmoothness, false) } },
                 { RenderState.ColorMask(s_DecalColorMasks[4]), new FieldCondition[] {
-                    new FieldCondition(HDFields.AffectsMetal, false),
-                    new FieldCondition(HDFields.AffectsAO, false),
-                    new FieldCondition(HDFields.AffectsSmoothness, true) } },
+                    new FieldCondition(AffectsMetal, false),
+                    new FieldCondition(AffectsAO, false),
+                    new FieldCondition(AffectsSmoothness, true) } },
                 { RenderState.ColorMask(s_DecalColorMasks[5]), new FieldCondition[] {
-                    new FieldCondition(HDFields.AffectsMetal, true),
-                    new FieldCondition(HDFields.AffectsAO, false),
-                    new FieldCondition(HDFields.AffectsSmoothness, true) } },
+                    new FieldCondition(AffectsMetal, true),
+                    new FieldCondition(AffectsAO, false),
+                    new FieldCondition(AffectsSmoothness, true) } },
                 { RenderState.ColorMask(s_DecalColorMasks[6]), new FieldCondition[] {
-                    new FieldCondition(HDFields.AffectsMetal, false),
-                    new FieldCondition(HDFields.AffectsAO, true),
-                    new FieldCondition(HDFields.AffectsSmoothness, true) } },
+                    new FieldCondition(AffectsMetal, false),
+                    new FieldCondition(AffectsAO, true),
+                    new FieldCondition(AffectsSmoothness, true) } },
                 { RenderState.ColorMask(s_DecalColorMasks[7]), new FieldCondition[] {
-                    new FieldCondition(HDFields.AffectsMetal, true),
-                    new FieldCondition(HDFields.AffectsAO, true),
-                    new FieldCondition(HDFields.AffectsSmoothness, true) } },
+                    new FieldCondition(AffectsMetal, true),
+                    new FieldCondition(AffectsAO, true),
+                    new FieldCondition(AffectsSmoothness, true) } },
             };
 
             public static RenderStateCollection ProjectorEmissive = new RenderStateCollection
@@ -482,37 +473,37 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // ColorMask per Affects Channel
                 { RenderState.ColorMask(s_DecalColorMasks[0]), new FieldCondition[] {
-                    new FieldCondition(HDFields.AffectsMetal, false),
-                    new FieldCondition(HDFields.AffectsAO, false),
-                    new FieldCondition(HDFields.AffectsSmoothness, false) } },
+                    new FieldCondition(AffectsMetal, false),
+                    new FieldCondition(AffectsAO, false),
+                    new FieldCondition(AffectsSmoothness, false) } },
                 { RenderState.ColorMask(s_DecalColorMasks[1]), new FieldCondition[] {
-                    new FieldCondition(HDFields.AffectsMetal, true),
-                    new FieldCondition(HDFields.AffectsAO, false),
-                    new FieldCondition(HDFields.AffectsSmoothness, false) } },
+                    new FieldCondition(AffectsMetal, true),
+                    new FieldCondition(AffectsAO, false),
+                    new FieldCondition(AffectsSmoothness, false) } },
                 { RenderState.ColorMask(s_DecalColorMasks[2]), new FieldCondition[] {
-                    new FieldCondition(HDFields.AffectsMetal, false),
-                    new FieldCondition(HDFields.AffectsAO, true),
-                    new FieldCondition(HDFields.AffectsSmoothness, false) } },
+                    new FieldCondition(AffectsMetal, false),
+                    new FieldCondition(AffectsAO, true),
+                    new FieldCondition(AffectsSmoothness, false) } },
                 { RenderState.ColorMask(s_DecalColorMasks[3]), new FieldCondition[] {
-                    new FieldCondition(HDFields.AffectsMetal, true),
-                    new FieldCondition(HDFields.AffectsAO, true),
-                    new FieldCondition(HDFields.AffectsSmoothness, false) } },
+                    new FieldCondition(AffectsMetal, true),
+                    new FieldCondition(AffectsAO, true),
+                    new FieldCondition(AffectsSmoothness, false) } },
                 { RenderState.ColorMask(s_DecalColorMasks[4]), new FieldCondition[] {
-                    new FieldCondition(HDFields.AffectsMetal, false),
-                    new FieldCondition(HDFields.AffectsAO, false),
-                    new FieldCondition(HDFields.AffectsSmoothness, true) } },
+                    new FieldCondition(AffectsMetal, false),
+                    new FieldCondition(AffectsAO, false),
+                    new FieldCondition(AffectsSmoothness, true) } },
                 { RenderState.ColorMask(s_DecalColorMasks[5]), new FieldCondition[] {
-                    new FieldCondition(HDFields.AffectsMetal, true),
-                    new FieldCondition(HDFields.AffectsAO, false),
-                    new FieldCondition(HDFields.AffectsSmoothness, true) } },
+                    new FieldCondition(AffectsMetal, true),
+                    new FieldCondition(AffectsAO, false),
+                    new FieldCondition(AffectsSmoothness, true) } },
                 { RenderState.ColorMask(s_DecalColorMasks[6]), new FieldCondition[] {
-                    new FieldCondition(HDFields.AffectsMetal, false),
-                    new FieldCondition(HDFields.AffectsAO, true),
-                    new FieldCondition(HDFields.AffectsSmoothness, true) } },
+                    new FieldCondition(AffectsMetal, false),
+                    new FieldCondition(AffectsAO, true),
+                    new FieldCondition(AffectsSmoothness, true) } },
                 { RenderState.ColorMask(s_DecalColorMasks[7]), new FieldCondition[] {
-                    new FieldCondition(HDFields.AffectsMetal, true),
-                    new FieldCondition(HDFields.AffectsAO, true),
-                    new FieldCondition(HDFields.AffectsSmoothness, true) } },
+                    new FieldCondition(AffectsMetal, true),
+                    new FieldCondition(AffectsAO, true),
+                    new FieldCondition(AffectsSmoothness, true) } },
             };
 
             public static RenderStateCollection MeshEmissive = new RenderStateCollection
@@ -575,7 +566,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             };
         }
 #endregion
-        // protected override IncludeCollection subShaderIncludes => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl";
 
 #region Includes
         static class DecalIncludes

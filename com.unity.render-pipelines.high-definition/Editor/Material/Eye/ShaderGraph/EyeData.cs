@@ -27,5 +27,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_SubsurfaceScattering;
             set => m_SubsurfaceScattering = value;
         }
+
+        [SerializeField]
+        bool m_IrisNormal = false;
+        public bool irisNormal
+        {
+            get => m_IrisNormal;
+            set => m_IrisNormal = value;
+        }
     }
 }

@@ -10,6 +10,7 @@ using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
+using static UnityEditor.Rendering.HighDefinition.HDFields;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -27,6 +28,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             get => m_LightingData;
             set => m_LightingData = value;
+        }
+
+        protected override string renderQueue
+        {
+            get => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(systemData.renderingPass, systemData.sortPriority, systemData.alphaTest, lightingData.receiveDecals));
         }
 
         protected override string renderType => HDRenderTypeTags.HDLitShader.ToString();
@@ -71,32 +77,60 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Common properties to all Lit master nodes
             var descs = context.blocks.Select(x => x.descriptor);
 
-            // Normal dropoff space
-            context.AddField(Fields.NormalDropOffOS,                        lightingData.normalDropOffSpace == NormalDropOffSpace.Object);
-            context.AddField(Fields.NormalDropOffTS,                        lightingData.normalDropOffSpace == NormalDropOffSpace.Tangent);
-            context.AddField(Fields.NormalDropOffWS,                        lightingData.normalDropOffSpace == NormalDropOffSpace.World);
-
             // Misc
-            context.AddField(HDFields.BlendPreserveSpecular,                systemData.surfaceType != SurfaceType.Opaque && lightingData.blendPreserveSpecular);
-            context.AddField(HDFields.DisableDecals,                        !lightingData.receiveDecals);
-            context.AddField(HDFields.DisableSSR,                           !lightingData.receiveSSR);
-            context.AddField(HDFields.DisableSSRTransparent,                !lightingData.receiveSSRTransparent);
-            context.AddField(HDFields.SpecularAA,                           lightingData.specularAA &&
-                                                                                context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold) &&
-                                                                                context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance));
-            context.AddField(HDFields.LightingGI,                           descs.Contains(HDBlockFields.SurfaceDescription.BakedGI) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedGI));
-            context.AddField(HDFields.BackLightingGI,                       descs.Contains(HDBlockFields.SurfaceDescription.BakedBackGI) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedBackGI));
-            context.AddField(HDFields.BentNormal,                           descs.Contains(HDBlockFields.SurfaceDescription.BentNormal) && context.connectedBlocks.Contains(HDBlockFields.SurfaceDescription.BentNormal) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BentNormal));
+            context.AddField(LightingGI,                           descs.Contains(HDBlockFields.SurfaceDescription.BakedGI) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedGI));
+            context.AddField(BackLightingGI,                       descs.Contains(HDBlockFields.SurfaceDescription.BakedBackGI) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedBackGI));
+            context.AddField(BentNormal,                           descs.Contains(HDBlockFields.SurfaceDescription.BentNormal) && context.connectedBlocks.Contains(HDBlockFields.SurfaceDescription.BentNormal) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BentNormal));
             context.AddField(HDFields.AmbientOcclusion,                     context.blocks.Contains((BlockFields.SurfaceDescription.Occlusion, false)) && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.Occlusion));
 
             // Specular Occlusion Fields
-            context.AddField(HDFields.SpecularOcclusionFromAO,              lightingData.specularOcclusionMode == SpecularOcclusionMode.FromAO);
-            context.AddField(HDFields.SpecularOcclusionFromAOBentNormal,    lightingData.specularOcclusionMode == SpecularOcclusionMode.FromAOAndBentNormal);
-            context.AddField(HDFields.SpecularOcclusionCustom,              lightingData.specularOcclusionMode == SpecularOcclusionMode.Custom);
+            context.AddField(SpecularOcclusionFromAO,              lightingData.specularOcclusionMode == SpecularOcclusionMode.FromAO);
+            context.AddField(SpecularOcclusionFromAOBentNormal,    lightingData.specularOcclusionMode == SpecularOcclusionMode.FromAOAndBentNormal);
+            context.AddField(SpecularOcclusionCustom,              lightingData.specularOcclusionMode == SpecularOcclusionMode.Custom);
 
             // Double Sided
-            context.AddField(HDFields.DoubleSidedFlip,                      systemData.doubleSidedMode == DoubleSidedMode.FlippedNormals && context.pass.referenceName != "SHADERPASS_MOTION_VECTORS");
-            context.AddField(HDFields.DoubleSidedMirror,                    systemData.doubleSidedMode == DoubleSidedMode.MirroredNormals && context.pass.referenceName != "SHADERPASS_MOTION_VECTORS");
+            context.AddField(DoubleSidedFlip,                      systemData.doubleSidedMode == DoubleSidedMode.FlippedNormals && context.pass.referenceName != "SHADERPASS_MOTION_VECTORS");
+            context.AddField(DoubleSidedMirror,                    systemData.doubleSidedMode == DoubleSidedMode.MirroredNormals && context.pass.referenceName != "SHADERPASS_MOTION_VECTORS");
+        }
+
+        protected override void CollectPassKeywords(ref PassDescriptor pass)
+        {
+            base.CollectPassKeywords(ref pass);
+
+            pass.keywords.Add(CoreKeywordDescriptors.DisableDecals);
+            pass.keywords.Add(CoreKeywordDescriptors.DisableSSR);
+            pass.keywords.Add(CoreKeywordDescriptors.DisableSSRTransparent);
+            pass.keywords.Add(CoreKeywordDescriptors.BlendModePreserveSpecularLighting);
+            // pass.keywords.Add(CoreKeywordDescriptors.EnableGeometricSpecularAA);
+
+            if (pass.IsDepthOrMV())
+            {
+                pass.keywords.Add(CoreKeywordDescriptors.WriteDecalBuffer);
+            }
+
+            if (pass.IsLightingOrMaterial())
+            {
+                pass.keywords.Add(CoreKeywordDescriptors.Lightmap);
+                pass.keywords.Add(CoreKeywordDescriptors.DirectionalLightmapCombined);
+
+                if (!pass.IsDXR())
+                {
+                    pass.keywords.Add(CoreKeywordDescriptors.DynamicLightmap);
+                    pass.keywords.Add(CoreKeywordDescriptors.ShadowsShadowmask);
+                    pass.keywords.Add(CoreKeywordDescriptors.Decals);
+                }
+            }
+
+            if (pass.IsForward())
+            {
+                pass.keywords.Add(CoreKeywordDescriptors.Shadow);
+                pass.keywords.Add(CoreKeywordDescriptors.ScreenSpaceShadow);
+
+                if (pass.lightMode == HDShaderPassNames.s_TransparentBackfaceStr)
+                    pass.defines.Add(CoreKeywordDescriptors.LightList, 1);
+                else
+                    pass.keywords.Add(CoreKeywordDescriptors.LightList);
+            }
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -130,6 +164,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Add all shader properties required by the inspector
             HDSubShaderUtilities.AddStencilShaderProperties(collector, systemData, lightingData, requireSplitLighting);
+        }
+
+        public override void ProcessPreviewMaterial(Material material)
+        {
+            base.ProcessPreviewMaterial(material);
+
+            material.SetFloat(kEnableBlendModePreserveSpecularLighting, lightingData.blendPreserveSpecular ? 1 : 0);
+            material.SetFloat(kReceivesSSR, lightingData.receiveSSR ? 1 : 0);
+            material.SetFloat(kReceivesSSRTransparent, lightingData.receiveSSRTransparent ? 1 : 0);
         }
     }
 }

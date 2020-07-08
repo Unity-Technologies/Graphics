@@ -19,6 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         class Styles
         {
             public static GUIContent materialType = new GUIContent("Material Type", "TODO");
+            public static GUIContent irisNormalType = new GUIContent("Iris Normal", "Override the iris normal");
         }
 
         EyeData eyeData;
@@ -34,6 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Eye specific properties:
             AddProperty(subsurfaceEnableText, () => eyeData.subsurfaceScattering, (newValue) => eyeData.subsurfaceScattering = newValue);
+            AddProperty(Styles.irisNormalType, () => eyeData.irisNormal, (newValue) => eyeData.irisNormal = newValue);
         }
     }
 }

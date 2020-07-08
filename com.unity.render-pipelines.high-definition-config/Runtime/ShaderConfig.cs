@@ -5,14 +5,6 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
     [GenerateHLSL(PackingRules.Exact)]
-    public enum HDShadowFilteringQuality
-    {
-        Low = 0,
-        Medium = 1,
-        High = 2,
-    }
-
-    [GenerateHLSL(PackingRules.Exact)]
     public enum ProbeVolumesEvaluationModes
     {
         Disabled = 0,
@@ -21,16 +13,29 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [GenerateHLSL(PackingRules.Exact)]
+    public enum ProbeVolumesEncodingModes
+    {
+        SphericalHarmonicsL0 = 0,
+        SphericalHarmonicsL1 = 1,
+        SphericalHarmonicsL2 = 2
+    }
+
+    [GenerateHLSL(PackingRules.Exact)]
+    public enum ProbeVolumesBilateralFilteringModes
+    {
+        Disabled = 0,
+        Validity = 1,
+        OctahedralDepth = 2
+    }
+
+    [GenerateHLSL(PackingRules.Exact)]
     public enum ShaderOptions
     {
+        ColoredShadow = 1, // Allow to defined if colored shadow are supported in shaders or not
         CameraRelativeRendering = 1, // Rendering sets the origin of the world to the position of the primary (scene view) camera
         PreExposition = 1,
         PrecomputedAtmosphericAttenuation = 0, // Precomputes atmospheric attenuation for the directional light on the CPU, which makes it independent from the fragment's position, which is faster but wrong
-#if ENABLE_RAYTRACING
-        Raytracing = 1,
-#else
-        Raytracing = 0,
-#endif
+
 #if ENABLE_VR
         XrMaxViews = 2, // Used for single-pass rendering (with fast path in vertex shader code when forced to 2)
 #else
@@ -47,11 +52,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // Probe Volumes feature must also be enabled inside of your HDRenderPipelineAsset.
         ProbeVolumesEvaluationMode = ProbeVolumesEvaluationModes.Disabled,
         ProbeVolumesAdditiveBlending = 1,
+        ProbeVolumesBilateralFilteringMode = ProbeVolumesBilateralFilteringModes.Validity,
+        ProbeVolumesEncodingMode = ProbeVolumesEncodingModes.SphericalHarmonicsL1,
 
         AreaLights = 1,
-
-        [System.Obsolete("Deferred shadow can now assume any value, so this field is not used anymore.")]
-        DeferredShadowFiltering = HDShadowFilteringQuality.Medium,
 
         BarnDoor = 0
     };
@@ -69,9 +73,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static int s_PrecomputedAtmosphericAttenuation = (int)ShaderOptions.PrecomputedAtmosphericAttenuation;
         public static ProbeVolumesEvaluationModes s_ProbeVolumesEvaluationMode = (ProbeVolumesEvaluationModes)ShaderOptions.ProbeVolumesEvaluationMode;
         public static int s_ProbeVolumesAdditiveBlending = (int)ShaderOptions.ProbeVolumesAdditiveBlending;
+        public static ProbeVolumesBilateralFilteringModes s_ProbeVolumesBilateralFilteringMode = (ProbeVolumesBilateralFilteringModes)ShaderOptions.ProbeVolumesBilateralFilteringMode;
+        public static ProbeVolumesEncodingModes s_ProbeVolumesEncodingMode = (ProbeVolumesEncodingModes)ShaderOptions.ProbeVolumesEncodingMode;
         public static int s_AreaLights = (int)ShaderOptions.AreaLights;
         public static int s_BarnDoor = (int)ShaderOptions.BarnDoor;
-        [System.Obsolete("Deferred shadow can now assume any value, so this field is not used anymore.")]
-        public static HDShadowFilteringQuality s_DeferredShadowFiltering = (HDShadowFilteringQuality)ShaderOptions.DeferredShadowFiltering;
     }
 }

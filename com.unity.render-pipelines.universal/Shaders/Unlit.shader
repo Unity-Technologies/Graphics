@@ -42,8 +42,8 @@ Shader "Universal Render Pipeline/Unlit"
 
             #pragma vertex vert
             #pragma fragment frag
-            #pragma shader_feature _ALPHATEST_ON
-            #pragma shader_feature _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
 
             // -------------------------------------
             // Unity defined keywords
@@ -123,7 +123,7 @@ Shader "Universal Render Pipeline/Unlit"
 
             // -------------------------------------
             // Material Keywords
-            #pragma shader_feature _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
 
             //--------------------------------------
             // GPU Instancing
@@ -175,8 +175,8 @@ Shader "Universal Render Pipeline/Unlit"
             
             #pragma vertex vert
             #pragma fragment frag
-            #pragma shader_feature _ALPHATEST_ON
-            #pragma shader_feature _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
 
             // -------------------------------------
             // Unity defined keywords
@@ -256,7 +256,7 @@ Shader "Universal Render Pipeline/Unlit"
             
             // -------------------------------------
             // Material Keywords
-            #pragma shader_feature _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
                         
             //--------------------------------------
             // GPU Instancing

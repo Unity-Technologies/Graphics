@@ -65,6 +65,20 @@ namespace UnityEngine.Rendering.HighDefinition
         public AnimationCurveParameter curveMap = new AnimationCurveParameter(AnimationCurve.Linear(-10f, -10f, 20f, 20f)); // TODO: Use TextureCurve instead?
 
         /// <summary>
+        /// Specifies a curve that determines for each current exposure value (x-value) what minimum value is allowed to auto-adaptation (y-axis).
+        /// This parameter is only used when <see cref="ExposureMode.CurveMapping"/> is set.
+        /// </summary>
+        [Tooltip("Specifies a curve that determines for each current exposure value (x-value) what minimum value is allowed to auto-adaptation (y-axis).")]
+        public AnimationCurveParameter limitMinCurveMap = new AnimationCurveParameter(AnimationCurve.Linear(-10f, -12f, 20f, 18f));
+
+        /// <summary>
+        /// Specifies a curve that determines for each current exposure value (x-value) what maximum value is allowed to auto-adaptation (y-axis).
+        /// This parameter is only used when <see cref="ExposureMode.CurveMapping"/> is set.
+        /// </summary>
+        [Tooltip("Specifies a curve that determines for each current exposure value (x-value) what maximum value is allowed to auto-adaptation (y-axis).")]
+        public AnimationCurveParameter limitMaxCurveMap = new AnimationCurveParameter(AnimationCurve.Linear(-10f, -8f, 20f, 22f));
+
+        /// <summary>
         /// Specifies the method that HDRP uses to change the exposure when the Camera moves from dark to light and vice versa.
         /// This parameter is only used when <see cref="ExposureMode.Automatic"/> or <see cref="ExposureMode.CurveMapping"/> is set.
         /// </summary>
@@ -123,9 +137,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public NoInterpVector2Parameter proceduralCenter = new NoInterpVector2Parameter(new Vector2(0.5f, 0.5f));
         /// <summary>
-        /// Sets the radii of the procedural mask, in terms of fraction of the screen (i.e. 0.5 means a radius that stretch half of the screen).
+        /// Sets the radii of the procedural mask, in terms of fraction of half the screen (i.e. 0.5 means a mask that stretch half of the screen in both directions).
         /// </summary>
-        public NoInterpVector2Parameter proceduralRadii  = new NoInterpVector2Parameter(new Vector2(0.15f, 0.15f));
+        public NoInterpVector2Parameter proceduralRadii  = new NoInterpVector2Parameter(new Vector2(0.3f, 0.3f));
         /// <summary>
         /// All pixels below this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask. 
         /// </summary>

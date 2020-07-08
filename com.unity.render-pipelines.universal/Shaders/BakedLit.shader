@@ -39,17 +39,18 @@ Shader "Universal Render Pipeline/Baked Lit"
 
             #pragma vertex vert
             #pragma fragment frag
-            #pragma shader_feature _ _NORMALMAP
-            #pragma shader_feature _ALPHATEST_ON
-            #pragma shader_feature _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
 
             // -------------------------------------
             // Unity defined keywords
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile_fragment _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             // Lighting include is needed because of GI
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
@@ -133,6 +134,9 @@ Shader "Universal Render Pipeline/Baked Lit"
     #endif
                 normalWS = NormalizeNormalPerPixel(normalWS);
                 color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
+                #if defined(_SCREEN_SPACE_OCCLUSION)
+                    color *= SampleAmbientOcclusion(input.vertex);
+                #endif
                 color = MixFog(color, input.uv0AndFogCoord.z);
                 alpha = OutputAlpha(alpha);
 
@@ -157,7 +161,7 @@ Shader "Universal Render Pipeline/Baked Lit"
 
             // -------------------------------------
             // Material Keywords
-            #pragma shader_feature _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
 
             //--------------------------------------
             // GPU Instancing
@@ -166,6 +170,41 @@ Shader "Universal Render Pipeline/Baked Lit"
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
+            ENDHLSL
+        }
+
+        // This pass is used when drawing to a _CameraNormalsTexture texture
+        Pass
+        {
+            Name "DepthNormals"
+            Tags{"LightMode" = "DepthNormals"}
+
+            ZWrite On
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            #pragma exclude_renderers d3d11_9x gles
+            #pragma target 4.5
+
+            #pragma vertex DepthNormalsVertex
+            #pragma fragment DepthNormalsFragment
+
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature_local _ _NORMALMAP
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+
+            //--------------------------------------
+            // Defines
+            #define BUMP_SCALE_NOT_SUPPORTED 1
+
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthNormalsPass.hlsl"
             ENDHLSL
         }
 
@@ -204,8 +243,8 @@ Shader "Universal Render Pipeline/Baked Lit"
 
             #pragma vertex vert
             #pragma fragment frag
-            #pragma shader_feature _ALPHATEST_ON
-            #pragma shader_feature _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Universal2D.hlsl"
@@ -233,16 +272,18 @@ Shader "Universal Render Pipeline/Baked Lit"
 
             #pragma vertex vert
             #pragma fragment frag
-            #pragma shader_feature _ _NORMALMAP
-            #pragma shader_feature _ALPHATEST_ON
-            #pragma shader_feature _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature_local _ _NORMALMAP
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
 
             // -------------------------------------
             // Unity defined keywords
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile_fragment _ DIRLIGHTMAP_COMBINED
+			#pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             // Lighting include is needed because of GI
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
@@ -326,6 +367,9 @@ Shader "Universal Render Pipeline/Baked Lit"
     #endif
                 normalWS = NormalizeNormalPerPixel(normalWS);
                 color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
+                #if defined(_SCREEN_SPACE_OCCLUSION)
+                    color *= SampleAmbientOcclusion(input.vertex);
+                #endif
                 color = MixFog(color, input.uv0AndFogCoord.z);
                 alpha = OutputAlpha(alpha);
 
@@ -344,7 +388,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore
             #pragma target 2.0
-            
+
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
@@ -354,10 +398,44 @@ Shader "Universal Render Pipeline/Baked Lit"
 
             // -------------------------------------
             // Material Keywords
-            #pragma shader_feature _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
+            ENDHLSL
+        }
+
+        // This pass is used when drawing to a _CameraNormalsTexture texture
+        Pass
+        {
+            Name "DepthNormals"
+            Tags{"LightMode" = "DepthNormals"}
+
+            ZWrite On
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            #pragma only_renderers gles gles3 glcore
+            #pragma target 2.0
+
+            #pragma vertex DepthNormalsVertex
+            #pragma fragment DepthNormalsFragment
+
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature_local _ _NORMALMAP
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+
+            //--------------------------------------
+            // Defines
+            #define BUMP_SCALE_NOT_SUPPORTED 1
+
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthNormalsPass.hlsl"
             ENDHLSL
         }
 
@@ -396,8 +474,8 @@ Shader "Universal Render Pipeline/Baked Lit"
 
             #pragma vertex vert
             #pragma fragment frag
-            #pragma shader_feature _ALPHATEST_ON
-            #pragma shader_feature _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Universal2D.hlsl"

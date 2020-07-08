@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle source;
             public TextureHandle destination;
             public TextureHandle logLut;
+            public TextureHandle bloomTexture;
         }
 
         class AlphaCopyPassData
@@ -27,14 +28,154 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputAlpha;
         }
 
-        public void Render( RenderGraph     renderGraph,
-                            HDCamera        hdCamera,
-                            BlueNoise       blueNoise,
-                            TextureHandle   colorBuffer,
-                            TextureHandle   afterPostProcessTexture,
-                            TextureHandle   depthBuffer,
-                            TextureHandle   finalRT,
-                            bool            flipY)
+        class GuardBandPassData
+        {
+            public ClearWithGuardBandsParameters parameters;
+            public TextureHandle source;
+        }
+
+        class StopNaNPassData
+        {
+            public StopNaNParameters parameters;
+            public TextureHandle source;
+            public TextureHandle destination;
+        }
+
+        class DynamicExposureData
+        {
+            public ExposureParameters parameters;
+            public TextureHandle source;
+            public TextureHandle prevExposure;
+            public TextureHandle nextExposure;
+            public TextureHandle exposureDebugData;
+            public TextureHandle tmpTarget1024;
+            public TextureHandle tmpTarget32;
+        }
+
+        class ApplyExposureData
+        {
+            public ApplyExposureParameters parameters;
+            public TextureHandle source;
+            public TextureHandle destination;
+            public TextureHandle prevExposure;
+        }
+
+        class TemporalAntiAliasingData
+        {
+            public TemporalAntiAliasingParameters parameters;
+            public TextureHandle source;
+            public TextureHandle destination;
+            public TextureHandle motionVecTexture;
+            public TextureHandle depthBuffer;
+            public TextureHandle depthMipChain;
+            public TextureHandle prevHistory;
+            public TextureHandle nextHistory;
+            public TextureHandle prevMVLen;
+            public TextureHandle nextMVLen;
+        }
+
+        class SMAAData
+        {
+            public SMAAParameters parameters;
+            public TextureHandle source;
+            public TextureHandle destination;
+            public TextureHandle depthBuffer;
+            public TextureHandle smaaEdgeTex;
+            public TextureHandle smaaBlendTex;
+        }
+
+        class FXAAData
+        {
+            public FXAAParameters parameters;
+            public TextureHandle source;
+            public TextureHandle destination;
+        }
+
+        class MotionBlurData
+        {
+            public MotionBlurParameters parameters;
+            public TextureHandle source;
+            public TextureHandle destination;
+            public TextureHandle motionVecTexture;
+            public TextureHandle preppedMotionVec;
+            public TextureHandle minMaxTileVel;
+            public TextureHandle maxTileNeigbourhood;
+            public TextureHandle tileToScatterMax;
+            public TextureHandle tileToScatterMin;
+        }
+
+        class PaniniProjectionData
+        {
+            public PaniniProjectionParameters parameters;
+            public TextureHandle source;
+            public TextureHandle destination;
+        }
+
+        class BloomData
+        {
+            public BloomParameters parameters;
+            public TextureHandle source;
+            public TextureHandle[] mipsDown = new TextureHandle[k_MaxBloomMipCount + 1];
+            public TextureHandle[] mipsUp = new TextureHandle[k_MaxBloomMipCount + 1];
+        }
+
+        class CASData
+        {
+            public CASParameters parameters;
+            public TextureHandle source;
+            public TextureHandle destination;
+        }
+
+        TextureHandle GetPostprocessOutputHandle(RenderGraph renderGraph, string name)
+        {
+            return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+            {
+                name = name,
+                colorFormat = m_ColorFormat,
+                useMipMap = false,
+                enableRandomWrite = true
+            });
+        }
+
+        void FillBloomMipsTextureHandles(BloomData bloomData, RenderGraph renderGraph, RenderGraphBuilder builder)
+        {
+            for (int i = 0; i < m_BloomMipCount; i++)
+            {
+                var scale = new Vector2(m_BloomMipsInfo[i].z, m_BloomMipsInfo[i].w);
+                var pixelSize = new Vector2Int((int)m_BloomMipsInfo[i].x, (int)m_BloomMipsInfo[i].y);
+
+                bloomData.mipsDown[i] = builder.CreateTransientTexture(new TextureDesc(scale, true, true)
+                { colorFormat = m_ColorFormat, enableRandomWrite = true });
+
+                if (i != 0)
+                {
+                    bloomData.mipsUp[i] = builder.CreateTransientTexture(new TextureDesc(scale, true, true)
+                    { colorFormat = m_ColorFormat, enableRandomWrite = true });
+
+                }
+            }
+
+            // the mip up 0 will be used by uber, so not allocated as transient.
+            var mip0Scale = new Vector2(m_BloomMipsInfo[0].z, m_BloomMipsInfo[0].w);
+            bloomData.mipsUp[0] = renderGraph.CreateTexture(new TextureDesc(mip0Scale, true, true)
+            {
+                name = "Bloom final mip up",
+                colorFormat = m_ColorFormat,
+                useMipMap = false,
+                enableRandomWrite = true
+            });
+        }
+
+        public void Render(RenderGraph renderGraph,
+                            HDCamera hdCamera,
+                            BlueNoise blueNoise,
+                            TextureHandle colorBuffer,
+                            TextureHandle afterPostProcessTexture,
+                            TextureHandle depthBuffer,
+                            TextureHandle depthBufferMipChain,
+                            TextureHandle motionVectors,
+                            TextureHandle finalRT,
+                            bool flipY)
         {
             var dynResHandler = DynamicResolutionHandler.instance;
 
@@ -50,128 +191,224 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.parameters = PrepareCopyAlphaParameters(hdCamera);
                     passData.source = builder.ReadTexture(source);
                     passData.outputAlpha = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                        { name = "Alpha Channel Copy", colorFormat = GraphicsFormat.R16_SFloat, enableRandomWrite = true }));
+                    { name = "Alpha Channel Copy", colorFormat = GraphicsFormat.R16_SFloat, enableRandomWrite = true }));
 
                     builder.SetRenderFunc(
                     (AlphaCopyPassData data, RenderGraphContext ctx) =>
                     {
-                        DoCopyAlpha(    data.parameters,
-                                        ctx.resources.GetTexture(data.source),
-                                        ctx.resources.GetTexture(data.outputAlpha),
-                                        ctx.cmd);
+                        DoCopyAlpha(data.parameters, data.source, data.outputAlpha, ctx.cmd);
                     });
 
                     alphaTexture = passData.outputAlpha;
                 }
             }
 
-            // TODO RENDERGRAPH: Implement
-            //            if (m_PostProcessEnabled)
-            //            {
-            //                // Guard bands (also known as "horrible hack") to avoid bleeding previous RTHandle
-            //                // content into smaller viewports with some effects like Bloom that rely on bilinear
-            //                // filtering and can't use clamp sampler and the likes
-            //                // Note: some platforms can't clear a partial render target so we directly draw black triangles
-            //                {
-            //                    int w = camera.actualWidth;
-            //                    int h = camera.actualHeight;
-            //                    cmd.SetRenderTarget(source, 0, CubemapFace.Unknown, -1);
-
-            //                    if (w < source.rt.width || h < source.rt.height)
-            //                    {
-            //                        cmd.SetViewport(new Rect(w, 0, k_RTGuardBandSize, h));
-            //                        cmd.DrawProcedural(Matrix4x4.identity, m_ClearBlackMaterial, 0, MeshTopology.Triangles, 3, 1);
-            //                        cmd.SetViewport(new Rect(0, h, w + k_RTGuardBandSize, k_RTGuardBandSize));
-            //                        cmd.DrawProcedural(Matrix4x4.identity, m_ClearBlackMaterial, 0, MeshTopology.Triangles, 3, 1);
-            //                    }
-            //                }
-
-            //                // Optional NaN killer before post-processing kicks in
-            //                bool stopNaNs = camera.stopNaNs && m_StopNaNFS;
-
-            //#if UNITY_EDITOR
-            //                if (isSceneView)
-            //                    stopNaNs = HDAdditionalSceneViewSettings.sceneViewStopNaNs;
-            //#endif
-
-            //                if (stopNaNs)
-            //                {
-            //                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.StopNaNs)))
-            //                    {
-            //                        var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
-            //                        DoStopNaNs(cmd, camera, source, destination);
-            //                        PoolSource(ref source, destination);
-            //                    }
-            //                }
-            //            }
-
-            //            // Dynamic exposure - will be applied in the next frame
-            //            // Not considered as a post-process so it's not affected by its enabled state
-            //            if (!IsExposureFixed() && m_ExposureControlFS)
-            //            {
-            //                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DynamicExposure)))
-            //                {
-            //                    if (m_Exposure.mode.value == ExposureMode.AutomaticHistogram)
-            //                    {
-            //                        DoHistogramBasedExposure(cmd, camera, source);
-            //                    }
-            //                    else
-            //                    {
-            //                        DoDynamicExposure(cmd, camera, source);
-            //                    }
-
-            //                    // On reset history we need to apply dynamic exposure immediately to avoid
-            //                    // white or black screen flashes when the current exposure isn't anywhere
-            //                    // near 0
-            //                    if (camera.resetPostProcessingHistory)
-            //                    {
-            //                        var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
-
-            //                        var cs = m_Resources.shaders.applyExposureCS;
-            //                        int kernel = cs.FindKernel("KMain");
-
-            //                        // Note: we call GetPrevious instead of GetCurrent because the textures
-            //                        // are swapped internally as the system expects the texture will be used
-            //                        // on the next frame. So the actual "current" for this frame is in
-            //                        // "previous".
-            //                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureTexture, GetPreviousExposureTexture(camera));
-            //                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
-            //                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
-            //                        cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
-
-            //                        PoolSource(ref source, destination);
-            //                    }
-            //                }
-            //            }
-
             if (m_PostProcessEnabled)
             {
-                //                // Temporal anti-aliasing goes first
-                //                bool taaEnabled = false;
+                using (var builder = renderGraph.AddRenderPass<GuardBandPassData>("Guard Band Clear", out var passData, ProfilingSampler.Get(HDProfileId.GuardBandClear)))
+                {
+                    passData.source = builder.WriteTexture(source);
+                    passData.parameters = PrepareClearWithGuardBandsParameters(hdCamera);
 
-                //                if (m_AntialiasingFS)
-                //                {
-                //                    taaEnabled = camera.antialiasing == AntialiasingMode.TemporalAntialiasing;
+                    builder.SetRenderFunc(
+                    (GuardBandPassData data, RenderGraphContext ctx) =>
+                    {
+                        ClearWithGuardBands(data.parameters, ctx.cmd, data.source);
+                    });
 
-                //                    if (taaEnabled)
-                //                    {
-                //                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.TemporalAntialiasing)))
-                //                        {
-                //                            var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
-                //                            DoTemporalAntialiasing(cmd, camera, source, destination, depthBuffer, depthMipChain);
-                //                            PoolSource(ref source, destination);
-                //                        }
-                //                    }
-                //                    else if (camera.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing)
-                //                    {
-                //                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.SMAA)))
-                //                        {
-                //                            var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
-                //                            DoSMAA(cmd, camera, source, destination, depthBuffer);
-                //                            PoolSource(ref source, destination);
-                //                        }
-                //                    }
-                //                }
+                    source = passData.source;
+                }
+
+                // Optional NaN killer before post-processing kicks in
+                bool stopNaNs = hdCamera.stopNaNs && m_StopNaNFS;
+
+#if UNITY_EDITOR
+                if (isSceneView)
+                    stopNaNs = HDAdditionalSceneViewSettings.sceneViewStopNaNs;
+#endif
+                if (stopNaNs)
+                {
+                    using (var builder = renderGraph.AddRenderPass<StopNaNPassData>("Stop NaNs", out var passData, ProfilingSampler.Get(HDProfileId.StopNaNs)))
+                    {
+                        passData.source = builder.ReadTexture(source);
+                        passData.parameters = PrepareStopNaNParameters(hdCamera);
+                        TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Stop NaNs Destination");
+                        passData.destination = builder.WriteTexture(dest); ;
+
+                        builder.SetRenderFunc(
+                        (StopNaNPassData data, RenderGraphContext ctx) =>
+                        {
+                            DoStopNaNs(data.parameters, ctx.cmd, data.source, data.destination);
+                        });
+
+                        source = passData.destination;
+                    }
+                }
+
+                // Dynamic exposure - will be applied in the next frame
+                // Not considered as a post-process so it's not affected by its enabled state
+                // Dynamic exposure - will be applied in the next frame
+                // Not considered as a post-process so it's not affected by its enabled state
+                if (!IsExposureFixed(hdCamera) && m_ExposureControlFS)
+                {
+                    var exposureParameters = PrepareExposureParameters(hdCamera);
+
+                    GrabExposureRequiredTextures(hdCamera, out var prevExposure, out var nextExposure);
+
+                    var prevExposureHandle = renderGraph.ImportTexture(prevExposure);
+                    var nextExposureHandle = renderGraph.ImportTexture(nextExposure);
+
+                    using (var builder = renderGraph.AddRenderPass<DynamicExposureData>("Dynamic Exposure", out var passData, ProfilingSampler.Get(HDProfileId.DynamicExposure)))
+                    {
+                        passData.source = builder.ReadTexture(source);
+                        passData.parameters = PrepareExposureParameters(hdCamera);
+                        passData.prevExposure = builder.ReadTexture(prevExposureHandle);
+                        passData.nextExposure = builder.WriteTexture(nextExposureHandle);
+
+                        if (m_Exposure.mode.value == ExposureMode.AutomaticHistogram)
+                        {
+                            passData.exposureDebugData = builder.WriteTexture(renderGraph.ImportTexture(m_DebugExposureData));
+                            builder.SetRenderFunc(
+                                (DynamicExposureData data, RenderGraphContext ctx) =>
+                                {
+                                    DoHistogramBasedExposure(data.parameters, ctx.cmd, data.source,
+                                                                                       data.prevExposure,
+                                                                                       data.nextExposure,
+                                                                                       data.exposureDebugData);
+                                });
+                        }
+                        else
+                        {
+                            passData.tmpTarget1024 = builder.CreateTransientTexture(new TextureDesc(1024, 1024, true, false)
+                            { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "Average Luminance Temp 1024" });
+                            passData.tmpTarget32 = builder.CreateTransientTexture(new TextureDesc(32, 32, true, false)
+                            { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "Average Luminance Temp 32" });
+
+                            builder.SetRenderFunc(
+                                (DynamicExposureData data, RenderGraphContext ctx) =>
+                                {
+                                    DoDynamicExposure(data.parameters, ctx.cmd, data.source,
+                                                                                data.prevExposure,
+                                                                                data.nextExposure,
+                                                                                data.tmpTarget1024,
+                                                                                data.tmpTarget32);
+                                });
+                        }
+                    }
+
+                    if (hdCamera.resetPostProcessingHistory)
+                    {
+                        using (var builder = renderGraph.AddRenderPass<ApplyExposureData>("Apply Exposure", out var passData, ProfilingSampler.Get(HDProfileId.ApplyExposure)))
+                        {
+                            passData.source = builder.ReadTexture(source);
+                            passData.parameters = PrepareApplyExposureParameters(hdCamera);
+                            RTHandle prevExp;
+                            GrabExposureHistoryTextures(hdCamera, out prevExp, out _);
+                            passData.prevExposure = builder.ReadTexture(renderGraph.ImportTexture(prevExp));
+
+                            TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Apply Exposure Destination"); 
+                            passData.destination = builder.WriteTexture(dest); ;
+
+                            builder.SetRenderFunc(
+                            (ApplyExposureData data, RenderGraphContext ctx) =>
+                            {
+                                ApplyExposure(data.parameters, ctx.cmd, data.source, data.destination, data.prevExposure);
+                            });
+
+                            source = passData.destination;
+                        }
+                    }
+                }
+
+                // Temporal anti-aliasing goes first
+                bool taaEnabled = false;
+
+
+                //if (camera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
+                //{
+                //    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CustomPostProcessBeforeTAA)))
+                //    {
+                //        foreach (var typeString in HDRenderPipeline.defaultAsset.beforeTAACustomPostProcesses)
+                //            RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
+                //    }
+                //}
+
+                if (m_AntialiasingFS)
+                {
+                    taaEnabled = hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
+
+                    if (taaEnabled)
+                    {
+                        using (var builder = renderGraph.AddRenderPass<TemporalAntiAliasingData>("Temporal Anti-Aliasing", out var passData, ProfilingSampler.Get(HDProfileId.TemporalAntialiasing)))
+                        {
+                            GrabTemporalAntialiasingHistoryTextures(hdCamera, out var prevHistory, out var nextHistory);
+                            GrabVelocityMagnitudeHistoryTextures(hdCamera, out var prevMVLen, out var nextMVLen);
+
+                            passData.source = builder.ReadTexture(source);
+                            passData.parameters = PrepareTAAParameters(hdCamera);
+                            passData.depthBuffer = builder.ReadTexture(depthBuffer);
+                            passData.motionVecTexture = builder.ReadTexture(motionVectors);
+                            passData.depthMipChain = builder.ReadTexture(depthBufferMipChain);
+                            passData.prevHistory = builder.ReadTexture(renderGraph.ImportTexture(prevHistory));
+                            if (passData.parameters.camera.resetPostProcessingHistory)
+                            {
+                                passData.prevHistory = builder.WriteTexture(passData.prevHistory);
+                            }
+                            passData.nextHistory = builder.WriteTexture(renderGraph.ImportTexture(nextHistory));
+                            passData.prevMVLen = builder.ReadTexture(renderGraph.ImportTexture(prevMVLen));
+                            passData.nextMVLen = builder.WriteTexture(renderGraph.ImportTexture(nextMVLen));
+
+                            TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "TAA Destination");
+                            passData.destination = builder.WriteTexture(dest); ;
+
+                            builder.SetRenderFunc(
+                            (TemporalAntiAliasingData data, RenderGraphContext ctx) =>
+                            {
+                                DoTemporalAntialiasing(data.parameters, ctx.cmd, data.source,
+                                                                                 data.destination,
+                                                                                 data.motionVecTexture,
+                                                                                 data.depthBuffer,
+                                                                                 data.depthMipChain,
+                                                                                 data.prevHistory,
+                                                                                 data.nextHistory,
+                                                                                 data.prevMVLen,
+                                                                                 data.nextMVLen);
+                            });
+
+                            source = passData.destination;
+                        }
+                    }
+                    else if (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.SubpixelMorphologicalAntiAliasing)
+                    {
+                        using (var builder = renderGraph.AddRenderPass<SMAAData>("Temporal Anti-Aliasing", out var passData, ProfilingSampler.Get(HDProfileId.SMAA)))
+                        {
+                            passData.source = builder.ReadTexture(source);
+                            passData.parameters = PrepareSMAAParameters(hdCamera);
+                            builder.ReadTexture(depthBuffer);
+                            passData.depthBuffer = builder.WriteTexture(depthBuffer);
+                            passData.smaaEdgeTex = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
+                            { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "SMAA Edge Texture" });
+                            passData.smaaBlendTex = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
+                            { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "SMAA Blend Texture" });
+
+                            TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "SMAA Destination");
+                            passData.destination = builder.WriteTexture(dest); ;
+
+                            builder.SetRenderFunc(
+                            (SMAAData data, RenderGraphContext ctx) =>
+                            {
+                                DoSMAA(data.parameters, ctx.cmd, data.source,
+                                                                 data.smaaEdgeTex,
+                                                                 data.smaaBlendTex,
+                                                                 data.destination,
+                                                                 data.depthBuffer);
+                            });
+
+                            source = passData.destination;
+
+                        }
+                    }
+                }
 
                 //                if (camera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
                 //                {
@@ -200,49 +437,115 @@ namespace UnityEngine.Rendering.HighDefinition
                 //                    }
                 //                }
 
-                //                // Motion blur after depth of field for aesthetic reasons (better to see motion
-                //                // blurred bokeh rather than out of focus motion blur)
-                //                if (m_MotionBlur.IsActive() && m_AnimatedMaterialsEnabled && !camera.resetPostProcessingHistory && m_MotionBlurFS)
-                //                {
-                //                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.MotionBlur)))
-                //                    {
-                //                        var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
-                //                        DoMotionBlur(cmd, camera, source, destination);
-                //                        PoolSource(ref source, destination);
-                //                    }
-                //                }
+                // Motion blur after depth of field for aesthetic reasons (better to see motion
+                // blurred bokeh rather than out of focus motion blur)
+                if (m_MotionBlur.IsActive() && m_AnimatedMaterialsEnabled && !hdCamera.resetPostProcessingHistory && m_MotionBlurFS)
+                {
+                    using (var builder = renderGraph.AddRenderPass<MotionBlurData>("Motion Blur", out var passData, ProfilingSampler.Get(HDProfileId.MotionBlur)))
+                    {
+                        passData.source = builder.ReadTexture(source);
+                        passData.parameters = PrepareMotionBlurParameters(hdCamera);
 
-                //                // Panini projection is done as a fullscreen pass after all depth-based effects are
-                //                // done and before bloom kicks in
-                //                // This is one effect that would benefit from an overscan mode or supersampling in
-                //                // HDRP to reduce the amount of resolution lost at the center of the screen
-                //                if (m_PaniniProjection.IsActive() && !isSceneView && m_PaniniProjectionFS)
-                //                {
-                //                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PaniniProjection)))
-                //                    {
-                //                        var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
-                //                        DoPaniniProjection(cmd, camera, source, destination);
-                //                        PoolSource(ref source, destination);
-                //                    }
-                //                }
+                        passData.motionVecTexture = builder.ReadTexture(motionVectors);
 
-                // Uber post-process
-                //// Generate the bloom texture
-                //bool bloomActive = m_Bloom.IsActive() && m_BloomFS;
+                        Vector2 tileTexScale = new Vector2((float)passData.parameters.tileTargetSize.x / hdCamera.actualWidth, (float)passData.parameters.tileTargetSize.y / hdCamera.actualHeight);
 
-                //if (bloomActive)
-                //{
-                //    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.Bloom)))
-                //    {
-                //        DoBloom(cmd, camera, source, uberPostParams.uberPostCS, uberPostParams.uberPostKernel);
-                //    }
-                //}
-                //else
-                //{
-                //    cmd.SetComputeTextureParam(uberPostParams.uberPostCS, uberPostParams.uberPostKernel, HDShaderIDs._BloomTexture, TextureXR.GetBlackTexture());
-                //    cmd.SetComputeTextureParam(uberPostParams.uberPostCS, uberPostParams.uberPostKernel, HDShaderIDs._BloomDirtTexture, Texture2D.blackTexture);
-                //    cmd.SetComputeVectorParam(uberPostParams.uberPostCS, HDShaderIDs._BloomParams, Vector4.zero);
-                //}
+                        passData.preppedMotionVec = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
+                        { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "Prepped Motion Vectors" });
+
+                        passData.minMaxTileVel = builder.CreateTransientTexture(new TextureDesc(tileTexScale, true, true)
+                        { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "MinMax Tile Motion Vectors" });
+
+                        passData.maxTileNeigbourhood = builder.CreateTransientTexture(new TextureDesc(tileTexScale, true, true)
+                        { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "Max Neighbourhood Tile" });
+
+                        passData.tileToScatterMax = TextureHandle.nullHandle;
+                        passData.tileToScatterMin = TextureHandle.nullHandle;
+
+                        if (passData.parameters.motionblurSupportScattering)
+                        {
+                            passData.tileToScatterMax = builder.CreateTransientTexture(new TextureDesc(tileTexScale, true, true)
+                            { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, name = "Tile to Scatter Max" });
+
+                            passData.tileToScatterMin = builder.CreateTransientTexture(new TextureDesc(tileTexScale, true, true)
+                            { colorFormat = GraphicsFormat.R16_SFloat, enableRandomWrite = true, name = "Tile to Scatter Min" });
+                        }
+
+                        TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Motion Blur Destination");
+                        passData.destination = builder.WriteTexture(dest); ;
+
+                        builder.SetRenderFunc(
+                        (MotionBlurData data, RenderGraphContext ctx) =>
+                        {
+                            DoMotionBlur(data.parameters, ctx.cmd, data.source,
+                                                                   data.destination,
+                                                                   data.motionVecTexture,
+                                                                   data.preppedMotionVec,
+                                                                   data.minMaxTileVel,
+                                                                   data.maxTileNeigbourhood,
+                                                                   data.tileToScatterMax,
+                                                                   data.tileToScatterMin);
+                        });
+
+                        source = passData.destination;
+
+                    }
+                }
+
+                // Panini projection is done as a fullscreen pass after all depth-based effects are
+                // done and before bloom kicks in
+                // This is one effect that would benefit from an overscan mode or supersampling in
+                // HDRP to reduce the amount of resolution lost at the center of the screen
+                if (m_PaniniProjection.IsActive() && !isSceneView && m_PaniniProjectionFS)
+                {
+                    using (var builder = renderGraph.AddRenderPass<PaniniProjectionData>("Panini Projection", out var passData, ProfilingSampler.Get(HDProfileId.PaniniProjection)))
+                    {
+                        passData.source = builder.ReadTexture(source);
+                        passData.parameters = PreparePaniniProjectionParameters(hdCamera);
+                        TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Panini Projection Destination");
+                        passData.destination = builder.WriteTexture(dest);
+
+                        builder.SetRenderFunc(
+                        (PaniniProjectionData data, RenderGraphContext ctx) =>
+                        {
+                            DoPaniniProjection(data.parameters, ctx.cmd, data.source, data.destination);
+                        });
+
+                        source = passData.destination;
+                    }
+                }
+
+                bool bloomActive = m_Bloom.IsActive() && m_BloomFS;
+                TextureHandle bloomTexture = renderGraph.defaultResources.blackTextureXR;
+                if (bloomActive)
+                {
+                    ComputeBloomMipSizesAndScales(hdCamera);
+                    using (var builder = renderGraph.AddRenderPass<BloomData>("Bloom", out var passData, ProfilingSampler.Get(HDProfileId.Bloom)))
+                    {
+                        passData.source = builder.ReadTexture(source);
+                        passData.parameters = PrepareBloomParameters(hdCamera);
+                        FillBloomMipsTextureHandles(passData, renderGraph, builder);
+                        passData.mipsUp[0] = builder.WriteTexture(passData.mipsUp[0]);
+
+
+                        builder.SetRenderFunc(
+                        (BloomData data, RenderGraphContext ctx) =>
+                        {
+                            var bloomMipDown = ctx.renderGraphPool.GetTempArray<RTHandle>(data.parameters.bloomMipCount);
+                            var bloomMipUp   = ctx.renderGraphPool.GetTempArray<RTHandle>(data.parameters.bloomMipCount);
+
+                            for(int i=0; i<data.parameters.bloomMipCount; ++i)
+                            {
+                                bloomMipDown[i] = data.mipsDown[i];
+                                bloomMipUp[i]   = data.mipsUp[i];
+                            }
+
+                            DoBloom(data.parameters, ctx.cmd, data.source, bloomMipDown, bloomMipUp);
+                        });
+
+                        bloomTexture = passData.mipsUp[0];
+                    }
+                }
 
                 TextureHandle logLutOutput;
                 using (var builder = renderGraph.AddRenderPass<ColorGradingPassData>("Color Grading", out var passData, ProfilingSampler.Get(HDProfileId.ColorGradingLUTBuilder)))
@@ -268,38 +571,30 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                     (ColorGradingPassData data, RenderGraphContext ctx) =>
                     {
-                        DoColorGrading(data.parameters, ctx.resources.GetTexture(data.logLut), ctx.cmd);
+                        DoColorGrading(data.parameters, data.logLut, ctx.cmd);
                     });
                 }
 
                 using (var builder = renderGraph.AddRenderPass<UberPostPassData>("Uber Post", out var passData, ProfilingSampler.Get(HDProfileId.UberPost)))
                 {
-                    TextureHandle dest = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    {
-                        name = "Uber Post Destination",
-                        colorFormat = m_ColorFormat,
-                        useMipMap = false,
-                        enableRandomWrite = true
-                    });
+                    TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Uber Post Destination");
+
 
                     passData.parameters = PrepareUberPostParameters(hdCamera, isSceneView);
                     passData.source = builder.ReadTexture(source);
+                    passData.bloomTexture = builder.ReadTexture(bloomTexture);
                     passData.logLut = builder.ReadTexture(logLutOutput);
                     passData.destination = builder.WriteTexture(dest);
+
 
                     builder.SetRenderFunc(
                     (UberPostPassData data, RenderGraphContext ctx) =>
                     {
-                        // Temp until bloom is implemented.
-                        ctx.cmd.SetComputeTextureParam(data.parameters.uberPostCS, data.parameters.uberPostKernel, HDShaderIDs._BloomTexture, TextureXR.GetBlackTexture());
-                        ctx.cmd.SetComputeTextureParam(data.parameters.uberPostCS, data.parameters.uberPostKernel, HDShaderIDs._BloomDirtTexture, Texture2D.blackTexture);
-                        ctx.cmd.SetComputeVectorParam(data.parameters.uberPostCS, HDShaderIDs._BloomParams, Vector4.zero);
-
-
-                        DoUberPostProcess(  data.parameters,
-                                            ctx.resources.GetTexture(data.source),
-                                            ctx.resources.GetTexture(data.destination),
-                                            ctx.resources.GetTexture(data.logLut),
+                        DoUberPostProcess(	data.parameters,
+                                          	data.source,
+											data.destination,
+                                            data.logLut,
+                                            data.bloomTexture,
                                             ctx.cmd);
                     });
 
@@ -316,55 +611,52 @@ namespace UnityEngine.Rendering.HighDefinition
                 //                            RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
                 //                    }
                 //                }
+
+
+                if (dynResHandler.DynamicResolutionEnabled() &&     // Dynamic resolution is on.
+                    hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.FastApproximateAntialiasing &&
+                    m_AntialiasingFS)
+                {
+                    using (var builder = renderGraph.AddRenderPass<FXAAData>("FXAA", out var passData, ProfilingSampler.Get(HDProfileId.FXAA)))
+                    {
+                        passData.source = builder.ReadTexture(source);
+                        passData.parameters = PrepareFXAAParameters(hdCamera);
+                        TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "FXAA Destination");
+                        passData.destination = builder.WriteTexture(dest); ;
+
+                        builder.SetRenderFunc(
+                        (FXAAData data, RenderGraphContext ctx) =>
+                        {
+                            DoFXAA(data.parameters, ctx.cmd, data.source, data.destination);
+                        });
+
+                        source = passData.destination;
+                    }
+                }
+
+                hdCamera.resetPostProcessingHistory = false;
             }
 
-            //            if (dynResHandler.DynamicResolutionEnabled() &&     // Dynamic resolution is on.
-            //                camera.antialiasing == AntialiasingMode.FastApproximateAntialiasing &&
-            //                m_AntialiasingFS)
-            //            {
-            //                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FXAA)))
-            //                {
-            //                    var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
-            //                    DoFXAA(cmd, camera, source, destination);
-            //                    PoolSource(ref source, destination);
-            //                }
-            //            }
+            // Contrast Adaptive Sharpen Upscaling
+            if (dynResHandler.DynamicResolutionEnabled() &&
+                dynResHandler.filter == DynamicResUpscaleFilter.ContrastAdaptiveSharpen)
+            {
+                using (var builder = renderGraph.AddRenderPass<CASData>("Contrast Adaptive Sharpen", out var passData, ProfilingSampler.Get(HDProfileId.ContrastAdaptiveSharpen)))
+                {
+                    passData.source = builder.ReadTexture(source);
+                    passData.parameters = PrepareContrastAdaptiveSharpeningParameters(hdCamera);
+                    TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Contrast Adaptive Sharpen Destination");
+                    passData.destination = builder.WriteTexture(dest); ;
 
-            //            // Contrast Adaptive Sharpen Upscaling
-            //            if (dynResHandler.DynamicResolutionEnabled() &&
-            //                dynResHandler.filter == DynamicResUpscaleFilter.ContrastAdaptiveSharpen)
-            //            {
-            //                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ContrastAdaptiveSharpen)))
-            //                {
-            //                    var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
+                    builder.SetRenderFunc(
+                    (CASData data, RenderGraphContext ctx) =>
+                    {
+                        DoContrastAdaptiveSharpening(data.parameters, ctx.cmd, data.source, data.destination);
+                    });
 
-            //                    var cs = m_Resources.shaders.contrastAdaptiveSharpenCS;
-            //                    int kInit = cs.FindKernel("KInitialize");
-            //                    int kMain = cs.FindKernel("KMain");
-            //                    if (kInit >= 0 && kMain >= 0)
-            //                    {
-            //                        cmd.SetComputeFloatParam(cs, HDShaderIDs._Sharpness, 1);
-            //                        cmd.SetComputeTextureParam(cs, kMain, HDShaderIDs._InputTexture, source);
-            //                        cmd.SetComputeVectorParam(cs, HDShaderIDs._InputTextureDimensions, new Vector4(source.rt.width, source.rt.height));
-            //                        cmd.SetComputeTextureParam(cs, kMain, HDShaderIDs._OutputTexture, destination);
-            //                        cmd.SetComputeVectorParam(cs, HDShaderIDs._OutputTextureDimensions, new Vector4(destination.rt.width, destination.rt.height));
-
-            //                        ValidateComputeBuffer(ref m_ContrastAdaptiveSharpen, 2, sizeof(uint) * 4);
-
-            //                        cmd.SetComputeBufferParam(cs, kInit, "CasParameters", m_ContrastAdaptiveSharpen);
-            //                        cmd.SetComputeBufferParam(cs, kMain, "CasParameters", m_ContrastAdaptiveSharpen);
-
-            //                        cmd.DispatchCompute(cs, kInit, 1, 1, 1);
-
-            //                        int dispatchX = (int)System.Math.Ceiling(destination.rt.width / 16.0f);
-            //                        int dispatchY = (int)System.Math.Ceiling(destination.rt.height / 16.0f);
-
-            //                        cmd.DispatchCompute(cs, kMain, dispatchX, dispatchY, camera.viewCount);
-            //                    }
-
-            //                    PoolSource(ref source, destination);
-            //                }
-            //            }
+                    source = passData.destination;
+                }
+            }
 
             using (var builder = renderGraph.AddRenderPass<FinalPassData>("Final Pass", out var passData, ProfilingSampler.Get(HDProfileId.FinalPost)))
             {
@@ -377,12 +669,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (FinalPassData data, RenderGraphContext ctx) =>
                 {
-                    DoFinalPass(    data.parameters,
-                                    ctx.resources.GetTexture(data.source),
-                                    ctx.resources.GetTexture(data.afterPostProcessTexture),
-                                    ctx.resources.GetTexture(data.destination),
-                                    ctx.resources.GetTexture(data.alphaTexture),
-                                    ctx.cmd);
+                    DoFinalPass(data.parameters, data.source, data.afterPostProcessTexture, data.destination, data.alphaTexture, ctx.cmd);
                 });
             }
         }

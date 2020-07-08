@@ -3,20 +3,18 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering.VirtualTexturing;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "VirtualTexturing - Settings" + Documentation.endURL)]
     [Serializable]
-    public sealed class VirtualTexturingSettingsSRP
+    internal sealed class VirtualTexturingSettingsSRP
     {
         public int streamingCpuCacheSizeInMegaBytes = 256;
         public List<GPUCacheSettingSRP> streamingGpuCacheSettings = new List<GPUCacheSettingSRP>() { new GPUCacheSettingSRP() { format = Experimental.Rendering.GraphicsFormat.None, sizeInMegaBytes = 128 } };
     }
 
     [Serializable]
-    public struct GPUCacheSettingSRP
+    internal struct GPUCacheSettingSRP
     {
         /// <summary>
         ///   <para>Format of the cache these settings are applied to.</para>
