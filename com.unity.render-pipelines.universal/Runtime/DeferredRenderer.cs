@@ -451,6 +451,10 @@ namespace UnityEngine.Rendering.Universal
             // We set the number of maximum visible lights allowed and we add one for the mainlight...
             cullingParameters.maximumVisibleLights = 0xFFFF;
             cullingParameters.shadowDistance = cameraData.maxShadowDistance;
+
+            // if (enableSinglePassDeferred) {
+            //     cullingParameters.cullingOptions &= (~CullingOptions.NeedsLighting);
+            // }
         }
 
         /// <inheritdoc />
