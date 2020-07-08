@@ -185,7 +185,7 @@ namespace UnityEngine.Rendering.Universal
                 requiresDepthPrepass = true;
 
             bool createColorTexture = RequiresIntermediateColorTexture(ref cameraData);
-            createColorTexture |= renderPassInputs.requiresColorTexture;
+            createColorTexture |= (rendererFeatures.Count != 0);
             createColorTexture &= !isPreviewCamera;
 
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read later by effect requiring it.
