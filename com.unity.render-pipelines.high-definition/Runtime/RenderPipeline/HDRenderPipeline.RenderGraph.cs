@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
                 // TODO RENDERGRAPH
-                //RenderScreenSpaceShadows(hdCamera, cmd);
+                lightingBuffers.screenspaceShadowBuffer = RenderScreenSpaceShadows(m_RenderGraph, hdCamera);
 
                 var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, volumetricDensityBuffer, gpuLightListOutput.bigTileLightList, shadowResult, m_FrameCount);
 
