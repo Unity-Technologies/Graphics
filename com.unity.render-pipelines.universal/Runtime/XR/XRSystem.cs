@@ -384,8 +384,8 @@ namespace UnityEngine.Rendering.Universal
                     RenderTextureDescriptor rtDesc = cameraData.cameraTargetDescriptor;
                     rtDesc.dimension = TextureDimension.Tex2DArray;
                     rtDesc.volumeDepth = 2;
-                    // If camera renders to subrect, we adjust size to match back buffer
-                    if(!cameraData.isDefaultViewport)
+                    // If camera renders to subrect and it renders to backbuffer, we adjust size to match back buffer
+                    if(!cameraData.isDefaultViewport && cameraData.targetTexture == null)
                     {
                         rtDesc.width = (int)(rtDesc.width / cameraData.camera.rect.width);
                         rtDesc.height = (int)(rtDesc.height / cameraData.camera.rect.height);
@@ -424,7 +424,7 @@ namespace UnityEngine.Rendering.Universal
                     cullingPassId = 0,
                     cullingParameters = cullingParams,
                     renderTarget = testRenderTexture,
-                    renderTargetIsRenderTexture = true,
+                    renderTargetIsRenderTexture = false, //Mimics eye texture here(backbuffer type)
                     customMirrorView = copyToTestRenderTexture
                 };
 
