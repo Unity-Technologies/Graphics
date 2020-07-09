@@ -23,7 +23,7 @@ float4 sampleCloud(float3 dir)
 {
     float2 coords = GetLatLongCoords(dir, _CloudUpperHemisphere);
     coords.x = frac(coords.x + _CloudRotation);
-    float4 cloudLayerColor = SAMPLE_TEXTURE2D_LOD(_CloudMap, sampler_CloudMap, coords, 0);
+    float4 cloudLayerColor = SAMPLE_TEXTURE2D_LOD(_CloudMap, sampler_CloudMap, coords, 0).r;
     cloudLayerColor.rgb *= _CloudTint * _CloudIntensity * cloudLayerColor.a;
     return cloudLayerColor;
 }

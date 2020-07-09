@@ -18,6 +18,8 @@ Shader "Hidden/DefaultCloudLayer"
 
         Pass
         {
+            Name "Cloud Map"
+
             CGPROGRAM
 
             #include "UnityCustomRenderTexture.cginc"
