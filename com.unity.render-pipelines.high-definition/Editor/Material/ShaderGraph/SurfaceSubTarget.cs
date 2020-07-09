@@ -355,7 +355,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             base.MigrateTo(version);
 
-            if (version == ShaderGraphVersion.MoveCrossFadePrePostPassAndAlphaClipToBuiltinData)
+            if (version == ShaderGraphVersion.FirstTimeMigration)
             {
 #pragma warning disable 618
                 builtinData.transparentDepthPrepass = systemData.m_TransparentDepthPrepass;

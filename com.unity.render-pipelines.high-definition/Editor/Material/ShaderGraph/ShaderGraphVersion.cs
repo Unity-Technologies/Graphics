@@ -9,6 +9,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     public enum ShaderGraphVersion
     {
         Initial = 0,
-        MoveCrossFadePrePostPassAndAlphaClipToBuiltinData = 1,
+        FirstTimeMigration = Initial,
     }
 }

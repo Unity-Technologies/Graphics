@@ -92,6 +92,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (migrationSteps.Migrate(this))
                 OnBeforeSerialize();
 
+            // Migration hack to have the case where SG doesn't have version yet but is already upgraded to the stack system
+            if (!systemData.firstTimeMigrationExecuted)
+            {
+                // Force the initial migration step
+                MigrateTo(ShaderGraphVersion.FirstTimeMigration);
+                systemData.firstTimeMigrationExecuted = true;
+                OnBeforeSerialize();
+            }
+
             foreach (var subShader in EnumerateSubShaders())
             {
                 // patch render type and render queue from pass declaration:
