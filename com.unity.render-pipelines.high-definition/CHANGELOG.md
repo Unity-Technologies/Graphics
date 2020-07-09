@@ -76,6 +76,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where opening the look dev window with the light theme would make the window blink and eventually crash unity.
 - Fixed culling for decals when used in prefabs and edited in context.
 - Fixed XR single-pass macros in tessellation shaders.
+- Fixed regression where moving face of the probe gizmo was not moving its position anymore.
 
 ### Changed
 - Shadowmask and realtime reflection probe property are hide in Quality settings
