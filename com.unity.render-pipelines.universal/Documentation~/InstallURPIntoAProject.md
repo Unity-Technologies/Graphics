@@ -14,7 +14,7 @@ URP does not currently support custom post-processing effects. If your Project u
 2. In the top navigation bar, select __Window > Package Manager__ to open the __Package Manager__ window.
 3. Select the __All__ tab. This tab displays the list of available packages for the version of Unity that you are currently running.
 4. Select **Universal RP** from the list of packages.
-5. In the botoom right corner of the Package Manager window, select __Install__. Unity installs URP directly into your Project.
+5. In the bottom right corner of the Package Manager window, select __Install__. Unity installs URP directly into your Project.
 
 ## Configuring URP 
 
@@ -44,4 +44,4 @@ To add the Universal Render Pipeline Asset to your Graphics settings:
 
 ## Upgrading your shaders
 
-If your Project uses Lit Shaders from the Built-in Render Pipeline, you must convert those Shaders to URP Shaders. For information on this, see [Upgrading your Shaders](upgrading-your-shaders.md).
+If your project uses the prebuilt [Standard Shader](https://docs.unity3d.com/Manual/shader-StandardShader.html), or custom Unity shaders made for the Built-in Render Pipeline, you must convert them to URP-compatible Unity shaders. For more information on this topic, see [Upgrading your Shaders](upgrading-your-shaders.md).

@@ -282,7 +282,7 @@ namespace UnityEngine.Rendering.Universal
             // rendering to screen when rendering it. The last camera in the stack is not
             // necessarily the last active one as it users might disable it.
             int lastActiveOverlayCameraIndex = -1;
-            if (cameraStack != null)
+            if (cameraStack != null && cameraStack.Count > 0)
             {
                 // TODO: Add support to camera stack in VR multi pass mode
                 if (!IsMultiPassStereoEnabled(baseCamera))
@@ -857,9 +857,9 @@ namespace UnityEngine.Rendering.Universal
             if (AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipDynamicBatching)
                 renderingData.supportsDynamicBatching = false;
 
-            var MainLightShadowmapResultionMultiplier = AdaptivePerformance.AdaptivePerformanceRenderSettings.MainLightShadowmapResultionMultiplier;
-            renderingData.shadowData.mainLightShadowmapWidth = (int)(renderingData.shadowData.mainLightShadowmapWidth * MainLightShadowmapResultionMultiplier);
-            renderingData.shadowData.mainLightShadowmapHeight = (int)(renderingData.shadowData.mainLightShadowmapHeight * MainLightShadowmapResultionMultiplier);
+            var MainLightShadowmapResolutionMultiplier = AdaptivePerformance.AdaptivePerformanceRenderSettings.MainLightShadowmapResolutionMultiplier;
+            renderingData.shadowData.mainLightShadowmapWidth = (int)(renderingData.shadowData.mainLightShadowmapWidth * MainLightShadowmapResolutionMultiplier);
+            renderingData.shadowData.mainLightShadowmapHeight = (int)(renderingData.shadowData.mainLightShadowmapHeight * MainLightShadowmapResolutionMultiplier);
 
             var MainLightShadowCascadesCountBias = AdaptivePerformance.AdaptivePerformanceRenderSettings.MainLightShadowCascadesCountBias;
             renderingData.shadowData.mainLightShadowCascadesCount = Mathf.Clamp(renderingData.shadowData.mainLightShadowCascadesCount - MainLightShadowCascadesCountBias, 0, 4);

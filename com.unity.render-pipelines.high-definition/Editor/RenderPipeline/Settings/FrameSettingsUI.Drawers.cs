@@ -45,6 +45,11 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 
+    interface IDefaultFrameSettingsType
+    {
+        FrameSettingsRenderType GetFrameSettingsType();
+    }
+
     partial class FrameSettingsUI
     {
         enum Expandable
@@ -105,8 +110,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     RenderPipelineSettings hdrpSettings = GetHDRPAssetFor(owner).currentPlatformRenderPipelineSettings;
                     if (hdrpSettings.supportRayTracing)
                     {
-                        if (serialized.IsEnabled(FrameSettingsField.AsyncCompute) ?? false)
-                            EditorGUILayout.HelpBox("With Raytracing, the Asynchronous Execution will be forced to false", MessageType.Warning);
+                        bool rtEffectUseAsync = (serialized.IsEnabled(FrameSettingsField.SSRAsync) ?? false) || (serialized.IsEnabled(FrameSettingsField.SSAOAsync) ?? false)
+                        //|| (serialized.IsEnabled(FrameSettingsField.ContactShadowsAsync) ?? false) // Contact shadow async is not visible in the UI for now and defaults to true.
+                        ;
+                        if (rtEffectUseAsync)
+                            EditorGUILayout.HelpBox("Asynchronous execution of Raytracing effects is not supported. Asynchronous Execution will be forced to false for them", MessageType.Warning);
                     }
                 }));
 
@@ -129,14 +137,9 @@ namespace UnityEditor.Rendering.HighDefinition
         static FrameSettings GetDefaultFrameSettingsFor(Editor owner)
         {
             HDRenderPipelineAsset hdrpAsset = GetHDRPAssetFor(owner);
-            if (owner is IHDProbeEditor)
-            {
-                if ((owner as IHDProbeEditor).GetTarget(owner.target).mode == ProbeSettings.Mode.Realtime)
-                    return hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.RealtimeReflection);
-                else
-                    return hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.CustomOrBakedReflection);
-            }
-            return hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+            return owner is IDefaultFrameSettingsType getType
+                ? hdrpAsset.GetDefaultFrameSettings(getType.GetFrameSettingsType())
+                : hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
         }
 
         static void Drawer_SectionRenderingSettings(SerializedFrameSettings serialized, Editor owner, bool withOverride)
@@ -211,6 +214,7 @@ namespace UnityEditor.Rendering.HighDefinition
             area.AmmendInfo(FrameSettingsField.RayTracing, overrideable: () => hdrpSettings.supportRayTracing);
             area.AmmendInfo(FrameSettingsField.MotionVectors, overrideable: () => hdrpSettings.supportMotionVectors);
             area.AmmendInfo(FrameSettingsField.ObjectMotionVectors, overrideable: () => hdrpSettings.supportMotionVectors);
+            area.AmmendInfo(FrameSettingsField.TransparentsWriteMotionVector, overrideable: () => hdrpSettings.supportMotionVectors);
             area.AmmendInfo(FrameSettingsField.Decals, overrideable: () => hdrpSettings.supportDecals);
             area.AmmendInfo(FrameSettingsField.Distortion, overrideable: () => hdrpSettings.supportDistortion);
 

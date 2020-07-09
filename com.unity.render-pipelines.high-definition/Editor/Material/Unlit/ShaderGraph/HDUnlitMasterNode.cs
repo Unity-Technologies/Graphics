@@ -495,6 +495,7 @@ namespace UnityEditor.Rendering.HighDefinition
             );
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, alphaTest.isOn, false);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSided.isOn ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled);
+            HDSubShaderUtilities.AddPrePostPassProperties(collector, false, false);
 
             base.CollectShaderProperties(collector, generationMode);
         }

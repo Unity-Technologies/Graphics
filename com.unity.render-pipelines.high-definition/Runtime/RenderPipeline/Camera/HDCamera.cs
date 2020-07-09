@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using Utilities;
@@ -18,6 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// HDCamera class.
     /// This class holds all information for a given camera. Constants used for shading as well as buffers persistent from one frame to another etc.
     /// </summary>
+    [DebuggerDisplay("({camera.name})")]
     public class HDCamera
     {
         #region Public API
@@ -254,6 +256,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        HDAdditionalCameraData.ClearColorMode m_PreviousClearColorMode = HDAdditionalCameraData.ClearColorMode.None;
+
+
         internal Color backgroundColorHDR
         {
             get
@@ -415,6 +420,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Reinit the system.
                     colorPyramidHistoryIsValid = false;
                     volumetricHistoryIsValid = false;
+                    // Since we nuke all history we must inform the post process system too.
+                    resetPostProcessingHistory = true;
 
                     // The history system only supports the "nuke all" option.
                     m_HistoryRTSystem.Dispose();
@@ -467,16 +474,15 @@ namespace UnityEngine.Rendering.HighDefinition
             screenSize = new Vector4(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
             screenParams = new Vector4(screenSize.x, screenSize.y, 1 + screenSize.z, 1 + screenSize.w);
 
+            const int kMaxSampleCount = 8;
+            if (++taaFrameIndex >= kMaxSampleCount)
+                taaFrameIndex = 0;
+
             UpdateAllViewConstants();
             isFirstFrame = false;
             cameraFrameCount++;
 
             hdrp.UpdateVolumetricBufferParams(this);
-
-            // Here we use the non scaled resolution for the RTHandleSystem ref size because we assume that at some point we will need full resolution anyway.
-            // This is necessary because we assume that after post processes, we have the full size render target for debug rendering
-            // The only point of calling this here is to grow the render targets. The call in BeginRender will setup the current RTHandle viewport size.
-            RTHandles.SetReferenceSize(nonScaledViewport.x, nonScaledViewport.y, msaaSamples);
         }
 
         // Updating RTHandle needs to be done at the beginning of rendering (not during update of HDCamera which happens in batches)
@@ -553,6 +559,20 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             s_Cleanup.Clear();
+        }
+
+        internal static void ResetAllHistoryRTHandleSystems(int width, int height)
+        {
+            foreach (var kvp in s_Cameras)
+            {
+                var hdCamera = kvp.Value;
+                var currentHistorySize = hdCamera.m_HistoryRTSystem.rtHandleProperties.currentRenderTargetSize;
+                // We only reset if the new size if smaller than current reference (otherwise we might increase the size of off screen camera with lower resolution than the new reference.
+                if (width < currentHistorySize.x || height < currentHistorySize.y)
+                {
+                    hdCamera.m_HistoryRTSystem.ResetReferenceSize(width, height);
+                }
+            }
         }
 
         // Set up UnityPerView CBuffer.
@@ -642,6 +662,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalVectorArray(HDShaderIDs._XRPrevWorldSpaceCameraPos, m_XRPrevWorldSpaceCameraPos);
             }
 
+            cmd.SetGlobalInt(HDShaderIDs._TransparentCameraOnlyMotionVectors, (frameSettings.IsEnabled(FrameSettingsField.MotionVectors) && !frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector)) ? 1 : 0);
         }
 
         internal void AllocateAmbientOcclusionHistoryBuffer(float scaleFactor)
@@ -864,9 +885,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // When changing antialiasing mode to TemporalAA we must reset the history, otherwise we get one frame of garbage
-            if (previousAntialiasing != antialiasing && antialiasing == AntialiasingMode.TemporalAntialiasing)
+            if ( (previousAntialiasing != antialiasing && antialiasing == AntialiasingMode.TemporalAntialiasing)
+                || (m_PreviousClearColorMode != clearColorMode))
             {
                 resetPostProcessingHistory = true;
+                m_PreviousClearColorMode = clearColorMode;
             }
         }
 
@@ -883,6 +906,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_XRViewConstants == null || m_XRViewConstants.Length != viewCount)
             {
                 m_XRViewConstants = new ViewConstants[viewCount];
+                resetPostProcessingHistory = true;
+                isFirstFrame = true;
             }
 
             UpdateAllViewConstants(IsTAAEnabled(), true);
@@ -1132,10 +1157,6 @@ namespace UnityEngine.Rendering.HighDefinition
             float jitterY = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 3) - 0.5f;
             taaJitter = new Vector4(jitterX, jitterY, jitterX / actualWidth, jitterY / actualHeight);
 
-            const int kMaxSampleCount = 8;
-            if (++taaFrameIndex >= kMaxSampleCount)
-                taaFrameIndex = 0;
-
             Matrix4x4 proj;
 
             if (camera.orthographic)
@@ -1205,6 +1226,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             float verticalFoV = camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
+            if (!camera.usePhysicalProperties)
+            {
+                verticalFoV = Mathf.Atan(-1.0f / viewConstants.projMatrix[1, 1]) * 2;
+            }
             Vector2 lensShift = camera.GetGateFittedLensShift();
 
             return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, resolution, viewConstants.viewMatrix, false, aspect);

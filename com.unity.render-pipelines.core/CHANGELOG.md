@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [8.2.0] - 2020-07-08
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
@@ -19,6 +19,10 @@ The version number for this package has increased due to a version update of a r
 - Fixed copy/pasting of Volume Components when loading a new scene
 - Fix LookDev's camera button layout.
 - Fix LookDev's layout vanishing on domain reload.
+- Fixed null reference exception in LookDev when setting the SRP to one not implementing LookDev (case 1245086)
+- Fix LookDev's undo/redo on EnvironmentLibrary (case 1234725)
+- Fixed a wrong condition in CameraSwitcher, potentially causing out of bound exceptions.
+- Fixed issue with blue line in prefabs for volume mode.
 
 ## [8.0.1] - 2020-02-25
 
