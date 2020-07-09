@@ -20,6 +20,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent k_NearFocusEnd = new GUIContent("End", "Sets the distance from the Camera at which the near field does not blur anymore.");
             public static GUIContent k_FarFocusEnd = new GUIContent("End", "Sets the distance from the Camera at which the far field blur reaches its maximum blur radius.");
             public static GUIContent k_PhysicallyBased = new GUIContent("PhysicallyBased", "Uses a more accurate but slower physically based method to compute DoF.");
+
+            public static readonly string InfoBox = "Physically Based DoF currently has a high performance overhead and enabling TAA is also recommended.";
         }
 
         SerializedDataParameter m_FocusMode;
@@ -136,6 +138,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_Resolution);
                 PropertyField(m_HighQualityFiltering);
                 PropertyField(m_PhysicallyBased);
+                if(m_PhysicallyBased.value.boolValue == true)
+                    EditorGUILayout.HelpBox(Styles.InfoBox, MessageType.Info);
                 GUI.enabled = true;
             }
         }
