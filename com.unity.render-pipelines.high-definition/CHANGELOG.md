@@ -4,11 +4,6 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## Current
-
-### Fixed
-- Fixed regression where moving face of the probe gizmo was not moving its position anymore.
-
 ## [10.0.0] - 2019-06-10
 
 ### Added
@@ -728,6 +723,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed overused the atlas for Animated/Render Target Cookies (1259930).
 - Fixed sky asserts with XR multipass
 - Fixed for area light not updating baked light result when modifying with gizmo.
+- Fixed regression where moving face of the probe gizmo was not moving its position anymore.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
