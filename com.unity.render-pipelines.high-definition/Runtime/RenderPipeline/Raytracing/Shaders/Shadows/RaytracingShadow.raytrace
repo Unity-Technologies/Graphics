@@ -8,7 +8,7 @@
 #define HAS_LIGHTLOOP
 
 // Given that the algorithm requires BSDF evaluation, we need to define this macro
-#define SKIP_RASTERIZED_SHADOWS
+#define SKIP_RASTERIZED_AREA_SHADOWS
 
 // Given that this pass does not use the shadow algorithm multi-compile, we need to define SHADOW_LOW to quite the shadow algorithm error
 #define SHADOW_LOW
@@ -63,6 +63,8 @@ void MissShaderShadowsColor(inout RayIntersection rayIntersection : SV_RayPayloa
     // Does nothing intentionally
 }
 
+// This code below is the "high quality shadow" but it is not used currently. We use the compute version which is more efficient
+// and which do a good enough approximation.
 [shader("raygeneration")]
 void RayGenAreaShadows()
 {
@@ -140,14 +142,8 @@ void RayGenAreaShadows()
     LightLoopContext context;
     // Given that the approximation used for LTC is completely different from what we would get from a real integration, we only rely on the not textured intensity.
     // To acheive that, we set cookie index to -1 so that the evaluatebsdf_rect function to not use any cookie. We also keep track of that cookie value to restore it after the evaluation.
-    int cookieIndex = lightData.cookieIndex;
-    int cookieMode = lightData.cookieMode;
-    lightData.cookieIndex = -1;
-    lightData.cookieIndex = COOKIEMODE_NONE;
     DirectLighting lighting = EvaluateBSDF_Rect(context, viewWS, posInput, preLightData, lightData, bsdfData, builtinData);
     lighting.diffuse = lighting.diffuse * bsdfData.diffuseColor;
-    lightData.cookieIndex = cookieIndex;
-    lightData.cookieIndex = cookieMode;
 
     // Compute the non-occluded analytic luminance value
     float U = Luminance(lighting.diffuse + lighting.specular);
@@ -237,7 +233,7 @@ void RayGenAreaShadows()
 
         // Combine the light color with the light cookie color (if any)
         float3 lightColor = lightData.color;
-        if (lightData.cookieIndex >= 0)
+        if (lightData.cookieMode != COOKIEMODE_NONE)
         {
             float   cookieWidth = lightData.cookieScaleOffset.x * _CookieAtlasSize.x;
             float   cookieSizePOT = round(LOG2_E * log(cookieWidth));

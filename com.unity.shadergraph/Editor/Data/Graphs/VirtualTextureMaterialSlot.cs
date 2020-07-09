@@ -29,5 +29,7 @@ namespace UnityEditor.ShaderGraph
         public override void CopyValuesFrom(MaterialSlot foundSlot)
         {
         }
+
+        public override bool isDefaultValue => throw new Exception();
     }
 }

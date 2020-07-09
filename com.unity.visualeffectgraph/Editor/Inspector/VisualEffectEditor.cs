@@ -197,6 +197,15 @@ namespace UnityEditor.VFX
                     else
                         EditorGUI.IntSlider(rect, valueProperty, (int)parameter.min, (int)parameter.max, nameContent);
                 }
+                else if( parameter.enumValues != null && parameter.enumValues.Count > 0)
+                {
+                    long currentValue = valueProperty.longValue;
+                    int newIndex = EditorGUI.Popup(rect, nameContent, (int)currentValue, parameter.enumValues.ToArray());
+                    if (newIndex != currentValue)
+                    {
+                        valueProperty.longValue = newIndex;
+                    }
+                }
                 else if (parameter.realType == typeof(Color).Name)
                 {
                     Vector4 vVal = valueProperty.vector4Value;
@@ -207,8 +216,9 @@ namespace UnityEditor.VFX
                         valueProperty.vector4Value = new Vector4(c.r, c.g, c.b, c.a);
                 }
                 else if (parameter.realType == typeof(Gradient).Name)
+
                 {
-                    Gradient newGradient = EditorGUI.GradientField(rect, nameContent, valueProperty.gradientValue, true);
+                    Gradient newGradient = EditorGUI.GradientField(rect, nameContent, valueProperty.gradientValue, true,ColorSpace.Linear);
 
                     if (GUI.changed)
                         valueProperty.gradientValue = newGradient;
@@ -340,6 +350,15 @@ namespace UnityEditor.VFX
                             if (GUI.changed)
                             {
                                 valueProperty.intValue = value;
+                                changed = true;
+                            }
+                        }
+                        else if (parameter.enumValues != null && parameter.enumValues.Count > 0)
+                        {
+                            int newIndex = EditorGUI.Popup(rect, nameContent, (int)0, parameter.enumValues.ToArray());
+                            if (GUI.changed)
+                            {
+                                valueProperty.intValue = newIndex;
                                 changed = true;
                             }
                         }

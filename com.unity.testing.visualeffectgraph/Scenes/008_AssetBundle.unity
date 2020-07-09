@@ -307,6 +307,7 @@ MonoBehaviour:
     UseHDR: 0
   captureFrameRate: 20
   simulateTime: 1
+  xrCompatible: 0
 --- !u!1 &1950778824
 GameObject:
   m_ObjectHideFlags: 0

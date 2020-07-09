@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using Data.Interfaces;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.Graphing;
@@ -66,7 +65,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         // When the properties are changed, this delegate is used to trigger an update in the view that represents those properties
-        private Action m_propertyViewUpdateTrigger;
+        private Action m_inspectorUpdateTrigger;
         private ShaderInputPropertyDrawer.ChangeReferenceNameCallback m_resetReferenceNameTrigger;
 
         public string inspectorTitle
@@ -137,14 +136,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     RegisterPropertyChangeUndo,
                     MarkNodesAsDirty);
 
-                m_propertyViewUpdateTrigger = inspectorUpdateDelegate;
+                m_inspectorUpdateTrigger = inspectorUpdateDelegate;
                 m_resetReferenceNameTrigger = shaderInputPropertyDrawer._resetReferenceNameCallback;
-            }
-        }
 
-        public PropertyInfo[] GetPropertyInfo()
-        {
-            return GetType().GetProperties();
+                this.RegisterCallback<DetachFromPanelEvent>(evt => m_inspectorUpdateTrigger());
+            }
         }
 
         void ChangeExposedField(bool newValue)
@@ -170,7 +166,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             DirtyNodes(modificationScope);
             if(triggerPropertyViewUpdate)
-                m_propertyViewUpdateTrigger();
+                m_inspectorUpdateTrigger();
         }
 
         void ChangePropertyValue(object newValue)

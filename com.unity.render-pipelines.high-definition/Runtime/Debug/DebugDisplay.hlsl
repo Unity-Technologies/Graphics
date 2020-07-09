@@ -13,7 +13,7 @@
 
 
 // Local shader variables
-static DirectionalShadowType g_DebugShadowAttenuation = 0;
+static SHADOW_TYPE g_DebugShadowAttenuation = 0;
 
 StructuredBuffer<int2>  _DebugDepthPyramidOffsets;
 
@@ -130,7 +130,7 @@ float3 GetTextureDataDebug(uint paramId, float2 uv, Texture2D tex, float4 texelS
 // color is current screen color
 // color of the font to use
 // direction is 1 or -1 and indicate fixedUnormCoord block shift
-void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color, int direction)
+void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color, int direction, int fontTextScaleWidth)
 {
     // Are we inside a font display block on the screen ?
     uint2 localCharCoord = currentUnormCoord - fixedUnormCoord;
@@ -145,15 +145,20 @@ void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, i
         // normalized coordinate
         float2 normTexCoord = float2(unormTexCoord) / float2(DEBUG_FONT_TEXT_WIDTH * DEBUG_FONT_TEXT_COUNT_X, DEBUG_FONT_TEXT_HEIGHT * DEBUG_FONT_TEXT_COUNT_Y);
 
-        #if UNITY_UV_STARTS_AT_TOP
+#if UNITY_UV_STARTS_AT_TOP
         normTexCoord.y = 1.0 - normTexCoord.y;
-        #endif
+#endif
 
         float charColor = SAMPLE_TEXTURE2D_LOD(_DebugFont, s_point_clamp_sampler, normTexCoord, 0).r;
         color = color * (1.0 - charColor) + charColor * fontColor;
     }
 
-    fixedUnormCoord.x += DEBUG_FONT_TEXT_SCALE_WIDTH * direction;
+    fixedUnormCoord.x += fontTextScaleWidth * direction;
+}
+
+void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color, int direction)
+{
+    DrawCharacter(asciiValue, fontColor, currentUnormCoord, fixedUnormCoord, color, direction, DEBUG_FONT_TEXT_SCALE_WIDTH);
 }
 
 // Shortcut to not have to file direction
@@ -180,13 +185,16 @@ void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout 
     fixedUnormCoord.x += numEntries * DEBUG_FONT_TEXT_SCALE_WIDTH;
 
     // 3. Display the number
-    [unroll] // Needed to supress warning as some odd code gen is happening here. Is bad for perf, but it is a debug display.
+    bool drawCharacter = true; // bit weird, but it is to appease the compiler.
     for (uint j = 0; j < maxStringSize; ++j)
     {
         // Numeric value incurrent font start on the second row at 0
-        DrawCharacter((absIntValue % 10) + '0', fontColor, currentUnormCoord, fixedUnormCoord, color, -1);
+        if(drawCharacter)
+            DrawCharacter((absIntValue % 10) + '0', fontColor, currentUnormCoord, fixedUnormCoord, color, -1);
+
         if (absIntValue  < 10)
-            break;
+            drawCharacter = false;
+
         absIntValue /= 10;
     }
 

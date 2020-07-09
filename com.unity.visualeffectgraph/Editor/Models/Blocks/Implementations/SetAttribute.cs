@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
+using System.Globalization;
 
 namespace UnityEditor.VFX.Block
 {
@@ -188,7 +189,7 @@ namespace UnityEditor.VFX.Block
 
         static private string GenerateLocalAttributeName(string name)
         {
-            return name[0].ToString().ToUpper() + name.Substring(1);
+            return name[0].ToString().ToUpper(CultureInfo.InvariantCulture) + name.Substring(1);
         }
 
         public override string source
@@ -306,7 +307,7 @@ namespace UnityEditor.VFX.Block
                         var attrib = currentAttribute;
 
                         VFXPropertyAttributes attr = new VFXPropertyAttributes();
-                        var field = typeof(VFXAttribute).GetField(attrib.name.Substring(0, 1).ToUpper() + attrib.name.Substring(1), System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
+                        var field = typeof(VFXAttribute).GetField(attrib.name.Substring(0, 1).ToUpper(CultureInfo.InvariantCulture) + attrib.name.Substring(1), System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
 
                         TooltipAttribute tooltip = null;
 

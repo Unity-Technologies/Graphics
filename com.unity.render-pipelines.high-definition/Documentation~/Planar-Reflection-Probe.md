@@ -6,6 +6,8 @@ The Planar Reflection Probe component is one of the types of [Reflection Probe](
 
 Planar Reflection Probes share many properties with the the [built-in render pipeline Reflection Probe](<https://docs.unity3d.com/Manual/class-ReflectionProbe.html>), and the [HDRP cubemap Reflection Probe](Reflection-Probe.html).
 
+Planar Reflection Probes use the same texture format than the one selected in [HDRP Asset](HDRP-Asset.md) for Color Buffer Format.
+
 ![](Images/PlanarReflectionProbe1.png)
 
 ### General Properties
@@ -70,7 +72,7 @@ The following properties control extra behavior options for fine-tuning the beha
 
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
-| **Light Layer** | A mask that allows you to choose which Light Layers this Reflection Probe affects. This Reflection Probe only affects Mesh Renderers with a matching **Rendering Layer Mask**.<br/>Navigate to your Project’s **HDRP Asset > Render Pipeline Supported Features** and enable **Light Layers** to use this property. |
+| **Light Layer** | A mask that allows you to choose which Light Layers this Reflection Probe affects. This Reflection Probe only affects Mesh Renderers or Terrain with a matching **Rendering Layer Mask**.<br/>Navigate to your Project’s **HDRP Asset > Render Pipeline Supported Features** and enable **Light Layers** to use this property. |
 | **Multiplier**  | A multiplier that HDRP applies to the RenderTexture captured by the Planar Reflection Probe. Higher multiplier values make the queried RenderTexture brighter, and lower multiplier values make the queried RenderTexture darker. |
 | **Weight**      | The overall weight of this Reflection Probe’s contribution to the reflective effect of Materials. When Reflection Probe’s blend together, the weight of each Probe determines their contribution to a reflective Material in the blend area. |
 
