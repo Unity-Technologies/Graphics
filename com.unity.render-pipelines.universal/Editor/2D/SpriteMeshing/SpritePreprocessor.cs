@@ -128,8 +128,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 for (int i = 0; i < vertices.Length; i++)
                     allVertices.Add(vertices[i] / pixelsPerUnit - v3Pivot);
 
+                //for (int i = 0; i < uvs.Length; i++)
+                //    allUVs.Add(uvs[i]);
+
                 for (int i = 0; i < uvs.Length; i++)
-                    allUVs.Add(uvs[i]);
+                {
+                    Vector2 newUV = new Vector2((vertices[i].x + shapeLibrary.m_Region.x) / texture.width, (vertices[i].y + shapeLibrary.m_Region.y) / texture.height);
+                    allUVs.Add(newUV);
+                }
             });
 
 
@@ -166,18 +172,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             float correctedPPU = sprites[0].rect.width / sprites[0].bounds.size.x;
 
-            float width = texture.width / correctedPPU;
-            float height = texture.height / correctedPPU;
-
-            float halfWidth = 0.5f * width;
-            float halfHeight = 0.5f * height;
-
-            Vector2 spriteSize = new Vector2(width, height);
-
             if (textureImporter.spriteMeshType == SpriteMeshType.Tight && textureImporter.spriteGenerateDepthMesh)
             {
                 if (textureImporter.spriteImportMode == SpriteImportMode.Single)
                 {
+                    float width = texture.width / correctedPPU;
+                    float height = texture.height / correctedPPU;
+                    Vector2 spriteSize = new Vector2(width, height);
                     Vector2 pivotOffset = textureImporter.spritePivot * spriteSize;  // This is probably wrong. Should use rect instead.
                     CreateSplitSpriteMesh(sprites[0], pivotOffset, textureImporter.spriteOutline, correctedPPU);
                 }
@@ -185,7 +186,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
                     for (int i = 0; i < textureImporter.spritesheet.Length; i++)
                     {
-                        Vector2 pivotOffset = textureImporter.spritesheet[i].pivot * spriteSize;   // This is probably wrong. Should use rect instead.
+                        float width = sprites[i].rect.width / correctedPPU;
+                        float height = sprites[i].rect.height / correctedPPU;
+                        Vector2 spriteSize = new Vector2(width, height);
+                        Vector2 pivotOffset = new Vector2(sprites[i].pivot.x / sprites[i].rect.width, sprites[i].pivot.y / sprites[i].rect.height) * spriteSize;
                         CreateSplitSpriteMesh(sprites[i], pivotOffset, textureImporter.spritesheet[i].outline, correctedPPU);
                     }
                 }

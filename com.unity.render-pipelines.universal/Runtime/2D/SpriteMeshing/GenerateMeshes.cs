@@ -248,8 +248,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             // Process the image...
             int4 rect = new int4(shapeLib.m_Region.x, shapeLib.m_Region.y, shapeLib.m_Region.width, shapeLib.m_Region.height);
-            ImageAlpha processedImageAlpha = new ImageAlpha(texture.width, texture.height);
-            ImageAlpha unprocessedImageAlpha = new ImageAlpha(texture.width, texture.height);
+            ImageAlpha processedImageAlpha = new ImageAlpha(rect.z, rect.w);
+            ImageAlpha unprocessedImageAlpha = new ImageAlpha(rect.z, rect.w);
             unprocessedImageAlpha.Copy(texture, rect);
 
 
