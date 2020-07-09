@@ -239,7 +239,10 @@ namespace UnityEngine.Rendering.Universal
                 m_Descriptor.height *= downsampleDivider;
                 cmd.GetTemporaryRT(s_SSAOTexture2ID, m_Descriptor, FilterMode.Bilinear);
                 cmd.GetTemporaryRT(s_SSAOTexture3ID, m_Descriptor, FilterMode.Bilinear);
+            }
 
+            public override void Configure(CommandBuffer cmd, ref RenderingData renderingData)
+            {
                 // Configure targets and clear color
                 ConfigureTarget(s_SSAOTexture2ID);
                 ConfigureClear(ClearFlag.None, Color.white);
