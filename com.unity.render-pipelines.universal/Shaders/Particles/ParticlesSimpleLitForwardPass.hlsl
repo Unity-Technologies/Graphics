@@ -125,8 +125,12 @@ VaryingsParticle ParticlesLitVertex(AttributesParticle input)
     output.clipPos = vertexInput.positionCS;
     output.color = GetParticleColor(input.color);
 
-#if defined(_FLIPBOOKBLENDING_ON) && !defined(UNITY_PARTICLE_INSTANCING_ENABLED)
+#if defined(_FLIPBOOKBLENDING_ON)
+#if defined(UNITY_PARTICLE_INSTANCING_ENABLED)
+    GetParticleTexcoords(output.texcoord, output.texcoord2AndBlend, input.texcoords.xyxy, 0.0);
+#else
     GetParticleTexcoords(output.texcoord, output.texcoord2AndBlend, input.texcoords, input.texcoordBlend);
+#endif
 #else
     GetParticleTexcoords(output.texcoord, input.texcoords.xy);
 #endif

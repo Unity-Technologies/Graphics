@@ -145,7 +145,7 @@ void GetParticleTexcoords(out float2 outputTexcoord, out float3 outputTexcoord2A
 
         outputTexcoord = inputTexcoords.xy * animScale.xy + offset0.xy;
 
-#ifdef _FLIPBOOK_BLENDING
+#ifdef _FLIPBOOKBLENDING_ON
         float index1 = floor(sheetIndex + 1.0);
         float vIdx1 = floor(index1 / numTilesX);
         float uIdx1 = floor(index1 - vIdx1 * numTilesX);
@@ -160,14 +160,14 @@ void GetParticleTexcoords(out float2 outputTexcoord, out float3 outputTexcoord2A
     {
         outputTexcoord = inputTexcoords.xy;
 #ifdef _FLIPBOOKBLENDING_ON
-        outputTexcoord2AndBlend.xy = inputTexcoords.xy;
+        outputTexcoord2AndBlend.xy = inputTexcoords.zw;
         outputTexcoord2AndBlend.z = inputBlend;
 #endif
     }
 
-#ifndef _FLIPBOOK_BLENDING
-    outputTexcoord2AndBlend.xy = outputTexcoord;
-    outputTexcoord2AndBlend.z = 0.0;
+#ifndef _FLIPBOOKBLENDING_ON
+    outputTexcoord2AndBlend.xy = inputTexcoords.xy;
+    outputTexcoord2AndBlend.z = 0.5;
 #endif
 }
 
