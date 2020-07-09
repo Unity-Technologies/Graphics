@@ -53,4 +53,5 @@ Only the red and green channel are used and they represent respectively horizont
 | -- **Flowmap**                | Assign a flowmap, in LatLong layout, that HDRP uses to distort UVs when rendering the clouds. Refer to the section [Customizing the Flowmap](#CustomizingFlowmap) for more details.<br />This property only appears when you select **Flowmap** from the **Distortion Mode** drop-down. |
 | - **Scroll direction**        | Use the slider to set the scrolling direction for the distortion. |
 | - **Scroll speed**            | Modify the speed at which HDRP scrolls the distortion texture. |
-| **Enable Cloud Shadow**      | Enable to attenuate shadows casted by the main directionnal light of the scene with the cloud layer. |
+| **Enable Cloud Shadow**       | Enable to attenuate shadows casted by the main directionnal light of the scene with the cloud layer. |
+| - **Shadow Opacity**          | Controls the opacity of the cloud shadows. |

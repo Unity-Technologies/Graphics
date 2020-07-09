@@ -716,14 +716,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return skyHash;
         }
 
-        int ComputeCloudShadowHash(CloudLayer layer, Light sunLight)
-        {
-            int cloudHash = layer.GetHashCode();
-            if (sunLight)
-                cloudHash = cloudHash * 23 + GetSunLightHashCode(sunLight);
-            return cloudHash;
-        }
-
         public void RequestEnvironmentUpdate()
         {
             m_UpdateRequired = true;
@@ -782,7 +774,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var renderingContext = cachedContext.renderingContext;
 
                 var cloudLayer = skyContext.cloudLayer;
-                if (sunLight != null && cloudLayer != null && cloudLayer.cloudShadow.value)
+                if (sunLight != null && cloudLayer != null && cloudLayer.enabled.value && cloudLayer.cloudShadow.value)
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ComputeCloudShadow)))
                     {

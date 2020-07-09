@@ -25,6 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_ScrollSpeed;
 
         SerializedDataParameter m_CloudShadow;
+        SerializedDataParameter m_ShadowOpacity;
 
         GUIContent[]    m_DistortionModes = { new GUIContent("Procedural"), new GUIContent("Flowmap") };
         int[]           m_DistortionModeValues = { 1, 0 };
@@ -50,6 +51,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ScrollSpeed               = Unpack(o.Find(x => x.scrollSpeed));
 
             m_CloudShadow              = Unpack(o.Find(x => x.cloudShadow));
+            m_ShadowOpacity             = Unpack(o.Find(x => x.shadowOpacity));
 
             CreateEditor(m_CloudMap);
         }
@@ -126,6 +128,12 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             PropertyField(m_CloudShadow, new GUIContent("Enable Cloud Shadow"));
+            if (m_CloudShadow.value.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                PropertyField(m_ShadowOpacity);
+                EditorGUI.indentLevel--;
+            }
 
 
             if (materialEditor != null)

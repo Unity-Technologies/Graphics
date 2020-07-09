@@ -48,6 +48,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Enable to have cloud shadow.</summary>
         [Tooltip("Enable or disable cloud shadow.")]
         public BoolParameter            cloudShadow        = new BoolParameter(false);
+        /// <summary>Controls the opacity of the cloud shadows.</summary>
+        [Tooltip("Controls the opacity of the cloud shadows.")]
+        public ClampedFloatParameter    shadowOpacity       = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
 
         private float scrollFactor = 0.0f, lastTime = 0.0f;
@@ -148,6 +151,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + scrollDirection.GetHashCode();
                 hash = hash * 23 + scrollSpeed.GetHashCode();
                 hash = hash * 23 + cloudShadow.GetHashCode();
+                hash = hash * 23 + shadowOpacity.GetHashCode();
             }
 
             return hash;

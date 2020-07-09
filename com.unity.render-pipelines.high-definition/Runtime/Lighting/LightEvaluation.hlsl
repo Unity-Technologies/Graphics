@@ -292,8 +292,8 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
         g_DebugShadowAttenuation = shadow;
 #endif
 
-    // If _CloudShadow is not bound, read returns 0, so shadow is not modified
-    shadow *= 1.0f - _CloudShadow[0];
+    // If _CloudShadow is not bound, read returns 0
+    shadow = lerp(shadow, _CloudShadowOpacity, _CloudShadow[0]);
 
     return shadow;
 #else // LIGHT_EVALUATION_NO_SHADOWS
