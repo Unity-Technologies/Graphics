@@ -25,7 +25,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with culling layer mask of area light's emissive mesh 
 - Fixed for area light not updating baked light result when modifying with gizmo.
 - Fixed errors when switching area light to disk shape while an area emissive mesh was displayed.
-- PBR Sky now doesn't go black when going below sea level, but it instead freezes calculation as if on the horizon. 
+- PBR Sky now doesn't go black when going below sea level, but it instead freezes calculation as if on the horizon.
+- Fixed XR single-pass macros in tessellation shaders.
 
 ### Changed
 - Changed extensions of shader CAS include files.
