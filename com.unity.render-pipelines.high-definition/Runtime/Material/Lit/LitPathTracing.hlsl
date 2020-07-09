@@ -148,7 +148,6 @@ bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleD
             return false;
 
         result.diffValue *= mtlData.bsdfData.ambientOcclusion * (1.0 - mtlData.bsdfData.transmittanceMask);
-        result.diffPdf *= mtlData.subsurfaceWeightFactor;
 
         return true;
     }
@@ -248,8 +247,8 @@ bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleD
 #endif
 
 #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
-        result.diffPdf *= mtlData.subsurfaceWeightFactor;
-        result.specPdf *= mtlData.subsurfaceWeightFactor;
+        // We compensate for the fact that there is no spec when computing SSS
+        result.specValue /= mtlData.subsurfaceWeightFactor;
 #endif
     }
     else // Below
@@ -295,8 +294,7 @@ void EvaluateMaterial(MaterialData mtlData, float3 sampleDir, out MaterialResult
     if (mtlData.isSubsurface)
     {
         BRDF::EvaluateLambert(mtlData, sampleDir, result.diffValue, result.diffPdf);
-        result.diffValue *= (1.0 - mtlData.bsdfData.transmittanceMask); // AO purposedly ignored here
-        result.diffPdf *= mtlData.subsurfaceWeightFactor;
+        result.diffValue *= 1.0 - mtlData.bsdfData.transmittanceMask; // AO purposedly ignored here
 
         return;
     }
@@ -331,8 +329,8 @@ void EvaluateMaterial(MaterialData mtlData, float3 sampleDir, out MaterialResult
         }
 
 #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
-        result.diffPdf *= mtlData.subsurfaceWeightFactor;
-        result.specPdf *= mtlData.subsurfaceWeightFactor;
+        // We compensate for the fact that there is no spec when computing SSS
+        result.specValue /= mtlData.subsurfaceWeightFactor;
 #endif
     }
 }
