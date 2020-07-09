@@ -85,6 +85,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 {
                     { SpriteLitPasses.Lit },
                     { SpriteLitPasses.Normal },
+                    { SpriteLitPasses.Depth },
                     { SpriteLitPasses.Forward },
                 },
             };
@@ -149,6 +150,33 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 includes = SpriteLitIncludes.Normal,
             };
 
+            public static PassDescriptor Depth = new PassDescriptor
+            {
+                // Definition
+                displayName = "Sprite Depth",
+                referenceName = "SHADERPASS_SPRITEDEPTH",
+                lightMode = "DepthRendering",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = null,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                requiredFields = SpriteLitRequiredFields.Depth,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = CoreRenderStates.DepthOnly,
+                pragmas = CorePragmas._2DDefault,
+                includes = SpriteLitIncludes.Depth,
+            };
+
             public static PassDescriptor Forward = new PassDescriptor
             {
                 // Definition
@@ -207,12 +235,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Varyings.color,
                 StructFields.Varyings.texCoord0,
                 StructFields.Varyings.screenPosition,
+                StructFields.Attributes.uv1
             };
 
             public static FieldCollection Normal = new FieldCollection()
             {
                 StructFields.Varyings.normalWS,
                 StructFields.Varyings.tangentWS,
+            };
+
+            public static FieldCollection Depth = new FieldCollection()
+            {
+                StructFields.Attributes.uv1
             };
 
             public static FieldCollection Forward = new FieldCollection()
@@ -243,6 +277,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             const string k2DNormal = "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/NormalsRenderingShared.hlsl";
             const string kSpriteLitPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteLitPass.hlsl";
             const string kSpriteNormalPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteNormalPass.hlsl";
+            const string kSpriteDepthPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteDepthPass.hlsl";
             const string kSpriteForwardPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteForwardPass.hlsl";
 
             public static IncludeCollection Lit = new IncludeCollection
@@ -267,6 +302,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
                 { kSpriteNormalPass, IncludeLocation.Postgraph },
+            };
+
+            public static IncludeCollection Depth = new IncludeCollection
+            {
+                // Pre-graph
+                { CoreIncludes.CorePregraph },
+                { CoreIncludes.ShaderGraphPregraph },
+
+                // Post-graph
+                { CoreIncludes.CorePostgraph },
+                { kSpriteDepthPass, IncludeLocation.Postgraph },
             };
 
             public static IncludeCollection Forward = new IncludeCollection
