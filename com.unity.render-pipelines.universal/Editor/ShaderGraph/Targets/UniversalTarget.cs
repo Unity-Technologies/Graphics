@@ -74,7 +74,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         [SerializeField]
         string m_CustomEditorGUI;
-        
+
+        static NodeTypeCollection s_UniversalNodeTypes = NodeTypes.AllBuiltin + typeof(ParallaxMappingNode);
+
+        public override bool IsNodeAllowedByTarget(Type nodeType)
+        {
+            return s_UniversalNodeTypes.Contains(nodeType);
+        }
+
         public UniversalTarget()
         {
             displayName = "Universal";
