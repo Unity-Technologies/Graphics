@@ -75,6 +75,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a serialization issue, preventing quality level parameters to undo/redo and update scene view on change.
 - Fixed an issue where opening the look dev window with the light theme would make the window blink and eventually crash unity.
 - Fixed culling for decals when used in prefabs and edited in context.
+- Fixed XR single-pass macros in tessellation shaders.
 
 ### Changed
 - Shadowmask and realtime reflection probe property are hide in Quality settings
