@@ -171,12 +171,10 @@ void GetParticleTexcoords(out float2 outputTexcoord, out float3 outputTexcoord2A
 #endif
 }
 
-#ifndef _FLIPBOOKBLENDING_ON
 void GetParticleTexcoords(out float2 outputTexcoord, in float2 inputTexcoord)
 {
     float3 dummyTexcoord2AndBlend = 0.0;
     GetParticleTexcoords(outputTexcoord, dummyTexcoord2AndBlend, inputTexcoord.xyxy, 0.0);
 }
-#endif
 
 #endif // UNIVERSAL_PARTICLES_INCLUDED
