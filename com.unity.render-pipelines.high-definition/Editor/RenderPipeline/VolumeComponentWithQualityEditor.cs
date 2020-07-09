@@ -14,9 +14,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public bool[] overrideState;
 
-            protected QualitySettingsBlob(int settingsCount)
+            protected QualitySettingsBlob(int overrideCount)
             {
-                overrideState = new bool[settingsCount];
+                overrideState = new bool[overrideCount];
             }
 
             protected static bool IsEqual (QualitySettingsBlob left, QualitySettingsBlob right)

@@ -126,7 +126,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawQualitySettings()
         {
-            object oldSettings = SaveCustomQualitySettingsAsObject();
+            QualitySettingsBlob oldSettings = SaveCustomQualitySettingsAsObject();
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.LabelField("Near Blur", EditorStyles.miniLabel);
             PropertyField(m_NearSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
@@ -145,7 +145,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (EditorGUI.EndChangeCheck())
             {
-                object newSettings = SaveCustomQualitySettingsAsObject();
+                QualitySettingsBlob newSettings = SaveCustomQualitySettingsAsObject();
 
                 if (!DepthOfFieldQualitySettingsBlob.IsEqual(oldSettings as DepthOfFieldQualitySettingsBlob, newSettings as DepthOfFieldQualitySettingsBlob))
                     QualitySettingsWereChanged();
