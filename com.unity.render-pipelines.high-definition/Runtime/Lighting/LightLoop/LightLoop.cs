@@ -1906,7 +1906,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var upVS       = worldToView.MultiplyVector(obb.up);
             var forwardVS  = Vector3.Cross(upVS, rightVS);
             var extents    = new Vector3(obb.extentX, obb.extentY, obb.extentZ);
-			var extentsMagnitude = extents.magnitude;
 
             volumeData.lightVolume   = (uint)LightVolumeType.Sphere;
             volumeData.lightCategory = (uint)category;
@@ -1914,9 +1913,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bound.center   = positionVS;
             bound.boxAxisX = obb.extentX * rightVS;
-            bound.boxAxisY = obb.extentY * upVS;
-            bound.boxAxisZ = obb.extentZ * forwardVS;
-            bound.radius   = extentsMagnitude;
+            bound.boxAxisY = obb.extentX * upVS;
+            bound.boxAxisZ = obb.extentX * forwardVS;
+            bound.radius   = obb.extentX;
             bound.scaleXY.Set(1.0f, 1.0f);
 
             // The culling system culls pixels that are further
@@ -1926,7 +1925,7 @@ namespace UnityEngine.Rendering.HighDefinition
             volumeData.lightAxisX   = rightVS;
             volumeData.lightAxisY   = upVS;
             volumeData.lightAxisZ   = forwardVS;
-            volumeData.radiusSq = extentsMagnitude * extentsMagnitude;
+            volumeData.radiusSq = obb.extentX * obb.extentX;
         }
 
         void AddBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, int viewIndex)

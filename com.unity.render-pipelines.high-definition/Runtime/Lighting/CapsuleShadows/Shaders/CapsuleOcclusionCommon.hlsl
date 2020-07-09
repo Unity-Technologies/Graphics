@@ -40,8 +40,16 @@
 
 float EvaluateCapsuleAmbientOcclusion(EllipsoidOccluderData data, float3 positionWS, float3 N, float4 dirAndLength)
 {
+    // TODO: Can combine distance falloff math with IQSphereAO math.
+    float3 occluderFromSurfaceDirectionWS;
+    float occluderFromSurfaceDistance;
+    ComputeDirectionAndDistanceFromStartAndEnd(positionWS, GetOccluderPositionRWS(data), occluderFromSurfaceDirectionWS, occluderFromSurfaceDistance);
+
     float3 occluder = TransformOccluder(data, positionWS);
-    return IQSphereAO(0, N, occluder.xyz, GetOccluderRadius(data));
+    float occlusion = 1.0f - IQSphereAO(0, N, occluder.xyz, GetOccluderRadius(data));
+    occlusion = ApplyInfluenceFalloff(occlusion, ComputeInfluenceFalloff(occluderFromSurfaceDistance, GetOccluderInfluenceRadiusWS(data)));
+
+    return 1.0f - occlusion;
 }
 
 // I stubbed out this version as a reference for myself while the work was being done by others. Keeping here as a reference in case we need it,
