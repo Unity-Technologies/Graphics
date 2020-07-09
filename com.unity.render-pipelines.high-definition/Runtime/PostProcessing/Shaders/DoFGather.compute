@@ -96,12 +96,9 @@ float GetSampleWeight(float cocRadius)
     return 1.0f;
 #endif
 
-    if (cocRadius == 0.0) return 1.0;
-
     float pixelRadius = 0.7071f;
-    float singlePixelArea = PI * pixelRadius * pixelRadius;
-    float diskArea = PI * cocRadius * cocRadius;
-    return diskArea >= singlePixelArea ? rcp(diskArea) : rcp(singlePixelArea);
+    float radius = max(pixelRadius, cocRadius);
+    return rcp(PI * radius * radius);
 }
 
 float2 PointInCircle(float angle)
@@ -189,7 +186,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         float radius = ring * scaledRad + stratum * scaledRad;
         float ringOffset = 0.5 * fmod(ring, 2.0f) * dAng;
 #else
-        float radius = ring * scaledRad + noise2 * scaledRad;
+        float radius = (ring - 1) * scaledRad + noise2 * scaledRad;
         float ringOffset = noise * dAng;
 #endif
 
