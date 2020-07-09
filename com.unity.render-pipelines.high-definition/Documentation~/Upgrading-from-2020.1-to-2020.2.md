@@ -48,6 +48,8 @@ HDRP now stores OnEnable and OnDemand shadows in a separate atlas and more API i
 
 The shader function `SampleShadow_PCSS` now requires you to pass in an additional float2 parameter which contains the shadow atlas resolution in x and the inverse of the atlas resolution in y.
 
+Ray bias and thickness parameters have been added to contact shadows. These might lead to small changes to the visual impact of contact shadows with the default parameters. Please consider tuning those values to fit the needs of your project.
+
 ## Shader config file
 
 From Unity 2020.2, due to the change of the shadow map, HDRP moved the HDShadowFilteringQuality enum to HDShadowManager.cs. HDRP also removed ShaderConfig.s_DeferredShadowFiltering and ShaderOptions.DeferredShadowFiltering from the source code because they have no effect anymore.
