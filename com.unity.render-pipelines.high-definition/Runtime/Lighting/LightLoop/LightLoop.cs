@@ -2460,7 +2460,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if(additionalLightData.isLightForCapsuleShadows)
                 {
-                    m_CapsuleOcclusionSystem.SetLightForShadows(additionalLightData);
+                    m_CapsuleOcclusionSystem.SetLightForShadows(additionalLightData, gpuLightType == GPULightType.Directional);
                 }
 
                 // Directional rendering side, it is separated as it is always visible so no volume to handle here

@@ -36,6 +36,8 @@ namespace UnityEngine.Rendering.HighDefinition
         private RTHandle m_CapsuleOcclusions;
 
         private HDAdditionalLightData m_LightForShadows = null;
+        private bool m_LightForShadowsIsDirectional = false;
+        private bool m_LightForShadowsCountExceededWarningDisplayed = false;
 
         internal CapsuleOcclusionSystem(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
         {
@@ -64,11 +66,23 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void ClearLightForShadows()
         {
             m_LightForShadows = null;
+            m_LightForShadowsIsDirectional = false; // Technicially could just leave this with garbage data.
         }
 
-        internal void SetLightForShadows(HDAdditionalLightData light)
+        internal void SetLightForShadows(HDAdditionalLightData light, bool isDirectional)
         {
+            if (m_LightForShadows != null)
+            {
+                if (!m_LightForShadowsCountExceededWarningDisplayed)
+                {
+                    m_LightForShadowsCountExceededWarningDisplayed = true;
+                    Debug.LogWarning("Warning: CapsuleOcclusionSystem: More than one light in view has Enable Capsule Shadows set to true. Currently only a single capsule shadow caster is supported.");
+                }
+                return;
+            }
+
             m_LightForShadows = light;
+            m_LightForShadowsIsDirectional = isDirectional;
         }
 
         internal bool IsLightCurrentLightCastingShadows(HDAdditionalLightData light)
@@ -130,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // TODO: This assumes is shadows from sun.
-        internal void RenderCapsuleOcclusions(CommandBuffer cmd, HDCamera hdCamera, RTHandle occlusionTexture, Light sunLight)
+        internal void RenderCapsuleOcclusions(CommandBuffer cmd, HDCamera hdCamera, RTHandle occlusionTexture)
         {
             if (!AnyEffectIsActive(hdCamera)) return;
 
@@ -149,23 +163,30 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (specularOcclusionSettings.intensity.value > 0.0f) { cs.EnableKeyword("SPECULAR_OCCLUSION"); }
                 if (specularOcclusionSettings.monteCarlo.value) { cs.EnableKeyword("MONTE_CARLO"); }
                 if (shadowSettings.intensity.value > 0.0f) { cs.EnableKeyword("DIRECTIONAL_SHADOW"); }
+                if (shadowSettings.intensity.value > 0.0f) { directionalShadows = true; }
                 
 
                 cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._CapsuleOccludersDatas, m_VisibleCapsuleOccludersDataBuffer);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OcclusionTexture, occlusionTexture);
 
                 // Shadow setup is super temporary. We should instead query the dominant direction from directional light maps. 
-                // TODO: Disable feature if sunLight is null.
-                var sunDir = (sunLight != null) ? sunLight.transform.forward : -Vector3.up;
                 // softness to be derived from angular diameter.
                 // For now a somewhat randomly set.
-
-                bool isDir = true;
-                Vector3 posOrAxis = new Vector3(-sunDir.x, -sunDir.y, -sunDir.z);
+                bool isDir = false;
+                Vector3 posOrAxis = Vector3.zero;
                 if(m_LightForShadows != null)
                 {
-                    posOrAxis = m_LightForShadows.transform.position - hdCamera.camera.transform.position; // move to camera relative
-                    isDir = false;
+                    if (m_LightForShadowsIsDirectional)
+                    {
+                        posOrAxis = -m_LightForShadows.transform.forward;
+                        isDir = true;
+                    }
+                    else
+                    {
+                        posOrAxis = m_LightForShadows.transform.position - hdCamera.camera.transform.position; // move to camera relative
+                        isDir = false;
+                    }
+                    
                 }
 
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._CapsuleShadowParameters, new Vector4(posOrAxis.x, posOrAxis.y, posOrAxis.z, shadowSettings.coneAperture.value / 89.0f));
