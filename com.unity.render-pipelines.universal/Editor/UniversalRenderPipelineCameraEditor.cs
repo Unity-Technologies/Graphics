@@ -343,13 +343,13 @@ namespace UnityEditor.Rendering.Universal
         {
             var scene = gameObject.scene;
 
-            var notInScene = EditorUtility.IsPersistent(camera) && !scene.IsValid();
+            var inScene = !EditorUtility.IsPersistent(camera) || scene.IsValid();
             var inPreviewScene = EditorSceneManager.IsPreviewScene(scene) && scene.IsValid();
             var inCurrentScene = !EditorUtility.IsPersistent(camera) && scene.IsValid();
 
             Camera[] cameras = Resources.FindObjectsOfTypeAll<Camera>();
             List<Camera> result = new List<Camera>();
-            if (notInScene)
+            if (!inScene)
             {
                 foreach (var camera in cameras)
                 {
