@@ -78,6 +78,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawAdvancedOptionsGUI()
         {
+            if ((m_Features & Features.Instancing) != 0)
+                materialEditor.EnableInstancingField();
+
             if ((m_Features & Features.DoubleSidedGI) != 0)
             {
                 // If the shader graph have a double sided flag, then we don't display this field.
@@ -91,9 +94,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if ((m_Features & Features.MotionVector) != 0)
                 DrawMotionVectorToggle();
-
-            if ((m_Features & Features.Instancing) != 0)
-                materialEditor.EnableInstancingField();
             if ((m_Features & Features.SpecularOcclusion) != 0)
                 materialEditor.ShaderProperty(specularOcclusionMode, Styles.specularOcclusionModeText);
             if ((m_Features & Features.AddPrecomputedVelocity) != 0)
