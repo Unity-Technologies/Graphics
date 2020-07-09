@@ -33,7 +33,7 @@ The Influence Volume defines the area around the Probe in which reflective Mater
 
 | **Property**              | **Description**                                              |
 | ------------------------- | ------------------------------------------------------------ |
-| **Shape**                 | Defines the shape of the Influence Volume. The possible values are **Box**, **Sphere** and **Convex**. The availability of properties below depend on the selected shape. |
+| **Shape**                 | Defines the shape of the Influence Volume. The possible values are **Box**, **Sphere** and **Convex**. The availability of properties below depends on the selected shape. |
 | **Box Size**              | Defines the scale of each axis of the box that represents the Influence Volume. Only available with a **Box Shape**. |
 | **Radius**                | Defines the radius of the sphere that represents the Influence Volume. Only available with a **Sphere Shape**. |
 | **Last Active Plane**     | Defines the coefficients of the last selected or modified plane of the shape. The XYZ component is the plane normal and W is the distance to the position of the probe. Only available with a **Convex Shape**. |
