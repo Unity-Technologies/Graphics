@@ -23,6 +23,7 @@ The version number for this package has increased due to a version update of a r
 - Fix LookDev's undo/redo on EnvironmentLibrary (case 1234725)
 - Fixed a wrong condition in CameraSwitcher, potentially causing out of bound exceptions.
 - Fixed issue with blue line in prefabs for volume mode.
+- Fix hierarchicalbox gizmo outside facing check in symetry or homothety mode no longer move the center
 
 ## [8.0.1] - 2020-02-25
 
