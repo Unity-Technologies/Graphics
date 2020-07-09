@@ -2362,9 +2362,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cs.EnableKeyword("ENABLE_ALPHA");
 
                 kernel = cs.FindKernel("KMain");
-                // We use more samples when TAA is disabled, to hide undersampling
-                float sampleMultipleier = taaEnabled ? 1 : 2;
-                float sampleCount = sampleMultipleier * Mathf.Max(m_DepthOfField.nearSampleCount, m_DepthOfField.farSampleCount);
+                float sampleCount = Mathf.Max(m_DepthOfField.nearSampleCount, m_DepthOfField.farSampleCount);
                 float mipLevel = Mathf.Ceil(Mathf.Log(cocLimit, 2));
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, cocLimit, mipLevel, 0.0f));
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
