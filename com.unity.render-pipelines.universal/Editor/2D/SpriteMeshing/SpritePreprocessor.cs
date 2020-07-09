@@ -159,10 +159,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         void OnPostprocessSprites(Texture2D texture, Sprite[] sprites)
         {
+            if (sprites.Length == 0)
+                return;
+
             TextureImporter textureImporter = (TextureImporter)assetImporter;
 
-            float width = (float)texture.width / (float)textureImporter.spritePixelsPerUnit;
-            float height = (float)texture.height / (float)textureImporter.spritePixelsPerUnit;
+            float correctedPPU = sprites[0].rect.width / sprites[0].bounds.size.x;
+
+            float width = texture.width / correctedPPU;
+            float height = texture.height / correctedPPU;
 
             float halfWidth = 0.5f * width;
             float halfHeight = 0.5f * height;
@@ -174,14 +179,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if (textureImporter.spriteImportMode == SpriteImportMode.Single)
                 {
                     Vector2 pivotOffset = textureImporter.spritePivot * spriteSize;  // This is probably wrong. Should use rect instead.
-                    CreateSplitSpriteMesh(sprites[0], pivotOffset, textureImporter.spriteOutline, textureImporter.spritePixelsPerUnit);
+                    CreateSplitSpriteMesh(sprites[0], pivotOffset, textureImporter.spriteOutline, correctedPPU);
                 }
                 else if (textureImporter.spriteImportMode == SpriteImportMode.Multiple)
                 {
                     for (int i = 0; i < textureImporter.spritesheet.Length; i++)
                     {
                         Vector2 pivotOffset = textureImporter.spritesheet[i].pivot * spriteSize;   // This is probably wrong. Should use rect instead.
-                        CreateSplitSpriteMesh(sprites[i], pivotOffset, textureImporter.spritesheet[i].outline, (float)textureImporter.spritePixelsPerUnit);
+                        CreateSplitSpriteMesh(sprites[i], pivotOffset, textureImporter.spritesheet[i].outline, correctedPPU);
                     }
                 }
 
