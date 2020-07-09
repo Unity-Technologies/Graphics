@@ -35,6 +35,6 @@ cmd_map = {
 }
 
 
-def get_cmd(platform_name, api_name, test_platform_type):
+def get_cmd(platform_name, api, test_platform_type):
     # Returns commands from platformname_apiname key if such key is present, or from platformname otherwise 
-    return cmd_map.get(f'{platform_name}_{api_name}'.lower(), cmd_map.get(platform_name.lower()))[test_platform_type]
+    return cmd_map.get(f'{platform_name}_{api["name"]}'.lower(), cmd_map.get(platform_name.lower()))[test_platform_type]
