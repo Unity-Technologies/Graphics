@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that caused memory allocations when sorting cameras. [case 1226448](https://issuetracker.unity3d.com/issues/2d-renderer-using-more-than-one-camera-that-renders-out-to-a-render-texture-creates-gc-alloc-every-frame)
 - Fixed an issue that caused the inverse view and projection matrix to output wrong values in some platforms. [case 1243990](https://issuetracker.unity3d.com/issues/urp-8-dot-1-breaks-unity-matrix-i-vp)
 - Fixed an issue where only unique names of cameras could be added to the camera stack.
+- Fixed shadows for additional lights by limiting MAX_VISIBLE_LIGHTS to 16 for OpenGL ES 2.0 and 3.0 on mobile platforms. [case 1244391](https://issuetracker.unity3d.com/issues/android-urp-spotlight-shadows-are-not-being-rendered-on-adreno-330-and-320-when-built)
 
 ## [8.1.0] - 2020-04-21
 
