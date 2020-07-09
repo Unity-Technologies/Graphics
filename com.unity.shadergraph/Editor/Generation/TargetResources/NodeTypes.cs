@@ -95,6 +95,8 @@ namespace UnityEditor.ShaderGraph
                 typeof(TangentVectorNode ),
                 typeof(UVNode ),
                 typeof(VertexColorNode ),
+                //Tracy
+                typeof(VertexIDNode),
                 typeof(ViewDirectionNode )
             };
 
