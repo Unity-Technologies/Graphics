@@ -13,8 +13,6 @@
     #define MSAA_SAMPLES 1
 #endif
 
-half4 _ScaleBiasRt;
-
 struct Attributes
 {
     float4 positionHCS  : POSITION;
@@ -39,7 +37,7 @@ Varyings vert(Attributes input)
     // Note: CopyDepth pass is setup with a mesh already in CS
     // Therefore, we can just output vertex position
 
-    // We need to handle y-flip in a way that all existing shaders using _ProjectionParams.x work. 
+    // We need to handle y-flip in a way that all existing shaders using _ProjectionParams.x work.
     // Otherwise we get flipping issues like this one (case https://issuetracker.unity3d.com/issues/lwrp-depth-texture-flipy)
 
     // Unity flips projection matrix in non-OpenGL platforms and when rendering to a render texture.

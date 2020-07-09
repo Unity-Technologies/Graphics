@@ -8,8 +8,6 @@ TEXTURE2D(_SourceTex);
 #endif
 
 SamplerState sampler_LinearClamp;
-uniform float4 _ScaleBias;
-uniform float4 _ScaleBiasRt;
 uniform uint _SourceTexArraySlice;
 uniform uint _SRGBRead;
 
