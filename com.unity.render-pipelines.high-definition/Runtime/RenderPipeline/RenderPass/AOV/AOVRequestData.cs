@@ -215,7 +215,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (PushCameraTexturePassData data, RenderGraphContext ctx) =>
                 {
-                    HDUtils.BlitCameraTexture(ctx.cmd, ctx.resources.GetTexture(data.source), data.target);
+                    HDUtils.BlitCameraTexture(ctx.cmd, data.source, data.target);
                 });
             }
         }
@@ -312,7 +312,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (data.customPassSource != null)
                         HDUtils.BlitCameraTexture(ctx.cmd, data.customPassSource, data.target);
                     else
-                        HDUtils.BlitCameraTexture(ctx.cmd, ctx.resources.GetTexture(data.source), data.target);
+                        HDUtils.BlitCameraTexture(ctx.cmd, data.source, data.target);
                 });
             }
         }
