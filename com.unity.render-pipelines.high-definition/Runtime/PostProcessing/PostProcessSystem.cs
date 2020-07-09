@@ -624,8 +624,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             if (taaEnabled && m_DepthOfField.physicallyBased)
                             {
                                 var taaDestination = m_Pool.Get(Vector2.one, m_ColorFormat);
-                                var taaParams = PrepareTAAParameters(camera);
                                 bool postDof = true;
+                                var taaParams = PrepareTAAParameters(camera, postDof);
+                                
                                 GrabTemporalAntialiasingHistoryTextures(camera, out var prevHistory, out var nextHistory, postDof);
                                 GrabVelocityMagnitudeHistoryTextures(camera, out var prevMVLen, out var nextMVLen, postDof);
                                 DoTemporalAntialiasing(taaParams, cmd, source, taaDestination, motionVecTexture, depthBuffer, depthMipChain, prevHistory, nextHistory, prevMVLen, nextMVLen);
@@ -1452,7 +1453,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 taaFilterWeights;
         }
 
-        TemporalAntiAliasingParameters PrepareTAAParameters(HDCamera camera)
+        TemporalAntiAliasingParameters PrepareTAAParameters(HDCamera camera, bool PostDOF = false)
         {
             TemporalAntiAliasingParameters parameters = new TemporalAntiAliasingParameters();
 
@@ -1465,7 +1466,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // The anti flicker becomes much more aggressive on higher values
             float temporalContrastForMaxAntiFlicker = 0.7f - Mathf.Lerp(0.0f, 0.3f, Mathf.SmoothStep(0.5f, 1.0f, camera.taaAntiFlicker));
 
-            parameters.taaParameters = new Vector4(camera.taaHistorySharpening, Mathf.Lerp(minAntiflicker, maxAntiflicker, camera.taaAntiFlicker), motionRejectionMultiplier, temporalContrastForMaxAntiFlicker);
+            parameters.taaParameters = new Vector4(camera.taaHistorySharpening, PostDOF ? maxAntiflicker : Mathf.Lerp(minAntiflicker, maxAntiflicker, camera.taaAntiFlicker), motionRejectionMultiplier, temporalContrastForMaxAntiFlicker);
 
             // Precompute weights used for the Blackman-Harris filter. TODO: Note that these are slightly wrong as they don't take into account the jitter size. This needs to be fixed at some point.
             float crossWeights = Mathf.Exp(-2.29f * 2);
@@ -1504,20 +1505,27 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.temporalAAMaterial.EnableKeyword("ENABLE_MV_REJECTION");
             }
 
-            switch (camera.TAAQuality)
+            if (PostDOF)
             {
-                case HDAdditionalCameraData.TAAQualityLevel.Low:
-                    parameters.temporalAAMaterial.EnableKeyword("LOW_QUALITY");
-                    break;
-                case HDAdditionalCameraData.TAAQualityLevel.Medium:
-                    parameters.temporalAAMaterial.EnableKeyword("MEDIUM_QUALITY");
-                    break;
-                case HDAdditionalCameraData.TAAQualityLevel.High:
-                    parameters.temporalAAMaterial.EnableKeyword("HIGH_QUALITY");
-                    break;
-                default:
-                    parameters.temporalAAMaterial.EnableKeyword("MEDIUM_QUALITY");
-                    break;
+                parameters.temporalAAMaterial.EnableKeyword("POST_DOF");
+            }
+            else
+            {
+                switch (camera.TAAQuality)
+                {
+                    case HDAdditionalCameraData.TAAQualityLevel.Low:
+                        parameters.temporalAAMaterial.EnableKeyword("LOW_QUALITY");
+                        break;
+                    case HDAdditionalCameraData.TAAQualityLevel.Medium:
+                        parameters.temporalAAMaterial.EnableKeyword("MEDIUM_QUALITY");
+                        break;
+                    case HDAdditionalCameraData.TAAQualityLevel.High:
+                        parameters.temporalAAMaterial.EnableKeyword("HIGH_QUALITY");
+                        break;
+                    default:
+                        parameters.temporalAAMaterial.EnableKeyword("MEDIUM_QUALITY");
+                        break;
+                }
             }
 
             parameters.taaHistoryPropertyBlock = m_TAAHistoryBlitPropertyBlock;
@@ -2222,18 +2230,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_Pool.Recycle(fullresCoC); // Already cleaned up if TAA is enabled
         }
 
-        static void GrabCoCHistory(HDCamera camera, out RTHandle previous, out RTHandle next)
+        static void GrabCoCHistory(HDCamera camera, out RTHandle previous, out RTHandle next, bool useMips = false)
         {
             RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
             {
                 return rtHandleSystem.Alloc(
                     Vector2.one, TextureXR.slices, DepthBits.None, GraphicsFormat.R16_SFloat,
-                    dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, name: $"{id} CoC History"
+                    dimension: TextureXR.dimension, enableRandomWrite: true, useMipMap:useMips, useDynamicScale: true, name: $"{id} CoC History"
                 );
             }
 
             next = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC)
                 ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC, Allocator, 2);
+
+            if (useMips == true && next.rt.mipmapCount == 1)
+            {
+                camera.ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC);
+                next = camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC, Allocator, 2);
+            }
 
             previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC);
         }
@@ -2301,6 +2315,27 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
             }
 
+            if (taaEnabled)
+            {
+                bool useMips = true;
+                GrabCoCHistory(camera, out var prevCoCTex, out var nextCoCTex, useMips);
+                var cocHistoryScale = new Vector2(camera.historyRTHandleProperties.rtHandleScale.z, camera.historyRTHandleProperties.rtHandleScale.w);
+
+                //Note: this reprojection creates some ghosting, we should replace it with something based on the new TAA 
+                cs = m_Resources.shaders.depthOfFieldCoCReprojectCS;
+                kernel = cs.FindKernel("KMain");
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(camera.resetPostProcessingHistory ? 0f : 0.91f, cocHistoryScale.x, cocHistoryScale.y, 0f));
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputHistoryCoCTexture, prevCoCTex);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputCoCTexture, nextCoCTex);
+                cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
+
+                // Cleanup the main CoC texture as we don't need it anymore and use the
+                // re-projected one instead for the following steps
+                m_Pool.Recycle(fullresCoC);
+                fullresCoC = nextCoCTex;
+            }
+
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldPyramid)))
             {
                 // To have an adaptive gather radius, we need estimates for the the min and max CoC that intersect a pixel.
@@ -2338,7 +2373,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
             }
 
-            m_Pool.Recycle(fullresCoC);
+            if (!taaEnabled)
+                m_Pool.Recycle(fullresCoC);
         }
         #endregion
 
