@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.12811705, g: 0.15874445, b: 0.21011224, a: 1}
+  m_IndirectSpecularColor: {r: 4191.8936, g: 5193.6055, b: 6875.708, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -6753,6 +6753,11 @@ PrefabInstance:
       propertyPath: m_Intensity
       value: 32
       objectReference: {fileID: 0}
+    - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9,
+        type: 3}
+      propertyPath: m_ShadowFadeDistance
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 7970848922256749247, guid: ac309c43e63ab9c489ca158a0025b6e9,
         type: 3}
       propertyPath: m_IsActive
@@ -9225,6 +9230,11 @@ PrefabInstance:
       propertyPath: m_CastShadows
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: -1504981713932161579, guid: 0b169a69f4f407145aa55021891e64fa,
+        type: 3}
+      propertyPath: m_ReceiveGI
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: -927199367670048503, guid: 0b169a69f4f407145aa55021891e64fa,
         type: 3}
       propertyPath: m_Name
@@ -9957,7 +9967,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isGlobal: 0
   priority: 3
-  blendDistance: 3
+  blendDistance: 4
   weight: 1
   sharedProfile: {fileID: 11400000, guid: 7bca3a07cdd522c4c8020832c20b3eae, type: 2}
 --- !u!1001 &759212826
@@ -15482,7 +15492,7 @@ PrefabInstance:
     - target: {fileID: 738646681744756154, guid: 573ac53c334415945bf239de2c2f0511,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 738646681744756156, guid: 573ac53c334415945bf239de2c2f0511,
         type: 3}
@@ -15750,7 +15760,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1477091845}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 62.7, y: 4.107, z: -0.102565765}
+  m_LocalPosition: {x: 62.7, y: 3.477, z: -0.102565765}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1663721606}
@@ -15892,7 +15902,7 @@ MonoBehaviour:
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
       m_Shape: 0
-      m_BoxSize: {x: 4.749958, y: 4.254018, z: 6.6}
+      m_BoxSize: {x: 4.749958, y: 3, z: 6.6}
       m_BoxBlendDistancePositive: {x: 0, y: 1.0217848, z: 0}
       m_BoxBlendDistanceNegative: {x: 1.6702595, y: 0, z: 0}
       m_BoxBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
@@ -16136,7 +16146,7 @@ ReflectionProbe:
   m_TimeSlicingMode: 0
   m_Resolution: 128
   m_UpdateFrequency: 0
-  m_BoxSize: {x: 4.749958, y: 4.254018, z: 6.6}
+  m_BoxSize: {x: 4.749958, y: 3, z: 6.6}
   m_BoxOffset: {x: 0, y: 0, z: 0}
   m_NearClip: 0.3
   m_FarClip: 1000
@@ -19796,7 +19806,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1696653815}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 63.509, y: 6.167, z: -0.22}
+  m_LocalPosition: {x: 63.509, y: 5.01, z: -0.22}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1663721606}
@@ -19926,7 +19936,7 @@ MonoBehaviour:
       rangeCompressionFactor: 1
     influence:
       m_EditorAdvancedModeBlendDistancePositive: {x: 0, y: 0, z: 0}
-      m_EditorAdvancedModeBlendDistanceNegative: {x: 0, y: 0.6268425, z: 0}
+      m_EditorAdvancedModeBlendDistanceNegative: {x: 0, y: 1, z: 0}
       m_EditorSimplifiedModeBlendDistance: 0
       m_EditorAdvancedModeBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
       m_EditorAdvancedModeBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
@@ -19938,9 +19948,9 @@ MonoBehaviour:
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
       m_Shape: 0
-      m_BoxSize: {x: 3.0643997, y: 1.9048367, z: 6.6}
+      m_BoxSize: {x: 3.0643997, y: 4, z: 6.6}
       m_BoxBlendDistancePositive: {x: 0, y: 0, z: 0}
-      m_BoxBlendDistanceNegative: {x: 0, y: 0.6268425, z: 0}
+      m_BoxBlendDistanceNegative: {x: 0, y: 1, z: 0}
       m_BoxBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
       m_BoxBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
       m_BoxSideFadePositive: {x: 1, y: 1, z: 1}
@@ -19957,7 +19967,7 @@ MonoBehaviour:
       m_SphereRadius: 1
     proxySettings:
       useInfluenceVolumeAsProxyVolume: 1
-      capturePositionProxySpace: {x: 0.040924072, y: 0.5671568, z: 0}
+      capturePositionProxySpace: {x: 0.040924072, y: 0.99776316, z: 0}
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
@@ -20182,7 +20192,7 @@ ReflectionProbe:
   m_TimeSlicingMode: 0
   m_Resolution: 128
   m_UpdateFrequency: 0
-  m_BoxSize: {x: 3.0643997, y: 1.9048367, z: 6.6}
+  m_BoxSize: {x: 3.0643997, y: 4, z: 6.6}
   m_BoxOffset: {x: 0, y: 0, z: 0}
   m_NearClip: 0.3
   m_FarClip: 1000
@@ -22042,7 +22052,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1863868011
 Transform:
   m_ObjectHideFlags: 0
@@ -25068,6 +25078,36 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 714672050}
     m_Modifications:
+    - target: {fileID: 141453939545206285, guid: 76336da601705b24888cb14d8af76073,
+        type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 1110515084896309208, guid: 76336da601705b24888cb14d8af76073,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1110515084896309208, guid: 76336da601705b24888cb14d8af76073,
+        type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 2936156370185690315, guid: 76336da601705b24888cb14d8af76073,
+        type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 3394272924494521940, guid: 76336da601705b24888cb14d8af76073,
+        type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 4433790553183163454, guid: 76336da601705b24888cb14d8af76073,
+        type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
     - target: {fileID: 4533175117981471253, guid: 76336da601705b24888cb14d8af76073,
         type: 3}
       propertyPath: m_ShadowFadeDistance
@@ -25078,10 +25118,35 @@ PrefabInstance:
       propertyPath: m_Name
       value: CeilingLamp_01
       objectReference: {fileID: 0}
+    - target: {fileID: 4939890636832620780, guid: 76336da601705b24888cb14d8af76073,
+        type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 5307934791213723907, guid: 76336da601705b24888cb14d8af76073,
+        type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
     - target: {fileID: 6646959568256708385, guid: 76336da601705b24888cb14d8af76073,
         type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6646959568256708385, guid: 76336da601705b24888cb14d8af76073,
+        type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 6889030193644731049, guid: 76336da601705b24888cb14d8af76073,
+        type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 7597449075758114296, guid: 76336da601705b24888cb14d8af76073,
+        type: 3}
+      propertyPath: m_Layer
+      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 8707388281747785984, guid: 76336da601705b24888cb14d8af76073,
         type: 3}

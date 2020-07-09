@@ -5738,8 +5738,8 @@ MonoBehaviour:
   captureEveryNthFrame: 1
   fileNameGenerator:
     m_Path:
-      m_Root: 0
-      m_Leaf: Recordings
+      m_Root: 5
+      m_Leaf: C:/Users/pydon/Videos/HDRP Template
       m_ForceAssetFolder: 0
     m_FileName: movie
   outputFormat: 0
