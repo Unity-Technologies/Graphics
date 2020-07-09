@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed 
 - Fixed undo not being recorded properly for setting active master node, graph precision, and node defaults.
+- Fixed an issue where contextual entries in the searcher would not get regenerated 
 
 ## [8.1.0] - 2020-04-21
 
