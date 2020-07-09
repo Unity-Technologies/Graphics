@@ -78,19 +78,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 GUI.enabled = false;
             }
 
-            // Draw the focus mode controls
-            HDEditorUtils.BeginIndent();
-            DrawFocusSettings(mode);
-            HDEditorUtils.EndIndent();
+            using (new HDEditorUtils.IndentScope())
+            {
+                // Draw the focus mode controls
+                DrawFocusSettings(mode);
+            }
 
             EditorGUILayout.Space();
 
-            // Draw the quality controls
             base.OnInspectorGUI();
-            HDEditorUtils.BeginIndent();
-            GUI.enabled = GUI.enabled && base.overrideState;
-            DrawQualitySettings();
-            HDEditorUtils.EndIndent();
+
+            using (new HDEditorUtils.IndentScope())
+            {
+                // Draw the quality controls
+                GUI.enabled = GUI.enabled && base.overrideState;
+                DrawQualitySettings();
+            }
 
             GUI.enabled = true;
         }

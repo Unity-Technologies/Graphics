@@ -295,27 +295,26 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Like EditorGUI.indentLevel++ but this one will also indent the override checkboxes
+        /// Like EditorGUI.IndentLevelScope but this one will also indent the override checkboxes.
         /// </summary>
-        internal static void BeginIndent()
+        internal class IndentScope : GUI.Scope
         {
-            // When using EditorGUI.indentLevel++, the clicking on the checkboxes does not work properly due to some issues on the C++ side.
-            // This function is a work-around for this issue.
-            const float offset = 15f;
-            GUILayout.BeginHorizontal();
-            EditorGUILayout.Space(offset, false);
-            GUILayout.BeginVertical();
-            EditorGUIUtility.labelWidth -= offset;
-        }
+            public IndentScope(int offset = 15)
+            {
+                // When using EditorGUI.indentLevel++, the clicking on the checkboxes does not work properly due to some issues on the C++ side.
+                // This scope is a work-around for this issue.
+                GUILayout.BeginHorizontal();
+                EditorGUILayout.Space(offset, false);
+                GUILayout.BeginVertical();
+                EditorGUIUtility.labelWidth -= offset;
+            }
 
-        /// <summary>
-        /// To be used for resetting the indentation after calling BeginIndent 
-        /// </summary>
-        internal static void EndIndent()
-        {
-            EditorGUIUtility.labelWidth = 0f;
-            GUILayout.EndVertical();
-            GUILayout.EndHorizontal();
+            protected override void CloseScope()
+            {
+                EditorGUIUtility.labelWidth = 0f;
+                GUILayout.EndVertical();
+                GUILayout.EndHorizontal();
+            }
         }
     }
 
