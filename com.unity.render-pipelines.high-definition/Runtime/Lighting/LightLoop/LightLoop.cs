@@ -2074,16 +2074,13 @@ namespace UnityEngine.Rendering.HighDefinition
             // Conservatively dilate bounds used for tile / cluster assignment by normal bias.
             // Otherwise, surfaces could bias outside of valid data within a tile.
             var extentConservativeX = obb.extentX + normalBiasDilation;
-            var extentConservativeY = obb.extentY + normalBiasDilation;
-            var extentConservativeZ = obb.extentZ + normalBiasDilation;
-            var extentConservativeMagnitude = Mathf.Sqrt(extentConservativeX * extentConservativeX + extentConservativeY * extentConservativeY + extentConservativeZ * extentConservativeZ);
 
             // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
             var positionVS = worldToView.MultiplyPoint(obb.center);
             var rightVS    = worldToView.MultiplyVector(obb.right);
             var upVS       = worldToView.MultiplyVector(obb.up);
             var forwardVS  = Vector3.Cross(upVS, rightVS);
-            var extents    = new Vector3(extentConservativeX, extentConservativeY, extentConservativeZ);
+            var extents    = new Vector3(extentConservativeX, extentConservativeX, extentConservativeX);
 
             volumeData.lightVolume   = (uint)LightVolumeType.Sphere;
             volumeData.lightCategory = (uint)category;
@@ -2091,9 +2088,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bound.center   = positionVS;
             bound.boxAxisX = extentConservativeX * rightVS;
-            bound.boxAxisY = extentConservativeY * upVS;
-            bound.boxAxisZ = extentConservativeZ * forwardVS;
-            bound.radius   = extentConservativeMagnitude;
+            bound.boxAxisY = extentConservativeX * upVS;
+            bound.boxAxisZ = extentConservativeX * forwardVS;
+            bound.radius   = extentConservativeX;
             bound.scaleXY.Set(1.0f, 1.0f);
 
             // The culling system culls pixels that are further
@@ -2103,7 +2100,7 @@ namespace UnityEngine.Rendering.HighDefinition
             volumeData.lightAxisX   = rightVS;
             volumeData.lightAxisY   = upVS;
             volumeData.lightAxisZ   = forwardVS;
-            volumeData.radiusSq = extentConservativeMagnitude * extentConservativeMagnitude;
+            volumeData.radiusSq = extentConservativeX * extentConservativeX;
         }
 
         void CreateBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, float normalBiasDilation, out LightVolumeData volumeData, out SFiniteLightBound bound)

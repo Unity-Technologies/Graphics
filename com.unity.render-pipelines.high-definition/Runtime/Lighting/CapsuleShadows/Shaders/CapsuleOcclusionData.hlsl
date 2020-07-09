@@ -89,7 +89,7 @@ void ComputeDirectionAndDistanceFromStartAndEnd(float3 start, float3 end, out fl
 
 float ComputeInfluenceFalloff(float dist, float influenceRadius)
 {
-    return smoothstep(1.0f, 0.5f, dist / influenceRadius);
+    return smoothstep(1.0f, 0.75f, dist / influenceRadius);
 }
 
 float ApplyInfluenceFalloff(float occlusion, float influenceFalloff)

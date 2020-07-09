@@ -162,8 +162,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (aoSettings.intensity.value > 0.0f) { cs.EnableKeyword("AMBIENT_OCCLUSION"); }
                 if (specularOcclusionSettings.intensity.value > 0.0f) { cs.EnableKeyword("SPECULAR_OCCLUSION"); }
                 if (specularOcclusionSettings.monteCarlo.value) { cs.EnableKeyword("MONTE_CARLO"); }
-                if (shadowSettings.intensity.value > 0.0f) { cs.EnableKeyword("DIRECTIONAL_SHADOW"); }
-                if (shadowSettings.intensity.value > 0.0f) { directionalShadows = true; }
+                if (shadowSettings.intensity.value > 0.0f && m_LightForShadows != null) { cs.EnableKeyword("DIRECTIONAL_SHADOW"); }
                 
 
                 cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._CapsuleOccludersDatas, m_VisibleCapsuleOccludersDataBuffer);
