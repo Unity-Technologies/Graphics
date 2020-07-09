@@ -481,6 +481,7 @@ Shader ""Hidden/GraphErrorShader2""
             AddCoordinateSpaceSnippets(InterpolatorType.Position, r => r.requiresPosition);
 
             AddRequirementsSnippet(r => r.requiresVertexColor, $"float4 {ShaderGeneratorNames.VertexColor}");
+            AddRequirementsSnippet(r => r.requiresVertexID, $"float4 {ShaderGeneratorNames.VertexID}");
             AddRequirementsSnippet(r => r.requiresScreenPosition, $"float4 {ShaderGeneratorNames.ScreenPosition}");
             AddRequirementsSnippet(r => r.requiresFaceSign, $"float4 {ShaderGeneratorNames.FaceSign}");
 
