@@ -5,6 +5,7 @@
 * The PR can be marked as “Ready for Review” once the reviewers have confirmed that **no more changes are needed**
 * Tests will start automatically after the PR is marked as “Ready for Review”
 * **Do not use [skip ci]** - this can break some of our tooling
+* Read the [Graphics repository & Yamato FAQ](http://go/graphics-yamato-faq).
 
 # Purpose of this PR
 
