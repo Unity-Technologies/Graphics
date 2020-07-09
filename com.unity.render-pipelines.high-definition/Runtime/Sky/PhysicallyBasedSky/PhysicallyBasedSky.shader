@@ -68,6 +68,23 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         return output;
     }
 
+    // https://en.wikipedia.org/wiki/Limb_darkening
+    float LimbDarening(float lightAngle, float lightRadius)
+    {
+        // Sun at 550 nm.
+        const float a0 =  0.30;
+        const float a1 =  0.93;
+        const float a2 = -0.23;
+
+        // Assume (lightRadius << 1).
+        float sinTheta = lightAngle;
+        float sinOmega = lightRadius;
+        float r        = sinTheta / sinOmega;
+        float cosPsi   = sqrt(saturate(1 - r * r));
+
+        return saturate(a0 + cosPsi * a1 + Sq(cosPsi) * a2);
+    }
+
     float4 RenderSky(Varyings input)
     {
         const float R = _PlanetaryRadius;
@@ -112,48 +129,58 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     // We may be able to see the celestial body.
                     float3 L = -light.forward.xyz;
 
-                    float LdotV    = -dot(L, V);
-                    float rad      = acos(LdotV);
-                    float radInner = 0.5 * light.angularDiameter;
-                    float cosInner = cos(radInner);
-                    float cosOuter = cos(radInner + light.flareSize);
+                    float LdotV       = saturate(-dot(L, V));
+                    float lightAngle  = acos(LdotV);
+                    float pixelRadius = 0.5 * sqrt(Sq(ddx_fine(lightAngle)) + Sq(ddy_fine(lightAngle)));
+                    float lightRadius = 0.5 * light.angularDiameter;
+                    float glowRadius  = lightRadius + light.flareSize;
+                    float solidAngle  = TWO_PI * (1 - cos(lightRadius));
 
-                    float solidAngle = TWO_PI * (1 - cosInner);
-
-                    if (LdotV >= cosOuter)
+                    if ((lightAngle - pixelRadius) <= glowRadius)
                     {
-                        // Sun flare is visible. Sun disk may or may not be visible.
-                        // Assume uniform emission.
-                        float3 color = light.color.rgb;
-                        float  scale = rcp(solidAngle);
+                        // Sun glow region is (partially) visible. Sun disk may or may not be visible.
+                        float3 color = light.color.rgb; // Assume uniform emission.
+                        // color *= LimbDarening(lightAngle, lightRadius); // Pointless, can't see it, also reduces the irradiance so would have to renormalize
 
-                        if (LdotV >= cosInner) // Sun disk.
+                        color *= rcp(solidAngle); // Both sun disk and sun glow
+
+                        if ((lightAngle - pixelRadius) <= lightRadius)
                         {
+                            // Sun disk is (partially) visible.
                             tFrag = lightDist;
+
+                            color *= light.surfaceTint;
 
                             if (light.surfaceTextureScaleOffset.x > 0)
                             {
                                 // The cookie code de-normalizes the axes.
                                 float2 proj   = float2(dot(-V, normalize(light.right)), dot(-V, normalize(light.up)));
                                 float2 angles = HALF_PI - acos(proj);
-                                float2 uv     = angles * rcp(radInner) * 0.5 + 0.5;
+                                float2 uv     = angles * rcp(lightRadius) * 0.5 + 0.5;
 
                                 color *= SampleCookie2D(uv, light.surfaceTextureScaleOffset);
-                                // color *= SAMPLE_TEXTURE2D_ARRAY(_CookieTextures, s_linear_clamp_sampler, uv, light.surfaceTextureIndex).rgb;
                             }
-                            
-                            color *= light.surfaceTint;
+
+                            // Compute the coverage.
+                            float signDist = (lightRadius - lightAngle) / pixelRadius;
+                        #if 0
+                            float x        = clamp(signDist, -1, 1);
+                            float coverage = saturate(INV_PI * (PI + x * sqrt(1 - x * x) - acos(x)));
+                        #else
+                            float coverage = saturate(signDist * 0.5 + 0.5); // Very rough approximation
+                        #endif
+
+                            color = FastTonemapInvert(FastTonemap(color, coverage)); // Resolve
                         }
                         else // Flare region.
                         {
-                            float r = max(0, rad - radInner);
+                            float r = max(0, lightAngle - lightRadius);
                             float w = saturate(1 - r * rcp(light.flareSize));
 
                             color *= light.flareTint;
-                            scale *= pow(w, light.flareFalloff);
                         }
 
-                        radiance += color * scale;
+                        radiance += color;
                     }
                 }
             }
@@ -193,9 +220,6 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                 for (uint i = 0; i < _DirectionalLightCount; i++)
                 {
                     DirectionalLightData light = _DirectionalLightDatas[i];
-
-                    // Use scalar or integer cores (more efficient).
-                    bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
 
                     float3 L          = -light.forward.xyz;
                     float3 intensity  = light.color.rgb;
