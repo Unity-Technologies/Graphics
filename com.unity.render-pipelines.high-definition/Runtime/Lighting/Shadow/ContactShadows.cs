@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls the bias applied to the screen space ray cast to get contact shadows.
         /// </summary>
-        public ClampedFloatParameter        rayBias = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
+        public ClampedFloatParameter        rayBias = new ClampedFloatParameter(0.2f, 0.0f, 1.0f);
         /// <summary>
         /// Controls the thickness of the objects found along the ray, essentially thickening the contact shadows.
         /// </summary>
