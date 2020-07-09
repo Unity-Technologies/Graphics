@@ -724,6 +724,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed sky asserts with XR multipass
 - Fixed for area light not updating baked light result when modifying with gizmo.
 - Fixed robustness issue with GetOddNegativeScale() in ray tracing, which was impacting normal mapping (1261160).
+- Fixed path-traced subsurface scattering mixing with diffuse and specular BRDFs (1250601).
 
 ### Changed
 - Improve MIP selection for decals on Transparents
