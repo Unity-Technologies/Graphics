@@ -10,6 +10,7 @@ CBUFFER_START(CapsuleOcclusionConstantBuffer)
 float4 _CapsuleShadowParameters;    // xyz: direction w: cone width to use.      // Soon to be subjected to changes!
 float4 _CapsuleShadowParameters2; 
 float4 _CapsuleOcclusionIntensities;
+uint _CapsuleOccludersCount;
 CBUFFER_END
 
 #define _CapsuleAmbientOcclusionIntensity _CapsuleOcclusionIntensities.x 

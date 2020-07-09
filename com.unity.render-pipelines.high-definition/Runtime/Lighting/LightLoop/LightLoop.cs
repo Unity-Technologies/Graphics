@@ -181,10 +181,12 @@ namespace UnityEngine.Rendering.HighDefinition
         EnvironmentAndArea = 6,
         /// <summary>All lights.</summary>
         EnvironmentAndAreaAndPunctual = 7,
+        /// <summary>Capsule Occluders.</summary>
+        CapsuleOccluder = 8,
         /// <summary>Decals.</summary>
-        Decal = 8,
+        Decal = 16,
         /// <summary>Density Volumes.</summary>
-        DensityVolumes = 16
+        DensityVolumes = 32
     };
 
     internal struct ProcessedLightData
@@ -481,6 +483,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public List<EnvLightData> envLights;
             public int punctualLightCount;
             public int areaLightCount;
+            public int capsuleOccludersCount;
 
             public struct LightsPerView
             {
@@ -497,6 +500,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 envLights.Clear();
                 punctualLightCount = 0;
                 areaLightCount = 0;
+                capsuleOccludersCount = 0;
 
                 for (int i = 0; i < lightsPerView.Count; ++i)
                 {
@@ -2623,6 +2627,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_TotalLightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount;
                 m_TotalLightCount += m_CapsuleOccluderCount;
+                m_lightList.capsuleOccludersCount = m_CapsuleOccluderCount;
                 Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].bounds.Count);
                 Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].lightVolumes.Count);
 
@@ -2641,7 +2646,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalInt(HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
                 cmd.SetGlobalInt(HDShaderIDs._DecalIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count);
                 cmd.SetGlobalInt(HDShaderIDs._DensityVolumeIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount);
-                cmd.SetGlobalInt(HDShaderIDs._CapsuleOccludersIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_DensityVolumeCount);
+                cmd.SetGlobalInt(HDShaderIDs._CapsuleOccludersIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount);
             }
 
             m_enableBakeShadowMask = m_enableBakeShadowMask && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask);
@@ -2718,7 +2723,8 @@ namespace UnityEngine.Rendering.HighDefinition
         struct BuildGPULightListParameters
         {
             // Common
-            public int totalLightCount; // Regular + Env + Decal + Density Volumes
+            public int decalDatasCount;
+            public int totalLightCount; // Regular + Env + Decal + Density Volumes + Capsule Occluders
             public bool isOrthographic;
             public int viewCount;
             public bool runLightList;
@@ -2824,9 +2830,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs._EnvLightIndexShift, parameters.lightList.lights.Count);
                 cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs._DecalIndexShift, parameters.lightList.lights.Count + parameters.lightList.envLights.Count);
 
-                // TODO: decalDatasCount should maybe be cached on parameters.
-                int decalDatasCount = Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen);
-                cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs._CapsuleOccludersIndexShift, parameters.lightList.lights.Count + parameters.lightList.envLights.Count + decalDatasCount + m_DensityVolumeCount);
+                cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs._CapsuleOccludersIndexShift, parameters.lightList.lights.Count + parameters.lightList.envLights.Count + parameters.decalDatasCount);
 
                 cmd.SetComputeMatrixArrayParam(parameters.bigTilePrepassShader, HDShaderIDs.g_mScrProjectionArr, parameters.lightListProjscrMatrices);
                 cmd.SetComputeMatrixArrayParam(parameters.bigTilePrepassShader, HDShaderIDs.g_mInvScrProjectionArr, parameters.lightListInvProjscrMatrices);
@@ -2854,9 +2858,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs._EnvLightIndexShift, parameters.lightList.lights.Count);
                 cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs._DecalIndexShift, parameters.lightList.lights.Count + parameters.lightList.envLights.Count);
                 
-                // TODO: decalDatasCount should maybe be cached on parameters.
-                int decalDatasCount = Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen);
-                cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs._CapsuleOccludersIndexShift, parameters.lightList.lights.Count + parameters.lightList.envLights.Count + decalDatasCount + m_DensityVolumeCount);
+                cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs._CapsuleOccludersIndexShift, parameters.lightList.lights.Count + parameters.lightList.envLights.Count + parameters.decalDatasCount);
 
                 cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_iNrVisibLights, parameters.totalLightCount);
 
@@ -3079,6 +3081,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.lightListProjscrMatrices[viewIndex] = temp * m_LightListProjMatrices[viewIndex];
                 parameters.lightListInvProjscrMatrices[viewIndex] = parameters.lightListProjscrMatrices[viewIndex].inverse;
             }
+
+            parameters.decalDatasCount = Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen);
 
             parameters.totalLightCount = m_TotalLightCount;
             parameters.isOrthographic = camera.orthographic;
@@ -3324,6 +3328,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalInt(HDShaderIDs._EnvLightCount, param.lightList.envLights.Count);
                 cmd.SetGlobalBuffer(HDShaderIDs._DecalDatas, param.lightData.decalData);
                 cmd.SetGlobalInt(HDShaderIDs._DecalCount, DecalSystem.m_DecalDatasCount);
+                cmd.SetGlobalInt(HDShaderIDs._CapsuleOccludersCount, param.lightList.capsuleOccludersCount);
 
                 cmd.SetGlobalInt(HDShaderIDs._EnableSSRefraction, param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) ? 1 : 0);
 

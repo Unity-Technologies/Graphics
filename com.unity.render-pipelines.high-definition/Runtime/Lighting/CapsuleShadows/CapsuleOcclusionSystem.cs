@@ -43,6 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Resources = defaultResources;
 
             AllocRTs();
+            FindCapsuleOcclusionKernels(m_Resources.shaders.capsuleOcclusionCS);
         }
 
         internal void InvalidateLUT()
@@ -137,20 +138,32 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CapsuleOcclusion)))
             {
                 var cs = m_Resources.shaders.capsuleOcclusionCS;
-                var kernel = cs.FindKernel("CapsuleOcclusion");
+                
+
 
                 var aoSettings = hdCamera.volumeStack.GetComponent<CapsuleAmbientOcclusion>();
                 var specularOcclusionSettings = hdCamera.volumeStack.GetComponent<CapsuleSpecularOcclusion>();
                 var shadowSettings = hdCamera.volumeStack.GetComponent<CapsuleSoftShadows>();
 
-                cs.shaderKeywords = null;
-                
-                if (aoSettings.intensity.value > 0.0f) { cs.EnableKeyword("AMBIENT_OCCLUSION"); }
-                if (specularOcclusionSettings.intensity.value > 0.0f) { cs.EnableKeyword("SPECULAR_OCCLUSION"); }
-                if (specularOcclusionSettings.monteCarlo.value) { cs.EnableKeyword("MONTE_CARLO"); }
-                if (shadowSettings.intensity.value > 0.0f) { cs.EnableKeyword("DIRECTIONAL_SHADOW"); }
-                
+                // var kernel = cs.FindKernel("CapsuleOcclusion");
+                // cs.shaderKeywords = null;
+                // if (aoSettings.intensity.value > 0.0f) { cs.EnableKeyword("AMBIENT_OCCLUSION"); }
+                // if (specularOcclusionSettings.intensity.value > 0.0f) { cs.EnableKeyword("SPECULAR_OCCLUSION"); }
+                // if (specularOcclusionSettings.monteCarlo.value) { cs.EnableKeyword("MONTE_CARLO"); }
+                // if (shadowSettings.intensity.value > 0.0f) { cs.EnableKeyword("DIRECTIONAL_SHADOW"); }
 
+                bool monteCarlo = false;
+                bool ambientOcclusion = false;
+                bool specularOcclusion = false;
+                bool directionalShadows = false;
+
+                if (aoSettings.intensity.value > 0.0f) { ambientOcclusion = true; }
+                if (specularOcclusionSettings.intensity.value > 0.0f) { specularOcclusion = true; }
+                if (specularOcclusionSettings.monteCarlo.value) { monteCarlo = true; }
+                if (shadowSettings.intensity.value > 0.0f) { directionalShadows = true; }
+
+                var kernel = GetCapsuleOcclusionKernel(monteCarlo, ambientOcclusion, specularOcclusion, directionalShadows);
+                
                 cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._CapsuleOccludersDatas, m_VisibleCapsuleOccludersDataBuffer);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OcclusionTexture, occlusionTexture);
 
@@ -218,6 +231,47 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             RTHandles.Release(m_CapsuleSoftShadowLUT);
             RTHandles.Release(m_CapsuleOcclusions);
+        }
+
+        // TODO: Once we upgrade, we will get multi_compile support in compute shaders, and these variants will be nicer:
+        private static readonly string[] s_CapsuleOcclusionKernelsNames = new string[]
+        {
+            "CapsuleOcclusion_MC_OFF_AO_OFF_SO_OFF_DS_OFF",
+            "CapsuleOcclusion_MC_ON__AO_OFF_SO_OFF_DS_OFF",
+            "CapsuleOcclusion_MC_OFF_AO_ON__SO_OFF_DS_OFF",
+            "CapsuleOcclusion_MC_ON__AO_ON__SO_OFF_DS_OFF",
+            "CapsuleOcclusion_MC_OFF_AO_OFF_SO_ON__DS_OFF",
+            "CapsuleOcclusion_MC_ON__AO_OFF_SO_ON__DS_OFF",
+            "CapsuleOcclusion_MC_OFF_AO_ON__SO_ON__DS_OFF",
+            "CapsuleOcclusion_MC_ON__AO_ON__SO_ON__DS_OFF",
+            "CapsuleOcclusion_MC_OFF_AO_OFF_SO_OFF_DS_ON_",
+            "CapsuleOcclusion_MC_ON__AO_OFF_SO_OFF_DS_ON_",
+            "CapsuleOcclusion_MC_OFF_AO_ON__SO_OFF_DS_ON_",
+            "CapsuleOcclusion_MC_ON__AO_ON__SO_OFF_DS_ON_",
+            "CapsuleOcclusion_MC_OFF_AO_OFF_SO_ON__DS_ON_",
+            "CapsuleOcclusion_MC_ON__AO_OFF_SO_ON__DS_ON_",
+            "CapsuleOcclusion_MC_OFF_AO_ON__SO_ON__DS_ON_",
+            "CapsuleOcclusion_MC_ON__AO_ON__SO_ON__DS_ON_"
+        };
+
+        private static int[] s_CapsuleOcclusionKernels = new int[s_CapsuleOcclusionKernelsNames.Length];
+
+        private static void FindCapsuleOcclusionKernels(ComputeShader capsuleOcclusionCS)
+        {
+            for (int i = 0, iLen = s_CapsuleOcclusionKernelsNames.Length; i < iLen; ++i)
+            {
+                s_CapsuleOcclusionKernels[i] = capsuleOcclusionCS.FindKernel(s_CapsuleOcclusionKernelsNames[i]);
+            }
+        }
+
+        private static int GetCapsuleOcclusionKernel(bool monteCarlo, bool ambientOcclusion, bool specularOcclusion, bool directionalShadows)
+        {
+            uint i = ((monteCarlo ? 1u : 0u) << 0)
+                | ((ambientOcclusion ? 1u : 0u) << 1)
+                | ((specularOcclusion ? 1u : 0u) << 2)
+                | ((directionalShadows ? 1u : 0u) << 3);
+
+            return s_CapsuleOcclusionKernels[i];
         }
     }
 }

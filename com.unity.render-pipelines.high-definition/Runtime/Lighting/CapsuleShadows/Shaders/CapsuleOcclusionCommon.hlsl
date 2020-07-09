@@ -7,7 +7,26 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/CapsuleOcclusionSystem.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleOcclusionData.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleOcclusionShaderUtils.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
+
+
+
+// #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+// #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+
+// The light loop (or lighting architecture) is in charge to:
+// - Define light list
+// - Define the light loop
+// - Setup the constant/data
+// - Do the reflection hierarchy
+// - Provide sampling function for shadowmap, ies, cookie and reflection (depends on the specific use with the light loops like index array or atlas or single and texture format (cubemap/latlong))
+
+#define HAS_LIGHTLOOP
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleSGSpecularOcclusion.hlsl"
 #ifdef MONTE_CARLO
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleOcclusionMonteCarlo.hlsl"
@@ -314,7 +333,7 @@ void EvaluateCapsuleOcclusion(uint evaluationFlags,
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
     GetCountAndStart(posInput, LIGHTCATEGORY_CAPSULE_OCCLUDER, sphereStart, sphereCount);
 #else   // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-    sphereCount = /* TO ADD FIXED COUNT */ ; 
+    sphereCount = _CapsuleOccludersCount; 
     sphereStart = 0;
 #endif
 

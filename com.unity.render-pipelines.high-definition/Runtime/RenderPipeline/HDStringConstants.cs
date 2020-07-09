@@ -158,6 +158,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AreaLightCount = Shader.PropertyToID("_AreaLightCount");
         public static readonly int _EnvLightDatas = Shader.PropertyToID("_EnvLightDatas");
         public static readonly int _CapsuleOccludersDatas = Shader.PropertyToID("_CapsuleOccludersDatas");
+        public static readonly int _CapsuleOccludersIndexShift = Shader.PropertyToID("_CapsuleOccludersIndexShift");
+        public static readonly int _CapsuleOccludersCount = Shader.PropertyToID("_CapsuleOccludersCount"); 
         public static readonly int _EnvLightCount = Shader.PropertyToID("_EnvLightCount");
         public static readonly int _EnvProxyCount = Shader.PropertyToID("_EnvProxyCount");
         public static readonly int _NumTileBigTileX = Shader.PropertyToID("_NumTileBigTileX");
@@ -291,6 +293,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CapsuleShadowParameters2 = Shader.PropertyToID("_CapsuleShadowParameters2");
         public static readonly int _CapsuleOcclusions = Shader.PropertyToID("_CapsuleOcclusions");
         public static readonly int _CapsuleOcclusionIntensities = Shader.PropertyToID("_CapsuleOcclusionIntensities");
+        public static readonly int _CapsuleOcclusionParams = Shader.PropertyToID("_CapsuleOcclusionParams");
 
         public static readonly int _WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
         public static readonly int _PrevCamPosRWS = Shader.PropertyToID("_PrevCamPosRWS");

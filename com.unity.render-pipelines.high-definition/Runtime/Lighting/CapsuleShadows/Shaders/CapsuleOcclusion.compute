@@ -3,11 +3,58 @@
 
 #pragma kernel CapsuleOcclusion
 
-#pragma multi_compile _ MONTE_CARLO
-#pragma multi_compile _ AMBIENT_OCCLUSION
-#pragma multi_compile _ SPECULAR_OCCLUSION
-#pragma multi_compile _ DIRECTIONAL_SHADOW
+// TODO: Once we upgrade, we will get multi_compile support in compute shaders, and these variants will be nicer:
+// #pragma multi_compile _ MONTE_CARLO
+// #pragma multi_compile _ AMBIENT_OCCLUSION
+// #pragma multi_compile _ SPECULAR_OCCLUSION
+// #pragma multi_compile _ DIRECTIONAL_SHADOW
 
+// Codegen'd all these kernel permutations with:
+// var res = "";
+// for (var i = 0; i < 16; ++i)
+// {
+//     var monteCarlo = (i & (1 << 0));
+//     var ambientOcclusion = (i & (1 << 1));
+//     var specularOcclusion = (i & (1 << 2));
+//     var directionalShadows = (i & (1 << 3));
+//     res += "#pragma kernel ";
+//     res += "CapsuleOcclusion_MC_" + (monteCarlo ? "ON_" : "OFF");
+//     res += "_AO_" + (ambientOcclusion ? "ON_" : "OFF");
+//     res += "_SO_" + (specularOcclusion ? "ON_" : "OFF");
+//     res += "_DS_" + (directionalShadows ? "ON_" : "OFF");
+
+//     res += " CapsuleOcclusion=";
+//     res += "CapsuleOcclusion_MC_" + (monteCarlo ? "ON_" : "OFF");
+//     res += "_AO_" + (ambientOcclusion ? "ON_" : "OFF");
+//     res += "_SO_" + (specularOcclusion ? "ON_" : "OFF");
+//     res += "_DS_" + (directionalShadows ? "ON_" : "OFF");
+
+//     res += " ";
+
+//     if (monteCarlo) { res += "MONTE_CARLO "; }
+//     if (ambientOcclusion) { res += "AMBIENT_OCCLUSION "; }
+//     if (specularOcclusion) { res += "SPECULAR_OCCLUSION "; }
+//     if (directionalShadows) { res += "DIRECTIONAL_SHADOW "; }
+//     res += "\n";
+// }
+// console.log(res);
+
+#pragma kernel CapsuleOcclusion_MC_OFF_AO_OFF_SO_OFF_DS_OFF CapsuleOcclusion=CapsuleOcclusion_MC_OFF_AO_OFF_SO_OFF_DS_OFF 
+#pragma kernel CapsuleOcclusion_MC_ON__AO_OFF_SO_OFF_DS_OFF CapsuleOcclusion=CapsuleOcclusion_MC_ON__AO_OFF_SO_OFF_DS_OFF MONTE_CARLO 
+#pragma kernel CapsuleOcclusion_MC_OFF_AO_ON__SO_OFF_DS_OFF CapsuleOcclusion=CapsuleOcclusion_MC_OFF_AO_ON__SO_OFF_DS_OFF AMBIENT_OCCLUSION 
+#pragma kernel CapsuleOcclusion_MC_ON__AO_ON__SO_OFF_DS_OFF CapsuleOcclusion=CapsuleOcclusion_MC_ON__AO_ON__SO_OFF_DS_OFF MONTE_CARLO AMBIENT_OCCLUSION 
+#pragma kernel CapsuleOcclusion_MC_OFF_AO_OFF_SO_ON__DS_OFF CapsuleOcclusion=CapsuleOcclusion_MC_OFF_AO_OFF_SO_ON__DS_OFF SPECULAR_OCCLUSION 
+#pragma kernel CapsuleOcclusion_MC_ON__AO_OFF_SO_ON__DS_OFF CapsuleOcclusion=CapsuleOcclusion_MC_ON__AO_OFF_SO_ON__DS_OFF MONTE_CARLO SPECULAR_OCCLUSION 
+#pragma kernel CapsuleOcclusion_MC_OFF_AO_ON__SO_ON__DS_OFF CapsuleOcclusion=CapsuleOcclusion_MC_OFF_AO_ON__SO_ON__DS_OFF AMBIENT_OCCLUSION SPECULAR_OCCLUSION 
+#pragma kernel CapsuleOcclusion_MC_ON__AO_ON__SO_ON__DS_OFF CapsuleOcclusion=CapsuleOcclusion_MC_ON__AO_ON__SO_ON__DS_OFF MONTE_CARLO AMBIENT_OCCLUSION SPECULAR_OCCLUSION 
+#pragma kernel CapsuleOcclusion_MC_OFF_AO_OFF_SO_OFF_DS_ON_ CapsuleOcclusion=CapsuleOcclusion_MC_OFF_AO_OFF_SO_OFF_DS_ON_ DIRECTIONAL_SHADOW 
+#pragma kernel CapsuleOcclusion_MC_ON__AO_OFF_SO_OFF_DS_ON_ CapsuleOcclusion=CapsuleOcclusion_MC_ON__AO_OFF_SO_OFF_DS_ON_ MONTE_CARLO DIRECTIONAL_SHADOW 
+#pragma kernel CapsuleOcclusion_MC_OFF_AO_ON__SO_OFF_DS_ON_ CapsuleOcclusion=CapsuleOcclusion_MC_OFF_AO_ON__SO_OFF_DS_ON_ AMBIENT_OCCLUSION DIRECTIONAL_SHADOW 
+#pragma kernel CapsuleOcclusion_MC_ON__AO_ON__SO_OFF_DS_ON_ CapsuleOcclusion=CapsuleOcclusion_MC_ON__AO_ON__SO_OFF_DS_ON_ MONTE_CARLO AMBIENT_OCCLUSION DIRECTIONAL_SHADOW 
+#pragma kernel CapsuleOcclusion_MC_OFF_AO_OFF_SO_ON__DS_ON_ CapsuleOcclusion=CapsuleOcclusion_MC_OFF_AO_OFF_SO_ON__DS_ON_ SPECULAR_OCCLUSION DIRECTIONAL_SHADOW 
+#pragma kernel CapsuleOcclusion_MC_ON__AO_OFF_SO_ON__DS_ON_ CapsuleOcclusion=CapsuleOcclusion_MC_ON__AO_OFF_SO_ON__DS_ON_ MONTE_CARLO SPECULAR_OCCLUSION DIRECTIONAL_SHADOW 
+#pragma kernel CapsuleOcclusion_MC_OFF_AO_ON__SO_ON__DS_ON_ CapsuleOcclusion=CapsuleOcclusion_MC_OFF_AO_ON__SO_ON__DS_ON_ AMBIENT_OCCLUSION SPECULAR_OCCLUSION DIRECTIONAL_SHADOW 
+#pragma kernel CapsuleOcclusion_MC_ON__AO_ON__SO_ON__DS_ON_ CapsuleOcclusion=CapsuleOcclusion_MC_ON__AO_ON__SO_ON__DS_ON_ MONTE_CARLO AMBIENT_OCCLUSION SPECULAR_OCCLUSION DIRECTIONAL_SHADOW 
 
 RW_TEXTURE2D_X(float, _OcclusionTexture);   // AO texture. 
 RW_TEXTURE2D_X(unorm float2, _CapsuleOcclusions);   // R: Specular Occlusion G: Shadow.  8bit UNorm per channel.

@@ -39,6 +39,7 @@ uniform float4x4 g_mScrProjectionArr[SHADEROPTIONS_XR_MAX_VIEWS];
 uniform uint g_isOrthographic;
 uniform int _EnvLightIndexShift;
 uniform int _DecalIndexShift;
+uniform int _CapsuleOccludersIndexShift;
 uniform uint g_BaseFeatureFlags;
 
 StructuredBuffer<float4> g_vBoundsBuffer : register( t1 );
@@ -335,7 +336,7 @@ void LIGHTLISTGEN(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadID : 
     ZERO_INITIALIZE_ARRAY(int, shiftIndex, CATEGORY_LIST_SIZE);
     shiftIndex[LIGHTCATEGORY_ENV] = _EnvLightIndexShift;
     shiftIndex[LIGHTCATEGORY_DECAL] = _DecalIndexShift;
-    shiftIndex[LIGHTCATEGORY_CAPSULE_OCCLUDER] = _CapsuleOccluderIndexShift;
+    shiftIndex[LIGHTCATEGORY_CAPSULE_OCCLUDER] = _CapsuleOccludersIndexShift;
 
     for(int category=0; category<CATEGORY_LIST_SIZE; category++)
     {

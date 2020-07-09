@@ -42,6 +42,7 @@ uint g_isOrthographic;
 int _EnvLightIndexShift;
 int _DecalIndexShift;
 int _DensityVolumeIndexShift;
+int _CapsuleOccludersIndexShift;
 
 float g_fClustScale;
 float g_fClustBase;
@@ -401,7 +402,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
     shiftIndex[LIGHTCATEGORY_ENV] = _EnvLightIndexShift;
     shiftIndex[LIGHTCATEGORY_DECAL] = _DecalIndexShift;
     shiftIndex[LIGHTCATEGORY_DENSITY_VOLUME] = _DensityVolumeIndexShift;
-    shiftIndex[LIGHTCATEGORY_CAPSULE_OCCLUDER] = _CapsuleOccluderIndexShift;
+    shiftIndex[LIGHTCATEGORY_CAPSULE_OCCLUDER] = _CapsuleOccludersIndexShift;
 
     int categoryListCount[LIGHTCATEGORY_COUNT]; // number of direct lights, reflection probes, decals and density volumes
     ZERO_INITIALIZE_ARRAY(int, categoryListCount, LIGHTCATEGORY_COUNT);
