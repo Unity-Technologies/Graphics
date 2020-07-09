@@ -13,25 +13,32 @@
 #define MAX_PUNCTUALLIGHT_PER_CBUFFER_BATCH (PREFERRED_CBUFFER_SIZE / (16 * SIZEOF_VEC4_PUNCTUALLIGHTDATA))
 #define MAX_REL_LIGHT_INDICES_PER_CBUFFER_BATCH (PREFERRED_CBUFFER_SIZE / 4) // Should be ushort, but extra unpacking code is "too expensive"
 
-// Keep in sync with kUseCBufferForDepthRange.
-// Keep in sync with kUseCBufferForTileData.
-// Keep in sync with kUseCBufferForLightData.
-// Keep in sync with kUseCBufferForLightList.
-#if defined(SHADER_API_SWITCH)
-#define USE_CBUFFER_FOR_DEPTHRANGE 0
-#define USE_CBUFFER_FOR_TILELIST 0
-#define USE_CBUFFER_FOR_LIGHTDATA 1
-#define USE_CBUFFER_FOR_LIGHTLIST 0
-#elif defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE)
-#define USE_CBUFFER_FOR_DEPTHRANGE 1
-#define USE_CBUFFER_FOR_TILELIST 1
-#define USE_CBUFFER_FOR_LIGHTDATA 1
-#define USE_CBUFFER_FOR_LIGHTLIST 1
+// If we choose to perform light culling into tiles using compute shaders, then all results are in structured buffers.
+#if defined(_GPU_TILING)
+#define FORCE_STRUCTBUFFER_FOR_SHADING 1
 #else
-#define USE_CBUFFER_FOR_DEPTHRANGE 0
-#define USE_CBUFFER_FOR_TILELIST 0
-#define USE_CBUFFER_FOR_LIGHTDATA 1
-#define USE_CBUFFER_FOR_LIGHTLIST 0
+#define FORCE_STRUCTBUFFER_FOR_SHADING 0
+#endif
+
+// Keep in sync with UseCBufferForDepthRange.
+// Keep in sync with UseCBufferForTileData.
+// Keep in sync with UseCBufferForLightData.
+// Keep in sync with UseCBufferForLightList.
+#if defined(SHADER_API_SWITCH)
+#define USE_CBUFFER_FOR_DEPTHRANGE  0
+#define USE_CBUFFER_FOR_TILELIST   (0 && !FORCE_STRUCTBUFFER_FOR_SHADING)
+#define USE_CBUFFER_FOR_LIGHTDATA  (1 && !FORCE_STRUCTBUFFER_FOR_SHADING)
+#define USE_CBUFFER_FOR_LIGHTLIST  (0 && !FORCE_STRUCTBUFFER_FOR_SHADING)
+#elif defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE)
+#define USE_CBUFFER_FOR_DEPTHRANGE  1
+#define USE_CBUFFER_FOR_TILELIST   (1 && !FORCE_STRUCTBUFFER_FOR_SHADING)
+#define USE_CBUFFER_FOR_LIGHTDATA  (1 && !FORCE_STRUCTBUFFER_FOR_SHADING)
+#define USE_CBUFFER_FOR_LIGHTLIST  (1 && !FORCE_STRUCTBUFFER_FOR_SHADING)
+#else
+#define USE_CBUFFER_FOR_DEPTHRANGE  0
+#define USE_CBUFFER_FOR_TILELIST   (0 && !FORCE_STRUCTBUFFER_FOR_SHADING)
+#define USE_CBUFFER_FOR_LIGHTDATA  (1 && !FORCE_STRUCTBUFFER_FOR_SHADING)
+#define USE_CBUFFER_FOR_LIGHTLIST  (0 && !FORCE_STRUCTBUFFER_FOR_SHADING)
 #endif
 
 struct PunctualLightData

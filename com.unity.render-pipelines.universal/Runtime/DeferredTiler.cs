@@ -32,6 +32,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             Out,
         }
 
+        public const int kListOffset = 0;
+        public const int kListCount = 1;
+        public const int kListDepthRange = 2;
+        public const int kListBitMask = 3;
+
         int m_TilePixelWidth;
         int m_TilePixelHeight;
         int m_TileXCount;
@@ -148,8 +153,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void GetTileOffsetAndCount(int i, int j, out int offset, out int count)
         {
             int headerOffset = GetTileHeaderOffset(i, j);
-            offset = (int)m_TileHeaders[headerOffset + 0];
-            count = (int)m_TileHeaders[headerOffset + 1];
+            offset = (int)m_TileHeaders[headerOffset + kListOffset];
+            count = (int)m_TileHeaders[headerOffset + kListCount];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -253,6 +258,19 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
+        public static PrePunctualLight PrecomputeLight(ref NativeArray<VisibleLight> visibleLights, ushort visLightIndex, Matrix4x4 view, bool isOrthographic, float zNear)
+        {
+            VisibleLight vl = visibleLights[visLightIndex];
+
+            PrePunctualLight ppl;
+            ppl.posVS = view.MultiplyPoint(vl.localToWorldMatrix.GetColumn(3)); // By convention, OpenGL RH coordinate space
+            ppl.radius = vl.range;
+            ppl.minDist = max(0.0f, length(ppl.posVS) - ppl.radius);
+            ppl.screenPos = ProjectToZNear(ppl.posVS, zNear, isOrthographic);
+            ppl.visLightIndex = visLightIndex;
+            return ppl;
+        }
+
         // This differs from CullIntermediateLights in 3 ways:
         // - tile-frustums/light intersection use different algorithm
         // - depth range of the light shape intersecting the tile-frustums is output in the tile list header section
@@ -272,10 +290,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 for (int i = istart; i < iend; ++i)
                 {
                     int headerOffset = GetTileHeaderOffset(i, j);
-                    _tileHeaders[headerOffset + 0] = 0;
-                    _tileHeaders[headerOffset + 1] = 0;
-                    _tileHeaders[headerOffset + 2] = 0;
-                    _tileHeaders[headerOffset + 3] = 0;
+                    _tileHeaders[headerOffset + kListOffset] = 0;
+                    _tileHeaders[headerOffset + kListCount] = 0;
+                    _tileHeaders[headerOffset + kListDepthRange] = 0;
+                    _tileHeaders[headerOffset + kListBitMask] = 0;
                 }
                 return;
             }
@@ -291,6 +309,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             float2 tileSize = new float2((m_FrustumPlanes.right - m_FrustumPlanes.left) / m_TileXCount, (m_FrustumPlanes.top - m_FrustumPlanes.bottom) / m_TileYCount);
             float2 tileExtents = tileSize * 0.5f;
             float2 tileExtentsInv = new float2(1.0f / tileExtents.x, 1.0f / tileExtents.y);
+            float tileRadiusInv = 1.0f / sqrt(tileExtents.x* tileExtents.x + tileExtents.y* tileExtents.y);
 
             for (int j = jstart; j < jend; ++j)
             {
@@ -299,6 +318,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 for (int i = istart; i < iend; ++i)
                 {
                     float tileXCentre = m_FrustumPlanes.left + tileExtents.x + i * tileSize.x;
+                    float2 tileCentre = new float2(tileXCentre, tileYCentre);
 
                     PreTile preTile = m_PreTiles[i + j * m_TileXCount];
                     int culledLightCount = 0;
@@ -318,17 +338,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                             // Offset tileCentre toward the light to calculate a more conservative minMax depth bound,
                             // but it must remains inside the tile and must not pass further than the light centre.
-                            float2 tileCentre = new float2(tileXCentre, tileYCentre);
-                            float2 dir = ppl.screenPos - tileCentre;
-                            float2 d = abs(dir * tileExtentsInv);
-
-                            float sInv = 1.0f / max3(d.x, d.y, 1.0f);
-                            float3 tileOffCentre = new float3(tileCentre.x + dir.x * sInv, tileCentre.y + dir.y * sInv, -m_FrustumPlanes.zNear);
-                            float3 tileOrigin = new float3(0.0f);
+                            float3 rayOrigin = new float3(0.0f);
+                            float3 rayDir = new float3(ClampToDisk(tileCentre, tileRadiusInv, ppl.screenPos), -m_FrustumPlanes.zNear);
 
                             float t0, t1;
                             // This is more expensive than Clip() but allow to compute min&max depth range for the part of the light inside the tile.
-                            if (!IntersectionLineSphere(ppl.posVS, ppl.radius, tileOrigin, tileOffCentre, out t0, out t1))
+                            if (!IntersectionLineSphere(ppl.posVS, ppl.radius, rayOrigin, rayDir, out t0, out t1))
                                 continue;
 
                             listMinDepth = listMinDepth < t0 ? listMinDepth : t0;
@@ -349,17 +364,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                             // Offset tileCentre toward the light to calculate a more conservative minMax depth bound,
                             // but it must remains inside the tile and must not pass further than the light centre.
-                            float2 tileCentre = new float2(tileXCentre, tileYCentre);
-                            float2 dir = ppl.screenPos - tileCentre;
-                            float2 d = abs(dir * tileExtentsInv);
-
-                            float sInv = 1.0f / max3(d.x, d.y, 1.0f);
-                            float3 tileOffCentre = new float3(0, 0, -m_FrustumPlanes.zNear);
-                            float3 tileOrigin = new float3(tileCentre.x + dir.x * sInv, tileCentre.y + dir.y * sInv, 0.0f);
+                            float3 rayDir = new float3(0, 0, -m_FrustumPlanes.zNear);
+                            float3 rayOrigin = new float3(ClampToDisk(tileCentre, tileRadiusInv, ppl.screenPos), 0.0f);
 
                             float t0, t1;
                             // This is more expensive than Clip() but allow to compute min&max depth range for the part of the light inside the tile.
-                            if (!IntersectionLineSphere(ppl.posVS, ppl.radius, tileOrigin, tileOffCentre, out t0, out t1))
+                            if (!IntersectionLineSphere(ppl.posVS, ppl.radius, rayOrigin, rayDir, out t0, out t1))
                                 continue;
 
                             listMinDepth = listMinDepth < t0 ? listMinDepth : t0;
@@ -405,10 +415,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                     int tileOffset = culledLightCount > 0 ? AddTileData(tiles, ref tileDataSize) : 0;
 
                     int headerOffset = GetTileHeaderOffset(i, j);
-                    _tileHeaders[headerOffset + 0] = (uint)tileOffset;
-                    _tileHeaders[headerOffset + 1] = (uint)(tileDataSize == 0 ? 0 : culledLightCount);
-                    _tileHeaders[headerOffset + 2] = _f32tof16(a) | (_f32tof16(b) << 16);
-                    _tileHeaders[headerOffset + 3] = bitMask;
+                    _tileHeaders[headerOffset + kListOffset] = (uint)tileOffset;
+                    _tileHeaders[headerOffset + kListCount] = (uint)(tileDataSize == 0 ? 0 : culledLightCount);
+                    _tileHeaders[headerOffset + kListDepthRange] = _f32tof16(a) | (_f32tof16(b) << 16);
+                    _tileHeaders[headerOffset + kListBitMask] = bitMask;
 
                     maxLightPerTile = max(maxLightPerTile, culledLightCount);
                 }
@@ -433,8 +443,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 for (int i = istart; i < iend; ++i)
                 {
                     int headerOffset = GetTileHeaderOffset(i, j);
-                    _tileHeaders[headerOffset + 0] = 0;
-                    _tileHeaders[headerOffset + 1] = 0;
+                    _tileHeaders[headerOffset + kListOffset] = 0;
+                    _tileHeaders[headerOffset + kListCount] = 0;
                 }
                 return;
             }
@@ -468,8 +478,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     int tileOffset = culledLightCount > 0 ? AddTileData(tiles, ref culledLightCount) : 0;
 
                     int headerOffset = GetTileHeaderOffset(i, j);
-                    _tileHeaders[headerOffset + 0] = (uint)tileOffset;
-                    _tileHeaders[headerOffset + 1] = (uint)culledLightCount;
+                    _tileHeaders[headerOffset + kListOffset] = (uint)tileOffset;
+                    _tileHeaders[headerOffset + kListCount] = (uint)culledLightCount;
                 }
             }
         }
@@ -496,32 +506,36 @@ namespace UnityEngine.Rendering.Universal.Internal
                 size = 0;
                 return 0;
             }
+        }
 
-            /*
-            lock (this)
-            {
-                int offset = m_TileDataSize;
-                m_TileDataSize += size;
-                ushort* _TileData = (ushort*)m_TileData.GetUnsafePtr();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        unsafe static float2 ProjectToZNear(float3 p, float zNear, bool isOrthographic)
+        {
+            float2 screenPos = p.xy;
+            // Project on screen for perspective projections.
+            if (!isOrthographic && p.z <= zNear)
+                screenPos = screenPos * (-zNear / p.z);
+            return screenPos;
+        }
 
-                if (m_TileDataSize > m_TileDataCapacity)
-                {
-                    m_TileDataCapacity = max(m_TileDataSize, m_TileDataCapacity * 2);
-                    NativeArray<ushort> newTileData = new NativeArray<ushort>(m_TileDataCapacity, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-                    ushort* _newTileData = (ushort*)newTileData.GetUnsafePtr();
+        // Clamp p to be inside the tile
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        unsafe static float2 ClampToDisk(float2 diskCentre, float diskRadiusInv, float2 p)
+        {
+            float2 dir = p - diskCentre;
+            float d = length(dir) * diskRadiusInv;
+            float s = 1.0f / max2(d, 1.0f);
+            return diskCentre + dir * s;
+        }
 
-                    UnsafeUtility.MemCpy(_newTileData, _TileData, offset * 2);
-
-                    m_TileData.Dispose();
-                    m_TileData = newTileData;
-                    _TileData = _newTileData;
-                }
-
-                UnsafeUtility.MemCpy(_TileData + offset, lightData, size * 2);
-
-                return offset;
-            }
-            */
+        // Clamp p to be inside the tile
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        unsafe static float2 ClampToTile(float2 tileCentre, float2 tileExtentInv, float2 p)
+        {
+            float2 dir = p - tileCentre;
+            float2 d = abs(dir * tileExtentInv);
+            float s = 1.0f / max3(d.x, d.y, 1.0f);
+            return tileCentre + dir * s;
         }
 
         // Return parametric intersection between a sphere and a line.

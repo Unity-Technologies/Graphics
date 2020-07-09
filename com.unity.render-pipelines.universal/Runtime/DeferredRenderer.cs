@@ -2,6 +2,13 @@ using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
 {
+    public enum TileShading
+    {
+        Disabled,
+        GPU,
+        CPU
+    }
+
     /// <summary>
     /// Deferred renderer for Universal RP.
     /// This renderer is supported on all Universal RP supported platforms.
@@ -92,11 +99,10 @@ namespace UnityEngine.Rendering.Universal
             m_DefaultStencilState.SetZFailOperation(stencilData.zFailOperation);
 
             m_ForwardLights = new ForwardLights();
-            m_DeferredLights = new DeferredLights(m_TileDepthInfoMaterial, m_TileDeferredMaterial, m_StencilDeferredMaterial);
+            m_DeferredLights = new DeferredLights(m_TileDepthInfoMaterial, m_TileDeferredMaterial, m_StencilDeferredMaterial, data.shaders.tileLightCullingCS);
             //m_DeferredLights.LightCulling = data.lightCulling;
             m_DeferredLights.AccurateGbufferNormals = data.accurateGbufferNormals;
-            //m_DeferredLights.TiledDeferredShading = data.tiledDeferredShading;
-            m_DeferredLights.TiledDeferredShading = false;
+            m_DeferredLights.TiledDeferredShading = data.tiledDeferredShading;
 
             m_PreferDepthPrepass = data.preferDepthPrepass;
 
@@ -181,7 +187,7 @@ namespace UnityEngine.Rendering.Universal
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
-            bool requiresDepthPrepass = cameraData.isSceneViewCamera || m_PreferDepthPrepass || m_DeferredLights.TiledDeferredShading;
+            bool requiresDepthPrepass = cameraData.isSceneViewCamera || m_PreferDepthPrepass || m_DeferredLights.TiledDeferredShading != TileShading.Disabled;
 
             // TODO: There's an issue in multiview and depth copy pass. Atm forcing a depth prepass on XR until we have a proper fix.
             if (cameraData.xr.enabled && cameraData.requiresDepthTexture)

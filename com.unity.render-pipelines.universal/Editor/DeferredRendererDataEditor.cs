@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent shadowTransparentReceiveLabel = EditorGUIUtility.TrTextContent("Transparent Receive Shadows", "When disabled, none of the transparent objects will receive shadows.");
             public static readonly GUIContent preferDepthPrepassLabel = EditorGUIUtility.TrTextContent("Prefer Depth Prepass", "Some platform configurations may still enable depth-prepass even when this checkbox is disabled.");
             public static readonly GUIContent accurateGbufferNormalsLabel = EditorGUIUtility.TrTextContent("Accurate G-buffer normals", "normals in G-buffer use octaedron encoding/decoding (expensive)");
-            public static readonly GUIContent tiledDeferredShadingLabel = EditorGUIUtility.TrTextContent("Tiled Deferred Shading (Experimental)", "Allows Tiled Deferred Shading on appropriate lights");
+            public static readonly GUIContent tiledDeferredShadingLabel = EditorGUIUtility.TrTextContent("Tiled Deferred Shading", "Allows Tiled Deferred Shading on appropriate lights");
         }
 
         SerializedProperty m_OpaqueLayerMask;
@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_ShadowTransparentReceiveProp;
         SerializedProperty m_PreferDepthPrepass;
         SerializedProperty m_AccurateGbufferNormals;
-        //SerializedProperty m_TiledDeferredShading;
+        SerializedProperty m_TiledDeferredShading;
 
         private void OnEnable()
         {
@@ -41,8 +41,7 @@ namespace UnityEditor.Rendering.Universal
             m_ShadowTransparentReceiveProp = serializedObject.FindProperty("m_ShadowTransparentReceive");
             m_PreferDepthPrepass = serializedObject.FindProperty("m_PreferDepthPrepass");
             m_AccurateGbufferNormals = serializedObject.FindProperty("m_AccurateGbufferNormals");
-            // Not exposed yet.
-            //m_TiledDeferredShading = serializedObject.FindProperty("m_TiledDeferredShading");
+            m_TiledDeferredShading = serializedObject.FindProperty("m_TiledDeferredShading");
         }
 
         public override void OnInspectorGUI()
@@ -55,7 +54,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(m_PostProcessData);
             EditorGUILayout.PropertyField(m_PreferDepthPrepass, Styles.preferDepthPrepassLabel, true);
             EditorGUILayout.PropertyField(m_AccurateGbufferNormals, Styles.accurateGbufferNormalsLabel, true);
-            //EditorGUILayout.PropertyField(m_TiledDeferredShading, Styles.tiledDeferredShadingLabel, true);
+            EditorGUILayout.PropertyField(m_TiledDeferredShading, Styles.tiledDeferredShadingLabel, true);
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 

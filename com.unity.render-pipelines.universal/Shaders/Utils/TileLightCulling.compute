@@ -1,0 +1,376 @@
+#pragma kernel CSCullLights CS_CULL_LIGHTS CS_CULL_FIRST_LIGHTS=1 CS_CULL_INTERMEDIATE_LIGHTS=0 CS_CULL_FINAL_LIGHTS=0 IS_ORTHOGRAPHIC=0
+#pragma kernel CSCullLights CS_CULL_LIGHTS CS_CULL_FIRST_LIGHTS=0 CS_CULL_INTERMEDIATE_LIGHTS=1 CS_CULL_FINAL_LIGHTS=0 IS_ORTHOGRAPHIC=0
+#pragma kernel CSCullLights CS_CULL_LIGHTS CS_CULL_FIRST_LIGHTS=0 CS_CULL_INTERMEDIATE_LIGHTS=0 CS_CULL_FINAL_LIGHTS=1 IS_ORTHOGRAPHIC=0
+#pragma kernel CSCullLights CS_CULL_LIGHTS CS_CULL_FIRST_LIGHTS=1 CS_CULL_INTERMEDIATE_LIGHTS=0 CS_CULL_FINAL_LIGHTS=1 IS_ORTHOGRAPHIC=0
+
+#pragma kernel CSCullLights CS_CULL_LIGHTS CS_CULL_FIRST_LIGHTS=1 CS_CULL_INTERMEDIATE_LIGHTS=0 CS_CULL_FINAL_LIGHTS=0 IS_ORTHOGRAPHIC=1
+#pragma kernel CSCullLights CS_CULL_LIGHTS CS_CULL_FIRST_LIGHTS=0 CS_CULL_INTERMEDIATE_LIGHTS=1 CS_CULL_FINAL_LIGHTS=0 IS_ORTHOGRAPHIC=1
+#pragma kernel CSCullLights CS_CULL_LIGHTS CS_CULL_FIRST_LIGHTS=0 CS_CULL_INTERMEDIATE_LIGHTS=0 CS_CULL_FINAL_LIGHTS=1 IS_ORTHOGRAPHIC=1
+#pragma kernel CSCullLights CS_CULL_LIGHTS CS_CULL_FIRST_LIGHTS=1 CS_CULL_INTERMEDIATE_LIGHTS=0 CS_CULL_FINAL_LIGHTS=1 IS_ORTHOGRAPHIC=1
+
+#pragma kernel CSDrawIndirectArgs CS_DRAW_INDIRECT_ARGS
+//#pragma enable_d3d11_debug_symbols
+
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
+#define PLATFORM_LANE_COUNT 32
+#define PLATFORM_LANE_X 8
+#define PLATFORM_LANE_Y 4
+#else
+#define PLATFORM_LANE_COUNT 64
+#define PLATFORM_LANE_X 8
+#define PLATFORM_LANE_Y 8
+#endif
+
+// Precomputed light data.
+struct PreLight
+{
+    float3 posVS;
+    float radius;
+    // Projected position of the sphere centre on the screen (near plane).
+    float2 screenPos;
+};
+
+struct TileHeader
+{
+    uint listOffset; // (kchang) Could avoid read/write into it (may save 0.3 ms).
+    uint listCount;
+    uint listDepthRange; // optional
+    uint listBitMask;    // optional
+};
+
+TileHeader LoadTileHeader(StructuredBuffer<uint> tileHeaders, int index, bool isFinalHeader)
+{
+    TileHeader th;
+    if (isFinalHeader)
+    {
+        index <<= 2;
+        th.listOffset     = tileHeaders[index + 0];
+        th.listCount      = tileHeaders[index + 1];
+        th.listDepthRange = tileHeaders[index + 2];
+        th.listBitMask    = tileHeaders[index + 3];
+    }
+    else
+    {
+        index <<= 1;
+        th.listOffset = tileHeaders[index + 0];
+        th.listCount  = tileHeaders[index + 1];
+    }
+    return th;
+}
+
+void StoreTileHeader(RWStructuredBuffer<uint> tileHeaders, int index, TileHeader th, bool isFinalHeader)
+{
+    if (isFinalHeader)
+    {
+        index <<= 2;
+        tileHeaders[index + 0] = th.listOffset;
+        tileHeaders[index + 1] = th.listCount;
+        tileHeaders[index + 2] = th.listDepthRange;
+        tileHeaders[index + 3] = th.listBitMask;
+    }
+    else
+    {
+        index <<= 1;
+        tileHeaders[index + 0] = th.listOffset;
+        tileHeaders[index + 1] = th.listCount;
+    }
+}
+
+struct GPUTile
+{
+    uint tileID;                 // 2 ushorts
+    uint listBitMask;            // 1 uint
+    uint relLightOffset;         // needs 32 bits
+    uint relLightCount;
+};
+
+//_________________________________________________________________________________________________
+
+#if CS_CULL_LIGHTS
+
+StructuredBuffer<PreLight> _Lights;
+StructuredBuffer<uint> _TileHeaders;
+StructuredBuffer<uint> _TileData;
+RWStructuredBuffer<uint> _OutTileHeaders;
+RWStructuredBuffer<uint> _OutTileData;
+
+CBUFFER_START(UCullLights)
+uint2 _CoarseTileCount;
+uint2 _TileCount;
+uint2 _Subdivisions;
+uint _LightCount;
+uint _MaxLightsPerTile;
+float _TileRadiusInv;
+int3 _Pad0;
+float2 _TileExtents;
+float2 _TileSize;
+float _FrustumPlanes_Left;
+float _FrustumPlanes_Right;
+float _FrustumPlanes_Bottom;
+float _FrustumPlanes_Top;
+float _FrustumPlanes_ZNear;
+float _FrustumPlanes_ZFar;
+float2 _Pad1;
+CBUFFER_END
+
+bool IntersectionLineSphere(float3 centre, float radius, float3 raySource, float3 rayDirection, out float t0, out float t1)
+{
+    float A = dot(rayDirection, rayDirection); // always >= 0
+    float B = dot(raySource - centre, rayDirection);
+    float C = dot(raySource, raySource)
+            + dot(centre, centre)
+            - (radius * radius)
+            - 2 * dot(raySource, centre);
+    float discriminant = (B * B) - A * C;
+    if (discriminant > 0)
+    {
+        float sqrt_discriminant = sqrt(discriminant);
+        float A_inv = 1.0f / A;
+        t0 = (-B - sqrt_discriminant) * A_inv;
+        t1 = (-B + sqrt_discriminant) * A_inv;
+        return true;
+    }
+    else
+    {
+        t0 = 0.0f; // invalid
+        t1 = 0.0f; // invalid
+        return false;
+    }
+}
+
+float2 ProjectToZNear(float3 p, float zNear, bool isOrthographic)
+{
+    float2 screenPos = p.xy;
+    // Project on screen for perspective projections.
+    if (!isOrthographic && p.z <= zNear)
+        screenPos = screenPos * (-zNear / p.z);
+    return screenPos;
+}
+
+// Clamp p to be inside the tile
+float2 ClampToDisk(float2 diskCentre, float diskRadiusInv, float2 p)
+{
+    float2 dir = p - diskCentre;
+    float d = length(dir) * diskRadiusInv;
+    float s = 1.0 / max(d, 1.0);
+    return diskCentre + dir*s;
+}
+
+// Clamp p to be inside the tile
+float2 ClampToTile(float2 tileCentre, float2 tileExtentInv, float2 p)
+{
+    float2 dir = p - tileCentre;
+    float2 d = abs(dir * tileExtentInv);
+    float s = 1.0 / Max3(d.x, d.y, 1.0);
+    return tileCentre + dir*s;
+}
+
+groupshared uint g_ListCount;
+groupshared uint g_ListMinDepth;
+groupshared uint g_ListMaxDepth;
+groupshared uint g_ListBitMask;
+
+[numthreads(PLATFORM_LANE_COUNT, 1, 1)]
+void CSCullLights (uint3 groupId: SV_GroupId, uint groupThreadIndex : SV_GroupIndex)
+{
+    // At the final tile resolution, we support up to PLATFORM_LANE_COUNT*2 lights per tile (= 64 or 128 lights per tile).
+    const int kMaxLightPerThread = 2;
+
+    uint2 tileId = groupId.xy;
+    float2 tileExtentsInv = 1.0 / _TileExtents;
+    float2 tileCentre = float2(_FrustumPlanes_Left, _FrustumPlanes_Top) + (_TileExtents + tileId * _TileSize) * float2(1, -1);
+    uint tileIndex = tileId.x + tileId.y * _TileCount.x;
+    uint listOffset = tileIndex * _MaxLightsPerTile;
+
+    // Load light list.
+    #if CS_CULL_FIRST_LIGHTS
+    TileHeader coarseTileHeader;
+    coarseTileHeader.listOffset = 0;
+    coarseTileHeader.listCount = _LightCount;
+    #else
+    uint2 coarseTileId = tileId / _Subdivisions;
+    uint coarseTileIndex = coarseTileId.x + coarseTileId.y * _CoarseTileCount.x;
+    TileHeader coarseTileHeader = LoadTileHeader(_TileHeaders, coarseTileIndex, false);
+    #endif
+
+    #if CS_CULL_FINAL_LIGHTS
+    float listMinDepth = FLT_MAX;
+    float listMaxDepth = 0;
+    float2 lightDepthRanges[kMaxLightPerThread];
+    // how many lights that particular thread processed.
+    int threadLightCount = 0;
+    #endif
+
+    if (groupThreadIndex == 0)
+    {
+        g_ListCount = 0;
+        #if CS_CULL_FINAL_LIGHTS
+        const uint uFltMax = 0x7f7fffff;  // FLT_MAX as a uint
+        g_ListMinDepth = uFltMax;
+        g_ListMaxDepth = 0;
+        g_ListBitMask = 0;
+        #endif
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    for (uint lightListIndex = groupThreadIndex; lightListIndex < coarseTileHeader.listCount; lightListIndex += PLATFORM_LANE_COUNT)
+    {
+        #if CS_CULL_FIRST_LIGHTS
+        uint lightIndex = lightListIndex;
+        #else
+        uint lightIndex = _TileData[coarseTileHeader.listOffset + lightListIndex];
+        #endif
+        PreLight light = _Lights[lightIndex];
+
+        float t0 = FLT_MAX, t1 = 0;
+
+        #if IS_ORTHOGRAPHIC
+            float2 screenPos = ProjectToZNear(light.posVS, _FrustumPlanes_ZNear, true);
+            float3 rayOrigin = float3(ClampToDisk(tileCentre, _TileRadiusInv, screenPos), 0.0f);
+            float3 rayDir = float3(0, 0, -_FrustumPlanes_ZNear);
+
+            if (!IntersectionLineSphere(light.posVS, light.radius, rayOrigin, rayDir, t0, t1))
+                continue;
+
+        #else
+            float3 maxPosVS = light.posVS - float3(0, 0, light.radius);
+            float2 maxScreenPos = ProjectToZNear(maxPosVS, _FrustumPlanes_ZNear, false);
+            float3 maxRayDir = float3(ClampToDisk(tileCentre, _TileRadiusInv, maxScreenPos), -_FrustumPlanes_ZNear);
+
+            if (!IntersectionLineSphere(light.posVS, light.radius, 0.0.xxx, maxRayDir, t0, t1))
+                continue;
+
+            #if CS_CULL_FINAL_LIGHTS
+            float3 minPosVS = light.posVS + float3(0, 0, light.radius);
+            float2 minScreenPos = ProjectToZNear(minPosVS, _FrustumPlanes_ZNear, false);
+            float3 minRayDir = float3(ClampToDisk(tileCentre, _TileRadiusInv, minScreenPos), -_FrustumPlanes_ZNear);
+
+            float _t1; // discarded
+            IntersectionLineSphere(light.posVS, light.radius, 0.0.xxx, minRayDir, t0, _t1);
+            #endif
+
+        #endif
+
+        #if CS_CULL_FINAL_LIGHTS
+        listMinDepth = min(listMinDepth, t0);
+        listMaxDepth = max(listMaxDepth, t1);
+        if (threadLightCount < kMaxLightPerThread)
+            lightDepthRanges[threadLightCount++] = float2(t0, t1);
+        #endif
+
+        // Add to output light list.
+        uint prevCount;
+        InterlockedAdd(g_ListCount, 1, prevCount);
+        _OutTileData[listOffset + prevCount] = lightIndex;
+    }
+
+    #if CS_CULL_FINAL_LIGHTS
+    // Post-multiply by zNear to get actual world unit absolute depth values, then clamp to valid depth range.
+    listMinDepth = clamp(listMinDepth * _FrustumPlanes_ZNear, _FrustumPlanes_ZNear, _FrustumPlanes_ZFar);
+    listMaxDepth = clamp(listMaxDepth * _FrustumPlanes_ZNear, _FrustumPlanes_ZNear, _FrustumPlanes_ZFar);
+
+    // All threads share their results.
+    InterlockedMin(g_ListMinDepth, asuint(listMinDepth));
+    InterlockedMax(g_ListMaxDepth, asuint(listMaxDepth));
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Calculate bitmask for 2.5D culling.
+    listMinDepth = asfloat(g_ListMinDepth);
+    listMaxDepth = asfloat(g_ListMaxDepth);
+    // Deal with case there is no lights in the tile: listMinDepth will be zFar and listMaxDepth will be zNear.
+    // Just pretend the light intersects after zFar plane. Since there is no geometry past the zFar plane, tileDepthInfo shader will generate geoBitMask=0 for that tile.
+    listMaxDepth = listMinDepth >= listMaxDepth ? listMinDepth + 1.0 : listMaxDepth;
+    float depthRangeInv = 1.0 / (listMaxDepth - listMinDepth);
+
+    for (int i = 0; i < threadLightCount && i < kMaxLightPerThread; ++i)
+    {
+        float lightMinDepth = clamp(lightDepthRanges[i].x * _FrustumPlanes_ZNear, _FrustumPlanes_ZNear, _FrustumPlanes_ZFar);
+        float lightMaxDepth = clamp(lightDepthRanges[i].y * _FrustumPlanes_ZNear, _FrustumPlanes_ZNear, _FrustumPlanes_ZFar);
+        int firstBit = (int)((lightMinDepth - listMinDepth) * 32.0 * depthRangeInv);
+        int lastBit = (int)((lightMaxDepth - listMinDepth) * 32.0 * depthRangeInv);
+        int bitCount = min(lastBit - firstBit + 1, 32 - firstBit);
+        uint bitMask = (uint)((0xFFFFFFFF >> (32 - bitCount)) << firstBit);
+
+        InterlockedOr(g_ListBitMask, bitMask);
+
+    //  tiles[culledLightCount + culledLightIndex] = (ushort)((uint)firstBit | (uint)(bitCount << 8));
+    }
+    #endif
+
+    GroupMemoryBarrierWithGroupSync();
+
+    if (groupThreadIndex == 0)
+    {
+        TileHeader tileHeader = (TileHeader)0;
+        tileHeader.listOffset = listOffset;
+        tileHeader.listCount = g_ListCount;
+
+        #if CS_CULL_FINAL_LIGHTS
+        // As listMinDepth and listMaxDepth are used to calculate the geometry 2.5D bitmask,
+        // we can optimize the shader execution (TileDepthInfo.shader) by refactoring the calculation.
+        //   int bitIndex = 32.0h * (geoDepth - listMinDepth) / (listMaxDepth - listMinDepth);
+        // Equivalent to:
+        //   a =                 32.0 / (listMaxDepth - listMinDepth)
+        //   b = -listMinDepth * 32.0 / (listMaxDepth - listMinDepth)
+        //   int bitIndex = geoDepth * a + b;
+        float a = 32.0 * depthRangeInv;
+        float b = -listMinDepth * a;
+
+        tileHeader.listDepthRange = f32tof16(a) | (f32tof16(b) << 16);
+        tileHeader.listBitMask = g_ListBitMask;
+        #endif
+
+        StoreTileHeader(_OutTileHeaders, tileIndex, tileHeader, CS_CULL_FINAL_LIGHTS);
+    }
+
+}
+
+//_________________________________________________________________________________________________
+#endif
+
+#if CS_DRAW_INDIRECT_ARGS
+
+StructuredBuffer<uint> _TileHeaders;
+RWStructuredBuffer<uint> _OutIndirectArgs;
+RWStructuredBuffer<GPUTile> _OutTileList;
+
+CBUFFER_START(UDrawIndirectArgs)
+uint2 _TileCount;
+uint _MaxLightsPerTile;
+uint _Pad0;
+CBUFFER_END
+
+[numthreads(PLATFORM_LANE_X, PLATFORM_LANE_Y, 1)]
+void CSDrawIndirectArgs (uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    // Each thread load a tile. If not empty, add it to the list of tiles to render.
+
+    if (dispatchThreadId.x >= _TileCount.x || dispatchThreadId.y >= _TileCount.y)
+        return;
+
+    uint tileIndex = dispatchThreadId.x + dispatchThreadId.y * _TileCount.x;
+    uint listOffset = tileIndex * _MaxLightsPerTile;
+    TileHeader tileHeader = LoadTileHeader(_TileHeaders, tileIndex, true);
+
+    if (tileHeader.listCount > 0)
+    {
+        uint prevTileCount;
+        InterlockedAdd(_OutIndirectArgs[1], 1, prevTileCount);
+
+        GPUTile tile;
+        tile.tileID = dispatchThreadId.x | (dispatchThreadId.y << 16); // PackTileID()
+        tile.listBitMask = tileHeader.listBitMask;
+        tile.relLightOffset = listOffset;
+        tile.relLightCount = tileHeader.listCount;
+
+        _OutTileList[prevTileCount] = tile;
+    }
+
+}
+
+//_________________________________________________________________________________________________
+#endif

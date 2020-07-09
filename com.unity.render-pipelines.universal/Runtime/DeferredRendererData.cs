@@ -54,6 +54,9 @@ namespace UnityEngine.Rendering.Universal
 
             [Reload("Shaders/Utils/StencilDeferred.shader")]
             public Shader stencilDeferredPS;
+
+            [Reload("Shaders/Utils/TileLightCulling.compute")]
+            public ComputeShader tileLightCullingCS;
         }
 
         [Reload("Runtime/Data/PostProcessData.asset")]
@@ -67,7 +70,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ShadowTransparentReceive = true;
         [SerializeField] bool m_PreferDepthPrepass = false;
         [SerializeField] bool m_AccurateGbufferNormals = false;
-        //[SerializeField] bool m_TiledDeferredShading = false;
+        [SerializeField] TileShading m_TiledDeferredShading = TileShading.Disabled;
 
         protected override ScriptableRenderer Create()
         {
@@ -150,8 +153,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        /*
-        public bool tiledDeferredShading
+        public TileShading tiledDeferredShading
         {
             get => m_TiledDeferredShading;
             set
@@ -160,7 +162,6 @@ namespace UnityEngine.Rendering.Universal
                 m_TiledDeferredShading = value;
             }
         }
-        */
 
         protected override void OnEnable()
         {

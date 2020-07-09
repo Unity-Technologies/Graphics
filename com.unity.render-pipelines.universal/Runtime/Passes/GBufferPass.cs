@@ -92,6 +92,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
             context.ExecuteCommandBuffer(gbufferCommands);
             CommandBufferPool.Release(gbufferCommands);
+
+            // TODO it should be in a separate compute pass.
+            if (m_DeferredLights.TiledDeferredShading == TileShading.GPU)
+                m_DeferredLights.ExecuteComputePass(context, ref renderingData);
         }
 
         public override void OnCameraCleanup(CommandBuffer cmd)

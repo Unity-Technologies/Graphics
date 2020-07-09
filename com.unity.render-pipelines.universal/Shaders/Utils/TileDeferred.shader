@@ -7,14 +7,33 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
     // XR not supported in 2020.1 preview
     #define XR_MODE 0
-
-    struct TileData
+    
+    struct CPUTile
     {
         uint tileID;                 // 2 ushorts
         uint listBitMask;            // 1 uint
         uint relLightOffsetAndCount; // 2 ushorts
         uint unused;
     };
+
+    struct GPUTile
+    {
+        uint tileID;                 // 2 ushorts
+        uint listBitMask;            // 1 uint
+        uint relLightOffset;
+        uint relLightCount;
+    };
+
+
+    #if defined(_GPU_TILING)
+        #define TileData GPUTile
+        int GetTileLightRelativeOffset(GPUTile tile) { return tile.relLightOffset; }
+        int GetTileLightRelativeCount(GPUTile tile) { return tile.relLightCount; }
+    #else
+        #define TileData CPUTile
+        int GetTileLightRelativeOffset(CPUTile tile) { return tile.relLightOffsetAndCount & 0xFFFF; }
+        int GetTileLightRelativeCount(CPUTile tile) { return tile.relLightOffsetAndCount >> 16; }
+    #endif
 
     #if USE_CBUFFER_FOR_TILELIST
         CBUFFER_START(UTileList)
@@ -27,9 +46,15 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             TileData tileData;
             tileData.tileID                 = _TileList[i][0];
             tileData.listBitMask            = _TileList[i][1];
+            #if defined(_GPU_TILING)
+            tileData.relLightOffset         = _TileList[i][2];
+            tileData.relLightCount          = _TileList[i][3];
+            #else
             tileData.relLightOffsetAndCount = _TileList[i][2];
+            #endif
             return tileData;
         }
+
 
     #else
         StructuredBuffer<TileData> _TileList;
@@ -68,12 +93,12 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
         uint4 _RelLightList[MAX_REL_LIGHT_INDICES_PER_CBUFFER_BATCH/4];
         CBUFFER_END
 
-        uint LoadRelLightIndex(uint i) { return _RelLightList[i >> 2][i & 3]; }
+        uint LoadRelLightIndexAndRange(uint i) { return _RelLightList[i >> 2][i & 3]; }
 
     #else
         StructuredBuffer<uint> _RelLightList;
 
-        uint LoadRelLightIndex(uint i) { return _RelLightList[i]; }
+        uint LoadRelLightIndexAndRange(uint i) { return _RelLightList[i]; }
 
     #endif
 
@@ -117,13 +142,15 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
         [branch] if (input.vertexID == 0 || input.vertexID == 3)
         #endif
         {
-            int relLightOffset = tileData.relLightOffsetAndCount & 0xFFFF;
-            int relLightOffsetEnd = relLightOffset + (tileData.relLightOffsetAndCount >> 16);
+            int relLightOffset = GetTileLightRelativeOffset(tileData);
+            int relLightOffsetEnd = relLightOffset + GetTileLightRelativeCount(tileData);
 
+            // When GPU is doing the light culling, it will also trim the light list in the compute shader (not limited to trim edges of the list).
+            #if !_GPU_TILING
             // Trim beginning of the light list.
             [loop] for (; relLightOffset < relLightOffsetEnd; ++relLightOffset)
             {
-                uint lightIndexAndRange = LoadRelLightIndex(relLightOffset);
+                uint lightIndexAndRange = LoadRelLightIndexAndRange(relLightOffset);
                 uint firstBit = (lightIndexAndRange >> 16) & 0xFF;
                 uint bitCount = lightIndexAndRange >> 24;
                 uint lightBitmask = (0xFFFFFFFF >> (32 - bitCount)) << firstBit;
@@ -135,7 +162,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             // Trim end of the light list.
             [loop] for (; relLightOffsetEnd >= relLightOffset; --relLightOffsetEnd)
             {
-                uint lightIndexAndRange = LoadRelLightIndex(relLightOffsetEnd - 1);
+                uint lightIndexAndRange = LoadRelLightIndexAndRange(relLightOffsetEnd - 1);
                 uint firstBit = (lightIndexAndRange >> 16) & 0xFF;
                 uint bitCount = lightIndexAndRange >> 24;
                 uint lightBitmask = (0xFFFFFFFF >> (32 - bitCount)) << firstBit;
@@ -143,6 +170,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 [branch] if ((geoDepthBitmask & lightBitmask) != 0)
                     break;
             }
+            #endif
 
             output.relLightOffsets.x = relLightOffset;
             output.relLightOffsets.y = relLightOffsetEnd;
@@ -234,8 +262,8 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             int li = input.relLightOffsets.x;
             [loop] do
             {
-                uint relLightIndex = LoadRelLightIndex(li);
-                PunctualLightData light = LoadPunctualLightData(relLightIndex & 0xFFFF);
+                uint relLightIndexAndRange = LoadRelLightIndexAndRange(li);
+                PunctualLightData light = LoadPunctualLightData(relLightIndexAndRange & 0xFFFF);
 
                 float3 L = light.posWS - posWS.xyz;
                 [branch] if (dot(L, L) < light.radius2)
@@ -251,8 +279,8 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             int li = input.relLightOffsets.x;
             [loop] do
             {
-                uint relLightIndex = LoadRelLightIndex(li);
-                PunctualLightData light = LoadPunctualLightData(relLightIndex & 0xFFFF);
+                uint relLightIndexAndRange = LoadRelLightIndexAndRange(li);
+                PunctualLightData light = LoadPunctualLightData(relLightIndexAndRange & 0xFFFF);
 
                 float3 L = light.posWS - posWS.xyz;
                 [branch] if (dot(L, L) < light.radius2)
@@ -269,7 +297,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             while(++li < input.relLightOffsets.y);
 
         #endif
-
+        
         return half4(color, 0.0);
     }
 
@@ -305,6 +333,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
             #pragma multi_compile_fragment _LIT
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+            #pragma multi_compile _ _GPU_TILING
 
             #pragma vertex Vertex
             #pragma fragment PunctualLightShading
@@ -339,6 +368,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
             #pragma multi_compile_fragment _SIMPLELIT
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+            #pragma multi_compile _ _GPU_TILING
 
             #pragma vertex Vertex
             #pragma fragment PunctualLightShading

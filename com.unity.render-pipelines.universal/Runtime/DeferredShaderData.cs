@@ -72,11 +72,19 @@ namespace UnityEngine.Rendering.Universal
             return GetOrUpdateNativeArray<PreTile>(ref m_PreTiles, level, count);
         }
 
-        internal ComputeBuffer ReserveBuffer<T>(int count, bool asCBuffer) where T : struct
+        internal ComputeBuffer ReserveBuffer<T>(int count, bool asCBuffer) where T : struct // (kc) remove
         {
+            ComputeBufferType type = asCBuffer ? ComputeBufferType.Constant : ComputeBufferType.Structured;
             int stride = Marshal.SizeOf<T>();
             int paddedCount = asCBuffer ? Align(stride * count, 16) / stride : count;
-            return GetOrUpdateBuffer(paddedCount, stride, asCBuffer);
+            return GetOrUpdateBuffer(paddedCount, stride, type);
+        }
+
+        internal ComputeBuffer ReserveBuffer<T>(int count, ComputeBufferType type) where T : struct
+        {
+            int stride = Marshal.SizeOf<T>();
+            int paddedCount = type == ComputeBufferType.Constant ? Align(stride * count, 16) / stride : count;
+            return GetOrUpdateBuffer(paddedCount, stride, type);
         }
 
         NativeArray<T> GetOrUpdateNativeArray<T>(ref NativeArray<T>[] nativeArrays, int level, int count) where T : struct
@@ -103,9 +111,8 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        ComputeBuffer GetOrUpdateBuffer(int count, int stride, bool isConstantBuffer)
+        ComputeBuffer GetOrUpdateBuffer(int count, int stride, ComputeBufferType type)
         {
-            ComputeBufferType type = isConstantBuffer ? ComputeBufferType.Constant : ComputeBufferType.Structured;
 #if UNITY_SWITCH // maxQueuedFrames returns -1 on Switch!
             int maxQueuedFrames = 3;
 #else

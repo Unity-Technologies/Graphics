@@ -53,6 +53,7 @@ Shader "Hidden/Universal Render Pipeline/TileDepthInfo"
             HLSLPROGRAM
 
             #pragma multi_compile_fragment __ DOWNSAMPLING_SIZE_2 DOWNSAMPLING_SIZE_4 DOWNSAMPLING_SIZE_8 DOWNSAMPLING_SIZE_16
+            #pragma multi_compile_fragment __ _GPU_TILING
 
             #pragma vertex vert
             #pragma fragment frag
@@ -61,7 +62,12 @@ Shader "Hidden/Universal Render Pipeline/TileDepthInfo"
             #endif
             //#pragma enable_d3d11_debug_symbols
 
-            #if USE_CBUFFER_FOR_DEPTHRANGE
+            #if _GPU_TILING
+                StructuredBuffer<uint> _TileHeaders;
+
+                uint LoadDepthRange(uint i) { return _TileHeaders[i * 4 + 2]; }
+
+            #elif USE_CBUFFER_FOR_DEPTHRANGE
                 CBUFFER_START(UDepthRanges)
                 uint4 _DepthRanges[MAX_DEPTHRANGE_PER_CBUFFER_BATCH/4];
                 CBUFFER_END

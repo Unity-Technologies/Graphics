@@ -209,12 +209,20 @@ namespace UnityEngine.Rendering.Universal
     }
 
     // Actual tile data passed to the deferred shaders.
-    public struct TileData
+    public struct CPUTile
     {
         public uint tileID;         // 2x 16 bits
         public uint listBitMask;    // 32 bits
-        public uint relLightOffset; // 16 bits is enough
+        public uint relLightOffsetAndCount; // 16 bits x 2 is enough
         public uint unused;
+    }
+
+    public struct GPUTile
+    {
+        public uint tileID;         // 2x 16 bits
+        public uint listBitMask;    // 32 bits
+        public uint relLightOffset; // Needs 32 bits
+        public uint relLightCount;
     }
 
     // Actual point/spot light data passed to the deferred shaders.
@@ -323,6 +331,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _POINT = "_POINT";
         public static readonly string _DEFERRED_ADDITIONAL_LIGHT_SHADOWS = "_DEFERRED_ADDITIONAL_LIGHT_SHADOWS";
         public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
+        public static readonly string _GPU_TILING = "_GPU_TILING";
 
         // XR
         public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";    }
