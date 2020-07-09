@@ -113,6 +113,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const float k_MinAreaLightShadowCone = 10.0f;
         internal const float k_MaxAreaLightShadowCone = 179.0f;
 
+        /// <summary>List of the lights that overlaps when the OverlapLight scene view mode is enabled</summary>
+        internal static HashSet<HDAdditionalLightData> s_overlappingHDLights = new HashSet<HDAdditionalLightData>();
+
 #region HDLight Properties API
 
         [SerializeField, FormerlySerializedAs("displayLightIntensity")]
@@ -195,11 +198,35 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public float innerSpotPercent01 => innerSpotPercent / 100f;
 
+
+        [Range(k_MinSpotInnerPercent, k_MaxSpotInnerPercent)]
+        [SerializeField]
+        float m_SpotIESCutoffPercent = 100.0f; // To display this field in the UI this need to be public
+        /// <summary>
+        /// Get/Set the spot ies cutoff.
+        /// </summary>
+        public float spotIESCutoffPercent
+        {
+            get => m_SpotIESCutoffPercent;
+            set
+            {
+                if (m_SpotIESCutoffPercent == value)
+                    return;
+
+                m_SpotIESCutoffPercent = Mathf.Clamp(value, k_MinSpotInnerPercent, k_MaxSpotInnerPercent);
+            }
+        }
+
+        /// <summary>
+        /// Get the inner spot radius between 0 and 1.
+        /// </summary>
+        public float spotIESCutoffPercent01 => spotIESCutoffPercent/100f;
+
         [Range(0.0f, 16.0f)]
         [SerializeField, FormerlySerializedAs("lightDimmer")]
         float m_LightDimmer = 1.0f;
         /// <summary>
-        /// Get/Set the light dimmer / multiplier, between 0 and 16. 
+        /// Get/Set the light dimmer / multiplier, between 0 and 16.
         /// </summary>
         public float lightDimmer
         {
@@ -541,6 +568,56 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_AreaLightCookie = value;
                 UpdateAllLightValues();
+            }
+        }
+
+
+        // Optional IES (Cubemap for PointLight)
+        [SerializeField]
+        internal Texture m_IESPoint;
+        // Optional IES (2D Square texture for Spot or rectangular light)
+        [SerializeField]
+        internal Texture m_IESSpot;
+
+        /// <summary>
+        /// Get/Set IES texture for Point
+        /// </summary>
+        internal Texture IESPoint
+        {
+            get => m_IESPoint;
+            set
+            {
+                if (value.dimension == TextureDimension.Cube)
+                {
+                    m_IESPoint = value;
+                    UpdateAllLightValues();
+                }
+                else
+                {
+                    Debug.LogError("Texture dimension " + value.dimension + " is not supported for point lights.");
+                    m_IESPoint = null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get/Set IES texture for Spot or rectangular light.
+        /// </summary>
+        internal Texture IESSpot
+        {
+            get => m_IESSpot;
+            set
+            {
+                if (value.dimension == TextureDimension.Tex2D && value.width == value.height)
+                {
+                    m_IESSpot = value;
+                    UpdateAllLightValues();
+                }
+                else
+                {
+                    Debug.LogError("Texture dimension " + value.dimension + " is not supported for spot lights or rectangular light (only square images).");
+                    m_IESSpot = null;
+                }
             }
         }
 
@@ -1327,6 +1404,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_ShadowUpdateMode == value)
                     return;
 
+                if (m_ShadowUpdateMode != ShadowUpdateMode.EveryFrame && value == ShadowUpdateMode.EveryFrame)
+                {
+                    if(!preserveCachedShadow)
+                    {
+                        HDShadowManager.cachedShadowManager.EvictLight(this);
+                    }
+                }
+                else if(legacyLight.shadows != LightShadows.None && m_ShadowUpdateMode == ShadowUpdateMode.EveryFrame && value != ShadowUpdateMode.EveryFrame)
+                {
+                    HDShadowManager.cachedShadowManager.RegisterLight(this);
+                }
+
                 m_ShadowUpdateMode = value;
             }
         }
@@ -1370,8 +1459,26 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [SerializeField]
+        bool m_preserveCachedShadow = false;
         /// <summary>
-        /// True if the light affects volumetric fog, false otherwise 
+        /// Controls whether the cached shadow maps for this light is preserved upon disabling the light.
+        /// If this field is set to true, then the light will maintain its space in the cached shadow atlas until it is destroyed.
+        /// </summary>
+        public bool preserveCachedShadow
+        {
+            get => m_preserveCachedShadow;
+            set
+            {
+                if (m_preserveCachedShadow == value)
+                    return;
+
+                m_preserveCachedShadow = value;
+            }
+        }
+
+        /// <summary>
+        /// True if the light affects volumetric fog, false otherwise
         /// </summary>
         public bool affectsVolumetric
         {
@@ -1442,16 +1549,13 @@ namespace UnityEngine.Rendering.HighDefinition
         bool                m_WillRenderScreenSpaceShadow;
         bool                m_WillRenderRayTracedShadow;
         int[]               m_ShadowRequestIndices;
-        bool                m_ShadowMapRenderedSinceLastRequest = false;
 
-        // Data for cached shadow maps.
-        Vector2             m_CachedShadowResolution = new Vector2(0,0);
-        Vector3             m_CachedViewPos = new Vector3(0, 0, 0);
 
-        int[]               m_CachedResolutionRequestIndices = new int[6];
-        bool                m_CachedDataIsValid = true;
-        // This is useful to detect whether the atlas has been repacked since the light was last seen
-        int                 m_AtlasShapeID = 0;
+        // Data for cached shadow maps
+        [System.NonSerialized]
+        internal int lightIdxForCachedShadows = -1;
+        Vector3 m_CachedViewPos = new Vector3(0, 0, 0);
+
 
         [System.NonSerialized]
         Plane[]             m_ShadowFrustumPlanes = new Plane[6];
@@ -1482,6 +1586,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal MeshRenderer emissiveMeshRenderer { get; private set; }
 
 #if UNITY_EDITOR
+        bool m_NeedsPrefabInstanceCheck = false;
         bool needRefreshPrefabInstanceEmissiveMeshes = false;
 #endif
         bool needRefreshEmissiveMeshesFromTimeLineUpdate = false;
@@ -1565,7 +1670,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_ChildEmissiveMeshViewer);
             m_ChildEmissiveMeshViewer = null;
         }
-        
+
         [SerializeField]
         ShadowCastingMode m_AreaLightEmissiveMeshShadowCastingMode = ShadowCastingMode.Off;
         [SerializeField]
@@ -1624,25 +1729,23 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        private void DisableCachedShadowSlot()
-        {
-            if (WillRenderShadowMap() && !ShadowIsUpdatedEveryFrame())
-            {
-                HDShadowManager.instance.MarkCachedShadowSlotsAsEmpty(shadowMapType, GetInstanceID());
-                HDShadowManager.instance.PruneEmptyCachedSlots(shadowMapType);  // We invalidate it all to be sure.
-                m_ShadowMapRenderedSinceLastRequest = false;
-            }
-        }
 
         void OnDestroy()
         {
-            DisableCachedShadowSlot();
+            if(lightIdxForCachedShadows >= 0) // If it is within the cached system we need to evict it.
+                HDShadowManager.cachedShadowManager.EvictLight(this);
         }
 
         void OnDisable()
         {
-            DisableCachedShadowSlot();
+            // If it is within the cached system we need to evict it, unless user explicitly requires not to.
+            if (!preserveCachedShadow && lightIdxForCachedShadows >= 0)
+            {
+                HDShadowManager.cachedShadowManager.EvictLight(this);
+            }
+
             SetEmissiveMeshRendererEnabled(false);
+            s_overlappingHDLights.Remove(this);
         }
 
         void SetEmissiveMeshRendererEnabled(bool enabled)
@@ -1668,20 +1771,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public void RequestShadowMapRendering()
         {
             if(shadowUpdateMode == ShadowUpdateMode.OnDemand)
-                m_ShadowMapRenderedSinceLastRequest = false;
+                HDShadowManager.cachedShadowManager.ScheduleShadowUpdate(this);
         }
-        internal bool ShouldRenderShadows()
+
+        /// <summary>
+        /// Some lights render more than one shadow maps (e.g. cascade shadow maps or point lights). This method is used to request the rendering of specific shadow map
+        /// when Update Mode is set to On Demand. For example, to request the update of a second cascade, shadowIndex should be 1.
+        /// Note: if shadowIndex is a 0-based index and it must be lower than the number of shadow maps a light renders (i.e. cascade count for directional lights, 6 for point lights).
+        /// </summary>
+        public void RequestSubShadowMapRendering(int shadowIndex)
         {
-            switch (shadowUpdateMode)
-            {
-                case ShadowUpdateMode.EveryFrame:
-                    return true;
-                case ShadowUpdateMode.OnDemand:
-                    return !m_ShadowMapRenderedSinceLastRequest;
-                case ShadowUpdateMode.OnEnable:
-                    return !m_ShadowMapRenderedSinceLastRequest;
-            }
-            return true;
+            if (shadowUpdateMode == ShadowUpdateMode.OnDemand)
+                HDShadowManager.cachedShadowManager.ScheduleShadowUpdate(this, shadowIndex);
         }
 
         internal bool ShadowIsUpdatedEveryFrame()
@@ -1700,6 +1801,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_WillRenderShadowMap &= shadowDimmer > 0;
             // If the shadow is too far away, we don't render it
             m_WillRenderShadowMap &= processedLight.lightType == HDLightType.Directional || processedLight.distanceToCamera < shadowFadeDistance;
+
+            if (processedLight.lightType == HDLightType.Area && areaLightShape != AreaLightShape.Rectangle)
+            {
+                m_WillRenderShadowMap = false;
+            }
 
             // First we reset the ray tracing and screen space shadow data
             m_WillRenderScreenSpaceShadow = false;
@@ -1738,7 +1844,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        private int GetResolutionFromSettings(ShadowMapType shadowMapType, HDShadowInitParameters initParameters)
+        internal int GetResolutionFromSettings(ShadowMapType shadowMapType, HDShadowInitParameters initParameters)
         {
             switch (shadowMapType)
             {
@@ -1783,17 +1889,9 @@ namespace UnityEngine.Rendering.HighDefinition
             viewPortRescaling |= (shadowType == ShadowMapType.PunctualAtlas && initParameters.punctualLightShadowAtlas.useDynamicViewportRescale);
             viewPortRescaling |= (shadowType == ShadowMapType.AreaLightAtlas && initParameters.areaLightShadowAtlas.useDynamicViewportRescale);
 
-            bool shadowsAreCached = !ShouldRenderShadows();
-            if (shadowsAreCached)
-            {
-                viewportSize = m_CachedShadowResolution;
-            }
-            else
-            {
-                m_CachedShadowResolution = viewportSize;
-            }
+            bool shadowIsInCacheSystem = !ShadowIsUpdatedEveryFrame();
 
-            if (viewPortRescaling && !shadowsAreCached)
+            if (viewPortRescaling && !shadowIsInCacheSystem)
             {
                 // resize viewport size by the normalized size of the light on screen
                 float screenArea = screenRect.width * screenRect.height;
@@ -1812,11 +1910,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowManager.UpdateDirectionalShadowResolution((int)viewportSize.x, shadowSettings.cascadeShadowSplitCount.value);
 
             int count = GetShadowRequestCount(shadowSettings, lightType);
-            bool needsCachedSlotsInAtlas = shadowsAreCached && !(ShadowIsUpdatedEveryFrame() || lightType == HDLightType.Directional);
 
+            bool needResolutionRequestNow = !shadowIsInCacheSystem || lightType == HDLightType.Directional;
             for (int index = 0; index < count; index++)
             {
-                m_ShadowRequestIndices[index] = shadowManager.ReserveShadowResolutions(needsCachedSlotsInAtlas ? new Vector2(resolution, resolution) : viewportSize, shadowType, GetInstanceID(), index, needsCachedSlotsInAtlas, out m_CachedResolutionRequestIndices[index]);
+                m_ShadowRequestIndices[index] = shadowManager.ReserveShadowResolutions(shadowIsInCacheSystem ? new Vector2(resolution, resolution) : viewportSize, shadowMapType, GetInstanceID(), index, needResolutionRequestNow);
             }
         }
 
@@ -1881,18 +1979,17 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowRequestCount = 0;
 
             HDLightType lightType = type;
-            ShadowMapType shadowType = GetShadowMapType(lightType);
 
             int count = GetShadowRequestCount(shadowSettings, lightType);
-            bool shadowIsCached = !ShouldRenderShadows() && !lightingDebugSettings.clearShadowAtlas;
-            bool isUpdatedEveryFrame = ShadowIsUpdatedEveryFrame();
 
-            bool hasCachedSlotInAtlas = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional);
-
-            bool shouldUseRequestFromCachedList = shadowIsCached && hasCachedSlotInAtlas && !manager.AtlasHasResized(shadowType);
-            bool cachedDataIsValid = shadowIsCached && m_CachedDataIsValid && (manager.GetAtlasShapeID(shadowType) == m_AtlasShapeID) && manager.CachedDataIsValid(shadowType);
-            cachedDataIsValid = cachedDataIsValid || (legacyLight.type == LightType.Directional);
-            shadowIsCached = shadowIsCached && (hasCachedSlotInAtlas && cachedDataIsValid || legacyLight.type == LightType.Directional);
+            bool shadowIsInCachedSystem = !ShadowIsUpdatedEveryFrame();
+            // Note if we are in cached system, but if a placement has not been found by this point we bail out shadows
+            bool shadowHasAtlasPlacement = true;
+            if (shadowIsInCachedSystem)
+            {
+                // If we force evicted the light, it will have lightIdxForCachedShadows == -1
+                shadowHasAtlasPlacement = !HDShadowManager.cachedShadowManager.LightIsPendingPlacement(this, shadowMapType) && (lightIdxForCachedShadows != -1);
+            }
 
             for (int index = 0; index < count; index++)
             {
@@ -1901,17 +1998,28 @@ namespace UnityEngine.Rendering.HighDefinition
                 Matrix4x4   invViewProjection = Matrix4x4.identity;
                 int         shadowRequestIndex = m_ShadowRequestIndices[index];
 
-                HDShadowResolutionRequest resolutionRequest = manager.GetResolutionRequest(shadowType, shouldUseRequestFromCachedList, shouldUseRequestFromCachedList ? m_CachedResolutionRequestIndices[index] : shadowRequestIndex);
+                HDShadowResolutionRequest resolutionRequest = manager.GetResolutionRequest(shadowRequestIndex);
 
                 if (resolutionRequest == null)
                     continue;
+
+                int cachedShadowID = lightIdxForCachedShadows + index;
+                bool shadowNeedsRendering = shadowHasAtlasPlacement;
+
+                if (shadowIsInCachedSystem && shadowHasAtlasPlacement)
+                {
+                    shadowNeedsRendering = HDShadowManager.cachedShadowManager.ShadowIsPendingUpdate(cachedShadowID, shadowMapType);
+                    HDShadowManager.cachedShadowManager.UpdateResolutionRequest(ref resolutionRequest, cachedShadowID, shadowMapType);
+                }
+
+                shadowRequest.isInCachedAtlas = shadowIsInCachedSystem;
 
                 Vector2 viewportSize = resolutionRequest.resolution;
 
                 if (shadowRequestIndex == -1)
                     continue;
 
-                if (shadowIsCached)
+                if (!shadowNeedsRendering)
                 {
                     shadowRequest.cachedShadowData.cacheTranslationDelta = cameraPos - m_CachedViewPos;
                     shadowRequest.shouldUseCachedShadow = true;
@@ -1924,7 +2032,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     m_CachedViewPos = cameraPos;
                     shadowRequest.shouldUseCachedShadow = false;
-                    m_ShadowMapRenderedSinceLastRequest = true;
 
                     // Write per light type matrices, splitDatas and culling parameters
                     switch (lightType)
@@ -1972,11 +2079,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 shadowRequest.atlasViewport = resolutionRequest.atlasViewport;
-                manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest);
-                shadowRequest.shouldUseCachedShadow = shadowRequest.shouldUseCachedShadow && cachedDataIsValid;
+                manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest, shadowIsInCachedSystem);
 
-                m_CachedDataIsValid = manager.CachedDataIsValid(shadowType);
-                m_AtlasShapeID = manager.GetAtlasShapeID(shadowType);
+                if(shadowIsInCachedSystem && shadowNeedsRendering)
+                {
+                    // Handshake with the cached shadow manager to notify about the rendering.
+                    // Technically the rendering has not happened yet, but it is scheduled.
+                    HDShadowManager.cachedShadowManager.MarkShadowAsRendered(cachedShadowID, shadowMapType);
+                }
 
                 // Store the first shadow request id to return it
                 if (firstShadowRequestIndex == -1)
@@ -1985,7 +2095,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowRequestCount++;
             }
 
-            return firstShadowRequestIndex;
+            return shadowHasAtlasPlacement ? firstShadowRequestIndex : -1;
         }
 
         void SetCommonShadowRequestSettings(HDShadowRequest shadowRequest, VisibleLight visibleLight, Vector3 cameraPos, Matrix4x4 invViewProjection, Vector2 viewportSize, int lightIndex, HDLightType lightType, HDShadowFilteringQuality filteringQuality)
@@ -2183,6 +2293,22 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
 #if UNITY_EDITOR
+
+            // If modification are due to change on prefab asset that are non overridden on this prefab instance
+            if (m_NeedsPrefabInstanceCheck && PrefabUtility.IsPartOfPrefabInstance(this) && ((PrefabUtility.GetCorrespondingObjectFromOriginalSource(this) as HDAdditionalLightData)?.needRefreshPrefabInstanceEmissiveMeshes ?? false))
+            {
+                needRefreshPrefabInstanceEmissiveMeshes = true;
+            }
+            m_NeedsPrefabInstanceCheck = false;
+
+            // Update the list of overlapping lights for the LightOverlap scene view mode
+            if (IsOverlapping())
+                s_overlappingHDLights.Add(this);
+            else
+                s_overlappingHDLights.Remove(this);
+#endif
+
+#if UNITY_EDITOR
             //if not parented anymore, refresh it
             if (m_ChildEmissiveMeshViewer != null && !m_ChildEmissiveMeshViewer.Equals(null))
             {
@@ -2203,7 +2329,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 && m_ChildEmissiveMeshViewer != null && !m_ChildEmissiveMeshViewer.Equals(null)
                 && m_ChildEmissiveMeshViewer.gameObject.layer != gameObject.layer)
                 m_ChildEmissiveMeshViewer.gameObject.layer = gameObject.layer;
-            
+
             // Delayed cleanup when removing emissive mesh from timeline
             if (needRefreshEmissiveMeshesFromTimeLineUpdate)
             {
@@ -2263,7 +2389,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 timelineWorkaround.oldLightColorTemperature = legacyLight.colorTemperature;
             }
         }
-        
+
         void OnDidApplyAnimationProperties()
         {
             UpdateAllLightValues(fromTimeLine: true);
@@ -2378,17 +2504,18 @@ namespace UnityEngine.Rendering.HighDefinition
         void OnValidate()
         {
             UpdateBounds();
-            DisableCachedShadowSlot();
-            m_ShadowMapRenderedSinceLastRequest = false;
+
+            RefreshCachedShadow();
+
+            if (emissiveMeshRenderer != null && !emissiveMeshRenderer.Equals(null))
+            {
+                emissiveMeshRenderer.gameObject.layer = m_AreaLightEmissiveMeshLayer;
+            }
 
 #if UNITY_EDITOR
-            // If modification are due to change on prefab asset that are non overridden on this prefab instance
-            if (PrefabUtility.IsPartOfPrefabInstance(this) && ((PrefabUtility.GetCorrespondingObjectFromOriginalSource(this) as HDAdditionalLightData)?.needRefreshPrefabInstanceEmissiveMeshes ?? false))
-            {
-                // As we cannot Create/Destroy in OnValidate, delay call to next Update
-                // To do this, wo set the same flag on prefab instances
-                needRefreshPrefabInstanceEmissiveMeshes = true;
-            }
+            // If modification are due to change on prefab asset, we want to have prefab instances to self-update, but we cannot check in OnValidate if this is part of
+            // prefab instance. So we delay the check on next update (and before teh LateUpdate logic)
+            m_NeedsPrefabInstanceCheck = true;
 #endif
         }
 
@@ -2477,7 +2604,7 @@ namespace UnityEngine.Rendering.HighDefinition
             legacyLight.SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
 #endif
         }
-        
+
         void Awake()
         {
             Migrate();
@@ -2602,9 +2729,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
             emissiveMeshRenderer.sharedMaterial.SetColor("_EmissiveColor", value);
 
+            bool enableEmissiveColorMap = false;
             // Set the cookie (if there is one) and raise or remove the shader feature
-            emissiveMeshRenderer.sharedMaterial.SetTexture("_EmissiveColorMap", areaLightCookie);
-            CoreUtils.SetKeyword(emissiveMeshRenderer.sharedMaterial, "_EMISSIVE_COLOR_MAP", areaLightCookie != null);
+            if (displayEmissiveMesh && areaLightCookie != null && areaLightCookie != Texture2D.whiteTexture)
+            {
+                emissiveMeshRenderer.sharedMaterial.SetTexture("_EmissiveColorMap", areaLightCookie);
+                enableEmissiveColorMap = true;
+            }
+            else if (displayEmissiveMesh && IESSpot != null && IESSpot != Texture2D.whiteTexture)
+            {
+                emissiveMeshRenderer.sharedMaterial.SetTexture("_EmissiveColorMap", IESSpot);
+                enableEmissiveColorMap = true;
+            }
+            else
+            {
+                emissiveMeshRenderer.sharedMaterial.SetTexture("_EmissiveColorMap", Texture2D.whiteTexture);
+            }
+            CoreUtils.SetKeyword(emissiveMeshRenderer.sharedMaterial, "_EMISSIVE_COLOR_MAP", enableEmissiveColorMap);
         }
 
         void UpdateRectangleLightBounds()
@@ -2691,6 +2832,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Force to clamp the shape if we changed the type of the light
             shapeWidth = m_ShapeWidth;
             shapeHeight = m_ShapeHeight;
+
+#if UNITY_EDITOR
+            legacyLight.areaSize = new Vector2(shapeWidth, shapeHeight);
+#endif
         }
 
         /// <summary>
@@ -2714,7 +2859,19 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateAreaLightEmissiveMesh(fromTimeLine: fromTimeLine);
         }
 
-#endregion
+        internal void RefreshCachedShadow()
+        {
+            bool wentThroughCachedShadowSystem = lightIdxForCachedShadows >= 0;
+            if (wentThroughCachedShadowSystem)
+                HDShadowManager.cachedShadowManager.EvictLight(this);
+
+            if (!ShadowIsUpdatedEveryFrame() && legacyLight.shadows != LightShadows.None)
+            {
+                HDShadowManager.cachedShadowManager.RegisterLight(this);
+            }
+        }
+
+        #endregion
 
 #region User API functions
 
@@ -2854,19 +3011,40 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Set the shadow resolution.
         /// </summary>
         /// <param name="resolution">Must be between 16 and 16384</param>
-        public void SetShadowResolution(int resolution) => shadowResolution.@override = resolution;
+        public void SetShadowResolution(int resolution)
+        {
+            if (shadowResolution.@override != resolution)
+            {
+                shadowResolution.@override = resolution;
+                RefreshCachedShadow();
+            }
+        }
 
         /// <summary>
         /// Set the shadow resolution quality level.
         /// </summary>
         /// <param name="level">The quality level to use</param>
-        public void SetShadowResolutionLevel(int level) => shadowResolution.level = level;
+        public void SetShadowResolutionLevel(int level)
+        {
+            if (shadowResolution.level != level)
+            {
+                shadowResolution.level = level;
+                RefreshCachedShadow();
+            }
+        }
 
         /// <summary>
         /// Set whether the shadow resolution use the override value.
         /// </summary>
         /// <param name="useOverride">True to use the override value, false otherwise.</param>
-        public void SetShadowResolutionOverride(bool useOverride) => shadowResolution.useOverride = useOverride;
+        public void SetShadowResolutionOverride(bool useOverride)
+        {
+            if (shadowResolution.useOverride != useOverride)
+            {
+                shadowResolution.useOverride = useOverride;
+                RefreshCachedShadow();
+            }
+        }
 
         /// <summary>
         /// Set the near plane of the shadow.
@@ -3039,8 +3217,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnEnable()
         {
-            if (shadowUpdateMode == ShadowUpdateMode.OnEnable)
-                m_ShadowMapRenderedSinceLastRequest = false;
+            if (shadowUpdateMode != ShadowUpdateMode.EveryFrame && legacyLight.shadows != LightShadows.None)
+            {
+                HDShadowManager.cachedShadowManager.RegisterLight(this);
+            }
+
             SetEmissiveMeshRendererEnabled(true);
         }
 
@@ -3071,6 +3252,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 : lightType != HDLightType.Directional
                     ? ShadowMapType.PunctualAtlas
                     : ShadowMapType.CascadedDirectional;
+        }
+
+        /// <summary>Tell if the light is overlapping for the light overlap debug mode</summary>
+        internal bool IsOverlapping()
+        {
+            var baking = GetComponent<Light>().bakingOutput;
+            bool isOcclusionSeparatelyBaked = baking.occlusionMaskChannel != -1;
+            bool isDirectUsingBakedOcclusion = baking.mixedLightingMode == MixedLightingMode.Shadowmask || baking.mixedLightingMode == MixedLightingMode.Subtractive;
+            return isDirectUsingBakedOcclusion && !isOcclusionSeparatelyBaked;
         }
     }
 }

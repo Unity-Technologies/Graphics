@@ -19,6 +19,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public const int k_PropertySectionIndex = 0;
         public const int k_KeywordSectionIndex = 1;
+        const string k_styleName = "Blackboard";
 
         public Blackboard blackboard { get; private set; }
         Label m_PathLabel;
@@ -48,6 +49,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 addItemRequested = AddItemRequested,
                 moveItemRequested = MoveItemRequested
             };
+
+            var styleSheet = Resources.Load<StyleSheet>($"Styles/{k_styleName}");
+            blackboard.styleSheets.Add(styleSheet);
 
             m_PathLabel = blackboard.hierarchy.ElementAt(0).Q<Label>("subTitleLabel");
             m_PathLabel.RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
@@ -257,8 +261,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         public void HandleGraphChanges(bool wasUndoRedoPerformed)
         {
             var selection = new List<ISelectable>();
-            if(blackboard.selection != null)
-                selection.Concat(blackboard.selection);
+            if (blackboard.selection != null)
+            {
+                selection.AddRange(blackboard.selection);
+            }
 
             foreach (var inputGuid in m_Graph.removedInputs)
             {

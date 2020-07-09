@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.Experimental.GraphView;
@@ -46,6 +46,12 @@ namespace UnityEditor.ShaderGraph
             // Removing the title label since it is not used and taking up space
             this.Q("title-label").RemoveFromHierarchy();
 
+            // Add disabled overlay
+            Add(new VisualElement() { name = "disabledOverlay", pickingMode = PickingMode.Ignore });
+
+            // Update active state
+            SetActive(node.isActive);
+
             // Registering the hovering callbacks for highlighting
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
@@ -61,12 +67,6 @@ namespace UnityEditor.ShaderGraph
         public object GetObjectToInspect()
         {
             return property;
-        }
-
-        public PropertyInfo[] GetPropertyInfo()
-        {
-            // The AbstractShaderProperty is declared as private here so we're specifying the NonPublic flag
-            return this.GetType().GetProperties(BindingFlags.NonPublic | BindingFlags.Instance);
         }
 
         public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
@@ -233,8 +233,20 @@ namespace UnityEditor.ShaderGraph
         {
         }
 
+        public bool FindPort(SlotReference slot, out ShaderPort port)
+        {
+            port = output as ShaderPort;
+            return port != null && port.slot.slotReference.Equals(slot);
+        }
+
         public void OnModified(ModificationScope scope)
         {
+            //disconnected property nodes are always active
+            if (!node.IsSlotConnected(PropertyNode.OutputSlotId))
+                node.SetActive(true);
+
+            SetActive(node.isActive);
+
             if (scope == ModificationScope.Graph)
             {
                 // changing the icon to be exposed or not
@@ -251,6 +263,23 @@ namespace UnityEditor.ShaderGraph
                 // Updating the text label of the output slot
                 var slot = node.GetSlots<MaterialSlot>().ToList().First();
                 this.Q<Label>("type").text = slot.displayName;
+            }
+        }
+
+        public void SetActive(bool state)
+        {
+            // Setup
+            var disabledString = "disabled";
+
+            if (!state)
+            {
+                // Add elements to disabled class list
+                AddToClassList(disabledString);
+            }
+            else
+            {
+                // Remove elements from disabled class list
+                RemoveFromClassList(disabledString);
             }
         }
 

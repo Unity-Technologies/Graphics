@@ -263,6 +263,7 @@ namespace UnityEditor.VFX.UI
 
         VFXNodeProvider m_NodeProvider;
         VisualElement m_Toolbar;
+        ToolbarButton m_SaveButton;
 
         private bool m_IsRuntimeMode = false;
         private bool m_ForceShaderValidation = false;
@@ -341,6 +342,11 @@ namespace UnityEditor.VFX.UI
             compileButton.text = "Compile";
             m_Toolbar.Add(compileButton);
 
+            m_SaveButton = new ToolbarButton(OnSave);
+            m_SaveButton.style.unityTextAlign = TextAnchor.MiddleLeft;
+            m_SaveButton.text = "Save";
+            m_Toolbar.Add(m_SaveButton);
+
             var spacer = new ToolbarSpacer();
             spacer.style.width = 12f;
             m_Toolbar.Add(spacer);
@@ -383,20 +389,19 @@ namespace UnityEditor.VFX.UI
 
             // End Toolbar
 
-            m_NoAssetLabel = new Label("Please Open An Asset") { name = "no-asset"};
+            m_NoAssetLabel = new Label("\n\n\nTo begin creating Visual Effects, create a new Visual Effect Graph Asset.\n(or double-click an existing Visual Effect Graph in the project view)") { name = "no-asset"};
             m_NoAssetLabel.style.position = PositionType.Absolute;
-            m_NoAssetLabel.style.left = 0f;
-            m_NoAssetLabel.style.right = new StyleLength(0f);
-            m_NoAssetLabel.style.top = new StyleLength(0f);
-            m_NoAssetLabel.style.bottom = new StyleLength(0f);
+            m_NoAssetLabel.style.left = new StyleLength(40f);
+            m_NoAssetLabel.style.right = new StyleLength(40f);
+            m_NoAssetLabel.style.top = new StyleLength(40f);
+            m_NoAssetLabel.style.bottom = new StyleLength(140f);
             m_NoAssetLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
-            m_NoAssetLabel.style.fontSize = new StyleLength(72f);
+            m_NoAssetLabel.style.fontSize = new StyleLength(12f);
             m_NoAssetLabel.style.color = Color.white * 0.75f;
-
             Add(m_NoAssetLabel);
 
 
-            var createButton = new Button() { text = "Create Graph" };
+            var createButton = new Button() { text = "Create new Visual Effect Graph" };
             m_NoAssetLabel.Add(createButton);
             createButton.clicked += OnCreateAsset;
 
@@ -1104,7 +1109,8 @@ namespace UnityEditor.VFX.UI
 
             if (context != null)
             {
-                context.OnCreateBlock(point);
+                if(context.canHaveBlocks)
+                    context.OnCreateBlock(point);
             }
             else
             {
@@ -1145,6 +1151,51 @@ namespace UnityEditor.VFX.UI
                 VFXGraph.explicitCompile = true;
                 AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(controller.model));
                 VFXGraph.explicitCompile = false;
+            }
+        }
+
+
+        void OnSave()
+        {
+            OnCompile();
+            var graphToSave = new HashSet<VFXGraph>();
+            GetGraphsRecursively(controller.graph,graphToSave);
+
+            foreach(var graph in graphToSave)
+            {
+                graph.GetResource().WriteAsset();
+                graph.OnSaved();
+            }
+        }
+
+        void GetGraphsRecursively(VFXGraph start,HashSet<VFXGraph> graphs)
+        {
+            if (graphs.Contains(start))
+                return;
+            graphs.Add(start);
+            foreach(var child in start.children)
+            {
+                if (child is VFXSubgraphOperator ope)
+                {
+                    var graph = ope.subgraph.GetResource().GetOrCreateGraph();
+                    GetGraphsRecursively(graph, graphs);
+                }
+                else if (child is VFXSubgraphContext subCtx)
+                {
+                    var graph = subCtx.subgraph.GetResource().GetOrCreateGraph();
+                    GetGraphsRecursively(graph, graphs);
+                }
+                else if( child is VFXContext ctx)
+                {
+                    foreach( var block in ctx.children.Cast<VFXBlock>())
+                    {
+                        if( block is VFXSubgraphBlock subBlock)
+                        {
+                            var graph = subBlock.subgraph.GetResource().GetOrCreateGraph();
+                            GetGraphsRecursively(graph, graphs);
+                        }
+                    }
+                }
             }
         }
 
@@ -1190,21 +1241,21 @@ namespace UnityEditor.VFX.UI
         public EventPropagation OutputToDot()
         {
             if (controller == null) return EventPropagation.Stop;
-            DotGraphOutput.DebugExpressionGraph(controller.graph, VFXExpressionContextOption.None);
+            DotGraphOutput.DebugExpressionGraph(controller.graph, VFXExpressionContextOption.None, "expGraph_None.dot");
             return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDotReduced()
         {
             if (controller == null) return EventPropagation.Stop;
-            DotGraphOutput.DebugExpressionGraph(controller.graph, VFXExpressionContextOption.Reduction);
+            DotGraphOutput.DebugExpressionGraph(controller.graph, VFXExpressionContextOption.Reduction, "expGraph_Reduction.dot");
             return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDotConstantFolding()
         {
             if (controller == null) return EventPropagation.Stop;
-            DotGraphOutput.DebugExpressionGraph(controller.graph, VFXExpressionContextOption.ConstantFolding);
+            DotGraphOutput.DebugExpressionGraph(controller.graph, VFXExpressionContextOption.ConstantFolding, "expGraph_ConstantFolding.dot");
             return EventPropagation.Stop;
         }
 

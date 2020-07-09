@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Internal
@@ -15,6 +16,12 @@ namespace UnityEditor.ShaderGraph.Internal
 
     public sealed class ShaderGraphVfxAsset : ScriptableObject, ISerializationCallbackReceiver
     {
+
+        private class ShaderGraphVfxAssetData : JsonObject
+        {
+            public List<JsonData<AbstractShaderProperty>> m_Properties = new List<JsonData<AbstractShaderProperty>>();
+        }
+
         public const int BaseColorSlotId = 1;
         public const int MetallicSlotId = 2;
         public const int SmoothnessSlotId = 3;
@@ -45,11 +52,10 @@ namespace UnityEditor.ShaderGraph.Internal
         [SerializeField]
         ConcretePrecision m_ConcretePrecision = ConcretePrecision.Float;
 
-        [NonSerialized]
-        List<AbstractShaderProperty> m_Properties;
+        ShaderGraphVfxAssetData m_Data = new ShaderGraphVfxAssetData();
 
         [SerializeField]
-        List<SerializationHelper.JSONSerializedElement> m_SerializedProperties = new List<SerializationHelper.JSONSerializedElement>();
+        private SerializationHelper.JSONSerializedElement m_SerializedVfxAssetData;
 
         [SerializeField]
         internal IntArray[] outputPropertyIndices;
@@ -68,7 +74,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public IEnumerable<TextureInfo> textureInfos { get => m_TextureInfos; }
 
-        internal void SetTextureInfos(IList<PropertyCollector.TextureInfo> textures )
+        internal void SetTextureInfos(IList<PropertyCollector.TextureInfo> textures)
         {
             m_TextureInfos = textures.Select(t => new TextureInfo() { name = t.name, texture = EditorUtility.InstanceIDToObject(t.textureId) as Texture }).ToArray();
         }
@@ -106,38 +112,43 @@ namespace UnityEditor.ShaderGraph.Internal
             internal set { m_OutputStructName = value; }
         }
 
-        public IEnumerable<AbstractShaderProperty> properties
+        public List<AbstractShaderProperty> properties 
         {
             get
             {
                 EnsureProperties();
-                return m_Properties;
+                return m_Data.m_Properties.SelectValue().ToList();
             }
         }
 
         internal void SetProperties(List<AbstractShaderProperty> propertiesList)
         {
-            m_Properties = propertiesList;
-            m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
+            m_Data.m_Properties.Clear();
+            foreach(var property in propertiesList)
+            {
+                m_Data.m_Properties.Add(property);
+            }
+
+            var json = MultiJson.Serialize(m_Data);
+            m_SerializedVfxAssetData = new SerializationHelper.JSONSerializedElement() { JSONnodeData = json };
+            m_Data = null;
         }
 
         void EnsureProperties()
         {
-            if (m_Properties == null)
+            if((m_Data == null || m_Data.m_Properties == null || !m_Data.m_Properties.Any()) && !String.IsNullOrEmpty(m_SerializedVfxAssetData.JSONnodeData))
             {
-                m_Properties = SerializationHelper.Deserialize<AbstractShaderProperty>(m_SerializedProperties, GraphUtil.GetLegacyTypeRemapping());
-                foreach (var property in m_Properties)
-                {
-                    property.ValidateConcretePrecision(m_ConcretePrecision);
-                }
+                m_Data = new ShaderGraphVfxAssetData();
+                MultiJson.Deserialize(m_Data , m_SerializedVfxAssetData.JSONnodeData);
+            }
+
+            foreach (var property in m_Data.m_Properties.SelectValue())
+            {
+                property.ValidateConcretePrecision(m_ConcretePrecision);
             }
         }
 
-        void ISerializationCallbackReceiver.OnAfterDeserialize()
-        {
-            //After import the object will be deserialized into the previous instance, leading to an descynchronization between m_SerializedProperties and m_Properties
-            m_Properties = null;
-        }
+        void ISerializationCallbackReceiver.OnAfterDeserialize() { }
 
         void ISerializationCallbackReceiver.OnBeforeSerialize() { }
 
@@ -171,7 +182,7 @@ namespace UnityEditor.ShaderGraph.Internal
             EnsureProperties();
             var propertyIndices = propertyIndexSet.ToArray();
             Array.Sort(propertyIndices);
-            var filteredProperties = propertyIndices.Select(i => m_Properties[i]).ToArray();
+            var filteredProperties = propertyIndices.Select(i => properties[i]).ToArray();
             graphCode.properties = filteredProperties;
 
             return graphCode;

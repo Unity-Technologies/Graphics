@@ -1,9 +1,5 @@
 fileFormatVersion: 2
-<<<<<<< HEAD:com.unity.render-pipelines.high-definition/Runtime/VirtualTexturing/Shaders.meta
 guid: 968a10978df084e459eb939d1458edbf
-=======
-guid: a3dedab66a32c7a4f81978ba0b448948
->>>>>>> origin/master:com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Accumulation/Shaders.meta
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}

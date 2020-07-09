@@ -46,6 +46,8 @@ namespace UnityEditor.VFX.UI
             m_CanHaveBlocks = blocks.Any(t => controller.model.AcceptChild(t.model));
         }
 
+        public bool canHaveBlocks { get => m_CanHaveBlocks; }
+
         public static string ContextEnumToClassName(string name)
         {
             if (name[0] == 'k')
@@ -59,7 +61,6 @@ namespace UnityEditor.VFX.UI
         public void UpdateLabel()
         {
             var graph = controller.model.GetGraph();
-
             if (graph != null && controller.model.contextType == VFXContextType.Spawner)
                 m_Label.text = graph.systemNames.GetUniqueSystemName(controller.model);
             else
@@ -164,8 +165,17 @@ namespace UnityEditor.VFX.UI
             {
                 if (m_Footer.parent == null)
                     mainContainer.Add(m_Footer);
-                m_FooterTitle.text = controller.model.outputType.ToString();
-                m_FooterIcon.image = GetIconForVFXType(controller.model.outputType);
+
+                if (controller.model.outputFlowSlot.Any())
+                {
+                    m_FooterTitle.text = controller.model.outputType.ToString();
+                    m_FooterIcon.image = GetIconForVFXType(controller.model.outputType);
+                }
+                else
+                {
+                    m_FooterTitle.text = string.Empty;
+                    m_FooterIcon.image = null;
+                }
                 m_FooterIcon.visible = m_FooterIcon.image != null;
             }
 

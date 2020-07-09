@@ -336,3 +336,34 @@ void EvaluateMaterial(MaterialData mtlData, float3 sampleDir, out MaterialResult
 #endif
     }
 }
+
+float AdjustPathRoughness(MaterialData mtlData, MaterialResult mtlResult, bool isSampleBelow, float pathRoughness)
+{
+    // Adjust the max roughness, based on the estimated diff/spec ratio
+    float adjustedPathRoughness = (mtlResult.specPdf * max(mtlData.bsdfData.roughnessT, mtlData.bsdfData.roughnessB) + mtlResult.diffPdf) / (mtlResult.diffPdf + mtlResult.specPdf);
+
+#ifdef _SURFACE_TYPE_TRANSPARENT
+    // When transmitting with an IOR close to 1.0, roughness is barely noticeable -> take that into account for path roughness adjustment
+    if (IsBelow(mtlData) != isSampleBelow)
+        adjustedPathRoughness = lerp(pathRoughness, adjustedPathRoughness, smoothstep(1.0, 1.3, mtlData.bsdfData.ior));
+#endif
+
+    return adjustedPathRoughness;
+}
+
+float3 ApplyAbsorption(MaterialData mtlData, float dist, bool isSampleBelow, float3 value)
+{
+#if defined(_SURFACE_TYPE_TRANSPARENT) && HAS_REFRACTION
+    // Apply absorption on rays below the interface, using Beer-Lambert's law
+    if (isSampleBelow)
+    {
+    #ifdef _REFRACTION_THIN
+        value *= exp(-mtlData.bsdfData.absorptionCoefficient * REFRACTION_THIN_DISTANCE);
+    #else
+        value *= exp(-mtlData.bsdfData.absorptionCoefficient * dist);
+    #endif
+    }
+#endif
+
+    return value;
+}

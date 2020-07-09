@@ -7,7 +7,10 @@
 //
 // UnityEngine.Rendering.HighDefinition.ShaderVariablesGlobal:  static fields
 //
-#define DEFAULT_LIGHT_LAYERS (255)
+#define RENDERING_LIGHT_LAYERS_MASK (255)
+#define RENDERING_LIGHT_LAYERS_MASK_SHIFT (0)
+#define RENDERING_DECAL_LAYERS_MASK (65280)
+#define RENDERING_DECAL_LAYERS_MASK_SHIFT (8)
 #define MAX_ENV2DLIGHT (32)
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesGlobal
@@ -72,6 +75,8 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _ShadowAtlasSize;
     float4 _CascadeShadowAtlasSize;
     float4 _AreaShadowAtlasSize;
+    float4 _CachedShadowAtlasSize;
+    float4 _CachedAreaShadowAtlasSize;
     float4x4 _Env2DCaptureVP[32];
     float4 _Env2DCaptureForward[32];
     float4 _Env2DAtlasScaleOffset[32];
@@ -92,7 +97,10 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _ContactShadowOpacity;
     float _ReplaceDiffuseForIndirect;
     float4 _AmbientOcclusionParam;
-    float4 _IndirectLightingMultiplier;
+    float _IndirectDiffuseLightingMultiplier;
+    uint _IndirectDiffuseLightingLayers;
+    float _ReflectionLightingMultiplier;
+    uint _ReflectionLightingLayers;
     float _MicroShadowOpacity;
     uint _EnableProbeVolumes;
     uint _ProbeVolumeCount;
@@ -128,18 +136,22 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     uint _XRViewCount;
     int _FrameCount;
     float4 _CoarseStencilBufferSize;
-    int _RaytracedIndirectDiffuse;
-    int _UseRayTracedReflections;
+    int _IndirectDiffuseMode;
+    int _EnableRayTracedReflections;
     int _RaytracingFrameIndex;
     uint _EnableRecursiveRayTracing;
     float4 _ProbeVolumeAtlasResolutionAndSliceCount;
     float4 _ProbeVolumeAtlasResolutionAndSliceCountInverse;
     float4 _ProbeVolumeAtlasOctahedralDepthResolutionAndInverse;
     int _ProbeVolumeLeakMitigationMode;
-    float _ProbeVolumeNormalBiasWS;
     float _ProbeVolumeBilateralFilterWeightMin;
     float _ProbeVolumeBilateralFilterWeight;
+    uint _EnableDecalLayers;
     float4 _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7];
+    int _TransparentCameraOnlyMotionVectors;
+    float _Pad8;
+    float _Pad9;
+    float _Pad10;
 CBUFFER_END
 
 

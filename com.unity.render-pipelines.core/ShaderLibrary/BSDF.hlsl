@@ -140,6 +140,9 @@ TEMPLATE_1_REAL(Fresnel0ToIor, fresnel0, return ((1.0 + sqrt(fresnel0)) / (1.0 -
 // Optimization: Fit of the function (3 mad) for range [0.04 (should return 0), 1 (should return 1)]
 TEMPLATE_1_REAL(ConvertF0ForAirInterfaceToF0ForClearCoat15, fresnel0, return saturate(-0.0256868 + fresnel0 * (0.326846 + (0.978946 - 0.283835 * fresnel0) * fresnel0)))
 
+// Even coarser approximation of ConvertF0ForAirInterfaceToF0ForClearCoat15 (above) for mobile (2 mad)
+TEMPLATE_1_REAL(ConvertF0ForAirInterfaceToF0ForClearCoat15Fast, fresnel0, return saturate(fresnel0 * (fresnel0 * 0.526868 + 0.529324) - 0.0482256))
+
 // Artist Friendly Metallic Fresnel Ref: http://jcgt.org/published/0003/04/03/paper.pdf
 
 real3 GetIorN(real3 f0, real3 edgeTint)
