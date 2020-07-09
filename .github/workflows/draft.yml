@@ -7,7 +7,7 @@ on:
 jobs:
   draft_reminder:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false || github.event.pull_request.ready_for_review == false
+    if: github.event.pull_request.draft == false && github.event.pull_request.ready_for_review == false
     steps:
     - uses: thollander/actions-comment-pull-request@1.0.0
       with:
