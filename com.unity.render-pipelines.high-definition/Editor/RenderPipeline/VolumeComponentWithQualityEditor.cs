@@ -9,9 +9,43 @@ namespace UnityEditor.Rendering.HighDefinition
         // Quality settings
         SerializedDataParameter m_QualitySetting;
 
+        // An opaque binary blob storing preset settings (used to remember what were the last custom settings that were used).
+        internal abstract class QualitySettingsBlob
+        {
+            public bool[] overrideState;
+
+            protected QualitySettingsBlob(int settingsCount)
+            {
+                overrideState = new bool[settingsCount];
+            }
+
+            protected static bool IsEqual (QualitySettingsBlob left, QualitySettingsBlob right)
+            {
+                if ((right == null && left != null) || (right != null && left == null))
+                {
+                    return false;
+                }
+
+                if (right == null && left == null)
+                {
+                    return true;
+                }
+
+                for (int i = 0; i < left.overrideState.Length; ++i)
+                {
+                    if (left.overrideState[i] != right.overrideState[i])
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
+
         // Note: Editors are refreshed on gui changes by the volume system, so any state that we want to store here needs to be a static (or in a serialized variable)
         // We use ConditionalWeakTable instead of a Dictionary of InstanceIDs to get automatic clean-up of dead entries in the table
-        static ConditionalWeakTable<UnityEngine.Object, object> s_CustomSettingsHistory = new ConditionalWeakTable<UnityEngine.Object, object>();
+        static ConditionalWeakTable<UnityEngine.Object, QualitySettingsBlob> s_CustomSettingsHistory = new ConditionalWeakTable<UnityEngine.Object, QualitySettingsBlob>();
 
         static readonly int k_CustomQuality = ScalableSettingLevelParameter.LevelCount;
 
@@ -40,7 +74,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     // If we have switched to custom quality from a preset, then load the last custom quality settings the user has used in this volume
                     if (prevQualityLevel != k_CustomQuality)
                     {
-                        object history = null;
+                        QualitySettingsBlob history = null;
                         s_CustomSettingsHistory.TryGetValue(serializedObject.targetObject, out history);
                         if (history != null)
                         {
@@ -57,8 +91,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         // If we switch from a custom quality level, then save these values so we can re-use them if teh user switches back
                         if (prevQualityLevel == k_CustomQuality)
                         {
-                            int key = serializedObject.targetObject.GetInstanceID();
-                            object history = null;
+                            QualitySettingsBlob history = null;
                             s_CustomSettingsHistory.TryGetValue(serializedObject.targetObject, out history);
                             if (history != null)
                             {
@@ -97,12 +130,12 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// This function should be overriden by a volume component to return an opaque object (binary blob) with the custom quality settings currently in use.
         /// </summary>
-        public virtual object SaveCustomQualitySettingsAsObject(object history = null) { return null; }
+        public virtual QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob history = null) { return null; }
 
         /// <summary>
         /// This function should be overriden by a volume component to load a custom preset setting from an opaque binary blob (as returned from SaveCustomQualitySettingsAsObject)
         /// </summary>
-        public virtual void LoadSettingsFromObject(object settings) { }
+        public virtual void LoadSettingsFromObject(QualitySettingsBlob settings) { }
 
     }
 

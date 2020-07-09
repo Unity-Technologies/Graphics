@@ -147,14 +147,12 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 object newSettings = SaveCustomQualitySettingsAsObject();
 
-                if (!QualitySettingsBlob.IsEqual(oldSettings as QualitySettingsBlob, newSettings as QualitySettingsBlob))
+                if (!DepthOfFieldQualitySettingsBlob.IsEqual(oldSettings as DepthOfFieldQualitySettingsBlob, newSettings as DepthOfFieldQualitySettingsBlob))
                     QualitySettingsWereChanged();
             }
         }
 
-        /// An opaque binary blob storing preset settings (used to remember what were the last custom settings that were used).
-        /// For the functionality to save and restore the settings <see cref="VolumeComponentWithQualityEditor"/>
-        class QualitySettingsBlob
+        class DepthOfFieldQualitySettingsBlob : QualitySettingsBlob
         {
             public int nearSampleCount;
             public float nearMaxBlur;
@@ -163,29 +161,12 @@ namespace UnityEditor.Rendering.HighDefinition
             public DepthOfFieldResolution resolution;
             public bool hqFiltering;
 
-            public bool[] overrideState = new bool[6];
+            public DepthOfFieldQualitySettingsBlob() : base(6) {}
 
-            public static bool IsEqual(QualitySettingsBlob left, QualitySettingsBlob right)
+            public static bool IsEqual(DepthOfFieldQualitySettingsBlob left, DepthOfFieldQualitySettingsBlob right)
             {
-                if ((right == null && left != null) || (right != null && left == null))
-                {
-                    return false;
-                }
-
-                if (right == null && left == null)
-                {
-                    return true;
-                }
-
-                for (int i=0; i < left.overrideState.Length; ++i)
-                {
-                    if (left.overrideState[i] != right.overrideState[i])
-                    {
-                        return false;
-                    }
-                }
-
-                return left.nearSampleCount == right.nearSampleCount
+                return QualitySettingsBlob.IsEqual(left, right)
+                    && left.nearSampleCount == right.nearSampleCount
                     && left.nearMaxBlur == right.nearMaxBlur
                     && left.farSampleCount == right.farSampleCount
                     && left.farMaxBlur == right.farMaxBlur
@@ -194,9 +175,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public override void LoadSettingsFromObject(object settings)
+        public override void LoadSettingsFromObject(QualitySettingsBlob settings)
         {
-            QualitySettingsBlob qualitySettings = settings as QualitySettingsBlob;
+            DepthOfFieldQualitySettingsBlob qualitySettings = settings as DepthOfFieldQualitySettingsBlob;
 
             m_NearSampleCount.value.intValue = qualitySettings.nearSampleCount;
             m_NearMaxBlur.value.floatValue = qualitySettings.nearMaxBlur;
@@ -234,9 +215,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         }
 
-        public override object SaveCustomQualitySettingsAsObject(object history = null)
+        public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob history = null)
         {
-            QualitySettingsBlob qualitySettings = (history != null) ? history as QualitySettingsBlob : new QualitySettingsBlob();
+            DepthOfFieldQualitySettingsBlob qualitySettings = (history != null) ? history as DepthOfFieldQualitySettingsBlob : new DepthOfFieldQualitySettingsBlob();
             
             qualitySettings.nearSampleCount = m_NearSampleCount.value.intValue;
             qualitySettings.nearMaxBlur = m_NearMaxBlur.value.floatValue;
