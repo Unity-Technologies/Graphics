@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
-  m_Name: HDRP Default Quality
+  m_Name: HDRP High Quality
   m_EditorClassIdentifier: 
   m_Version: 16
   m_ObsoleteFrameSettings:
@@ -151,7 +151,7 @@ MonoBehaviour:
   m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
     type: 2}
   m_RenderPipelineRayTracingResources: {fileID: 0}
-  m_DefaultVolumeProfile: {fileID: 11400000, guid: 7f342610b85f4164f808a1f380dcc668,
+  m_DefaultVolumeProfile: {fileID: 11400000, guid: 582adbd84082fdb4faf7cd4beb1ccd14,
     type: 2}
   m_DefaultLookDevProfile: {fileID: 11400000, guid: 254c4fe87beb7be4fa72e1681edbed02,
     type: 2}
@@ -222,11 +222,20 @@ MonoBehaviour:
     supportTransparentBackface: 1
     supportTransparentDepthPrepass: 1
     supportTransparentDepthPostpass: 1
-    colorBufferFormat: 74
+    colorBufferFormat: 48
     supportCustomPass: 1
     customBufferFormat: 12
     supportedLitShaderMode: 2
     supportDecals: 1
+    supportDecalLayers: 0
+    decalLayerName0: Decal Layer default
+    decalLayerName1: Decal Layer 1
+    decalLayerName2: Decal Layer 2
+    decalLayerName3: Decal Layer 3
+    decalLayerName4: Decal Layer 4
+    decalLayerName5: Decal Layer 5
+    decalLayerName6: Decal Layer 6
+    decalLayerName7: Decal Layer 7
     msaaSampleCount: 1
     supportMotionVectors: 1
     supportRuntimeDebugDisplay: 0
@@ -244,11 +253,11 @@ MonoBehaviour:
       pointCookieSize: 256
       cookieAtlasLastValidMip: 0
       cookieTexArraySize: 16
-      planarReflectionAtlasSize: 512
+      planarReflectionAtlasSize: 1024
       reflectionProbeCacheSize: 32
-      reflectionCubemapSize: 256
+      reflectionCubemapSize: 512
       reflectionCacheCompressed: 1
-      skyReflectionSize: 512
+      skyReflectionSize: 1024
       skyLightingOverrideLayerMask:
         serializedVersion: 2
         m_Bits: 0
@@ -262,31 +271,31 @@ MonoBehaviour:
     hdShadowInitParams:
       maxShadowRequests: 128
       directionalShadowsDepthBits: 16
-      shadowFilteringQuality: 1
+      shadowFilteringQuality: 2
       punctualLightShadowAtlas:
-        shadowAtlasResolution: 4096
+        shadowAtlasResolution: 8192
         shadowAtlasDepthBits: 16
         useDynamicViewportRescale: 1
       areaLightShadowAtlas:
         shadowAtlasResolution: 4096
         shadowAtlasDepthBits: 16
         useDynamicViewportRescale: 1
-      cachedPunctualLightShadowAtlas: 4096
+      cachedPunctualLightShadowAtlas: 8192
       cachedAreaLightShadowAtlas: 1024
       shadowResolutionDirectional:
-        m_Values: 00010000000200000004000000080000
+        m_Values: 00020000000400000008000000100000
         m_SchemaId:
           m_Id: With4Levels
       shadowResolutionPunctual:
-        m_Values: 00010000000200000004000000080000
+        m_Values: 00020000000400000008000000100000
         m_SchemaId:
           m_Id: With4Levels
       shadowResolutionArea:
         m_Values: 00010000000200000004000000080000
         m_SchemaId:
           m_Id: With4Levels
-      maxDirectionalShadowMapResolution: 2048
-      maxPunctualShadowMapResolution: 2048
+      maxDirectionalShadowMapResolution: 4096
+      maxPunctualShadowMapResolution: 4096
       maxAreaShadowMapResolution: 2048
       supportScreenSpaceShadows: 0
       maxScreenSpaceShadowSlots: 4
@@ -417,7 +426,6 @@ MonoBehaviour:
   diffusionProfileSettingsList:
   - {fileID: 11400000, guid: 26bdddf49760c61438938733f07fa2a2, type: 2}
   - {fileID: 11400000, guid: 78322c7f82657514ebe48203160e3f39, type: 2}
-  - {fileID: 11400000, guid: 2b7005ba3a4d8474b8cdc34141ad766e, type: 2}
   beforeTransparentCustomPostProcesses: []
   beforeTAACustomPostProcesses: []
   beforePostProcessCustomPostProcesses: []
