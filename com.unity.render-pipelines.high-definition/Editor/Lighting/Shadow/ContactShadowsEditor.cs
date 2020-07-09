@@ -49,11 +49,69 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_FadeInDistance, EditorGUIUtility.TrTextContent("Fade In Distance", "Sets the distance over which HDRP fades Contact Shadows in when past the Min Distance. Uses meters."));
                 PropertyField(m_FadeDistance, EditorGUIUtility.TrTextContent("Fade Out Distance", "Sets the distance over which HDRP fades Contact Shadows out when at the Max Distance. Uses meters."));
                 PropertyField(m_Opacity, EditorGUIUtility.TrTextContent("Opacity", "Controls the opacity of the Contact Shadow."));
+
                 base.OnInspectorGUI();
-                GUI.enabled = useCustomValue;
-                PropertyField(m_SampleCount, EditorGUIUtility.TrTextContent("Sample Count", "Controls the number of samples HDRP uses for ray casting."));
+
+                using (new HDEditorUtils.IndentScope())
+                {
+                    GUI.enabled = GUI.enabled && base.overrideState;
+                    DrawQualitySettings();
+                }
+
                 GUI.enabled = true;
             }
+        }
+
+        void DrawQualitySettings()
+        {
+            QualitySettingsBlob oldSettings = SaveCustomQualitySettingsAsObject();
+            EditorGUI.BeginChangeCheck();
+
+            PropertyField(m_SampleCount, EditorGUIUtility.TrTextContent("Sample Count", "Controls the number of samples HDRP uses for ray casting."));
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                QualitySettingsBlob newSettings = SaveCustomQualitySettingsAsObject();
+
+                if (!ContactShadowsQualitySettingsBlob.IsEqual(oldSettings as ContactShadowsQualitySettingsBlob, newSettings as ContactShadowsQualitySettingsBlob))
+                    QualitySettingsWereChanged();
+            }
+        }
+
+        class ContactShadowsQualitySettingsBlob : QualitySettingsBlob
+        {
+            public int sampleCount;
+
+            public ContactShadowsQualitySettingsBlob() : base(1) { }
+
+            public static bool IsEqual(ContactShadowsQualitySettingsBlob left, ContactShadowsQualitySettingsBlob right)
+            {
+                return QualitySettingsBlob.IsEqual(left, right)
+                    && left.sampleCount == right.sampleCount;
+            }
+        }
+
+        public override void LoadSettingsFromObject(QualitySettingsBlob settings)
+        {
+            ContactShadowsQualitySettingsBlob qualitySettings = settings as ContactShadowsQualitySettingsBlob;
+            m_SampleCount.value.intValue = qualitySettings.sampleCount;
+            m_SampleCount.overrideState.boolValue = qualitySettings.overrideState[0];
+        }
+
+        public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
+        {
+            m_SampleCount.value.intValue = settings.lightingQualitySettings.ContactShadowSampleCount[level];
+            m_SampleCount.overrideState.boolValue = true;
+        }
+
+        public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob history = null)
+        {
+            ContactShadowsQualitySettingsBlob qualitySettings = (history != null) ? history as ContactShadowsQualitySettingsBlob : new ContactShadowsQualitySettingsBlob();
+
+            qualitySettings.sampleCount = m_SampleCount.value.intValue;
+            qualitySettings.overrideState[0] = m_SampleCount.overrideState.boolValue;
+
+            return qualitySettings;
         }
     }
 }
