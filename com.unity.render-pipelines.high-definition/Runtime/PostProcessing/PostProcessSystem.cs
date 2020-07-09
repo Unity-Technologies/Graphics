@@ -2313,27 +2313,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, fullresCoC);
                 cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
-            }
 
-            if (taaEnabled)
-            {
-                bool useMips = true;
-                GrabCoCHistory(camera, out var prevCoCTex, out var nextCoCTex, useMips);
-                var cocHistoryScale = new Vector2(camera.historyRTHandleProperties.rtHandleScale.z, camera.historyRTHandleProperties.rtHandleScale.w);
+                if (taaEnabled)
+                {
+                    bool useMips = true;
+                    GrabCoCHistory(camera, out var prevCoCTex, out var nextCoCTex, useMips);
+                    var cocHistoryScale = new Vector2(camera.historyRTHandleProperties.rtHandleScale.z, camera.historyRTHandleProperties.rtHandleScale.w);
 
-                //Note: this reprojection creates some ghosting, we should replace it with something based on the new TAA 
-                cs = m_Resources.shaders.depthOfFieldCoCReprojectCS;
-                kernel = cs.FindKernel("KMain");
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(camera.resetPostProcessingHistory ? 0f : 0.91f, cocHistoryScale.x, cocHistoryScale.y, 0f));
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputHistoryCoCTexture, prevCoCTex);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputCoCTexture, nextCoCTex);
-                cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
+                    //Note: this reprojection creates some ghosting, we should replace it with something based on the new TAA 
+                    cs = m_Resources.shaders.depthOfFieldCoCReprojectCS;
+                    kernel = cs.FindKernel("KMain");
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(camera.resetPostProcessingHistory ? 0f : 0.91f, cocHistoryScale.x, cocHistoryScale.y, 0f));
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputHistoryCoCTexture, prevCoCTex);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputCoCTexture, nextCoCTex);
+                    cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
 
-                // Cleanup the main CoC texture as we don't need it anymore and use the
-                // re-projected one instead for the following steps
-                m_Pool.Recycle(fullresCoC);
-                fullresCoC = nextCoCTex;
+                    // Cleanup the main CoC texture as we don't need it anymore and use the
+                    // re-projected one instead for the following steps
+                    m_Pool.Recycle(fullresCoC);
+                    fullresCoC = nextCoCTex;
+                }
             }
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldPyramid)))
