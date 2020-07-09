@@ -205,7 +205,6 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 ScriptableRenderer.SetRenderTarget(cmd, destination, colorLoadAction, colorStoreAction, ClearFlag.None, Color.black);
-                //cmd.SetRenderTarget(destination, colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction);
                 cmd.Blit(source, BuiltinRenderTextureType.CurrentActive, material, passIndex);
             }
         }
