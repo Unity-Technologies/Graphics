@@ -159,7 +159,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         void OnPostprocessSprites(Texture2D texture, Sprite[] sprites)
         {
-            if (sprites.Length == 0)
+            if (sprites.Length == 0 || !(assetImporter is TextureImporter))
                 return;
 
             TextureImporter textureImporter = (TextureImporter)assetImporter;
