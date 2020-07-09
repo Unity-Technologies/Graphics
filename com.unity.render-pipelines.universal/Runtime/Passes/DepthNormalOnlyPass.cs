@@ -48,15 +48,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             cmd.GetTemporaryRT(normalHandle.id, normalDescriptor, FilterMode.Point);
-            cmd.GetTemporaryRT(depthHandle.id, depthDescriptor, FilterMode.Point);    
-        }
-
-        public override void Configure(CommandBuffer cmd, ref RenderingData renderingData)
-        {
+            cmd.GetTemporaryRT(depthHandle.id, depthDescriptor, FilterMode.Point);
             ConfigureTarget(
                 new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1),
                 new RenderTargetIdentifier(depthHandle.Identifier(), 0, CubemapFace.Unknown, -1)
-            );
+                );
             ConfigureClear(ClearFlag.All, Color.black);
         }
 
