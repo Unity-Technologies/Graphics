@@ -32,6 +32,7 @@ These settings determine the method that the Cameras and Reflection Probes using
 | **Opaque Objects**                  | Enable the checkbox to make HDRP render Materials that have their **Surface Type** set to **Opaque**. If you disable this settings, Cameras/Reflection Probes using these Frame Settings do not render any opaque GameObjects. |
 | **Transparent Objects**             | Enable the checkbox to make HDRP render Materials that have their **Surface Type** set to **Transparent**. If you disable this setting, Cameras/Reflection Probes using these Frame Settings do not render any transparent GameObjects. |
 | **Decals**                          | Enable the checkbox to make HDRP process decals. Enable this on cameras that you want to render decals. |
+| **Decal Layers**                    | Enable the checkbox to make HDRP process Decal Layers. |
 | **Transparent Prepass**             | Enable the checkbox to make HDRP perform a Transparent Prepass. Enabling this feature causes HDRP to add polygons from transparent Materials to the depth buffer to improve sorting. |
 | **Transparent Postpass**            | Enable the checkbox to make HDRP perform a Transparent Postpass. Enabling this feature causes HDRP to add polygons to the depth buffer that post-processing uses. |
 | **Low Resolution Transparent**      | Enable the checkbox to allow HDRP to perform a low resolution render pass. If you disable this checkbox, HDRP renders transparent Materials using the **Low Resolution** render pass in full resolution. |
@@ -76,6 +77,7 @@ These settings control lighting features for your rendering components. Here you
 | **Screen Space Shadows**           | [DXR only] Enable the checkbox to allow [Lights](Light-Component.html) to render shadow maps into screen space buffers to reduce lighting Shader complexity. This technique increases processing speed but also increases the memory footprint. |
 | **Shadowmask**                     | Enable the checkbox to make HDRP support the [Shadowmasks lighting mode](Lighting-Mode-Shadowmask.html).       |
 | **Screen Space Refection**         | Enable the checkbox to make HDRP process Screen Space Reflections (SSR). This allows HDRP to calculate SSR for this Camera/Reflection Probe. |
+| - **On Transparent** | Enable the checkbox to make HDRP process Screen Space Reflections (SSR) on transparent objects. |
 | **Screen Space Ambient Occlusion** | Enable the checkbox to make HDRP process Screen Space Ambient Occlusion (SSAO). This allows HDRP to calculate SSAO for this Camera/Reflection Probe. |
 | **Subsurface Scattering**          | Enable the checkbox to make HDRP process subsurface scattering. Enabling this feature causes HDRP to simulate how light penetrates surfaces of translucent GameObjects, scatters inside them, and exits from different locations. |
 | **Transmission**                   | Enable the checkbox to make HDRP process the transmission effect. This allows subsurface scattering Materials to use transmission, for example, light transmits through a leaf with a subsurface scattering Material. |

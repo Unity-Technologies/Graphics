@@ -21,7 +21,8 @@ namespace UnityEngine.Rendering.HighDefinition
             ShadowFilteringVeryHighQualityRemoval,
             SeparateColorGradingAndTonemappingFrameSettings,
             ReplaceTextureArraysByAtlasForCookieAndPlanar,
-            AddedAdaptiveSSS
+            AddedAdaptiveSSS,
+            RemoveCookieCubeAtlasToOctahedral2D
         }
 
         static readonly MigrationDescription<Version, HDRenderPipelineAsset> k_Migration = MigrationDescription.New(
@@ -110,6 +111,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 FrameSettings.MigrateSubsurfaceParams(ref data.m_RenderingPathDefaultCameraFrameSettings,                  previouslyHighQuality);
                 FrameSettings.MigrateSubsurfaceParams(ref data.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings, previouslyHighQuality);
                 FrameSettings.MigrateSubsurfaceParams(ref data.m_RenderingPathDefaultRealtimeReflectionFrameSettings,      previouslyHighQuality);
+            }),
+            MigrationStep.New(Version.RemoveCookieCubeAtlasToOctahedral2D, (HDRenderPipelineAsset data) =>
+            {
+                ref var lightLoopSettings = ref data.m_RenderPipelineSettings.lightLoopSettings;
+
+#pragma warning disable 618 // Type or member is obsolete
+                float cookieAtlasSize = Mathf.Sqrt((int)lightLoopSettings.cookieAtlasSize * (int)lightLoopSettings.cookieAtlasSize * lightLoopSettings.cookieTexArraySize);
+                float planarSize = Mathf.Sqrt((int)lightLoopSettings.planarReflectionAtlasSize * (int)lightLoopSettings.planarReflectionAtlasSize * lightLoopSettings.maxPlanarReflectionOnScreen);
+#pragma warning restore 618
+
+                if (cookieAtlasSize > 128f && planarSize <= 1024f)
+                {
+                    Debug.LogWarning("HDRP Internally change the storage of Cube Cookie to Octahedral Projection inside the Planar Reflection Atlas. It is recommended that you increase the size of the Planar Projection Atlas if the cookies no longer fit.");
+                }
             })
         );
 

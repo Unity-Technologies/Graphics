@@ -20,6 +20,8 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent volumeAnchorOverrideContent = EditorGUIUtility.TrTextContent("Volume Anchor Override");
         static readonly GUIContent occlusionCullingContent = EditorGUIUtility.TrTextContent("Occlusion Culling");
 
+        static readonly GUIContent exposureTargetContent = EditorGUIUtility.TrTextContent("Exposure Target", "The object used as a target for centering the Exposure's Procedural Mask metering mode when target object option is set (See Exposure Volume Component).");
+
         static readonly GUIContent projectionContent = EditorGUIUtility.TrTextContent("Projection", "How the Camera renders perspective.\n\nChoose Perspective to render objects with perspective.\n\nChoose Orthographic to render objects uniformly, with no sense of perspective.");
         static readonly GUIContent sizeContent = EditorGUIUtility.TrTextContent("Size");
         static readonly GUIContent fieldOfViewContent = EditorGUIUtility.TrTextContent("Field of View", "The height of the Camera’s view angle, measured in degrees along the local Y axis.");
@@ -38,13 +40,13 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent renderingPathContent = EditorGUIUtility.TrTextContent("Custom Frame Settings", "Define the custom Frame Settings for this Camera to use.");
 
         // TODO: Tooltips
-        static readonly GUIContent isoContent = EditorGUIUtility.TrTextContent("Iso");
-        static readonly GUIContent shutterSpeedContent = EditorGUIUtility.TrTextContent("Shutter Speed");
-        static readonly GUIContent apertureContent = EditorGUIUtility.TrTextContent("Aperture");
-        static readonly GUIContent bladeCountContent = EditorGUIUtility.TrTextContent("Blade Count");
-        static readonly GUIContent curvatureContent = EditorGUIUtility.TrTextContent("Curvature");
-        static readonly GUIContent barrelClippingContent = EditorGUIUtility.TrTextContent("Barrel Clipping");
-        static readonly GUIContent anamorphismContent = EditorGUIUtility.TrTextContent("Anamorphism");
+        static readonly GUIContent isoContent = EditorGUIUtility.TrTextContent("Iso", "Sets the light sensitivity of the Camera sensor. This property affects Exposure if you set its Mode to Use Physical Camera.");
+        static readonly GUIContent shutterSpeedContent = EditorGUIUtility.TrTextContent("Shutter Speed", "The amount of time the Camera sensor is capturing light.");
+        static readonly GUIContent apertureContent = EditorGUIUtility.TrTextContent("Aperture", "The f-stop (f-number) of the lens. Lower values give a wider lens aperture.");
+        static readonly GUIContent bladeCountContent = EditorGUIUtility.TrTextContent("Blade Count", "The number of blades in the lens aperture. Higher values give a rounder aperture shape.");
+        static readonly GUIContent curvatureContent = EditorGUIUtility.TrTextContent("Curvature", "Controls the curvature of the lens aperture blades. The minimum value results in fully-curved, perfectly-circular bokeh, and the maximum value results in visible aperture blades.");
+        static readonly GUIContent barrelClippingContent = EditorGUIUtility.TrTextContent("Barrel Clipping", "Controls the self-occlusion of the lens, creating a cat's eye effect.");
+        static readonly GUIContent anamorphismContent = EditorGUIUtility.TrTextContent("Anamorphism", "Use the slider to stretch the sensor to simulate an anamorphic look.");
 
         static readonly GUIContent antialiasingContent = EditorGUIUtility.TrTextContent("Anti-aliasing", "The anti-aliasing method to use.");
         static readonly GUIContent SMAAQualityPresetContent = EditorGUIUtility.TrTextContent("SMAA Quality Preset", "The quality preset for SMAA, low has the best performance but worst quality, High has the highest quality but worst performance.");
