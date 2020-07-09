@@ -644,6 +644,12 @@ namespace UnityEngine.Rendering.Universal
 
             RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment;
             RenderTargetIdentifier passDepthAttachment = renderPass.depthAttachment;
+            
+            if (!renderPass.overrideCameraTarget)
+            {
+                passColorAttachment = m_CameraColorTarget;
+                passDepthAttachment = m_CameraDepthTarget;
+            }
 
             var renderTextureNone = GetRenderTexture(UniversalRenderTextureType.None);
             if (passColorAttachment == currentActiveTarget)

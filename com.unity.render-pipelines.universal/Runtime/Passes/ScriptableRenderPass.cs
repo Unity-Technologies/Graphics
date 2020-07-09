@@ -82,9 +82,10 @@ namespace UnityEngine.Rendering.Universal
             get => m_ClearColor;
         }
 
+        internal bool overrideCameraTarget { get; set; }
         RenderTargetIdentifier[] m_ColorAttachments;
         RenderTargetIdentifier m_DepthAttachment;
-		ScriptableRenderPassInput m_Input = ScriptableRenderPassInput.None;
+        ScriptableRenderPassInput m_Input = ScriptableRenderPassInput.None;
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
 
@@ -96,6 +97,7 @@ namespace UnityEngine.Rendering.Universal
             m_DepthAttachment = none;
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
+            overrideCameraTarget = false;
         }
 
         /// <summary>
@@ -131,6 +133,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment)
         {
+            overrideCameraTarget = true;
             uint nonNullColorBuffers = RenderingUtils.GetValidColorBufferCount(colorAttachments);
             if( nonNullColorBuffers > SystemInfo.supportedRenderTargetCount)
                 Debug.LogError("Trying to set " + nonNullColorBuffers + " renderTargets, which is more than the maximum supported:" + SystemInfo.supportedRenderTargetCount);
@@ -147,6 +150,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment)
         {
+            overrideCameraTarget = true;
             m_ColorAttachments[0] = colorAttachment;
             for (int i = 1; i < m_ColorAttachments.Length; ++i)
                 m_ColorAttachments[i] = 0;
@@ -206,12 +210,12 @@ namespace UnityEngine.Rendering.Universal
 
         public virtual void Configure(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            var renderer = renderingData.cameraData.renderer;
-            var colorBuffer = renderer.GetRenderTexture(UniversalRenderTextureType.ColorBuffer);
-            var depthBuffer = renderer.GetRenderTexture(UniversalRenderTextureType.DepthBuffer);
-            ConfigureTarget(colorBuffer, depthBuffer);
-            ConfigureClear(clearFlag, clearColor);
-            
+//            var renderer = renderingData.cameraData.renderer;
+//            var colorBuffer = renderer.GetRenderTexture(UniversalRenderTextureType.ColorBuffer);
+//            var depthBuffer = renderer.GetRenderTexture(UniversalRenderTextureType.DepthBuffer);
+//            ConfigureTarget(colorBuffer, depthBuffer);
+//            ConfigureClear(clearFlag, clearColor);
+//            
             // Call old Configure method to keep backward compatible with custom user render passes.
             Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
         }
