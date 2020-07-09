@@ -27,5 +27,5 @@ class ABV_AllProjectCiJob():
         job.add_dependencies(dependencies)
         job.add_var_custom_revision(editor["version"])
         if editor['version'] in abv_trigger_editors:
-            job.set_trigger_on_expression(f'pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*"]')
+            job.set_trigger_on_expression(f'pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*", ".github/**/*"]')
         return job
