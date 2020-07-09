@@ -41,8 +41,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            base.OnInspectorGUI();
-
             EditorGUILayout.LabelField("Bloom", EditorStyles.miniLabel);
             PropertyField(m_Threshold);
             PropertyField(m_Intensity);
@@ -52,18 +50,85 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.LabelField("Lens Dirt", EditorStyles.miniLabel);
             PropertyField(m_DirtTexture, EditorGUIUtility.TrTextContent("Texture"));
             PropertyField(m_DirtIntensity, EditorGUIUtility.TrTextContent("Intensity"));
+            
+            base.OnInspectorGUI();
+            using (new HDEditorUtils.IndentScope())
+            {
+                GUI.enabled = GUI.enabled && base.overrideState;
+                DrawQualitySettings();
+            }
 
             if (isInAdvancedMode)
             {
                 EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
 
-                GUI.enabled = useCustomValue;
-                PropertyField(m_Resolution);
-                PropertyField(m_HighQualityFiltering);
-                GUI.enabled = true;
-
                 PropertyField(m_Anamorphic);
             }
+        }
+
+        void DrawQualitySettings()
+        {
+            QualitySettingsBlob oldSettings = SaveCustomQualitySettingsAsObject();
+            EditorGUI.BeginChangeCheck();
+
+            PropertyField(m_Resolution);
+            PropertyField(m_HighQualityFiltering);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                QualitySettingsBlob newSettings = SaveCustomQualitySettingsAsObject();
+
+                if (!BloomQualitySettingsBlob.IsEqual(oldSettings as BloomQualitySettingsBlob, newSettings as BloomQualitySettingsBlob))
+                    QualitySettingsWereChanged();
+            }
+        }
+
+        class BloomQualitySettingsBlob : QualitySettingsBlob
+        {
+            public BloomResolution resolution;
+            public bool hqFiltering;
+
+            public BloomQualitySettingsBlob() : base(2) { }
+
+            public static bool IsEqual(BloomQualitySettingsBlob left, BloomQualitySettingsBlob right)
+            {
+                return QualitySettingsBlob.IsEqual(left, right)
+                    && left.resolution == right.resolution
+                    && left.hqFiltering == right.hqFiltering;
+            }
+        }
+
+        public override void LoadSettingsFromObject(QualitySettingsBlob settings)
+        {
+            BloomQualitySettingsBlob qualitySettings = settings as BloomQualitySettingsBlob;
+
+            m_Resolution.value.intValue = (int)qualitySettings.resolution;
+            m_HighQualityFiltering.value.boolValue = qualitySettings.hqFiltering;
+
+            m_Resolution.overrideState.boolValue = qualitySettings.overrideState[0];
+            m_HighQualityFiltering.overrideState.boolValue = qualitySettings.overrideState[1];
+        }
+
+        public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
+        {
+            m_Resolution.value.intValue = (int)settings.postProcessQualitySettings.BloomRes[level];
+            m_HighQualityFiltering.value.boolValue = settings.postProcessQualitySettings.BloomHighQualityFiltering[level];
+
+            m_Resolution.overrideState.boolValue = true;
+            m_HighQualityFiltering.overrideState.boolValue = true;
+        }
+
+        public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob history = null)
+        {
+            BloomQualitySettingsBlob qualitySettings = (history != null) ? history as BloomQualitySettingsBlob : new BloomQualitySettingsBlob();
+
+            qualitySettings.resolution = (BloomResolution)m_Resolution.value.intValue;
+            qualitySettings.hqFiltering = m_HighQualityFiltering.value.boolValue;
+
+            qualitySettings.overrideState[0] = m_Resolution.overrideState.boolValue;
+            qualitySettings.overrideState[1] = m_HighQualityFiltering.overrideState.boolValue;
+
+            return qualitySettings;
         }
     }
 }
