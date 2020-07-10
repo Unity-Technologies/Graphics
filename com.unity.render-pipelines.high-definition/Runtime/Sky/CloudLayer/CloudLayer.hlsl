@@ -82,7 +82,7 @@ float3 ApplyCloudLayer(float3 dir, float3 sky)
 {
 #if USE_CLOUD_LAYER
     if (dir.y >= 0 || !_CloudUpperHemisphere)
-    	sky += GetDistordedCloudColor(dir).rgb;
+        sky += GetDistordedCloudColor(dir).rgb;
 #endif
 
     return sky;

@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter    scrollDirection     = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
         /// <summary>Speed of the distortion.</summary>
         [Tooltip("Sets the cloud scrolling speed. The higher the value, the faster the clouds will move.")]
-        public MinFloatParameter        scrollSpeed         = new MinFloatParameter(2.0f, 0.0f);
+        public MinFloatParameter        scrollSpeed         = new MinFloatParameter(1.0f, 0.0f);
 
 
         private float scrollFactor = 0.0f, lastTime = 0.0f;
