@@ -138,7 +138,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static readonly GUIContent cookieSizeContent = EditorGUIUtility.TrTextContent("Cookie Size", "Specifies the maximum size for the individual 2D cookies that HDRP uses for Directional and Spot Lights.");
             public static readonly GUIContent cookieTextureArraySizeContent = EditorGUIUtility.TrTextContent("Texture Array Size", "Sets the maximum Texture Array size for the 2D cookies HDRP uses for Directional and Spot Lights. Higher values allow HDRP to use more cookies concurrently on screen.");
+#if UNITY_2020_1_OR_NEWER
+#else
             public static readonly GUIContent pointCoockieSizeContent = EditorGUIUtility.TrTextContent("Point Cookie Size", "Specifies the maximum size for the Cube cookies HDRP uses for Point Lights.");
+#endif
             public static readonly GUIContent pointCookieTextureArraySizeContent = EditorGUIUtility.TrTextContent("Cubemap Array Size", "Sets the maximum Texture Array size for the Cube cookies HDRP uses for Directional and Spot Lights. Higher values allow HDRP to use more cookies concurrently on screen.");
             public static readonly GUIContent maxPlanarReflectionOnScreen = EditorGUIUtility.TrTextContent("Max Planar Reflection On Screen", "Sets the maximum number of the Planar Reflection HDRP can handle on screen at once.");
 
