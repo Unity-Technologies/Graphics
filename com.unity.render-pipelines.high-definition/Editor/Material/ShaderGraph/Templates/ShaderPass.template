@@ -24,19 +24,11 @@ Pass
     $splice(PassKeywords)
     $splice(GraphKeywords)
 
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+
     // --------------------------------------------------
     // Defines
-
-    // Lighting Material only (will not affect unlit)
-    $DisableDecals:                     #define _DISABLE_DECALS 1
-    $DisableSSR:                        #define _DISABLE_SSR 1
-    $DisableSSRTransparent:             #define _DISABLE_SSR_TRANSPARENT 1
-    $BlendMode.PreserveSpecular:        #define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1
-
-    // Precomputed velocity is used for alembic
-    $AddPrecomputedVelocity:            #define _ADD_PRECOMPUTED_VELOCITY
-    $TransparentWritesMotionVec:        #define _TRANSPARENT_WRITES_MOTION_VEC 1
-    $DepthOffset:                       #define _DEPTHOFFSET_ON 1
 
     // Attribute
     $AttributesMesh.normalOS:           #define ATTRIBUTES_NEED_NORMAL
@@ -53,13 +45,35 @@ Pass
     $VaryingsMeshToPS.texCoord2:        #define VARYINGS_NEED_TEXCOORD2
     $VaryingsMeshToPS.texCoord3:        #define VARYINGS_NEED_TEXCOORD3
     $VaryingsMeshToPS.color:            #define VARYINGS_NEED_COLOR
-    $VaryingsMeshToPS.cullFace:         #define VARYINGS_NEED_CULLFACE
     $features.graphVertex:              #define HAVE_MESH_MODIFICATION
     $splice(GraphDefines)
+
+    #ifndef SHADER_UNLIT
+    // We need isFrontFace when using double sided - it is not required for unlit as in case of unlit double sided only drive the cullmode
+    #ifdef _DOUBLESIDED_ON
+        #define VARYINGS_NEED_CULLFACE
+    #endif
+    #endif
 
     // Specific Material Define
     $include("ShaderPassDefine.template.hlsl")
     // Caution: we can use the define SHADER_UNLIT onlit after the above Material include as it is the Unlit template who define it
+
+    // To handle SSR on transparent correctly with a possibility to enable/disable it per framesettings
+    // we should have a code like this:
+    // if !defined(_DISABLE_SSR_TRANSPARENT)
+    // pragma multi_compile _ WRITE_NORMAL_BUFFER
+    // endif
+    // i.e we enable the multicompile only if we can receive SSR or not, and then C# code drive
+    // it based on if SSR transparent in frame settings and not (and stripper can strip it).
+    // this is currently not possible with our current preprocessor as _DISABLE_SSR_TRANSPARENT is a keyword not a define
+    // so instead we used this and chose to pay the extra cost of normal write even if SSR transaprent is disabled.
+    // Ideally the shader graph generator should handle it but condition below can't be handle correctly for now.
+    #if SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_PREPASS
+    #if !defined(_DISABLE_SSR_TRANSPARENT) && !defined(SHADER_UNLIT)
+        #define WRITE_NORMAL_BUFFER
+    #endif
+    #endif
 
     #ifndef DEBUG_DISPLAY
         // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
@@ -71,13 +85,6 @@ Pass
             #define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
             #endif
         #endif
-    #endif
-
-    #ifndef SHADER_UNLIT
-    // We need isFontFace when using double sided
-    #if defined(_DOUBLESIDED_ON) && !defined(VARYINGS_NEED_CULLFACE)
-        #define VARYINGS_NEED_CULLFACE
-    #endif
     #endif
 
     // Translate transparent motion vector define
@@ -160,14 +167,25 @@ Pass
         // Perform alpha test very early to save performance (a killed pixel will not sample textures)
         // TODO: split graph evaluation to grab just alpha dependencies first? tricky..
         #ifdef _ALPHATEST_ON
-            $DoAlphaTest:         GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
-            $DoAlphaTestPrepass:  GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPrepass);
-            $DoAlphaTestPostpass: GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPostpass);
-            $DoAlphaTestShadow:   GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdShadow);
+            float alphaCutoff = surfaceDescription.AlphaClipThreshold;
+            #if SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_PREPASS
+            // The TransparentDepthPrepass is also used with SSR transparent.
+            // If an artists enable transaprent SSR but not the TransparentDepthPrepass itself, then we use AlphaClipThreshold
+            // otherwise if TransparentDepthPrepass is enabled we use AlphaClipThresholdDepthPrepass
+            $DoAlphaTestPrepass: alphaCutoff = surfaceDescription.AlphaClipThresholdDepthPrepass;
+            #elif SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_POSTPASS
+            // DepthPostpass always use its own alpha threshold
+            alphaCutoff = surfaceDescription.AlphaClipThresholdDepthPostpass;
+            #elif SHADERPASS == SHADERPASS_SHADOWS
+            // If use shadow threshold isn't enable we don't allow any test
+            $DoAlphaTestShadow: alphaCutoff = _UseShadowThreshold ? surfaceDescription.AlphaClipThresholdShadow : alphaCutoff;
+            #endif
+
+            GENERIC_ALPHA_TEST(surfaceDescription.Alpha, alphaCutoff);
         #endif
 
-        #if !defined(SHADER_STAGE_RAY_TRACING)
-        $DepthOffset: ApplyDepthOffsetPositionInput(V, surfaceDescription.DepthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
+        #if !defined(SHADER_STAGE_RAY_TRACING) && _DEPTHOFFSET_ON
+        ApplyDepthOffsetPositionInput(V, surfaceDescription.DepthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
         #endif
 
         #ifndef SHADER_UNLIT
@@ -188,17 +206,14 @@ Pass
             // Light Layers are currently not used for the Unlit shader (because it is not lit)
             // But Unlit objects do cast shadows according to their rendering layer mask, which is what we want to
             // display in the light layers visualization mode, therefore we need the renderingLayers
-            builtinData.renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
+            builtinData.renderingLayers = GetMeshRenderingLightLayer();
         #endif
 
         #endif // SHADER_UNLIT
 
         #ifdef _ALPHATEST_ON
-            // Used for sharpening by alpha to mask
-            $DoAlphaTest:         builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThreshold;
-            $DoAlphaTestPrepass:  builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThresholdDepthPrepass;
-            $DoAlphaTestPostpass: builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThresholdDepthPostpass;
-            $DoAlphaTestShadow:   builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThresholdShadow;
+            // Used for sharpening by alpha to mask - Alpha to covertage is only used with depth only and forward pass (no shadow pass, no transparent pass)
+            builtinData.alphaClipTreshold = alphaCutoff;
         #endif
 
         // override sampleBakedGI - not used by Unlit
@@ -212,7 +227,9 @@ Pass
         // This is a limitation of the current MRT approach.
         $SurfaceDescription.VTPackedFeedback: builtinData.vtPackedFeedback = surfaceDescription.VTPackedFeedback;
 
-        $DepthOffset: builtinData.depthOffset = surfaceDescription.DepthOffset;
+        #if _DEPTHOFFSET_ON
+        builtinData.depthOffset = surfaceDescription.DepthOffset;
+        #endif
 
         // TODO: We should generate distortion / distortionBlur for non distortion pass
         #if (SHADERPASS == SHADERPASS_DISTORTION)

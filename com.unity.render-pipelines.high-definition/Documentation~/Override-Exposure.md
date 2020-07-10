@@ -90,7 +90,7 @@ To configure **Automatic Mode**, select the **Metering Mode**. This tells the Ca
   | **Center Around Exposure target** | Whether the procedural mask will be centered around the GameObject set as Exposure Target in the [Camera](HDRP-Camera.html). |
   | **Center**                        | Sets the center of the procedural metering mask ([0,0] being bottom left of the screen and [1,1] top right of the screen). Available only when **Center Around Exposure target**  is disabled. |
   | **Offset**                        | Sets an offset to where mask is centered . Available only when **Center Around Exposure target**  is enabled. |
-  | **Radii**                         | Sets the radii (horizontal and vertical) of the procedural mask, in terms of fraction of the screen (i.e. 0.5 means a radius that stretches half of the screen). |
+  | **Radii**                         | Sets the radii (horizontal and vertical) of the procedural mask, in terms of fraction of half the screen (i.e. 0.5 means a mask that stretch half of the screen in both directions). |
   | **Softness**                      | Sets the softness of the mask, the higher the value the less influence is given to pixels at the edge of the mask. |
   | **Mask Min Intensity**            | All pixels below this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask. |
   | **Mask Max Intensity**            | All pixels above this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask. |
@@ -169,3 +169,10 @@ By default, the values on the x-axis are fixed, however, you can also make the h
 The Metering Weighted debug view displays the scene alongside a picture of what the scene looks like after HDRP weights it with the metering mask. This is particularly useful to set up the procedural metering masks or determine the right texture mask.
 
 ![](Images/Override-Exposure6.png)
+
+#### Final Image Histogram
+
+The final image histogram debug view displays the scene alongside an overlay representing the histogram of the image after all post-processing (tonemapping and gamma correction included) is applied. This histogram has 256 bins to map to 8-bit image values. 
+This view can display both luminance histogram or RGB channels represented separately. 
+
+![](Images/Override-Exposure7.png)

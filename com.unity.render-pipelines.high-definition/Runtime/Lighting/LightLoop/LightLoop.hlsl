@@ -2,6 +2,9 @@
 
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
+#else
+// Required to have access to the indirectDiffuseMode enum in forward pass where we don't include BuiltinUtilities
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.cs.hlsl"
 #endif
 
 // We perform scalarization only for forward rendering as for deferred loads will already be scalar since tiles will match waves and therefore all threads will read from the same tile.
@@ -110,15 +113,15 @@ void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdf
             int shadowSplitIndex = EvalShadow_GetSplitIndex(context.shadowContext, _DirectionalShadowIndex, posInput.positionWS, alpha, cascadeCount);
             if (shadowSplitIndex >= 0)
             {
-                DirectionalShadowType shadow = 1.0;
+                SHADOW_TYPE shadow = 1.0;
                 if (_DirectionalShadowIndex >= 0)
                 {
                     DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
 
-#if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT)
+#if defined(SCREEN_SPACE_SHADOWS_ON) && !defined(_SURFACE_TYPE_TRANSPARENT)
                     if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
                     {
-                        shadow = GetScreenSpaceColorShadow(posInput, light.screenSpaceShadowIndex);
+                        shadow = GetScreenSpaceColorShadow(posInput, light.screenSpaceShadowIndex).SHADOW_TYPE_SWIZZLE;
                     }
                     else
 #endif
@@ -187,10 +190,10 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         {
             DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
 
-#if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT)
+#if defined(SCREEN_SPACE_SHADOWS_ON) && !defined(_SURFACE_TYPE_TRANSPARENT)
             if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
             {
-                context.shadowValue = GetScreenSpaceColorShadow(posInput, light.screenSpaceShadowIndex);
+                context.shadowValue = GetScreenSpaceColorShadow(posInput, light.screenSpaceShadowIndex).SHADOW_TYPE_SWIZZLE;
             }
             else
 #endif
@@ -534,15 +537,23 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
 #if !defined(_SURFACE_TYPE_TRANSPARENT)
     // If we use the texture ssgi for ssgi or rtgi, we want to combine it with the value in the bake diffuse lighting value
-    if (_UseIndirectDiffuse != INDIRECT_DIFFUSE_FLAG_OFF)
+    if (_IndirectDiffuseMode != INDIRECTDIFFUSEMODE_OFF)
     {
-        BuiltinData builtInDataSSGI;
-        ZERO_INITIALIZE(BuiltinData, builtInDataSSGI);
-        builtInDataSSGI.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, posInput.positionSS).xyz * GetInverseCurrentExposureMultiplier();
-        float indirectDiffuseMultiplier = GetIndirectDiffuseMultiplier(builtinData.renderingLayers);
-        builtInDataSSGI.bakeDiffuseLighting *= indirectDiffuseMultiplier;
-        ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, builtInDataSSGI);
-        builtinData.bakeDiffuseLighting += builtInDataSSGI.bakeDiffuseLighting;
+        BuiltinData builtinDataSSGI;
+        ZERO_INITIALIZE(BuiltinData, builtinDataSSGI);
+        builtinDataSSGI.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, posInput.positionSS).xyz * GetInverseCurrentExposureMultiplier();
+        builtinDataSSGI.bakeDiffuseLighting *= GetIndirectDiffuseMultiplier(builtinData.renderingLayers);
+
+        // TODO: try to see if we can share code with probe volume
+#ifdef MODIFY_BAKED_DIFFUSE_LIGHTING
+#ifdef DEBUG_DISPLAY
+        // When the lux meter is enabled, we don't want the albedo of the material to modify the diffuse baked lighting
+        if (_DebugLightingMode != DEBUGLIGHTINGMODE_LUX_METER)
+#endif
+            ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, builtinDataSSGI);
+
+#endif
+        builtinData.bakeDiffuseLighting += builtinDataSSGI.bakeDiffuseLighting;
     }
 #endif
 

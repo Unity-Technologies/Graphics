@@ -19,16 +19,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
-            // Strip every useless shadow configs
-            var shadowInitParams = hdrpAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
-
-            foreach (var shadowVariant in m_ShadowKeywords.ShadowVariants)
-            {
-                if (shadowVariant.Key != shadowInitParams.shadowFilteringQuality)
-                    if (inputData.shaderKeywordSet.IsEnabled(shadowVariant.Value))
-                        return true;
-            }
-
             // CAUTION: Pass Name and Lightmode name must match in master node and .shader.
             // HDRP use LightMode to do drawRenderer and pass name is use here for stripping!
 
@@ -82,7 +72,60 @@ namespace UnityEditor.Rendering.HighDefinition
             if (inputData.shaderKeywordSet.IsEnabled(m_SubsurfaceScattering) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportSubsurfaceScattering)
                 return true;
 
+            if (inputData.shaderKeywordSet.IsEnabled(m_Transparent))
+            {
+                // If transparent we don't need the depth only pass
+                bool isDepthOnlyPass = snippet.passName == "DepthForwardOnly";
+                if (isDepthOnlyPass)
+                    return true;
+
+                // If transparent we don't need the motion vector pass
+                if (isMotionPass)
+                    return true;
+
+                // If we are transparent we use cluster lighting and not tile lighting
+                if (inputData.shaderKeywordSet.IsEnabled(m_TileLighting))
+                    return true;
+            }
+            else // Opaque
+            {
+                // If opaque, we never need transparent specific passes (even in forward only mode)
+                bool isTransparentForwardPass = isTransparentPostpass || isTransparentBackface || isTransparentPrepass || isDistortionPass;
+                if (isTransparentForwardPass)
+                    return true;
+
+                // TODO: Should we remove Cluster version if we know MSAA is disabled ? This prevent to manipulate LightLoop Settings (useFPTL option)
+                // For now comment following code
+                // if (inputData.shaderKeywordSet.IsEnabled(m_ClusterLighting) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportMSAA)
+                //    return true;
+            }
+
+            // SHADOW
+
+            // Strip every useless shadow configs
+            var shadowInitParams = hdrpAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
+
+            foreach (var shadowVariant in m_ShadowKeywords.ShadowVariants)
+            {
+                if (shadowVariant.Key != shadowInitParams.shadowFilteringQuality)
+                    if (inputData.shaderKeywordSet.IsEnabled(shadowVariant.Value))
+                        return true;
+            }
+
+            // Screen space shadow variant is exclusive, either we have a variant with dynamic if that support screen space shadow or not
+            // either we have a variant that don't support at all. We can't have both at the same time.
+            if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowOFFKeywords) && shadowInitParams.supportScreenSpaceShadows)
+                return true;
+
+            if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowONKeywords) && !shadowInitParams.supportScreenSpaceShadows)
+                return true;
+
             // DECAL
+
+            // Strip the decal prepass variant when decals are disabled
+            if (inputData.shaderKeywordSet.IsEnabled(m_WriteDecalBuffer) &&
+                    !(hdrpAsset.currentPlatformRenderPipelineSettings.supportDecals && hdrpAsset.currentPlatformRenderPipelineSettings.supportDecalLayers))
+                return true;
 
             // Identify when we compile a decal shader
             bool isDecal3RTPass = false;
@@ -134,6 +177,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 
+#if UNITY_2020_2_OR_NEWER
     class HDRPPreprocessComputeShaders : IPreprocessComputeShaders
     {
         struct ExportComputeShaderStrip : System.IDisposable
@@ -195,6 +239,8 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ShadowKeywords m_ShadowKeywords = new ShadowKeywords();
         protected ShaderKeyword m_EnableAlpha = new ShaderKeyword("ENABLE_ALPHA");
         protected ShaderKeyword m_MSAA = new ShaderKeyword("ENABLE_MSAA");
+        protected ShaderKeyword m_ScreenSpaceShadowOFFKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_OFF");
+        protected ShaderKeyword m_ScreenSpaceShadowONKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_ON");
 
         public int callbackOrder { get { return 0; } }
 
@@ -226,18 +272,24 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (shadowVariant.Key != shadowInitParams.shadowFilteringQuality)
                 {
                     if (inputData.shaderKeywordSet.IsEnabled(shadowVariant.Value))
-                    {
                         return true;
-                    }
                 }
             }
 
-            if(inputData.shaderKeywordSet.IsEnabled(m_MSAA) && !hdAsset.currentPlatformRenderPipelineSettings.supportMSAA)
+            // Screen space shadow variant is exclusive, either we have a variant with dynamic if that support screen space shadow or not
+            // either we have a variant that don't support at all. We can't have both at the same time.
+            if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowOFFKeywords) && shadowInitParams.supportScreenSpaceShadows)
+                return true;
+
+            if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowONKeywords) && !shadowInitParams.supportScreenSpaceShadows)
+                return true;
+
+            if (inputData.shaderKeywordSet.IsEnabled(m_MSAA) && !hdAsset.currentPlatformRenderPipelineSettings.supportMSAA)
             {
                 return true;
             }
 
-            if(inputData.shaderKeywordSet.IsEnabled(m_EnableAlpha) && !hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha)
+            if (inputData.shaderKeywordSet.IsEnabled(m_EnableAlpha) && !hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha)
             {
                 return true;
             }
@@ -308,6 +360,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
     }
+#endif // #if UNITY_2020_2_OR_NEWER
 
     class HDRPreprocessShaders : IPreprocessShaders
     {

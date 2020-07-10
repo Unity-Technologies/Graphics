@@ -53,6 +53,33 @@ struct SpeedTreeVertexDepthOutput
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
+struct SpeedTreeVertexDepthNormalOutput
+{
+    half2 uv                        : TEXCOORD0;
+    half4 color                     : TEXCOORD1;
+
+    #ifdef EFFECT_BUMP
+        half4 normalWS              : TEXCOORD2;    // xyz: normal, w: viewDir.x
+        half4 tangentWS             : TEXCOORD3;    // xyz: tangent, w: viewDir.y
+        half4 bitangentWS           : TEXCOORD4;    // xyz: bitangent, w: viewDir.z
+    #else
+        half3 normalWS              : TEXCOORD2;
+        half3 viewDirWS             : TEXCOORD3;
+    #endif
+
+    float4 clipPos                  : SV_POSITION;
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+    UNITY_VERTEX_OUTPUT_STEREO
+};
+
+struct SpeedTreeDepthNormalFragmentInput
+{
+    SpeedTreeVertexDepthNormalOutput interpolated;
+#ifdef EFFECT_BACKSIDE_NORMALS
+    half facing : VFACE;
+#endif
+};
+
 struct SpeedTreeFragmentInput
 {
     SpeedTreeVertexOutput interpolated;
@@ -296,6 +323,7 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
     inputData.fogCoord = input.interpolated.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.interpolated.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = half3(0, 0, 0); // No GI currently.
+    inputData.normalizedScreenSpaceUV = input.interpolated.clipPos.xy;
 }
 
 #ifdef GBUFFER
@@ -387,7 +415,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     // in Deferred rendering we store the sum of these values (and of emission as well) in the GBuffer
     BRDFData brdfData;
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
-    
+
     Light mainLight = GetMainLight(inputData.shadowCoord);                                      // TODO move this to a separate full-screen single gbuffer pass?
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0)); // TODO move this to a separate full-screen single gbuffer pass?
 
@@ -431,6 +459,61 @@ half4 SpeedTree8FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target
     #else
         return half4(0, 0, 0, 0);
     #endif
+}
+
+SpeedTreeVertexDepthNormalOutput SpeedTree8VertDepthNormal(SpeedTreeVertexInput input)
+{
+    SpeedTreeVertexDepthNormalOutput output = (SpeedTreeVertexDepthNormalOutput)0;
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_TRANSFER_INSTANCE_ID(input, output);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+    // handle speedtree wind and lod
+    InitializeData(input, unity_LODFade.x);
+    output.uv = input.texcoord.xy;
+    output.color = input.color;
+
+    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
+    half3 normalWS = TransformObjectToWorldNormal(input.normal);
+    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
+    #ifdef EFFECT_BUMP
+        real sign = input.tangent.w * GetOddNegativeScale();
+        output.normalWS.xyz = normalWS;
+        output.tangentWS.xyz = TransformObjectToWorldDir(input.tangent.xyz);
+        output.bitangentWS.xyz = cross(output.normalWS.xyz, output.tangentWS.xyz) * sign;
+
+        // View dir packed in w.
+        output.normalWS.w = viewDirWS.x;
+        output.tangentWS.w = viewDirWS.y;
+        output.bitangentWS.w = viewDirWS.z;
+    #else
+        output.normalWS = normalWS;
+    #endif
+
+    output.clipPos = vertexInput.positionCS;
+    return output;
+}
+
+half4 SpeedTree8FragDepthNormal(SpeedTreeDepthNormalFragmentInput input) : SV_Target
+{
+    UNITY_SETUP_INSTANCE_ID(input.interpolated);
+
+    #if !defined(SHADER_QUALITY_LOW)
+        #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
+            #ifdef EFFECT_BILLBOARD
+                LODDitheringTransition(input.interpolated.clipPos.xy, unity_LODFade.x);
+            #endif
+        #endif
+    #endif
+
+    half2 uv = input.interpolated.uv;
+    half4 diffuse = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)) * _Color;
+
+    half alpha = diffuse.a * input.interpolated.color.a;
+    AlphaDiscard(alpha - 0.3333, 0.0);
+
+    float3 normalWS = NormalizeNormalPerPixel(input.interpolated.normalWS);
+    return float4(PackNormalOctRectEncode(TransformWorldToViewDir(normalWS, true)), 0.0, 0.0);
 }
 
 #endif

@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Serialization;
 
 using RenderQueueType = UnityEngine.Rendering.HighDefinition.HDRenderQueue.RenderQueueType;
 
@@ -66,6 +67,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
+        OpaqueCullMode m_OpaqueCullMode = OpaqueCullMode.Back;
+        public OpaqueCullMode opaqueCullMode
+        {
+            get => m_OpaqueCullMode;
+            set => m_OpaqueCullMode = value;
+        }
+
+        [SerializeField]
         int m_SortPriority;
         public int sortPriority
         {
@@ -82,19 +91,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        bool m_AlphaTestDepthPrepass;
-        public bool alphaTestDepthPrepass
+        bool m_TransparentDepthPrepass;
+        public bool transparentDepthPrepass
         {
-            get => m_AlphaTestDepthPrepass;
-            set => m_AlphaTestDepthPrepass = value;
+            get => m_TransparentDepthPrepass;
+            set => m_TransparentDepthPrepass = value;
         }
 
         [SerializeField]
-        bool m_AlphaTestDepthPostpass;
-        public bool alphaTestDepthPostpass
+        bool m_TransparentDepthPostpass;
+        public bool transparentDepthPostpass
         {
-            get => m_AlphaTestDepthPostpass;
-            set => m_AlphaTestDepthPostpass = value;
+            get => m_TransparentDepthPostpass;
+            set => m_TransparentDepthPostpass = value;
         }
 
         [SerializeField]
@@ -122,6 +131,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             get => m_DOTSInstancing;
             set => m_DOTSInstancing = value;
+        }
+
+        [SerializeField]
+        ShaderGraphVersion m_Version = MigrationDescription.LastVersion<ShaderGraphVersion>();
+        public ShaderGraphVersion version
+        {
+            get => m_Version;
+            set => m_Version = value;
         }
 
         internal int inspectorFoldoutMask;
