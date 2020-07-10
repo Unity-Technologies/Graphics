@@ -159,6 +159,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an option to extend the camera culling for skinned mesh animation in ray tracing effects (1258547).
 - Added decal layer system similar to light layer. Mesh will receive a decal when both decal layer mask matches.
 - Added shader graph nodes for rendering a complex eye shader.
+- Added more controls to contact shadows and increased quality in some parts. 
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
