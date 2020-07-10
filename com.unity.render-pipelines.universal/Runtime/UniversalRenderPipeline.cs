@@ -8,6 +8,8 @@ using UnityEditor.Rendering.Universal;
 using UnityEngine.Scripting.APIUpdating;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 
+using UnityEngine.Profiling;
+
 namespace UnityEngine.Rendering.LWRP
 {
     [Obsolete("LWRP -> Universal (UnityUpgradable) -> UnityEngine.Rendering.Universal.UniversalRenderPipeline", true)]
@@ -228,10 +230,18 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
                 var cullResults = context.Cull(ref cullingParameters);
-                InitializeRenderingData(asset, ref cameraData, ref cullResults, anyPostProcessingEnabled, out var renderingData);
 
+                Profiler.BeginSample("InitializeRenderingData");
+                InitializeRenderingData(asset, ref cameraData, ref cullResults, anyPostProcessingEnabled, out var renderingData);
+                Profiler.EndSample();
+
+                Profiler.BeginSample("renderer.Setup");
                 renderer.Setup(context, ref renderingData);
+                Profiler.EndSample();
+
+                Profiler.BeginSample("renderer.Execute");
                 renderer.Execute(context, ref renderingData);
+                Profiler.EndSample();
             } // When ProfilingSample goes out of scope, an "EndSample" command is enqueued into CommandBuffer cmd
 
             context.ExecuteCommandBuffer(cmd); // Sends to ScriptableRenderContext all the commands enqueued since cmd.Clear, i.e the "EndSample" command
