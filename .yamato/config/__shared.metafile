@@ -54,6 +54,8 @@ platforms:
     os: macos
     apis:
       - name: Metal
+        exclude_test_platforms:
+          - editmode
       - name: OpenGLCore
         exclude_test_platforms:
           - Standalone
