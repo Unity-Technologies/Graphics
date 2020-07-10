@@ -58,14 +58,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             pass.keywords.Add(CoreKeywordDescriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true));
 
-            if (decalData.affectsAlbedo)
-                pass.keywords.Add(DecalDefines.Albedo);
-            if (decalData.affectsNormal)
-                pass.keywords.Add(DecalDefines.Normal);
-            if (decalData.affectsMaskmap)
-                pass.keywords.Add(DecalDefines.Maskmap);
-            if (decalData.affectsEmission)
-                pass.keywords.Add(DecalDefines.Emission);
+            // Emissive pass only have the emission keyword
+            if (pass.lightMode == DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_ProjectorEmissive])
+            {
+                if (decalData.affectsEmission)
+                    pass.keywords.Add(DecalDefines.Emission);
+            }
+            else
+            {
+                if (decalData.affectsAlbedo)
+                    pass.keywords.Add(DecalDefines.Albedo);
+                if (decalData.affectsNormal)
+                    pass.keywords.Add(DecalDefines.Normal);
+                if (decalData.affectsMaskmap)
+                    pass.keywords.Add(DecalDefines.Maskmap);
+            }
         }
 
         public static FieldDescriptor AffectsAlbedo =           new FieldDescriptor(kMaterial, "AffectsAlbedo", "");
@@ -402,18 +409,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 #region RenderStates
         static class DecalRenderStates
         {
-            readonly static string[] s_DecalColorMasks = new string[8]
-            {
-                "ColorMask 0 2 ColorMask 0 3",      // nothing
-                "ColorMask R 2 ColorMask R 3",      // metal
-                "ColorMask G 2 ColorMask G 3",      // AO
-                "ColorMask RG 2 ColorMask RG 3",    // metal + AO
-                "ColorMask BA 2 ColorMask 0 3",     // smoothness
-                "ColorMask RBA 2 ColorMask R 3",    // metal + smoothness
-                "ColorMask GBA 2 ColorMask G 3",    // AO + smoothness
-                "ColorMask RGBA 2 ColorMask RG 3",  // metal + AO + smoothness
-            };
-
             readonly static string s_DecalColorMask = "ColorMask [_DecalColorMask2] 2 ColorMask [_DecalColorMask3] 3";
 
             public static RenderStateCollection Projector3RT = new RenderStateCollection
@@ -422,11 +417,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { RenderState.Cull(Cull.Front) },
                 { RenderState.ZTest(ZTest.Greater) },
                 { RenderState.ZWrite(ZWrite.Off) },
-                { RenderState.ColorMask(s_DecalColorMasks[4]) },
+                { RenderState.ColorMask("ColorMask BA 2") },
                 { RenderState.Stencil(new StencilDescriptor()
                 {
-                    WriteMask = ((int)StencilUsage.Decals).ToString(),
-                    Ref = ((int)StencilUsage.Decals).ToString(),
+                    WriteMask = $"[{kDecalStencilWriteMask}]",
+                    Ref = $"[{kDecalStencilRef}]",
                     Comp = "Always",
                     Pass = "Replace",
                 }) },
@@ -440,47 +435,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { RenderState.ZWrite(ZWrite.Off) },
                 { RenderState.Stencil(new StencilDescriptor()
                 {
-                    WriteMask = ((int)StencilUsage.Decals).ToString(),
-                    Ref = ((int)StencilUsage.Decals).ToString(),
+                    WriteMask = $"[{kDecalStencilWriteMask}]",
+                    Ref = $"[{kDecalStencilRef}]",
                     Comp = "Always",
                     Pass = "Replace",
                 }) },
 
                 { RenderState.ColorMask(s_DecalColorMask) }
-
-                // ColorMask per Affects Channel
-                // { RenderState.ColorMask(s_DecalColorMasks[0]), new FieldCondition[] {
-                //     new FieldCondition(AffectsMetal, false),
-                //     new FieldCondition(AffectsAO, false),
-                //     new FieldCondition(AffectsSmoothness, false) } },
-                // { RenderState.ColorMask(s_DecalColorMasks[1]), new FieldCondition[] {
-                //     new FieldCondition(AffectsMetal, true),
-                //     new FieldCondition(AffectsAO, false),
-                //     new FieldCondition(AffectsSmoothness, false) } },
-                // { RenderState.ColorMask(s_DecalColorMasks[2]), new FieldCondition[] {
-                //     new FieldCondition(AffectsMetal, false),
-                //     new FieldCondition(AffectsAO, true),
-                //     new FieldCondition(AffectsSmoothness, false) } },
-                // { RenderState.ColorMask(s_DecalColorMasks[3]), new FieldCondition[] {
-                //     new FieldCondition(AffectsMetal, true),
-                //     new FieldCondition(AffectsAO, true),
-                //     new FieldCondition(AffectsSmoothness, false) } },
-                // { RenderState.ColorMask(s_DecalColorMasks[4]), new FieldCondition[] {
-                //     new FieldCondition(AffectsMetal, false),
-                //     new FieldCondition(AffectsAO, false),
-                //     new FieldCondition(AffectsSmoothness, true) } },
-                // { RenderState.ColorMask(s_DecalColorMasks[5]), new FieldCondition[] {
-                //     new FieldCondition(AffectsMetal, true),
-                //     new FieldCondition(AffectsAO, false),
-                //     new FieldCondition(AffectsSmoothness, true) } },
-                // { RenderState.ColorMask(s_DecalColorMasks[6]), new FieldCondition[] {
-                //     new FieldCondition(AffectsMetal, false),
-                //     new FieldCondition(AffectsAO, true),
-                //     new FieldCondition(AffectsSmoothness, true) } },
-                // { RenderState.ColorMask(s_DecalColorMasks[7]), new FieldCondition[] {
-                //     new FieldCondition(AffectsMetal, true),
-                //     new FieldCondition(AffectsAO, true),
-                //     new FieldCondition(AffectsSmoothness, true) } },
             };
 
             public static RenderStateCollection ProjectorEmissive = new RenderStateCollection
@@ -496,11 +457,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { RenderState.Blend("Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha") },
                 { RenderState.ZTest(ZTest.LEqual) },
                 { RenderState.ZWrite(ZWrite.Off) },
-                { RenderState.ColorMask(s_DecalColorMasks[4]) },
+                { RenderState.ColorMask("ColorMask BA 2") },
                 { RenderState.Stencil(new StencilDescriptor()
                 {
-                    WriteMask = ((int)StencilUsage.Decals).ToString(),
-                    Ref = ((int)StencilUsage.Decals).ToString(),
+                    WriteMask = $"[{kDecalStencilWriteMask}]",
+                    Ref = $"[{kDecalStencilRef}]",
                     Comp = "Always",
                     Pass = "Replace",
                 }) },
@@ -513,45 +474,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { RenderState.ZWrite(ZWrite.Off) },
                 { RenderState.Stencil(new StencilDescriptor()
                 {
-                    WriteMask = ((int)StencilUsage.Decals).ToString(),
-                    Ref = ((int)StencilUsage.Decals).ToString(),
+                    WriteMask = $"[{kDecalStencilWriteMask}]",
+                    Ref = $"[{kDecalStencilRef}]",
                     Comp = "Always",
                     Pass = "Replace",
                 }) },
-
-                // ColorMask per Affects Channel
-                { RenderState.ColorMask(s_DecalColorMasks[0]), new FieldCondition[] {
-                    new FieldCondition(AffectsMetal, false),
-                    new FieldCondition(AffectsAO, false),
-                    new FieldCondition(AffectsSmoothness, false) } },
-                { RenderState.ColorMask(s_DecalColorMasks[1]), new FieldCondition[] {
-                    new FieldCondition(AffectsMetal, true),
-                    new FieldCondition(AffectsAO, false),
-                    new FieldCondition(AffectsSmoothness, false) } },
-                { RenderState.ColorMask(s_DecalColorMasks[2]), new FieldCondition[] {
-                    new FieldCondition(AffectsMetal, false),
-                    new FieldCondition(AffectsAO, true),
-                    new FieldCondition(AffectsSmoothness, false) } },
-                { RenderState.ColorMask(s_DecalColorMasks[3]), new FieldCondition[] {
-                    new FieldCondition(AffectsMetal, true),
-                    new FieldCondition(AffectsAO, true),
-                    new FieldCondition(AffectsSmoothness, false) } },
-                { RenderState.ColorMask(s_DecalColorMasks[4]), new FieldCondition[] {
-                    new FieldCondition(AffectsMetal, false),
-                    new FieldCondition(AffectsAO, false),
-                    new FieldCondition(AffectsSmoothness, true) } },
-                { RenderState.ColorMask(s_DecalColorMasks[5]), new FieldCondition[] {
-                    new FieldCondition(AffectsMetal, true),
-                    new FieldCondition(AffectsAO, false),
-                    new FieldCondition(AffectsSmoothness, true) } },
-                { RenderState.ColorMask(s_DecalColorMasks[6]), new FieldCondition[] {
-                    new FieldCondition(AffectsMetal, false),
-                    new FieldCondition(AffectsAO, true),
-                    new FieldCondition(AffectsSmoothness, true) } },
-                { RenderState.ColorMask(s_DecalColorMasks[7]), new FieldCondition[] {
-                    new FieldCondition(AffectsMetal, true),
-                    new FieldCondition(AffectsAO, true),
-                    new FieldCondition(AffectsSmoothness, true) } },
+                { RenderState.ColorMask(s_DecalColorMask) }
             };
 
             public static RenderStateCollection MeshEmissive = new RenderStateCollection

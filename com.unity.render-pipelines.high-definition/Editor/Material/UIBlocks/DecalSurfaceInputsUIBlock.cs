@@ -106,9 +106,6 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty maskmapSmoothness = new MaterialProperty();
         const string kMaskmapSmoothness = "_MaskmapSmoothness";
 
-        const string kDecalStencilWriteMask = "_DecalStencilWriteMask";
-        const string kDecalStencilRef = "_DecalStencilRef";
-
         MaterialProperty AORemapMin = new MaterialProperty();
         const string kAORemapMin = "_AORemapMin";
 

@@ -44,6 +44,10 @@ Shader "HDRP/Decal"
         [HideInInspector] _DecalMaskMapBlueScale("_DecalMaskMapBlueScale", Range(0.0, 1.0)) = 1.0
 
         [HideInInspector] _DecalLayerMaskFromDecal("_DecalLayerMask", Int) = 1
+
+		// Decal color masks
+		[HideInInspector]_DecalColorMask2("_DecalColorMask2", Int) = 0
+		[HideInInspector]_DecalColorMask3("_DecalColorMask3", Int) = 0
     }
 
     HLSLINCLUDE

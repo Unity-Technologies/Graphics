@@ -3,6 +3,9 @@ using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
+// Include material common properties names
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
+
 namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
@@ -109,9 +112,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected const string kDrawOrder = "_DrawOrder";
 
-        protected const string kDecalStencilWriteMask = "_DecalStencilWriteMask";
-        protected const string kDecalStencilRef = "_DecalStencilRef";
-
         protected MaterialProperty AORemapMin = new MaterialProperty();
         protected const string kAORemapMin = "_AORemapMin";
 
@@ -170,6 +170,9 @@ namespace UnityEditor.Rendering.HighDefinition
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
         static public void SetupMaterialKeywordsAndPass(Material material)
         {
+            // Setup color mask properties
+            DecalGUI.SetupMaterialKeywordsAndPass(material);
+
             Decal.MaskBlendFlags blendMode = (Decal.MaskBlendFlags)material.GetFloat(kMaskBlendMode);
 
             CoreUtils.SetKeyword(material, "_ALBEDOCONTRIBUTION", material.GetFloat(kAlbedoMode) == 1.0f);
