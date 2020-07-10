@@ -23,11 +23,11 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 // A set of Defines to fine-tune the algorithm
 #define NUM_BUCKETS 3
 #define GRADIENT_NOISE
-#define CENTER_DENSITY
+//#define CENTER_DENSITY
 #define RING_DENSITY 8.0
 //#define OCTAWEB_SORTING
 //#define UNIFORM_WEIGHTS
-//#define ADAPTIVE_RADIUS
+#define ADAPTIVE_RADIUS
 
 // Helper defines so we can have one code path when OCTAWEB_SORTING is enabled or disabled.
 #ifndef OCTAWEB_SORTING
@@ -85,8 +85,23 @@ float GetCoCMaxRadius(int2 positionSS)
 #else
     // We only have up to 6 mip levels 
     int lod = min(6, _Params.z);
-    float maxOverlapingCoC = LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, positionSS >> lod, lod).x;
-    return abs(maxOverlapingCoC);
+    uint4 size;
+    _InputCoCTexture.GetDimensions(lod, size.x, size.y, size.z, size.w);
+
+    // Take RTHandleScale into account and odd texture dimension sizes (it's not enough to do a positionSS >> lod)
+    uint2 coords = positionSS * _ScreenSize.zw * size.xy * _RTHandleScale.xy;
+
+    // Find the max CoC that is overlapping this pixel by sampling the max neighborhood
+    float maxOverlapingCoC = abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords, lod).x);
+    maxOverlapingCoC = max(maxOverlapingCoC, abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords + uint2 (1, 0), lod).x));
+    maxOverlapingCoC = max(maxOverlapingCoC, abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords + uint2 (0, 1), lod).x));
+    maxOverlapingCoC = max(maxOverlapingCoC, abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords + uint2 (1, 1), lod).x));
+    maxOverlapingCoC = max(maxOverlapingCoC, abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords + uint2 (-1, 0), lod).x));
+    maxOverlapingCoC = max(maxOverlapingCoC, abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords + uint2 (0, -1), lod).x));
+    maxOverlapingCoC = max(maxOverlapingCoC, abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords + uint2 (-1, -1), lod).x));
+    maxOverlapingCoC = max(maxOverlapingCoC, abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords + uint2 (-1, 1), lod).x));
+    maxOverlapingCoC = max(maxOverlapingCoC, abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords + uint2 (1, -1), lod).x));
+    return maxOverlapingCoC;
 #endif
 }
 
@@ -106,11 +121,10 @@ float2 PointInCircle(float angle)
     return float2(cos(angle), sin(angle));
 }
 
-float GetNumSamples(float radius)
+float GetNumSamples(float radius, float maxRadius)
 {
     // Note: should also take into account the density push towards the center (if enabled), this needs to be fixed at some pointss
     float numRings = _Params.x;
-    float maxRadius = _Params.y;
 
     float dR = maxRadius / numRings;
     float rings = floor(radius / dR);
@@ -258,13 +272,13 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     // back to front alpha blending of the near, far and in-focus buckets
     for (int j = 0; j < NUM_BUCKETS; ++j)
     {
-        float alpha = saturate(totalColor[j].w * rcp(GetNumSamples(maxCoC[j])) * rcp(GetSampleWeight(maxCoC[j])));
+        float alpha = saturate(totalColor[j].w * rcp(GetNumSamples(maxCoC[j], maxRadius)) * rcp(GetSampleWeight(maxCoC[j])));
         outColor = (1.0 - alpha) * outColor + alpha * totalColor[j];
 #ifdef ENABLE_ALPHA
         outAlpha = (1.0 - alpha) * outAlpha + alpha * totalAlpha[j];
 #endif
     }
-    outColor.xyz = outColor.xyz* rcp(outColor.w);
+    outColor.xyz = outColor.xyz * rcp(outColor.w);
 
 #ifdef ENABLE_ALPHA
     _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = float4(outColor.xyz, outAlpha * rcp(outColor.w));

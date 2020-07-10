@@ -2265,7 +2265,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Map the old "max radius" parameters to a bigger range, so we can work on more challenging scenes
             float maxRadius = Mathf.Max(m_DepthOfField.farMaxBlur, m_DepthOfField.nearMaxBlur);
-            float cocLimit = Mathf.Clamp(2 * maxRadius, 1, 32);
+            float cocLimit = Mathf.Clamp(4 * maxRadius, 1, 32);
 
             ComputeShader cs;
             int kernel;
