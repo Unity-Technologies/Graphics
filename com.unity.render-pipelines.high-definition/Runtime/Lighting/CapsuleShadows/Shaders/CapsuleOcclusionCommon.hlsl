@@ -66,22 +66,14 @@ float EvaluateCapsuleSpecularOcclusion(EllipsoidOccluderData data, float3 positi
 #endif
 }
 
-
-
-void GetOrthoBasis(float3 Z, out float3 X, out float3 Y)
+// https://graphics.pixar.com/library/OrthonormalB/paper.pdf
+void GetOrthoBasis(float3 normal, out float3 tangent, out float3 bitangent)
 {
-    if (abs(Z.x) > abs(Z.y))
-    {
-        float lenInv = rsqrt(dot(Z.xz, Z.xz));
-        X = float3(-Z.z * lenInv, 0.0f, Z.x * lenInv);
-    }
-    else
-    {
-        float lenInv = rsqrt(dot(Z.yz, Z.yz));
-        X = float3(0.0f, Z.z * lenInv, -Z.y * lenInv);
-    }
-
-    Y = cross(Z, X);
+    float normalSign = (normal.z >= 0.0f) ? 1.0f : -1.0f; // == copysignf(normal.z) in reference
+    float a = rcp(-normalSign - normal.z); // == -1.0f / (normalSign + normal.z) in reference
+    float b = normal.x * normal.y * a;
+    tangent = float3(1.0f + normalSign * normal.x * normal.x * a, normalSign * b, -normalSign * normal.x);
+    bitangent = float3(b, normalSign + normal.y * normal.y * a, -normal.y);
 }
 
 
@@ -135,7 +127,8 @@ float EvaluateCapsuleShadowAnalytical(EllipsoidOccluderData data, float3 positio
     float lightArea = TWO_PI - TWO_PI * cos(lightAngle);
     float NdotPosToSphere = dot(N, occluderFromSurfaceDirectionOS);
 
-    return 1.0f - saturate(intersectionArea / lightArea);
+    float occlusion = 1.0f - saturate(intersectionArea / lightArea);
+    return ApplyInfluenceFalloff(occlusion, ComputeInfluenceFalloff(length(GetOccluderPositionRWS(data) - positionWS), GetOccluderInfluenceRadiusWS(data)));
 }
 
 
@@ -193,7 +186,9 @@ float EvaluateCapsuleShadowAnalytical2(EllipsoidOccluderData data, float3 positi
 
     float lightArea = TWO_PI - TWO_PI * cos(lightAngle);
 
-    return 1.0f - saturate(intersectionArea / lightArea);
+    float occlusion = 1.0f - saturate(intersectionArea / lightArea);
+    float occluderFromSurfaceDistance = length(occluderPosWS - positionWS);
+    return ApplyInfluenceFalloff(occlusion, ComputeInfluenceFalloff(occluderFromSurfaceDistance, GetOccluderInfluenceRadiusWS(data)));
 }
 
 
@@ -241,11 +236,9 @@ float EvaluateCapsuleShadowLUT2(EllipsoidOccluderData data, float3 positionWS, f
     float theta = FastATanPos(tanTheta);
 
     float sinTheta = sin(theta);
-    float occlusionVal = SAMPLE_TEXTURE3D_LOD(_CapsuleShadowLUT, s_linear_clamp_sampler, float3(0.5f * cosPhi + 0.5f, sinTheta, 0), 0).x;
+    float occlusion = SAMPLE_TEXTURE3D_LOD(_CapsuleShadowLUT, s_linear_clamp_sampler, float3(0.5f * cosPhi + 0.5f, sinTheta, 0), 0).x;
 
-    //  occlusionVal = ApplyInfluenceFalloff(occlusionVal, ComputeInfluenceFalloff(occluderFromSurfaceDistance, GetOccluderInfluenceRadiusWS(data)));
-
-    return occlusionVal;
+    return ApplyInfluenceFalloff(occlusion, ComputeInfluenceFalloff(length(GetOccluderPositionRWS(data) - positionWS), GetOccluderInfluenceRadiusWS(data)));
 }
 
 
