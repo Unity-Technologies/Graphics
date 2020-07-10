@@ -3,8 +3,8 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-Universal_Win_DX11_Standalone_2019.3:
-    name: Universal on Win_DX11_Standalone on version 2019.3
+Universal_Old_Win_DX11_Standalone_2019.3:
+    name: Universal_Old on Win_DX11_Standalone on version 2019.3
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -14,7 +14,7 @@ Universal_Win_DX11_Standalone_2019.3:
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:2019.3:windows
          rerun: on-new-revision
-      -  path: .yamato/universal-win-dx11.yml#Build_Universal_Win_DX11_Player_2019.3
+      -  path: .yamato/universal_old-win-dx11.yml#Build_Universal_Old_Win_DX11_Player_2019.3
          rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
@@ -26,8 +26,9 @@ Universal_Win_DX11_Standalone_2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-Build_Universal_Win_DX11_Player_2019.3:
-    name: Build Universal on Win_DX11_Player on version 2019.3
+    skip_checkout: true
+Build_Universal_Old_Win_DX11_Player_2019.3:
+    name: Build Universal_Old on Win_DX11_Player on version 2019.3
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -49,8 +50,8 @@ Build_Universal_Win_DX11_Player_2019.3:
         players:
             paths:
               -  "players/**"
-Universal_Win_DX11_playmode_2019.3:
-    name: Universal on Win_DX11_playmode on version 2019.3
+Universal_Old_Win_DX11_playmode_2019.3:
+    name: Universal_Old on Win_DX11_playmode on version 2019.3
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -69,8 +70,8 @@ Universal_Win_DX11_playmode_2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-Universal_Win_DX11_editmode_2019.3:
-    name: Universal on Win_DX11_editmode on version 2019.3
+Universal_Old_Win_DX11_editmode_2019.3:
+    name: Universal_Old on Win_DX11_editmode on version 2019.3
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -89,8 +90,8 @@ Universal_Win_DX11_editmode_2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-Universal_Win_DX11_playmode_XR_2019.3:
-    name: Universal on Win_DX11_playmode_XR on version 2019.3
+Universal_Old_Win_DX11_playmode_XR_2019.3:
+    name: Universal_Old on Win_DX11_playmode_XR on version 2019.3
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -109,8 +110,8 @@ Universal_Win_DX11_playmode_XR_2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-Universal_Win_DX11_Standalone_fast-2019.3:
-    name: Universal on Win_DX11_Standalone on version fast-2019.3
+Universal_Old_Win_DX11_Standalone_fast-2019.3:
+    name: Universal_Old on Win_DX11_Standalone on version fast-2019.3
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -120,7 +121,7 @@ Universal_Win_DX11_Standalone_fast-2019.3:
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-2019.3:windows
          rerun: on-new-revision
-      -  path: .yamato/universal-win-dx11.yml#Build_Universal_Win_DX11_Player_fast-2019.3
+      -  path: .yamato/universal_old-win-dx11.yml#Build_Universal_Old_Win_DX11_Player_fast-2019.3
          rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
@@ -132,8 +133,9 @@ Universal_Win_DX11_Standalone_fast-2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-Build_Universal_Win_DX11_Player_fast-2019.3:
-    name: Build Universal on Win_DX11_Player on version fast-2019.3
+    skip_checkout: true
+Build_Universal_Old_Win_DX11_Player_fast-2019.3:
+    name: Build Universal_Old on Win_DX11_Player on version fast-2019.3
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -155,8 +157,8 @@ Build_Universal_Win_DX11_Player_fast-2019.3:
         players:
             paths:
               -  "players/**"
-Universal_Win_DX11_playmode_fast-2019.3:
-    name: Universal on Win_DX11_playmode on version fast-2019.3
+Universal_Old_Win_DX11_playmode_fast-2019.3:
+    name: Universal_Old on Win_DX11_playmode on version fast-2019.3
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -175,8 +177,8 @@ Universal_Win_DX11_playmode_fast-2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-Universal_Win_DX11_editmode_fast-2019.3:
-    name: Universal on Win_DX11_editmode on version fast-2019.3
+Universal_Old_Win_DX11_editmode_fast-2019.3:
+    name: Universal_Old on Win_DX11_editmode on version fast-2019.3
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -195,8 +197,8 @@ Universal_Win_DX11_editmode_fast-2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-Universal_Win_DX11_playmode_XR_fast-2019.3:
-    name: Universal on Win_DX11_playmode_XR on version fast-2019.3
+Universal_Old_Win_DX11_playmode_XR_fast-2019.3:
+    name: Universal_Old on Win_DX11_playmode_XR on version fast-2019.3
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -215,8 +217,8 @@ Universal_Win_DX11_playmode_XR_fast-2019.3:
         logs:
             paths:
               -  "**/test-results/**"
-Universal_Win_DX11_Standalone_CUSTOM-REVISION:
-    name: Universal on Win_DX11_Standalone on version CUSTOM-REVISION
+Universal_Old_Win_DX11_Standalone_CUSTOM-REVISION:
+    name: Universal_Old on Win_DX11_Standalone on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -227,7 +229,7 @@ Universal_Win_DX11_Standalone_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/universal-win-dx11.yml#Build_Universal_Win_DX11_Player_CUSTOM-REVISION
+      -  path: .yamato/universal_old-win-dx11.yml#Build_Universal_Old_Win_DX11_Player_CUSTOM-REVISION
          rerun: always
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
@@ -239,8 +241,9 @@ Universal_Win_DX11_Standalone_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-Build_Universal_Win_DX11_Player_CUSTOM-REVISION:
-    name: Build Universal on Win_DX11_Player on version CUSTOM-REVISION
+    skip_checkout: true
+Build_Universal_Old_Win_DX11_Player_CUSTOM-REVISION:
+    name: Build Universal_Old on Win_DX11_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -263,8 +266,8 @@ Build_Universal_Win_DX11_Player_CUSTOM-REVISION:
         players:
             paths:
               -  "players/**"
-Universal_Win_DX11_playmode_CUSTOM-REVISION:
-    name: Universal on Win_DX11_playmode on version CUSTOM-REVISION
+Universal_Old_Win_DX11_playmode_CUSTOM-REVISION:
+    name: Universal_Old on Win_DX11_playmode on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -284,8 +287,8 @@ Universal_Win_DX11_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-Universal_Win_DX11_editmode_CUSTOM-REVISION:
-    name: Universal on Win_DX11_editmode on version CUSTOM-REVISION
+Universal_Old_Win_DX11_editmode_CUSTOM-REVISION:
+    name: Universal_Old on Win_DX11_editmode on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -305,8 +308,8 @@ Universal_Win_DX11_editmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-Universal_Win_DX11_playmode_XR_CUSTOM-REVISION:
-    name: Universal on Win_DX11_playmode_XR on version CUSTOM-REVISION
+Universal_Old_Win_DX11_playmode_XR_CUSTOM-REVISION:
+    name: Universal_Old on Win_DX11_playmode_XR on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
