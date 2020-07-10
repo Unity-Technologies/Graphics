@@ -38,3 +38,4 @@ ShaderGraph/Testing/IntegrationTests/.Failed
 TestProjects/*/ProjectSettings/ProjectVersion.txt
 
 */manifest-updater.py
+node_modules
