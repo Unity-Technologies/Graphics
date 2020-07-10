@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Data.Interfaces;
-using Drawing.Views;
 using UnityEditor.Graphing.Util;
+using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -87,9 +87,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             foreach(var targetName in reorderableTextListView.TextList)
             {
                 // Ensure enabled state is being tracked and get value
-                bool foldoutActive = true;
+                bool foldoutActive;
                 if(!m_TargetFoldouts.TryGetValue(targetName, out foldoutActive))
                 {
+                    foldoutActive = true;
                     m_TargetFoldouts.Add(targetName, foldoutActive);
                 }
 
@@ -149,4 +150,3 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         }
     }
 }
-

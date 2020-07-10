@@ -10,7 +10,10 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty cookieAtlasSize;
         public SerializedProperty cookieFormat;
         public SerializedProperty cookieAtlasLastValidMip;
+#if UNITY_2020_1_OR_NEWER
+#else
         public SerializedProperty pointCookieSize;
+#endif
         public SerializedProperty reflectionProbeCacheSize;
         public SerializedProperty reflectionCubemapSize;
         public SerializedProperty reflectionCacheCompressed;
@@ -32,7 +35,10 @@ namespace UnityEditor.Rendering.HighDefinition
             cookieAtlasSize = root.Find((GlobalLightLoopSettings s) => s.cookieAtlasSize);
             cookieFormat = root.Find((GlobalLightLoopSettings s) => s.cookieFormat);
             cookieAtlasLastValidMip = root.Find((GlobalLightLoopSettings s) => s.cookieAtlasLastValidMip);
+#if UNITY_2020_1_OR_NEWER
+#else
             pointCookieSize = root.Find((GlobalLightLoopSettings s) => s.pointCookieSize);
+#endif
 
             reflectionProbeCacheSize = root.Find((GlobalLightLoopSettings s) => s.reflectionProbeCacheSize);
             reflectionCubemapSize = root.Find((GlobalLightLoopSettings s) => s.reflectionCubemapSize);
