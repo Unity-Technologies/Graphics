@@ -194,6 +194,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with Model Importer materials using the Legacy standard shader instead of URP's Lit shader when import happens at Editor startup.
 - Fixed an issue where camera stacking with msaa on OpenGL resulted a black screen [case 1250602](https://issuetracker.unity3d.com/issues/urp-camera-stacking-results-in-black-screen-when-msaa-and-opengl-graphics-api-are-used)
 - Fixed an issue where URP Simple Lit shader had attributes swapped incorrectly for BaseMap and BaseColor properties.
+- Fixed profiler marker errors. [case 1240963](https://issuetracker.unity3d.com/issues/urp-errors-are-thrown-in-a-console-when-using-profiler-to-profile-editor)
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
