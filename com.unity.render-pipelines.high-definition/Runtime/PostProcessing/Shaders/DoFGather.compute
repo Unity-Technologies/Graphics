@@ -13,6 +13,10 @@ CBUFFER_START(cb0)
 float4 _Params;
 CBUFFER_END
 
+#define NumRings            _Params.x
+#define MaxCoCRadius        _Params.y
+#define MaxCoCMipLevel      _Params.z
+
 // Input textures
 TEXTURE2D_X(_InputTexture);
 TEXTURE2D_X(_InputCoCTexture);
@@ -80,10 +84,10 @@ float GetCoCRadius(int2 positionSS, out int bucketIndex)
 float GetCoCMaxRadius(int2 positionSS)
 {
 #ifndef ADAPTIVE_RADIUS
-    return _Params.y;
+    return MaxCoCRadius;
 #else
     // We only have up to 6 mip levels 
-    int lod = min(6, _Params.z);
+    int lod = min(6, MaxCoCMipLevel);
     uint4 size;
     _InputCoCTexture.GetDimensions(lod, size.x, size.y, size.z, size.w);
 
@@ -122,22 +126,32 @@ float2 PointInCircle(float angle)
 
 float GetNumSamples(float radius, float maxRadius)
 {
-    float numRings = _Params.x;
-
-    float dR = maxRadius / numRings;
+    float dR = maxRadius / NumRings;
     float rings = floor(radius / dR);
     float seriesSum = 0.5 * rings * (rings + 1);
     return 1.0 + seriesSum * RING_DENSITY;
+}
+
+float GetRingWeight(int index, float dR)
+{
+    float ringRadius = index * dR;
+    float ringArea = PI * ringRadius * ringRadius;
+
+    float prevRingRadius = max(0, index - 1) * dR;
+    float prevRingArea = PI * prevRingRadius * prevRingRadius;
+
+    ringArea = ringArea - prevRingArea;
+
+    float ringSamples = RING_DENSITY * index;
+    ringSamples = (index == 1) ? ringSamples + 1.0f : ringSamples;
+    return ringArea * rcp (ringSamples);
 }
 
 [numthreads(GROUP_RES, GROUP_RES, 1)]
 void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_RES, GROUP_RES));
-
-    CTYPE centerColor = LOAD_TEXTURE2D_X(_InputTexture, posInputs.positionSS).CTYPE_SWIZZLE;
     int bucketIndex = 0;
-    float centerCoc = GetCoCRadius(posInputs.positionSS, bucketIndex);
 
     // Bucket 0 : far focus region
     // Bucket 1 : in focus region
@@ -161,21 +175,9 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 #endif
     }
 
-    // Record the central sample
-    {
-        float weight = GetSampleWeight(abs(centerCoc));
-        totalColor[bucketIndex] = float4(centerColor.xyz * weight, weight);
-        maxCoC[bucketIndex] = abs(centerCoc);
-        prevRingWeight[bucketIndex] = weight;
-#ifdef ENABLE_ALPHA
-        totalAlpha[bucketIndex] = centerColor.w;
-#endif
-    }
+    float maxRadius = GetCoCMaxRadius(posInputs.positionSS);
 
-    float numRings = _Params.x;
-    float maxRadius = GetCoCMaxRadius(posInputs.positionSS); 
-
-    float dR = maxRadius * rcp(numRings);
+    float dR = maxRadius * rcp(NumRings);
     float stratum = fmod(posInputs.positionSS.x + posInputs.positionSS.y, 2.0f);
 
     int sampleOffset = _TaaFrameInfo.w != 0.0 ? _TaaFrameInfo.z : 0;
@@ -183,19 +185,20 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     float noise2 = InterleavedGradientNoise(posInputs.positionSS.xy, 8 + sampleOffset);
 
     // Iterate over the octaweb pattern and gather the DoF samples
-    for (float ring = numRings; ring > 0; ring -= 1.0)
+    for (float ring = NumRings; ring >= 0; ring -= 1.0)
     {
-        float scaledRad = dR;
-
-        float dAng = 2.0f * PI / (ring * RING_DENSITY);
+        float numSamples = max(ring * RING_DENSITY, 1);
+        float dAng = 2.0f * PI / numSamples;
 
 #ifndef GRADIENT_NOISE
-        float radius = ring * scaledRad + stratum * scaledRad;
+        float radius = ring * dR + stratum * dR;
         float ringOffset = 0.5 * fmod(ring, 2.0f) * dAng;
 #else
-        float radius = (ring - 1) * scaledRad + noise2 * scaledRad;
+        float radius = (ring - 1) * dR + noise2 * dR;
         float ringOffset = noise * dAng;
 #endif
+
+        float ringWeight = GetRingWeight(max(1, ring), dR);
 
 #ifdef OCTAWEB_SORTING
         float4 ringColor[NUM_BUCKETS];
@@ -227,7 +230,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
             if (abs(sampleCoC) >= radius)
             {
-                float weight = GetSampleWeight(abs(sampleCoC));
+                float weight = ringWeight * GetSampleWeight(abs(sampleCoC));
                 RING_COLOR[sampleBucket] += float4(sampleColor.xyz * weight, weight);
                 RING_MAXCOC[sampleBucket] = max(RING_MAXCOC[sampleBucket], abs(sampleCoC));
 #ifdef OCTAWEB_SORTING
