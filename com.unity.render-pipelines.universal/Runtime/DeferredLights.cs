@@ -259,6 +259,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal ProfilingSampler m_ProfilingSamplerDeferredStencilPass = new ProfilingSampler(k_DeferredStencilPass);
         internal ProfilingSampler m_ProfilingSamplerDeferredFogPass = new ProfilingSampler(k_DeferredFogPass);
         
+        int m_AllocatedGPUTileLightsCount = 0;
+        ComputeBuffer m_GPUTileLightsBuffer = null;
 
         public DeferredLights(Material tileDepthInfoMaterial, Material tileDeferredMaterial, Material stencilDeferredMaterial)
         {
@@ -366,6 +368,51 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             Matrix4x4 clipToWorld = Matrix4x4.Inverse(toScreen * gpuProj * view);
             cmd.SetGlobalMatrix(ShaderConstants._ScreenToWorld, clipToWorld);
+        }
+
+        public void SetupGPULightsForGPUCulling(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            m_EyeIndex = 0;
+
+            Profiler.BeginSample(k_SetupLights);
+
+            DeferredShaderData.instance.ResetBuffers();
+
+            m_RenderWidth = renderingData.cameraData.cameraTargetDescriptor.width;
+            m_RenderHeight = renderingData.cameraData.cameraTargetDescriptor.height;
+
+            int sizeof_PunctualLightData = System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualLightData));
+            int sizeof_vec4_PunctualLightData = sizeof_PunctualLightData >> 4;
+
+            // Select lights of point/spot type which doesn't render shadow
+            // also, exclude main light, which is rendered as part of the GBuffer
+            // Later, lights with additional shadow will be rendered as full screen quad(direcitonal)/cube(point, etc?)
+            NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
+            int mainLightIndex = renderingData.lightData.mainLightIndex;
+            int visibleLightCount = visibleLights.Length;
+
+            NativeArray<uint4> punctualLightBuffer = new NativeArray<uint4>(visibleLightCount * sizeof_vec4_PunctualLightData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            int tileLightsCount = 0;
+            for (int i = 0; i < renderingData.lightData.visibleLights.Length; i++) {
+                if (i == mainLightIndex || !IsTileLight(visibleLights[i])) {
+                    continue;
+                }
+                StorePunctualLightData(ref punctualLightBuffer, tileLightsCount ++, ref visibleLights, i);
+            }
+
+            m_AllocatedGPUTileLightsCount = Mathf.Max(m_AllocatedGPUTileLightsCount, tileLightsCount);
+            m_GPUTileLightsBuffer = DeferredShaderData.instance.ReserveBuffer<PunctualLightData>(m_AllocatedGPUTileLightsCount, DeferredConfig.kUseCBufferForLightData);
+            m_GPUTileLightsBuffer.SetData(punctualLightBuffer, 0, 0, tileLightsCount);
+
+            // Shared uniform constants for all lights.
+            {
+                CommandBuffer cmd = CommandBufferPool.Get(k_SetupLightConstants);
+                SetupShaderLightConstants(cmd, ref renderingData);
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+            }
+
+            Profiler.EndSample();
         }
 
         public void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -793,7 +840,42 @@ namespace UnityEngine.Rendering.Universal.Internal
             ++m_EyeIndex;
         }
 
-        public void ExecuteDeferredPass(ScriptableRenderContext context, ref RenderingData renderingData, CommandBuffer cmd) { 
+        // Use tile shading to further reduce imageblock read limiter
+        // Also, this can reduce CPU cost on rendering stencil lights potentially
+        void RenderTileLightsUsingTileShading(ScriptableRenderContext context, ref RenderingData renderingData, CommandBuffer cmd) 
+        { 
+            if (m_StencilDeferredMaterial == null)
+            {
+                Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", m_StencilDeferredMaterial, GetType().Name);
+                return;
+            }
+
+            if (m_stencilVisLights.Length == 0)
+                return;
+
+            Profiler.BeginSample(k_DeferredStencilPass);
+
+            if (m_SphereMesh == null)
+                m_SphereMesh = CreateSphereMesh();
+            if (m_HemisphereMesh == null)
+                m_HemisphereMesh = CreateHemisphereMesh();
+            if (m_FullscreenMesh == null)
+                m_FullscreenMesh = CreateFullscreenMesh();
+
+            using (new ProfilingScope(cmd, m_ProfilingSamplerDeferredStencilPass))
+            {
+                NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
+
+                // RenderStencilDirectionalLights(cmd, visibleLights, renderingData.lightData.mainLightIndex, isUsingImageBlock: isUsingImageBlock);
+                // RenderStencilPointLights(cmd, visibleLights, isUsingImageBlock: isUsingImageBlock);
+                // RenderStencilSpotLights(cmd, visibleLights, isUsingImageBlock: isUsingImageBlock);
+            }
+
+            Profiler.EndSample();
+        }
+
+        public void ExecuteDeferredPass(ScriptableRenderContext context, ref RenderingData renderingData, CommandBuffer cmd) 
+        { 
 
             SetupMatrixConstants(cmd, ref renderingData, isUsingImageBlock: true);
 
@@ -1202,6 +1284,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (vl.lightType != LightType.Point)
                     break;
 
+                Profiler.BeginSample("Render Point Light");
+
                 Vector3 posWS = vl.localToWorldMatrix.GetColumn(3);
 
                 Matrix4x4 transformMatrix = new Matrix4x4(
@@ -1242,6 +1326,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 6); // Lit
                 }
+
+                Profiler.EndSample();
             }
 
             cmd.DisableShaderKeyword(ShaderKeywordStrings._POINT);
