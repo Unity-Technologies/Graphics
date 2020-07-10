@@ -10,19 +10,17 @@ Material:
   m_Name: Cotton
   m_Shader: {fileID: -6465566751694194690, guid: 56daec70348340a4cbb19a1390f8247c,
     type: 3}
-  m_ShaderKeywords: _ALPHATEST_ON _DISABLE_SSR _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON
+  m_ShaderKeywords: _ALPHATEST_ON _DISABLE_SSR _DOUBLESIDED_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 1
-  m_CustomRenderQueue: 2475
+  m_CustomRenderQueue: 2450
   stringTagMap:
     MotionVector: User
     RenderType: TransparentCutout
   disabledShaderPasses:
   - MOTIONVECTORS
   - TransparentBackface
-  - TransparentDepthPrepass
-  - TransparentDepthPostpass
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -132,7 +130,6 @@ Material:
     - _AORemapMin: 0
     - _AOStrength: 0.843
     - _ATDistance: 1
-    - _AddPrecomputedVelocity: 0
     - _AlbedoAffectEmissive: 0
     - _AlphaClipThreshold: 0
     - _AlphaClipping: 1
@@ -144,8 +141,6 @@ Material:
     - _AlphaCutoffShadows: 0.5
     - _AlphaDstBlend: 0
     - _AlphaSrcBlend: 1
-    - _AlphaToMask: 0
-    - _AlphaToMaskInspectorValue: 0
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatMask: 0
@@ -214,16 +209,13 @@ Material:
     - _NormalMapSpace: 0
     - _NormalMapStrength: 1
     - _NormalScale: 1
-    - _OpaqueCullMode: 2
     - _PPDLodThreshold: 5
     - _PPDMaxSamples: 15
     - _PPDMinSamples: 5
     - _PPDPrimitiveLength: 1
     - _PPDPrimitiveWidth: 1
     - _ReceivesSSR: 0
-    - _ReceivesSSRTransparent: 0
     - _RefractionModel: 0
-    - _RenderQueueType: 1
     - _RequireSplitLighting: 1
     - _SSRefractionProjectionModel: 0
     - _SecondarySpecularMultiplier: 1
@@ -273,7 +265,6 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
-    - _TransparentWritingMotionVec: 0
     - _TransparentWritingVelocity: 0
     - _TransparentZWrite: 0
     - _UVBase: 0
@@ -311,7 +302,6 @@ Material:
     - _uvSmoothnessST: {r: 4, g: 4, b: 0, a: 0}
     - _uvThreadMask: {r: 1, g: 0, b: 0, a: 0}
     - _uvThreadST: {r: 50, g: 50, b: 0, a: 0}
-  m_BuildTextureStacks: []
 --- !u!114 &3775346471072160633
 MonoBehaviour:
   m_ObjectHideFlags: 11
@@ -324,4 +314,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 7
+  version: 2
