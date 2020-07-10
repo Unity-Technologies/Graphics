@@ -753,7 +753,12 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<SetGlobalColorPassData>("SetGlobalColorForCustomPass", out var passData))
             {
                 passData.colorBuffer = builder.ReadTexture(colorBuffer);
-                builder.SetRenderFunc( (SetGlobalColorPassData data, RenderGraphContext context) => { context.cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, data.colorBuffer); });
+                builder.SetRenderFunc( (SetGlobalColorPassData data, RenderGraphContext context) =>
+                {
+                    RTHandle colorPyramid = data.colorBuffer;
+                    if (colorPyramid != null)
+                        context.cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, data.colorBuffer);
+                });
             }
         }
 
