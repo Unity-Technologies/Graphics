@@ -26,6 +26,11 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -5061838936611844745, guid: 9c519041225bfa644bfc865f3ccb3b03,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: -4989860386193215790, guid: 9c519041225bfa644bfc865f3ccb3b03,
         type: 3}
       propertyPath: m_RenderingLayerMask
@@ -165,6 +170,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_StaticEditorFlags
       value: 4294967294
+      objectReference: {fileID: 0}
+    - target: {fileID: 9168987656625512226, guid: 9c519041225bfa644bfc865f3ccb3b03,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: -7595475132359004432, guid: 9c519041225bfa644bfc865f3ccb3b03, type: 3}
