@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<BindShadowGlobalResourcesPassData>("BindShadowGlobalResources", out var passData))
             {
                 passData.shadowResult = ReadShadowResult(shadowResult, builder);
-                builder.AllowPassPruning(false);
+                builder.AllowPassCulling(false);
                 builder.SetRenderFunc(
                 (BindShadowGlobalResourcesPassData data, RenderGraphContext ctx) =>
                 {

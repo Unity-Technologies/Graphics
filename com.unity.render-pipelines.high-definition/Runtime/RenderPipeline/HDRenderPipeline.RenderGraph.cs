@@ -140,7 +140,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Temporary workaround otherwise the texture is not bound when executing directly with rendergraph
                 using (var builder = m_RenderGraph.AddRenderPass<TempPassData>("TempPass", out var passData))
                 {
-                    builder.AllowPassPruning(false);
+                    builder.AllowPassCulling(false);
                     builder.SetRenderFunc(
                     (TempPassData data, RenderGraphContext context) =>
                     {
@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderForwardOpaque(m_RenderGraph, hdCamera, colorBuffer, lightingBuffers, gpuLightListOutput, prepassOutput.depthBuffer, shadowResult, prepassOutput.dbuffer, cullingResults);
 
-                // TODO RENDERGRAPH : Move this to the end after we do move semantic and graph pruning to avoid doing the rest of the frame for nothing
+                // TODO RENDERGRAPH : Move this to the end after we do move semantic and graph culling to avoid doing the rest of the frame for nothing
                 aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Normals, hdCamera, prepassOutput.resolvedNormalBuffer, aovBuffers);
 
                 lightingBuffers.diffuseLightingBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, lightingBuffers.diffuseLightingBuffer);
@@ -190,7 +190,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors)
                     PushFullScreenDebugTexture(m_RenderGraph, prepassOutput.motionVectorsBuffer, FullScreenDebugMode.MotionVectors);
 
-                // TODO RENDERGRAPH : Move this to the end after we do move semantic and graph pruning to avoid doing the rest of the frame for nothing
+                // TODO RENDERGRAPH : Move this to the end after we do move semantic and graph culling to avoid doing the rest of the frame for nothing
                 // Transparent objects may write to the depth and motion vectors buffers.
                 aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.DepthStencil, hdCamera, prepassOutput.resolvedDepthBuffer, aovBuffers);
                 if (m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors)
@@ -912,7 +912,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<SendGeometryBuffersPassData>("Send Geometry Buffers", out var passData))
             {
-                builder.AllowPassPruning(false);
+                builder.AllowPassCulling(false);
 
                 passData.parameters = parameters;
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
@@ -935,7 +935,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (var builder = renderGraph.AddRenderPass<SendColorGraphicsBufferPassData>("Send Color Buffers", out var passData))
             {
-                builder.AllowPassPruning(false);
+                builder.AllowPassCulling(false);
 
                 passData.hdCamera = hdCamera;
 
@@ -1072,9 +1072,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void GenerateColorPyramid(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputColor, TextureHandle output, bool isPreRefraction)
         {
-            // Here we cannot rely on automatic pass pruning if the result is not read
+            // Here we cannot rely on automatic pass culling if the result is not read
             // because the output texture is imported from outside of render graph (as it is persistent)
-            // and in this case the pass is considered as having side effect and cannot be pruned.
+            // and in this case the pass is considered as having side effect and cannot be culled.
             if (isPreRefraction)
             {
                 if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction))

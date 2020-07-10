@@ -53,7 +53,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     {
         public bool clearRenderTargetsAtCreation;
         public bool clearRenderTargetsAtRelease;
-        public bool disablePassPruning;
+        public bool disablePassCulling;
         public bool logFrameInformation;
         public bool logResources;
 
@@ -62,7 +62,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             var list = new List<DebugUI.Widget>();
             list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at creation", getter = () => clearRenderTargetsAtCreation, setter = value => clearRenderTargetsAtCreation = value });
             list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at release", getter = () => clearRenderTargetsAtRelease, setter = value => clearRenderTargetsAtRelease = value });
-            list.Add(new DebugUI.BoolField { displayName = "Disable Pass Pruning", getter = () => disablePassPruning, setter = value => disablePassPruning = value });
+            list.Add(new DebugUI.BoolField { displayName = "Disable Pass Culling", getter = () => disablePassCulling, setter = value => disablePassCulling = value });
             list.Add(new DebugUI.Button { displayName = "Log Frame Information",
                 action = () =>
                 {
@@ -136,7 +136,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             public List<int>[]      resourceCreateList;
             public List<int>[]      resourceReleaseList;
             public int              refCount;
-            public bool             pruned;
+            public bool             culled;
             public bool             hasSideEffect;
             public int              syncToPassIndex; // Index of the pass that needs to be waited for.
             public int              syncFromPassIndex; // Smaller pass index that waits for this pass.
@@ -144,7 +144,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             public GraphicsFence    fence;
 
             public bool             enableAsyncCompute { get { return pass.enableAsyncCompute; } }
-            public bool             allowPassPruning { get { return pass.allowPassPruning; } }
+            public bool             allowPassCulling { get { return pass.allowPassCulling; } }
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             // This members are only here to ease debugging.
@@ -184,7 +184,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 }
 
                 refCount = 0;
-                pruned = false;
+                culled = false;
                 hasSideEffect = false;
                 syncToPassIndex = -1;
                 syncFromPassIndex = -1;
@@ -214,7 +214,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         // Compiled Render Graph info.
         DynamicArray<CompiledResourceInfo>[]    m_CompiledResourcesInfos = new DynamicArray<CompiledResourceInfo>[(int)RenderGraphResourceType.Count];
         DynamicArray<CompiledPassInfo>          m_CompiledPassInfos = new DynamicArray<CompiledPassInfo>();
-        Stack<int>                              m_PruningStack = new Stack<int>();
+        Stack<int>                              m_CullingStack = new Stack<int>();
 
         #region Public Interface
 
@@ -278,7 +278,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         /// <summary>
         /// Import an external texture to the Render Graph.
-        /// Any pass writing to an imported texture will be considered having side effects and can't be automatically pruned.
+        /// Any pass writing to an imported texture will be considered having side effects and can't be automatically culled.
         /// </summary>
         /// <param name="rt">External RTHandle that needs to be imported.</param>
         /// <returns>A new TextureHandle.</returns>
@@ -339,7 +339,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         /// <summary>
         /// Import an external Compute Buffer to the Render Graph
-        /// Any pass writing to an imported compute buffer will be considered having side effects and can't be automatically pruned.
+        /// Any pass writing to an imported compute buffer will be considered having side effects and can't be automatically culled.
         /// </summary>
         /// <param name="computeBuffer">External Compute Buffer that needs to be imported.</param>
         /// <returns>A new ComputeBufferHandle.</returns>
@@ -527,21 +527,21 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        void PruneOutputlessPasses()
+        void CullOutputlessPasses()
         {
-            // Gather passes that don't produce anything and prune them.
-            m_PruningStack.Clear();
+            // Gather passes that don't produce anything and cull them.
+            m_CullingStack.Clear();
             for (int pass = 0; pass < m_CompiledPassInfos.size; ++pass)
             {
                 ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[pass];
 
-                if (passInfo.refCount == 0 && !passInfo.hasSideEffect && passInfo.allowPassPruning)
+                if (passInfo.refCount == 0 && !passInfo.hasSideEffect && passInfo.allowPassCulling)
                 {
                     // Producer is not necessary as it produces zero resources
-                    // Prune it and decrement refCount of all the resources it reads.
+                    // Cull it and decrement refCount of all the resources it reads.
                     // We don't need to go recursively here because we decrement ref count of read resources
-                    // so the subsequent passes of pruning will detect those and remove the related passes.
-                    passInfo.pruned = true;
+                    // so the subsequent passes of culling will detect those and remove the related passes.
+                    passInfo.culled = true;
                     for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
                     {
                         foreach (var index in passInfo.pass.resourceReadLists[type])
@@ -554,46 +554,46 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        void PruneUnusedPasses()
+        void CullUnusedPasses()
         {
-            if (m_DebugParameters.disablePassPruning)
+            if (m_DebugParameters.disablePassCulling)
             {
-                LogLine("- Pass pruning disabled -\n");
+                LogLine("- Pass Culling Disabled -\n");
                 return;
             }
 
-            // TODO RENDERGRAPH: temporarily remove pruning of passes without product.
-            // Many passes are used just to set global variables so we don't want to force users to disallow pruning on those explicitly every time.
-            // This will prune passes with no outputs.
-            //PruneOutputlessPasses();
+            // TODO RENDERGRAPH: temporarily remove culling of passes without product.
+            // Many passes are used just to set global variables so we don't want to force users to disallow culling on those explicitly every time.
+            // This will cull passes with no outputs.
+            //CullOutputlessPasses();
 
-            // This will prune all passes that produce resource that are never read.
+            // This will cull all passes that produce resource that are never read.
             for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
             {
                 DynamicArray<CompiledResourceInfo> resourceUsageList = m_CompiledResourcesInfos[type];
 
                 // Gather resources that are never read.
-                m_PruningStack.Clear();
+                m_CullingStack.Clear();
                 for (int i = 0; i < resourceUsageList.size; ++i)
                 {
                     if (resourceUsageList[i].refCount == 0)
                     {
-                        m_PruningStack.Push(i);
+                        m_CullingStack.Push(i);
                     }
                 }
 
-                while (m_PruningStack.Count != 0)
+                while (m_CullingStack.Count != 0)
                 {
-                    var unusedResource = resourceUsageList[m_PruningStack.Pop()];
+                    var unusedResource = resourceUsageList[m_CullingStack.Pop()];
                     foreach (var producerIndex in unusedResource.producers)
                     {
                         ref var producerInfo = ref m_CompiledPassInfos[producerIndex];
                         producerInfo.refCount--;
-                        if (producerInfo.refCount == 0 && !producerInfo.hasSideEffect && producerInfo.allowPassPruning)
+                        if (producerInfo.refCount == 0 && !producerInfo.hasSideEffect && producerInfo.allowPassCulling)
                         {
                             // Producer is not necessary anymore as it produces zero resources
-                            // Prune it and decrement refCount of all the textures it reads.
-                            producerInfo.pruned = true;
+                            // Cull it and decrement refCount of all the textures it reads.
+                            producerInfo.culled = true;
 
                             foreach (var resourceIndex in producerInfo.pass.resourceReadLists[type])
                             {
@@ -601,14 +601,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                                 resourceInfo.refCount--;
                                 // If a resource is not used anymore, add it to the stack to be processed in subsequent iteration.
                                 if (resourceInfo.refCount == 0)
-                                    m_PruningStack.Push(resourceIndex);
+                                    m_CullingStack.Push(resourceIndex);
                             }
                         }
                     }
                 }
             }
 
-            LogPrunedPasses();
+            LogCulledPasses();
         }
 
         void UpdatePassSynchronization(ref CompiledPassInfo currentPassInfo, ref CompiledPassInfo producerPassInfo, int currentPassIndex, int lastProducer, ref int intLastSyncIndex)
@@ -679,7 +679,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             var consumers = info.consumers;
             for (int i = consumers.Count - 1; i >= 0; --i)
             {
-                if (!m_CompiledPassInfos[consumers[i]].pruned)
+                if (!m_CompiledPassInfos[consumers[i]].culled)
                     return consumers[i];
             }
 
@@ -694,7 +694,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             var producers = info.producers;
             for (int i = 0; i < producers.Count; i++)
             {
-                if (!m_CompiledPassInfos[producers[i]].pruned)
+                if (!m_CompiledPassInfos[producers[i]].culled)
                     return producers[i];
             }
 
@@ -709,7 +709,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             var producers = info.producers;
             for (int i = producers.Count - 1; i >= 0; --i)
             {
-                if (!m_CompiledPassInfos[producers[i]].pruned)
+                if (!m_CompiledPassInfos[producers[i]].culled)
                     return producers[i];
             }
 
@@ -730,7 +730,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[passIndex];
 
-                if (passInfo.pruned)
+                if (passInfo.culled)
                     continue;
 
                 for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
@@ -811,16 +811,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_Resources.CreateRendererLists(m_RendererLists);
         }
 
-        // Internal for testing purpose only
+        // Internal visibility for testing purpose only
         // Traverse the render graph:
         // - Determines when resources are created/released
         // - Determines async compute pass synchronization
-        // - Prune unused render passes.
+        // - Cull unused render passes.
         internal void CompileRenderGraph()
         {
             InitializeCompilationData();
             CountReferences();
-            PruneUnusedPasses();
+            CullUnusedPasses();
             UpdateResourceAllocationAndSynchronization();
             LogRendererListsCreation();
         }
@@ -836,7 +836,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             for (int passIndex = 0; passIndex < m_CompiledPassInfos.size; ++passIndex)
             {
                 ref var passInfo = ref m_CompiledPassInfos[passIndex];
-                if (passInfo.pruned)
+                if (passInfo.culled)
                     continue;
 
                 if (!passInfo.pass.HasRenderFunc())
@@ -1003,14 +1003,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        void LogPrunedPasses()
+        void LogCulledPasses()
         {
-            LogLine("Pass pruning report:");
+            LogLine("Pass Culling Report:");
             using (new RenderGraphLogIndent(m_Logger))
             {
                 for (int i = 0; i < m_CompiledPassInfos.size; ++i)
                 {
-                    if (m_CompiledPassInfos[i].pruned)
+                    if (m_CompiledPassInfos[i].culled)
                     {
                         var pass = m_RenderPasses[i];
                         LogLine("[{0}] {1}", pass.index, pass.name);
