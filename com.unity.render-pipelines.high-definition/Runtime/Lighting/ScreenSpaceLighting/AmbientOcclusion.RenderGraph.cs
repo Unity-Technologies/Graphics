@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (RenderAOPassData data, RenderGraphContext ctx) =>
                 {
-                    RenderAO(data.parameters, ctx.resources.GetTexture(data.packedData), ctx.resources.GetTexture(data.depthPyramid), ctx.resources.GetTexture(data.normalBuffer), ctx.cmd);
+                    RenderAO(data.parameters, data.packedData, data.depthPyramid, data.normalBuffer, ctx.cmd);
                 });
 
                 return passData.packedData;
@@ -124,13 +124,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (DenoiseAOPassData data, RenderGraphContext ctx) =>
                 {
-                    var res = ctx.resources;
                     DenoiseAO(  data.parameters,
-                                res.GetTexture(data.packedData),
-                                res.GetTexture(data.packedDataBlurred),
-                                res.GetTexture(data.currentHistory),
-                                res.GetTexture(data.outputHistory),
-                                res.GetTexture(data.denoiseOutput),
+                                data.packedData,
+                                data.packedDataBlurred,
+                                data.currentHistory,
+                                data.outputHistory,
+                                data.denoiseOutput,
                                 ctx.cmd);
                 });
 
@@ -161,7 +160,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (UpsampleAOPassData data, RenderGraphContext ctx) =>
                 {
-                    UpsampleAO(data.parameters, ctx.resources.GetTexture(data.input), ctx.resources.GetTexture(data.output), ctx.cmd);
+                    UpsampleAO(data.parameters, data.input, data.output, ctx.cmd);
                 });
 
                 return passData.output;
