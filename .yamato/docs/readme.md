@@ -11,7 +11,8 @@ This script generates Yamato job definition files based on configuration/metafil
 # Structure
 - *.yamato/config/* - directory containing configurations (metafiles) for the jobs to be generated, this is where most of the changes to Yamato jobs should be introduced (Input)
 - *.yamato/*  - directory containing all the generated job definition files (.yml) (Output)
-- *.yamato/ruamel/build.py* - main script, which reads the metafiles and dumps the generated ymls into files
+- *.yamato/ruamel/build.py* - main script, which creates the actual yml files
+- *.yamato/ruamel/metafile_parser.py* - helper script to read the metafiles and retrieve according information and/or override keys from ___shared.metafile
 - *.yamato/ruamel/jobs/* - directory containing all Python modules for the jobs to be generated, which are organized into subdirectories by domains
 
 # Running the script
@@ -31,7 +32,7 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
 - Adding a new job to All_{project_name}: add the new job under all.dependencies (this job can also be from a different project) 
 - Adding a new platform/api for the project: extend the list under platforms as indicated
 - Creating a new project: create a new metafile same way as is done for existing projects. All ymls get created once the script runs
-- Use different platform than what is specified in the shared metafile: override the platform as described in the metafile description under platforms section
+- Use different agent than what is specified in the shared metafile: override the agent as described in the metafile description under platforms section
 
 ### Package related changes (_packages.metafile)
 - Adding a new package: extend packages list with new package details. The new package jobs get automatically created once the script runs (pack, publish, test, test_dependencies). The package is also automatically included in test_all and publish_all jobs.
@@ -51,7 +52,10 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
 - All files follow a similar structure and changes can be done according to the metafile descriptions given below. 
 
 ### Changes within Python
-- Creating a new job: create a new job file under a domain/, same way as existing jobs are defined. Call this job inside build.py wherever needed. Any new file paths, job ids etc specific to this project should be added to shared/namer.py, and called via this (not hardcoded)
+- Creating a new job: 
+    - Create a new job file under a domain/, same way as existing jobs are defined. 
+    - Each domain subdirectory contains a file *yml_domain.py* with a function that loops over everything defined in a metafile, and stores all the created yml jobs for this domain, and then returns a dictionary with *(key,value)* pairs of *(file_path,yml_content)* respectively. Add the newly created job into this function and make sure it is included in this dictionary with its filepath as the key.
+    - When the script runs, it will dump the new job along with the rest of the jobs in this dictionary into their respective files.
 - Changing constants, variables, paths, ids, etc: all changes should be introduced in either shared/namer.py or shared/constants.py
 - Extending the YAMLJob building block class: if new functionality is needed, e.g. a new section under any job file is needed, define it as a function under shared/yml_job.py class.
 - Changing to using split test/build for Standalone: under jobs/projects/commands/_cmd_mapper.py change the reference to which set of commands to use. For instance, to switch from Linux to Linux split, change under linux section all linux.cmd_* to linux_split.cmd_*. This simply uses the different set of commands, and the project job definition will automatically create split test/build if split commandset is used, and vice versa.
@@ -65,7 +69,7 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
 
 # FAQ
 
-- How is Nightly ABV set up (all_project_ci_nightly)? Nightly contains the normal ABV (all_project_ci), plus any additional jobs specified in the _abv.metafile under nightly extra dependencies.
+- How is Nightly ABV set up (all_project_ci_nightly)? Nightly contains the normal ABV (all_project_ci), smoke tests, plus any additional jobs specified in the _abv.metafile under nightly extra dependencies.
 - What are smoke tests? Blank Unity projects containing all SRP packages (and default packages) to make sure all packages work with each other
 - Why does OpenGLCore not have standalone? Because the GPU is simulated and this job is too resource heavy for these machines
 
@@ -93,42 +97,77 @@ test_platforms:
   playmode_XR: --suite=playmode --extra-editor-arg="-xr-tests"
   editmode: --suite=editor --platform=editmode
 
-# specifies platform details for each platform used within project jobs (dict)
-project_platforms:
+# specifies platform details for each platform 
+platforms:
   Win:
     name: Win
     os: windows
-    apis: # specifies apis with their corresponding command args
-      DX11: -force-d3d11
-      DX12: -force-d3d12
-      Vulkan: -force-vulkan
+    apis:
+      - name: DX11
+        cmd: -force-d3d11
+      - name: DX12
+        cmd: -force-d3d12
+      - name: Vulkan
+        cmd: -force-vulkan
     components:
       - editor
       - il2cpp
-    exclude_test_platforms: # mark test platforms not to be used for this platform
-      - playmode_XR
-      - ...
-    agent_default: # default agent used for each testplatform, if not overridden
-      type: Unity::VM::GPU
-      image: sdet/gamecode_win10:stable
-      flavor: b1.large
-    agent_standalone_build: # override default agent for Standalone build
+    agents_project: # agents used by all Windows project jobs (if apis use different agents, postfix this section with api. See OSX example)
+      default: # default agent is used when no specific test platform agent is specified
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+      standalone_build: 
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+      editmode: 
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+      playmode:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+      playmode_xr: 
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+    agent_package: # used for package/template related jobs
       type: Unity::VM
-      image: sdet/gamecode_win10:stable
-      flavor: b1.xlarge
-    agent_editmode: # override default agent for editmode
-      type: Unity::VM
-      image: sdet/gamecode_win10:stable
+      image: package-ci/win10:stable
       flavor: b1.large
-    agent_playmode: # override default agent for playmode
-      type: Unity::VM
-      image: sdet/gamecode_win10:stable
-      flavor: b1.large
-    agent_playmode_xr: # override default agent for playmode XR
-      type: Unity::VM
-      image: sdet/gamecode_win10:stable
-      flavor: b1.large
-  ...
+    copycmd: copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor # used for package/template jobs
+    editorpath: .\.Editor # used for package/template jobs
+  OSX:
+    name: OSX
+    os: macos
+    apis:
+      - name: Metal
+      - name: OpenGLCore
+        exclude_test_platforms: # specify which test platforms to exclude for this api
+          - Standalone
+    components:
+      - editor
+      - il2cpp
+    agents_project_Metal:  # agents used by all OSX Metal project jobs
+      default:
+        type: Unity::metal::macmini
+        image: slough-ops/macos-10.14-xcode:stable
+        flavor: m1.mac
+    agents_project_OpenGLCore: # agents used by all OSX OpenGLCore project jobs
+      default:
+        type: Unity::VM::osx
+        image: buildfarm/mac:stable
+        flavor: m1.mac
+    agent_package: 
+      type: Unity::VM::osx
+      image: package-ci/mac:stable
+      flavor: m1.mac
+    copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
+    editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
+  Linux:
+    ...
 
 # agents used by package, template etc jobs (dict)
 non_project_agents:
@@ -204,27 +243,13 @@ override_editors:
 ```
 # all platforms for editor priming jobs
 platforms:
-  - os: macos
-    components:
-      - editor
-      - il2cpp
-  - os: android
-    components:
-      - editor
-      - il2cpp
-      - android
-  - os: windows
-    components:
-      - editor
-      - il2cpp
-  - os: linux
-    components:
-      - editor
-      - il2cpp
-  - os: ios
-    components:
-      - editor
-      - iOS
+  # Exhaustive list of operating systems and editor components used by all jobs so the preparation jobs
+  # can make sure all editors are cached on cheap vms before starting the heavy duty machines for running tests
+  - name: OSX
+  - name: Android
+  - name: Win
+  - name: Linux
+  - name: iPhone
 agent: cds_ops_ubuntu_small # agent for editor priming, refers to __shared.metafile
 
 # optionally to override editors from __shared.metafile
@@ -256,22 +281,8 @@ packages:
 
 # platforms for test jobs (agents refer to __shared.metafile)
 platforms:
-    - name: Win
-      os: windows
-      components:
-      - editor
-      - il2cpp
-      agent_default: win_large_package_ci
-      copycmd: copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      editorpath: .\.Editor
-    - name: OSX
-      os: macos
-      components:
-      - editor
-      - il2cpp
-      agent_default: osx_mac_buildfarm
-      copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
+  - name: Win
+  - name: OSX
 
 # agents specific for pack/publish/publish_all jobs
 agent_pack: package_ci_win_large 
@@ -289,12 +300,12 @@ override_editors:
 # publishing variables
 publishing: # these are currently commented out and dont work though
   auto_publish: true # if true, publish_all_preview gets daily recurrent trigger
-  auto_version: tru # if true, auto_version gets branch trigger
+  auto_version: true # if true, auto_version gets branch trigger
 
 # platform dependencies for package pack and publish jobs
 platforms:
-  - os: OSX
-  - os: Win
+  - name: Win
+  - name: OSX
 
 # package dependencies
 packages:
@@ -306,7 +317,6 @@ packages:
   - ...
 
 # agents for specific jobs,referring to __shared.metafile
-agent_publish: package_ci_win_large
 agent_promote: package_ci_win_large
 agent_auto_version: package_ci_ubuntu_large
 
@@ -333,22 +343,8 @@ templates:
 
 # platforms to run template tests on
 platforms:
-    - name: Win
-      os: windows
-      components:
-      - editor
-      - il2cpp
-      agent_default: win_large_package_ci # refers to __shared.metafile
-      copycmd: copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      editorpath: .\.Editor
-    - name: OSX
-      os: macos
-      components:
-      - editor
-      - il2cpp
-      agent_default: osx_mac_buildfarm # refers to __shared.metafile
-      copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
+  - name: Win
+  - name: OSX
 
 # agents for specific jobs
 agent_pack: package_ci_win_large
@@ -362,6 +358,7 @@ override_editors:
 
 
 ### {project_name}.metafile: project jobs configuration
+If the project is just a high-level job only consisting of dependencies, then `project.folder`, `test_platforms`, and `platforms` can be left out (i.e. you only need to specify `project.name` and `all.dependencies`).
 ```
 # project details
 project:
@@ -399,22 +396,35 @@ platforms:
       - DX11
       - DX12
       - Vulkan
-  # OR override __shared.metafile platform(example for Win):
-  # - name: Win
-  #  os: windows
-  #  apis:
-  #    DX12: -force-d3d12
-  #  agent_default:
-  #    type: Unity::VM::GPU
-  #    image: sdet/gamecode_win10:stable
-  #    flavor: b1.large
-  #    model: rtx2080
-  #  components:
-  #    - editor
-  #    - il2cpp
-  #  exclude_test_platforms:
-  #    - playmode_XR
-
+  - name: Win
+    apis:
+      - DX11
+      - DX12
+      - Vulkan
+    ## override example for Win
+    # overrides: # allows to override keys under __shared platform section (copycmd, editorpath, agent_package, agents_project)
+    #  copycmd: your new copy cmd
+    #  editorpath: your new editor path
+    #  agents_project:
+    #    default:
+    #      type: Unity::VM::GPU
+    #      image: graphics-foundation/win10-dxr:stable
+    #      flavor: b1.xlarge
+    #      model: rtx2080
+    #    editmode:
+    #      type: Unity::VM
+    #      image: graphics-foundation/win10-dxr:stable
+    #      flavor: b1.xlarge
+    #    standalone:
+    #      type: Unity::VM::GPU
+    #      image: graphics-foundation/win10-dxr:stable
+    #      flavor: b1.xlarge
+    #      model: rtx2080
+    #    standalone_build:
+    #      type: Unity::VM
+    #      image: graphics-foundation/win10-dxr:stable
+    #      flavor: b1.xlarge
+    #      model: rtx2080
 
 # which jobs to run under All_{project_name} job
 # this is the same structure as in abv nightly extra dependencies
