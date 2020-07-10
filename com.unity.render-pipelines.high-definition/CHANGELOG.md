@@ -886,6 +886,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - PBR Sky now doesn't go black when going below sea level, but it instead freezes calculation as if on the horizon. 
 - Fixed an issue with quality setting foldouts not opening when clicking on them (1253088).
 - Shutter speed can now be changed by dragging the mouse over the UI label (case 1245007).
+- Remove the 'Point Cube Size' for cookie, use the Cubemap size directly.
 
 ## [7.1.1] - 2019-09-05
 
