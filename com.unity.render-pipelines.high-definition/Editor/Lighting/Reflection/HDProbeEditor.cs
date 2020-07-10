@@ -82,9 +82,14 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        protected virtual void Draw(TSerialized serialized, Editor owner)
+        protected virtual void DrawToolbar(TSerialized serialized, Editor owner)
         {
             HDProbeUI.Drawer<TProvider>.DrawToolbars(serialized, owner);
+        }
+
+        protected virtual void Draw(TSerialized serialized, Editor owner)
+        {
+            DrawToolbar(serialized, owner);
 
             HDProbeUI.Drawer<TProvider>.DrawPrimarySettings(serialized, owner);
 
@@ -114,6 +119,11 @@ namespace UnityEditor.Rendering.HighDefinition
         protected virtual void DrawHandles(TSerialized serialized, Editor owner) { }
         protected virtual void DrawAdditionalCaptureSettings(TSerialized serialiezed, Editor owner) { }
 
+        protected virtual void DoToolbarShortcutKey()
+        {
+            HDProbeUI.Drawer<TProvider>.DoToolbarShortcutKey(this);
+        }
+
         protected void OnSceneGUI()
         {
             EditorGUI.BeginChangeCheck();
@@ -121,7 +131,7 @@ namespace UnityEditor.Rendering.HighDefinition
             soo.Update();
             HDProbeUI.DrawHandles(soo, this);
 
-            HDProbeUI.Drawer<TProvider>.DoToolbarShortcutKey(this);
+            DoToolbarShortcutKey();
             DrawHandles(soo, this);
             if (EditorGUI.EndChangeCheck())
                 soo.Apply();

@@ -71,6 +71,9 @@ bool ScreenSpaceProxyRaycastRefraction(ScreenSpaceProxyRaycastInput input, out S
         case ENVSHAPETYPE_BOX:
             projectionDistance = IntersectBoxProxy(input.proxyData, rayDirPS, rayOriginPS);
             break;
+        case ENVSHAPETYPE_CONVEX:
+            projectionDistance = IntersectConvexProxy(input.proxyData, rayDirPS, rayOriginPS);
+            break;
     }
 
     float3 hitPositionWS    = input.rayOriginWS + input.rayDirWS * projectionDistance;

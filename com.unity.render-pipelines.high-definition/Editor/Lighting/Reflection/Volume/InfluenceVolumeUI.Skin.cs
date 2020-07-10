@@ -2,7 +2,6 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-
     partial class InfluenceVolumeUI
     {
         // We need to provide gamma values to the Gizmos and Handle because they are translated back to linear
@@ -35,5 +34,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static readonly GUIContent normalModeContent = EditorGUIUtility.TrTextContent("Normal", "Normal parameters mode (Box Shape only).");
         static readonly GUIContent advancedModeContent = EditorGUIUtility.TrTextContent("Advanced", "Advanced parameters mode (Box Shape only).");
+
+
+        static readonly string infiniteVolumeHelpBoxText = "The influence volume is infinite.\nThis is not supported.";
+        static readonly string shiftToSnapHelpBoxText = "Pressing Shift while editing a plane will snap it to the nearest collider under the cursor.";
+
+        static readonly GUIContent lastPlaneContent = EditorGUIUtility.TrTextContent("Last Active Plane", "The coefficients of the last active plane relative to the volume.\nXYZ is the plane normal. W is the distance to origin");
+        static readonly GUIContent addPlaneContent = EditorGUIUtility.TrTextContent("Add Plane", "Add a new plane to the volume.");
+        static readonly GUIContent cleanShapeContent = EditorGUIUtility.TrTextContent("Clean Shape", "Remove the planes not contributing to the shape.");
+        static readonly GUIContent deleteLastContent = EditorGUIUtility.TrTextContent("Delete Last Active", "Remove the last active plane from the volume.");
+        static readonly GUIContent duplicateLastContent = EditorGUIUtility.TrTextContent("Duplicate Last Active", "Duplicate the last active plane.");
     }
 }

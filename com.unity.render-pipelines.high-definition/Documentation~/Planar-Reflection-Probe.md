@@ -31,19 +31,14 @@ The following properties control the projection settings for this Planar Reflect
 
 The Influence Volume defines the area around the Probe in which reflective Materials use the results that the Probe captures to influence the reflective behavior of their surface. The Planar Reflection Probe also uses the bounds of the Influence Volume to calculate **Field Of View** if you don’t provide an override value.
 
-<a name="Workflows"></a>
-
-There are two workflows you can use to edit your Planar Reflection Probe’s Influence Volume: **Normal** mode and **Advanced** mode. The two buttons in the top right of the **Influence Volume** section allow you to select which mode to use.
-
-- **Normal** mode allows you to set a single value for the **Blend Distance**. You can use **Normal** mode with **Box** and **Sphere** Influence Volumes. 
-- **Advanced** mode allows you to define the **Blend Distance** on a per axis, per direction basis for an Influence Volume with a **Box Shape**. 
-
-| **Property**       | **Description**                                              |
-| ------------------ | ------------------------------------------------------------ |
-| **Shape**          | Defines the shape of the Influence Volume. The possible values are **Box** and **Sphere**. Selecting **Sphere** disables **Advanced** mode because you can only use **Advanced** mode for **Box** Influence Volumes. |
-| **Box Size**       | Defines the scale of each axis of the box that represents the Influence Volume. Only available with a **Box Shape**. |
-| **Radius**         | Defines the radius of the sphere that represents the Influence Volume. Only available with a **Sphere Shape**. |
-| **Blend Distance** | The inward distance from the **Box Size** or **Radius** at which this Planar Reflection Probe blends with other Reflection Probes. In **Normal** mode, this property is a single value that modulates the distance at which this Reflection Probe blends with other Reflection Probes in every direction. This mode is available for **Box** or **Sphere** Influence Volumes.In **Advanced** mode, this property uses six values, one for each side of the box. Use each of the six input fields to define the blend distance in each direction. For example, **Y** defines the blending distance for the face at the top of the box and **-Y** defines the blending distance for the face on the bottom. This mode is only available for **Box** Influence Volumes.This feature is only available for [deferred](Forward-And-Deferred-Rendering.html) Reflection Probes. |
+| **Property**              | **Description**                                              |
+| ------------------------- | ------------------------------------------------------------ |
+| **Shape**                 | Defines the shape of the Influence Volume. The possible values are **Box**, **Sphere** and **Convex**. The availability of properties below depends on the selected shape. |
+| **Box Size**              | Defines the scale of each axis of the box that represents the Influence Volume. Only available with a **Box Shape**. |
+| **Radius**                | Defines the radius of the sphere that represents the Influence Volume. Only available with a **Sphere Shape**. |
+| **Last Active Plane**     | Defines the coefficients of the last selected or modified plane of the shape. The XYZ component is the plane normal and W is the distance to the position of the probe. Only available with a **Convex Shape**. |
+| **Per Axis Control**      | Enable the checkbox to control the **Blend Distance** per axis. Only available with a **Box Shape**. |
+| **Blend Distance**        | The inward distance from the **Box Size** or **Radius** at which this Reflection Probe blends with other Reflection Probes. Only available with a **Box Shape** or a **Sphere Shape**. This feature is only available for [deferred](Forward-And-Deferred-Rendering.html) Reflection Probes.<br />For the **Box** shape, when **Per Axis Control** is enabled, this property uses six values, one for each side of the box. Use each of the six input fields to define the blend distance in each direction. For example, **Y** defines the blending distance for the face at the top of the box and **-Y** defines the blending distance for the face on the bottom.. |
 
 ### Capture Settings
 
@@ -82,7 +77,10 @@ You can use Scene view gizmos to visually customize specific properties.
 
 | **Gizmo**                             | **Property**                          | **Description**                                              |
 | ------------------------------------- | ------------------------------------- | ------------------------------------------------------------ |
-| ![](Images/ReflectionProbeGizmo1.png) | **Influence Volume bounds boundary** | Provides Scene view handles that allow you to move the boundaries of the [Influence Volume](#InfluenceVolume), which defines the area this Reflection Probe affects reflective Materials. Edits the **Box Size** or **Radius** value, depending on the **Shape** you select. |
-| ![](Images/ReflectionProbeGizmo2.png) | **Blend Distance boundary**           | Provides Scene view handles that allows you to alter the inward distance from the **Box Size** or **Radius** at which this Planar Reflection Probe blends with other Reflection Probes. Its behavior depends on the [workflow mode](#Workflows) you are using. It scales all sides equally in **Normal** mode, scales just the side with the handle you control in **Advanced** mode. |
+| ![](Images/ReflectionProbeGizmo1.png) | **Influence Volume boundary**.        | Provides Scene view handles that allow you to resize the boundaries of the [Influence Volume](#InfluenceVolume), which defines the area this Reflection Probe affects reflective Materials. Edits the **Box Size** or **Radius** value, depending on the **Shape** you select. |
+| ![](Images/ReflectionProbeGizmo2.png) | **Blend Distance boundary**.          | Provides Scene view handles that allow you to alter the inward distance from the **Box Size** or **Radius** at which this Reflection Probe blends with other Reflection Probes.For the **Box** shape, when **Per Axis Control** is enabled, there is a seprate handle for each size of the box. |
+| ![](Images/ReflectionProbeGizmo3.png) | **Blend Normal Distance boundary**.   | Provides Scene view handles that allow you to resize the boundary where pixels with a normal pointing away from the **Capture Position** don’t receive any influence from this Probe. |
+| ![](Images/ReflectionProbeGizmo5.png) | **Convex Shape Plane Rotation**.      | Provides Scene view handles that allow you to rotate the planes of a convex-shaped influence volume. Select a plane you want to rotate by clicking on the sphere and use the rotation handle to rotate the plane. |
 | ![](Images/ReflectionProbeGizmo4.png) | **Mirror Position**                   | Changes the behavior of the Move Tool so that it alters the **Mirror** **Position** property, rather than the **Position** of the **Transform**. |
 | ![](Images/ReflectionProbeGizmo5.png) | **Mirror Rotation**                   | Changes the behavior of the Rotate Tool so that it alters the **Mirror Rotation** property, rather than the **Rotation** of the **Transform**. |
+| ![](Images/ReflectionProbeGizmo6.png) | **Chrome Gizmo**.                     | Displays a chrome quad to preview the probe's texture in the scene. |

@@ -32,6 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
             { ToolBar.MirrorPosition,  EditorGUIUtility.TrIconContent("MoveTool", "Change the mirror position.") },
             { ToolBar.MirrorRotation,  EditorGUIUtility.TrIconContent("RotateTool", "Change the mirror rotation.") },
             { ToolBar.ShowChromeGizmo,  EditorGUIUtility.TrIconContent(IconReflectionProbeGizmoId, "Display the chrome gizmo.") },
+            { ToolBar.BaseShapePlanes,  EditorGUIUtility.TrIconContent("RotateTool", "Rotate the shape's planes.") },
         };
 
         const string IconReflectionProbeGizmoId =

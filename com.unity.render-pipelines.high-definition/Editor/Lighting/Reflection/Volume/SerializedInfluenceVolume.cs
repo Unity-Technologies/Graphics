@@ -18,6 +18,13 @@ namespace UnityEditor.Rendering.HighDefinition
         internal SerializedProperty sphereRadius;
         internal SerializedProperty sphereBlendDistance;
         internal SerializedProperty sphereBlendNormalDistance;
+        internal SerializedProperty convexPlanes;
+        internal SerializedProperty convexSize;
+        internal SerializedProperty convexIsInfinite;
+
+#if UNITY_EDITOR
+        internal SerializedProperty convexSelection;
+#endif
 
         internal SerializedProperty editorAdvancedModeBlendDistancePositive;
         internal SerializedProperty editorAdvancedModeBlendDistanceNegative;
@@ -44,6 +51,13 @@ namespace UnityEditor.Rendering.HighDefinition
             sphereRadius = root.Find((InfluenceVolume i) => i.sphereRadius);
             sphereBlendDistance = root.Find((InfluenceVolume i) => i.sphereBlendDistance);
             sphereBlendNormalDistance = root.Find((InfluenceVolume i) => i.sphereBlendNormalDistance);
+            convexPlanes = root.Find((InfluenceVolume i) => i.convexPlanes);
+            convexSize = root.Find((InfluenceVolume i) => i.convexSize);
+            convexIsInfinite = root.Find((InfluenceVolume i) => i.convexIsInfinite);
+
+#if UNITY_EDITOR
+            convexSelection = root.Find((InfluenceVolume i) => i.convexSelection);
+#endif
 
             editorAdvancedModeBlendDistancePositive = root.FindPropertyRelative("m_EditorAdvancedModeBlendDistancePositive");
             editorAdvancedModeBlendDistanceNegative = root.FindPropertyRelative("m_EditorAdvancedModeBlendDistanceNegative");

@@ -313,6 +313,10 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
     {
         weight = InfluenceBoxWeight(lightData, normalWS, positionWS, positionIS, dirIS);
     }
+    else if (influenceShapeType == ENVSHAPETYPE_CONVEX)
+    {
+        weight = InfluenceConvexWeight(lightData, normalWS, positionWS, positionIS, dirIS);
+    }
 
     // Smooth weighting
     weight = Smoothstep01(weight);

@@ -344,10 +344,16 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_LightVolumesCPUArray[lightIdx + indexOffset].range = new Vector3(currentEnvLight.influenceVolume.sphereRadius, currentEnvLight.influenceVolume.sphereRadius, currentEnvLight.influenceVolume.sphereRadius);
                         m_LightVolumesCPUArray[lightIdx + indexOffset].position = currentEnvLight.influenceToWorld.GetColumn(3);
                     }
-                    else
+                    else if (currentEnvLight.influenceVolume.shape == InfluenceShape.Box)
                     {
                         m_LightVolumesCPUArray[lightIdx + indexOffset].shape = 1;
                         m_LightVolumesCPUArray[lightIdx + indexOffset].range = new Vector3(currentEnvLight.influenceVolume.boxSize.x / 2.0f, currentEnvLight.influenceVolume.boxSize.y / 2.0f, currentEnvLight.influenceVolume.boxSize.z / 2.0f);
+                        m_LightVolumesCPUArray[lightIdx + indexOffset].position = currentEnvLight.influenceToWorld.GetColumn(3);
+                    }
+                    else // Convex
+                    {
+                        m_LightVolumesCPUArray[lightIdx + indexOffset].shape = 1;
+                        m_LightVolumesCPUArray[lightIdx + indexOffset].range = new Vector3(currentEnvLight.influenceVolume.convexSize.x / 2.0f, currentEnvLight.influenceVolume.convexSize.y / 2.0f, currentEnvLight.influenceVolume.convexSize.z / 2.0f);
                         m_LightVolumesCPUArray[lightIdx + indexOffset].position = currentEnvLight.influenceToWorld.GetColumn(3);
                     }
                     m_LightVolumesCPUArray[lightIdx + indexOffset].active = (currentEnvLight.gameObject.activeInHierarchy ? 1 : 0);

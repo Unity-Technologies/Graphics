@@ -41,6 +41,47 @@ float IntersectBoxProxy(EnvLightData lightData, float3 dirPS, float3 positionPS)
     return projectionDistance;
 }
 
+float IntersectConvexProxy(EnvLightData lightData, float3 dirPS, float3 positionPS)
+{
+    float projectionDistance = FLT_MAX;
+
+    for (int i = (int)lightData.influenceExtents.x; i < (int)lightData.influenceExtents.y; i++)
+    {
+        float4 plane = _ConvexShapePlanes[i];
+        float angle = dot(dirPS, plane.xyz);
+        if (angle > 0)
+            projectionDistance = min(projectionDistance, (plane.w - dot(positionPS, plane.xyz)) / angle);
+    }
+
+    // Setup projection to infinite if requested (mean no projection shape)
+    projectionDistance = max(projectionDistance, lightData.minProjectionDistance); 
+
+    // Does not handle minProjectionDistance because a convex influence volume cannot have a proxy
+    return projectionDistance;
+}
+
+float IntersectConvexProxyInfluenceWeight(EnvLightData lightData, float3 dirPS, float3 positionPS, float3 positionIS, inout float weight)
+{
+    float projectionDistance = FLT_MAX;
+
+    for (int i = (int)lightData.influenceExtents.x; i < (int)lightData.influenceExtents.y; i++)
+    {
+        float4 plane = _ConvexShapePlanes[i];
+        float angle = dot(dirPS, plane.xyz);
+        weight *= dot(positionPS, plane.xyz) < plane.w ? 1.0f : 0.0f;
+        if (angle > 0)
+            projectionDistance = min(projectionDistance, (plane.w - dot(positionPS, plane.xyz)) / angle);
+    }
+
+    // Make sure the point is inside the shape bounding box (for infinite volumes)
+    weight *= (all(positionIS > -lightData.proxyExtents) && all(positionIS < lightData.proxyExtents));
+
+    // Setup projection to infinite if requested (mean no projection shape)
+    projectionDistance = max(projectionDistance, lightData.minProjectionDistance); 
+
+    return projectionDistance;
+}
+
 float InfluenceSphereWeight(EnvLightData lightData, float3 normalWS, float3 positionWS, float3 positionLS, float3 dirLS)
 {
     float lengthPositionLS = length(positionLS);
@@ -107,6 +148,20 @@ float InfluenceBoxWeight(EnvLightData lightData, float3 normalWS, float3 positio
 #endif
 
     return alpha;
+}
+
+float InfluenceConvexWeight(EnvLightData lightData, float3 normalWS, float3 positionWS, float3 positionIS, float3 dirIS)
+{
+    float alpha = 1.0;
+
+    for (int i = (int)lightData.influenceExtents.x; i < (int)lightData.influenceExtents.y; i++)
+    {
+        float4 plane = _ConvexShapePlanes[i];
+        alpha *= dot(positionIS, plane.xyz) < plane.w ? 1.0f : 0.0f;
+    }
+
+    // Make sure the point is inside the shape bounding box (for infinite volumes)
+    return alpha * (all(positionIS > -lightData.proxyExtents) && all(positionIS < lightData.proxyExtents));
 }
 
 

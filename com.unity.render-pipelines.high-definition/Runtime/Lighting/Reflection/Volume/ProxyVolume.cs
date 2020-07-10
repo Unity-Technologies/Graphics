@@ -36,18 +36,19 @@ namespace UnityEngine.Rendering.HighDefinition
             HashUtilities.ComputeHash128(ref m_BoxSize, ref h2);
             HashUtilities.AppendHash(ref h2, ref h);
             HashUtilities.ComputeHash128(ref m_SphereRadius, ref h2);
+            HashUtilities.AppendHash(ref h2, ref h);
 
             return h;
         }
 
         Vector3 GetExtents(ProxyShape shape)
+        {
+            switch (shape)
             {
-                switch (shape)
-                {
-                    case ProxyShape.Box: return m_BoxSize * 0.5f;
-                    case ProxyShape.Sphere: return Vector3.one * m_SphereRadius;
-                    default: return Vector3.one;
-                }
+                case ProxyShape.Box: return m_BoxSize * 0.5f;
+                case ProxyShape.Sphere: return Vector3.one * m_SphereRadius;
+                default: return Vector3.one;
             }
         }
+    }
 }

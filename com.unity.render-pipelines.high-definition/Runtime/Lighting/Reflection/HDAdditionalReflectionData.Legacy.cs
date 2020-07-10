@@ -50,6 +50,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     cubeProbe.size = Vector3.one * (2 * influence.sphereRadius);
                     cubeProbe.center = Vector3.zero;
                     break;
+                case InfluenceShape.Convex:
+                    cubeProbe.size = influence.convexSize;
+                    cubeProbe.center = Vector3.zero;
+                    break;
             }
 
             // Reassign back the position

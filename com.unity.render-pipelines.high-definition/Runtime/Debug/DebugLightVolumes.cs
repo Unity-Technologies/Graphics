@@ -178,9 +178,14 @@ namespace UnityEngine.Rendering.HighDefinition
                             m_MaterialProperty.SetVector(_RangeShaderID, new Vector3(currentHDProbe.influenceVolume.sphereRadius, currentHDProbe.influenceVolume.sphereRadius, currentHDProbe.influenceVolume.sphereRadius));
                             targetMesh = DebugShapes.instance.RequestSphereMesh();
                         }
-                        else
+                        else if (currentHDProbe.influenceVolume.shape == InfluenceShape.Box)
                         {
                             m_MaterialProperty.SetVector(_RangeShaderID, new Vector3(currentHDProbe.influenceVolume.boxSize.x, currentHDProbe.influenceVolume.boxSize.y, currentHDProbe.influenceVolume.boxSize.z));
+                            targetMesh = DebugShapes.instance.RequestBoxMesh();
+                        }
+                        else // Convex
+                        {
+                            m_MaterialProperty.SetVector(_RangeShaderID, new Vector3(currentHDProbe.influenceVolume.convexSize.x, currentHDProbe.influenceVolume.convexSize.y, currentHDProbe.influenceVolume.convexSize.z));
                             targetMesh = DebugShapes.instance.RequestBoxMesh();
                         }
 

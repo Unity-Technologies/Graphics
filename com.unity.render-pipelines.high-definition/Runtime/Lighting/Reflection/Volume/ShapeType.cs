@@ -9,6 +9,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Box,
         /// <summary>A Sphere shape.</summary>
         Sphere,
+        /// <summary>A Convex shape.</summary>
+        Convex,
     }
 
     /// <summary>
