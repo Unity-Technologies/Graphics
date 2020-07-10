@@ -55,9 +55,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            // NOTE: Do NOT mix ProfilingScope with named CommandBuffers i.e. CommandBufferPool.Get("name").
-            // Currently there's an issue which results in mismatched markers.
-            CommandBuffer cmd = CommandBufferPool.Get();
+            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 context.ExecuteCommandBuffer(cmd);

@@ -17,14 +17,12 @@ namespace UnityEngine.Rendering
         public static CommandBuffer Get()
         {
             var cmd = s_BufferPool.Get();
-            // Set to empty on purpose, does not create profiling markers.
-            cmd.name = "";
+            cmd.name = "Unnamed Command Buffer";
             return cmd;
         }
 
         /// <summary>
         /// Get a new Command Buffer and assign a name to it.
-        /// Named Command Buffers will add profiling makers implicitly for the buffer execution.
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
