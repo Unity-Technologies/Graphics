@@ -61,12 +61,25 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreUtils.SetKeyword(material, "_MATERIAL_AFFECTS_EMISSION", material.GetFloat(kAffectsEmission) == 1.0f);
 
             // Setup color mask for mask map
-            ColorWriteMask mask2 = 0, mask3 = 0;
+            Decal.MaskBlendFlags flags = 0;
             if (material.HasProperty(kAffectsMetal) && material.GetFloat(kAffectsMetal) == 1.0f)
-                mask2 |= mask3 |= ColorWriteMask.Red;
+                flags |= Decal.MaskBlendFlags.Metal;
             if (material.HasProperty(kAffectsAO) && material.GetFloat(kAffectsAO) == 1.0f)
-                mask2 |= mask3 |= ColorWriteMask.Green;
+                flags |= Decal.MaskBlendFlags.AO;
             if (material.HasProperty(kAffectsSmoothness) && material.GetFloat(kAffectsSmoothness) == 1.0f)
+                flags |= Decal.MaskBlendFlags.Smoothness;
+
+            SetupColorMaskProperties(material, flags);
+        }
+
+        internal static void SetupColorMaskProperties(Material material, Decal.MaskBlendFlags flags)
+        {
+            ColorWriteMask mask2 = 0, mask3 = 0;
+            if ((flags & Decal.MaskBlendFlags.Metal) != 0)
+                mask2 |= mask3 |= ColorWriteMask.Red;
+            if ((flags & Decal.MaskBlendFlags.AO) != 0)
+                mask2 |= mask3 |= ColorWriteMask.Green;
+            if ((flags & Decal.MaskBlendFlags.Smoothness) != 0)
                 mask2 |= ColorWriteMask.Blue | ColorWriteMask.Alpha;
 
             material.SetInt(HDShaderIDs._DecalColorMask2, (int)mask2);

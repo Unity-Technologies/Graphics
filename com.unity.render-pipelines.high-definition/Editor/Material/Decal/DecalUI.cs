@@ -170,10 +170,10 @@ namespace UnityEditor.Rendering.HighDefinition
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
         static public void SetupMaterialKeywordsAndPass(Material material)
         {
-            // Setup color mask properties
-            DecalGUI.SetupMaterialKeywordsAndPass(material);
-
             Decal.MaskBlendFlags blendMode = (Decal.MaskBlendFlags)material.GetFloat(kMaskBlendMode);
+
+            // Setup color mask properties
+            DecalGUI.SetupColorMaskProperties(material, blendMode);
 
             CoreUtils.SetKeyword(material, "_ALBEDOCONTRIBUTION", material.GetFloat(kAlbedoMode) == 1.0f);
             CoreUtils.SetKeyword(material, "_COLORMAP", material.GetTexture(kBaseColorMap));
