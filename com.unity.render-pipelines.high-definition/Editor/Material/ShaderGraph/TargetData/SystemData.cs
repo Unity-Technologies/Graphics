@@ -134,6 +134,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_FirstTimeMigrationExecuted = value;
         }
 
+
+        [SerializeField]
         internal int inspectorFoldoutMask;
     }
 

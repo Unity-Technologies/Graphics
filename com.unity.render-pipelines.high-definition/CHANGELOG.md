@@ -723,6 +723,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed overused the atlas for Animated/Render Target Cookies (1259930).
 - Fixed sky asserts with XR multipass
 - Fixed for area light not updating baked light result when modifying with gizmo.
+- Fixed robustness issue with GetOddNegativeScale() in ray tracing, which was impacting normal mapping (1261160).
+- Fixed regression where moving face of the probe gizmo was not moving its position anymore.
+- Fixed XR single-pass macros in tessellation shaders.
+- Fixed path-traced subsurface scattering mixing with diffuse and specular BRDFs (1250601).
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -883,6 +887,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - PBR Sky now doesn't go black when going below sea level, but it instead freezes calculation as if on the horizon. 
 - Fixed an issue with quality setting foldouts not opening when clicking on them (1253088).
 - Shutter speed can now be changed by dragging the mouse over the UI label (case 1245007).
+- Remove the 'Point Cube Size' for cookie, use the Cubemap size directly.
 
 ## [7.1.1] - 2019-09-05
 
