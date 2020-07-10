@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reflection;
-using Data.Interfaces;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
@@ -11,7 +10,7 @@ using UnityEditor.UIElements;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
 
-namespace Drawing.Inspector.PropertyDrawers
+namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
     [SGPropertyDrawer(typeof(AbstractMaterialNode))]
     public class AbstractMaterialNodePropertyDrawer : IPropertyDrawer
