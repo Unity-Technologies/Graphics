@@ -87,7 +87,7 @@ QualitySettings:
     PS4: 0
     PSP2: 0
     Stadia: 0
-    Standalone: 1
+    Standalone: 0
     Tizen: 0
     WebGL: 0
     WiiU: 0
