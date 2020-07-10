@@ -21,6 +21,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if(!(masterNode is FabricMasterNode1 fabricMasterNode))
                 return false;
 
+            m_MigrateFromOldSG = true;
+
             // Set data
             systemData.surfaceType = (SurfaceType)fabricMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)fabricMasterNode.m_AlphaMode);

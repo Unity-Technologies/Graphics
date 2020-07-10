@@ -21,6 +21,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if(!(masterNode is HairMasterNode1 hairMasterNode))
                 return false;
 
+            m_MigrateFromOldSG = true;
+
             // Set data
             systemData.surfaceType = (SurfaceType)hairMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)hairMasterNode.m_AlphaMode);

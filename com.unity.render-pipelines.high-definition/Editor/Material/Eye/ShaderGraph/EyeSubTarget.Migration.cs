@@ -21,6 +21,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if(!(masterNode is EyeMasterNode1 eyeMasterNode))
                 return false;
 
+            m_MigrateFromOldSG = true;
+
             // Set data
             systemData.surfaceType = (SurfaceType)eyeMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)eyeMasterNode.m_AlphaMode);

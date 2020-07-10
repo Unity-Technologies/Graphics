@@ -18,6 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         SystemData m_SystemData;
         protected bool m_MigrateFromOldCrossPipelineSG; // Use only for the migration to shader stack architecture
+        protected bool m_MigrateFromOldSG; // Use only for the migration from early shader stack architecture to recent one
 
         // Interface Properties
         SystemData IRequiresData<SystemData>.data

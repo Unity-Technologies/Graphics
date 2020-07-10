@@ -358,9 +358,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (version == ShaderGraphVersion.FirstTimeMigration)
             {
 #pragma warning disable 618
-                builtinData.transparentDepthPrepass = systemData.m_TransparentDepthPrepass;
-                builtinData.transparentDepthPostpass = systemData.m_TransparentDepthPostpass;
-                builtinData.supportLodCrossFade = systemData.m_SupportLodCrossFade;
+                // If we come from old master node, nothing to do.
+                // Only perform an action if we are a shader stack
+                if (!m_MigrateFromOldSG)
+                {
+                    builtinData.transparentDepthPrepass = systemData.m_TransparentDepthPrepass;
+                    builtinData.transparentDepthPostpass = systemData.m_TransparentDepthPostpass;
+                    builtinData.supportLodCrossFade = systemData.m_SupportLodCrossFade;
+                }
 #pragma warning restore 618
             }
         }
