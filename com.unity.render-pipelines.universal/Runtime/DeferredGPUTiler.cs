@@ -200,19 +200,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (m_TileXCount > m_MaxTileXCount || m_TileYCount > m_MaxTileYCount)
             {
-                if (m_TileData != null)
-                    m_TileData.Dispose();
-                if (m_TileHeaders != null)
-                    m_TileHeaders.Dispose();
-
                 m_MaxTileXCount = m_TileXCount;
                 m_MaxTileYCount = m_TileYCount;
-                m_TileData = new ComputeBuffer(m_MaxTileXCount * m_MaxTileYCount * m_MaxLightsPerTile, 4);
-                m_TileHeaders = new ComputeBuffer(m_MaxTileXCount * m_MaxTileYCount * m_TileHeaderSize, 4);
             }
 
-
-//            m_PreTiles = DeferredShaderData.instance.GetPreTiles(m_TilerLevel, m_TileXCount * m_TileYCount);
+            m_TileData = DeferredShaderData.instance.GetGPUTilerTileData(m_TilerLevel, m_MaxTileXCount * m_MaxTileYCount * m_MaxLightsPerTile);
+            m_TileHeaders = DeferredShaderData.instance.GetGPUTilerTileHeaders(m_TilerLevel, m_MaxTileXCount * m_MaxTileYCount * m_TileHeaderSize);
 
             // Adjust render width and height to account for tile size expanding over the screen (tiles have a fixed pixel size).
             int adjustedRenderWidth = Align(renderWidth, m_TilePixelWidth);
@@ -223,60 +216,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_FrustumPlanes.right = m_FrustumPlanes.left + (m_FrustumPlanes.right - m_FrustumPlanes.left) * (adjustedRenderWidth / (float)renderWidth);
             m_FrustumPlanes.bottom = m_FrustumPlanes.top + (m_FrustumPlanes.bottom - m_FrustumPlanes.top) * (adjustedRenderHeight / (float)renderHeight);
             m_IsOrthographic = isOrthographic;
-
-            /*
-            // Tile size in world units.
-            float tileWidthWS = (m_FrustumPlanes.right - m_FrustumPlanes.left) / m_TileXCount;
-            float tileHeightWS = (m_FrustumPlanes.top - m_FrustumPlanes.bottom) / m_TileYCount;
-
-            if (!isOrthographic) // perspective
-            {
-                for (int j = 0; j < m_TileYCount; ++j)
-                {
-                    float tileTop = m_FrustumPlanes.top - tileHeightWS * j;
-                    float tileBottom = tileTop - tileHeightWS;
-
-                    for (int i = 0; i < m_TileXCount; ++i)
-                    {
-                        float tileLeft = m_FrustumPlanes.left + tileWidthWS * i;
-                        float tileRight = tileLeft + tileWidthWS;
-
-                        // Camera view space is always OpenGL RH coordinates system.
-                        // In view space with perspective projection, all planes pass by (0,0,0).
-                        PreTile preTile;
-                        preTile.planeLeft = MakePlane(new float3(tileLeft, tileBottom, -m_FrustumPlanes.zNear), new float3(tileLeft, tileTop, -m_FrustumPlanes.zNear));
-                        preTile.planeRight = MakePlane(new float3(tileRight, tileTop, -m_FrustumPlanes.zNear), new float3(tileRight, tileBottom, -m_FrustumPlanes.zNear));
-                        preTile.planeBottom = MakePlane(new float3(tileRight, tileBottom, -m_FrustumPlanes.zNear), new float3(tileLeft, tileBottom, -m_FrustumPlanes.zNear));
-                        preTile.planeTop = MakePlane(new float3(tileLeft, tileTop, -m_FrustumPlanes.zNear), new float3(tileRight, tileTop, -m_FrustumPlanes.zNear));
-
-                        m_PreTiles[i + j * m_TileXCount] = preTile;
-                    }
-                }
-            }
-            else
-            {
-                for (int j = 0; j < m_TileYCount; ++j)
-                {
-                    float tileTop = m_FrustumPlanes.top - tileHeightWS * j;
-                    float tileBottom = tileTop - tileHeightWS;
-
-                    for (int i = 0; i < m_TileXCount; ++i)
-                    {
-                        float tileLeft = m_FrustumPlanes.left + tileWidthWS * i;
-                        float tileRight = tileLeft + tileWidthWS;
-
-                        // Camera view space is always OpenGL RH coordinates system.
-                        PreTile preTile;
-                        preTile.planeLeft = MakePlane(new float3(tileLeft, tileBottom, -m_FrustumPlanes.zNear), new float3(tileLeft, tileBottom, -m_FrustumPlanes.zNear - 1.0f), new float3(tileLeft, tileTop, -m_FrustumPlanes.zNear));
-                        preTile.planeRight = MakePlane(new float3(tileRight, tileTop, -m_FrustumPlanes.zNear), new float3(tileRight, tileTop, -m_FrustumPlanes.zNear - 1.0f), new float3(tileRight, tileBottom, -m_FrustumPlanes.zNear));
-                        preTile.planeBottom = MakePlane(new float3(tileRight, tileBottom, -m_FrustumPlanes.zNear), new float3(tileRight, tileBottom, -m_FrustumPlanes.zNear - 1.0f), new float3(tileLeft, tileBottom, -m_FrustumPlanes.zNear));
-                        preTile.planeTop = MakePlane(new float3(tileLeft, tileTop, -m_FrustumPlanes.zNear), new float3(tileLeft, tileTop, -m_FrustumPlanes.zNear - 1.0f), new float3(tileRight, tileTop, -m_FrustumPlanes.zNear));
-
-                        m_PreTiles[i + j * m_TileXCount] = preTile;
-                    }
-                }
-            }
-            */
         }
 
         public void CullLights(CommandBuffer cmd, ComputeBuffer preLights, ComputeBuffer tileHeaders, ComputeBuffer tileData, int coarseTileXCount, int coarseTileYCount, int lightCount, bool isOrthographic)

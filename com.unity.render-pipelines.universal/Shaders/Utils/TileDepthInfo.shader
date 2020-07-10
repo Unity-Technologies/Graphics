@@ -3,7 +3,7 @@ Shader "Hidden/Universal Render Pipeline/TileDepthInfo"
     HLSLINCLUDE
 
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-    #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Deferred.hlsl"
+    #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/common_tiling.hlsl"
 
     #if defined(SHADER_API_D3D11) || defined(SHADER_API_METAL) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_SWITCH)
     #define USE_GATHER 1

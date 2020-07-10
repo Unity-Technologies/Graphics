@@ -17,6 +17,10 @@ namespace UnityEngine.Rendering.Universal
 
         // Precomputed tiles (for each tiler).
         NativeArray<PreTile>[] m_PreTiles = null;
+        // Tile headers (constant data per tile).
+        ComputeBuffer[] m_GpuTilerTileHeaders;
+        // Tile data (light list indices)
+        ComputeBuffer[] m_GpuTilerTileData;
         // Structured buffers and constant buffers are all allocated from this array.
         ComputeBuffer[] m_Buffers = null;
         // We need to store extra info per ComputeBuffer.
@@ -32,6 +36,8 @@ namespace UnityEngine.Rendering.Universal
         DeferredShaderData()
         {
             m_PreTiles = new NativeArray<PreTile>[DeferredConfig.kTilerDepth];
+            m_GpuTilerTileHeaders = new ComputeBuffer[DeferredConfig.kTilerDepth];
+            m_GpuTilerTileData = new ComputeBuffer[DeferredConfig.kTilerDepth];
             m_Buffers = new ComputeBuffer[64];
             m_BufferInfos = new ComputeBufferInfo[64];
         }
@@ -51,7 +57,22 @@ namespace UnityEngine.Rendering.Universal
         {
             DisposeNativeArrays(ref m_PreTiles);
 
-            for (int i = 0; i < m_Buffers.Length; ++i)
+            for (int i = 0; i < DeferredConfig.kTilerDepth; ++i)
+            {
+                if (m_GpuTilerTileHeaders[i] != null)
+                {
+                    m_GpuTilerTileHeaders[i].Dispose();
+                    m_GpuTilerTileHeaders[i] = null;
+                }
+
+                if (m_GpuTilerTileData[i] != null)
+                {
+                    m_GpuTilerTileData[i].Dispose();
+                    m_GpuTilerTileData[i] = null;
+                }
+            }
+
+            for (int i = 0; i < m_BufferCount; ++i)
             {
                 if (m_Buffers[i] != null)
                 {
@@ -70,6 +91,28 @@ namespace UnityEngine.Rendering.Universal
         internal NativeArray<PreTile> GetPreTiles(int level, int count)
         {
             return GetOrUpdateNativeArray<PreTile>(ref m_PreTiles, level, count);
+        }
+
+        internal ComputeBuffer GetGPUTilerTileHeaders(int level, int count)
+        {
+            if (m_GpuTilerTileHeaders[level] == null || m_GpuTilerTileHeaders[level].count != count)
+            {
+                if (m_GpuTilerTileHeaders[level] != null)
+                    m_GpuTilerTileHeaders[level].Dispose();
+                m_GpuTilerTileHeaders[level] = new ComputeBuffer(count, 4);
+            }
+            return m_GpuTilerTileHeaders[level];
+        }
+
+        internal ComputeBuffer GetGPUTilerTileData(int level, int count)
+        {
+            if (m_GpuTilerTileData[level] == null || m_GpuTilerTileData[level].count != count)
+            {
+                if (m_GpuTilerTileData[level] != null)
+                    m_GpuTilerTileData[level].Dispose();
+                m_GpuTilerTileData[level] = new ComputeBuffer(count, 4);
+            }
+            return m_GpuTilerTileData[level];
         }
 
         internal ComputeBuffer ReserveBuffer<T>(int count, bool asCBuffer) where T : struct
@@ -168,22 +211,6 @@ namespace UnityEngine.Rendering.Universal
             m_CachedBufferIndex = m_BufferCount;
             bufferId = m_BufferCount++;
             return m_Buffers[bufferId++];
-        }
-
-        void DisposeBuffers(ComputeBuffer[,] buffers)
-        {
-            for (int i = 0; i < buffers.GetLength(0); ++i)
-            {
-                for (int j = 0; j < buffers.GetLength(1); ++j)
-                {
-
-                    if (buffers[i, j] != null)
-                    {
-                        buffers[i, j].Dispose();
-                        buffers[i, j] = null;
-                    }
-                }
-            }
         }
 
         static bool IsLessCircular(uint a, uint b)

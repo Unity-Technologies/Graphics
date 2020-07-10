@@ -837,7 +837,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             m_GPUIndirectArgs = DeferredShaderData.instance.ReserveBuffer<uint>(4, ComputeBufferType.IndirectArguments);
             m_GPUTileList = DeferredShaderData.instance.ReserveBuffer<GPUTile>(m_GPUTilers[0].MaxTileXCount * m_GPUTilers[0].MaxTileYCount, ComputeBufferType.Structured);
-            m_GPUPunctualightsBuffer = DeferredShaderData.instance.ReserveBuffer<uint4>(m_tileVisLights.Length * sizeof_vec4_PunctualLightData, ComputeBufferType.Structured);
 
             NativeArray<uint> _GPUIndirectArgs = new NativeArray<uint>(4, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             _GPUIndirectArgs[0] = DeferredConfig.kHasNativeQuadSupport ? 4 : 6; // vertex count per instance
@@ -846,15 +845,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             _GPUIndirectArgs[3] = 0; // start instance location
             m_GPUIndirectArgs.SetData(_GPUIndirectArgs);
             _GPUIndirectArgs.Dispose();
-
-            NativeArray<uint4> _GPUPunctualLightBuffer = new NativeArray<uint4>(m_tileVisLights.Length * sizeof_vec4_PunctualLightData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-            for (int l = 0; l < m_tileVisLights.Length; ++l)
-            {
-                int visLightIndex = m_tileVisLights[l].visLightIndex;
-                StorePunctualLightData(ref _GPUPunctualLightBuffer, l, ref renderingData.lightData.visibleLights, visLightIndex);
-            }
-            m_GPUPunctualightsBuffer.SetData(_GPUPunctualLightBuffer);
-            _GPUPunctualLightBuffer.Dispose();
 
             m_GPUTilers[0].FillIndirectArgs(cmd, m_GPUIndirectArgs, m_GPUTileList, m_TileDepthInfoTexture.Identifier());
 
@@ -1391,6 +1381,21 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 MeshTopology topology = DeferredConfig.kHasNativeQuadSupport ? MeshTopology.Quads : MeshTopology.Triangles;
 
+                int sizeof_PunctualLightData = Marshal.SizeOf(typeof(PunctualLightData));
+                int sizeof_vec4_PunctualLightData = sizeof_PunctualLightData >> 4;
+
+                // Clamp number of lights to buffer limit. Constant buffers are MUCH MUCH faster than structured buffers
+                // on most platform tested.
+                int maxLightCount = (DeferredConfig.UseCBufferForLightData ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / sizeof_PunctualLightData;
+                int lightCount = min(m_tileVisLights.Length, maxLightCount);
+
+                NativeArray<uint4> punctualLightBuffer = new NativeArray<uint4>(lightCount * sizeof_vec4_PunctualLightData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                for (int l = 0; l < lightCount; ++l)
+                    StorePunctualLightData(ref punctualLightBuffer, l, ref renderingData.lightData.visibleLights, m_tileVisLights[l].visLightIndex);
+                ComputeBuffer _punctualLightBuffer = DeferredShaderData.instance.ReserveBuffer<uint4>(maxLightCount * sizeof_vec4_PunctualLightData, DeferredConfig.UseCBufferForLightData);
+                _punctualLightBuffer.SetData(punctualLightBuffer);
+                punctualLightBuffer.Dispose();
+
                 // It doesn't seem UniversalRP use this.
                 Vector4 screenSize = new Vector4(m_RenderWidth, m_RenderHeight, 1.0f / m_RenderWidth, 1.0f / m_RenderHeight);
                 cmd.SetGlobalVector(ShaderConstants._ScreenSize, screenSize);
@@ -1403,7 +1408,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalTexture(ShaderConstants._TileDepthInfoTexture, m_TileDepthInfoTexture.Identifier());
 
                 cmd.SetGlobalBuffer(ShaderConstants._TileList, m_GPUTileList);
-                cmd.SetGlobalBuffer(ShaderConstants._PunctualLightBuffer, m_GPUPunctualightsBuffer);
+
+                if (DeferredConfig.UseCBufferForLightData)
+                    cmd.SetGlobalConstantBuffer(_punctualLightBuffer, ShaderConstants.UPunctualLightBuffer, 0, maxLightCount * sizeof_PunctualLightData);
+                else
+                    cmd.SetGlobalBuffer(ShaderConstants._PunctualLightBuffer, _punctualLightBuffer);
+
                 cmd.SetGlobalBuffer(ShaderConstants._RelLightList, m_GPUTilers[0].TileData);
                 cmd.SetGlobalInt(ShaderConstants._InstanceOffset, 0);
 
