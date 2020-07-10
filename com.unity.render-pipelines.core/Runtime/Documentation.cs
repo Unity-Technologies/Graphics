@@ -34,5 +34,6 @@ namespace UnityEngine.Rendering
         //Temporary for now, there is several part of the Core documentation that are misplaced in HDRP documentation.
         //use this base url for them:
         internal const string baseURLHDRP = "https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@";
+        internal const string baseURLUniversal = "https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@";
     }
 }

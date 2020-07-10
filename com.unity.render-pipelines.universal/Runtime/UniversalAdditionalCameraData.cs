@@ -108,11 +108,21 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
-    [DisallowMultipleComponent]
-    [RequireComponent(typeof(Camera))]
-    [ImageEffectAllowedInSceneView]
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public class UniversalAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver
+    [CustomExtensionName("URP", typeof(UniversalRenderPipeline))]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "camera-component-reference" + Documentation.endURL)]
+    class UniversalCameraExtension : Camera.IExtension
     {
+        enum Version
+        {
+            Unversioned,
+            UseCameraExtension,
+
+            Max,
+            Last = Max - 1
+        }
+
+        private Camera m_Handler;
+
         [FormerlySerializedAs("renderShadows"), SerializeField]
         bool m_RenderShadows = true;
 
@@ -123,8 +133,8 @@ namespace UnityEngine.Rendering.Universal
         CameraOverrideOption m_RequiresOpaqueTextureOption = CameraOverrideOption.UsePipelineSettings;
 
         [SerializeField] CameraRenderType m_CameraType = CameraRenderType.Base;
-		[SerializeField] List<Camera> m_Cameras = new List<Camera>();
-		[SerializeField] int m_RendererIndex = -1;
+        [SerializeField] List<Camera> m_Cameras = new List<Camera>();
+        [SerializeField] int m_RendererIndex = -1;
 
         [SerializeField] LayerMask m_VolumeLayerMask = 1; // "Default"
         [SerializeField] Transform m_VolumeTrigger = null;
@@ -143,17 +153,17 @@ namespace UnityEngine.Rendering.Universal
         [FormerlySerializedAs("requiresColorTexture"), SerializeField]
         bool m_RequiresColorTexture = false;
 
-        [HideInInspector] [SerializeField] float m_Version = 2;
+        [HideInInspector, SerializeField] Version m_Version = Version.Last;
 
-        public float version => m_Version;
+        public float version => (float)m_Version;
 
-        static UniversalAdditionalCameraData s_DefaultAdditionalCameraData = null;
-        internal static UniversalAdditionalCameraData defaultAdditionalCameraData
+        static UniversalCameraExtension s_DefaultAdditionalCameraData = null;
+        internal static UniversalCameraExtension defaultAdditionalCameraData
         {
             get
             {
                 if (s_DefaultAdditionalCameraData == null)
-                    s_DefaultAdditionalCameraData = new UniversalAdditionalCameraData();
+                    s_DefaultAdditionalCameraData = new UniversalCameraExtension();
 
                 return s_DefaultAdditionalCameraData;
             }
@@ -208,16 +218,22 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
+                if (IsInactiveExtension())
+                {
+                    Debug.LogWarning(string.Format("This camera's extension is not currently active."));
+                    return null;
+                }
+
                 if (renderType != CameraRenderType.Base)
                 {
-                    var camera = gameObject.GetComponent<Camera>();
+                    var camera = m_Handler.gameObject.GetComponent<Camera>();
                     Debug.LogWarning(string.Format("{0}: This camera is of {1} type. Only Base cameras can have a camera stack.", camera.name, renderType));
                     return null;
                 }
 
                 if (scriptableRenderer.supportedRenderingFeatures.cameraStacking == false)
                 {
-                    var camera = gameObject.GetComponent<Camera>();
+                    var camera = m_Handler.gameObject.GetComponent<Camera>();
                     Debug.LogWarning(string.Format("{0}: This camera has a ScriptableRenderer that doesn't support camera stacking. Camera stack is null.", camera.name));
                     return null;
                 }
@@ -344,21 +360,18 @@ namespace UnityEngine.Rendering.Universal
             set => m_Dithering = value;
         }
 
-        public void OnBeforeSerialize()
-        {
-        }
+        void Awake(Camera camera) => m_Handler = camera;
 
-        public void OnAfterDeserialize()
-        {
-            if (version <= 1)
-            {
-                m_RequiresDepthTextureOption = (m_RequiresDepthTexture) ? CameraOverrideOption.On : CameraOverrideOption.Off;
-                m_RequiresOpaqueTextureOption = (m_RequiresColorTexture) ? CameraOverrideOption.On : CameraOverrideOption.Off;
-            }
-        }
+        void OnDisable() => m_Handler = null;
 
+        public bool IsActiveExtension() => m_Handler != null;
+        public bool IsInactiveExtension() => m_Handler == null;
+        
         public void OnDrawGizmos()
         {
+            if (IsInactiveExtension())
+                return;
+
             string path = "Packages/com.unity.render-pipelines.universal/Editor/Gizmos/";
             string gizmoName = "";
             Color tint = Color.white;
@@ -374,7 +387,7 @@ namespace UnityEngine.Rendering.Universal
 
 #if UNITY_2019_2_OR_NEWER
 #if UNITY_EDITOR
-            if (Selection.activeObject == gameObject)
+            if (Selection.activeObject == m_Handler.gameObject)
             {
                 // Get the preferences selection color
                 tint = SceneView.selectedOutlineColor;
@@ -382,12 +395,12 @@ namespace UnityEngine.Rendering.Universal
 #endif
             if (!string.IsNullOrEmpty(gizmoName))
             {
-                Gizmos.DrawIcon(transform.position, gizmoName, true, tint);
+                Gizmos.DrawIcon(m_Handler.transform.position, gizmoName, true, tint);
             }
 
             if (renderPostProcessing)
             {
-                Gizmos.DrawIcon(transform.position, $"{path}Camera_PostProcessing.png", true, tint);
+                Gizmos.DrawIcon(m_Handler.transform.position, $"{path}Camera_PostProcessing.png", true, tint);
             }
 #else
             if (renderPostProcessing)
@@ -396,6 +409,317 @@ namespace UnityEngine.Rendering.Universal
             }
             Gizmos.DrawIcon(transform.position, gizmoName);
 #endif
+        }
+
+        internal void InitFromMigration(
+            bool renderShadows,
+            CameraOverrideOption requiresDepthTextureOption,
+            CameraOverrideOption requiresOpaqueTextureOption,
+            CameraRenderType cameraType,
+            List<Camera> cameras,
+            int rendererIndex,
+            LayerMask volumeLayerMask,
+            Transform volumeTrigger,
+            bool renderPostProcessing,
+            AntialiasingMode antialiasing,
+            AntialiasingQuality antialiasingQuality,
+            bool stopNaN,
+            bool dithering,
+            bool clearDepth,
+            bool requiresDepthTexture,
+            bool requiresColorTexture
+            )
+        {
+            m_RenderShadows = renderShadows;
+            m_RequiresDepthTextureOption = requiresDepthTextureOption;
+            m_RequiresOpaqueTextureOption = requiresOpaqueTextureOption;
+            m_CameraType = cameraType;
+            m_Cameras = cameras;
+            m_RendererIndex = rendererIndex;
+            m_VolumeLayerMask = volumeLayerMask;
+            m_VolumeTrigger = volumeTrigger;
+            m_RenderPostProcessing = renderPostProcessing;
+            m_Antialiasing = antialiasing;
+            m_AntialiasingQuality = antialiasingQuality;
+            m_StopNaN = stopNaN;
+            m_Dithering = dithering;
+            m_ClearDepth = clearDepth;
+            m_RequiresDepthTexture = requiresDepthTexture;
+            m_RequiresColorTexture = requiresColorTexture;
+        }
+    }
+
+    [Obsolete("Use UniversalCameraExtension instead.")]
+    [DisallowMultipleComponent]
+    [RequireComponent(typeof(Camera))]
+    [ImageEffectAllowedInSceneView]
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public class UniversalAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver
+    {
+        private UniversalCameraExtension redirect
+        {
+            get
+            {
+                var extension = GetComponent<Camera>()?.GetExtension<UniversalCameraExtension>();
+                if (extension == null)
+                    throw new Exception($"There is no {typeof(UniversalCameraExtension)} extension on this Camera");
+                return extension;
+            }
+        }
+
+        [FormerlySerializedAs("renderShadows"), SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
+        bool m_RenderShadows = true;
+
+        [SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
+        CameraOverrideOption m_RequiresDepthTextureOption = CameraOverrideOption.UsePipelineSettings;
+
+        [SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
+        CameraOverrideOption m_RequiresOpaqueTextureOption = CameraOverrideOption.UsePipelineSettings;
+
+        [SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
+        CameraRenderType m_CameraType = CameraRenderType.Base;
+		[SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
+        List<Camera> m_Cameras = new List<Camera>();
+		[SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
+        int m_RendererIndex = -1;
+
+        [SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
+        LayerMask m_VolumeLayerMask = 1; // "Default"
+        [SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
+        Transform m_VolumeTrigger = null;
+
+        [SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
+        bool m_RenderPostProcessing = false;
+        [SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
+        AntialiasingMode m_Antialiasing = AntialiasingMode.None;
+        [SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
+        AntialiasingQuality m_AntialiasingQuality = AntialiasingQuality.High;
+        [SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
+        bool m_StopNaN = false;
+        [SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
+        bool m_Dithering = false;
+        [SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
+        bool m_ClearDepth = true;
+
+        // Deprecated:
+        [FormerlySerializedAs("requiresDepthTexture"), SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
+        bool m_RequiresDepthTexture = false;
+
+        [FormerlySerializedAs("requiresColorTexture"), SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
+        bool m_RequiresColorTexture = false;
+
+        [HideInInspector, SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
+        float m_Version = 2;
+        
+        public float version
+#pragma warning disable CS0618 // Type or member is obsolete
+            => m_Version;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+        /// <summary>
+        /// Controls if this camera should render shadows.
+        /// </summary>
+        [Obsolete("Use directly UniversalCameraExtension.renderShadows instead.")]
+        public bool renderShadows
+        {
+            get => redirect.renderShadows;
+            set => redirect.renderShadows = value;
+        }
+
+        /// <summary>
+        /// Controls if a camera should render depth.
+        /// The depth is available to be bound in shaders as _CameraDepthTexture.
+        /// <seealso cref="CameraOverrideOption"/>
+        /// </summary>
+        [Obsolete("Use directly UniversalCameraExtension.requiresDepthOption instead.")]
+        public CameraOverrideOption requiresDepthOption
+        {
+            get => redirect.requiresDepthOption;
+            set => redirect.requiresDepthOption = value;
+        }
+
+        /// <summary>
+        /// Controls if a camera should copy the color contents of a camera after rendering opaques.
+        /// The color texture is available to be bound in shaders as _CameraOpaqueTexture.
+        /// </summary>
+        [Obsolete("Use directly UniversalCameraExtension.requiresColorOption instead.")]
+        public CameraOverrideOption requiresColorOption
+        {
+            get => redirect.requiresColorOption;
+            set => redirect.requiresColorOption = value;
+        }
+
+        /// <summary>
+        /// Returns the camera renderType.
+        /// <see cref="CameraRenderType"/>.
+        /// </summary>
+        [Obsolete("Use directly UniversalCameraExtension.renderType instead.")]
+        public CameraRenderType renderType
+        {
+            get => redirect.renderType;
+            set => redirect.renderType = value;
+        }
+
+        /// <summary>
+        /// Returns the camera stack. Only valid for Base cameras.
+        /// Overlay cameras have no stack and will return null.
+        /// <seealso cref="CameraRenderType"/>.
+        /// </summary>
+        [Obsolete("Use directly UniversalCameraExtension.cameraStack instead.")]
+        public List<Camera> cameraStack => redirect.cameraStack;
+
+        /// <summary>
+        /// If true, this camera will clear depth value before rendering. Only valid for Overlay cameras.
+        /// </summary>
+        [Obsolete("Use directly UniversalCameraExtension.clearDepth instead.")]
+        public bool clearDepth => redirect.clearDepth;
+
+        /// <summary>
+        /// Returns true if this camera needs to render depth information in a texture.
+        /// If enabled, depth texture is available to be bound and read from shaders as _CameraDepthTexture after rendering skybox.
+        /// </summary>
+        [Obsolete("Use directly UniversalCameraExtension.requiresDepthTexture instead.")]
+        public bool requiresDepthTexture
+        {
+            get => redirect.requiresDepthTexture;
+            set => redirect.requiresDepthTexture = value;
+        }
+
+        /// <summary>
+        /// Returns true if this camera requires to color information in a texture.
+        /// If enabled, color texture is available to be bound and read from shaders as _CameraOpaqueTexture after rendering skybox.
+        /// </summary>
+        [Obsolete("Use directly UniversalCameraExtension.requiresColorTexture instead.")]
+        public bool requiresColorTexture
+        {
+            get => redirect.requiresColorTexture;
+            set => redirect.requiresColorTexture = value;
+        }
+
+        /// <summary>
+        /// Returns the <see cref="ScriptableRenderer"/> that is used to render this camera.
+        /// </summary>
+        [Obsolete("Use directly UniversalCameraExtension.scriptableRenderer instead.")]
+        public ScriptableRenderer scriptableRenderer => redirect.scriptableRenderer;
+
+        /// <summary>
+        /// Use this to set this Camera's current <see cref="ScriptableRenderer"/> to one listed on the Render Pipeline Asset. Takes an index that maps to the list on the Render Pipeline Asset.
+        /// </summary>
+        /// <param name="index">The index that maps to the RendererData list on the currently assigned Render Pipeline Asset</param>
+        [Obsolete("Use directly UniversalCameraExtension.SetRenderer(int) instead.")]
+        public void SetRenderer(int index) => redirect.SetRenderer(index);
+
+        [Obsolete("Use directly UniversalCameraExtension.volumeLayerMask instead.")]
+        public LayerMask volumeLayerMask
+        {
+            get => redirect.volumeLayerMask;
+            set => redirect.volumeLayerMask = value;
+        }
+
+        [Obsolete("Use directly UniversalCameraExtension.volumeTrigger instead.")]
+        public Transform volumeTrigger
+        {
+            get => redirect.volumeTrigger;
+            set => redirect.volumeTrigger = value;
+        }
+
+        /// <summary>
+        /// Returns true if this camera should render post-processing.
+        /// </summary>
+        [Obsolete("Use directly UniversalCameraExtension.renderPostProcessing instead.")]
+        public bool renderPostProcessing
+        {
+            get => redirect.renderPostProcessing;
+            set => redirect.renderPostProcessing = value;
+        }
+
+        /// <summary>
+        /// Returns the current anti-aliasing mode used by this camera.
+        /// <see cref="AntialiasingMode"/>.
+        /// </summary>
+        [Obsolete("Use directly UniversalCameraExtension.antialiasing instead.")]
+        public AntialiasingMode antialiasing
+        {
+            get => redirect.antialiasing;
+            set => redirect.antialiasing = value;
+        }
+
+        /// <summary>
+        /// Returns the current anti-aliasing quality used by this camera.
+        /// <seealso cref="antialiasingQuality"/>.
+        /// </summary>
+        [Obsolete("Use directly UniversalCameraExtension.antialiasingQuality instead.")]
+        public AntialiasingQuality antialiasingQuality
+        {
+            get => redirect.antialiasingQuality;
+            set => redirect.antialiasingQuality = value;
+        }
+
+        [Obsolete("Use directly UniversalCameraExtension.stopNaN instead.")]
+        public bool stopNaN
+        {
+            get => redirect.stopNaN;
+            set => redirect.stopNaN = value;
+        }
+
+        [Obsolete("Use directly UniversalCameraExtension.dithering instead.")]
+        public bool dithering
+        {
+            get => redirect.dithering;
+            set => redirect.dithering = value;
+        }
+        
+        public void OnBeforeSerialize() { }
+        
+        public void OnAfterDeserialize()
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            if (m_Version <= 1) //use raw accessor for migration as camera extension is not available at this moment
+            {
+                m_RequiresDepthTextureOption = (m_RequiresDepthTexture) ? CameraOverrideOption.On : CameraOverrideOption.Off;
+                m_RequiresOpaqueTextureOption = (m_RequiresColorTexture) ? CameraOverrideOption.On : CameraOverrideOption.Off;
+                m_Version = 2;
+            }
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        void Awake()
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            if (m_Version <= 2)
+#pragma warning restore CS0618 // Type or member is obsolete
+            {
+                Camera cam = GetComponent<Camera>();
+                UniversalCameraExtension extension;
+                if (cam.HasExtension<UniversalCameraExtension>())
+                    extension = cam.GetExtension<UniversalCameraExtension>();
+                else
+                    extension = cam.CreateExtension<UniversalCameraExtension>();
+
+                extension.InitFromMigration(
+#pragma warning disable CS0618 // Type or member is obsolete
+                    m_RenderShadows,
+                    m_RequiresDepthTextureOption,
+                    m_RequiresOpaqueTextureOption,
+                    m_CameraType,
+                    m_Cameras,
+                    m_RendererIndex,
+                    m_VolumeLayerMask,
+                    m_VolumeTrigger,
+                    m_RenderPostProcessing,
+                    m_Antialiasing,
+                    m_AntialiasingQuality,
+                    m_StopNaN,
+                    m_Dithering,
+                    m_ClearDepth,
+                    m_RequiresDepthTexture,
+                    m_RequiresColorTexture
+#pragma warning restore CS0618 // Type or member is obsolete
+                );
+                
+#pragma warning disable CS0618 // Type or member is obsolete
+                m_Version = 3;
+#pragma warning restore CS0618 // Type or member is obsolete
+            }
         }
     }
 }
