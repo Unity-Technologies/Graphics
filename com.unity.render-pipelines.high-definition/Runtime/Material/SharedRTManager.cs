@@ -24,8 +24,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // This texture stores a set of depth values that are required for evaluating a bunch of effects in MSAA mode (R = Samples Max Depth, G = Samples Min Depth, G =  Samples Average Depth)
         RTHandle m_CameraDepthValuesBuffer = null;
 
-        // UAV used for quad overshading and vertex density debug modes
-        RTHandle m_DebugDisplayUAV;
+        // Buffer used for quad overshading and vertex density debug modes
+        // Should be a texture but metal doesn't support texture atomics
+        ComputeBuffer m_DebugDisplayBuffer;
 
         ComputeBuffer m_CoarseStencilBuffer = null;
         RTHandle m_DecalPrePassBuffer = null;
@@ -134,8 +135,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // In case of deferred, we must be in sync with NormalBuffer.hlsl and lit.hlsl files and setup the correct buffers
                 m_NormalRT = gbufferManager.GetNormalBuffer(0); // Normal + Roughness
             }
-
-            m_DebugDisplayUAV = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, name: "DebugDisplayUAV");
         }
 
         public bool IsConsolePlatform()
@@ -347,10 +346,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_CameraDepthValuesBuffer;
         }
 
-        // Function that will return the UAV for quad overshading and vertex density debug modes
-        public RTHandle GetDebugDisplayUAV()
+        public ComputeBuffer GetDebugDisplayBuffer()
         {
-            return m_DebugDisplayUAV;
+            return m_DebugDisplayBuffer;
         }
 
         public void SetNumMSAASamples(MSAASamples msaaSamples)
@@ -379,15 +377,23 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CoarseStencilBuffer = new ComputeBuffer(HDUtils.DivRoundUp(width, 8) * HDUtils.DivRoundUp(height, 8) * viewCount, sizeof(uint));
         }
 
+        public void AllocateDebugDisplayBuffer(int width, int height)
+        {
+            m_DebugDisplayBuffer = new ComputeBuffer(width * height, sizeof(uint));
+        }
+
         public void DisposeCoarseStencilBuffer()
         {
             CoreUtils.SafeRelease(m_CoarseStencilBuffer);
         }
 
+        public void DisposeDebugDisplayBuffer()
+        {
+            CoreUtils.SafeRelease(m_DebugDisplayBuffer);
+        }
+
         public void Cleanup()
         {
-            RTHandles.Release(m_DebugDisplayUAV);
-            
             if (m_DecalLayersSupported)
                 RTHandles.Release(m_DecalPrePassBuffer);
 

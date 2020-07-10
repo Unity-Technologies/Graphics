@@ -21,7 +21,8 @@ StructuredBuffer<int2>  _DebugDepthPyramidOffsets;
 // These modes are exclusive so we make only one fullscreen allocation for both.
 // For vertex density, it stores the number of vertex projected in each pixel.
 // For quad overdraw, each 2x2 quad of the UAV contains the overdraw count in top-left pixel and the locked quad in the bottom-right pixel. The two other pixels of the quad are unused.
-RW_TEXTURE2D_X(uint, _DebugDisplayUAV) :register(u5);
+// Because metal doesn't support atomics on textures, this is actually a buffer
+RWStructuredBuffer<uint> _DebugDisplayBuffer : register(u5);
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/PBRValidator.hlsl"
 
@@ -266,26 +267,25 @@ bool ShouldFlipDebugTexture()
 
 void IncrementVertexDensityCounter(float4 positionCS)
 {
-// Texture atomics are not supported on metal
-#if !defined(SHADER_API_METAL)
     positionCS.xyz /= positionCS.w;
     float3 ndc = float3(positionCS.xy * float2(0.5, (_ProjectionParams.x > 0) ? 0.5 : -0.5) + 0.5, positionCS.z);
     // If vertex is in viewport
     if (all(ndc == saturate(ndc)))
     {
         uint2 pixel = (uint2)(ndc.xy * _ScreenSize.xy);
-        InterlockedAdd(_DebugDisplayUAV[COORD_TEXTURE2D_X(pixel)], 1);
+        InterlockedAdd(_DebugDisplayBuffer[_ScreenSize.x * pixel.y + pixel.x], 1);
     }
-#endif
 }
 
 // https://blog.selfshadow.com/2012/11/12/counting-quads/
 void IncrementQuadOverdrawCounter(uint2 positionSS, uint primitiveID)
 {
-// Texture atomics are not supported on metal
-#if !defined(SHADER_API_METAL)
-    uint2 quad = positionSS & ~1;
+#if defined(PLATFORM_SUPPORTS_BUFFER_ATOMICS_IN_PIXEL_SHADER)
     uint  prevID, thisID = primitiveID + 1;
+
+    uint2 quad = positionSS & ~1;
+    uint quad_00_idx = _ScreenSize.x * quad.y + quad.x;
+    uint quad_11_idx = _ScreenSize.x * (quad.y + 1) + quad.x + 1;
 
     bool processed  = false;
     int  lockCount  = 0;
@@ -293,14 +293,14 @@ void IncrementQuadOverdrawCounter(uint2 positionSS, uint primitiveID)
     for (int i = 0; i < 16; i++)
     {
         if (!processed)
-            InterlockedCompareExchange(_DebugDisplayUAV[COORD_TEXTURE2D_X(quad+1)], 0, thisID, prevID);
+            InterlockedCompareExchange(_DebugDisplayBuffer[quad_11_idx], 0, thisID, prevID);
 
         [branch]
             if (prevID == 0)
             {
                 // Wait a bit, then unlock for other quads
                 if (++lockCount == 2)
-                    InterlockedExchange(_DebugDisplayUAV[COORD_TEXTURE2D_X(quad+1)], 0, prevID);
+                    InterlockedExchange(_DebugDisplayBuffer[quad_11_idx], 0, prevID);
                 processed = true;
             }
 
@@ -309,7 +309,7 @@ void IncrementQuadOverdrawCounter(uint2 positionSS, uint primitiveID)
     }
 
     if (lockCount)
-        InterlockedAdd(_DebugDisplayUAV[COORD_TEXTURE2D_X(quad)], 1);
+        InterlockedAdd(_DebugDisplayBuffer[quad_00_idx], 1);
 #endif
 }
 
