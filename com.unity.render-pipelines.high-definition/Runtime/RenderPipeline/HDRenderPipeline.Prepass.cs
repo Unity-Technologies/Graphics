@@ -675,7 +675,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle            depthStencilBuffer;
             public TextureHandle            depthTexture;
             public ComputeBufferHandle      propertyMaskBuffer;
-            public TextureHandle            decalBuffer;            
+            public TextureHandle            decalBuffer;
         }
 
         struct DBufferOutput
@@ -784,7 +784,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     data.meshDecalsRendererList,
                                     data.propertyMaskBuffer,
                                     data.decalBuffer,
-                                    context.renderContext,                                    
+                                    context.renderContext,
                                     context.cmd);
                 });
             }
