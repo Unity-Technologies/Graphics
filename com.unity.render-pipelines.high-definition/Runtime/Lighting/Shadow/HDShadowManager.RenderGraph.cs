@@ -62,9 +62,9 @@ namespace UnityEngine.Rendering.HighDefinition
         static void BindAtlasTexture(RenderGraphContext ctx, TextureHandle texture, int shaderId)
         {
             if (texture.IsValid())
-                ctx.cmd.SetGlobalTexture(shaderId, ctx.resources.GetTexture(texture));
+                ctx.cmd.SetGlobalTexture(shaderId, texture);
             else
-                ctx.cmd.SetGlobalTexture(shaderId, ctx.resources.GetTexture(ctx.defaultResources.blackTexture));
+                ctx.cmd.SetGlobalTexture(shaderId, ctx.defaultResources.blackTexture);
         }
 
         void BindShadowGlobalResources(RenderGraph renderGraph, in ShadowResult shadowResult)
@@ -148,26 +148,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (RenderShadowsPassData data, RenderGraphContext context) =>
                 {
-                    RTHandle atlasTexture = context.resources.GetTexture(data.atlasTexture);
                     RenderShadows(  data.parameters,
-                                    atlasTexture,
+                                    data.atlasTexture,
                                     data.shadowDrawSettings,
                                     context.renderContext, context.cmd);
 
                     if (data.parameters.blurAlgorithm == BlurAlgorithm.EVSM)
                     {
                         RTHandle[] momentTextures = context.renderGraphPool.GetTempArray<RTHandle>(2);
-                        momentTextures[0] = context.resources.GetTexture(data.momentAtlasTexture1);
-                        momentTextures[1] = context.resources.GetTexture(data.momentAtlasTexture2);
+                        momentTextures[0] = data.momentAtlasTexture1;
+                        momentTextures[1] = data.momentAtlasTexture2;
 
-                        EVSMBlurMoments(data.parameters, atlasTexture, momentTextures, context.cmd);
+                        EVSMBlurMoments(data.parameters, data.atlasTexture, momentTextures, context.cmd);
                     }
                     else if (data.parameters.blurAlgorithm == BlurAlgorithm.IM)
                     {
-                        RTHandle momentAtlas = context.resources.GetTexture(data.momentAtlasTexture1);
-                        RTHandle intermediateSummedArea = context.resources.GetTexture(data.intermediateSummedAreaTexture);
-                        RTHandle summedArea = context.resources.GetTexture(data.summedAreaTexture);
-                        IMBlurMoment(data.parameters, atlasTexture, momentAtlas, intermediateSummedArea, summedArea, context.cmd);
+                        IMBlurMoment(data.parameters, data.atlasTexture, data.momentAtlasTexture1, data.intermediateSummedAreaTexture, data.summedAreaTexture, context.cmd);
                     }
                 });
 
