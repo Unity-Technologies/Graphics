@@ -72,6 +72,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Vector4 drawObjectPassData = new Vector4(0.0f, 0.0f, 0.0f, (m_IsOpaque) ? 1.0f : 0.0f);
                 cmd.SetGlobalVector(s_DrawObjectPassDataPropID, drawObjectPassData);
 
+                // scaleBias.x = flipSign
+                // scaleBias.y = scale
+                // scaleBias.z = bias
+                // scaleBias.w = unused
                 float flipSign = (renderingData.cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
                 Vector4 scaleBias = (flipSign < 0.0f)
                     ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
