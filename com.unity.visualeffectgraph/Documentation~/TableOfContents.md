@@ -155,6 +155,8 @@
         * [Rectangular to Polar](Operator-RectangularToPolar.md)
         * [Rectangular to Spherical](Operator-RectangularToSpherical.md)
         * [Spherical to Rectangular](Operator-SphericalToRectangular.md)
+      * Exp
+        * [Exp](Operator-Exp.md)
       * Geometry
         * [Area (Circle)](Operator-Area(Circle).md)
         * [Change Space](Operator-ChangeSpace.md)
