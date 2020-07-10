@@ -320,7 +320,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             cmd.SetComputeBufferParam(m_tileLightCullingCS, kernelIndex, "_Lights", preLights);
             cmd.SetComputeBufferParam(m_tileLightCullingCS, kernelIndex, "_TileHeaders", tileHeaders);
-            cmd.SetComputeBufferParam(m_tileLightCullingCS, kernelIndex, "_TileData", tileData);
+            cmd.SetComputeBufferParam(m_tileLightCullingCS, kernelIndex, DeferredLights.ShaderConstants._TileData, tileData);
             cmd.SetComputeBufferParam(m_tileLightCullingCS, kernelIndex, "_OutTileHeaders", m_TileHeaders);
             cmd.SetComputeBufferParam(m_tileLightCullingCS, kernelIndex, "_OutTileData", m_TileData);
             cmd.SetComputeConstantBufferParam(m_tileLightCullingCS, "UCullLights", uCullLights, 0, Marshal.SizeOf<UCullLights>());
@@ -333,7 +333,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.DispatchCompute(m_tileLightCullingCS, kernelIndex, m_TileXCount, m_TileYCount, 1);
         }
 
-        public void FillIndirectArgs(CommandBuffer cmd, ComputeBuffer indirectArgs, ComputeBuffer tileList)
+        public void FillIndirectArgs(CommandBuffer cmd, ComputeBuffer indirectArgs, ComputeBuffer tileList, RenderTargetIdentifier tileDepthInfoTexture)
         {
             int kernelIndex = 8;
 
@@ -347,7 +347,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             uDrawIndirectArgs.SetData(drawIndirectArgs);
             drawIndirectArgs.Dispose();
 
+            cmd.SetComputeTextureParam(m_tileLightCullingCS, kernelIndex, DeferredLights.ShaderConstants._TileDepthInfoTexture, tileDepthInfoTexture);
             cmd.SetComputeBufferParam(m_tileLightCullingCS, kernelIndex, DeferredLights.ShaderConstants._TileHeaders, m_TileHeaders);
+            cmd.SetComputeBufferParam(m_tileLightCullingCS, kernelIndex, DeferredLights.ShaderConstants._TileData, m_TileData);
             cmd.SetComputeBufferParam(m_tileLightCullingCS, kernelIndex, "_OutIndirectArgs", indirectArgs);
             cmd.SetComputeBufferParam(m_tileLightCullingCS, kernelIndex, "_OutTileList", tileList);
             cmd.SetComputeConstantBufferParam(m_tileLightCullingCS, "UDrawIndirectArgs", uDrawIndirectArgs, 0, Marshal.SizeOf<UDrawIndirectArgs>());

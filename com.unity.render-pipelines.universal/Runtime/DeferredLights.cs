@@ -125,6 +125,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public static class ShaderConstants
         {
             public static readonly int _TileHeaders = Shader.PropertyToID("_TileHeaders");
+            public static readonly int _TileData = Shader.PropertyToID("_TileData");
             public static readonly int UDepthRanges = Shader.PropertyToID("UDepthRanges");
             public static readonly int _DepthRanges = Shader.PropertyToID("_DepthRanges");
             public static readonly int _DownsamplingWidth = Shader.PropertyToID("_DownsamplingWidth");
@@ -147,6 +148,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _InstanceOffset = Shader.PropertyToID("_InstanceOffset");
             public static readonly int _DepthTex = Shader.PropertyToID("_DepthTex");
             public static readonly int _DepthTexSize = Shader.PropertyToID("_DepthTexSize");
+            public static readonly int _TileDepthInfoTexture = Shader.PropertyToID("_TileDepthInfoTexture");
             public static readonly int _ScreenSize = Shader.PropertyToID("_ScreenSize");
 
             public static readonly int _ScreenToWorld = Shader.PropertyToID("_ScreenToWorld");
@@ -775,7 +777,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBufferPool.Release(cmd);
         }
 
-        public void ExecuteComputePass(ScriptableRenderContext context, ref RenderingData renderingData)
+        public void ExecuteComputePass0(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             if (!m_HasTileVisLights)
                 return;
@@ -820,6 +822,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                 coarseTiler = m_GPUTilers[tilerIndex];
             }
 
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+        }
+
+        public void ExecuteComputePass1(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            if (!m_HasTileVisLights)
+                return;
+
+            CommandBuffer cmd = CommandBufferPool.Get(k_ComputePass);
             int sizeof_PunctualLightData = Marshal.SizeOf(typeof(PunctualLightData));
             int sizeof_vec4_PunctualLightData = sizeof_PunctualLightData >> 4;
 
@@ -844,7 +856,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_GPUPunctualightsBuffer.SetData(_GPUPunctualLightBuffer);
             _GPUPunctualLightBuffer.Dispose();
 
-            m_GPUTilers[0].FillIndirectArgs(cmd, m_GPUIndirectArgs, m_GPUTileList);
+            m_GPUTilers[0].FillIndirectArgs(cmd, m_GPUIndirectArgs, m_GPUTileList, m_TileDepthInfoTexture.Identifier());
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -852,6 +864,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void ExecuteDeferredPass(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            if (this.TiledDeferredShading == TileShading.GPU)
+                ExecuteComputePass1(context, ref renderingData);
+
             CommandBuffer cmd = CommandBufferPool.Get(k_DeferredPass);
 
             Profiler.BeginSample(k_DeferredPass);
@@ -1340,7 +1355,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetGlobalInt(ShaderConstants._TilePixelWidth, tileWidth);
             cmd.SetGlobalInt(ShaderConstants._TilePixelHeight, tileHeight);
 
-            cmd.SetGlobalTexture(m_TileDepthInfoTexture.id, m_TileDepthInfoTexture.Identifier());
+            cmd.SetGlobalTexture(ShaderConstants._TileDepthInfoTexture, m_TileDepthInfoTexture.Identifier());
 
             for (int i = 0; i < drawCallCount; ++i)
             {
@@ -1385,7 +1400,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalInt(ShaderConstants._TilePixelWidth, tileWidth);
                 cmd.SetGlobalInt(ShaderConstants._TilePixelHeight, tileHeight);
 
-                cmd.SetGlobalTexture(m_TileDepthInfoTexture.id, m_TileDepthInfoTexture.Identifier());
+                cmd.SetGlobalTexture(ShaderConstants._TileDepthInfoTexture, m_TileDepthInfoTexture.Identifier());
 
                 cmd.SetGlobalBuffer(ShaderConstants._TileList, m_GPUTileList);
                 cmd.SetGlobalBuffer(ShaderConstants._PunctualLightBuffer, m_GPUPunctualightsBuffer);

@@ -4,27 +4,17 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Deferred.hlsl"
+    #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/common_tiling.hlsl"
 
     // XR not supported in 2020.1 preview
     #define XR_MODE 0
+
+    #if defined(_GPU_TILING)
+        #define TRIM_LIGHT_LIST_IN_VS 0
+    #else
+        #define TRIM_LIGHT_LIST_IN_VS 1
+    #endif
     
-    struct CPUTile
-    {
-        uint tileID;                 // 2 ushorts
-        uint listBitMask;            // 1 uint
-        uint relLightOffsetAndCount; // 2 ushorts
-        uint unused;
-    };
-
-    struct GPUTile
-    {
-        uint tileID;                 // 2 ushorts
-        uint listBitMask;            // 1 uint
-        uint relLightOffset;
-        uint relLightCount;
-    };
-
-
     #if defined(_GPU_TILING)
         #define TileData GPUTile
         int GetTileLightRelativeOffset(GPUTile tile) { return tile.relLightOffset; }
@@ -63,12 +53,6 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
     #endif
 
-    // Keep in sync with PackTileID().
-    uint2 UnpackTileID(uint tileID)
-    {
-        return uint2(tileID & 0xFFFF, (tileID >> 16) & 0xFFFF);
-    }
-
     uint _TilePixelWidth;
     uint _TilePixelHeight;
     uint _InstanceOffset;
@@ -104,21 +88,25 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
     Varyings Vertex(Attributes input)
     {
+        Varyings output = (Varyings)0;
+
         uint instanceID = _InstanceOffset + input.instanceID;
         TileData tileData = LoadTileData(instanceID);
         uint2 tileCoord = UnpackTileID(tileData.tileID);
-        uint geoDepthBitmask = _TileDepthInfoTexture.Load(int3(tileCoord, 0)).x;
-        bool shouldDiscard = (geoDepthBitmask & tileData.listBitMask) == 0;
 
-        Varyings output;
+        // When the GPU does the tiling, the compute shader will discard the tile if the geometry does not intersect the light list.
+        #if TRIM_LIGHT_LIST_IN_VS
+            uint geoDepthBitmask = _TileDepthInfoTexture.Load(int3(tileCoord, 0)).x;
+            bool shouldDiscard = (geoDepthBitmask & tileData.listBitMask) == 0;
 
-        [branch] if (shouldDiscard)
-        {
-            output.positionCS = float4(-2, -2, -2, 1);
-            output.posCS = output.positionCS;
-            output.relLightOffsets = 0;
-            return output;
-        }
+            [branch] if (shouldDiscard)
+            {
+                output.positionCS = float4(-2, -2, -2, 1);
+                output.posCS = output.positionCS;
+                output.relLightOffsets = 0;
+                return output;
+            }
+        #endif
 
         // This handles both "real quad" and "2 triangles" cases: remaps {0, 1, 2, 3, 4, 5} into {0, 1, 2, 3, 0, 2}.
         uint quadIndex = (input.vertexID & 0x03) + (input.vertexID >> 2) * (input.vertexID & 0x01);
@@ -145,15 +133,13 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             int relLightOffset = GetTileLightRelativeOffset(tileData);
             int relLightOffsetEnd = relLightOffset + GetTileLightRelativeCount(tileData);
 
-            // When GPU is doing the light culling, it will also trim the light list in the compute shader (not limited to trim edges of the list).
-            #if !_GPU_TILING
+            // When the GPU does the tiling, it will also trim the light list in the compute shader (not limited to trim edges of the list).
+            #if TRIM_LIGHT_LIST_IN_VS
             // Trim beginning of the light list.
             [loop] for (; relLightOffset < relLightOffsetEnd; ++relLightOffset)
             {
                 uint lightIndexAndRange = LoadRelLightIndexAndRange(relLightOffset);
-                uint firstBit = (lightIndexAndRange >> 16) & 0xFF;
-                uint bitCount = lightIndexAndRange >> 24;
-                uint lightBitmask = (0xFFFFFFFF >> (32 - bitCount)) << firstBit;
+                uint lightBitmask = LoadLightBitmask(lightIndexAndRange);
 
                 [branch] if ((geoDepthBitmask & lightBitmask) != 0)
                     break;
@@ -163,9 +149,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             [loop] for (; relLightOffsetEnd >= relLightOffset; --relLightOffsetEnd)
             {
                 uint lightIndexAndRange = LoadRelLightIndexAndRange(relLightOffsetEnd - 1);
-                uint firstBit = (lightIndexAndRange >> 16) & 0xFF;
-                uint bitCount = lightIndexAndRange >> 24;
-                uint lightBitmask = (0xFFFFFFFF >> (32 - bitCount)) << firstBit;
+                uint lightBitmask = LoadLightBitmask(lightIndexAndRange);
 
                 [branch] if ((geoDepthBitmask & lightBitmask) != 0)
                     break;
@@ -174,11 +158,6 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
             output.relLightOffsets.x = relLightOffset;
             output.relLightOffsets.y = relLightOffsetEnd;
-        }
-        else
-        {
-            output.relLightOffsets.x = 0;
-            output.relLightOffsets.y = 0;
         }
 
         return output;
@@ -297,7 +276,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             while(++li < input.relLightOffsets.y);
 
         #endif
-        
+
         return half4(color, 0.0);
     }
 

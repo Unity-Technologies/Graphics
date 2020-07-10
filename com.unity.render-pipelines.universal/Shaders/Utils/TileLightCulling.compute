@@ -12,6 +12,7 @@
 //#pragma enable_d3d11_debug_symbols
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/common_tiling.hlsl"
 
 #if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
 #define PLATFORM_LANE_COUNT 32
@@ -77,14 +78,6 @@ void StoreTileHeader(RWStructuredBuffer<uint> tileHeaders, int index, TileHeader
         tileHeaders[index + 1] = th.listCount;
     }
 }
-
-struct GPUTile
-{
-    uint tileID;                 // 2 ushorts
-    uint listBitMask;            // 1 uint
-    uint relLightOffset;         // needs 32 bits
-    uint relLightCount;
-};
 
 //_________________________________________________________________________________________________
 
@@ -198,6 +191,7 @@ void CSCullLights (uint3 groupId: SV_GroupId, uint groupThreadIndex : SV_GroupIn
     #if CS_CULL_FINAL_LIGHTS
     float listMinDepth = FLT_MAX;
     float listMaxDepth = 0;
+    uint lightIndices[kMaxLightPerThread];
     float2 lightDepthRanges[kMaxLightPerThread];
     // how many lights that particular thread processed.
     int threadLightCount = 0;
@@ -255,16 +249,20 @@ void CSCullLights (uint3 groupId: SV_GroupId, uint groupThreadIndex : SV_GroupIn
         #endif
 
         #if CS_CULL_FINAL_LIGHTS
-        listMinDepth = min(listMinDepth, t0);
-        listMaxDepth = max(listMaxDepth, t1);
-        if (threadLightCount < kMaxLightPerThread)
-            lightDepthRanges[threadLightCount++] = float2(t0, t1);
+            listMinDepth = min(listMinDepth, t0);
+            listMaxDepth = max(listMaxDepth, t1);
+            if (threadLightCount < kMaxLightPerThread)
+            {
+                lightIndices[threadLightCount] = lightIndex;
+                lightDepthRanges[threadLightCount] = float2(t0, t1);
+                ++threadLightCount;
+            }
+        #else
+            // Add to output light list.
+            uint prevCount;
+            InterlockedAdd(g_ListCount, 1, prevCount);
+            _OutTileData[listOffset + prevCount] = lightIndex;
         #endif
-
-        // Add to output light list.
-        uint prevCount;
-        InterlockedAdd(g_ListCount, 1, prevCount);
-        _OutTileData[listOffset + prevCount] = lightIndex;
     }
 
     #if CS_CULL_FINAL_LIGHTS
@@ -297,7 +295,9 @@ void CSCullLights (uint3 groupId: SV_GroupId, uint groupThreadIndex : SV_GroupIn
 
         InterlockedOr(g_ListBitMask, bitMask);
 
-    //  tiles[culledLightCount + culledLightIndex] = (ushort)((uint)firstBit | (uint)(bitCount << 8));
+        uint prevCount;
+        InterlockedAdd(g_ListCount, 1, prevCount);
+        _OutTileData[listOffset + prevCount] = StoreLightBitmask(lightIndices[i], firstBit, bitCount);
     }
     #endif
 
@@ -334,7 +334,11 @@ void CSCullLights (uint3 groupId: SV_GroupId, uint groupThreadIndex : SV_GroupIn
 
 #if CS_DRAW_INDIRECT_ARGS
 
+#define TRIM_LIGHT_LIST_IN_CS 1
+
+Texture2D<uint> _TileDepthInfoTexture;
 StructuredBuffer<uint> _TileHeaders;
+RWStructuredBuffer<uint> _TileData;
 RWStructuredBuffer<uint> _OutIndirectArgs;
 RWStructuredBuffer<GPUTile> _OutTileList;
 
@@ -347,29 +351,55 @@ CBUFFER_END
 [numthreads(PLATFORM_LANE_X, PLATFORM_LANE_Y, 1)]
 void CSDrawIndirectArgs (uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    // Each thread load a tile. If not empty, add it to the list of tiles to render.
+    // Each thread load a tile, trim the light list and if not empty, finally adds it to the list of tiles to render.
 
     if (dispatchThreadId.x >= _TileCount.x || dispatchThreadId.y >= _TileCount.y)
         return;
 
+    uint2 tileCoord = dispatchThreadId.xy;
     uint tileIndex = dispatchThreadId.x + dispatchThreadId.y * _TileCount.x;
     uint listOffset = tileIndex * _MaxLightsPerTile;
     TileHeader tileHeader = LoadTileHeader(_TileHeaders, tileIndex, true);
 
-    if (tileHeader.listCount > 0)
-    {
-        uint prevTileCount;
-        InterlockedAdd(_OutIndirectArgs[1], 1, prevTileCount);
+    [branch] if (tileHeader.listCount == 0)
+        return;
 
-        GPUTile tile;
-        tile.tileID = dispatchThreadId.x | (dispatchThreadId.y << 16); // PackTileID()
-        tile.listBitMask = tileHeader.listBitMask;
-        tile.relLightOffset = listOffset;
-        tile.relLightCount = tileHeader.listCount;
+    #if TRIM_LIGHT_LIST_IN_CS
+        uint geoDepthBitmask = _TileDepthInfoTexture.Load(int3(tileCoord, 0)).x;
+        bool shouldDiscard = (geoDepthBitmask & tileHeader.listBitMask) == 0;
+        [branch] if (shouldDiscard)
+            return;
 
-        _OutTileList[prevTileCount] = tile;
-    }
+        // Traverse light list and rewrite it.
+        int newListCount = 0;
+        for (int i = 0; i < tileHeader.listCount; ++i)
+        {
+            uint lightIndexAndRange = _TileData[listOffset + i];
+            uint lightBitMask = LoadLightBitmask(lightIndexAndRange);
+            if ((lightBitMask & geoDepthBitmask) != 0)
+            {
+                _TileData[listOffset + newListCount] = lightIndexAndRange;
+                ++newListCount;
+            }
+        }
+        [branch] if (newListCount == 0)
+            return;
+    #else
 
+        int newListCount = tileHeader.listCount;
+
+    #endif
+
+    uint prevTileCount;
+    InterlockedAdd(_OutIndirectArgs[1], 1, prevTileCount);
+
+    GPUTile tile;
+    tile.tileID = PackTileID(dispatchThreadId.xy);
+    tile.listBitMask = tileHeader.listBitMask;
+    tile.relLightOffset = listOffset;
+    tile.relLightCount = newListCount;
+
+    _OutTileList[prevTileCount] = tile;
 }
 
 //_________________________________________________________________________________________________
