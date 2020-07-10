@@ -160,6 +160,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added decal layer system similar to light layer. Mesh will receive a decal when both decal layer mask matches.
 - Added shader graph nodes for rendering a complex eye shader.
 - Added more controls to contact shadows and increased quality in some parts. 
+- Added a physically based option in DoF volume.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
