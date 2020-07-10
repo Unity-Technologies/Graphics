@@ -234,24 +234,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderCustomPass(m_RenderGraph, hdCamera, postProcessDest, prepassOutput.depthBuffer, prepassOutput.normalBuffer, customPassCullingResults, CustomPassInjectionPoint.AfterPostProcess, aovRequest, aovBuffers);
 
-            // TODO RENDERGRAPH
-            //// Copy and rescale depth buffer for XR devices
-            //if (hdCamera.xr.enabled && hdCamera.xr.copyDepth)
-            //{
-            //    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.XRDepthCopy)))
-            //    {
-            //        var depthBuffer = m_SharedRTManager.GetDepthStencilBuffer();
-            //        var rtScale = depthBuffer.rtHandleProperties.rtHandleScale / DynamicResolutionHandler.instance.GetCurrentScale();
-
-            //        m_CopyDepthPropertyBlock.SetTexture(HDShaderIDs._InputDepth, depthBuffer);
-            //        m_CopyDepthPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, rtScale);
-            //        m_CopyDepthPropertyBlock.SetInt("_FlipY", 1);
-
-            //        cmd.SetRenderTarget(target.id, 0, CubemapFace.Unknown, -1);
-            //        cmd.SetViewport(hdCamera.finalViewport);
-            //        CoreUtils.DrawFullScreen(cmd, m_CopyDepth, m_CopyDepthPropertyBlock);
-            //    }
-            //}
+            CopyXRDepth(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, backBuffer);
 
             // In developer build, we always render post process in m_AfterPostProcessBuffer at (0,0) in which we will then render debug.
             // Because of this, we need another blit here to the final render target at the right viewport.
@@ -388,6 +371,44 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                     }
                 });
+            }
+        }
+
+        class CopyXRDepthPassData
+        {
+            public Material         copyDepth;
+            public Rect             viewport;
+            public TextureHandle    depthBuffer;
+            public TextureHandle    output;
+        }
+
+        void CopyXRDepth(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle output)
+        {
+            // Copy and rescale depth buffer for XR devices
+            if (hdCamera.xr.enabled && hdCamera.xr.copyDepth)
+            {
+                using (var builder = renderGraph.AddRenderPass<CopyXRDepthPassData>("Copy XR Depth", out var passData, ProfilingSampler.Get(HDProfileId.XRDepthCopy)))
+                {
+                    passData.copyDepth = m_CopyDepth;
+                    passData.viewport = hdCamera.finalViewport;
+                    passData.depthBuffer = builder.ReadTexture(depthBuffer);
+                    passData.output = builder.WriteTexture(output);
+
+                    builder.SetRenderFunc(
+                    (CopyXRDepthPassData data, RenderGraphContext ctx) =>
+                    {
+                        var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
+                        RTHandle depthRT = data.depthBuffer;
+
+                        mpb.SetTexture(HDShaderIDs._InputDepth, data.depthBuffer);
+                        mpb.SetVector(HDShaderIDs._BlitScaleBias, depthRT.rtHandleProperties.rtHandleScale / DynamicResolutionHandler.instance.GetCurrentScale());
+                        mpb.SetInt("_FlipY", 1);
+
+                        ctx.cmd.SetRenderTarget(data.output, 0, CubemapFace.Unknown, -1);
+                        ctx.cmd.SetViewport(data.viewport);
+                        CoreUtils.DrawFullScreen(ctx.cmd, data.copyDepth, mpb);
+                    });
+                }
             }
         }
 
