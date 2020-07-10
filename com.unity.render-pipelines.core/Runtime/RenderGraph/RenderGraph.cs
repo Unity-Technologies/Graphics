@@ -53,6 +53,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     {
         public bool clearRenderTargetsAtCreation;
         public bool clearRenderTargetsAtRelease;
+        public bool disablePassPruning;
         public bool logFrameInformation;
         public bool logResources;
 
@@ -61,8 +62,25 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             var list = new List<DebugUI.Widget>();
             list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at creation", getter = () => clearRenderTargetsAtCreation, setter = value => clearRenderTargetsAtCreation = value });
             list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at release", getter = () => clearRenderTargetsAtRelease, setter = value => clearRenderTargetsAtRelease = value });
-            list.Add(new DebugUI.Button { displayName = "Log Frame Information", action = () => logFrameInformation = true });
-            list.Add(new DebugUI.Button { displayName = "Log Resources", action = () => logResources = true });
+            list.Add(new DebugUI.BoolField { displayName = "Disable Pass Pruning", getter = () => disablePassPruning, setter = value => disablePassPruning = value });
+            list.Add(new DebugUI.Button { displayName = "Log Frame Information",
+                action = () =>
+                {
+                    logFrameInformation = true;
+                #if UNITY_EDITOR
+                    UnityEditor.SceneView.RepaintAll();
+                #endif
+                }
+            });
+            list.Add(new DebugUI.Button { displayName = "Log Resources",
+                action = () =>
+                {
+                    logResources = true;
+                #if UNITY_EDITOR
+                    UnityEditor.SceneView.RepaintAll();
+                #endif
+                }
+            });
 
             var panel = DebugManager.instance.GetPanel("Render Graph", true);
             panel.children.Add(list.ToArray());
@@ -538,6 +556,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         void PruneUnusedPasses()
         {
+            if (m_DebugParameters.disablePassPruning)
+            {
+                LogLine("- Pass pruning disabled -\n");
+                return;
+            }
+
             // TODO RENDERGRAPH: temporarily remove pruning of passes without product.
             // Many passes are used just to set global variables so we don't want to force users to disallow pruning on those explicitly every time.
             // This will prune passes with no outputs.
@@ -948,55 +972,51 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_RenderPasses.Clear();
         }
 
-        void LogFrameInformation(int renderingWidth, int renderingHeight)
+        void LogLine(string format, params object[] args)
         {
             if (m_DebugParameters.logFrameInformation)
             {
-                m_Logger.LogLine("==== Staring frame at resolution ({0}x{1}) ====", renderingWidth, renderingHeight);
-                m_Logger.LogLine("Number of passes declared: {0}\n", m_RenderPasses.Count);
+                m_Logger.LogLine(format, args);
             }
+        }
+
+        void LogFrameInformation(int renderingWidth, int renderingHeight)
+        {
+            LogLine("==== Staring frame at resolution ({0}x{1}) ====", renderingWidth, renderingHeight);
+            LogLine("Number of passes declared: {0}\n", m_RenderPasses.Count);
         }
 
         void LogRendererListsCreation()
         {
-            if (m_DebugParameters.logFrameInformation)
-            {
-                m_Logger.LogLine("Number of renderer lists created: {0}\n", m_RendererLists.Count);
-            }
+            LogLine("Number of renderer lists created: {0}\n", m_RendererLists.Count);
         }
 
         void LogRenderPassBegin(in CompiledPassInfo passInfo)
         {
-            if (m_DebugParameters.logFrameInformation)
-            {
-                RenderGraphPass pass = passInfo.pass;
+            RenderGraphPass pass = passInfo.pass;
 
-                m_Logger.LogLine("[{0}][{1}] \"{2}\"", pass.index, pass.enableAsyncCompute ? "Compute" : "Graphics", pass.name);
-                using (new RenderGraphLogIndent(m_Logger))
-                {
-                    if (passInfo.syncToPassIndex != -1)
-                        m_Logger.LogLine("Synchronize with [{0}]", passInfo.syncToPassIndex);
-                }
+            LogLine("[{0}][{1}] \"{2}\"", pass.index, pass.enableAsyncCompute ? "Compute" : "Graphics", pass.name);
+            using (new RenderGraphLogIndent(m_Logger))
+            {
+                if (passInfo.syncToPassIndex != -1)
+                    LogLine("Synchronize with [{0}]", passInfo.syncToPassIndex);
             }
         }
 
         void LogPrunedPasses()
         {
-            if (m_DebugParameters.logFrameInformation)
+            LogLine("Pass pruning report:");
+            using (new RenderGraphLogIndent(m_Logger))
             {
-                m_Logger.LogLine("Pass pruning report:");
-                using (new RenderGraphLogIndent(m_Logger))
+                for (int i = 0; i < m_CompiledPassInfos.size; ++i)
                 {
-                    for (int i = 0; i < m_CompiledPassInfos.size; ++i)
+                    if (m_CompiledPassInfos[i].pruned)
                     {
-                        if (m_CompiledPassInfos[i].pruned)
-                        {
-                            var pass = m_RenderPasses[i];
-                            m_Logger.LogLine("[{0}] {1}", pass.index, pass.name);
-                        }
+                        var pass = m_RenderPasses[i];
+                        LogLine("[{0}] {1}", pass.index, pass.name);
                     }
-                    m_Logger.LogLine("\n");
                 }
+                LogLine("\n");
             }
         }
 
