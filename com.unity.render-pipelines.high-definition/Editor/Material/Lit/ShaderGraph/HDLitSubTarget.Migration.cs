@@ -41,8 +41,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.doubleSidedMode = pbrMasterNode.m_TwoSided ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled;
             // Previous master node wasn't having any renderingPass. Assign it correctly now.
             systemData.renderingPass = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
-            systemData.dotsInstancing = false;
             systemData.alphaTest = HDSubShaderUtilities.UpgradeLegacyAlphaClip(pbrMasterNode);
+            systemData.dotsInstancing = false;
             builtinData.addPrecomputedVelocity = false;
             lightingData.blendPreserveSpecular = false;
             lightingData.normalDropOffSpace = pbrMasterNode.m_NormalDropOffSpace;
@@ -109,17 +109,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (systemData.renderingPass == HDRenderQueue.RenderQueueType.Background)
                 systemData.renderingPass = HDRenderQueue.RenderQueueType.Opaque;
             systemData.alphaTest = hdLitMasterNode.m_AlphaTest;
+            systemData.transparentDepthPrepass = hdLitMasterNode.m_AlphaTestDepthPrepass;
+            systemData.transparentDepthPostpass = hdLitMasterNode.m_AlphaTestDepthPostpass;
             systemData.sortPriority = hdLitMasterNode.m_SortPriority;
             systemData.doubleSidedMode = hdLitMasterNode.m_DoubleSidedMode;
             systemData.transparentZWrite = hdLitMasterNode.m_ZWrite;
             systemData.transparentCullMode = hdLitMasterNode.m_transparentCullMode;
             systemData.zTest = hdLitMasterNode.m_ZTest;
+            systemData.supportLodCrossFade = hdLitMasterNode.m_SupportLodCrossFade;
             systemData.dotsInstancing = hdLitMasterNode.m_DOTSInstancing;
             systemData.materialNeedsUpdateHash = hdLitMasterNode.m_MaterialNeedsUpdateHash;
 
-            builtinData.transparentDepthPrepass = hdLitMasterNode.m_AlphaTestDepthPrepass;
-            builtinData.transparentDepthPostpass = hdLitMasterNode.m_AlphaTestDepthPostpass;
-            builtinData.supportLodCrossFade = hdLitMasterNode.m_SupportLodCrossFade;
             builtinData.transparencyFog = hdLitMasterNode.m_TransparencyFog;
             builtinData.distortion = hdLitMasterNode.m_Distortion;
             builtinData.distortionMode = hdLitMasterNode.m_DistortionMode;
@@ -204,9 +204,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     case HDLitMasterNode1.SlotMask.AlphaThreshold:
                         return systemData.alphaTest;
                     case HDLitMasterNode1.SlotMask.AlphaThresholdDepthPrepass:
-                        return systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && builtinData.transparentDepthPrepass;
+                        return systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.transparentDepthPrepass;
                     case HDLitMasterNode1.SlotMask.AlphaThresholdDepthPostpass:
-                        return systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && builtinData.transparentDepthPostpass;
+                        return systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.transparentDepthPostpass;
                     case HDLitMasterNode1.SlotMask.AlphaThresholdShadow:
                         return systemData.alphaTest && builtinData.alphaTestShadow;
                     default:
