@@ -72,19 +72,33 @@ namespace UnityEngine.Rendering.Universal
             return GetOrUpdateNativeArray<PreTile>(ref m_PreTiles, level, count);
         }
 
-        internal ComputeBuffer ReserveBuffer<T>(int count, bool asCBuffer) where T : struct // (kc) remove
+        internal ComputeBuffer ReserveBuffer<T>(int count, bool asCBuffer) where T : struct
         {
-            ComputeBufferType type = asCBuffer ? ComputeBufferType.Constant : ComputeBufferType.Structured;
-            int stride = Marshal.SizeOf<T>();
-            int paddedCount = asCBuffer ? Align(stride * count, 16) / stride : count;
-            return GetOrUpdateBuffer(paddedCount, stride, type);
+            int bufferId;
+            return ReserveBuffer<T>(count, asCBuffer ? ComputeBufferType.Constant : ComputeBufferType.Structured, out bufferId);
+        }
+
+        internal ComputeBuffer ReserveBuffer<T>(int count, bool asCBuffer, out int bufferId) where T : struct
+        {
+            return ReserveBuffer<T>(count, asCBuffer ? ComputeBufferType.Constant : ComputeBufferType.Structured, out bufferId);
         }
 
         internal ComputeBuffer ReserveBuffer<T>(int count, ComputeBufferType type) where T : struct
         {
+            int bufferId;
+            return ReserveBuffer<T>(count, type, out bufferId);
+        }
+
+        internal ComputeBuffer ReserveBuffer<T>(int count, ComputeBufferType type, out int bufferId) where T : struct
+        {
             int stride = Marshal.SizeOf<T>();
             int paddedCount = type == ComputeBufferType.Constant ? Align(stride * count, 16) / stride : count;
-            return GetOrUpdateBuffer(paddedCount, stride, type);
+            return GetOrUpdateBuffer(paddedCount, stride, type, out bufferId);
+        }
+
+        internal ComputeBuffer GetBuffer(int bufferId)
+        {
+            return m_Buffers[bufferId];
         }
 
         NativeArray<T> GetOrUpdateNativeArray<T>(ref NativeArray<T>[] nativeArrays, int level, int count) where T : struct
@@ -111,7 +125,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        ComputeBuffer GetOrUpdateBuffer(int count, int stride, ComputeBufferType type)
+        ComputeBuffer GetOrUpdateBuffer(int count, int stride, ComputeBufferType type, out int bufferId)
         {
 #if UNITY_SWITCH // maxQueuedFrames returns -1 on Switch!
             int maxQueuedFrames = 3;
@@ -129,6 +143,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     m_BufferInfos[bufferIndex].frameUsed = m_FrameIndex;
                     m_CachedBufferIndex = bufferIndex;
+                    bufferId = bufferIndex;
                     return m_Buffers[bufferIndex];
                 }
             }
@@ -151,7 +166,8 @@ namespace UnityEngine.Rendering.Universal
             m_BufferInfos[m_BufferCount].frameUsed = m_FrameIndex;
             m_BufferInfos[m_BufferCount].type = type;
             m_CachedBufferIndex = m_BufferCount;
-            return m_Buffers[m_BufferCount++];
+            bufferId = m_BufferCount++;
+            return m_Buffers[bufferId++];
         }
 
         void DisposeBuffers(ComputeBuffer[,] buffers)
