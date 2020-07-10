@@ -726,6 +726,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed robustness issue with GetOddNegativeScale() in ray tracing, which was impacting normal mapping (1261160).
 - Fixed regression where moving face of the probe gizmo was not moving its position anymore.
 - Fixed XR single-pass macros in tessellation shaders.
+- Improved robustness of normal mapping when scale is 0, and mapping is extreme (normals in or below the tangent plane).
 
 ### Changed
 - Improve MIP selection for decals on Transparents
