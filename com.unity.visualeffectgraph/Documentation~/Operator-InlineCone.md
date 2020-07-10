@@ -2,7 +2,7 @@
 
 Menu Path : **Operator > Inline > Cone**
 
-The **Cone** inline Operator allows you to store an instance of a Cone. This is one of the Visual Effect Graph's unique [Types](VisualEffectGraphTypeReference.md). To modify a value in this inline Operator, either set the value explicitly in the Operator body, or connect it to a compatible output.
+The **Cone** inline Operator allows you to store an instance of a [Cone](Type-Cone.md). This is one of the Visual Effect Graph's advanced [Types](VisualEffectGraphTypeReference.md). To modify a value in this inline Operator, either set the value explicitly in the Operator body, or connect it to a compatible output.
 
 [!include[](Snippets/Operator-InlineIntro.md)]
 

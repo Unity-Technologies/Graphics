@@ -2,7 +2,7 @@
 
 Menu Path : **Operator > Inline > OrientedBox**
 
-The **OrientedBox** inline Operator allows you to store an instance of a nOrientedBox. This is one of the Visual Effect Graph's unique [Types](VisualEffectGraphTypeReference.md). To modify a value in this inline Operator, either set the value explicitly in the Operator body, or connect it to a compatible output.
+The **OrientedBox** inline Operator allows you to store an instance of an [OrientedBox](Type-OrientedBox.md). This is one of the Visual Effect Graph's advanced [Types](VisualEffectGraphTypeReference.md). To modify a value in this inline Operator, either set the value explicitly in the Operator body, or connect it to a compatible output.
 
 [!include[](Snippets/Operator-InlineIntro.md)]
 

@@ -2,7 +2,7 @@
 
 Menu Path : **Operator > Inline > TerrainType**
 
-The **TerrainType** inline Operator allows you to store an instance of a TerrainType. This is one of the Visual Effect Graph's unique [Types](VisualEffectGraphTypeReference.md). To modify a value in this inline Operator, either set the value explicitly in the Operator body, or connect it to a compatible output.
+The **TerrainType** inline Operator allows you to store an instance of a [TerrainType](Type-TerrainType.md). This is one of the Visual Effect Graph's advanced [Types](VisualEffectGraphTypeReference.md). To modify a value in this inline Operator, either set the value explicitly in the Operator body, or connect it to a compatible output.
 
 [!include[](Snippets/Operator-InlineIntro.md)]
 

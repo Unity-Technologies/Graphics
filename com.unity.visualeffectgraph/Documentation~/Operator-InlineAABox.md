@@ -2,7 +2,7 @@
 
 Menu Path : **Operator > Inline > AABox**
 
-The **AABox** inline Operator allows you to store an instance of an AABox. This is one of the Visual Effect Graph's unique [Types](VisualEffectGraphTypeReference.md). To modify a value in this inline Operator, either set the value explicitly in the Operator body, or connect it to a compatible output.
+The **AABox** inline Operator allows you to store an instance of an [AABox](Type-AABox.md). This is one of the Visual Effect Graph's advanced [Types](VisualEffectGraphTypeReference.md). To modify a value in this inline Operator, either set the value explicitly in the Operator body, or connect it to a compatible output.
 
 [!include[](Snippets/Operator-InlineIntro.md)]
 

@@ -2,7 +2,7 @@
 
 Menu Path : **Operator > Inline > Vector2**
 
-The **Vector2** inline Operator allows you to store an instance of a Vector2. This is one of the Visual Effect Graph's unique [Types](VisualEffectGraphTypeReference.md). To modify a value in this inline Operator, either set the value explicitly in the Operator body, or connect it to a compatible output.
+The **Vector2** inline Operator allows you to store an instance of a Vector2. This is one of the Visual Effect Graph's base [Types](VisualEffectGraphTypeReference.md). To modify a value in this inline Operator, either set the value explicitly in the Operator body, or connect it to a compatible output.
 
 [!include[](Snippets/Operator-InlineIntro.md)]
 
