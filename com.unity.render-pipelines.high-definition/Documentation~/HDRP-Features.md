@@ -109,9 +109,9 @@ The AxF Shader supports the [X-Rite AxF](https://www.xrite.com/axf) measured Mat
 
 ![](Images/HDRPFeatures-DecalShader.png)
 
-The Decal allows you to place decals on surfaces in your Scene. To apply a decal to a surface, you can either use the [Decal Projector component](Decal-Projector.md) to project the decal onto the surface, or assign the decal shader directly to a Mesh and then place the Mesh on the surface. For more information, including the full list of Shader properties, see the [Decal documentation](Decal.md).
+HDRP allows you to apply decals to surfaces in your Scene. To apply a decal to a surface, you can either use the [Decal Projector component](Decal-Projector.md) to project the decal onto the surface, or assign the decal shader directly to a Mesh and then place the Mesh on the surface. For more information, see the [Decal documentation](Decal.md).
 
-The Decal also support Decals layers allowing to control which objects receive decal or not. 
+HDRP also supports Decal Layers which allows you to control which GameObjects receive decals or not. 
 
 ### Terrain Shader
 

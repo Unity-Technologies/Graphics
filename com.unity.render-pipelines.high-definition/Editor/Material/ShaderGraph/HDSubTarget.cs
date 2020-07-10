@@ -49,6 +49,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected abstract string renderQueue { get; }
         protected abstract string templatePath { get; }
         protected abstract string[] templateMaterialDirectories { get; }
+        protected abstract FieldDescriptor subShaderField { get; }
+        protected abstract string subShaderInclude { get; }
+
+        protected virtual string postDecalsInclude => null;
+        protected virtual string raytracingInclude => null;
+        protected virtual bool supportPathtracing => false;
+        protected virtual bool supportRaytracing => false;
 
         public virtual string identifier => GetType().Name;
 
@@ -99,6 +106,78 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 context.AddSubShader(patchedSubShader);
             }
         }
+
+        protected SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)
+        {
+            if (String.IsNullOrEmpty(subShaderDescriptor.pipelineTag))
+                subShaderDescriptor.pipelineTag = HDRenderPipeline.k_ShaderTagName;
+            
+            var passes = subShaderDescriptor.passes.ToArray();
+            PassCollection finalPasses = new PassCollection();
+            for (int i = 0; i < passes.Length; i++)
+            {
+                var passDescriptor = passes[i].descriptor;
+                passDescriptor.passTemplatePath = templatePath;
+                passDescriptor.sharedTemplateDirectories = templateMaterialDirectories;
+
+                // Add the subShader to enable fields that depends on it
+                var originalRequireFields = passDescriptor.requiredFields;
+                // Duplicate require fields to avoid unwanted shared list modification
+                passDescriptor.requiredFields = new FieldCollection();
+                if (originalRequireFields != null)
+                    foreach (var field in originalRequireFields)
+                        passDescriptor.requiredFields.Add(field.field);
+                passDescriptor.requiredFields.Add(subShaderField);
+
+                IncludeCollection finalIncludes = new IncludeCollection();
+                var includeList = passDescriptor.includes.Select(include => include.descriptor).ToList();
+
+                // Replace include placeholders if necessary:
+                foreach (var include in passDescriptor.includes)
+                {
+                    if (include.descriptor.value == CoreIncludes.kPassPlaceholder)
+                        include.descriptor.value = subShaderInclude;
+                    if (include.descriptor.value == CoreIncludes.kPostDecalsPlaceholder)
+                        include.descriptor.value = postDecalsInclude;
+                    if (include.descriptor.value == CoreIncludes.kRaytracingPlaceholder)
+                        include.descriptor.value = raytracingInclude;
+
+                    if (!String.IsNullOrEmpty(include.descriptor.value))
+                        finalIncludes.Add(include.descriptor.value, include.descriptor.location, include.fieldConditions);
+                }
+                passDescriptor.includes = finalIncludes;
+
+                // Add keywords from subshaders:
+                passDescriptor.keywords = passDescriptor.keywords == null ? new KeywordCollection() : new KeywordCollection{ passDescriptor.keywords }; // Duplicate keywords to avoid side effects (static list modification)
+                passDescriptor.defines = passDescriptor.defines == null ? new DefineCollection() : new DefineCollection{ passDescriptor.defines }; // Duplicate defines to avoid side effects (static list modification)
+                // foreach (var l in passDescriptor.keywords)
+                //     if (l.descriptor.referenceName.Contains("DEBUG_DISPLAY"))
+                //         Debug.Log(passDescriptor.lightMode);
+                CollectPassKeywords(ref passDescriptor);
+
+                // Replace valid pixel blocks by automatic thing so we don't have to write them
+                var tmpCtx = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), passDescriptor);
+                GetActiveBlocks(ref tmpCtx);
+                if (passDescriptor.validPixelBlocks == null)
+                    passDescriptor.validPixelBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Fragment).ToArray();
+                if (passDescriptor.validVertexBlocks == null)
+                    passDescriptor.validVertexBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Vertex).ToArray();
+
+                // Set default values for HDRP "surface" passes:
+                if (passDescriptor.structs == null)
+                    passDescriptor.structs = CoreStructCollections.Default;
+                if (passDescriptor.fieldDependencies == null)
+                    passDescriptor.fieldDependencies = CoreFieldDependencies.Default;
+
+                finalPasses.Add(passDescriptor, passes[i].fieldConditions);
+            }
+
+            subShaderDescriptor.passes = finalPasses;
+
+            return subShaderDescriptor;
+        }
+
+        protected virtual void CollectPassKeywords(ref PassDescriptor pass) {}
 
         public override void GetFields(ref TargetFieldContext context)
         {
