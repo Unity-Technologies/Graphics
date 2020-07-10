@@ -57,15 +57,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override void CollectPassKeywords(ref PassDescriptor pass)
         {
             pass.keywords.Add(CoreKeywordDescriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true));
+
+            if (decalData.affectsAlbedo)
+                pass.keywords.Add(DecalDefines.Albedo);
+            if (decalData.affectsNormal)
+                pass.keywords.Add(DecalDefines.Normal);
+            if (decalData.affectsMaskmap)
+                pass.keywords.Add(DecalDefines.Maskmap);
+            if (decalData.affectsEmission)
+                pass.keywords.Add(DecalDefines.Emission);
         }
 
-        public static FieldDescriptor AffectsAlbedo =           new FieldDescriptor(kMaterial, "AffectsAlbedo", "_MATERIAL_AFFECTS_ALBEDO 1");
-        public static FieldDescriptor AffectsNormal =           new FieldDescriptor(kMaterial, "AffectsNormal", "_MATERIAL_AFFECTS_NORMAL 1");
-        public static FieldDescriptor AffectsEmission =         new FieldDescriptor(kMaterial, "AffectsEmission", "_MATERIAL_AFFECTS_EMISSION 1");
+        public static FieldDescriptor AffectsAlbedo =           new FieldDescriptor(kMaterial, "AffectsAlbedo", "");
+        public static FieldDescriptor AffectsNormal =           new FieldDescriptor(kMaterial, "AffectsNormal", "");
+        public static FieldDescriptor AffectsEmission =         new FieldDescriptor(kMaterial, "AffectsEmission", "");
         public static FieldDescriptor AffectsMetal =            new FieldDescriptor(kMaterial, "AffectsMetal", "");
         public static FieldDescriptor AffectsAO =               new FieldDescriptor(kMaterial, "AffectsAO", "");
         public static FieldDescriptor AffectsSmoothness =       new FieldDescriptor(kMaterial, "AffectsSmoothness", "");
-        public static FieldDescriptor AffectsMaskMap =          new FieldDescriptor(kMaterial, "AffectsMaskMap", "_MATERIAL_AFFECTS_MASKMAP 1");
+        public static FieldDescriptor AffectsMaskMap =          new FieldDescriptor(kMaterial, "AffectsMaskMap", "");
         public static FieldDescriptor DecalDefault =            new FieldDescriptor(kMaterial, "DecalDefault", "");
 
         public override void GetFields(ref TargetFieldContext context)
@@ -74,10 +83,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(AffectsAlbedo,        decalData.affectsAlbedo);
             context.AddField(AffectsNormal,        decalData.affectsNormal);
             context.AddField(AffectsEmission,      decalData.affectsEmission);
-            context.AddField(AffectsMetal,         decalData.affectsMetal);
-            context.AddField(AffectsAO,            decalData.affectsAO);
-            context.AddField(AffectsSmoothness,    decalData.affectsSmoothness);
-            context.AddField(AffectsMaskMap,       decalData.affectsSmoothness || decalData.affectsMetal || decalData.affectsAO);
+            context.AddField(AffectsMetal,         decalData.affectsMaskmap);
+            context.AddField(AffectsAO,            decalData.affectsMaskmap);
+            context.AddField(AffectsSmoothness,    decalData.affectsMaskmap);
+            context.AddField(AffectsMaskMap,       decalData.affectsMaskmap);
             context.AddField(DecalDefault,         decalData.affectsAlbedo || decalData.affectsNormal || decalData.affectsMetal ||
                                                                     decalData.affectsAO || decalData.affectsSmoothness );
         }
@@ -123,6 +132,28 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             decalMeshDepthBias.floatType = FloatType.Default;
             decalMeshDepthBias.value = 0;
             collector.AddShaderProperty(decalMeshDepthBias);
+
+            if (decalData.affectsAlbedo)
+                AddAffectsProperty(HDMaterialProperties.kAffectsAlbedo);
+            if (decalData.affectsNormal)
+                AddAffectsProperty(HDMaterialProperties.kAffectsNormal);
+            if (decalData.affectsAO)
+                AddAffectsProperty(HDMaterialProperties.kAffectsAO);
+            if (decalData.affectsMetal)
+                AddAffectsProperty(HDMaterialProperties.kAffectsMetal);
+            if (decalData.affectsSmoothness)
+                AddAffectsProperty(HDMaterialProperties.kAffectsSmoothness);
+            if (decalData.affectsEmission)
+                AddAffectsProperty(HDMaterialProperties.kAffectsEmission);
+
+            void AddAffectsProperty(string referenceName)
+            {
+                collector.AddShaderProperty(new BooleanShaderProperty{
+                    overrideReferenceName = referenceName,
+                    hidden = true,
+                    value = true,
+                });
+            }
         }
 
 #region SubShaders
@@ -370,6 +401,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 "ColorMask RGBA 2 ColorMask RG 3",  // metal + AO + smoothness
             };
 
+            readonly static string s_DecalColorMask = "ColorMask [_DecalColorMask2] 2 ColorMask [_DecalColorMask3] 3";
+
             public static RenderStateCollection Projector3RT = new RenderStateCollection
             {
                 { RenderState.Blend("Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha") },
@@ -400,39 +433,41 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     Pass = "Replace",
                 }) },
 
+                { RenderState.ColorMask(s_DecalColorMask) }
+
                 // ColorMask per Affects Channel
-                { RenderState.ColorMask(s_DecalColorMasks[0]), new FieldCondition[] {
-                    new FieldCondition(AffectsMetal, false),
-                    new FieldCondition(AffectsAO, false),
-                    new FieldCondition(AffectsSmoothness, false) } },
-                { RenderState.ColorMask(s_DecalColorMasks[1]), new FieldCondition[] {
-                    new FieldCondition(AffectsMetal, true),
-                    new FieldCondition(AffectsAO, false),
-                    new FieldCondition(AffectsSmoothness, false) } },
-                { RenderState.ColorMask(s_DecalColorMasks[2]), new FieldCondition[] {
-                    new FieldCondition(AffectsMetal, false),
-                    new FieldCondition(AffectsAO, true),
-                    new FieldCondition(AffectsSmoothness, false) } },
-                { RenderState.ColorMask(s_DecalColorMasks[3]), new FieldCondition[] {
-                    new FieldCondition(AffectsMetal, true),
-                    new FieldCondition(AffectsAO, true),
-                    new FieldCondition(AffectsSmoothness, false) } },
-                { RenderState.ColorMask(s_DecalColorMasks[4]), new FieldCondition[] {
-                    new FieldCondition(AffectsMetal, false),
-                    new FieldCondition(AffectsAO, false),
-                    new FieldCondition(AffectsSmoothness, true) } },
-                { RenderState.ColorMask(s_DecalColorMasks[5]), new FieldCondition[] {
-                    new FieldCondition(AffectsMetal, true),
-                    new FieldCondition(AffectsAO, false),
-                    new FieldCondition(AffectsSmoothness, true) } },
-                { RenderState.ColorMask(s_DecalColorMasks[6]), new FieldCondition[] {
-                    new FieldCondition(AffectsMetal, false),
-                    new FieldCondition(AffectsAO, true),
-                    new FieldCondition(AffectsSmoothness, true) } },
-                { RenderState.ColorMask(s_DecalColorMasks[7]), new FieldCondition[] {
-                    new FieldCondition(AffectsMetal, true),
-                    new FieldCondition(AffectsAO, true),
-                    new FieldCondition(AffectsSmoothness, true) } },
+                // { RenderState.ColorMask(s_DecalColorMasks[0]), new FieldCondition[] {
+                //     new FieldCondition(AffectsMetal, false),
+                //     new FieldCondition(AffectsAO, false),
+                //     new FieldCondition(AffectsSmoothness, false) } },
+                // { RenderState.ColorMask(s_DecalColorMasks[1]), new FieldCondition[] {
+                //     new FieldCondition(AffectsMetal, true),
+                //     new FieldCondition(AffectsAO, false),
+                //     new FieldCondition(AffectsSmoothness, false) } },
+                // { RenderState.ColorMask(s_DecalColorMasks[2]), new FieldCondition[] {
+                //     new FieldCondition(AffectsMetal, false),
+                //     new FieldCondition(AffectsAO, true),
+                //     new FieldCondition(AffectsSmoothness, false) } },
+                // { RenderState.ColorMask(s_DecalColorMasks[3]), new FieldCondition[] {
+                //     new FieldCondition(AffectsMetal, true),
+                //     new FieldCondition(AffectsAO, true),
+                //     new FieldCondition(AffectsSmoothness, false) } },
+                // { RenderState.ColorMask(s_DecalColorMasks[4]), new FieldCondition[] {
+                //     new FieldCondition(AffectsMetal, false),
+                //     new FieldCondition(AffectsAO, false),
+                //     new FieldCondition(AffectsSmoothness, true) } },
+                // { RenderState.ColorMask(s_DecalColorMasks[5]), new FieldCondition[] {
+                //     new FieldCondition(AffectsMetal, true),
+                //     new FieldCondition(AffectsAO, false),
+                //     new FieldCondition(AffectsSmoothness, true) } },
+                // { RenderState.ColorMask(s_DecalColorMasks[6]), new FieldCondition[] {
+                //     new FieldCondition(AffectsMetal, false),
+                //     new FieldCondition(AffectsAO, true),
+                //     new FieldCondition(AffectsSmoothness, true) } },
+                // { RenderState.ColorMask(s_DecalColorMasks[7]), new FieldCondition[] {
+                //     new FieldCondition(AffectsMetal, true),
+                //     new FieldCondition(AffectsAO, true),
+                //     new FieldCondition(AffectsSmoothness, true) } },
             };
 
             public static RenderStateCollection ProjectorEmissive = new RenderStateCollection
@@ -553,6 +588,42 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     definition = KeywordDefinition.ShaderFeature,
                     scope = KeywordScope.Global,
                 };
+
+                public static KeywordDescriptor AffectsAlbedo = new KeywordDescriptor()
+                {
+                    displayName = "Affects Albedo",
+                    referenceName = "_MATERIAL_AFFECTS_ALBEDO",
+                    type = KeywordType.Boolean,
+                    definition = KeywordDefinition.ShaderFeature,
+                    scope = KeywordScope.Global,
+                };
+
+                public static KeywordDescriptor AffectsNormal = new KeywordDescriptor()
+                {
+                    displayName = "Affects Normal",
+                    referenceName = "_MATERIAL_AFFECTS_NORMAL",
+                    type = KeywordType.Boolean,
+                    definition = KeywordDefinition.ShaderFeature,
+                    scope = KeywordScope.Global,
+                };
+
+                public static KeywordDescriptor AffectsMaskmap = new KeywordDescriptor()
+                {
+                    displayName = "Affects Maskmap",
+                    referenceName = "_MATERIAL_AFFECTS_MASKMAP",
+                    type = KeywordType.Boolean,
+                    definition = KeywordDefinition.ShaderFeature,
+                    scope = KeywordScope.Global,
+                };
+
+                public static KeywordDescriptor AffectsEmission = new KeywordDescriptor()
+                {
+                    displayName = "Affects Emission",
+                    referenceName = "_MATERIAL_AFFECTS_EMISSION",
+                    type = KeywordType.Boolean,
+                    definition = KeywordDefinition.ShaderFeature,
+                    scope = KeywordScope.Global,
+                };
             }
 
             public static DefineCollection _3RT = new DefineCollection
@@ -564,6 +635,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 { Descriptors.Decals4RT, 1 },
             };
+
+            public static KeywordCollection Albedo = new KeywordCollection { { Descriptors.AffectsAlbedo, new FieldCondition(AffectsAlbedo, true) } };
+            public static KeywordCollection Normal = new KeywordCollection { { Descriptors.AffectsNormal, new FieldCondition(AffectsNormal, true) } };
+            public static KeywordCollection Maskmap = new KeywordCollection { { Descriptors.AffectsMaskmap, new FieldCondition(AffectsMaskMap, true) } };
+            public static KeywordCollection Emission = new KeywordCollection { { Descriptors.AffectsEmission, new FieldCondition(AffectsEmission, true) } };
         }
 #endregion
 

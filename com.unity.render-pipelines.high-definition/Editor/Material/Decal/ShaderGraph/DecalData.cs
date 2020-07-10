@@ -61,5 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_DrawOrder;
             set => m_DrawOrder = value;
         }
+
+        public bool affectsMaskmap => affectsSmoothness || affectsMetal || affectsAO;
     }
 }
