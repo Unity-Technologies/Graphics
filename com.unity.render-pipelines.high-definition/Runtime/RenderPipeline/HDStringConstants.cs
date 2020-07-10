@@ -960,5 +960,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string kAffectsEmission = "_AffectsEmission";
         public static readonly string kDecalColorMask2 = "_DecalColorMask2";
         public static readonly string kDecalColorMask3 = "_DecalColorMask3";
+
+        public static readonly string kDecalStencilWriteMask = "_DecalStencilWriteMask";
+        public static readonly string kDecalStencilRef = "_DecalStencilRef";
     }
 }
