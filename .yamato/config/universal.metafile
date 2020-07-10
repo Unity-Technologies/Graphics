@@ -25,34 +25,22 @@ platforms:
       - OpenGLES3
 all:
   dependencies:
-#    - platform: Win
-#      api: DX11
-#      test_platforms:
-#        - Standalone
-#        - editmode
-#        - playmode
-#        - playmode_XR
-#    - platform: OSX
-#      api: Metal
-#      test_platforms:
-#        - Standalone
-#        - playmode 
-#        - playmode_XR
-#    - platform: OSX
-#      api: OpenGLCore
-#      test_platforms:
-#        - editmode  
-#    - project: Universal_Stereo
-#      all: true
-#    - project: Universal_Hybrid
-#      all: true  
-    - project: URP_2D
-      all: true  
-    - project: URP_Foundation
-      all: true 
-    - project: URP_Lighting
-      all: true 
-    - project: URP_PostPro
-      all: true 
-    - project: URP_Terrain
-      all: true 
+    - platform: Win
+      api: DX11
+      test_platforms:
+        - Standalone
+        - editmode
+        - playmode
+        - playmode_XR
+    - platform: OSX
+      api: Metal
+      test_platforms:
+        - Standalone
+        - playmode 
+        - playmode_XR
+    - platform: OSX
+      api: OpenGLCore
+      test_platforms:
+        - editmode  
+    - project: Universal_Stereo
+      all: true

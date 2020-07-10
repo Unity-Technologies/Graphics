@@ -17,8 +17,8 @@ class Package_AllPackageCiJob():
         dependencies = []
         for platform in platforms:
             for package in packages:
-                dependencies.append(f'{packages_filepath()}#{package_job_id_test(package["id"],platform["name"],editor["version"])}')
-                #dependencies.append(f'{packages_filepath()}#{package_job_id_test_dependencies(package["id"],platform["name"],editor["version"])}')
+                dependencies.append(f'{packages_filepath()}#{package_job_id_test(package["id"],platform["os"],editor["version"])}')
+                #dependencies.append(f'{packages_filepath()}#{package_job_id_test_dependencies(package["id"],platform["os"],editor["version"])}')
         
         # construct job
         job = YMLJob()
