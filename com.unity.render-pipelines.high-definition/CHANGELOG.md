@@ -728,6 +728,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed XR single-pass macros in tessellation shaders.
 - Fixed path-traced subsurface scattering mixing with diffuse and specular BRDFs (1250601).
 - Fixed custom pass re-ordering issues.
+- Improved robustness of normal mapping when scale is 0, and mapping is extreme (normals in or below the tangent plane).
 
 ### Changed
 - Improve MIP selection for decals on Transparents
