@@ -23,11 +23,10 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 // A set of Defines to fine-tune the algorithm
 #define NUM_BUCKETS 3
 #define GRADIENT_NOISE
-//#define CENTER_DENSITY
 #define RING_DENSITY 8.0
+#define ADAPTIVE_RADIUS
 //#define OCTAWEB_SORTING
 //#define UNIFORM_WEIGHTS
-#define ADAPTIVE_RADIUS
 
 // Helper defines so we can have one code path when OCTAWEB_SORTING is enabled or disabled.
 #ifndef OCTAWEB_SORTING
@@ -123,7 +122,6 @@ float2 PointInCircle(float angle)
 
 float GetNumSamples(float radius, float maxRadius)
 {
-    // Note: should also take into account the density push towards the center (if enabled), this needs to be fixed at some pointss
     float numRings = _Params.x;
 
     float dR = maxRadius / numRings;
@@ -189,11 +187,6 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     {
         float scaledRad = dR;
 
-#ifdef CENTER_DENSITY
-        // make the samples more dense at the center
-        scaledRad = lerp(0.5 * dR, dR, ring * rcp(numRings));
-#endif
-
         float dAng = 2.0f * PI / (ring * RING_DENSITY);
 
 #ifndef GRADIENT_NOISE
@@ -249,7 +242,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 #ifdef OCTAWEB_SORTING
         for (int j = 0; j < NUM_BUCKETS; ++j)
         {
-            float currentAvg = RING_COLOR[j].w * rcp(ring * RING_DENSITY);;
+            float currentAvg = RING_COLOR[j].w * rcp(ring * RING_DENSITY);
             float prevAvg = (ring < numRings) ? prevRingWeight[j] : currentAvg;
             float occlusion = saturate(prevAvg - currentAvg);
             float alpha = ringHits[j] * rcp(ring * RING_DENSITY);

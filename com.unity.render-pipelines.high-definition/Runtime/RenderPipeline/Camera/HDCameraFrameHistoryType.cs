@@ -44,8 +44,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Temporal antialiasing history after DoF.</summary>
         TemporalAntialiasingPostDoF,
         /// <summary>Velocity magnitude history used for TAA velocity weighting (after DoF).</summary>
-        TAAMotionVectorMagnitudePostDoF,
-        /// <summary>Number of history buffers.</summary>
         Count
     }
 }

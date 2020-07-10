@@ -13,6 +13,13 @@ float4 _Params;
 float4 _Params2;
 CBUFFER_END
 
+#define FarStart        _Params.x
+#define NearEnd         _Params.y
+#define FarRange        _Params.z   // 1 / (FarEnd - FarStart)
+#define NearRange       _Params.w   // 1 / (NearStart - NearEnd)
+#define NearMaxRadius   _Params2.x
+#define FarMaxRadius    _Params2.y
+
 // outpute texture
 RW_TEXTURE2D_X(float, _OutputTexture);
 
@@ -54,14 +61,6 @@ void KMainCoCManual(uint3 dispatchThreadId : SV_DispatchThreadID)
     float depth = LoadCameraDepth(dispatchThreadId.xy);
     // Note: we can avoid explicit linearization by merging it with the other computations
     float linearEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
-
-    const float FarStart    = _Params.x;
-    const float NearEnd     = _Params.y;
-    const float FarRange    = _Params.z;   // 1 / (FarEnd - FarStart)
-    const float NearRange   = _Params.w;  // 1 / (NearStart - NearEnd)
-
-    const float NearMaxRadius   = _Params2.x;
-    const float FarMaxRadius    = _Params2.y;
 
     float CoC = 0;
     if (linearEyeDepth > FarStart)

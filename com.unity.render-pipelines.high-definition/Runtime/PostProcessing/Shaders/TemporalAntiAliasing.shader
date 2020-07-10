@@ -98,9 +98,10 @@ Shader "Hidden/HDRP/TemporalAA"
         #define _SpeedRejectionIntensity _TaaPostParameters.z
         #define _ContrastForMaxAntiFlicker _TaaPostParameters.w
 
-
+#if VELOCITY_REJECTION
         TEXTURE2D_X(_InputVelocityMagnitudeHistory);
         RW_TEXTURE2D_X(float, _OutputVelocityMagnitudeHistory);
+#endif
 
         float4 _TaaPostParameters;
         float4 _TaaHistorySize;
