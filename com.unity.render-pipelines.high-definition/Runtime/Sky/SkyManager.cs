@@ -670,7 +670,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 sunHash = GetSunLightHashCode(sunLight);
 
             int cloudHash = 0;
-            if (skyContext.cloudLayer != null && skyContext.skyRenderer.SupportCloudLayer)
+            if (skyContext.cloudLayer != null && skyContext.skyRenderer.SupportDynamicCloudLayer)
                 cloudHash = skyContext.cloudLayer.GetHashCode();
 
             // For planar reflections we want to use the parent position for hash.
