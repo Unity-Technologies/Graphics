@@ -58,6 +58,7 @@
       * [Get Attribute: targetPosition](Operator-GetAttributeTargetPosition.md)
       * [Get Attribute: texIndex](Operator-GetAttributeTexIndex.md)
       * [Get Attribute: velocity](Operator-GetAttributeVelocity.md)
+      * [Get Custom Attribute](Operator-GetCustomAttribute.md)
     * Bitwise
       * [And](Operator-BitwiseAnd.md)
       * [Complement](Operator-BitwiseComplement.md)
