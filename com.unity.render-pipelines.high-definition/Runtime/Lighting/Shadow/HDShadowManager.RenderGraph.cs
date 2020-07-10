@@ -100,10 +100,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public ShadowDrawingSettings shadowDrawSettings;
         }
 
-        TextureHandle AllocateMomentAtlas(RenderGraph renderGraph, string name, int shaderID = 0)
+        TextureHandle AllocateMomentAtlas(RenderGraph renderGraph, string name)
         {
             return renderGraph.CreateTexture(new TextureDesc(width / 2, height / 2)
-                    { colorFormat = GraphicsFormat.R32G32_SFloat, useMipMap = true, autoGenerateMips = false, name = name, enableRandomWrite = true }, shaderID);
+                    { colorFormat = GraphicsFormat.R32G32_SFloat, useMipMap = true, autoGenerateMips = false, name = name, enableRandomWrite = true });
         }
 
         internal TextureHandle RenderShadows(RenderGraph renderGraph, CullingResults cullResults, in ShaderVariablesGlobal globalCB, FrameSettings frameSettings, string shadowPassName)

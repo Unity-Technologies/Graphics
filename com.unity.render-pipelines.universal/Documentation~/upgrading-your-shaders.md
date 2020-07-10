@@ -1,6 +1,6 @@
 # Upgrading your Shaders
 
-If your Project uses shaders from the built-in render pipeline, and you want to [switch your Project to use the Universal Render Pipeline instead](installing-universalrp-into-an-existing-project), you must convert those Shaders to the URP Shaders. This is because built-in Lit shaders are not compatible with URP Shaders. For an overview of the mapping between built-in shaders and URP Shaders, see [Shader mappings](#shader-mappings).
+If your Project uses shaders from the built-in render pipeline, and you want to [switch your Project to use the Universal Render Pipeline instead](InstallURPIntoAProject.md), you must convert those Shaders to the URP Shaders. This is because built-in Lit shaders are not compatible with URP Shaders. For an overview of the mapping between built-in shaders and URP Shaders, see [Shader mappings](#shader-mappings).
 
 To upgrade built-in Shaders:
 

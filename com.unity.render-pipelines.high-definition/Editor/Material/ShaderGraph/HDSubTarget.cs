@@ -18,6 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         SystemData m_SystemData;
         protected bool m_MigrateFromOldCrossPipelineSG; // Use only for the migration to shader stack architecture
+        protected bool m_MigrateFromOldSG; // Use only for the migration from early shader stack architecture to recent one
 
         // Interface Properties
         SystemData IRequiresData<SystemData>.data
@@ -33,12 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_SystemData = value;
         }
 
-        protected virtual int ComputeMaterialNeedsUpdateHash()
-        {
-            // Alpha test is currently the only property in system data to trigger the material upgrade script.
-            int hash = systemData.alphaTest.GetHashCode();
-            return hash;
-        }
+        protected virtual int ComputeMaterialNeedsUpdateHash() => 0;
 
         public override bool IsActive() => true;
 
@@ -96,6 +92,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             if (migrationSteps.Migrate(this))
                 OnBeforeSerialize();
+
+            // Migration hack to have the case where SG doesn't have version yet but is already upgraded to the stack system
+            if (!systemData.firstTimeMigrationExecuted)
+            {
+                // Force the initial migration step
+                MigrateTo(ShaderGraphVersion.FirstTimeMigration);
+                systemData.firstTimeMigrationExecuted = true;
+                OnBeforeSerialize();
+            }
 
             foreach (var subShader in EnumerateSubShaders())
             {
