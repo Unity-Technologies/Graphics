@@ -630,8 +630,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 var taaParams = PrepareTAAParameters(camera, postDof);
                                 
                                 GrabTemporalAntialiasingHistoryTextures(camera, out var prevHistory, out var nextHistory, postDof);
-                                GrabVelocityMagnitudeHistoryTextures(camera, out var prevMVLen, out var nextMVLen);
-                                DoTemporalAntialiasing(taaParams, cmd, source, taaDestination, motionVecTexture, depthBuffer, depthMipChain, prevHistory, nextHistory);
+                                DoTemporalAntialiasing(taaParams, cmd, source, taaDestination, motionVecTexture, depthBuffer, depthMipChain, prevHistory, nextHistory, prevMVLen:null, nextMVLen:null);
                                 PoolSource(ref source, taaDestination);
                                 postDoFTAAEnabled = true;
                             }
@@ -1551,8 +1550,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                         RTHandle depthMipChain,
                                         RTHandle prevHistory,
                                         RTHandle nextHistory,
-                                        RTHandle prevMVLen = null,
-                                        RTHandle nextMVLen = null)
+                                        RTHandle prevMVLen,
+                                        RTHandle nextMVLen)
         {
             if (taaParams.camera.resetPostProcessingHistory)
             {
