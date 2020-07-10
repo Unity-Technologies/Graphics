@@ -83,9 +83,11 @@ void StoreTileHeader(RWStructuredBuffer<uint> tileHeaders, int index, TileHeader
 
 #if CS_CULL_LIGHTS
 
-StructuredBuffer<PreLight> _Lights;
+#if !CS_CULL_FIRST_LIGHTS
 StructuredBuffer<uint> _TileHeaders;
 StructuredBuffer<uint> _TileData;
+#endif
+StructuredBuffer<PreLight> _Lights;
 RWStructuredBuffer<uint> _OutTileHeaders;
 RWStructuredBuffer<uint> _OutTileData;
 
@@ -95,8 +97,6 @@ uint2 _TileCount;
 uint2 _Subdivisions;
 uint _LightCount;
 uint _MaxLightsPerTile;
-float _TileRadiusInv;
-int3 _Pad0;
 float2 _TileExtents;
 float2 _TileSize;
 float _FrustumPlanes_Left;
@@ -105,7 +105,8 @@ float _FrustumPlanes_Bottom;
 float _FrustumPlanes_Top;
 float _FrustumPlanes_ZNear;
 float _FrustumPlanes_ZFar;
-float2 _Pad1;
+float _TileRadiusInv;
+float _Pad0;
 CBUFFER_END
 
 bool IntersectionLineSphere(float3 centre, float radius, float3 raySource, float3 rayDirection, out float t0, out float t1)
@@ -168,13 +169,11 @@ groupshared uint g_ListBitMask;
 [numthreads(PLATFORM_LANE_COUNT, 1, 1)]
 void CSCullLights (uint3 groupId: SV_GroupId, uint groupThreadIndex : SV_GroupIndex)
 {
-    // At the final tile resolution, we support up to PLATFORM_LANE_COUNT*2 lights per tile (= 64 or 128 lights per tile).
-    const int kMaxLightPerThread = 2;
+    // Each thread-group processes a tile, with each thread in the group culling a light in the list (or several).
 
-    uint2 tileId = groupId.xy;
-    float2 tileExtentsInv = 1.0 / _TileExtents;
-    float2 tileCentre = float2(_FrustumPlanes_Left, _FrustumPlanes_Top) + (_TileExtents + tileId * _TileSize) * float2(1, -1);
-    uint tileIndex = tileId.x + tileId.y * _TileCount.x;
+    uint2 tileCoord = groupId.xy;
+    float2 tileCentre = float2(_FrustumPlanes_Left, _FrustumPlanes_Top) + (_TileExtents + tileCoord * _TileSize) * float2(1, -1);
+    uint tileIndex = tileCoord.x + tileCoord.y * _TileCount.x;
     uint listOffset = tileIndex * _MaxLightsPerTile;
 
     // Load light list.
@@ -183,12 +182,14 @@ void CSCullLights (uint3 groupId: SV_GroupId, uint groupThreadIndex : SV_GroupIn
     coarseTileHeader.listOffset = 0;
     coarseTileHeader.listCount = _LightCount;
     #else
-    uint2 coarseTileId = tileId / _Subdivisions;
-    uint coarseTileIndex = coarseTileId.x + coarseTileId.y * _CoarseTileCount.x;
+    uint2 coarseTileCoord = tileCoord / _Subdivisions;
+    uint coarseTileIndex = coarseTileCoord.x + coarseTileCoord.y * _CoarseTileCount.x;
     TileHeader coarseTileHeader = LoadTileHeader(_TileHeaders, coarseTileIndex, false);
     #endif
 
     #if CS_CULL_FINAL_LIGHTS
+    // At the final tile resolution, we support up to PLATFORM_LANE_COUNT*2 lights per tile (= 64 or 128 lights per tile).
+    const int kMaxLightPerThread = 2;
     float listMinDepth = FLT_MAX;
     float listMaxDepth = 0;
     uint lightIndices[kMaxLightPerThread];
@@ -348,6 +349,7 @@ uint _MaxLightsPerTile;
 uint _Pad0;
 CBUFFER_END
 
+#if 0 // to delete
 [numthreads(PLATFORM_LANE_X, PLATFORM_LANE_Y, 1)]
 void CSDrawIndirectArgs (uint3 dispatchThreadId : SV_DispatchThreadID)
 {
@@ -401,6 +403,71 @@ void CSDrawIndirectArgs (uint3 dispatchThreadId : SV_DispatchThreadID)
 
     _OutTileList[prevTileCount] = tile;
 }
+#endif
+//_________________________________________________________________________________________________
+
+groupshared uint g_ListCount;
+
+[numthreads(PLATFORM_LANE_COUNT, 1, 1)]
+void CSDrawIndirectArgs (uint3 groupId: SV_GroupId, uint groupThreadIndex : SV_GroupIndex)
+{
+    // A thread-group processes a tile, with each thread in the group trimming a light in the list.
+
+    uint2 tileCoord = groupId.xy;
+    uint tileIndex = tileCoord.x + tileCoord.y * _TileCount.x;
+    uint listOffset = tileIndex * _MaxLightsPerTile;
+    TileHeader tileHeader = LoadTileHeader(_TileHeaders, tileIndex, true);
+
+    if (tileHeader.listCount == 0)
+        return;
+
+    #if TRIM_LIGHT_LIST_IN_CS
+
+    uint geoDepthBitmask = _TileDepthInfoTexture.Load(int3(tileCoord, 0)).x;
+    bool shouldDiscard = (geoDepthBitmask & tileHeader.listBitMask) == 0;
+    [branch] if (shouldDiscard)
+        return;
+
+    if (groupThreadIndex == 0)
+        g_ListCount = 0;
+
+    // Traverse light list and rewrite it.
+    for (uint i = groupThreadIndex; i < tileHeader.listCount; i += PLATFORM_LANE_COUNT)
+    {
+        uint lightIndexAndRange = _TileData[listOffset + i];
+        uint lightBitMask = LoadLightBitmask(lightIndexAndRange);
+
+        if ((lightBitMask & geoDepthBitmask) != 0)
+        {
+            uint prevCount;
+            InterlockedAdd(g_ListCount, 1, prevCount);
+            _TileData[listOffset + prevCount] = lightIndexAndRange;
+        }
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    tileHeader.listCount = g_ListCount;
+    if (tileHeader.listCount == 0)
+        return;
+
+    #endif
+
+    if (groupThreadIndex == 0)
+    {
+        uint prevTileCount;
+        InterlockedAdd(_OutIndirectArgs[1], 1, prevTileCount);
+
+        GPUTile tile;
+        tile.tileID = PackTileID(tileCoord.xy);
+        tile.listBitMask = tileHeader.listBitMask;
+        tile.relLightOffset = listOffset;
+        tile.relLightCount = tileHeader.listCount;
+
+        _OutTileList[prevTileCount] = tile;
+    }
+}
 
 //_________________________________________________________________________________________________
+
 #endif

@@ -170,12 +170,15 @@ namespace UnityEngine.Rendering.Universal
 
         ComputeBuffer GetOrUpdateBuffer(int count, int stride, ComputeBufferType type, out int bufferId)
         {
-#if UNITY_SWITCH // maxQueuedFrames returns -1 on Switch!
+            /*
+            #if !UNITY_EDITOR && UNITY_SWITCH // maxQueuedFrames returns -1 on Switch!
             int maxQueuedFrames = 3;
-#else
+            #else
             int maxQueuedFrames = QualitySettings.maxQueuedFrames;
             Assertions.Assert.IsTrue(maxQueuedFrames >= 1, "invalid QualitySettings.maxQueuedFrames");
-#endif
+            #endif
+            */
+            int maxQueuedFrames = 3;
 
             for (int i = 0; i < m_BufferCount; ++i)
             {

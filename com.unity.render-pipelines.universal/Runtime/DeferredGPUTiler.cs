@@ -56,8 +56,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             public uint2 _Subdivisions;
             public uint _LightCount;
             public uint _MaxLightsPerTile;
-            public float _TileRadiusInv;
-            public int3 _Pad0;
             public float2 _TileExtents;
             public float2 _TileSize;
             public float _FrustumPlanes_Left;
@@ -66,7 +64,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             public float _FrustumPlanes_Top;
             public float _FrustumPlanes_ZNear;
             public float _FrustumPlanes_ZFar;
-            public float2 _Pad1;
+            public float _TileRadiusInv;
+            public float _Pad0;
         }
 
         internal struct UDrawIndirectArgs
@@ -243,7 +242,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 _Subdivisions = new uint2((uint)DeferredConfig.kTilerSubdivisions, (uint)DeferredConfig.kTilerSubdivisions),
                 _LightCount = (uint)lightCount,
                 _MaxLightsPerTile = (uint)m_MaxLightsPerTile,
-                _TileRadiusInv = tileRadiusInv,
                 _TileExtents = tileSize * 0.5f,
                 _TileSize = tileSize,
                 _FrustumPlanes_Left = m_FrustumPlanes.left,
@@ -251,7 +249,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 _FrustumPlanes_Bottom = m_FrustumPlanes.bottom,
                 _FrustumPlanes_Top = m_FrustumPlanes.top,
                 _FrustumPlanes_ZNear = m_FrustumPlanes.zNear,
-                _FrustumPlanes_ZFar = m_FrustumPlanes.zFar
+                _FrustumPlanes_ZFar = m_FrustumPlanes.zFar,
+                _TileRadiusInv = tileRadiusInv,
             };
             ComputeBuffer uCullLights = DeferredShaderData.instance.ReserveBuffer<UCullLights>(1, true);
             uCullLights.SetData(cullLights);
@@ -264,11 +263,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetComputeBufferParam(m_tileLightCullingCS, kernelIndex, "_OutTileData", m_TileData);
             cmd.SetComputeConstantBufferParam(m_tileLightCullingCS, "UCullLights", uCullLights, 0, Marshal.SizeOf<UCullLights>());
 
-            /*
-            int groupXCount = (m_TileXCount + kPlaformLaneX - 1) / kPlaformLaneX;
-            int groupYCount = (m_TileYCount + kPlaformLaneY - 1) / kPlaformLaneY;
-            cmd.DispatchCompute(m_tileLightCullingCS, kernelIndex, groupXCount, groupYCount, 1);
-            */
             cmd.DispatchCompute(m_tileLightCullingCS, kernelIndex, m_TileXCount, m_TileYCount, 1);
         }
 
@@ -293,9 +287,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetComputeBufferParam(m_tileLightCullingCS, kernelIndex, "_OutTileList", tileList);
             cmd.SetComputeConstantBufferParam(m_tileLightCullingCS, "UDrawIndirectArgs", uDrawIndirectArgs, 0, Marshal.SizeOf<UDrawIndirectArgs>());
 
-            int groupXCount = (m_TileXCount + kPlaformLaneX - 1) / kPlaformLaneX;
-            int groupYCount = (m_TileYCount + kPlaformLaneY - 1) / kPlaformLaneY;
-            cmd.DispatchCompute(m_tileLightCullingCS, kernelIndex, groupXCount, groupYCount, 1);
+            cmd.DispatchCompute(m_tileLightCullingCS, kernelIndex, m_TileXCount, m_TileYCount, 1);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -383,8 +383,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     }
 
                     // Post-multiply by zNear to get actual world unit absolute depth values, then clamp to valid depth range.
-                    listMinDepth = max2(listMinDepth * m_FrustumPlanes.zNear, m_FrustumPlanes.zNear);
-                    listMaxDepth = min2(listMaxDepth * m_FrustumPlanes.zNear, m_FrustumPlanes.zFar);
+                    listMinDepth = clamp(listMinDepth * m_FrustumPlanes.zNear, m_FrustumPlanes.zNear, m_FrustumPlanes.zFar);
+                    listMaxDepth = clamp(listMaxDepth * m_FrustumPlanes.zNear, m_FrustumPlanes.zNear, m_FrustumPlanes.zFar);
 
                     // Calculate bitmask for 2.5D culling.
                     uint bitMask = 0;
@@ -674,6 +674,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         static float max3(float a, float b, float c)
         {
             return a > b ? (a > c ? a : c) : (b > c ? b : c);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static float clamp(float x, float a, float b)
+        {
+            return max2(min2(x, b), a);
         }
 
         // This is copy-pasted from Unity.Mathematics.math.f32tof16(), but use min2() function that does not check for NaN (which would consume 10% of the execution time of CullFinalLights()).

@@ -1389,10 +1389,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 int maxLightCount = (DeferredConfig.UseCBufferForLightData ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / sizeof_PunctualLightData;
                 int lightCount = min(m_tileVisLights.Length, maxLightCount);
 
-                NativeArray<uint4> punctualLightBuffer = new NativeArray<uint4>(lightCount * sizeof_vec4_PunctualLightData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                NativeArray<uint4> punctualLightBuffer = new NativeArray<uint4>(maxLightCount * sizeof_vec4_PunctualLightData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
                 for (int l = 0; l < lightCount; ++l)
                     StorePunctualLightData(ref punctualLightBuffer, l, ref renderingData.lightData.visibleLights, m_tileVisLights[l].visLightIndex);
                 ComputeBuffer _punctualLightBuffer = DeferredShaderData.instance.ReserveBuffer<uint4>(maxLightCount * sizeof_vec4_PunctualLightData, DeferredConfig.UseCBufferForLightData);
+                // !!! If the native array and the compute buffer size don't exactly match, HELL breaks loose (rendering breaks) !!!
                 _punctualLightBuffer.SetData(punctualLightBuffer);
                 punctualLightBuffer.Dispose();
 

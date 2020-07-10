@@ -9,6 +9,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
     // XR not supported in 2020.1 preview
     #define XR_MODE 0
 
+    // When the GPU does the tiling, the compute shader trim the light list againt the geometry and discard tiles if they have no light anymore.
     #if defined(_GPU_TILING)
         #define TRIM_LIGHT_LIST_IN_VS 0
     #else
@@ -94,7 +95,6 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
         TileData tileData = LoadTileData(instanceID);
         uint2 tileCoord = UnpackTileID(tileData.tileID);
 
-        // When the GPU does the tiling, the compute shader will discard the tile if the geometry does not intersect the light list.
         #if TRIM_LIGHT_LIST_IN_VS
             uint geoDepthBitmask = _TileDepthInfoTexture.Load(int3(tileCoord, 0)).x;
             bool shouldDiscard = (geoDepthBitmask & tileData.listBitMask) == 0;
@@ -133,7 +133,6 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             int relLightOffset = GetTileLightRelativeOffset(tileData);
             int relLightOffsetEnd = relLightOffset + GetTileLightRelativeCount(tileData);
 
-            // When the GPU does the tiling, it will also trim the light list in the compute shader (not limited to trim edges of the list).
             #if TRIM_LIGHT_LIST_IN_VS
             // Trim beginning of the light list.
             [loop] for (; relLightOffset < relLightOffsetEnd; ++relLightOffset)
