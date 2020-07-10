@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string customInspector => "Rendering.HighDefinition.DecalGUI";
         protected override string renderType => HDRenderTypeTags.Opaque.ToString();
         protected override string renderQueue => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, decalData.drawOrder, false, false));
-        protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Lit;
+        protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Decal;
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Decal Subshader", "");
         protected override string subShaderInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl";
 
@@ -146,12 +146,25 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (decalData.affectsEmission)
                 AddAffectsProperty(HDMaterialProperties.kAffectsEmission);
 
+            // Color mask configuration for writing to the mask map
+            AddColorMaskProperty(kDecalColorMask2);
+            AddColorMaskProperty(kDecalColorMask3);
+
             void AddAffectsProperty(string referenceName)
             {
                 collector.AddShaderProperty(new BooleanShaderProperty{
                     overrideReferenceName = referenceName,
                     hidden = true,
                     value = true,
+                });
+            }
+
+            void AddColorMaskProperty(string referenceName)
+            {
+                collector.AddShaderProperty(new Vector1ShaderProperty{
+                    overrideReferenceName = referenceName,
+                    floatType = FloatType.Integer,
+                    hidden = true,
                 });
             }
         }

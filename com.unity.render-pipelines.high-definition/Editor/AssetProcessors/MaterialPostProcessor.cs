@@ -198,7 +198,8 @@ namespace UnityEditor.Rendering.HighDefinition
              ShaderGraphStack,
              MoreMaterialSurfaceOptionFromShaderGraph,
              AlphaToMaskUIFix,
-             MigrateDecalRenderQueue
+             MigrateDecalRenderQueue,
+             ExposedDecalInputsFromShaderGraph,
         };
 
         #region Migrations
@@ -426,6 +427,12 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             HDShaderUtils.ResetMaterialKeywords(material);
+        }
+
+        static void ExposedDecalInputsFromShaderGraph(Material material, HDShaderUtils.ShaderID id)
+        {
+            if (id == HDShaderUtils.ShaderID.SG_Decal)
+                HDShaderUtils.ResetMaterialKeywords(material);
         }
 
         #region Serialization_API
