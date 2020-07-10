@@ -141,6 +141,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_Version = value;
         }
 
+        [SerializeField]
         internal int inspectorFoldoutMask;
     }
 
