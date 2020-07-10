@@ -66,7 +66,9 @@
     * Builtin
       * [Delta Time](Operator-DeltaTime.md)
       * [Frame Index](Operator-FrameIndex.md)
+      * [Local to World](Operator-LocalToWorld.md)
       * [Total Time](Operator-TotalTime.md)
+      * [World to Local](Operator-WorldToLocal.md)
     * Color
       * [Color Luma](Operator-ColorLuma.md)
       * [HSV to RGB](Operator-HSVToRGB.md)
