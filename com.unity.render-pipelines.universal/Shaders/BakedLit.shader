@@ -368,7 +368,8 @@ Shader "Universal Render Pipeline/Baked Lit"
                 normalWS = NormalizeNormalPerPixel(normalWS);
                 color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
                 #if defined(_SCREEN_SPACE_OCCLUSION)
-                    color *= SampleAmbientOcclusion(input.vertex * rcp(GetScaledScreenParams().xy));
+                    float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);
+                    color *= SampleAmbientOcclusion(normalizedScreenSpaceUV);
                 #endif
                 color = MixFog(color, input.uv0AndFogCoord.z);
                 alpha = OutputAlpha(alpha);

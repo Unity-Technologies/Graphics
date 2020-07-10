@@ -232,7 +232,7 @@ half3 MixFog(real3 fragColor, real fogFactor)
 
 float2 GetNormalizedScreenSpaceUV(float2 positionCS)
 {
-    float2 normalizedScreenSpaceUV = positionCS.xy / (GetScaledScreenParams().xy);
+    float2 normalizedScreenSpaceUV = positionCS.xy * rcp(GetScaledScreenParams().xy);
     #if UNITY_UV_STARTS_AT_TOP
     normalizedScreenSpaceUV.y = 1.0 - (normalizedScreenSpaceUV.y * _ScaleBiasRt.x + _ScaleBiasRt.y);
     #endif

@@ -22,9 +22,8 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     #if _AlphaClip
         clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
     #endif
-
-    float3 normal = NormalizeNormalPerPixel(unpacked.normalWS);
-    return float4(PackNormalOctRectEncode(TransformWorldToViewDir(normal, true)), 0.0, 0.0);
+    
+    return float4(PackNormalOctRectEncode(TransformWorldToViewDir(unpacked.normalWS, true)), 0.0, 0.0);
 }
 
 #endif
