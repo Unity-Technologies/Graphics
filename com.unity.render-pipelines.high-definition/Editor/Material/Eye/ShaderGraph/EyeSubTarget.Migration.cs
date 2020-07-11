@@ -21,23 +21,25 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if(!(masterNode is EyeMasterNode1 eyeMasterNode))
                 return false;
 
+            m_MigrateFromOldSG = true;
+
             // Set data
             systemData.surfaceType = (SurfaceType)eyeMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)eyeMasterNode.m_AlphaMode);
             // Previous master node wasn't having any renderingPass. Assign it correctly now.
             systemData.renderingPass = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
             systemData.alphaTest = eyeMasterNode.m_AlphaTest;
-            systemData.transparentDepthPrepass = eyeMasterNode.m_AlphaTestDepthPrepass;
-            systemData.transparentDepthPostpass = eyeMasterNode.m_AlphaTestDepthPostpass;
             systemData.sortPriority = eyeMasterNode.m_SortPriority;
             systemData.doubleSidedMode = eyeMasterNode.m_DoubleSidedMode;
             systemData.transparentZWrite = eyeMasterNode.m_ZWrite;
             systemData.transparentCullMode = eyeMasterNode.m_transparentCullMode;
             systemData.zTest = eyeMasterNode.m_ZTest;
-            systemData.supportLodCrossFade = eyeMasterNode.m_SupportLodCrossFade;
             systemData.dotsInstancing = eyeMasterNode.m_DOTSInstancing;
             systemData.materialNeedsUpdateHash = eyeMasterNode.m_MaterialNeedsUpdateHash;
 
+            builtinData.transparentDepthPrepass = eyeMasterNode.m_AlphaTestDepthPrepass;
+            builtinData.transparentDepthPostpass = eyeMasterNode.m_AlphaTestDepthPostpass;
+            builtinData.supportLodCrossFade = eyeMasterNode.m_SupportLodCrossFade;
             builtinData.transparencyFog = eyeMasterNode.m_TransparencyFog;
             builtinData.addPrecomputedVelocity = eyeMasterNode.m_AddPrecomputedVelocity;
             builtinData.depthOffset = eyeMasterNode.m_depthOffset;

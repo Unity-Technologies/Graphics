@@ -1,0 +1,15 @@
+{
+  "name": "graphics-tools",
+  "version": "0.0.0",
+  "description": "NPM tools to support CI and testing - This is not a Unity package!",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Unity-Technologies/Graphics.git"
+  },
+  "author": "",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "homepage": "https://github.com/Unity-Technologies/Graphics#readme",
+  "devDependencies": {
+    "husky": "^4.2.5"
+  }
+}

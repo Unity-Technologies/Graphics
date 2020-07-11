@@ -15,14 +15,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     class SurfaceOptionPropertyBlock : SubTargetPropertyBlock
     {
         [Flags]
-        // TODO: remove ?
         public enum Features
         {
-            None            = 0,
-            All             = ~0,
+            None                    = 0,
+            ShowDoubleSidedNormal   = 1 << 0,
+            All                     = ~0,
 
-            Unlit           = All,
-            Lit             = All,
+            Unlit                   = All ^ ShowDoubleSidedNormal, // hide double sided normal for unlit
+            Lit                     = All,
         }
 
         class Styles
@@ -65,8 +65,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 AddProperty(transparentCullModeText, () => systemData.transparentCullMode, (newValue) => systemData.transparentCullMode = newValue);
                 AddProperty(transparentSortPriorityText, () => systemData.sortPriority, (newValue) => systemData.sortPriority = HDRenderQueue.ClampsTransparentRangePriority(newValue));
                 AddProperty(transparentBackfaceEnableText, () => builtinData.backThenFrontRendering, (newValue) => builtinData.backThenFrontRendering = newValue);
-                AddProperty(transparentDepthPrepassEnableText, () => systemData.transparentDepthPrepass, (newValue) => systemData.transparentDepthPrepass = newValue);
-                AddProperty(transparentDepthPostpassEnableText, () => systemData.transparentDepthPostpass, (newValue) => systemData.transparentDepthPostpass = newValue);
+                AddProperty(transparentDepthPrepassEnableText, () => builtinData.transparentDepthPrepass, (newValue) => builtinData.transparentDepthPrepass = newValue);
+                AddProperty(transparentDepthPostpassEnableText, () => builtinData.transparentDepthPostpass, (newValue) => builtinData.transparentDepthPostpass = newValue);
                 AddProperty(transparentWritingMotionVecText, () => builtinData.transparentWritesMotionVec, (newValue) => builtinData.transparentWritesMotionVec = newValue);
 
                 if (lightingData != null)
@@ -85,7 +85,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             AddProperty(alphaToMaskText, () => builtinData.alphaToMask, (newValue) => builtinData.alphaToMask = newValue);
 
             // Misc
-            AddProperty(Styles.doubleSidedModeText, () => systemData.doubleSidedMode, (newValue) => systemData.doubleSidedMode = newValue);
+            if ((enabledFeatures & Features.ShowDoubleSidedNormal) != 0)
+                AddProperty(Styles.doubleSidedModeText, () => systemData.doubleSidedMode, (newValue) => systemData.doubleSidedMode = newValue);
+            else
+                AddProperty(doubleSidedEnableText, () => systemData.doubleSidedMode != DoubleSidedMode.Disabled, (newValue) => systemData.doubleSidedMode = newValue ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled);
             if (lightingData != null)
                 AddProperty(Styles.fragmentNormalSpace, () => lightingData.normalDropOffSpace, (newValue) => lightingData.normalDropOffSpace = newValue);
 
