@@ -234,6 +234,26 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 8707388281747785984}
     m_Modifications:
+    - target: {fileID: 1526240796000064953, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
+        type: 3}
+      propertyPath: m_BlockerSampleCount
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 1526240796000064953, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
+        type: 3}
+      propertyPath: m_SoftnessScale
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1526240796000064953, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
+        type: 3}
+      propertyPath: m_FilterSampleCount
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 1526240796000064953, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
+        type: 3}
+      propertyPath: m_ShadowFadeDistance
+      value: 24
+      objectReference: {fileID: 0}
     - target: {fileID: 6030349360826037165, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -294,6 +314,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Light_Point_1200lm
       objectReference: {fileID: 0}
+    - target: {fileID: 8645195672665254029, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dbe8cbbfe4750f4429ff7e163423dfe6, type: 3}
 --- !u!4 &8680481441620816897 stripped
@@ -309,6 +334,21 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 8707388281747785984}
     m_Modifications:
+    - target: {fileID: 1526240796000064953, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
+        type: 3}
+      propertyPath: m_BlockerSampleCount
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 1526240796000064953, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
+        type: 3}
+      propertyPath: m_SoftnessScale
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1526240796000064953, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
+        type: 3}
+      propertyPath: m_FilterSampleCount
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 6030349360826037165, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -368,6 +408,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Light_Point_1200lm
+      objectReference: {fileID: 0}
+    - target: {fileID: 8645195672665254029, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dbe8cbbfe4750f4429ff7e163423dfe6, type: 3}
@@ -464,20 +509,20 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 8707388281747785984}
     m_Modifications:
-    - target: {fileID: 1978862352675334064, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
+    - target: {fileID: 1526240796000064953, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
         type: 3}
-      propertyPath: m_BoundingSphereOverride.y
-      value: -49153
+      propertyPath: m_BlockerSampleCount
+      value: 4
       objectReference: {fileID: 0}
-    - target: {fileID: 1978862352675334064, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
+    - target: {fileID: 1526240796000064953, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
         type: 3}
-      propertyPath: m_BoundingSphereOverride.z
-      value: 5.63e-43
+      propertyPath: m_SoftnessScale
+      value: 0.5
       objectReference: {fileID: 0}
-    - target: {fileID: 1978862352675334064, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
+    - target: {fileID: 1526240796000064953, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
         type: 3}
-      propertyPath: m_BoundingSphereOverride.w
-      value: 4.1447607e+15
+      propertyPath: m_FilterSampleCount
+      value: 16
       objectReference: {fileID: 0}
     - target: {fileID: 6030349360826037165, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
         type: 3}
@@ -538,6 +583,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Light_Point_1200lm
+      objectReference: {fileID: 0}
+    - target: {fileID: 8645195672665254029, guid: dbe8cbbfe4750f4429ff7e163423dfe6,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dbe8cbbfe4750f4429ff7e163423dfe6, type: 3}

@@ -16469,7 +16469,7 @@ MonoBehaviour:
     distanceFadeStart: 50
     distanceFadeEnd: 60
     textureIndex: 0
-    textureOffset: {x: -0, y: -13.062535, z: 0}
+    textureOffset: {x: -0, y: -0, z: 0}
 --- !u!1001 &1504255721
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -25054,75 +25054,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 714672050}
     m_Modifications:
-    - target: {fileID: 141453939545206285, guid: 76336da601705b24888cb14d8af76073,
-        type: 3}
-      propertyPath: m_Layer
-      value: 9
-      objectReference: {fileID: 0}
-    - target: {fileID: 1110515084896309208, guid: 76336da601705b24888cb14d8af76073,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1110515084896309208, guid: 76336da601705b24888cb14d8af76073,
-        type: 3}
-      propertyPath: m_Layer
-      value: 9
-      objectReference: {fileID: 0}
-    - target: {fileID: 2936156370185690315, guid: 76336da601705b24888cb14d8af76073,
-        type: 3}
-      propertyPath: m_Layer
-      value: 9
-      objectReference: {fileID: 0}
-    - target: {fileID: 3394272924494521940, guid: 76336da601705b24888cb14d8af76073,
-        type: 3}
-      propertyPath: m_Layer
-      value: 9
-      objectReference: {fileID: 0}
-    - target: {fileID: 4433790553183163454, guid: 76336da601705b24888cb14d8af76073,
-        type: 3}
-      propertyPath: m_Layer
-      value: 9
-      objectReference: {fileID: 0}
-    - target: {fileID: 4533175117981471253, guid: 76336da601705b24888cb14d8af76073,
-        type: 3}
-      propertyPath: m_ShadowFadeDistance
-      value: 24
-      objectReference: {fileID: 0}
     - target: {fileID: 4939890636832620780, guid: 76336da601705b24888cb14d8af76073,
         type: 3}
       propertyPath: m_Name
       value: CeilingLamp_01
-      objectReference: {fileID: 0}
-    - target: {fileID: 4939890636832620780, guid: 76336da601705b24888cb14d8af76073,
-        type: 3}
-      propertyPath: m_Layer
-      value: 9
-      objectReference: {fileID: 0}
-    - target: {fileID: 5307934791213723907, guid: 76336da601705b24888cb14d8af76073,
-        type: 3}
-      propertyPath: m_Layer
-      value: 9
-      objectReference: {fileID: 0}
-    - target: {fileID: 6646959568256708385, guid: 76336da601705b24888cb14d8af76073,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6646959568256708385, guid: 76336da601705b24888cb14d8af76073,
-        type: 3}
-      propertyPath: m_Layer
-      value: 9
-      objectReference: {fileID: 0}
-    - target: {fileID: 6889030193644731049, guid: 76336da601705b24888cb14d8af76073,
-        type: 3}
-      propertyPath: m_Layer
-      value: 9
-      objectReference: {fileID: 0}
-    - target: {fileID: 7597449075758114296, guid: 76336da601705b24888cb14d8af76073,
-        type: 3}
-      propertyPath: m_Layer
-      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 8707388281747785984, guid: 76336da601705b24888cb14d8af76073,
         type: 3}
