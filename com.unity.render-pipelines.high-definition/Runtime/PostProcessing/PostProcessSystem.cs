@@ -2279,6 +2279,20 @@ namespace UnityEngine.Rendering.HighDefinition
             fullresCoC = nextCoCTex;
         }
 
+        static void GetMipMapDimensions(RTHandle texture, int lod, out int width, out int height)
+        {
+            width = texture.rt.width;
+            height = texture.rt.height;
+
+            for (int level = 0; level < lod; ++level)
+            {
+                // Note: When the texture/mip size is an odd number, the size of the next level is rounded down.
+                // That's why we cannot find the actual size by doing (size >> lod).
+                width /= 2;
+                height /= 2;
+            }
+        }
+
         #endregion
 
         #region Depth Of Field (Physically based)
@@ -2375,8 +2389,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 kernel = cs.FindKernel("KMain");
                 float sampleCount = Mathf.Max(m_DepthOfField.nearSampleCount, m_DepthOfField.farSampleCount);
-                float mipLevel = Mathf.Ceil(Mathf.Log(cocLimit, 2));
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, cocLimit, mipLevel, 0.0f));
+
+                // We only have up to 6 mip levels
+                float mipLevel = Mathf.Min(6, Mathf.Ceil(Mathf.Log(cocLimit, 2)));
+                GetMipMapDimensions(fullresCoC, (int)mipLevel, out var mipMapWidth, out var mipMapHeight);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, cocLimit, 0.0f, 0.0f));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(mipLevel, mipMapWidth, mipMapHeight, 0.0f));
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
