@@ -157,8 +157,8 @@ MonoBehaviour:
   stopNaNs: 0
   taaSharpenStrength: 0.2
   TAAQuality: 1
-  taaHistorySharpening: 0.35
-  taaAntiFlicker: 0.5
+  taaHistorySharpening: 0.3
+  taaAntiFlicker: 0.7
   taaMotionVectorRejection: 0
   taaAntiHistoryRinging: 0
   physicalParameters:
@@ -278,7 +278,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controller: {fileID: 738646681744756155}
-  speed: 12
+  speed: 5
   gravity: -10
   jumpHeight: 2
   groundCheck: {fileID: 738646681763345176}

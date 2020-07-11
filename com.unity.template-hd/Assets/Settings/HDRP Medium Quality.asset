@@ -214,7 +214,7 @@ MonoBehaviour:
     lightLayerName1: InteriorOnly
     lightLayerName2: ExteriorOnly
     lightLayerName3: LampsOnly
-    lightLayerName4: Light Layer 4
+    lightLayerName4: ReflectionsOnly
     lightLayerName5: Light Layer 5
     lightLayerName6: Light Layer 6
     lightLayerName7: Light Layer 7

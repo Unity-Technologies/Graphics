@@ -4806,9 +4806,9 @@ MonoBehaviour:
   m_Clips:
   - m_Version: 1
     m_Start: 16.799999999999997
-    m_ClipIn: 0.6
+    m_ClipIn: 0.6666666666666673
     m_Asset: {fileID: -2163914810745271704}
-    m_Duration: 3.3333333333333357
+    m_Duration: 3.333333333333334
     m_TimeScale: 0.09999999999999992
     m_ParentTrack: {fileID: 5208302564460931267}
     m_EaseInDuration: 0

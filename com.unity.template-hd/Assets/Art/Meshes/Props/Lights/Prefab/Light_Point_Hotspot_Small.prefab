@@ -44,7 +44,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 32
+  m_Intensity: 8
   m_Range: 0.03
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -85,7 +85,7 @@ Light:
   m_RenderingLayerMask: 8
   m_Lightmapping: 4
   m_LightShadowCasterMode: 2
-  m_AreaSize: {x: 1, y: 1}
+  m_AreaSize: {x: 0.5, y: 0.5}
   m_BounceIntensity: 1
   m_ColorTemperature: 3500
   m_UseColorTemperature: 1
@@ -114,7 +114,7 @@ MonoBehaviour:
   m_PointlightHDType: 0
   m_SpotLightShape: 0
   m_AreaLightShape: 0
-  m_Intensity: 8
+  m_Intensity: 6
   m_EnableSpotReflector: 0
   m_LuxAtDistance: 1
   m_InnerSpotPercent: 0
