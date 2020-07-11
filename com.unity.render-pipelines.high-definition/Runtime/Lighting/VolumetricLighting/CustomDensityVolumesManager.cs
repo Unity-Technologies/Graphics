@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,8 +10,6 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     class CustomDensityVolumesManager
     {
-        public static ComputeShader testingCS;
-
         public static List<CustomDensityVolume> GetVolumesInFrustum(HDCamera hdCamera)
         {
             Vector3 camPosition = hdCamera.camera.transform.position;
@@ -44,16 +42,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.DrawLine(v.transform.position, v.transform.position + Vector3.up * 0.2f, Color.cyan, 5f);
             // */
 
-#if UNITY_EDITOR
-            testingCS = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/CustomDensityVolumeTester.compute");
-#endif
-
             var parameters = HDRenderPipeline.currentPipeline.PrepareVolumetricLightingParameters(hdCamera, frameIndex);
 
-            var kernel = testingCS.FindKernel("CSMain");
-
-            cmd.SetComputeTextureParam(testingCS, kernel, HDShaderIDs._VBufferDensity, HDRenderPipeline.currentPipeline.m_DensityBuffer);
-            ConstantBuffer.Push(cmd, parameters.volumetricCB, testingCS, HDShaderIDs._ShaderVariablesVolumetric);
+            int kernel = 0;
 
             // cmd.DispatchCompute(testingCS, kernel, ((int)parameters.resolution.x + 7) / 8, ((int)parameters.resolution.y + 7) / 8, parameters.viewCount);
 
