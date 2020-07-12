@@ -35,59 +35,34 @@ namespace UnityEditor.Rendering.HighDefinition
 
             GUI.enabled = true;
         }
-
+        
         void DrawQualitySettings()
         {
-            QualitySettingsBlob oldSettings = SaveCustomQualitySettingsAsObject();
-            EditorGUI.BeginChangeCheck();
-
-            PropertyField(m_MaxSamples);
-
-            if (EditorGUI.EndChangeCheck())
+            using (new QualityScope(this))
             {
-                QualitySettingsBlob newSettings = SaveCustomQualitySettingsAsObject();
-
-                if (!ChromaticAberrationQualitySettingsBlob.IsEqual(oldSettings as ChromaticAberrationQualitySettingsBlob, newSettings as ChromaticAberrationQualitySettingsBlob))
-                    QualitySettingsWereChanged();
+                PropertyField(m_MaxSamples);
             }
         }
 
-        class ChromaticAberrationQualitySettingsBlob : QualitySettingsBlob
+        public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
         {
-            public int maxSamples;
+            if (settings == null)
+                settings = new QualitySettingsBlob();
 
-            public ChromaticAberrationQualitySettingsBlob() : base(1) { }
+            settings.Save<int>(m_MaxSamples);
 
-            public static bool IsEqual(ChromaticAberrationQualitySettingsBlob left, ChromaticAberrationQualitySettingsBlob right)
-            {
-                return QualitySettingsBlob.IsEqual(left, right)
-                    && left.maxSamples == right.maxSamples;
-            }
+            return settings;
         }
 
         public override void LoadSettingsFromObject(QualitySettingsBlob settings)
         {
-            ChromaticAberrationQualitySettingsBlob qualitySettings = settings as ChromaticAberrationQualitySettingsBlob;
-
-            m_MaxSamples.value.intValue = qualitySettings.maxSamples;
-            m_MaxSamples.overrideState.boolValue = qualitySettings.overrideState[0];
+            settings.TryLoad<int>(ref m_MaxSamples);
         }
 
         public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
         {
             m_MaxSamples.value.intValue = settings.postProcessQualitySettings.ChromaticAberrationMaxSamples[level];
-
             m_MaxSamples.overrideState.boolValue = true;
-        }
-
-        public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob history = null)
-        {
-            ChromaticAberrationQualitySettingsBlob qualitySettings = (history != null) ? history as ChromaticAberrationQualitySettingsBlob : new ChromaticAberrationQualitySettingsBlob();
-
-            qualitySettings.maxSamples = m_MaxSamples.value.intValue;
-            qualitySettings.overrideState[0] = m_MaxSamples.overrideState.boolValue;
-
-            return qualitySettings;
         }
     }
 }

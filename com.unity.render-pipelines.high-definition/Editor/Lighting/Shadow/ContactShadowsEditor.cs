@@ -61,57 +61,34 @@ namespace UnityEditor.Rendering.HighDefinition
                 GUI.enabled = true;
             }
         }
-
+        
         void DrawQualitySettings()
         {
-            QualitySettingsBlob oldSettings = SaveCustomQualitySettingsAsObject();
-            EditorGUI.BeginChangeCheck();
-
-            PropertyField(m_SampleCount, EditorGUIUtility.TrTextContent("Sample Count", "Controls the number of samples HDRP uses for ray casting."));
-
-            if (EditorGUI.EndChangeCheck())
+            using (new QualityScope(this))
             {
-                QualitySettingsBlob newSettings = SaveCustomQualitySettingsAsObject();
-
-                if (!ContactShadowsQualitySettingsBlob.IsEqual(oldSettings as ContactShadowsQualitySettingsBlob, newSettings as ContactShadowsQualitySettingsBlob))
-                    QualitySettingsWereChanged();
+                PropertyField(m_SampleCount, EditorGUIUtility.TrTextContent("Sample Count", "Controls the number of samples HDRP uses for ray casting."));
             }
         }
 
-        class ContactShadowsQualitySettingsBlob : QualitySettingsBlob
+        public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
         {
-            public int sampleCount;
+            if (settings == null)
+                settings = new QualitySettingsBlob();
 
-            public ContactShadowsQualitySettingsBlob() : base(1) { }
+            settings.Save<int>(m_SampleCount);
 
-            public static bool IsEqual(ContactShadowsQualitySettingsBlob left, ContactShadowsQualitySettingsBlob right)
-            {
-                return QualitySettingsBlob.IsEqual(left, right)
-                    && left.sampleCount == right.sampleCount;
-            }
+            return settings;
         }
 
         public override void LoadSettingsFromObject(QualitySettingsBlob settings)
         {
-            ContactShadowsQualitySettingsBlob qualitySettings = settings as ContactShadowsQualitySettingsBlob;
-            m_SampleCount.value.intValue = qualitySettings.sampleCount;
-            m_SampleCount.overrideState.boolValue = qualitySettings.overrideState[0];
+            settings.TryLoad<int>(ref m_SampleCount);
         }
 
         public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
         {
             m_SampleCount.value.intValue = settings.lightingQualitySettings.ContactShadowSampleCount[level];
             m_SampleCount.overrideState.boolValue = true;
-        }
-
-        public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob history = null)
-        {
-            ContactShadowsQualitySettingsBlob qualitySettings = (history != null) ? history as ContactShadowsQualitySettingsBlob : new ContactShadowsQualitySettingsBlob();
-
-            qualitySettings.sampleCount = m_SampleCount.value.intValue;
-            qualitySettings.overrideState[0] = m_SampleCount.overrideState.boolValue;
-
-            return qualitySettings;
         }
     }
 }

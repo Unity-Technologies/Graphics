@@ -65,48 +65,31 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_Anamorphic);
             }
         }
-
+        
         void DrawQualitySettings()
         {
-            QualitySettingsBlob oldSettings = SaveCustomQualitySettingsAsObject();
-            EditorGUI.BeginChangeCheck();
-
-            PropertyField(m_Resolution);
-            PropertyField(m_HighQualityFiltering);
-
-            if (EditorGUI.EndChangeCheck())
+            using (new QualityScope(this))
             {
-                QualitySettingsBlob newSettings = SaveCustomQualitySettingsAsObject();
-
-                if (!BloomQualitySettingsBlob.IsEqual(oldSettings as BloomQualitySettingsBlob, newSettings as BloomQualitySettingsBlob))
-                    QualitySettingsWereChanged();
+                PropertyField(m_Resolution);
+                PropertyField(m_HighQualityFiltering);
             }
         }
 
-        class BloomQualitySettingsBlob : QualitySettingsBlob
+        public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
         {
-            public BloomResolution resolution;
-            public bool hqFiltering;
+            if (settings == null)
+                settings = new QualitySettingsBlob();
 
-            public BloomQualitySettingsBlob() : base(2) { }
+            settings.Save<int>(m_Resolution);
+            settings.Save<bool>(m_HighQualityFiltering);
 
-            public static bool IsEqual(BloomQualitySettingsBlob left, BloomQualitySettingsBlob right)
-            {
-                return QualitySettingsBlob.IsEqual(left, right)
-                    && left.resolution == right.resolution
-                    && left.hqFiltering == right.hqFiltering;
-            }
+            return settings;
         }
 
         public override void LoadSettingsFromObject(QualitySettingsBlob settings)
         {
-            BloomQualitySettingsBlob qualitySettings = settings as BloomQualitySettingsBlob;
-
-            m_Resolution.value.intValue = (int)qualitySettings.resolution;
-            m_HighQualityFiltering.value.boolValue = qualitySettings.hqFiltering;
-
-            m_Resolution.overrideState.boolValue = qualitySettings.overrideState[0];
-            m_HighQualityFiltering.overrideState.boolValue = qualitySettings.overrideState[1];
+            settings.TryLoad<int>(ref m_Resolution);
+            settings.TryLoad<bool>(ref m_HighQualityFiltering);
         }
 
         public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
@@ -116,19 +99,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_Resolution.overrideState.boolValue = true;
             m_HighQualityFiltering.overrideState.boolValue = true;
-        }
-
-        public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob history = null)
-        {
-            BloomQualitySettingsBlob qualitySettings = (history != null) ? history as BloomQualitySettingsBlob : new BloomQualitySettingsBlob();
-
-            qualitySettings.resolution = (BloomResolution)m_Resolution.value.intValue;
-            qualitySettings.hqFiltering = m_HighQualityFiltering.value.boolValue;
-
-            qualitySettings.overrideState[0] = m_Resolution.overrideState.boolValue;
-            qualitySettings.overrideState[1] = m_HighQualityFiltering.overrideState.boolValue;
-
-            return qualitySettings;
         }
     }
 }

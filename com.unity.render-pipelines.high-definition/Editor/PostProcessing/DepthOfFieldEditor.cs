@@ -126,72 +126,48 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawQualitySettings()
         {
-            QualitySettingsBlob oldSettings = SaveCustomQualitySettingsAsObject();
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.LabelField("Near Blur", EditorStyles.miniLabel);
-            PropertyField(m_NearSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
-            PropertyField(m_NearMaxBlur, EditorGUIUtility.TrTextContent("Max Radius"));
-
-            EditorGUILayout.LabelField("Far Blur", EditorStyles.miniLabel);
-            PropertyField(m_FarSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
-            PropertyField(m_FarMaxBlur, EditorGUIUtility.TrTextContent("Max Radius"));
-
-            if (isInAdvancedMode)
+            using (new QualityScope(this))
             {
-                EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
-                PropertyField(m_Resolution);
-                PropertyField(m_HighQualityFiltering);
-            }
+                EditorGUILayout.LabelField("Near Blur", EditorStyles.miniLabel);
+                PropertyField(m_NearSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
+                PropertyField(m_NearMaxBlur, EditorGUIUtility.TrTextContent("Max Radius"));
 
-            if (EditorGUI.EndChangeCheck())
-            {
-                QualitySettingsBlob newSettings = SaveCustomQualitySettingsAsObject();
+                EditorGUILayout.LabelField("Far Blur", EditorStyles.miniLabel);
+                PropertyField(m_FarSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
+                PropertyField(m_FarMaxBlur, EditorGUIUtility.TrTextContent("Max Radius"));
 
-                if (!DepthOfFieldQualitySettingsBlob.IsEqual(oldSettings as DepthOfFieldQualitySettingsBlob, newSettings as DepthOfFieldQualitySettingsBlob))
-                    QualitySettingsWereChanged();
+                if (isInAdvancedMode)
+                {
+                    EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
+                    PropertyField(m_Resolution);
+                    PropertyField(m_HighQualityFiltering);
+                }
             }
         }
-
-        class DepthOfFieldQualitySettingsBlob : QualitySettingsBlob
+        
+        public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
         {
-            public int nearSampleCount;
-            public float nearMaxBlur;
-            public int farSampleCount;
-            public float farMaxBlur;
-            public DepthOfFieldResolution resolution;
-            public bool hqFiltering;
+            if (settings == null)
+                settings = new QualitySettingsBlob();
 
-            public DepthOfFieldQualitySettingsBlob() : base(6) {}
+            settings.Save<int>(m_NearSampleCount);
+            settings.Save<float>(m_NearMaxBlur);
+            settings.Save<int>(m_FarSampleCount);
+            settings.Save<float>(m_FarMaxBlur);
+            settings.Save<int>(m_Resolution);
+            settings.Save<bool>(m_HighQualityFiltering);
 
-            public static bool IsEqual(DepthOfFieldQualitySettingsBlob left, DepthOfFieldQualitySettingsBlob right)
-            {
-                return QualitySettingsBlob.IsEqual(left, right)
-                    && left.nearSampleCount == right.nearSampleCount
-                    && left.nearMaxBlur == right.nearMaxBlur
-                    && left.farSampleCount == right.farSampleCount
-                    && left.farMaxBlur == right.farMaxBlur
-                    && left.resolution == right.resolution
-                    && left.hqFiltering == right.hqFiltering;
-            }
+            return settings;
         }
 
         public override void LoadSettingsFromObject(QualitySettingsBlob settings)
         {
-            DepthOfFieldQualitySettingsBlob qualitySettings = settings as DepthOfFieldQualitySettingsBlob;
-
-            m_NearSampleCount.value.intValue = qualitySettings.nearSampleCount;
-            m_NearMaxBlur.value.floatValue = qualitySettings.nearMaxBlur;
-            m_FarSampleCount.value.intValue = qualitySettings.farSampleCount;
-            m_FarMaxBlur.value.floatValue = qualitySettings.farMaxBlur;
-            m_Resolution.value.intValue = (int) qualitySettings.resolution;
-            m_HighQualityFiltering.value.boolValue = qualitySettings.hqFiltering;
-
-            m_NearSampleCount.overrideState.boolValue = qualitySettings.overrideState[0];
-            m_NearMaxBlur.overrideState.boolValue = qualitySettings.overrideState[1];
-            m_FarSampleCount.overrideState.boolValue = qualitySettings.overrideState[2];
-            m_FarMaxBlur.overrideState.boolValue = qualitySettings.overrideState[3];
-            m_Resolution.overrideState.boolValue = qualitySettings.overrideState[4];
-            m_HighQualityFiltering.overrideState.boolValue = qualitySettings.overrideState[5];
+            settings.TryLoad<int>(ref m_NearSampleCount);
+            settings.TryLoad<float>(ref m_NearMaxBlur);
+            settings.TryLoad<int>(ref m_FarSampleCount);
+            settings.TryLoad<float>(ref m_FarMaxBlur);
+            settings.TryLoad<int>(ref m_Resolution);
+            settings.TryLoad<bool>(ref m_HighQualityFiltering);
         }
 
         public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
@@ -202,7 +178,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_FarSampleCount.value.intValue = settings.postProcessQualitySettings.FarBlurSampleCount[level];
             m_FarMaxBlur.value.floatValue = settings.postProcessQualitySettings.FarBlurMaxRadius[level];
 
-            m_Resolution.value.intValue = (int) settings.postProcessQualitySettings.DoFResolution[level];
+            m_Resolution.value.intValue = (int)settings.postProcessQualitySettings.DoFResolution[level];
             m_HighQualityFiltering.value.boolValue = settings.postProcessQualitySettings.DoFHighQualityFiltering[level];
 
             // set all quality override states to true, to indicate that these values are actually used
@@ -212,28 +188,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_FarMaxBlur.overrideState.boolValue = true;
             m_Resolution.overrideState.boolValue = true;
             m_HighQualityFiltering.overrideState.boolValue = true;
-
-        }
-
-        public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob history = null)
-        {
-            DepthOfFieldQualitySettingsBlob qualitySettings = (history != null) ? history as DepthOfFieldQualitySettingsBlob : new DepthOfFieldQualitySettingsBlob();
-            
-            qualitySettings.nearSampleCount = m_NearSampleCount.value.intValue;
-            qualitySettings.nearMaxBlur = m_NearMaxBlur.value.floatValue;
-            qualitySettings.farSampleCount = m_FarSampleCount.value.intValue;
-            qualitySettings.farMaxBlur = m_FarMaxBlur.value.floatValue;
-            qualitySettings.resolution = (DepthOfFieldResolution) m_Resolution.value.intValue;
-            qualitySettings.hqFiltering = m_HighQualityFiltering.value.boolValue;
-
-            qualitySettings.overrideState[0] = m_NearSampleCount.overrideState.boolValue;
-            qualitySettings.overrideState[1] = m_NearMaxBlur.overrideState.boolValue;
-            qualitySettings.overrideState[2] = m_FarSampleCount.overrideState.boolValue;
-            qualitySettings.overrideState[3] = m_FarMaxBlur.overrideState.boolValue;
-            qualitySettings.overrideState[4] = m_Resolution.overrideState.boolValue;
-            qualitySettings.overrideState[5] = m_HighQualityFiltering.overrideState.boolValue;
-
-            return qualitySettings;
         }
     }
 }
