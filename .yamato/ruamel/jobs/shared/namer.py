@@ -12,11 +12,11 @@ def editor_job_id(editor_version, platform_os):
 def packages_filepath():
     return f'{parent_dir}/_packages.yml'.lower()
 
-def package_job_id_test(package_id, platform_name, editor_version):
-    return f'test_{ package_id }_{ platform_name }_{editor_version}'
+def package_job_id_test(package_id, platform_os, editor_version):
+    return f'test_{ package_id }_{ platform_os }_{editor_version}'
 
-def package_job_id_test_dependencies(package_id, platform_name, editor_version):
-    return f'test_{ package_id }_{ platform_name }_{editor_version}_dependencies'
+def package_job_id_test_dependencies(package_id, platform_os, editor_version):
+    return f'test_{ package_id }_{ platform_os }_{editor_version}_dependencies'
 
 def package_job_id_pack(package_id):
     return f'pack_{package_id}'
@@ -35,11 +35,11 @@ def package_job_id_test_all(editor_version):
 def templates_filepath():
     return f'{parent_dir}/_templates.yml'.lower()
 
-def template_job_id_test(template_id, platform_name, editor_version):
-    return f'test_{ template_id }_{ platform_name }_{editor_version}'
+def template_job_id_test(template_id, platform_os, editor_version):
+    return f'test_{ template_id }_{ platform_os }_{editor_version}'
 
-def template_job_id_test_dependencies(template_id, platform_name, editor_version):
-    return f'test_{ template_id }_{ platform_name }_{editor_version}_dependencies'
+def template_job_id_test_dependencies(template_id, platform_os, editor_version):
+    return f'test_{ template_id }_{ platform_os }_{editor_version}_dependencies'
 
 def template_job_id_pack(template_id):
     return f'pack_{template_id}'

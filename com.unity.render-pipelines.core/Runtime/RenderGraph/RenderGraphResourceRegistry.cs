@@ -5,18 +5,34 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
-    /// <summary>
-    /// The RenderGraphResourceRegistry holds all resource allocated during Render Graph execution.
-    /// </summary>
-    public class RenderGraphResourceRegistry
+    class RenderGraphResourceRegistry
     {
         static readonly ShaderTagId s_EmptyName = new ShaderTagId("");
+
+        static RenderGraphResourceRegistry m_CurrentRegistry;
+        internal static RenderGraphResourceRegistry current
+        {
+            get
+            {
+                // We assume that it's enough to only check in editor because we don't want to pay the cost at runtime.
+#if UNITY_EDITOR
+                if (m_CurrentRegistry == null)
+                {
+                    throw new InvalidOperationException("Current Render Graph Resource Registry is not set. You are probably trying to cast a Render Graph handle to a resource outside of a Render Graph Pass.");
+                }
+#endif
+                return m_CurrentRegistry;
+            }
+            set
+            {
+                m_CurrentRegistry = value; 
+            }
+        }
 
         class IRenderGraphResource
         {
             public bool imported;
             public int  cachedHash;
-            public int  shaderProperty;
             public int  transientPassIndex;
             public bool wasReleased;
 
@@ -24,7 +40,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 imported = false;
                 cachedHash = -1;
-                shaderProperty = 0;
                 transientPassIndex = -1;
                 wasReleased = false;
             }
@@ -94,20 +109,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         TexturePool                         m_TexturePool = new TexturePool();
         ComputeBufferPool                   m_ComputeBufferPool = new ComputeBufferPool();
         DynamicArray<RendererListResource>  m_RendererListResources = new DynamicArray<RendererListResource>();
-        RTHandleSystem                      m_RTHandleSystem = new RTHandleSystem();
         RenderGraphDebugParams              m_RenderGraphDebug;
         RenderGraphLogger                   m_Logger;
         int                                 m_CurrentFrameIndex;
 
         RTHandle                            m_CurrentBackbuffer;
 
-        #region Public Interface
-        /// <summary>
-        /// Returns the RTHandle associated with the provided resource handle.
-        /// </summary>
-        /// <param name="handle">Handle to a texture resource.</param>
-        /// <returns>The RTHandle associated with the provided resource handle or null if the handle is invalid.</returns>
-        public RTHandle GetTexture(in TextureHandle handle)
+        internal RTHandle GetTexture(in TextureHandle handle)
         {
             if (!handle.IsValid())
                 return null;
@@ -115,12 +123,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return GetTextureResource(handle.handle).resource;
         }
 
-        /// <summary>
-        /// Returns the RendererList associated with the provided resource handle.
-        /// </summary>
-        /// <param name="handle">Handle to a Renderer List resource.</param>
-        /// <returns>The Renderer List associated with the provided resource handle or an invalid renderer list if the handle is invalid.</returns>
-        public RendererList GetRendererList(in RendererListHandle handle)
+        internal RendererList GetRendererList(in RendererListHandle handle)
         {
             if (!handle.IsValid() || handle >= m_RendererListResources.size)
                 return RendererList.nullRendererList;
@@ -128,19 +131,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return m_RendererListResources[handle].rendererList;
         }
 
-        /// <summary>
-        /// Returns the Compute Buffer associated with the provided resource handle.
-        /// </summary>
-        /// <param name="handle">Handle to a Compute Buffer resource.</param>
-        /// <returns>The Compute Buffer associated with the provided resource handle or a null reference if the handle is invalid.</returns>
-        public ComputeBuffer GetComputeBuffer(in ComputeBufferHandle handle)
+        internal ComputeBuffer GetComputeBuffer(in ComputeBufferHandle handle)
         {
             if (!handle.IsValid())
                 return null;
 
             return GetComputeBufferResource(handle.handle).resource;
         }
-        #endregion
 
         #region Internal Interface
         private RenderGraphResourceRegistry()
@@ -150,8 +147,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal RenderGraphResourceRegistry(bool supportMSAA, MSAASamples initialSampleCount, RenderGraphDebugParams renderGraphDebug, RenderGraphLogger logger)
         {
-            // We initialize to screen width/height to avoid multiple realloc that can lead to inflated memory usage (as releasing of memory is delayed).
-            m_RTHandleSystem.Initialize(Screen.width, Screen.height, supportMSAA, initialSampleCount);
             m_RenderGraphDebug = renderGraphDebug;
             m_Logger = logger;
 
@@ -175,14 +170,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return res.resource;
         }
 
-        internal void BeginRender(int width, int height, MSAASamples msaaSamples, int currentFrameIndex)
+        internal void BeginRender(int currentFrameIndex)
         {
             m_CurrentFrameIndex = currentFrameIndex;
-            // Update RTHandleSystem with size for this rendering pass.
-            m_RTHandleSystem.SetReferenceSize(width, height, msaaSamples);
+            current = this;
         }
 
-        internal RTHandleProperties GetRTHandleProperties() { return m_RTHandleSystem.rtHandleProperties; }
+        internal void EndRender()
+        {
+            current = null;
+        }
 
         void CheckHandleValidity(in ResourceHandle res)
         {
@@ -210,12 +207,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         // Texture Creation/Import APIs are internal because creation should only go through RenderGraph
-        internal TextureHandle ImportTexture(RTHandle rt, int shaderProperty = 0)
+        internal TextureHandle ImportTexture(RTHandle rt)
         {
             int newHandle = AddNewResource(m_Resources[(int)RenderGraphResourceType.Texture], out TextureResource texResource);
             texResource.resource = rt;
             texResource.imported = true;
-            texResource.shaderProperty = shaderProperty;
 
             return new TextureHandle(newHandle);
         }
@@ -225,7 +221,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (m_CurrentBackbuffer != null)
                 m_CurrentBackbuffer.SetTexture(rt);
             else
-                m_CurrentBackbuffer = m_RTHandleSystem.Alloc(rt);
+                m_CurrentBackbuffer = RTHandles.Alloc(rt);
 
             int newHandle = AddNewResource(m_Resources[(int)RenderGraphResourceType.Texture], out TextureResource texResource);
             texResource.resource = m_CurrentBackbuffer;
@@ -247,13 +243,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return result;
         }
 
-        internal TextureHandle CreateTexture(in TextureDesc desc, int shaderProperty = 0, int transientPassIndex = -1)
+        internal TextureHandle CreateTexture(in TextureDesc desc, int transientPassIndex = -1)
         {
             ValidateTextureDesc(desc);
 
             int newHandle = AddNewResource(m_Resources[(int)RenderGraphResourceType.Texture], out TextureResource texResource);
             texResource.desc = desc;
-            texResource.shaderProperty = shaderProperty;
             texResource.transientPassIndex = transientPassIndex;
             return new TextureHandle(newHandle);
         }
@@ -340,15 +335,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     switch (desc.sizeMode)
                     {
                         case TextureSizeMode.Explicit:
-                            resource.resource = m_RTHandleSystem.Alloc(desc.width, desc.height, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
+                            resource.resource = RTHandles.Alloc(desc.width, desc.height, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
                             desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.msaaSamples, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, desc.name);
                             break;
                         case TextureSizeMode.Scale:
-                            resource.resource = m_RTHandleSystem.Alloc(desc.scale, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
+                            resource.resource = RTHandles.Alloc(desc.scale, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
                             desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.enableMSAA, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, desc.name);
                             break;
                         case TextureSizeMode.Functor:
-                            resource.resource = m_RTHandleSystem.Alloc(desc.func, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
+                            resource.resource = RTHandles.Alloc(desc.func, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
                             desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.enableMSAA, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, desc.name);
                             break;
                     }
@@ -407,32 +402,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 m_ComputeBufferPool.RegisterFrameAllocation(hashCode, resource.resource);
                 LogComputeBufferCreation(resource.resource);
             }
-        }
-
-        void SetGlobalTextures(RenderGraphContext rgContext, List<ResourceHandle> textures, bool bindDummyTexture)
-        {
-            foreach (var resource in textures)
-            {
-                var resourceDesc = GetTextureResource(resource);
-                if (resourceDesc.shaderProperty != 0)
-                {
-                    if (resourceDesc.resource != null)
-                    {
-                        rgContext.cmd.SetGlobalTexture(resourceDesc.shaderProperty, bindDummyTexture ? TextureXR.GetMagentaTexture() : resourceDesc.resource);
-                    }
-                }
-            }
-        }
-
-
-        internal void PreRenderPassSetGlobalTextures(RenderGraphContext rgContext, List<ResourceHandle> textures)
-        {
-            SetGlobalTextures(rgContext, textures, false);
-        }
-
-        internal void PostRenderPassUnbindGlobalTextures(RenderGraphContext rgContext, List<ResourceHandle> textures)
-        {
-            SetGlobalTextures(rgContext, textures, true);
         }
 
         internal void ReleaseTexture(RenderGraphContext rgContext, int index)
@@ -576,17 +545,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             m_TexturePool.CheckFrameAllocation(onException, m_CurrentFrameIndex);
             m_ComputeBufferPool.CheckFrameAllocation(onException, m_CurrentFrameIndex);
+        }
 
+        internal void PurgeUnusedResources()
+        {
             // TODO RENDERGRAPH: Might not be ideal to purge stale resources every frame.
             // In case users enable/disable features along a level it might provoke performance spikes when things are reallocated...
             // Will be much better when we have actual resource aliasing and we can manage memory more efficiently.
             m_TexturePool.PurgeUnusedResources(m_CurrentFrameIndex);
             m_ComputeBufferPool.PurgeUnusedResources(m_CurrentFrameIndex);
-        }
-
-        internal void ResetRTHandleReferenceSize(int width, int height)
-        {
-            m_RTHandleSystem.ResetReferenceSize(width, height);
         }
 
         internal void Cleanup()

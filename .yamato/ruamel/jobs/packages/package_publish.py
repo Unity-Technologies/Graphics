@@ -15,7 +15,7 @@ class Package_PublishJob():
         
         # define dependencies
         dependencies = [f'{packages_filepath()}#{package_job_id_pack(package["id"])}']
-        dependencies.extend([f'{packages_filepath()}#{package_job_id_test(package["id"],  platform["name"], target_editor)}' for platform in platforms])
+        dependencies.extend([f'{packages_filepath()}#{package_job_id_test(package["id"],  platform["os"], target_editor)}' for platform in platforms])
         
         # construct job
         job = YMLJob()
