@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -9,37 +11,122 @@ namespace UnityEditor.Rendering.HighDefinition
         // Quality settings
         SerializedDataParameter m_QualitySetting;
 
-        // An opaque binary blob storing preset settings (used to remember what were the last custom settings that were used).
-        internal abstract class QualitySettingsBlob
+        // An opaque blob storing preset settings (used to remember what were the last custom settings that were used).
+        internal class QualitySettingsBlob
         {
-            public bool[] overrideState;
-
-            protected QualitySettingsBlob(int overrideCount)
+            private struct QualitySetting
             {
-                overrideState = new bool[overrideCount];
+                public bool   state;
+                public object value;
             }
+            
+            Dictionary<int, QualitySetting> settings = new Dictionary<int, QualitySetting>();
 
-            protected static bool IsEqual (QualitySettingsBlob left, QualitySettingsBlob right)
+            public static bool IsEqual (QualitySettingsBlob left, QualitySettingsBlob right)
             {
-                if ((right == null && left != null) || (right != null && left == null))
-                {
-                    return false;
-                }
-
                 if (right == null && left == null)
                 {
                     return true;
                 }
 
-                for (int i = 0; i < left.overrideState.Length; ++i)
+                if ((right == null && left != null) || (right != null && left == null))
                 {
-                    if (left.overrideState[i] != right.overrideState[i])
+                    return false;
+                }
+
+                if (left.settings.Count != right.settings.Count)
+                {
+                    return false;
+                }
+
+                foreach (var pair in left.settings)
+                {
+                    if (right.settings.TryGetValue(pair.Key, out var setting))
                     {
-                        return false;
+                        if (pair.Value.value != setting.value)
+                        {
+                            return false;
+                        }
                     }
                 }
 
                 return true;
+            }
+
+            // TODO: Override GetHashCode?
+            int Hash(SerializedDataParameter setting)
+            {
+                int hash = setting.GetHashCode();
+
+                unchecked
+                {
+                    hash = 23 * setting.value.GetHashCode();
+                    hash = 23 * setting.overrideState.GetHashCode();
+                }
+
+                return hash;
+            }
+
+            public void Save<T>(SerializedDataParameter setting) where T : struct
+            {
+                QualitySetting s;
+                s.state = setting.overrideState.boolValue;
+                s.value = setting.value.GetInline<T>();
+                
+                int key = Hash(setting);
+                if (settings.ContainsKey(key))
+                {
+                    settings[key] = s;
+                }
+                else
+                {
+                    settings.Add(key, s);
+                }
+            }
+
+            public void TryLoad<T>(ref SerializedDataParameter setting) where T : struct
+            {
+                if (settings.TryGetValue(Hash(setting), out QualitySetting s))
+                {
+                    setting.value.SetInline<T>((T)s.value);
+                    setting.overrideState.boolValue = s.state;
+                }
+            }
+        }
+
+        public struct QualityScope : IDisposable
+        {
+            bool m_Disposed;
+            VolumeComponentWithQualityEditor m_QualityComponent;
+            QualitySettingsBlob m_Settings;
+
+            public QualityScope(VolumeComponentWithQualityEditor component)
+            {
+                m_Disposed = false;
+                m_QualityComponent = component;
+                m_Settings = m_QualityComponent.SaveCustomQualitySettingsAsObject();
+                EditorGUI.BeginChangeCheck();
+            }
+
+            public void Dispose()
+            {
+                Dispose(true);
+            }
+
+            void Dispose(bool disposing)
+            {
+                if (m_Disposed)
+                    return;
+                
+                if (disposing && EditorGUI.EndChangeCheck())
+                {
+                    QualitySettingsBlob newSettings = m_QualityComponent?.SaveCustomQualitySettingsAsObject();
+
+                    if (!QualitySettingsBlob.IsEqual(m_Settings, newSettings))
+                        m_QualityComponent?.QualitySettingsWereChanged();
+                }
+
+                m_Disposed = true;
             }
         }
 
