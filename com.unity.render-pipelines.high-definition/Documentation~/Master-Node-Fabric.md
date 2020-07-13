@@ -76,7 +76,7 @@ To view these properties, click the **Cog** in the top right of the Master Node.
 | **Material Type**              | Specifies the type of Material the fabric Shader represents. The options are:<br/>&#8226; **Cotton Wool**: A  variant inspired by the Imageworks’s cloth model.<br/>&#8226; **Silk**: A fabric variant based on an anisotropic GGX BRDF Model. |
 | **Subsurface Scattering**      | Indicates whether the Material supports subsurface scattering. To disable subsurface scattering in specific regions of the Material, use the **Subsurface Mask**. |
 | **Transmission**               | Indicates whether the Material supports transmission.        |
-| **Receive Decals**             | Indicates whether HDRP can draw decals on this Material’s surface. |
+| **Receive Decals**             | Enable the checkbox to allow HDRP to draw decals on this Material’s surface. |
 | **Receive SSR**                | Indicates whether HDRP includes this Material when it processes the screen space reflection pass. |
 | **Add Precomputed Velocity**   | Indicates whether this Material uses precomputed velocity information stored in an Alembic file. |
 | **Specular Occlusion Mode**    | Set the mode that HDRP uses to calculate specular occlusion.<br/>&#8226; **Off**: Disables specular occlusion.<br/>&#8226; **From AO**: Calculates specular occlusion from the ambient occlusion map and the Camera's view vector.<br/>&#8226; **From AO and Bent Normal**: Calculates specular occlusion from the ambient occlusion map, the bent normal map, and the Camera's view vector.<br/>&#8226; **Custom**: Allows you to specify your own specular occlusion values. |
