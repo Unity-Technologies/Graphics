@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+### Fixed
+- Fixed an issue where only unique names of cameras could be added to the camera stack.
+
 ## [7.4.1] - 2020-06-03
 
 ### Fixed
