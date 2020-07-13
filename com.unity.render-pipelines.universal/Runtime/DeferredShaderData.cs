@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.Universal
 
         DeferredShaderData()
         {
-            m_PreTiles = new NativeArray<PreTile>[DeferredConfig.kGPUTilerDepth];
+            m_PreTiles = new NativeArray<PreTile>[DeferredConfig.kCPUTilerDepth];
             m_GpuTilerTileHeaders = new ComputeBuffer[DeferredConfig.kGPUTilerDepth];
             m_GpuTilerTileData = new ComputeBuffer[DeferredConfig.kGPUTilerDepth];
             m_Buffers = new ComputeBuffer[64];
