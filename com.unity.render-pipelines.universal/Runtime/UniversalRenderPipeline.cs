@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering.Universal
 
         const string k_RenderCameraTag = "Render Camera";
         static ProfilingSampler _CameraProfilingSampler = new ProfilingSampler(k_RenderCameraTag);
+        private static readonly ProfilingSampler m_ProfilingXRMirrorView = new ProfilingSampler("XR Mirror View");
 
 #if ENABLE_VR && ENABLE_XR_MODULE
         internal static XRSystem m_XRSystem = new XRSystem();
@@ -398,8 +399,12 @@ namespace UnityEngine.Rendering.Universal
 
             if (xrActive)
             {
-                CommandBuffer cmd = CommandBufferPool.Get("XR Mirror View");
-                m_XRSystem.RenderMirrorView(cmd, baseCamera);
+                CommandBuffer cmd = CommandBufferPool.Get();
+                using (new ProfilingScope(cmd, m_ProfilingXRMirrorView))
+                {
+                    m_XRSystem.RenderMirrorView(cmd, baseCamera);
+                }
+
                 context.ExecuteCommandBuffer(cmd);
                 context.Submit();
                 CommandBufferPool.Release(cmd);
