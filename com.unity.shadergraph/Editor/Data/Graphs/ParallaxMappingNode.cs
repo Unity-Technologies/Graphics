@@ -1,14 +1,12 @@
 using UnityEngine;
 using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph;
 using System;
 using System.Linq;
 using UnityEditor.ShaderGraph.Internal;
 
-namespace UnityEditor.Rendering.Universal
+namespace UnityEditor.ShaderGraph
 {
-    [Title("Utility", "Universal Render Pipeline", "Parallax Mapping")]
-    [FormerName("UnityEditor.Rendering.Universal.ParallaxMappingNode")]
+    [Title("Utility", "Parallax Mapping")]
     class ParallaxMappingNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireViewDirection, IMayRequireMeshUV
     {
         public ParallaxMappingNode()
@@ -16,8 +14,6 @@ namespace UnityEditor.Rendering.Universal
             name = "Parallax Mapping";
             UpdateNodeAfterDeserialization();
         }
-
-        //TODO public override string documentationURL => Documentation.GetPageLink("SGNode-Parallax-Occlusion-Mapping");
 
         // Input slots
         private const int kHeightmapSlotId = 1;
@@ -55,7 +51,7 @@ namespace UnityEditor.Rendering.Universal
 
         string GetFunctionName()
         {
-            return $"Unity_Universal_ParallaxMapping_{concretePrecision.ToShaderString()}";
+            return $"Unity_ParallaxMapping_{concretePrecision.ToShaderString()}";
         }
 
         public override void Setup()
@@ -67,7 +63,7 @@ namespace UnityEditor.Rendering.Universal
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            var perPixelDisplacementInclude = @"#include ""Packages/com.unity.render-pipelines.universal/Shaders/LitDisplacement.hlsl""";
+            var perPixelDisplacementInclude = @"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl""";
             registry.ProvideFunction(GetFunctionName(), s =>
             {
                 s.AppendLine(perPixelDisplacementInclude);
@@ -83,6 +79,7 @@ namespace UnityEditor.Rendering.Universal
             var uvs = GetSlotValue(kUVsSlotId, generationMode);
 
             sb.AppendLines(String.Format(@"
+$precision3 {4} = IN.{2} * GetDisplacementObjectScale().xzy;
 ApplyPerPixelDisplacement({0}, {1}, IN.{2}, {3} * 0.01, {4});
 $precision2 {5} = {4};
 ",

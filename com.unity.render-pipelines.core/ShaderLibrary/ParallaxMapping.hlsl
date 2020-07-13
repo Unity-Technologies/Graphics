@@ -1,5 +1,5 @@
-#ifndef UNIVERSAL_LIT_DISPLACEMENT_INCLUDED
-#define UNIVERSAL_LIT_DISPLACEMENT_INCLUDED
+#ifndef UNIVERSAL_PARALLAX_MAPPING_INCLUDED
+#define UNIVERSAL_PARALLAX_MAPPING_INCLUDED
 
 // Return view direction in tangent space, make sure tangentWS.w is already multiplied by GetOddNegativeScale()
 half3 GetViewDirectionTangentSpace(half4 tangentWS, half3 normalWS, half3 viewDirWS)
@@ -41,4 +41,4 @@ void ApplyPerPixelDisplacement(TEXTURE2D_PARAM(heightMap, sampler_heightMap), ha
     uv += offset;
 }
 
-#endif // UNIVERSAL_LIT_DISPLACEMENT_INCLUDED
+#endif // UNIVERSAL_PARALLAX_MAPPING_INCLUDED

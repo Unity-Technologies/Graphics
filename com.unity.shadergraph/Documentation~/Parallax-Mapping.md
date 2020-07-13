@@ -1,0 +1,13 @@
+# Parallax Mapping Node
+
+The Parallax Mapping Node allows you to create a parallax effect that displaces a Material's UVs to create the illusion of depth inside a Material. Uses single step process that does not account for occlusion.
+
+## Ports
+
+| Name | **Direction** | Type | Description |
+| --- | --- | --- | --- |
+| **Heightmap** | Input | Texture2D | The Texture that specifies the depth of the displacement. |
+| **Heightmap Sampler** | Input | Sampler State | The Sampler to sample **Heightmap** with. |
+| **Amplitude** | Input | Float | A multiplier to apply to the height of the Heightmap (in centimeters). |
+| **UVs** | Input | Vector2 | The UVs that the sampler uses to sample the Texture. |
+| **Parallax UVs** | Output| Vector2 | The UVs after adding the parallax offset. |
