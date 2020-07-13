@@ -3,8 +3,8 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-Universal_Old_OSX_OpenGLCore_playmode_trunk:
-    name: Universal_Old on OSX_OpenGLCore_playmode on version trunk
+Universal_OSX_OpenGLCore_playmode_trunk:
+    name: Universal on OSX_OpenGLCore_playmode on version trunk
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -24,8 +24,8 @@ Universal_Old_OSX_OpenGLCore_playmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-Universal_Old_OSX_OpenGLCore_editmode_trunk:
-    name: Universal_Old on OSX_OpenGLCore_editmode on version trunk
+Universal_OSX_OpenGLCore_editmode_trunk:
+    name: Universal on OSX_OpenGLCore_editmode on version trunk
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -45,8 +45,8 @@ Universal_Old_OSX_OpenGLCore_editmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-Universal_Old_OSX_OpenGLCore_playmode_XR_trunk:
-    name: Universal_Old on OSX_OpenGLCore_playmode_XR on version trunk
+Universal_OSX_OpenGLCore_playmode_XR_trunk:
+    name: Universal on OSX_OpenGLCore_playmode_XR on version trunk
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -66,8 +66,8 @@ Universal_Old_OSX_OpenGLCore_playmode_XR_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-Universal_Old_OSX_OpenGLCore_playmode_fast-trunk:
-    name: Universal_Old on OSX_OpenGLCore_playmode on version fast-trunk
+Universal_OSX_OpenGLCore_playmode_fast-trunk:
+    name: Universal on OSX_OpenGLCore_playmode on version fast-trunk
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -87,8 +87,8 @@ Universal_Old_OSX_OpenGLCore_playmode_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
-Universal_Old_OSX_OpenGLCore_editmode_fast-trunk:
-    name: Universal_Old on OSX_OpenGLCore_editmode on version fast-trunk
+Universal_OSX_OpenGLCore_editmode_fast-trunk:
+    name: Universal on OSX_OpenGLCore_editmode on version fast-trunk
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -108,8 +108,8 @@ Universal_Old_OSX_OpenGLCore_editmode_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
-Universal_Old_OSX_OpenGLCore_playmode_XR_fast-trunk:
-    name: Universal_Old on OSX_OpenGLCore_playmode_XR on version fast-trunk
+Universal_OSX_OpenGLCore_playmode_XR_fast-trunk:
+    name: Universal on OSX_OpenGLCore_playmode_XR on version fast-trunk
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -129,8 +129,8 @@ Universal_Old_OSX_OpenGLCore_playmode_XR_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
-Universal_Old_OSX_OpenGLCore_playmode_CUSTOM-REVISION:
-    name: Universal_Old on OSX_OpenGLCore_playmode on version CUSTOM-REVISION
+Universal_OSX_OpenGLCore_playmode_CUSTOM-REVISION:
+    name: Universal on OSX_OpenGLCore_playmode on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -151,8 +151,8 @@ Universal_Old_OSX_OpenGLCore_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-Universal_Old_OSX_OpenGLCore_editmode_CUSTOM-REVISION:
-    name: Universal_Old on OSX_OpenGLCore_editmode on version CUSTOM-REVISION
+Universal_OSX_OpenGLCore_editmode_CUSTOM-REVISION:
+    name: Universal on OSX_OpenGLCore_editmode on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -173,8 +173,8 @@ Universal_Old_OSX_OpenGLCore_editmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-Universal_Old_OSX_OpenGLCore_playmode_XR_CUSTOM-REVISION:
-    name: Universal_Old on OSX_OpenGLCore_playmode_XR on version CUSTOM-REVISION
+Universal_OSX_OpenGLCore_playmode_XR_CUSTOM-REVISION:
+    name: Universal on OSX_OpenGLCore_playmode_XR on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
