@@ -6,10 +6,10 @@
   "unityRelease": "0b13",
   "displayName": "High Definition RP",
   "dependencies": {
-    "com.unity.render-pipelines.core": "9.0.0-preview.42",
+    "com.unity.render-pipelines.core": "9.0.0-preview.43",
     "com.unity.shadergraph": "9.0.0-preview.38",
     "com.unity.visualeffectgraph": "9.0.0-preview.37",
-    "com.unity.render-pipelines.high-definition-config": "9.0.0-preview.39"
+    "com.unity.render-pipelines.high-definition-config": "9.0.0-preview.40"
   },
   "keywords": [
     "graphics",
