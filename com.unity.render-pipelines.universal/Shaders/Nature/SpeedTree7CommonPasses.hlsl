@@ -59,6 +59,28 @@ struct SpeedTreeVertexDepthOutput
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
+struct SpeedTreeVertexDepthNormalOutput
+{
+    half3 uvHueVariation            : TEXCOORD0;
+    float4 clipPos                  : SV_POSITION;
+
+    #ifdef GEOM_TYPE_BRANCH_DETAIL
+        half3 detail                : TEXCOORD1;
+    #endif
+
+    #ifdef EFFECT_BUMP
+        half4 normalWS              : TEXCOORD2;    // xyz: normal, w: viewDir.x
+        half4 tangentWS             : TEXCOORD3;    // xyz: tangent, w: viewDir.y
+        half4 bitangentWS           : TEXCOORD4;    // xyz: bitangent, w: viewDir.z
+    #else
+        half3 normalWS              : TEXCOORD2;
+        half3 viewDirWS             : TEXCOORD3;
+    #endif
+
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+    UNITY_VERTEX_OUTPUT_STEREO
+};
+
 void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputData inputData)
 {
     inputData.positionWS = input.positionWS.xyz;
@@ -87,6 +109,7 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = half3(0, 0, 0); // No GI currently.
+    inputData.normalizedScreenSpaceUV = input.clipPos.xy;
 }
 
 #ifdef GBUFFER
@@ -187,6 +210,28 @@ half4 SpeedTree7FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target
     #else
         return half4(0, 0, 0, 0);
     #endif
+}
+
+half4 SpeedTree7FragDepthNormal(SpeedTreeVertexDepthNormalOutput input) : SV_Target
+{
+    UNITY_SETUP_INSTANCE_ID(input);
+
+    #if !defined(SHADER_QUALITY_LOW)
+        #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
+            LODDitheringTransition(input.clipPos.xy, unity_LODFade.x);
+        #endif
+    #endif
+
+    half2 uv = input.uvHueVariation.xy;
+    half4 diffuse = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex));
+    diffuse.a *= _Color.a;
+
+    #ifdef SPEEDTREE_ALPHATEST
+        clip(diffuse.a - _Cutoff);
+    #endif
+
+    float3 normalWS = input.normalWS;
+    return float4(PackNormalOctRectEncode(TransformWorldToViewDir(normalWS, true)), 0.0, 0.0);
 }
 
 #endif

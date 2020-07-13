@@ -14,6 +14,22 @@ using UnityEditor.SceneManagement;
 
 namespace  UnityEditor.VFX.UI
 {
+
+    class ValueFilterEnumPropertyRMProvider : SimplePropertyRMProvider<VFXValueFilter>
+    {
+        bool m_NoEnum;
+        public ValueFilterEnumPropertyRMProvider(string name, System.Func<VFXValueFilter> getter, System.Action<VFXValueFilter> setter,bool noEnum) : base(name, getter, setter)
+        {
+            m_NoEnum = noEnum;
+        }
+        public override IEnumerable<int>  filteredOutEnumerators {
+            get
+            {
+            return m_NoEnum?new int[] {2 }:null;
+            }
+        }
+    }
+
     class VFXBlackboardPropertyView : VisualElement, IControlledElement<VFXParameterController>
     {
         public VFXBlackboardPropertyView()
@@ -38,6 +54,7 @@ namespace  UnityEditor.VFX.UI
         PropertyRM m_Property;
         PropertyRM m_MinProperty;
         PropertyRM m_MaxProperty;
+        PropertyRM m_EnumProperty;
         List<PropertyRM> m_SubProperties;
         StringPropertyRM m_TooltipProperty;
 
@@ -55,12 +72,14 @@ namespace  UnityEditor.VFX.UI
                     result = result.Concat(m_SubProperties);
                 if (m_TooltipProperty != null)
                     result = result.Concat(Enumerable.Repeat<PropertyRM>(m_TooltipProperty, 1));
-                if (m_RangeProperty != null)
-                    result = result.Concat(Enumerable.Repeat<PropertyRM>(m_RangeProperty, 1));
+                if (m_ValueFilterProperty != null)
+                    result = result.Concat(Enumerable.Repeat<PropertyRM>(m_ValueFilterProperty, 1));
                 if (m_MinProperty != null)
                     result = result.Concat(Enumerable.Repeat(m_MinProperty, 1));
                 if (m_MaxProperty != null)
                     result = result.Concat(Enumerable.Repeat(m_MaxProperty, 1));
+                if (m_EnumProperty != null)
+                    result = result.Concat(Enumerable.Repeat(m_EnumProperty, 1));
 
                 return result;
             }
@@ -114,7 +133,7 @@ namespace  UnityEditor.VFX.UI
             }
         }
 
-        BoolPropertyRM m_RangeProperty;
+        EnumPropertyRM m_ValueFilterProperty;
         BoolPropertyRM m_ExposedProperty;
 
         IPropertyRMProvider m_RangeProvider;
@@ -122,7 +141,7 @@ namespace  UnityEditor.VFX.UI
         public new void Clear()
         {
             m_ExposedProperty = null;
-            m_RangeProperty = null;
+            m_ValueFilterProperty = null;
         }
 
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
@@ -199,8 +218,9 @@ namespace  UnityEditor.VFX.UI
                 {
                     insertIndex += 1 + (m_SubProperties != null ? m_SubProperties.Count : 0) + 1; //main property + subproperties + tooltip
                 }
+                bool mustRelayout = false;
 
-                if (controller.canHaveRange)
+                if (controller.canHaveValueFilter)
                 {
                     if (m_MinProperty == null || !m_MinProperty.IsCompatible(controller.minController))
                     {
@@ -215,24 +235,43 @@ namespace  UnityEditor.VFX.UI
                         m_MaxProperty = PropertyRM.Create(controller.maxController, 55);
                     }
 
-                    if (m_RangeProperty == null)
+                    if (m_ValueFilterProperty == null)
                     {
-                        m_RangeProperty = new BoolPropertyRM(new SimplePropertyRMProvider<bool>("Range", () => controller.hasRange, t => controller.hasRange = t), 55);
+                        m_ValueFilterProperty = new EnumPropertyRM(new ValueFilterEnumPropertyRMProvider("Mode", () => controller.valueFilter, t => controller.valueFilter = t, controller.portType != typeof(uint)), 55);
                     }
-                    Insert(insertIndex++, m_RangeProperty);
+                    Insert(insertIndex++, m_ValueFilterProperty);
 
-                    if (controller.hasRange)
+                    if (controller.model.valueFilter == VFXValueFilter.Range)
                     {
                         if (m_MinProperty.parent == null)
                         {
                             Insert(insertIndex++, m_MinProperty);
                             Insert(insertIndex++, m_MaxProperty);
+                            mustRelayout = true;
                         }
                     }
                     else if (m_MinProperty.parent != null)
                     {
                         m_MinProperty.RemoveFromHierarchy();
                         m_MaxProperty.RemoveFromHierarchy();
+                    }
+                    if (controller.valueFilter == VFXValueFilter.Enum)
+                    {
+                        if (m_EnumProperty == null || !m_EnumProperty.IsCompatible(controller.enumController))
+                        {
+                            if (m_EnumProperty != null)
+                                m_EnumProperty.RemoveFromHierarchy();
+                            m_EnumProperty = new VFXListParameterEnumValuePropertyRM(controller.enumController, 55);
+                        }
+                        if (m_EnumProperty.parent == null)
+                        {
+                            Insert(insertIndex++, m_EnumProperty);
+                            mustRelayout = true;
+                        }
+                    }
+                    else if(m_EnumProperty != null && m_EnumProperty.parent != null)
+                    {
+                        m_EnumProperty.RemoveFromHierarchy();
                     }
                 }
                 else
@@ -247,12 +286,15 @@ namespace  UnityEditor.VFX.UI
                         m_MaxProperty.RemoveFromHierarchy();
                         m_MaxProperty = null;
                     }
-                    if (m_RangeProperty != null)
+                    if (m_ValueFilterProperty != null)
                     {
-                        m_RangeProperty.RemoveFromHierarchy();
-                        m_RangeProperty = null;
+                        m_ValueFilterProperty.RemoveFromHierarchy();
+                        m_ValueFilterProperty = null;
                     }
                 }
+
+                if( mustRelayout)
+                    Relayout();
             }
             else
             {
@@ -261,7 +303,7 @@ namespace  UnityEditor.VFX.UI
                 m_SubProperties = null;
                 m_MinProperty = null;
                 m_MaxProperty = null;
-                m_RangeProperty = null;
+                m_ValueFilterProperty = null;
                 if (m_TooltipProperty == null)
                 {
                     m_TooltipProperty = new StringPropertyRM(new SimplePropertyRMProvider<string>("Tooltip", () => controller.model.tooltip, t => controller.model.tooltip = t), 55);
@@ -307,11 +349,16 @@ namespace  UnityEditor.VFX.UI
         {
             if (panel != null)
             {
-                float labelWidth = 70;
-                GetPreferedWidths(ref labelWidth);
-                ApplyWidths(labelWidth);
+                Relayout();
             }
             UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+        }
+
+        private void Relayout()
+        {
+            float labelWidth = 70;
+            GetPreferedWidths(ref labelWidth);
+            ApplyWidths(labelWidth);
         }
     }
 }
