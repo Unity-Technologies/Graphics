@@ -1,18 +1,14 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph;
-using UnityEditor.ShaderGraph.Drawing.Controls;
-using UnityEngine.Rendering.HighDefinition;
 using System;
 using System.Linq;
 using UnityEditor.ShaderGraph.Internal;
-using UnityEngine.Rendering;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.ShaderGraph
 {
-    [Title("Utility", "High Definition Render Pipeline", "Parallax Occlusion Mapping")]
+    [Title("Utility", "Parallax Occlusion Mapping")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.ParallaxOcclusionMappingNode")]
+    [FormerName("UnityEditor.Rendering.HighDefinition.ParallaxOcclusionMappingNode")]
     class ParallaxOcclusionMappingNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireViewDirection, IMayRequireMeshUV
     {
         public ParallaxOcclusionMappingNode()
@@ -20,8 +16,6 @@ namespace UnityEditor.Rendering.HighDefinition
             name = "Parallax Occlusion Mapping";
             UpdateNodeAfterDeserialization();
         }
-
-        public override string documentationURL => Documentation.GetPageLink("SGNode-Parallax-Occlusion-Mapping");
 
         // Input slots
         private const int kHeightmapSlotId = 2;
@@ -75,7 +69,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         string GetFunctionName()
         {
-            return $"Unity_HDRP_ParallaxOcclusionMapping_{concretePrecision.ToShaderString()}";
+            return $"Unity_ParallaxOcclusionMapping_{concretePrecision.ToShaderString()}";
         }
 
         public override void Setup()
