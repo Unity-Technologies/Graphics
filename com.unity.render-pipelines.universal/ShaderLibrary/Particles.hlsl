@@ -117,7 +117,7 @@ half4 GetParticleColor(half4 color)
 #if !defined(UNITY_PARTICLE_INSTANCE_DATA_NO_COLOR)
     UNITY_PARTICLE_INSTANCE_DATA data = unity_ParticleInstanceData[unity_InstanceID];
     color = lerp(half4(1.0, 1.0, 1.0, 1.0), color, unity_ParticleUseMeshColors);
-    color *= float4(data.color & 255, (data.color >> 8) & 255, (data.color >> 16) & 255, (data.color >> 24) & 255) * (1.0 / 255);
+    color *= UnpackFromR8G8B8A8(data.color);
 #endif
 #endif
     return color;
@@ -141,7 +141,7 @@ void GetParticleTexcoords(out float2 outputTexcoord, out float3 outputTexcoord2A
         float index0 = floor(sheetIndex);
         float vIdx0 = floor(index0 / numTilesX);
         float uIdx0 = floor(index0 - vIdx0 * numTilesX);
-        float2 offset0 = float2(uIdx0 * animScale.x, (1.0 - animScale.y) - vIdx0 * animScale.y);
+        float2 offset0 = float2(uIdx0 * animScale.x, (1.0 - animScale.y) - vIdx0 * animScale.y); // Copied from built-in as is and it looks like upside-down flip
 
         outputTexcoord = inputTexcoords.xy * animScale.xy + offset0.xy;
 
