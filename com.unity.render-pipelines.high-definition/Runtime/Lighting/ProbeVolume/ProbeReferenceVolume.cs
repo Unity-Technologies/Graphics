@@ -76,6 +76,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         private RefVolTransform     m_Transform;
+        private float               m_NormalBias;
         private int                 m_MaxSubdivision;
         private ProbeBrickPool      m_Pool;
         private ProbeBrickIndex     m_Index;
@@ -95,6 +96,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Transform.rot = Quaternion.identity;
             m_Transform.scale = 1.0f;
             m_Transform.refSpaceToWS = Matrix4x4.identity;
+
+            m_NormalBias = 0f;
 
             m_Pool = new ProbeBrickPool(allocationSize, memoryBudget);
             m_Index = new ProbeBrickIndex(indexDimensions);
@@ -127,6 +130,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Transform.scale = minBrickSize;
             m_Transform.refSpaceToWS = Matrix4x4.TRS(m_Transform.posWS, m_Transform.rot, Vector3.one * m_Transform.scale);
         }
+
+        public void SetNormalBias(float normalBias) { m_NormalBias = normalBias; }
 
         internal static int cellSize(int subdivisionLevel) { return (int)Mathf.Pow(ProbeBrickPool.kBrickCellCount, subdivisionLevel); }
         internal float brickSize( int subdivisionLevel) { return m_Transform.scale * cellSize(subdivisionLevel); }
@@ -331,7 +336,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Update the pool and index and ignore any potential frame latency related issues
             m_Pool.Update(dataloc, m_TmpSrcChunks, m_TmpDstChunks);
             m_Index.AddBricks(bricks, m_TmpDstChunks, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight());
-            m_Index.WriteConstants(ref m_Transform, m_Pool.GetPoolDimensions());
+            m_Index.WriteConstants(ref m_Transform, m_Pool.GetPoolDimensions(), m_NormalBias);
             Profiler.EndSample();
         }
 
