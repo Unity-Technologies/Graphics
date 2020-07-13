@@ -44,9 +44,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             base.OnInspectorGUI();
 
-            GUI.enabled = useCustomValue;
-            PropertyField(m_SampleCount);
-            GUI.enabled = true;
+            using (new QualityScope(this))
+            {
+                PropertyField(m_SampleCount);
+            }
 
             PropertyField(m_MaxVelocityInPixels);
             PropertyField(m_MinVelInPixels);
@@ -57,6 +58,27 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_CameraRotClamp);
                 PropertyField(m_CameraMotionBlur);
             }
+        }
+
+        public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
+        {
+            if (settings == null)
+                settings = new QualitySettingsBlob();
+
+            settings.Save<int>(m_SampleCount);
+
+            return settings;
+        }
+
+        public override void LoadSettingsFromObject(QualitySettingsBlob settings)
+        {
+            settings.TryLoad<int>(ref m_SampleCount);
+        }
+
+        public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
+        {
+            m_SampleCount.value.intValue = settings.postProcessQualitySettings.MotionBlurSampleCount[level];
+            m_SampleCount.overrideState.boolValue = true;
         }
     }
 }
