@@ -282,7 +282,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private static int Asint(float val) { unsafe { return *((int*)&val); } }
 
-        internal void WriteConstants(ref ProbeReferenceVolume.RefVolTransform refTrans, Vector3Int poolDim)
+        internal void WriteConstants(ref ProbeReferenceVolume.RefVolTransform refTrans, Vector3Int poolDim, float normalBias)
         {
 #if USE_INDEX_NATIVE_ARRAY
             NativeArray<int> dst = m_IndexBuffer.BeginWrite<int>(0, kAPVConstantsSize);
@@ -303,7 +303,7 @@ namespace UnityEngine.Rendering.HighDefinition
             dst[ 9] = Asint(WStoRS[0,3]);
             dst[10] = Asint(WStoRS[1,3]);
             dst[11] = Asint(WStoRS[2,3]);
-            dst[12] = Asint(0.0f);
+            dst[12] = Asint(normalBias);
             dst[13] = m_CenterRS.x;
             dst[14] = m_CenterRS.y;
             dst[15] = m_CenterRS.z;
