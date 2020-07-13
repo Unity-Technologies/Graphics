@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine.Rendering;
@@ -39,14 +40,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     return false;
                 }
 
-                foreach (var pair in left.settings)
+                foreach (var key in left.settings.Keys)
                 {
-                    if (right.settings.TryGetValue(pair.Key, out var setting))
+                    if (!left.settings[key].Equals(right.settings[key]))
                     {
-                        if (pair.Value.value != setting.value)
-                        {
-                            return false;
-                        }
+                        return false;
                     }
                 }
 
@@ -128,6 +126,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 m_Disposed = true;
             }
+        }
+
+        public void LoadValue<T>()
+        {
+
         }
 
         // Note: Editors are refreshed on gui changes by the volume system, so any state that we want to store here needs to be a static (or in a serialized variable)
