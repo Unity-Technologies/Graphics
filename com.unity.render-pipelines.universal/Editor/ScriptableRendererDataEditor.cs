@@ -116,7 +116,7 @@ namespace UnityEditor.Rendering.Universal
                         hasChangedProperties = true;
 
                         // We need to update sub-asset name
-                        obj.name = nameProperty.stringValue;
+                        rendererFeatureObjRef.name = nameProperty.stringValue;
                         AssetDatabase.SaveAssets();
 
                         // Triggers update for sub-asset name change
