@@ -195,11 +195,8 @@ float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
 {
     float sourceAO;
 #if (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING)
-    // Note: In deferred pass we don't have space in GBuffer to store ambientOcclusion unless LIGHT_LAYERS is enabled
-    // so we use specularOcclusion instead
-    // The define LIGHT_LAYERS only exist for the GBuffer and the Forward pass. To avoid to add another
-    // variant to deferred.compute, we use dynamic branching instead with _EnableLightLayers.
-    sourceAO = _EnableLightLayers ? bsdfData.ambientOcclusion : bsdfData.specularOcclusion;
+    // Note: In deferred pass we don't have space in GBuffer to store ambientOcclusion so we use specularOcclusion instead
+    sourceAO = bsdfData.specularOcclusion;
 #else
     sourceAO = bsdfData.ambientOcclusion;
 #endif
@@ -643,7 +640,8 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
     outGBuffer3 *= GetCurrentExposureMultiplier();
 
 #ifdef LIGHT_LAYERS
-    OUT_GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, 0.0, builtinData.renderingLayers / 255.0);
+    // Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active
+    OUT_GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, 0.0, (builtinData.renderingLayers & 0x000000FF) / 255.0);
 #endif
 
 #ifdef SHADOWS_SHADOWMASK

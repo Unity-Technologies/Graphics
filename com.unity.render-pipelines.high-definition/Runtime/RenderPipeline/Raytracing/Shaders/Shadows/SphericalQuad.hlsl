@@ -1,7 +1,11 @@
+// I am not sure why exactly, by a lower epsilon generates ray that even if they give a valid result with ray tracing
+// nuke the performance. Changing the epsilon from 1e-6 to 1e-5 seems to solve the issue.
+#define PLANE_INTERSECTION_EPSILON 1e-5
+
 bool IntersectPlane(float3 ray_origin, float3 ray_dir, float3 pos, float3 normal, out float t)
 {
 	float denom = dot(normal, ray_dir); 
-	if (abs(denom) > 1e-6)
+	if (abs(denom) > PLANE_INTERSECTION_EPSILON)
 	{ 
 	    float3 d = pos - ray_origin;
 	    t = dot(d, normal) / denom;
