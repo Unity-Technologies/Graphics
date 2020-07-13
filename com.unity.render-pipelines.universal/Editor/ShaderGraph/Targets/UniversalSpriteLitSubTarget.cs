@@ -242,6 +242,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 StructFields.Varyings.normalWS,
                 StructFields.Varyings.tangentWS,
+                StructFields.Attributes.uv1
             };
 
             public static FieldCollection Depth = new FieldCollection()

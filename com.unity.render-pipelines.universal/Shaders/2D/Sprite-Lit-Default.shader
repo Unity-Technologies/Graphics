@@ -127,6 +127,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 float3 positionOS   : POSITION;
                 float4 color		: COLOR;
                 float2 uv			: TEXCOORD0;
+                float2 customDepth  : TEXCOORD1;
                 float4 tangent      : TANGENT;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
@@ -148,6 +149,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             SAMPLER(sampler_NormalMap);
             half4 _NormalMap_ST;  // Is this the right way to do this?
 
+            float _CustomDepth;
+
             Varyings NormalsRenderingVertex(Attributes attributes)
             {
                 Varyings o = (Varyings)0;
@@ -155,6 +158,9 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
+                o.positionCS.xy /= o.positionCS.w;
+                o.positionCS.z = _CustomDepth > 0 ? _CustomDepth : attributes.customDepth.x;
+                o.positionCS.w = 1.0f;
                 o.uv = TRANSFORM_TEX(attributes.uv, _NormalMap);
                 o.uv = attributes.uv;
                 o.color = attributes.color;
