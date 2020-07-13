@@ -98,7 +98,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Levels of hierarchical tiling. Each level process 4x4 finer tiles. For example:
         // For platforms using 16x16 px tiles, we use a 16x16px tiles grid, a 64x64px tiles grid, and a 256x256px tiles grid
         // For platforms using  8x8  px tiles, we use a  8x8px  tiles grid, a 32x32px tiles grid, and a 128x128px tiles grid
-        public const int kTilerDepth = 3;
+        // CPU goes deep and not wide (few threads).
+        public const int kCPUTilerDepth = 3;
+        // CPU does not go deep but wide (many threads).
+        public const int kGPUTilerDepth = 2;
         public const int kTilerSubdivisions = 4;
 
         public const int kAvgLightPerTile = 64;
@@ -381,14 +384,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_TileDeferredMaterial = tileDeferredMaterial;
             m_StencilDeferredMaterial = stencilDeferredMaterial;
 
-            m_Tilers = new DeferredTiler[DeferredConfig.kTilerDepth];
-            m_TileDataCapacities = new int[DeferredConfig.kTilerDepth];
+            m_Tilers = new DeferredTiler[DeferredConfig.kCPUTilerDepth];
+            m_TileDataCapacities = new int[DeferredConfig.kCPUTilerDepth];
 
-            m_GPUTilers = new DeferredGPUTiler[DeferredConfig.kTilerDepth];
+            m_GPUTilers = new DeferredGPUTiler[DeferredConfig.kGPUTilerDepth];
 
             // Initialize hierarchical tilers. Next tiler processes 4x4 of the tiles of the previous tiler.
             // Tiler 0 has finest tiles, coarser tilers follow.
-            for (int tilerLevel = 0; tilerLevel < DeferredConfig.kTilerDepth; ++tilerLevel)
+            for (int tilerLevel = 0; tilerLevel < m_Tilers.Length; ++tilerLevel)
             {
                 int scale = (int)Mathf.Pow(DeferredConfig.kTilerSubdivisions, tilerLevel);
                 m_Tilers[tilerLevel] = new DeferredTiler(
@@ -397,9 +400,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                     DeferredConfig.kAvgLightPerTile * scale * scale,
                     tilerLevel
                 );
-
                 m_TileDataCapacities[tilerLevel] = 0; // not known yet
-
+            }
+            for (int tilerLevel = 0; tilerLevel < m_GPUTilers.Length; ++tilerLevel)
+            {
+                int scale = (int)Mathf.Pow(DeferredConfig.kTilerSubdivisions, tilerLevel);
                 m_GPUTilers[tilerLevel] = new DeferredGPUTiler(
                     tileLightCullingCS,
                     DeferredConfig.kTilePixelWidth * scale,
@@ -804,7 +809,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Hierarchical tiling on GPU.
 
-            DeferredGPUTiler coarseTiler = m_GPUTilers[m_Tilers.Length - 1];
+            DeferredGPUTiler coarseTiler = m_GPUTilers[m_GPUTilers.Length - 1];
             coarseTiler.CullLights(
                 cmd, preLights, null, null,
                 (coarseTiler.TileXCount + DeferredConfig.kTilerSubdivisions - 1) / DeferredConfig.kTilerSubdivisions,
@@ -813,7 +818,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 renderingData.cameraData.camera.orthographic
             );
 
-            for (int tilerIndex = m_Tilers.Length - 2; tilerIndex >= 0; --tilerIndex)
+            for (int tilerIndex = m_GPUTilers.Length - 2; tilerIndex >= 0; --tilerIndex)
             {
                 m_GPUTilers[tilerIndex].CullLights(
                     cmd, preLights, coarseTiler.TileHeaders, coarseTiler.TileData,

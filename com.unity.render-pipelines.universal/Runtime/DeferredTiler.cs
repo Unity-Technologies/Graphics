@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         int m_TileHeaderSize;
         // Indicative average lights per tile. Only used when initializing the size of m_DataTile for the first time.
         int m_AvgLightPerTile;
-        // 0, 1 or 2 (see DeferredConfig.kTilerDepth)
+        // 0, 1 or 2 (see DeferredConfig.kCPUTilerDepth)
         int m_TilerLevel;
 
         // Camera frustum planes, adjusted to account for tile size.

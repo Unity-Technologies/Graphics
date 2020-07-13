@@ -35,9 +35,9 @@ namespace UnityEngine.Rendering.Universal
 
         DeferredShaderData()
         {
-            m_PreTiles = new NativeArray<PreTile>[DeferredConfig.kTilerDepth];
-            m_GpuTilerTileHeaders = new ComputeBuffer[DeferredConfig.kTilerDepth];
-            m_GpuTilerTileData = new ComputeBuffer[DeferredConfig.kTilerDepth];
+            m_PreTiles = new NativeArray<PreTile>[DeferredConfig.kGPUTilerDepth];
+            m_GpuTilerTileHeaders = new ComputeBuffer[DeferredConfig.kGPUTilerDepth];
+            m_GpuTilerTileData = new ComputeBuffer[DeferredConfig.kGPUTilerDepth];
             m_Buffers = new ComputeBuffer[64];
             m_BufferInfos = new ComputeBufferInfo[64];
         }
@@ -57,7 +57,7 @@ namespace UnityEngine.Rendering.Universal
         {
             DisposeNativeArrays(ref m_PreTiles);
 
-            for (int i = 0; i < DeferredConfig.kTilerDepth; ++i)
+            for (int i = 0; i < m_GpuTilerTileHeaders.Length; ++i)
             {
                 if (m_GpuTilerTileHeaders[i] != null)
                 {

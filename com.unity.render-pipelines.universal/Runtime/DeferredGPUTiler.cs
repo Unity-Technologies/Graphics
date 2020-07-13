@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         int m_TileHeaderSize;
         // Indicative max lights per tile. Only used when initializing the size of m_DataTile for the first time.
         int m_MaxLightsPerTile;
-        // 0, 1 or 2 (see DeferredConfig.kTilerDepth)
+        // 0 or 1 (see DeferredConfig.kGPUTilerDepth)
         int m_TilerLevel;
 
         // Camera frustum planes, adjusted to account for tile size.
