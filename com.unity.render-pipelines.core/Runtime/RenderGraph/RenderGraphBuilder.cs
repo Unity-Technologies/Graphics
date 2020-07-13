@@ -73,7 +73,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <returns>A new transient TextureHandle.</returns>
         public TextureHandle CreateTransientTexture(in TextureDesc desc)
         {
-            var result = m_Resources.CreateTexture(desc, 0, m_RenderPass.index);
+            var result = m_Resources.CreateTexture(desc, m_RenderPass.index);
             m_RenderPass.AddTransientResource(result.handle);
             return result;
         }
@@ -87,7 +87,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle CreateTransientTexture(in TextureHandle texture)
         {
             var desc = m_Resources.GetTextureResourceDesc(texture.handle);
-            var result = m_Resources.CreateTexture(desc, 0, m_RenderPass.index);
+            var result = m_Resources.CreateTexture(desc, m_RenderPass.index);
             m_RenderPass.AddTransientResource(result.handle);
             return result;
         }
