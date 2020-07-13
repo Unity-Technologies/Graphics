@@ -34,6 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         void UpgradeUnlitMasterNode(UnlitMasterNode1 unlitMasterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
             m_MigrateFromOldCrossPipelineSG = true;
+            m_MigrateFromOldSG = true;
 
             // Set data
             systemData.surfaceType = (SurfaceType)unlitMasterNode.m_SurfaceType;
@@ -61,6 +62,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         void UpgradeHDUnlitMasterNode(HDUnlitMasterNode1 hdUnlitMasterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
+            m_MigrateFromOldSG = true;
+
             // Set data
             systemData.surfaceType = (SurfaceType)hdUnlitMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)hdUnlitMasterNode.m_AlphaMode);
