@@ -10,6 +10,9 @@ abv: # specify the editor versions for which to create the expression trigger fo
 nightly:
   allowed_editors: # specify the editor versions for which to create nightly jobs
     - 2019.3
+  extra_dependencies:
+    - project: Universal_Split
+      all: true
 smoke_test: # specifications for smoke tests
   folder: SRP_SmokeTest
   agent: sdet_win_large # used for editmode
