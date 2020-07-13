@@ -20,31 +20,7 @@ smoke_test: # specifications for smoke tests
     - editmode
 trunk_verification: # jobs to include in trunk verification job
   dependencies:
-    - project: URP_2D
-      platform: Win
-      api: DX11
-      test_platforms:
-        - playmode
-        - editmode
-    - project: URP_Foundation
-      platform: Win
-      api: DX11
-      test_platforms:
-        - playmode
-        - editmode
-    - project: URP_Lighting
-      platform: Win
-      api: DX11
-      test_platforms:
-        - playmode
-        - editmode
-    - project: URP_PostPro
-      platform: Win
-      api: DX11
-      test_platforms:
-        - playmode
-        - editmode
-    - project: URP_Terrain
+    - project: Universal
       platform: Win
       api: DX11
       test_platforms:

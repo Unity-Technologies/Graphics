@@ -105,25 +105,9 @@ all_project_ci_nightly_2019.3:
 trunk_verification_2019.3:
     name: Trunk verification - 2019.3
     dependencies:
-      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_2019.3
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_2019.3
          rerun: on-new-revision
-      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_editmode_2019.3
-         rerun: on-new-revision
-      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_2019.3
-         rerun: on-new-revision
-      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_editmode_2019.3
-         rerun: on-new-revision
-      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_playmode_2019.3
-         rerun: on-new-revision
-      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_editmode_2019.3
-         rerun: on-new-revision
-      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_playmode_2019.3
-         rerun: on-new-revision
-      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_editmode_2019.3
-         rerun: on-new-revision
-      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_2019.3
-         rerun: on-new-revision
-      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_editmode_2019.3
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_2019.3
          rerun: on-new-revision
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_2019.3
          rerun: on-new-revision
@@ -228,25 +212,9 @@ all_project_ci_fast-2019.3:
 trunk_verification_fast-2019.3:
     name: Trunk verification - fast-2019.3
     dependencies:
-      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_fast-2019.3
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_fast-2019.3
          rerun: on-new-revision
-      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_editmode_fast-2019.3
-         rerun: on-new-revision
-      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_fast-2019.3
-         rerun: on-new-revision
-      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_editmode_fast-2019.3
-         rerun: on-new-revision
-      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_playmode_fast-2019.3
-         rerun: on-new-revision
-      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_editmode_fast-2019.3
-         rerun: on-new-revision
-      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_playmode_fast-2019.3
-         rerun: on-new-revision
-      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_editmode_fast-2019.3
-         rerun: on-new-revision
-      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_fast-2019.3
-         rerun: on-new-revision
-      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_editmode_fast-2019.3
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_fast-2019.3
          rerun: on-new-revision
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_fast-2019.3
          rerun: on-new-revision
@@ -356,25 +324,9 @@ all_project_ci_CUSTOM-REVISION:
 trunk_verification_CUSTOM-REVISION:
     name: Trunk verification - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_CUSTOM-REVISION
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_editmode_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_editmode_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_playmode_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_editmode_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_playmode_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_editmode_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_editmode_CUSTOM-REVISION
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_CUSTOM-REVISION
          rerun: always
