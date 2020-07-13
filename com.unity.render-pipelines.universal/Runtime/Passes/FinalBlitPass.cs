@@ -10,6 +10,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     public class FinalBlitPass : ScriptableRenderPass
     {
         const string m_ProfilerTag = "Final Blit Pass";
+        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
         RenderTargetHandle m_Source;
         Material m_BlitMaterial;
         TextureDimension m_TargetDimension;
@@ -54,7 +55,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cameraData.isStereoEnabled)
                 requiresSRGBConvertion = !XRGraphics.eyeTextureDesc.sRGB;
 #endif
-            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
+            CommandBuffer cmd = CommandBufferPool.Get();
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            {
 
             if (requiresSRGBConvertion)
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
@@ -92,6 +95,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetViewport(cameraData.pixelRect);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, blitMaterial);
                 cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+            }
             }
 
             context.ExecuteCommandBuffer(cmd);

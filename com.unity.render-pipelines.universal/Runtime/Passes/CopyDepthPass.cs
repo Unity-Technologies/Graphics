@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal bool AllocateRT  { get; set; }
         Material m_CopyDepthMaterial;
         const string m_ProfilerTag = "Copy Depth";
+        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
 
         int m_ScaleBiasId = Shader.PropertyToID("_ScaleBiasRT");
 
@@ -62,9 +63,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return;
             }
 
-            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-            RenderTargetIdentifier depthSurface = source.Identifier();
-            RenderTargetIdentifier copyDepthSurface = destination.Identifier();
+            CommandBuffer cmd = CommandBufferPool.Get();
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            {
+                RenderTargetIdentifier depthSurface = source.Identifier();
+                RenderTargetIdentifier copyDepthSurface = destination.Identifier();
 
             RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
             int cameraSamples = descriptor.msaaSamples;
@@ -113,7 +116,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             Vector4 scaleBias = (flipSign < 0.0f) ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f) : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
             cmd.SetGlobalVector(m_ScaleBiasId, scaleBias);
 
-            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
+            }
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

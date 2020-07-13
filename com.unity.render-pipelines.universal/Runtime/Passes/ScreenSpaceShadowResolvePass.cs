@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         RenderTargetHandle m_ScreenSpaceShadowmap;
         RenderTextureDescriptor m_RenderTextureDescriptor;
         const string m_ProfilerTag = "Resolve Shadows";
+        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
 
         public ScreenSpaceShadowResolvePass(RenderPassEvent evt, Material screenspaceShadowsMaterial)
         {
@@ -54,7 +55,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             Camera camera = renderingData.cameraData.camera;
             bool stereo = renderingData.cameraData.isStereoEnabled;
 
-            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
+            CommandBuffer cmd = CommandBufferPool.Get();
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            {
             if (!stereo)
             {
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
@@ -67,7 +70,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 RenderTargetIdentifier screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap.Identifier();
                 Blit(cmd, screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial);
             }
-
+            }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

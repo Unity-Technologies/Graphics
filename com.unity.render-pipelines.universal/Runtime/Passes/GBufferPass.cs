@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer gbufferCommands = CommandBufferPool.Get("Render GBuffer");
+            CommandBuffer gbufferCommands = CommandBufferPool.Get();
             using (new ProfilingScope(gbufferCommands, m_ProfilingSampler))
             {
                 if (m_DeferredLights.AccurateGbufferNormals)
