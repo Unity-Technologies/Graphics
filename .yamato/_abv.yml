@@ -98,6 +98,8 @@ all_project_ci_nightly_2019.3:
          rerun: on-new-revision
       -  path: .yamato/_abv.yml#smoke_test_editmode_2019.3
          rerun: on-new-revision
+      -  path: .yamato/all-universal_split.yml#All_Universal_Split_2019.3
+         rerun: on-new-revision
     triggers:
         recurring:
           -  branch: 7.x.x/release

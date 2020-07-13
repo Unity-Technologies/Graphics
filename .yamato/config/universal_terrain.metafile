@@ -1,11 +1,11 @@
 project:
-  name: Universal
-  folder: UniversalGraphicsTest
+  name: URP_Terrain
+  folder: UniversalGraphicsTest_Terrain
 test_platforms:
   - Standalone
   - playmode
-  - editmode
   - playmode_XR
+  - editmode
 platforms:
   - name: Win
     apis:
@@ -40,7 +40,3 @@ all:
       api: OpenGLCore
       test_platforms:
         - editmode  
-    - project: Universal_Stereo
-      all: true
-#    - project: Universal_Hybrid
-#      all: true  
