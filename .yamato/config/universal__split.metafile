@@ -1,0 +1,18 @@
+project:
+  name: Universal_Split
+all:
+  dependencies:
+    - project: URP_2D
+      all: true  
+    - project: URP_Foundation
+      all: true 
+    - project: URP_Lighting
+      all: true 
+    - project: URP_PostPro
+      all: true 
+    - project: URP_Terrain
+      all: true 
+    - project: Universal_Stereo
+      all: true
+#    - project: Universal_Hybrid
+#      all: true  

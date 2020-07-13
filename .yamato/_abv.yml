@@ -102,6 +102,8 @@ all_project_ci_nightly_2020.1:
          rerun: on-new-revision
       -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_2020.1
          rerun: on-new-revision
+      -  path: .yamato/all-universal_split.yml#All_Universal_Split_2020.1
+         rerun: on-new-revision
     triggers:
         recurring:
           -  branch: 8.x.x/release
