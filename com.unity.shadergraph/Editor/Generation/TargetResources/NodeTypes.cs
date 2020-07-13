@@ -359,7 +359,8 @@ namespace UnityEditor.ShaderGraph
                 typeof(KeywordNode),
                 typeof(PreviewNode),
                 typeof(SubGraphNode),
-                typeof(RedirectNodeData)
+                typeof(RedirectNodeData),
+                typeof(ParallaxMappingNode)
             };
 
             public static NodeTypeCollection All = new NodeTypeCollection()
