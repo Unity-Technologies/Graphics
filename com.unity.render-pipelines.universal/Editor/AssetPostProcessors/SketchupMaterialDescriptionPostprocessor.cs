@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using UnityEngine;
 using UnityEditor.AssetImporters;
+using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -27,7 +28,8 @@ namespace UnityEditor.Rendering.Universal
             if (lowerCasePath != ".skp")
                 return;
 
-            var shader = Shader.Find("Universal Render Pipeline/Lit");
+            string path = AssetDatabase.GUIDToAssetPath(ShaderUtils.GetShaderGUID(ShaderPathID.Lit));
+            var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
             if (shader == null)
                 return;
             material.shader = shader;
