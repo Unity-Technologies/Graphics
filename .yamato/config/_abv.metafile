@@ -26,6 +26,8 @@ nightly:
       api: Metal
       test_platforms:
         - Standalone
+    - project: Universal_Split
+      all: true
 smoke_test: # specifications for smoke tests
   folder: SRP_SmokeTest
   agent: sdet_win_large # used for editmode
