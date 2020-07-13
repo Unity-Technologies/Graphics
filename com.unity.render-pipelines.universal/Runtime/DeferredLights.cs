@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Keep in sync with shader define USE_CBUFFER_FOR_LIGHTDATA
         // Keep in sync with shader define USE_CBUFFER_FOR_LIGHTLIST
 
-        internal static bool s_IsOpenGL = false; // (kc)
+        internal static bool s_IsOpenGL = false;
 
         // Constant buffers are used for data that a repeatedly fetched by shaders.
         // Structured buffers are used for data only consumed once.
@@ -106,7 +106,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         // On platforms where the tile dimensions is large (16x16), it may be faster to generate tileDepthInfo texture
         // with an intermediate mip level, as this allows spawning more pixel shaders (avoid GPU starvation).
         // Set to -1 to disable.
-#if UNITY_SWITCH || UNITY_IOS
+#if UNITY_EDITOR && (UNITY_SWITCH || UNITY_IOS)
         public const int kTileDepthInfoIntermediateLevel = 1;
 #else
         public const int kTileDepthInfoIntermediateLevel = -1;
@@ -698,7 +698,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     cmd.SetGlobalInt(ShaderConstants._DepthRangeOffset, tileY * tileXCount);
 
-                    cmd.EnableScissorRect(new Rect(0, tileY << tileShiftMipLevel, depthInfoWidth, (tileYEnd - tileY) << tileShiftMipLevel));
+                    int mip_tileY = tileY << tileShiftMipLevel;
+                    int mip_tileYEnd = tileYEnd << tileShiftMipLevel;
+                    cmd.EnableScissorRect(new Rect(0, mip_tileY, depthInfoWidth, mip_tileYEnd - mip_tileY));
                     cmd.Blit(depthSurface, depthInfoSurface, m_TileDepthInfoMaterial, 0);
 
                     tileY = tileYEnd;
@@ -1379,6 +1381,17 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             using (new ProfilingScope(cmd, m_ProfilingSamplerDeferredGPUTiledPass))
             {
+                if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+                {
+                    // Wokaround for bug on Metal platforms (GfxDeviceMetal):
+                    // When we get here, the GfxDeviceMetal is still in a MTLComputeCommandEncoder.
+                    // When setting structured buffer to the vertex shader (_LightLists resource), GfxDeviceMetal "caches" the request but does not bind the resource yet.
+                    // When the MTLComputeCommandEncoder is ended because we are moving back to a MTLCommandEncoder, it will reset all buffers (m_CBs.ResetBuffers())
+                    // and forget the cached bindings.
+                    // The workaround here is to generate en empty draw call first to force moving to MTLCommandEncoder, en then only bind the structured buffer.
+                    cmd.DrawProcedural(Matrix4x4.identity, m_TileDeferredMaterial, 2, MeshTopology.Triangles, 3, 1); // Empty draw call.
+                }
+
                 MeshTopology topology = DeferredConfig.kHasNativeQuadSupport ? MeshTopology.Quads : MeshTopology.Triangles;
 
                 int sizeof_PunctualLightData = Marshal.SizeOf(typeof(PunctualLightData));

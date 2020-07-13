@@ -354,5 +354,40 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
             ENDHLSL
         }
+
+        // 2 - Empty pass: Workaround for bug for Metal platform (GfxDeviceMetal).
+        Pass
+        {
+            Name "Empty"
+
+            HLSLPROGRAM
+
+            #pragma vertex MyVertex
+            #pragma fragment MyFragment
+
+            struct MyAttributes
+            {
+                uint vertexID   : SV_VertexID;
+                uint instanceID : SV_InstanceID;
+            };
+
+            struct MyVaryings
+            {
+                noperspective float4 positionCS : SV_POSITION;
+            };
+
+            MyVaryings MyVertex(MyAttributes input)
+            {
+                MyVaryings output = (MyVaryings)0;
+                return output;
+            }
+
+            half4 MyFragment(MyVaryings input) : SV_Target
+            {
+                return 0.0.xxxx;
+            }
+
+            ENDHLSL
+        }
     }
 }

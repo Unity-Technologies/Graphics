@@ -187,7 +187,7 @@ namespace UnityEngine.Rendering.Universal
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
-            bool requiresDepthPrepass = cameraData.isSceneViewCamera || m_PreferDepthPrepass || m_DeferredLights.TiledDeferredShading != TileShading.Disabled;
+            bool requiresDepthPrepass = cameraData.isSceneViewCamera || m_PreferDepthPrepass;
 
             // TODO: There's an issue in multiview and depth copy pass. Atm forcing a depth prepass on XR until we have a proper fix.
             if (cameraData.xr.enabled && cameraData.requiresDepthTexture)

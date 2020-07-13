@@ -5,10 +5,18 @@ Shader "Hidden/Universal Render Pipeline/TileDepthInfo"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/common_tiling.hlsl"
 
+    // First pass samples depth texture.
     #if defined(SHADER_API_D3D11) || defined(SHADER_API_METAL) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_SWITCH)
-    #define USE_GATHER 1
+    #define USE_GATHER_FOR_PASS0 1
     #else
-    #define USE_GATHER 0
+    #define USE_GATHER_FOR_PASS0 0
+    #endif
+
+    // Second pass samples R32F texture. Not working on Metal...
+    #if defined(SHADER_API_D3D11) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_SWITCH)
+    #define USE_GATHER_FOR_PASS1 1
+    #else
+    #define USE_GATHER_FOR_PASS1 0
     #endif
 
     struct Attributes
@@ -57,7 +65,7 @@ Shader "Hidden/Universal Render Pipeline/TileDepthInfo"
 
             #pragma vertex vert
             #pragma fragment frag
-            #if USE_GATHER
+            #if USE_GATHER_FOR_PASS0
             #pragma target 4.5 // for GatherRed
             #endif
             //#pragma enable_d3d11_debug_symbols
@@ -81,7 +89,7 @@ Shader "Hidden/Universal Render Pipeline/TileDepthInfo"
 
             #endif
 
-            #if USE_GATHER
+            #if USE_GATHER_FOR_PASS0
             SamplerState my_point_clamp_sampler;
             #endif
             TEXTURE2D_FLOAT(_DepthTex);
@@ -147,7 +155,7 @@ Shader "Hidden/Universal Render Pipeline/TileDepthInfo"
 
                 uint geoBitmask = 0;
 
-                #if !USE_GATHER // Base reference version.
+                #if !USE_GATHER_FOR_PASS0 // Base reference version.
                     DOWNSAMPLING_LOOP for (int j = 0; j < downsamplingSize.y; ++j)
                     DOWNSAMPLING_LOOP for (int i = 0; i < downsamplingSize.x; ++i)
                     {
@@ -264,12 +272,12 @@ Shader "Hidden/Universal Render Pipeline/TileDepthInfo"
 
             #pragma vertex vert
             #pragma fragment frag
-            #if USE_GATHER
+            #if USE_GATHER_FOR_PASS1
             #pragma target 4.5 // for GatherRed
             #endif
             //#pragma enable_d3d11_debug_symbols
 
-            #if USE_GATHER
+            #if USE_GATHER_FOR_PASS1
             SamplerState my_point_clamp_sampler;
             #endif
             Texture2D<uint> _BitmaskTex;
@@ -305,7 +313,7 @@ Shader "Hidden/Universal Render Pipeline/TileDepthInfo"
 
                 uint geoBitmask = 0;
 
-                #if !USE_GATHER // Base reference version.
+                #if !USE_GATHER_FOR_PASS1 // Base reference version.
                     DOWNSAMPLING_LOOP for (int j = 0; j < downsamplingSize.y; ++j)
                     DOWNSAMPLING_LOOP for (int i = 0; i < downsamplingSize.x; ++i)
                     {

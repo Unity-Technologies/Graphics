@@ -14,14 +14,8 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/common_tiling.hlsl"
 
-#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
-#define PLATFORM_LANE_COUNT 32
-#define PLATFORM_LANE_X 8
-#define PLATFORM_LANE_Y 4
-#else
+#ifndef PLATFORM_LANE_COUNT // platform specific header may define it
 #define PLATFORM_LANE_COUNT 64
-#define PLATFORM_LANE_X 8
-#define PLATFORM_LANE_Y 8
 #endif
 
 // Precomputed light data.
@@ -430,6 +424,8 @@ void CSDrawIndirectArgs (uint3 groupId: SV_GroupId, uint groupThreadIndex : SV_G
 
     if (groupThreadIndex == 0)
         g_ListCount = 0;
+
+    GroupMemoryBarrierWithGroupSync();
 
     // Traverse light list and rewrite it.
     for (uint i = groupThreadIndex; i < tileHeader.listCount; i += PLATFORM_LANE_COUNT)
