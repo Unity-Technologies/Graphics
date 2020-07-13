@@ -306,7 +306,7 @@ namespace UnityEditor.ShaderGraph
             }
             if (!this.GetOutputSlots<MaterialSlot>().Any())
             {
-                owner.AddValidationError(tempId, k_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
+                owner.AddValidationError(objectId, k_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
             }
             ValidateSlotName();
 
