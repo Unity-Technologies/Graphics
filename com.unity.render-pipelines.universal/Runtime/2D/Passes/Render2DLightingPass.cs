@@ -15,6 +15,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         static readonly ShaderTagId k_LegacyPassName = new ShaderTagId("SRPDefaultUnlit");
         static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_LegacyPassName, k_CombinedRenderingPassName, k_CombinedRenderingPassNameOld };
 
+
         public Render2DLightingPass(Renderer2DData rendererData)
         {
             if (s_SortingLayers == null)
@@ -81,8 +82,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 CommandBuffer cmd = CommandBufferPool.Get("Render 2D Lighting");
                 cmd.Clear();
 
-                RendererLighting.CreateNormalMapRenderTexture(cmd);
-
+                
                 cmd.SetGlobalFloat("_HDREmulationScale", m_Renderer2DData.hdrEmulationScale);
                 cmd.SetGlobalFloat("_InverseHDREmulationScale", 1.0f / m_Renderer2DData.hdrEmulationScale);
                 cmd.SetGlobalFloat("_UseSceneLighting", isLitView ? 1.0f : 0.0f);
@@ -101,6 +101,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 const int blendStylesCount = 4;
                 bool[] hasBeenInitialized = new bool[blendStylesCount];
+
+                bool canResizeNormalMap = !m_Renderer2DData.useDepthStencilBuffer;
+
+                if (!canResizeNormalMap)
+                    RendererLighting.CreateNormalMapRenderTexture(cmd, 0, true);
+
                 for (int i = 0; i < s_SortingLayers.Length; i++)
                 {
 
@@ -131,11 +137,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                         RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleUsed);
                     }
+
+                    if (canResizeNormalMap && lightStats.totalNormalMapUsage > 0)
+                        RendererLighting.CreateNormalMapRenderTexture(cmd, lightStats.blendStylesUsed, false);
+
+
                     context.ExecuteCommandBuffer(cmd);
 
                     // Start Rendering
                     if (lightStats.totalNormalMapUsage > 0)
-                        RendererLighting.RenderNormals(context, renderingData.cullResults, normalsDrawSettings, filterSettings, depthAttachment);
+                        RendererLighting.RenderNormals(context, renderingData.cullResults, normalsDrawSettings, filterSettings, depthAttachment, canResizeNormalMap);
 
                     cmd.Clear();
                     if (lightStats.totalLights > 0)
@@ -162,6 +173,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         context.ExecuteCommandBuffer(cmd);
                         cmd.Clear();
                     }
+
                 }
 
                 cmd.Clear();
@@ -198,5 +210,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
             }
         }
+
     }
 }

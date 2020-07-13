@@ -50,6 +50,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         static GraphicsFormat s_RenderTextureFormatToUse = GraphicsFormat.R8G8B8A8_UNorm;
         static bool s_HasSetupRenderTextureFormatToUse;
+        static bool s_HasCreatedTmpNormalTarget;
 
         static public void Setup(RenderingData renderingData, Renderer2DData renderer2DData)
         {
@@ -69,7 +70,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
 
             if (s_NormalsTarget.id == 0)
+            {
                 s_NormalsTarget.Init("_NormalMap");
+                s_HasCreatedTmpNormalTarget = false;
+            }
 
             if (s_ShadowsRenderTarget.id == 0)
                 s_ShadowsRenderTarget.Init("_ShadowTex");
@@ -89,8 +93,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
 
-        static public void CreateNormalMapRenderTexture(CommandBuffer cmd)
+        static public void CreateNormalMapRenderTexture(CommandBuffer cmd, uint usedBlendStylesMask, bool useNativeResolution)
         {
+            if (s_HasCreatedTmpNormalTarget)
+            {
+                // Release the previously created Normal Map (if any)
+                cmd.ReleaseTemporaryRT(s_NormalsTarget.id);
+            }
+
             if (!s_HasSetupRenderTextureFormatToUse)
             {
                 if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
@@ -101,7 +111,24 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 s_HasSetupRenderTextureFormatToUse = true;
             }
 
-            RenderTextureDescriptor descriptor = new RenderTextureDescriptor(s_RenderingData.cameraData.cameraTargetDescriptor.width, s_RenderingData.cameraData.cameraTargetDescriptor.height);
+            // Compute the maximum RenderScale for the BlendStyles
+            float renderScaleToUse = 0.0f;
+            if (!useNativeResolution)
+            {
+                for (int i = 0; i < s_BlendStyles.Length; ++i)
+                {
+                    if ((usedBlendStylesMask & (1 << i)) != 0)
+                    {
+                        renderScaleToUse = Mathf.Max(renderScaleToUse, Mathf.Clamp(s_BlendStyles[i].renderTextureScale, 0.01f, 1.0f));
+                    }
+                }
+            }
+            else
+            {
+                renderScaleToUse = 1.0f;
+            }
+
+            RenderTextureDescriptor descriptor = new RenderTextureDescriptor((int)(s_RenderingData.cameraData.cameraTargetDescriptor.width * renderScaleToUse), (int)(s_RenderingData.cameraData.cameraTargetDescriptor.height * renderScaleToUse));
             descriptor.graphicsFormat = s_RenderTextureFormatToUse;
             descriptor.useMipMap = false;
             descriptor.autoGenerateMips = false;
@@ -109,6 +136,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             descriptor.msaaSamples = s_RenderingData.cameraData.cameraTargetDescriptor.msaaSamples;
             descriptor.dimension = TextureDimension.Tex2D;
 
+            s_HasCreatedTmpNormalTarget = true;
             cmd.GetTemporaryRT(s_NormalsTarget.id, descriptor, FilterMode.Bilinear);
         }
 
@@ -179,7 +207,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmd.ReleaseTemporaryRT(s_LightRenderTargets[i].id);
             }
 
-            cmd.ReleaseTemporaryRT(s_NormalsTarget.id);
+            if (s_HasCreatedTmpNormalTarget)
+            {
+                cmd.ReleaseTemporaryRT(s_NormalsTarget.id);
+                s_HasCreatedTmpNormalTarget = false;
+            }
             cmd.ReleaseTemporaryRT(s_ShadowsRenderTarget.id);
         }
 
@@ -481,11 +513,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        static public void RenderNormals(ScriptableRenderContext renderContext, CullingResults cullResults, DrawingSettings drawSettings, FilteringSettings filterSettings, RenderTargetIdentifier depthTarget)
+        static public void RenderNormals(ScriptableRenderContext renderContext, CullingResults cullResults, DrawingSettings drawSettings, FilteringSettings filterSettings, RenderTargetIdentifier depthTarget, bool skipDepthTarget)
         {
             var cmd = CommandBufferPool.Get("Clear Normals");
-            cmd.SetRenderTarget(s_NormalsTarget.Identifier(), depthTarget);
-            cmd.ClearRenderTarget(true, true, k_NormalClearColor);
+            if (skipDepthTarget)
+            {
+                cmd.SetRenderTarget(s_NormalsTarget.Identifier(), RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+            }
+            else
+            {
+                cmd.SetRenderTarget(s_NormalsTarget.Identifier(), depthTarget);
+            }
+            cmd.ClearRenderTarget(false, true, k_NormalClearColor);
             renderContext.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
