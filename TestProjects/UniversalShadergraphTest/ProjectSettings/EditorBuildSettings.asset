@@ -26,4 +26,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/008_AdditionalLights.unity
     guid: 769225c95094766468df9889c3d28df1
+  - enabled: 1
+    path: Assets/Scenes/009_AdditionalLightsShadows.unity
+    guid: 08cda79693e6c7f4abb620aca8dcbb11
   m_configObjects: {}
