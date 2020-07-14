@@ -109,6 +109,7 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
+    - Vector2_77feec251dfc4aaf85e4daca9999b632: {r: 2, g: 1, b: 0, a: 0}
     - _BaseColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
     - _Color: {r: 0.5, g: 0.5, b: 0.5, a: 1}
     - _EmissionColor: {r: 0.20663926, g: 0.24034719, b: 0.28676468, a: 1}
