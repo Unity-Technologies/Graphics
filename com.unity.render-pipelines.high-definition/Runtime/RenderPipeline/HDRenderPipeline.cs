@@ -1009,14 +1009,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, m_SsrLightingTexture);
                 else
                     cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, TextureXR.GetClearTexture());
-            
-				// Capsule Occluders Setup (Needs cleanup).
-				{
-					var capsuleSpecOccSettings = hdCamera.volumeStack.GetComponent<CapsuleSpecularOcclusion>();
-		            var capsuleSoftShadow = hdCamera.volumeStack.GetComponent<CapsuleSoftShadows>(); // Again this is bad, should be per light really... 
-		            // TODO: This is bad for now... we really must find a way to bind neutral (tried but didn't work :D ) 
-		            cmd.SetGlobalVector(HDShaderIDs._CapsuleOcclusionParams, new Vector4(capsuleSoftShadow.directShadow.value ? 1 : 0, capsuleSpecOccSettings.intensity.value, capsuleSoftShadow.intensity.value, capsuleSoftShadow.directShadowIsForDirectional.value ? 1 : 0));
-				}
 				
                 // Off screen rendering is disabled for most of the frame by default.
                 cmd.SetGlobalInt(HDShaderIDs._OffScreenRendering, 0);
@@ -2187,7 +2179,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // TODO: This global set should probably be done once as multiple passes might need it set (e.g. contact shadows)
                 cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, m_TileAndClusterData.lightList);
                 m_CapsuleOcclusionSystem.RenderCapsuleOcclusions(cmd, hdCamera, m_AmbientOcclusionSystem.m_AmbientOcclusionTex);
-                m_CapsuleOcclusionSystem.PushGlobalTextures(cmd, hdCamera);
+                m_CapsuleOcclusionSystem.PushGlobalParameters(cmd, hdCamera);
                 m_CapsuleOcclusionSystem.PushDebugTextures(cmd, hdCamera, m_AmbientOcclusionSystem.m_AmbientOcclusionTex);
 
                 // Run the contact shadows here as they the light list
