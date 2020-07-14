@@ -80,8 +80,6 @@ namespace UnityEditor.Rendering.HighDefinition
             int mode = m_FocusMode.value.intValue;
             if (mode == (int)DepthOfFieldMode.Off)
                 return;
-
-            base.OnInspectorGUI();
             
             using (new HDEditorUtils.IndentScope())
             {
