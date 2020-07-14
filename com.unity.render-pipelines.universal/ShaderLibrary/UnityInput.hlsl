@@ -20,7 +20,7 @@
 #define unity_MatrixV unity_StereoMatrixV[unity_StereoEyeIndex]
 #define unity_MatrixInvV unity_StereoMatrixInvV[unity_StereoEyeIndex]
 #define unity_MatrixVP unity_StereoMatrixVP[unity_StereoEyeIndex]
-#define unity_MatrixInvVP mul(unity_StereoMatrixInvV[unity_StereoEyeIndex], unity_StereoCameraInvProjection[unity_StereoEyeIndex])
+#define unity_MatrixInvVP mul(unity_StereoCameraToWorld[unity_StereoEyeIndex], unity_StereoCameraInvProjection[unity_StereoEyeIndex])
 
 #define unity_CameraProjection unity_StereoCameraProjection[unity_StereoEyeIndex]
 #define unity_CameraInvProjection unity_StereoCameraInvProjection[unity_StereoEyeIndex]
