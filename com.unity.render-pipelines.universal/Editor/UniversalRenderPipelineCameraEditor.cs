@@ -53,7 +53,13 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent dithering = EditorGUIUtility.TrTextContent("Dithering", "Applies 8-bit dithering to the final render to reduce color banding.");
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-            public static readonly GUIContent allowXRRendering = EditorGUIUtility.TrTextContent("XR Rendering");
+            public static GUIContent[] xrTargetEyeOptions =
+            {
+                new GUIContent("None"),
+                new GUIContent("Both"),
+            };
+            public static int[] xrTargetEyeValues = { 0, 1 };
+            public static readonly GUIContent xrTargetEye = EditorGUIUtility.TrTextContent("Target Eye", "Allows XR rendering if target eye sets to both eye. Disable XR for this camera otherwise.");
 #endif
             public static readonly GUIContent targetTextureLabel = EditorGUIUtility.TrTextContent("Output Texture", "The texture to render this camera into, if none then this camera renders to screen.");
 
@@ -648,8 +654,6 @@ namespace UnityEditor.Rendering.Universal
 #endif
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
-
-                DrawVRSettings();
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
@@ -722,7 +726,11 @@ namespace UnityEditor.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
         void DrawXRRendering()
         {
-            EditorGUILayout.PropertyField(m_AdditionalCameraDataAllowXRRendering, Styles.allowXRRendering);
+            Rect controlRect = EditorGUILayout.GetControlRect(true);
+            EditorGUI.BeginProperty(controlRect, Styles.xrTargetEye, m_AdditionalCameraDataAllowXRRendering);
+            int selectedValue = !m_AdditionalCameraDataAllowXRRendering.boolValue ? 0 : 1;
+            m_AdditionalCameraDataAllowXRRendering.boolValue = EditorGUI.IntPopup(controlRect, Styles.xrTargetEye, selectedValue, Styles.xrTargetEyeOptions, Styles.xrTargetEyeValues) == 1;
+            EditorGUI.EndProperty();
         }
 #endif
 
@@ -906,14 +914,6 @@ namespace UnityEditor.Rendering.Universal
         {
             EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderShadowsProp, Styles.renderingShadows);
         }
-
-        void DrawVRSettings()
-        {
-            settings.DrawVR();
-            using (var group = new EditorGUILayout.FadeGroupScope(m_ShowTargetEyeAnim.faded))
-                if (group.visible)
-                    settings.DrawTargetEye();
-		}
 
         void EndProperty()
         {
