@@ -33,18 +33,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         Mesh m_PreviousMesh;
 
-        bool m_Expanded = true;
-
-        public bool expanded
-        {
-            get { return m_Expanded; }
-        }
-
         bool m_RecalculateLayout;
 
-        Vector2 m_ExpandedPreviewSize;
-
-        VisualElement m_CollapsePreviewContainer;
         ResizeBorderFrame m_PreviewResizeBorderFrame;
 
         public ResizeBorderFrame previewResizeBorderFrame
@@ -199,9 +189,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 dockingLayout.ApplyPosition(this);
                 m_RecalculateLayout = false;
             }
-
-            if (!expanded)
-                return;
 
             var currentWidth = m_PreviewRenderHandle?.texture != null ? m_PreviewRenderHandle.texture.width : -1;
             var currentHeight = m_PreviewRenderHandle?.texture != null ? m_PreviewRenderHandle.texture.height : -1;
