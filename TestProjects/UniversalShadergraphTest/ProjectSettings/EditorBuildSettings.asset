@@ -35,4 +35,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/012_PBS_EnvironmentBRDF_Spheres.unity
     guid: fa297838b95ae3f41a4551147a37f616
+  - enabled: 1
+    path: Assets/Scenes/016_Lighting_Scene_Directional.unity
+    guid: 8a2431ea498737842a3af0fd22efafb1
   m_configObjects: {}
