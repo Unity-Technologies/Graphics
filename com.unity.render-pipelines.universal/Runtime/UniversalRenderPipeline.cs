@@ -603,6 +603,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.maxShadowDistance = (additionalCameraData.renderShadows) ? cameraData.maxShadowDistance : 0.0f;
                 cameraData.requiresDepthTexture = additionalCameraData.requiresDepthTexture;
                 cameraData.requiresOpaqueTexture = additionalCameraData.requiresColorTexture;
+                cameraData.xrRendering = additionalCameraData.allowXRRendering;
                 cameraData.renderer = additionalCameraData.scriptableRenderer;
             }
             else

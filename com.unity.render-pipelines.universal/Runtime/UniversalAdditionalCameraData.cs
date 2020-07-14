@@ -345,6 +345,15 @@ namespace UnityEngine.Rendering.Universal
             set => m_Dithering = value;
         }
 
+        /// <summary>
+        /// Returns true if this camera allows render in XR.
+        /// </summary>
+        public bool allowXRRendering
+        {
+            get => m_AllowXRRendering;
+            set => m_AllowXRRendering = value;
+        }
+
         public void OnBeforeSerialize()
         {
         }

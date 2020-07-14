@@ -624,9 +624,6 @@ namespace UnityEditor.Rendering.Universal
             m_OutputSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_OutputSettingsFoldout.value, Styles.outputSettingsText);
             if (m_OutputSettingsFoldout.value)
             {
-#if ENABLE_VR && ENABLE_XR_MODULE
-                DrawXRRendering();
-#endif
                 DrawTargetTexture();
 
                 if (camera.targetTexture == null)
@@ -641,7 +638,9 @@ namespace UnityEditor.Rendering.Universal
                 {
                     settings.DrawNormalizedViewPort();
                 }
-
+#if ENABLE_VR && ENABLE_XR_MODULE
+                DrawXRRendering();
+#endif
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
 
@@ -715,9 +714,9 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.EndProperty();
         }
 
-        static void DrawXRRendering()
+        void DrawXRRendering()
         {
-            EditorGUILayout.PropertyField(m_AdditionalCameraDataAllowXRRendering, allowXRRendering);
+            EditorGUILayout.PropertyField(m_AdditionalCameraDataAllowXRRendering, Styles.allowXRRendering);
         }
 
         void DrawTargetTexture()

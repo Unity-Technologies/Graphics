@@ -108,6 +108,7 @@ namespace UnityEngine.Rendering.Universal
         public bool isHdrEnabled;
         public bool requiresDepthTexture;
         public bool requiresOpaqueTexture;
+        public bool xrRendering;
 
         internal bool requireSrgbConversion
         {
