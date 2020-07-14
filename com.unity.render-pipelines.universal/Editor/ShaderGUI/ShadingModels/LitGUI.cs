@@ -230,6 +230,22 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             return SmoothnessMapChannel.SpecularMetallicAlpha;
         }
 
+        private static void SetForwardFallback(Material material, bool enable)
+        {
+            if (enable)
+            {
+                material.SetShaderPassEnabled( "UniversalGBuffer", false);
+                material.SetShaderPassEnabled( "UniversalForwardFallback", true);
+            }
+            else
+            {
+                material.SetShaderPassEnabled( "UniversalGBuffer", true);
+                material.SetShaderPassEnabled( "UniversalForwardFallback", false);
+            }
+
+            //Debug.Log("Fallback: " + enable + " UniversalGBuffer: " + material.GetShaderPassEnabled("UniversalGBuffer") + " UniversalForwardFallback: " + material.GetShaderPassEnabled("UniversalForwardFallback"));
+        }
+
         public static void SetMaterialKeywords(Material material)
         {
             // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
@@ -284,11 +300,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                     CoreUtils.SetKeyword(material, "_CLEARCOAT", true);
                     CoreUtils.SetKeyword(material, "_CLEARCOATMAP", false);
                 }
+
+                SetForwardFallback(material, true);
             }
             else
             {
                 CoreUtils.SetKeyword(material, "_CLEARCOAT", false);
                 CoreUtils.SetKeyword(material, "_CLEARCOATMAP", false);
+                SetForwardFallback(material, false);
             }
 
         }

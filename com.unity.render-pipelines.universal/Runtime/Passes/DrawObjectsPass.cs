@@ -44,7 +44,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_ProfilingSampler = new ProfilingSampler(profilerTag);
             m_ShaderTagIdList.Add(new ShaderTagId("SRPDefaultUnlit"));
             m_ShaderTagIdList.Add(new ShaderTagId("UniversalForward"));
-            m_ShaderTagIdList.Add(new ShaderTagId("UniversalForwardOnly"));
             m_ShaderTagIdList.Add(new ShaderTagId("LightweightForward"));
             renderPassEvent = evt;
 

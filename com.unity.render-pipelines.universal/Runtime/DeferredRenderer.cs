@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.Universal
         TileDepthRangePass m_TileDepthRangePass;
         TileDepthRangePass m_TileDepthRangeExtraPass; // TODO use subpass API to hide this pass
         DeferredPass m_DeferredPass;
-        DrawObjectsPass m_RenderOpaqueForwardOnlyPass;
+        DrawObjectsPass m_RenderOpaqueForwardFallbackPass;
         DrawSkyboxPass m_DrawSkyboxPass;
         CopyDepthPass m_CopyDepthPass0; // first copy for deferred shading pass
         CopyDepthPass m_CopyDepthPass1; // second copy after forward-only pass
@@ -117,7 +117,7 @@ namespace UnityEngine.Rendering.Universal
             // - If a material cannot be lit in deferred (unlit, bakedLit, special material such as hair, skin shader), then it should declare UniversalForwardOnly pass
             // - Legacy materials have unamed pass, which is implicitely renamed as SRPDefaultUnlit. In that case, they are considered forward-only too.
             // TO declare a material with unnamed pass and UniversalForward/UniversalForwardOnly pass is an ERROR, as the material will be rendered twice.
-            m_RenderOpaqueForwardOnlyPass = new DrawObjectsPass("Render Opaques Forward Only", new ShaderTagId[] { new ShaderTagId("SRPDefaultUnlit"), new ShaderTagId("UniversalForwardOnly") }, true, RenderPassEvent.BeforeRenderingOpaques + 5, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
+            m_RenderOpaqueForwardFallbackPass = new DrawObjectsPass("Render Opaques Forward Fallback", new ShaderTagId[] { new ShaderTagId("SRPDefaultUnlit"), new ShaderTagId("UniversalForwardFallback") }, true, RenderPassEvent.BeforeRenderingOpaques + 5, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_CopyDepthPass1 = new CopyDepthPass(RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingTransparents, m_SamplingMaterial);
@@ -463,7 +463,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // On some platform, splitting the bitmasks computation into two passes:
                 //   1/ Compute bitmasks for individual or small blocks of pixels
-                //   2/ merge those individual bitmasks into per-tile bitmasks    
+                //   2/ merge those individual bitmasks into per-tile bitmasks
                 // provides better performance that doing it in a single above pass.
                 if (m_DeferredLights.HasTileDepthRangeExtraPass())
                     EnqueuePass(m_TileDepthRangeExtraPass);
@@ -471,7 +471,7 @@ namespace UnityEngine.Rendering.Universal
 
             EnqueuePass(m_DeferredPass);
 
-            EnqueuePass(m_RenderOpaqueForwardOnlyPass);
+            EnqueuePass(m_RenderOpaqueForwardFallbackPass);
 
         }
 
