@@ -115,7 +115,7 @@ Varyings LitPassVertex(Attributes input)
     // already normalized from normal transform to WS.
     output.normalWS = normalInput.normalWS;
     output.viewDirWS = viewDirWS;
-#if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR) && defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
+#if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR) || defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
     real sign = input.tangentOS.w * GetOddNegativeScale();
     half4 tangentWS = half4(normalInput.tangentWS.xyz, sign);
 #endif
