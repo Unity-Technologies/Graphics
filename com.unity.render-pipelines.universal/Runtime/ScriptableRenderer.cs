@@ -828,7 +828,7 @@ namespace UnityEngine.Rendering.Universal
         [Conditional("UNITY_EDITOR")]
         void DrawWireOverlay(ScriptableRenderContext context, Camera camera)
         {
-#if UNITY_EDITOR
+#if UNITY_EDITOR && UNITY_2020_2_OR_NEWER
             context.DrawWireOverlay(camera);
 #endif
         }
