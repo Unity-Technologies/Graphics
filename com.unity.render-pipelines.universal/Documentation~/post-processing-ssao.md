@@ -91,7 +91,17 @@ Available options:
 
 In some scenarios, the **Depth** option produces results comparable with the **Depth Normals** option. But in certain cases, the **Depth Normals** option provides a significant increase in quality. The following images show an example of such case. 
 
-(TODO: screenshots)
+![Source: Depth. Normal Quality: Low.](Images/post-proc/ssao/ssao-depth-q-low.png)
+<br>_Source: Depth. Normal Quality: Low._
+
+![Source: Depth. Normal Quality: Medium.](Images/post-proc/ssao/ssao-depth-q-medium.png)
+<br>_Source: Depth. Normal Quality: Medium._
+
+![Source: Depth. Normal Quality: High.](Images/post-proc/ssao/ssao-depth-q-high.png)
+<br>_Source: Depth. Normal Quality: High._
+
+![Source: Depth Normals.](Images/post-proc/ssao/ssao-depth-normals.png)
+<br>_Source: Depth Normals._
 
 For more information, see the section [Implementation details](#implementation-details).
 
@@ -105,9 +115,15 @@ This property defines the intensity of the darkening effect.
 
 This property defines how visible the effect is in areas exposed to direct lighting.
 
-(TODO: screenshots)
-
 **Performance impact**: insignificant.
+
+The following images show how the **Direct Lighting Strength** value affects different areas depending on whether they are in the shadow or not.
+
+![Direct Lighting Strength: 0.2.](Images/post-proc/ssao/ssao-direct-light-02.png)
+<br>_Direct Lighting Strength: 0.2._
+
+![Direct Lighting Strength: 0.9.](Images/post-proc/ssao/ssao-direct-light-09.png)
+<br>_Direct Lighting Strength: 0.9._
 
 ### Radius
 
