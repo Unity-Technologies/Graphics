@@ -29,7 +29,7 @@ struct Varyings
 #endif
 
     float3 normalWS                 : TEXCOORD3;
-#if defined(_NORMALMAP) || defined(_PARALLAXMAP)
+#if defined(_NORMALMAP) || defined(_PARALLAXMAP) || defined(_DETAIL_MULX2)
     float4 tangentWS                : TEXCOORD4;    // xyz: tangent, w: sign
 #endif
     float3 viewDirWS                : TEXCOORD5;
@@ -58,7 +58,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 #endif
 
     half3 viewDirWS = SafeNormalize(input.viewDirWS);
-#if defined(_NORMALMAP)
+#if defined(_NORMALMAP) || defined(_DETAIL_MULX2)
     float sgn = input.tangentWS.w;      // should be either +1 or -1
     float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
     inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz));

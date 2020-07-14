@@ -35,6 +35,11 @@ Shader "Universal Render Pipeline/Lit"
         _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
 
+        _DetailMask("Detail Mask", 2D) = "white" {}
+        _DetailAlbedoMap("Detail Albedo x2", 2D) = "grey" {}
+        _DetailNormalMapScale("Scale", Float) = 1.0
+        [Normal] _DetailNormalMap("Normal Map", 2D) = "bump" {}
+
         _ClearCoat("Clear Coat", Float) = 0.0
         _ClearCoatMap("Clear Coat Map", 2D) = "white" {}
         _ClearCoatMask("Clear Coat Mask", Range(0.0, 1.0)) = 0.0
@@ -85,6 +90,7 @@ Shader "Universal Render Pipeline/Lit"
             HLSLPROGRAM
             #pragma exclude_renderers d3d11_9x gles
             #pragma target 4.5
+            //#pragma enable_d3d11_debug_symbols
 
             // -------------------------------------
             // Material Keywords
@@ -95,6 +101,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature_local_fragment _OCCLUSIONMAP
+            #pragma shader_feature_local_fragment _DETAIL_MULX2
             #pragma shader_feature_local _PARALLAXMAP
 
             #pragma shader_feature_local_fragment _ _CLEARCOAT _CLEARCOATMAP
@@ -198,6 +205,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature_local_fragment _OCCLUSIONMAP
+            // SM2.0: NOT SUPPORTED shader_feature_local _DETAIL_MULX2
 
             #pragma shader_feature_local_fragment _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature_local_fragment _ENVIRONMENTREFLECTIONS_OFF
@@ -283,6 +291,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+            #pragma shader_feature_local_fragment _DETAIL_MULX2
 
             #pragma shader_feature_local_fragment _SPECGLOSSMAP
 
@@ -354,6 +363,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature_local_fragment _OCCLUSIONMAP
+            // SM2.0: NOT SUPPORTED shader_feature_local _DETAIL_MULX2
 
             #pragma shader_feature_local_fragment _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature_local_fragment _ENVIRONMENTREFLECTIONS_OFF
@@ -462,6 +472,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+            #pragma shader_feature_local_fragment _DETAIL_MULX2
 
             #pragma shader_feature_local_fragment _SPECGLOSSMAP
 

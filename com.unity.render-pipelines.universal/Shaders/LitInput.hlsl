@@ -8,6 +8,7 @@
 
 CBUFFER_START(UnityPerMaterial)
 float4 _BaseMap_ST;
+float4 _DetailAlbedoMap_ST;
 half4 _BaseColor;
 half4 _SpecColor;
 half4 _EmissionColor;
@@ -21,6 +22,7 @@ half _OcclusionStrength;
 half _ClearCoatMask;
 //half _ClearCoatSmoothness; // TODO: enable
 #endif
+half _DetailNormalMapScale;
 CBUFFER_END
 
 // NOTE: Do not ifdef the properties for dots instancing, but ifdef the actual usage.
@@ -37,6 +39,7 @@ UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float , _BumpScale)
     UNITY_DOTS_INSTANCED_PROP(float , _Parallax)
     UNITY_DOTS_INSTANCED_PROP(float , _OcclusionStrength)
+    UNITY_DOTS_INSTANCED_PROP(float , _DetailNormalMapScale)
     UNITY_DOTS_INSTANCED_PROP(float , _ClearCoatMask)
     //UNITY_DOTS_INSTANCED_PROP(float , _ClearCoatSmoothness) // TODO: enable
 UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
@@ -50,12 +53,16 @@ UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 #define _BumpScale              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__BumpScale)
 #define _BumpScale              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__Parallax)
 #define _OcclusionStrength      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__OcclusionStrength)
+#define _OcclusionStrength      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__DetailNormalMapScale)
 #define _ClearCoatMask          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__ClearCoatMask)
 //#define _ClearCoatSmoothness    UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__ClearCoatSmoothness)
 #endif
 
 TEXTURE2D(_ParallaxMap);        SAMPLER(sampler_ParallaxMap);
 TEXTURE2D(_OcclusionMap);       SAMPLER(sampler_OcclusionMap);
+TEXTURE2D(_DetailMask);         SAMPLER(sampler_DetailMask);
+TEXTURE2D(_DetailAlbedoMap);    SAMPLER(sampler_DetailAlbedoMap);
+TEXTURE2D(_DetailNormalMap);    SAMPLER(sampler_DetailNormalMap);
 TEXTURE2D(_MetallicGlossMap);   SAMPLER(sampler_MetallicGlossMap);
 TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);
 TEXTURE2D(_ClearCoatMap);       SAMPLER(sampler_ClearCoatMap);
@@ -162,6 +169,27 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
 #else
     outSurfaceData.clearCoatMask       = 0.0h;
     outSurfaceData.clearCoatSmoothness = 0.0h;
+#endif
+
+#if _DETAIL_MULX2
+#if (SHADER_TARGET < 30)
+    // SM20: instruction count limitation
+    // SM20: no detail mask
+    half detailMask = 1;
+#else
+    half detailMask = SAMPLE_TEXTURE2D(_DetailMask, sampler_DetailMask, uv).a;
+#endif
+
+    float2 detailUv = uv * _DetailAlbedoMap_ST.xy + _DetailAlbedoMap_ST.zw;
+
+    half3 detailAlbedo = SAMPLE_TEXTURE2D(_DetailAlbedoMap, sampler_DetailAlbedoMap, detailUv).rgb;
+    outSurfaceData.albedo *= LerpWhiteTo(detailAlbedo, detailMask);
+
+//#if UNITY_ENABLE_DETAIL_NORMALMAP
+    half3 detailNormalTS = UnpackNormalScale(SAMPLE_TEXTURE2D(_DetailNormalMap, sampler_DetailNormalMap, detailUv), _DetailNormalMapScale);
+    outSurfaceData.normalTS = lerp(outSurfaceData.normalTS, BlendNormalRNM(outSurfaceData.normalTS, detailNormalTS), detailMask); // todo: detailMask should lerp the angle of the quaternion rotation, not the normals
+//#endif
+
 #endif
 }
 
