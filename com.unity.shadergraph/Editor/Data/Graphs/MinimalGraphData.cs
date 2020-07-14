@@ -4,6 +4,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
@@ -67,6 +68,12 @@ namespace UnityEditor.ShaderGraph
                 foreach (var node in minimalGraphData.m_SerializableNodes)
                 {
                     entries.Add(new MultiJsonEntry(node.typeInfo.fullName, null, node.JSONnodeData));
+                    AbstractMaterialNode0 amn = new AbstractMaterialNode0();
+                    JsonUtility.FromJsonOverwrite(node.JSONnodeData, amn);
+                    foreach(var slot in amn.m_SerializableSlots)
+                    {
+                        entries.Add(new MultiJsonEntry(slot.typeInfo.fullName, null, slot.JSONnodeData));
+                    }
                 }
             }
 

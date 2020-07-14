@@ -177,7 +177,7 @@ real3 UnpackNormalAG(real4 packedNormal, real scale = 1.0)
 {
     real3 normal;
     normal.xy = packedNormal.ag * 2.0 - 1.0;
-    normal.z = sqrt(1.0 - saturate(dot(normal.xy, normal.xy)));
+    normal.z = max(1.0e-16, sqrt(1.0 - saturate(dot(normal.xy, normal.xy))));
 
     // must scale after reconstruction of normal.z which also
     // mirrors UnpackNormalRGB(). This does imply normal is not returned
@@ -200,7 +200,9 @@ real3 UnpackNormalmapRGorAG(real4 packedNormal, real scale = 1.0)
 
 real3 UnpackNormal(real4 packedNormal)
 {
-#if defined(UNITY_NO_DXT5nm)
+#if defined(UNITY_ASTC_NORMALMAP_ENCODING)
+    return UnpackNormalAG(packedNormal, 1.0);
+#elif defined(UNITY_NO_DXT5nm)
     return UnpackNormalRGBNoScale(packedNormal);
 #else
     // Compiler will optimize the scale away
@@ -210,7 +212,9 @@ real3 UnpackNormal(real4 packedNormal)
 
 real3 UnpackNormalScale(real4 packedNormal, real bumpScale)
 {
-#if defined(UNITY_NO_DXT5nm)
+#if defined(UNITY_ASTC_NORMALMAP_ENCODING)
+    return UnpackNormalAG(packedNormal, bumpScale);
+#elif defined(UNITY_NO_DXT5nm)
     return UnpackNormalRGB(packedNormal, bumpScale);
 #else
     return UnpackNormalmapRGorAG(packedNormal, bumpScale);

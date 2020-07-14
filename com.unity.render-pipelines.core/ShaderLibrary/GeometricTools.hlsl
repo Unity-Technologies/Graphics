@@ -132,6 +132,23 @@ float3 IntersectRayPlane(float3 rayOrigin, float3 rayDirection, float3 planeOrig
     return rayOrigin + rayDirection * dist;
 }
 
+// Same as above but return intersection distance and true / false if the ray hit/miss
+bool IntersectRayPlane(float3 rayOrigin, float3 rayDirection, float3 planePosition, float3 planeNormal, out float t)
+{
+    bool res = false;
+    t = -1.0;
+
+    float denom = dot(planeNormal, rayDirection); 
+    if (abs(denom) > 1e-5)
+    { 
+        float3 d = planePosition - rayOrigin;
+        t = dot(d, planeNormal) / denom;
+        res = (t >= 0);
+    }
+
+    return res; 
+}
+
 // Can support cones with an elliptic base: pre-scale 'coneAxisX' and 'coneAxisY' by (h/r_x) and (h/r_y).
 // Returns parametric distances 'tEntr' and 'tExit' along the ray,
 // subject to constraints 'tMin' and 'tMax'.

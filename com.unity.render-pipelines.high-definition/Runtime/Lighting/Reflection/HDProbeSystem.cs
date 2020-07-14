@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Assertions;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -94,7 +95,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             case ProbeSettings.ProbeType.PlanarProbe:
                                 target = HDRenderUtilities.CreatePlanarProbeRenderTarget(
-                                    (int)probe.resolution
+                                    (int)probe.resolution, (GraphicsFormat)hd.currentPlatformRenderPipelineSettings.colorBufferFormat
                                 );
                                 break;
                             case ProbeSettings.ProbeType.ReflectionProbe:
@@ -112,7 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             case ProbeSettings.ProbeType.PlanarProbe:
                                 target = HDRenderUtilities.CreatePlanarProbeRenderTarget(
-                                    (int)probe.resolution
+                                    (int)probe.resolution, (GraphicsFormat)hd.currentPlatformRenderPipelineSettings.colorBufferFormat
                                 );
                                 break;
                             case ProbeSettings.ProbeType.ReflectionProbe:

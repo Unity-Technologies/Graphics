@@ -23,13 +23,13 @@ surface.subsurfaceMask = 1.0f;
     surface.baseColor = OUTSG.${SHADERGRAPH_PARAM_BASECOLOR};
 #endif
 
-#if HAS_SHADERGRAPH_PARAM_NORMAL
-    float3 n =  OUTSG.${SHADERGRAPH_PARAM_NORMAL};
+#if HAS_SHADERGRAPH_PARAM_NORMALTS
+    float3 n =  OUTSG.${SHADERGRAPH_PARAM_NORMALTS};
     normalWS = mul(n,tbn);
 #endif
 
 surface.normalWS = normalWS;
 
-#if HAS_SHADERGRAPH_PARAM_EMISSIVE
-    builtin.emissiveColor = OUTSG.${SHADERGRAPH_PARAM_EMISSIVE};
+#if HAS_SHADERGRAPH_PARAM_EMISSION
+    builtin.emissiveColor = OUTSG.${SHADERGRAPH_PARAM_EMISSION};
 #endif
