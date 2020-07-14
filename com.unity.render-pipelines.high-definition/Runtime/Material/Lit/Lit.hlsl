@@ -619,10 +619,13 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
         // take the absolute value and also swap Sin and Cos.
         bool  storeSin = (abs(sinFrame) < abs(cosFrame)) != quad2or4;
         // sin [and cos] are approximately linear up to [after] Pi/4 ± Pi.
-        float sinOrCos = min(abs(sinFrame), abs(cosFrame)) * sqrt(2);
+        float sinOrCos = min(abs(sinFrame), abs(cosFrame));
+        // To avoid storing redundant angles, we must convert from a node-centered representation
+        // to a cell-centered one, e.i. remap: [0.5/256, 255.5/256] -> [0, 1].
+        float remappedSinOrCos = Remap01(sinOrCos, sqrt(2) * 256.0/255.0, 0.5/255.0);
 
         outGBuffer2.rgb = float3(anisotropy,
-                                 sinOrCos,
+                                 remappedSinOrCos,
                                  PackFloatInt8bit(surfaceData.metallic, storeSin ? 1 : 0, 8));
     }
     else if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
@@ -906,7 +909,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
             UnpackFloatInt8bit(inGBuffer2.b, 8, unused, tangentFlags);
 
             // Get the rotation angle of the actual tangent frame with respect to the default one.
-            float sinOrCos = inGBuffer2.g * rsqrt(2);
+            float sinOrCos = (0.5/256.0 * rsqrt(2)) + (255.0/256.0 * rsqrt(2)) * inGBuffer2.g;
             float cosOrSin = sqrt(1 - sinOrCos * sinOrCos);
             bool  storeSin = tangentFlags != 0;
             float sinFrame = storeSin ? sinOrCos : cosOrSin;
