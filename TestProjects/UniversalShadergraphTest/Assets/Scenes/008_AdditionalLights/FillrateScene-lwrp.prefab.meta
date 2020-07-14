@@ -1,8 +1,6 @@
 fileFormatVersion: 2
-guid: 4cf38076a887188479deff202ca5b74c
-labels:
-- TestRunnerBake
-DefaultImporter:
+guid: 27d27af010de35748b2ccc4a726958ca
+PrefabImporter:
   externalObjects: {}
   userData: 
   assetBundleName: 
