@@ -144,6 +144,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDRenderPipeline m_HDInstance;
 
+        bool m_IsDoFHisotoryValid = false;
+
         void FillEmptyExposureTexture()
         {
             var tex = new Texture2D(1, 1, TextureFormat.RGHalf, false, true);
@@ -615,6 +617,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfField)))
                         {
+                            // If we switch DoF modes and the old one was not using TAA, make sure we invalidate the history 
+                            if (taaEnabled && m_IsDoFHisotoryValid != m_DepthOfField.physicallyBased)
+                            {
+                                camera.resetPostProcessingHistory = true;
+                            }
+
                             var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
                             if (!m_DepthOfField.physicallyBased)
                                 DoDepthOfField(cmd, camera, source, destination, taaEnabled);
@@ -634,6 +642,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                 PoolSource(ref source, taaDestination);
                                 postDoFTAAEnabled = true;
                             }
+
+                            m_IsDoFHisotoryValid = (m_DepthOfField.physicallyBased && taaEnabled);
                         }
                     }
 
