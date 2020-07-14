@@ -14,66 +14,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 {
     public class SpritePreprocessor : AssetPostprocessor
     {
-        class MySpriteMetaData
-        {
-
-
-        }
-
-        void SetPositions(NativeArray<Vector3> positions, float width, float height)
-        {
-            positions[0] = new Vector3(-width, -height);
-            positions[1] = new Vector3(-width, height);
-            positions[2] = new Vector3(0, height);
-            positions[3] = new Vector3(0, -height);
-            positions[4] = new Vector3(width, -height);
-            positions[5] = new Vector3(width, height);
-        }
-
-        void SetUVs(NativeArray<Vector2> uvs)
-        {
-            uvs[0] = new Vector2(0, 0);
-            uvs[1] = new Vector2(0, 1);
-            uvs[2] = new Vector2(0.5f, 1);
-            uvs[3] = new Vector2(0.5f, 0);
-            uvs[4] = new Vector2(1, 0);
-            uvs[5] = new Vector2(1, 1);
-        }
-
-        void SetIndices(NativeArray<ushort> indices)
-        {
-            indices[0] = 0;
-            indices[1] = 1;
-            indices[2] = 3;
-
-            indices[3] = 3;
-            indices[4] = 1;
-            indices[5] = 2;
-
-            indices[6] = 3;
-            indices[7] = 2;
-            indices[8] = 4;
-
-            indices[9] = 4;
-            indices[10] = 2;
-            indices[11] = 5;
-        }
-
-        void DrawOutline(Vector2 pivot, List<Vector2[]> outlineList, float scale, Color color)
-        {
-            for (int outlineIndex = 0; outlineIndex < outlineList.Count; outlineIndex++)
-            {
-                Vector2[] outline = outlineList[outlineIndex];
-
-                Vector2 prevPt = outline[outline.Length - 1];
-                for (int i = 0; i < outline.Length; i++)
-                {
-                    Debug.DrawLine(pivot + (prevPt / scale), pivot + (outline[i] / scale), color, 120.0f);
-                    prevPt = outline[i];
-                }
-            }
-        }
-
         NativeArray<T> ListToNativeArray<T>(List<T> list) where T : struct
         {
             NativeArray<T> nativeArray = new NativeArray<T>(list.Count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
@@ -107,7 +47,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Debug.Log("Shapes generated: " + shapeLibrary.m_Shapes.Count);
 
             List<Vector3> allVertices = new List<Vector3>();
-            List<Vector2> allUVs = new List<Vector2>();
             List<ushort> colorTriangles = new List<ushort>();
             List<ushort> depthTriangles = new List<ushort>();
 
@@ -127,25 +66,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 Vector3 v3Pivot = new Vector3(pivot.x, pivot.y);
                 for (int i = 0; i < vertices.Length; i++)
                     allVertices.Add(vertices[i] / pixelsPerUnit - v3Pivot);
-
-                //for (int i = 0; i < uvs.Length; i++)
-                //    allUVs.Add(uvs[i]);
-
-                for (int i = 0; i < uvs.Length; i++)
-                {
-                    Vector2 newUV = new Vector2((vertices[i].x + shapeLibrary.m_Region.x) / texture.width, (vertices[i].y + shapeLibrary.m_Region.y) / texture.height);
-                    allUVs.Add(newUV);
-                }
             });
 
 
             NativeArray<Vector3> nativeVertices = ListToNativeArray<Vector3>(allVertices);
-            NativeArray<Vector2> nativeUVs = ListToNativeArray<Vector2>(allUVs);
             NativeArray<ushort> nativeIndices = ListsToNativeArray<ushort>(colorTriangles, depthTriangles);
 
             sprite.SetVertexCount(allVertices.Count);
             sprite.SetVertexAttribute(UnityEngine.Rendering.VertexAttribute.Position, nativeVertices);
-            sprite.SetVertexAttribute(UnityEngine.Rendering.VertexAttribute.TexCoord0, nativeUVs);
             sprite.SetIndices(nativeIndices);
             sprite.ModifySubmesh(0, allVertices.Count, 0, colorTriangles.Count, 0);
 
@@ -158,9 +86,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
 
             nativeVertices.Dispose();
-            nativeUVs.Dispose();
             nativeIndices.Dispose();
-
         }
 
         void OnPostprocessSprites(Texture2D texture, Sprite[] sprites)
@@ -193,32 +119,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         CreateSplitSpriteMesh(sprites[i], pivotOffset, textureImporter.spritesheet[i].outline, correctedPPU);
                     }
                 }
-
-                //for (int i = 0; i < sprites.Length; i++)
-                //{
-                //    NativeArray<Vector3> positions = new NativeArray<Vector3>(6, Allocator.Temp);
-                //    NativeArray<Vector2> uv0 = new NativeArray<Vector2>(6, Allocator.Temp);
-                //    NativeArray<ushort> indices = new NativeArray<ushort>(12, Allocator.Temp);
-
-                //    SetPositions(positions, 0.5f * width, 0.5f * height);
-                //    SetUVs(uv0);
-                //    SetIndices(indices);
-
-                //    sprites[i].SetVertexAttribute(UnityEngine.Rendering.VertexAttribute.Position, positions);
-                //    sprites[i].SetVertexAttribute(UnityEngine.Rendering.VertexAttribute.TexCoord0, uv0);
-                //    sprites[i].SetIndices(indices);
-
-                //    sprites[i].ModifySubmesh(0, 4, 0, 6, 0);
-
-                //    int meshCount = sprites[i].GetSubmeshCount();
-                //    if (meshCount == 1)
-                //        sprites[i].AddSubmesh();
-                //    sprites[i].ModifySubmesh(2, 4, 6, 6, 1);
-
-                //    positions.Dispose();
-                //    uv0.Dispose();
-                //    indices.Dispose();
-                //}
             }
         }
     }
