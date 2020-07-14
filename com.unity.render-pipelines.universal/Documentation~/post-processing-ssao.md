@@ -17,7 +17,7 @@ The following images show a scene with the Ambient Occlusion effect turned off, 
 ![Scene with only the Ambient Occlusion texture.](Images/post-proc/ssao/scene-ssao-only-ao.png)
 <br/>_Scene with only the Ambient Occlusion texture._
 
-## Adding the SSAO effect to a Renderer
+## Adding the SSAO Renderer Feature to a Renderer
 
 URP implements the Ambient Occlusion post-processing effect as a Renderer Feature.
 
