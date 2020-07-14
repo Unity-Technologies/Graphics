@@ -135,13 +135,14 @@ namespace UnityEditor.Rendering.HighDefinition
                             {
                                 base.OnInspectorGUI(); // Quality Setting
                                 EditorGUI.indentLevel++;
-                                GUI.enabled = useCustomValue;
-                                PropertyField(m_RayLength);
-                                PropertyField(m_ClampValue);
-                                PropertyField(m_FullResolution);
-                                PropertyField(m_UpscaleRadius);
-                                DenoiserGUI();
-                                GUI.enabled = true;
+                                using (new QualityScope(this))
+                                {
+                                    PropertyField(m_RayLength);
+                                    PropertyField(m_ClampValue);
+                                    PropertyField(m_FullResolution);
+                                    PropertyField(m_UpscaleRadius);
+                                    DenoiserGUI();
+                                }
                                 EditorGUI.indentLevel--;
 
                             }
@@ -169,14 +170,16 @@ namespace UnityEditor.Rendering.HighDefinition
                     else
                     {
                         base.OnInspectorGUI(); // Quality Setting
+
                         EditorGUI.indentLevel++;
-                        GUI.enabled = useCustomValue;
-                        PropertyField(m_RayLength);
-                        PropertyField(m_ClampValue);
-                        PropertyField(m_FullResolution);
-                        PropertyField(m_UpscaleRadius);
-                        DenoiserGUI();
-                        GUI.enabled = true;
+                        using (new QualityScope(this))
+                        {
+                            PropertyField(m_RayLength);
+                            PropertyField(m_ClampValue);
+                            PropertyField(m_FullResolution);
+                            PropertyField(m_UpscaleRadius);
+                            DenoiserGUI();
+                        }
                         EditorGUI.indentLevel--;
                     }
 
@@ -188,18 +191,102 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 base.OnInspectorGUI(); // Quality Setting
                 EditorGUI.indentLevel++;
-                GUI.enabled = useCustomValue;
-                PropertyField(m_FullResolutionSS, EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode."));
-                PropertyField(m_RaySteps);
-                PropertyField(m_MaximalRadius);
-                PropertyField(m_ClampValueSS, EditorGUIUtility.TrTextContent("Clamp Value", "Clamps the exposed intensity."));
-                PropertyField(m_FilterRadius);
-                GUI.enabled = true;
+                using (new QualityScope(this))
+                {
+                    PropertyField(m_FullResolutionSS, EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode."));
+                    PropertyField(m_RaySteps);
+                    PropertyField(m_MaximalRadius);
+                    PropertyField(m_ClampValueSS, EditorGUIUtility.TrTextContent("Clamp Value", "Clamps the exposed intensity."));
+                    PropertyField(m_FilterRadius);
+                }
                 EditorGUI.indentLevel--;
                 PropertyField(m_DepthBufferThickness);
             }
 
             EditorGUI.indentLevel--;
+        }
+
+        public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
+        {
+            if (settings == null)
+                settings = new QualitySettingsBlob();
+
+            // RTGI
+            settings.Save<float>(m_RayLength);
+            settings.Save<float>(m_ClampValue);
+            settings.Save<bool>(m_FullResolution);
+            settings.Save<int>(m_UpscaleRadius);
+            settings.Save<bool>(m_Denoise);
+            settings.Save<bool>(m_HalfResolutionDenoiser);
+            settings.Save<float>(m_DenoiserRadius);
+            settings.Save<bool>(m_SecondDenoiserPass);
+            settings.Save<float>(m_SecondDenoiserRadius);
+
+            // SSGI
+            settings.Save<bool>(m_FullResolutionSS);
+            settings.Save<int>(m_RaySteps);
+            settings.Save<float>(m_MaximalRadius);
+            settings.Save<float>(m_ClampValueSS);
+            settings.Save<int>(m_FilterRadius);
+
+            return settings;
+        }
+
+        public override void LoadSettingsFromObject(QualitySettingsBlob settings)
+        {
+            // RTGI
+            settings.TryLoad<float>(ref m_RayLength);
+            settings.TryLoad<float>(ref m_ClampValue);
+            settings.TryLoad<bool>(ref m_FullResolution);
+            settings.TryLoad<int>(ref m_UpscaleRadius);
+            settings.TryLoad<bool>(ref m_Denoise);
+            settings.TryLoad<bool>(ref m_HalfResolutionDenoiser);
+            settings.TryLoad<float>(ref m_DenoiserRadius);
+            settings.TryLoad<bool>(ref m_SecondDenoiserPass);
+            settings.TryLoad<float>(ref m_SecondDenoiserRadius);
+
+            // SSGI
+            settings.TryLoad<bool>(ref m_FullResolutionSS);
+            settings.TryLoad<int>(ref m_RaySteps);
+            settings.TryLoad<float>(ref m_MaximalRadius);
+            settings.TryLoad<float>(ref m_ClampValueSS);
+            settings.TryLoad<int>(ref m_FilterRadius);
+        }
+
+        public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
+        {
+            // RTGI
+            m_RayLength.value.floatValue = settings.lightingQualitySettings.RTGIRayLength[level];
+            m_ClampValue.value.floatValue = settings.lightingQualitySettings.RTGIClampValue[level];
+            m_FullResolution.value.boolValue = settings.lightingQualitySettings.RTGIFullResolution[level];
+            m_UpscaleRadius.value.intValue = settings.lightingQualitySettings.RTGIUpScaleRadius[level];
+            m_Denoise.value.boolValue = settings.lightingQualitySettings.RTGIDenoise[level];
+            m_HalfResolutionDenoiser.value.boolValue = settings.lightingQualitySettings.RTGIHalfResDenoise[level];
+            m_DenoiserRadius.value.floatValue = settings.lightingQualitySettings.RTGIDenoiserRadius[level];
+            m_SecondDenoiserPass.value.boolValue = settings.lightingQualitySettings.RTGISecondDenoise[level];
+            m_SecondDenoiserRadius.value.floatValue = settings.lightingQualitySettings.RTGISecondDenoiserRadius[level];
+
+            // SSGI
+            m_FullResolutionSS.value.boolValue = settings.lightingQualitySettings.SSGIFullResolution[level];
+            m_RaySteps.value.intValue = settings.lightingQualitySettings.SSGIRaySteps[level];
+            m_MaximalRadius.value.floatValue = settings.lightingQualitySettings.SSGIRadius[level];
+            m_ClampValueSS.value.floatValue = settings.lightingQualitySettings.SSGIClampValue[level];
+            m_FilterRadius.value.intValue = settings.lightingQualitySettings.SSGIFilterRadius[level];
+
+            m_RayLength.overrideState.boolValue = true;
+            m_ClampValue.overrideState.boolValue = true;
+            m_FullResolution.overrideState.boolValue = true;
+            m_UpscaleRadius.overrideState.boolValue = true;
+            m_Denoise.overrideState.boolValue = true;
+            m_HalfResolutionDenoiser.overrideState.boolValue = true;
+            m_DenoiserRadius.overrideState.boolValue = true;
+            m_SecondDenoiserPass.overrideState.boolValue = true;
+            m_SecondDenoiserRadius.overrideState.boolValue = true;
+            m_FullResolutionSS.overrideState.boolValue = true;
+            m_RaySteps.overrideState.boolValue = true;
+            m_MaximalRadius.overrideState.boolValue = true;
+            m_ClampValueSS.overrideState.boolValue = true;
+            m_FilterRadius.overrideState.boolValue = true;
         }
     }
 }
