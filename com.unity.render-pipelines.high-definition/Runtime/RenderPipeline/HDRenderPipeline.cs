@@ -1300,12 +1300,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ShaderVariablesGlobalCB._EnableRecursiveRayTracing = 0;
             }
 
-
-            // 
-            var capsuleSpecOccSettings = hdCamera.volumeStack.GetComponent<CapsuleSpecularOcclusion>();
-            var capsuleSoftShadow = hdCamera.volumeStack.GetComponent<CapsuleSoftShadows>(); // Again this is bad, should be per light really... 
-            // TODO: This is bad for now... we really must find a way to bind neutral (tried but didn't work :D ) 
-            m_ShaderVariablesGlobalCB._CapsuleOcclusionParams = new Vector4(capsuleSoftShadow.directShadow.value ? 1 : 0, capsuleSpecOccSettings.intensity.value, capsuleSoftShadow.intensity.value, capsuleSoftShadow.directShadowIsForDirectional.value ? 1 : 0);
+            m_CapsuleOcclusionSystem.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB, hdCamera);
 
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
         }
@@ -1316,7 +1311,6 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCamera.UpdateShaderVariablesXRCB(ref m_ShaderVariablesXRCB);
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesXRCB, HDShaderIDs._ShaderVariablesXR);
         }
-
 
         void UpdateShaderVariablesRaytracingCB(HDCamera hdCamera, CommandBuffer cmd)
         {

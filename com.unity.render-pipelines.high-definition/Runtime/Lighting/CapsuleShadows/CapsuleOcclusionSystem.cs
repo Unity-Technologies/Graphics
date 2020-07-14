@@ -90,27 +90,36 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_LightForShadows == light;
         }
 
-        internal bool SpecOcclusionOrShadowEnabled(HDCamera hdCamera)
-        {
-            var specularOcclusionSettings = hdCamera.volumeStack.GetComponent<CapsuleSpecularOcclusion>();
-            var shadowSettings = hdCamera.volumeStack.GetComponent<CapsuleSoftShadows>();
-
-            return
-                  specularOcclusionSettings.intensity.value > 0.0f ||
-                  shadowSettings.intensity.value > 0.0f;
-
-        }
         internal bool AnyEffectIsActive(HDCamera hdCamera)
         {
-            var aoSettings = hdCamera.volumeStack.GetComponent<CapsuleAmbientOcclusion>();
-
             // TODO: Need to add frame settings
-
-            bool anyEnabled = aoSettings.intensity.value > 0.0f ||
-                              SpecOcclusionOrShadowEnabled(hdCamera);
-
+            bool anyEnabled = AmbientOcclusionEnabled(hdCamera) ||
+                              SpecularOcclusionOrShadowEnabled(hdCamera);
 
             return anyEnabled;
+        }
+
+        internal bool SpecularOcclusionOrShadowEnabled(HDCamera hdCamera)
+        {
+            return SpecularOcclusionEnabled(hdCamera) || ShadowEnabled(hdCamera);
+        }
+
+        internal bool AmbientOcclusionEnabled(HDCamera hdCamera)
+        {
+            var aoSettings = hdCamera.volumeStack.GetComponent<CapsuleAmbientOcclusion>();
+            return aoSettings.intensity.value > 0.0f;
+        }
+
+        internal bool SpecularOcclusionEnabled(HDCamera hdCamera)
+        {
+            var specularOcclusionSettings = hdCamera.volumeStack.GetComponent<CapsuleSpecularOcclusion>();
+            return specularOcclusionSettings.intensity.value > 0.0f;
+        }
+
+        internal bool ShadowEnabled(HDCamera hdCamera)
+        {
+            var shadowSettings = hdCamera.volumeStack.GetComponent<CapsuleSoftShadows>();
+            return (shadowSettings.intensity.value > 0.0f) && (m_LightForShadows != null);
         }
 
         internal void GenerateCapsuleSoftShadowsLUT(CommandBuffer cmd, HDCamera hdCamera)
@@ -222,22 +231,42 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal void UpdateShaderVariablesGlobalCB(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
+        {
+            // Capsule Occluders Setup (Needs cleanup).
+            var capsuleSpecOccSettings = hdCamera.volumeStack.GetComponent<CapsuleSpecularOcclusion>();
+            var capsuleSoftShadow = hdCamera.volumeStack.GetComponent<CapsuleSoftShadows>(); // Again this is bad, should be per light really... 
+            
+            // Intensity values need to be zeroed out if those features were not rendered in order to handle shader dynamic branch around texture sampling code.
+            cb._CapsuleOcclusionParams = new Vector4(
+                capsuleSoftShadow.directShadow.value ? 1 : 0,
+                SpecularOcclusionEnabled(hdCamera) ? capsuleSpecOccSettings.intensity.value : 0.0f,
+                ShadowEnabled(hdCamera) ? capsuleSoftShadow.intensity.value : 0.0f,
+                capsuleSoftShadow.directShadowIsForDirectional.value ? 1 : 0
+            );
+        }
+
         internal void PushGlobalTextures(CommandBuffer cmd, HDCamera hdCamera)
         {
-            cmd.SetGlobalTexture(HDShaderIDs._CapsuleOcclusionsTexture,  m_CapsuleOcclusions);
+            cmd.SetGlobalTexture(HDShaderIDs._CapsuleOcclusionsTexture, GetCapsuleOcclusionsTextureFromHDCamera(hdCamera));
         }
 
         internal void PushDebugTextures(CommandBuffer cmd, HDCamera hdCamera, RTHandle occlusionTexture)
         {
             (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(hdCamera, cmd, occlusionTexture, FullScreenDebugMode.SSAO);
-            (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(hdCamera, cmd, m_CapsuleOcclusions, FullScreenDebugMode.CapsuleSoftShadows);
-            (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(hdCamera, cmd, m_CapsuleOcclusions, FullScreenDebugMode.CapsuleSpecularOcclusion);
+            (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(hdCamera, cmd, GetCapsuleOcclusionsTextureFromHDCamera(hdCamera), FullScreenDebugMode.CapsuleSoftShadows);
+            (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(hdCamera, cmd, GetCapsuleOcclusionsTextureFromHDCamera(hdCamera), FullScreenDebugMode.CapsuleSpecularOcclusion);
         }
 
         internal void Cleanup()
         {
             RTHandles.Release(m_CapsuleSoftShadowLUT);
             RTHandles.Release(m_CapsuleOcclusions);
+        }
+
+        private RTHandle GetCapsuleOcclusionsTextureFromHDCamera(HDCamera hdCamera)
+        {
+            return SpecularOcclusionOrShadowEnabled(hdCamera) ? m_CapsuleOcclusions : TextureXR.GetWhiteTexture();
         }
     }
 }
