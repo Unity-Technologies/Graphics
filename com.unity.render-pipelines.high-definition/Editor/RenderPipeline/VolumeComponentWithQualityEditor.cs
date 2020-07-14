@@ -128,11 +128,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public void LoadValue<T>()
-        {
-
-        }
-
         // Note: Editors are refreshed on gui changes by the volume system, so any state that we want to store here needs to be a static (or in a serialized variable)
         // We use ConditionalWeakTable instead of a Dictionary of InstanceIDs to get automatic clean-up of dead entries in the table
         static ConditionalWeakTable<UnityEngine.Object, QualitySettingsBlob> s_CustomSettingsHistory = new ConditionalWeakTable<UnityEngine.Object, QualitySettingsBlob>();
@@ -206,6 +201,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected bool useCustomValue => m_QualitySetting.value.intValue == k_CustomQuality;
         protected bool overrideState => m_QualitySetting.overrideState.boolValue;
+
+        protected static void CopySetting<T>(ref SerializedDataParameter setting, T value) where T : struct
+        {
+            setting.value.SetInline<T>(value);
+            
+            // Set quality override states to true, to indicate that these values are actually used.
+            setting.overrideState.boolValue = true;
+        }
 
         /// <summary>
         /// This should be called after the user manually edits a quality setting that appears in a preset. After calling this function, the quality preset will change to Custom.

@@ -172,22 +172,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
         {
-            m_NearSampleCount.value.intValue = settings.postProcessQualitySettings.NearBlurSampleCount[level];
-            m_NearMaxBlur.value.floatValue = settings.postProcessQualitySettings.NearBlurMaxRadius[level];
-
-            m_FarSampleCount.value.intValue = settings.postProcessQualitySettings.FarBlurSampleCount[level];
-            m_FarMaxBlur.value.floatValue = settings.postProcessQualitySettings.FarBlurMaxRadius[level];
-
-            m_Resolution.value.intValue = (int)settings.postProcessQualitySettings.DoFResolution[level];
-            m_HighQualityFiltering.value.boolValue = settings.postProcessQualitySettings.DoFHighQualityFiltering[level];
-
-            // set all quality override states to true, to indicate that these values are actually used
-            m_NearSampleCount.overrideState.boolValue = true;
-            m_NearMaxBlur.overrideState.boolValue = true;
-            m_FarSampleCount.overrideState.boolValue = true;
-            m_FarMaxBlur.overrideState.boolValue = true;
-            m_Resolution.overrideState.boolValue = true;
-            m_HighQualityFiltering.overrideState.boolValue = true;
+            CopySetting(ref m_NearSampleCount, settings.postProcessQualitySettings.NearBlurSampleCount[level]);
+            CopySetting(ref m_NearMaxBlur, settings.postProcessQualitySettings.NearBlurMaxRadius[level]);
+            CopySetting(ref m_FarSampleCount, settings.postProcessQualitySettings.FarBlurSampleCount[level]);
+            CopySetting(ref m_FarMaxBlur, settings.postProcessQualitySettings.FarBlurMaxRadius[level]);
+            CopySetting(ref m_Resolution, (int)settings.postProcessQualitySettings.DoFResolution[level]);
+            CopySetting(ref m_HighQualityFiltering, settings.postProcessQualitySettings.DoFHighQualityFiltering[level]);
         }
     }
 }

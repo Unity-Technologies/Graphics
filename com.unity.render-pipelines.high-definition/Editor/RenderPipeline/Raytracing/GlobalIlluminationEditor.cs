@@ -256,37 +256,22 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
         {
             // RTGI
-            m_RayLength.value.floatValue = settings.lightingQualitySettings.RTGIRayLength[level];
-            m_ClampValue.value.floatValue = settings.lightingQualitySettings.RTGIClampValue[level];
-            m_FullResolution.value.boolValue = settings.lightingQualitySettings.RTGIFullResolution[level];
-            m_UpscaleRadius.value.intValue = settings.lightingQualitySettings.RTGIUpScaleRadius[level];
-            m_Denoise.value.boolValue = settings.lightingQualitySettings.RTGIDenoise[level];
-            m_HalfResolutionDenoiser.value.boolValue = settings.lightingQualitySettings.RTGIHalfResDenoise[level];
-            m_DenoiserRadius.value.floatValue = settings.lightingQualitySettings.RTGIDenoiserRadius[level];
-            m_SecondDenoiserPass.value.boolValue = settings.lightingQualitySettings.RTGISecondDenoise[level];
-            m_SecondDenoiserRadius.value.floatValue = settings.lightingQualitySettings.RTGISecondDenoiserRadius[level];
+            CopySetting(ref m_RayLength, settings.lightingQualitySettings.RTGIRayLength[level]);
+            CopySetting(ref m_ClampValue, settings.lightingQualitySettings.RTGIClampValue[level]);
+            CopySetting(ref m_FullResolution, settings.lightingQualitySettings.RTGIFullResolution[level]);
+            CopySetting(ref m_UpscaleRadius, settings.lightingQualitySettings.RTGIUpScaleRadius[level]);
+            CopySetting(ref m_Denoise, settings.lightingQualitySettings.RTGIDenoise[level]);
+            CopySetting(ref m_HalfResolutionDenoiser, settings.lightingQualitySettings.RTGIHalfResDenoise[level]);
+            CopySetting(ref m_DenoiserRadius, settings.lightingQualitySettings.RTGIDenoiserRadius[level]);
+            CopySetting(ref m_SecondDenoiserPass, settings.lightingQualitySettings.RTGISecondDenoise[level]);
+            CopySetting(ref m_SecondDenoiserRadius, settings.lightingQualitySettings.RTGISecondDenoiserRadius[level]);
 
             // SSGI
-            m_FullResolutionSS.value.boolValue = settings.lightingQualitySettings.SSGIFullResolution[level];
-            m_RaySteps.value.intValue = settings.lightingQualitySettings.SSGIRaySteps[level];
-            m_MaximalRadius.value.floatValue = settings.lightingQualitySettings.SSGIRadius[level];
-            m_ClampValueSS.value.floatValue = settings.lightingQualitySettings.SSGIClampValue[level];
-            m_FilterRadius.value.intValue = settings.lightingQualitySettings.SSGIFilterRadius[level];
-
-            m_RayLength.overrideState.boolValue = true;
-            m_ClampValue.overrideState.boolValue = true;
-            m_FullResolution.overrideState.boolValue = true;
-            m_UpscaleRadius.overrideState.boolValue = true;
-            m_Denoise.overrideState.boolValue = true;
-            m_HalfResolutionDenoiser.overrideState.boolValue = true;
-            m_DenoiserRadius.overrideState.boolValue = true;
-            m_SecondDenoiserPass.overrideState.boolValue = true;
-            m_SecondDenoiserRadius.overrideState.boolValue = true;
-            m_FullResolutionSS.overrideState.boolValue = true;
-            m_RaySteps.overrideState.boolValue = true;
-            m_MaximalRadius.overrideState.boolValue = true;
-            m_ClampValueSS.overrideState.boolValue = true;
-            m_FilterRadius.overrideState.boolValue = true;
+            CopySetting(ref m_FullResolutionSS, settings.lightingQualitySettings.SSGIFullResolution[level]);
+            CopySetting(ref m_RaySteps, settings.lightingQualitySettings.SSGIRaySteps[level]);
+            CopySetting(ref m_MaximalRadius, settings.lightingQualitySettings.SSGIRadius[level]);
+            CopySetting(ref m_ClampValueSS, settings.lightingQualitySettings.SSGIClampValue[level]);
+            CopySetting(ref m_FilterRadius, settings.lightingQualitySettings.SSGIFilterRadius[level]);
         }
     }
 }

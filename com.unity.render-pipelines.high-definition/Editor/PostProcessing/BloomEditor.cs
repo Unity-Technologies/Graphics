@@ -94,11 +94,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
         {
-            m_Resolution.value.intValue = (int)settings.postProcessQualitySettings.BloomRes[level];
-            m_HighQualityFiltering.value.boolValue = settings.postProcessQualitySettings.BloomHighQualityFiltering[level];
-
-            m_Resolution.overrideState.boolValue = true;
-            m_HighQualityFiltering.overrideState.boolValue = true;
+            CopySetting(ref m_Resolution, (int)settings.postProcessQualitySettings.BloomRes[level]);
+            CopySetting(ref m_HighQualityFiltering, settings.postProcessQualitySettings.BloomHighQualityFiltering[level]);
         }
     }
 }

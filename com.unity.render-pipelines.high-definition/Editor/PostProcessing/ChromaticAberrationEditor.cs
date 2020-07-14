@@ -61,8 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
         {
-            m_MaxSamples.value.intValue = settings.postProcessQualitySettings.ChromaticAberrationMaxSamples[level];
-            m_MaxSamples.overrideState.boolValue = true;
+            CopySetting(ref m_MaxSamples, settings.postProcessQualitySettings.ChromaticAberrationMaxSamples[level]);
         }
     }
 }

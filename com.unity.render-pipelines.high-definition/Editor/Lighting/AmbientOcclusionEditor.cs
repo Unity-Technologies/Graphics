@@ -139,13 +139,13 @@ namespace UnityEditor.Rendering.HighDefinition
             if (settings == null)
                 settings = new QualitySettingsBlob();
 
-            // Ray tracing
+            // RTAO
             settings.Save<float>(m_RayLength);
             settings.Save<int>(m_SampleCount);
             settings.Save<bool>(m_Denoise);
             settings.Save<float>(m_DenoiserRadius);
 
-            // Raster
+            // SSAO
             settings.Save<int>(m_MaximumRadiusInPixels);
             settings.Save<bool>(m_FullResolution);
             settings.Save<int>(m_StepCount);
@@ -157,13 +157,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void LoadSettingsFromObject(QualitySettingsBlob settings)
         {
-            // Ray tracing
+            // RTAO
             settings.TryLoad<float>(ref m_RayLength);
             settings.TryLoad<int>(ref m_SampleCount);
             settings.TryLoad<bool>(ref m_Denoise);
             settings.TryLoad<float>(ref m_DenoiserRadius);
 
-            // Raster
+            // SSAO
             settings.TryLoad<int>(ref m_MaximumRadiusInPixels);
             settings.TryLoad<bool>(ref m_FullResolution);
             settings.TryLoad<int>(ref m_StepCount);
@@ -173,25 +173,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
         {
-            m_RayLength.value.floatValue = settings.lightingQualitySettings.RTAORayLength[level];
-            m_SampleCount.value.intValue = settings.lightingQualitySettings.RTAOSampleCount[level];
-            m_Denoise.value.boolValue = settings.lightingQualitySettings.RTAODenoise[level];
-            m_DenoiserRadius.value.floatValue = settings.lightingQualitySettings.RTAODenoiserRadius[level];
-            m_MaximumRadiusInPixels.value.intValue = settings.lightingQualitySettings.AOMaximumRadiusPixels[level];
-            m_FullResolution.value.boolValue = settings.lightingQualitySettings.AOFullRes[level];
-            m_StepCount.value.intValue = settings.lightingQualitySettings.AOStepCount[level];
-            m_DirectionCount.value.intValue = settings.lightingQualitySettings.AODirectionCount[level];
-            m_BilateralUpsample.value.boolValue = settings.lightingQualitySettings.AOBilateralUpsample[level];
-            
-            m_RayLength.overrideState.boolValue = true;
-            m_SampleCount.overrideState.boolValue = true;
-            m_Denoise.overrideState.boolValue = true;
-            m_DenoiserRadius.overrideState.boolValue = true;
-            m_MaximumRadiusInPixels.overrideState.boolValue = true;
-            m_FullResolution.overrideState.boolValue = true;
-            m_StepCount.overrideState.boolValue = true;
-            m_DirectionCount.overrideState.boolValue = true;
-            m_BilateralUpsample.overrideState.boolValue = true; 
+            // RTAO
+            CopySetting(ref m_RayLength, settings.lightingQualitySettings.RTAORayLength[level]);
+            CopySetting(ref m_SampleCount, settings.lightingQualitySettings.RTAOSampleCount[level]);
+            CopySetting(ref m_Denoise, settings.lightingQualitySettings.RTAODenoise[level]);
+            CopySetting(ref m_DenoiserRadius, settings.lightingQualitySettings.RTAODenoiserRadius[level]);
+
+            // SSAO
+            CopySetting(ref m_MaximumRadiusInPixels, settings.lightingQualitySettings.AOMaximumRadiusPixels[level]);
+            CopySetting(ref m_FullResolution, settings.lightingQualitySettings.AOFullRes[level]);
+            CopySetting(ref m_StepCount, settings.lightingQualitySettings.AOStepCount[level]);
+            CopySetting(ref m_DirectionCount, settings.lightingQualitySettings.AODirectionCount[level]);
+            CopySetting(ref m_BilateralUpsample, settings.lightingQualitySettings.AOBilateralUpsample[level]);
         }
     }
 }

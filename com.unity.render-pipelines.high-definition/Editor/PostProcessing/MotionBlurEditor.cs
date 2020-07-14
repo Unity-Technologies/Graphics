@@ -77,8 +77,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
         {
-            m_SampleCount.value.intValue = settings.postProcessQualitySettings.MotionBlurSampleCount[level];
-            m_SampleCount.overrideState.boolValue = true;
+            CopySetting(ref m_SampleCount, settings.postProcessQualitySettings.MotionBlurSampleCount[level]);
         }
     }
 }
