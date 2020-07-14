@@ -8,7 +8,7 @@ This page describes how to upgrade from an older version of the Universal Render
 
 ### DepthNormals Pass
 
-Starting from version 10.0.x, URP can generate a depth and normal texture. To use that texture in your custom shader, add a Pass with the name `DepthNormals`. For example, see the implementation in `Lit.shader`.
+Starting from version 10.0.x, URP can generate a normal texture called `_CameraNormalsTexture`. To render to this texture in your custom shader, add a Pass with the name `DepthNormals`. For example, see the implementation in `Lit.shader`.
 
 ### Screen Space Ambient Occlusion (SSAO)
 
