@@ -108,8 +108,9 @@ namespace UnityEngine.Rendering.Universal
         public bool isHdrEnabled;
         public bool requiresDepthTexture;
         public bool requiresOpaqueTexture;
+#if ENABLE_VR && ENABLE_XR_MODULE
         public bool xrRendering;
-
+#endif
         internal bool requireSrgbConversion
         {
             get
