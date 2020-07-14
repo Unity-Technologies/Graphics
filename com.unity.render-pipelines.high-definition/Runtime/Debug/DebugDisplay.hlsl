@@ -185,13 +185,16 @@ void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout 
     fixedUnormCoord.x += numEntries * DEBUG_FONT_TEXT_SCALE_WIDTH;
 
     // 3. Display the number
-    [unroll] // Needed to supress warning as some odd code gen is happening here. Is bad for perf, but it is a debug display.
+    bool drawCharacter = true; // bit weird, but it is to appease the compiler.
     for (uint j = 0; j < maxStringSize; ++j)
     {
         // Numeric value incurrent font start on the second row at 0
-        DrawCharacter((absIntValue % 10) + '0', fontColor, currentUnormCoord, fixedUnormCoord, color, -1);
+        if(drawCharacter)
+            DrawCharacter((absIntValue % 10) + '0', fontColor, currentUnormCoord, fixedUnormCoord, color, -1);
+
         if (absIntValue  < 10)
-            break;
+            drawCharacter = false;
+
         absIntValue /= 10;
     }
 
