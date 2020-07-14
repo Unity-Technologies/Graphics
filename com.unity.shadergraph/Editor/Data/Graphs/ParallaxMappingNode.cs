@@ -6,7 +6,7 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Utility", "Parallax Mapping")]
+    [Title("UV", "Parallax Mapping")]
     class ParallaxMappingNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireViewDirection, IMayRequireMeshUV
     {
         public ParallaxMappingNode()
@@ -79,7 +79,6 @@ namespace UnityEditor.ShaderGraph
             var uvs = GetSlotValue(kUVsSlotId, generationMode);
 
             sb.AppendLines(String.Format(@"
-$precision3 {4} = IN.{2} * GetDisplacementObjectScale().xzy;
 ApplyPerPixelDisplacement({0}, {1}, IN.{2}, {3} * 0.01, {4});
 $precision2 {5} = {4};
 ",

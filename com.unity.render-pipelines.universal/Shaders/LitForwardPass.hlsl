@@ -3,8 +3,12 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
-#ifdef _PARALLAXMAP
+#if defined(_PARALLAXMAP) && (SHADER_TARGET >= 30)
 #define REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR
+#endif
+
+#if (defined(_NORMALMAP) || (defined(_PARALLAXMAP) && !defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR))) && defined(_DETAIL_MULX2)
+#define REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR
 #endif
 
 // keep this file in sync with LitGBufferPass.hlsl
@@ -29,7 +33,7 @@ struct Varyings
 #endif
 
     float3 normalWS                 : TEXCOORD3;
-#if defined(_NORMALMAP) || defined(_PARALLAXMAP) || defined(_DETAIL_MULX2)
+#if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
     float4 tangentWS                : TEXCOORD4;    // xyz: tangent, w: sign
 #endif
     float3 viewDirWS                : TEXCOORD5;
@@ -111,13 +115,16 @@ Varyings LitPassVertex(Attributes input)
     // already normalized from normal transform to WS.
     output.normalWS = normalInput.normalWS;
     output.viewDirWS = viewDirWS;
-#if defined(_NORMALMAP) || defined(_NORMALMAP)
+#if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR) && defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
     real sign = input.tangentOS.w * GetOddNegativeScale();
-    output.tangentWS = half4(normalInput.tangentWS.xyz, sign);
+    half4 tangentWS = half4(normalInput.tangentWS.xyz, sign);
+#endif
+#if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
+    output.tangentWS = tangentWS;
 #endif
 
 #if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
-    half3 viewDirTS = GetViewDirectionTangentSpace(output.tangentWS, output.normalWS, viewDirWS);
+    half3 viewDirTS = GetViewDirectionTangentSpace(tangentWS, output.normalWS, viewDirWS);
     output.viewDirTS = viewDirTS;
 #endif
 

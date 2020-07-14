@@ -333,7 +333,9 @@ namespace UnityEditor.ShaderGraph
             typeof(SpherizeNode ),
             typeof(TilingAndOffsetNode ),
             typeof(TriplanarNode ),
-            typeof(TwirlNode )
+            typeof(TwirlNode ),
+            typeof(ParallaxMappingNode ),
+            typeof(ParallaxOcclusionMappingNode )
         };
 
         public static class Utility
@@ -359,8 +361,7 @@ namespace UnityEditor.ShaderGraph
                 typeof(KeywordNode),
                 typeof(PreviewNode),
                 typeof(SubGraphNode),
-                typeof(RedirectNodeData),
-                typeof(ParallaxMappingNode)
+                typeof(RedirectNodeData)
             };
 
             public static NodeTypeCollection All = new NodeTypeCollection()
