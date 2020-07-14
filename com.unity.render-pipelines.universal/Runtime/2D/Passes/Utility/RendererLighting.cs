@@ -484,7 +484,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         static public void RenderNormals(ScriptableRenderContext renderContext, CullingResults cullResults, DrawingSettings drawSettings, FilteringSettings filterSettings, RenderTargetIdentifier depthTarget)
         {
             var cmd = CommandBufferPool.Get("Clear Normals");
-            cmd.SetRenderTarget(s_NormalsTarget.Identifier(), depthTarget);
+            cmd.SetRenderTarget(s_NormalsTarget.Identifier(), RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, depthTarget, RenderBufferLoadAction.Load, RenderBufferStoreAction.DontCare);
             cmd.ClearRenderTarget(false, true, k_NormalClearColor);
             renderContext.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
