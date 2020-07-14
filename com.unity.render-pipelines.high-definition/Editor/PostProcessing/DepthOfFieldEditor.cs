@@ -19,6 +19,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent k_NearFocusEnd = new GUIContent("End", "Sets the distance from the Camera at which the near field does not blur anymore.");
             public static GUIContent k_FarFocusEnd = new GUIContent("End", "Sets the distance from the Camera at which the far field blur reaches its maximum blur radius.");
+            public static GUIContent k_PhysicallyBased = new GUIContent("PhysicallyBased", "Uses a more accurate but slower physically based method to compute DoF.");
+
+            public static readonly string InfoBox = "Physically Based DoF currently has a high performance overhead. Enabling TAA is highly recommended when using this option.";
         }
 
         SerializedDataParameter m_FocusMode;
@@ -41,6 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Advanced settings
         SerializedDataParameter m_HighQualityFiltering;
         SerializedDataParameter m_Resolution;
+        SerializedDataParameter m_PhysicallyBased;
 
         public override bool hasAdvancedMode => true;
 
@@ -66,6 +70,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_HighQualityFiltering = Unpack(o.Find("m_HighQualityFiltering"));
             m_Resolution = Unpack(o.Find("m_Resolution"));
+            m_PhysicallyBased = Unpack(o.Find("m_PhysicallyBased"));
         }
 
         public override void OnInspectorGUI()
@@ -74,10 +79,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             int mode = m_FocusMode.value.intValue;
             if (mode == (int)DepthOfFieldMode.Off)
-            {
-                GUI.enabled = false;
-            }
+                return;
 
+            base.OnInspectorGUI();
+            
             using (new HDEditorUtils.IndentScope())
             {
                 // Draw the focus mode controls
@@ -100,15 +105,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawFocusSettings(int mode)
         {
-            if (mode == (int)DepthOfFieldMode.Off)
-            {
-                // When DoF is off, display a focus distance at infinity
-                var val = m_FocusDistance.value.floatValue;
-                m_FocusDistance.value.floatValue = Mathf.Infinity;
-                PropertyField(m_FocusDistance);
-                m_FocusDistance.value.floatValue = val;
-            }
-            else if (mode == (int)DepthOfFieldMode.UsePhysicalCamera)
+            if (mode == (int)DepthOfFieldMode.UsePhysicalCamera)
             {
                 PropertyField(m_FocusDistance);
             }
@@ -141,10 +138,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
                     PropertyField(m_Resolution);
                     PropertyField(m_HighQualityFiltering);
+                    PropertyField(m_PhysicallyBased);
+                    if (m_PhysicallyBased.value.boolValue == true)
+                        EditorGUILayout.HelpBox(Styles.InfoBox, MessageType.Info);
                 }
             }
         }
-        
+
         public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
         {
             if (settings == null)
@@ -156,6 +156,7 @@ namespace UnityEditor.Rendering.HighDefinition
             settings.Save<float>(m_FarMaxBlur);
             settings.Save<int>(m_Resolution);
             settings.Save<bool>(m_HighQualityFiltering);
+            settings.Save<bool>(m_PhysicallyBased);
 
             return settings;
         }
@@ -168,6 +169,7 @@ namespace UnityEditor.Rendering.HighDefinition
             settings.TryLoad<float>(ref m_FarMaxBlur);
             settings.TryLoad<int>(ref m_Resolution);
             settings.TryLoad<bool>(ref m_HighQualityFiltering);
+            settings.TryLoad<bool>(ref m_PhysicallyBased);
         }
 
         public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
@@ -178,6 +180,7 @@ namespace UnityEditor.Rendering.HighDefinition
             CopySetting(ref m_FarMaxBlur, settings.postProcessQualitySettings.FarBlurMaxRadius[level]);
             CopySetting(ref m_Resolution, (int)settings.postProcessQualitySettings.DoFResolution[level]);
             CopySetting(ref m_HighQualityFiltering, settings.postProcessQualitySettings.DoFHighQualityFiltering[level]);
+            CopySetting(ref m_PhysicallyBased, settings.postProcessQualitySettings.DoFPhysicallyBased[level]);
         }
     }
 }
