@@ -89,12 +89,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             {
                 m_Title = new Label() { name = "title" };
                 m_Title.text = "Main Preview";
-                // Add preview collapse button on top of preview
-                m_CollapsePreviewContainer = new VisualElement { name = "collapse-container" };
-                m_CollapsePreviewContainer.AddToClassList("collapse-container");
 
                 topContainer.Add(m_Title);
-                topContainer.Add(m_CollapsePreviewContainer);
             }
             Add(topContainer);
 
@@ -111,7 +107,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_PreviewResizeBorderFrame.maintainAspectRatio = true;
             Add(m_PreviewResizeBorderFrame);
 
-            m_ExpandedPreviewSize = new Vector2(256f, 256f);
             m_RecalculateLayout = false;
             this.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
         }
