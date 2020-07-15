@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
+using UnityEngine.Profiling;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
 
@@ -44,6 +45,27 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_DeprecatedShadowsEnabled = new ShaderKeyword("_SHADOWS_ENABLED");
         ShaderKeyword m_DeprecatedShadowsCascade = new ShaderKeyword("_SHADOWS_CASCADE");
         ShaderKeyword m_DeprecatedLocalShadowsEnabled = new ShaderKeyword("_LOCAL_SHADOWS_ENABLED");
+        
+        ShaderKeyword Feature00 = new ShaderKeyword("_FEATURE00");
+        ShaderKeyword Feature01 = new ShaderKeyword("_FEATURE01");
+        ShaderKeyword Feature02 = new ShaderKeyword("_FEATURE02");
+        ShaderKeyword Feature03 = new ShaderKeyword("_FEATURE03");
+        ShaderKeyword Feature04 = new ShaderKeyword("_FEATURE04");
+        ShaderKeyword Feature05 = new ShaderKeyword("_FEATURE05");
+        ShaderKeyword Feature06 = new ShaderKeyword("_FEATURE06");
+        ShaderKeyword Feature07 = new ShaderKeyword("_FEATURE07");
+        ShaderKeyword Feature08 = new ShaderKeyword("_FEATURE08");
+        ShaderKeyword Feature09 = new ShaderKeyword("_FEATURE09");
+        ShaderKeyword Feature10 = new ShaderKeyword("_FEATURE10");
+        ShaderKeyword Feature11 = new ShaderKeyword("_FEATURE11");
+        ShaderKeyword Feature12 = new ShaderKeyword("_FEATURE12");
+        ShaderKeyword Feature13 = new ShaderKeyword("_FEATURE13");
+        ShaderKeyword Feature14 = new ShaderKeyword("_FEATURE14");
+        ShaderKeyword Feature15 = new ShaderKeyword("_FEATURE15");
+        ShaderKeyword Feature16 = new ShaderKeyword("_FEATURE16");
+        ShaderKeyword Feature17 = new ShaderKeyword("_FEATURE17");
+        ShaderKeyword Feature18 = new ShaderKeyword("_FEATURE18");
+        ShaderKeyword Feature19 = new ShaderKeyword("_FEATURE19");
 
         int m_TotalVariantsInputCount;
         int m_TotalVariantsOutputCount;
@@ -222,8 +244,10 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
+        private const string k_ProcessShaderTag = "OnProcessShader";
         public void OnProcessShader(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> compilerDataList)
         {
+            Profiler.BeginSample(k_ProcessShaderTag);
             UniversalRenderPipelineAsset urpAsset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
             if (urpAsset == null || compilerDataList == null || compilerDataList.Count == 0)
                 return;
@@ -254,11 +278,10 @@ namespace UnityEditor.Rendering.Universal
                 m_TotalVariantsOutputCount += compilerDataList.Count;
                 LogShaderVariants(shader, snippetData, urpAsset.shaderVariantLogLevel, prevVariantCount, compilerDataList.Count);
             }
-        }
-
-        
+            Profiler.EndSample();
+        }  
     }
-    class ShaderBuildPreprocessor : IPreprocessBuildWithReport
+    class ShaderBuildPreprocessor : IPreprocessBuildWithReport, IPostprocessBuildWithReport
     {
         public static ShaderFeatures supportedFeatures
         {
@@ -273,12 +296,21 @@ namespace UnityEditor.Rendering.Universal
 
         private static ShaderFeatures _supportedFeatures = 0;
         public int callbackOrder { get { return 0; } }
+        public void OnPostprocessBuild(BuildReport report)
+        {
+            Debug.Log("Disabling Profiler");
+            Profiler.enabled = false;
+        }
 
         public void OnPreprocessBuild(BuildReport report)
         {
             FetchAllSupportedFeatures();
+            Profiler.enabled = true;
+            Profiler.enableBinaryLog = true;
+            Profiler.logFile = "profilerlog.raw";
+            Debug.Log("Profiler State: " + Profiler.enabled);
         }
-
+        
         private static void FetchAllSupportedFeatures()
         {
             List<UniversalRenderPipelineAsset> urps = new List<UniversalRenderPipelineAsset>();
