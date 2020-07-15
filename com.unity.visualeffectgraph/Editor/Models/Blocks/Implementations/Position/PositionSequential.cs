@@ -93,12 +93,12 @@ namespace UnityEditor.VFX.Block
         public class InputPropertiesBlendPosition
         {
             [Range(0.0f, 1.0f), Tooltip("Sets the blending value for position attribute.")]
-            public float blendPosition;
+            public float blendPosition = 1.0f;
         }
         public class InputPropertiesBlendTargetPosition
         {
             [Range(0.0f, 1.0f), Tooltip("Sets the blending value for targetPosition attribute.")]
-            public float blendTargetPosition;
+            public float blendTargetPosition = 1.0f;
         }
 
         public class InputPropertiesLine
@@ -254,6 +254,8 @@ namespace UnityEditor.VFX.Block
                     var indexOffsetExpr = indexExpr + new VFXExpressionCastIntToUint(expressions.First(o => o.name == "OffsetIndex").exp);
                     var positionExpr = GetPositionFromIndex(indexOffsetExpr, expressions);
                     yield return new VFXNamedExpression(positionExpr, s_computedPosition);
+                    if (compositionPosition == AttributeCompositionMode.Blend)
+                        yield return expressions.FirstOrDefault(o => o.name == "blendPosition");
                 }
 
                 if (writeTargetPosition)
@@ -261,6 +263,8 @@ namespace UnityEditor.VFX.Block
                     var indexOffsetExpr = indexExpr + new VFXExpressionCastIntToUint(expressions.First(o => o.name == "OffsetTargetIndex").exp);
                     var positionExpr = GetPositionFromIndex(indexOffsetExpr, expressions);
                     yield return new VFXNamedExpression(positionExpr, s_computedTargetPosition);
+                    if (compositionTargetPosition == AttributeCompositionMode.Blend)
+                        yield return expressions.FirstOrDefault(o => o.name == "blendTargetPosition");
                 }
             }
         }
