@@ -8,7 +8,6 @@ using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Burst;
 using UnityEngine.Profiling;
-using UnityEditor.Sprites;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
