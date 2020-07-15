@@ -892,6 +892,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with quality setting foldouts not opening when clicking on them (1253088).
 - Shutter speed can now be changed by dragging the mouse over the UI label (case 1245007).
 - Remove the 'Point Cube Size' for cookie, use the Cubemap size directly.
+- Only building the RTAS if there is an effect that will require it (1262217).
 
 ## [7.1.1] - 2019-09-05
 
