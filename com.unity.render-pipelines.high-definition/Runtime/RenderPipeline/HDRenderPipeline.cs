@@ -2625,12 +2625,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     var depthTexture = m_SharedRTManager.GetDepthTexture();
                     var normalBuffer = m_SharedRTManager.GetNormalBuffer();
+                    var motionVectors = m_SharedRTManager.GetMotionVectorsBuffer();
 
                     SSAOTask.Start(cmd, asyncParams, AsyncSSAODispatch, !haveAsyncTaskWithShadows);
                     haveAsyncTaskWithShadows = true;
 
                     void AsyncSSAODispatch(CommandBuffer c, HDGPUAsyncTaskParams a)
-                        => m_AmbientOcclusionSystem.Dispatch(c, a.hdCamera, depthTexture, normalBuffer, a.frameCount);
+                        => m_AmbientOcclusionSystem.Dispatch(c, a.hdCamera, depthTexture, normalBuffer, motionVectors, a.frameCount);
                 }
 
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderShadowMaps)))
@@ -2694,7 +2695,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 if (!hdCamera.frameSettings.SSAORunsAsync())
-                    m_AmbientOcclusionSystem.Render(cmd, hdCamera, renderContext, m_SharedRTManager.GetDepthTexture(), m_SharedRTManager.GetNormalBuffer(),  m_ShaderVariablesRayTracingCB, m_FrameCount);
+                    m_AmbientOcclusionSystem.Render(cmd, hdCamera, renderContext, m_SharedRTManager.GetDepthTexture(), m_SharedRTManager.GetNormalBuffer(), m_SharedRTManager.GetMotionVectorsBuffer(), m_ShaderVariablesRayTracingCB, m_FrameCount);
 
                 // Run the contact shadows here as they need the light list
                 HDUtils.CheckRTCreated(m_ContactShadowBuffer);
@@ -3723,6 +3724,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 m_DbufferManager.GetBuffersRTI(),
                                 m_DbufferManager.GetRTHandles(),
                                 m_SharedRTManager.GetDepthStencilBuffer(),
+                                m_SharedRTManager.GetDepthTexture(),
                                 RendererList.Create(PrepareMeshDecalsRendererList(cullingResults, hdCamera, parameters.use4RTs)),
                                 m_DbufferManager.propertyMaskBuffer,
                                 m_SharedRTManager.GetDecalPrepassBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
@@ -3845,6 +3847,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     RenderTargetIdentifier[]    mrt,
                                     RTHandle[]                  rtHandles,
                                     RTHandle                    depthStencilBuffer,
+                                    RTHandle                    depthTexture,
                                     RendererList                meshDecalsRendererList,
                                     ComputeBuffer               propertyMaskBuffer,
                                     RTHandle                    decalPrepassBuffer,
@@ -3888,6 +3891,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalTexture(HDShaderIDs._DecalPrepassTexture, decalPrepassBuffer);
             else
                 cmd.SetGlobalTexture(HDShaderIDs._DecalPrepassTexture, TextureXR.GetBlackTexture());
+
+            cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, depthTexture);
 
             HDUtils.DrawRendererList(renderContext, cmd, meshDecalsRendererList);
             DecalSystem.instance.RenderIntoDBuffer(cmd);
@@ -4119,7 +4124,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (Fog.IsFogEnabled(hdCamera) || Fog.IsPBRFogEnabled(hdCamera))
             {
                 var pixelCoordToViewDirWS = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
-                m_SkyManager.RenderOpaqueAtmosphericScattering(cmd, hdCamera, colorBuffer, m_LightingBuffer, intermediateBuffer, depthBuffer, pixelCoordToViewDirWS, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
+                m_SkyManager.RenderOpaqueAtmosphericScattering(cmd, hdCamera, colorBuffer, m_SharedRTManager.GetDepthTexture(msaaEnabled), m_LightingBuffer, intermediateBuffer, depthBuffer, pixelCoordToViewDirWS, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
             }
         }
 
@@ -4629,6 +4634,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(cs, parameters.reprojectionKernel, HDShaderIDs._ColorPyramidTexture, previousColorPyramid);
                 cmd.SetComputeTextureParam(cs, parameters.reprojectionKernel, HDShaderIDs._SsrClearCoatMaskTexture, clearCoatMask);
                 cmd.SetComputeTextureParam(cs, parameters.reprojectionKernel, HDShaderIDs._CameraMotionVectorsTexture, motionVectorsBuffer);
+                cmd.SetComputeTextureParam(cs, parameters.reprojectionKernel, HDShaderIDs._NormalBufferTexture, normalBuffer);
 
                 ConstantBuffer.Push(cmd, parameters.cb, cs, HDShaderIDs._ShaderVariablesScreenSpaceReflection);
 
