@@ -1,3 +1,5 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Extraction.hlsl"
+
 void BuildInputData(Varyings input, SurfaceDescription surfaceDescription, out InputData inputData)
 {
     inputData.positionWS = input.positionWS;
@@ -42,45 +44,6 @@ PackedVaryings vert(Attributes input)
     return packedOutput;
 }
 
-PackedVaryings vertExtraction(
-    Attributes input 
-    /*float2 uv2 : TEXCOORD2,
-    float2 uv3 : TEXCOORD3,
-    float2 uv4 : TEXCOORD4,
-    float2 uv5 : TEXCOORD5,
-    float2 uv6 : TEXCOORD6,
-    float2 uv7 : TEXCOORD7,
-    float2 uv8 : TEXCOORD8 */    )
-{
-    Varyings output = (Varyings)0;
-    output = BuildVaryings(input);
-    PackedVaryings packedOutput = (PackedVaryings)0;
-    packedOutput = PackVaryings(output);
-    
-  //  packedOutput.positionCS = float4(input.uv0.xy, 0.5f, 1.0f);
-    /*#if defined(RENDER_SPACE_UV0)
-    packedOutput.positionCS = float4(input.uv0.xyz, 1.0f);
-    #elif defined(RENDER_SPACE_UV1)
-    packedOutput.positionCS = input.uv1;
-    #elif defined(RENDER_SPACE_UV2)
-    packedOutput.positionCS = uv2;
-    #elif defined(RENDER_SPACE_UV3)
-    packedOutput.positionCS = uv3;
-    #elif defined(RENDER_SPACE_UV4)
-    packedOutput.positionCS = uv4;
-    #elif defined(RENDER_SPACE_UV5)
-    packedOutput.positionCS = uv5;
-    #elif defined(RENDER_SPACE_UV6)
-    packedOutput.positionCS = uv6;
-    #elif defined(RENDER_SPACE_UV7)
-    packedOutput.positionCS = uv7;
-    #elif defined(RENDER_SPACE_UV8)
-    packedOutput.positionCS = uv8;
-    #endif
-    */
-    return packedOutput;
-}
-
 half4 frag(PackedVaryings packedInput) : SV_TARGET
 {
     Varyings unpacked = UnpackVaryings(packedInput);
@@ -118,27 +81,45 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 			surfaceDescription.Smoothness,
 			surfaceDescription.Occlusion,
 			surfaceDescription.Emission,
-			alpha);   
+			alpha);
 
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     return color;
 }
 
-int UNITY_DataExtraction_Mode;
-int UNITY_DataExtraction_Space;
+PackedVaryings vertExtraction(
+    Attributes input,
+    float2 uv2 : TEXCOORD2,
+    float2 uv3 : TEXCOORD3,
+    float2 uv4 : TEXCOORD4,
+    float2 uv5 : TEXCOORD5,
+    float2 uv6 : TEXCOORD6,
+    float2 uv7 : TEXCOORD7)
+{
+    Varyings output = (Varyings)0;
+    output = BuildVaryings(input);
+    PackedVaryings packedOutput = (PackedVaryings)0;
+    packedOutput = PackVaryings(output);
 
-#define RENDER_OBJECT_ID 1
-#define RENDER_DEPTH 2
-#define RENDER_WORLD_NORMALS_FACE 3
-#define RENDER_WORLD_POSITION 4
-#define RENDER_ENTITY_ID 5
-#define RENDER_BASE_COLOR 6
-#define RENDER_SPECULAR 7
-#define RENDER_METALLIC 8
-#define RENDER_EMISSION 9
-#define RENDER_WORLD_NORMALS_PIXEL 10
-#define RENDER_SMOOTHNESS 11
-#define RENDER_OCCLUSION 12
+    if (UNITY_DataExtraction_Space == 0)
+        packedOutput.positionCS = float4(input.uv0.xy, 0.0F, 1.0f);
+    else if (UNITY_DataExtraction_Space == 1)
+        packedOutput.positionCS = float4(input.uv1.xy, 0.0F,  1.0f);
+    else if (UNITY_DataExtraction_Space == 2)
+        packedOutput.positionCS = float4(uv2, 0.0F, 1.0f);
+    else if (UNITY_DataExtraction_Space == 3)
+        packedOutput.positionCS = float4(uv3, 0.0F, 1.0f);
+    else if (UNITY_DataExtraction_Space == 4)
+        packedOutput.positionCS = float4(uv4, 0.0F, 1.0f);
+    else if (UNITY_DataExtraction_Space == 5)
+        packedOutput.positionCS = float4(uv5, 0.0F, 1.0f);
+    else if (UNITY_DataExtraction_Space == 6)
+        packedOutput.positionCS = float4(uv6, 0.0F, 1.0f);
+    else if (UNITY_DataExtraction_Space == 7)
+        packedOutput.positionCS = float4(uv7, 0.0F, 1.0f);
+
+    return packedOutput;
+}
 
 half4 fragExtraction(PackedVaryings packedInput) : SV_TARGET
 {
@@ -161,50 +142,49 @@ half4 fragExtraction(PackedVaryings packedInput) : SV_TARGET
     InputData inputData;
     BuildInputData(unpacked, surfaceDescription, inputData);
 
-    #ifdef _SPECULAR_SETUP
-        float3 specular = surfaceDescription.Specular;
-        float metallic = 1;
-    #else
-        float3 specular = 0;
-        float metallic = surfaceDescription.Metallic;
-    #endif
-    
-    half4 color = UniversalFragmentPBR(
-			inputData,
-			surfaceDescription.BaseColor,
-			metallic,
-			specular,
-			surfaceDescription.Smoothness,
-			surfaceDescription.Occlusion,
-			surfaceDescription.Emission,
-			alpha);
+    float3 specular, diffuse, baseColor;
+    float metallic;
 
-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
-    
+    #ifdef _SPECULAR_SETUP
+        specular = surfaceDescription.Specular;
+        diffuse = surfaceDescription.BaseColor;
+        ConvertSpecularToMetallic(surfaceDescription.BaseColor, surfaceDescription.Specular, baseColor, metallic);
+    #else
+        baseColor = surfaceDescription.BaseColor;
+        metallic = surfaceDescription.Metallic;
+        ConvertMetallicToSpecular(surfaceDescription.BaseColor, surfaceDescription.Specular, diffuse, specular);
+    #endif
+
+    //@TODO
     if(UNITY_DataExtraction_Mode == RENDER_OBJECT_ID)
         return asint(unity_LODFade.z);
+    //@TODO
     if(UNITY_DataExtraction_Mode == RENDER_DEPTH)
         return 0;
-    if(UNITY_DataExtraction_Mode == RENDER_WORLD_NORMALS_FACE)
+    if(UNITY_DataExtraction_Mode == RENDER_WORLD_NORMALS_FACE_RGB)
         return float4(unpacked.normalWS, 1.0f);
-    if(UNITY_DataExtraction_Mode == RENDER_WORLD_POSITION)
+    if(UNITY_DataExtraction_Mode == RENDER_WORLD_POSITION_RGB)
         return float4(inputData.positionWS, 1.0);
     if(UNITY_DataExtraction_Mode == RENDER_ENTITY_ID)
         return 0;
-    if(UNITY_DataExtraction_Mode == RENDER_BASE_COLOR)
-        return float4(surfaceDescription.BaseColor.xyz, alpha);
-    if(UNITY_DataExtraction_Mode == RENDER_SPECULAR)  
-        return float4(specular.xyz, 1);
-    if(UNITY_DataExtraction_Mode == RENDER_METALLIC)        
+    if(UNITY_DataExtraction_Mode == RENDER_BASE_COLOR_RGBA)
+        return float4(baseColor, alpha);
+    if(UNITY_DataExtraction_Mode == RENDER_SPECULAR_RGB)
+        return float4(specular, 1);
+    if(UNITY_DataExtraction_Mode == RENDER_METALLIC_R)
         return float4(metallic, 0.0, 0.0, 1.0);
-    if(UNITY_DataExtraction_Mode == RENDER_EMISSION)
+    if(UNITY_DataExtraction_Mode == RENDER_EMISSION_RGB)
         return float4(surfaceDescription.Emission.xyz, 1.0);
-    if(UNITY_DataExtraction_Mode == RENDER_WORLD_NORMALS_PIXEL)
+    if(UNITY_DataExtraction_Mode == RENDER_WORLD_NORMALS_PIXEL_RGB)
         return float4(inputData.normalWS, 1.0f);
-    if(UNITY_DataExtraction_Mode == RENDER_SMOOTHNESS)
+    if(UNITY_DataExtraction_Mode == RENDER_SMOOTHNESS_R)
         return float4(surfaceDescription.Smoothness, 0.0, 0.0, 1.0);
-    if(UNITY_DataExtraction_Mode == RENDER_OCCLUSION)
-       return float4(surfaceDescription.Occlusion, 0.0, 0.0, 1.0); 
-    
-    return color;
+    if(UNITY_DataExtraction_Mode == RENDER_OCCLUSION_R)
+       return float4(surfaceDescription.Occlusion, 0.0, 0.0, 1.0);
+    if(UNITY_DataExtraction_Mode == RENDER_DIFFUSE_COLOR_RGB)
+       return float4(diffuse, 1.0);
+
+    return 0;
 }
+
+
