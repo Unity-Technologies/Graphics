@@ -217,6 +217,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixing RenderObject to reflect name changes done at CustomForwardRenderer asset in project view. [case 1246256](https://issuetracker.unity3d.com/issues/urp-renderobject-name-does-not-reflect-inside-customforwardrendererdata-asset-on-renaming-in-the-inspector)
 - Fixing camera overlay stacking adding to respect unity general reference restrictions. [case 1240788](https://issuetracker.unity3d.com/issues/urp-overlay-camera-is-missing-in-stack-list-of-the-base-camera-prefab)
 - Fixed issue that caused the pipeline to not create _CameraColorTexture if a custom render pass is injected. [case 1232761](https://issuetracker.unity3d.com/issues/urp-the-intermediate-color-texture-is-no-longer-created-when-there-is-at-least-one-renderer-feature)
+- Fixed issue that caused color grading to not work correctly with camera stacking. [case 1263193](https://issuetracker.unity3d.com/product/unity/issues/guid/1263193/)
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
