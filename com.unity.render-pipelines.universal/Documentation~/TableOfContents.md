@@ -34,6 +34,7 @@
     * [Volume Profile](VolumeProfile.md)
     * [Volume Overrides](VolumeOverrides.md)
   * [Effect List](EffectList.md)
+    * [Ambient Occlusion](post-processing-ssao.md)
     * [Bloom](post-processing-bloom.md)
     * [Channel Mixer](Post-Processing-Channel-Mixer.md)
     * [Chromatic Aberration](post-processing-chromatic-aberration.md)
