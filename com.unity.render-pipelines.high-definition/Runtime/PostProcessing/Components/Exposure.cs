@@ -184,11 +184,6 @@ namespace UnityEngine.Rendering.HighDefinition
         Automatic,
 
         /// <summary>
-        /// Automatically sets the exposure depending on what is on screen and can filter out outliers based on provided settings.
-        /// </summary>
-        AutomaticHistogram,
-
-        /// <summary>
         /// Maps the current Scene exposure to a custom curve.
         /// </summary>
         CurveMapping,
@@ -196,7 +191,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Uses the current physical Camera settings to set the Scene exposure.
         /// </summary>
-        UsePhysicalCamera
+        UsePhysicalCamera,
+
+        /// <summary>
+        /// Automatically sets the exposure depending on what is on screen and can filter out outliers based on provided settings.
+        /// </summary>
+        AutomaticHistogram
     }
 
     /// <summary>
