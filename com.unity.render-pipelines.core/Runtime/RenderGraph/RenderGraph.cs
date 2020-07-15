@@ -558,7 +558,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             if (m_DebugParameters.disablePassCulling)
             {
-                LogLine("- Pass Culling Disabled -\n");
+                if (m_DebugParameters.logFrameInformation)
+                {
+                    m_Logger.LogLine("- Pass Culling Disabled -\n");
+                }
                 return;
             }
 
@@ -972,51 +975,55 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_RenderPasses.Clear();
         }
 
-        void LogLine(string format, params object[] args)
+        void LogFrameInformation(int renderingWidth, int renderingHeight)
         {
             if (m_DebugParameters.logFrameInformation)
             {
-                m_Logger.LogLine(format, args);
+                m_Logger.LogLine("==== Staring frame at resolution ({0}x{1}) ====", renderingWidth, renderingHeight);
+                m_Logger.LogLine("Number of passes declared: {0}\n", m_RenderPasses.Count);
             }
-        }
-
-        void LogFrameInformation(int renderingWidth, int renderingHeight)
-        {
-            LogLine("==== Staring frame at resolution ({0}x{1}) ====", renderingWidth, renderingHeight);
-            LogLine("Number of passes declared: {0}\n", m_RenderPasses.Count);
         }
 
         void LogRendererListsCreation()
         {
-            LogLine("Number of renderer lists created: {0}\n", m_RendererLists.Count);
+            if (m_DebugParameters.logFrameInformation)
+            {
+                m_Logger.LogLine("Number of renderer lists created: {0}\n", m_RendererLists.Count);
+            }
         }
 
         void LogRenderPassBegin(in CompiledPassInfo passInfo)
         {
-            RenderGraphPass pass = passInfo.pass;
-
-            LogLine("[{0}][{1}] \"{2}\"", pass.index, pass.enableAsyncCompute ? "Compute" : "Graphics", pass.name);
-            using (new RenderGraphLogIndent(m_Logger))
+            if (m_DebugParameters.logFrameInformation)
             {
-                if (passInfo.syncToPassIndex != -1)
-                    LogLine("Synchronize with [{0}]", passInfo.syncToPassIndex);
+                RenderGraphPass pass = passInfo.pass;
+
+                m_Logger.LogLine("[{0}][{1}] \"{2}\"", pass.index, pass.enableAsyncCompute ? "Compute" : "Graphics", pass.name);
+                using (new RenderGraphLogIndent(m_Logger))
+                {
+                    if (passInfo.syncToPassIndex != -1)
+                        m_Logger.LogLine("Synchronize with [{0}]", passInfo.syncToPassIndex);
+                }
             }
         }
 
         void LogCulledPasses()
         {
-            LogLine("Pass Culling Report:");
-            using (new RenderGraphLogIndent(m_Logger))
+            if (m_DebugParameters.logFrameInformation)
             {
-                for (int i = 0; i < m_CompiledPassInfos.size; ++i)
+                m_Logger.LogLine("Pass Culling Report:");
+                using (new RenderGraphLogIndent(m_Logger))
                 {
-                    if (m_CompiledPassInfos[i].culled)
+                    for (int i = 0; i < m_CompiledPassInfos.size; ++i)
                     {
-                        var pass = m_RenderPasses[i];
-                        LogLine("[{0}] {1}", pass.index, pass.name);
+                        if (m_CompiledPassInfos[i].culled)
+                        {
+                            var pass = m_RenderPasses[i];
+                            m_Logger.LogLine("[{0}] {1}", pass.index, pass.name);
+                        }
                     }
+                    m_Logger.LogLine("\n");
                 }
-                LogLine("\n");
             }
         }
 
