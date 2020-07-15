@@ -356,6 +356,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ValidRayTracingClusterCulling = false;
             bool rayTracedShadow = false;
 
+            // If the camera does not have a ray tracing frame setting
+            // or it is a preview camera (due to the fact that the sphere does not exist as a game object we can't create the RTAS)
+            // we do not want to build a RTAS
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)|| hdCamera.camera.cameraType == CameraType.Preview)
+                return;
+
             // fetch all the lights in the scene
             HDAdditionalLightData[] hdLightArray = UnityEngine.GameObject.FindObjectsOfType<HDAdditionalLightData>();
 
