@@ -99,7 +99,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 // Depth pre-pass.
                 cmd.Clear();
-                CoreUtils.SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare, depthAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None);
+                CoreUtils.SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, depthAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None);
                 context.ExecuteCommandBuffer(cmd);
                 filterSettings.renderQueueRange = RenderQueueRange.opaque;
                 context.DrawRenderers(renderingData.cullResults, ref depthDrawSettings, ref filterSettings);
