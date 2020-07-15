@@ -86,7 +86,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddField(Fields.Normal,              descs.Contains(BlockFields.SurfaceDescription.NormalOS) ||
                                                          descs.Contains(BlockFields.SurfaceDescription.NormalTS) ||
                                                          descs.Contains(BlockFields.SurfaceDescription.NormalWS));
-            // TODO: should HDRP Coat, CoatMask etc. fields be in shadergraph and shared? currently different defines for URP and HDRP.
             context.AddField(Fields.ClearCoat,           clearCoat);
         }
 
