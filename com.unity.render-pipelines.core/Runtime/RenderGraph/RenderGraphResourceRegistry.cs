@@ -328,7 +328,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 {
                     // Textures are going to be reused under different aliases along the frame so we can't provide a specific name upon creation.
                     // The name in the desc is going to be used for debugging purpose and render graph visualization.
-                    string name = $"RenderGraphTexture";
+                    string name = "RenderGraphTexture";
 
                     switch (desc.sizeMode)
                     {
