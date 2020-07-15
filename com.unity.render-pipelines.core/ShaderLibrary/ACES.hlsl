@@ -265,6 +265,8 @@ half3 ACEScc_to_ACES(half3 x)
 // converts ACES2065-1 (AP0 w/ linear encoding) to
 //          ACEScg (AP1 w/ linear encoding)
 //
+// Uses float3 to avoid going out of half-precision bounds
+//
 float3 ACES_to_ACEScg(float3 x)
 {
     return mul(AP0_2_AP1_MAT, x);
@@ -275,6 +277,8 @@ float3 ACES_to_ACEScg(float3 x)
 //
 // converts ACEScg (AP1 w/ linear encoding) to
 //          ACES2065-1 (AP0 w/ linear encoding)
+//
+// Uses float3 to avoid going out of half-precision bounds
 //
 float3 ACEScg_to_ACES(float3 x)
 {
