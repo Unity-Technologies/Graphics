@@ -1071,6 +1071,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_TextureCaches.lightCookieManager.ResetAllocator();
                 m_TextureCaches.lightCookieManager.ClearAtlasTexture(cmd);
             }
+            additionalLightDataNewFrame.Clear();
         }
 
         static int NumLightIndicesPerClusteredTile()
@@ -2223,6 +2224,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Compute data that will be used during the light loop for a particular light.
+        HashSet<HDAdditionalLightData> additionalLightDataNewFrame = new HashSet<HDAdditionalLightData>();
         void PreprocessLightData(ref ProcessedLightData processedData, VisibleLight light, HDCamera hdCamera)
         {
             Light lightComponent = light.light;
@@ -2231,6 +2233,8 @@ namespace UnityEngine.Rendering.HighDefinition
             processedData.additionalLightData = additionalLightData;
             processedData.lightType = additionalLightData.ComputeLightType(lightComponent);
             processedData.distanceToCamera = (additionalLightData.transform.position - hdCamera.camera.transform.position).magnitude;
+            if (additionalLightDataNewFrame.Add(additionalLightData))
+                additionalLightData.NewFrame();
 
             // Evaluate the types that define the current light
             processedData.lightCategory = LightCategory.Count;
@@ -2312,12 +2316,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // First we should evaluate the shadow information for this frame
-                additionalData.EvaluateShadowState(hdCamera, processedData, cullResults, hdCamera.frameSettings, lightIndex);
+                additionalData.EvaluateShadowState(hdCamera, processedData, cullResults, hdCamera.frameSettings, lightIndex, light);
 
                 // Reserve shadow map resolutions and check if light needs to render shadows
-                if (additionalData.WillRenderShadowMap())
+                if (additionalData.WillRenderShadowMap(light))
                 {
-                    additionalData.ReserveShadowMap(hdCamera.camera, m_ShadowManager, hdShadowSettings, m_ShadowInitParameters, light.screenRect, lightType);
+                    additionalData.ReserveShadowMap(hdCamera.camera, m_ShadowManager, hdShadowSettings, m_ShadowInitParameters, light, lightType);
                 }
 
                 // Reserve the cookie resolution in the 2D atlas
@@ -2394,7 +2398,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 int shadowIndex = -1;
 
                 // Manage shadow requests
-                if (additionalLightData.WillRenderShadowMap())
+                if (additionalLightData.WillRenderShadowMap(light))
                 {
                     int shadowRequestCount;
                     shadowIndex = additionalLightData.UpdateShadowRequest(hdCamera, m_ShadowManager, hdShadowSettings, light, cullResults, lightIndex, m_CurrentDebugDisplaySettings.data.lightingDebugSettings, shadowFilteringQuality, out shadowRequestCount);
@@ -2845,7 +2849,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_TextureCaches.lightCookieManager.ReserveSpace(light?.cookie);
                     break;
                 case HDLightType.Point:
-                    if (light.cookie != null && hdLightData.IESPoint != null && light.cookie != hdLightData.IESPoint)
+                    if (light?.cookie != null && hdLightData.IESPoint != null && light.cookie != hdLightData.IESPoint)
                         m_TextureCaches.lightCookieManager.ReserveSpaceCube(light.cookie, hdLightData.IESPoint);
                     else if (light?.cookie != null)
                         m_TextureCaches.lightCookieManager.ReserveSpaceCube(light.cookie);
@@ -2854,7 +2858,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
                 case HDLightType.Spot:
                     // Projectors lights must always have a cookie texture.
-                    if (light.cookie != null && hdLightData.IESSpot != null && light.cookie != hdLightData.IESSpot)
+                    if (light?.cookie != null && hdLightData.IESSpot != null && light.cookie != hdLightData.IESSpot)
                         m_TextureCaches.lightCookieManager.ReserveSpace(light.cookie, hdLightData.IESSpot);
                     else if (light?.cookie != null)
                         m_TextureCaches.lightCookieManager.ReserveSpace(light.cookie);

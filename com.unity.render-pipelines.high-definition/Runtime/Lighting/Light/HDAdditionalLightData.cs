@@ -1544,11 +1544,10 @@ namespace UnityEngine.Rendering.HighDefinition
         byte showAdditionalSettings = 0;
 #pragma warning restore 0414
 
-        HDShadowRequest[]   shadowRequests;
-        bool                m_WillRenderShadowMap;
+        // bool                m_WillRenderShadowMap;
         bool                m_WillRenderScreenSpaceShadow;
         bool                m_WillRenderRayTracedShadow;
-        int[]               m_ShadowRequestIndices;
+        // Dictionary<VisibleLight, (HDShadowRequest[], int[])> m_ShadowRequests = new Dictionary<VisibleLight, (HDShadowRequest[], int[])>();
 
 
         // Data for cached shadow maps
@@ -1790,21 +1789,21 @@ namespace UnityEngine.Rendering.HighDefinition
             return shadowUpdateMode == ShadowUpdateMode.EveryFrame;
         }
 
-        internal void EvaluateShadowState(HDCamera hdCamera, in ProcessedLightData processedLight, CullingResults cullResults, FrameSettings frameSettings, int lightIndex)
+        internal void EvaluateShadowState(HDCamera hdCamera, in ProcessedLightData processedLight, CullingResults cullResults, FrameSettings frameSettings, int lightIndex, VisibleLight vl)
         {
             Bounds bounds;
 
-            m_WillRenderShadowMap = legacyLight.shadows != LightShadows.None && frameSettings.IsEnabled(FrameSettingsField.ShadowMaps);
+            m_WillRenderMap[vl] = legacyLight.shadows != LightShadows.None && frameSettings.IsEnabled(FrameSettingsField.ShadowMaps);
 
-            m_WillRenderShadowMap &= cullResults.GetShadowCasterBounds(lightIndex, out bounds);
+            m_WillRenderMap[vl] &= cullResults.GetShadowCasterBounds(lightIndex, out bounds);
             // When creating a new light, at the first frame, there is no AdditionalShadowData so we can't really render shadows
-            m_WillRenderShadowMap &= shadowDimmer > 0;
+            m_WillRenderMap[vl] &= shadowDimmer > 0;
             // If the shadow is too far away, we don't render it
-            m_WillRenderShadowMap &= processedLight.lightType == HDLightType.Directional || processedLight.distanceToCamera < shadowFadeDistance;
+            m_WillRenderMap[vl] &= processedLight.lightType == HDLightType.Directional || processedLight.distanceToCamera < shadowFadeDistance;
 
             if (processedLight.lightType == HDLightType.Area && areaLightShape != AreaLightShape.Rectangle)
             {
-                m_WillRenderShadowMap = false;
+                m_WillRenderMap[vl] = false;
             }
 
             // First we reset the ray tracing and screen space shadow data
@@ -1812,7 +1811,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_WillRenderRayTracedShadow = false;
 
             // If this camera does not allow screen space shadows we are done, set the target parameters to false and leave the function
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenSpaceShadows) || !m_WillRenderShadowMap)
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenSpaceShadows) || !m_WillRenderMap[vl])
                 return;
 
             // Flag the ray tracing only shadows
@@ -1859,21 +1858,33 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowSettings shadowSettings, HDShadowInitParameters initParameters, Rect screenRect, HDLightType lightType)
+        class ShadowRequest
         {
-            if (!m_WillRenderShadowMap)
+            public HDShadowRequest[]    requests;
+            public int[]                indices;
+        }
+
+        List<(VisibleLight, ShadowRequest)> visibleLightShadowRequests = new List<(VisibleLight, ShadowRequest)>();
+        static ObjectPool<ShadowRequest> s_ShadowRequestPool = new ObjectPool<ShadowRequest>(null, null);
+
+        internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowSettings shadowSettings, HDShadowInitParameters initParameters, VisibleLight visibleLight, HDLightType lightType)
+        {
+            if (!m_WillRenderMap[visibleLight])
                 return;
+            
+            s_ShadowRequestPool.Get(out var shadow);
 
             // Create shadow requests array using the light type
-            if (shadowRequests == null || m_ShadowRequestIndices == null)
+            // m_ShadowRequests.TryGetValue(visibleLight, out (HDShadowRequest[] requests, int[] indices) shadow);
+            if (shadow.requests == null || shadow.indices == null)
             {
                 const int maxLightShadowRequestsCount = 6;
-                shadowRequests = new HDShadowRequest[maxLightShadowRequestsCount];
-                m_ShadowRequestIndices = new int[maxLightShadowRequestsCount];
+                shadow.requests = new HDShadowRequest[maxLightShadowRequestsCount];
+                shadow.indices = new int[maxLightShadowRequestsCount];
 
                 for (int i = 0; i < maxLightShadowRequestsCount; i++)
                 {
-                    shadowRequests[i] = new HDShadowRequest();
+                    shadow.requests[i] = new HDShadowRequest();
                 }
             }
 
@@ -1894,7 +1905,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (viewPortRescaling && !shadowIsInCacheSystem)
             {
                 // resize viewport size by the normalized size of the light on screen
-                float screenArea = screenRect.width * screenRect.height;
+                float screenArea = visibleLight.screenRect.width * visibleLight.screenRect.height;
                 viewportSize *= Mathf.Lerp(64f / viewportSize.x, 1f, screenArea);
                 viewportSize = Vector2.Max(new Vector2(64f, 64f) / viewportSize, viewportSize);
 
@@ -1914,13 +1925,16 @@ namespace UnityEngine.Rendering.HighDefinition
             bool needResolutionRequestNow = !shadowIsInCacheSystem || lightType == HDLightType.Directional;
             for (int index = 0; index < count; index++)
             {
-                m_ShadowRequestIndices[index] = shadowManager.ReserveShadowResolutions(shadowIsInCacheSystem ? new Vector2(resolution, resolution) : viewportSize, shadowMapType, GetInstanceID(), index, needResolutionRequestNow);
+                shadow.indices[index] = shadowManager.ReserveShadowResolutions(shadowIsInCacheSystem ? new Vector2(resolution, resolution) : viewportSize, shadowMapType, GetInstanceID(), index, needResolutionRequestNow);
             }
+
+            visibleLightShadowRequests.Add((visibleLight, shadow));
         }
 
-        internal bool WillRenderShadowMap()
+        Dictionary<VisibleLight, bool> m_WillRenderMap = new Dictionary<VisibleLight, bool>();
+        internal bool WillRenderShadowMap(VisibleLight vl)
         {
-            return m_WillRenderShadowMap;
+            return m_WillRenderMap[vl];
         }
 
         internal bool WillRenderScreenSpaceShadow()
@@ -1993,10 +2007,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             for (int index = 0; index < count; index++)
             {
-                var         shadowRequest = shadowRequests[index];
+                // var         shadowRequest = m_ShadowRequests[visibleLight].Item1[index];
+                ShadowRequest shadow = null;
+                for (int i = 0; i < visibleLightShadowRequests.Count; i++)
+                    if (visibleLightShadowRequests[i].Item1 == visibleLight)
+                        shadow = visibleLightShadowRequests[i].Item2;
+                var         shadowRequest = shadow.requests[index];
 
                 Matrix4x4   invViewProjection = Matrix4x4.identity;
-                int         shadowRequestIndex = m_ShadowRequestIndices[index];
+                int         shadowRequestIndex = shadow.indices[index];
 
                 HDShadowResolutionRequest resolutionRequest = manager.GetResolutionRequest(shadowRequestIndex);
 
@@ -2281,6 +2300,14 @@ namespace UnityEngine.Rendering.HighDefinition
             // might be driven by this animator (using timeline or animations) so we force the LateUpdate
             // to sync the animated HDAdditionalLightData properties with the light component.
             m_Animated = GetComponent<Animator>() != null;
+        }
+
+        internal void NewFrame()
+        {
+            // Release the whole loop
+            foreach (var s in visibleLightShadowRequests)
+                s_ShadowRequestPool.Release(s.Item2);
+            visibleLightShadowRequests.Clear();
         }
 
         // TODO: There are a lot of old != current checks and assignation in this function, maybe think about using another system ?
