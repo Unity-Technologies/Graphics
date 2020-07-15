@@ -41,11 +41,6 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_AlphaTestOn = new ShaderKeyword("_ALPHATEST_ON");
         ShaderKeyword m_GbufferNormalsOct = new ShaderKeyword("_GBUFFER_NORMALS_OCT");
 
-        ShaderKeyword m_DeprecatedVertexLights = new ShaderKeyword("_VERTEX_LIGHTS");
-        ShaderKeyword m_DeprecatedShadowsEnabled = new ShaderKeyword("_SHADOWS_ENABLED");
-        ShaderKeyword m_DeprecatedShadowsCascade = new ShaderKeyword("_SHADOWS_CASCADE");
-        ShaderKeyword m_DeprecatedLocalShadowsEnabled = new ShaderKeyword("_LOCAL_SHADOWS_ENABLED");
-        
         ShaderKeyword Feature00 = new ShaderKeyword("_FEATURE00");
         ShaderKeyword Feature01 = new ShaderKeyword("_FEATURE01");
         ShaderKeyword Feature02 = new ShaderKeyword("_FEATURE02");
@@ -107,24 +102,6 @@ namespace UnityEditor.Rendering.Universal
                     return true;
             }
 
-            bool isAdditionalLightPerVertex = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsVertex);
-            bool isAdditionalLightPerPixel = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel);
-            bool isAdditionalLightShadow = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightShadows);
-
-            // Additional light are shaded per-vertex. Strip additional lights per-pixel and shadow variants
-            if (IsFeatureEnabled(features, ShaderFeatures.VertexLighting) &&
-                (isAdditionalLightPerPixel || isAdditionalLightShadow))
-                return true;
-
-            // No additional lights
-            if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLights) &&
-                (isAdditionalLightPerPixel || isAdditionalLightPerVertex || isAdditionalLightShadow))
-                return true;
-
-            // No additional light shadows
-            if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isAdditionalLightShadow)
-                return true;
-
             if (!IsFeatureEnabled(features, ShaderFeatures.SoftShadows) &&
                 compilerData.shaderKeywordSet.IsEnabled(m_SoftShadows))
                 return true;
@@ -132,10 +109,21 @@ namespace UnityEditor.Rendering.Universal
             if (compilerData.shaderKeywordSet.IsEnabled(m_MixedLightingSubtractive) &&
                 !IsFeatureEnabled(features, ShaderFeatures.MixedLighting))
                 return true;
+            
+            // No additional light shadows
+            bool isAdditionalLightShadow = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightShadows);
+            if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isAdditionalLightShadow)
+                return true;
 
-            bool isBuiltInTerrainLit = shader.name.Contains("Universal Render Pipeline/Terrain/Lit");
-            if (isBuiltInTerrainLit && compilerData.shaderKeywordSet.IsEnabled(m_AlphaTestOn) &&
-               !CoreUtils.HasFlag(features, ShaderFeatures.TerrainHoles))
+            // Additional light are shaded per-vertex. Strip additional lights per-pixel and shadow variants
+            bool isAdditionalLightPerPixel = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel);
+            if (IsFeatureEnabled(features, ShaderFeatures.VertexLighting) &&
+                (isAdditionalLightPerPixel || isAdditionalLightShadow))
+                return true;
+
+            // No additional lights
+            if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLights) &&
+                (isAdditionalLightPerPixel || isAdditionalLightShadow || compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsVertex)))
                 return true;
 
             // TODO: Test against lightMode tag instead.
@@ -169,33 +157,15 @@ namespace UnityEditor.Rendering.Universal
         bool StripInvalidVariants(ShaderCompilerData compilerData)
         {
             bool isMainShadow = compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadows);
-            bool isAdditionalShadow = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightShadows);
-            bool isShadowVariant = isMainShadow || isAdditionalShadow;
-
             if (!isMainShadow && compilerData.shaderKeywordSet.IsEnabled(m_CascadeShadows))
                 return true;
 
-            if (!isShadowVariant && compilerData.shaderKeywordSet.IsEnabled(m_SoftShadows))
-                return true;
-
+            bool isAdditionalShadow = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightShadows);
             if (isAdditionalShadow && !compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel))
                 return true;
 
-            return false;
-        }
-
-        bool StripDeprecated(ShaderCompilerData compilerData)
-        {
-            if (compilerData.shaderKeywordSet.IsEnabled(m_DeprecatedVertexLights))
-                return true;
-
-            if (compilerData.shaderKeywordSet.IsEnabled(m_DeprecatedShadowsCascade))
-                return true;
-
-            if (compilerData.shaderKeywordSet.IsEnabled(m_DeprecatedShadowsEnabled))
-                return true;
-
-            if (compilerData.shaderKeywordSet.IsEnabled(m_DeprecatedLocalShadowsEnabled))
+            bool isShadowVariant = isMainShadow || isAdditionalShadow;
+            if (!isShadowVariant && compilerData.shaderKeywordSet.IsEnabled(m_SoftShadows))
                 return true;
 
             return false;
@@ -203,16 +173,16 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripUnused(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
-            if (StripUnusedPass(features, snippetData))
-                return true;
-
             if (StripUnusedFeatures(features, shader, snippetData, compilerData))
                 return true;
 
+            if (StripInvalidVariants(compilerData))
+                return true;
+            
             if (StripUnsupportedVariants(compilerData))
                 return true;
 
-            if (StripInvalidVariants(compilerData))
+            if (StripUnusedPass(features, snippetData))
                 return true;
 
             if (compilerData.shaderKeywordSet.IsEnabled(Feature00))
@@ -270,8 +240,13 @@ namespace UnityEditor.Rendering.Universal
 //                return true;
 //            if (compilerData.shaderKeywordSet.IsEnabled(Feature19))
 //                return true;
-            
-            if (StripDeprecated(compilerData))
+
+            // Strip terrain holes
+            // TODO: checking for the string name here is expensive
+            // maybe we can rename alpha clip keyword name to be specific to terrain?
+            if (compilerData.shaderKeywordSet.IsEnabled(m_AlphaTestOn) &&
+                !CoreUtils.HasFlag(features, ShaderFeatures.TerrainHoles) &&
+                shader.name.Contains("Universal Render Pipeline/Terrain/Lit"))
                 return true;
 
             return false;
@@ -312,7 +287,7 @@ namespace UnityEditor.Rendering.Universal
                 else
                     ++i;
             }
-            
+
             if(compilerDataList is List<ShaderCompilerData> inputDataList)
                 inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
             else
@@ -356,7 +331,7 @@ namespace UnityEditor.Rendering.Universal
             FetchAllSupportedFeatures();
             Profiler.enabled = true;
             Profiler.enableBinaryLog = true;
-            Profiler.logFile = "profilerlognew5.raw";
+            Profiler.logFile = "profilerlognew6.raw";
             Debug.Log("Profiler State: " + Profiler.enabled);
         }
         
