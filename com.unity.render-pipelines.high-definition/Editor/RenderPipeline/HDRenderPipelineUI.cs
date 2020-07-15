@@ -176,19 +176,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_SectionGeneral(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
-            EditorGUILayout.PropertyField(serialized.renderPipelineResources, Styles.GeneralSection.renderPipelineResourcesContent);
+            using (new EditorGUI.DisabledScope(true))
+            {
+                EditorGUILayout.PropertyField(serialized.renderPipelineResources, Styles.GeneralSection.renderPipelineResourcesContent);
 
-            HDRenderPipeline hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-            if (hdrp != null && hdrp.rayTracingSupported)
-                EditorGUILayout.PropertyField(serialized.renderPipelineRayTracingResources, Styles.GeneralSection.renderPipelineRayTracingResourcesContent);
+                HDRenderPipeline hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+                if (hdrp != null && hdrp.rayTracingSupported)
+                    EditorGUILayout.PropertyField(serialized.renderPipelineRayTracingResources, Styles.GeneralSection.renderPipelineRayTracingResourcesContent);
+            }
 
-            // Not serialized as editor only datas... Retrieve them in data
-            EditorGUI.showMixedValue = serialized.editorResourceHasMultipleDifferentValues;
-            EditorGUI.BeginChangeCheck();
-            var editorResources = EditorGUILayout.ObjectField(Styles.GeneralSection.renderPipelineEditorResourcesContent, serialized.firstEditorResources, typeof(HDRenderPipelineEditorResources), allowSceneObjects: false) as HDRenderPipelineEditorResources;
-            if (EditorGUI.EndChangeCheck())
-                serialized.SetEditorResource(editorResources);
-            EditorGUI.showMixedValue = false;
+            EditorGUILayout.PropertyField(serialized.renderPipelineEditorResources, Styles.GeneralSection.renderPipelineEditorResourcesContent);
 
             //EditorGUILayout.PropertyField(serialized.enableSRPBatcher, k_SRPBatcher);
             EditorGUILayout.PropertyField(serialized.shaderVariantLogLevel, Styles.GeneralSection.shaderVariantLogLevel);
@@ -382,7 +379,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 --EditorGUI.indentLevel;
 
                 ++EditorGUI.indentLevel;
-                // Because we don't know if the asset is old and had the cached shadow map resolution field, if it was set as default float (0) we force a default. 
+                // Because we don't know if the asset is old and had the cached shadow map resolution field, if it was set as default float (0) we force a default.
                 if (serialized.renderPipelineSettings.hdShadowInitParams.cachedPunctualShadowAtlasResolution.intValue == 0)
                 {
                     serialized.renderPipelineSettings.hdShadowInitParams.cachedPunctualShadowAtlasResolution.intValue = 2048;

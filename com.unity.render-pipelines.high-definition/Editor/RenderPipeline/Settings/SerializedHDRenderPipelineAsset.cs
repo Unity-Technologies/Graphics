@@ -9,6 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedObject serializedObject;
 
         public SerializedProperty renderPipelineResources;
+        public SerializedProperty renderPipelineEditorResources;
         public SerializedProperty defaultMaterialQualityLevel;
         public SerializedProperty availableMaterialQualityLevels;
         public SerializedProperty renderPipelineRayTracingResources;
@@ -22,30 +23,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedFrameSettings defaultRealtimeReflectionFrameSettings;
         public SerializedVirtualTexturingSettings virtualTexturingSettings;
 
-        //RenderPipelineResources not always exist and thus cannot be serialized normally.
-        public bool editorResourceHasMultipleDifferentValues
-        {
-            get
-            {
-                var initialValue = firstEditorResources;
-                for (int index = 1; index < serializedObject.targetObjects.Length; ++index)
-                {
-                    if (initialValue != (serializedObject.targetObjects[index] as HDRenderPipelineAsset)?.renderPipelineEditorResources)
-                        return true;
-                }
-                return false;
-            }
-        }
-
-        public HDRenderPipelineEditorResources firstEditorResources
-            => (serializedObject.targetObjects[0] as HDRenderPipelineAsset)?.renderPipelineEditorResources;
-
-        public void SetEditorResource(HDRenderPipelineEditorResources value)
-        {
-            for (int index = 0; index < serializedObject.targetObjects.Length; ++index)
-                (serializedObject.targetObjects[index] as HDRenderPipelineAsset).renderPipelineEditorResources = value;
-        }
-
         public SerializedHDRenderPipelineAsset(SerializedObject serializedObject)
         {
             this.serializedObject = serializedObject;
@@ -54,6 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition
             availableMaterialQualityLevels = serializedObject.Find((HDRenderPipelineAsset s) => s.availableMaterialQualityLevels);
 
             renderPipelineResources = serializedObject.FindProperty("m_RenderPipelineResources");
+            renderPipelineEditorResources = serializedObject.FindProperty("m_RenderPipelineEditorResources");
             renderPipelineRayTracingResources = serializedObject.FindProperty("m_RenderPipelineRayTracingResources");
             diffusionProfileSettingsList = serializedObject.Find((HDRenderPipelineAsset s) => s.diffusionProfileSettingsList);
             allowShaderVariantStripping = serializedObject.Find((HDRenderPipelineAsset s) => s.allowShaderVariantStripping);

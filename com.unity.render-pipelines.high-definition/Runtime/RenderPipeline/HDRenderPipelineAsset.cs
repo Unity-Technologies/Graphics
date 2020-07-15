@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDRenderPipelineAsset()
         {
-            
+
         }
 
         void Reset() => OnValidate();
@@ -88,25 +88,12 @@ namespace UnityEngine.Rendering.HighDefinition
             set => m_DefaultLookDevProfile = value;
         }
 
+        [SerializeField]
         HDRenderPipelineEditorResources m_RenderPipelineEditorResources;
 
         internal HDRenderPipelineEditorResources renderPipelineEditorResources
         {
-            get
-            {
-                //there is no clean way to load editor resources without having it serialized
-                // - impossible to load them at deserialization
-                // - constructor only called at asset creation
-                // - cannot rely on OnEnable
-                //thus fallback with lazy init for them
-                if (m_RenderPipelineEditorResources == null || m_RenderPipelineEditorResources.Equals(null))
-                {
-                    var objs = InternalEditorUtility.LoadSerializedFileAndForget(HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset");
-                    m_RenderPipelineEditorResources = objs != null && objs.Length > 0 ? objs.First() as HDRenderPipelineEditorResources : null;
-                }
-
-                return m_RenderPipelineEditorResources;
-            }
+            get { return m_RenderPipelineEditorResources; }
             set { m_RenderPipelineEditorResources = value; }
         }
 #endif
