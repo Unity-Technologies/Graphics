@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// The minimum allowed aperture.
         /// </summary>
-        public const float kMinAperture = 1f;
+        public const float kMinAperture = 0.7f;
 
         /// <summary>
         /// The maximum allowed aperture.
