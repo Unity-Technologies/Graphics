@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             
             Dictionary<int, QualitySetting> settings = new Dictionary<int, QualitySetting>();
-
+            
             public static bool IsEqual (QualitySettingsBlob left, QualitySettingsBlob right)
             {
                 if (right == null && left == null)
@@ -67,6 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return hash;
             }
 
+            // Save a setting to the quality blob. 
             public void Save<T>(SerializedDataParameter setting) where T : struct
             {
                 QualitySetting s;
@@ -74,12 +75,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 s.value = setting.value.GetInline<T>();
                 
                 int key = Hash(setting);
+
                 if (settings.ContainsKey(key))
                 {
+                    // If the setting exists, overwrite the value
                     settings[key] = s;
                 }
                 else
                 {
+                    // Otherwise, cache a new setting
                     settings.Add(key, s);
                 }
             }
