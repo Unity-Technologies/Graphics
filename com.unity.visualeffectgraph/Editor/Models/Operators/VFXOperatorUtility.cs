@@ -266,6 +266,13 @@ namespace UnityEditor.VFX
             return (v * invLengthVector);
         }
 
+        static public VFXExpression SafeNormalize(VFXExpression v)
+        {
+            var sqrDist = Dot(v,v);
+            var condition = new VFXExpressionCondition(VFXCondition.Equal, VFXOperatorUtility.ZeroExpression[VFXValueType.Float], sqrDist);
+            return new VFXExpressionBranch(condition, VFXOperatorUtility.ZeroExpression[v.valueType], Normalize(v));
+        }
+
         static public VFXExpression Modulo(VFXExpression x, VFXExpression y)
         {
             if (VFXExpression.IsFloatValueType(x.valueType))
