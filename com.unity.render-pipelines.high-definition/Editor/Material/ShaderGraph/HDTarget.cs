@@ -793,117 +793,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 #region Keywords
     static class CoreKeywords
     {
-        public static KeywordCollection HDBaseNoCrossFade = new KeywordCollection
-        {
-            { CoreKeywordDescriptors.SurfaceTypeTransparent },
-            { CoreKeywordDescriptors.BlendMode },
-            { CoreKeywordDescriptors.DoubleSided, new FieldCondition(HDFields.Unlit, false) },
-            { CoreKeywordDescriptors.DisableDecals, new FieldCondition(HDFields.Unlit, false) },
-            { CoreKeywordDescriptors.DisableSSR, new FieldCondition(HDFields.Unlit, false) },
-            { CoreKeywordDescriptors.DisableSSRTransparent, new FieldCondition(HDFields.Unlit, false) },
-            // { CoreKeywordDescriptors.EnableGeometricSpecularAA, new FieldCondition(HDFields.Unlit, false) },
-            { CoreKeywordDescriptors.BlendModePreserveSpecularLighting, new FieldCondition(HDFields.Unlit, false) },
-            { CoreKeywordDescriptors.AddPrecomputedVelocity },
-            { CoreKeywordDescriptors.TransparentWritesMotionVector },
-            { CoreKeywordDescriptors.DepthOffset, new FieldCondition(HDFields.DepthOffset, true) },
-            { CoreKeywordDescriptors.FogOnTransparent },
-            { CoreKeywordDescriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true) },
-        };
-
-        public static KeywordCollection HDBase = new KeywordCollection
-        {
-            { CoreKeywordDescriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true) },
-            { HDBaseNoCrossFade }
-        };
-
-        public static KeywordCollection Lightmaps = new KeywordCollection
-        {
-            { CoreKeywordDescriptors.Lightmap },
-            { CoreKeywordDescriptors.DirectionalLightmapCombined },
-            { CoreKeywordDescriptors.DynamicLightmap },
-        };
-
-        public static KeywordCollection LightmapsRaytracing = new KeywordCollection
-        {
-            { CoreKeywordDescriptors.Lightmap },
-            { CoreKeywordDescriptors.DirectionalLightmapCombined },
-        };
-
-        public static KeywordCollection WriteMsaaDepth = new KeywordCollection
-        {
-            { CoreKeywordDescriptors.WriteMsaaDepth },
-        };
-
-        public static KeywordCollection DebugDisplay = new KeywordCollection
-        {
-            { CoreKeywordDescriptors.DebugDisplay },
-        };
-
-        public static KeywordCollection ForwardBase = new KeywordCollection
-        {
-            { HDBase },
-            { CoreKeywordDescriptors.DebugDisplay },
-            { Lightmaps },
-            { CoreKeywordDescriptors.ShadowsShadowmask },
-            { CoreKeywordDescriptors.Shadow },
-            { CoreKeywordDescriptors.ScreenSpaceShadow },
-            { CoreKeywordDescriptors.Decals },
-        };
-
-        public static KeywordCollection Forward = new KeywordCollection
-        {
-            { ForwardBase },
-            { CoreKeywordDescriptors.LightList },
-        };
-
-        public static KeywordCollection BackThenFrontTransparent = new KeywordCollection
-        {
-            { ForwardBase },
-        };
-
-        public static KeywordCollection RaytracingIndirect = new KeywordCollection
-        {
-            { HDBaseNoCrossFade },
-            { CoreKeywordDescriptors.DebugDisplay },
-            { LightmapsRaytracing },
-        };
-
-        public static KeywordCollection RaytracingIndirectUnlit = new KeywordCollection
-        {
-            { HDBaseNoCrossFade },
-            { CoreKeywordDescriptors.DebugDisplay },
-        };
-
-        public static KeywordCollection RaytracingForward = new KeywordCollection
-        {
-            { HDBaseNoCrossFade },
-            { CoreKeywordDescriptors.DebugDisplay },
-            { LightmapsRaytracing },
-        };
-
-        public static KeywordCollection RaytracingForwardUnlit = new KeywordCollection
-        {
-            { HDBaseNoCrossFade },
-            { CoreKeywordDescriptors.DebugDisplay },
-        };
-
         public static KeywordCollection RaytracingGBuffer = new KeywordCollection
         {
-            { HDBaseNoCrossFade },
-            { CoreKeywordDescriptors.DebugDisplay },
-            { LightmapsRaytracing },
             { CoreKeywordDescriptors.RaytraceMinimalGBuffer },
-        };
-
-        public static KeywordCollection RaytracingGBufferUnlit = new KeywordCollection
-        {
-            { HDBaseNoCrossFade },
-            { CoreKeywordDescriptors.DebugDisplay },
         };
 
         public static KeywordCollection RaytracingVisiblity = new KeywordCollection
         {
-            { HDBaseNoCrossFade },
             { CoreKeywordDescriptors.TransparentColorShadow },
         };
         
@@ -949,7 +845,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { CoreKeywordDescriptors.HasLightloop, 1 },
             { RayTracingNode.GetRayTracingKeyword(), 0 },
-            { CoreKeywordDescriptors.LightList, 1 }, // BackThenFront Transparent use #define USE_CLUSTERED_LIGHTLIST 
+            // { CoreKeywordDescriptors.LightList, 1 }, // BackThenFront Transparent use #define USE_CLUSTERED_LIGHTLIST 
         };
     }
 #endregion
@@ -1185,7 +1081,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             displayName = "Has Lightloop",
             referenceName = "HAS_LIGHTLOOP",
             type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
+            definition = KeywordDefinition.Predefined,
             scope = KeywordScope.Global,
         };
 

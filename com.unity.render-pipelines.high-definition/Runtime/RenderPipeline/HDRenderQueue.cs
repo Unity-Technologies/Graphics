@@ -146,8 +146,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     return RenderQueueType.Transparent;
                 case RenderQueueType.AfterPostProcessOpaque:
                     return RenderQueueType.AfterPostprocessTransparent;
-                case RenderQueueType.LowTransparent:
-                    return RenderQueueType.LowTransparent;
                 default:
                     //keep transparent mapped to transparent
                     return type;

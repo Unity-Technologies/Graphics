@@ -29,8 +29,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             base.AssignNewShaderToMaterial(material, oldShader, newShader);
 
-            ResetMaterialCustomRenderQueue(material);
-
             SetupMaterialKeywordsAndPassInternal(material);
         }
 
@@ -64,31 +62,6 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         protected abstract void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props);
-
-        protected static void ResetMaterialCustomRenderQueue(Material material)
-        {
-            HDRenderQueue.RenderQueueType targetQueueType;
-            switch (material.GetSurfaceType())
-            {
-                case SurfaceType.Opaque:
-                    targetQueueType = HDRenderQueue.GetOpaqueEquivalent(HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue));
-                    break;
-                case SurfaceType.Transparent:
-                    targetQueueType = HDRenderQueue.GetTransparentEquivalent(HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue));
-                    break;
-                default:
-                    throw new ArgumentException("Unknown SurfaceType");
-            }
-
-            // Decal doesn't have properties to compute the render queue 
-            if (material.HasProperty(kTransparentSortPriority) && material.HasProperty(kAlphaCutoffEnabled))
-            {
-                float sortingPriority = material.GetFloat(kTransparentSortPriority);
-                bool alphaTest = material.GetFloat(kAlphaCutoffEnabled) > 0.5f;
-                bool decalEnable = material.HasProperty(kEnableDecals) && material.GetFloat(kEnableDecals) > 0.0f;
-                material.renderQueue = HDRenderQueue.ChangeType(targetQueueType, (int)sortingPriority, alphaTest, decalEnable);
-            }
-        }
 
         readonly static string[] floatPropertiesToSynchronize = {
             kUseSplitLighting
