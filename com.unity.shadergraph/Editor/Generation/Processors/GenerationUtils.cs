@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
-using Data.Util;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -1002,9 +1001,14 @@ namespace UnityEditor.ShaderGraph
             throw new FileNotFoundException(string.Format(@"Cannot find a template with name ""{0}"".", templateName));
         }
 
-        internal static string GetDefaultSharedTemplateDirectory()
+        internal static string[] defaultDefaultSharedTemplateDirectories = new string[]
         {
-            return "Packages/com.unity.shadergraph/Editor/Generation/Templates";
+            "Packages/com.unity.shadergraph/Editor/Generation/Templates"
+        };
+
+        internal static string[] GetDefaultSharedTemplateDirectories()
+        {
+            return defaultDefaultSharedTemplateDirectories;
         }
 
         // Returns null if no 'CustomEditor "___"' line should be added, otherwise the name of the ShaderGUI class.

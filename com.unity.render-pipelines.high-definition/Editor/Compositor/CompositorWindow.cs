@@ -24,12 +24,12 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
         bool m_RequiresRedraw = false;
         float m_TimeSinceLastRepaint = 0;
 
-        [MenuItem("Window/Render Pipeline/HD Render Pipeline Compositor", false, 10400)]
+        [MenuItem("Window/Render Pipeline/Graphics Compositor", false, 10400)]
         static void Init()
         {
             // Get existing open window or if none, make a new one:
             s_Window = (CompositorWindow)EditorWindow.GetWindow(typeof(CompositorWindow));
-            s_Window.titleContent = new GUIContent("HDRP Compositor (Preview)");
+            s_Window.titleContent = new GUIContent("Graphics Compositor (Preview)");
             s_Window.Show();
         }
 

@@ -45,6 +45,7 @@ Material:
     - _AlphaDstBlend: 0
     - _AlphaSrcBlend: 1
     - _AlphaToMask: 0
+    - _AlphaToMaskInspectorValue: 0
     - _BlendMode: 0
     - _CullMode: 2
     - _Cutoff: 0.5
@@ -71,6 +72,7 @@ Material:
     - _EnableFogOnTransparent: 0
     - _HdrpVersion: 2
     - _IncludeIndirectLighting: 1
+    - _OpaqueCullMode: 2
     - _SrcBlend: 1
     - _StencilRef: 0
     - _StencilRefDepth: 0
@@ -109,4 +111,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 4
+  version: 7
