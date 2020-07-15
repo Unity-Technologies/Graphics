@@ -177,7 +177,7 @@ real3 UnpackNormalAG(real4 packedNormal, real scale = 1.0)
 {
     real3 normal;
     normal.xy = packedNormal.ag * 2.0 - 1.0;
-    normal.z = sqrt(1.0 - saturate(dot(normal.xy, normal.xy)));
+    normal.z = max(1.0e-16, sqrt(1.0 - saturate(dot(normal.xy, normal.xy))));
 
     // must scale after reconstruction of normal.z which also
     // mirrors UnpackNormalRGB(). This does imply normal is not returned

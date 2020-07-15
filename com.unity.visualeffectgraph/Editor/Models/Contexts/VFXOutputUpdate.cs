@@ -200,7 +200,7 @@ namespace UnityEditor.VFX
                 foreach (var d in base.additionalDataHeaders)
                     yield return d;
 
-                yield return "#define INDIRECT_BUFFER_COUNT " + bufferCount + "u";
+                yield return "#define INDIRECT_BUFFER_COUNT " + bufferCount;
             }
         }
     }

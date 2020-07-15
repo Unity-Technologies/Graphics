@@ -165,7 +165,7 @@ MonoBehaviour:
   m_LightlayersMask: 7
   m_LinkShadowLayers: 1
   m_ShadowNearPlane: 0.1
-  m_BlockerSampleCount: 24
+  m_BlockerSampleCount: 4
   m_FilterSampleCount: 16
   m_MinFilterSize: 0.5
   m_KernelSize: 5
