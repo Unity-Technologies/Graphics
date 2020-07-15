@@ -731,7 +731,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed path-traced subsurface scattering mixing with diffuse and specular BRDFs (1250601).
 - Fixed custom pass re-ordering issues.
 - Improved robustness of normal mapping when scale is 0, and mapping is extreme (normals in or below the tangent plane).
-- Fixed a null ref in the volume component list when there is no volume components in the project.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
