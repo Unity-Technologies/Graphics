@@ -4,7 +4,7 @@ If you want to use the Universal Render Pipeline (URP) in a new Project, you can
 
 To create a URP Project using a Template:
 
-1. Open Unity.
+1. Open the Unity Hub.
 2. On the Home page, click __New__ to start a new Project. The Templates popup appears.
 3. Select the Universal Render Pipeline Template.
 4. Click __Create__. Unity creates a new Project for you. The new Project has URP installed and configured, and includes some example content that demonstrates URP's functionality.

@@ -265,7 +265,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         HDShadowContext shadowContext = InitShadowContext();
         float shadow;
         // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
-        uint renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
+        uint renderingLayers = GetMeshRenderingLightLayer();
         float3 shadow3;
         ShadowLoopMin(shadowContext, posInput, float3(0.0, 1.0, 0.0), _ShadowFilter, renderingLayers, shadow3);
         shadow = dot(shadow3, float3(1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0));
@@ -359,8 +359,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
         depth = GetDepthWithBackplate(input);
 
-        PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-
         NormalData normalData;
         normalData.normalWS            = float3(0, 1, 0);
         normalData.perceptualRoughness = 1.0f;
@@ -368,7 +366,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         float4 gbufferNormal = 0;
 
         if (depth != UNITY_RAW_FAR_CLIP_VALUE)
-            EncodeIntoNormalBuffer(normalData, posInput.positionSS, gbufferNormal);
+            EncodeIntoNormalBuffer(normalData, gbufferNormal);
 
         return gbufferNormal;
     }
