@@ -26,8 +26,8 @@ This example Cloud Map is a read-only **CustomRenderTexture**. This means that, 
 
 ## Customizing the Cloud Map
 
-The Cloud Map is a 2D texture in LatLong layout (sometimes called Cylindrical or Equirectangular) that contains cloud color in the RGB channel and cloud coverage in the alpha channel.
-If **Upper Hemisphere Only** is checked, the map is interpreted as being the upper half of a LatLong texture.
+The Cloud Map is a 2D texture in LatLong layout (sometimes called Cylindrical or Equirectangular) that contains cloud opacity in the red channel.
+If **Upper Hemisphere Only** is checked, the map is interpreted as being the upper half of a LatLong texture. It means that it will only conver the sky above the horizon.
 
 <a name="CustomizingFlowmap"></a>
 
