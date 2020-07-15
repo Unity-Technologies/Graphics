@@ -252,14 +252,14 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
         {
             // RTR
-            CopySetting<float>(ref m_MinSmoothness, settings.lightingQualitySettings.RTRMinSmoothness[level]);
-            CopySetting<float>(ref m_SmoothnessFadeStart, settings.lightingQualitySettings.RTRSmoothnessFadeStart[level]);
-            CopySetting<float>(ref m_RayLength, settings.lightingQualitySettings.RTRRayLength[level]);
-            CopySetting<float>(ref m_ClampValue, settings.lightingQualitySettings.RTRClampValue[level]);
-            CopySetting<int>(ref m_UpscaleRadius, settings.lightingQualitySettings.RTRUpScaleRadius[level]);
-            CopySetting<bool>(ref m_FullResolution, settings.lightingQualitySettings.RTRFullResolution[level]);
-            CopySetting<bool>(ref m_Denoise, settings.lightingQualitySettings.RTRDenoise[level]);
-            CopySetting<int>(ref m_DenoiserRadius, settings.lightingQualitySettings.RTRDenoiserRadius[level]);
+            CopySetting(ref m_MinSmoothness, settings.lightingQualitySettings.RTRMinSmoothness[level]);
+            CopySetting(ref m_SmoothnessFadeStart, settings.lightingQualitySettings.RTRSmoothnessFadeStart[level]);
+            CopySetting(ref m_RayLength, settings.lightingQualitySettings.RTRRayLength[level]);
+            CopySetting(ref m_ClampValue, settings.lightingQualitySettings.RTRClampValue[level]);
+            CopySetting(ref m_UpscaleRadius, settings.lightingQualitySettings.RTRUpScaleRadius[level]);
+            CopySetting(ref m_FullResolution, settings.lightingQualitySettings.RTRFullResolution[level]);
+            CopySetting(ref m_Denoise, settings.lightingQualitySettings.RTRDenoise[level]);
+            CopySetting(ref m_DenoiserRadius, settings.lightingQualitySettings.RTRDenoiserRadius[level]);
 
             // SSR
             CopySetting(ref m_RayMaxIterations, settings.lightingQualitySettings.SSRMaxRaySteps[level]);

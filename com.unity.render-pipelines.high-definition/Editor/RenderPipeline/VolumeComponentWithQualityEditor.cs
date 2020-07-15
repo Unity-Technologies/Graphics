@@ -12,7 +12,9 @@ namespace UnityEditor.Rendering.HighDefinition
         // Quality settings
         SerializedDataParameter m_QualitySetting;
 
-        // An opaque blob storing preset settings (used to remember what were the last custom settings that were used).
+        /// <summary>
+        /// An opaque blob storing preset settings (used to remember what were the last custom settings that were used).
+        /// </summary>
         internal class QualitySettingsBlob
         {
             private struct QualitySetting
@@ -51,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return true;
             }
 
-            // TODO: Override GetHashCode?
+            // TODO: Should be an override of GetHashCode (in core)?
             int Hash(SerializedDataParameter setting)
             {
                 int hash = setting.GetHashCode();
@@ -82,22 +84,27 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
+            // Attempts to fill a quality setting with its custom value and override state.
             public void TryLoad<T>(ref SerializedDataParameter setting) where T : struct
             {
                 if (settings.TryGetValue(Hash(setting), out QualitySetting s))
                 {
-                    setting.value.SetInline<T>((T)s.value);
+                    setting.value.SetInline((T)s.value);
                     setting.overrideState.boolValue = s.state;
                 }
             }
         }
 
+        /// <summary>
+        /// Scoped quality setting change checker. 
+        /// </summary>
         public struct QualityScope : IDisposable
         {
             bool m_Disposed;
             VolumeComponentWithQualityEditor m_QualityComponent;
             QualitySettingsBlob m_Settings;
 
+            // Cache the quality setting
             public QualityScope(VolumeComponentWithQualityEditor component)
             {
                 m_Disposed = false;
@@ -201,12 +208,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected bool useCustomValue => m_QualitySetting.value.intValue == k_CustomQuality;
         protected bool overrideState => m_QualitySetting.overrideState.boolValue;
-
+        
+        /// <summary>
+        /// This utility can be used to copy a value into a volume component setting visible in the inspector.
+        /// </summary>
         protected static void CopySetting<T>(ref SerializedDataParameter setting, T value) where T : struct
         {
-            setting.value.SetInline<T>(value);
+            setting.value.SetInline(value);
             
-            // Set quality override states to true, to indicate that these values are actually used.
+            // Force enable the override state, to indicate that these values are actually used.
             setting.overrideState.boolValue = true;
         }
 
