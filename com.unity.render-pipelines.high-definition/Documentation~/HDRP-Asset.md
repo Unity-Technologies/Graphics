@@ -188,7 +188,7 @@ Use these settings to enable or disable settings relating to lighting in HDRP.
 | **Maximum Directional On Screen**         | The maximum number of Directional Lights HDRP can manage on screen at once. |
 | **Maximum Punctual On Screen**            | The maximum number of [Point and Spot Lights](Glossary.html#PunctualLight) HDRP can manage on screen at once. |
 | **Maximum Area On Screen**                | The maximum number of area Lights HDRP can manage on screen at once. |
-| **Maximum Lights Per Cell (Ray Tracing)** | Sets the maximum number of Lights that an individual grid cell in a [Light Cluster](Ray-Tracing-Light-Cluster.md) can store. |
+| **Maximum Lights Per Cell (Ray Tracing)** | The maximum number of Lights that an individual grid cell in a [Light Cluster](Ray-Tracing-Light-Cluster.md) can store. |
 
 ## Material
 
