@@ -75,6 +75,17 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture3D     L1_B;
         }
 
+        public struct RegId
+        {
+            internal int id;
+
+            public bool IsValid() => id != 0;
+            public void Invalidate() => id = 0;
+            public static bool operator ==(RegId lhs, RegId rhs) => lhs.id == rhs.id;
+            public static bool operator !=(RegId lhs, RegId rhs) => lhs.id != rhs.id;
+        }
+
+        private int                 m_id = 0;
         private RefVolTransform     m_Transform;
         private float               m_NormalBias;
         private int                 m_MaxSubdivision;
@@ -85,6 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private List<Chunk>         m_TmpSrcChunks = new List<Chunk>();
         private List<Chunk>         m_TmpDstChunks = new List<Chunk>();
         private float[]             m_PositionOffsets = new float[ProbeBrickPool.kBrickProbeCountPerDim];
+        private Dictionary<RegId, List<Chunk>> m_Registry = new Dictionary<RegId, List<Chunk>>();
 
         // index related
         Texture3D indexTex;
@@ -338,6 +350,76 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Index.AddBricks(bricks, m_TmpDstChunks, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight());
             m_Index.WriteConstants(ref m_Transform, m_Pool.GetPoolDimensions(), m_NormalBias);
             Profiler.EndSample();
+        }
+
+        public RegId AddBricks2(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc)
+        {
+            Profiler.BeginSample("AddBricks");
+
+            // calculate the number of chunks necessary
+            int ch_size = m_Pool.GetChunkSize();
+            List<Chunk> ch_list = new List<Chunk>((bricks.Count + ch_size - 1) / ch_size);
+            m_Pool.Allocate(ch_list.Capacity, ch_list);
+
+            // copy chunks into pool
+            m_TmpSrcChunks.Clear();
+            m_TmpSrcChunks.Capacity = ch_list.Count;
+            Chunk c;
+            c.x = 0;
+            c.y = 0;
+            c.z = 0;
+
+            // currently this code assumes that the texture width is a multiple of the allocation chunk size
+            for (int i = 0; i < ch_list.Count; i++)
+            {
+                m_TmpSrcChunks.Add(c);
+                c.x += ch_size * ProbeBrickPool.kBrickProbeCountPerDim;
+                if (c.x >= dataloc.width)
+                {
+                    c.x = 0;
+                    c.y += ProbeBrickPool.kBrickProbeCountPerDim;
+                    if (c.y >= dataloc.height)
+                    {
+                        c.y = 0;
+                        c.z += ProbeBrickPool.kBrickProbeCountPerDim;
+                    }
+                }
+            }
+
+            // Update the pool and index and ignore any potential frame latency related issues for now
+            m_Pool.Update(dataloc, m_TmpSrcChunks, ch_list);
+
+            // create a registry entry for this request
+            RegId id;
+            id.id = ++m_id;
+            m_Registry.Add(id, ch_list);
+
+            // update the index
+            m_Index.AddBricks2(id, bricks, ch_list, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight());
+            m_Index.WriteConstants(ref m_Transform, m_Pool.GetPoolDimensions(), m_NormalBias);
+
+            Profiler.EndSample();
+
+            return id;
+        }
+
+        public void ReleaseBricks(ref RegId id)
+        {
+            List<Chunk> ch_list;
+            if (!m_Registry.TryGetValue(id, out ch_list))
+            {
+                Debug.Log( "Tried to release bricks with id=" + id.id + " but no bricks were registered under this id." );
+                return;
+            }
+
+            // clean up the index
+            m_Index.RemoveBricks(id);
+
+            // clean up the pool
+            m_Pool.Deallocate(ch_list);
+            m_Registry.Remove(id);
+
+            id.Invalidate();
         }
 
         private void Transform(Volume inVolume, out Volume outVolume)
