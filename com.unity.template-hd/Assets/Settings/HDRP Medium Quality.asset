@@ -304,7 +304,7 @@ MonoBehaviour:
       drawDistance: 1000
       atlasWidth: 2048
       atlasHeight: 2048
-      perChannelMask: 0
+      perChannelMask: 1
     postProcessSettings:
       m_LutSize: 32
       lutFormat: 52
