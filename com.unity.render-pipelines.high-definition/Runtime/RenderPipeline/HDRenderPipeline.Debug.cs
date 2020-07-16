@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() && m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.TransparencyOverdraw)
             {
-                TextureHandle transparencyOverdrawOutput = new TextureHandle();
+                TextureHandle transparencyOverdrawOutput = TextureHandle.nullHandle;
                 using (var builder = renderGraph.AddRenderPass<TransparencyOverdrawPassData>("Transparency Overdraw", out var passData))
                 {
                     passData.parameters = PrepareTransparencyOverdrawParameters(hdCamera, cull);
