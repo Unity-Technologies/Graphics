@@ -1,4 +1,4 @@
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Extraction.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DataExtraction.hlsl"
 
 void BuildInputData(Varyings input, SurfaceDescription surfaceDescription, out InputData inputData)
 {
@@ -142,49 +142,21 @@ half4 fragExtraction(PackedVaryings packedInput) : SV_TARGET
     InputData inputData;
     BuildInputData(unpacked, surfaceDescription, inputData);
 
-    float3 specular, diffuse, baseColor;
-    float metallic;
-
+    ExtractionInputs extraction;
+    extraction.normalWS = unpacked.normalWS;
+    extraction.positionWS = inputData.positionWS;
+    extraction.baseColor = surfaceDescription.BaseColor;
+    extraction.alpha = alpha;
     #ifdef _SPECULAR_SETUP
-        specular = surfaceDescription.Specular;
-        diffuse = surfaceDescription.BaseColor;
-        ConvertSpecularToMetallic(surfaceDescription.BaseColor, surfaceDescription.Specular, baseColor, metallic);
+    extraction.specular = surfaceDescription.Specular;
     #else
-        baseColor = surfaceDescription.BaseColor;
-        metallic = surfaceDescription.Metallic;
-        ConvertMetallicToSpecular(surfaceDescription.BaseColor, surfaceDescription.Metallic, diffuse, specular);
+    extraction.metallic = surfaceDescription.Metallic;
     #endif
+    extraction.smoothness = surfaceDescription.Smoothness;
+    extraction.occlusion = surfaceDescription.Occlusion;
+    extraction.emission = surfaceDescription.Emission.xyz;
 
-    //@TODO
-    if(UNITY_DataExtraction_Mode == RENDER_OBJECT_ID)
-        return asint(unity_LODFade.z);
-    //@TODO
-    if(UNITY_DataExtraction_Mode == RENDER_DEPTH)
-        return 0;
-    if(UNITY_DataExtraction_Mode == RENDER_WORLD_NORMALS_FACE_RGB)
-        return float4(unpacked.normalWS, 1.0f);
-    if(UNITY_DataExtraction_Mode == RENDER_WORLD_POSITION_RGB)
-        return float4(inputData.positionWS, 1.0);
-    if(UNITY_DataExtraction_Mode == RENDER_ENTITY_ID)
-        return 0;
-    if(UNITY_DataExtraction_Mode == RENDER_BASE_COLOR_RGBA)
-        return float4(baseColor, alpha);
-    if(UNITY_DataExtraction_Mode == RENDER_SPECULAR_RGB)
-        return float4(specular, 1);
-    if(UNITY_DataExtraction_Mode == RENDER_METALLIC_R)
-        return float4(metallic, 0.0, 0.0, 1.0);
-    if(UNITY_DataExtraction_Mode == RENDER_EMISSION_RGB)
-        return float4(surfaceDescription.Emission.xyz, 1.0);
-    if(UNITY_DataExtraction_Mode == RENDER_WORLD_NORMALS_PIXEL_RGB)
-        return float4(inputData.normalWS, 1.0f);
-    if(UNITY_DataExtraction_Mode == RENDER_SMOOTHNESS_R)
-        return float4(surfaceDescription.Smoothness, 0.0, 0.0, 1.0);
-    if(UNITY_DataExtraction_Mode == RENDER_OCCLUSION_R)
-       return float4(surfaceDescription.Occlusion, 0.0, 0.0, 1.0);
-    if(UNITY_DataExtraction_Mode == RENDER_DIFFUSE_COLOR_RGBA)
-       return float4(diffuse, alpha);
-
-    return 0;
+    return OutputExtraction(extraction);
 }
 
 
