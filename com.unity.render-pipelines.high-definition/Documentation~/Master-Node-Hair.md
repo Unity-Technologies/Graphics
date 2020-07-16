@@ -70,7 +70,7 @@ To view these properties, click the cog icon in the top right of the master node
 | **Double-Sided**                 | Enable this setting to make HDRP render both faces of the polygons in your geometry. For more information about the feature and for the list of properties this feature exposes, see the [Double-Sided documentation](Double-Sided.html). |
 | **Alpha Clipping**               | Enable the checkbox to make this Material act like a [Cutout Shader](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterRenderingMode.html). Enabling this feature exposes more properties. For more information about the feature and for the  list of properties this feature exposes, see the [Alpha Clipping documentation](Alpha-Clipping.html). |
 | **- Use Shadow Threshold**       | Enable this setting to set another threshold value for alpha clipping shadows. |
-| **Receive Decals**               | Enable this setting to allow HDRP to draw decals on this Material’s surface. |
+| **Receive Decals**               | Enable the checkbox to allow HDRP to draw decals on this Material’s surface. |
 | **Receive SSR**                  | Enable this setting to make HDRP include this Material when it processes the screen space reflection pass. |
 | **Add Precomputed Velocity** | Enable this setting to use precomputed velocity information stored in an Alembic file. |
 | **Geometric Specular AA**        | Enable this setting to make HDRP perform geometric anti-aliasing on this Material. This modifies the smoothness values on surfaces of curved geometry to remove specular artifacts. For more information about the feature and for the list of properties this feature exposes, see the [Geometric Specular Anti-aliasing documentation](Geometric-Specular-Anti-Aliasing.html). |

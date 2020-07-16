@@ -40,8 +40,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             base.AssignNewShaderToMaterial(material, oldShader, newShader);
 
-            ResetMaterialCustomRenderQueue(material);
-
             SetupMaterialKeywordsAndPassInternal(material);
         }
 
@@ -89,36 +87,8 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="props">The list of properties the material has.</param>
         protected abstract void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props);
 
-        /// <summary>
-        /// Reset the render queue of the material.
-        /// </summary>
-        /// <param name="material">The material to reset the render queue of.</param>
-        protected static void ResetMaterialCustomRenderQueue(Material material)
-        {
-            HDRenderQueue.RenderQueueType targetQueueType;
-            switch (material.GetSurfaceType())
-            {
-                case SurfaceType.Opaque:
-                    targetQueueType = HDRenderQueue.GetOpaqueEquivalent(HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue));
-                    break;
-                case SurfaceType.Transparent:
-                    targetQueueType = HDRenderQueue.GetTransparentEquivalent(HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue));
-                    break;
-                default:
-                    throw new ArgumentException("Unknown SurfaceType");
-            }
-
-            // Decal doesn't have properties to compute the render queue 
-            if (material.HasProperty(kTransparentSortPriority) && material.HasProperty(kAlphaCutoffEnabled))
-            {
-                float sortingPriority = material.GetFloat(kTransparentSortPriority);
-                bool alphaTest = material.GetFloat(kAlphaCutoffEnabled) > 0.5f;
-                material.renderQueue = HDRenderQueue.ChangeType(targetQueueType, (int)sortingPriority, alphaTest);
-            }
-        }
-
         readonly static string[] floatPropertiesToSynchronize = {
-            kUseSplitLighting, kTransparentBackfaceEnable
+            kUseSplitLighting
         };
 
         /// <summary>
@@ -131,12 +101,6 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var floatToSync in floatPropertiesToSynchronize)
                 if (material.HasProperty(floatToSync))
                     material.SetFloat(floatToSync, defaultProperties.GetFloat(floatToSync));
-
-            // Reset properties that are not enabled in the shader graph:
-            if (defaultProperties.HasProperty("_AlphaCutoffShadow") && defaultProperties.GetFloat("_AlphaCutoffShadow") == 0.0f)
-                material.SetFloat("_AlphaCutoffShadow", 0.0f);
-            if (defaultProperties.HasProperty(kTransparentWritingMotionVec) && defaultProperties.GetFloat(kTransparentWritingMotionVec) == 0.0f)
-                material.SetFloat(kTransparentWritingMotionVec, 0.0f);
 
             CoreUtils.Destroy(defaultProperties);
             defaultProperties = null;

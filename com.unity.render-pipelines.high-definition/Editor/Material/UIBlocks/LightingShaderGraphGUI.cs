@@ -13,7 +13,6 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         // For surface option shader graph we only want all unlit features but alpha clip and back then front rendering
         const SurfaceOptionUIBlock.Features   surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Lit
-            ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass
             | SurfaceOptionUIBlock.Features.ShowDepthOffsetOnly;
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
