@@ -617,7 +617,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfField)))
                         {
-                            // If we switch DoF modes and the old one was not using TAA, make sure we invalidate the history 
+                            // If we switch DoF modes and the old one was not using TAA, make sure we invalidate the history
                             if (taaEnabled && m_IsDoFHisotoryValid != m_DepthOfField.physicallyBased)
                             {
                                 camera.resetPostProcessingHistory = true;
@@ -636,7 +636,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 var taaDestination = m_Pool.Get(Vector2.one, m_ColorFormat);
                                 bool postDof = true;
                                 var taaParams = PrepareTAAParameters(camera, postDof);
-                                
+
                                 GrabTemporalAntialiasingHistoryTextures(camera, out var prevHistory, out var nextHistory, postDof);
                                 DoTemporalAntialiasing(taaParams, cmd, source, taaDestination, motionVecTexture, depthBuffer, depthMipChain, prevHistory, nextHistory, prevMVLen:null, nextMVLen:null);
                                 PoolSource(ref source, taaDestination);
@@ -651,7 +651,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         ReleasePostDoFTAAHistoryTextures(camera);
                     }
-                    
+
                     // Motion blur after depth of field for aesthetic reasons (better to see motion
                     // blurred bokeh rather than out of focus motion blur)
                     if (m_MotionBlur.IsActive() && m_AnimatedMaterialsEnabled && !camera.resetPostProcessingHistory && m_MotionBlurFS)
@@ -667,7 +667,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         out tileToScatterMin);
                             DoMotionBlur(PrepareMotionBlurParameters(camera), cmd, source, destination, motionVecTexture, preppedMotionVec, minMaxTileVel, maxTileNeigbourhood, tileToScatterMax, tileToScatterMin);
                             RecycleMotionBlurRenderTargets(preppedMotionVec, minMaxTileVel, maxTileNeigbourhood, tileToScatterMax, tileToScatterMin);
-                      
+
                             PoolSource(ref source, destination);
                         }
                     }
@@ -1339,7 +1339,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var cs = exposureParameters.exposureCS;
             int kernel;
-    
+
             var sourceTex = colorBuffer;
 
             kernel = exposureParameters.exposurePreparationKernel;
@@ -1599,7 +1599,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 cmd.SetRandomWriteTarget(2, nextMVLen);
             }
-                
+
             cmd.DrawProcedural(Matrix4x4.identity, taaParams.temporalAAMaterial, 0, MeshTopology.Triangles, 3, 1, taaParams.taaPropertyBlock);
             cmd.DrawProcedural(Matrix4x4.identity, taaParams.temporalAAMaterial, 1, MeshTopology.Triangles, 3, 1, taaParams.taaPropertyBlock);
             cmd.ClearRandomWriteTargets();
@@ -2274,7 +2274,7 @@ namespace UnityEngine.Rendering.HighDefinition
             GrabCoCHistory(camera, out var prevCoCTex, out var nextCoCTex, useMips);
             var cocHistoryScale = new Vector2(camera.historyRTHandleProperties.rtHandleScale.z, camera.historyRTHandleProperties.rtHandleScale.w);
 
-            //Note: this reprojection creates some ghosting, we should replace it with something based on the new TAA 
+            //Note: this reprojection creates some ghosting, we should replace it with something based on the new TAA
             ComputeShader cs = m_Resources.shaders.depthOfFieldCoCReprojectCS;
             int kernel = cs.FindKernel("KMain");
             cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(camera.resetPostProcessingHistory ? 0f : 0.91f, cocHistoryScale.x, cocHistoryScale.y, 0f));
@@ -2333,7 +2333,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // The sensor scale is used to convert the CoC size from mm to screen pixels
                     float sensorScale;
                     if( camera.camera.gateFit == Camera.GateFitMode.Horizontal )
-                        sensorScale = (0.5f / camera.camera.sensorSize.x) * camera.camera.pixelWidth;  
+                        sensorScale = (0.5f / camera.camera.sensorSize.x) * camera.camera.pixelWidth;
                     else
                         sensorScale = (0.5f / camera.camera.sensorSize.y) * camera.camera.pixelHeight;
 
@@ -3208,7 +3208,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Setup lut builder compute & grab the kernel we need
             parameters.builderCS.shaderKeywords = null;
 
-            if (m_Tonemapping.IsActive())
+            if (m_Tonemapping.IsActive() && m_TonemappingFS)
             {
                 switch (parameters.tonemappingMode)
                 {
@@ -3325,7 +3325,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Generate the lut
             // See the note about Metal & Intel in LutBuilder3D.compute
-            // GetKernelThreadGroupSizes  is currently broken on some binary versions. 
+            // GetKernelThreadGroupSizes  is currently broken on some binary versions.
             //builderCS.GetKernelThreadGroupSizes(builderKernel, out uint threadX, out uint threadY, out uint threadZ);
             uint threadX = 4;
             uint threadY = 4;
