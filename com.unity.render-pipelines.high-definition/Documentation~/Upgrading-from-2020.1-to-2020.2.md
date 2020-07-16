@@ -42,6 +42,8 @@ From Unity 2020.2, the texture format of the color buffer in the HDRP Asset also
 
 From Unity 2020.2, the light layer properties have move from the HDRP settings to the HDRP Default setting Panel.
 
+For project migrating from old 9.x.x-preview package. There is a change in the order of enum of Exposure that may shift the current exposure mode to another one in Exposure Volume. This will need to be corrected manually by reselecting the correct Exposure mode.
+
 ## Shadows
 
 From Unity 2020.2, it is no longer necessary to change the [HDRP Config package](HDRP-Config-Package.md) to set the [shadow filtering quality](HDRP-Asset.md#FilteringQualities) for deferred rendering. Instead, you can now change the filtering quality directly on the [HDRP Asset](HDRP-Asset.md#FilteringQualities). Note if you previously had not set the shadow filtering quality to **Medium** on the HDRP Asset, the automatic project upgrade process changes the shadow quality which means you may need to manually change it back to its original value.
