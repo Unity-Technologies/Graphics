@@ -27,13 +27,6 @@ namespace UnityEngine.Rendering.Universal
         Material mirrorViewMaterial = null;
         MaterialPropertyBlock mirrorViewMaterialProperty = new MaterialPropertyBlock();
 
-        // Set by test framework
-        internal static bool automatedTestRunning = false;
-
-        // Used by test framework and to enable debug features
-        static bool testModeEnabledInitialization { get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-xr-tests"); }
-        internal static bool testModeEnabled = testModeEnabledInitialization;
-
         RenderTexture testRenderTexture = null;
 
         const string k_XRMirrorTag = "XR Mirror View";
@@ -87,8 +80,10 @@ namespace UnityEngine.Rendering.Universal
         {
             GetDisplaySubsystem();
 
+#if UNITY_2020_2_OR_NEWER
             for (int i = 0; i < displayList.Count; i++)
                 displayList[i].SetMSAALevel(level);
+#endif
         }
 
         internal static void UpdateRenderScale(float renderScale)
@@ -109,7 +104,7 @@ namespace UnityEngine.Rendering.Universal
                 // XRTODO : replace by API from XR SDK, assume we have 2 slices until then
                 maxViews = 2;
             }
-            else if (testModeEnabled)
+            else if (XRGraphicsAutomatedTests.enabled)
             {
                 maxViews = Math.Max(maxViews, 2);
             }
@@ -144,7 +139,7 @@ namespace UnityEngine.Rendering.Universal
             bool isGameCamera = (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR);
             bool xrSupported = isGameCamera && camera.targetTexture == null;
 
-            if (testModeEnabled && automatedTestRunning && isGameCamera && LayoutSinglePassTestMode(cameraData, new XRLayout() { camera = camera, xrSystem = this }))
+            if (XRGraphicsAutomatedTests.enabled && XRGraphicsAutomatedTests.running && isGameCamera && LayoutSinglePassTestMode(cameraData, new XRLayout() { camera = camera, xrSystem = this }))
             {
                 // test layout in used
             }

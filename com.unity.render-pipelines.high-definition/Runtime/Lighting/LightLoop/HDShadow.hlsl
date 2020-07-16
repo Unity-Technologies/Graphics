@@ -90,7 +90,7 @@ float GetPunctualShadowClosestDistance(HDShadowContext shadowContext, SamplerSta
     }
 }
 
-float GetAreaLightAttenuation(HDShadowContext shadowContext, float2 positionSS, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float L_dist)
+float GetRectAreaShadowAttenuation(HDShadowContext shadowContext, float2 positionSS, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float L_dist)
 {
 #if (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER))
     shadowDataIndex = WaveReadLaneFirst(shadowDataIndex);

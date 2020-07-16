@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the `Reference Suffix` of Keyword Enum entries so that you cannot edit them, which ensures that material keywords compile properly. 
 - Updated the dependent version of `Searcher` to 4.2.0. 
 - Added support for `Linear Blend Skinning` Node to Universal Render Pipeline.
+- Moved all code to be under Unity specific namespaces.
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
@@ -127,6 +128,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Don't allow duplicate VT layer names when renaming layers
 - Moved VT layer TextureType to the VTProperty from the SampleVT node
 - Fixed the squished UI of VT property layers
+- Disallow Save As and Convert to Subgraph that would create recursive dependencies
+- Fixed bug where output port type would not visually update when input type changed (for example from Vec1 to Vec3) [1259501](https://issuetracker.unity3d.com/product/unity/issues/guid/1259501/)
+- Fixed an issue with how we collected/filtered nodes for targets. Applied the work to the SearchWindowProvider as well
+- Fixed a bug where the object selector for Custom Function Nodes did not update correctly. [1176129](https://issuetracker.unity3d.com/product/unity/issues/guid/1176129/)
+- Fixed a bug where the Create Node menu would override the Object Field selection window. [1176125](https://issuetracker.unity3d.com/issues/shader-graph-object-input-field-with-space-bar-shortcut-opens-shader-graph-search-window-and-object-select-window)
+- Fixed a bug where the Main Preview window was no longer a square aspect ratio. [1257053](https://issuetracker.unity3d.com/product/unity/issues/guid/1257053/)
+- Fixed a bug where the size of the Graph Inspector would not save properly. [1257084](https://issuetracker.unity3d.com/product/unity/issues/guid/1257084/)
+- Replace toggle by an enumField for lit/unlit with VFXTarget
 - Fixed a bug where changing the name of a property did not update nodes on the graph. [1249164](https://issuetracker.unity3d.com/product/unity/issues/guid/1249164/)
 
 ## [7.1.1] - 2019-09-05

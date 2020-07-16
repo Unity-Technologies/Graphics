@@ -117,8 +117,8 @@ namespace UnityEngine.Rendering.HighDefinition
         uint m_EditorOnlyData;
 
         // Runtime Data
-        RenderTexture m_RealtimeTexture;
-        RenderTexture m_RealtimeDepthBuffer;
+        RTHandle m_RealtimeTexture;
+        RTHandle m_RealtimeDepthBuffer;
         RenderData m_RealtimeRenderData;
         bool m_WasRenderedSinceLastOnDemandRequest = true;
 
@@ -186,14 +186,40 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public RenderTexture realtimeTexture
         {
-            get => m_RealtimeTexture;
-            set => m_RealtimeTexture = value;
+            get => m_RealtimeTexture != null ? m_RealtimeTexture : null;
+            set
+            {
+                if (m_RealtimeTexture != null)
+                    m_RealtimeTexture.Release();
+                m_RealtimeTexture = RTHandles.Alloc(value);
+            }
         }
 
+        /// <summary>
+        /// The allocated realtime depth texture. Can be null if the probe never rendered with the realtime mode.
+        ///
+        /// Most of the time, you do not need to set this value yourself. You can set this property in situations
+        /// where you want to manually assign data that differs from what Unity generates.
+        /// </summary>
         public RenderTexture realtimeDepthTexture
         {
+            get => m_RealtimeDepthBuffer != null ? m_RealtimeDepthBuffer : null;
+            set
+            {
+                if (m_RealtimeDepthBuffer != null)
+                    m_RealtimeDepthBuffer.Release();
+                m_RealtimeDepthBuffer = RTHandles.Alloc(value);
+            }
+        }
+
+        public RTHandle realtimeTextureRTH
+        {
+            get => m_RealtimeTexture;
+        }
+
+        public RTHandle realtimeDepthTextureRTH
+        {
             get => m_RealtimeDepthBuffer;
-            set => m_RealtimeDepthBuffer = value;
         }
 
         /// <summary>
@@ -233,11 +259,17 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 case ProbeSettings.Mode.Baked: return m_BakedTexture = texture;
                 case ProbeSettings.Mode.Custom: return m_CustomTexture = texture;
-                case ProbeSettings.Mode.Realtime: return m_RealtimeTexture = (RenderTexture)texture;
+                case ProbeSettings.Mode.Realtime: return realtimeTexture = (RenderTexture)texture;
                 default: throw new ArgumentOutOfRangeException();
             }
         }
 
+        /// <summary>
+        /// Set the depth texture for a specific target mode.
+        /// </summary>
+        /// <param name="targetMode">The mode to update.</param>
+        /// <param name="texture">The texture to set.</param>
+        /// <returns>The texture that was set.</returns>
         public Texture SetDepthTexture(ProbeSettings.Mode targetMode, Texture texture)
         {
             if (targetMode == ProbeSettings.Mode.Realtime && !(texture is RenderTexture))
@@ -247,7 +279,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 case ProbeSettings.Mode.Baked: return m_BakedTexture = texture;
                 case ProbeSettings.Mode.Custom: return m_CustomTexture = texture;
-                case ProbeSettings.Mode.Realtime: return m_RealtimeDepthBuffer = (RenderTexture)texture;
+                case ProbeSettings.Mode.Realtime: return realtimeDepthTexture = (RenderTexture)texture;
                 default: throw new ArgumentOutOfRangeException();
             }
         }
@@ -270,10 +302,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public RenderData renderData => GetRenderData(mode);
         /// <summary>
         /// Get the render data of a specific mode.
-        /// 
+        ///
         /// Note: The HDProbe stores only one RenderData per mode, even for view dependent probes with multiple viewers.
         /// In that case, make sure that you have set the RenderData relative to the expected viewer before rendering.
-        /// Otherwise the data retrieved by this function will be wrong. 
+        /// Otherwise the data retrieved by this function will be wrong.
         /// </summary>
         /// <param name="targetMode">The mode to query</param>
         /// <returns>The requested render data</returns>

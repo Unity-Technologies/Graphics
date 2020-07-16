@@ -59,6 +59,8 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute AngularVelocityZ        = new VFXAttribute("angularVelocityZ", VFXValueType.Float, VFXVariadic.BelongsToVariadic);
         [Tooltip("The current index of the flipbook. This attribute is used if ‘UV Mode’ in the output is set to use flipbooks.")]
         public static readonly VFXAttribute TexIndex                = new VFXAttribute("texIndex", VFXValueType.Float);
+        [Tooltip("The current index of the mesh. This attribute is used with multi mesh outputs.")]
+        public static readonly VFXAttribute MeshIndex               = new VFXAttribute("meshIndex", VFXValueType.Uint32);
         [Tooltip("The point around which the particle rotates, moves, or is scaled. By default, this is the center of the particle.")]
         public static readonly VFXAttribute PivotX                  = new VFXAttribute("pivotX", VFXValue.Constant(0.0f), VFXVariadic.BelongsToVariadic);
         [Tooltip("The point around which the particle rotates, moves, or is scaled. By default, this is the center of the particle.")]
@@ -309,6 +311,44 @@ namespace UnityEditor.VFX
         {
             yield return new VFXAttributeInfo(attribute, m_attributeLocation == VFXAttributeLocation.Source ? VFXAttributeMode.ReadSource : VFXAttributeMode.Read);
         }
+    }
+
+
+    sealed class VFXReadEventAttributeExpression : VFXExpression
+    {
+        private VFXAttribute m_attribute;
+        private UInt32 m_elementOffset;
+
+        public VFXReadEventAttributeExpression(VFXAttribute attribute, UInt32 elementOffset) : base(Flags.PerSpawn | Flags.InvalidOnGPU)
+        {
+            m_attribute = attribute;
+            m_elementOffset = elementOffset;
+        }
+
+        protected override int GetInnerHashCode()
+        {
+            return m_attribute.name.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is VFXReadEventAttributeExpression))
+                return false;
+
+            var other = (VFXReadEventAttributeExpression)obj;
+            return valueType == other.valueType && attributeName == other.attributeName && m_elementOffset == other.elementOffset;
+        }
+
+        public override IEnumerable<VFXAttributeInfo> GetNeededAttributes()
+        {
+            yield return new VFXAttributeInfo(m_attribute, VFXAttributeMode.Read);
+        }
+
+        private UInt32 elementOffset => m_elementOffset;
+        public string attributeName => m_attribute.name;
+        public override VFXValueType valueType => m_attribute.type;
+        public override VFXExpressionOperation operation => VFXExpressionOperation.ReadEventAttribute;
+        protected override int[] additionnalOperands => new int[] { (int)m_elementOffset, (int)m_attribute.type };
     }
 
     #pragma warning restore 0659

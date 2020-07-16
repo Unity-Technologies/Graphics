@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
+using System.Linq;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -14,20 +15,15 @@ namespace UnityEditor.Rendering.HighDefinition
         public enum Features
         {
             None = 0,
-            MotionVector = 1 << 0,
-            EmissionGI = 1 << 1,
             DiffusionProfileAsset = 1 << 2,
-            EnableInstancing = 1 << 3,
-            DoubleSidedGI = 1 << 4,
             ShadowMatte = 1 << 5,
-            Unlit = MotionVector | EmissionGI | ShadowMatte,
+            Unlit = ShadowMatte,
             All = ~0,
         }
 
         protected static class Styles
         {
             public const string header = "Exposed Properties";
-            public static readonly GUIContent bakedEmission = new GUIContent("Baked Emission", "");
         }
 
         Expandable  m_ExpandableBit;
@@ -104,30 +100,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     HDShaderUtils.ResetMaterialKeywords(material);
             }
 
-            if (properties.Length > 0)
-                EditorGUILayout.Space();
-
             if ((m_Features & Features.DiffusionProfileAsset) != 0)
                 DrawDiffusionProfileUI();
 
-            if ((m_Features & Features.EnableInstancing) != 0)
-                materialEditor.EnableInstancingField();
-
-            if ((m_Features & Features.DoubleSidedGI) != 0)
-            {
-                // If the shader graph have a double sided flag, then we don't display this field.
-                // The double sided GI value will be synced with the double sided property during the SetupBaseUnlitKeywords()
-                if (!materials[0].HasProperty(kDoubleSidedEnable))
-                    materialEditor.DoubleSidedGIField();
-            }
-
-            if ((m_Features & Features.EmissionGI) != 0)
-                DrawEmissionGI();
-
-            if ((m_Features & Features.MotionVector) != 0)
-                DrawMotionVectorToggle();
-
-            if ((m_Features & Features.ShadowMatte) != 0 && materials[0].HasProperty(kShadowMatteFilter))
+            if ((m_Features & Features.ShadowMatte) != 0 && materials.All(m => m.HasProperty(kShadowMatteFilter)))
                 DrawShadowMatteToggle();
         }
 
@@ -142,55 +118,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 Rect r = EditorGUILayout.GetControlRect(true, h, EditorStyles.layerMaskField);
 
                 materialEditor.ShaderProperty(r, properties[i], properties[i].displayName);
-            }
-        }
-
-        void DrawEmissionGI()
-        {
-            EmissionUIBlock.BakedEmissionEnabledProperty(materialEditor);
-        }
-
-        // Track additional velocity state. See SG-ADDITIONALVELOCITY-NOTE
-        bool m_AddPrecomputedVelocity = false;
-
-        void DrawMotionVectorToggle()
-        {
-            // I absolutely don't know what this is meant to do
-            const string materialTag = "MotionVector";
-            foreach (var material in materials)
-            {
-                string tag = material.GetTag(materialTag, false, "Nothing");
-                if (tag == "Nothing")
-                {
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, false);
-                    material.SetOverrideTag(materialTag, "User");
-                }
-            }
-
-            // If using multi-select, apply toggled material to all materials.
-            bool enabled = materials[0].GetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr);
-            EditorGUI.BeginChangeCheck();
-            enabled = EditorGUILayout.Toggle("Motion Vector For Vertex Animation", enabled);
-
-            // SG-ADDITIONALVELOCITY-NOTE:
-            // We would like to automatically enable the motion vector pass (handled on material UI side)
-            // in case we add precomputed velocity in a graph. Due to serialization of material, changing
-            // a value in between shadergraph compilations would have no effect on a material, so we instead
-            // inform the motion vector UI via the existence of the property at all and query against that.
-            bool hasPrecomputedVelocity = materials[0].HasProperty(kAddPrecomputedVelocity);
-            if (m_AddPrecomputedVelocity != hasPrecomputedVelocity)
-            {
-                enabled |= hasPrecomputedVelocity;
-                m_AddPrecomputedVelocity = hasPrecomputedVelocity;
-                GUI.changed = true;
-            }
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                foreach (var material in materials)
-                {
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, enabled);
-                }
             }
         }
 

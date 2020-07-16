@@ -11,6 +11,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    [SRPFilter(typeof(HDRenderPipeline))]
     [Title("Utility", "High Definition Render Pipeline", "Parallax Occlusion Mapping")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.ParallaxOcclusionMappingNode")]
     class ParallaxOcclusionMappingNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireViewDirection, IMayRequireMeshUV

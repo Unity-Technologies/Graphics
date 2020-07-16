@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Data.Interfaces;
-using Drawing.Inspector.PropertyDrawers;
 using UnityEditor;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;

@@ -5,7 +5,6 @@ using System.IO;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
-using Data.Util;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine.Rendering;
 
@@ -389,7 +388,11 @@ namespace UnityEditor.ShaderGraph
                             if(renderState.TestActive(activeFields))
                             {
                                 renderStateBuilder.AppendLine(renderState.value);
-                                break;
+
+                                // Cull is the only render state type that causes a compilation error
+                                // when there are multiple Cull directive with different values in a pass.
+                                if (type == RenderStateType.Cull)
+                                    break;
                             }
                         }
                     }
@@ -788,14 +791,14 @@ namespace UnityEditor.ShaderGraph
             string passTemplatePath = pass.passTemplatePath;
 
             // Shared Templates
-            string sharedTemplateDirectory = pass.sharedTemplateDirectory;
+            string[] sharedTemplateDirectories = pass.sharedTemplateDirectories;
 
             if (!File.Exists(passTemplatePath))
                 return;
 
             // Process Template
             var templatePreprocessor = new ShaderSpliceUtil.TemplatePreprocessor(activeFields, spliceCommands,
-                isDebug, sharedTemplateDirectory, m_AssetDependencyPaths);
+                isDebug, sharedTemplateDirectories, m_AssetDependencyPaths);
             templatePreprocessor.ProcessTemplateFile(passTemplatePath);
             m_Builder.Concat(templatePreprocessor.GetShaderCode());
         }
