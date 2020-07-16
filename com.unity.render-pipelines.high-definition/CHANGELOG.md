@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue when changing FoV with the physical camera fold-out closed.
 - Fixed issue with exposure history being uninitialized on second frame.
 - Fixed nan in reflection probe when volumetric fog filtering is enabled, causing the whole probe to be invalid.
+- Fixed a null ref in the volume component list when there is no volume components in the project.
 
 ### Changed
 - Remove MSAA debug mode when renderpipeline asset has no MSAA
