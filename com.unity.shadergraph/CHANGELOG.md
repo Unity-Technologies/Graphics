@@ -132,6 +132,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed bug where output port type would not visually update when input type changed (for example from Vec1 to Vec3) [1259501](https://issuetracker.unity3d.com/product/unity/issues/guid/1259501/)
 - Fixed an issue with how we collected/filtered nodes for targets. Applied the work to the SearchWindowProvider as well
 - Fixed a bug where the object selector for Custom Function Nodes did not update correctly. [1176129](https://issuetracker.unity3d.com/product/unity/issues/guid/1176129/)
+- Fixed a bug where the Create Node menu would override the Object Field selection window. [1176125](https://issuetracker.unity3d.com/issues/shader-graph-object-input-field-with-space-bar-shortcut-opens-shader-graph-search-window-and-object-select-window)
 - Fixed a bug where the Main Preview window was no longer a square aspect ratio. [1257053](https://issuetracker.unity3d.com/product/unity/issues/guid/1257053/)
 - Fixed a bug where the size of the Graph Inspector would not save properly. [1257084](https://issuetracker.unity3d.com/product/unity/issues/guid/1257084/)
 - Replace toggle by an enumField for lit/unlit with VFXTarget
