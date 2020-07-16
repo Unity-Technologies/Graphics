@@ -1093,7 +1093,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.exposureVariants[2] = (int)adaptationMode;
                 parameters.exposureVariants[3] = 0;
 
-                bool useTextureMask = m_Exposure.meteringMode == MeteringMode.MaskWeighted && m_Exposure.weightTextureMask.value != null;
+                bool useTextureMask = m_Exposure.meteringMode.value == MeteringMode.MaskWeighted && m_Exposure.weightTextureMask.value != null;
                 parameters.textureMeteringMask = useTextureMask ? m_Exposure.weightTextureMask.value : Texture2D.whiteTexture;
 
                 ComputeProceduralMeteringParams(hdCamera, out parameters.proceduralMaskParams, out parameters.proceduralMaskParams2);
