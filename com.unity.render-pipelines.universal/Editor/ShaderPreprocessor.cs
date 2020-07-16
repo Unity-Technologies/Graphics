@@ -33,10 +33,10 @@ namespace UnityEditor.Rendering.Universal
         public static readonly string kTerrainShaderName = "Universal Render Pipeline/Terrain/Lit";
 #if PROFILE_BUILD
         private const string k_ProcessShaderTag = "OnProcessShader";
-#endif
         private const string k_ProcessStripping = "StripShaders";
         private const string k_RemoveShaders = "RemoveShaders";
         private const string k_RemoveStringBased = "StripStringBasedComparison";
+#endif
 
         ShaderKeyword m_MainLightShadows = new ShaderKeyword(ShaderKeywordStrings.MainLightShadows);
         ShaderKeyword m_AdditionalLightsVertex = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
@@ -182,7 +182,9 @@ namespace UnityEditor.Rendering.Universal
             if (StripUnusedPass(features, snippetData))
                 return true;
             
+#if PROFILE_BUILD
             Profiler.BeginSample(k_RemoveStringBased);
+#endif
             // Strip terrain holes
             // TODO: checking for the string name here is expensive
             // maybe we can rename alpha clip keyword name to be specific to terrain?
@@ -201,7 +203,9 @@ namespace UnityEditor.Rendering.Universal
                 if (IsFeatureEnabled(features, ShaderFeatures.DeferredWithoutAccurateGbufferNormals) && compilerData.shaderKeywordSet.IsEnabled(m_GbufferNormalsOct))
                     return true;
             }
+#if PROFILE_BUILD
             Profiler.EndSample();
+#endif
 
             if (compilerData.shaderKeywordSet.IsEnabled(Feature00))
                 return true;
@@ -266,7 +270,9 @@ namespace UnityEditor.Rendering.Universal
 
             int prevVariantCount = compilerDataList.Count;
             
+#if PROFILE_BUILD
             Profiler.BeginSample(k_ProcessStripping);
+#endif
             var inputShaderVariantCount = compilerDataList.Count;
             for (int i = 0; i < inputShaderVariantCount;)
             {
@@ -277,9 +283,11 @@ namespace UnityEditor.Rendering.Universal
                     ++i;
             }
 
+#if PROFILE_BUILD
             Profiler.EndSample();
-
             Profiler.BeginSample(k_RemoveShaders);
+#endif
+
             if(compilerDataList is List<ShaderCompilerData> inputDataList)
                 inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
             else
@@ -287,7 +295,9 @@ namespace UnityEditor.Rendering.Universal
                 for(int i = compilerDataList.Count -1; i >= inputShaderVariantCount; --i)
                     compilerDataList.RemoveAt(i);
             }
+#if PROFILE_BUILD
             Profiler.EndSample();
+#endif
 
             if (urpAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)
             {
@@ -333,7 +343,7 @@ namespace UnityEditor.Rendering.Universal
             Debug.Log("Profiler State Before: " + Profiler.enabled);
             Profiler.enabled = true;
             Profiler.enableBinaryLog = true;
-            Profiler.logFile = "log.raw";
+            Profiler.logFile = "profilerlog.raw";
             Debug.Log("Profiler State: " + Profiler.enabled);
 #endif
         }
