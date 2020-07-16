@@ -110,12 +110,12 @@ namespace UnityEditor.Rendering.HighDefinition
             else if (mode == (int)DepthOfFieldMode.Manual)
             {
                 EditorGUILayout.LabelField("Near Range", EditorStyles.miniLabel);
-                PropertyField(m_NearFocusStart, EditorGUIUtility.TrTextContent("Start"));
-                PropertyField(m_NearFocusEnd, EditorGUIUtility.TrTextContent("End"));
+                PropertyField(m_NearFocusStart, Styles.k_NearFocusStart);
+                PropertyField(m_NearFocusEnd, Styles.k_NearFocusEnd);
 
                 EditorGUILayout.LabelField("Far Range", EditorStyles.miniLabel);
-                PropertyField(m_FarFocusStart, EditorGUIUtility.TrTextContent("Start"));
-                PropertyField(m_FarFocusEnd, EditorGUIUtility.TrTextContent("End"));
+                PropertyField(m_FarFocusStart, Styles.k_FarFocusStart);
+                PropertyField(m_FarFocusEnd, Styles.k_FarFocusEnd);
             }
         }
 
@@ -124,12 +124,12 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new QualityScope(this))
             {
                 EditorGUILayout.LabelField("Near Blur", EditorStyles.miniLabel);
-                PropertyField(m_NearSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
-                PropertyField(m_NearMaxBlur, EditorGUIUtility.TrTextContent("Max Radius"));
+                PropertyField(m_NearSampleCount, Styles.k_NearSampleCount);
+                PropertyField(m_NearMaxBlur, Styles.k_NearMaxBlur);
 
                 EditorGUILayout.LabelField("Far Blur", EditorStyles.miniLabel);
-                PropertyField(m_FarSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
-                PropertyField(m_FarMaxBlur, EditorGUIUtility.TrTextContent("Max Radius"));
+                PropertyField(m_FarSampleCount, Styles.k_FarSampleCount);
+                PropertyField(m_FarMaxBlur, Styles.k_FarMaxBlur);
 
                 if (isInAdvancedMode)
                 {
