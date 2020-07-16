@@ -207,7 +207,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             for (int meshIdx = 0; meshIdx < numSubMeshes; ++meshIdx)
             {
-                // Intially we consider the potential mesh as invalid
+                // Initially we consider the potential mesh as invalid
                 bool validMesh = false;
                 if (materialArray.Count > meshIdx)
                 {
@@ -275,8 +275,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            // Propagate the opacity mask only if all submaterials are opaque
-            if (!hasTransparentSubMaterial)
+            // Propagate the opacity mask only if all sub materials are opaque
+            bool isOpaque = !hasTransparentSubMaterial;
+            if (isOpaque)
             {
                 instanceFlag |= (uint)(RayTracingRendererFlag.Opaque);
             }
@@ -413,10 +414,22 @@ namespace UnityEngine.Rendering.HighDefinition
                                             + m_RayTracingLights.reflectionProbeArray.Count;
 
             AmbientOcclusion aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
+            bool rtAOEnabled = aoSettings.rayTracing.value;
             ScreenSpaceReflection reflSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+            bool rtREnabled = reflSettings.enabled.value && reflSettings.rayTracing.value;
             GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
+            bool rtGIEnabled = giSettings.enable.value && giSettings.rayTracing.value;
             RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
+            bool rrEnabled = recursiveSettings.enable.value;
+            SubSurfaceScattering sssSettings = hdCamera.volumeStack.GetComponent<SubSurfaceScattering>();
+            bool rtSSSEnabled = sssSettings.rayTracing.value;
             PathTracing pathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
+            bool ptEnabled = pathTracingSettings.enable.value;
+
+            // We need to check if we should be building the ray tracing acceleration structure (if required by any effect)
+            bool rayTracingRequired = rtAOEnabled || rtREnabled || rtGIEnabled || rrEnabled || rtSSSEnabled || ptEnabled || rayTracedShadow;
+            if (!rayTracingRequired)
+                return;
 
             // We need to process the emissive meshes of the rectangular area lights
             for (var i = 0; i < m_RayTracingLights.hdRectLightArray.Count; i++)
@@ -430,11 +443,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 // This objects should be included into the RAS
                 AddInstanceToRAS(currentRenderer,
                                 rayTracedShadow,
-                                aoSettings.rayTracing.value, aoSettings.layerMask.value,
-                                reflSettings.rayTracing.value, reflSettings.layerMask.value,
-                                giSettings.rayTracing.value, giSettings.layerMask.value,
-                                recursiveSettings.enable.value, recursiveSettings.layerMask.value,
-                                pathTracingSettings.enable.value, pathTracingSettings.layerMask.value);
+                                rtAOEnabled, aoSettings.layerMask.value,
+                                rtREnabled, reflSettings.layerMask.value,
+                                rtGIEnabled, giSettings.layerMask.value,
+                                rrEnabled, recursiveSettings.layerMask.value,
+                                ptEnabled, pathTracingSettings.layerMask.value);
             }
 
             int matCount = m_MaterialCRCs.Count;

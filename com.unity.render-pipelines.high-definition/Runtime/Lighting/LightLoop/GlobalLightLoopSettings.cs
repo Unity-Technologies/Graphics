@@ -134,6 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition
             maxEnvLightsOnScreen = 64,
             maxDecalsOnScreen = 512,
             maxPlanarReflectionOnScreen = 16,
+            maxLightsPerClusterCell = 8,
         };
 
         /// <summary>Cookie atlas resolution.</summary>
@@ -181,5 +182,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int maxDecalsOnScreen;
         /// <summary>Maximum number of planar reflections at the same time on screen.</summary>
         public int maxPlanarReflectionOnScreen;
+        /// <summary>Maximum number of lights per ray tracing light cluster cell.</summary>
+        public int maxLightsPerClusterCell;
     }
 }
