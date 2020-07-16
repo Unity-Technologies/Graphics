@@ -145,12 +145,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 var pixelSize = new Vector2Int((int)m_BloomMipsInfo[i].x, (int)m_BloomMipsInfo[i].y);
 
                 bloomData.mipsDown[i] = builder.CreateTransientTexture(new TextureDesc(scale, true, true)
-                { colorFormat = m_ColorFormat, enableRandomWrite = true });
+                { colorFormat = m_ColorFormat, enableRandomWrite = true, name = "BloomMipDown" });
 
                 if (i != 0)
                 {
                     bloomData.mipsUp[i] = builder.CreateTransientTexture(new TextureDesc(scale, true, true)
-                    { colorFormat = m_ColorFormat, enableRandomWrite = true });
+                    { colorFormat = m_ColorFormat, enableRandomWrite = true, name = "BloomMipUp" });
 
                 }
             }
