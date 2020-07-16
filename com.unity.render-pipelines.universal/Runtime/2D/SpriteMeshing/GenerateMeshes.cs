@@ -149,7 +149,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     VertexReducer vertexReducer = new VertexReducer();
                     vertexReducer.Initialize(shapeLibrary, dataKV.Value.m_Vertices.ToArray(), dataKV.Value.m_UseReverseWinding, out contourArea);
 
-                    if (contourArea < minimumArea && dataKV.Value.m_Contours[0].m_Shape.m_IsOpaque)  // dataKV.Value.m_Contours.Count > 1 used if we want to revert back to opaque cutout option
+                    if (contourArea < minimumArea && !dataKV.Value.m_Contours[0].m_IsOuterEdge)  // dataKV.Value.m_Contours.Count > 1 used if we want to revert back to opaque cutout option
                     {
                         contourDataRemovalList.Add(dataKV.Key);
                     }
