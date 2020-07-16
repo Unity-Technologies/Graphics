@@ -737,6 +737,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove MSAA debug mode when renderpipeline asset has no MSAA
 - Fixed some post processing using motion vectors when they are disabled
 - Fixed the multiplier of the environement lights being overriden with a wrong value for ray tracing (1260311).
+- Fixed a series of exceptions happening when trying to load an asset during wizard execution (1262171).
 
 ### Changed
 - Improve MIP selection for decals on Transparents
