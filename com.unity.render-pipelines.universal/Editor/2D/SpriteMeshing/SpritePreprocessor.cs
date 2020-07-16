@@ -42,7 +42,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             RectInt rect = new RectInt(new Vector2Int((int)sprite.rect.position.x, (int)sprite.rect.position.y), new Vector2Int((int)sprite.rect.size.x, (int)sprite.rect.size.y));
             shapeLibrary.SetRegion(rect);
 
-            GenerateMeshes.MakeShapes(shapeLibrary, texture, 1, 128); // We should do something with alpha and min area
+            GenerateMeshes.MakeShapes(shapeLibrary, texture, 1, 4096); // 2048 will give us a pretty good balance of verts to area. 4096 is the same or better area as previously and less than half the vertices.
 
             Debug.Log("Shapes generated: " + shapeLibrary.m_Shapes.Count);
 
