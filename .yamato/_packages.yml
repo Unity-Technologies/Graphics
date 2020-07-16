@@ -2020,6 +2020,8 @@ all_package_ci_trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
       -  upm-ci package izon -d
+    triggers:
+        expression: NOT pull_request.draft AND pull_request.push.changes.any match ["**/Documentation*/**/*"]
 all_package_ci_fast-trunk:
     name: Pack and test all packages - fast-trunk
     agent:
@@ -2045,6 +2047,8 @@ all_package_ci_fast-trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
       -  upm-ci package izon -d
+    triggers:
+        expression: NOT pull_request.draft AND pull_request.push.changes.any match ["**/Documentation*/**/*"]
 all_package_ci_CUSTOM-REVISION:
     name: Pack and test all packages - CUSTOM-REVISION
     agent:
@@ -2070,6 +2074,8 @@ all_package_ci_CUSTOM-REVISION:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
       -  upm-ci package izon -d
+    triggers:
+        expression: NOT pull_request.draft AND pull_request.push.changes.any match ["**/Documentation*/**/*"]
 publish_all:
     name: Publish all packages
     agent:
