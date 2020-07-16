@@ -18,16 +18,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public DecalSubTarget() => displayName = "Decal";
 
-        public static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Decal/ShaderGraph/DecalPass.template";
-        public static string passTemplateMaterialDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates";
-
-        protected override string templatePath => passTemplatePath;
-        protected override string templateMaterialDirectory => passTemplateMaterialDirectory;
+        protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Decal/ShaderGraph/DecalPass.template";
+        protected override string[] templateMaterialDirectories =>  new string[]
+        {
+            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates",
+            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/"
+        };
         protected override string subTargetAssetGuid => "3ec927dfcb5d60e4883b2c224857b6c2";
         protected override string customInspector => "Rendering.HighDefinition.DecalGUI";
         protected override string renderType => HDRenderTypeTags.Opaque.ToString();
-        protected override string renderQueue => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, decalData.drawOrder, false));
+        protected override string renderQueue => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, decalData.drawOrder, false, false));
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Lit;
+        protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Decal Subshader", "");
+        protected override string subShaderInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl";
 
         // Material Data
         DecalData m_DecalData;
@@ -48,7 +51,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override IEnumerable<SubShaderDescriptor> EnumerateSubShaders()
         {
-            yield return SubShaders.Decal;
+            yield return PostProcessSubShader(SubShaders.Decal);
+        }
+
+        protected override void CollectPassKeywords(ref PassDescriptor pass)
+        {
+            pass.keywords.Add(CoreKeywordDescriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true));
         }
 
         public static FieldDescriptor AffectsAlbedo =           new FieldDescriptor(kMaterial, "AffectsAlbedo", "_MATERIAL_AFFECTS_ALBEDO 1");
@@ -122,7 +130,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             public static SubShaderDescriptor Decal = new SubShaderDescriptor()
             {
-                pipelineTag = HDRenderPipeline.k_ShaderTagName,
                 generatesPreview = true,
                 passes = new PassCollection
                 {
@@ -151,10 +158,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 lightMode = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferProjector3RT],
                 useInPreview = false,
 
-                // Template
-                passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = passTemplateMaterialDirectory,
-
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentDefault,
 
@@ -174,10 +177,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_DBUFFER_PROJECTOR",
                 lightMode = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferProjector4RT],
                 useInPreview = false,
-
-                // Template
-                passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = passTemplateMaterialDirectory,
 
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentDefault,
@@ -201,10 +200,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 lightMode = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_ProjectorEmissive],
                 useInPreview = false,
 
-                // Template
-                passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = passTemplateMaterialDirectory,
-
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentEmissive,
 
@@ -225,10 +220,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_DBUFFER_MESH",
                 lightMode = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferMesh3RT],
                 useInPreview = false,
-
-                // Template
-                passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = passTemplateMaterialDirectory,
 
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentDefault,
@@ -253,10 +244,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 lightMode = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferMesh4RT],
                 useInPreview = false,
 
-                // Template
-                passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = passTemplateMaterialDirectory,
-
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentDefault,
 
@@ -280,10 +267,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 lightMode = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_MeshEmissive],
                 useInPreview = false,
 
-                // Template
-                passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = passTemplateMaterialDirectory,
-
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentMeshEmissive,
 
@@ -305,10 +288,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_FORWARD_PREVIEW",
                 lightMode = "ForwardOnly",
                 useInPreview = true,
-
-                // Template
-                passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = passTemplateMaterialDirectory,
 
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentMeshEmissive,
@@ -587,7 +566,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             };
         }
 #endregion
-        // protected override IncludeCollection subShaderIncludes => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl";
 
 #region Includes
         static class DecalIncludes

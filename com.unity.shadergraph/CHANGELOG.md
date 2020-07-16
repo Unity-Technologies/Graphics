@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the `Reference Suffix` of Keyword Enum entries so that you cannot edit them, which ensures that material keywords compile properly. 
 - Updated the dependent version of `Searcher` to 4.2.0. 
 - Added support for `Linear Blend Skinning` Node to Universal Render Pipeline.
+- Moved all code to be under Unity specific namespaces.
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
@@ -127,6 +128,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Don't allow duplicate VT layer names when renaming layers
 - Moved VT layer TextureType to the VTProperty from the SampleVT node
 - Fixed the squished UI of VT property layers
+- Disallow Save As and Convert to Subgraph that would create recursive dependencies
+- Fixed a bug where the object selector for Custom Function Nodes did not update correctly. [1176129](https://issuetracker.unity3d.com/product/unity/issues/guid/1176129/)
 
 ## [7.1.1] - 2019-09-05
 ### Added

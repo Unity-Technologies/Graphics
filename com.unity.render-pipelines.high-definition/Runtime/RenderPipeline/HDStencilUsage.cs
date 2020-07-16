@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RequiresDeferredLighting    = (1 << 1),
         SubsurfaceScattering        = (1 << 2),     //  SSS, Split Lighting
         TraceReflectionRay          = (1 << 3),     //  SSR or RTR
-        Decals                      = (1 << 4),     //  Used for surfaces that receive decals
+        Decals                      = (1 << 4),     //  Use to tag when an Opaque Decal is render into DBuffer
         ObjectMotionVector          = (1 << 5),     //  Animated object (for motion blur, SSR, SSAO, TAA)
 
         // --- Stencil  is cleared after opaque rendering has finished ---
