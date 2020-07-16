@@ -11,11 +11,14 @@
 
 CBUFFER_START(cb0)
 float4 _Params;
+float4 _Params2;
 CBUFFER_END
 
 #define NumRings            _Params.x
 #define MaxCoCRadius        _Params.y
-#define MaxCoCMipLevel      _Params.z
+#define MaxCoCMipLevel      _Params2.x
+#define MaxCoCMipWidth      _Params2.y
+#define MaxCoCMipHeight     _Params2.z
 
 // Input textures
 TEXTURE2D_X(_InputTexture);
@@ -86,20 +89,9 @@ float GetCoCMaxRadius(int2 positionSS)
 #ifndef ADAPTIVE_RADIUS
     return MaxCoCRadius;
 #else
-    // We only have up to 6 mip levels 
-    int lod = min(6, MaxCoCMipLevel);
 
-    // TODO FIXME - (Seb) I added this patch for metal as it was causing a
-    // Shader error in 'DoFGather': 'GetDimensions' : no matching 5 parameter intrinsic method;
-    // But overall I am even not this if this call work on Metal.
-#if defined(SHADER_API_METAL)
-    uint3 size;
-    //  Texture2D<float4>.GetDimensions(uint, out uint width, out uint height, out uint levels) 
-    _InputCoCTexture.GetDimensions(lod, size.x, size.y, size.z);
-#else
-    uint4 size;
-    _InputCoCTexture.GetDimensions(lod, size.x, size.y, size.z, size.w);
-#endif
+    int lod = MaxCoCMipLevel;
+    uint2 size = float2(MaxCoCMipWidth, MaxCoCMipHeight);
 
     // Take RTHandleScale into account and odd texture dimension sizes (it's not enough to do a positionSS >> lod)
     uint2 coords = positionSS * _ScreenSize.zw * size.xy * _RTHandleScale.xy;

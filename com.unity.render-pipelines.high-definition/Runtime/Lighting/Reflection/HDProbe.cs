@@ -192,6 +192,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_RealtimeTexture != null)
                     m_RealtimeTexture.Release();
                 m_RealtimeTexture = RTHandles.Alloc(value);
+                m_RealtimeTexture.rt.name = $"ProbeRealTimeTexture_{name}";
             }
         }
 
@@ -209,6 +210,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_RealtimeDepthBuffer != null)
                     m_RealtimeDepthBuffer.Release();
                 m_RealtimeDepthBuffer = RTHandles.Alloc(value);
+                m_RealtimeDepthBuffer.rt.name = $"ProbeRealTimeDepthTexture_{name}";
             }
         }
 
