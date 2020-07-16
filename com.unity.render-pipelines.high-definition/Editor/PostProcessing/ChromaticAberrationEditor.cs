@@ -23,21 +23,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
+            base.OnInspectorGUI();
+
             PropertyField(m_SpectralLUT);
             PropertyField(m_Intensity);
-            
-            base.OnInspectorGUI();
-            using (new HDEditorUtils.IndentScope())
-            {
-                GUI.enabled = GUI.enabled && base.overrideState;
-                DrawQualitySettings();
-            }
 
-            GUI.enabled = true;
-        }
-        
-        void DrawQualitySettings()
-        {
             using (new QualityScope(this))
             {
                 PropertyField(m_MaxSamples);
