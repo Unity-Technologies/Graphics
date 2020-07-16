@@ -651,7 +651,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         ReleasePostDoFTAAHistoryTextures(camera);
                     }
-
                     // Motion blur after depth of field for aesthetic reasons (better to see motion
                     // blurred bokeh rather than out of focus motion blur)
                     if (m_MotionBlur.IsActive() && m_AnimatedMaterialsEnabled && !camera.resetPostProcessingHistory && m_MotionBlurFS)
