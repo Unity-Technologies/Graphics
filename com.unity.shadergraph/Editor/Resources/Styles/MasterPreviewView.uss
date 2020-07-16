@@ -5,6 +5,8 @@ MasterPreviewView {
     bottom: 10px;
     width: 225px;
     height: 225px;
+    min-width: 100px;
+    min-height: 100px;
     background-color: rgb(79, 79, 79);
     justify-content: flex-start;
     border-radius: 6px;
