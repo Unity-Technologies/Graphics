@@ -735,6 +735,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with serialization of exposure modes in volume profiles not being consistent between HDRP versions (case 1261385).
 - Fixed issue with duplicate names in newly created sub-layers in the graphics compositor (case 1263093).
 - Remove MSAA debug mode when renderpipeline asset has no MSAA
+- Fixed some post processing using motion vectors when they are disabled
 
 ### Changed
 - Improve MIP selection for decals on Transparents

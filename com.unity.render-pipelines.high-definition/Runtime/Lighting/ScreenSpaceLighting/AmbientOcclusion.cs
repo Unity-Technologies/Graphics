@@ -637,7 +637,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpSampleSSAO)))
                         {
-                            UpsampleAO(aoParameters, depthTexture, settings.temporalAccumulation.value ? m_FinalHalfRes : m_PackedDataTex, m_AmbientOcclusionTex, cmd);
+                            UpsampleAO(aoParameters, depthTexture, aoParameters.temporalAccumulation ? m_FinalHalfRes : m_PackedDataTex, m_AmbientOcclusionTex, cmd);
                         }
                     }
                 }
