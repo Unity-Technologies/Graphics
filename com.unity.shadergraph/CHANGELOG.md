@@ -125,6 +125,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved VT layer TextureType to the VTProperty from the SampleVT node
 - Fixed the squished UI of VT property layers
 - Disallow Save As and Convert to Subgraph that would create recursive dependencies
+- Alpha Clipping option in Graph inspector now correctly hides and indents dependent options.
 
 ## [7.1.1] - 2019-09-05
 ### Added
