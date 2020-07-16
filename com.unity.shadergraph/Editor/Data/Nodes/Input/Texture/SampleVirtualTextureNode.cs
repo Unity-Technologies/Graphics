@@ -160,10 +160,6 @@ namespace UnityEditor.ShaderGraph
             // the default is to show all 4 slots, so we don't lose any existing connections
             int layerCount = kMaxLayers;
             var vtProperty = GetSlotProperty(VirtualTextureInputId) as VirtualTextureShaderProperty;
-            if (vtProperty != null)
-            {
-                layerCount = vtProperty?.value?.layers?.Count ?? kMaxLayers;
-            }
             if (outputLayerSlotCount != layerCount)
                 UpdateLayerOutputSlots(layerCount);
         }
@@ -315,7 +311,7 @@ namespace UnityEditor.ShaderGraph
                     var layerOutputVariableNames = new List<string>();
                     var layerOutputLayerIndex = new List<int>();
 
-                    for (int layer = 0; layer < layerCount; layer++)
+                    for (int layer = 0; layer < kMaxLayers; layer++)
                     {
                         if (IsSlotConnected(OutputSlotIds[layer]))
                         {
@@ -381,7 +377,16 @@ namespace UnityEditor.ShaderGraph
                                 // sample virtual texture layer
                                 int layer = layerOutputLayerIndex[i];
                                 string layerOutputVariable = layerOutputVariableNames[i];
-                                AppendVtSample(s, "vtProperty", "vtParams", "info", layer, layerOutputVariable);
+                                if (layer < vtProperty.value.layers.Count && vtProperty.value.layers[layer].layerTexture.texture != null)
+                                {
+                                    AppendVtSample(s, "vtProperty", "vtParams", "info", layer, layerOutputVariable);
+                                }
+                                else
+                                {
+                                    s.AppendIndentation();
+                                    s.Append($"{layerOutputVariable} = 0.0;");
+                                    s.AppendNewLine();
+                                }
                             }
 
                             s.AppendLine("return GetResolveOutput(info);");
@@ -399,7 +404,7 @@ namespace UnityEditor.ShaderGraph
                 int layerCount = vtProperty.value.layers.Count;
 
                 var layerOutputVariables = new List<string>();
-                for (int i = 0; i < layerCount; i++)
+                for (int i = 0; i < kMaxLayers; i++)
                 {
                     if (IsSlotConnected(OutputSlotIds[i]))
                     {
