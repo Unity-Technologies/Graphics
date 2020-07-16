@@ -39,6 +39,7 @@
       * [Physically Based Sky](Override-Physically-Based-Sky)
       * [Procedural Sky](Override-Procedural-Sky)
     * [Visual Environment](Override-Visual-Environment)
+  * [Volumes API](Volumes-API.md)
 * Render Pipeline Settings
   * [HDRP Asset](HDRP-Asset)
   * [Frame Settings](Frame-Settings)
