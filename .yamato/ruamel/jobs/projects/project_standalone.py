@@ -34,7 +34,9 @@ class Project_StandaloneJob():
                     'rerun' : f'{editor["rerun_strategy"]}'
                 }])
             
-            if not (project["name"].lower() == 'universal' and platform["name"].lower() == 'win' and test_platform["name"].lower() == 'standalone') :
+            lowercase_projects_require_checkout = ['universal', 'urp_2d', 'urp_foundation', 'urp_lighting', 'urp_terrain', 'urp_postpro']
+            
+            if not (project["name"].lower() in lowercase_projects_require_checkout and platform["name"].lower() == 'win' and test_platform["name"].lower() == 'standalone') :
                 job.set_skip_checkout(True)
             
         return job
