@@ -315,7 +315,6 @@ bool SampleLights(LightList lightList,
             outgoingDir = GetAbsolutePositionWS(lightData.positionRWS) - position;
             float sqDist = Length2(outgoingDir);
             dist = sqrt(sqDist);
-
             outgoingDir /= dist;
 
             if (lightData.size.x > 0.0) // Stores the square radius
