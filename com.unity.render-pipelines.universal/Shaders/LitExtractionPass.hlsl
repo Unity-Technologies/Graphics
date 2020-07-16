@@ -107,7 +107,8 @@ float4 ExtractionFragment(Varyings input) : SV_Target
     InitializeInputData(input, surfaceData.normalTS, inputData);
 
     ExtractionInputs extraction;
-    extraction.normalWS = input.normalWS;
+    extraction.vertexNormalWS = input.normalWS;
+    extraction.pixelNormalWS = inputData.normalWS;
     extraction.positionWS = inputData.positionWS;
     extraction.baseColor = surfaceData.albedo;
     extraction.alpha = OutputAlpha(UniversalFragmentPBR(inputData, surfaceData).a);

@@ -143,7 +143,8 @@ half4 fragExtraction(PackedVaryings packedInput) : SV_TARGET
     BuildInputData(unpacked, surfaceDescription, inputData);
 
     ExtractionInputs extraction;
-    extraction.normalWS = unpacked.normalWS;
+    extraction.vertexNormalWS = unpacked.normalWS;
+    extraction.pixelNormalWS = inputData.normalWS;
     extraction.positionWS = inputData.positionWS;
     extraction.baseColor = surfaceDescription.BaseColor;
     extraction.alpha = alpha;

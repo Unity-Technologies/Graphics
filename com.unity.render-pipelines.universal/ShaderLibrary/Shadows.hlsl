@@ -22,7 +22,9 @@
     #endif
 #endif
 
-#define REQUIRES_WORLD_SPACE_POS_INTERPOLATOR
+#if defined(_ADDITIONAL_LIGHTS) || defined(_MAIN_LIGHT_SHADOWS_CASCADE)
+    #define REQUIRES_WORLD_SPACE_POS_INTERPOLATOR
+#endif
 
 SCREENSPACE_TEXTURE(_ScreenSpaceShadowmapTexture);
 SAMPLER(sampler_ScreenSpaceShadowmapTexture);
