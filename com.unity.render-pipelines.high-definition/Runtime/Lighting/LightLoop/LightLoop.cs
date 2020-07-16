@@ -2846,7 +2846,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_TextureCaches.lightCookieManager.ReserveSpace(light?.cookie);
                     break;
                 case HDLightType.Point:
-                    if (light.cookie != null && hdLightData.IESPoint != null && light.cookie != hdLightData.IESPoint)
+                    if (light?.cookie != null && hdLightData.IESPoint != null && light.cookie != hdLightData.IESPoint)
                         m_TextureCaches.lightCookieManager.ReserveSpaceCube(light.cookie, hdLightData.IESPoint);
                     else if (light?.cookie != null)
                         m_TextureCaches.lightCookieManager.ReserveSpaceCube(light.cookie);
@@ -2855,7 +2855,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
                 case HDLightType.Spot:
                     // Projectors lights must always have a cookie texture.
-                    if (light.cookie != null && hdLightData.IESSpot != null && light.cookie != hdLightData.IESSpot)
+                    if (light?.cookie != null && hdLightData.IESSpot != null && light.cookie != hdLightData.IESSpot)
                         m_TextureCaches.lightCookieManager.ReserveSpace(light.cookie, hdLightData.IESSpot);
                     else if (light?.cookie != null)
                         m_TextureCaches.lightCookieManager.ReserveSpace(light.cookie);
