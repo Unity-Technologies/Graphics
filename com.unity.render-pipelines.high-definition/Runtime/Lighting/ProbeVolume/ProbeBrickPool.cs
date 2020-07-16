@@ -6,9 +6,9 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public class ProbeBrickPool
     {
-        internal struct BrickChunkAlloc
+        public struct BrickChunkAlloc
         {
-            internal int x, y, z;
+            public int x, y, z;
 
             internal int flattenIndex(int sx, int sy) { return z * (sx * sy) + y * sx + x; }
         }
@@ -65,7 +65,6 @@ namespace UnityEngine.Rendering.HighDefinition
             rr.L1_G = m_Pool.TexL1_G;
             rr.L1_B = m_Pool.TexL1_B;
         }
-
 
         internal void Clear()
         {
