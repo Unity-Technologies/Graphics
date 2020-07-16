@@ -152,7 +152,7 @@ half4 fragExtraction(PackedVaryings packedInput) : SV_TARGET
     #else
         baseColor = surfaceDescription.BaseColor;
         metallic = surfaceDescription.Metallic;
-        ConvertMetallicToSpecular(surfaceDescription.BaseColor, surfaceDescription.Specular, diffuse, specular);
+        ConvertMetallicToSpecular(surfaceDescription.BaseColor, surfaceDescription.Metallic, diffuse, specular);
     #endif
 
     //@TODO
@@ -181,8 +181,8 @@ half4 fragExtraction(PackedVaryings packedInput) : SV_TARGET
         return float4(surfaceDescription.Smoothness, 0.0, 0.0, 1.0);
     if(UNITY_DataExtraction_Mode == RENDER_OCCLUSION_R)
        return float4(surfaceDescription.Occlusion, 0.0, 0.0, 1.0);
-    if(UNITY_DataExtraction_Mode == RENDER_DIFFUSE_COLOR_RGB)
-       return float4(diffuse, 1.0);
+    if(UNITY_DataExtraction_Mode == RENDER_DIFFUSE_COLOR_RGBA)
+       return float4(diffuse, alpha);
 
     return 0;
 }

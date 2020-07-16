@@ -246,21 +246,21 @@ float4 ExtractionFragment(Varyings input) : SV_Target
         return float4(inputData.positionWS, 1.0);
     if(UNITY_DataExtraction_Mode == RENDER_ENTITY_ID)
         return 0;
-    if(UNITY_DataExtraction_Mode == RENDER_BASE_COLOR_RGB)
+    if(UNITY_DataExtraction_Mode == RENDER_BASE_COLOR_RGBA)
         return float4(baseColor, surfaceData.alpha);
     if(UNITY_DataExtraction_Mode == RENDER_SPECULAR_RGB)
         return float4(specular, 1);
-    if(UNITY_DataExtraction_Mode == RENDER_METALLIC_RGB)
+    if(UNITY_DataExtraction_Mode == RENDER_METALLIC_R)
         return float4(metallic, 0.0, 0.0, 1.0);
     if(UNITY_DataExtraction_Mode == RENDER_EMISSION_RGB)
         return float4(surfaceData.emission.xyz, 1.0);
     if(UNITY_DataExtraction_Mode == RENDER_WORLD_NORMALS_PIXEL_RGB)
         return float4(inputData.normalWS, 1.0f);
-    if(UNITY_DataExtraction_Mode == RENDER_SMOOTHNESS_RGB)
+    if(UNITY_DataExtraction_Mode == RENDER_SMOOTHNESS_R)
         return float4(surfaceData.smoothness, 0.0, 0.0, 1.0);
-    if(UNITY_DataExtraction_Mode == RENDER_OCCLUSION_RGB)
+    if(UNITY_DataExtraction_Mode == RENDER_OCCLUSION_R)
        return float4(surfaceData.occlusion, 0.0, 0.0, 1.0);
-    if(UNITY_DataExtraction_Mode == RENDER_DIFFUSE_COLOR_RGB)
+    if(UNITY_DataExtraction_Mode == RENDER_DIFFUSE_COLOR_RGBA)
        return float4(diffuse, 1.0);
 
     return 0;

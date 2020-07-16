@@ -7,14 +7,14 @@ int UNITY_DataExtraction_Space;
 #define RENDER_WORLD_NORMALS_FACE_RGB 3
 #define RENDER_WORLD_POSITION_RGB 4
 #define RENDER_ENTITY_ID 5
-#define RENDER_BASE_COLOR_RGB 6
+#define RENDER_BASE_COLOR_RGBA 6
 #define RENDER_SPECULAR_RGB 7
-#define RENDER_METALLIC_RGB 8
+#define RENDER_METALLIC_R 8
 #define RENDER_EMISSION_RGB 9
 #define RENDER_WORLD_NORMALS_PIXEL_RGB 10
-#define RENDER_SMOOTHNESS_RGB 11
-#define RENDER_OCCLUSION_RGB 12
-#define RENDER_DIFFUSE_COLOR_RGB 13
+#define RENDER_SMOOTHNESS_R 11
+#define RENDER_OCCLUSION_R 12
+#define RENDER_DIFFUSE_COLOR_RGBA 13
 
 
 void ConvertSpecularToMetallic(float3 diffuseColor, float3 specularColor, out float3 baseColor, out float metallic)
