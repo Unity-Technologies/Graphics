@@ -50,6 +50,13 @@ namespace UnityEditor.VFX.Block
                 yield return new VFXNamedExpression(sinTheta, "sinTheta");
                 yield return new VFXNamedExpression(cosTheta, "cosTheta");
                 yield return base.parameters.FirstOrDefault(o => o.name == "ArcCircle_circle_center");
+
+                if (compositionPosition == AttributeCompositionMode.Blend)
+                    yield return base.parameters.FirstOrDefault(o => o.name == "blendPosition");
+                if (compositionDirection == AttributeCompositionMode.Blend)
+                    yield return base.parameters.FirstOrDefault(o => o.name == "blendDirection");
+
+
             }
         }
 

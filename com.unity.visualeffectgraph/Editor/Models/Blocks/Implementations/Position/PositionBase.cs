@@ -41,13 +41,13 @@ namespace UnityEditor.VFX.Block
         public class CustomPropertiesBlendPosition
         {
             [Range(0.0f, 1.0f), Tooltip("Set the blending value for position attribute.")]
-            public float blendPosition;
+            public float blendPosition = 1.0f;
         }
 
         public class CustomPropertiesBlendDirection
         {
             [Range(0.0f, 1.0f), Tooltip("Set the blending value for direction attribute.")]
-            public float blendDirection;
+            public float blendDirection = 1.0f;
         }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on Position. The input value can overwrite, add to, multiply with, or blend with the existing attribute value.")]
