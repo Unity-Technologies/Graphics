@@ -901,6 +901,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove the 'Point Cube Size' for cookie, use the Cubemap size directly.
 - Only building the RTAS if there is an effect that will require it (1262217).
 - Fixed the first ray tracing frame not having the light cluster being set up properly (1260311).
+- Render graph pre-setup for ray traced ambient occlusion.
 
 ## [7.1.1] - 2019-09-05
 
