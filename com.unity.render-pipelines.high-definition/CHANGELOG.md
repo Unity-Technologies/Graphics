@@ -77,6 +77,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed culling for decals when used in prefabs and edited in context.
 - Fixed XR single-pass macros in tessellation shaders.
 - Fixed regression where moving face of the probe gizmo was not moving its position anymore.
+- Remove MSAA debug mode when renderpipeline asset has no MSAA
 
 ### Changed
 - Shadowmask and realtime reflection probe property are hide in Quality settings
