@@ -102,7 +102,7 @@ void frag(ps_input i
            #endif
            SurfaceData surface = (SurfaceData)0;
            surface.normalWS = normalWS;
-           EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surface), i.VFX_VARYING_POSCS.xy, outNormalBuffer);
+           EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surface), outNormalBuffer);
         #endif
 	#endif
 

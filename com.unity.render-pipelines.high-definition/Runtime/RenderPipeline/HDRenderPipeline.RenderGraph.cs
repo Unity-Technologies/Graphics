@@ -222,7 +222,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Color, hdCamera, colorBuffer, aovBuffers);
 
-            TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, colorBuffer, prepassOutput.resolvedDepthBuffer, backBuffer, cullingResults, hdCamera);
+            TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, colorBuffer, backBuffer, cullingResults, hdCamera);
 
             // TODO RENDERGRAPH
             //// If requested, compute histogram of the very final image
@@ -811,11 +811,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public RendererListHandle rendererList;
         }
 
-        void RenderForwardEmissive( RenderGraph                 renderGraph,
-                                    HDCamera                    hdCamera,
+        void RenderForwardEmissive( RenderGraph     renderGraph,
+                                    HDCamera        hdCamera,
                                     TextureHandle   colorBuffer,
                                     TextureHandle   depthStencilBuffer,
-                                    CullingResults              cullingResults)
+                                    CullingResults  cullingResults)
         {
             using (var builder = renderGraph.AddRenderPass<RenderForwardEmissivePassData>("ForwardEmissive", out var passData, ProfilingSampler.Get(HDProfileId.ForwardEmissive)))
             {
@@ -830,7 +830,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     HDUtils.DrawRendererList(context.renderContext, context.cmd, context.resources.GetRendererList(data.rendererList));
                     if (data.enableDecals)
-                    DecalSystem.instance.RenderForwardEmissive(context.cmd);
+                        DecalSystem.instance.RenderForwardEmissive(context.cmd);
                 });
             }
         }
