@@ -1,3 +1,5 @@
+#define PROFILE_BUILD
+
 using System;
 using System.Collections.Generic;
 using UnityEditor;
@@ -28,6 +30,13 @@ namespace UnityEditor.Rendering.Universal
     internal class ShaderPreprocessor : IPreprocessShaders
     {
         public static readonly string kPassNameGBuffer = "GBuffer";
+        public static readonly string kTerrainShaderName = "Universal Render Pipeline/Terrain/Lit";
+#if PROFILE_BUILD
+        private const string k_ProcessShaderTag = "OnProcessShader";
+#endif
+        private const string k_ProcessStripping = "StripShaders";
+        private const string k_RemoveShaders = "RemoveShaders";
+        private const string k_RemoveStringBased = "StripStringBasedComparison";
 
         ShaderKeyword m_MainLightShadows = new ShaderKeyword(ShaderKeywordStrings.MainLightShadows);
         ShaderKeyword m_AdditionalLightsVertex = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
@@ -83,10 +92,6 @@ namespace UnityEditor.Rendering.Universal
                 if (!IsFeatureEnabled(features, ShaderFeatures.MainLightShadows) && !IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows))
                     return true;
 
-            // TODO: Test against lightMode tag instead.
-            if (!IsFeatureEnabled(features, ShaderFeatures.DeferredShading) && snippetData.passName == kPassNameGBuffer)
-                return true;
-
             return false;
         }
 
@@ -126,14 +131,6 @@ namespace UnityEditor.Rendering.Universal
                 (isAdditionalLightPerPixel || isAdditionalLightShadow || compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsVertex)))
                 return true;
 
-            // TODO: Test against lightMode tag instead.
-            if (snippetData.passName == kPassNameGBuffer)
-            {
-                if (IsFeatureEnabled(features, ShaderFeatures.DeferredWithAccurateGbufferNormals) && !compilerData.shaderKeywordSet.IsEnabled(m_GbufferNormalsOct))
-                    return true;
-                if (IsFeatureEnabled(features, ShaderFeatures.DeferredWithoutAccurateGbufferNormals) && compilerData.shaderKeywordSet.IsEnabled(m_GbufferNormalsOct))
-                    return true;
-            }
             return false;
         }
 
@@ -184,6 +181,27 @@ namespace UnityEditor.Rendering.Universal
 
             if (StripUnusedPass(features, snippetData))
                 return true;
+            
+            Profiler.BeginSample(k_RemoveStringBased);
+            // Strip terrain holes
+            // TODO: checking for the string name here is expensive
+            // maybe we can rename alpha clip keyword name to be specific to terrain?
+            if (compilerData.shaderKeywordSet.IsEnabled(m_AlphaTestOn) &&
+                !IsFeatureEnabled(features, ShaderFeatures.TerrainHoles) &&
+                shader.name.Contains(kTerrainShaderName))
+                return true;
+
+            // TODO: Test against lightMode tag instead.
+            if (snippetData.passName == kPassNameGBuffer)
+            {
+                if (!IsFeatureEnabled(features, ShaderFeatures.DeferredShading))
+                    return true;
+                if (IsFeatureEnabled(features, ShaderFeatures.DeferredWithAccurateGbufferNormals) && !compilerData.shaderKeywordSet.IsEnabled(m_GbufferNormalsOct))
+                    return true;
+                if (IsFeatureEnabled(features, ShaderFeatures.DeferredWithoutAccurateGbufferNormals) && compilerData.shaderKeywordSet.IsEnabled(m_GbufferNormalsOct))
+                    return true;
+            }
+            Profiler.EndSample();
 
             if (compilerData.shaderKeywordSet.IsEnabled(Feature00))
                 return true;
@@ -191,62 +209,31 @@ namespace UnityEditor.Rendering.Universal
                 return true;
             if (compilerData.shaderKeywordSet.IsEnabled(Feature02))
                 return true;
-            
             if (compilerData.shaderKeywordSet.IsEnabled(Feature03))
                 return true;
-            
             if (compilerData.shaderKeywordSet.IsEnabled(Feature04))
                 return true;
-            
             if (compilerData.shaderKeywordSet.IsEnabled(Feature05))
                 return true;
-            
             if (compilerData.shaderKeywordSet.IsEnabled(Feature06))
                 return true;
-            
             if (compilerData.shaderKeywordSet.IsEnabled(Feature07))
                 return true;
-            
             if (compilerData.shaderKeywordSet.IsEnabled(Feature08))
                 return true;
-            
             if (compilerData.shaderKeywordSet.IsEnabled(Feature09))
                 return true;
-            
-//            if (compilerData.shaderKeywordSet.IsEnabled(Feature10))
-//                return true;
-//            
-//            if (compilerData.shaderKeywordSet.IsEnabled(Feature11))
-//                return true;
-//            
-//            if (compilerData.shaderKeywordSet.IsEnabled(Feature12))
-//                return true;
-//            
-//            if (compilerData.shaderKeywordSet.IsEnabled(Feature13))
-//                return true;
-//            
-//            if (compilerData.shaderKeywordSet.IsEnabled(Feature14))
-//                return true;
-//                
-//                
-//            if (compilerData.shaderKeywordSet.IsEnabled(Feature15))
-//                return true;
-//            
-//            if (compilerData.shaderKeywordSet.IsEnabled(Feature16))
-//                return true;
-//            if (compilerData.shaderKeywordSet.IsEnabled(Feature17))
-//                return true;
-//            if (compilerData.shaderKeywordSet.IsEnabled(Feature18))
-//                return true;
-//            if (compilerData.shaderKeywordSet.IsEnabled(Feature19))
-//                return true;
-
-            // Strip terrain holes
-            // TODO: checking for the string name here is expensive
-            // maybe we can rename alpha clip keyword name to be specific to terrain?
-            if (compilerData.shaderKeywordSet.IsEnabled(m_AlphaTestOn) &&
-                !IsFeatureEnabled(features, ShaderFeatures.TerrainHoles) &&
-                shader.name.Contains("Universal Render Pipeline/Terrain/Lit"))
+            if (compilerData.shaderKeywordSet.IsEnabled(Feature10))
+                return true;
+            if (compilerData.shaderKeywordSet.IsEnabled(Feature11))
+                return true;
+            if (compilerData.shaderKeywordSet.IsEnabled(Feature12))
+                return true;
+            if (compilerData.shaderKeywordSet.IsEnabled(Feature13))
+                return true;
+            if (compilerData.shaderKeywordSet.IsEnabled(Feature14))
+                return true;
+            if (compilerData.shaderKeywordSet.IsEnabled(Feature15))
                 return true;
 
             return false;
@@ -267,17 +254,19 @@ namespace UnityEditor.Rendering.Universal
                 Debug.Log(result);
             }
         }
-
-        private const string k_ProcessShaderTag = "OnProcessShader";
+        
         public void OnProcessShader(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> compilerDataList)
         {
+#if PROFILE_BUILD
             Profiler.BeginSample(k_ProcessShaderTag);
+#endif            
             UniversalRenderPipelineAsset urpAsset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
             if (urpAsset == null || compilerDataList == null || compilerDataList.Count == 0)
                 return;
 
             int prevVariantCount = compilerDataList.Count;
             
+            Profiler.BeginSample(k_ProcessStripping);
             var inputShaderVariantCount = compilerDataList.Count;
             for (int i = 0; i < inputShaderVariantCount;)
             {
@@ -288,6 +277,9 @@ namespace UnityEditor.Rendering.Universal
                     ++i;
             }
 
+            Profiler.EndSample();
+
+            Profiler.BeginSample(k_RemoveShaders);
             if(compilerDataList is List<ShaderCompilerData> inputDataList)
                 inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
             else
@@ -295,6 +287,7 @@ namespace UnityEditor.Rendering.Universal
                 for(int i = compilerDataList.Count -1; i >= inputShaderVariantCount; --i)
                     compilerDataList.RemoveAt(i);
             }
+            Profiler.EndSample();
 
             if (urpAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)
             {
@@ -302,10 +295,15 @@ namespace UnityEditor.Rendering.Universal
                 m_TotalVariantsOutputCount += compilerDataList.Count;
                 LogShaderVariants(shader, snippetData, urpAsset.shaderVariantLogLevel, prevVariantCount, compilerDataList.Count);
             }
+#if PROFILE_BUILD
             Profiler.EndSample();
+#endif
         }  
     }
-    class ShaderBuildPreprocessor : IPreprocessBuildWithReport, IPostprocessBuildWithReport
+    class ShaderBuildPreprocessor : IPreprocessBuildWithReport
+#if PROFILE_BUILD
+        , IPostprocessBuildWithReport
+#endif
     {
         public static ShaderFeatures supportedFeatures
         {
@@ -320,19 +318,24 @@ namespace UnityEditor.Rendering.Universal
 
         private static ShaderFeatures _supportedFeatures = 0;
         public int callbackOrder { get { return 0; } }
+#if PROFILE_BUILD
         public void OnPostprocessBuild(BuildReport report)
         {
             Debug.Log("Disabling Profiler");
             Profiler.enabled = false;
         }
-
+#endif
+        
         public void OnPreprocessBuild(BuildReport report)
         {
             FetchAllSupportedFeatures();
+#if PROFILE_BUILD
+            Debug.Log("Profiler State Before: " + Profiler.enabled);
             Profiler.enabled = true;
             Profiler.enableBinaryLog = true;
-            Profiler.logFile = "profilerlognew6.raw";
+            Profiler.logFile = "log.raw";
             Debug.Log("Profiler State: " + Profiler.enabled);
+#endif
         }
         
         private static void FetchAllSupportedFeatures()
