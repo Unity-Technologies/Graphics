@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle    ambientOcclusionBuffer;
             public TextureHandle    ssrLightingBuffer;
             public TextureHandle    contactShadowsBuffer;
+            public TextureHandle    screenspaceShadowBuffer;
         }
 
         static LightingBuffers ReadLightingBuffers(in LightingBuffers buffers, RenderGraphBuilder builder)
@@ -27,6 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
             result.ambientOcclusionBuffer = builder.ReadTexture(buffers.ambientOcclusionBuffer);
             result.ssrLightingBuffer = builder.ReadTexture(buffers.ssrLightingBuffer);
             result.contactShadowsBuffer = builder.ReadTexture(buffers.contactShadowsBuffer);
+            result.screenspaceShadowBuffer = builder.ReadTexture(buffers.screenspaceShadowBuffer);
 
             return result;
         }
@@ -36,6 +38,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, buffers.ambientOcclusionBuffer);
             cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, buffers.ssrLightingBuffer);
             cmd.SetGlobalTexture(HDShaderIDs._ContactShadowTexture, buffers.contactShadowsBuffer);
+            cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceShadowsTexture, buffers.screenspaceShadowBuffer);
         }
 
         class BuildGPULightListPassData
@@ -570,7 +573,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     return passData.densityBuffer;
                 }
             }
-            return new TextureHandle();
+            return TextureHandle.nullHandle;
         }
 
         class VolumetricLightingPassData
