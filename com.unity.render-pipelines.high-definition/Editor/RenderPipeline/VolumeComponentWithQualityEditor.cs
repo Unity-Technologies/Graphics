@@ -103,14 +103,12 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         public struct QualityScope : IDisposable
         {
-            bool m_Disposed;
             VolumeComponentWithQualityEditor m_QualityComponent;
             QualitySettingsBlob m_Settings;
 
             // Cache the quality setting
             public QualityScope(VolumeComponentWithQualityEditor component)
             {
-                m_Disposed = false;
                 m_QualityComponent = component;
                 m_Settings = m_QualityComponent.SaveCustomQualitySettingsAsObject();
                 EditorGUI.BeginChangeCheck();
@@ -118,23 +116,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public void Dispose()
             {
-                Dispose(true);
-            }
-
-            void Dispose(bool disposing)
-            {
-                if (m_Disposed)
-                    return;
-                
-                if (disposing && EditorGUI.EndChangeCheck())
+                if (EditorGUI.EndChangeCheck())
                 {
                     QualitySettingsBlob newSettings = m_QualityComponent?.SaveCustomQualitySettingsAsObject();
 
                     if (!QualitySettingsBlob.IsEqual(m_Settings, newSettings))
                         m_QualityComponent?.QualitySettingsWereChanged();
                 }
-
-                m_Disposed = true;
             }
         }
 
