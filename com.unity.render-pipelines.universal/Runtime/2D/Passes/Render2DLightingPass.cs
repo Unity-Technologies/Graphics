@@ -102,7 +102,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     SortingSettings sortSettings = combinedDrawSettings.sortingSettings;
                     GetTransparencySortingMode(camera, ref sortSettings);
                     combinedDrawSettings.sortingSettings = sortSettings;
-                    combinedDrawSettings.sortingSettings = sortSettings;
+                    normalsDrawSettings.sortingSettings = sortSettings;
 
                     const int blendStylesCount = 4;
                     bool[] hasBeenInitialized = new bool[blendStylesCount];
