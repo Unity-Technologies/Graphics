@@ -153,5 +153,27 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static CompareFunction   GetTransparentZTest(this Material material)
             => material.HasProperty(kZTestTransparent) ? (CompareFunction)material.GetInt(kZTestTransparent) : CompareFunction.LessEqual;
+
+        public static void ResetMaterialCustomRenderQueue(this Material material)
+        {
+            // using GetOpaqueEquivalent / GetTransparentEquivalent allow to handle the case when we switch surfaceType
+            HDRenderQueue.RenderQueueType targetQueueType;
+            switch (material.GetSurfaceType())
+            {
+                case SurfaceType.Opaque:
+                    targetQueueType = HDRenderQueue.GetOpaqueEquivalent(HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue));
+                    break;
+                case SurfaceType.Transparent:
+                    targetQueueType = HDRenderQueue.GetTransparentEquivalent(HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue));
+                    break;
+                default:
+                    throw new ArgumentException("Unknown SurfaceType");
+            }
+
+            float sortingPriority = material.HasProperty(kTransparentSortPriority) ? material.GetFloat(kTransparentSortPriority) : 0.0f;
+            bool alphaTest = material.HasProperty(kAlphaCutoffEnabled) && material.GetFloat(kAlphaCutoffEnabled) > 0.0f;
+            bool decalEnable = material.HasProperty(kEnableDecals) && material.GetFloat(kEnableDecals) > 0.0f;
+            material.renderQueue = HDRenderQueue.ChangeType(targetQueueType, (int)sortingPriority, alphaTest, decalEnable);
+        }
     }
 }

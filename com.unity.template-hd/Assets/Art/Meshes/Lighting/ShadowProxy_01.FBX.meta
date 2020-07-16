@@ -1,12 +1,17 @@
 fileFormatVersion: 2
 guid: 0b169a69f4f407145aa55021891e64fa
 ModelImporter:
-  serializedVersion: 20100
+  serializedVersion: 20101
   internalIDToNameTable:
   - first:
       74: 1827226128182048838
     second: Take 001
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: ConcreteSmooth_Mat
+    second: {fileID: 2100000, guid: fdb87632bd4c94846b3d79e685010e46, type: 2}
   materials:
     materialImportMode: 1
     materialName: 0
@@ -46,6 +51,7 @@ ModelImporter:
     importBlendShapes: 1
     importCameras: 1
     importLights: 1
+    fileIdsGeneration: 1
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
