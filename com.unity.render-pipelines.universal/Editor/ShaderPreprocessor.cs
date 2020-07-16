@@ -84,7 +84,7 @@ namespace UnityEditor.Rendering.Universal
                     return true;
 
             // TODO: Test against lightMode tag instead.
-            if (!CoreUtils.HasFlag(features, ShaderFeatures.DeferredShading) && snippetData.passName == kPassNameGBuffer)
+            if (!IsFeatureEnabled(features, ShaderFeatures.DeferredShading) && snippetData.passName == kPassNameGBuffer)
                 return true;
 
             return false;
@@ -129,9 +129,9 @@ namespace UnityEditor.Rendering.Universal
             // TODO: Test against lightMode tag instead.
             if (snippetData.passName == kPassNameGBuffer)
             {
-                if (CoreUtils.HasFlag(features, ShaderFeatures.DeferredWithAccurateGbufferNormals) && !compilerData.shaderKeywordSet.IsEnabled(m_GbufferNormalsOct))
+                if (IsFeatureEnabled(features, ShaderFeatures.DeferredWithAccurateGbufferNormals) && !compilerData.shaderKeywordSet.IsEnabled(m_GbufferNormalsOct))
                     return true;
-                if (CoreUtils.HasFlag(features, ShaderFeatures.DeferredWithoutAccurateGbufferNormals) && compilerData.shaderKeywordSet.IsEnabled(m_GbufferNormalsOct))
+                if (IsFeatureEnabled(features, ShaderFeatures.DeferredWithoutAccurateGbufferNormals) && compilerData.shaderKeywordSet.IsEnabled(m_GbufferNormalsOct))
                     return true;
             }
             return false;
@@ -245,7 +245,7 @@ namespace UnityEditor.Rendering.Universal
             // TODO: checking for the string name here is expensive
             // maybe we can rename alpha clip keyword name to be specific to terrain?
             if (compilerData.shaderKeywordSet.IsEnabled(m_AlphaTestOn) &&
-                !CoreUtils.HasFlag(features, ShaderFeatures.TerrainHoles) &&
+                !IsFeatureEnabled(features, ShaderFeatures.TerrainHoles) &&
                 shader.name.Contains("Universal Render Pipeline/Terrain/Lit"))
                 return true;
 
