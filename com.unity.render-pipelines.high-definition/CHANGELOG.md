@@ -159,6 +159,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an option to extend the camera culling for skinned mesh animation in ray tracing effects (1258547).
 - Added decal layer system similar to light layer. Mesh will receive a decal when both decal layer mask matches.
 - Added shader graph nodes for rendering a complex eye shader.
+- Added more controls to contact shadows and increased quality in some parts. 
+- Added a physically based option in DoF volume.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -726,6 +728,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed robustness issue with GetOddNegativeScale() in ray tracing, which was impacting normal mapping (1261160).
 - Fixed regression where moving face of the probe gizmo was not moving its position anymore.
 - Fixed XR single-pass macros in tessellation shaders.
+- Fixed path-traced subsurface scattering mixing with diffuse and specular BRDFs (1250601).
+- Fixed custom pass re-ordering issues.
+- Improved robustness of normal mapping when scale is 0, and mapping is extreme (normals in or below the tangent plane).
+- Fixed XR Display providers not getting zNear and zFar plane distances passed to them when in HDRP.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -886,6 +892,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - PBR Sky now doesn't go black when going below sea level, but it instead freezes calculation as if on the horizon. 
 - Fixed an issue with quality setting foldouts not opening when clicking on them (1253088).
 - Shutter speed can now be changed by dragging the mouse over the UI label (case 1245007).
+- Remove the 'Point Cube Size' for cookie, use the Cubemap size directly.
+- VFXTarget with Unlit now allows EmissiveColor output to be consistent with HDRP unlit.
 
 ## [7.1.1] - 2019-09-05
 
