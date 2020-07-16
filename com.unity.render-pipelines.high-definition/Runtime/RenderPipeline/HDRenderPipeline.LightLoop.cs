@@ -10,8 +10,11 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         struct LightingBuffers
         {
+            // TODO RENDERGRAPH: Those two buffers aren't really lighting buffers but only used for SSS
+            // We should probably move them out of here.
             public TextureHandle    sssBuffer;
             public TextureHandle    diffuseLightingBuffer;
+
             public TextureHandle    ambientOcclusionBuffer;
             public TextureHandle    ssrLightingBuffer;
             public TextureHandle    contactShadowsBuffer;
@@ -26,6 +29,13 @@ namespace UnityEngine.Rendering.HighDefinition
             result.contactShadowsBuffer = builder.ReadTexture(buffers.contactShadowsBuffer);
 
             return result;
+        }
+
+        static void BindGlobalLightingBuffers(in LightingBuffers buffers, CommandBuffer cmd)
+        {
+            cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, buffers.ambientOcclusionBuffer);
+            cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, buffers.ssrLightingBuffer);
+            cmd.SetGlobalTexture(HDShaderIDs._ContactShadowTexture, buffers.contactShadowsBuffer);
         }
 
         class BuildGPULightListPassData
@@ -251,6 +261,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public int                          gbufferCount;
             public int                          lightLayersTextureIndex;
+            public int                          shadowMaskTextureIndex;
             public TextureHandle[]              gbuffer = new TextureHandle[8];
 
             public ComputeBufferHandle          lightListBuffer;
@@ -301,6 +312,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.lightingBuffers = ReadLightingBuffers(lightingBuffers, builder);
 
                 passData.lightLayersTextureIndex = gbuffer.lightLayersTextureIndex;
+                passData.shadowMaskTextureIndex = gbuffer.shadowMaskTextureIndex;
                 passData.gbufferCount = gbuffer.gBufferCount;
                 for (int i = 0; i < gbuffer.gBufferCount; ++i)
                     passData.gbuffer[i] = builder.ReadTexture(gbuffer.mrt[i]);
@@ -343,11 +355,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                         context.cmd.SetGlobalTexture(HDShaderIDs._LightLayersTexture, TextureXR.GetWhiteTexture());
 
+                    if (data.shadowMaskTextureIndex != -1)
+                        context.cmd.SetGlobalTexture(HDShaderIDs._ShadowMaskTexture, data.gbuffer[data.shadowMaskTextureIndex]);
+                    else
+                        context.cmd.SetGlobalTexture(HDShaderIDs._ShadowMaskTexture, TextureXR.GetWhiteTexture());
+
                     // TODO RENDERGRAPH: Remove these SetGlobal and properly send these textures to the deferred passes and bind them directly to compute shaders.
                     // This can wait that we remove the old code path.
-                    context.cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, data.lightingBuffers.ambientOcclusionBuffer);
-                    context.cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, data.lightingBuffers.ssrLightingBuffer);
-                    context.cmd.SetGlobalTexture(HDShaderIDs._ContactShadowTexture, data.lightingBuffers.contactShadowsBuffer);
+                    BindGlobalLightingBuffers(data.lightingBuffers, context.cmd);
 
                     if (data.parameters.enableTile)
                     {
@@ -432,7 +447,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.hitPointsTexture = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
                         { colorFormat = GraphicsFormat.R16G16_UNorm, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Hit_Point_Texture" });
                     passData.lightingTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                        { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Lighting_Texture" }, HDShaderIDs._SsrLightingTexture));
+                        { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Lighting_Texture" }));
                     //passData.hitPointsTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                     //    { colorFormat = GraphicsFormat.ARGBFloat, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Debug_Texture" }));
 
@@ -479,7 +494,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle RenderContactShadows(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, in BuildGPULightListOutput lightLists, int firstMipOffsetY)
         {
             if (!WillRenderContactShadow())
-                return renderGraph.ImportTexture(TextureXR.GetClearTexture(), HDShaderIDs._ContactShadowTexture);
+                return renderGraph.defaultResources.clearTextureXR;
 
             TextureHandle result;
             using (var builder = renderGraph.AddRenderPass<RenderContactShadowPassData>("Contact Shadows", out var passData))
@@ -494,7 +509,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.lightList = builder.ReadComputeBuffer(lightLists.lightList);
                 passData.depthTexture = builder.ReadTexture(depthTexture);
                 passData.contactShadowsTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, clearBuffer = clearBuffer, clearColor = Color.clear, name = "ContactShadowsBuffer" }, HDShaderIDs._ContactShadowTexture));
+                    { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, clearBuffer = clearBuffer, clearColor = Color.clear, name = "ContactShadowsBuffer" }));
 
                 result = passData.contactShadowsTexture;
 
@@ -589,7 +604,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     Vector3Int viewportSize = ComputeVolumetricViewportSize(hdCamera, ref tileSize);
 
                     // TODO RENDERGRAPH: Auto-scale of 3D RTs is not supported yet so we need to find a better solution for this. Or keep it as is?
-                    passData.lightingBuffer = builder.WriteTexture(renderGraph.ImportTexture(m_LightingBuffer, HDShaderIDs._VBufferLighting));
+                    passData.lightingBuffer = builder.WriteTexture(renderGraph.ImportTexture(m_LightingBuffer));
 
                     if (passData.parameters.enableReprojection)
                     {
