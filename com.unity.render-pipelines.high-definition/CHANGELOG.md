@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed errors when switching area light to disk shape while an area emissive mesh was displayed.
 - PBR Sky now doesn't go black when going below sea level, but it instead freezes calculation as if on the horizon.
 - Fixed XR single-pass macros in tessellation shaders.
+- Fixed XR Display providers not getting zNear and zFar plane distances passed to them when in HDRP.
 
 ### Changed
 - Changed extensions of shader CAS include files.
