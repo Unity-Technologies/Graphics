@@ -1,53 +1,10 @@
-#ifndef GRA_HLSL_3
-#define GRA_HLSL_3 0
-#endif
-
-#ifndef GRA_HLSL_4
-#define GRA_HLSL_4 0
-#endif
-
-#ifndef GRA_HLSL_5
-#define GRA_HLSL_5 0
-#endif
-
-#ifndef GRA_GLSL_120
-#define GRA_GLSL_120 0
-#endif
-
-#ifndef GRA_GLSL_130
-#define GRA_GLSL_130 0
-#endif
-
-#ifndef GRA_GLSL_330
-#define GRA_GLSL_330 0
-#endif
-
-#ifndef GRA_VERTEX_SHADER
-#define GRA_VERTEX_SHADER 0
-#endif
-
-#ifndef GRA_PIXEL_SHADER
-#define GRA_PIXEL_SHADER 0
-#endif
 
 #ifndef GRA_HQ_CUBEMAPPING
 #define GRA_HQ_CUBEMAPPING 0
 #endif
 
-#ifndef GRA_DEBUG_TILES
-#define GRA_DEBUG_TILES 0
-#endif
-
 #ifndef GRA_BGRA
 #define GRA_BGRA 0
-#endif
-
-#ifndef GRA_ROW_MAJOR
-#define GRA_ROW_MAJOR 1
-#endif
-
-#ifndef GRA_DEBUG
-#define GRA_DEBUG 1
 #endif
 
 #ifndef GRA_64BIT_RESOLVER
@@ -56,10 +13,6 @@
 
 #ifndef GRA_RWTEXTURE2D_SCALE
 #define GRA_RWTEXTURE2D_SCALE 16
-#endif
-
-#ifndef GRA_DISABLE_TEX_LOAD
-#define GRA_DISABLE_TEX_LOAD 0
 #endif
 
 #ifndef GRA_PACK_RESOLVE_OUTPUT
@@ -73,93 +26,28 @@
 	#define GRA_UNORM unorm
 #endif
 
-#ifndef GRA_TEXTURE_ARRAY_SUPPORT
-	#if (GRA_HLSL_5 == 1) || (GRA_HLSL_4 == 1) || (GRA_GLSL_330 == 1)
-		#define GRA_TEXTURE_ARRAY_SUPPORT 1
-	#else
-		#define GRA_TEXTURE_ARRAY_SUPPORT 0
-	#endif
-#endif
-
-#define GRA_HLSL_FAMILY ((GRA_HLSL_3 == 1) || (GRA_HLSL_5 == 1) || (GRA_HLSL_4 == 1))
-#define GRA_GLSL_FAMILY ((GRA_GLSL_120 == 1) || (GRA_GLSL_130 == 1) || (GRA_GLSL_330 == 1))
-
-#if GRA_HLSL_FAMILY
-	#define gra_Float2 float2
-	#define gra_Float3 float3
-	#define gra_Float4 float4
-	#define gra_Int3 int3
-	#define gra_Float4x4 float4x4
-	#define gra_Unroll [unroll]
-	#define gra_Branch [branch]
-#elif GRA_GLSL_FAMILY
-	#if (GRA_VERTEX_SHADER == 0) && (GRA_PIXEL_SHADER ==0)
-		#error GLSL requires knowledge of the shader stage! Neither GRA_VERTEX_SHADER or GRA_PIXEL_SHADER are defined!
-	#else
-		#define gra_Float2 vec2
-		#define gra_Float3 vec3
-		#define gra_Float4 vec4
-		#define gra_Int3 ivec3
-		#define gra_Float4x4 mat4
-		#define gra_Unroll
-		#define gra_Branch
-		#if (GRA_VERTEX_SHADER == 1)
-			#define ddx
-			#define ddy
-		#elif (GRA_PIXEL_SHADER == 1)
-			#define ddx dFdx
-			#define ddy dFdy
-		#endif
-		#define frac fract
-		#define lerp mix
-		/** This is not correct (http://stackoverflow.com/questions/7610631/glsl-mod-vs-hlsl-fmod) but it is for our case */
-		#define fmod mod
-	#endif
-#else
-	#error unknown shader architecture
-#endif
-
-#if (GRA_DISABLE_TEX_LOAD!=1)
-	#if (GRA_HLSL_5 == 1) || (GRA_HLSL_4 == 1) || (GRA_GLSL_130 == 1) || (GRA_GLSL_330 == 1)
-		#define GRA_LOAD_INSTR 1
-	#else
-		#define GRA_LOAD_INSTR 0
-	#endif
-#else
-	#define GRA_LOAD_INSTR 0
-#endif
+#define gra_Float2 float2
+#define gra_Float3 float3
+#define gra_Float4 float4
+#define gra_Int3 int3
+#define gra_Float4x4 float4x4
+#define gra_Unroll [unroll]
+#define gra_Branch [branch]
 
 /**
 	a cross API texture handle
 */
-#if (GRA_HLSL_5 == 1) || (GRA_HLSL_4 == 1)
-	struct GraniteTranslationTexture
-	{
-		SamplerState Sampler;
-		Texture2D Texture;
-	};
-	struct GraniteCacheTexture
-	{
-		SamplerState Sampler;
+struct GraniteTranslationTexture
+{
+	SamplerState Sampler;
+	Texture2D Texture;
+};
 
-		#if GRA_TEXTURE_ARRAY_SUPPORT
-			Texture2DArray TextureArray;
-		#else
-			Texture2D Texture;
-		#endif
-	};
-#elif (GRA_HLSL_3 == 1) || (GRA_GLSL_120 == 1) || (GRA_GLSL_130 == 1) || (GRA_GLSL_330 == 1)
-	#define GraniteTranslationTexture sampler2D
-	
-	#if GRA_TEXTURE_ARRAY_SUPPORT
-		#define GraniteCacheTexture sampler2DArray
-	#else
-		#define GraniteCacheTexture sampler2D
-	#endif
-	
-#else
-	#error unknow shader archtecture
-#endif
+struct GraniteCacheTexture
+{
+	SamplerState Sampler;
+    Texture2DArray TextureArray;
+};
 
 /**
 		Struct defining the constant buffer for each streaming texture.
@@ -229,16 +117,12 @@ struct GraniteLODLookupData
 	gra_Float2 textureCoordinates;
 	float cacheLevel;
 };
-//@IGNORE_END
-
-// public interface
 
 /*
 	END OF PUBLIC INTERFACE
 	Everything below this point should be treated as private to GraniteShaderLib.h
 */
 
-//@INSERT_DEFINES
 #define gra_TilesetBuffer grCB.tilesetBuffer
 #define gra_TilesetBufferInternal  tsCB.data[0]
 #define gra_TilesetCacheBuffer  tsCB.data[1]
@@ -256,140 +140,41 @@ struct GraniteLODLookupData
 #define gra_AssetWidthRcp gra_StreamingTextureInfo.y
 #define gra_AssetHeightRcp gra_StreamingTextureInfo.z
 
-#if GRA_ROW_MAJOR == 1
+#define gra_TranslationTableBias 			gra_TilesetBufferInternal[0][0]
+#define gra_MaxAnisotropyLog2 				gra_TilesetBufferInternal[1][0]
+#define gra_CalcMiplevelDeltaScale 		gra_Float2(gra_TilesetBufferInternal[2][0], gra_TilesetBufferInternal[3][0])
+#define gra_CalcMiplevelDeltaScaleX 	gra_TilesetBufferInternal[2][0]
+#define gra_CalcMiplevelDeltaScaleY 	gra_TilesetBufferInternal[3][0]
+#define gra_LodBiasPow2								gra_TilesetBufferInternal[0][1]
+#define gra_TrilinearOffset							gra_TilesetBufferInternal[0][2]	
+#define gra_TileContentInTiles 				gra_Float2(gra_TilesetBufferInternal[0][2], gra_TilesetBufferInternal[1][2])
+#define gra_Level0NumTilesX						gra_TilesetBufferInternal[0][3]
+#define gra_NumTilesYScale						gra_TilesetBufferInternal[1][3]
+#define gra_TextureMagic							gra_TilesetBufferInternal[2][3]
+#define gra_TextureId 								gra_TilesetBufferInternal[3][3]
 
-	#define gra_TranslationTableBias 			gra_TilesetBufferInternal[0][0]
-	#define gra_MaxAnisotropyLog2 				gra_TilesetBufferInternal[1][0]
-	#define gra_CalcMiplevelDeltaScale 		gra_Float2(gra_TilesetBufferInternal[2][0], gra_TilesetBufferInternal[3][0])
-	#define gra_CalcMiplevelDeltaScaleX 	gra_TilesetBufferInternal[2][0]
-	#define gra_CalcMiplevelDeltaScaleY 	gra_TilesetBufferInternal[3][0]
-	#define gra_LodBiasPow2								gra_TilesetBufferInternal[0][1]
-	#define gra_TrilinearOffset							gra_TilesetBufferInternal[0][2]	
-	#define gra_TileContentInTiles 				gra_Float2(gra_TilesetBufferInternal[0][2], gra_TilesetBufferInternal[1][2])
-	#define gra_Level0NumTilesX						gra_TilesetBufferInternal[0][3]
-	#define gra_NumTilesYScale						gra_TilesetBufferInternal[1][3]
-	#define gra_TextureMagic							gra_TilesetBufferInternal[2][3]
-	#define gra_TextureId 								gra_TilesetBufferInternal[3][3]
+#define gra_RcpCacheInTiles(l)				gra_Float2(gra_TilesetCacheBuffer[0][l], gra_TilesetCacheBuffer[1][l])
+#define gra_BorderPixelsRcpCache(l)		gra_Float2(gra_TilesetCacheBuffer[2][l], gra_TilesetCacheBuffer[3][l])
 
-	#define gra_RcpCacheInTiles(l)				gra_Float2(gra_TilesetCacheBuffer[0][l], gra_TilesetCacheBuffer[1][l])
-	#define gra_BorderPixelsRcpCache(l)		gra_Float2(gra_TilesetCacheBuffer[2][l], gra_TilesetCacheBuffer[3][l])
+gra_Float4 GranitePrivate_SampleArray(in GraniteCacheTexture tex, in gra_Float3 texCoord)
+{
+	return tex.TextureArray.Sample(tex.Sampler, texCoord);
+}
 
-#else
+gra_Float4 GranitePrivate_SampleGradArray(in GraniteCacheTexture tex, in gra_Float3 texCoord, in gra_Float2 dX, in gra_Float2 dY)
+{
+	return tex.TextureArray.SampleGrad(tex.Sampler,texCoord,dX,dY);
+}
 
-	#define gra_TranslationTableBias 			gra_TilesetBufferInternal[0][0]
-	#define gra_MaxAnisotropyLog2 				gra_TilesetBufferInternal[0][1]
-	#define gra_CalcMiplevelDeltaScale 		gra_Float2(gra_TilesetBufferInternal[0][2], gra_TilesetBufferInternal[0][3])
-	#define gra_CalcMiplevelDeltaScaleX 	gra_TilesetBufferInternal[0][2]
-	#define gra_CalcMiplevelDeltaScaleY 	gra_TilesetBufferInternal[0][3]
-	#define gra_LodBiasPow2								gra_TilesetBufferInternal[1][0]
-	#define gra_TrilinearOffset							gra_TilesetBufferInternal[2][0]	
-	#define gra_TileContentInTiles 				gra_Float2(gra_TilesetBufferInternal[2][0], gra_TilesetBufferInternal[2][1])
-	#define gra_Level0NumTilesX						gra_TilesetBufferInternal[3][0]
-	#define gra_NumTilesYScale						gra_TilesetBufferInternal[3][1]
-	#define gra_TextureMagic							gra_TilesetBufferInternal[3][2]
-	#define gra_TextureId 								gra_TilesetBufferInternal[3][3]
+gra_Float4 GranitePrivate_SampleLevelArray(in GraniteCacheTexture tex, in gra_Float3 texCoord, in float level)
+{
+	return tex.TextureArray.SampleLevel(tex.Sampler, texCoord, level);
+}
 
-	#define gra_RcpCacheInTiles(l)				gra_Float2(gra_TilesetCacheBuffer[l][0], gra_TilesetCacheBuffer[l][1])
-	#define gra_BorderPixelsRcpCache(l)		gra_Float2(gra_TilesetCacheBuffer[l][2], gra_TilesetCacheBuffer[l][3])
-
-#endif
-
-#if (GRA_GLSL_120==1)
-	// Extension needed for texture2DLod
-	#extension GL_ARB_shader_texture_lod : enable
-	// Extensions needed fot texture2DGrad
-	#extension GL_EXT_gpu_shader4 : enable
-	// Extensions needed for bit manipulation
-	#extension GL_ARB_shader_bit_encoding : enable
-#endif
-
-
-#if (GRA_TEXTURE_ARRAY_SUPPORT==1)
-	gra_Float4 GranitePrivate_SampleArray(in GraniteCacheTexture tex, in gra_Float3 texCoord)
-	{
-	#if (GRA_HLSL_5 == 1) || (GRA_HLSL_4 == 1)
-		return tex.TextureArray.Sample(tex.Sampler, texCoord);
-	#elif (GRA_GLSL_330 == 1)
-		return texture(tex, texCoord);
-	#else
-		#error using unsupported function
-	#endif
-	}
-
-	gra_Float4 GranitePrivate_SampleGradArray(in GraniteCacheTexture tex, in gra_Float3 texCoord, in gra_Float2 dX, in gra_Float2 dY)
-	{
-	#if (GRA_HLSL_5 == 1) || (GRA_HLSL_4 == 1)
-		return tex.TextureArray.SampleGrad(tex.Sampler,texCoord,dX,dY);
-	#elif (GRA_GLSL_330 == 1)
-		return textureGrad(tex, texCoord, dX, dY);
-	#else
-		#error using unsupported function
-	#endif
-	}
-
-	gra_Float4 GranitePrivate_SampleLevelArray(in GraniteCacheTexture tex, in gra_Float3 texCoord, in float level)
-	{
-	#if (GRA_HLSL_5 == 1) || (GRA_HLSL_4 == 1)
-		return tex.TextureArray.SampleLevel(tex.Sampler, texCoord, level);
-	#elif (GRA_GLSL_330 == 1)
-		return textureLod(tex, texCoord, level);
-	#else
-		#error using unsupported function
-	#endif
-	}
-#else
-	gra_Float4 GranitePrivate_Sample(in GraniteCacheTexture tex, in gra_Float2 texCoord)
-	{
-	#if (GRA_HLSL_5 == 1) || (GRA_HLSL_4 == 1)
-		return tex.Texture.Sample(tex.Sampler,texCoord);
-	#elif (GRA_HLSL_3 == 1)
-		return tex2D(tex,texCoord);
-	#elif (GRA_GLSL_120 == 1) || (GRA_GLSL_130 == 1)
-		return texture2D(tex, texCoord);
-	#elif (GRA_GLSL_330 == 1)
-		return texture(tex, texCoord);
-	#endif
-	}
-
-	gra_Float4 GranitePrivate_SampleLevel(in GraniteCacheTexture tex, in gra_Float2 texCoord, in float level)
-	{
-	#if (GRA_HLSL_5 == 1) || (GRA_HLSL_4 == 1)
-		return tex.Texture.SampleLevel(tex.Sampler, texCoord, level);
-	#elif (GRA_HLSL_3 == 1)
-		return tex2Dlod(tex,gra_Float4(texCoord,0.0,level));
-	#elif (GRA_GLSL_120 == 1)
-		return texture2DLod(tex, texCoord, level);
-	#elif (GRA_GLSL_130 == 1) || (GRA_GLSL_330 == 1)
-		return textureLod(tex, texCoord, level);
-	#endif
-	}
-
-	gra_Float4 GranitePrivate_SampleGrad(in GraniteCacheTexture tex, in gra_Float2 texCoord, in gra_Float2 dX, in gra_Float2 dY)
-	{
-	#if (GRA_HLSL_5 == 1) || (GRA_HLSL_4 == 1)
-		return tex.Texture.SampleGrad(tex.Sampler,texCoord,dX,dY);
-	#elif (GRA_HLSL_3 == 1)
-		return tex2D(tex,texCoord,dX,dY);
-	#elif (GRA_GLSL_120 == 1)
-		return texture2DGrad(tex, texCoord, dX, dY);
-	#elif (GRA_GLSL_130 == 1) || (GRA_GLSL_330 == 1)
-		return textureGrad(tex, texCoord, dX, dY);
-	#endif
-	}
-#endif //#if (GRA_TEXTURE_ARRAY_SUPPORT==1)
-
-#if (GRA_LOAD_INSTR==1)
 gra_Float4 GranitePrivate_Load(in GraniteTranslationTexture tex, in gra_Int3 location)
 {
-#if (GRA_HLSL_5 == 1) || (GRA_HLSL_4 == 1)
 	return tex.Texture.Load(location);
-#elif (GRA_GLSL_130 == 1) || (GRA_GLSL_330 == 1)
-	return texelFetch(tex, location.xy, location.z);
-#elif (GRA_HLSL_3 == 1) || (GRA_GLSL_120 == 1)
-	#error using unsupported function
-#endif
 }
-#endif
 
 //work-around shader compiler bug
 //compiler gets confused with GranitePrivate_SampleLevel taking a GraniteCacheTexture as argument when array support is disabled
@@ -397,44 +182,22 @@ gra_Float4 GranitePrivate_Load(in GraniteTranslationTexture tex, in gra_Int3 loc
 //compiler is confused (ERR_AMBIGUOUS_FUNCTION_CALL). Looks like somebody is over enthusiastic optimizing...
 gra_Float4 GranitePrivate_SampleLevel_Translation(in GraniteTranslationTexture tex, in gra_Float2 texCoord, in float level)
 {
-#if (GRA_HLSL_5 == 1) || (GRA_HLSL_4 == 1)
 	return tex.Texture.SampleLevel(tex.Sampler, texCoord, level);
-#elif (GRA_HLSL_3 == 1)
-	return tex2Dlod(tex,gra_Float4(texCoord,0.0,level));
-#elif (GRA_GLSL_120 == 1)
-	return texture2DLod(tex, texCoord, level);
-#elif (GRA_GLSL_130 == 1) || (GRA_GLSL_330 == 1)
-	return textureLod(tex, texCoord, level);
-#endif
 }
 
 float GranitePrivate_Saturate(in float value)
 {
-#if GRA_HLSL_FAMILY
 	return saturate(value);
-#elif GRA_GLSL_FAMILY
-	return clamp(value, 0.0f, 1.0f);
-#endif
 }
 
-#if (GRA_HLSL_5 == 1) || (GRA_HLSL_4 == 1) || (GRA_GLSL_330 == 1)
 uint GranitePrivate_FloatAsUint(float value)
 {
-#if (GRA_HLSL_5 == 1) || (GRA_HLSL_4 == 1)
 	return asuint(value);
-#elif (GRA_GLSL_330 == 1)
-	return floatBitsToUint(value);
-#endif
 }
-#endif
 
 float GranitePrivate_Pow2(uint exponent)
 {
-#if GRA_HLSL_FAMILY
 	return pow(2.0, exponent);
-#else
-	return pow(2.0, float(exponent));
-#endif
 }
 
 gra_Float2 GranitePrivate_RepeatUV(in gra_Float2 uv, in GraniteStreamingTextureConstantBuffer grSTCB)
@@ -550,7 +313,6 @@ gra_Float4 Granite_PackTileId(in gra_Float4 unpackedTileID)
 	return GranitePrivate_PackTileId(unpackedTileID.xy, unpackedTileID.z, unpackedTileID.w);
 }
 
-#if (GRA_HLSL_5 == 1)
 void Granite_DitherResolveOutput(in gra_Float4 resolve, in RWTexture2D<GRA_UNORM gra_Float4> resolveTexture, in gra_Float2 screenPos, in float alpha)
 {
 	const uint2 pixelPos = int2(screenPos);
@@ -596,7 +358,6 @@ void Granite_DitherResolveOutput(in gra_Float4 resolve, in RWTexture2D<GRA_UNORM
 #endif
 	}
 }
-#endif
 
 float GranitePrivate_CalcMiplevelAnisotropic(in GraniteTilesetConstantBuffer tsCB, in GraniteStreamingTextureConstantBuffer grSTCB, in gra_Float2 ddxTc, in gra_Float2 ddyTc)
 {
