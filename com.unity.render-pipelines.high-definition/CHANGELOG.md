@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where look dev lighting would go black when a new scene is loaded.
 - Fixed warning in HDAdditionalLightData OnValidate (cases 1250864, 1244578)
 - Fixed sky asserts with XR multipass
+- Fixed XR Display providers not getting zNear and zFar plane distances passed to them when in HDRP.
 
 ## [8.2.0] - 2020-07-08
 
