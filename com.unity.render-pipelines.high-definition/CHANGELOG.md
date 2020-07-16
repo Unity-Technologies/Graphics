@@ -733,6 +733,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved robustness of normal mapping when scale is 0, and mapping is extreme (normals in or below the tangent plane).
 - Fixed rendering breaking when disabling tonemapping in the frame settings.
 - Fixed issue with serialization of exposure modes in volume profiles not being consistent between HDRP versions (case 1261385).
+- Fixed issue with duplicate names in newly created sub-layers in the graphics compositor (case 1263093).
 
 ### Changed
 - Improve MIP selection for decals on Transparents
