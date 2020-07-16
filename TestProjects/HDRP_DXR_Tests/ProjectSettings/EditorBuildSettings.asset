@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/100_NoRayTracingEffects.unity
+    guid: 4951b574dff43c34d93926b58d153f35
+  - enabled: 1
     path: Assets/Scenes/101_ReflectionsPerfFullRes.unity
     guid: 7370a32694f72f146851c3347ef04385
   - enabled: 1
