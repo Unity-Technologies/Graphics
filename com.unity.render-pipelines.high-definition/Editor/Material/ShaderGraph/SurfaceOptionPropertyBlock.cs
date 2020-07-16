@@ -65,8 +65,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 AddProperty(transparentCullModeText, () => systemData.transparentCullMode, (newValue) => systemData.transparentCullMode = newValue);
                 AddProperty(transparentSortPriorityText, () => systemData.sortPriority, (newValue) => systemData.sortPriority = HDRenderQueue.ClampsTransparentRangePriority(newValue));
                 AddProperty(transparentBackfaceEnableText, () => builtinData.backThenFrontRendering, (newValue) => builtinData.backThenFrontRendering = newValue);
-                AddProperty(transparentDepthPrepassEnableText, () => systemData.transparentDepthPrepass, (newValue) => systemData.transparentDepthPrepass = newValue);
-                AddProperty(transparentDepthPostpassEnableText, () => systemData.transparentDepthPostpass, (newValue) => systemData.transparentDepthPostpass = newValue);
+                AddProperty(transparentDepthPrepassEnableText, () => builtinData.transparentDepthPrepass, (newValue) => builtinData.transparentDepthPrepass = newValue);
+                AddProperty(transparentDepthPostpassEnableText, () => builtinData.transparentDepthPostpass, (newValue) => builtinData.transparentDepthPostpass = newValue);
                 AddProperty(transparentWritingMotionVecText, () => builtinData.transparentWritesMotionVec, (newValue) => builtinData.transparentWritesMotionVec = newValue);
 
                 if (lightingData != null)
