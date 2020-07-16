@@ -701,7 +701,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 ususedIDs.Add(property.value.layers.IndexOf(virtualTextureEntry));
             }
 
-            for (int x = 0; x <= 4; x++)
+            for (int x = 0; x < 4; x++)
             {
                 if (!ususedIDs.Contains(x))
                     return x;
