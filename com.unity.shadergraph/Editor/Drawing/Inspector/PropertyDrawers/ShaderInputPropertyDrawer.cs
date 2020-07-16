@@ -678,10 +678,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             this._preChangeValueCallback("Add Virtual Texture Entry");
 
             int index = VTGetFirstUnusedID(property);
-            if (index < 0)
+            if (index <= 0)
                 return; // Error has already occured, don't attempt to add this entry.
 
-            var layerName = "Layer" + (index+1).ToString();
+            var layerName = "Layer" + index.ToString();
             // Add new entry
             property.value.layers.Add(new SerializableVirtualTextureLayer(layerName, new SerializableTexture()));
 
@@ -694,16 +694,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         // Allowed indicies are 1-MAX_ENUM_ENTRIES
         private int VTGetFirstUnusedID(VirtualTextureShaderProperty property)
         {
-            List<int> ususedIDs = new List<int>();
+            List<int> usedIDs = new List<int>();
 
             foreach (SerializableVirtualTextureLayer virtualTextureEntry in property.value.layers)
             {
-                ususedIDs.Add(property.value.layers.IndexOf(virtualTextureEntry));
+                usedIDs.Add(property.value.layers.IndexOf(virtualTextureEntry));
             }
 
-            for (int x = 0; x < 4; x++)
+            for (int x = 1; x <= 4; x++)
             {
-                if (!ususedIDs.Contains(x))
+                if (!usedIDs.Contains(x))
                     return x;
             }
 
