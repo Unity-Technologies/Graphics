@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -262,6 +263,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Bind the right texture
                 cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceShadowsTexture, m_ScreenSpaceShadowTextureArray);
             }
+        }
+
+        TextureHandle RenderScreenSpaceShadows(RenderGraph renderGraph, HDCamera hdCamera)
+        {
+            return renderGraph.defaultResources.blackTextureArrayXR;
         }
 
         // Generic function that writes in the screen space shadow buffer
