@@ -18,9 +18,18 @@ half _BumpScale;
 
 half _DistortionStrengthScaled;
 half _DistortionBlend;
+
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
+half _ClearCoatMask;
+//half _ClearCoatSmoothness; // TODO: enable
+#endif
 CBUFFER_END
 
 TEXTURE2D(_MetallicGlossMap);   SAMPLER(sampler_MetallicGlossMap);
+
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
+TEXTURE2D(_ClearCoatMap);       SAMPLER(sampler_ClearCoatMap);
+#endif
 
 #define SOFT_PARTICLE_NEAR_FADE _SoftParticleFadeParams.x
 #define SOFT_PARTICLE_INV_FADE_DISTANCE _SoftParticleFadeParams.y
@@ -59,6 +68,24 @@ half4 SampleAlbedo(float2 uv, float3 blendUv, half4 color, float4 particleColor,
     return albedo;
 }
 
+// Returns clear coat parameters
+// .x/.r == mask
+// .y/.g == smoothness
+half2 SampleClearCoat(float2 uv)
+{
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
+    half2 clearCoatMaskSmoothness = half2(_ClearCoatMask, 1.0 /*_ClearCoatSmoothness*/);
+
+#if defined(_CLEARCOATMAP)
+    clearCoatMaskSmoothness *= SAMPLE_TEXTURE2D(_ClearCoatMap, sampler_ClearCoatMap, uv).rg;
+#endif
+
+    return clearCoatMaskSmoothness;
+#else
+    return half2(0.0, 1.0);
+#endif  // _CLEARCOAT
+}
+
 inline void InitializeParticleLitSurfaceData(float2 uv, float3 blendUv, float4 particleColor, float4 projectedPosition, out SurfaceData outSurfaceData)
 {
 
@@ -93,6 +120,16 @@ inline void InitializeParticleLitSurfaceData(float2 uv, float3 blendUv, float4 p
 
     outSurfaceData.albedo = AlphaModulate(outSurfaceData.albedo, albedo.a);
     outSurfaceData.alpha = albedo.a;
+
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
+    half2 clearCoat = SampleClearCoat(uv);
+    outSurfaceData.clearCoatMask       = clearCoat.r;
+    //outSurfaceData.clearCoatSmoothness = clearCoat.g; // TODO: enable
+    outSurfaceData.clearCoatSmoothness = 1;
+#else
+    outSurfaceData.clearCoatMask       = 0.0h;
+    outSurfaceData.clearCoatSmoothness = 0.0h;
+#endif
 }
 
 #endif // UNIVERSAL_PARTICLES_LIT_INPUT_INCLUDED

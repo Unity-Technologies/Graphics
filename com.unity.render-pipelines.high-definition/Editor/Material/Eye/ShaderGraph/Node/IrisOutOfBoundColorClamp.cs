@@ -1,8 +1,10 @@
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.ShaderGraph
 {
+    [SRPFilter(typeof(HDRenderPipeline))]
     [Title("Utility", "High Definition Render Pipeline", "Eye", "IrisOutOfBoundColorClamp (Preview)")]
     class IrisOutOfBoundColorClamp : CodeFunctionNode
     {
