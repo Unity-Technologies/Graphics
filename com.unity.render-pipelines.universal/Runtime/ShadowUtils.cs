@@ -147,7 +147,7 @@ namespace UnityEngine.Rendering.Universal
                 // handle this. For now, as a poor approximation we do a constant bias and compute the size of
                 // the frustum as if it was orthogonal considering the size at mid point between near and far planes.
                 // Depending on how big the light range is, it will be good enough with some tweaks in bias
-                frustumSize = Mathf.Tan(shadowLight.spotAngle * 0.5f * Mathf.Deg2Rad) * shadowLight.range;
+                frustumSize = Mathf.Tan(shadowLight.spotAngle * 0.5f * Mathf.Deg2Rad) * shadowLight.range; // Note: this formula currently computes *half*-diameter (in world-space units) of spot light cone's "base disk"
             }
             else if (shadowLight.lightType == LightType.Point)
             {
@@ -159,7 +159,7 @@ namespace UnityEngine.Rendering.Universal
                 //  the frustum as if it was orthogonal considering the size at mid point between near and far planes.
                 //  Depending on how big the light range is, it will be good enough with some tweaks in bias"
                 const float cubeFaceAngle = 90; // TODO investigate if is this a good approach / compare with HDRP approach
-                frustumSize = Mathf.Tan(cubeFaceAngle * 0.5f * Mathf.Deg2Rad) * shadowLight.range;
+                frustumSize = Mathf.Tan(cubeFaceAngle * 0.5f * Mathf.Deg2Rad) * shadowLight.range; // Note: this formula currently computes *half*-diameter (in world-space units) of a point light shadow face cone's "base disk"
             }
             else
             {
