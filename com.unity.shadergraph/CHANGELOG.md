@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated the dependent version of `Searcher` to 4.2.0. 
 - Added support for `Linear Blend Skinning` Node to Universal Render Pipeline.
 - Moved all code to be under Unity specific namespaces.
+- Changed ShaderGraphImporter and ShaderSubgraphImporter so that graphs are imported before Models.
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
