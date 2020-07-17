@@ -119,7 +119,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         #else
         EnvLightData envLightData = _EnvLightDatasRT[envLightIdx];
         #endif
-        envLightData.multiplier = _EnvLightDatas[envLightIdx].multiplier;
 
         if (reflectionHierarchyWeight < 1.0)
         {
