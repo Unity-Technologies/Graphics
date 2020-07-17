@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -264,6 +265,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        TextureHandle RenderScreenSpaceShadows(RenderGraph renderGraph, HDCamera hdCamera)
+        {
+            return renderGraph.defaultResources.blackTextureArrayXR;
+        }
+
         // Generic function that writes in the screen space shadow buffer
         void WriteToScreenSpaceShadowBuffer(CommandBuffer cmd, HDCamera hdCamera, RTHandle source, int shadowSlot, ScreenSpaceShadowType shadowType)
         {
@@ -457,11 +463,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 RTHandle shadowHistoryValidityArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistoryValidity)
                     ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistoryValidity, ShadowHistoryValidityBufferAllocatorFunction, 1);
 
-                // Grab the acceleration structure for the target camera
-                RayTracingAccelerationStructure accelerationStructure = RequestAccelerationStructure();
-                // Set the acceleration structure for the pass
-                cmd.SetRayTracingAccelerationStructure(m_ScreenSpaceShadowsRT, HDShaderIDs._RaytracingAccelerationStructureName, accelerationStructure);
-
                 // Define the shader pass to use for the reflection pass
                 cmd.SetRayTracingShaderPass(m_ScreenSpaceShadowsRT, "VisibilityDXR");
 
@@ -578,6 +579,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Set ray count texture
                 RayCountManager rayCountManager = GetRayCountManager();
                 cmd.SetRayTracingTextureParam(m_ScreenSpaceShadowsRT, HDShaderIDs._RayCountTexture, rayCountManager.GetRayCountTexture());
+
+                // Grab the acceleration structure for the target camera
+                RayTracingAccelerationStructure accelerationStructure = RequestAccelerationStructure();
+                // Set the acceleration structure for the pass
+                cmd.SetRayTracingAccelerationStructure(m_ScreenSpaceShadowsRT, HDShaderIDs._RaytracingAccelerationStructureName, accelerationStructure);
 
                 // Input data
                 cmd.SetRayTracingBufferParam(m_ScreenSpaceShadowsRT, HDShaderIDs._LightDatas, m_LightLoopLightData.lightData);
@@ -777,6 +783,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_ClearShadowTexture, HDShaderIDs._RaytracedShadowIntegration, distanceBuffer2);
                     cmd.DispatchCompute(m_ScreenSpaceShadowsCS, m_ClearShadowTexture, numTilesX, numTilesY, hdCamera.viewCount);
                 }
+
+                // Grab the acceleration structure for the target camera
+                RayTracingAccelerationStructure accelerationStructure = RequestAccelerationStructure();
+                // Set the acceleration structure for the pass
+                cmd.SetRayTracingAccelerationStructure(m_ScreenSpaceShadowsRT, HDShaderIDs._RaytracingAccelerationStructureName, accelerationStructure);
 
                 // Loop through the samples of this frame
                 for (int sampleIdx = 0; sampleIdx < additionalLightData.numRayTracingSamples; ++sampleIdx)

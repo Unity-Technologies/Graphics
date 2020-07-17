@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix a compil error on OpenGL ES2 in directional lightmap sampling shader code
 - Fix hierarchicalbox gizmo outside facing check in symetry or homothety mode no longer move the center
 - Fix artifacts on Adreno 630 GPUs when using ACES Tonemapping
+- Fixed a null ref in the volume component list when there is no volume components in the project.
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.
