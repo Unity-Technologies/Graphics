@@ -411,10 +411,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void UpdateIndex(Vector3Int voxel)
         {
+            ClearVoxel(voxel);
             List<VoxelMeta> vm_list = m_VoxelToBricks[voxel];
             foreach (var vm in vm_list)
             {
-                ClearVoxel(voxel);
                 // get the list of bricks and indices
                 List<ReservedBrick> bricks = m_BricksToVoxels[vm.id].bricks;
                 List<ushort>        indcs = vm.brickIndices;
