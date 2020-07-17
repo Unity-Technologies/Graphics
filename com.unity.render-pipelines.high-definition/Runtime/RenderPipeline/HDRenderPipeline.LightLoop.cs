@@ -455,6 +455,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     (RenderSSRPassData data, RenderGraphContext context) =>
                     {
                         RenderSSR(data.parameters,
+                                    GetBlueNoiseManager(),
                                     data.depthBuffer,
                                     data.depthPyramid,
                                     data.normalBuffer,
