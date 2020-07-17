@@ -32,6 +32,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public static bool opened
                 => Resources.FindObjectsOfTypeAll(typeof(PlayerSettings).Assembly.GetType("UnityEditor.ObjectSelector")).Length > 0;
 
+            // Action to be called with the window is closed
+            static Action s_OnClose;
+
             static ObjectSelector()
             {
                 Type playerSettingsType = typeof(PlayerSettings);
@@ -73,12 +76,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 GetCurrentObject = getCurrentObjectLambda.Compile();
             }
 
-            public static void Show(UnityEngine.Object obj, Type type, Action<UnityEngine.Object> onChangedObject)
+            public static void Show(UnityEngine.Object obj, Type type, Action<UnityEngine.Object> onChangedObject, Action onClose)
             {
                 id = GUIUtility.GetControlID("s_ObjectFieldHash".GetHashCode(), FocusType.Keyboard);
                 GUIUtility.keyboardControl = id;
                 ShowObjectSelector(obj, type, onChangedObject);
                 selectorID = id;
+                ObjectSelector.s_OnClose = onClose;
+                EditorApplication.update += CheckClose;
+            }
+            static void CheckClose()
+            {
+                if (!opened)
+                {
+                    ObjectSelector.s_OnClose?.Invoke();
+                    EditorApplication.update -= CheckClose;
+                }
             }
 
             public static void CheckAssignationEvent<T>(Action<T> assignator)
@@ -132,8 +145,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     onCancel?.Invoke();
                     break;
                 case 2: //Load
-                    ObjectSelector.Show(target, typeof(T), o => onObjectChanged?.Invoke((T)o));
-                    break;
+                    {
+                        m_Fixer.Pause();
+                        ObjectSelector.Show(target, typeof(T), o => onObjectChanged?.Invoke((T)o), m_Fixer.Unpause);
+                        break;
+                    }
+
                 default:
                     throw new ArgumentException("Unrecognized option");
             }

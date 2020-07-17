@@ -63,6 +63,7 @@ all:
       api: Vulkan
       test_platforms:
         - playmode
+        - playmode_XR
         - Standalone
     - platform: OSX
       api: Metal

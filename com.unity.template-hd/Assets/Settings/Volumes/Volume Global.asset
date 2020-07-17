@@ -320,6 +320,16 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 2
     min: 0
+  rayBias:
+    m_OverrideState: 0
+    m_Value: 0.2
+    min: 0
+    max: 1
+  thicknessScale:
+    m_OverrideState: 0
+    m_Value: 0.15
+    min: 0.02
+    max: 1
   m_SampleCount:
     m_OverrideState: 1
     m_Value: 32
@@ -533,7 +543,7 @@ MonoBehaviour:
   m_AdvancedMode: 0
   mode:
     m_OverrideState: 1
-    m_Value: 2
+    m_Value: 4
   meteringMode:
     m_OverrideState: 1
     m_Value: 4

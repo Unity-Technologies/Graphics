@@ -27,6 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty maxEnvLightsOnScreen;
         public SerializedProperty maxDecalsOnScreen;
         public SerializedProperty maxPlanarReflectionOnScreen;
+        public SerializedProperty maxLightsPerClusterCell;
 
         public SerializedGlobalLightLoopSettings(SerializedProperty root)
         {
@@ -56,6 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition
             maxEnvLightsOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxEnvLightsOnScreen);
             maxDecalsOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxDecalsOnScreen);
             maxPlanarReflectionOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxPlanarReflectionOnScreen);
+            maxLightsPerClusterCell = root.Find((GlobalLightLoopSettings s) => s.maxLightsPerClusterCell);
         }
     }
 }
