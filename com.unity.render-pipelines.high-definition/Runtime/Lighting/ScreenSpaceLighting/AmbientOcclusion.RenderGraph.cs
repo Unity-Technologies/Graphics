@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         TextureHandle CreateAmbientOcclusionTexture(RenderGraph renderGraph)
         {
-            return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { enableRandomWrite = true, colorFormat = GraphicsFormat.R8_UNorm, name = "Ambient Occlusion" }, HDShaderIDs._AmbientOcclusionTexture);
+            return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { enableRandomWrite = true, colorFormat = GraphicsFormat.R8_UNorm, name = "Ambient Occlusion" });
         }
 
         public TextureHandle Render(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectors, int frameCount, in HDUtils.PackedMipChainInfo depthMipInfo)
@@ -33,12 +33,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     var aoParameters = PrepareRenderAOParameters(hdCamera, historySize * rtScaleForHistory, frameCount, depthMipInfo);
 
                     var packedData = RenderAO(renderGraph, aoParameters, depthPyramid, normalBuffer);
-                    result = DenoiseAO(renderGraph, aoParameters, motionVectors, packedData, currentHistory, outputHistory);
+                    result = DenoiseAO(renderGraph, aoParameters, depthPyramid, motionVectors, packedData, currentHistory, outputHistory);
                 }
             }
             else
             {
-                result = renderGraph.ImportTexture(TextureXR.GetBlackTexture(), HDShaderIDs._AmbientOcclusionTexture);
+                result = renderGraph.ImportTexture(TextureXR.GetBlackTexture());
             }
             return result;
         }
@@ -88,6 +88,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle DenoiseAO(    RenderGraph             renderGraph,
                                     in RenderAOParameters   parameters,
+                                    TextureHandle           depthTexture,
                                     TextureHandle           motionVectors,
                                     TextureHandle           aoPackedData,
                                     TextureHandle           currentHistory,
@@ -129,6 +130,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 data.packedDataBlurred,
                                 data.currentHistory,
                                 data.outputHistory,
+                                data.motionVectors,
                                 data.denoiseOutput,
                                 ctx.cmd);
                 });
@@ -137,17 +139,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     return passData.denoiseOutput;
             }
 
-            return UpsampleAO(renderGraph, parameters, denoiseOutput);
+            return UpsampleAO(renderGraph, parameters, denoiseOutput, depthTexture);
         }
 
         class UpsampleAOPassData
         {
             public RenderAOParameters   parameters;
+            public TextureHandle        depthTexture;
             public TextureHandle        input;
             public TextureHandle        output;
         }
 
-        TextureHandle UpsampleAO(RenderGraph renderGraph, in RenderAOParameters parameters, TextureHandle input)
+        TextureHandle UpsampleAO(RenderGraph renderGraph, in RenderAOParameters parameters, TextureHandle input, TextureHandle depthTexture)
         {
             using (var builder = renderGraph.AddRenderPass<UpsampleAOPassData>("Upsample GTAO", out var passData, ProfilingSampler.Get(HDProfileId.UpSampleSSAO)))
             {
@@ -155,12 +158,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.parameters = parameters;
                 passData.input = builder.ReadTexture(input);
+                passData.depthTexture = builder.ReadTexture(depthTexture);
                 passData.output = builder.WriteTexture(CreateAmbientOcclusionTexture(renderGraph));
 
                 builder.SetRenderFunc(
                 (UpsampleAOPassData data, RenderGraphContext ctx) =>
                 {
-                    UpsampleAO(data.parameters, data.input, data.output, ctx.cmd);
+                    UpsampleAO(data.parameters, data.depthTexture, data.input, data.output, ctx.cmd);
                 });
 
                 return passData.output;
