@@ -14,6 +14,7 @@ def cmd_not_standalone(project_folder, platform, api, test_platform_args):
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {test_platform_args} --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}'
     ])
     base[-1] += f' --extra-editor-arg="{api["cmd"]}"' if api["name"] != ""  else ''
+    _add_extra_utr_arg(base, project_folder)
     return base
 
 def cmd_standalone(project_folder, platform, api, test_platform_args):
@@ -25,6 +26,7 @@ def cmd_standalone(project_folder, platform, api, test_platform_args):
     base.extend([
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {test_platform_args}Windows64 --artifacts_path={PATH_TEST_RESULTS} --timeout=1200 --player-load-path=../../{PATH_PLAYERS} --player-connection-ip=auto'
     ])
+    _add_extra_utr_arg(base, project_folder)
     return base
 
 
@@ -33,4 +35,9 @@ def cmd_standalone_build(project_folder, platform, api, test_platform_args):
     base.extend([
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {test_platform_args}Windows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindows{api["name"]}Linear" --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS} --timeout=1200 --player-save-path=../../{PATH_PLAYERS} --build-only'
     ])
+    _add_extra_utr_arg(base, project_folder)
     return base
+
+def _add_extra_utr_arg(base, project_folder):
+    if project_folder.lower() in ['universalhybridtest', 'hdrp_hybridtests']:
+        base[-1] += ' --extra-utr-arg="--compilation-errors-as-warnings"'
