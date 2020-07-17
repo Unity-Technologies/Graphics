@@ -1,19 +1,19 @@
 from ...shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, PATH_PLAYERS
 from ruamel.yaml.scalarstring import PreservedScalarString as pss
 
-def _cmd_base(project_folder, components):
+def _cmd_base(project_folder, components, editor_revision):
     return [
         f'curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat',
         f'pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --upgrade',
-        f'unity-downloader-cli --source-file %YAMATO_SOURCE_DIR%/{PATH_UNITY_REVISION} -p WindowsEditor {"".join([f"-c {c} " for c in components])} --wait --published-only'
+        f'unity-downloader-cli -u { editor_revision } -p WindowsEditor {"".join([f"-c {c} " for c in components])} --wait --published-only'
     ]
 
 
-def cmd_not_standalone(project_folder, platform, api, test_platform_args):
+def cmd_not_standalone(project_folder, platform, api, test_platform_args, editor_revision):
     raise Exception('android: only standalone available')
 
-def cmd_standalone(project_folder, platform, api, test_platform_args):
-    base = _cmd_base(project_folder, platform["components"])
+def cmd_standalone(project_folder, platform, api, test_platform_args, editor_revision):
+    base = _cmd_base(project_folder, platform["components"], editor_revision)
     base.extend([ 
         f'%ANDROID_SDK_ROOT%\platform-tools\\adb.exe connect %BOKKEN_DEVICE_IP%',
         f'powershell %ANDROID_SDK_ROOT%\platform-tools\\adb.exe devices',
@@ -26,8 +26,8 @@ def cmd_standalone(project_folder, platform, api, test_platform_args):
     return base
 
         
-def cmd_standalone_build(project_folder, platform, api, test_platform_args):
-    base = _cmd_base(project_folder, platform["components"])
+def cmd_standalone_build(project_folder, platform, api, test_platform_args, editor_revision):
+    base = _cmd_base(project_folder, platform["components"], editor_revision)
     base.extend([  
         f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME%',
         f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT%',
@@ -35,7 +35,7 @@ def cmd_standalone_build(project_folder, platform, api, test_platform_args):
         ])
     
     if api["name"].lower() =='vulkan':
-        base.append(f'utr --suite=playmode --platform=Android --testproject={TEST_PROJECTS_DIR}\{project_folder} --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --editor-location=WindowsEditor --artifacts_path={PATH_TEST_RESULTS} --player-save-path={PATH_PLAYERS} --scripting-backend=il2cpp --timeout=1800 --build-only')
+        base.append(f'utr --suite=playmode --platform=Android --testproject={TEST_PROJECTS_DIR}\{project_folder} --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --editor-location=WindowsEditor --artifacts_path={PATH_TEST_RESULTS} --player-save-path={PATH_PLAYERS} --scripting-backend=il2cpp --timeout=1200 --build-only')
     else:
-        base.append(f'utr --suite=playmode --platform=Android --testproject={TEST_PROJECTS_DIR}\{project_folder} --editor-location=WindowsEditor --artifacts_path={PATH_TEST_RESULTS} --player-save-path={PATH_PLAYERS} --scripting-backend=il2cpp --timeout=1800 --build-only')
+        base.append(f'utr --suite=playmode --platform=Android --testproject={TEST_PROJECTS_DIR}\{project_folder} --editor-location=WindowsEditor --artifacts_path={PATH_TEST_RESULTS} --player-save-path={PATH_PLAYERS} --scripting-backend=il2cpp --timeout=1200 --build-only')
     return base

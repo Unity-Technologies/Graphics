@@ -11,7 +11,7 @@ def create_abv_ymls(metafile):
     
     for editor in metafile["editors"]:
         for test_platform in metafile["smoke_test"]["test_platforms"]:
-            job = ABV_SmokeTestJob(editor, test_platform, metafile["smoke_test"])
+            job = ABV_SmokeTestJob(editor, test_platform, metafile["smoke_test"], metafile["target_editor_revision"])
             yml[job.job_id] = job.yml
         
         job = ABV_AllSmokeTestsJob(editor, metafile["smoke_test"]["test_platforms"])

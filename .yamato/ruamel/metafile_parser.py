@@ -1,10 +1,12 @@
 from copy import deepcopy
 
-def format_metafile(metafile, shared, unfold_agents_root_keys=[], unfold_test_platforms_root_keys=[]):
+def format_metafile(metafile, shared, latest_editor_versions, unfold_agents_root_keys=[], unfold_test_platforms_root_keys=[]):
     '''Formats the metafile by retrieving all missing information from the shared metafile. This includes unfolding platform details, agent aliases etc.'''
     metafile['editors'] = _get_editors(metafile, shared)
-    metafile['target_editor'] = shared['target_editor']
-    metafile['target_branch'] = shared['target_branch']
+    metafile['target_editor'] = metafile.get('target_editor', shared.get('target_editor'))
+    metafile['target_editor_revision'] = _get_target_editor_revision(metafile['target_editor'], latest_editor_versions)
+    metafile['target_branch'] = metafile.get('target_branch', shared.get('target_branch'))
+    metafile['target_branch_editor_ci'] = metafile.get('target_branch_editor_ci', shared.get('target_branch_editor_ci'))
     metafile['platforms'] = _unfold_platforms(metafile, shared)
     metafile = _unfold_individual_agents(metafile, shared, root_keys=unfold_agents_root_keys)
     metafile = _unfold_test_platforms(metafile, shared, root_keys=unfold_test_platforms_root_keys)
@@ -14,6 +16,10 @@ def _get_editors(metafile, shared):
     '''Retrieves the editors from shared metafile, if not overriden by 'override_editors' in metafile.'''
     override_editors = metafile.get("override_editors", None)
     return override_editors if override_editors is not None else shared['editors']
+
+def _get_target_editor_revision(target_editor, latest_editor_versions):
+    return latest_editor_versions["editor_versions"][f'{target_editor}_staging']["revision"]
+
 
 def _unfold_individual_agents(metafile, shared, root_keys=[]):
     '''Unfolds all agents by their alias names corresponding to 'non_project_agents' in the shared metafile.

@@ -24,15 +24,15 @@ publish_core:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#test_core_windows_trunk
-      -  .yamato/_packages.yml#test_core_macos_trunk
+      -  .yamato/_packages.yml#test_core_windows_2020.2
+      -  .yamato/_packages.yml#test_core_macos_2020.2
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.core
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 pack_lwrp:
     name: Pack Lightweight
     agent:
@@ -54,15 +54,15 @@ publish_lwrp:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_lwrp
-      -  .yamato/_packages.yml#test_lwrp_windows_trunk
-      -  .yamato/_packages.yml#test_lwrp_macos_trunk
+      -  .yamato/_packages.yml#test_lwrp_windows_2020.2
+      -  .yamato/_packages.yml#test_lwrp_macos_2020.2
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.lightweight
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 pack_shadergraph:
     name: Pack ShaderGraph
     agent:
@@ -84,15 +84,15 @@ publish_shadergraph:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#test_shadergraph_windows_trunk
-      -  .yamato/_packages.yml#test_shadergraph_macos_trunk
+      -  .yamato/_packages.yml#test_shadergraph_windows_2020.2
+      -  .yamato/_packages.yml#test_shadergraph_macos_2020.2
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.shadergraph
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 pack_hdrp:
     name: Pack HDRP
     agent:
@@ -114,15 +114,15 @@ publish_hdrp:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_hdrp
-      -  .yamato/_packages.yml#test_hdrp_windows_trunk
-      -  .yamato/_packages.yml#test_hdrp_macos_trunk
+      -  .yamato/_packages.yml#test_hdrp_windows_2020.2
+      -  .yamato/_packages.yml#test_hdrp_macos_2020.2
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 pack_universal:
     name: Pack Universal
     agent:
@@ -144,15 +144,15 @@ publish_universal:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_universal
-      -  .yamato/_packages.yml#test_universal_windows_trunk
-      -  .yamato/_packages.yml#test_universal_macos_trunk
+      -  .yamato/_packages.yml#test_universal_windows_2020.2
+      -  .yamato/_packages.yml#test_universal_macos_2020.2
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.universal
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 pack_vfx:
     name: Pack VFX
     agent:
@@ -174,15 +174,15 @@ publish_vfx:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_vfx
-      -  .yamato/_packages.yml#test_vfx_windows_trunk
-      -  .yamato/_packages.yml#test_vfx_macos_trunk
+      -  .yamato/_packages.yml#test_vfx_windows_2020.2
+      -  .yamato/_packages.yml#test_vfx_macos_2020.2
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.visualeffectgraph
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/*.tgz"
 pack_config:
     name: Pack Config
     agent:
@@ -204,23 +204,23 @@ publish_config:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_config
-      -  .yamato/_packages.yml#test_config_windows_trunk
-      -  .yamato/_packages.yml#test_config_macos_trunk
+      -  .yamato/_packages.yml#test_config_windows_2020.2
+      -  .yamato/_packages.yml#test_config_macos_2020.2
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
-test_core_windows_trunk:
-    name: Test Core Win trunk
+              -  "upm-ci~/packages/*.tgz"
+test_core_windows_2020.2:
+    name: Test Core Win 2020.2
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:windows
+      -  .yamato/_editor.yml#editor:priming:2020.2:windows
       -  .yamato/_packages.yml#pack_core
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -231,15 +231,15 @@ test_core_windows_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_core_windows_trunk_dependencies:
-    name: Test Core Win trunk - dependencies
+test_core_windows_2020.2_dependencies:
+    name: Test Core Win 2020.2 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:windows
-      -  .yamato/_packages.yml#test_core_windows_trunk
+      -  .yamato/_editor.yml#editor:priming:2020.2:windows
+      -  .yamato/_packages.yml#test_core_windows_2020.2
       -  .yamato/_packages.yml#pack_core
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -250,14 +250,14 @@ test_core_windows_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_windows_trunk:
-    name: Test Lightweight Win trunk
+test_lwrp_windows_2020.2:
+    name: Test Lightweight Win 2020.2
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:windows
+      -  .yamato/_editor.yml#editor:priming:2020.2:windows
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -272,15 +272,15 @@ test_lwrp_windows_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_windows_trunk_dependencies:
-    name: Test Lightweight Win trunk - dependencies
+test_lwrp_windows_2020.2_dependencies:
+    name: Test Lightweight Win 2020.2 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:windows
-      -  .yamato/_packages.yml#test_lwrp_windows_trunk
+      -  .yamato/_editor.yml#editor:priming:2020.2:windows
+      -  .yamato/_packages.yml#test_lwrp_windows_2020.2
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -295,14 +295,14 @@ test_lwrp_windows_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_windows_trunk:
-    name: Test ShaderGraph Win trunk
+test_shadergraph_windows_2020.2:
+    name: Test ShaderGraph Win 2020.2
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:windows
+      -  .yamato/_editor.yml#editor:priming:2020.2:windows
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
@@ -315,15 +315,15 @@ test_shadergraph_windows_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_windows_trunk_dependencies:
-    name: Test ShaderGraph Win trunk - dependencies
+test_shadergraph_windows_2020.2_dependencies:
+    name: Test ShaderGraph Win 2020.2 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:windows
-      -  .yamato/_packages.yml#test_shadergraph_windows_trunk
+      -  .yamato/_editor.yml#editor:priming:2020.2:windows
+      -  .yamato/_packages.yml#test_shadergraph_windows_2020.2
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
@@ -336,14 +336,14 @@ test_shadergraph_windows_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_windows_trunk:
-    name: Test HDRP Win trunk
+test_hdrp_windows_2020.2:
+    name: Test HDRP Win 2020.2
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:windows
+      -  .yamato/_editor.yml#editor:priming:2020.2:windows
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -359,15 +359,15 @@ test_hdrp_windows_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_windows_trunk_dependencies:
-    name: Test HDRP Win trunk - dependencies
+test_hdrp_windows_2020.2_dependencies:
+    name: Test HDRP Win 2020.2 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:windows
-      -  .yamato/_packages.yml#test_hdrp_windows_trunk
+      -  .yamato/_editor.yml#editor:priming:2020.2:windows
+      -  .yamato/_packages.yml#test_hdrp_windows_2020.2
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -383,14 +383,14 @@ test_hdrp_windows_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_windows_trunk:
-    name: Test Universal Win trunk
+test_universal_windows_2020.2:
+    name: Test Universal Win 2020.2
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:windows
+      -  .yamato/_editor.yml#editor:priming:2020.2:windows
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -404,15 +404,15 @@ test_universal_windows_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_windows_trunk_dependencies:
-    name: Test Universal Win trunk - dependencies
+test_universal_windows_2020.2_dependencies:
+    name: Test Universal Win 2020.2 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:windows
-      -  .yamato/_packages.yml#test_universal_windows_trunk
+      -  .yamato/_editor.yml#editor:priming:2020.2:windows
+      -  .yamato/_packages.yml#test_universal_windows_2020.2
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -426,14 +426,14 @@ test_universal_windows_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_windows_trunk:
-    name: Test VFX Win trunk
+test_vfx_windows_2020.2:
+    name: Test VFX Win 2020.2
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:windows
+      -  .yamato/_editor.yml#editor:priming:2020.2:windows
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -447,15 +447,15 @@ test_vfx_windows_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_windows_trunk_dependencies:
-    name: Test VFX Win trunk - dependencies
+test_vfx_windows_2020.2_dependencies:
+    name: Test VFX Win 2020.2 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:windows
-      -  .yamato/_packages.yml#test_vfx_windows_trunk
+      -  .yamato/_editor.yml#editor:priming:2020.2:windows
+      -  .yamato/_packages.yml#test_vfx_windows_2020.2
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -469,14 +469,14 @@ test_vfx_windows_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_windows_trunk:
-    name: Test Config Win trunk
+test_config_windows_2020.2:
+    name: Test Config Win 2020.2
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:windows
+      -  .yamato/_editor.yml#editor:priming:2020.2:windows
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
@@ -489,15 +489,15 @@ test_config_windows_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_windows_trunk_dependencies:
-    name: Test Config Win trunk - dependencies
+test_config_windows_2020.2_dependencies:
+    name: Test Config Win 2020.2 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:windows
-      -  .yamato/_packages.yml#test_config_windows_trunk
+      -  .yamato/_editor.yml#editor:priming:2020.2:windows
+      -  .yamato/_packages.yml#test_config_windows_2020.2
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
@@ -510,14 +510,14 @@ test_config_windows_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_core_macos_trunk:
-    name: Test Core OSX trunk
+test_core_macos_2020.2:
+    name: Test Core OSX 2020.2
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:macos
+      -  .yamato/_editor.yml#editor:priming:2020.2:macos
       -  .yamato/_packages.yml#pack_core
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -528,15 +528,15 @@ test_core_macos_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_core_macos_trunk_dependencies:
-    name: Test Core OSX trunk - dependencies
+test_core_macos_2020.2_dependencies:
+    name: Test Core OSX 2020.2 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:macos
-      -  .yamato/_packages.yml#test_core_macos_trunk
+      -  .yamato/_editor.yml#editor:priming:2020.2:macos
+      -  .yamato/_packages.yml#test_core_macos_2020.2
       -  .yamato/_packages.yml#pack_core
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -547,14 +547,14 @@ test_core_macos_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_macos_trunk:
-    name: Test Lightweight OSX trunk
+test_lwrp_macos_2020.2:
+    name: Test Lightweight OSX 2020.2
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:macos
+      -  .yamato/_editor.yml#editor:priming:2020.2:macos
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -569,15 +569,15 @@ test_lwrp_macos_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_macos_trunk_dependencies:
-    name: Test Lightweight OSX trunk - dependencies
+test_lwrp_macos_2020.2_dependencies:
+    name: Test Lightweight OSX 2020.2 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:macos
-      -  .yamato/_packages.yml#test_lwrp_macos_trunk
+      -  .yamato/_editor.yml#editor:priming:2020.2:macos
+      -  .yamato/_packages.yml#test_lwrp_macos_2020.2
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -592,14 +592,14 @@ test_lwrp_macos_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_macos_trunk:
-    name: Test ShaderGraph OSX trunk
+test_shadergraph_macos_2020.2:
+    name: Test ShaderGraph OSX 2020.2
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:macos
+      -  .yamato/_editor.yml#editor:priming:2020.2:macos
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
@@ -612,15 +612,15 @@ test_shadergraph_macos_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_macos_trunk_dependencies:
-    name: Test ShaderGraph OSX trunk - dependencies
+test_shadergraph_macos_2020.2_dependencies:
+    name: Test ShaderGraph OSX 2020.2 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:macos
-      -  .yamato/_packages.yml#test_shadergraph_macos_trunk
+      -  .yamato/_editor.yml#editor:priming:2020.2:macos
+      -  .yamato/_packages.yml#test_shadergraph_macos_2020.2
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
@@ -633,14 +633,14 @@ test_shadergraph_macos_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_macos_trunk:
-    name: Test HDRP OSX trunk
+test_hdrp_macos_2020.2:
+    name: Test HDRP OSX 2020.2
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:macos
+      -  .yamato/_editor.yml#editor:priming:2020.2:macos
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -656,15 +656,15 @@ test_hdrp_macos_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_macos_trunk_dependencies:
-    name: Test HDRP OSX trunk - dependencies
+test_hdrp_macos_2020.2_dependencies:
+    name: Test HDRP OSX 2020.2 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:macos
-      -  .yamato/_packages.yml#test_hdrp_macos_trunk
+      -  .yamato/_editor.yml#editor:priming:2020.2:macos
+      -  .yamato/_packages.yml#test_hdrp_macos_2020.2
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -680,14 +680,14 @@ test_hdrp_macos_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_macos_trunk:
-    name: Test Universal OSX trunk
+test_universal_macos_2020.2:
+    name: Test Universal OSX 2020.2
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:macos
+      -  .yamato/_editor.yml#editor:priming:2020.2:macos
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -701,15 +701,15 @@ test_universal_macos_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_macos_trunk_dependencies:
-    name: Test Universal OSX trunk - dependencies
+test_universal_macos_2020.2_dependencies:
+    name: Test Universal OSX 2020.2 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:macos
-      -  .yamato/_packages.yml#test_universal_macos_trunk
+      -  .yamato/_editor.yml#editor:priming:2020.2:macos
+      -  .yamato/_packages.yml#test_universal_macos_2020.2
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -723,14 +723,14 @@ test_universal_macos_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_macos_trunk:
-    name: Test VFX OSX trunk
+test_vfx_macos_2020.2:
+    name: Test VFX OSX 2020.2
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:macos
+      -  .yamato/_editor.yml#editor:priming:2020.2:macos
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -744,15 +744,15 @@ test_vfx_macos_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_macos_trunk_dependencies:
-    name: Test VFX OSX trunk - dependencies
+test_vfx_macos_2020.2_dependencies:
+    name: Test VFX OSX 2020.2 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:macos
-      -  .yamato/_packages.yml#test_vfx_macos_trunk
+      -  .yamato/_editor.yml#editor:priming:2020.2:macos
+      -  .yamato/_packages.yml#test_vfx_macos_2020.2
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -766,14 +766,14 @@ test_vfx_macos_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_macos_trunk:
-    name: Test Config OSX trunk
+test_config_macos_2020.2:
+    name: Test Config OSX 2020.2
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:macos
+      -  .yamato/_editor.yml#editor:priming:2020.2:macos
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
@@ -786,609 +786,15 @@ test_config_macos_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_macos_trunk_dependencies:
-    name: Test Config OSX trunk - dependencies
+test_config_macos_2020.2_dependencies:
+    name: Test Config OSX 2020.2 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:macos
-      -  .yamato/_packages.yml#test_config_macos_trunk
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_config
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --type updated-dependencies-tests --package-path com.unity.render-pipelines.high-definition-config
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_core_windows_fast-trunk:
-    name: Test Core Win fast-trunk
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:windows
-      -  .yamato/_packages.yml#pack_core
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.core
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_core_windows_fast-trunk_dependencies:
-    name: Test Core Win fast-trunk - dependencies
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:windows
-      -  .yamato/_packages.yml#test_core_windows_fast-trunk
-      -  .yamato/_packages.yml#pack_core
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.core
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_lwrp_windows_fast-trunk:
-    name: Test Lightweight Win fast-trunk
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:windows
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_universal
-      -  .yamato/_packages.yml#pack_lwrp
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.lightweight
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_lwrp_windows_fast-trunk_dependencies:
-    name: Test Lightweight Win fast-trunk - dependencies
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:windows
-      -  .yamato/_packages.yml#test_lwrp_windows_fast-trunk
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_universal
-      -  .yamato/_packages.yml#pack_lwrp
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.lightweight
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_shadergraph_windows_fast-trunk:
-    name: Test ShaderGraph Win fast-trunk
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:windows
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --package-path com.unity.shadergraph
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_shadergraph_windows_fast-trunk_dependencies:
-    name: Test ShaderGraph Win fast-trunk - dependencies
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:windows
-      -  .yamato/_packages.yml#test_shadergraph_windows_fast-trunk
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.shadergraph
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_hdrp_windows_fast-trunk:
-    name: Test HDRP Win fast-trunk
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:windows
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_vfx
-      -  .yamato/_packages.yml#pack_config
-      -  .yamato/_packages.yml#pack_hdrp
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.high-definition
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_hdrp_windows_fast-trunk_dependencies:
-    name: Test HDRP Win fast-trunk - dependencies
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:windows
-      -  .yamato/_packages.yml#test_hdrp_windows_fast-trunk
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_vfx
-      -  .yamato/_packages.yml#pack_config
-      -  .yamato/_packages.yml#pack_hdrp
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.high-definition
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_universal_windows_fast-trunk:
-    name: Test Universal Win fast-trunk
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:windows
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_universal
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.universal
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_universal_windows_fast-trunk_dependencies:
-    name: Test Universal Win fast-trunk - dependencies
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:windows
-      -  .yamato/_packages.yml#test_universal_windows_fast-trunk
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_universal
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.universal
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_vfx_windows_fast-trunk:
-    name: Test VFX Win fast-trunk
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:windows
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_vfx
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --package-path com.unity.visualeffectgraph
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_vfx_windows_fast-trunk_dependencies:
-    name: Test VFX Win fast-trunk - dependencies
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:windows
-      -  .yamato/_packages.yml#test_vfx_windows_fast-trunk
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_vfx
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.visualeffectgraph
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_config_windows_fast-trunk:
-    name: Test Config Win fast-trunk
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:windows
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_config
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.high-definition-config
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_config_windows_fast-trunk_dependencies:
-    name: Test Config Win fast-trunk - dependencies
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:windows
-      -  .yamato/_packages.yml#test_config_windows_fast-trunk
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_config
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.high-definition-config
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_core_macos_fast-trunk:
-    name: Test Core OSX fast-trunk
-    agent:
-        type: Unity::VM::osx
-        image: package-ci/mac:stable
-        flavor: m1.mac
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:macos
-      -  .yamato/_packages.yml#pack_core
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.core
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_core_macos_fast-trunk_dependencies:
-    name: Test Core OSX fast-trunk - dependencies
-    agent:
-        type: Unity::VM::osx
-        image: package-ci/mac:stable
-        flavor: m1.mac
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:macos
-      -  .yamato/_packages.yml#test_core_macos_fast-trunk
-      -  .yamato/_packages.yml#pack_core
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --type updated-dependencies-tests --package-path com.unity.render-pipelines.core
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_lwrp_macos_fast-trunk:
-    name: Test Lightweight OSX fast-trunk
-    agent:
-        type: Unity::VM::osx
-        image: package-ci/mac:stable
-        flavor: m1.mac
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:macos
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_universal
-      -  .yamato/_packages.yml#pack_lwrp
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.lightweight
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_lwrp_macos_fast-trunk_dependencies:
-    name: Test Lightweight OSX fast-trunk - dependencies
-    agent:
-        type: Unity::VM::osx
-        image: package-ci/mac:stable
-        flavor: m1.mac
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:macos
-      -  .yamato/_packages.yml#test_lwrp_macos_fast-trunk
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_universal
-      -  .yamato/_packages.yml#pack_lwrp
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --type updated-dependencies-tests --package-path com.unity.render-pipelines.lightweight
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_shadergraph_macos_fast-trunk:
-    name: Test ShaderGraph OSX fast-trunk
-    agent:
-        type: Unity::VM::osx
-        image: package-ci/mac:stable
-        flavor: m1.mac
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:macos
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.shadergraph
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_shadergraph_macos_fast-trunk_dependencies:
-    name: Test ShaderGraph OSX fast-trunk - dependencies
-    agent:
-        type: Unity::VM::osx
-        image: package-ci/mac:stable
-        flavor: m1.mac
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:macos
-      -  .yamato/_packages.yml#test_shadergraph_macos_fast-trunk
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --type updated-dependencies-tests --package-path com.unity.shadergraph
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_hdrp_macos_fast-trunk:
-    name: Test HDRP OSX fast-trunk
-    agent:
-        type: Unity::VM::osx
-        image: package-ci/mac:stable
-        flavor: m1.mac
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:macos
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_vfx
-      -  .yamato/_packages.yml#pack_config
-      -  .yamato/_packages.yml#pack_hdrp
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.high-definition
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_hdrp_macos_fast-trunk_dependencies:
-    name: Test HDRP OSX fast-trunk - dependencies
-    agent:
-        type: Unity::VM::osx
-        image: package-ci/mac:stable
-        flavor: m1.mac
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:macos
-      -  .yamato/_packages.yml#test_hdrp_macos_fast-trunk
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_vfx
-      -  .yamato/_packages.yml#pack_config
-      -  .yamato/_packages.yml#pack_hdrp
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --type updated-dependencies-tests --package-path com.unity.render-pipelines.high-definition
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_universal_macos_fast-trunk:
-    name: Test Universal OSX fast-trunk
-    agent:
-        type: Unity::VM::osx
-        image: package-ci/mac:stable
-        flavor: m1.mac
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:macos
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_universal
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.universal
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_universal_macos_fast-trunk_dependencies:
-    name: Test Universal OSX fast-trunk - dependencies
-    agent:
-        type: Unity::VM::osx
-        image: package-ci/mac:stable
-        flavor: m1.mac
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:macos
-      -  .yamato/_packages.yml#test_universal_macos_fast-trunk
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_universal
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --type updated-dependencies-tests --package-path com.unity.render-pipelines.universal
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_vfx_macos_fast-trunk:
-    name: Test VFX OSX fast-trunk
-    agent:
-        type: Unity::VM::osx
-        image: package-ci/mac:stable
-        flavor: m1.mac
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:macos
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_vfx
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.visualeffectgraph
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_vfx_macos_fast-trunk_dependencies:
-    name: Test VFX OSX fast-trunk - dependencies
-    agent:
-        type: Unity::VM::osx
-        image: package-ci/mac:stable
-        flavor: m1.mac
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:macos
-      -  .yamato/_packages.yml#test_vfx_macos_fast-trunk
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_vfx
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --type updated-dependencies-tests --package-path com.unity.visualeffectgraph
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_config_macos_fast-trunk:
-    name: Test Config OSX fast-trunk
-    agent:
-        type: Unity::VM::osx
-        image: package-ci/mac:stable
-        flavor: m1.mac
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:macos
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_config
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.high-definition-config
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_config_macos_fast-trunk_dependencies:
-    name: Test Config OSX fast-trunk - dependencies
-    agent:
-        type: Unity::VM::osx
-        image: package-ci/mac:stable
-        flavor: m1.mac
-    dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:macos
-      -  .yamato/_packages.yml#test_config_macos_fast-trunk
+      -  .yamato/_editor.yml#editor:priming:2020.2:macos
+      -  .yamato/_packages.yml#test_config_macos_2020.2
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
@@ -1995,52 +1401,27 @@ test_config_macos_CUSTOM-REVISION_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-all_package_ci_trunk:
-    name: Pack and test all packages - trunk
+all_package_ci_2020.2:
+    name: Pack and test all packages - 2020.2
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_packages.yml#test_core_windows_trunk
-      -  .yamato/_packages.yml#test_lwrp_windows_trunk
-      -  .yamato/_packages.yml#test_shadergraph_windows_trunk
-      -  .yamato/_packages.yml#test_hdrp_windows_trunk
-      -  .yamato/_packages.yml#test_universal_windows_trunk
-      -  .yamato/_packages.yml#test_vfx_windows_trunk
-      -  .yamato/_packages.yml#test_config_windows_trunk
-      -  .yamato/_packages.yml#test_core_macos_trunk
-      -  .yamato/_packages.yml#test_lwrp_macos_trunk
-      -  .yamato/_packages.yml#test_shadergraph_macos_trunk
-      -  .yamato/_packages.yml#test_hdrp_macos_trunk
-      -  .yamato/_packages.yml#test_universal_macos_trunk
-      -  .yamato/_packages.yml#test_vfx_macos_trunk
-      -  .yamato/_packages.yml#test_config_macos_trunk
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package izon -t
-      -  upm-ci package izon -d
-all_package_ci_fast-trunk:
-    name: Pack and test all packages - fast-trunk
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    dependencies:
-      -  .yamato/_packages.yml#test_core_windows_fast-trunk
-      -  .yamato/_packages.yml#test_lwrp_windows_fast-trunk
-      -  .yamato/_packages.yml#test_shadergraph_windows_fast-trunk
-      -  .yamato/_packages.yml#test_hdrp_windows_fast-trunk
-      -  .yamato/_packages.yml#test_universal_windows_fast-trunk
-      -  .yamato/_packages.yml#test_vfx_windows_fast-trunk
-      -  .yamato/_packages.yml#test_config_windows_fast-trunk
-      -  .yamato/_packages.yml#test_core_macos_fast-trunk
-      -  .yamato/_packages.yml#test_lwrp_macos_fast-trunk
-      -  .yamato/_packages.yml#test_shadergraph_macos_fast-trunk
-      -  .yamato/_packages.yml#test_hdrp_macos_fast-trunk
-      -  .yamato/_packages.yml#test_universal_macos_fast-trunk
-      -  .yamato/_packages.yml#test_vfx_macos_fast-trunk
-      -  .yamato/_packages.yml#test_config_macos_fast-trunk
+      -  .yamato/_packages.yml#test_core_windows_2020.2
+      -  .yamato/_packages.yml#test_lwrp_windows_2020.2
+      -  .yamato/_packages.yml#test_shadergraph_windows_2020.2
+      -  .yamato/_packages.yml#test_hdrp_windows_2020.2
+      -  .yamato/_packages.yml#test_universal_windows_2020.2
+      -  .yamato/_packages.yml#test_vfx_windows_2020.2
+      -  .yamato/_packages.yml#test_config_windows_2020.2
+      -  .yamato/_packages.yml#test_core_macos_2020.2
+      -  .yamato/_packages.yml#test_lwrp_macos_2020.2
+      -  .yamato/_packages.yml#test_shadergraph_macos_2020.2
+      -  .yamato/_packages.yml#test_hdrp_macos_2020.2
+      -  .yamato/_packages.yml#test_universal_macos_2020.2
+      -  .yamato/_packages.yml#test_vfx_macos_2020.2
+      -  .yamato/_packages.yml#test_config_macos_2020.2
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
