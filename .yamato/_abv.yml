@@ -110,16 +110,6 @@ all_project_ci_nightly_trunk:
          rerun: on-new-revision
       -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_XR_trunk
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_Standalone_trunk
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_editmode_trunk
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_playmode_trunk
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_playmode_XR_trunk
-         rerun: on-new-revision
     triggers:
         recurring:
           -  branch: master

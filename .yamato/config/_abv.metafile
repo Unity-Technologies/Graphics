@@ -33,15 +33,7 @@ nightly:
         - Standalone
         - editmode
         - playmode
-        - playmode_XR
-    - project: Universal
-      platform: Win
-      api: Vulkan
-      test_platforms:
-        - Standalone
-        - editmode
-        - playmode
-        - playmode_XR
+        # - playmode_XR # uncomment once bug fixed on XR side 
 smoke_test: # specifications for smoke tests
   folder: SRP_SmokeTest
   agent: sdet_win_large # used for editmode
