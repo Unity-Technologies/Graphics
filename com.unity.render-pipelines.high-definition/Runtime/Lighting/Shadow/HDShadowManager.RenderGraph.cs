@@ -48,6 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO RENDERGRAPH
             // Not really good to bind things globally here (makes lifecycle of the textures fuzzy)
             // Probably better to bind it explicitly where needed (deferred lighting and forward/debug passes)
+            // We can probably remove this when we have only one code path and can clean things up a bit.
             BindShadowGlobalResources(renderGraph, result);
 
             return result;
@@ -72,7 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<BindShadowGlobalResourcesPassData>("BindShadowGlobalResources", out var passData))
             {
                 passData.shadowResult = ReadShadowResult(shadowResult, builder);
-                builder.AllowPassPruning(false);
+                builder.AllowPassCulling(false);
                 builder.SetRenderFunc(
                 (BindShadowGlobalResourcesPassData data, RenderGraphContext ctx) =>
                 {
@@ -100,15 +101,15 @@ namespace UnityEngine.Rendering.HighDefinition
             public ShadowDrawingSettings shadowDrawSettings;
         }
 
-        TextureHandle AllocateMomentAtlas(RenderGraph renderGraph, string name, int shaderID = 0)
+        TextureHandle AllocateMomentAtlas(RenderGraph renderGraph, string name)
         {
             return renderGraph.CreateTexture(new TextureDesc(width / 2, height / 2)
-                    { colorFormat = GraphicsFormat.R32G32_SFloat, useMipMap = true, autoGenerateMips = false, name = name, enableRandomWrite = true }, shaderID);
+                    { colorFormat = GraphicsFormat.R32G32_SFloat, useMipMap = true, autoGenerateMips = false, name = name, enableRandomWrite = true });
         }
 
         internal TextureHandle RenderShadows(RenderGraph renderGraph, CullingResults cullResults, in ShaderVariablesGlobal globalCB, FrameSettings frameSettings, string shadowPassName)
         {
-            TextureHandle result = new TextureHandle();
+            TextureHandle result = TextureHandle.nullHandle;
 
             if (m_ShadowRequests.Count == 0)
                 return result;

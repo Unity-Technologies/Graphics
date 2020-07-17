@@ -247,6 +247,10 @@ You can now control the texture mapping mode for all textures in the [AxF Shader
 
 For more information about this improvement, see [AxF Shader](AxF-Shader.md).
 
+### Contact Shadows Improvements
+
+More control is given for contact shadows, in particular now a bias can be set to avoid self intersection issues and a new thickness parameter is introduced to fill gaps that can be left by contact shadows. 
+
 ### Exposure
 
 #### Exposure curve mapping
