@@ -72,6 +72,22 @@ namespace UnityEngine.Rendering.Universal
         {
             ShadowSplitData splitData;
             bool success = cullResults.ComputePointShadowMatricesAndCullingPrimitives(shadowLightIndex, cubemapFace, fovBias, out viewMatrix, out projMatrix, out splitData); // returns false if input parameters are incorrect (rare)
+
+            // In native API CullingResults.ComputeSpotShadowMatricesAndCullingPrimitives there is code that inverts the 3rd component of shadow-casting spot light's "world-to-local" matrix (it was so since its original addition to the code base):
+            // https://github.cds.internal.unity3d.com/unity/unity/commit/34813e063526c4be0ef0448dfaae3a911dd8be58#diff-cf0b417fc6bd8ee2356770797e628cd4R331
+            //
+            // However native API CullingResults.ComputePointShadowMatricesAndCullingPrimitives does not contain this transformation.
+            // As a result, the view matrices returned for a point light shadow face, and for a spot light with same direction as that face, have opposite 3rd component.
+            //
+            // This causes normalBias to be incorrectly applied to shadow caster vertices during the point light shadow pass.
+            // To counter this effect, we invert the point light shadow view matrix component here:
+            {
+                viewMatrix.m10 = -viewMatrix.m10;
+                viewMatrix.m11 = -viewMatrix.m11;
+                viewMatrix.m12 = -viewMatrix.m12;
+                viewMatrix.m13 = -viewMatrix.m13;
+            }
+
             shadowMatrix = GetShadowTransform(projMatrix, viewMatrix);
             return success;
         }
