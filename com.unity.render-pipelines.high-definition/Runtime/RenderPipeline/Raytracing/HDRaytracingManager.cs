@@ -436,7 +436,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
             bool rrEnabled = recursiveSettings.enable.value;
             SubSurfaceScattering sssSettings = hdCamera.volumeStack.GetComponent<SubSurfaceScattering>();
-            bool rtSSSEnabled = sssSettings.rayTracing.value;
+            bool rtSSSEnabled = sssSettings.rayTracing.value && hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering);
             PathTracing pathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
             bool ptEnabled = pathTracingSettings.enable.value;
 
