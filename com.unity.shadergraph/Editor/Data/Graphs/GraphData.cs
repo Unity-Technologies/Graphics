@@ -320,9 +320,11 @@ namespace UnityEditor.ShaderGraph
 
         // TODO: Need a better way to handle this
 #if VFX_GRAPH_10_0_0_OR_NEWER
-        public bool isVFXTarget => !isSubGraph && activeTargets.Count() > 0 && activeTargets.ElementAt(0).GetType() == typeof(VFXTarget);
+        public bool hasVFXTarget => !isSubGraph && activeTargets.Count() > 0 && activeTargets.OfType<VFXTarget>().Any();
+        public bool isOnlyVFXTarget => hasVFXTarget && activeTargets.Count() == 1;
 #else
         public bool isVFXTarget => false;
+        public bool isOnlyVFXTarget => false;
 #endif
         #endregion
 
