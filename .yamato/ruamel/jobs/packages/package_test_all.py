@@ -31,7 +31,7 @@ class Package_AllPackageCiJob():
                 f'upm-ci package izon -d'])
         if editor['version'] == f'fast-{target_editor}':
             # trigger the job when updating the docs to avoid merging jpg images (this is not allowed by the package validation suite)
-            job.set_trigger_on_expression(f'NOT pull_request.draft AND pull_request.push.changes.any match ["**/Documentation*/**/*"]')
+            job.set_trigger_on_expression(f'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.push.changes.any match ["**/Documentation*/**/*"]')
         return job
         
     
