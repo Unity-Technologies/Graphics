@@ -454,10 +454,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     int hoff_idx = mz * m_IndexDim.x + mx;
                     HeightRange hr = m_HeightRanges[hoff_idx];
 
+                    if( hr.min == -1 )
+                        continue;
+
 
                     m_IndexBuffer.GetData(m_TmpUpdater, 0, base_offset + TranslateIndex(new Vector3Int(mx, 0, mz)), hr.cnt);
                     int start = volMin.y - hr.min;
                     int end = Mathf.Min( start + volCellSize, m_IndexDim.y );
+                    start = Mathf.Max( start, 0 );
                     for( int i = start; i < end; i++ )
                         m_TmpUpdater[i] = -1;
 
