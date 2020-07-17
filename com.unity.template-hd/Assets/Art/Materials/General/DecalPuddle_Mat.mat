@@ -135,7 +135,8 @@ Material:
     - _CullMode: 2
     - _CullModeForward: 2
     - _Cutoff: 0.5
-    - _DecalBlend: 1
+    - _DecalBlend: 0.882
+    - _DecalLayerMaskFromDecal: 1
     - _DecalMaskMapBlueScale: 1
     - _DecalMeshDepthBias: 0
     - _DecalStencilRef: 16
@@ -191,14 +192,14 @@ Material:
     - _IridescenceThickness: 1
     - _LinkDetailsWithBase: 1
     - _MaskBlendMode: 4
-    - _MaskBlendSrc: 1
+    - _MaskBlendSrc: 0
     - _MaskmapAO: 0
     - _MaskmapMetal: 0
     - _MaskmapSmoothness: 1
     - _MaterialID: 1
     - _Metallic: 0
     - _MetallicScale: 1
-    - _NormalBlendSrc: 1
+    - _NormalBlendSrc: 0
     - _NormalMapSpace: 0
     - _NormalScale: 1
     - _PPDLodThreshold: 5
@@ -281,4 +282,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 4
+  version: 7

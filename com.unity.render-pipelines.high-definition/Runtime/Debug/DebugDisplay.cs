@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Minimum Full Screen Lighting debug mode value (used internally).</summary>
         MinLightingFullScreenDebug,
         /// <summary>Display Screen Space Ambient Occlusion buffer.</summary>
-        SSAO,
+        ScreenSpaceAmbientOcclusion,
         /// <summary>Display Screen Space Reflections buffer.</summary>
         ScreenSpaceReflections,
         /// <summary>Display the Transparent Screen Space Reflections buffer.</summary>
@@ -99,6 +99,8 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthOfFieldCoc,
         /// <summary>Display Transparency Overdraw.</summary>
         TransparencyOverdraw,
+        /// <summary>Display Requested Virtual Texturing tiles, colored by the mip</summary>
+        RequestedVirtualTextureTiles,
         /// <summary>Maximum Full Screen Rendering debug mode value (used internally).</summary>
         MaxRenderingFullScreenDebug,
 
@@ -409,7 +411,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>True if any material debug display is enabled.</returns>
         public bool IsDebugMaterialDisplayEnabled()
         {
-            return data.materialDebugSettings.IsDebugDisplayEnabled(); 
+            return data.materialDebugSettings.IsDebugDisplayEnabled();
         }
 
         /// <summary>
@@ -1550,10 +1552,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }
 
-            widgetList.AddRange(new DebugUI.Widget[]
+            if (HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportMSAA ?? true)
             {
-                new DebugUI.EnumField { displayName = "MSAA Samples", getter = () => (int)data.msaaSamples, setter = value => data.msaaSamples = (MSAASamples)value, enumNames = s_MsaaSamplesDebugStrings, enumValues = s_MsaaSamplesDebugValues, getIndex = () => data.msaaSampleDebugModeEnumIndex, setIndex = value => data.msaaSampleDebugModeEnumIndex = value },
-            });
+                widgetList.AddRange(new DebugUI.Widget[]
+                {
+                    new DebugUI.EnumField { displayName = "MSAA Samples", getter = () => (int)data.msaaSamples, setter = value => data.msaaSamples = (MSAASamples)value, enumNames = s_MsaaSamplesDebugStrings, enumValues = s_MsaaSamplesDebugValues, getIndex = () => data.msaaSampleDebugModeEnumIndex, setIndex = value => data.msaaSampleDebugModeEnumIndex = value },
+                });
+            }
 
             widgetList.AddRange(new DebugUI.Widget[]
             {

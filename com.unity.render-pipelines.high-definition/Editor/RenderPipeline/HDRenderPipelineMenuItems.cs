@@ -103,6 +103,49 @@ namespace UnityEditor.Rendering.HighDefinition
             MaterialReimporter.ReimportAllMaterials();
         }
 
+        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Previous Version /Add Decal Layer Default to Loaded Mesh Renderers and Terrains")]
+        internal static void UpgradeDefaultRenderingLayerMask()
+        {
+            var meshRenderers = Resources.FindObjectsOfTypeAll<MeshRenderer>();
+
+            foreach (var mesh in meshRenderers)
+            {
+                mesh.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+            }
+
+            var terrains = Resources.FindObjectsOfTypeAll<Terrain>();
+
+            foreach (var terrain in terrains)
+            {
+                terrain.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+            }
+        }
+
+        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Previous Version /Add Decal Layer Default to Selected Mesh Renderers and Terrains")]
+        internal static void UpgradeDefaultRenderingLayerMaskForSelection()
+        {
+            var selection = UnityEditor.Selection.objects;
+
+            foreach (var obj in selection)
+            {
+                if (obj is GameObject)
+                {
+                    GameObject gameObj = obj as GameObject;
+                    MeshRenderer mesh;
+                    if (gameObj.TryGetComponent<MeshRenderer>(out mesh))
+                    {
+                        mesh.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                    }
+
+                    Terrain terrain;
+                    if (gameObj.TryGetComponent<Terrain>(out terrain))
+                    {
+                        terrain.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                    }
+                }
+            }
+        }
+
         class DoCreateNewAsset<TAssetType> : ProjectWindowCallback.EndNameEditAction where TAssetType : ScriptableObject
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
