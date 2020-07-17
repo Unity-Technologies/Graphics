@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [SurfaceDataAttributes(new string[] { "Low Frequency Normal WS", "Low Frequency Normal View Space" }, true)]
             public Vector3 lowFrequencyNormalWS;
             [SurfaceDataAttributes(new string[] { "Geometric Normal WS", "Geometric Normal View Space" }, true)]
-            public Vector3 geomNormalWS;
+            public Vector3 phaseNormalWS;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Albedo)]
             [SurfaceDataAttributes("", false, true)]
@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public float anisotropy;
             public float anisotropyIOR;
-            public float anisotropyOffset;
+            public float scatteringLambertLighting;
             public float anisotropyWeight;
 
             [SurfaceDataAttributes("", false, false)]
@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [SurfaceDataAttributes(new string[] { "Low Frequency Normal WS", "Low Frequency Normal View Space" }, true)]
             public Vector3 lowFrequencyNormalWS;
             [SurfaceDataAttributes(new string[] { "Geometric Normal WS", "Geometric Normal View Space" }, true)]
-            public Vector3 geomNormalWS;
+            public Vector3 phaseNormalWS;
 
             [SurfaceDataAttributes("", false, true)]
             public Vector3 diffuseColor;
@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering.HighDefinition
             
             public float anisotropy;
             public float anisotropyIOR;
-            public float anisotropyOffset;
+            public float scatteringLambertLighting;
             public float anisotropyWeight;
 
             [SurfaceDataAttributes("", false, false)]

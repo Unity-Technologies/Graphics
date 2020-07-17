@@ -26,13 +26,13 @@
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
 
-float ComputePhaseTerm(float3 lightDirOS, float3 V, BSDFData bsdfData)
+float GetPhaseTerm(float3 lightDirOS, float3 V, BSDFData bsdfData)
 {
     float3 biasedOceanLightDirection = lightDirOS;
     float invIOR = 1.f - bsdfData.anisotropyIOR;
-    biasedOceanLightDirection.y -= (invIOR * 2.f - bsdfData.anisotropyOffset);
+    biasedOceanLightDirection.y -= (invIOR * 2.f);
     biasedOceanLightDirection = normalize(biasedOceanLightDirection);
-    float3 singleScatteringRay = refract(-V, bsdfData.lowFrequencyNormalWS, bsdfData.anisotropyIOR);
+    float3 singleScatteringRay = refract(-V, bsdfData.phaseNormalWS, bsdfData.anisotropyIOR);
 
     float cos0RL = dot(singleScatteringRay, biasedOceanLightDirection);
     float phaseTerm = CornetteShanksPhasePartVarying(bsdfData.anisotropy, cos0RL);
@@ -42,7 +42,13 @@ float ComputePhaseTerm(float3 lightDirOS, float3 V, BSDFData bsdfData)
 
 float3 GetNormalForShadowBias(BSDFData bsdfData)
 {
-    return bsdfData.geomNormalWS;
+    float3 phaseNormalWS = float3(0, 1, 0);
+    return phaseNormalWS;
+}
+
+float4 GetDiffuseOrDefaultColor(BSDFData bsdfData, float replace)
+{
+    return float4(bsdfData.diffuseColor, 0.0);
 }
 
 float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
@@ -71,10 +77,9 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
     bsdfData.normalWS = surfaceData.normalWS;
     bsdfData.lowFrequencyNormalWS = surfaceData.lowFrequencyNormalWS;
-    bsdfData.geomNormalWS = surfaceData.geomNormalWS;
-
     bsdfData.diffuseColor = surfaceData.baseColor;
     bsdfData.diffuseWrapAmount = surfaceData.diffuseWrapAmount;
+    bsdfData.phaseNormalWS = surfaceData.phaseNormalWS;
 
     bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness); 
 
@@ -87,7 +92,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.anisotropy = surfaceData.anisotropy;
     bsdfData.anisotropyWeight = surfaceData.anisotropyWeight;
     bsdfData.anisotropyIOR = surfaceData.anisotropyIOR;
-    bsdfData.anisotropyOffset = surfaceData.anisotropyOffset;
+    bsdfData.scatteringLambertLighting = surfaceData.scatteringLambertLighting;
     bsdfData.customRefractionColor = surfaceData.customRefractionColor;
 
     return bsdfData;
@@ -246,8 +251,8 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
     float specularSelfOcclusion = saturate(clampedNdotLLowFrequency * 5.f + bsdfData.specularSelfOcclusion);
     cbsdf.specR = F * DV * clampedNdotL * specularSelfOcclusion;
-     
-    cbsdf.diffR = Lambert() * NdotLWrappedDiffuseLowFrequency * (1.0 - F);
+
+    cbsdf.diffR = lerp(1.f, NdotLWrappedDiffuseLowFrequency, bsdfData.scatteringLambertLighting) * (1.0 - F);
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
     return cbsdf;
 }
@@ -268,7 +273,8 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 void LightWaterTransform(PositionInputs posInput, BSDFData bsdfData, inout float3 positionRWS, inout float3 forward, inout float3 right, inout float3 up)
 {
     float3 L = normalize(positionRWS - posInput.positionWS);
-    float3 refractL = -refract(-L, bsdfData.geomNormalWS, 1.0 / 1.333f);
+    float3 geomNormalWS = float3(0, 1, 0);
+    float3 refractL = -refract(-L, geomNormalWS, 1.0 / 1.333f);
 
     float3 axis = normalize(cross(L, refractL));
     float bsdfData_mask_x = 1.0f;
@@ -293,7 +299,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     float3 lightDirOS = TransformWorldToObjectDir(-lightData.forward);
 
-    float phaseTerm = ComputePhaseTerm(lightDirOS, V, bsdfData);
+    float phaseTerm = GetPhaseTerm(lightDirOS, V, bsdfData);
 
     dl.diffuse += (dl.diffuse * phaseTerm);
 
@@ -317,7 +323,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     float4 distances; // {d, d^2, 1/d, d_proj}
     GetPunctualLightVectors(posInput.positionWS, lightData, L, distances);
 
-    float phaseTerm = ComputePhaseTerm(L, V, bsdfData);
+    float phaseTerm = GetPhaseTerm(L, V, bsdfData);
 
     dl.diffuse += (dl.diffuse * phaseTerm);
 

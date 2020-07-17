@@ -59,14 +59,14 @@ struct SurfaceData
     uint materialFeatures;
     float3 normalWS;
     float3 lowFrequencyNormalWS;
-    float3 geomNormalWS;
+    float3 phaseNormalWS;
     float3 baseColor;
     float diffuseWrapAmount;
     float perceptualSmoothness;
     float specularSelfOcclusion;
     float anisotropy;
     float anisotropyIOR;
-    float anisotropyOffset;
+    float scatteringLambertLighting;
     float anisotropyWeight;
     float3 customRefractionColor;
 };
@@ -78,7 +78,7 @@ struct BSDFData
     uint materialFeatures;
     float3 normalWS;
     float3 lowFrequencyNormalWS;
-    float3 geomNormalWS;
+    float3 phaseNormalWS;
     float3 diffuseColor;
     float diffuseWrapAmount;
     float roughness;
@@ -87,7 +87,7 @@ struct BSDFData
     float specularSelfOcclusion;
     float anisotropy;
     float anisotropyIOR;
-    float anisotropyOffset;
+    float scatteringLambertLighting;
     float anisotropyWeight;
     float3 customRefractionColor;
 };
@@ -115,10 +115,10 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
         result = surfacedata.lowFrequencyNormalWS * 0.5 + 0.5;
         break;
     case DEBUGVIEW_WATER_SURFACEDATA_GEOMETRIC_NORMAL_WS:
-        result = surfacedata.geomNormalWS * 0.5 + 0.5;
+        result = surfacedata.phaseNormalWS * 0.5 + 0.5;
         break;
     case DEBUGVIEW_WATER_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
-        result = surfacedata.geomNormalWS * 0.5 + 0.5;
+        result = surfacedata.phaseNormalWS * 0.5 + 0.5;
         break;
     case DEBUGVIEW_WATER_SURFACEDATA_BASE_COLOR:
         result = surfacedata.baseColor;
@@ -140,7 +140,7 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
         result = surfacedata.anisotropyIOR.xxx;
         break;
     case DEBUGVIEW_WATER_SURFACEDATA_ANISOTROPY_OFFSET:
-        result = surfacedata.anisotropyOffset.xxx;
+        result = surfacedata.scatteringLambertLighting.xxx;
         break;
     case DEBUGVIEW_WATER_SURFACEDATA_ANISOTROPY_WEIGHT:
         result = surfacedata.anisotropyWeight.xxx;
@@ -174,10 +174,10 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         result = bsdfdata.lowFrequencyNormalWS * 0.5 + 0.5;
         break;
     case DEBUGVIEW_WATER_BSDFDATA_GEOMETRIC_NORMAL_WS:
-        result = bsdfdata.geomNormalWS * 0.5 + 0.5;
+        result = bsdfdata.phaseNormalWS * 0.5 + 0.5;
         break;
     case DEBUGVIEW_WATER_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
-        result = bsdfdata.geomNormalWS * 0.5 + 0.5;
+        result = bsdfdata.phaseNormalWS * 0.5 + 0.5;
         break;
     case DEBUGVIEW_WATER_BSDFDATA_DIFFUSE_COLOR:
         result = bsdfdata.diffuseColor;
@@ -205,7 +205,7 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         result = bsdfdata.anisotropyIOR.xxx;
         break;
     case DEBUGVIEW_WATER_BSDFDATA_ANISOTROPY_OFFSET:
-        result = bsdfdata.anisotropyOffset.xxx;
+        result = bsdfdata.scatteringLambertLighting.xxx;
         break;
     case DEBUGVIEW_WATER_BSDFDATA_ANISOTROPY_WEIGHT:
         result = bsdfdata.anisotropyWeight.xxx;
