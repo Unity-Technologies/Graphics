@@ -560,9 +560,7 @@ namespace UnityEngine.Rendering.Universal
             set { m_ShadowDistance = Mathf.Max(0.0f, value); }
         }
 
-        /// <summary>
-        /// Controls the amount of cascades. 0, 2, 3 and 4.
-        /// </summary>
+        // MTT this is obsolete. What todo?
         public ShadowCascadesOption shadowCascadeOption
         {
             get { return m_ShadowCascades; }
