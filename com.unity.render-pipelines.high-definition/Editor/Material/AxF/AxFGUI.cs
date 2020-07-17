@@ -36,7 +36,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
-            new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: SurfaceOptionUIBlock.Features.Unlit | SurfaceOptionUIBlock.Features.ReceiveDecal | SurfaceOptionUIBlock.Features.ReceiveSSR),
+            new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base,
+                features: SurfaceOptionUIBlock.Features.Surface | SurfaceOptionUIBlock.Features.BlendMode | SurfaceOptionUIBlock.Features.DoubleSided |
+                    SurfaceOptionUIBlock.Features.AlphaCutoff |  SurfaceOptionUIBlock.Features.AlphaCutoffShadowThreshold | SurfaceOptionUIBlock.Features.DoubleSidedNormalMode |
+                    SurfaceOptionUIBlock.Features.ReceiveSSR | SurfaceOptionUIBlock.Features.ReceiveDecal | SurfaceOptionUIBlock.Features.PreserveSpecularLighting
+                ),
             new AxfSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Input),
             new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.Instancing | AdvancedOptionsUIBlock.Features.SpecularOcclusion | AdvancedOptionsUIBlock.Features.AddPrecomputedVelocity),
         };

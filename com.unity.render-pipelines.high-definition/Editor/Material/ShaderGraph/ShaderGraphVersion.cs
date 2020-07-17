@@ -9,5 +9,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     public enum ShaderGraphVersion
     {
         Initial = 0,
+        FirstTimeMigration = Initial,
     }
 }

@@ -1,4 +1,6 @@
 * [High Definition Render Pipeline](index)
+* [What's new](whats-new.md)
+  * [10.0](whats-new-10-0.md)
 * Features
   * [Features List](HDRP-Features)
   * [Comparison with the Built-in Render Pipeline](Feature-Comparison)
@@ -40,6 +42,7 @@
       * [Physically Based Sky](Override-Physically-Based-Sky)
       * [Procedural Sky](Override-Procedural-Sky)
     * [Visual Environment](Override-Visual-Environment)
+  * [Volumes API](Volumes-API.md)
 * Render Pipeline Settings
   * [HDRP Asset](HDRP-Asset)
   * [Frame Settings](Frame-Settings)

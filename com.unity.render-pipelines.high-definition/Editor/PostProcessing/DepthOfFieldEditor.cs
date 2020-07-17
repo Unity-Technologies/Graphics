@@ -19,6 +19,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent k_NearFocusEnd = new GUIContent("End", "Sets the distance from the Camera at which the near field does not blur anymore.");
             public static GUIContent k_FarFocusEnd = new GUIContent("End", "Sets the distance from the Camera at which the far field blur reaches its maximum blur radius.");
+            public static GUIContent k_PhysicallyBased = new GUIContent("PhysicallyBased", "Uses a more accurate but slower physically based method to compute DoF.");
+
+            public static readonly string InfoBox = "Physically Based DoF currently has a high performance overhead. Enabling TAA is highly recommended when using this option.";
         }
 
         SerializedDataParameter m_FocusMode;
@@ -41,6 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Advanced settings
         SerializedDataParameter m_HighQualityFiltering;
         SerializedDataParameter m_Resolution;
+        SerializedDataParameter m_PhysicallyBased;
 
         public override bool hasAdvancedMode => true;
 
@@ -66,6 +70,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_HighQualityFiltering = Unpack(o.Find("m_HighQualityFiltering"));
             m_Resolution = Unpack(o.Find("m_Resolution"));
+            m_PhysicallyBased = Unpack(o.Find("m_PhysicallyBased"));
         }
 
         public override void OnInspectorGUI()
@@ -132,6 +137,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
                 PropertyField(m_Resolution);
                 PropertyField(m_HighQualityFiltering);
+                PropertyField(m_PhysicallyBased);
+                if(m_PhysicallyBased.value.boolValue == true)
+                    EditorGUILayout.HelpBox(Styles.InfoBox, MessageType.Info);
                 GUI.enabled = true;
             }
         }
