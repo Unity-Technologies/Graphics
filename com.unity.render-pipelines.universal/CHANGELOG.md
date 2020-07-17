@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a float2 normalizedScreenSpaceUV to the InputData Struct.
 - Added clear coat support for Lit particles.
 - Added new sections to documentation: [Writing custom shaders](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@10.0/manual/writing-custom-shaders-urp.html), and [Using the beginCameraRendering event](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@10.0/manual/using-begincamerarendering.html).
+- Added support for GPU instanced mesh particles on supported platforms.
 
 ### Changed
 
