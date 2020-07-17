@@ -98,6 +98,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         private const float LightTypeIdentifierInShadowParams_Spot = 0;
         private const float LightTypeIdentifierInShadowParams_Point = 1;
 
+        // Empirical value found to remove gaps between point light shadow faces (adds to the 90 degrees value that native API CullingResult.ComputePointShadowMatricesAndCullingPrimitives uses for point light faces frustum)
+        // TODO: investigate how to use a more precise value. For reference, HDRP calls HDShadowUtils.CalcGuardAnglePerspective to compute a precise value
+        internal const float PointLightShadowFovBiasInDegrees = 4;
+
         public bool Setup(ref RenderingData renderingData)
         {
             Clear();
@@ -202,7 +206,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                                     ref renderingData.shadowData,
                                     globalLightIndex,
                                     (CubemapFace)perLightShadowSlice,
-                                    4 /* fovBias in degrees (adds to the 90 deg. of a face frustum fov, avoids missing shadows at faces boundaries) - HDRP calls HDShadowUtils.CalcGuardAnglePerspective to compute a precise value */,
+                                    PointLightShadowFovBiasInDegrees,
                                     out var shadowTransform,
                                     out m_AdditionalLightsShadowSlices[globalShadowSliceIndex].viewMatrix,
                                     out m_AdditionalLightsShadowSlices[globalShadowSliceIndex].projectionMatrix);
