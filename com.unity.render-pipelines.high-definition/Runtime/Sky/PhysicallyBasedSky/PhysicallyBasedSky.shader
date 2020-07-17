@@ -223,8 +223,9 @@ Shader "Hidden/HDRP/Sky/PbrSky"
             EvaluatePbrAtmosphere(_WorldSpaceCameraPos1, V, distAlongRay, renderSunDisk, skyColor, skyOpacity);
         }
 
+        // Hacky way to boost the clouds for PBR sky
+        skyColor += ApplyCloudLayer(-V, 0) * 1000;
         skyColor += radiance * (1 - skyOpacity);
-        skyColor = ApplyCloudLayer(-V, skyColor);
         skyColor *= _IntensityMultiplier;
 
         return float4(skyColor, 1.0);
