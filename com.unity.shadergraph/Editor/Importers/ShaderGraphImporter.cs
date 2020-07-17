@@ -112,12 +112,14 @@ Shader ""Hidden/GraphErrorShader2""
             graph.ValidateGraph();
 
             // TODO: How to handle this?
+#if VFX_GRAPH_10_0_0_OR_NEWER
             if (graph.isVFXTarget)
             {
                 var vfxAsset = GenerateVfxShaderGraphAsset(graph);
                 mainObject = vfxAsset;
             }
             else
+#endif
             {
             var text = GetShaderText(path, out configuredTextures, sourceAssetDependencyPaths,graph);
             var shader = ShaderUtil.CreateShaderAsset(text, false);
@@ -243,6 +245,7 @@ Shader ""Hidden/GraphErrorShader2""
             return GetShaderText(path, out configuredTextures, null,graph );
         }
 
+#if VFX_GRAPH_10_0_0_OR_NEWER
         // TODO: Fix this
         static ShaderGraphVfxAsset GenerateVfxShaderGraphAsset(GraphData graph)
         {
@@ -650,5 +653,6 @@ Shader ""Hidden/GraphErrorShader2""
 
             return asset;
         }
+#endif
     }
 }
