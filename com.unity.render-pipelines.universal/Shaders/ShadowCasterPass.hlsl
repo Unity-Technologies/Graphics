@@ -4,7 +4,10 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
-float3 _LightDirection;
+// For Directional lights, this variable contains shadow-casting light's direction.
+// For Spot lights and Point lights, this variable contains shadow-casting light's position (direction is different at each vertex of the shadow casting geometry).
+// This variable is set by UnityEngine.Rendering.Universal.ShadowUtils.SetupShadowCasterConstantBuffer in com.unity.render-pipelines.universal/Runtime/ShadowUtils.cs 
+float3 _ShadowCastingLightParameters;
 
 struct Attributes
 {
@@ -25,7 +28,14 @@ float4 GetShadowPositionHClip(Attributes input)
     float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
     float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
 
-    float4 positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, _LightDirection));
+#if _CASTING_DIRECTIONAL_LIGHT_SHADOW
+    float3 lightDirectionWS = _ShadowCastingLightParameters;
+#else
+    float3 lightPositionWS = _ShadowCastingLightParameters;
+    float3 lightDirectionWS = normalize(lightPositionWS - positionWS);
+#endif
+
+    float4 positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDirectionWS));
 
 #if UNITY_REVERSED_Z
     positionCS.z = min(positionCS.z, positionCS.w * UNITY_NEAR_CLIP_VALUE);

@@ -151,6 +151,10 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
 
+            // -------------------------------------
+            // Universal Pipeline keywords
+            #pragma multi_compile_vertex _ _CASTING_DIRECTIONAL_LIGHT_SHADOW
+
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
 
@@ -399,6 +403,10 @@ Shader "Universal Render Pipeline/Lit"
             // Material Keywords
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+
+            // -------------------------------------
+            // Universal Pipeline keywords
+            #pragma multi_compile_vertex _ _CASTING_DIRECTIONAL_LIGHT_SHADOW
 
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
