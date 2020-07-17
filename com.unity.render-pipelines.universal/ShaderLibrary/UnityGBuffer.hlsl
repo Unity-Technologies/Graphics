@@ -30,7 +30,7 @@ float PackMaterialFlags(uint materialFlags)
 
 uint UnpackMaterialFlags(float packedMaterialFlags)
 {
-    return uint(packedMaterialFlags * 255.0h);
+    return uint((packedMaterialFlags * 255.0h) + 0.5h);
 }
 
 // This will encode SurfaceData into GBuffer
@@ -159,9 +159,9 @@ BRDFData BRDFDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer2)
     half smoothness = gbuffer2.a * 0.5h + 0.5h;
 #endif
 
-    BRDFData brdfData;
+    BRDFData brdfData = (BRDFData)0;
     half alpha = 1.0; // NOTE: alpha can get modfied, forward writes it out (_ALPHAPREMULTIPLY_ON).
-    InitializeBRDFDataDirect(gbuffer0.rgb, gbuffer1.rgb, reflectivity, oneMinusReflectivity, smoothness, alpha, brdfData);
+    InitializeBRDFDataDirect(diffuse, specular, reflectivity, oneMinusReflectivity, smoothness, alpha, brdfData);
 
     return brdfData;
 }
@@ -177,7 +177,7 @@ InputData InputDataFromGbufferAndWorldPosition(half4 gbuffer2, float3 wsPos)
     half2 octNormalWS = remappedOctNormalWS.xy * 2.0h - 1.0h;    // values between [-1, +1]
     inputData.normalWS = UnpackNormalOctQuadEncode(octNormalWS);
 #else
-    inputData.normalWS = gbuffer2.xyz;  // values between [-1, +1]
+    inputData.normalWS = normalize(gbuffer2.xyz);  // values between [-1, +1]
 #endif
 
     inputData.viewDirectionWS = normalize(GetCameraPositionWS() - wsPos.xyz);
