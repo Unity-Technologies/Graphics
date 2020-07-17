@@ -63,7 +63,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                                                                        + typeof(DiffusionProfileNode)
                                                                        + typeof(ExposureNode)
                                                                        + typeof(EmissionNode)
-                                                                       + typeof(ParallaxOcclusionMappingNode)
                                                                        + typeof(CirclePupilAnimation)
                                                                        + typeof(CorneaRefraction)
                                                                        + typeof(EyeSurfaceTypeDebug)

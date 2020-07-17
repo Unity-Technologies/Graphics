@@ -1,14 +1,13 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.Graphing;
+using System.Linq;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing.Controls;
-using System;
-using System.Linq;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.ShaderGraph;
 
-namespace UnityEngine.Rendering.ShaderGraph
+namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Parallax Occlusion Mapping")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.ParallaxOcclusionMappingNode")]

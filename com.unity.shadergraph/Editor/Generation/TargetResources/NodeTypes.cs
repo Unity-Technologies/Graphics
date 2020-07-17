@@ -47,7 +47,8 @@ namespace UnityEditor.ShaderGraph
 
             public static NodeTypeCollection Utility = new NodeTypeCollection()
             {
-                typeof(ColorspaceConversionNode)
+                typeof(ColorspaceConversionNode),
+                typeof(ParallaxOcclusionMappingNode)
             };
 
             public static NodeTypeCollection All = new NodeTypeCollection()
