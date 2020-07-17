@@ -96,8 +96,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                     context.ExecuteCommandBuffer(cmd);
 
-                    DrawingSettings combinedDrawSettings = CreateDrawingSettings(k_ShaderTags, ref renderingData, SortingCriteria.CommonTransparent);
-                    DrawingSettings normalsDrawSettings = CreateDrawingSettings(k_NormalsRenderingPassName, ref renderingData, SortingCriteria.CommonTransparent);
+                    DrawingSettings combinedDrawSettings = CreateDrawingSettings(k_ShaderTags, ref renderingData,
+                        SortingCriteria.CommonTransparent);
+                    DrawingSettings normalsDrawSettings = CreateDrawingSettings(k_NormalsRenderingPassName,
+                        ref renderingData, SortingCriteria.CommonTransparent);
 
                     SortingSettings sortSettings = combinedDrawSettings.sortingSettings;
                     GetTransparencySortingMode(camera, ref sortSettings);
