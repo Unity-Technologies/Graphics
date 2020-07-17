@@ -32,7 +32,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             SerializedObject serializedObject;
             public SerializedProperty skyUniqueID;
-
             public VolumeProfile volumeProfile
             {
                 get => (serializedObject.targetObject as StaticLightingSky).profile;
@@ -177,7 +176,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 var profile = m_SerializedActiveSceneLightingSky.volumeProfile;
                 var newProfile = EditorGUILayout.ObjectField(EditorGUIUtility.TrTextContent("Profile"), profile, typeof(VolumeProfile), allowSceneObjects: false) as VolumeProfile;
                 if (profile != newProfile)
+                {
                     m_SerializedActiveSceneLightingSky.volumeProfile = newProfile;
+                }
 
                 using (new EditorGUI.DisabledScope(m_SkyClassNames.Count == 1)) // Only "None"
                 {
@@ -211,7 +212,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 foreach (KeyValuePair<int, Type> kvp in skyTypesDict)
                 {
-                    if (profile.Has(kvp.Value))
+                    if (profile.TryGet(kvp.Value, out VolumeComponent comp) && comp.active)
                     {
                         m_SkyClassNames.Add(new GUIContent(kvp.Value.Name.ToString()));
                         m_SkyUniqueIDs.Add(kvp.Key);

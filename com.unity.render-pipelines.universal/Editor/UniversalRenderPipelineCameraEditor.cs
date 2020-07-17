@@ -154,7 +154,7 @@ namespace UnityEditor.Rendering.Universal
         {
             SetAnimationTarget(m_ShowBGColorAnim, initialize, isSameClearFlags && (camera.clearFlags == CameraClearFlags.SolidColor || camera.clearFlags == CameraClearFlags.Skybox));
             SetAnimationTarget(m_ShowOrthoAnim, initialize, isSameOrthographic && camera.orthographic);
-            SetAnimationTarget(m_ShowTargetEyeAnim, initialize, settings.targetEye.intValue != (int)StereoTargetEyeMask.Both || XRGraphics.tryEnable);
+            SetAnimationTarget(m_ShowTargetEyeAnim, initialize, settings.targetEye.intValue != (int)StereoTargetEyeMask.Both);
         }
 
         void UpdateCameraTypeIntPopupData()
@@ -311,10 +311,55 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
+        // Modified version of StageHandle.FindComponentsOfType<T>()
+        // This version more closely represents unity object referencing restrictions.
+        // I added these restrictions:
+        // - Can not reference scene object outside scene
+        // - Can not reference cross scenes
+        // - Can reference child objects if it is prefab
+        Camera[] FindCamerasToReference(GameObject gameObject)
+        {
+            var scene = gameObject.scene;
+
+            var inScene = !EditorUtility.IsPersistent(camera) || scene.IsValid();
+            var inPreviewScene = EditorSceneManager.IsPreviewScene(scene) && scene.IsValid();
+            var inCurrentScene = !EditorUtility.IsPersistent(camera) && scene.IsValid();
+
+            Camera[] cameras = Resources.FindObjectsOfTypeAll<Camera>();
+            List<Camera> result = new List<Camera>();
+            if (!inScene)
+            {
+                foreach (var camera in cameras)
+                {
+                    if (camera.transform.IsChildOf(gameObject.transform))
+                        result.Add(camera);
+                }
+            }
+            else if (inPreviewScene)
+            {
+                foreach (var camera in cameras)
+                {
+                    if (camera.gameObject.scene == scene)
+                        result.Add(camera);
+                }
+            }
+            else if (inCurrentScene)
+            {
+                foreach (var camera in cameras)
+                {
+                    if (!EditorUtility.IsPersistent(camera) && !EditorSceneManager.IsPreviewScene(camera.gameObject.scene) && camera.gameObject.scene == scene)
+                        result.Add(camera);
+                }
+            }
+            
+            return result.ToArray();
+        }
+
         void AddCameraToCameraList(Rect rect, ReorderableList list)
         {
-            StageHandle stageHandle = StageUtility.GetStageHandle(camera.gameObject);
-            var allCameras = stageHandle.FindComponentsOfType<Camera>();
+            // Need to do clear the list here otherwise the meu just fills up with more and more entries
+            validCameras.Clear();
+            var allCameras = FindCamerasToReference(camera.gameObject);
             foreach (var camera in allCameras)
             {
                 var component = camera.gameObject.GetComponent<UniversalAdditionalCameraData>();
@@ -328,10 +373,9 @@ namespace UnityEditor.Rendering.Universal
             }
 
             var names = new GUIContent[validCameras.Count];
-
             for (int i = 0; i < validCameras.Count; ++i)
             {
-                names[i] = new GUIContent(validCameras[i].name);
+                names[i] = new GUIContent((i+1) + " " + validCameras[i].name);
             }
 
             if (!validCameras.Any())
@@ -475,16 +519,6 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.HelpBox("The renderer used by this camera doesn't support camera stacking. Only Base camera will render.", MessageType.Warning);
                 return;
             }
-
-            // TODO: Warn when MultiPass is active and enabled so we show in the UI camera stacking is not supported.
-            // Seems like the stereo rendering mode only changes in playmode. Check the reason so we can enable this check.
-//#if ENABLE_VR
-//            if (UnityEngine.XR.XRSettings.stereoRenderingMode == UnityEngine.XR.XRSettings.StereoRenderingMode.MultiPass)
-//            {
-//                EditorGUILayout.HelpBox("Camera Stacking is not supported in Multi Pass stereo mode. Only Base camera will render.", MessageType.Warning);
-//                return;
-//            }
-//#endif
 
             if (m_StackSettingsFoldout.value)
             {

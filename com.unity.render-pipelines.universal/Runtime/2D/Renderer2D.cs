@@ -12,6 +12,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         FinalBlitPass m_FinalBlitPass;
         PostProcessPass m_FinalPostProcessPass;
 
+        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Create Camera Textures");
+
         bool m_UseDepthStencilBuffer = true;
         bool m_CreateColorTexture;
         bool m_CreateDepthTexture;
@@ -83,7 +85,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     || cameraData.isSceneViewCamera
                     || !cameraData.isDefaultViewport
                     || !m_UseDepthStencilBuffer
-                    || !cameraData.resolveFinalTarget;
+                    || !cameraData.resolveFinalTarget
+                    || !Mathf.Approximately(cameraData.renderScale, 1.0f);
 
                 m_CreateDepthTexture = !cameraData.resolveFinalTarget && m_UseDepthStencilBuffer;
 
@@ -154,8 +157,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             RenderTargetHandle colorTargetHandle;
             RenderTargetHandle depthTargetHandle;
 
-            CommandBuffer cmd = CommandBufferPool.Get("Create Camera Textures");
-            CreateRenderTextures(ref cameraData, ppcUsesOffscreenRT, colorTextureFilterMode, cmd, out colorTargetHandle, out depthTargetHandle);
+            CommandBuffer cmd = CommandBufferPool.Get();
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            {
+                CreateRenderTextures(ref cameraData, ppcUsesOffscreenRT, colorTextureFilterMode, cmd,
+                    out colorTargetHandle, out depthTargetHandle);
+            }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 

@@ -9,7 +9,7 @@
 #define kLightingInvalid  -1  // No dynamic lighting: can aliase any other material type as they are skipped using stencil
 #define kLightingSimpleLit 2  // Simple lit shader
 // clearcoat 3
-// backscatter 4 
+// backscatter 4
 // skin 5
 
 #define kMaterialFlagReceiveShadowsOff     1
@@ -30,7 +30,7 @@ float PackMaterialFlags(uint materialFlags)
 
 uint UnpackMaterialFlags(float packedMaterialFlags)
 {
-    return uint(packedMaterialFlags * 255.0h);
+    return uint((packedMaterialFlags * 255.0h) + 0.5h);
 }
 
 // This will encode SurfaceData into GBuffer
@@ -159,8 +159,9 @@ BRDFData BRDFDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer2)
     half smoothness = gbuffer2.a * 0.5h + 0.5h;
 #endif
 
-    BRDFData brdfData;
-    InitializeBRDFDataDirect(gbuffer0.rgb, gbuffer1.rgb, reflectivity, oneMinusReflectivity, smoothness, 1.0, brdfData);
+    BRDFData brdfData = (BRDFData)0;
+    half alpha = 1.0; // NOTE: alpha can get modfied, forward writes it out (_ALPHAPREMULTIPLY_ON).
+    InitializeBRDFDataDirect(diffuse, specular, reflectivity, oneMinusReflectivity, smoothness, alpha, brdfData);
 
     return brdfData;
 }
@@ -176,10 +177,10 @@ InputData InputDataFromGbufferAndWorldPosition(half4 gbuffer2, float3 wsPos)
     half2 octNormalWS = remappedOctNormalWS.xy * 2.0h - 1.0h;    // values between [-1, +1]
     inputData.normalWS = UnpackNormalOctQuadEncode(octNormalWS);
 #else
-    inputData.normalWS = gbuffer2.xyz;  // values between [-1, +1]
+    inputData.normalWS = normalize(gbuffer2.xyz);  // values between [-1, +1]
 #endif
 
-    inputData.viewDirectionWS = normalize(GetCameraPositionWS() - wsPos.xyz);
+    inputData.viewDirectionWS = SafeNormalize(GetWorldSpaceViewDir(wsPos.xyz));
 
     // TODO: pass this info?
     inputData.shadowCoord     = (float4)0;

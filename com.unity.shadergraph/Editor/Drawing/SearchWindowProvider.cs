@@ -9,6 +9,7 @@ using UnityEditor.UIElements;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
 using UnityEditor.Searcher;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -31,6 +32,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public bool nodeNeedsRepositioning { get; set; }
         public SlotReference targetSlotReference { get; internal set; }
         public Vector2 targetPosition { get; internal set; }
+        public VisualElement target { get; internal set; }
         public bool regenerateEntries { get; set; }
         private const string k_HiddenFolderName = "Hidden";
 
@@ -61,9 +63,43 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void GenerateNodeEntries()
         {
+            Profiler.BeginSample("SearchWindowProvider.GenerateNodeEntries");
             // First build up temporary data structure containing group & title as an array of strings (the last one is the actual title) and associated node type.
-            var nodeEntries = new List<NodeEntry>();
-            foreach (var type in TypeCache.GetTypesDerivedFrom<AbstractMaterialNode>())
+            List<NodeEntry> nodeEntries = new List<NodeEntry>();
+            
+            if(target is ContextView contextView)
+            {                
+                // Iterate all BlockFieldDescriptors currently cached on GraphData
+                foreach(var field in m_Graph.blockFieldDescriptors)
+                {
+                    if(field.isHidden)
+                        continue;
+
+                    // Test stage
+                    if(field.shaderStage != contextView.contextData.shaderStage)
+                        continue;
+
+                    // Create title
+                    List<string> title = ListPool<string>.Get();
+                    if(!string.IsNullOrEmpty(field.path))
+                    {
+                        var path = field.path.Split('/').ToList();
+                        title.AddRange(path);
+                    }
+                    title.Add(field.displayName);
+
+                    // Create and initialize BlockNode instance then add entry
+                    var node = (BlockNode)Activator.CreateInstance(typeof(BlockNode));
+                    node.Init(field);
+                    AddEntries(node, title.ToArray(), nodeEntries);
+                }
+
+                SortEntries(nodeEntries);
+                currentNodeEntries = nodeEntries;
+                return;
+            }
+            
+            foreach (var type in NodeClassCache.knownNodeTypes)
             {
                 if ((!type.IsClass || type.IsAbstract)
                     || type == typeof(PropertyNode)
@@ -71,10 +107,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     || type == typeof(SubGraphNode))
                     continue;
 
-                if (type.GetCustomAttributes(typeof(TitleAttribute), false) is TitleAttribute[] attrs && attrs.Length > 0)
+                TitleAttribute titleAttribute = NodeClassCache.GetAttributeOnNodeType<TitleAttribute>(type);
+                if (titleAttribute != null)
                 {
                     var node = (AbstractMaterialNode) Activator.CreateInstance(type);
-                    AddEntries(node, attrs[0].title, nodeEntries);
+                    AddEntries(node, titleAttribute.title, nodeEntries);
                 }
             }
 
@@ -114,6 +151,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddEntries(node, new[] { "Keywords", "Keyword: " + keyword.displayName }, nodeEntries);
             }
 
+            SortEntries(nodeEntries);
+            currentNodeEntries = nodeEntries;
+            Profiler.EndSample();
+        }
+
+        void SortEntries(List<NodeEntry> nodeEntries)
+        {
             // Sort the entries lexicographically by group then title with the requirement that items always comes before sub-groups in the same group.
             // Example result:
             // - Art/BlendMode
@@ -142,9 +186,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                     return 0;
                 });
-
-
-            currentNodeEntries = nodeEntries;
         }
 
         void AddEntries(AbstractMaterialNode node, string[] title, List<NodeEntry> addNodeEntries)
@@ -204,6 +245,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 GenerateNodeEntries();
                 regenerateEntries = false;
             }
+            
             //create empty root for searcher tree
             var root = new List<SearcherItem>();
             var dummyEntry = new NodeEntry();
@@ -252,6 +294,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             return new Searcher.Searcher(nodeDatabase, new SearchWindowAdapter("Create Node"));
         }
+
         public bool OnSearcherSelectEntry(SearcherItem entry, Vector2 screenMousePosition)
         {
             if(entry == null || (entry as SearchNodeItem).NodeGUID.node == null)
@@ -260,16 +303,32 @@ namespace UnityEditor.ShaderGraph.Drawing
             var nodeEntry = (entry as SearchNodeItem).NodeGUID;
             var node = CopyNodeForGraph(nodeEntry.node);
 
-            var drawState = node.drawState;
-
-
             var windowRoot = m_EditorWindow.rootVisualElement;
             var windowMousePosition = windowRoot.ChangeCoordinatesTo(windowRoot.parent, screenMousePosition );//- m_EditorWindow.position.position);
             var graphMousePosition = m_GraphView.contentViewContainer.WorldToLocal(windowMousePosition);
-            drawState.position = new Rect(graphMousePosition, Vector2.zero);
-            node.drawState = drawState;
 
             m_Graph.owner.RegisterCompleteObjectUndo("Add " + node.name);
+
+            if(node is BlockNode blockNode)
+            {
+                if(!(target is ContextView contextView))
+                    return false;
+
+                // Test against all current BlockNodes in the Context
+                // Never allow duplicate BlockNodes
+                if(contextView.contextData.blocks.Where(x => x.value.name == blockNode.name).FirstOrDefault().value != null)
+                    return false;
+                
+                // Insert block to Data
+                blockNode.owner = m_Graph;
+                int index = contextView.GetInsertionIndex(screenMousePosition);
+                m_Graph.AddBlock(blockNode, contextView.contextData, index);
+                return true;
+            }
+            
+            var drawState = node.drawState;
+            drawState.position = new Rect(graphMousePosition, Vector2.zero);
+            node.drawState = drawState;
             m_Graph.AddNode(node);
 
             if (connectedPort != null)
@@ -289,6 +348,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             return true;
         }
+        
         public AbstractMaterialNode CopyNodeForGraph(AbstractMaterialNode oldNode)
         {
             var newNode = (AbstractMaterialNode)Activator.CreateInstance(oldNode.GetType());
@@ -308,9 +368,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                 keywordNode.keyword = ((KeywordNode)oldNode).keyword;
                 keywordNode.owner = null;
             }
+            else if(newNode is BlockNode blockNode)
+            {
+                blockNode.owner = m_Graph;
+                blockNode.Init(((BlockNode)oldNode).descriptor);
+                blockNode.owner = null;
+            }
             return newNode;
         }
     }
-
-
 }

@@ -1,3 +1,5 @@
+#ifndef HD_SHADOW_SAMPLING_INCLUDED
+#define HD_SHADOW_SAMPLING_INCLUDED
 // Various shadow sampling logic.
 // Again two versions, one for dynamic resource indexing, one for static resource access.
 
@@ -266,7 +268,8 @@ float SampleShadow_MSM_1tap(float3 tcs, float lightLeakBias, float momentBias, f
 //
 //                  PCSS sampling
 //
-float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, float shadowSoftness, float minFilterRadius, int blockerSampleCount, int filterSampleCount, Texture2D tex, SamplerComparisonState compSamp, SamplerState samp, float depthBias, float4 zParams, bool isPerspective)
+// Note shadowAtlasInfo contains: x: resolution, y: the inverse of atlas resolution
+float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, float shadowSoftness, float minFilterRadius, int blockerSampleCount, int filterSampleCount, Texture2D tex, SamplerComparisonState compSamp, SamplerState samp, float depthBias, float4 zParams, bool isPerspective, float2 shadowAtlasInfo)
 {
 #if SHADOW_USE_DEPTH_BIAS == 1
     // add the depth bias
@@ -277,8 +280,6 @@ float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, f
     float sampleJitterAngle = InterleavedGradientNoise(posSS.xy, taaFrameIndex) * 2.0 * PI;
     float2 sampleJitter = float2(sin(sampleJitterAngle), cos(sampleJitterAngle));
 
-    // x contains resolution and y the inverse of atlas resolution
-    float2 shadowAtlasInfo = isPerspective ? _ShadowAtlasSize.xz : _CascadeShadowAtlasSize.xz;
 
     // Note: this is a hack, but the original implementation was faulty as it didn't scale offset based on the resolution of the atlas (*not* the shadow map).
     // All the softness fitting has been done using a reference 4096x4096, hence the following scale.
@@ -329,3 +330,4 @@ float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, f
 //  shadowData.shadowFilterParams0.z = shadowRequest.maxDepthBias;
 
 // #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDIMS.hlsl"
+#endif

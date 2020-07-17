@@ -6,6 +6,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal static class RendererLighting
     {
+        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Clear Normals");
         static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
         static readonly Color k_NormalClearColor = new Color(0.5f, 0.5f, 1.0f, 1.0f);
         static readonly string k_SpriteLightKeyword = "SPRITE_LIGHT";
@@ -193,7 +194,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 CreateShadowRenderTexture(cmdBuffer, light.blendStyleIndex);
 
-                cmdBuffer.SetRenderTarget(s_ShadowsRenderTarget.Identifier()); // This isn't efficient if this light doesn't cast shadow.
+                cmdBuffer.SetRenderTarget(s_ShadowsRenderTarget.Identifier(), RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                 cmdBuffer.ClearRenderTarget(true, true, Color.black);
 
                 BoundingSphere lightBounds = light.GetBoundingSphere(); // Gets the local bounding sphere...
@@ -243,7 +244,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                                 if (shadowCaster != null && shadowMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
                                 {
-                                    if (shadowCaster.useRendererSilhouette) 
+                                    if (shadowCaster.useRendererSilhouette)
                                     {
                                         Renderer renderer = shadowCaster.GetComponent<Renderer>();
                                         if (renderer != null)
@@ -276,7 +277,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         static private bool RenderLightSet(Camera camera, int blendStyleIndex, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights)
         {
             bool renderedAnyLight = false;
-            
+
             foreach (var light in lights)
             {
                 if (light != null && light.lightType != Light2D.LightType.Global && light.blendStyleIndex == blendStyleIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
@@ -483,10 +484,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         static public void RenderNormals(ScriptableRenderContext renderContext, CullingResults cullResults, DrawingSettings drawSettings, FilteringSettings filterSettings, RenderTargetIdentifier depthTarget)
         {
-            var cmd = CommandBufferPool.Get("Clear Normals");
-            cmd.SetRenderTarget(s_NormalsTarget.Identifier(), depthTarget);
-            cmd.ClearRenderTarget(true, true, k_NormalClearColor);
-            renderContext.ExecuteCommandBuffer(cmd);
+            var cmd = CommandBufferPool.Get();
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            {
+                cmd.SetRenderTarget(s_NormalsTarget.Identifier(), depthTarget);
+                cmd.ClearRenderTarget(true, true, k_NormalClearColor);
+                renderContext.ExecuteCommandBuffer(cmd);
+            }
             CommandBufferPool.Release(cmd);
 
             drawSettings.SetShaderPassName(0, k_NormalsRenderingPassName);
@@ -547,7 +551,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     layerToRender,
                     renderTarget,
                     depthTarget,
-                    Light2D.GetLightsByBlendStyle(i)                  
+                    Light2D.GetLightsByBlendStyle(i)
                 );
 
                 cmdBuffer.EndSample(sampleName);

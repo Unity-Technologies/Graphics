@@ -98,6 +98,42 @@ namespace UnityEngine.Rendering
 #endif
         }
 
+        /// <summary>
+        /// Begin the profiling block.
+        /// </summary>
+        /// <param name="cmd">Command buffer used by the profiling block.</param>
+        public void Begin(CommandBuffer cmd)
+        {
+            if (cmd != null)
+#if UNITY_USE_RECORDER
+                if (sampler != null)
+                    cmd.BeginSample(sampler);
+                else
+                    cmd.BeginSample(name);
+#else
+                cmd.BeginSample(name);
+#endif
+            inlineSampler?.Begin();
+        }
+
+        /// <summary>
+        /// End the profiling block.
+        /// </summary>
+        /// <param name="cmd">Command buffer used by the profiling block.</param>
+        public void End(CommandBuffer cmd)
+        {
+            if (cmd != null)
+#if UNITY_USE_RECORDER
+                if (sampler != null)
+                    cmd.EndSample(sampler);
+                else
+                    cmd.EndSample(name);
+#else
+                    m_Cmd.EndSample(name);
+#endif
+            inlineSampler?.End();
+        }
+
         internal bool IsValid() { return (sampler != null && inlineSampler != null); }
 
         internal CustomSampler sampler { get; private set; }
@@ -187,11 +223,9 @@ namespace UnityEngine.Rendering
     /// </summary>
     public struct ProfilingScope : IDisposable
     {
-        string          m_Name;
-        CommandBuffer   m_Cmd;
-        bool            m_Disposed;
-        CustomSampler   m_Sampler;
-        CustomSampler   m_InlineSampler;
+        CommandBuffer       m_Cmd;
+        bool                m_Disposed;
+        ProfilingSampler    m_Sampler;
 
         /// <summary>
         /// Profiling Scope constructor
@@ -200,31 +234,17 @@ namespace UnityEngine.Rendering
         /// <param name="sampler">Profiling Sampler to be used for this scope.</param>
         public ProfilingScope(CommandBuffer cmd, ProfilingSampler sampler)
         {
+            // NOTE: Do not mix with named CommandBuffers.
+            // Currently there's an issue which results in mismatched markers.
+            // The named CommandBuffer will close its "profiling scope" on execution.
+            // That will orphan ProfilingScope markers as the named CommandBuffer marker
+            // is their "parent".
+            // Resulting in following pattern:
+            // exec(cmd.start, scope.start, cmd.end) and exec(cmd.start, scope.end, cmd.end)
             m_Cmd = cmd;
             m_Disposed = false;
-            if (sampler != null)
-            {
-                m_Name = sampler.name; // Don't use CustomSampler.name because it causes garbage
-                m_Sampler = sampler.sampler;
-                m_InlineSampler = sampler.inlineSampler;
-            }
-            else
-            {
-                m_Name = "NullProfilingSampler"; // Don't use CustomSampler.name because it causes garbage
-                m_Sampler = null;
-                m_InlineSampler = null;
-            }
-
-            if (cmd != null)
-#if UNITY_USE_RECORDER
-                if (m_Sampler != null)
-                    cmd.BeginSample(m_Sampler);
-                else
-                    cmd.BeginSample(m_Name);
-#else
-                cmd.BeginSample(m_Name);
-#endif
-            m_InlineSampler?.Begin();
+            m_Sampler = sampler;
+            m_Sampler?.Begin(m_Cmd);
         }
 
         /// <summary>
@@ -246,16 +266,7 @@ namespace UnityEngine.Rendering
             // this but will generate garbage on every frame (and this struct is used quite a lot).
             if (disposing)
             {
-                if (m_Cmd != null)
-#if UNITY_USE_RECORDER
-                    if (m_Sampler != null)
-                        m_Cmd.EndSample(m_Sampler);
-                    else
-                        m_Cmd.EndSample(m_Name);
-#else
-                    m_Cmd.EndSample(m_Name);
-#endif
-                m_InlineSampler?.End();
+                m_Sampler?.End(m_Cmd);
             }
 
             m_Disposed = true;

@@ -22,12 +22,27 @@ namespace UnityEditor.Rendering.HighDefinition
                 keywords = SettingsProvider.GetSearchKeywordsFromGUIContentProperties<HDRenderPipelineUI.Styles.GeneralSection>()
                     .Concat(SettingsProvider.GetSearchKeywordsFromGUIContentProperties<DefaultSettingsPanelIMGUI.Styles>())
                     .Concat(OverridableFrameSettingsArea.frameSettingsKeywords).ToArray(),
-                guiHandler = s_IMGUIImpl.OnGUI,
+                guiHandler = s_IMGUIImpl.DoGUI,
             };
         }
 
         class DefaultSettingsPanelIMGUI
         {
+            // A wrapper for CoreEditorDrawers
+            class CoreEditorDrawerEditorWrapper : Editor, IDefaultFrameSettingsType
+            {
+                public FrameSettingsRenderType GetFrameSettingsType()
+                {
+                    switch (HDRenderPipelineUI.selectedFrameSettings)
+                    {
+                        case HDRenderPipelineUI.SelectedFrameSettings.Camera: return FrameSettingsRenderType.Camera;
+                        case HDRenderPipelineUI.SelectedFrameSettings.RealtimeReflection: return FrameSettingsRenderType.RealtimeReflection;
+                        case HDRenderPipelineUI.SelectedFrameSettings.BakedOrCustomReflection: return FrameSettingsRenderType.CustomOrBakedReflection;
+                    }
+                    throw new Exception("unreachable");
+                }
+            }
+
             public class Styles
             {
                 public const int labelWidth = 220;
@@ -43,11 +58,13 @@ namespace UnityEditor.Rendering.HighDefinition
             Editor m_CachedDefaultVolumeProfileEditor;
             Editor m_CachedLookDevVolumeProfileEditor;
             ReorderableList m_BeforeTransparentCustomPostProcesses;
+            ReorderableList m_BeforeTAACustomPostProcesses;
             ReorderableList m_BeforePostProcessCustomPostProcesses;
             ReorderableList m_AfterPostProcessCustomPostProcesses;
             int m_CurrentVolumeProfileInstanceID;
+            private Editor m_Cache;
 
-            public void OnGUI(string searchContext)
+            public void DoGUI(string searchContext)
             {
                 m_ScrollViewPosition = GUILayout.BeginScrollView(m_ScrollViewPosition, EditorStyles.largeLabel);
                 Draw_GeneralSettings();
@@ -75,6 +92,13 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 m_ScrollViewPosition = Vector2.zero;
                 InitializeCustomPostProcessesLists();
+
+                var editorResources = HDRenderPipeline.defaultAsset.renderPipelineEditorResources;
+                if (!EditorUtility.IsPersistent(editorResources))
+                {
+                    var editorResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset";
+                    HDRenderPipeline.defaultAsset.renderPipelineEditorResources = AssetDatabase.LoadAssetAtPath<HDRenderPipelineEditorResources>(editorResourcesPath);
+                }
             }
 
             void InitializeCustomPostProcessesLists()
@@ -96,6 +120,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 InitList(ref m_BeforeTransparentCustomPostProcesses, hdrpAsset.beforeTransparentCustomPostProcesses, "After Opaque And Sky", CustomPostProcessInjectionPoint.AfterOpaqueAndSky);
+                InitList(ref m_BeforeTAACustomPostProcesses, hdrpAsset.beforeTAACustomPostProcesses, "Before TAA", CustomPostProcessInjectionPoint.BeforeTAA);
                 InitList(ref m_BeforePostProcessCustomPostProcesses, hdrpAsset.beforePostProcessCustomPostProcesses, "Before Post Process", CustomPostProcessInjectionPoint.BeforePostProcess);
                 InitList(ref m_AfterPostProcessCustomPostProcesses, hdrpAsset.afterPostProcessCustomPostProcesses, "After Post Process", CustomPostProcessInjectionPoint.AfterPostProcess);
 
@@ -150,6 +175,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     return;
 
                 m_BeforeTransparentCustomPostProcesses.DoLayoutList();
+                m_BeforeTAACustomPostProcesses.DoLayoutList();
                 m_BeforePostProcessCustomPostProcesses.DoLayoutList();
                 m_AfterPostProcessCustomPostProcesses.DoLayoutList();
             }
@@ -268,7 +294,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 var serializedObject = new SerializedObject(hdrpAsset);
                 var serializedHDRPAsset = new SerializedHDRenderPipelineAsset(serializedObject);
 
-                HDRenderPipelineUI.FrameSettingsSection.Draw(serializedHDRPAsset, null);
+                Editor.CreateCachedEditor(hdrpAsset, typeof(CoreEditorDrawerEditorWrapper), ref m_Cache);
+
+                HDRenderPipelineUI.FrameSettingsSection.Draw(serializedHDRPAsset, m_Cache);
                 serializedObject.ApplyModifiedProperties();
             }
         }

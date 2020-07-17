@@ -4,7 +4,7 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [10.0.0] - 2019-06-10
 ### Added
 - Added the Internal Inspector which allows the user to view data contained in selected nodes and properties in a new floating graph sub-window. Also added support for custom property drawers to let you visualize any data type you like and expose it to the inspector.  
 - Added samples for Procedural Patterns to the package.
@@ -38,7 +38,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated the functions in the `Normal From Height` node to avoid NaN outputs.
 - Changed the Voronoi Node algorithm to increase the useful range of the input values and to always use float values internally to avoid clipping.
 - Changed the `Reference Suffix` of Keyword Enum entries so that you cannot edit them, which ensures that material keywords compile properly. 
+- Updated the dependent version of `Searcher` to 4.2.0. 
 - Added support for `Linear Blend Skinning` Node to Universal Render Pipeline.
+- Moved all code to be under Unity specific namespaces.
+- Changed ShaderGraphImporter and ShaderSubgraphImporter so that graphs are imported before Models.
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
@@ -107,6 +110,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where nodes dealing with matricies would sometimes display a preview, sometimes not.
 - Optimized loading a large Shader Graph. [1209047](https://issuetracker.unity3d.com/issues/shader-graph-unresponsive-editor-when-using-large-graphs)
 - Fixed NaN issue in triplanar SG node when blend goes to 0.
+- Fixed a recurring bug where node inputs would get misaligned from their ports. [1224480]
 - Fixed an issue where Blackboard properties would not duplicate with `Precision` or `Hybrid Instancing` options. 
 - Fixed an issue where `Texture` properties on the Blackboard would not duplicate with the same `Mode` settings. 
 - Fixed an issue where `Keywords` on the Blackboard would not duplicate with the same `Default` value.
@@ -118,7 +122,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Custum Function nodes and Sub Graph Output nodes could no longer rename slots. 
 - Fixed a bug where searcher entries would not repopulate correctly after an undo was perfromed (https://fogbugz.unity3d.com/f/cases/1241018/)
 - Fixed a bug where pasting a keyword node to another graph with the same reference name would nullref (https://fogbugz.unity3d.com/f/cases/1238913/)
+- Fixed a bug where Redirect Nodes did not work as inputs to Custom Function Nodes. [1235999](https://issuetracker.unity3d.com/product/unity/issues/guid/1235999/)
 - Fixed a bug where changeing the default value on a keyword would reset the node input type to vec4 (https://fogbugz.unity3d.com/f/cases/1216760/)
+- Fixed a soft lock when you open a graph when the blackboard hidden.
+- Fixed an issue where keyboard navigation in the Create Node menu no longer worked. [1253544]
+- Preview correctly shows unassigned VT texture result, no longer ignores null textures
+- Don't allow duplicate VT layer names when renaming layers
+- Moved VT layer TextureType to the VTProperty from the SampleVT node
+- Fixed the squished UI of VT property layers
+- Disallow Save As and Convert to Subgraph that would create recursive dependencies
+- Fixed an issue where the user would not get a save prompt on application close [1262044](https://issuetracker.unity3d.com/product/unity/issues/guid/1262044/)
+- Fixed bug where output port type would not visually update when input type changed (for example from Vec1 to Vec3) [1259501](https://issuetracker.unity3d.com/product/unity/issues/guid/1259501/)
+- Fixed an issue with how we collected/filtered nodes for targets. Applied the work to the SearchWindowProvider as well
+- Fixed a bug where the object selector for Custom Function Nodes did not update correctly. [1176129](https://issuetracker.unity3d.com/product/unity/issues/guid/1176129/)
+- Fixed a bug where the Create Node menu would override the Object Field selection window. [1176125](https://issuetracker.unity3d.com/issues/shader-graph-object-input-field-with-space-bar-shortcut-opens-shader-graph-search-window-and-object-select-window)
+- Fixed a bug where the Main Preview window was no longer a square aspect ratio. [1257053](https://issuetracker.unity3d.com/product/unity/issues/guid/1257053/)
+- Fixed a bug where the size of the Graph Inspector would not save properly. [1257084](https://issuetracker.unity3d.com/product/unity/issues/guid/1257084/)
+- Replace toggle by an enumField for lit/unlit with VFXTarget
+- Alpha Clipping option in Graph inspector now correctly hides and indents dependent options. (https://fogbugz.unity3d.com/f/cases/1257041/)
+- Fixed a bug where changing the name of a property did not update nodes on the graph. [1249164](https://issuetracker.unity3d.com/product/unity/issues/guid/1249164/)
 
 ## [7.1.1] - 2019-09-05
 ### Added

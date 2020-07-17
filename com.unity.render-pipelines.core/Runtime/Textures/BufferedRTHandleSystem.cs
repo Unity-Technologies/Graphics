@@ -134,6 +134,17 @@ namespace UnityEngine.Rendering
             m_RTHandleSystem.SetReferenceSize(width, height, msaaSamples);
         }
 
+        /// <summary>
+        /// Reset the reference size of the system and reallocate all textures.
+        /// </summary>
+        /// <param name="width">New width.</param>
+        /// <param name="height">New height.</param>
+        public void ResetReferenceSize(int width, int height)
+        {
+            m_RTHandleSystem.ResetReferenceSize(width, height);
+        }
+
+
         void Swap()
         {
             foreach (var item in m_RTHandles)

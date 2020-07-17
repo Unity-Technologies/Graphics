@@ -77,7 +77,7 @@ else
     dir = SampleSDFDerivativesFast(DistanceField, coord, dist);
     if (dist > 0)
         dir = -dir;
-    dir = normalize(mul(FieldTransform,float4(dir,0)));
+    dir = normalize(mul(FieldTransform,float4(dir,0)).xyz);
 }
 
 float distToSurface = abs(dist);

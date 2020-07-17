@@ -3,6 +3,8 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
+using RenderPipelineManager = UnityEngine.Rendering.RenderPipelineManager;
+
 namespace UnityEditor.Rendering.LookDev
 {
     /// <summary>Interface that must implement the viewer to communicate with the compositor and data management</summary>
@@ -40,7 +42,7 @@ namespace UnityEditor.Rendering.LookDev
         /// <summary>Callback on update requested</summary>
         event Action OnUpdateRequested;
     }
-    
+
     partial class DisplayWindow : EditorWindow, IViewDisplayer
     {
         static partial class Style
@@ -80,7 +82,7 @@ namespace UnityEditor.Rendering.LookDev
             internal const string k_CameraMenuSync1On2 = "Align Camera 1 with Camera 2";
             internal const string k_CameraMenuSync2On1 = "Align Camera 2 with Camera 1";
             internal const string k_CameraMenuReset = "Reset Cameras";
-            
+
             internal const string k_EnvironmentSidePanelName = "Environment";
             internal const string k_DebugSidePanelName = "Debug";
 
@@ -125,7 +127,7 @@ namespace UnityEditor.Rendering.LookDev
         Label m_NoEnvironment2;
 
         Image[] m_Views = new Image[2];
-        
+
         LayoutContext layout
             => LookDev.currentContext.layout;
 
@@ -141,7 +143,7 @@ namespace UnityEditor.Rendering.LookDev
                 }
             }
         }
-        
+
         SidePanel sidePanel
         {
             get => layout.showedSidePanel;
@@ -216,7 +218,7 @@ namespace UnityEditor.Rendering.LookDev
 
         void OnEnable()
         {
-            //Stylesheet             
+            //Stylesheet
             // Try to load stylesheet. Timing can be odd while upgrading packages (case 1219692).
             // In this case, it will be fixed in OnGUI. Though it can spawn error while reimporting assets.
             // Waiting for filter on stylesheet (case 1228706) to remove last error.
@@ -257,9 +259,15 @@ namespace UnityEditor.Rendering.LookDev
 
             ApplyLayout(viewLayout);
             ApplySidePanelChange(layout.showedSidePanel);
+
+            Undo.undoRedoPerformed += FullRefreshEnvironmentList;
         }
 
-        void OnDisable() => OnClosedInternal?.Invoke();
+        void OnDisable()
+        {
+            Undo.undoRedoPerformed -= FullRefreshEnvironmentList;
+            OnClosedInternal?.Invoke();
+        }
 
         void CreateToolbar()
         {
@@ -478,7 +486,7 @@ namespace UnityEditor.Rendering.LookDev
                     throw new ArgumentException("Unknown ViewCompositionIndex: " + index);
             }
         }
-        
+
         Vector2 m_LastFirstViewSize = new Vector2();
         Vector2 m_LastSecondViewSize = new Vector2();
         void IViewDisplayer.SetTexture(ViewCompositionIndex index, Texture texture)
@@ -524,7 +532,7 @@ namespace UnityEditor.Rendering.LookDev
                     throw new ArgumentException("Unknown ViewCompositionIndex: " + index);
             }
         }
-        
+
         void IViewDisplayer.Repaint() => Repaint();
 
         void ApplyLayout(Layout value)
@@ -619,19 +627,21 @@ namespace UnityEditor.Rendering.LookDev
 
         void OnGUI()
         {
-            //Stylesheet             
+            //Stylesheet
             // [case 1219692] if LookDev is open while reimporting CoreRP package,
             // stylesheet can be null. In this case, we can have a null stylesheet
-            // registered as it got destroyed. Reloading it. As we cannot just 
+            // registered as it got destroyed. Reloading it. As we cannot just
             // remove a null entry, we must filter and reconstruct the while list.
             if (styleSheet == null || styleSheet.Equals(null)
                 || (!EditorGUIUtility.isProSkin && (styleSheetLight == null || styleSheetLight.Equals(null))))
             {
                 // While (case 1228706) is still on going, we sill close and reopen the look dev.
                 // This will prevent spawning error at frame.
-                LookDev.Close();
-                LookDev.Open();
-                return;
+                // Note 2: This actually causes the lookdev to break completely with light theme.
+                // Until the actual issue is fixed, we'll comment this fix out as it only concerns an upgrade problem.
+                //LookDev.Close();
+                //LookDev.Open();
+                //return;
 
                 // Following lines is the correct fix if UIElement filter garbage collected Stylesheet.
 
@@ -678,6 +688,17 @@ namespace UnityEditor.Rendering.LookDev
                     rootVisualElement.styleSheets.Add(styleSheet);
                 if (!EditorGUIUtility.isProSkin && !rootVisualElement.styleSheets.Contains(styleSheetLight))
                     rootVisualElement.styleSheets.Add(styleSheetLight);
+            }
+
+            // [case 1245086] Guard in case the SRP asset is set to null (or to a not supported SRP) when the lookdev window is already open
+            // Note: After an editor reload, we might get a null OnUpdateRequestedInternal and null SRP for a couple of frames, hence the check.
+            if (!LookDev.supported && OnUpdateRequestedInternal !=null)
+            {
+                // Print an error and close the Lookdev window (to avoid spamming the console)
+                Debug.LogError($"LookDev is not supported by this Scriptable Render Pipeline: "
+                    + (RenderPipelineManager.currentPipeline == null ? "No SRP in use" : RenderPipelineManager.currentPipeline.ToString()));
+                LookDev.Close();
+                return;
             }
 
             OnUpdateRequestedInternal?.Invoke();

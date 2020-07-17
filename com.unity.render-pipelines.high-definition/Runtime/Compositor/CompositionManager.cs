@@ -541,9 +541,62 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             m_InputLayers[index].AddInputFilter(filter);
         }
 
+        int GetBaseLayerForSubLayerAtIndex(int index)
+        {
+            int baseIndex = 0;
+            index = (index > m_InputLayers.Count - 1) ? m_InputLayers.Count - 1 : index;
+            for (int i = index; i >= 0; --i)
+            {
+                if (m_InputLayers[i].outputTarget == CompositorLayer.OutputTarget.CompositorLayer)
+                {
+                    baseIndex = i;
+                    break;
+                }
+            }
+            return baseIndex;
+        }
+
+        static string GetSubLayerName(int count)
+        {
+            if (count == 0)
+            {
+                return "New SubLayer";
+            }
+            else
+            {
+                return $"New SubLayer ({count + 1})";
+            }
+        }
+
+        public string GetNewSubLayerName(int index, CompositorLayer.LayerType type = CompositorLayer.LayerType.Camera)
+        {
+            // First find the base layer
+            int baseIndex = GetBaseLayerForSubLayerAtIndex(index - 1);
+
+            // Get a candidate name and check if it already exists
+            int count = 0;
+            string candidateName = GetSubLayerName(count);
+            int i = baseIndex + 1;
+            while (i < m_InputLayers.Count && m_InputLayers[i].outputTarget != CompositorLayer.OutputTarget.CompositorLayer)
+            {
+                if (m_InputLayers[i].name == candidateName)
+                {
+                    // If this candidate name exists, get the next one and start again
+                    candidateName = GetSubLayerName(++count);
+                    i = baseIndex + 1;
+                }
+                else
+                {
+                    ++i;
+                }
+            }
+
+            return candidateName;
+        }
+
         public void AddNewLayer(int index, CompositorLayer.LayerType type = CompositorLayer.LayerType.Camera)
         {
-            var newLayer = CompositorLayer.CreateStackLayer(type, "New SubLayer");
+            var newLayer = CompositorLayer.CreateStackLayer(type, GetNewSubLayerName(index, type));
             
             if (index >= 0 && index < m_InputLayers.Count)
             {
@@ -693,8 +746,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             {
                 m_ShaderVariablesGlobalCB._ViewProjMatrix = m_ViewProjMatrixFlipped;
                 ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
-                cmd.Blit(null, BuiltinRenderTextureType.CurrentActive, m_Material, m_Material.FindPass("ForwardOnly"));
-                cmd.Blit(BuiltinRenderTextureType.CurrentActive, camera.camera.targetTexture);
+                cmd.Blit(null, camera.camera.targetTexture, m_Material, m_Material.FindPass("ForwardOnly"));
             }
             else
             {

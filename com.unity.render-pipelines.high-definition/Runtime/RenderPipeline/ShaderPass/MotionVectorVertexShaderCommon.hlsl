@@ -133,6 +133,13 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
         ApplyVertexModification(inputMesh, normalWS, previousPositionRWS, _LastTimeParameters.xyz);
 #endif
 
+#ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
+        if (_TransparentCameraOnlyMotionVectors > 0)
+        {
+            previousPositionRWS = varyingsType.vmesh.positionRWS.xyz;
+        }
+#endif
+
         varyingsType.vpass.previousPositionCS = mul(UNITY_MATRIX_PREV_VP, float4(previousPositionRWS, 1.0));
     }
 

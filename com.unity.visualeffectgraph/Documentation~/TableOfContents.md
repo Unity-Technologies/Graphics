@@ -26,5 +26,14 @@
   * [Point Caches](PointCaches.md)
   * [Point Cache Bake Tool](PointCacheBakeTool.md)
   * [Spawner Callbacks](SpawnerCallbacks.md)
+  * [Mesh Sampling](MeshSampling.md)
+* Node Library
+  * Context
+  * Operator
+    * Math
+      * Geometry
+        * [Transform (Vector4)](Operator-Transform(Vector4).md)
+    * Sampling
+      * [Get Texture Dimensions](Operator-GetTextureDimensions.md)
 * Reference
   * [Standard Attributes](Reference-Attributes.md)

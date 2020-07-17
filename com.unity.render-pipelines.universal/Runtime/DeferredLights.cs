@@ -5,6 +5,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using static Unity.Mathematics.math;
+//#define URP_HAS_BURST
 
 // TODO SimpleLit material, make sure when variant is !defined(_SPECGLOSSMAP) && !defined(_SPECULAR_COLOR), specular is correctly silenced.
 // TODO use InitializeSimpleLitSurfaceData() in all shader code
@@ -21,19 +22,56 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Keep in sync with shader define USE_CBUFFER_FOR_TILELIST
         // Keep in sync with shader define USE_CBUFFER_FOR_LIGHTDATA
         // Keep in sync with shader define USE_CBUFFER_FOR_LIGHTLIST
-#if UNITY_SWITCH
+        private static bool IsOpenGL => (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore
+                                         || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2
+                                         || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3);
+
         // Constant buffers are used for data that a repeatedly fetched by shaders.
         // Structured buffers are used for data only consumed once.
-        public static bool kUseCBufferForDepthRange = false;
-        public static bool kUseCBufferForTileList = false;
-        public static bool kUseCBufferForLightData = true;
-        public static bool kUseCBufferForLightList = false;
-#else
-        public static bool kUseCBufferForDepthRange = false;
-        public static bool kUseCBufferForTileList = false;
-        public static bool kUseCBufferForLightData = true;
-        public static bool kUseCBufferForLightList = false;
-#endif
+        internal static bool UseCBufferForDepthRange
+        {
+            get
+            {
+                #if UNITY_SWITCH
+                    return false;
+                #else
+                    return IsOpenGL;
+                #endif
+            }
+        }
+
+        internal static bool UseCBufferForTileList
+        {
+            get
+            {
+                #if UNITY_SWITCH
+                    return false;
+                #else
+                    return IsOpenGL;
+                #endif
+            }
+        }
+
+        internal static bool UseCBufferForLightData
+        {
+            get
+            {
+                return true;
+            }
+        }
+
+        internal static bool UseCBufferForLightList
+        {
+            get
+            {
+                #if UNITY_SWITCH
+                    return false;
+                #else
+                    return IsOpenGL;
+                #endif
+            }
+        }
+
         // Keep in sync with PREFERRED_CBUFFER_SIZE.
         public const int kPreferredCBufferSize = 64 * 1024;
         public const int kPreferredStructuredBufferSize = 128 * 1024;
@@ -109,7 +147,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static int _ShadowLightIndex = Shader.PropertyToID("_ShadowLightIndex");
         }
 
+        // Disable Burst for now since there are issues on macos builds.
+#if URP_HAS_BURST
         [Unity.Burst.BurstCompile(CompileSynchronously = true)]
+#endif
         struct CullLightsJob : IJob
         {
             public DeferredTiler tiler;
@@ -168,19 +209,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         static readonly string k_DeferredStencilPass = "Deferred Shading (Stencil)";
         static readonly string k_DeferredFogPass = "Deferred Fog";
         static readonly string k_SetupLightConstants = "Setup Light Constants";
-        static readonly float kStencilShapeGuard = 1.06067f; // stencil geometric shapes must be inflated to fit the analytic shapes. 
-
-        public bool AccurateGbufferNormals
-        {
-            get { return m_AccurateGbufferNormals; }
-            set { m_AccurateGbufferNormals = value; }
-        }
-
-        public bool TiledDeferredShading
-        {
-            get { return m_TiledDeferredShading; }
-            set { m_TiledDeferredShading = value; }
-        }
+        static readonly float kStencilShapeGuard = 1.06067f; // stencil geometric shapes must be inflated to fit the analytic shapes.
+        private static readonly ProfilingSampler m_ProfilingSetupLights = new ProfilingSampler(k_SetupLights);
+        private static readonly ProfilingSampler m_ProfilingDeferredPass = new ProfilingSampler(k_DeferredPass);
+        private static readonly ProfilingSampler m_ProfilingTileDepthInfo = new ProfilingSampler(k_TileDepthInfo);
+        private static readonly ProfilingSampler m_ProfilingSetupLightConstants = new ProfilingSampler(k_SetupLightConstants);
 
         public int GBufferAlbedoIndex { get { return 0; } }
         public int GBufferSpecularMetallicIndex { get { return 1; } }
@@ -197,7 +230,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             else if (index == GBufferSpecularMetallicIndex)
                 return GraphicsFormat.R8G8B8A8_SRGB;    // specular        specular        specular        metallic        (sRGB rendertarget)
             else if (index == GBufferNormalSmoothnessIndex)
-                return m_AccurateGbufferNormals ? GraphicsFormat.R8G8B8A8_UNorm : GraphicsFormat.R8G8B8A8_SNorm;
+                return this.AccurateGbufferNormals ? GraphicsFormat.R8G8B8A8_UNorm : GraphicsFormat.R8G8B8A8_SNorm;
             else if (index == GBufferLightingIndex)
                 return GraphicsFormat.None;             // Emissive+baked: Most likely B10G11R11_UFloatPack32 or R16G16B16A16_SFloat
 //            else if (index == GBufferDepthIndex)
@@ -206,23 +239,38 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return GraphicsFormat.None;
         }
 
-        internal bool m_LightCulling = false;
-        internal bool m_AccurateGbufferNormals = true;
-        internal bool m_TiledDeferredShading = true; // <- true: TileDeferred.shader used for some lights (currently: point/spot lights without shadows) - false: use StencilDeferred.shader for all lights
-        internal readonly bool useJobSystem = true;
+        internal bool HasDepthPrepass { get; set; }
+        internal bool AccurateGbufferNormals { get; set; }
+        internal bool TiledDeferredShading { get; set; } // <- true: TileDeferred.shader used for some lights (currently: point/spot lights without shadows) - false: use StencilDeferred.shader for all lights
+        internal bool UseJobSystem { get; set; }
+        //
+        internal int RenderWidth { get; set; }
+        //
+        internal int RenderHeight { get; set; }
 
+        // Output lighting result.
+        internal RenderTargetHandle[] GbufferAttachments { get; set; }
+        // Input depth texture, also bound as read-only RT
+        internal RenderTargetHandle DepthAttachment { get; set; }
         //
-        internal int m_RenderWidth = 0;
-        //
-        internal int m_RenderHeight = 0;
+        internal RenderTargetHandle DepthCopyTexture { get; set; }
+        // Intermediate depth info texture.
+        internal RenderTargetHandle DepthInfoTexture { get; set; }
+        // Per-tile depth info texture.
+        internal RenderTargetHandle TileDepthInfoTexture { get; set; }
+
+        internal RenderTargetIdentifier[] GbufferAttachmentIdentifiers { get; set; }
+        internal RenderTargetIdentifier DepthAttachmentIdentifier { get; set; }
+        internal RenderTargetIdentifier DepthCopyTextureIdentifier { get; set; }
+        internal RenderTargetIdentifier DepthInfoTextureIdentifier { get; set; }
+        internal RenderTargetIdentifier TileDepthInfoTextureIdentifier { get; set; }
+
         // Cached.
-        internal int m_CachedRenderWidth = 0;
+        int m_CachedRenderWidth = 0;
         // Cached.
-        internal int m_CachedRenderHeight = 0;
+        int m_CachedRenderHeight = 0;
         // Cached.
         Matrix4x4 m_CachedProjectionMatrix;
-        //
-        int m_EyeIndex = 0;
 
         // Hierarchical tilers.
         DeferredTiler[] m_Tilers;
@@ -260,21 +308,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Hold all shaders for stencil-volume deferred shading.
         Material m_StencilDeferredMaterial;
 
-        // Output lighting result.
-        internal RenderTargetHandle[] m_GbufferColorAttachments;
-        // Input depth texture, also bound as read-only RT
-        internal RenderTargetHandle m_DepthTexture;
-        //
-        internal RenderTargetHandle m_DepthCopyTexture;
-        // Intermediate depth info texture.
-        internal RenderTargetHandle m_DepthInfoTexture;
-        // Per-tile depth info texture.
-        internal RenderTargetHandle m_TileDepthInfoTexture;
+        ProfilingSampler m_ProfilingSamplerDeferredTiledPass = new ProfilingSampler(k_DeferredTiledPass);
+        ProfilingSampler m_ProfilingSamplerDeferredStencilPass = new ProfilingSampler(k_DeferredStencilPass);
+        ProfilingSampler m_ProfilingSamplerDeferredFogPass = new ProfilingSampler(k_DeferredFogPass);
 
-        internal ProfilingSampler m_ProfilingSamplerDeferredTiledPass = new ProfilingSampler(k_DeferredTiledPass);
-        internal ProfilingSampler m_ProfilingSamplerDeferredStencilPass = new ProfilingSampler(k_DeferredStencilPass);
-        internal ProfilingSampler m_ProfilingSamplerDeferredFogPass = new ProfilingSampler(k_DeferredFogPass);
-        
 
         public DeferredLights(Material tileDepthInfoMaterial, Material tileDeferredMaterial, Material stencilDeferredMaterial)
         {
@@ -283,10 +320,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_StencilDeferredMaterial = stencilDeferredMaterial;
 
             // Compute some platform limits.
-            m_MaxDepthRangePerBatch = (DeferredConfig.kUseCBufferForDepthRange ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / sizeof(uint);
-            m_MaxTilesPerBatch = (DeferredConfig.kUseCBufferForTileList ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / System.Runtime.InteropServices.Marshal.SizeOf(typeof(TileData));
-            m_MaxPunctualLightPerBatch = (DeferredConfig.kUseCBufferForLightData ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualLightData));
-            m_MaxRelLightIndicesPerBatch = (DeferredConfig.kUseCBufferForLightList ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / sizeof(uint);
+            m_MaxDepthRangePerBatch = (DeferredConfig.UseCBufferForDepthRange ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / sizeof(uint);
+            m_MaxTilesPerBatch = (DeferredConfig.UseCBufferForTileList ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / System.Runtime.InteropServices.Marshal.SizeOf(typeof(TileData));
+            m_MaxPunctualLightPerBatch = (DeferredConfig.UseCBufferForLightData ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualLightData));
+            m_MaxRelLightIndicesPerBatch = (DeferredConfig.UseCBufferForLightList ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / sizeof(uint);
 
             m_Tilers = new DeferredTiler[DeferredConfig.kTilerDepth];
             m_TileDataCapacities = new int[DeferredConfig.kTilerDepth];
@@ -306,6 +343,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_TileDataCapacities[tilerLevel] = 0; // not known yet
             }
 
+            this.AccurateGbufferNormals = true;
+            this.TiledDeferredShading = true;
+            this.UseJobSystem = true;
             m_HasTileVisLights = false;
         }
 
@@ -341,59 +381,43 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void SetupMatrixConstants(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            Matrix4x4 proj;
-            Matrix4x4 view;
+            ref CameraData cameraData = ref renderingData.cameraData;
 
-            if (renderingData.cameraData.isXRMultipass)
+#if ENABLE_VR && ENABLE_XR_MODULE
+            int eyeCount = cameraData.xr.enabled && cameraData.xr.singlePassEnabled ? 2 : 1;
+#else
+            int eyeCount = 1;
+#endif
+            Matrix4x4[] screenToWorld = new Matrix4x4[2]; // deferred shaders expects 2 elements
+
+            for (int eyeIndex = 0; eyeIndex < eyeCount; eyeIndex++)
             {
-                //Camera.StereoscopicEye eyeIndex = (Camera.StereoscopicEye)renderingData.cameraData.camera.stereoActiveEye; // Always left eye
-                Camera.StereoscopicEye eyeIndex = (Camera.StereoscopicEye)m_EyeIndex;
-                proj = renderingData.cameraData.camera.GetStereoProjectionMatrix(eyeIndex);
-                view = renderingData.cameraData.camera.GetStereoViewMatrix(eyeIndex);
+                Matrix4x4 proj = cameraData.GetProjectionMatrix(eyeIndex);
+                Matrix4x4 view = cameraData.GetViewMatrix(eyeIndex);
+                Matrix4x4 gpuProj = GL.GetGPUProjectionMatrix(proj, false);
+
+                // xy coordinates in range [-1; 1] go to pixel coordinates.
+                Matrix4x4 toScreen = new Matrix4x4(
+                    new Vector4(0.5f * this.RenderWidth, 0.0f, 0.0f, 0.0f),
+                    new Vector4(0.0f, 0.5f * this.RenderHeight, 0.0f, 0.0f),
+                    new Vector4(0.0f, 0.0f, 1.0f, 0.0f),
+                    new Vector4(0.5f * this.RenderWidth, 0.5f * this.RenderHeight, 0.0f, 1.0f)
+                );
+
+                screenToWorld[eyeIndex] = Matrix4x4.Inverse(toScreen * gpuProj * view);
             }
-            else
-            {
-                proj = renderingData.cameraData.camera.projectionMatrix;
-                view = renderingData.cameraData.camera.worldToCameraMatrix;
-            }
 
-            // When reading back from depth texture, we need to scale back from [0; 1] to [-1; 1] as Unity defaults to for GL clip-space depth convention.
-            // As well, non-GL platforms render upside-down, we don't need to y-reverse again on GL platforms.
-            bool isGL = SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore
-                     || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2
-                     || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
-
-            //Matrix4x4 gpuProj = GL.GetGPUProjectionMatrix(proj, false); // This function not work for orthographic projection, so make we our own!
-            Matrix4x4 gpuProj = new Matrix4x4(
-                new Vector4(1.0f, 0.0f, 0.0f, 0.0f),
-                new Vector4(0.0f, (SystemInfo.graphicsUVStartsAtTop || isGL ? 1.0f : -1.0f), 0.0f, 0.0f),
-                new Vector4(0.0f, 0.0f, (SystemInfo.usesReversedZBuffer ? -1.0f : 1.0f) * 0.5f, 0.0f),
-                new Vector4(0.0f, 0.0f, 0.5f, 1.0f)
-            ) * proj;
-            
-
-            // xy coordinates in range [-1; 1] go to pixel coordinates.
-            Matrix4x4 toScreen = new Matrix4x4(
-                new Vector4(0.5f * m_RenderWidth, 0.0f, 0.0f, 0.0f),
-                new Vector4(0.0f, 0.5f * m_RenderHeight, 0.0f, 0.0f),
-                new Vector4(0.0f, 0.0f, 1.0f, 0.0f),
-                new Vector4(0.5f * m_RenderWidth, 0.5f * m_RenderHeight, 0.0f, 1.0f)
-            );
-
-            Matrix4x4 clipToWorld = Matrix4x4.Inverse(toScreen * gpuProj * view);
-            cmd.SetGlobalMatrix(ShaderConstants._ScreenToWorld, clipToWorld);
+            cmd.SetGlobalMatrixArray(ShaderConstants._ScreenToWorld, screenToWorld);
         }
 
         public void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            m_EyeIndex = 0;
-
             Profiler.BeginSample(k_SetupLights);
 
             DeferredShaderData.instance.ResetBuffers();
 
-            m_RenderWidth = renderingData.cameraData.cameraTargetDescriptor.width;
-            m_RenderHeight = renderingData.cameraData.cameraTargetDescriptor.height;
+            this.RenderWidth = renderingData.cameraData.cameraTargetDescriptor.width;
+            this.RenderHeight = renderingData.cameraData.cameraTargetDescriptor.height;
 
             if (this.TiledDeferredShading)
             {
@@ -436,9 +460,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Shared uniform constants for all lights.
             {
-                CommandBuffer cmd = CommandBufferPool.Get(k_SetupLightConstants);
-                SetupShaderLightConstants(cmd, ref renderingData);
-                context.ExecuteCommandBuffer(cmd);
+                CommandBuffer cmd = CommandBufferPool.Get();
+                using (new ProfilingScope(cmd, m_ProfilingSetupLightConstants))
+                {
+                    SetupShaderLightConstants(cmd, ref renderingData);
+                    context.ExecuteCommandBuffer(cmd);
+                }
+
                 CommandBufferPool.Release(cmd);
             }
 
@@ -464,7 +492,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     int jobOffset = 0;
                     int jobCount = 0;
 
-                    if (this.useJobSystem)
+                    if (this.UseJobSystem)
                     {
                         int totalJobCount = 1;
                         for (int t = m_Tilers.Length - 1; t > 0; --t)
@@ -488,7 +516,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         jstart = 0,
                         jend = coarsestTiler.TileYCount,
                     };
-                    if (this.useJobSystem)
+                    if (this.UseJobSystem)
                     {
                         jobHandles[jobCount++] = coarsestJob.Schedule();
                         // Start this job now, as the main thread will be busy setting up all the dependent jobs.
@@ -536,8 +564,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                                 jstart = fine_jstart,
                                 jend = fine_jend,
                             };
-                                
-                            if (this.useJobSystem)
+
+                            if (this.UseJobSystem)
                                 jobHandles[jobCount++] = job.Schedule(jobHandles[jobOffset + (i / subdivX) + (j / subdivY) * superCoarseTileXCount]);
                             else
                                 job.Execute();
@@ -546,7 +574,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         jobOffset += superCoarseTileXCount * superCoarseTileYCount;
                     }
 
-                    if (this.useJobSystem)
+                    if (this.UseJobSystem)
                     {
                         JobHandle.CompleteAll(jobHandles);
                         jobHandles.Dispose();
@@ -574,18 +602,46 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Setup(ref RenderingData renderingData,
             AdditionalLightsShadowCasterPass additionalLightsShadowCasterPass,
+            bool hasDepthPrepass,
             RenderTargetHandle depthCopyTexture,
             RenderTargetHandle depthInfoTexture,
             RenderTargetHandle tileDepthInfoTexture,
-            RenderTargetHandle depthTexture,
-            RenderTargetHandle[] gbufferColorAttachments)
+            RenderTargetHandle depthAttachment,
+            RenderTargetHandle[] gbufferAttachments)
         {
             m_AdditionalLightsShadowCasterPass = additionalLightsShadowCasterPass;
-            m_DepthCopyTexture = depthCopyTexture;
-            m_DepthInfoTexture = depthInfoTexture;
-            m_TileDepthInfoTexture = tileDepthInfoTexture;
-            m_GbufferColorAttachments = gbufferColorAttachments;
-            m_DepthTexture = depthTexture;
+            this.HasDepthPrepass = hasDepthPrepass;
+            this.DepthCopyTexture = depthCopyTexture;
+            this.DepthInfoTexture = depthInfoTexture;
+            this.TileDepthInfoTexture = tileDepthInfoTexture;
+            this.GbufferAttachments = gbufferAttachments;
+            this.DepthAttachment = depthAttachment;
+
+            this.DepthCopyTextureIdentifier = this.DepthCopyTexture.Identifier();
+            this.DepthInfoTextureIdentifier = this.DepthInfoTexture.Identifier();
+            this.TileDepthInfoTextureIdentifier = this.TileDepthInfoTexture.Identifier();
+
+            if (this.GbufferAttachmentIdentifiers == null || this.GbufferAttachmentIdentifiers.Length != gbufferAttachments.Length)
+                this.GbufferAttachmentIdentifiers = new RenderTargetIdentifier[gbufferAttachments.Length];
+            for (int i = 0; i < gbufferAttachments.Length; ++i)
+                this.GbufferAttachmentIdentifiers[i] = gbufferAttachments[i].Identifier();
+            this.DepthAttachmentIdentifier = depthAttachment.Identifier();
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            // In XR SinglePassInstance mode, the RTs are texture-array and all slices must be bound.
+            if (renderingData.cameraData.xr.enabled)
+            {
+                this.DepthCopyTextureIdentifier = new RenderTargetIdentifier(this.DepthCopyTextureIdentifier, 0, CubemapFace.Unknown, -1);
+                this.DepthInfoTextureIdentifier = new RenderTargetIdentifier(this.DepthInfoTextureIdentifier, 0, CubemapFace.Unknown, -1);
+                this.TileDepthInfoTextureIdentifier = new RenderTargetIdentifier(this.TileDepthInfoTextureIdentifier, 0, CubemapFace.Unknown, -1);
+
+                for (int i = 0; i < this.GbufferAttachmentIdentifiers.Length; ++i)
+                    this.GbufferAttachmentIdentifiers[i] = new RenderTargetIdentifier(this.GbufferAttachmentIdentifiers[i], 0, CubemapFace.Unknown, -1);
+                this.DepthAttachmentIdentifier = new RenderTargetIdentifier(this.DepthAttachmentIdentifier, 0, CubemapFace.Unknown, -1);
+
+
+            }
+#endif
 
             m_HasTileVisLights = this.TiledDeferredShading && CheckHasTileLights(ref renderingData.lightData.visibleLights);
         }
@@ -642,86 +698,90 @@ namespace UnityEngine.Rendering.Universal.Internal
             int intermediateMipLevel = DeferredConfig.kTileDepthInfoIntermediateLevel >= 0 && DeferredConfig.kTileDepthInfoIntermediateLevel < tileMipLevel ? DeferredConfig.kTileDepthInfoIntermediateLevel : tileMipLevel;
             int tileShiftMipLevel = tileMipLevel - intermediateMipLevel;
             int alignment = 1 << intermediateMipLevel;
-            int depthInfoWidth = (m_RenderWidth + alignment - 1) >> intermediateMipLevel;
-            int depthInfoHeight = (m_RenderHeight + alignment - 1) >> intermediateMipLevel;
+            int depthInfoWidth = (this.RenderWidth + alignment - 1) >> intermediateMipLevel;
+            int depthInfoHeight = (this.RenderHeight + alignment - 1) >> intermediateMipLevel;
             NativeArray<ushort> tiles = tiler.Tiles;
             NativeArray<uint> tileHeaders = tiler.TileHeaders;
 
-            CommandBuffer cmd = CommandBufferPool.Get(k_TileDepthInfo);
-            RenderTargetIdentifier depthSurface = m_DepthTexture.Identifier();
-            RenderTargetIdentifier depthInfoSurface = ((tileMipLevel == intermediateMipLevel) ? m_TileDepthInfoTexture : m_DepthInfoTexture).Identifier();
-
-            cmd.SetGlobalTexture(ShaderConstants._DepthTex, depthSurface);
-            cmd.SetGlobalVector(ShaderConstants._DepthTexSize, new Vector4(m_RenderWidth, m_RenderHeight, 1.0f / m_RenderWidth, 1.0f / m_RenderHeight));
-            cmd.SetGlobalInt(ShaderConstants._DownsamplingWidth, tilePixelWidth);
-            cmd.SetGlobalInt(ShaderConstants._DownsamplingHeight, tilePixelHeight);
-            cmd.SetGlobalInt(ShaderConstants._SourceShiftX, intermediateMipLevel);
-            cmd.SetGlobalInt(ShaderConstants._SourceShiftY, intermediateMipLevel);
-            cmd.SetGlobalInt(ShaderConstants._TileShiftX, tileShiftMipLevel);
-            cmd.SetGlobalInt(ShaderConstants._TileShiftY, tileShiftMipLevel);
-
-            Matrix4x4 proj = renderingData.cameraData.camera.projectionMatrix;
-            Matrix4x4 clip = new Matrix4x4(new Vector4(1, 0, 0, 0), new Vector4(0, 1, 0, 0), new Vector4(0, 0, 0.5f, 0), new Vector4(0, 0, 0.5f, 1));
-            Matrix4x4 projScreenInv = Matrix4x4.Inverse(clip * proj);
-            cmd.SetGlobalVector(ShaderConstants._unproject0, projScreenInv.GetRow(2));
-            cmd.SetGlobalVector(ShaderConstants._unproject1, projScreenInv.GetRow(3));
-
-            string shaderVariant = null;
-            if (tilePixelWidth == tilePixelHeight)
-            {
-                if (intermediateMipLevel == 1)
-                    shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_2;
-                else if (intermediateMipLevel == 2)
-                    shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_4;
-                else if (intermediateMipLevel == 3)
-                    shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_8;
-                else if (intermediateMipLevel == 4)
-                    shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_16;
-            }
-            if (shaderVariant != null)
-                cmd.EnableShaderKeyword(shaderVariant);
-
-            int tileY = 0;
-            int tileYIncrement = (DeferredConfig.kUseCBufferForDepthRange ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / (tileXCount * 4);
-
             NativeArray<uint> depthRanges = new NativeArray<uint>(m_MaxDepthRangePerBatch, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
-            while (tileY < tileYCount)
+            CommandBuffer cmd = CommandBufferPool.Get();
+            using (new ProfilingScope(cmd, m_ProfilingTileDepthInfo))
             {
-                int tileYEnd = Mathf.Min(tileYCount, tileY + tileYIncrement);
+                RenderTargetIdentifier depthSurface = this.DepthAttachmentIdentifier;
+                RenderTargetIdentifier depthInfoSurface = (tileMipLevel == intermediateMipLevel) ? this.TileDepthInfoTextureIdentifier : this.DepthInfoTextureIdentifier;
 
-                for (int j = tileY; j < tileYEnd; ++j)
+                cmd.SetGlobalTexture(ShaderConstants._DepthTex, depthSurface);
+                cmd.SetGlobalVector(ShaderConstants._DepthTexSize, new Vector4(this.RenderWidth, this.RenderHeight, 1.0f / this.RenderWidth, 1.0f / this.RenderHeight));
+                cmd.SetGlobalInt(ShaderConstants._DownsamplingWidth, tilePixelWidth);
+                cmd.SetGlobalInt(ShaderConstants._DownsamplingHeight, tilePixelHeight);
+                cmd.SetGlobalInt(ShaderConstants._SourceShiftX, intermediateMipLevel);
+                cmd.SetGlobalInt(ShaderConstants._SourceShiftY, intermediateMipLevel);
+                cmd.SetGlobalInt(ShaderConstants._TileShiftX, tileShiftMipLevel);
+                cmd.SetGlobalInt(ShaderConstants._TileShiftY, tileShiftMipLevel);
+
+                Matrix4x4 proj = renderingData.cameraData.camera.projectionMatrix;
+                Matrix4x4 clip = new Matrix4x4(new Vector4(1, 0, 0, 0), new Vector4(0, 1, 0, 0), new Vector4(0, 0, 0.5f, 0), new Vector4(0, 0, 0.5f, 1));
+                Matrix4x4 projScreenInv = Matrix4x4.Inverse(clip * proj);
+                cmd.SetGlobalVector(ShaderConstants._unproject0, projScreenInv.GetRow(2));
+                cmd.SetGlobalVector(ShaderConstants._unproject1, projScreenInv.GetRow(3));
+
+                string shaderVariant = null;
+                if (tilePixelWidth == tilePixelHeight)
                 {
-                    for (int i = 0; i < tileXCount; ++i)
-                    {
-                        int headerOffset = tiler.GetTileHeaderOffset(i, j);
-                        int tileLightCount = (int)tileHeaders[headerOffset + 1];
-                        uint listDepthRange = tileLightCount == 0 ? invalidDepthRange : tileHeaders[headerOffset + 2];
-                        depthRanges[i + (j - tileY) * tileXCount] = listDepthRange;
-                    }
+                    if (intermediateMipLevel == 1)
+                        shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_2;
+                    else if (intermediateMipLevel == 2)
+                        shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_4;
+                    else if (intermediateMipLevel == 3)
+                        shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_8;
+                    else if (intermediateMipLevel == 4)
+                        shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_16;
                 }
 
-                ComputeBuffer _depthRanges = DeferredShaderData.instance.ReserveBuffer<uint>(m_MaxDepthRangePerBatch, DeferredConfig.kUseCBufferForDepthRange);
-                _depthRanges.SetData(depthRanges, 0, 0, depthRanges.Length);
+                if (shaderVariant != null)
+                    cmd.EnableShaderKeyword(shaderVariant);
 
-                if (DeferredConfig.kUseCBufferForDepthRange)
-                    cmd.SetGlobalConstantBuffer(_depthRanges, ShaderConstants.UDepthRanges, 0, m_MaxDepthRangePerBatch * 4);
-                else
-                    cmd.SetGlobalBuffer(ShaderConstants._DepthRanges, _depthRanges);
+                int tileY = 0;
+                int tileYIncrement = (DeferredConfig.UseCBufferForDepthRange ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / (tileXCount * 4);
 
-                cmd.SetGlobalInt(ShaderConstants._tileXCount, tileXCount);
-                cmd.SetGlobalInt(ShaderConstants._DepthRangeOffset, tileY * tileXCount);
+                while (tileY < tileYCount)
+                {
+                    int tileYEnd = Mathf.Min(tileYCount, tileY + tileYIncrement);
 
-                cmd.EnableScissorRect(new Rect(0, tileY << tileShiftMipLevel, depthInfoWidth, (tileYEnd - tileY) << tileShiftMipLevel));
-                cmd.Blit(depthSurface, depthInfoSurface, m_TileDepthInfoMaterial, 0);
+                    for (int j = tileY; j < tileYEnd; ++j)
+                    {
+                        for (int i = 0; i < tileXCount; ++i)
+                        {
+                            int headerOffset = tiler.GetTileHeaderOffset(i, j);
+                            int tileLightCount = (int)tileHeaders[headerOffset + 1];
+                            uint listDepthRange = tileLightCount == 0 ? invalidDepthRange : tileHeaders[headerOffset + 2];
+                            depthRanges[i + (j - tileY) * tileXCount] = listDepthRange;
+                        }
+                    }
 
-                tileY = tileYEnd;
+                    ComputeBuffer _depthRanges = DeferredShaderData.instance.ReserveBuffer<uint>(m_MaxDepthRangePerBatch, DeferredConfig.UseCBufferForDepthRange);
+                    _depthRanges.SetData(depthRanges, 0, 0, depthRanges.Length);
+
+                    if (DeferredConfig.UseCBufferForDepthRange)
+                        cmd.SetGlobalConstantBuffer(_depthRanges, ShaderConstants.UDepthRanges, 0, m_MaxDepthRangePerBatch * 4);
+                    else
+                        cmd.SetGlobalBuffer(ShaderConstants._DepthRanges, _depthRanges);
+
+                    cmd.SetGlobalInt(ShaderConstants._tileXCount, tileXCount);
+                    cmd.SetGlobalInt(ShaderConstants._DepthRangeOffset, tileY * tileXCount);
+
+                    cmd.EnableScissorRect(new Rect(0, tileY << tileShiftMipLevel, depthInfoWidth, (tileYEnd - tileY) << tileShiftMipLevel));
+                    cmd.Blit(depthSurface, depthInfoSurface, m_TileDepthInfoMaterial, 0);
+
+                    tileY = tileYEnd;
+                }
+
+                cmd.DisableScissorRect();
+
+                if (shaderVariant != null)
+                    cmd.DisableShaderKeyword(shaderVariant);
             }
-
-            cmd.DisableScissorRect();
-
-            if (shaderVariant != null)
-                cmd.DisableShaderKeyword(shaderVariant);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -737,43 +797,46 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return;
             }
 
-            CommandBuffer cmd = CommandBufferPool.Get(k_TileDepthInfo);
-            RenderTargetIdentifier depthInfoSurface = m_DepthInfoTexture.Identifier();
-            RenderTargetIdentifier tileDepthInfoSurface = m_TileDepthInfoTexture.Identifier();
+            CommandBuffer cmd = CommandBufferPool.Get();
+            using (new ProfilingScope(cmd, m_ProfilingTileDepthInfo))
+            {
+                RenderTargetIdentifier depthInfoSurface = this.DepthInfoTextureIdentifier;
+                RenderTargetIdentifier tileDepthInfoSurface = this.TileDepthInfoTextureIdentifier;
 
-            ref DeferredTiler tiler = ref m_Tilers[0];
-            int tilePixelWidth = tiler.TilePixelWidth;
-            int tilePixelHeight = tiler.TilePixelHeight;
-            int tileWidthLevel = (int)Mathf.Log(tilePixelWidth, 2);
-            int tileHeightLevel = (int)Mathf.Log(tilePixelHeight, 2);
-            int intermediateMipLevel = DeferredConfig.kTileDepthInfoIntermediateLevel;
-            int diffWidthLevel = tileWidthLevel - intermediateMipLevel;
-            int diffHeightLevel = tileHeightLevel - intermediateMipLevel;
+                ref DeferredTiler tiler = ref m_Tilers[0];
+                int tilePixelWidth = tiler.TilePixelWidth;
+                int tilePixelHeight = tiler.TilePixelHeight;
+                int tileWidthLevel = (int)Mathf.Log(tilePixelWidth, 2);
+                int tileHeightLevel = (int)Mathf.Log(tilePixelHeight, 2);
+                int intermediateMipLevel = DeferredConfig.kTileDepthInfoIntermediateLevel;
+                int diffWidthLevel = tileWidthLevel - intermediateMipLevel;
+                int diffHeightLevel = tileHeightLevel - intermediateMipLevel;
 
-            cmd.SetGlobalTexture(ShaderConstants._BitmaskTex, depthInfoSurface);
-            cmd.SetGlobalInt(ShaderConstants._DownsamplingWidth, tilePixelWidth);
-            cmd.SetGlobalInt(ShaderConstants._DownsamplingHeight, tilePixelHeight);
+                cmd.SetGlobalTexture(ShaderConstants._BitmaskTex, depthInfoSurface);
+                cmd.SetGlobalInt(ShaderConstants._DownsamplingWidth, tilePixelWidth);
+                cmd.SetGlobalInt(ShaderConstants._DownsamplingHeight, tilePixelHeight);
 
-            int alignment = 1 << DeferredConfig.kTileDepthInfoIntermediateLevel;
-            int depthInfoWidth = (m_RenderWidth + alignment - 1) >> DeferredConfig.kTileDepthInfoIntermediateLevel;
-            int depthInfoHeight = (m_RenderHeight + alignment - 1) >> DeferredConfig.kTileDepthInfoIntermediateLevel;
-            cmd.SetGlobalVector("_BitmaskTexSize", new Vector4(depthInfoWidth, depthInfoHeight, 1.0f / depthInfoWidth, 1.0f / depthInfoHeight));
+                int alignment = 1 << DeferredConfig.kTileDepthInfoIntermediateLevel;
+                int depthInfoWidth = (this.RenderWidth + alignment - 1) >> DeferredConfig.kTileDepthInfoIntermediateLevel;
+                int depthInfoHeight = (this.RenderHeight + alignment - 1) >> DeferredConfig.kTileDepthInfoIntermediateLevel;
+                cmd.SetGlobalVector("_BitmaskTexSize", new Vector4(depthInfoWidth, depthInfoHeight, 1.0f / depthInfoWidth, 1.0f / depthInfoHeight));
 
-            string shaderVariant = null;
-            if (diffWidthLevel == 1 && diffHeightLevel == 1)
-                shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_2;
-            else if (diffWidthLevel == 2 && diffHeightLevel == 2)
-                shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_4;
-            else if (diffWidthLevel == 3 && diffHeightLevel == 3)
-                shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_8;
+                string shaderVariant = null;
+                if (diffWidthLevel == 1 && diffHeightLevel == 1)
+                    shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_2;
+                else if (diffWidthLevel == 2 && diffHeightLevel == 2)
+                    shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_4;
+                else if (diffWidthLevel == 3 && diffHeightLevel == 3)
+                    shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_8;
 
-            if (shaderVariant != null)
-                cmd.EnableShaderKeyword(shaderVariant);
+                if (shaderVariant != null)
+                    cmd.EnableShaderKeyword(shaderVariant);
 
-            cmd.Blit(depthInfoSurface, tileDepthInfoSurface, m_TileDepthInfoMaterial, 1);
+                cmd.Blit(depthInfoSurface, tileDepthInfoSurface, m_TileDepthInfoMaterial, 1);
 
-            if (shaderVariant != null)
-                cmd.DisableShaderKeyword(shaderVariant);
+                if (shaderVariant != null)
+                    cmd.DisableShaderKeyword(shaderVariant);
+            }
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -781,32 +844,22 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void ExecuteDeferredPass(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer cmd = CommandBufferPool.Get(k_DeferredPass);
+            CommandBuffer cmd = CommandBufferPool.Get();
+            using (new ProfilingScope(cmd, m_ProfilingDeferredPass))
+            {
+                // This must be set for each eye in XR mode multipass.
+                SetupMatrixConstants(cmd, ref renderingData);
 
-            Profiler.BeginSample(k_DeferredPass);
+                RenderTileLights(context, cmd, ref renderingData);
 
-            // This must be set for each eye in XR mode multipass.
-            SetupMatrixConstants(cmd, ref renderingData);
+                RenderStencilLights(context, cmd, ref renderingData);
 
-            // Bug in XR Multi-pass mode where gbuffer2 is not correctly rendered/bound for the right eye.
-            // Workaround is to bind gbuffer textures explicitely here.
-            cmd.SetGlobalTexture(m_GbufferColorAttachments[0].id, this.m_GbufferColorAttachments[0].Identifier());
-            cmd.SetGlobalTexture(m_GbufferColorAttachments[1].id, this.m_GbufferColorAttachments[1].Identifier());
-            cmd.SetGlobalTexture(m_GbufferColorAttachments[2].id, this.m_GbufferColorAttachments[2].Identifier());
-
-            RenderTileLights(context, cmd, ref renderingData);
-
-            RenderStencilLights(context, cmd, ref renderingData);
-
-            // Legacy fog (Windows -> Rendering -> Lighting Settings -> Fog)
-            RenderFog(context, cmd, ref renderingData);
-
-            Profiler.EndSample();
+                // Legacy fog (Windows -> Rendering -> Lighting Settings -> Fog)
+                RenderFog(context, cmd, ref renderingData);
+            }
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-
-            ++m_EyeIndex;
         }
 
         void SortLights(ref NativeArray<DeferredTiler.PrePunctualLight> prePunctualLights)
@@ -952,9 +1005,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 int lightCount = 0;
                 int relLightIndices = 0;
 
-                ComputeBuffer _tileList = DeferredShaderData.instance.ReserveBuffer<TileData>(m_MaxTilesPerBatch, DeferredConfig.kUseCBufferForTileList);
-                ComputeBuffer _punctualLightBuffer = DeferredShaderData.instance.ReserveBuffer<PunctualLightData>(m_MaxPunctualLightPerBatch, DeferredConfig.kUseCBufferForLightData);
-                ComputeBuffer _relLightList = DeferredShaderData.instance.ReserveBuffer<uint>(m_MaxRelLightIndicesPerBatch, DeferredConfig.kUseCBufferForLightList);
+                ComputeBuffer _tileList = DeferredShaderData.instance.ReserveBuffer<TileData>(m_MaxTilesPerBatch, DeferredConfig.UseCBufferForTileList);
+                ComputeBuffer _punctualLightBuffer = DeferredShaderData.instance.ReserveBuffer<PunctualLightData>(m_MaxPunctualLightPerBatch, DeferredConfig.UseCBufferForLightData);
+                ComputeBuffer _relLightList = DeferredShaderData.instance.ReserveBuffer<uint>(m_MaxRelLightIndicesPerBatch, DeferredConfig.UseCBufferForLightList);
 
                 NativeArray<uint4> tileList = new NativeArray<uint4>(m_MaxTilesPerBatch * sizeof_vec4_TileData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
                 NativeArray<uint4> punctualLightBuffer = new NativeArray<uint4>(m_MaxPunctualLightPerBatch * sizeof_vec4_PunctualLightData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
@@ -1002,14 +1055,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                             if (tileListIsFull)
                             {
                                 _tileList.SetData(tileList, 0, 0, tileList.Length); // Must pass complete array (restriction for binding Unity Constant Buffers)
-                                _tileList = DeferredShaderData.instance.ReserveBuffer<TileData>(m_MaxTilesPerBatch, DeferredConfig.kUseCBufferForTileList);
+                                _tileList = DeferredShaderData.instance.ReserveBuffer<TileData>(m_MaxTilesPerBatch, DeferredConfig.UseCBufferForTileList);
                                 tileCount = 0;
                             }
 
                             if (lightBufferIsFull)
                             {
                                 _punctualLightBuffer.SetData(punctualLightBuffer, 0, 0, punctualLightBuffer.Length);
-                                _punctualLightBuffer = DeferredShaderData.instance.ReserveBuffer<PunctualLightData>(m_MaxPunctualLightPerBatch, DeferredConfig.kUseCBufferForLightData);
+                                _punctualLightBuffer = DeferredShaderData.instance.ReserveBuffer<PunctualLightData>(m_MaxPunctualLightPerBatch, DeferredConfig.UseCBufferForLightData);
                                 lightCount = 0;
 
                                 // If punctualLightBuffer was reset, then all lights in the current tile must be added.
@@ -1022,7 +1075,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                             if (relLightListIsFull)
                             {
                                 _relLightList.SetData(relLightList, 0, 0, relLightList.Length);
-                                _relLightList = DeferredShaderData.instance.ReserveBuffer<uint>(m_MaxRelLightIndicesPerBatch, DeferredConfig.kUseCBufferForLightList);
+                                _relLightList = DeferredShaderData.instance.ReserveBuffer<uint>(m_MaxRelLightIndicesPerBatch, DeferredConfig.UseCBufferForLightList);
                                 relLightIndices = 0;
                             }
 
@@ -1091,7 +1144,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 int vertexCount = DeferredConfig.kHasNativeQuadSupport ? 4 : 6;
 
                 // It doesn't seem UniversalRP use this.
-                Vector4 screenSize = new Vector4(m_RenderWidth, m_RenderHeight, 1.0f / m_RenderWidth, 1.0f / m_RenderHeight);
+                Vector4 screenSize = new Vector4(this.RenderWidth, this.RenderHeight, 1.0f / this.RenderWidth, 1.0f / this.RenderHeight);
                 cmd.SetGlobalVector(ShaderConstants._ScreenSize, screenSize);
 
                 int tileWidth = m_Tilers[0].TilePixelWidth;
@@ -1099,23 +1152,23 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalInt(ShaderConstants._TilePixelWidth, tileWidth);
                 cmd.SetGlobalInt(ShaderConstants._TilePixelHeight, tileHeight);
 
-                cmd.SetGlobalTexture(m_TileDepthInfoTexture.id, m_TileDepthInfoTexture.Identifier());
+                cmd.SetGlobalTexture(this.TileDepthInfoTexture.id, this.TileDepthInfoTextureIdentifier);
 
                 for (int i = 0; i < drawCallCount; ++i)
                 {
                     DrawCall dc = drawCalls[i];
 
-                    if (DeferredConfig.kUseCBufferForTileList)
+                    if (DeferredConfig.UseCBufferForTileList)
                         cmd.SetGlobalConstantBuffer(dc.tileList, ShaderConstants.UTileList, 0, dc.tileListSize);
                     else
                         cmd.SetGlobalBuffer(ShaderConstants._TileList, dc.tileList);
 
-                    if (DeferredConfig.kUseCBufferForLightData)
+                    if (DeferredConfig.UseCBufferForLightData)
                         cmd.SetGlobalConstantBuffer(dc.punctualLightBuffer, ShaderConstants.UPunctualLightBuffer, 0, dc.punctualLightBufferSize);
                     else
                         cmd.SetGlobalBuffer(ShaderConstants._PunctualLightBuffer, dc.punctualLightBuffer);
 
-                    if (DeferredConfig.kUseCBufferForLightList)
+                    if (DeferredConfig.UseCBufferForLightList)
                         cmd.SetGlobalConstantBuffer(dc.relLightList, ShaderConstants.URelLightList, 0, dc.relLightListSize);
                     else
                         cmd.SetGlobalBuffer(ShaderConstants._RelLightList, dc.relLightList);
@@ -1364,7 +1417,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 new Vector3(-0.455f, -0.331f, -0.910f), new Vector3( 0.562f,  0.000f, -0.910f),
                 new Vector3(-0.455f,  0.331f, -0.910f), new Vector3( 0.174f,  0.535f, -0.910f),
                 new Vector3(-0.281f, -0.865f, -0.562f), new Vector3( 0.736f, -0.535f, -0.562f),
-                new Vector3( 0.296f, -0.910f, -0.468f), new Vector3(-0.910f,  0.000f, -0.562f), 
+                new Vector3( 0.296f, -0.910f, -0.468f), new Vector3(-0.910f,  0.000f, -0.562f),
                 new Vector3(-0.774f, -0.562f, -0.478f), new Vector3( 0.000f, -1.070f,  0.000f),
                 new Vector3(-0.629f, -0.865f,  0.000f), new Vector3( 0.629f, -0.865f,  0.000f),
                 new Vector3(-1.017f, -0.331f,  0.000f), new Vector3( 0.957f,  0.000f, -0.478f),
@@ -1415,44 +1468,44 @@ namespace UnityEngine.Rendering.Universal.Internal
             // This capped hemisphere shape is in unit dimensions. It will be slightly inflated in the vertex shader
             // to fit the cone analytical shape.
             Vector3 [] positions = {
-                new Vector3(0.000000f, 0.000000f, 0.000000f), new Vector3(1.000000f, 0.000000f, 0.000000f), 
-                new Vector3(0.923880f, 0.382683f, 0.000000f), new Vector3(0.707107f, 0.707107f, 0.000000f), 
-                new Vector3(0.382683f, 0.923880f, 0.000000f), new Vector3(-0.000000f, 1.000000f, 0.000000f), 
-                new Vector3(-0.382684f, 0.923880f, 0.000000f), new Vector3(-0.707107f, 0.707107f, 0.000000f), 
-                new Vector3(-0.923880f, 0.382683f, 0.000000f), new Vector3(-1.000000f, -0.000000f, 0.000000f), 
-                new Vector3(-0.923880f, -0.382683f, 0.000000f), new Vector3(-0.707107f, -0.707107f, 0.000000f), 
-                new Vector3(-0.382683f, -0.923880f, 0.000000f), new Vector3(0.000000f, -1.000000f, 0.000000f), 
-                new Vector3(0.382684f, -0.923879f, 0.000000f), new Vector3(0.707107f, -0.707107f, 0.000000f), 
-                new Vector3(0.923880f, -0.382683f, 0.000000f), new Vector3(0.000000f, 0.000000f, 1.000000f), 
-                new Vector3(0.707107f, 0.000000f, 0.707107f), new Vector3(0.000000f, -0.707107f, 0.707107f), 
-                new Vector3(0.000000f, 0.707107f, 0.707107f), new Vector3(-0.707107f, 0.000000f, 0.707107f), 
-                new Vector3(0.816497f, -0.408248f, 0.408248f), new Vector3(0.408248f, -0.408248f, 0.816497f), 
-                new Vector3(0.408248f, -0.816497f, 0.408248f), new Vector3(0.408248f, 0.816497f, 0.408248f), 
-                new Vector3(0.408248f, 0.408248f, 0.816497f), new Vector3(0.816497f, 0.408248f, 0.408248f), 
-                new Vector3(-0.816497f, 0.408248f, 0.408248f), new Vector3(-0.408248f, 0.408248f, 0.816497f), 
-                new Vector3(-0.408248f, 0.816497f, 0.408248f), new Vector3(-0.408248f, -0.816497f, 0.408248f), 
-                new Vector3(-0.408248f, -0.408248f, 0.816497f), new Vector3(-0.816497f, -0.408248f, 0.408248f), 
-                new Vector3(0.000000f, -0.923880f, 0.382683f), new Vector3(0.923880f, 0.000000f, 0.382683f), 
-                new Vector3(0.000000f, -0.382683f, 0.923880f), new Vector3(0.382683f, 0.000000f, 0.923880f), 
-                new Vector3(0.000000f, 0.923880f, 0.382683f), new Vector3(0.000000f, 0.382683f, 0.923880f), 
+                new Vector3(0.000000f, 0.000000f, 0.000000f), new Vector3(1.000000f, 0.000000f, 0.000000f),
+                new Vector3(0.923880f, 0.382683f, 0.000000f), new Vector3(0.707107f, 0.707107f, 0.000000f),
+                new Vector3(0.382683f, 0.923880f, 0.000000f), new Vector3(-0.000000f, 1.000000f, 0.000000f),
+                new Vector3(-0.382684f, 0.923880f, 0.000000f), new Vector3(-0.707107f, 0.707107f, 0.000000f),
+                new Vector3(-0.923880f, 0.382683f, 0.000000f), new Vector3(-1.000000f, -0.000000f, 0.000000f),
+                new Vector3(-0.923880f, -0.382683f, 0.000000f), new Vector3(-0.707107f, -0.707107f, 0.000000f),
+                new Vector3(-0.382683f, -0.923880f, 0.000000f), new Vector3(0.000000f, -1.000000f, 0.000000f),
+                new Vector3(0.382684f, -0.923879f, 0.000000f), new Vector3(0.707107f, -0.707107f, 0.000000f),
+                new Vector3(0.923880f, -0.382683f, 0.000000f), new Vector3(0.000000f, 0.000000f, 1.000000f),
+                new Vector3(0.707107f, 0.000000f, 0.707107f), new Vector3(0.000000f, -0.707107f, 0.707107f),
+                new Vector3(0.000000f, 0.707107f, 0.707107f), new Vector3(-0.707107f, 0.000000f, 0.707107f),
+                new Vector3(0.816497f, -0.408248f, 0.408248f), new Vector3(0.408248f, -0.408248f, 0.816497f),
+                new Vector3(0.408248f, -0.816497f, 0.408248f), new Vector3(0.408248f, 0.816497f, 0.408248f),
+                new Vector3(0.408248f, 0.408248f, 0.816497f), new Vector3(0.816497f, 0.408248f, 0.408248f),
+                new Vector3(-0.816497f, 0.408248f, 0.408248f), new Vector3(-0.408248f, 0.408248f, 0.816497f),
+                new Vector3(-0.408248f, 0.816497f, 0.408248f), new Vector3(-0.408248f, -0.816497f, 0.408248f),
+                new Vector3(-0.408248f, -0.408248f, 0.816497f), new Vector3(-0.816497f, -0.408248f, 0.408248f),
+                new Vector3(0.000000f, -0.923880f, 0.382683f), new Vector3(0.923880f, 0.000000f, 0.382683f),
+                new Vector3(0.000000f, -0.382683f, 0.923880f), new Vector3(0.382683f, 0.000000f, 0.923880f),
+                new Vector3(0.000000f, 0.923880f, 0.382683f), new Vector3(0.000000f, 0.382683f, 0.923880f),
                 new Vector3(-0.923880f, 0.000000f, 0.382683f), new Vector3(-0.382683f, 0.000000f, 0.923880f)
             };
 
             int [] indices = {
-                0, 2, 1, 0, 3, 2, 0, 4, 3, 0, 5, 4, 0, 6, 5, 0, 
-                7, 6, 0, 8, 7, 0, 9, 8, 0, 10, 9, 0, 11, 10, 0, 12, 
-                11, 0, 13, 12, 0, 14, 13, 0, 15, 14, 0, 16, 15, 0, 1, 16, 
-                22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 14, 24, 34, 35, 
-                22, 16, 36, 23, 37, 2, 27, 35, 38, 25, 4, 37, 26, 39, 6, 30, 
-                38, 40, 28, 8, 39, 29, 41, 10, 33, 40, 34, 31, 12, 41, 32, 36, 
-                15, 22, 24, 18, 23, 22, 19, 24, 23, 3, 25, 27, 20, 26, 25, 18, 
-                27, 26, 7, 28, 30, 21, 29, 28, 20, 30, 29, 11, 31, 33, 19, 32, 
-                31, 21, 33, 32, 13, 14, 34, 15, 24, 14, 19, 34, 24, 1, 35, 16, 
-                18, 22, 35, 15, 16, 22, 17, 36, 37, 19, 23, 36, 18, 37, 23, 1, 
-                2, 35, 3, 27, 2, 18, 35, 27, 5, 38, 4, 20, 25, 38, 3, 4, 
-                25, 17, 37, 39, 18, 26, 37, 20, 39, 26, 5, 6, 38, 7, 30, 6, 
-                20, 38, 30, 9, 40, 8, 21, 28, 40, 7, 8, 28, 17, 39, 41, 20, 
-                29, 39, 21, 41, 29, 9, 10, 40, 11, 33, 10, 21, 40, 33, 13, 34, 
+                0, 2, 1, 0, 3, 2, 0, 4, 3, 0, 5, 4, 0, 6, 5, 0,
+                7, 6, 0, 8, 7, 0, 9, 8, 0, 10, 9, 0, 11, 10, 0, 12,
+                11, 0, 13, 12, 0, 14, 13, 0, 15, 14, 0, 16, 15, 0, 1, 16,
+                22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 14, 24, 34, 35,
+                22, 16, 36, 23, 37, 2, 27, 35, 38, 25, 4, 37, 26, 39, 6, 30,
+                38, 40, 28, 8, 39, 29, 41, 10, 33, 40, 34, 31, 12, 41, 32, 36,
+                15, 22, 24, 18, 23, 22, 19, 24, 23, 3, 25, 27, 20, 26, 25, 18,
+                27, 26, 7, 28, 30, 21, 29, 28, 20, 30, 29, 11, 31, 33, 19, 32,
+                31, 21, 33, 32, 13, 14, 34, 15, 24, 14, 19, 34, 24, 1, 35, 16,
+                18, 22, 35, 15, 16, 22, 17, 36, 37, 19, 23, 36, 18, 37, 23, 1,
+                2, 35, 3, 27, 2, 18, 35, 27, 5, 38, 4, 20, 25, 38, 3, 4,
+                25, 17, 37, 39, 18, 26, 37, 20, 39, 26, 5, 6, 38, 7, 30, 6,
+                20, 38, 30, 9, 40, 8, 21, 28, 40, 7, 8, 28, 17, 39, 41, 20,
+                29, 39, 21, 41, 29, 9, 10, 40, 11, 33, 10, 21, 40, 33, 13, 34,
                 12, 19, 31, 34, 11, 12, 31, 17, 41, 36, 21, 32, 41, 19, 36, 32
             };
 

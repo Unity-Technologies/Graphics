@@ -14,7 +14,7 @@ Shader "Hidden/HDRP/TemporalAA"
         #pragma multi_compile_local _ FORCE_BILINEAR_HISTORY
         #pragma multi_compile_local _ ENABLE_MV_REJECTION
         #pragma multi_compile_local _ ANTI_RINGING
-        #pragma multi_compile_local LOW_QUALITY MEDIUM_QUALITY HIGH_QUALITY
+        #pragma multi_compile_local LOW_QUALITY MEDIUM_QUALITY HIGH_QUALITY POST_DOF
 
         #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
@@ -50,6 +50,7 @@ Shader "Hidden/HDRP/TemporalAA"
     #define CENTRAL_FILTERING NO_FILTERING
     #define HISTORY_CLIP DIRECT_CLIP
     #define ANTI_FLICKER 1
+    #define ANTI_FLICKER_MV_DEPENDENT 0
     #define VELOCITY_REJECTION (defined(ENABLE_MV_REJECTION) && 0)
     #define PERCEPTUAL_SPACE 1
     #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
@@ -63,7 +64,21 @@ Shader "Hidden/HDRP/TemporalAA"
     #define CENTRAL_FILTERING BLACKMAN_HARRIS
     #define HISTORY_CLIP DIRECT_CLIP
     #define ANTI_FLICKER 1
+    #define ANTI_FLICKER_MV_DEPENDENT 1
     #define VELOCITY_REJECTION defined(ENABLE_MV_REJECTION)
+    #define PERCEPTUAL_SPACE 1
+    #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
+
+#elif defined(POST_DOF)
+    #define YCOCG 1     
+    #define HISTORY_SAMPLING_METHOD BILINEAR
+    #define WIDE_NEIGHBOURHOOD 0
+    #define NEIGHBOUROOD_CORNER_METHOD VARIANCE
+    #define CENTRAL_FILTERING NO_FILTERINGs
+    #define HISTORY_CLIP DIRECT_CLIP
+    #define ANTI_FLICKER 1
+    #define ANTI_FLICKER_MV_DEPENDENT 1
+    #define VELOCITY_REJECTION (defined(ENABLE_MV_REJECTION) && 0)
     #define PERCEPTUAL_SPACE 1
     #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
 
@@ -83,9 +98,10 @@ Shader "Hidden/HDRP/TemporalAA"
         #define _SpeedRejectionIntensity _TaaPostParameters.z
         #define _ContrastForMaxAntiFlicker _TaaPostParameters.w
 
-
+#if VELOCITY_REJECTION
         TEXTURE2D_X(_InputVelocityMagnitudeHistory);
         RW_TEXTURE2D_X(float, _OutputVelocityMagnitudeHistory);
+#endif
 
         float4 _TaaPostParameters;
         float4 _TaaHistorySize;
@@ -163,7 +179,13 @@ Shader "Hidden/HDRP/TemporalAA"
             // --------------- Get neighbourhood information and clamp history --------------- 
             float colorLuma = GetLuma(filteredColor);
             float historyLuma = GetLuma(history);
-            GetNeighbourhoodCorners(samples, historyLuma, colorLuma, float2(_AntiFlickerIntensity, _ContrastForMaxAntiFlicker));
+
+#if ANTI_FLICKER_MV_DEPENDENT || VELOCITY_REJECTION
+            float motionVectorLength = length(motionVector);
+#else
+            float motionVectorLength = 0.0f;
+#endif
+            GetNeighbourhoodCorners(samples, historyLuma, colorLuma, float2(_AntiFlickerIntensity, _ContrastForMaxAntiFlicker), motionVectorLength);
 
             history = GetClippedHistory(filteredColor, history, samples.minNeighbour, samples.maxNeighbour);
             filteredColor = SharpenColor(samples, filteredColor, sharpenStrength);
@@ -189,7 +211,7 @@ Shader "Hidden/HDRP/TemporalAA"
             // --------------- Blend to final value and output ---------------
 
 #if VELOCITY_REJECTION
-            float lengthMV = length(motionVector) * 10;
+            float lengthMV = motionVectorLength * 10;
             blendFactor = ModifyBlendWithMotionVectorRejection(_InputVelocityMagnitudeHistory, lengthMV, prevUV, blendFactor, _SpeedRejectionIntensity);
 #endif
 
@@ -197,10 +219,10 @@ Shader "Hidden/HDRP/TemporalAA"
 
             CTYPE finalColor;
 #if PERCEPTUAL_SPACE_ONLY_END
-            finalColor.xyz = lerp(ReinhardToneMap(history), ReinhardToneMap(filteredColor), blendFactor);
-            finalColor = InverseReinhardToneMap(finalColor);
+            finalColor.xyz = lerp(ReinhardToneMap(history).xyz, ReinhardToneMap(filteredColor).xyz, blendFactor);
+            finalColor.xyz = InverseReinhardToneMap(finalColor).xyz;
 #else
-            finalColor.xyz = lerp(history, filteredColor, blendFactor);
+            finalColor.xyz = lerp(history.xyz, filteredColor.xyz, blendFactor);
             finalColor.xyz *= PerceptualInvWeight(finalColor);
 #endif
 

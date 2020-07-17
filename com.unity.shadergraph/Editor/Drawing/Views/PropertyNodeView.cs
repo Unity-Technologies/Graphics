@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.Experimental.GraphView;
@@ -9,7 +9,6 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Data.Interfaces;
 using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
 
 namespace UnityEditor.ShaderGraph
@@ -46,6 +45,12 @@ namespace UnityEditor.ShaderGraph
             // Removing the title label since it is not used and taking up space
             this.Q("title-label").RemoveFromHierarchy();
 
+            // Add disabled overlay
+            Add(new VisualElement() { name = "disabledOverlay", pickingMode = PickingMode.Ignore });
+
+            // Update active state
+            SetActive(node.isActive);
+
             // Registering the hovering callbacks for highlighting
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
@@ -63,12 +68,6 @@ namespace UnityEditor.ShaderGraph
             return property;
         }
 
-        public PropertyInfo[] GetPropertyInfo()
-        {
-            // The AbstractShaderProperty is declared as private here so we're specifying the NonPublic flag
-            return this.GetType().GetProperties(BindingFlags.NonPublic | BindingFlags.Instance);
-        }
-
         public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
         {
             if(propertyDrawer is ShaderInputPropertyDrawer shaderInputPropertyDrawer)
@@ -80,6 +79,7 @@ namespace UnityEditor.ShaderGraph
                     graph.isSubGraph,
                     graph,
                     this.ChangeExposedField,
+                    this.ChangeDisplayNameField,
                     this.ChangeReferenceNameField,
                     () => graph.ValidateGraph(),
                     () => graph.OnKeywordChanged(),
@@ -96,6 +96,17 @@ namespace UnityEditor.ShaderGraph
         {
             property.generatePropertyBlock = newValue;
             icon = property.generatePropertyBlock ? BlackboardProvider.exposedIcon : null;
+        }
+
+        void ChangeDisplayNameField(string newValue)
+        {
+            var graph = node.owner as GraphData;
+
+            if(newValue != property.displayName)
+            {
+                property.displayName = newValue;
+                graph.SanitizeGraphInputName(property);
+            }
         }
 
         void ChangeReferenceNameField(string newValue)
@@ -233,8 +244,20 @@ namespace UnityEditor.ShaderGraph
         {
         }
 
+        public bool FindPort(SlotReference slot, out ShaderPort port)
+        {
+            port = output as ShaderPort;
+            return port != null && port.slot.slotReference.Equals(slot);
+        }
+
         public void OnModified(ModificationScope scope)
         {
+            //disconnected property nodes are always active
+            if (!node.IsSlotConnected(PropertyNode.OutputSlotId))
+                node.SetActive(true);
+
+            SetActive(node.isActive);
+
             if (scope == ModificationScope.Graph)
             {
                 // changing the icon to be exposed or not
@@ -246,11 +269,28 @@ namespace UnityEditor.ShaderGraph
                 this.icon = icon;
             }
 
-            if (scope == ModificationScope.Topological)
+            if (scope == ModificationScope.Topological || scope == ModificationScope.Node)
             {
                 // Updating the text label of the output slot
                 var slot = node.GetSlots<MaterialSlot>().ToList().First();
                 this.Q<Label>("type").text = slot.displayName;
+            }
+        }
+
+        public void SetActive(bool state)
+        {
+            // Setup
+            var disabledString = "disabled";
+
+            if (!state)
+            {
+                // Add elements to disabled class list
+                AddToClassList(disabledString);
+            }
+            else
+            {
+                // Remove elements from disabled class list
+                RemoveFromClassList(disabledString);
             }
         }
 

@@ -20,10 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
         BlitToFinalRTDevBuildOnly,
         Distortion,
         ApplyDistortion,
-        DepthPrepassForward,
-        DepthPrepassDeferredForDecals,
-        DepthPrepassDeferred,
-        DepthPrepassDeferredIncomplete,
+        DepthPrepass,
         TransparentDepthPrepass,
         GBuffer,
         GBufferDebug,
@@ -37,6 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
         SsrTracing,
         SsrReprojection,
         PrepareForTransparentSsr,
+        SsgiPass,
         ForwardEmissive,
         ForwardOpaque,
         ForwardOpaqueDebug,
@@ -62,6 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ClearSSSFilteringTarget,
         ClearAndCopyStencilTexture,
         ClearHDRTarget,
+        ClearDecalBuffer,
         ClearGBuffer,
         ClearSsrBuffers,
         HDRenderPipelineRenderCamera,
@@ -76,6 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderWireFrame,
         PushToColorPicker,
         ResolveMSAAColor,
+        ResolveMSAAMotionVector,
         ResolveMSAADepth,
         ConvolveReflectionProbe,
         ConvolvePlanarReflectionProbe,
@@ -101,14 +101,20 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumetricLightingFiltering,
         PrepareVisibleDensityVolumeList,
 
+        // RT Cluster
         RaytracingBuildCluster,
         RaytracingCullLights,
+        // RTR
         RaytracingIntegrateReflection,
         RaytracingFilterReflection,
+        // RTAO
         RaytracingAmbientOcclusion,
         RaytracingFilterAmbientOcclusion,
+        RaytracingComposeAmbientOcclusion,
+        // RT Shadows
         RaytracingDirectionalLightShadow,
         RaytracingLightShadow,
+        // RTGI
         RaytracingIntegrateIndirectDiffuse,
         RaytracingFilterIndirectDiffuse,
         RaytracingDebugOverlay,
@@ -119,7 +125,6 @@ namespace UnityEngine.Rendering.HighDefinition
         PrepareLightsForGPU,
 
         // Profile sampler for shadow
-        PushShadowGlobalParameters,
         RenderShadowMaps,
         RenderMomentShadowMaps,
         RenderPunctualShadowMaps,
@@ -155,10 +160,12 @@ namespace UnityEngine.Rendering.HighDefinition
         UpsampleLowResTransparent,
 
         // Post-processing
+        GuardBandClear,
         AlphaCopy,
         StopNaNs,
         FixedExposure,
         DynamicExposure,
+        ApplyExposure,
         TemporalAntialiasing,
         DepthOfField,
         DepthOfFieldKernel,
@@ -184,6 +191,7 @@ namespace UnityEngine.Rendering.HighDefinition
         FXAA,
         SMAA,
         FinalPost,
+        CustomPostProcessBeforeTAA,
         CustomPostProcessBeforePP,
         CustomPostProcessAfterPP,
         CustomPostProcessAfterOpaqueAndSky,
