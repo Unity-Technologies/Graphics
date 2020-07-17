@@ -158,9 +158,9 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="ScriptableRenderContext"/>
         public static void RenderSingleCamera(ScriptableRenderContext context, Camera camera)
         {
-            UniversalAdditionalCameraData additionalCameraData = null;
+            UniversalCameraExtension additionalCameraData = null;
             if (IsGameCamera(camera))
-                camera.gameObject.TryGetComponent(out additionalCameraData);
+                additionalCameraData = camera.extension as UniversalCameraExtension;
 
             if (additionalCameraData != null && additionalCameraData.renderType != CameraRenderType.Base)
             {
@@ -257,7 +257,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="camera">Camera to render.</param>
         static void RenderCameraStack(ScriptableRenderContext context, Camera baseCamera)
         {
-            baseCamera.TryGetComponent<UniversalAdditionalCameraData>(out var baseCameraAdditionalData);
+            var baseCameraAdditionalData = baseCamera.extension as UniversalCameraExtension;
 
             // Overlay cameras will be rendered stacked while rendering base cameras
             if (baseCameraAdditionalData != null && baseCameraAdditionalData.renderType == CameraRenderType.Overlay)
@@ -285,7 +285,7 @@ namespace UnityEngine.Rendering.Universal
 
                     if (currCamera != null && currCamera.isActiveAndEnabled)
                     {
-                        currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var data);
+                        var data = currCamera.extension as UniversalCameraExtension;
 
                         if (data == null || data.renderType != CameraRenderType.Overlay)
                         {
@@ -360,8 +360,9 @@ namespace UnityEngine.Rendering.Universal
                         var currCamera = cameraStack[i];
                         if (!currCamera.isActiveAndEnabled)
                             continue;
+                        
+                        var currCameraData = currCamera.extension as UniversalCameraExtension;
 
-                        currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var currCameraData);
                         // Camera is overlay and enabled
                         if (currCameraData != null)
                         {
@@ -403,7 +404,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        static void UpdateVolumeFramework(Camera camera, UniversalAdditionalCameraData additionalCameraData)
+        static void UpdateVolumeFramework(Camera camera, UniversalCameraExtension additionalCameraData)
         {
             // Default values when there's no additional camera data available
             LayerMask layerMask = 1; // "Default"
@@ -420,9 +421,9 @@ namespace UnityEngine.Rendering.Universal
             {
                 // Try to mirror the MainCamera volume layer mask for the scene view - do not mirror the target
                 var mainCamera = Camera.main;
-                UniversalAdditionalCameraData mainAdditionalCameraData = null;
+                UniversalCameraExtension mainAdditionalCameraData = mainCamera?.extension as UniversalCameraExtension;
 
-                if (mainCamera != null && mainCamera.TryGetComponent(out mainAdditionalCameraData))
+                if (mainAdditionalCameraData != null)
                     layerMask = mainAdditionalCameraData.volumeLayerMask;
 
                 trigger = mainAdditionalCameraData != null && mainAdditionalCameraData.volumeTrigger != null ? mainAdditionalCameraData.volumeTrigger : trigger;
@@ -470,7 +471,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        static void InitializeCameraData(Camera camera, UniversalAdditionalCameraData additionalCameraData, bool resolveFinalTarget, out CameraData cameraData)
+        static void InitializeCameraData(Camera camera, UniversalCameraExtension additionalCameraData, bool resolveFinalTarget, out CameraData cameraData)
         {
             cameraData = new CameraData();
             InitializeStackedCameraData(camera, additionalCameraData, ref cameraData);
@@ -484,7 +485,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="baseCamera">Base camera to inherit settings from.</param>
         /// <param name="baseAdditionalCameraData">Component that contains additional base camera data.</param>
         /// <param name="cameraData">Camera data to initialize setttings.</param>
-        static void InitializeStackedCameraData(Camera baseCamera, UniversalAdditionalCameraData baseAdditionalCameraData, ref CameraData cameraData)
+        static void InitializeStackedCameraData(Camera baseCamera, UniversalCameraExtension baseAdditionalCameraData, ref CameraData cameraData)
         {
             var settings = asset;
             cameraData.targetTexture = baseCamera.targetTexture;
@@ -576,7 +577,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="additionalCameraData">Additional camera data component to initialize settings from.</param>
         /// <param name="resolveFinalTarget">True if this is the last camera in the stack and rendering should resolve to camera target.</param>
         /// <param name="cameraData">Settings to be initilized.</param>
-        static void InitializeAdditionalCameraData(Camera camera, UniversalAdditionalCameraData additionalCameraData, bool resolveFinalTarget, ref CameraData cameraData)
+        static void InitializeAdditionalCameraData(Camera camera, UniversalCameraExtension additionalCameraData, bool resolveFinalTarget, ref CameraData cameraData)
         {
             var settings = asset;
             cameraData.camera = camera;

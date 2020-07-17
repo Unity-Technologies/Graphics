@@ -63,8 +63,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_CameraStacking = false;
 
             PixelPerfectCamera obj = target as PixelPerfectCamera;
-            UniversalAdditionalCameraData cameraData = null;
-            obj?.TryGetComponent(out cameraData);
+            Camera camera = null;
+            obj?.TryGetComponent(out camera);
+            UniversalCameraExtension cameraData = camera?.extension as UniversalCameraExtension;
 
             if (cameraData == null)
                 return;

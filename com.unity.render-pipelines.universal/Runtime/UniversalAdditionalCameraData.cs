@@ -83,15 +83,13 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="camera"></param>
         /// <returns>The <c>UniversalAdditinalCameraData</c> for this camera.</returns>
-        /// <see cref="UniversalAdditionalCameraData"/>
-        public static UniversalAdditionalCameraData GetUniversalAdditionalCameraData(this Camera camera)
+        /// <see cref="UniversalCameraExtension"/>
+        public static UniversalCameraExtension GetUniversalAdditionalCameraData(this Camera camera)
         {
-            var gameObject = camera.gameObject;
-            bool componentExists = gameObject.TryGetComponent<UniversalAdditionalCameraData>(out var cameraData);
-            if (!componentExists)
-                cameraData = gameObject.AddComponent<UniversalAdditionalCameraData>();
-
-            return cameraData;
+            if (camera.HasExtension<UniversalCameraExtension>())
+                return camera.GetExtension<UniversalCameraExtension>();
+            else
+                return camera.CreateExtension<UniversalCameraExtension>();
         }
     }
 
@@ -110,7 +108,7 @@ namespace UnityEngine.Rendering.Universal
 
     [CustomExtensionName("URP", typeof(UniversalRenderPipeline))]
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "camera-component-reference" + Documentation.endURL)]
-    class UniversalCameraExtension : Camera.IExtension
+    public class UniversalCameraExtension : Camera.IExtension
     {
         enum Version
         {
@@ -155,7 +153,7 @@ namespace UnityEngine.Rendering.Universal
 
         [HideInInspector, SerializeField] Version m_Version = Version.Last;
 
-        public float version => (float)m_Version;
+        public int version => (int)m_Version;
 
         static UniversalCameraExtension s_DefaultAdditionalCameraData = null;
         internal static UniversalCameraExtension defaultAdditionalCameraData
@@ -453,6 +451,7 @@ namespace UnityEngine.Rendering.Universal
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Camera))]
     [ImageEffectAllowedInSceneView]
+    [ExecuteAlways] //Added to migrate when scene is loaded (launch Awake in Editor)
     [MovedFrom("UnityEngine.Rendering.LWRP")] public class UniversalAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver
     {
         private UniversalCameraExtension redirect
@@ -689,6 +688,11 @@ namespace UnityEngine.Rendering.Universal
 #pragma warning restore CS0618 // Type or member is obsolete
             {
                 Camera cam = GetComponent<Camera>();
+                
+#if UNITY_EDITOR
+                Undo.RecordObject(cam, "Migrated AdditionalCameraData to CameraExtension");
+#endif
+
                 UniversalCameraExtension extension;
                 if (cam.HasExtension<UniversalCameraExtension>())
                     extension = cam.GetExtension<UniversalCameraExtension>();
@@ -715,7 +719,9 @@ namespace UnityEngine.Rendering.Universal
                     m_RequiresColorTexture
 #pragma warning restore CS0618 // Type or member is obsolete
                 );
-                
+
+                cam.SwitchActiveExtensionTo<UniversalCameraExtension>();
+
 #pragma warning disable CS0618 // Type or member is obsolete
                 m_Version = 3;
 #pragma warning restore CS0618 // Type or member is obsolete

@@ -247,7 +247,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 bool warning = false;
                 string warningInfo = "";
-                var type = cam.gameObject.GetComponent<UniversalAdditionalCameraData>().renderType;
+                var type = (cam.extension as UniversalCameraExtension).renderType;
                 if (!validCameraTypes.Contains(type))
                 {
                     warning = true;
@@ -275,7 +275,7 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUI.LabelField(rect, cam.name, type.ToString());
 
                     // Printing if Post Processing is on or not.
-                    var isPostActive = cam.gameObject.GetComponent<UniversalAdditionalCameraData>().renderPostProcessing;
+                    var isPostActive = (cam.extension as UniversalCameraExtension).renderPostProcessing;
                     if (isPostActive)
                     {
                         Rect selectRect = new Rect(rect.width - 20, rect.y, 50, EditorGUIUtility.singleLineHeight);
@@ -350,7 +350,7 @@ namespace UnityEditor.Rendering.Universal
             var allCameras = FindCamerasToReference(camera.gameObject);
             foreach (var camera in allCameras)
             {
-                var component = camera.gameObject.GetComponent<UniversalAdditionalCameraData>();
+                var component = camera.extension as UniversalCameraExtension;
                 if (component != null)
                 {
                     if (validCameraTypes.Contains(component.renderType))
@@ -886,7 +886,9 @@ namespace UnityEditor.Rendering.Universal
         public void RemoveComponent(Camera camera, IEnumerable<Component> dependencies)
         {
             // do not use keyword is to remove the additional data. It will not work
+#pragma warning disable CS0618 // Type or member is obsolete
             dependencies = dependencies.Where(c => c.GetType() != typeof(UniversalAdditionalCameraData));
+#pragma warning restore CS0618 // Type or member is obsolete
             if (dependencies.Any())
             {
                 EditorUtility.DisplayDialog("Can't remove component", $"Can't remove Camera because {dependencies.First().GetType().Name} depends on it.", "Ok");
@@ -894,7 +896,9 @@ namespace UnityEditor.Rendering.Universal
             }
 
             Undo.SetCurrentGroupName("Remove Universal Camera");
+#pragma warning disable CS0618 // Type or member is obsolete
             var additionalCameraData = camera.GetComponent<UniversalAdditionalCameraData>();
+#pragma warning restore CS0618 // Type or member is obsolete
             if (additionalCameraData)
             {
                 Undo.DestroyObjectImmediate(additionalCameraData);

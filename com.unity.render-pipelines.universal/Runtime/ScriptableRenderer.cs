@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.Universal
             /// This setting controls if the camera editor should display the camera stack category.
             /// Renderers that don't support camera stacking will only render camera of type CameraRenderType.Base
             /// <see cref="CameraRenderType"/>
-            /// <seealso cref="UniversalAdditionalCameraData.cameraStack"/>
+            /// <seealso cref="UniversalCameraExtension.cameraStack"/>
             /// </summary>
             public bool cameraStacking { get; set; } = false;
 
