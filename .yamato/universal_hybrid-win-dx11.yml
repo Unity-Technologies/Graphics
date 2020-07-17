@@ -64,7 +64,7 @@ Universal_Hybrid_Win_DX11_playmode_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalHybridTest/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalHybridTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalHybridTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11" --compilation-errors-as-warnings
+      -  cd TestProjects/UniversalHybridTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -130,7 +130,7 @@ Universal_Hybrid_Win_DX11_playmode_fast-trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalHybridTest/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalHybridTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalHybridTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11" --compilation-errors-as-warnings
+      -  cd TestProjects/UniversalHybridTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -199,7 +199,7 @@ Universal_Hybrid_Win_DX11_playmode_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalHybridTest/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalHybridTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalHybridTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11" --compilation-errors-as-warnings
+      -  cd TestProjects/UniversalHybridTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --compilation-errors-as-warnings --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
