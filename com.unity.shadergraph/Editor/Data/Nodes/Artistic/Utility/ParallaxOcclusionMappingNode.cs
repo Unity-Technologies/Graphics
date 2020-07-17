@@ -3,16 +3,16 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing.Controls;
-using UnityEngine.Rendering.HighDefinition;
 using System;
 using System.Linq;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEngine.Rendering.ShaderGraph
 {
-    [Title("Utility", "High Definition Render Pipeline", "Parallax Occlusion Mapping")]
+    [Title("Utility", "Parallax Occlusion Mapping")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.ParallaxOcclusionMappingNode")]
+    [FormerName("UnityEditor.Rendering.HighDefinition.ParallaxOcclusionMappingNode")]
     class ParallaxOcclusionMappingNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireViewDirection, IMayRequireMeshUV
     {
         public ParallaxOcclusionMappingNode()

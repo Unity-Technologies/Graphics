@@ -57,6 +57,7 @@
             * [Normal Unpack](Normal-Unpack-Node) 
         * Utility
             * [Colorspace Conversion](Colorspace-Conversion-Node)  
+            * [Parallax Occlusion Mapping](Parallax-Occlusion-Mapping)  
     * [Channel](Channel-Nodes)
         * [Combine](Combine-Node)  
         * [Flip](Flip-Node)  
