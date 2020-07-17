@@ -47,4 +47,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/021_Lighting_BasicPoint.unity
     guid: 440ac1a47fb091043ae6608255c5efee
+  - enabled: 1
+    path: Assets/Scenes/022_Lighting_BasicSpot.unity
+    guid: ba93e261bd923804bb5f1444d8853f9d
   m_configObjects: {}
