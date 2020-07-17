@@ -2,9 +2,8 @@ from copy import deepcopy
 
 def format_metafile(metafile, shared, latest_editor_versions, unfold_agents_root_keys=[], unfold_test_platforms_root_keys=[]):
     '''Formats the metafile by retrieving all missing information from the shared metafile. This includes unfolding platform details, agent aliases etc.'''
-    metafile['editors'] = _get_editors(metafile, shared)
+    metafile['editors'] = _get_editors(metafile, shared, latest_editor_versions)
     metafile['target_editor'] = metafile.get('target_editor', shared.get('target_editor'))
-    metafile['target_editor_revision'] = _get_target_editor_revision(metafile['target_editor'], latest_editor_versions)
     metafile['target_branch'] = metafile.get('target_branch', shared.get('target_branch'))
     metafile['target_branch_editor_ci'] = metafile.get('target_branch_editor_ci', shared.get('target_branch_editor_ci'))
     metafile['platforms'] = _unfold_platforms(metafile, shared)
@@ -12,10 +11,16 @@ def format_metafile(metafile, shared, latest_editor_versions, unfold_agents_root
     metafile = _unfold_test_platforms(metafile, shared, root_keys=unfold_test_platforms_root_keys)
     return metafile
 
-def _get_editors(metafile, shared):
+def _get_editors(metafile, shared, latest_editor_versions):
     '''Retrieves the editors from shared metafile, if not overriden by 'override_editors' in metafile.'''
     override_editors = metafile.get("override_editors", None)
-    return override_editors if override_editors is not None else shared['editors']
+    editors = override_editors if override_editors is not None else shared['editors']
+    for editor in editors:
+        if str(editor['version']).lower() == 'CUSTOM-REVISION'.lower():
+            editor['revision_staging'] = '$CUSTOM_REVISION'
+        else:
+            editor['revision_staging'] = latest_editor_versions["editor_versions"][f'{editor["version"]}_staging']["revision"]
+    return editors
 
 def _get_target_editor_revision(target_editor, latest_editor_versions):
     return latest_editor_versions["editor_versions"][f'{target_editor}_staging']["revision"]

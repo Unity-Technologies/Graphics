@@ -5,17 +5,17 @@ from ._project_base import _job
 
 class Project_StandaloneBuildJob():
     
-    def __init__(self, project, editor, platform, api, test_platform, editor_revision):
+    def __init__(self, project, editor, platform, api, test_platform):
         self.project_name = project["name"]
         self.job_id = project_job_id_build(project["name"],platform["name"],api["name"],editor["version"])
-        self.yml = self.get_job_definition(project, editor, platform, api, test_platform, editor_revision).get_yml()
+        self.yml = self.get_job_definition(project, editor, platform, api, test_platform).get_yml()
 
     
-    def get_job_definition(self, project, editor, platform, api, test_platform, editor_revision):
+    def get_job_definition(self, project, editor, platform, api, test_platform):
 
         project_folder = project.get("folder_standalone", project["folder"])
         cmd = get_cmd(platform["name"], api, 'standalone_build')
-        job = _job(project["name"], 'standalone_build', editor, platform, api, cmd(project_folder, platform, api, test_platform["args"], editor_revision))
+        job = _job(project["name"], 'standalone_build', editor, platform, api, cmd(project_folder, platform, api, test_platform["args"], editor["revision_staging"]))
         
         job.add_artifacts_players()
         return job

@@ -4,10 +4,10 @@ target_editor: 2020.2 # specifies the target editor used for some package/previe
 editors: # applied for all yml files. Override this by specifying override_editors (in the same format) in a specific metafile
   - version: 2020.2
     rerun_strategy: on-new-revision
-    cmd: -u 2020.2
+    revision: 
   - version: CUSTOM-REVISION
     rerun_strategy: always
-    cmd: -u $CUSTOM_REVISION
+    revision: $CUSTOM_REVISION
 test_platforms:
   Standalone: --suite=playmode --platform=Standalone
   playmode: --suite=playmode

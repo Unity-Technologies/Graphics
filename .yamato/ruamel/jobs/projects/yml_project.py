@@ -20,7 +20,6 @@ def create_project_ymls(metafile):
 
     # project platform_api specific yml files
     project = metafile["project"]
-    editor_revision = metafile["target_editor_revision"]
     for platform in metafile['platforms']:
         for api in platform['apis'] or [""]:
             if platform["name"]=='Android':
@@ -32,14 +31,14 @@ def create_project_ymls(metafile):
                     if test_platform['name'].lower() not in map(str.lower, api.get('exclude_test_platforms', [])):
 
                         if test_platform['name'].lower() == 'standalone':
-                            job = Project_StandaloneJob(project, editor, platform, api, test_platform, editor_revision)
+                            job = Project_StandaloneJob(project, editor, platform, api, test_platform)
                             yml[job.job_id] = job.yml
                                 
                             if job.build_job is not None:
                                 yml[job.build_job.job_id] = job.build_job.yml
                         
                         else: 
-                            job = Project_NotStandaloneJob(project, editor, platform, api, test_platform, editor_revision)
+                            job = Project_NotStandaloneJob(project, editor, platform, api, test_platform)
                             yml[job.job_id] = job.yml
                     
             # store yml per [project]-[platform]-[api]
