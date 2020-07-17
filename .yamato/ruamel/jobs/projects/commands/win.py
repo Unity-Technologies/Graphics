@@ -40,4 +40,4 @@ def cmd_standalone_build(project_folder, platform, api, test_platform_args):
 
 def _add_extra_utr_arg(base, project_folder):
     if project_folder.lower() in ['universalhybridtest', 'hdrp_hybridtests']:
-        base[-1] += ' --extra-utr-arg="--compilation-errors-as-warnings"'
+        base[-1] += ' --compilation-errors-as-warnings'
