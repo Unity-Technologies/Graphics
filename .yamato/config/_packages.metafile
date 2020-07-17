@@ -1,6 +1,4 @@
 # all_package_ci needs dependencies for package_test_dependencies (currently commented out due to breaking)
-trigger_editors:
-  - fast-trunk
 packages:
   - name: Core
     id: core

@@ -6,12 +6,12 @@ from ..shared.constants import NPM_UPMCI_INSTALL_URL
 
 class Package_AllPackageCiJob():
     
-    def __init__(self, packages, agent, platforms, package_trigger_editors, editor):
+    def __init__(self, packages, agent, platforms, target_editor, editor):
         self.job_id = package_job_id_test_all(editor["version"])
-        self.yml = self.get_job_definition(packages, agent, platforms, package_trigger_editors, editor).get_yml()
+        self.yml = self.get_job_definition(packages, agent, platforms, target_editor, editor).get_yml()
 
 
-    def get_job_definition(self, packages, agent, platforms, package_trigger_editors, editor):
+    def get_job_definition(self, packages, agent, platforms, target_editor, editor):
 
         # define dependencies
         dependencies = []
@@ -29,7 +29,7 @@ class Package_AllPackageCiJob():
                 f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
                 f'upm-ci package izon -t',
                 f'upm-ci package izon -d'])
-        if editor['version'] in package_trigger_editors:
+        if editor['version'] == f'fast-{target_editor}':
             # trigger the job when updating the docs to avoid merging jpg images (this is not allowed by the package validation suite)
             job.set_trigger_on_expression(f'NOT pull_request.draft AND pull_request.push.changes.any match ["**/Documentation*/**/*"]')
         return job
