@@ -793,87 +793,6 @@ AnimationClip:
   m_HasGenericRootTransform: 1
   m_HasMotionFloatCurves: 0
   m_Events: []
---- !u!114 &-7835225016056522620
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6fde0a8ac3e6b482c95fa602e65ab045, type: 3}
-  m_Name: MovieRecorderSettings
-  m_EditorClassIdentifier: 
-  enabled: 1
-  take: 26
-  captureEveryNthFrame: 1
-  fileNameGenerator:
-    m_Path:
-      m_Root: 5
-      m_Leaf: C:/Users/pydon/Videos/HDRP Template
-      m_ForceAssetFolder: 0
-    m_FileName: movie
-  outputFormat: 0
-  videoBitRateMode: 2
-  captureAlpha: 0
-  m_ImageInputSelector:
-    m_Selected: gameViewInputSettings
-    gameViewInputSettings:
-      m_OutputResolution:
-        m_CustomWidth: 1024
-        m_CustomHeight: 1024
-        imageHeight: 2160
-        maxSupportedHeight: 2160
-        m_AspectRatio:
-          m_CustomAspectX: 1
-          m_CustomAspectY: 1
-          m_ImageAspect: 1
-      flipFinalOutput: 1
-    cameraInputSettings:
-      m_OutputResolution:
-        m_CustomWidth: 1024
-        m_CustomHeight: 1024
-        imageHeight: 0
-        maxSupportedHeight: 4320
-        m_AspectRatio:
-          m_CustomAspectX: 1
-          m_CustomAspectY: 1
-          m_ImageAspect: 1
-      source: 2
-      cameraTag: 
-      flipFinalOutput: 0
-      captureUI: 0
-    camera360InputSettings:
-      source: 2
-      cameraTag: 
-      flipFinalOutput: 0
-      renderStereo: 1
-      stereoSeparation: 0.065
-      mapSize: 1024
-      m_OutputWidth: 1024
-      m_OutputHeight: 2048
-    renderTextureInputSettings:
-      renderTexture: {fileID: 0}
-      flipFinalOutput: 0
-    renderTextureSamplerSettings:
-      source: 1
-      m_RenderWidth: 1280
-      m_RenderHeight: 720
-      m_OutputWidth: 1280
-      m_OutputHeight: 720
-      outputAspectRatio:
-        m_CustomAspectX: 1
-        m_CustomAspectY: 1
-        m_ImageAspect: 1
-      superSampling: 1
-      superKernelPower: 16
-      superKernelScale: 1
-      cameraTag: 
-      colorSpace: 0
-      flipFinalOutput: 0
-  m_AudioInputSettings:
-    preserveAudio: 0
 --- !u!114 &-7449109789987999869
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1776,6 +1695,85 @@ MonoBehaviour:
   m_Clips: []
   m_Markers:
     m_Objects: []
+--- !u!114 &-4583037885079639781
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06397f605c749fe4dbe2df4bbd1ef4a1, type: 3}
+  m_Name: ImageRecorderSettings
+  m_EditorClassIdentifier: 
+  enabled: 1
+  take: 4
+  captureEveryNthFrame: 1
+  fileNameGenerator:
+    m_Path:
+      m_Root: 5
+      m_Leaf: C:/Users/pydon/Desktop/Image Sequence
+      m_ForceAssetFolder: 0
+    m_FileName: image_<Frame>
+  outputFormat: 1
+  captureAlpha: 0
+  captureHDR: 0
+  m_ImageInputSelector:
+    m_Selected: gameViewInputSettings
+    gameViewInputSettings:
+      m_OutputResolution:
+        m_CustomWidth: 1024
+        m_CustomHeight: 1024
+        imageHeight: 2160
+        maxSupportedHeight: 4320
+        m_AspectRatio:
+          m_CustomAspectX: 1
+          m_CustomAspectY: 1
+          m_ImageAspect: 1
+      flipFinalOutput: 1
+    cameraInputSettings:
+      m_OutputResolution:
+        m_CustomWidth: 1024
+        m_CustomHeight: 1024
+        imageHeight: 0
+        maxSupportedHeight: 4320
+        m_AspectRatio:
+          m_CustomAspectX: 1
+          m_CustomAspectY: 1
+          m_ImageAspect: 1
+      source: 2
+      cameraTag: 
+      flipFinalOutput: 0
+      captureUI: 0
+    camera360InputSettings:
+      source: 2
+      cameraTag: 
+      flipFinalOutput: 0
+      renderStereo: 1
+      stereoSeparation: 0.065
+      mapSize: 1024
+      m_OutputWidth: 1024
+      m_OutputHeight: 2048
+    renderTextureInputSettings:
+      renderTexture: {fileID: 0}
+      flipFinalOutput: 0
+    renderTextureSamplerSettings:
+      source: 1
+      m_RenderWidth: 1280
+      m_RenderHeight: 720
+      m_OutputWidth: 1280
+      m_OutputHeight: 720
+      outputAspectRatio:
+        m_CustomAspectX: 1
+        m_CustomAspectY: 1
+        m_ImageAspect: 1
+      superSampling: 1
+      superKernelPower: 16
+      superKernelScale: 1
+      cameraTag: 
+      colorSpace: 0
+      flipFinalOutput: 0
 --- !u!114 &-4193060167398639182
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2124,7 +2122,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f1e95aa6d658d694785bfde37c857fff, type: 3}
   m_Name: RecorderClip
   m_EditorClassIdentifier: 
-  settings: {fileID: -7835225016056522620}
+  settings: {fileID: -4583037885079639781}
 --- !u!114 &-884799829565205082
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4493,9 +4491,9 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: {x: -39.361, y: -168.708, z: -0.006}
+        value: {x: -27.34, y: -168.708, z: -0.006}
         inSlope: {x: 0, y: 0, z: 0}
-        outSlope: {x: 42.405, y: 12.737127, z: 0.004285714}
+        outSlope: {x: 29.525356, y: 12.737127, z: 0.004285714}
         tangentMode: 0
         weightedMode: 0
         inWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
@@ -4503,7 +4501,7 @@ AnimationClip:
       - serializedVersion: 3
         time: 0.93333334
         value: {x: 0.217, y: -156.82, z: -0.002}
-        inSlope: {x: 42.405, y: 12.737127, z: 0.004285714}
+        inSlope: {x: 29.525356, y: 12.737127, z: 0.004285714}
         outSlope: {x: 113.662506, y: 9.900056, z: 0}
         tangentMode: 0
         weightedMode: 0
@@ -4519,7 +4517,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: {x: 0, y: -0.50396585, z: 0}
+        value: {x: 0, y: -0.05296588, z: 0}
         inSlope: {x: 0, y: 0, z: 0}
         outSlope: {x: -0.0071487427, y: 0, z: 0}
         tangentMode: 0
@@ -4581,9 +4579,9 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: -39.361
+        value: -27.34
         inSlope: 0
-        outSlope: 42.405
+        outSlope: 29.525356
         tangentMode: 69
         weightedMode: 0
         inWeight: 0.33333334
@@ -4591,7 +4589,7 @@ AnimationClip:
       - serializedVersion: 3
         time: 0.93333334
         value: 0.217
-        inSlope: 42.405
+        inSlope: 29.525356
         outSlope: 113.662506
         tangentMode: 69
         weightedMode: 0
@@ -4684,7 +4682,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: -0.50396585
+        value: -0.05296588
         inSlope: 0
         outSlope: -0.0017874241
         tangentMode: 69
