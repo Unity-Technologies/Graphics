@@ -52,6 +52,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 4294967295
       objectReference: {fileID: 0}
+    - target: {fileID: 691084614594956068, guid: 56e7dcca980e53048ac0c75db301c9f3, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2057532410871433710, guid: 56e7dcca980e53048ac0c75db301c9f3, type: 3}
       propertyPath: m_RenderingLayerMask
       value: 8

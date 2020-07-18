@@ -57,19 +57,39 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -1856883763028649021, guid: 7931acb98e4dbae4fb720b7c34166bec, type: 3}
       propertyPath: m_CastShadows
-      value: 1
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -1856883763028649021, guid: 7931acb98e4dbae4fb720b7c34166bec, type: 3}
+      propertyPath: m_ReceiveGI
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: -927199367670048503, guid: 7931acb98e4dbae4fb720b7c34166bec, type: 3}
       propertyPath: m_Name
       value: CeilingLamp_Lamp_01
       objectReference: {fileID: 0}
-    - target: {fileID: 2581260734723271800, guid: 7931acb98e4dbae4fb720b7c34166bec, type: 3}
+    - target: {fileID: 2150231397916512847, guid: 7931acb98e4dbae4fb720b7c34166bec, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2581260734723271800, guid: 7931acb98e4dbae4fb720b7c34166bec, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2619187338190720270, guid: 7931acb98e4dbae4fb720b7c34166bec, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2619187338190720270, guid: 7931acb98e4dbae4fb720b7c34166bec, type: 3}
+      propertyPath: m_ReceiveGI
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 2888170842726772454, guid: 7931acb98e4dbae4fb720b7c34166bec, type: 3}
       propertyPath: m_CastShadows
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2888170842726772454, guid: 7931acb98e4dbae4fb720b7c34166bec, type: 3}
+      propertyPath: m_ReceiveGI
+      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7931acb98e4dbae4fb720b7c34166bec, type: 3}
