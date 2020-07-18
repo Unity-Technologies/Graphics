@@ -38,7 +38,7 @@ MonoBehaviour:
     min: 0
   farFocusEnd:
     m_OverrideState: 1
-    m_Value: 30
+    m_Value: 20
     min: 0
   m_NearSampleCount:
     m_OverrideState: 0
@@ -66,6 +66,9 @@ MonoBehaviour:
   m_Resolution:
     m_OverrideState: 0
     m_Value: 2
+  m_PhysicallyBased:
+    m_OverrideState: 0
+    m_Value: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0

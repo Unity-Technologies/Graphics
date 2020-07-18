@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 1481.9738, g: 1836.0463, b: 2430.7146, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -4820,10 +4820,10 @@ MonoBehaviour:
   SMAAQuality: 2
   dithering: 1
   stopNaNs: 0
-  taaSharpenStrength: 0.2
+  taaSharpenStrength: 0
   TAAQuality: 1
   taaHistorySharpening: 0
-  taaAntiFlicker: 0.7
+  taaAntiFlicker: 1
   taaMotionVectorRejection: 0
   taaAntiHistoryRinging: 0
   physicalParameters:
@@ -14835,7 +14835,7 @@ MonoBehaviour:
     distanceFadeStart: 50
     distanceFadeEnd: 60
     textureIndex: 0
-    textureOffset: {x: -0, y: -1.9548546, z: 0}
+    textureOffset: {x: -0, y: -0, z: 0}
 --- !u!1001 &1504255721
 PrefabInstance:
   m_ObjectHideFlags: 0
