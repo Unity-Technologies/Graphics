@@ -42,6 +42,8 @@ From Unity 2020.2, the texture format of the color buffer in the HDRP Asset also
 
 From Unity 2020.2, the light layer properties have move from the HDRP settings to the HDRP Default setting Panel.
 
+From Unity 2020.2, in physically based sky, the sun disk intensity is proportional to its size. Before this the sun disk was incorrectly not drive by the sun disk size.
+
 For project migrating from old 9.x.x-preview package. There is a change in the order of enum of Exposure that may shift the current exposure mode to another one in Exposure Volume. This will need to be corrected manually by reselecting the correct Exposure mode.
 
 ## Shadows
