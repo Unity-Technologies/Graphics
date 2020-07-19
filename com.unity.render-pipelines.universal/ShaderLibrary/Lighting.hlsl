@@ -25,7 +25,6 @@
         // Otherwise evaluate SH fully per-pixel
 #endif
 
-
 #ifdef LIGHTMAP_ON
     #define DECLARE_LIGHTMAP_OR_SH(lmName, shName, index) float2 lmName : TEXCOORD##index
     #define OUTPUT_LIGHTMAP_UV(lightmapUV, lightmapScaleOffset, OUT) OUT.xy = lightmapUV.xy * lightmapScaleOffset.xy + lightmapScaleOffset.zw;
@@ -35,6 +34,7 @@
     #define OUTPUT_LIGHTMAP_UV(lightmapUV, lightmapScaleOffset, OUT)
     #define OUTPUT_SH(normalWS, OUT) OUT.xyz = SampleSHVertex(normalWS)
 #endif
+
 
 ///////////////////////////////////////////////////////////////////////////////
 //                          Light Helpers                                    //
@@ -458,6 +458,30 @@ half3 DirectBRDF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half
 //                      Global Illumination                                  //
 ///////////////////////////////////////////////////////////////////////////////
 
+// Ambient occlusion
+TEXTURE2D_X(_ScreenSpaceOcclusionTexture);
+SAMPLER(sampler_ScreenSpaceOcclusionTexture);
+
+struct AmbientOcclusionFactor
+{
+    half indirectAmbientOcclusion;
+    half directAmbientOcclusion;
+};
+
+half SampleAmbientOcclusion(float2 normalizedScreenSpaceUV)
+{
+    float2 uv = UnityStereoTransformScreenSpaceTex(normalizedScreenSpaceUV * (GetScaledScreenParams().zw - 1.0));
+    return SAMPLE_TEXTURE2D_X(_ScreenSpaceOcclusionTexture, sampler_ScreenSpaceOcclusionTexture, uv).x;
+}
+
+AmbientOcclusionFactor GetScreenSpaceAmbientOcclusion(float2 normalizedScreenSpaceUV)
+{
+    AmbientOcclusionFactor aoFactor;
+    aoFactor.indirectAmbientOcclusion = SampleAmbientOcclusion(normalizedScreenSpaceUV);
+    aoFactor.directAmbientOcclusion = lerp(1.0, aoFactor.indirectAmbientOcclusion, _AmbientOcclusionParam.w);
+    return aoFactor;
+}
+
 // Samples SH L0, L1 and L2 terms
 half3 SampleSH(half3 normalWS)
 {
@@ -537,24 +561,24 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
 // If lightmap: sampleData.xy = lightmapUV
 // If probe: sampleData.xyz = L2 SH terms
 #ifdef UNITY_DOTS_SHADER
-half3 HackSampleSH(half3 normalWS)
-{
-    // Hack SH so that is is valid for hybrid V1
-    real4 SHCoefficients[7];
-    SHCoefficients[0] = float4(-0.02611f, -0.11903f, -0.02472f, 0.55319f);
-    SHCoefficients[1] = float4(-0.04123, 0.0369, -0.03903, 0.62641);
-    SHCoefficients[2] = float4(-0.06967, 0.23016, -0.06596, 0.81901);
-    SHCoefficients[3] = float4(-0.02041, -0.01933, 0.07292, 0.05023);
-    SHCoefficients[4] = float4(-0.03278, -0.03104, 0.0992, 0.07219);
-    SHCoefficients[5] = float4(-0.05806, -0.05496, 0.10764, 0.09859);
-    SHCoefficients[6] = float4(0.07564, 0.10311, 0.11301, 1.00);
-    return max(half3(0, 0, 0), SampleSH9(SHCoefficients, normalWS));
-}
-#define SAMPLE_GI(lmName, shName, normalWSName) HackSampleSH(normalWSName);
+    half3 HackSampleSH(half3 normalWS)
+    {
+        // Hack SH so that is is valid for hybrid V1
+        real4 SHCoefficients[7];
+        SHCoefficients[0] = float4(-0.02611f, -0.11903f, -0.02472f, 0.55319f);
+        SHCoefficients[1] = float4(-0.04123, 0.0369, -0.03903, 0.62641);
+        SHCoefficients[2] = float4(-0.06967, 0.23016, -0.06596, 0.81901);
+        SHCoefficients[3] = float4(-0.02041, -0.01933, 0.07292, 0.05023);
+        SHCoefficients[4] = float4(-0.03278, -0.03104, 0.0992, 0.07219);
+        SHCoefficients[5] = float4(-0.05806, -0.05496, 0.10764, 0.09859);
+        SHCoefficients[6] = float4(0.07564, 0.10311, 0.11301, 1.00);
+        return max(half3(0, 0, 0), SampleSH9(SHCoefficients, normalWS));
+    }
+    #define SAMPLE_GI(lmName, shName, normalWSName) HackSampleSH(normalWSName);
 #elif defined(LIGHTMAP_ON)
-#define SAMPLE_GI(lmName, shName, normalWSName) SampleLightmap(lmName, normalWSName)
+    #define SAMPLE_GI(lmName, shName, normalWSName) SampleLightmap(lmName, normalWSName)
 #else
-#define SAMPLE_GI(lmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
+    #define SAMPLE_GI(lmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
 #endif
 
 half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness, half occlusion)
@@ -782,8 +806,14 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 #endif
 
     Light mainLight = GetMainLight(inputData.shadowCoord);
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
+    #if defined(_SCREEN_SPACE_OCCLUSION)
+        AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(inputData.normalizedScreenSpaceUV);
+        mainLight.color *= aoFactor.directAmbientOcclusion;
+        surfaceData.occlusion = min(surfaceData.occlusion, aoFactor.indirectAmbientOcclusion);
+    #endif
+
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
     half3 color = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
                                      inputData.bakedGI, surfaceData.occlusion,
                                      inputData.normalWS, inputData.viewDirectionWS);
@@ -797,6 +827,9 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
     {
         Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
+        #if defined(_SCREEN_SPACE_OCCLUSION)
+            light.color *= aoFactor.directAmbientOcclusion;
+        #endif
         color += LightingPhysicallyBased(brdfData, brdfDataClearCoat,
                                          light,
                                          inputData.normalWS, inputData.viewDirectionWS,
@@ -832,6 +865,13 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
 half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
 {
     Light mainLight = GetMainLight(inputData.shadowCoord);
+
+    #if defined(_SCREEN_SPACE_OCCLUSION)
+        AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(inputData.normalizedScreenSpaceUV);
+        mainLight.color *= aoFactor.directAmbientOcclusion;
+        inputData.bakedGI *= aoFactor.indirectAmbientOcclusion;
+    #endif
+
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
     half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
@@ -843,6 +883,9 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
     {
         Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
+        #if defined(_SCREEN_SPACE_OCCLUSION)
+            light.color *= aoFactor.directAmbientOcclusion;
+        #endif
         half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
         diffuseColor += LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
         specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, smoothness);
