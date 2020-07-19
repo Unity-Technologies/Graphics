@@ -33,40 +33,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
     class DecalSystem
     {
-        // Relies on the order shader passes are declared in Decal.shader and DecalSubshader.cs
+        // Relies on the order shader passes are declared in Decal.shader and DecalSubTarget.cs
+        // Caution: Enum num must match pass name for s_MaterialDecalPassNames array
         public enum MaterialDecalPass
         {
-            DBufferMesh_3RT = 0,
-            DBufferProjector_M = 1,
-            DBufferProjector_AO = 2,
-            DBufferProjector_MAO = 3,
-            DBufferProjector_S = 4,
-            DBufferProjector_MS = 5,
-            DBufferProjector_AOS = 6,
-            DBufferProjector_MAOS = 7,
-            DBufferMesh_M = 8,
-            DBufferMesh_AO = 9,
-            DBufferMesh_MAO = 10,
-            DBufferMesh_S = 11,
-            DBufferMesh_MS = 12,
-            DBufferMesh_AOS = 13,
-            DBufferMesh_MAOS = 14,
-            Projector_Emissive = 15,
-            Mesh_Emissive = 16
-        };
-
-        public enum MaterialSGDecalPass
-        {
-            ShaderGraph_DBufferProjector3RT = 0,
-            ShaderGraph_DBufferProjector4RT = 1,
-            ShaderGraph_ProjectorEmissive = 2,
-            ShaderGraph_DBufferMesh3RT = 3,
-            ShaderGraph_DBufferMesh4RT = 4,
-            ShaderGraph_MeshEmissive = 5
+            DBufferProjector = 0,
+            DecalProjectorForwardEmissive = 1,
+            DBufferMesh = 2,
+            DecalMeshForwardEmissive = 3,
         };
 
         public static readonly string[] s_MaterialDecalPassNames = Enum.GetNames(typeof(MaterialDecalPass));
-        public static readonly string[] s_MaterialSGDecalPassNames = Enum.GetNames(typeof(MaterialSGDecalPass));
 
         public class CullResult : IDisposable
         {
@@ -378,14 +355,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Non alloc version of IsHDRenderPipelineDecal (Slower but does not generate garbage)
         static public bool IsHDRenderPipelineDecal(Material material)
         {
-            // Check if the material has at least one pass from the decal.shader (shader stripping can remove one or more passes)
-            foreach (var passName in s_MaterialDecalPassNames)
-            {
-                if (material.FindPass(passName) != -1)
-                    return true;
-            }
-
-            return false;
+            // Check if the material has a marker _Unity_Identify_HDRP_Decal
+            return material.HasProperty("_Unity_Identify_HDRP_Decal");
         }
 
         private class DecalSet
@@ -397,6 +368,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 bool perChannelMask = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
 
+                // TODO: this test is ambiguous, it should say, I am decal or not.
+                // We should have 2 function: I am decal or not and I am a SG or not...
                 m_IsHDRenderPipelineDecal = IsHDRenderPipelineDecal(m_Material);
 
                 if (m_IsHDRenderPipelineDecal)
@@ -411,20 +384,20 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_RemappingAOS = new Vector4(m_Material.GetFloat("_AORemapMin"), m_Material.GetFloat("_AORemapMax"), m_Material.GetFloat("_SmoothnessRemapMin"), m_Material.GetFloat("_SmoothnessRemapMax"));
                     m_ScalingMAB = new Vector4(m_Material.GetFloat("_MetallicScale"), 0.0f, m_Material.GetFloat("_DecalMaskMapBlueScale"), 0.0f);
 
-                    // For HDRP/Decal, all projector pass are always present and always enabled. We can't do emissive only decal but can discard the emissive pass
-                    int initialPassIndex = perChannelMask ? MaskBlendMode : (int)Decal.MaskBlendFlags.Smoothness;
-                    m_cachedProjectorPassValue = m_Material.FindPass(s_MaterialDecalPassNames[initialPassIndex]);
+                    // For HDRP/Decal, projector pass is  always present and always enabled. We can't do emissive only decal but can discard the emissive pass
+                    m_cachedProjectorPassValue = (int)MaterialDecalPass.DBufferProjector;
 
-                    m_cachedProjectorEmissivePassValue = m_Material.FindPass(s_MaterialDecalPassNames[(int)MaterialDecalPass.Projector_Emissive]);
                     if (m_Material.GetFloat("_Emissive") != 1.0f) // Emissive is disabled, discard
                         m_cachedProjectorEmissivePassValue = -1;
+                    else
+                        m_cachedProjectorEmissivePassValue = (int)MaterialDecalPass.DecalProjectorForwardEmissive;
                 }
                 else
                 {
                     m_Blend = 1.0f;
                     // With ShaderGraph m_cachedProjectorPassValue is setup to -1 if the pass isn't generated, thus we can create emissive only decal if required
-                    m_cachedProjectorPassValue = m_Material.FindPass(s_MaterialSGDecalPassNames[(int)(perChannelMask ? MaterialSGDecalPass.ShaderGraph_DBufferProjector4RT : MaterialSGDecalPass.ShaderGraph_DBufferProjector3RT)]);
-                    m_cachedProjectorEmissivePassValue = m_Material.FindPass(s_MaterialSGDecalPassNames[(int)MaterialSGDecalPass.ShaderGraph_ProjectorEmissive]);
+                    m_cachedProjectorPassValue = m_Material.FindPass(s_MaterialDecalPassNames[(int)MaterialDecalPass.DBufferProjector]);
+                    m_cachedProjectorEmissivePassValue = m_Material.FindPass(s_MaterialDecalPassNames[(int)MaterialDecalPass.DecalProjectorForwardEmissive]);
                 }
             }
 

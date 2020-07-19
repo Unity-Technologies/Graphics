@@ -183,45 +183,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             material.SetInt(kDecalStencilWriteMask, (int)StencilUsage.Decals);
             material.SetInt(kDecalStencilRef, (int)StencilUsage.Decals);
-            material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMStr, false);
-            material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsAOStr, false);
-            material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMAOStr, false);
-            material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsSStr, false);
-            material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMSStr, false);
-            material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsAOSStr, false);
-            material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMAOSStr, false);
-            material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecals3RTStr, true);
-            material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsForwardEmissive, material.GetFloat("_Emissive") == 1.0f);
-            switch (blendMode)
-            {
-                case Decal.MaskBlendFlags.Metal:
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMStr, true);
-                    break;
 
-                case Decal.MaskBlendFlags.AO:
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsAOStr, true);
-                    break;
-
-                case Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.AO:
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMAOStr, true);
-                    break;
-
-                case Decal.MaskBlendFlags.Smoothness:
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsSStr, true);
-                    break;
-
-                case Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.Smoothness:
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMSStr, true);
-                    break;
-
-                case Decal.MaskBlendFlags.AO | Decal.MaskBlendFlags.Smoothness:
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsAOSStr, true);
-                    break;
-
-                case Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.AO | Decal.MaskBlendFlags.Smoothness:
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMAOSStr, true);
-                    break;
-            }
+            // TODO : caution don't work with shader graph... Use flags instead
+            material.SetShaderPassEnabled(HDShaderPassNames.s_DecalMeshForwardEmissive, material.GetFloat("_Emissive") == 1.0f);
         }
 
         //protected override void SetupMaterialKeywordsAndPassInternal(Material material)

@@ -140,17 +140,14 @@ Pass
         #endif
 
         #if _MATERIAL_AFFECTS_MASKMAP
-            $SurfaceDescription.Smoothness:                 surfaceData.mask.z = surfaceDescription.Smoothness;
-            $SurfaceDescription.MAOSAlpha:                surfaceData.mask.w = surfaceDescription.MAOSAlpha * fadeFactor;
+            $SurfaceDescription.Smoothness:     surfaceData.mask.z = surfaceDescription.Smoothness;
+            $SurfaceDescription.MAOSAlpha:      surfaceData.mask.w = surfaceDescription.MAOSAlpha * fadeFactor;
 
             #ifdef DECALS_4RT
-                $SurfaceDescription.Metallic:                   surfaceData.mask.x = surfaceDescription.Metallic;
-                $SurfaceDescription.Occlusion:                  surfaceData.mask.y = surfaceDescription.Occlusion;
-            #endif
-
-            #ifdef DECALS_4RT
-                $SurfaceDescription.MAOSAlpha:                surfaceData.MAOSBlend.x = surfaceDescription.MAOSAlpha * fadeFactor;
-                $SurfaceDescription.MAOSAlpha:                surfaceData.MAOSBlend.y = surfaceDescription.MAOSAlpha * fadeFactor;
+                $SurfaceDescription.Metallic:   surfaceData.mask.x = surfaceDescription.Metallic;
+                $SurfaceDescription.Occlusion:  surfaceData.mask.y = surfaceDescription.Occlusion;
+                $SurfaceDescription.MAOSAlpha:  surfaceData.MAOSBlend.x = surfaceDescription.MAOSAlpha * fadeFactor;
+                $SurfaceDescription.MAOSAlpha:  surfaceData.MAOSBlend.y = surfaceDescription.MAOSAlpha * fadeFactor;
             #endif
 
             if (surfaceData.mask.w > 0)
