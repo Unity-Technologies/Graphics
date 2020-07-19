@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public class Styles
         {
-            public const string header = "Surface Inputs";
+            public const string header = "Surface Options";
             public static GUIContent affectsAlbedo = new GUIContent("Affects Albedo");
             public static GUIContent affectsNormal = new GUIContent("Affects Normal");
             public static GUIContent affectsMetal = new GUIContent("Affects Metal");

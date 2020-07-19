@@ -206,6 +206,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawDecalGUI()
         {
+            bool perChannelMask = false;
+            HDRenderPipelineAsset hdrp = HDRenderPipeline.currentAsset;
+            if (hdrp != null)
+            {
+                perChannelMask = hdrp.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
+            }
+
             normalBlendSrcValue = normalBlendSrc.floatValue;
             maskBlendSrcValue =  maskBlendSrc.floatValue;
             smoothnessRemapMinValue = smoothnessRemapMin.floatValue;
@@ -213,9 +220,6 @@ namespace UnityEditor.Rendering.HighDefinition
             AORemapMinValue = AORemapMin.floatValue;
             AORemapMaxValue = AORemapMax.floatValue;
             maskBlendFlags = (Decal.MaskBlendFlags)maskBlendMode.floatValue;
-
-            HDRenderPipelineAsset hdrp = HDRenderPipeline.currentAsset;
-            bool perChannelMask = hdrp.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
 
             // Detect any changes to the material
             EditorGUI.BeginChangeCheck();
