@@ -254,7 +254,7 @@ namespace UnityEngine.Rendering.Universal
                     return;
                 }
 
-                CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
+                CommandBuffer cmd = CommandBufferPool.Get();
                 using (new ProfilingScope(cmd, m_ProfilingSampler))
                 {
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, true);
