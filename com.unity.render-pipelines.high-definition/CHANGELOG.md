@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -743,6 +743,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a series of exceptions happening when trying to load an asset during wizard execution (1262171).
 - Fixed an issue with Stacklit shader not compiling correctly in player with debug display on (1260579)
 - Fixed couple issues in the dependence of building the ray tracing acceleration structure.
+- Fix sun disk intensity
 
 ### Changed
 - Improve MIP selection for decals on Transparents
