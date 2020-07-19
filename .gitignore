@@ -37,4 +37,3 @@ ShaderGraph/DebugOutput/**
 ShaderGraph/Testing/IntegrationTests/.Failed
 TestProjects/*/ProjectSettings/ProjectVersion.txt
 node_modules
-/TestProjects/ShaderGraph
