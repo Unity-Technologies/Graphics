@@ -161,6 +161,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added shader graph nodes for rendering a complex eye shader.
 - Added more controls to contact shadows and increased quality in some parts. 
 - Added a physically based option in DoF volume.
+- Added path tracing test scene for normal mapping.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
