@@ -10,6 +10,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    [SRPFilter(typeof(HDRenderPipeline))]
     [Title("Input", "High Definition Render Pipeline", "Diffusion Profile")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.DiffusionProfileNode")]
     [FormerName("UnityEditor.ShaderGraph.DiffusionProfileNode")]
