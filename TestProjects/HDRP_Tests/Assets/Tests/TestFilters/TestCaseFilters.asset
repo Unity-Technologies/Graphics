@@ -84,3 +84,10 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: cause inconclusive on Yamato
+  - FilteredScene: {fileID: 102900000, guid: accc96ed8662d3b4ebc3be051aada793, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: weird artifact
