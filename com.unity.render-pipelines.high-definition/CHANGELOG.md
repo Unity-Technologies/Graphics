@@ -161,6 +161,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added shader graph nodes for rendering a complex eye shader.
 - Added more controls to contact shadows and increased quality in some parts. 
 - Added a physically based option in DoF volume.
+- Added API to check if a Camera, Light or ReflectionProbe is compatible with HDRP.
 - Added path tracing test scene for normal mapping.
 
 ### Fixed
@@ -740,6 +741,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed some post processing using motion vectors when they are disabled
 - Fixed the multiplier of the environement lights being overriden with a wrong value for ray tracing (1260311).
 - Fixed a series of exceptions happening when trying to load an asset during wizard execution (1262171).
+- Fixed an issue with Stacklit shader not compiling correctly in player with debug display on (1260579)
 - Fixed couple issues in the dependence of building the ray tracing acceleration structure.
 
 ### Changed
@@ -906,6 +908,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Only building the RTAS if there is an effect that will require it (1262217).
 - Fixed the first ray tracing frame not having the light cluster being set up properly (1260311).
 - Render graph pre-setup for ray traced ambient occlusion.
+- Avoid casting multiple rays and denoising for hard directional, point and spot ray traced shadows (1261040).
 - Making sure the preview cameras do not use ray tracing effects due to a by design issue to build ray tracing acceleration structures (1262166).
 
 ## [7.1.1] - 2019-09-05

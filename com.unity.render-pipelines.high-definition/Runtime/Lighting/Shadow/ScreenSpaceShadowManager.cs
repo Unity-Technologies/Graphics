@@ -348,12 +348,16 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Define which ray generation shaders we shall be using
                         string directionaLightShadowShader = m_CurrentSunLightAdditionalLightData.colorShadow ? m_RayGenDirectionalColorShadowSingleName : m_RayGenDirectionalShadowSingleName;
 
+                        // We need to define if this is a hard or soft shadow
+                        bool softShadow = m_CurrentSunLightAdditionalLightData.angularDiameter > 0.0 ? true : false;
+                        int numShadowSamples = softShadow ? m_CurrentSunLightAdditionalLightData.numRayTracingSamples : 1;
+
                         // Loop through the samples of this frame
-                        for (int sampleIdx = 0; sampleIdx < m_CurrentSunLightAdditionalLightData.numRayTracingSamples; ++sampleIdx)
+                        for (int sampleIdx = 0; sampleIdx < numShadowSamples; ++sampleIdx)
                         {
                             // Update global Constant Buffer
                             m_ShaderVariablesRayTracingCB._RaytracingSampleIndex = sampleIdx;
-                            m_ShaderVariablesRayTracingCB._RaytracingNumSamples = m_CurrentSunLightAdditionalLightData.numRayTracingSamples;
+                            m_ShaderVariablesRayTracingCB._RaytracingNumSamples = numShadowSamples;
                             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                             // Bind the light & sampling data
@@ -407,7 +411,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         GetShadowChannelMask(dirShadowIndex, ScreenSpaceShadowType.GrayScale, ref m_ShadowChannelMask1);
 
                         // Apply the simple denoiser (if required)
-                        if (m_CurrentSunLightAdditionalLightData.filterTracedShadow)
+                        if (m_CurrentSunLightAdditionalLightData.filterTracedShadow && softShadow)
                         {
                             // We need to set the history as invalid if the directional light has rotated
                             float historyValidity = 1.0f;
@@ -789,12 +793,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Set the acceleration structure for the pass
                 cmd.SetRayTracingAccelerationStructure(m_ScreenSpaceShadowsRT, HDShaderIDs._RaytracingAccelerationStructureName, accelerationStructure);
 
+                // We need to define if this is a hard or soft shadow
+                bool softShadow = additionalLightData.shapeRadius > 0.0 ? true : false;
+                int numShadowSamples = softShadow ? additionalLightData.numRayTracingSamples : 1;
+
                 // Loop through the samples of this frame
-                for (int sampleIdx = 0; sampleIdx < additionalLightData.numRayTracingSamples; ++sampleIdx)
+                for (int sampleIdx = 0; sampleIdx < numShadowSamples; ++sampleIdx)
                 {
                     // Update global constant buffer
                     m_ShaderVariablesRayTracingCB._RaytracingSampleIndex = sampleIdx;
-                    m_ShaderVariablesRayTracingCB._RaytracingNumSamples = additionalLightData.numRayTracingSamples;
+                    m_ShaderVariablesRayTracingCB._RaytracingNumSamples = numShadowSamples;
                     ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                     // Bind the right kernel
@@ -848,7 +856,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Apply the simple denoiser (if required)
                 GetShadowChannelMask(lightData.screenSpaceShadowIndex, ScreenSpaceShadowType.GrayScale, ref m_ShadowChannelMask0);
-                if (additionalLightData.filterTracedShadow)
+                if (additionalLightData.filterTracedShadow && softShadow)
                 {
                     RTHandle shadowHistoryDistanceArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowDistanceValidity)
                             ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowDistanceValidity, ShadowHistoryDistanceBufferAllocatorFunction, 1);
