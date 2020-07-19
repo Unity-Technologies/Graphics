@@ -359,15 +359,16 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RayTracedShadowsRequired = false;
             m_RayTracedContactShadowsRequired = false;
 
-            // If the camera has ray tracing disabled on the camera, we shouldn't be computing the ray tracing structures independently of the other options 
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
+            // If the camera does not have a ray tracing frame setting
+            // or it is a preview camera (due to the fact that the sphere does not exist as a game object we can't create the RTAS)
+            // we do not want to build a RTAS
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)|| hdCamera.camera.cameraType == CameraType.Preview)
                 return;
-
 
             // We only support ray traced shadows if the camera supports ray traced shadows
             bool screenSpaceShadowsSupported = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenSpaceShadows);
 
-            // fetch all the lights in the scenehaha
+            // fetch all the lights in the scene
             HDAdditionalLightData[] hdLightArray = UnityEngine.GameObject.FindObjectsOfType<HDAdditionalLightData>();
 
             for (int lightIdx = 0; lightIdx < hdLightArray.Length; ++lightIdx)
