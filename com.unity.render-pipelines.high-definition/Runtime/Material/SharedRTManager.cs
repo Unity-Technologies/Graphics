@@ -377,9 +377,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CoarseStencilBuffer = new ComputeBuffer(HDUtils.DivRoundUp(width, 8) * HDUtils.DivRoundUp(height, 8) * viewCount, sizeof(uint));
         }
 
-        public void AllocateDebugDisplayBuffer(int width, int height)
+        public void AllocateDebugDisplayBuffer(int width, int height, int viewCount)
         {
-            m_DebugDisplayBuffer = new ComputeBuffer(width * height, sizeof(uint));
+            m_DebugDisplayBuffer = new ComputeBuffer(width * height * viewCount, sizeof(uint));
         }
 
         public void DisposeCoarseStencilBuffer()

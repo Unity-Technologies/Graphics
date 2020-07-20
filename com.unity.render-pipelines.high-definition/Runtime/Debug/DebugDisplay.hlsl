@@ -273,7 +273,7 @@ void IncrementVertexDensityCounter(float4 positionCS)
     if (all(ndc == saturate(ndc)))
     {
         uint2 pixel = (uint2)(ndc.xy * _ScreenSize.xy);
-        InterlockedAdd(_DebugDisplayBuffer[_ScreenSize.x * pixel.y + pixel.x], 1);
+        InterlockedAdd(_DebugDisplayBuffer[_ScreenSize.x * (_ScreenSize.y * SLICE_ARRAY_INDEX + pixel.y) + pixel.x], 1);
     }
 }
 
@@ -284,8 +284,8 @@ void IncrementQuadOverdrawCounter(uint2 positionSS, uint primitiveID)
     uint  prevID, thisID = primitiveID + 1;
 
     uint2 quad = positionSS & ~1;
-    uint quad_00_idx = _ScreenSize.x * quad.y + quad.x;
-    uint quad_11_idx = _ScreenSize.x * (quad.y + 1) + quad.x + 1;
+    uint quad_00_idx = _ScreenSize.x * (_ScreenSize.y * SLICE_ARRAY_INDEX + quad.y) + quad.x;
+    uint quad_11_idx = _ScreenSize.x * (_ScreenSize.y * SLICE_ARRAY_INDEX + quad.y + 1) + quad.x + 1;
 
     bool processed  = false;
     int  lockCount  = 0;

@@ -338,8 +338,8 @@ Shader "Hidden/HDRP/DebugFullScreen"
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_QUAD_OVERDRAW)
                 {
                     uint2 quad = (uint2)input.positionCS.xy & ~1;
-                    uint quad_00_idx = _ScreenSize.x * quad.y + quad.x;
-                    uint quad_11_idx = _ScreenSize.x * (quad.y + 1) + quad.x + 1;
+                    uint quad_00_idx = _ScreenSize.x * (_ScreenSize.y * SLICE_ARRAY_INDEX + quad.y) + quad.x;
+                    uint quad_11_idx = _ScreenSize.x * (_ScreenSize.y * SLICE_ARRAY_INDEX + quad.y + 1) + quad.x + 1;
                     float4 color = (float4)0;
 
                     float quadCost = (float)_DebugDisplayBuffer[quad_00_idx];
@@ -356,7 +356,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_VERTEX_DENSITY)
                 {
                     uint2 quad = (uint2)input.positionCS;
-                    uint quad_idx = _ScreenSize.x * quad.y + quad.x;
+                    uint quad_idx = _ScreenSize.x * (_ScreenSize.y * SLICE_ARRAY_INDEX + quad.y) + quad.x;
                     float4 color = (float4)0;
 
                     float density = (float)_DebugDisplayBuffer[quad_idx];

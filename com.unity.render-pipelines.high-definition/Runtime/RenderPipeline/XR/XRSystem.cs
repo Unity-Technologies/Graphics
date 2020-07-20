@@ -135,11 +135,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Disable vsync on the main display when rendering to a XR device
                     QualitySettings.vSyncCount = 0;
 
+#if ENABLE_VR && ENABLE_XR_MODULE
                     if(display != null)
                     {
                         display.zNear = camera.nearClipPlane;
                         display.zFar = camera.farClipPlane;
                     }
+#endif
 
                     CreateLayoutFromXrSdk(camera, singlePassAllowed);
                 }

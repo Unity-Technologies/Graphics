@@ -330,6 +330,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Material GetBlitMaterial(bool useTexArray, bool singleSlice) { return useTexArray ? (singleSlice ? m_BlitTexArraySingleSlice : m_BlitTexArray) : m_Blit; }
 
         ComputeBuffer m_DepthPyramidMipLevelOffsetsBuffer = null;
+        static ComputeBuffer EmptyUIntComputeBuffer = null;
 
         ScriptableCullingParameters frozenCullingParams;
         bool frozenCullingParamAvailable = false;
@@ -1021,6 +1022,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PostProcessSystem.CleanupNonRenderGraphResources();
             s_lightVolumes.CleanupNonRenderGraphResources();
             LightLoopCleanupNonRenderGraphResources();
+            m_SharedRTManager.DisposeDebugDisplayBuffer();
             m_SharedRTManager.DisposeCoarseStencilBuffer();
             m_DbufferManager.ReleaseResolutionDependentBuffers();
         }
@@ -1161,8 +1163,10 @@ namespace UnityEngine.Rendering.HighDefinition
             CullingGroupManager.instance.Cleanup();
 
             m_DbufferManager.ReleaseResolutionDependentBuffers();
+            m_SharedRTManager.DisposeDebugDisplayBuffer();
             m_SharedRTManager.DisposeCoarseStencilBuffer();
 
+            CoreUtils.SafeRelease(EmptyUIntComputeBuffer);
             CoreUtils.SafeRelease(m_DepthPyramidMipLevelOffsetsBuffer);
 
             CustomPassVolume.Cleanup();
@@ -1246,11 +1250,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 LightLoopAllocResolutionDependentBuffers(hdCamera, m_MaxCameraWidth, m_MaxCameraHeight);
+                m_SharedRTManager.AllocateDebugDisplayBuffer(m_MaxCameraWidth, m_MaxCameraHeight, m_MaxViewCount);
                 if (!m_EnableRenderGraph)
                 {
                     m_DbufferManager.AllocResolutionDependentBuffers(m_MaxCameraWidth, m_MaxCameraHeight);
-                    m_SharedRTManager.AllocateCoarseStencilBuffer(m_MaxCameraWidth, m_MaxCameraHeight, hdCamera.viewCount);
-                    m_SharedRTManager.AllocateDebugDisplayBuffer(m_MaxCameraWidth, m_MaxCameraHeight);
+                    m_SharedRTManager.AllocateCoarseStencilBuffer(m_MaxCameraWidth, m_MaxCameraHeight, m_MaxViewCount);
                 }
             }
         }
@@ -3077,6 +3081,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureXR.Initialize(cmd, defaultResources.shaders.clearUIntTextureCS);
 
+            if (EmptyUIntComputeBuffer != null)
+                CoreUtils.SafeRelease(EmptyUIntComputeBuffer);
+            EmptyUIntComputeBuffer = new ComputeBuffer(1, sizeof(uint));
+
             renderContext.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
@@ -3984,7 +3992,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // we must override the state here.
 
                     CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.All, Color.clear);
-                    cmd.SetRandomWriteTarget(5, TextureXR.GetBlackUIntTexture());
+                    cmd.SetRandomWriteTarget(5, EmptyUIntComputeBuffer);
 
                     // Render Opaque forward
                     var rendererListOpaque = RendererList.Create(CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_AllForwardOpaquePassNames, m_CurrentRendererConfigurationBakedLighting, stateBlock: m_DepthStateOpaque));
@@ -4056,7 +4064,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                                 CommandBuffer                   cmd)
         {
             CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer, clearFlag: ClearFlag.Color, clearColor: Color.black);
-            cmd.SetRandomWriteTarget(5, TextureXR.GetBlackUIntTexture());
+            cmd.SetRandomWriteTarget(5, EmptyUIntComputeBuffer);
 
             // High res transparent objects, drawing in m_DebugFullScreenTempBuffer
             parameters.constantBuffer._DebugTransparencyOverdrawWeight = 1.0f;
@@ -4362,7 +4370,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CoreUtils.SetRenderTarget(cmd, renderTarget, depthBuffer);
             if (debugDisplay)
-                cmd.SetRandomWriteTarget(5, TextureXR.GetBlackUIntTexture());
+                cmd.SetRandomWriteTarget(5, EmptyUIntComputeBuffer);
 
             if (opaque)
                 DrawOpaqueRendererList(renderContext, cmd, frameSettings, rendererList);
