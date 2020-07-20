@@ -134,7 +134,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 && material.HasProperty("_ClearCoatMask"))
                 //&& material.HasProperty("_ClearCoatSmoothness")) //TODO: enable
             {
-                DoClearCoat(properties, materialEditor, material);
+                //DoClearCoat(properties, materialEditor, material);
             }
 
         }

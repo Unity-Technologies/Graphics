@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -720,12 +720,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             var layerName = "Layer" + index.ToString();
             // Add new entry
-            property.value.layers.Add(new SerializableVirtualTextureLayer(layerName, layerName, new SerializableTexture()));
+            property.value.layers.Add(new SerializableVirtualTextureLayer(layerName, new SerializableTexture()));
 
             // Update Blackboard & Nodes
             //DirtyNodes();
             this._postChangeValueCallback(true);
             m_VTSelectedIndex = list.list.Count - 1;
+            //Hack to handle downstream SampleVirtualTextureNodes
+            graphData.ValidateGraph();
         }
 
         // Allowed indicies are 1-MAX_ENUM_ENTRIES
@@ -761,6 +763,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             //DirtyNodes();
             this._postChangeValueCallback(true);
             m_VTSelectedIndex = m_VTSelectedIndex >= list.list.Count - 1 ? list.list.Count - 1 : m_VTSelectedIndex;
+            //Hack to handle downstream SampleVirtualTextureNodes
+            graphData.ValidateGraph();
         }
 
         private void VTReorderEntries(ReorderableList list)
@@ -1183,7 +1187,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         public string GetDuplicateSafeReferenceName(int id, string name)
         {
             name = name.Trim();
-            name = Regex.Replace(name, @"(?:[^A-Za-z_0-9_\s])", "_");
+            name = Regex.Replace(name, @"(?:[^A-Za-z_0-9_])", "_");
             var entryList = m_KeywordReorderableList.list as List<KeywordEntry>;
             return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.referenceName), "{0}_{1}", name);
         }

@@ -100,6 +100,31 @@ PrefabInstance:
       propertyPath: m_Name
       value: Light_Spot_800lm
       objectReference: {fileID: 0}
+    - target: {fileID: 9203907179793585638, guid: ac937fd9ae94a3a40b3a7185b6b1f0e2,
+        type: 3}
+      propertyPath: m_BoundingSphereOverride.x
+      value: -1.470674e-39
+      objectReference: {fileID: 0}
+    - target: {fileID: 9203907179793585638, guid: ac937fd9ae94a3a40b3a7185b6b1f0e2,
+        type: 3}
+      propertyPath: m_BoundingSphereOverride.y
+      value: -1.470752e-39
+      objectReference: {fileID: 0}
+    - target: {fileID: 9203907179793585638, guid: ac937fd9ae94a3a40b3a7185b6b1f0e2,
+        type: 3}
+      propertyPath: m_BoundingSphereOverride.z
+      value: -1.470775e-39
+      objectReference: {fileID: 0}
+    - target: {fileID: 9203907179793585638, guid: ac937fd9ae94a3a40b3a7185b6b1f0e2,
+        type: 3}
+      propertyPath: m_BoundingSphereOverride.w
+      value: -1.470797e-39
+      objectReference: {fileID: 0}
+    - target: {fileID: 9203907179793585638, guid: ac937fd9ae94a3a40b3a7185b6b1f0e2,
+        type: 3}
+      propertyPath: m_Shadows.m_Type
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ac937fd9ae94a3a40b3a7185b6b1f0e2, type: 3}
 --- !u!4 &4284347996942521181 stripped
@@ -115,11 +140,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 2884580647323923220}
     m_Modifications:
-    - target: {fileID: 1319547207420485836, guid: 428831fe459a18c49843bfc3af65bbc9,
-        type: 3}
-      propertyPath: m_Intensity
-      value: 32
-      objectReference: {fileID: 0}
     - target: {fileID: 1332447828416647104, guid: 428831fe459a18c49843bfc3af65bbc9,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -255,6 +275,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Spotlight_Spot_01b
       objectReference: {fileID: 0}
+    - target: {fileID: 3287326412846132226, guid: 43a2c40dd5bb4f6449d77cd82d533131,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: c9af0dbe88854d64aa8e276b41a10462, type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 43a2c40dd5bb4f6449d77cd82d533131, type: 3}
 --- !u!4 &8864834622078052951 stripped
