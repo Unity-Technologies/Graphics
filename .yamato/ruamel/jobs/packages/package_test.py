@@ -26,7 +26,7 @@ class Package_TestJob():
                 f'unity-downloader-cli --source-file {PATH_UNITY_REVISION} -c editor --wait --published-only']
         if package.get('hascodependencies', None) is not None:
             commands.append(platform["copycmd"])
-        commands.append(f'upm-ci package test -u {platform["editorpath"]} --package-path {package["packagename"]}')
+        commands.append(f'upm-ci package test -u {platform["editorpath"]} --package-path {package["packagename"]} --extra-utr-arg="--compilation-errors-as-warnings"')
 
 
         # construct job
