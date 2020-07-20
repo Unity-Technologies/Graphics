@@ -75,6 +75,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed the ETC1_EXTERNAL_ALPHA variant from Shader Graph Sprite shaders.
 - Eliminated GC allocations caused by the 2D Renderer.
 - Removed the 8 renderer limit from URP Asset.
+- Combine XR occlusion meshes into one when using single-pass (multiview or instancing) to reduce draw calls and state changes.
 
 ### Fixed
 - Fixed a performance problem with ShaderPreprocessor with large amount of active shader variants in the project 
