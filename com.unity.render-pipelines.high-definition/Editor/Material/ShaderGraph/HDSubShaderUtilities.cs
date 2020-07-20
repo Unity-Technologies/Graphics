@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Data.Util;
 using UnityEditor.Graphing;
 using UnityEngine;              // Vector3,4
 using UnityEditor.ShaderGraph;
@@ -70,16 +69,24 @@ namespace UnityEditor.Rendering.HighDefinition
         public static void AddStencilShaderProperties(PropertyCollector collector, SystemData systemData, LightingData lightingData, bool splitLighting)
         {
             bool ssrStencil = false;
-            bool receiveSSROpaque = false;
-            bool receiveSSRTransparent = false;
 
             if (lightingData != null)
             {
                 ssrStencil = systemData.surfaceType == SurfaceType.Opaque ? lightingData.receiveSSR : lightingData.receiveSSRTransparent;
-                receiveSSROpaque = lightingData.receiveSSR;
-                receiveSSRTransparent = lightingData.receiveSSRTransparent;
+                bool receiveSSROpaque = lightingData.receiveSSR;
+                bool receiveSSRTransparent = lightingData.receiveSSRTransparent;
+                bool receiveDecals = lightingData.receiveDecals;
+                bool blendPreserveSpecular = lightingData.blendPreserveSpecular;
+
+                // Don't add those property on Unlit
+                collector.AddToggleProperty(kUseSplitLighting, splitLighting);
+                collector.AddToggleProperty(kReceivesSSR, receiveSSROpaque);
+                collector.AddToggleProperty(kReceivesSSRTransparent, receiveSSRTransparent);
+                collector.AddToggleProperty(kEnableBlendModePreserveSpecularLighting, blendPreserveSpecular);
+                collector.AddToggleProperty(kSupportDecals, receiveDecals);
             }
 
+            // Configure render state
             BaseLitGUI.ComputeStencilProperties(ssrStencil, splitLighting, out int stencilRef, out int stencilWriteMask,
                 out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
                 out int stencilRefMV, out int stencilWriteMaskMV
@@ -101,10 +108,6 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddIntProperty("_StencilWriteMaskGBuffer", stencilWriteMaskGBuffer);
             collector.AddIntProperty("_StencilRefGBuffer", stencilRefGBuffer);
             collector.AddIntProperty("_ZTestGBuffer", 4);
-
-            collector.AddToggleProperty(kUseSplitLighting, splitLighting);
-            collector.AddToggleProperty(kReceivesSSR, receiveSSROpaque);
-            collector.AddToggleProperty(kReceivesSSRTransparent, receiveSSRTransparent);
         }
 
         public static void AddBlendingStatesShaderProperties(
@@ -122,6 +125,7 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddFloatProperty("_AlphaSrcBlend", 1.0f);
             collector.AddFloatProperty("_AlphaDstBlend", 0.0f);
             collector.AddToggleProperty("_AlphaToMask", alphaToMask);
+            collector.AddToggleProperty("_AlphaToMaskInspectorValue", alphaToMask);
             collector.AddToggleProperty(kZWrite, (surface == SurfaceType.Transparent) ? transparentZWrite : true);
             collector.AddToggleProperty(kTransparentZWrite, transparentZWrite);
             collector.AddFloatProperty("_CullMode", (int)CullMode.Back);

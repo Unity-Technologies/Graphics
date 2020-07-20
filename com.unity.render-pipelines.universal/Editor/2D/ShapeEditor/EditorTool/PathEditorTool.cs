@@ -6,7 +6,11 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.EditorTools;
 using UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework;
+
 using UnityObject = UnityEngine.Object;
+#if !UNITY_2020_2_OR_NEWER
+using ToolManager=UnityEditor.EditorTools.EditorTools;
+#endif
 
 namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 {
@@ -141,7 +145,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 
             var undoName = Undo.GetCurrentGroupName();
             var serializedObject = GetSerializedObject(target);
-            
+
             serializedObject.UpdateIfRequiredOrScript();
 
             SetShape(path, serializedObject);
@@ -376,11 +380,11 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         {
             if (m_GUIState.eventType == EventType.Layout)
                 m_Controller.ClearClosestPath();
-                
+
             m_RectSelector.OnGUI();
 
             bool changed = false;
-            
+
             ForEachTarget((target) =>
             {
                 var path = GetPath(target);

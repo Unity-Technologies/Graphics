@@ -119,7 +119,7 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     // Compute the world space normal (from previous frame)
     float4 historyNormal = LOAD_TEXTURE2D_X(_HistoryNormalBufferTexture, historyTapCoord);
     NormalData historyNormalData;
-    DecodeFromNormalBuffer(historyNormal, uint2(0,0), historyNormalData);
+    DecodeFromNormalBuffer(historyNormal, historyNormalData);
     
     // If the current normal is too different from the previous one, discard the history.
     if (dot(normalData.normalWS, historyNormalData.normalWS) < MAX_NORMAL_DIFFERENCE)

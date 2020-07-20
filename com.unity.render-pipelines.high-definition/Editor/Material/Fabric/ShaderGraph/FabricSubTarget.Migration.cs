@@ -21,6 +21,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if(!(masterNode is FabricMasterNode1 fabricMasterNode))
                 return false;
 
+            m_MigrateFromOldSG = true;
+
             // Set data
             systemData.surfaceType = (SurfaceType)fabricMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)fabricMasterNode.m_AlphaMode);
@@ -32,10 +34,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.transparentZWrite = fabricMasterNode.m_ZWrite;
             systemData.transparentCullMode = fabricMasterNode.m_transparentCullMode;
             systemData.zTest = fabricMasterNode.m_ZTest;
-            systemData.supportLodCrossFade = fabricMasterNode.m_SupportLodCrossFade;
             systemData.dotsInstancing = fabricMasterNode.m_DOTSInstancing;
             systemData.materialNeedsUpdateHash = fabricMasterNode.m_MaterialNeedsUpdateHash;
 
+            builtinData.supportLodCrossFade = fabricMasterNode.m_SupportLodCrossFade;
             builtinData.transparencyFog = fabricMasterNode.m_TransparencyFog;
             builtinData.addPrecomputedVelocity = fabricMasterNode.m_AddPrecomputedVelocity;
             builtinData.depthOffset = fabricMasterNode.m_depthOffset;
