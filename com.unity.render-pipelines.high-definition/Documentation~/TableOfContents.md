@@ -13,6 +13,7 @@
   * [Exposing More Options](More-Options)
   * [Sample Content](HDRP-Sample-Content)
   * [Sample project](HDRP-Sample-Projects)
+  * [Menu Items](Menu-Items.md)
 * Upgrading HDRP between Unity Versions
   * [Material Upgrade](Material-Upgrade)
   * [2019.1 to 2019.2](Upgrading-from-2019.1-to-2019.2)
