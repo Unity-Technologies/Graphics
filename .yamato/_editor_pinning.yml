@@ -62,7 +62,10 @@ editor-pinning-merge-from-target:
     variables:
         CI: true
     commands:
-      -  if NOT "%GIT_BRANCH%" == "yamato/editor-pin" echo %GIT_BRANCH% && exit 1
+      -  |5-
+
+                     if NOT "%GIT_BRANCH%" == "yamato/editor-pin" echo %GIT_BRANCH% && exit 1
+                     fi
       -  git fetch
       -  git checkout yamato/editor-pin-ci
       -  git merge --ff-only %GIT_REVISION%
