@@ -37,4 +37,5 @@ ShaderGraph/DebugOutput/**
 ShaderGraph/Testing/IntegrationTests/.Failed
 TestProjects/*/ProjectSettings/ProjectVersion.txt
 TestProjects/*/ProjectSettings/VersionControlSettings.asset
+TestProjects/VisualEffectGraph_HDRP/GraphViz/
 node_modules

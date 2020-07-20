@@ -217,8 +217,13 @@ namespace UnityEditor.Rendering.HighDefinition
             Queue<Action> m_Queue = new Queue<Action>();
             bool m_Running = false;
             bool m_StopRequested = false;
+            bool m_OnPause = false;
 
             public void Stop() => m_StopRequested = true;
+
+            // Function to pause/unpause the action execution
+            public void Pause() => m_OnPause = true;  
+            public void Unpause() => m_OnPause = false;
 
             public int remainingFixes => m_Queue.Count;
 
@@ -242,7 +247,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     m_StopRequested = false;
                 }
                 if (m_Queue.Count > 0)
-                    m_Queue.Dequeue()?.Invoke();
+                {
+                    if (!m_OnPause)
+                    {
+                        m_Queue.Dequeue()?.Invoke();
+                    }
+                }
                 else
                     End();
             }
