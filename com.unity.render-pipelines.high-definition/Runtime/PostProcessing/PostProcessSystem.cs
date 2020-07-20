@@ -1631,6 +1631,20 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.dofPrecombineFarCS = m_Resources.shaders.depthOfFieldPreCombineFarCS;
             parameters.dofClearIndirectArgsCS = m_Resources.shaders.depthOfFieldClearIndirectArgsCS;
 
+            parameters.nearLayerActive = m_DepthOfField.IsNearLayerActive();
+            parameters.farLayerActive = m_DepthOfField.IsFarLayerActive();
+            parameters.highQualityFiltering = m_DepthOfField.highQualityFiltering;
+            parameters.useTiles = !camera.xr.singlePassEnabled;
+
+            float scale = 1f / (float)m_DepthOfField.resolution;
+            float resolutionScale = (camera.actualHeight / 1080f) * (scale * 2f);
+
+            int farSamples = Mathf.CeilToInt(m_DepthOfField.farSampleCount * resolutionScale);
+            int nearSamples = Mathf.CeilToInt(m_DepthOfField.nearSampleCount * resolutionScale);
+            // We want at least 3 samples for both far and near
+            parameters.farSampleCount = Mathf.Max(3, farSamples);
+            parameters.nearSampleCount = Mathf.Max(3, nearSamples);
+
             return parameters;
         }
 
