@@ -50,15 +50,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             public static GUIContent occlusionText = new GUIContent("Occlusion Map",
                 "Sets an occlusion map to simulate shadowing from ambient lighting.");
 
-            public static GUIContent detailMaskText = new GUIContent("Mask",
-                "Mask for details maps (A).");
-
-            public static GUIContent detailAlbedoMapText = new GUIContent("Base Map",
-                "Albedo (RGB) multiplied by 2");
-
-            public static GUIContent detailNormalMapText = new GUIContent("Normal Map",
-                "Normal Map");
-
             public static readonly string[] metallicSmoothnessChannelNames = {"Metallic Alpha", "Albedo Alpha"};
             public static readonly string[] specularSmoothnessChannelNames = {"Specular Alpha", "Albedo Alpha"};
 
@@ -94,10 +85,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             public MaterialProperty parallaxScaleProp;
             public MaterialProperty occlusionStrength;
             public MaterialProperty occlusionMap;
-            public MaterialProperty detailMask;
-            public MaterialProperty detailAlbedoMap;
-            public MaterialProperty detailNormalMapScale;
-            public MaterialProperty detailNormalMap;
 
             // Advanced Props
             public MaterialProperty highlights;
@@ -125,10 +112,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 parallaxScaleProp = BaseShaderGUI.FindProperty("_Parallax", properties, false);
                 occlusionStrength = BaseShaderGUI.FindProperty("_OcclusionStrength", properties, false);
                 occlusionMap = BaseShaderGUI.FindProperty("_OcclusionMap", properties, false);
-                detailMask= BaseShaderGUI.FindProperty("_DetailMask", properties, false);
-                detailAlbedoMap = BaseShaderGUI.FindProperty("_DetailAlbedoMap", properties, false);
-                detailNormalMapScale = BaseShaderGUI.FindProperty("_DetailNormalMapScale", properties, false);
-                detailNormalMap = BaseShaderGUI.FindProperty("_DetailNormalMap", properties, false);
                 // Advanced Props
                 highlights = BaseShaderGUI.FindProperty("_SpecularHighlights", properties, false);
                 reflections = BaseShaderGUI.FindProperty("_EnvironmentReflections", properties, false);
@@ -159,19 +142,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         {
             materialEditor.TexturePropertySingleLine(Styles.heightMapText, properties.parallaxMapProp,
                 properties.parallaxMapProp.textureValue != null ? properties.parallaxScaleProp : null);
-        }
-
-        public static void DoDetailArea(LitProperties properties, MaterialEditor materialEditor)
-        {
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Detail Inputs");
-            EditorGUI.indentLevel++;
-            materialEditor.TexturePropertySingleLine(Styles.detailMaskText, properties.detailMask);
-            materialEditor.TexturePropertySingleLine(Styles.detailAlbedoMapText, properties.detailAlbedoMap);
-            materialEditor.TexturePropertySingleLine(Styles.detailNormalMapText, properties.detailNormalMap,
-                properties.detailNormalMap.textureValue != null ? properties.detailNormalMapScale : null);
-            materialEditor.TextureScaleOffsetProperty(properties.detailAlbedoMap);
-            EditorGUI.indentLevel--;
         }
 
         private static bool ClearCoatEnabled(Material material)
@@ -310,9 +280,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
             if (material.HasProperty("_ParallaxMap"))
                 CoreUtils.SetKeyword(material, "_PARALLAXMAP", material.GetTexture("_ParallaxMap"));
-
-            if (material.HasProperty("_DetailAlbedoMap") || material.HasProperty("_DetailNormalMap"))
-                CoreUtils.SetKeyword(material, "_DETAIL_MULX2", material.GetTexture("_DetailAlbedoMap"));
 
             if (material.HasProperty("_SmoothnessTextureChannel"))
             {
