@@ -251,43 +251,19 @@ namespace UnityEngine.Rendering.HighDefinition
             return VolumeManager.instance.GetVolumes(selectedCameraLayerMask).Reverse().ToArray();
         }
 
-        VolumeParameter[,] savedStates = null;
-        VolumeParameter[,] GetStates()
+        int componentHash = 0;
+        int GetComponentHashCode()
         {
-            var fields = selectedComponentType
-                .GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                .Where(t => t.FieldType.IsSubclassOf(typeof(VolumeParameter)))
-                .ToArray();
-
-            VolumeParameter[,] states = new VolumeParameter[volumes.Length, fields.Length];
+            int hash = 17;
             for (int i = 0; i < volumes.Length; i++)
             {
                 var profile = volumes[i].HasInstantiatedProfile() ? volumes[i].profile : volumes[i].sharedProfile;
                 if (!profile.TryGet(selectedComponentType, out VolumeComponent component))
                     continue;
-
-                for (int j = 0; j < fields.Length; j++)
-                {
-                    var param = GetParameter(component, fields[j]);;
-                    states[i, j] = param.overrideState ? param : null;
-                }
+                
+                hash = hash * 23 + component.GetHashCode();
             }
-            return states;
-        }
-
-        bool ChangedStates(VolumeParameter[,] newStates)
-        {
-            if (savedStates.GetLength(1) != newStates.GetLength(1))
-                return true;
-            for (int i = 0; i < savedStates.GetLength(0); i++)
-            {
-                for (int j = 0; j < savedStates.GetLength(1); j++)
-                {
-                    if ((savedStates[i, j] == null) != (newStates[i, j] == null))
-                        return true;
-                }
-            }
-            return false;
+            return hash;
         }
 
         /// <summary>Updates the list of volumes and recomputes volume weights</summary>
@@ -299,15 +275,15 @@ namespace UnityEngine.Rendering.HighDefinition
             if (volumes == null || !newVolumes.SequenceEqual(volumes))
             {
                 volumes = (Volume[])newVolumes.Clone();
-                savedStates = GetStates();
+                componentHash = GetComponentHashCode();
                 ret = true;
             }
             else
             {
-                var newStates = GetStates();
-                if (savedStates == null || ChangedStates(newStates))
+                int newHash = GetComponentHashCode();
+                if (componentHash == 0 || componentHash != newHash)
                 {
-                    savedStates = newStates;
+                    componentHash = newHash;
                     ret = true;
                 }
             }

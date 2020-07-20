@@ -10,124 +10,116 @@ namespace UnityEditor.Rendering.HighDefinition
     [VolumeComponentEditor(typeof(CloudLayer))]
     class CloudLayerEditor : VolumeComponentEditor
     {
-        SerializedDataParameter m_Enabled;
+        struct CloudLightingParameter
+        {
+            public SerializedDataParameter mode;
+            public SerializedDataParameter steps;
+            public SerializedDataParameter thickness;
+            public SerializedDataParameter castShadows;
+        }
 
-        SerializedDataParameter m_CloudMap;
-        SerializedDataParameter m_UpperHemisphereOnly;
-        SerializedDataParameter m_Tint;
-        SerializedDataParameter m_IntensityMultiplier;
-        SerializedDataParameter m_Rotation;
+        struct CloudMapParameter
+        {
+            public SerializedDataParameter cloudMap;
+            public SerializedDataParameter[] opacities;
+            public SerializedDataParameter rotation;
+            public SerializedDataParameter tint;
+            public SerializedDataParameter intensityMultiplier;
+            public CloudLightingParameter lighting;
+        }
 
-        SerializedDataParameter m_EnableDistortion;
-        SerializedDataParameter m_Procedural;
-        SerializedDataParameter m_Flowmap;
-        SerializedDataParameter m_ScrollDirection;
-        SerializedDataParameter m_ScrollSpeed;
+        CloudMapParameter UnpackCloudMap(SerializedProperty serializedProperty)
+        {
+            var p = new RelativePropertyFetcher<CloudLayer.CloudMap>(serializedProperty);
+            var l = new RelativePropertyFetcher<CloudLayer.CloudLighting>(p.Find(x => x.lighting));
 
-        GUIContent[]    m_DistortionModes = { new GUIContent("Procedural"), new GUIContent("Flowmap") };
-        int[]           m_DistortionModeValues = { 1, 0 };
+            return new CloudMapParameter
+            {
+                cloudMap = Unpack(p.Find(x => x.cloudMap)),
+                opacities = new SerializedDataParameter[]
+                {
+                    Unpack(p.Find(x => x.opacityR)),
+                    Unpack(p.Find(x => x.opacityG)),
+                    Unpack(p.Find(x => x.opacityB)),
+                    Unpack(p.Find(x => x.opacityA))
+                },
+                rotation = Unpack(p.Find(x => x.rotation)),
+                tint = Unpack(p.Find(x => x.tint)),
+                intensityMultiplier = Unpack(p.Find(x => x.intensityMultiplier)),
+                lighting = new CloudLightingParameter
+                {
+                    mode = Unpack(l.Find(x => x.lighting)),
+                    steps = Unpack(l.Find(x => x.steps)),
+                    thickness = Unpack(l.Find(x => x.thickness)),
+                    castShadows = Unpack(l.Find(x => x.castShadows)),
+                }
+            };
+        }
 
-        MaterialEditor  materialEditor = null; 
+        void PropertyField(CloudMapParameter map, int index)
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField($"Map {(index == 0 ? 'A' : 'B')}", EditorStyles.miniLabel);
+
+            PropertyField(map.cloudMap);
+            EditorGUI.indentLevel++;
+            for (int i = 0; i < 4; i++)
+                PropertyField(map.opacities[i]);
+            EditorGUI.indentLevel--;
+            PropertyField(map.rotation);
+            PropertyField(map.tint);
+            PropertyField(map.intensityMultiplier);
+            
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField($"Map {(index == 0 ? 'A' : 'B')} Lighting", EditorStyles.miniLabel);
+            PropertyField(map.lighting.mode);
+            if (map.lighting.mode.value.intValue == (int)CloudLightingMode.Raymarching)
+            {
+                EditorGUI.indentLevel++;
+                PropertyField(map.lighting.steps);
+                PropertyField(map.lighting.thickness);
+                EditorGUI.indentLevel--;
+            }
+            PropertyField(map.lighting.castShadows);
+        }
+
+
+        SerializedDataParameter m_Opacity, m_UpperHemisphereOnly;
+        SerializedDataParameter m_Mode, m_Layers;
+        CloudMapParameter[] m_Maps;
 
         public override void OnEnable()
         {
+            base.OnEnable();
+
             var o = new PropertyFetcher<CloudLayer>(serializedObject);
 
-            m_Enabled                   = Unpack(o.Find(x => x.enabled));
+            m_Opacity = Unpack(o.Find(x => x.opacity));
+            m_UpperHemisphereOnly = Unpack(o.Find(x => x.upperHemisphereOnly));
+            m_Mode = Unpack(o.Find(x => x.mode));
+            m_Layers = Unpack(o.Find(x => x.layers));
 
-            m_CloudMap                  = Unpack(o.Find(x => x.cloudMap));
-            m_UpperHemisphereOnly       = Unpack(o.Find(x => x.upperHemisphereOnly));
-            m_Tint                      = Unpack(o.Find(x => x.tint));
-            m_IntensityMultiplier       = Unpack(o.Find(x => x.intensityMultiplier));
-            m_Rotation                  = Unpack(o.Find(x => x.rotation));
-
-            m_EnableDistortion          = Unpack(o.Find(x => x.enableDistortion));
-            m_Procedural                = Unpack(o.Find(x => x.procedural));
-            m_Flowmap                   = Unpack(o.Find(x => x.flowmap));
-            m_ScrollDirection           = Unpack(o.Find(x => x.scrollDirection));
-            m_ScrollSpeed               = Unpack(o.Find(x => x.scrollSpeed));
-
-            CreateEditor(m_CloudMap);
-        }
-
-        public override void OnDisable ()
-        {
-            if (materialEditor != null)
-                Object.DestroyImmediate(materialEditor);
-
-            base.OnDisable();
-        }
-
-        bool IsMapFormatInvalid(SerializedDataParameter map)
-        {
-            if (!map.overrideState.boolValue || map.value.objectReferenceValue == null)
-                return false;
-            var tex = map.value.objectReferenceValue;
-            if (!tex.GetType().IsSubclassOf(typeof(Texture)))
-                return true;
-            return (tex as Texture).dimension != TextureDimension.Tex2D;
-        }
-
-        void CreateEditor(SerializedDataParameter map)
-        {
-            if (materialEditor != null)
-                Object.DestroyImmediate(materialEditor);
-
-            var tex = map.value.objectReferenceValue as CustomRenderTexture;
-            if (tex != null && tex.material != null)
-                materialEditor = (MaterialEditor)Editor.CreateEditor(tex.material);
+            m_Maps = new CloudMapParameter[] {
+                UnpackCloudMap(o.Find(x => x.mapA)),
+                UnpackCloudMap(o.Find(x => x.mapB))
+            };
         }
 
         public override void OnInspectorGUI()
         {
-            PropertyField(m_Enabled, new GUIContent("Enable"));
-
-            EditorGUI.BeginChangeCheck ();
-            PropertyField(m_CloudMap);
-            if (EditorGUI.EndChangeCheck())
-                CreateEditor(m_CloudMap);
-
-            if (IsMapFormatInvalid(m_CloudMap))
-                EditorGUILayout.HelpBox("The cloud map needs to be a 2D Texture in LatLong layout.", MessageType.Info);
-
+            PropertyField(m_Opacity);
             PropertyField(m_UpperHemisphereOnly);
-            PropertyField(m_Tint);
-            PropertyField(m_IntensityMultiplier);
-            PropertyField(m_Rotation);
 
-            PropertyField(m_EnableDistortion);
-            if (m_EnableDistortion.value.boolValue)
+            PropertyField(m_Mode);
+            if (m_Mode.value.intValue == (int)CloudLayerMode.CloudMap)
             {
                 EditorGUI.indentLevel++;
-
-                using (new EditorGUILayout.HorizontalScope())
-                {
-                    DrawOverrideCheckbox(m_Procedural);
-                    using (new EditorGUI.DisabledScope(!m_Procedural.overrideState.boolValue))
-                        m_Procedural.value.boolValue = EditorGUILayout.IntPopup(new GUIContent("Distortion Mode"), (int)m_Procedural.value.intValue, m_DistortionModes, m_DistortionModeValues) == 1;
-                }
-
-                if (!m_Procedural.value.boolValue)
-                {
-                    EditorGUI.indentLevel++;
-                    PropertyField(m_Flowmap);
-                    if (IsMapFormatInvalid(m_Flowmap))
-                        EditorGUILayout.HelpBox("The flowmap needs to be a 2D Texture in LatLong layout.", MessageType.Info);
-                    EditorGUI.indentLevel--;
-                }
-
-                PropertyField(m_ScrollDirection);
-                PropertyField(m_ScrollSpeed);
+                PropertyField(m_Layers);
                 EditorGUI.indentLevel--;
-            }
-
-
-            if (materialEditor != null)
-            {
-                EditorGUILayout.Space();
-                materialEditor.DrawHeader(); 
-                materialEditor.OnInspectorGUI(); 
-                EditorGUILayout.Space();
+                
+                PropertyField(m_Maps[0], 0);
+                if (m_Layers.value.intValue == (int)CloudMapMode.Double)
+                    PropertyField(m_Maps[1], 1);
             }
         }
     }
