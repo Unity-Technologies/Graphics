@@ -146,6 +146,8 @@ namespace UnityEditor.Rendering.Universal
             // Terrain Upgraders              //
             ////////////////////////////////////
             upgraders.Add(new TerrainUpgrader("Nature/Terrain/Standard"));
+            upgraders.Add(new SpeedTreeUpgrader("Nature/SpeedTree"));
+            upgraders.Add(new SpeedTreeBillboardUpgrader("Nature/SpeedTree Billboard"));
 
             ////////////////////////////////////
             // Particle Upgraders             //
@@ -413,6 +415,21 @@ namespace UnityEditor.Rendering.Universal
         public TerrainUpgrader(string oldShaderName)
         {
             RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.TerrainLit));
+        }
+    }
+
+    public class SpeedTreeUpgrader : MaterialUpgrader
+    {
+        public SpeedTreeUpgrader(string oldShaderName)
+        {
+            RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree7));
+        }
+    }
+    public class SpeedTreeBillboardUpgrader : MaterialUpgrader
+    {
+        public SpeedTreeBillboardUpgrader(string oldShaderName)
+        {
+            RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree7Billboard));
         }
     }
 
