@@ -57,7 +57,7 @@ editor-pinning-merge-from-target:
     name: Merge yamato/editor-pin to yamato/editor-pin-ci
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: cds-ops/ubuntu-16.04-base:stable
         flavor: b1.small
     variables:
         CI: true

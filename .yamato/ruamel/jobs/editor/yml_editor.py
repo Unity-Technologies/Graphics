@@ -27,7 +27,7 @@ def create_editor_yml(metafile):
     job = Editor_PinningMergeToTargetJob(metafile["target_editor"], metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"])
     yml[job.job_id] = job.yml 
 
-    job = Editor_PinningMergeFromTargetJob(metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"])
+    job = Editor_PinningMergeFromTargetJob(metafile["editor_priming_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"])
     yml[job.job_id] = job.yml 
 
     yml_files[editor_pinning_filepath()] = yml
