@@ -1,4 +1,7 @@
-from standalone.file_extension_to_lowercase import print_from_standalone_module
+#!/usr/bin/python
 
-print("Printing from the git-hook folder")
-print_from_standalone_module()
+import sys
+from standalone.file_extension_to_lowercase import convert_extension_of_files
+
+if len(sys.argv) > 1:
+	convert_extension_of_files(sys.argv[1:])
