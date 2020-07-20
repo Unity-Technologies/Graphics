@@ -20,18 +20,17 @@ def convert_extension_of_file(filename, file_extension):
 		git_move_file(current_meta_filename, correct_meta_filename)
 
 
+def convert_extension_of_files(files):
+	for file in files:
+		filename, file_extension = os.path.splitext(file)
+		if file_extension.isupper():
+			convert_extension_of_file(filename, file_extension)
+
+
 def convert_extensions_of_folder(folder):
 	for root, directories, files in os.walk(folder):
-		for file in files:
-			filename, file_extension = os.path.splitext(file)
-			if file_extension.isupper():
-				convert_extension_of_file(os.path.join(root, filename), file_extension)
+		convert_extension_of_files(files)
 				
-				
-def print_from_standalone_module():
-	print("Printing from standalone folder")
-	print("If this work then standalone scripts can be called from git hooks")
-
 
 if __name__== "__main__":
 	targets = sys.argv[1:]
