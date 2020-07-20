@@ -176,6 +176,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _ColorMaskTransparentVel = Shader.PropertyToID("_ColorMaskTransparentVel");
         public static readonly int _ColorMaskNormal = Shader.PropertyToID("_ColorMaskNormal");
+        public static readonly int _DecalColorMask0 = Shader.PropertyToID(HDMaterialProperties.kDecalColorMask0);
+        public static readonly int _DecalColorMask1 = Shader.PropertyToID(HDMaterialProperties.kDecalColorMask1);
         public static readonly int _DecalColorMask2 = Shader.PropertyToID(HDMaterialProperties.kDecalColorMask2);
         public static readonly int _DecalColorMask3 = Shader.PropertyToID(HDMaterialProperties.kDecalColorMask3);
 
@@ -940,6 +942,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string kAffectsMetal = "_AffectsMetal";
         public static readonly string kAffectsSmoothness = "_AffectsSmoothness";
         public static readonly string kAffectsEmission = "_AffectsEmission";
+        public static readonly string kDecalColorMask0 = "_DecalColorMask0";
+        public static readonly string kDecalColorMask1 = "_DecalColorMask1";
         public static readonly string kDecalColorMask2 = "_DecalColorMask2";
         public static readonly string kDecalColorMask3 = "_DecalColorMask3";
 

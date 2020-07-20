@@ -59,7 +59,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             pass.keywords.Add(CoreKeywordDescriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true));
 
             // Emissive pass only have the emission keyword
-            if (pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalProjectorForwardEmissive])
+            if (pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalProjectorForwardEmissive] ||
+                pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalMeshForwardEmissive])
             {
                 if (decalData.affectsEmission)
                     pass.keywords.Add(DecalDefines.Emission);
@@ -139,6 +140,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             decalMeshDepthBias.floatType = FloatType.Default;
             decalMeshDepthBias.value = 0;
             collector.AddShaderProperty(decalMeshDepthBias);
+            AddStencilProperty(HDMaterialProperties.kDecalStencilWriteMask);
+            AddStencilProperty(HDMaterialProperties.kDecalStencilRef);
 
             if (decalData.affectsAlbedo)
                 AddAffectsProperty(HDMaterialProperties.kAffectsAlbedo);
@@ -154,6 +157,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 AddAffectsProperty(HDMaterialProperties.kAffectsEmission);
 
             // Color mask configuration for writing to the mask map
+            AddColorMaskProperty(kDecalColorMask0);
+            AddColorMaskProperty(kDecalColorMask1);
             AddColorMaskProperty(kDecalColorMask2);
             AddColorMaskProperty(kDecalColorMask3);
 
@@ -163,6 +168,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     overrideReferenceName = referenceName,
                     hidden = true,
                     value = true,
+                });
+            }
+
+            void AddStencilProperty(string referenceName)
+            {
+                collector.AddShaderProperty(new Vector1ShaderProperty
+                {
+                    overrideReferenceName = referenceName,
+                    floatType = FloatType.Integer,
+                    hidden = true,
                 });
             }
 
@@ -362,8 +377,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 #region RenderStates
         static class DecalRenderStates
         {
-            readonly static string s_DecalColorMask = "ColorMask [_DecalColorMask0] 0\nColorMask [_DecalColorMask1] 1\nColorMask [_DecalColorMask2] 2\nColorMask [_DecalColorMask3] 3";
-            readonly static string s_DecalBlend = "Blend 0 SrcAlpha OneMinusSrcAlpha Zero OneMinusSrcAlpha \nBlend 1 SrcAlpha OneMinusSrcAlpha Zero OneMinusSrcAlpha \nBlend 2 SrcAlpha OneMinusSrcAlpha Zero OneMinusSrcAlpha \nBlend 3 Zero OneMinusSrcColor";
+            readonly static string s_DecalColorMask = "ColorMask [_DecalColorMask0]\n\tColorMask [_DecalColorMask1] 1\n\tColorMask [_DecalColorMask2] 2\n\tColorMask [_DecalColorMask3] 3";
+            readonly static string s_DecalBlend = "Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha \n\tBlend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha \n\tBlend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha \n\tBlend 3 Zero OneMinusSrcColor";
 
             public static RenderStateCollection DBufferProjector = new RenderStateCollection
             {
@@ -506,10 +521,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             public static IncludeCollection Default = new IncludeCollection
             {
-                { CoreIncludes.CorePregraph },
                 { kPacking, IncludeLocation.Pregraph },
                 { kColor, IncludeLocation.Pregraph },
                 { kFunctions, IncludeLocation.Pregraph },
+                { CoreIncludes.MinimalCorePregraph },
                 { kDecal, IncludeLocation.Pregraph },
                 { kPassDecal, IncludeLocation.Postgraph },
             };

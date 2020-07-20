@@ -42,9 +42,6 @@ Shader "HDRP/Decal"
         [HideInInspector] _DecalStencilRef("_DecalStencilRef", Int) = 16
         [HideInInspector] _DecalStencilWriteMask("_DecalStencilWriteMask", Int) = 16
 
-        // Decal layer
-        [HideInInspector] _DecalLayerMaskFromDecal("_DecalLayerMask", Int) = 1
-
 		// Decal color masks
         [HideInInspector]_DecalColorMask2("_DecalColorMask0", Int) = 0
         [HideInInspector]_DecalColorMask2("_DecalColorMask1", Int) = 0
@@ -118,10 +115,10 @@ Shader "HDRP/Decal"
 			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 			Blend 3 Zero OneMinusSrcColor
 
-            ColorMask[_DecalColorMask0] 0
-            ColorMask[_DecalColorMask1] 1
-            ColorMask[_DecalColorMask2] 2
-            ColorMask[_DecalColorMask3] 3
+            ColorMask [_DecalColorMask0]
+            ColorMask [_DecalColorMask1] 1
+            ColorMask [_DecalColorMask2] 2
+            ColorMask [_DecalColorMask3] 3
 
 			HLSLPROGRAM
 
@@ -192,10 +189,10 @@ Shader "HDRP/Decal"
 			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
             Blend 3 Zero OneMinusSrcColor
 
-            ColorMask[_DecalColorMask0] 0
-            ColorMask[_DecalColorMask1] 1
-            ColorMask[_DecalColorMask2] 2
-            ColorMask[_DecalColorMask3] 3
+            ColorMask [_DecalColorMask0]
+            ColorMask [_DecalColorMask1] 1
+            ColorMask [_DecalColorMask2] 2
+            ColorMask [_DecalColorMask3] 3
 
 			HLSLPROGRAM
 
