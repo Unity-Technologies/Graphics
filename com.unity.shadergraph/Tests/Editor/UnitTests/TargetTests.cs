@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEditor.Graphing;
@@ -24,6 +24,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(0, graph.activeTargets.Count());
         }
 
+#if VFX_GRAPH_10_0_0_OR_NEWER
         [Test]
         public void CanInitializeOutputTargets()
         {
@@ -109,5 +110,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(BlockFields.SurfaceDescription.NormalTS, blocks[1].descriptor);
             Assert.AreEqual(false, blocks[1].isActive);
         }
+#endif
     }
 }
