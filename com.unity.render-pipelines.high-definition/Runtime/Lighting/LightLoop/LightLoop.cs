@@ -1780,9 +1780,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else if (gpuLightType == GPULightType.Point)
             {
-                Vector3 vx = xAxisVS;
-                Vector3 vy = yAxisVS;
-                Vector3 vz = zAxisVS;
+                // Construct a view-space axis-aligned bounding cube around the bounding sphere.
+                // This allows us to utilize the same polygon clipping technique for all lights.
+                // Non-axis-aligned vectors may result in a larger screen-space AABB.
+                Vector3 vx = new Vector3(1, 0, 0);
+                Vector3 vy = new Vector3(0, 1, 0);
+                Vector3 vz = new Vector3(0, 0, 1);
 
                 bound.center = positionVS;
                 bound.boxAxisX = vx * range;
