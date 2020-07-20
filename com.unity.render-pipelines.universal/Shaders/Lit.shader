@@ -32,11 +32,6 @@ Shader "Universal Render Pipeline/Lit"
         _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
 
-        _ClearCoat("Clear Coat", Float) = 0.0
-        _ClearCoatMap("Clear Coat Map", 2D) = "white" {}
-        _ClearCoatMask("Clear Coat Mask", Range(0.0, 1.0)) = 0.0
-        //_ClearCoatSmoothness("Clear Coat Smoothness", Range(0.0, 1.0)) = 1.0 // TODO: enable
-
         // Blending state
         [HideInInspector] _Surface("__surface", Float) = 0.0
         [HideInInspector] _Blend("__blend", Float) = 0.0
@@ -92,8 +87,6 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature_local_fragment _OCCLUSIONMAP
-
-            #pragma shader_feature_local_fragment _ _CLEARCOAT _CLEARCOATMAP
 
             #pragma shader_feature_local_fragment _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature_local_fragment _ENVIRONMENTREFLECTIONS_OFF
