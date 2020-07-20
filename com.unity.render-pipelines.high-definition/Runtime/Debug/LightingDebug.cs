@@ -184,6 +184,8 @@ namespace UnityEngine.Rendering.HighDefinition
         SceneEV100Values,
         /// <summary>Display the Histogram used for exposure.</summary>
         HistogramView,
+        /// <summary>Display an RGB histogram of the final image (after post-processing).</summary>
+        FinalImageHistogramView,
         /// <summary>Visualize the scene color weighted as the metering mode selected.</summary>
         MeteringWeighted,
 
@@ -212,6 +214,11 @@ namespace UnityEngine.Rendering.HighDefinition
         IrradianceSH1_1,
         IrradianceSH10,
         IrradianceSH11,
+        IrradianceSH2_2,
+        IrradianceSH2_1,
+        IrradianceSH20,
+        IrradianceSH21,
+        IrradianceSH22,
         Validity,
         OctahedralDepth
     }
@@ -323,6 +330,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool                 showTonemapCurveAlongHistogramView = true;
         /// <summary>Whether to center the histogram debug view around the middle-grey point or not.</summary>
         public bool                 centerHistogramAroundMiddleGrey = false;
+        /// <summary>Whether to show tonemap curve in the histogram debug view or not.</summary>
+        public bool                 displayFinalImageHistogramAsRGB = false;
 
         /// <summary>Display the light cookies atlas.</summary>
         public bool                 displayCookieAtlas = false;

@@ -8,14 +8,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     // Render all tiled-based deferred lights.
     internal class GBufferPass : ScriptableRenderPass
     {
-        const string m_ProfilerTag = "GBuffer";
-        ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
-
-        RenderTargetHandle[] m_ColorAttachments;
-        RenderTargetHandle m_DepthBufferAttachment;
-
         DeferredLights m_DeferredLights;
-        bool m_HasDepthPrepass;
 
         ShaderTagId[] m_ShaderTagValues;
         RenderStateBlock[] m_RenderStateBlocks;
@@ -26,8 +19,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         public GBufferPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference, DeferredLights deferredLights)
         {
             base.renderPassEvent = evt;
+
             m_DeferredLights = deferredLights;
-            m_HasDepthPrepass = false;
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
 
@@ -58,56 +51,44 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_RenderStateBlocks[2] = OverwriteStencil(m_RenderStateBlock, 96, 0);
         }
 
-        public void Setup(ref RenderingData renderingData, RenderTargetHandle depthTexture, RenderTargetHandle[] colorAttachments, bool hasDepthPrepass)
-        {
-            m_DepthBufferAttachment = depthTexture;
-            m_ColorAttachments = colorAttachments;
-            m_HasDepthPrepass = hasDepthPrepass;
-        }
-
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            // Create and declare the render targets used in the pass
-            for (int i = 0; i < m_DeferredLights.GBufferSliceCount; ++i)
+            RenderTargetHandle[] gbufferAttachments = m_DeferredLights.GbufferAttachments;
+
+                // Create and declare the render targets used in the pass
+            for (int i = 0; i < gbufferAttachments.Length; ++i)
             {
                 // Lighting buffer has already been declared with line ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), ...) in DeferredRenderer.Setup
                 if (i != m_DeferredLights.GBufferLightingIndex)
                 {
                     RenderTextureDescriptor gbufferSlice = cameraTextureDescriptor;
                     gbufferSlice.graphicsFormat = m_DeferredLights.GetGBufferFormat(i);
-                    cmd.GetTemporaryRT(m_ColorAttachments[i].id, gbufferSlice);
+                    cmd.GetTemporaryRT(m_DeferredLights.GbufferAttachments[i].id, gbufferSlice);
                 }
             }
 
-            RenderTargetIdentifier[] colorAttachmentIdentifiers = new RenderTargetIdentifier[m_DeferredLights.GBufferSliceCount];
-            for (int i = 0; i < colorAttachmentIdentifiers.Length; ++i)
-                colorAttachmentIdentifiers[i] = m_ColorAttachments[i].Identifier();
-
-            ConfigureTarget(colorAttachmentIdentifiers, m_DepthBufferAttachment.Identifier());
+            ConfigureTarget(m_DeferredLights.GbufferAttachmentIdentifiers, m_DeferredLights.DepthAttachmentIdentifier);
 
             // If depth-prepass exists, do not clear depth here or we will lose it.
             // Lighting buffer is cleared independently regardless of what we ask for here.
-            ConfigureClear(m_HasDepthPrepass ? ClearFlag.None : ClearFlag.Depth, Color.black);
+            ConfigureClear(m_DeferredLights.HasDepthPrepass ? ClearFlag.None : ClearFlag.Depth, Color.black);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-
-            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            CommandBuffer gbufferCommands = CommandBufferPool.Get();
+            using (new ProfilingScope(gbufferCommands, m_ProfilingSampler))
             {
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
                 if (m_DeferredLights.AccurateGbufferNormals)
-                    cmd.EnableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
+                    gbufferCommands.EnableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
                 else
-                    cmd.DisableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
+                    gbufferCommands.DisableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
 
-                cmd.SetViewProjectionMatrices(renderingData.cameraData.camera.worldToCameraMatrix, renderingData.cameraData.camera.projectionMatrix);
-
-                context.ExecuteCommandBuffer(cmd); // send the gbufferCommands to the scriptableRenderContext - this should be done *before* calling scriptableRenderContext.DrawRenderers
-                cmd.Clear();
+                context.ExecuteCommandBuffer(gbufferCommands); // send the gbufferCommands to the scriptableRenderContext - this should be done *before* calling scriptableRenderContext.DrawRenderers
+                gbufferCommands.Clear();
 
                 ref CameraData cameraData = ref renderingData.cameraData;
                 Camera camera = cameraData.camera;
@@ -120,16 +101,21 @@ namespace UnityEngine.Rendering.Universal.Internal
                 context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, universalMaterialTypeTag, false, tagValues, stateBlocks);
                 tagValues.Dispose();
                 stateBlocks.Dispose();
+
+                // Render objects that did not match any shader pass with error shader
+                RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, m_FilteringSettings, SortingCriteria.None);
             }
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            context.ExecuteCommandBuffer(gbufferCommands);
+            CommandBufferPool.Release(gbufferCommands);
         }
 
         public override void OnCameraCleanup(CommandBuffer cmd)
         {
-            for (int i = 0; i < m_ColorAttachments.Length; ++i)
+            RenderTargetHandle[] gbufferAttachments = m_DeferredLights.GbufferAttachments;
+
+            for (int i = 0; i < gbufferAttachments.Length; ++i)
                 if (i != m_DeferredLights.GBufferLightingIndex)
-                    cmd.ReleaseTemporaryRT(m_ColorAttachments[i].id);
+                    cmd.ReleaseTemporaryRT(gbufferAttachments[i].id);
         }
 
         RenderStateBlock OverwriteStencil(RenderStateBlock block, byte stencilWriteMask, int stencilRef)

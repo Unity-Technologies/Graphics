@@ -15,14 +15,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     class SurfaceOptionPropertyBlock : SubTargetPropertyBlock
     {
         [Flags]
-        // TODO: remove ?
         public enum Features
         {
-            None            = 0,
-            All             = ~0,
+            None                    = 0,
+            ShowDoubleSidedNormal   = 1 << 0,
+            All                     = ~0,
 
-            Unlit           = All,
-            Lit             = All,
+            Unlit                   = All ^ ShowDoubleSidedNormal, // hide double sided normal for unlit
+            Lit                     = All,
         }
 
         class Styles
@@ -45,6 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 systemData.TryChangeRenderingPass(systemData.renderingPass);
             });
 
+            context.globalIndentLevel++;
             var renderingPassList = HDSubShaderUtilities.GetRenderingPassList(systemData.surfaceType == SurfaceType.Opaque, false);
             var renderingPassValue = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.GetOpaqueEquivalent(systemData.renderingPass) : HDRenderQueue.GetTransparentEquivalent(systemData.renderingPass);
             var renderQueueType = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
@@ -57,7 +58,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             if (systemData.surfaceType == SurfaceType.Transparent)
             {
-                context.globalIndentLevel++;
                 AddProperty(blendModeText, () => systemData.blendMode, (newValue) => systemData.blendMode = newValue);
                 AddProperty(enableTransparentFogText, () => builtinData.transparencyFog, (newValue) => builtinData.transparencyFog = newValue);
                 AddProperty(transparentZTestText, () => systemData.zTest, (newValue) => systemData.zTest = newValue);
@@ -65,23 +65,35 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 AddProperty(transparentCullModeText, () => systemData.transparentCullMode, (newValue) => systemData.transparentCullMode = newValue);
                 AddProperty(transparentSortPriorityText, () => systemData.sortPriority, (newValue) => systemData.sortPriority = HDRenderQueue.ClampsTransparentRangePriority(newValue));
                 AddProperty(transparentBackfaceEnableText, () => builtinData.backThenFrontRendering, (newValue) => builtinData.backThenFrontRendering = newValue);
-                AddProperty(transparentDepthPrepassEnableText, () => systemData.alphaTestDepthPrepass, (newValue) => systemData.alphaTestDepthPrepass = newValue);
-                AddProperty(transparentDepthPostpassEnableText, () => systemData.alphaTestDepthPostpass, (newValue) => systemData.alphaTestDepthPostpass = newValue);
+                AddProperty(transparentDepthPrepassEnableText, () => builtinData.transparentDepthPrepass, (newValue) => builtinData.transparentDepthPrepass = newValue);
+                AddProperty(transparentDepthPostpassEnableText, () => builtinData.transparentDepthPostpass, (newValue) => builtinData.transparentDepthPostpass = newValue);
                 AddProperty(transparentWritingMotionVecText, () => builtinData.transparentWritesMotionVec, (newValue) => builtinData.transparentWritesMotionVec = newValue);
 
                 if (lightingData != null)
                     AddProperty(enableBlendModePreserveSpecularLightingText, () => lightingData.blendPreserveSpecular, (newValue) => lightingData.blendPreserveSpecular = newValue);
-                context.globalIndentLevel--;
             }
+            else
+            {
+                AddProperty(opaqueCullModeText, () => systemData.opaqueCullMode, (newValue) => systemData.opaqueCullMode = newValue);
+            }
+            context.globalIndentLevel--;
 
             // Alpha Test
             // TODO: AlphaTest is in SystemData but Alpha to Mask is in BuiltinData?
             AddProperty(alphaCutoffEnableText, () => systemData.alphaTest, (newValue) => systemData.alphaTest = newValue);
-            AddProperty(useShadowThresholdText, () => builtinData.alphaTestShadow, (newValue) => builtinData.alphaTestShadow = newValue);
-            AddProperty(alphaToMaskText, () => builtinData.alphaToMask, (newValue) => builtinData.alphaToMask = newValue);
+            if (systemData.alphaTest)
+            {
+                context.globalIndentLevel++;
+                AddProperty(useShadowThresholdText, () => builtinData.alphaTestShadow, (newValue) => builtinData.alphaTestShadow = newValue);
+                AddProperty(alphaToMaskText, () => builtinData.alphaToMask, (newValue) => builtinData.alphaToMask = newValue);
+                context.globalIndentLevel--;
+            }
 
             // Misc
-            AddProperty(Styles.doubleSidedModeText, () => systemData.doubleSidedMode, (newValue) => systemData.doubleSidedMode = newValue);
+            if ((enabledFeatures & Features.ShowDoubleSidedNormal) != 0)
+                AddProperty(Styles.doubleSidedModeText, () => systemData.doubleSidedMode, (newValue) => systemData.doubleSidedMode = newValue);
+            else
+                AddProperty(doubleSidedEnableText, () => systemData.doubleSidedMode != DoubleSidedMode.Disabled, (newValue) => systemData.doubleSidedMode = newValue ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled);
             if (lightingData != null)
                 AddProperty(Styles.fragmentNormalSpace, () => lightingData.normalDropOffSpace, (newValue) => lightingData.normalDropOffSpace = newValue);
 

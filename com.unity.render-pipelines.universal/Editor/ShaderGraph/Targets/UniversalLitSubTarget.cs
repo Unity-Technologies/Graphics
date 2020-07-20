@@ -38,7 +38,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         }
 
         public override bool IsActive() => true;
-        
+
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
@@ -109,7 +109,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 if (Equals(target.surfaceType, evt.newValue))
                     return;
-                
+
                 registerUndo("Change Surface");
                 target.surfaceType = (SurfaceType)evt.newValue;
                 onChange();
@@ -129,7 +129,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 if (Equals(target.alphaClip, evt.newValue))
                     return;
-                
+
                 registerUndo("Change Alpha Clip");
                 target.alphaClip = evt.newValue;
                 onChange();
@@ -139,7 +139,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 if (Equals(target.twoSided, evt.newValue))
                     return;
-                
+
                 registerUndo("Change Two Sided");
                 target.twoSided = evt.newValue;
                 onChange();
@@ -161,7 +161,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             blockMap = null;
             if(!(masterNode is PBRMasterNode1 pbrMasterNode))
                 return false;
-            
+
             // Set data
             m_WorkflowMode = (WorkflowMode)pbrMasterNode.m_Model;
             m_NormalDropOffSpace = (NormalDropOffSpace)pbrMasterNode.m_NormalDropOffSpace;
@@ -228,6 +228,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     { LitPasses.GBuffer },
                     { CorePasses.ShadowCaster },
                     { CorePasses.DepthOnly },
+                    { LitPasses.DepthNormalOnly },
                     { LitPasses.Meta },
                     { LitPasses._2D },
                 },
@@ -241,6 +242,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     var gbuffer = LitPasses.GBuffer;
                     var shadowCaster = CorePasses.ShadowCaster;
                     var depthOnly = CorePasses.DepthOnly;
+                    var depthNormalOnly = LitPasses.DepthNormalOnly;
                     var meta = LitPasses.Meta;
                     var _2d = LitPasses._2D;
 
@@ -248,9 +250,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     gbuffer.pragmas = CorePragmas.DOTSGBuffer;
                     shadowCaster.pragmas = CorePragmas.DOTSInstanced;
                     depthOnly.pragmas = CorePragmas.DOTSInstanced;
+                    depthNormalOnly.pragmas = CorePragmas.DOTSInstanced;
                     meta.pragmas = CorePragmas.DOTSDefault;
                     _2d.pragmas = CorePragmas.DOTSDefault;
-                    
+
                     return new SubShaderDescriptor()
                     {
                         pipelineTag = UniversalTarget.kPipelineTag,
@@ -262,6 +265,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                             { gbuffer },
                             { shadowCaster },
                             { depthOnly },
+                            { depthNormalOnly },
                             { meta },
                             { _2d },
                         },
@@ -284,7 +288,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Template
                 passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
@@ -305,13 +309,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static PassDescriptor GBuffer = new PassDescriptor
             {
                 // Definition
-                displayName = "Universal GBuffer",
+                displayName = "GBuffer",
                 referenceName = "SHADERPASS_GBUFFER",
                 lightMode = "UniversalGBuffer",
 
                 // Template
                 passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
@@ -338,7 +342,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Template
                 passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
@@ -364,7 +368,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Template
                 passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
@@ -378,6 +382,33 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 renderStates = CoreRenderStates.Default,
                 pragmas = CorePragmas.Instanced,
                 includes = LitIncludes._2D,
+            };
+
+            public static PassDescriptor DepthNormalOnly = new PassDescriptor()
+            {
+                // Definition
+                displayName = "DepthNormals",
+                referenceName = "SHADERPASS_DEPTHNORMALSONLY",
+                lightMode = "DepthNormals",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentDepthNormals,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                requiredFields = LitRequiredFields.DepthNormals,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = CoreRenderStates.DepthNormalsOnly,
+                pragmas = CorePragmas.Instanced,
+                includes = CoreIncludes.DepthNormalsOnly,
             };
         }
 #endregion
@@ -407,6 +438,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 BlockFields.SurfaceDescription.Alpha,
                 BlockFields.SurfaceDescription.AlphaClipThreshold,
             };
+
+            public static BlockFieldDescriptor[] FragmentDepthNormals = new BlockFieldDescriptor[]
+            {
+                BlockFields.SurfaceDescription.NormalOS,
+                BlockFields.SurfaceDescription.NormalTS,
+                BlockFields.SurfaceDescription.NormalWS,
+                BlockFields.SurfaceDescription.Alpha,
+                BlockFields.SurfaceDescription.AlphaClipThreshold,
+            };
+
         }
 #endregion
 
@@ -439,6 +480,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
             };
 
+            public static FieldCollection DepthNormals = new FieldCollection()
+            {
+                StructFields.Attributes.uv1,                            // needed for meta vertex position
+                StructFields.Varyings.normalWS,
+                StructFields.Varyings.tangentWS,                        // needed for vertex lighting
+            };
+
             public static FieldCollection Meta = new FieldCollection()
             {
                 StructFields.Attributes.uv1,                            // needed for meta vertex position
@@ -459,8 +507,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 scope = KeywordScope.Global,
             };
 
+			public static KeywordDescriptor ScreenSpaceAmbientOcclusion = new KeywordDescriptor()
+            {
+                displayName = "Screen Space Ambient Occlusion",
+                referenceName = "_SCREEN_SPACE_OCCLUSION",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.MultiCompile,
+                scope = KeywordScope.Global,
+            };
+
+
             public static KeywordCollection Forward = new KeywordCollection
             {
+                { ScreenSpaceAmbientOcclusion },
                 { CoreKeywordDescriptors.Lightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.MainLightShadows },

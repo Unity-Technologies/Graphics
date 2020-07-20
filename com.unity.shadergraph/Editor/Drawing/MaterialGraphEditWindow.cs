@@ -322,15 +322,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnDestroy()
         {
-            if (graphObject != null)
-            {
-                string nameOfFile = AssetDatabase.GUIDToAssetPath(selectedGuid);
-                if (IsDirty() && EditorUtility.DisplayDialog("Shader Graph Has Been Modified", "Do you want to save the changes you made in the Shader Graph?\n" + nameOfFile + "\n\nYour changes will be lost if you don't save them.", "Save", "Don't Save"))
-                    UpdateAsset();
-                Undo.ClearUndo(graphObject);
-                graphObject = null;
-            }
-
+            PromptSaveIfDirtyOnQuit();
             graphEditorView = null;
         }
 
@@ -434,6 +426,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     if (!string.IsNullOrEmpty(newPath))
                     {
+                        // If the newPath already exists, we are overwriting an existing file, and could be creating recursions. Let's check.
+                        if (GraphUtil.CheckForRecursiveDependencyOnPendingSave(newPath, graphObject.graph.GetNodes<SubGraphNode>(), "Save As"))
+                            return false;
+
                         var success = FileUtilities.WriteShaderGraphToDisk(newPath, graphObject.graph);
                         AssetDatabase.ImportAsset(newPath);
                         if (success)
@@ -479,9 +475,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (path.Length == 0)
                 return;
 
+            var nodes = graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray();
+
+            // Convert To Subgraph could create recursive reference loops if the target path already exists
+            // Let's check for that here
+            if (!string.IsNullOrEmpty(path))
+            {
+                if (GraphUtil.CheckForRecursiveDependencyOnPendingSave(path, nodes.OfType<SubGraphNode>(), "Convert To SubGraph"))
+                    return;
+            }
+
             graphObject.RegisterCompleteObjectUndo("Convert To Subgraph");
 
-            var nodes = graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray();
             var bounds = Rect.MinMaxRect(float.PositiveInfinity, float.PositiveInfinity, float.NegativeInfinity, float.NegativeInfinity);
             foreach (var node in nodes)
             {
@@ -799,6 +804,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             try
             {
+                EditorApplication.wantsToQuit -= PromptSaveIfDirtyOnQuit;
                 m_ColorSpace = PlayerSettings.colorSpace;
                 m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
 
@@ -864,6 +870,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 UpdateTitle();
 
                 Repaint();
+                EditorApplication.wantsToQuit += PromptSaveIfDirtyOnQuit;
             }
             catch (Exception)
             {
@@ -872,6 +879,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphObject = null;
                 throw;
             }
+        }
+
+        private bool PromptSaveIfDirtyOnQuit()
+        {
+            if (graphObject != null)
+            {
+                string nameOfFile = AssetDatabase.GUIDToAssetPath(selectedGuid);
+                if (IsDirty() && EditorUtility.DisplayDialog("Shader Graph Has Been Modified", "Do you want to save the changes you made in the Shader Graph?\n" + nameOfFile + "\n\nYour changes will be lost if you don't save them.", "Save", "Don't Save"))
+                    UpdateAsset();
+                Undo.ClearUndo(graphObject);
+                graphObject = null;
+            }
+            return true;
         }
 
         Texture2D GetThemeIcon(GraphData graphdata)

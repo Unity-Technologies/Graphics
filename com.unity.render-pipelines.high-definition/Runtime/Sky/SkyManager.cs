@@ -670,7 +670,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 sunHash = GetSunLightHashCode(sunLight);
 
             int cloudHash = 0;
-            if (skyContext.cloudLayer != null && skyContext.skyRenderer.SupportCloudLayer)
+            if (skyContext.cloudLayer != null && skyContext.skyRenderer.SupportDynamicCloudLayer)
                 cloudHash = skyContext.cloudLayer.GetHashCode();
 
             // For planar reflections we want to use the parent position for hash.
@@ -828,13 +828,10 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             if ((ambientMode == SkyAmbientMode.Static || forceStaticUpdate) && hdCamera.camera.cameraType != CameraType.Preview)
             {
-                if (staticLightingSky != null)
-                {
-                    m_StaticLightingSky.skySettings = staticLightingSky.skySettings;
-                    m_StaticLightingSky.cloudLayer = staticLightingSky.cloudLayer;
-                    UpdateEnvironment(hdCamera, renderContext, m_StaticLightingSky, sunLight, m_StaticSkyUpdateRequired, true, true, SkyAmbientMode.Static, frameIndex, cmd);
-                    m_StaticSkyUpdateRequired = false;
-                }
+                m_StaticLightingSky.skySettings = staticLightingSky != null ? staticLightingSky.skySettings : null;
+                m_StaticLightingSky.cloudLayer = staticLightingSky != null ? staticLightingSky.cloudLayer : null;
+                UpdateEnvironment(hdCamera, renderContext, m_StaticLightingSky, sunLight, m_StaticSkyUpdateRequired, true, true, SkyAmbientMode.Static, frameIndex, cmd);
+                m_StaticSkyUpdateRequired = false;
             }
 
             m_UpdateRequired = false;
@@ -935,6 +932,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void RenderOpaqueAtmosphericScattering(CommandBuffer cmd, HDCamera hdCamera,
                                                       RTHandle colorBuffer,
+                                                      RTHandle depthTexture,
                                                       RTHandle volumetricLighting,
                                                       RTHandle intermediateBuffer,
                                                       RTHandle depthBuffer,
@@ -943,16 +941,16 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(m_BuiltinParameters.commandBuffer, ProfilingSampler.Get(HDProfileId.OpaqueAtmosphericScattering)))
             {
                 m_OpaqueAtmScatteringBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, pixelCoordToViewDirWS);
-                if (isMSAA)
-                    m_OpaqueAtmScatteringBlock.SetTexture(HDShaderIDs._ColorTextureMS, colorBuffer);
-                else
-                    m_OpaqueAtmScatteringBlock.SetTexture(HDShaderIDs._ColorTexture,   colorBuffer);
+                m_OpaqueAtmScatteringBlock.SetTexture(isMSAA ? HDShaderIDs._DepthTextureMS : HDShaderIDs._CameraDepthTexture, depthTexture);
+
                 // The texture can be null when volumetrics are disabled.
                 if (volumetricLighting != null)
                     m_OpaqueAtmScatteringBlock.SetTexture(HDShaderIDs._VBufferLighting, volumetricLighting);
 
                 if (Fog.IsPBRFogEnabled(hdCamera))
                 {
+                    m_OpaqueAtmScatteringBlock.SetTexture(isMSAA? HDShaderIDs._ColorTextureMS : HDShaderIDs._ColorTexture, colorBuffer);
+
                     // Color -> Intermediate.
                     HDUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial, intermediateBuffer, depthBuffer, m_OpaqueAtmScatteringBlock, isMSAA ? 3 : 2);
                     // Intermediate -> Color.

@@ -34,6 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         void UpgradeUnlitMasterNode(UnlitMasterNode1 unlitMasterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
             m_MigrateFromOldCrossPipelineSG = true;
+            m_MigrateFromOldSG = true;
 
             // Set data
             systemData.surfaceType = (SurfaceType)unlitMasterNode.m_SurfaceType;
@@ -61,6 +62,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         void UpgradeHDUnlitMasterNode(HDUnlitMasterNode1 hdUnlitMasterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
+            m_MigrateFromOldSG = true;
+
             // Set data
             systemData.surfaceType = (SurfaceType)hdUnlitMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)hdUnlitMasterNode.m_AlphaMode);
@@ -100,14 +103,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             };
 
             // Distortion
-            if(systemData.surfaceType == SurfaceType.Transparent && builtinData.distortion)
+            if (systemData.surfaceType == SurfaceType.Transparent && builtinData.distortion)
             {
                 blockMap.Add(HDBlockFields.SurfaceDescription.Distortion, 10);
                 blockMap.Add(HDBlockFields.SurfaceDescription.DistortionBlur, 11);
             }
 
             // Shadow Matte
-            if(unlitData.enableShadowMatte)
+            if (unlitData.enableShadowMatte)
             {
                 blockMap.Add(HDBlockFields.SurfaceDescription.ShadowTint, 15);
             }
