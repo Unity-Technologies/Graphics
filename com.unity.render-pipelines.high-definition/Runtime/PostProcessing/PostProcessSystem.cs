@@ -625,7 +625,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
                             if (!m_DepthOfField.physicallyBased)
-                                DoDepthOfField(cmd, camera, source, destination, taaEnabled);
+                                DoDepthOfField(PrepareDoFParameters(camera), cmd, camera, source, destination, taaEnabled);
                             else
                                 DoPhysicallyBasedDepthOfField(cmd, camera, source, destination, taaEnabled);
                             PoolSource(ref source, destination);
@@ -1650,6 +1650,102 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region Depth Of Field
+
+        struct DepthOfFieldParameters
+        {
+
+            public ComputeShader dofKernelCS;
+            public ComputeShader dofCoCCS;
+            public ComputeShader dofCoCReprojectCS;
+            public ComputeShader dofDilateCS;
+            public ComputeShader dofMipCS;
+            public ComputeShader dofMipSafeCS;
+            public ComputeShader dofPrefilterCS;
+            public ComputeShader dofTileMaxCS;
+            public ComputeShader dofGatherCS;
+            public ComputeShader dofCombineCS;
+            public ComputeShader dofPrecombineFarCS;
+            public ComputeShader dofClearIndirectArgsCS;
+
+            public bool nearLayerActive;
+            public bool farLayerActive;
+            public bool highQualityFiltering;
+            public bool useTiles;
+
+            public DepthOfFieldResolution resolution;
+            public DepthOfFieldMode focusMode;
+
+            public Vector2 physicalCameraCurvature;
+            public float physicalCameraAperture;
+            public float physicalCameraAnamorphism;
+            public float physicalCameraBarrelClipping;
+            public int physicalCameraBladeCount;
+
+            public int farSampleCount;
+            public int nearSampleCount;
+            public float farMaxBlur;
+            public float nearMaxBlur;
+
+            public float nearFocusStart;
+            public float nearFocusEnd;
+            public float farFocusStart;
+            public float farFocusEnd;
+            public float focusDistance;
+        }
+
+        DepthOfFieldParameters PrepareDoFParameters(HDCamera camera)
+        {
+            DepthOfFieldParameters parameters = new DepthOfFieldParameters();
+
+            parameters.dofKernelCS = m_Resources.shaders.depthOfFieldKernelCS;
+            parameters.dofCoCCS = m_Resources.shaders.depthOfFieldCoCCS;
+            parameters.dofCoCReprojectCS = m_Resources.shaders.depthOfFieldCoCReprojectCS;
+            parameters.dofDilateCS = m_Resources.shaders.depthOfFieldDilateCS;
+            parameters.dofMipCS = m_Resources.shaders.depthOfFieldMipCS;
+            parameters.dofMipSafeCS = m_Resources.shaders.depthOfFieldMipSafeCS;
+            parameters.dofPrefilterCS = m_Resources.shaders.depthOfFieldPrefilterCS;
+            parameters.dofTileMaxCS = m_Resources.shaders.depthOfFieldTileMaxCS;
+            parameters.dofGatherCS = m_Resources.shaders.depthOfFieldGatherCS;
+            parameters.dofCombineCS = m_Resources.shaders.depthOfFieldCombineCS;
+            parameters.dofPrecombineFarCS = m_Resources.shaders.depthOfFieldPreCombineFarCS;
+            parameters.dofClearIndirectArgsCS = m_Resources.shaders.depthOfFieldClearIndirectArgsCS;
+
+            parameters.nearLayerActive = m_DepthOfField.IsNearLayerActive();
+            parameters.farLayerActive = m_DepthOfField.IsFarLayerActive();
+            parameters.highQualityFiltering = m_DepthOfField.highQualityFiltering;
+            parameters.useTiles = !camera.xr.singlePassEnabled;
+
+            parameters.resolution = m_DepthOfField.resolution;
+
+            float scale = 1f / (float)parameters.resolution;
+            float resolutionScale = (camera.actualHeight / 1080f) * (scale * 2f);
+
+            int farSamples = Mathf.CeilToInt(m_DepthOfField.farSampleCount * resolutionScale);
+            int nearSamples = Mathf.CeilToInt(m_DepthOfField.nearSampleCount * resolutionScale);
+            // We want at least 3 samples for both far and near
+            parameters.farSampleCount = Mathf.Max(3, farSamples);
+            parameters.nearSampleCount = Mathf.Max(3, nearSamples);
+
+            parameters.farMaxBlur = m_DepthOfField.farMaxBlur * resolutionScale;
+            parameters.nearMaxBlur = m_DepthOfField.nearMaxBlur * resolutionScale;
+
+            parameters.physicalCameraCurvature = m_PhysicalCamera.curvature;
+            parameters.physicalCameraAnamorphism = m_PhysicalCamera.anamorphism;
+            parameters.physicalCameraAperture = m_PhysicalCamera.aperture;
+            parameters.physicalCameraBarrelClipping = m_PhysicalCamera.barrelClipping;
+            parameters.physicalCameraBladeCount = m_PhysicalCamera.bladeCount;
+
+            parameters.nearFocusStart = m_DepthOfField.nearFocusStart.value;
+            parameters.nearFocusEnd = m_DepthOfField.nearFocusEnd.value;
+            parameters.farFocusStart = m_DepthOfField.farFocusStart.value;
+            parameters.farFocusEnd = m_DepthOfField.farFocusEnd.value;
+            parameters.focusDistance = m_DepthOfField.focusDistance.value;
+
+            parameters.focusMode = m_DepthOfField.focusMode.value;
+
+            return parameters;
+        }
+
         //
         // Reference used:
         //   "A Lens and Aperture Camera Model for Synthetic Image Generation" [Potmesil81]
@@ -1664,16 +1760,16 @@ namespace UnityEngine.Rendering.HighDefinition
         // TODO: can be further optimized
         // TODO: debug panel entries (coc, tiles, etc)
         //
-        void DoDepthOfField(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, bool taaEnabled)
+        void DoDepthOfField(in DepthOfFieldParameters dofParameters, CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, bool taaEnabled)
         {
-            bool nearLayerActive = m_DepthOfField.IsNearLayerActive();
-            bool farLayerActive = m_DepthOfField.IsFarLayerActive();
+            bool nearLayerActive = dofParameters.nearLayerActive;
+            bool farLayerActive = dofParameters.farLayerActive;
 
             Assert.IsTrue(nearLayerActive || farLayerActive);
 
             bool bothLayersActive = nearLayerActive && farLayerActive;
-            bool useTiles = !camera.xr.singlePassEnabled;
-            bool hqFiltering = m_DepthOfField.highQualityFiltering;
+            bool useTiles = dofParameters.useTiles;
+            bool hqFiltering = dofParameters.highQualityFiltering;
 
             const uint kIndirectNearOffset = 0u * sizeof(uint);
             const uint kIndirectFarOffset = 3u * sizeof(uint);
@@ -1683,39 +1779,36 @@ namespace UnityEngine.Rendering.HighDefinition
             // The number of samples & max blur sizes are scaled according to the resolution, with a
             // base scale of 1.0 for 1080p output
 
-            int bladeCount = m_PhysicalCamera.bladeCount;
+            int bladeCount = dofParameters.physicalCameraBladeCount;
 
-            float rotation = (m_PhysicalCamera.aperture - HDPhysicalCamera.kMinAperture) / (HDPhysicalCamera.kMaxAperture - HDPhysicalCamera.kMinAperture);
+            float rotation = (dofParameters.physicalCameraAperture - HDPhysicalCamera.kMinAperture) / (HDPhysicalCamera.kMaxAperture - HDPhysicalCamera.kMinAperture);
             rotation *= (360f / bladeCount) * Mathf.Deg2Rad; // TODO: Crude approximation, make it correct
 
             float ngonFactor = 1f;
-            if (m_PhysicalCamera.curvature.y - m_PhysicalCamera.curvature.x > 0f)
-                ngonFactor = (m_PhysicalCamera.aperture - m_PhysicalCamera.curvature.x) / (m_PhysicalCamera.curvature.y - m_PhysicalCamera.curvature.x);
+            if (dofParameters.physicalCameraCurvature.y - dofParameters.physicalCameraCurvature.x > 0f)
+                ngonFactor = (dofParameters.physicalCameraAperture - dofParameters.physicalCameraCurvature.x) / (dofParameters.physicalCameraCurvature.y - dofParameters.physicalCameraCurvature.x);
 
             ngonFactor = Mathf.Clamp01(ngonFactor);
-            ngonFactor = Mathf.Lerp(ngonFactor, 0f, Mathf.Abs(m_PhysicalCamera.anamorphism));
+            ngonFactor = Mathf.Lerp(ngonFactor, 0f, Mathf.Abs(dofParameters.physicalCameraAnamorphism));
 
-            float anamorphism = m_PhysicalCamera.anamorphism / 4f;
-            float barrelClipping = m_PhysicalCamera.barrelClipping / 3f;
+            float anamorphism = dofParameters.physicalCameraAnamorphism / 4f;
+            float barrelClipping = dofParameters.physicalCameraBarrelClipping / 3f;
 
-            float scale = 1f / (float)m_DepthOfField.resolution;
+            float scale = 1f / (float)dofParameters.resolution;
             var screenScale = new Vector2(scale, scale);
             int targetWidth = Mathf.RoundToInt(camera.actualWidth * scale);
             int targetHeight = Mathf.RoundToInt(camera.actualHeight * scale);
             int threadGroup8X = (targetWidth + 7) / 8;
             int threadGroup8Y = (targetHeight + 7) / 8;
 
-            cmd.SetGlobalVector(HDShaderIDs._TargetScale, new Vector4((float)m_DepthOfField.resolution, scale, 0f, 0f));
+            cmd.SetGlobalVector(HDShaderIDs._TargetScale, new Vector4((float)dofParameters.resolution, scale, 0f, 0f));
 
             float resolutionScale = (camera.actualHeight / 1080f) * (scale * 2f);
-            int farSamples = Mathf.CeilToInt(m_DepthOfField.farSampleCount * resolutionScale);
-            int nearSamples = Mathf.CeilToInt(m_DepthOfField.nearSampleCount * resolutionScale);
-            // We want at least 3 samples for both far and near
-            farSamples = Mathf.Max(3, farSamples);
-            nearSamples = Mathf.Max(3, nearSamples);
+            int farSamples = dofParameters.farSampleCount;
+            int nearSamples = dofParameters.nearSampleCount;
 
-            float farMaxBlur = m_DepthOfField.farMaxBlur * resolutionScale;
-            float nearMaxBlur = m_DepthOfField.nearMaxBlur * resolutionScale;
+            float farMaxBlur = dofParameters.farMaxBlur;
+            float nearMaxBlur = dofParameters.nearMaxBlur;
 
             // If TAA is enabled we use the camera history system to grab CoC history textures, but
             // because these don't use the same RTHandle system as the global one we'll have a
@@ -1759,7 +1852,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Given that we allow full customization of near & far planes we'll need a separate
                 // kernel for each layer
 
-                cs = m_Resources.shaders.depthOfFieldKernelCS;
+                cs = dofParameters.dofKernelCS;
                 kernel = cs.FindKernel("KParametricBlurKernel");
 
                 // Near samples
@@ -1791,14 +1884,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 // management easier and temporal re-projection cheaper; later transformed into
                 // individual targets for near & far layers
 
-                cs = m_Resources.shaders.depthOfFieldCoCCS;
+                cs = dofParameters.dofCoCCS;
 
-                if (m_DepthOfField.focusMode.value == DepthOfFieldMode.UsePhysicalCamera)
+                if (dofParameters.focusMode == DepthOfFieldMode.UsePhysicalCamera)
                 {
                     // "A Lens and Aperture Camera Model for Synthetic Image Generation" [Potmesil81]
                     float F = camera.camera.focalLength / 1000f;
-                    float A = camera.camera.focalLength / m_PhysicalCamera.aperture;
-                    float P = m_DepthOfField.focusDistance.value;
+                    float A = camera.camera.focalLength / dofParameters.physicalCameraAperture;
+                    float P = dofParameters.focusDistance;
                     float maxCoC = (A * F) / Mathf.Max((P - F), 1e-6f);
 
                     kernel = cs.FindKernel("KMainPhysical");
@@ -1806,10 +1899,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else // DepthOfFieldMode.Manual
                 {
-                    float nearEnd = m_DepthOfField.nearFocusEnd.value;
-                    float nearStart = Mathf.Min(m_DepthOfField.nearFocusStart.value, nearEnd - 1e-5f);
-                    float farStart = Mathf.Max(m_DepthOfField.farFocusStart.value, nearEnd);
-                    float farEnd = Mathf.Max(m_DepthOfField.farFocusEnd.value, farStart + 1e-5f);
+                    float nearEnd = dofParameters.nearFocusEnd;
+                    float nearStart = Mathf.Min(dofParameters.nearFocusStart, nearEnd - 1e-5f);
+                    float farStart = Mathf.Max(dofParameters.farFocusStart, nearEnd);
+                    float farEnd = Mathf.Max(dofParameters.farFocusEnd, farStart + 1e-5f);
 
                     kernel = cs.FindKernel("KMainManual");
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(nearStart, nearEnd, farStart, farEnd));
@@ -1838,7 +1931,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // rendered we can use the downsampled color target as-is
                 // TODO: We may want to add an anti-flicker here
 
-                cs = m_Resources.shaders.depthOfFieldPrefilterCS;
+                cs = dofParameters.dofPrefilterCS;
                 cs.shaderKeywords = null;
 
                 if (m_EnableAlpha)
@@ -1846,7 +1939,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cs.EnableKeyword("ENABLE_ALPHA");
                 }
 
-                if (m_DepthOfField.resolution == DepthOfFieldResolution.Full)
+                if (dofParameters.resolution == DepthOfFieldResolution.Full)
                 {
                     cs.EnableKeyword("FULL_RES");
                 }
@@ -1930,7 +2023,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     else
                     {
-                        cs = m_Resources.shaders.depthOfFieldMipCS;
+                        cs = dofParameters.dofMipCS;
                         kernel = cs.FindKernel(m_EnableAlpha ? "KMainColorAlpha" : "KMainColor");
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, pingFarRGB, 0);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip1, pingFarRGB, 1);
@@ -1940,7 +2033,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.DispatchCompute(cs, kernel, tx, ty, camera.viewCount);
                     }
 
-                    cs = m_Resources.shaders.depthOfFieldMipCS;
+                    cs = dofParameters.dofMipCS;
                     kernel = cs.FindKernel("KMainCoC");
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, farCoC, 0);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip1, farCoC, 1);
@@ -1958,7 +2051,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // -----------------------------------------------------------------------------
                     // Pass: dilate the near CoC
 
-                    cs = m_Resources.shaders.depthOfFieldDilateCS;
+                    cs = dofParameters.dofDilateCS;
                     kernel = cs.FindKernel("KMain");
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(targetWidth - 1, targetHeight - 1, 0f, 0f));
 
@@ -2003,13 +2096,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_FarBokehTileList.SetCounterValue(0u);
 
                     // Clear the indirect command buffer
-                    cs = m_Resources.shaders.depthOfFieldClearIndirectArgsCS;
+                    cs = dofParameters.dofClearIndirectArgsCS;
                     kernel = cs.FindKernel("KClear");
                     cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._IndirectBuffer, m_BokehIndirectCmd);
                     cmd.DispatchCompute(cs, kernel, 1, 1, 1);
 
                     // Build the tile list & indirect command buffer
-                    cs = m_Resources.shaders.depthOfFieldTileMaxCS;
+                    cs = dofParameters.dofTileMaxCS;
                     cs.shaderKeywords = null;
                     if (bothLayersActive || nearLayerActive)
                     {
@@ -2055,7 +2148,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.ClearRenderTarget(false, true, Color.clear);
                     }
 
-                    cs = m_Resources.shaders.depthOfFieldGatherCS;
+                    cs = dofParameters.dofGatherCS;
                     cs.shaderKeywords = null;
 
                     if (m_EnableAlpha)
@@ -2099,7 +2192,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (farLayerActive)
                     {
-                        cs = m_Resources.shaders.depthOfFieldPreCombineFarCS;
+                        cs = dofParameters.dofPrecombineFarCS;
                         cs.shaderKeywords = null;
                         if (m_EnableAlpha)
                         {
@@ -2134,7 +2227,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.ClearRenderTarget(false, true, Color.clear);
                     }
 
-                    cs = m_Resources.shaders.depthOfFieldGatherCS;
+                    cs = dofParameters.dofGatherCS;
                     cs.shaderKeywords = null;
 
                     if (m_EnableAlpha)
@@ -2174,7 +2267,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // -----------------------------------------------------------------------------
                 // Pass: combine blurred layers with source color
 
-                cs = m_Resources.shaders.depthOfFieldCombineCS;
+                cs = dofParameters.dofCombineCS;
                 cs.shaderKeywords = null;
 
                 if (bothLayersActive || nearLayerActive)
@@ -2191,7 +2284,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cs.EnableKeyword("ENABLE_ALPHA");
                 }
 
-                if (m_DepthOfField.resolution == DepthOfFieldResolution.Full)
+                if (dofParameters.resolution == DepthOfFieldResolution.Full)
                 {
                     cs.EnableKeyword("FULL_RES");
                 }
@@ -2302,9 +2395,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        #endregion
-
-        #region Depth Of Field (Physically based)
         void DoPhysicallyBasedDepthOfField(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, bool taaEnabled)
         {
             float scale = 1f / (float)m_DepthOfField.resolution;
