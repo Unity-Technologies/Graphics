@@ -314,33 +314,28 @@ bool SampleLights(LightList lightList,
             // Direction from shading point to light position
             outgoingDir = GetAbsolutePositionWS(lightData.positionRWS) - position;
             float sqDist = Length2(outgoingDir);
+            dist = sqrt(sqDist);
+            outgoingDir /= dist;
 
             if (lightData.size.x > 0.0) // Stores the square radius
             {
-                float3x3 localFrame = GetLocalFrame(normalize(outgoingDir));
-                SampleCone(inputSample.xy, sqrt(saturate(1.0 - lightData.size.x / sqDist)), outgoingDir, pdf); // computes rcpPdf
+                float3x3 localFrame = GetLocalFrame(outgoingDir);
+                SampleCone(inputSample.xy, sqrt(1.0 / (1.0 + lightData.size.x / sqDist)), outgoingDir, pdf); // computes rcpPdf
 
-                outgoingDir = normalize(outgoingDir.x * localFrame[0] + outgoingDir.y * localFrame[1] + outgoingDir.z * localFrame[2]);
-
-                if (dot(normal, outgoingDir) < 0.001)
-                    return false;
-
-                dist = max(sqrt((sqDist - lightData.size.x)), 0.001);
-                value = GetPunctualEmission(lightData, outgoingDir, dist) / pdf;
-                pdf = GetLocalLightWeight(lightList) / pdf;
+                outgoingDir = outgoingDir.x * localFrame[0] + outgoingDir.y * localFrame[1] + outgoingDir.z * localFrame[2];
+                pdf = min(rcp(pdf), DELTA_PDF);
             }
             else
             {
-                dist = sqrt(sqDist);
-                outgoingDir /= dist;
-
-                if (dot(normal, outgoingDir) < 0.001)
-                    return false;
-
-                // DELTA_PDF represents 1 / area, where the area is infinitesimal
-                value = GetPunctualEmission(lightData, outgoingDir, dist) * DELTA_PDF;
-                pdf = GetLocalLightWeight(lightList) * DELTA_PDF;
+                // DELTA_PDF represents 1 / area, where the area is infinitesimal              
+                pdf = DELTA_PDF;
             }
+
+            if (dot(normal, outgoingDir) < 0.001)
+                return false;
+
+            value = GetPunctualEmission(lightData, outgoingDir, dist) * pdf;
+            pdf = GetLocalLightWeight(lightList) * pdf;
         }
 
 #ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG

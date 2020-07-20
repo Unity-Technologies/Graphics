@@ -127,7 +127,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                     properties.occlusionMap.textureValue != null ? properties.occlusionStrength : null);
             }
 
-            DoClearCoat(properties, materialEditor, material);
+            // Check that we have all the required properties for clear coat,
+            // otherwise we will get null ref exception from MaterialEditor GUI helpers.
+            if (   material.HasProperty("_ClearCoat")
+                && material.HasProperty("_ClearCoatMap")
+                && material.HasProperty("_ClearCoatMask"))
+                //&& material.HasProperty("_ClearCoatSmoothness")) //TODO: enable
+            {
+                //DoClearCoat(properties, materialEditor, material);
+            }
+
         }
 
         private static bool ClearCoatEnabled(Material material)
