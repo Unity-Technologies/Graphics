@@ -16,9 +16,8 @@ class Editor_PinningMergeFromTargetJob():
 
         commands = [
             # This should never run on anything other than master or releases. If you try it then it will fail
-            pss(f'''
-            if NOT "%GIT_BRANCH%" == "{target_branch}" echo %GIT_BRANCH% && exit 1
-            fi'''),
+            f'echo %GIT_BRANCH%',
+            f'if NOT "%GIT_BRANCH%" == "{target_branch}" && exit 1',
             f'git fetch',
             f'git checkout {target_branch_editor_ci}',
             f'git merge --ff-only %GIT_REVISION%',
