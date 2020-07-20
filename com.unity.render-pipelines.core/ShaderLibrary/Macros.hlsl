@@ -43,6 +43,7 @@
 #define HALF_MIN 6.103515625e-5  // 2^-14, the same value for 10, 11 and 16-bit: https://www.khronos.org/opengl/wiki/Small_Float_Formats
 #define HALF_MAX 65504.0
 #define UINT_MAX 0xFFFFFFFFu
+#define INT_MAX  0x7FFFFFFF
 
 
 #ifdef SHADER_API_GLES
