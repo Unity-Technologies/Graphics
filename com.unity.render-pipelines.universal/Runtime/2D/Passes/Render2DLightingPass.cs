@@ -49,6 +49,71 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
+        HashSet<Light2D> GetLightsByLayer(int layerIndex)
+        {
+            var startLayerValue = s_SortingLayers[layerIndex].id;
+            var lights = new HashSet<Light2D>();
+
+            foreach (var lightStyle in Light2DManager.lights)
+            {
+                foreach (var light in lightStyle)
+                {
+                    if (light.IsLitLayer(startLayerValue))
+                        lights.Add(light);
+                }
+            }
+
+            return lights;
+        }
+
+        void DrawLightsAndRenderers(int startLayerIndex, int endLayerIndex, ScriptableRenderContext context, RenderingData renderingData, DrawingSettings combinedDrawSettings)
+        {
+            var filterSettings = new FilteringSettings
+            {
+                renderQueueRange = RenderQueueRange.all,
+                layerMask = -1,
+                renderingLayerMask = 0xFFFFFFFF,
+                sortingLayerRange = SortingLayerRange.all
+            };
+
+            var startLayerValue = (short) s_SortingLayers[startLayerIndex].value;
+            var lowerBound = (startLayerIndex == 0) ? short.MinValue : startLayerValue;
+
+            var endLayerValue = (short) s_SortingLayers[endLayerIndex].value;
+            var upperBound = (endLayerIndex == s_SortingLayers.Length - 1) ? short.MaxValue : endLayerValue;
+
+            filterSettings.sortingLayerRange = new SortingLayerRange(lowerBound, upperBound);
+
+            Profiler.BeginSample("RenderSpritesWithLighting - Draw Transparent Renderers");
+            context.DrawRenderers(renderingData.cullResults, ref combinedDrawSettings, ref filterSettings);
+            Profiler.EndSample();
+
+            {
+                //RenderLightVolumes
+            }
+        }
+
+        int RenderLayersByBatch(int startLayerIndex, ScriptableRenderContext context, RenderingData renderingData, DrawingSettings combinedDrawSettings)
+        {
+            var currentLights = GetLightsByLayer(startLayerIndex);
+
+            // start checking at the next layer
+            for (var i = startLayerIndex+1; i < s_SortingLayers.Length; i++)
+            {
+                var lights = GetLightsByLayer(i);
+                if(!lights.SetEquals(currentLights))
+                {
+                    // this layer is incompatible, so we batch up to the last layer
+                    DrawLightsAndRenderers(startLayerIndex, i-1, context, renderingData, combinedDrawSettings);
+                    return i;
+                }
+            }
+
+            // if this is the end, so we batch up to the last layer
+            DrawLightsAndRenderers(startLayerIndex, s_SortingLayers.Length-1, context, renderingData, combinedDrawSettings);
+            return s_SortingLayers.Length;
+        }
+
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
 
@@ -97,31 +162,22 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 SortingSettings sortSettings = combinedDrawSettings.sortingSettings;
                 GetTransparencySortingMode(camera, ref sortSettings);
                 combinedDrawSettings.sortingSettings = sortSettings;
-                combinedDrawSettings.sortingSettings = sortSettings;
 
-                const int blendStylesCount = 4;
-                bool[] hasBeenInitialized = new bool[blendStylesCount];
-                for (int i = 0; i < s_SortingLayers.Length; i++)
+                var blendStylesCount = m_Renderer2DData.lightBlendStyles.Length;
+                var hasBeenInitialized = new bool[blendStylesCount];
+                for (var i = 0; i < s_SortingLayers.Length;)
                 {
-
                     // Some renderers override their sorting layer value with short.MinValue or short.MaxValue.
                     // When drawing the first sorting layer, we should include the range from short.MinValue to layerValue.
                     // Similarly, when drawing the last sorting layer, include the range from layerValue to short.MaxValue.
-                    short layerValue = (short)s_SortingLayers[i].value;
-                    var lowerBound = (i == 0) ? short.MinValue : layerValue;
-                    var upperBound = (i == s_SortingLayers.Length - 1) ? short.MaxValue : layerValue;
-                    filterSettings.sortingLayerRange = new SortingLayerRange(lowerBound, upperBound);
-
-                    int layerToRender = s_SortingLayers[i].id;
-
-                    Light2D.LightStats lightStats;
-                    lightStats = Light2D.GetLightStatsByLayer(layerToRender, camera);
+                    var layerToRender = s_SortingLayers[i].id;
+                    var lightStats = Light2D.GetLightStatsByLayer(layerToRender, camera);
 
                     cmd.Clear();
-                    for (int blendStyleIndex = 0; blendStyleIndex < blendStylesCount; blendStyleIndex++)
+                    for (var blendStyleIndex = 0; blendStyleIndex < blendStylesCount; blendStyleIndex++)
                     {
-                        uint blendStyleMask = (uint)(1 << blendStyleIndex);
-                        bool blendStyleUsed = (lightStats.blendStylesUsed & blendStyleMask) > 0;
+                        var blendStyleMask = (uint)(1 << blendStyleIndex);
+                        var blendStyleUsed = (lightStats.blendStylesUsed & blendStyleMask) > 0;
 
                         if (blendStyleUsed && !hasBeenInitialized[blendStyleIndex])
                         {
@@ -144,24 +200,23 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     }
                     else
                     {
+                        // this should clear only when something was rendered last time?
                         RendererLighting.ClearDirtyLighting(cmd, lightStats.blendStylesUsed);
                     }
 
                     CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment, ClearFlag.None, Color.white);
                     context.ExecuteCommandBuffer(cmd);
 
-                    Profiler.BeginSample("RenderSpritesWithLighting - Draw Transparent Renderers");
-                    context.DrawRenderers(renderingData.cullResults, ref combinedDrawSettings, ref filterSettings);
-                    Profiler.EndSample();
+                    i = RenderLayersByBatch(i, context, renderingData, combinedDrawSettings);
 
-                    if (lightStats.totalVolumetricUsage > 0)
-                    {
-
-                        cmd.Clear();
-                        RendererLighting.RenderLightVolumes(camera, cmd, layerToRender, colorAttachment, depthAttachment, lightStats.blendStylesUsed);
-                        context.ExecuteCommandBuffer(cmd);
-                        cmd.Clear();
-                    }
+                    // if (lightStats.totalVolumetricUsage > 0)
+                    // {
+                    //
+                    //     cmd.Clear();
+                    //     RendererLighting.RenderLightVolumes(camera, cmd, layerToRender, colorAttachment, depthAttachment, lightStats.blendStylesUsed);
+                    //     context.ExecuteCommandBuffer(cmd);
+                    //     cmd.Clear();
+                    // }
                 }
 
                 cmd.Clear();
