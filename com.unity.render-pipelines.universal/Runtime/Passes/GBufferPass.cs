@@ -8,6 +8,8 @@ namespace UnityEngine.Rendering.Universal.Internal
     // Render all tiled-based deferred lights.
     internal class GBufferPass : ScriptableRenderPass
     {
+        ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Render GBuffer");
+
         DeferredLights m_DeferredLights;
 
         ShaderTagId[] m_ShaderTagValues;
@@ -79,8 +81,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer gbufferCommands = CommandBufferPool.Get();
             using (new ProfilingScope(gbufferCommands, m_ProfilingSampler))
             {
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
+                context.ExecuteCommandBuffer(gbufferCommands);
+                gbufferCommands.Clear();
 
                 if (m_DeferredLights.AccurateGbufferNormals)
                     gbufferCommands.EnableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
