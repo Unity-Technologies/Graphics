@@ -87,10 +87,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Profiler.BeginSample("RenderSpritesWithLighting - Draw Transparent Renderers");
             context.DrawRenderers(renderingData.cullResults, ref combinedDrawSettings, ref filterSettings);
             Profiler.EndSample();
-
-            {
-                //RenderLightVolumes
-            }
         }
 
         int RenderLayersByBatch(int startLayerIndex, ScriptableRenderContext context, RenderingData renderingData, DrawingSettings combinedDrawSettings)
@@ -209,14 +205,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                     i = RenderLayersByBatch(i, context, renderingData, combinedDrawSettings);
 
-                    // if (lightStats.totalVolumetricUsage > 0)
-                    // {
-                    //
-                    //     cmd.Clear();
-                    //     RendererLighting.RenderLightVolumes(camera, cmd, layerToRender, colorAttachment, depthAttachment, lightStats.blendStylesUsed);
-                    //     context.ExecuteCommandBuffer(cmd);
-                    //     cmd.Clear();
-                    // }
+                    if (lightStats.totalVolumetricUsage > 0)
+                    {
+                        cmd.Clear();
+                        RendererLighting.RenderLightVolumes(camera, cmd, layerToRender, colorAttachment, depthAttachment, lightStats.blendStylesUsed);
+                        context.ExecuteCommandBuffer(cmd);
+                        cmd.Clear();
+                    }
                 }
 
                 cmd.Clear();
