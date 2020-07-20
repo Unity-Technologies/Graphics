@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             pass.keywords.Add(CoreKeywordDescriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true));
 
             // Emissive pass only have the emission keyword
-            if (pass.lightMode == DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_ProjectorEmissive])
+            if (pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalProjectorForwardEmissive])
             {
                 if (decalData.affectsEmission)
                     pass.keywords.Add(DecalDefines.Emission);
@@ -184,29 +184,27 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 generatesPreview = true,
                 passes = new PassCollection
                 {
-                    { DecalPasses.Projector3RT, new FieldCondition(DecalDefault, true) },
-                    { DecalPasses.Projector4RT, new FieldCondition(DecalDefault, true) },
-                    { DecalPasses.ProjectorEmissive, new FieldCondition(AffectsEmission, true) },
-                    { DecalPasses.Mesh3RT, new FieldCondition(DecalDefault, true) },
-                    { DecalPasses.Mesh4RT, new FieldCondition(DecalDefault, true) },
-                    { DecalPasses.MeshEmissive, new FieldCondition(AffectsEmission, true) },
+                    { DecalPasses.DBufferProjector, new FieldCondition(DecalDefault, true) },
+                    { DecalPasses.DecalProjectorForwardEmissive, new FieldCondition(AffectsEmission, true) },
+                    { DecalPasses.DBufferMesh, new FieldCondition(DecalDefault, true) },
+                    { DecalPasses.DecalMeshForwardEmissive, new FieldCondition(AffectsEmission, true) },
                     { DecalPasses.Preview, new FieldCondition(Fields.IsPreview, true) },
                 },
             };
         }
-#endregion
+        #endregion
 
-#region Passes
+        #region Passes
         public static class DecalPasses
         {
-            // CAUTION: c# code relies on the order in which the passes are declared, any change will need to be reflected in Decalsystem.cs - s_MaterialDecalNames and s_MaterialDecalSGNames array
+            // CAUTION: c# code relies on the order in which the passes are declared, any change will need to be reflected in Decalsystem.cs - s_MaterialDecalNames array
             // and DecalSet.InitializeMaterialValues()
-            public static PassDescriptor Projector3RT = new PassDescriptor()
+            public static PassDescriptor DBufferProjector = new PassDescriptor()
             {
                 // Definition
-                displayName = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferProjector3RT],
+                displayName = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferProjector],
                 referenceName = "SHADERPASS_DBUFFER_PROJECTOR",
-                lightMode = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferProjector3RT],
+                lightMode = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferProjector],
                 useInPreview = false,
 
                 // Port mask
@@ -215,40 +213,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 //Fields
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
-                renderStates = DecalRenderStates.Projector3RT,
+                renderStates = DecalRenderStates.DBufferProjector,
                 pragmas = DecalPragmas.Instanced,
-                defines = DecalDefines._3RT,
+                keywords = DecalDefines.Decals,
                 includes = DecalIncludes.Default,
             };
 
-            public static PassDescriptor Projector4RT = new PassDescriptor()
+            public static PassDescriptor DecalProjectorForwardEmissive = new PassDescriptor()
             {
                 // Definition
-                displayName = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferProjector4RT],
-                referenceName = "SHADERPASS_DBUFFER_PROJECTOR",
-                lightMode = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferProjector4RT],
-                useInPreview = false,
-
-                // Port mask
-                validPixelBlocks = DecalBlockMasks.FragmentDefault,
-
-                //Fields
-                structs = CoreStructCollections.Default,
-                fieldDependencies = CoreFieldDependencies.Default,
-
-                // Conditional State
-                renderStates = DecalRenderStates.Projector4RT,
-                pragmas = DecalPragmas.Instanced,
-                defines = DecalDefines._4RT,
-                includes = DecalIncludes.Default,
-            };
-
-            public static PassDescriptor ProjectorEmissive = new PassDescriptor()
-            {
-                // Definition
-                displayName = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_ProjectorEmissive],
+                displayName = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalProjectorForwardEmissive],
                 referenceName = "SHADERPASS_FORWARD_EMISSIVE_PROJECTOR",
-                lightMode = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_ProjectorEmissive],
+                lightMode = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalProjectorForwardEmissive],
                 useInPreview = false,
 
                 // Port mask
@@ -259,17 +235,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
-                renderStates = DecalRenderStates.ProjectorEmissive,
+                renderStates = DecalRenderStates.DecalProjectorForwardEmissive,
                 pragmas = DecalPragmas.Instanced,
                 includes = DecalIncludes.Default,
             };
 
-            public static PassDescriptor Mesh3RT = new PassDescriptor()
+            public static PassDescriptor DBufferMesh = new PassDescriptor()
             {
                 // Definition
-                displayName = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferMesh3RT],
+                displayName = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh],
                 referenceName = "SHADERPASS_DBUFFER_MESH",
-                lightMode = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferMesh3RT],
+                lightMode = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh],
                 useInPreview = false,
 
                 // Port mask
@@ -281,41 +257,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
-                renderStates = DecalRenderStates.Mesh3RT,
+                renderStates = DecalRenderStates.DBufferMesh,
                 pragmas = DecalPragmas.Instanced,
-                defines = DecalDefines._3RT,
+                keywords = DecalDefines.Decals,
                 includes = DecalIncludes.Default,
             };
 
-            public static PassDescriptor Mesh4RT = new PassDescriptor()
+            public static PassDescriptor DecalMeshForwardEmissive = new PassDescriptor()
             {
                 // Definition
-                displayName = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferMesh4RT],
-                referenceName = "SHADERPASS_DBUFFER_MESH",
-                lightMode = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferMesh4RT],
-                useInPreview = false,
-
-                // Port mask
-                validPixelBlocks = DecalBlockMasks.FragmentDefault,
-
-                //Fields
-                structs = CoreStructCollections.Default,
-                requiredFields = DecalRequiredFields.Mesh,
-                fieldDependencies = CoreFieldDependencies.Default,
-
-                // Conditional State
-                renderStates = DecalRenderStates.Mesh4RT,
-                pragmas = DecalPragmas.Instanced,
-                defines = DecalDefines._4RT,
-                includes = DecalIncludes.Default,
-            };
-
-            public static PassDescriptor MeshEmissive = new PassDescriptor()
-            {
-                // Definition
-                displayName = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_MeshEmissive],
+                displayName = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalMeshForwardEmissive],
                 referenceName = "SHADERPASS_FORWARD_EMISSIVE_MESH",
-                lightMode = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_MeshEmissive],
+                lightMode = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalMeshForwardEmissive],
                 useInPreview = false,
 
                 // Port mask
@@ -327,7 +280,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
-                renderStates = DecalRenderStates.MeshEmissive,
+                renderStates = DecalRenderStates.DecalMeshForwardEmissive,
                 pragmas = DecalPragmas.Instanced,
                 includes = DecalIncludes.Default,
             };
@@ -409,27 +362,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 #region RenderStates
         static class DecalRenderStates
         {
-            readonly static string s_DecalColorMask = "ColorMask [_DecalColorMask2] 2 ColorMask [_DecalColorMask3] 3";
+            readonly static string s_DecalColorMask = "ColorMask [_DecalColorMask0] 0\nColorMask [_DecalColorMask1] 1\nColorMask [_DecalColorMask2] 2\nColorMask [_DecalColorMask3] 3";
+            readonly static string s_DecalBlend = "Blend 0 SrcAlpha OneMinusSrcAlpha Zero OneMinusSrcAlpha \nBlend 1 SrcAlpha OneMinusSrcAlpha Zero OneMinusSrcAlpha \nBlend 2 SrcAlpha OneMinusSrcAlpha Zero OneMinusSrcAlpha \nBlend 3 Zero OneMinusSrcColor";
 
-            public static RenderStateCollection Projector3RT = new RenderStateCollection
+            public static RenderStateCollection DBufferProjector = new RenderStateCollection
             {
-                { RenderState.Blend("Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha") },
-                { RenderState.Cull(Cull.Front) },
-                { RenderState.ZTest(ZTest.Greater) },
-                { RenderState.ZWrite(ZWrite.Off) },
-                { RenderState.ColorMask("ColorMask BA 2") },
-                { RenderState.Stencil(new StencilDescriptor()
-                {
-                    WriteMask = $"[{kDecalStencilWriteMask}]",
-                    Ref = $"[{kDecalStencilRef}]",
-                    Comp = "Always",
-                    Pass = "Replace",
-                }) },
-            };
-
-            public static RenderStateCollection Projector4RT = new RenderStateCollection
-            {
-                { RenderState.Blend("Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 3 Zero OneMinusSrcColor") },
+                { RenderState.Blend(s_DecalBlend) },
                 { RenderState.Cull(Cull.Front) },
                 { RenderState.ZTest(ZTest.Greater) },
                 { RenderState.ZWrite(ZWrite.Off) },
@@ -444,7 +382,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { RenderState.ColorMask(s_DecalColorMask) }
             };
 
-            public static RenderStateCollection ProjectorEmissive = new RenderStateCollection
+            public static RenderStateCollection DecalProjectorForwardEmissive = new RenderStateCollection
             {
                 { RenderState.Blend("Blend 0 SrcAlpha One") },
                 { RenderState.Cull(Cull.Front) },
@@ -452,24 +390,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { RenderState.ZWrite(ZWrite.Off) },
             };
 
-            public static RenderStateCollection Mesh3RT = new RenderStateCollection
+            public static RenderStateCollection DBufferMesh = new RenderStateCollection
             {
-                { RenderState.Blend("Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha") },
-                { RenderState.ZTest(ZTest.LEqual) },
-                { RenderState.ZWrite(ZWrite.Off) },
-                { RenderState.ColorMask("ColorMask BA 2") },
-                { RenderState.Stencil(new StencilDescriptor()
-                {
-                    WriteMask = $"[{kDecalStencilWriteMask}]",
-                    Ref = $"[{kDecalStencilRef}]",
-                    Comp = "Always",
-                    Pass = "Replace",
-                }) },
-            };
-
-            public static RenderStateCollection Mesh4RT = new RenderStateCollection
-            {
-                { RenderState.Blend("Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 3 Zero OneMinusSrcColor") },
+                { RenderState.Blend(s_DecalBlend) },
                 { RenderState.ZTest(ZTest.LEqual) },
                 { RenderState.ZWrite(ZWrite.Off) },
                 { RenderState.Stencil(new StencilDescriptor()
@@ -482,7 +405,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { RenderState.ColorMask(s_DecalColorMask) }
             };
 
-            public static RenderStateCollection MeshEmissive = new RenderStateCollection
+            public static RenderStateCollection DecalMeshForwardEmissive = new RenderStateCollection
             {
                 { RenderState.Blend("Blend 0 SrcAlpha One") },
                 { RenderState.ZTest(ZTest.LEqual) },
@@ -505,29 +428,25 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { Pragma.MultiCompileInstancing },
             };
         }
-#endregion
+        #endregion
 
-#region Defines
+        #region Defines
         static class DecalDefines
         {
             static class Descriptors
             {
-                public static KeywordDescriptor Decals3RT = new KeywordDescriptor()
+                public static KeywordDescriptor Decals = new KeywordDescriptor()
                 {
-                    displayName = "Decals 3RT",
-                    referenceName = "DECALS_3RT",
-                    type = KeywordType.Boolean,
-                    definition = KeywordDefinition.ShaderFeature,
+                    displayName = "Decals",
+                    referenceName = "DECALS",
+                    type = KeywordType.Enum,
+                    definition = KeywordDefinition.MultiCompile,
                     scope = KeywordScope.Global,
-                };
-
-                public static KeywordDescriptor Decals4RT = new KeywordDescriptor()
-                {
-                    displayName = "Decals 4RT",
-                    referenceName = "DECALS_4RT",
-                    type = KeywordType.Boolean,
-                    definition = KeywordDefinition.ShaderFeature,
-                    scope = KeywordScope.Global,
+                    entries = new KeywordEntry[]
+                    {
+                        new KeywordEntry() { displayName = "3RT", referenceName = "3RT" },
+                        new KeywordEntry() { displayName = "4RT", referenceName = "4RT" },
+                    }
                 };
 
                 public static KeywordDescriptor AffectsAlbedo = new KeywordDescriptor()
@@ -567,20 +486,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 };
             }
 
-            public static DefineCollection _3RT = new DefineCollection
-            {
-                { Descriptors.Decals3RT, 1 },
-            };
-
-            public static DefineCollection _4RT = new DefineCollection
-            {
-                { Descriptors.Decals4RT, 1 },
-            };
-
             public static KeywordCollection Albedo = new KeywordCollection { { Descriptors.AffectsAlbedo, new FieldCondition(AffectsAlbedo, true) } };
             public static KeywordCollection Normal = new KeywordCollection { { Descriptors.AffectsNormal, new FieldCondition(AffectsNormal, true) } };
             public static KeywordCollection Maskmap = new KeywordCollection { { Descriptors.AffectsMaskmap, new FieldCondition(AffectsMaskMap, true) } };
             public static KeywordCollection Emission = new KeywordCollection { { Descriptors.AffectsEmission, new FieldCondition(AffectsEmission, true) } };
+
+            public static KeywordCollection Decals = new KeywordCollection { { Descriptors.Decals } };
         }
 #endregion
 

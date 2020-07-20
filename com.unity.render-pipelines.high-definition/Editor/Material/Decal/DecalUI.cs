@@ -185,7 +185,7 @@ namespace UnityEditor.Rendering.HighDefinition
             material.SetInt(kDecalStencilRef, (int)StencilUsage.Decals);
 
             // TODO : caution don't work with shader graph... Use flags instead
-            material.SetShaderPassEnabled(HDShaderPassNames.s_DecalMeshForwardEmissive, material.GetFloat("_Emissive") == 1.0f);
+            material.SetShaderPassEnabled(HDShaderPassNames.s_DecalMeshForwardEmissiveStr, material.GetFloat("_Emissive") == 1.0f);
         }
 
         //protected override void SetupMaterialKeywordsAndPassInternal(Material material)
