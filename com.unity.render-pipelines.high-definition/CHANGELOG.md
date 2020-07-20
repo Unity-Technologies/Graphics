@@ -744,6 +744,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with Stacklit shader not compiling correctly in player with debug display on (1260579)
 - Fixed couple issues in the dependence of building the ray tracing acceleration structure.
 - Fix sun disk intensity
+- Fixed a compilation error in the IES code.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -911,6 +912,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Render graph pre-setup for ray traced ambient occlusion.
 - Avoid casting multiple rays and denoising for hard directional, point and spot ray traced shadows (1261040).
 - Making sure the preview cameras do not use ray tracing effects due to a by design issue to build ray tracing acceleration structures (1262166).
+- Updated the documentation for the DXR implementation.
+- Changed the DXR wizard to support optional checks.
+- Changed the DXR wizard steps.
 
 ## [7.1.1] - 2019-09-05
 
