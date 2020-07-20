@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                     "When enabled, the Material samples reflections from the nearest Reflection Probes or Lighting Probe.");
 
             public static GUIContent heightMapText = new GUIContent("Height Map",
-                "Specifies the Height Map (G) for this Material..");
+                "Specifies the Height Map (G) for this Material.");
 
             public static GUIContent occlusionText = new GUIContent("Occlusion Map",
                 "Sets an occlusion map to simulate shadowing from ambient lighting.");
