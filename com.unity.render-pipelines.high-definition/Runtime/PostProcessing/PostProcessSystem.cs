@@ -2055,7 +2055,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._Params1, new Vector4(nearSamples, ngonFactor, bladeCount, rotation));
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(anamorphism, 0f, 0f, 0f));
-                    cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._BokehKernel, dofParameters.bokehIndirectCmd);
+                    cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._BokehKernel, dofParameters.bokehNearKernel);
                     cmd.DispatchCompute(cs, kernel, Mathf.CeilToInt((nearSamples * nearSamples) / 64f), 1, 1);
                 }
 
