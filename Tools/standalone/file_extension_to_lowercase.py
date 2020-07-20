@@ -27,6 +27,11 @@ def convert_extensions_of_folder(folder):
 			if file_extension.isupper():
 				convert_extension_of_file(os.path.join(root, filename), file_extension)
 				
+				
+def print_from_standalone_module():
+	print("Printing from standalone folder")
+	print("If this work then standalone scripts can be called from git hooks")
+
 
 if __name__== "__main__":
 	targets = sys.argv[1:]

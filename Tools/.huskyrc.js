@@ -3,7 +3,8 @@ const tasks = arr => arr.join(' && ')
 module.exports = {
   'hooks': {
     'pre-commit': tasks([
-      'sh ./git-hooks/pre-commit'
+      // 'python -m git-hook.precommit.check-file-name-extension',
+      'sh ./git-hook/pre-commit'
     ])
   }
 }
