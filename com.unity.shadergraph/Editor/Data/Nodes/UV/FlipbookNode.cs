@@ -36,20 +36,16 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionName()
         {
-            if (m_InvertX && m_InvertY)
-            {
-                return $"Unity_Flipbook_InvertXY_{concretePrecision.ToShaderString()}";
-            }
-            if (m_InvertX)
-            {
-                return $"Unity_Flipbook_InvertX_{concretePrecision.ToShaderString()}";
-            }
-            if (m_InvertY)
-            {
-                return $"Unity_Flipbook_InvertY_{concretePrecision.ToShaderString()}";
-            }
+            string invertText = string.Empty;
 
-            return $"Unity_Flipbook_{concretePrecision.ToShaderString()}";
+            if(m_InvertX && m_InvertY)
+                invertText = "InvertXY_";
+            else if(m_InvertX)
+                invertText = "InvertX_";
+            else if(m_InvertY)
+                invertText = "InvertY_";
+
+            return $"Unity_Flipbook_{invertText}{concretePrecision.ToShaderString()}";
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
