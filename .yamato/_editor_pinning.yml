@@ -3,7 +3,7 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-update-editor-pinning:
+editor-pinning-update:
     name: Update pinned editor versions
     agent:
         type: Unity::VM
@@ -27,7 +27,9 @@ update-editor-pinning:
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
       -  pipenv run python3 .yamato/ruamel/editor_pinning/update_revisions.py --target-branch yamato/editor-pin-ci --force-push
-merge-editor-revisions:
+    dependencies:
+      -  .yamato/_editor_pinning.yml#editor-pinning-merge-from-target
+editor-pinning-merge-to-target:
     name: Merge editor revisions to yamato/editor-pin
     agent:
         type: Unity::VM
@@ -51,3 +53,19 @@ merge-editor-revisions:
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
       -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/editor-pin
+editor-pinning-merge-from-target:
+    name: Merge yamato/editor-pin to yamato/editor-pin-ci
+    agent:
+        type: Unity::VM
+        image: package-ci/ubuntu:stable
+        flavor: b1.small
+    variables:
+        CI: true
+    commands:
+      -  if NOT "%GIT_BRANCH%" == "yamato/editor-pin" echo %GIT_BRANCH% && exit 1
+      -  git fetch
+      -  git checkout yamato/editor-pin-ci
+      -  git merge --ff-only %GIT_REVISION%
+      -  git config --global user.name "noreply@unity3d.com"
+      -  git config --global user.email "noreply@unity3d.com"
+      -  git push

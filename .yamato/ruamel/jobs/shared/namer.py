@@ -11,6 +11,15 @@ def editor_pinning_filepath():
 def editor_job_id(editor_version, platform_os):
     return f'editor:priming:{editor_version}:{platform_os}'
 
+def editor_job_id_update():
+    return 'editor-pinning-update'
+
+def editor_job_id_merge_from_target():
+    return 'editor-pinning-merge-from-target'
+
+def editor_job_id_merge_to_target():
+    return 'editor-pinning-merge-to-target'
+
 # package specific
 def packages_filepath():
     return f'{parent_dir}/_packages.yml'.lower()

@@ -162,7 +162,7 @@ def checkout_and_push(editor_versions_file, yml_files_path, target_branch, root,
 
     cmd = ['push', '--set-upstream', 'origin', target_branch]
     if force_push:
-        assert not (target_branch in ('master', 'stable')), (
+        assert not (target_branch in ('master', '9.x.x/release','8.x.x/release','7.x.x/release')), (
             'Error: not allowed to force push to {target_branch}.')
         cmd.append('--force')
     git_cmd(cmd, cwd=root)

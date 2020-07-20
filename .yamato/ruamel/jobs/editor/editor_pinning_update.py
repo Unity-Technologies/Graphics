@@ -1,18 +1,18 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ruamel.yaml.scalarstring import PreservedScalarString as pss
 
-from ..shared.namer import editor_job_id
+from ..shared.namer import editor_job_id, editor_job_id_update, editor_pinning_filepath, editor_job_id_merge_from_target
 from ..shared.constants import VAR_UPM_REGISTRY, PATH_UNITY_REVISION
 from ..shared.yml_job import YMLJob
 
 class Editor_PinningUpdateJob():
     
-    def __init__(self, agent, editor_pin_target_branch, editor_pin_ci_branch):
-        self.job_id = 'update-editor-pinning'
-        self.yml = self.get_job_definition(agent, editor_pin_target_branch, editor_pin_ci_branch).get_yml()
+    def __init__(self, agent, target_branch, target_branch_editor_ci):
+        self.job_id = editor_job_id_update()
+        self.yml = self.get_job_definition(agent, target_branch, target_branch_editor_ci).get_yml()
 
 
-    def get_job_definition(self, agent, editor_pin_target_branch, editor_pin_ci_branch):
+    def get_job_definition(self, agent, target_branch, target_branch_editor_ci):
 
         commands = [
             f'sudo pip3 install pipenv',
@@ -22,13 +22,13 @@ class Editor_PinningUpdateJob():
             f'sudo apt-get update',
             f'sudo apt-get install yamato-parser -y',
             pss(f'''
-            if [[ "$GIT_BRANCH" != "{editor_pin_target_branch }" ]]; then
-                echo "Should run on '{ editor_pin_target_branch }' but is running on '$GIT_BRANCH'"
+            if [[ "$GIT_BRANCH" != "{target_branch }" ]]; then
+                echo "Should run on '{ target_branch }' but is running on '$GIT_BRANCH'"
                 exit 1
             fi'''),# This should never run on anything other than stable. If you try it then it will fail
             f'git config --global user.name "noreply@unity3d.com"', # TODO
             f'git config --global user.email "noreply@unity3d.com"', # TODO
-            f'pipenv run python3 .yamato/ruamel/editor_pinning/update_revisions.py --target-branch { editor_pin_ci_branch } --force-push'
+            f'pipenv run python3 .yamato/ruamel/editor_pinning/update_revisions.py --target-branch { target_branch_editor_ci } --force-push'
         ]
         
         # construct job
@@ -37,5 +37,6 @@ class Editor_PinningUpdateJob():
         job.set_agent(agent)
         job.add_var_custom('CI', True)
         job.add_commands(commands)
-        # job.add_trigger_recurrent(editor_pin_target_branch, '1 * * ?') TODO uncomment
+        job.add_dependencies([f'{editor_pinning_filepath()}#{editor_job_id_merge_from_target()}'])
+        # job.add_trigger_recurrent(target_branch, '1 * * ?') TODO uncomment
         return job
