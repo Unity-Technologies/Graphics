@@ -405,6 +405,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Must be called AFTER UpdateVolumetricBufferParams.
+        static readonly string[] volumetricHistoryBufferNames = new string[2]{ "VBufferHistory0", "VBufferHistory1" };
         static internal void ResizeVolumetricHistoryBuffers(HDCamera hdCamera, int frameIndex)
         {
             if (!hdCamera.IsVolumetricReprojectionEnabled())
@@ -428,11 +429,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 CreateVolumetricHistoryBuffers(hdCamera, hdCamera.vBufferParams.Length); // Basically, assume it's 2
             }
 
-            string[] names = new string[2]{ "VBufferHistory0", "VBufferHistory1" };
-
             // We only resize the feedback buffer (#0), not the history buffer (#1).
             // We must NOT resize the buffer from the previous frame (#1), as that would invalidate its contents.
-            ResizeVolumetricBuffer(ref hdCamera.volumetricHistoryBuffers[currIdx], names[currIdx], currentParams.viewportSize.x,
+            ResizeVolumetricBuffer(ref hdCamera.volumetricHistoryBuffers[currIdx], volumetricHistoryBufferNames[currIdx], currentParams.viewportSize.x,
                                                                                                    currentParams.viewportSize.y,
                                                                                                    currentParams.viewportSize.z);
         }

@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
 
         // These are used as default values for styling and layout purposes
         // They can be overriden if a child class wants to roll its own style and layout behavior
-        protected virtual string layoutKey => "ShaderGraph.SubWindow";
+        protected virtual string layoutKey => "UnityEditor.ShaderGraph.SubWindow";
         protected virtual string styleName => "GraphSubWindow";
         protected virtual string UxmlName => "GraphSubWindow";
 
@@ -236,10 +236,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             if (!string.IsNullOrEmpty(serializedLayout))
                 windowDockingLayout = JsonUtility.FromJson<WindowDockingLayout>(serializedLayout);
             else
+            {
                 windowDockingLayout = m_DefaultLayout;
-
-            // The window size needs to come from the stylesheet or UXML as opposed to being defined in code
-            windowDockingLayout.size = layout.size;
+                // The window size needs to come from the stylesheet or UXML as opposed to being defined in code
+                windowDockingLayout.size = layout.size;
+            }
+            
             windowDockingLayout.ApplySize(this);
             windowDockingLayout.ApplyPosition(this);
         }
