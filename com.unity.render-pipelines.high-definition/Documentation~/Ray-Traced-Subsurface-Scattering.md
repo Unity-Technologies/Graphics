@@ -2,7 +2,7 @@
 
 Ray-Traced Subsurface Scattering is a ray tracing feature in the High Definition Render Pipeline (HDRP). It is an alternative, more accurate, ray-traced solution to [Subsurface-Scattering](Subsurface-Scattering.html) that can make use of off screen data.
 
-![](Images/RayTracingSubsurfaceScattering.png)
+![](Images/RayTracedSubsurfaceScattering.png)
 
 **Perry head rendered with ray traced subsurface scattering**
 

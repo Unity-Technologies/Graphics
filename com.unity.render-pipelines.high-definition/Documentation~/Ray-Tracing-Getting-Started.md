@@ -68,7 +68,7 @@ To set up ray tracing manually, you need to:
 2. [Disable static batching on your HDRP project](#ManualSetup-DisablingStaticBatching).
 3. [Enable and configure ray tracing in your HDRP Asset](#ManualSetup-EnablingRayTracing).
 4. [Ensure ray tracing resources are properly assigned](#ManualSetup-RayTracingResources).
-5. (Optional) [Enable Screen Space Shadows, Screen Space Reflections, Transparent Screen Space Reflections and Screen Space Global Illuminaton in your HDRP Asset](#ManualSetup-EnableAssetFeatures).
+5. (Optional) [Enable ray-traced effects in your HDRP Asset](#ManualSetup-EnableAssetFeatures).
 
 <a name="ManualSetup-EnablingDX12"></a>
 
@@ -111,15 +111,22 @@ To verify that HDRP has properly assigned ray tracing resources:
 
 <a name="ManualSetup-EnableAssetFeatures"></a>
 
-#### (Optional) Enable Screen Space Shadows, Screen Space Reflections, Transparent Screen Space Reflections and Screen Space Global Illuminaton in your HDRP Asset
+#### (Optional) Enable ray-traced effects in your HDRP Asset
 
-HDRP uses ray tracing to replace certain rasterized effects. In order to use a ray tracing effect in your Project, you must first enable the rasterized version of the effect. The four effects that require you to modify your HDRP Asset  **Screen Space Shadows**, **Screen Space Reflections**, **Transparent Screen Space Reflections** and **Screen Space Global Illumination**. The following step enables them in your HDRP Unity Project.
+HDRP uses ray tracing to replace certain rasterized effects. In order to use a ray tracing effect in your Project, you must first enable the rasterized version of the effect. The four effects that require you to modify your HDRP Asset  are:
+
+* **Screen Space Shadows**
+* **Screen Space Reflections**
+*  **Transparent Screen Space Reflections**
+* **Screen Space Global Illumination**
+
+To enable the above effects in your HDRP Unity Project:
 
 1. Click on your HDRP Asset in the Project window to view it in the Inspector.
 2. Go to **Lighting > Reflections** and enable **Screen Space Reflection**.
-2. After enabling **Screen Space Reflections**, go to **Lighting > Reflections** and enable **Transparent Screen Space Reflection**.
-3. Go to **Lighting > Shadows** and enable **Screen Space Shadows**.
-4. Go to **Lighting > Lighting** and enable **Screen Space Global Illumination**.
+3. After enabling **Screen Space Reflections**, go to **Lighting > Reflections** and enable **Transparent Screen Space Reflection**.
+4. Go to **Lighting > Shadows** and enable **Screen Space Shadows**.
+5. Go to **Lighting > Lighting** and enable **Screen Space Global Illumination**.
 
 Your HDRP Project now fully supports ray tracing. For information on how to set up ray tracing for your Scene, see [final setup](#FinalSetup).
 
@@ -162,6 +169,26 @@ HDRP uses ray tracing to replace some of its screen space effects, shadowing tec
 - [Ray-Traced Shadows](Ray-Traced-Shadows.html) replace shadow maps for Directional, Point, and Area [Lights](Light-Component.html).
 - [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.html) replaces the rendering pipeline for Meshes. Meshes that use this feature cast refraction and reflection rays recursively.
 - [Ray-Traced Subsurface Scattering](Ray-Traced-Subsurface-Scattering.html) replaces [subsurface scattering](Subsurface-Scattero,g.html) with a more accurate, ray-traced, subsurface scattering technique that can use off screen data.
+
+## Ray tracing mode
+
+HDRP includes two ray tracing modes that define how it evaluates certain ray-traced effects. The modes are:
+
+* **Performance**: This mode targets real-time applications. If you select this mode, ray-traced effects include presets that you can change to balance performance with quality.
+* **Quality**: This mode targets technical demos and applications that want the best quality results.
+
+Depending on which ray tracing mode you select, HDRP may expose difference properties for some ray-traced effects.
+
+You can change which ray tracing mode HDRP uses on either a Project level or effect level. To change it for your entire Project:
+
+1. Click on your HDRP Asset in the Project window to view it in the Inspector.
+2. In the Rendering section, select a ray tracing mode from the **Supported Ray Tracing Mode** drop-down. 
+
+If you select **Both**, you can change the ray tracing mode for each ray-traced effect. To do this:
+
+1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component that includes a ray-traced effect.
+2. In the Inspector for the ray-traced effect, change the **Mode** property to use the ray tracing mode you want the effect to use. This changes the properties available in the Inspector.
+
 
 ## Ray tracing project
 

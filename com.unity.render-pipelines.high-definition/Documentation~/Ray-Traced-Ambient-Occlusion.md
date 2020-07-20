@@ -61,8 +61,8 @@ Ray-Traced Ambient Occlusion uses the [Volume](Volumes.html) framework, so to en
 | **Intensity**                | Controls the strength of the ambient occlusion effect.       |
 | **Direct Lighting Strength** | Controls how much the ambient occlusion affects direct lighting. |
 | **LayerMask**                | Defines the layers that HDRP processes this ray-traced effect for. |
-| **Quality**                  | Controls if a preset should be selected (**Low**, **Medium** or **High**) for the following parameters. By selecting **Custom** you can override the values individualy. |
-| **Ray Length**               | Controls the length of the rays that HDRP uses for ray tracing. This allows you to have smaller scale, local, ambient occlusion. |
-| **Sample Count**             | Controls the number of rays that HDRP uses per pixel, per frame. Increasing this value increases execution time linearly. |
-| **Denoise**                  | Enables the spatio-temporal filter that HDRP uses to remove noise from the ambient occlusion. |
-| - **Denoiser Radius**        | Controls the radius of the spatio-temporal filter. A higher value reduces noise further. |
+| **Quality**                  | Specifies the preset HDRP uses to populate the values of the following nested properties. The options are:<br/>&#8226; **Low**: A preset that emphasizes performance over quality.<br/>&#8226; **Medium**: A preset that balances performance and quality.<br/>&#8226; **High**: A preset that emphasizes quality over performance.<br/>&#8226; **Custom**: Allows you to override each property individually. |
+| - **Ray Length**             | Controls the length of the rays that HDRP uses for ray tracing. This allows you to have smaller scale, local, ambient occlusion. |
+| - **Sample Count**           | Controls the number of rays that HDRP uses per pixel, per frame. Increasing this value increases execution time linearly. |
+| - **Denoise**                | Enables the spatio-temporal filter that HDRP uses to remove noise from the ambient occlusion. |
+| - - **Denoiser Radius**      | Controls the radius of the spatio-temporal filter. A higher value reduces noise further. |
