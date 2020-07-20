@@ -103,7 +103,7 @@ namespace UnityEditor.Rendering.HighDefinition
             MaterialReimporter.ReimportAllMaterials();
         }
 
-        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Previous Version /Enable Decal Layer Default on all loaded Mesh Renderer and Terrain")]
+        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Previous Version /Add Decal Layer Default to Loaded Mesh Renderers and Terrains")]
         internal static void UpgradeDefaultRenderingLayerMask()
         {
             var meshRenderers = Resources.FindObjectsOfTypeAll<MeshRenderer>();
@@ -121,7 +121,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Previous Version /Enable Decal Layer Default on all selected Object")]
+        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Previous Version /Add Decal Layer Default to Selected Mesh Renderers and Terrains")]
         internal static void UpgradeDefaultRenderingLayerMaskForSelection()
         {
             var selection = UnityEditor.Selection.objects;

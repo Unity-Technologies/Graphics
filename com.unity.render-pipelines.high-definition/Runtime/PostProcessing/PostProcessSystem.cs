@@ -144,6 +144,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDRenderPipeline m_HDInstance;
 
+        bool m_IsDoFHisotoryValid = false;
+
         void FillEmptyExposureTexture()
         {
             var tex = new Texture2D(1, 1, TextureFormat.RGHalf, false, true);
@@ -615,6 +617,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfField)))
                         {
+                            // If we switch DoF modes and the old one was not using TAA, make sure we invalidate the history
+                            if (taaEnabled && m_IsDoFHisotoryValid != m_DepthOfField.physicallyBased)
+                            {
+                                camera.resetPostProcessingHistory = true;
+                            }
+
                             var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
                             if (!m_DepthOfField.physicallyBased)
                                 DoDepthOfField(cmd, camera, source, destination, taaEnabled);
@@ -628,12 +636,14 @@ namespace UnityEngine.Rendering.HighDefinition
                                 var taaDestination = m_Pool.Get(Vector2.one, m_ColorFormat);
                                 bool postDof = true;
                                 var taaParams = PrepareTAAParameters(camera, postDof);
-                                
+
                                 GrabTemporalAntialiasingHistoryTextures(camera, out var prevHistory, out var nextHistory, postDof);
                                 DoTemporalAntialiasing(taaParams, cmd, source, taaDestination, motionVecTexture, depthBuffer, depthMipChain, prevHistory, nextHistory, prevMVLen:null, nextMVLen:null);
                                 PoolSource(ref source, taaDestination);
                                 postDoFTAAEnabled = true;
                             }
+
+                            m_IsDoFHisotoryValid = (m_DepthOfField.physicallyBased && taaEnabled);
                         }
                     }
 
@@ -641,7 +651,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         ReleasePostDoFTAAHistoryTextures(camera);
                     }
-                    
                     // Motion blur after depth of field for aesthetic reasons (better to see motion
                     // blurred bokeh rather than out of focus motion blur)
                     if (m_MotionBlur.IsActive() && m_AnimatedMaterialsEnabled && !camera.resetPostProcessingHistory && m_MotionBlurFS)
@@ -657,7 +666,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         out tileToScatterMin);
                             DoMotionBlur(PrepareMotionBlurParameters(camera), cmd, source, destination, motionVecTexture, preppedMotionVec, minMaxTileVel, maxTileNeigbourhood, tileToScatterMax, tileToScatterMin);
                             RecycleMotionBlurRenderTargets(preppedMotionVec, minMaxTileVel, maxTileNeigbourhood, tileToScatterMax, tileToScatterMin);
-                      
+
                             PoolSource(ref source, destination);
                         }
                     }
@@ -1083,7 +1092,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.exposureVariants[2] = (int)adaptationMode;
                 parameters.exposureVariants[3] = 0;
 
-                bool useTextureMask = m_Exposure.meteringMode == MeteringMode.MaskWeighted && m_Exposure.weightTextureMask.value != null;
+                bool useTextureMask = m_Exposure.meteringMode.value == MeteringMode.MaskWeighted && m_Exposure.weightTextureMask.value != null;
                 parameters.textureMeteringMask = useTextureMask ? m_Exposure.weightTextureMask.value : Texture2D.whiteTexture;
 
                 ComputeProceduralMeteringParams(hdCamera, out parameters.proceduralMaskParams, out parameters.proceduralMaskParams2);
@@ -1329,7 +1338,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var cs = exposureParameters.exposureCS;
             int kernel;
-    
+
             var sourceTex = colorBuffer;
 
             kernel = exposureParameters.exposurePreparationKernel;
@@ -1589,7 +1598,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 cmd.SetRandomWriteTarget(2, nextMVLen);
             }
-                
+
             cmd.DrawProcedural(Matrix4x4.identity, taaParams.temporalAAMaterial, 0, MeshTopology.Triangles, 3, 1, taaParams.taaPropertyBlock);
             cmd.DrawProcedural(Matrix4x4.identity, taaParams.temporalAAMaterial, 1, MeshTopology.Triangles, 3, 1, taaParams.taaPropertyBlock);
             cmd.ClearRandomWriteTargets();
@@ -2264,7 +2273,7 @@ namespace UnityEngine.Rendering.HighDefinition
             GrabCoCHistory(camera, out var prevCoCTex, out var nextCoCTex, useMips);
             var cocHistoryScale = new Vector2(camera.historyRTHandleProperties.rtHandleScale.z, camera.historyRTHandleProperties.rtHandleScale.w);
 
-            //Note: this reprojection creates some ghosting, we should replace it with something based on the new TAA 
+            //Note: this reprojection creates some ghosting, we should replace it with something based on the new TAA
             ComputeShader cs = m_Resources.shaders.depthOfFieldCoCReprojectCS;
             int kernel = cs.FindKernel("KMain");
             cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(camera.resetPostProcessingHistory ? 0f : 0.91f, cocHistoryScale.x, cocHistoryScale.y, 0f));
@@ -2277,6 +2286,20 @@ namespace UnityEngine.Rendering.HighDefinition
             // re-projected one instead for the following steps
             m_Pool.Recycle(fullresCoC);
             fullresCoC = nextCoCTex;
+        }
+
+        static void GetMipMapDimensions(RTHandle texture, int lod, out int width, out int height)
+        {
+            width = texture.rt.width;
+            height = texture.rt.height;
+
+            for (int level = 0; level < lod; ++level)
+            {
+                // Note: When the texture/mip size is an odd number, the size of the next level is rounded down.
+                // That's why we cannot find the actual size by doing (size >> lod).
+                width /= 2;
+                height /= 2;
+            }
         }
 
         #endregion
@@ -2309,7 +2332,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // The sensor scale is used to convert the CoC size from mm to screen pixels
                     float sensorScale;
                     if( camera.camera.gateFit == Camera.GateFitMode.Horizontal )
-                        sensorScale = (0.5f / camera.camera.sensorSize.x) * camera.camera.pixelWidth;  
+                        sensorScale = (0.5f / camera.camera.sensorSize.x) * camera.camera.pixelWidth;
                     else
                         sensorScale = (0.5f / camera.camera.sensorSize.y) * camera.camera.pixelHeight;
 
@@ -2375,8 +2398,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 kernel = cs.FindKernel("KMain");
                 float sampleCount = Mathf.Max(m_DepthOfField.nearSampleCount, m_DepthOfField.farSampleCount);
-                float mipLevel = Mathf.Ceil(Mathf.Log(cocLimit, 2));
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, cocLimit, mipLevel, 0.0f));
+
+                // We only have up to 6 mip levels
+                float mipLevel = Mathf.Min(6, Mathf.Ceil(Mathf.Log(cocLimit, 2)));
+                GetMipMapDimensions(fullresCoC, (int)mipLevel, out var mipMapWidth, out var mipMapHeight);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, cocLimit, 0.0f, 0.0f));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(mipLevel, mipMapWidth, mipMapHeight, 0.0f));
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
@@ -3180,7 +3207,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Setup lut builder compute & grab the kernel we need
             parameters.builderCS.shaderKeywords = null;
 
-            if (m_Tonemapping.IsActive())
+            if (m_Tonemapping.IsActive() && m_TonemappingFS)
             {
                 switch (parameters.tonemappingMode)
                 {
@@ -3297,7 +3324,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Generate the lut
             // See the note about Metal & Intel in LutBuilder3D.compute
-            // GetKernelThreadGroupSizes  is currently broken on some binary versions. 
+            // GetKernelThreadGroupSizes  is currently broken on some binary versions.
             //builderCS.GetKernelThreadGroupSizes(builderKernel, out uint threadX, out uint threadY, out uint threadZ);
             uint threadX = 4;
             uint threadY = 4;

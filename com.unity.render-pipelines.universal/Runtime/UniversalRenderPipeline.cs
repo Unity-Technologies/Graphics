@@ -485,7 +485,7 @@ namespace UnityEngine.Rendering.Universal
                 motionVectors = false,
                 receiveShadows = false,
                 reflectionProbes = true,
-                particleSystemInstancing = false
+                particleSystemInstancing = true
             };
             SceneViewDrawMode.SetupDrawMode();
 #endif

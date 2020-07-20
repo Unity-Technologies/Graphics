@@ -80,8 +80,10 @@ namespace UnityEngine.Rendering.Universal
         {
             GetDisplaySubsystem();
 
+#if UNITY_2020_2_OR_NEWER
             for (int i = 0; i < displayList.Count; i++)
                 displayList[i].SetMSAALevel(level);
+#endif
         }
 
         internal static void UpdateRenderScale(float renderScale)
