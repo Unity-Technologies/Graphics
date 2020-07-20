@@ -31,7 +31,7 @@ pack_universal_template:
             paths:
               -  "upm-ci~/packages/*.tgz"
               -  "upm-ci~/templates/**/*"
-test_hdrp_template_Win_2020.1:
+test_hdrp_template_windows_2020.1:
     name: Test HDRP Template Win 2020.1
     agent:
         type: Unity::VM
@@ -54,7 +54,7 @@ test_hdrp_template_Win_2020.1:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_template_Win_2020.1_dependencies:
+test_hdrp_template_windows_2020.1_dependencies:
     name: Test HDRP Template Win 2020.1 - dependencies
     agent:
         type: Unity::VM
@@ -62,7 +62,7 @@ test_hdrp_template_Win_2020.1_dependencies:
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:2020.1:windows
-      -  .yamato/_templates.yml#test_hdrp_template_Win_2020.1
+      -  .yamato/_templates.yml#test_hdrp_template_windows_2020.1
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -78,7 +78,7 @@ test_hdrp_template_Win_2020.1_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_template_Win_2020.1:
+test_universal_template_windows_2020.1:
     name: Test Universal Template Win 2020.1
     agent:
         type: Unity::VM
@@ -99,7 +99,7 @@ test_universal_template_Win_2020.1:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_template_Win_2020.1_dependencies:
+test_universal_template_windows_2020.1_dependencies:
     name: Test Universal Template Win 2020.1 - dependencies
     agent:
         type: Unity::VM
@@ -107,7 +107,7 @@ test_universal_template_Win_2020.1_dependencies:
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:2020.1:windows
-      -  .yamato/_templates.yml#test_universal_template_Win_2020.1
+      -  .yamato/_templates.yml#test_universal_template_windows_2020.1
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -121,7 +121,7 @@ test_universal_template_Win_2020.1_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_template_OSX_2020.1:
+test_hdrp_template_macos_2020.1:
     name: Test HDRP Template OSX 2020.1
     agent:
         type: Unity::VM::osx
@@ -144,7 +144,7 @@ test_hdrp_template_OSX_2020.1:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_template_OSX_2020.1_dependencies:
+test_hdrp_template_macos_2020.1_dependencies:
     name: Test HDRP Template OSX 2020.1 - dependencies
     agent:
         type: Unity::VM::osx
@@ -152,7 +152,7 @@ test_hdrp_template_OSX_2020.1_dependencies:
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:2020.1:macos
-      -  .yamato/_templates.yml#test_hdrp_template_OSX_2020.1
+      -  .yamato/_templates.yml#test_hdrp_template_macos_2020.1
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -168,7 +168,7 @@ test_hdrp_template_OSX_2020.1_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_template_OSX_2020.1:
+test_universal_template_macos_2020.1:
     name: Test Universal Template OSX 2020.1
     agent:
         type: Unity::VM::osx
@@ -189,7 +189,7 @@ test_universal_template_OSX_2020.1:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_template_OSX_2020.1_dependencies:
+test_universal_template_macos_2020.1_dependencies:
     name: Test Universal Template OSX 2020.1 - dependencies
     agent:
         type: Unity::VM::osx
@@ -197,7 +197,7 @@ test_universal_template_OSX_2020.1_dependencies:
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:2020.1:macos
-      -  .yamato/_templates.yml#test_universal_template_OSX_2020.1
+      -  .yamato/_templates.yml#test_universal_template_macos_2020.1
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -211,7 +211,7 @@ test_universal_template_OSX_2020.1_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_template_Win_fast-2020.1:
+test_hdrp_template_windows_fast-2020.1:
     name: Test HDRP Template Win fast-2020.1
     agent:
         type: Unity::VM
@@ -234,7 +234,7 @@ test_hdrp_template_Win_fast-2020.1:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_template_Win_fast-2020.1_dependencies:
+test_hdrp_template_windows_fast-2020.1_dependencies:
     name: Test HDRP Template Win fast-2020.1 - dependencies
     agent:
         type: Unity::VM
@@ -242,7 +242,7 @@ test_hdrp_template_Win_fast-2020.1_dependencies:
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:fast-2020.1:windows
-      -  .yamato/_templates.yml#test_hdrp_template_Win_fast-2020.1
+      -  .yamato/_templates.yml#test_hdrp_template_windows_fast-2020.1
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -258,7 +258,7 @@ test_hdrp_template_Win_fast-2020.1_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_template_Win_fast-2020.1:
+test_universal_template_windows_fast-2020.1:
     name: Test Universal Template Win fast-2020.1
     agent:
         type: Unity::VM
@@ -279,7 +279,7 @@ test_universal_template_Win_fast-2020.1:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_template_Win_fast-2020.1_dependencies:
+test_universal_template_windows_fast-2020.1_dependencies:
     name: Test Universal Template Win fast-2020.1 - dependencies
     agent:
         type: Unity::VM
@@ -287,7 +287,7 @@ test_universal_template_Win_fast-2020.1_dependencies:
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:fast-2020.1:windows
-      -  .yamato/_templates.yml#test_universal_template_Win_fast-2020.1
+      -  .yamato/_templates.yml#test_universal_template_windows_fast-2020.1
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -301,7 +301,7 @@ test_universal_template_Win_fast-2020.1_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_template_OSX_fast-2020.1:
+test_hdrp_template_macos_fast-2020.1:
     name: Test HDRP Template OSX fast-2020.1
     agent:
         type: Unity::VM::osx
@@ -324,7 +324,7 @@ test_hdrp_template_OSX_fast-2020.1:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_template_OSX_fast-2020.1_dependencies:
+test_hdrp_template_macos_fast-2020.1_dependencies:
     name: Test HDRP Template OSX fast-2020.1 - dependencies
     agent:
         type: Unity::VM::osx
@@ -332,7 +332,7 @@ test_hdrp_template_OSX_fast-2020.1_dependencies:
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:fast-2020.1:macos
-      -  .yamato/_templates.yml#test_hdrp_template_OSX_fast-2020.1
+      -  .yamato/_templates.yml#test_hdrp_template_macos_fast-2020.1
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -348,7 +348,7 @@ test_hdrp_template_OSX_fast-2020.1_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_template_OSX_fast-2020.1:
+test_universal_template_macos_fast-2020.1:
     name: Test Universal Template OSX fast-2020.1
     agent:
         type: Unity::VM::osx
@@ -369,7 +369,7 @@ test_universal_template_OSX_fast-2020.1:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_template_OSX_fast-2020.1_dependencies:
+test_universal_template_macos_fast-2020.1_dependencies:
     name: Test Universal Template OSX fast-2020.1 - dependencies
     agent:
         type: Unity::VM::osx
@@ -377,7 +377,7 @@ test_universal_template_OSX_fast-2020.1_dependencies:
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:fast-2020.1:macos
-      -  .yamato/_templates.yml#test_universal_template_OSX_fast-2020.1
+      -  .yamato/_templates.yml#test_universal_template_macos_fast-2020.1
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -391,7 +391,7 @@ test_universal_template_OSX_fast-2020.1_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_template_Win_CUSTOM-REVISION:
+test_hdrp_template_windows_CUSTOM-REVISION:
     name: Test HDRP Template Win CUSTOM-REVISION
     agent:
         type: Unity::VM
@@ -414,7 +414,7 @@ test_hdrp_template_Win_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_template_Win_CUSTOM-REVISION_dependencies:
+test_hdrp_template_windows_CUSTOM-REVISION_dependencies:
     name: Test HDRP Template Win CUSTOM-REVISION - dependencies
     agent:
         type: Unity::VM
@@ -422,7 +422,7 @@ test_hdrp_template_Win_CUSTOM-REVISION_dependencies:
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-      -  .yamato/_templates.yml#test_hdrp_template_Win_CUSTOM-REVISION
+      -  .yamato/_templates.yml#test_hdrp_template_windows_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -438,7 +438,7 @@ test_hdrp_template_Win_CUSTOM-REVISION_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_template_Win_CUSTOM-REVISION:
+test_universal_template_windows_CUSTOM-REVISION:
     name: Test Universal Template Win CUSTOM-REVISION
     agent:
         type: Unity::VM
@@ -459,7 +459,7 @@ test_universal_template_Win_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_template_Win_CUSTOM-REVISION_dependencies:
+test_universal_template_windows_CUSTOM-REVISION_dependencies:
     name: Test Universal Template Win CUSTOM-REVISION - dependencies
     agent:
         type: Unity::VM
@@ -467,7 +467,7 @@ test_universal_template_Win_CUSTOM-REVISION_dependencies:
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-      -  .yamato/_templates.yml#test_universal_template_Win_CUSTOM-REVISION
+      -  .yamato/_templates.yml#test_universal_template_windows_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -481,7 +481,7 @@ test_universal_template_Win_CUSTOM-REVISION_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_template_OSX_CUSTOM-REVISION:
+test_hdrp_template_macos_CUSTOM-REVISION:
     name: Test HDRP Template OSX CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
@@ -504,7 +504,7 @@ test_hdrp_template_OSX_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_template_OSX_CUSTOM-REVISION_dependencies:
+test_hdrp_template_macos_CUSTOM-REVISION_dependencies:
     name: Test HDRP Template OSX CUSTOM-REVISION - dependencies
     agent:
         type: Unity::VM::osx
@@ -512,7 +512,7 @@ test_hdrp_template_OSX_CUSTOM-REVISION_dependencies:
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
-      -  .yamato/_templates.yml#test_hdrp_template_OSX_CUSTOM-REVISION
+      -  .yamato/_templates.yml#test_hdrp_template_macos_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -528,7 +528,7 @@ test_hdrp_template_OSX_CUSTOM-REVISION_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_template_OSX_CUSTOM-REVISION:
+test_universal_template_macos_CUSTOM-REVISION:
     name: Test Universal Template OSX CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
@@ -549,7 +549,7 @@ test_universal_template_OSX_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_template_OSX_CUSTOM-REVISION_dependencies:
+test_universal_template_macos_CUSTOM-REVISION_dependencies:
     name: Test Universal Template OSX CUSTOM-REVISION - dependencies
     agent:
         type: Unity::VM::osx
@@ -557,7 +557,7 @@ test_universal_template_OSX_CUSTOM-REVISION_dependencies:
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
-      -  .yamato/_templates.yml#test_universal_template_OSX_CUSTOM-REVISION
+      -  .yamato/_templates.yml#test_universal_template_macos_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -578,14 +578,14 @@ all_template_ci_2020.1:
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_templates.yml#test_hdrp_template_Win_2020.1
-      -  .yamato/_templates.yml#test_hdrp_template_Win_2020.1_dependencies
-      -  .yamato/_templates.yml#test_universal_template_Win_2020.1
-      -  .yamato/_templates.yml#test_universal_template_Win_2020.1_dependencies
-      -  .yamato/_templates.yml#test_hdrp_template_OSX_2020.1
-      -  .yamato/_templates.yml#test_hdrp_template_OSX_2020.1_dependencies
-      -  .yamato/_templates.yml#test_universal_template_OSX_2020.1
-      -  .yamato/_templates.yml#test_universal_template_OSX_2020.1_dependencies
+      -  .yamato/_templates.yml#test_hdrp_template_windows_2020.1
+      -  .yamato/_templates.yml#test_hdrp_template_windows_2020.1_dependencies
+      -  .yamato/_templates.yml#test_universal_template_windows_2020.1
+      -  .yamato/_templates.yml#test_universal_template_windows_2020.1_dependencies
+      -  .yamato/_templates.yml#test_hdrp_template_macos_2020.1
+      -  .yamato/_templates.yml#test_hdrp_template_macos_2020.1_dependencies
+      -  .yamato/_templates.yml#test_universal_template_macos_2020.1
+      -  .yamato/_templates.yml#test_universal_template_macos_2020.1_dependencies
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
@@ -597,14 +597,14 @@ all_template_ci_fast-2020.1:
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_templates.yml#test_hdrp_template_Win_fast-2020.1
-      -  .yamato/_templates.yml#test_hdrp_template_Win_fast-2020.1_dependencies
-      -  .yamato/_templates.yml#test_universal_template_Win_fast-2020.1
-      -  .yamato/_templates.yml#test_universal_template_Win_fast-2020.1_dependencies
-      -  .yamato/_templates.yml#test_hdrp_template_OSX_fast-2020.1
-      -  .yamato/_templates.yml#test_hdrp_template_OSX_fast-2020.1_dependencies
-      -  .yamato/_templates.yml#test_universal_template_OSX_fast-2020.1
-      -  .yamato/_templates.yml#test_universal_template_OSX_fast-2020.1_dependencies
+      -  .yamato/_templates.yml#test_hdrp_template_windows_fast-2020.1
+      -  .yamato/_templates.yml#test_hdrp_template_windows_fast-2020.1_dependencies
+      -  .yamato/_templates.yml#test_universal_template_windows_fast-2020.1
+      -  .yamato/_templates.yml#test_universal_template_windows_fast-2020.1_dependencies
+      -  .yamato/_templates.yml#test_hdrp_template_macos_fast-2020.1
+      -  .yamato/_templates.yml#test_hdrp_template_macos_fast-2020.1_dependencies
+      -  .yamato/_templates.yml#test_universal_template_macos_fast-2020.1
+      -  .yamato/_templates.yml#test_universal_template_macos_fast-2020.1_dependencies
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
@@ -616,14 +616,14 @@ all_template_ci_CUSTOM-REVISION:
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_templates.yml#test_hdrp_template_Win_CUSTOM-REVISION
-      -  .yamato/_templates.yml#test_hdrp_template_Win_CUSTOM-REVISION_dependencies
-      -  .yamato/_templates.yml#test_universal_template_Win_CUSTOM-REVISION
-      -  .yamato/_templates.yml#test_universal_template_Win_CUSTOM-REVISION_dependencies
-      -  .yamato/_templates.yml#test_hdrp_template_OSX_CUSTOM-REVISION
-      -  .yamato/_templates.yml#test_hdrp_template_OSX_CUSTOM-REVISION_dependencies
-      -  .yamato/_templates.yml#test_universal_template_OSX_CUSTOM-REVISION
-      -  .yamato/_templates.yml#test_universal_template_OSX_CUSTOM-REVISION_dependencies
+      -  .yamato/_templates.yml#test_hdrp_template_windows_CUSTOM-REVISION
+      -  .yamato/_templates.yml#test_hdrp_template_windows_CUSTOM-REVISION_dependencies
+      -  .yamato/_templates.yml#test_universal_template_windows_CUSTOM-REVISION
+      -  .yamato/_templates.yml#test_universal_template_windows_CUSTOM-REVISION_dependencies
+      -  .yamato/_templates.yml#test_hdrp_template_macos_CUSTOM-REVISION
+      -  .yamato/_templates.yml#test_hdrp_template_macos_CUSTOM-REVISION_dependencies
+      -  .yamato/_templates.yml#test_universal_template_macos_CUSTOM-REVISION
+      -  .yamato/_templates.yml#test_universal_template_macos_CUSTOM-REVISION_dependencies
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
