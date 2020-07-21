@@ -1121,6 +1121,9 @@ Shader "HDRP/Lit"
 
             #define SHADERPASS SHADERPASS_PATH_TRACING
 
+            // Disable decals
+            #define DECALS_OFF
+
             // This is just because it need to be defined, shadow maps are not used.
             #define SHADOW_LOW
 
