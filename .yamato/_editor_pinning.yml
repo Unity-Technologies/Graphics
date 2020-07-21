@@ -62,7 +62,7 @@ editor-pinning-merge-from-target:
     variables:
         CI: true
     commands:
-      -  echo %GIT_BRANCH%
+      -  echo $GIT_BRANCH
       -  |5-
 
                      if [[ "$GIT_BRANCH" != "yamato/editor-pin" ]]; then
@@ -72,7 +72,7 @@ editor-pinning-merge-from-target:
       -  git fetch
       -  git checkout yamato/editor-pin
       -  git checkout yamato/editor-pin-ci
-      -  git merge --ff-only %GIT_REVISION%
+      -  git merge --ff-only $GIT_REVISION
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
       -  git push

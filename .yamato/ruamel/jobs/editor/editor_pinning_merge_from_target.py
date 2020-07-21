@@ -16,7 +16,7 @@ class Editor_PinningMergeFromTargetJob():
 
         commands = [
             # This should never run on anything other than master or releases. If you try it then it will fail
-            f'echo %GIT_BRANCH%',
+            f'echo $GIT_BRANCH',
             pss(f'''
             if [[ "$GIT_BRANCH" != "{target_branch }" ]]; then
                 echo "Should run on '{target_branch}' but is running on '$GIT_BRANCH'"
@@ -25,7 +25,7 @@ class Editor_PinningMergeFromTargetJob():
             f'git fetch',
             f'git checkout {target_branch}',
             f'git checkout {target_branch_editor_ci}',
-            f'git merge --ff-only %GIT_REVISION%',
+            f'git merge --ff-only $GIT_REVISION',
             f'git config --global user.name "noreply@unity3d.com"',
             f'git config --global user.email "noreply@unity3d.com"',
             f'git push'
