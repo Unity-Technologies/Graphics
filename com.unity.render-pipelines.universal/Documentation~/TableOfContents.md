@@ -7,7 +7,9 @@
   * [Install URP into an existing Project](InstallURPIntoAProject.md)
   * [The Universal Render Pipeline Asset](universalrp-asset.md)
 * [Upgrade guides](upgrade-guides.md)
+  * [Upgrading to URP 10.0.x](upgrade-guide-10-0-x.md)
   * [Upgrading to URP 9.0.x](upgrade-guide-9-0-x.md)
+  * [Upgrading to URP 8.2.0](upgrade-guide-8-2-0.md)
   * [Upgrading to URP 8.1.0](upgrade-guide-8-1-0.md)
   * [Upgrading to URP 8.0.0](upgrade-guide-8-0-0.md)
   * [Upgrading to URP 7.4.0](upgrade-guide-7-4-0.md)
@@ -33,6 +35,7 @@
     * [Volume Profile](VolumeProfile.md)
     * [Volume Overrides](VolumeOverrides.md)
   * [Effect List](EffectList.md)
+    * [Ambient Occlusion](post-processing-ssao.md)
     * [Bloom](post-processing-bloom.md)
     * [Channel Mixer](Post-Processing-Channel-Mixer.md)
     * [Chromatic Aberration](post-processing-chromatic-aberration.md)
@@ -92,5 +95,3 @@
 * [Building for consoles](Building-For-Consoles.md)
   
 * [Frequently asked questions (FAQ)](faq.md)
-
-* [Feature comparison with the Built-in Render Pipeline](universalrp-builtin-feature-comparison.md)
