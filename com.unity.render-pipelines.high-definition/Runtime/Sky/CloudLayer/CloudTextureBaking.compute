@@ -1,0 +1,39 @@
+#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+#pragma multi_compile_local _ USE_CLOUD_MAP
+#pragma multi_compile_local _ USE_CLOUD_MOTION
+
+#pragma kernel BakeCloudTexture KERNEL_NAME=BakeCloudTexture
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/CloudLayer/CloudLayer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+TEXTURE2D(_CloudMap);
+SAMPLER(sampler_CloudMap);
+
+RW_TEXTURE2D(float4, _CloudTextureOutput);
+
+static const float res = 1.0f / 512.0f;
+CBUFFER_START(cb0)
+float3 _SunDirection;
+float4 _Opacities;
+float4 _Params;
+CBUFFER_END
+
+#define _CloudTint              _Params.xyz
+#define _CloudRotation          _Params.w
+
+[numthreads(8, 8, 1)]
+void KERNEL_NAME(uint2 dispatchThreadId : SV_DispatchThreadID)
+{
+    float2 uv = float2(dispatchThreadId.x * res, dispatchThreadId.y * res * 2.0f);
+
+    uv.x = frac(uv.x + _CloudRotation);
+    float4 cloudLayerColor = SAMPLE_TEXTURE2D_LOD(_CloudMap, sampler_CloudMap, uv, 0);
+	float4 clouds = cloudLayerColor * _Opacities;
+    float opacity = max(max(clouds.r, clouds.g), max(clouds.b, clouds.a));
+
+    _CloudTextureOutput[dispatchThreadId] = float4(opacity * _CloudTint, opacity);
+}

@@ -313,6 +313,9 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.HelpBox(Styles.skyLightingHelpBoxContent, MessageType.Warning);
             }
+
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.cloudTextureSize, Styles.cloudTextureSizeContent);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.cloudShadowsSize, Styles.cloudShadowsSizeContent);
         }
 
         static private bool m_ShowLightLayerNames = false;

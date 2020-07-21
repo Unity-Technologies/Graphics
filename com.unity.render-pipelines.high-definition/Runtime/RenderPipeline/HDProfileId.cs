@@ -88,6 +88,7 @@ namespace UnityEngine.Rendering.HighDefinition
         AreaLightCookieConvolution,
 
         UpdateSkyEnvironmentConvolution,
+        BakeCloudTexture,
         RenderSkyToCubemap,
         UpdateSkyEnvironment,
         UpdateSkyAmbientProbe,

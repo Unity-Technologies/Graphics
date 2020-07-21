@@ -164,6 +164,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent skyReflectionSizeContent = EditorGUIUtility.TrTextContent("Reflection Size", "Specifies the maximum resolution of the cube map HDRP uses to represent the sky.");
             public static readonly GUIContent skyLightingOverrideMaskContent = EditorGUIUtility.TrTextContent("Lighting Override Mask", "Specifies the layer mask HDRP uses to override sky lighting.");
             public const string skyLightingHelpBoxContent = "Be careful, Sky Lighting Override Mask is set to Everything. This is most likely a mistake as it serves no purpose.";
+            public static readonly GUIContent cloudTextureSizeContent = EditorGUIUtility.TrTextContent("Cloud Texture Size", "Specifies the maximum resolution of the texture HDRP uses to represent the clouds.");
+            public static readonly GUIContent cloudShadowsSizeContent = EditorGUIUtility.TrTextContent("Cloud Shadows Size", "Specifies the maximum resolution of the texture HDRP uses to represent the cloud shadows.");
 
             public static readonly GUIContent maxDirectionalContent = EditorGUIUtility.TrTextContent("Maximum Directional on Screen", "Sets the maximum number of Directional Lights HDRP can handle on screen at once.");
             public static readonly GUIContent maxPonctualContent = EditorGUIUtility.TrTextContent("Maximum Punctual on Screen", "Sets the maximum number of Point and Spot Lights HDRP can handle on screen at once.");

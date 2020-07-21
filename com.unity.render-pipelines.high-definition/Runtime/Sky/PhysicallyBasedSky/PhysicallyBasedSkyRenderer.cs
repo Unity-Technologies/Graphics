@@ -503,7 +503,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int pass = (renderForCubemap ? 0 : 2);
 
-            CloudLayer.Apply(builtinParams.cloudLayer, m_PbrSkyMaterial);
+            CloudLayer.Apply(builtinParams, m_PbrSkyMaterial);
 
             CoreUtils.DrawFullScreen(builtinParams.commandBuffer, m_PbrSkyMaterial, s_PbrSkyMaterialProperties, pass);
         }

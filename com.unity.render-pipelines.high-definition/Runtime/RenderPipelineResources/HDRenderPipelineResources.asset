@@ -71,6 +71,7 @@ MonoBehaviour:
     integrateHdriSkyPS: {fileID: 4800000, guid: 48db2705cf2856d4e893eb30a6892d1b, type: 3}
     skyboxCubemapPS: {fileID: 103, guid: 0000000000000000f000000000000000, type: 0}
     gradientSkyPS: {fileID: 4800000, guid: 2b5d4f1b26f03dc4a873b093e0c4adb1, type: 3}
+    bakeCloudTextureCS: {fileID: 7200000, guid: ab3c4e1fdc13358468dc6ee4caf14fc2, type: 3}
     ambientProbeConvolutionCS: {fileID: 7200000, guid: 6d048f7b1bd45e840b4e79ec92639fa8, type: 3}
     groundIrradiancePrecomputationCS: {fileID: 7200000, guid: eb6ae6f326207ee4d987a3e5adddf63a, type: 3}
     inScatteredRadiancePrecomputationCS: {fileID: 7200000, guid: 70c69d514688f8545855680760d77418, type: 3}
@@ -142,7 +143,6 @@ MonoBehaviour:
     dofGatherCS: {fileID: 7200000, guid: 1e6b16a7970a1494db74b1d3d007d1cc, type: 3}
     DoFCoCPyramidCS: {fileID: 7200000, guid: df41a69211c03fe479b63a8bed3bfbb4, type: 3}
     contrastAdaptiveSharpenCS: {fileID: 7200000, guid: 560896aec2f412c48995be35551a4ac6, type: 3}
-    VTFeedbackDownsample: {fileID: 7200000, guid: 32d963548086c2c439aeb23a93e9a00a, type: 3}
     accumulationCS: {fileID: 7200000, guid: ed80add7a217efa468d137d6f7c668f3, type: 3}
     alphaInjectionPS: {fileID: 4800000, guid: 4edd96259a5e8b44c90479928f0cd11e, type: 3}
     chromaKeyingPS: {fileID: 4800000, guid: 49feb6b111e82ec4eb6d3d08e4b6903e, type: 3}

@@ -5,9 +5,11 @@ namespace UnityEngine.Rendering.HighDefinition
     internal class SkyUpdateContext
     {
         SkySettings         m_SkySettings;
-        CloudLayer          m_CloudLayer;
         public SkyRenderer  skyRenderer { get; private set; }
         public int          cachedSkyRenderingContextId = -1;
+
+        CloudLayer          m_CloudLayer;
+        public int          cachedCloudRenderingContextId = -1;
 
         public int          skyParametersHash = -1;
         public float        currentUpdateTime = 0.0f;
@@ -64,7 +66,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             HDRenderPipeline hdrp = HDRenderPipeline.currentPipeline;
             if (hdrp != null)
+            {
                 hdrp.skyManager.ReleaseCachedContext(cachedSkyRenderingContextId);
+                hdrp.skyManager.ReleaseCachedCloudContext(cachedCloudRenderingContextId);
+            }
         }
 
         public bool IsValid()

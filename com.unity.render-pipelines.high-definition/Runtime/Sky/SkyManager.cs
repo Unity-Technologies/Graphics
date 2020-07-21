@@ -26,6 +26,38 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
+    /// Resolution of the cloud texture.
+    /// </summary>
+    [Serializable]
+    public enum CloudResolution
+    {
+        /// <summary>Size 256x128</summary>
+        CloudResolution256x128 = 256,
+        /// <summary>Size 512x256</summary>
+        CloudResolution512x256 = 512,
+        /// <summary>Size 1024x512</summary>
+        CloudResolution1024x512 = 1024,
+        /// <summary>Size 2048x1024</summary>
+        CloudResolution2048x1024 = 2048,
+    }
+
+    /// <summary>
+    /// Resolution of the cloud shadow.
+    /// </summary>
+    [Serializable]
+    public enum CloudShadowsResolution
+    {
+        /// <summary>Size 64</summary>
+        CloudShadowsResolution64 = 64,
+        /// <summary>Size 128</summary>
+        CloudShadowsResolution128 = 128,
+        /// <summary>Size 256</summary>
+        CloudShadowsResolution256 = 256,
+        /// <summary>Size 512</summary>
+        CloudShadowsResolution512 = 512,
+    }
+
+    /// <summary>
     /// Environment lighting update mode.
     /// </summary>
     public enum EnvironmentUpdateMode
@@ -67,10 +99,37 @@ namespace UnityEngine.Rendering.HighDefinition
         public SkySettings              skySettings;
         /// <summary>Current cloud layer.</summary>
         public CloudLayer               cloudLayer;
+        /// <summary>Baked cloud texture.</summary>
+        public RTHandle                 cloudTexture;
         /// <summary>Current debug dsplay settings.</summary>
         public DebugDisplaySettings     debugSettings;
         /// <summary>Null color buffer render target identifier.</summary>
         public static RenderTargetIdentifier nullRT = -1;
+    }
+
+    struct CachedCloudContext
+    {
+        public CloudRenderingContext    renderingContext;
+        public int                      hash;
+        public int                      refCount;
+
+        public void Reset()
+        {
+            // We keep around the rendering context to avoid useless allocation if they get reused.
+            hash = 0;
+            refCount = 0;
+        }
+
+        public void Cleanup()
+        {
+            Reset();
+
+            if (renderingContext != null)
+            {
+                renderingContext.Cleanup();
+                renderingContext = null;
+            }
+        }
     }
 
     struct CachedSkyContext
@@ -110,6 +169,8 @@ namespace UnityEngine.Rendering.HighDefinition
         bool                    m_UpdateRequired = false;
         bool                    m_StaticSkyUpdateRequired = false;
         int                     m_Resolution;
+        int                     m_CloudResolution;
+        int                     m_CloudShadowsResolution;
 
         // Sky used for static lighting. It will be used for ambient lighting if Ambient Mode is set to Static (even when realtime GI is enabled)
         // It will also be used for lightmap and light probe baking
@@ -153,7 +214,13 @@ namespace UnityEngine.Rendering.HighDefinition
         int                     m_ComputeAmbientProbeKernel;
         CubemapArray            m_BlackCubemapArray;
 
+        // Shared resources for cloud rendering.
+        ComputeShader           m_BakeCloudTextureCS;
+        int                     m_BakeCloudTextureKernel;
+        readonly int            m_CloudTextureOutputParam = Shader.PropertyToID("_CloudTextureOutput");
+
         // 2 by default: Static sky + one dynamic. Will grow if needed.
+        DynamicArray<CachedCloudContext> m_CachedCloudContexts = new DynamicArray<CachedCloudContext>(2);
         DynamicArray<CachedSkyContext> m_CachedSkyContexts = new DynamicArray<CachedSkyContext>(2);
 
         public SkyManager()
@@ -295,6 +362,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             InitializeBlackCubemapArray();
+
+
+            m_CloudResolution = (int)hdAsset.currentPlatformRenderPipelineSettings.lightLoopSettings.cloudTextureSize;
+            m_CloudShadowsResolution = (int)hdAsset.currentPlatformRenderPipelineSettings.lightLoopSettings.cloudShadowsSize;
+
+            m_BakeCloudTextureCS = hdrp.renderPipelineResources.shaders.bakeCloudTextureCS;
+            m_BakeCloudTextureKernel = m_BakeCloudTextureCS.FindKernel("BakeCloudTexture");
         }
 
         void InitializeBlackCubemapArray()
@@ -335,6 +409,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             for (int i = 0; i < m_CachedSkyContexts.size; ++i)
                 m_CachedSkyContexts[i].Cleanup();
+            for (int i = 0; i < m_CachedCloudContexts.size; ++i)
+                m_CachedCloudContexts[i].Cleanup();
 
             m_StaticLightingSky.Cleanup();
             lightingOverrideVolumeStack.Dispose();
@@ -529,6 +605,29 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void BakeCloudTexture(SkyUpdateContext skyContext, Light sunLight)
+        {
+            var cmd = m_BuiltinParameters.commandBuffer;
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BakeCloudTexture)))
+            {
+                var renderingContext = m_CachedCloudContexts[skyContext.cachedCloudRenderingContextId].renderingContext;
+                var layer = skyContext.cloudLayer;
+
+                cmd.SetComputeVectorParam(m_BakeCloudTextureCS, "_SunDirection", sunLight.transform.forward);
+                cmd.SetComputeVectorParam(m_BakeCloudTextureCS, "_Opacities", layer.mapA.Opacities);
+                cmd.SetComputeVectorParam(m_BakeCloudTextureCS, "_Params", layer.mapA.settings.GetBakingParameters());
+                cmd.SetComputeTextureParam(m_BakeCloudTextureCS, m_BakeCloudTextureKernel, "_CloudMap", layer.mapA.cloudMap.value);
+                cmd.SetComputeTextureParam(m_BakeCloudTextureCS, m_BakeCloudTextureKernel, m_CloudTextureOutputParam, renderingContext.cloudTextureRT);
+
+                const int groupSizeX = 8;
+                const int groupSizeY = 8;
+                int threadGroupX = (m_CloudResolution   + (groupSizeX - 1)) / groupSizeX;
+                int threadGroupY = (m_CloudResolution/2 + (groupSizeY - 1)) / groupSizeY;
+
+                cmd.DispatchCompute(m_BakeCloudTextureCS, m_BakeCloudTextureKernel, threadGroupX, threadGroupY, 1);
+            }
+        }
+
         // We do our own hash here because Unity does not provide correct hash for builtin types
         // Moreover, we don't want to test every single parameters of the light so we filter them here in this specific function.
         int GetSunLightHashCode(Light light)
@@ -553,6 +652,77 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+
+        // Returns whether or not the cloud data should be updated
+        bool AcquireCloudRenderingContext(SkyUpdateContext updateContext, int newHash, bool supportShadows)
+        {
+            int id = updateContext.cachedCloudRenderingContextId;
+            // Release the old context if needed.
+            if (id != -1 && m_CachedCloudContexts[id].hash != 0)
+            {
+                ref var oldContext = ref m_CachedCloudContexts[id];
+                if (oldContext.hash != newHash)
+                    ReleaseCachedCloudContext(id);
+                else
+                    return false;
+            }
+
+            // Else allocate a new one
+            int firstFreeContext = -1;
+            for (int i = 0; i < m_CachedCloudContexts.size; ++i)
+            {
+                // Try to find a matching slot
+                if (m_CachedCloudContexts[i].hash == newHash)
+                {
+                    m_CachedCloudContexts[i].refCount++;
+                    updateContext.cachedCloudRenderingContextId = i;
+                    return false;
+                }
+
+                // Find the first available slot in case we don't find a matching one.
+                if (firstFreeContext == -1 && m_CachedCloudContexts[i].hash == 0)
+                    firstFreeContext = i;
+            }
+
+            if (firstFreeContext == -1)
+                firstFreeContext = m_CachedCloudContexts.Add(new CachedCloudContext());
+
+            ref var context = ref m_CachedCloudContexts[firstFreeContext];
+            context.hash = newHash;
+            context.refCount = 1;
+
+            if (context.renderingContext != null && context.renderingContext.supportShadows != supportShadows)
+            {
+                context.renderingContext.Cleanup();
+                context.renderingContext = null;
+            }
+            if (context.renderingContext == null)
+                context.renderingContext = new CloudRenderingContext(m_CloudResolution, supportShadows, 10);
+
+            updateContext.cachedCloudRenderingContextId = firstFreeContext;
+
+            return true;
+        }
+
+        internal void ReleaseCachedCloudContext(int id)
+        {
+            if (id == -1)
+                return;
+
+            ref var cachedContext = ref m_CachedCloudContexts[id];
+
+            // This can happen if 2 cameras use the same context and release it in the same frame.
+            // The first release the context but the next one will still have this id.
+            if (cachedContext.refCount == 0)
+            {
+                Debug.Assert(cachedContext.renderingContext == null); // Context should already have been cleaned up.
+                return;
+            }
+
+            cachedContext.refCount--;
+            if (cachedContext.refCount == 0)
+                cachedContext.Reset();
+        }
 
         void AllocateNewRenderingContext(SkyUpdateContext skyContext, int slot, int newHash, bool supportConvolution, in SphericalHarmonicsL2 previousAmbientProbe, string name)
         {
@@ -663,6 +833,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return id != -1 && (skyContext.skySettings.GetSkyRendererType() == m_CachedSkyContexts[id].type) && (m_CachedSkyContexts[id].hash != 0);
         }
 
+
+        int ComputeCloudHash(CloudLayer layer, Light sunLight, out bool castShadows)
+        {
+            int hash = layer.GetBakingHashCode(out castShadows);
+            if (sunLight != null)
+                hash = hash * 23 + GetSunLightHashCode(sunLight);
+            return hash;
+        }
+
         int ComputeSkyHash(HDCamera camera, SkyUpdateContext skyContext, Light sunLight, SkyAmbientMode ambientMode, bool staticSky = false)
         {
             int sunHash = 0;
@@ -734,6 +913,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_BuiltinParameters.frameIndex = frameIndex;
                 m_BuiltinParameters.skySettings = skyContext.skySettings;
                 m_BuiltinParameters.cloudLayer = skyContext.cloudLayer;
+                m_BuiltinParameters.cloudTexture = null;
+
+                if (skyContext.cloudLayer != null && skyContext.cloudLayer.opacity.value != 0.0f)
+                {
+                    int cloudHash = ComputeCloudHash(skyContext.cloudLayer, sunLight, out bool castShadows);
+                    // Acquire the rendering context, if the context was invalid or the hash has changed,
+                    // this will request for an update.
+                    if (AcquireCloudRenderingContext(skyContext, cloudHash, castShadows))
+                        BakeCloudTexture(skyContext, sunLight);
+
+                    var cloudContext = m_CachedCloudContexts[skyContext.cachedCloudRenderingContextId].renderingContext;
+                    m_BuiltinParameters.cloudTexture = cloudContext.cloudTextureRT;
+                }
+                else if (skyContext.cachedCloudRenderingContextId != -1)
+                {
+                    ReleaseCachedCloudContext(skyContext.cachedCloudRenderingContextId);
+                    skyContext.cachedCloudRenderingContextId = -1;
+                }
 
                 int skyHash = ComputeSkyHash(hdCamera, skyContext, sunLight, ambientMode, staticSky);
                 bool forceUpdate = updateRequired;
@@ -857,6 +1054,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BuiltinParameters.frameIndex = frameIndex;
             m_BuiltinParameters.skySettings = skyContext.skySettings;
             m_BuiltinParameters.cloudLayer = skyContext.cloudLayer;
+
+            int cloudHash = ComputeCloudHash(skyContext.cloudLayer, sunLight, out bool castShadows);
+            AcquireCloudRenderingContext(skyContext, cloudHash, castShadows);
+            var cloudContext = m_CachedCloudContexts[skyContext.cachedCloudRenderingContextId].renderingContext;
+            m_BuiltinParameters.cloudTexture = cloudContext.cloudTextureRT;
         }
 
         public void PreRenderSky(HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle normalBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)

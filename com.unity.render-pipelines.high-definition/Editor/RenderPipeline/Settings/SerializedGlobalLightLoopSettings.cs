@@ -21,6 +21,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty skyReflectionSize;
         public SerializedProperty skyLightingOverrideLayerMask;
         public SerializedProperty supportFabricConvolution;
+        public SerializedProperty cloudTextureSize;
+        public SerializedProperty cloudShadowsSize;
         public SerializedProperty maxDirectionalLightsOnScreen;
         public SerializedProperty maxPunctualLightsOnScreen;
         public SerializedProperty maxAreaLightsOnScreen;
@@ -50,6 +52,8 @@ namespace UnityEditor.Rendering.HighDefinition
             skyReflectionSize = root.Find((GlobalLightLoopSettings s) => s.skyReflectionSize);
             skyLightingOverrideLayerMask = root.Find((GlobalLightLoopSettings s) => s.skyLightingOverrideLayerMask);
             supportFabricConvolution = root.Find((GlobalLightLoopSettings s) => s.supportFabricConvolution);
+            cloudTextureSize = root.Find((GlobalLightLoopSettings s) => s.cloudTextureSize);
+            cloudShadowsSize = root.Find((GlobalLightLoopSettings s) => s.cloudShadowsSize);
 
             maxDirectionalLightsOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxDirectionalLightsOnScreen);
             maxPunctualLightsOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxPunctualLightsOnScreen);

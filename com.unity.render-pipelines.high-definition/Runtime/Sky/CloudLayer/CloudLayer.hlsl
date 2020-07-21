@@ -1,31 +1,27 @@
 #ifndef __CLOUDLAYER_H__
 #define __CLOUDLAYER_H__
 
-TEXTURE2D(_CloudMap);
-SAMPLER(sampler_CloudMap);
+TEXTURE2D(_CloudTexture);
+SAMPLER(sampler_CloudTexture);
     
 TEXTURE2D(_CloudFlowmap);
 SAMPLER(sampler_CloudFlowmap);
 
-float4 _CloudParam; // x upper hemisphere only / rotation, y scroll factor, zw scroll direction (cosPhi and sinPhi)
-float4 _CloudParam2; // xyz tint, w intensity
+float4 _CloudParams1; // x upper hemisphere only / rotation, y scroll factor, zw scroll direction (cosPhi and sinPhi)
+float4 _CloudParams2; // xyz tint, w intensity
 
-#define _CloudUpperHemisphere   _CloudParam.x > 0
-#define _CloudRotation          abs(_CloudParam.x)
-#define _CloudScrollFactor      _CloudParam.y
-#define _CloudScrollDirection   _CloudParam.zw
-#define _CloudTint              _CloudParam2.xyz
-#define _CloudIntensity         _CloudParam2.w
+#define _CloudOpacity           _CloudParams1.x
+#define _CloudUpperHemisphere   _CloudParams1.y
+#define _CloudIntensity         _CloudParams2.x
+#define _CloudScrollFactor      _CloudParams2.y
+#define _CloudScrollDirection   _CloudParams2.zw
 
 #define USE_CLOUD_LAYER         defined(USE_CLOUD_MAP) || (!defined(USE_CLOUD_MAP) && defined(USE_CLOUD_MOTION))
 
 float4 sampleCloud(float3 dir)
 {
     float2 coords = GetLatLongCoords(dir, _CloudUpperHemisphere);
-    coords.x = frac(coords.x + _CloudRotation);
-    float4 cloudLayerColor = SAMPLE_TEXTURE2D_LOD(_CloudMap, sampler_CloudMap, coords, 0).r;
-    cloudLayerColor.rgb *= _CloudTint * _CloudIntensity * cloudLayerColor.a;
-    return cloudLayerColor;
+    return SAMPLE_TEXTURE2D_LOD(_CloudTexture, sampler_CloudTexture, coords, 0);
 }
 
 float3 CloudRotationUp(float3 p, float2 cos_sin)
@@ -71,7 +67,7 @@ float GetCloudOpacity(float3 dir)
 {
 #if USE_CLOUD_LAYER
     if (dir.y >= 0 || !_CloudUpperHemisphere)
-        return GetDistordedCloudColor(dir).a;
+        return GetDistordedCloudColor(dir).a * _CloudOpacity;
     else
 #endif
 
@@ -82,7 +78,7 @@ float3 ApplyCloudLayer(float3 dir, float3 sky)
 {
 #if USE_CLOUD_LAYER
     if (dir.y >= 0 || !_CloudUpperHemisphere)
-        sky += GetDistordedCloudColor(dir).rgb;
+        sky += GetDistordedCloudColor(dir).rgb * _CloudIntensity * _CloudOpacity;
 #endif
 
     return sky;
@@ -91,7 +87,6 @@ float3 ApplyCloudLayer(float3 dir, float3 sky)
 #undef _CloudUpperHemisphere
 #undef _CloudScrollFactor
 #undef _CloudScrollDirection
-#undef _CloudTint
 #undef _CloudIntensity
 
 #undef USE_CLOUD_LAYER

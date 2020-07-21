@@ -127,6 +127,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             skyReflectionSize = SkyResolution.SkyResolution256,
             skyLightingOverrideLayerMask = 0,
+            cloudTextureSize = CloudResolution.CloudResolution1024x512,
+            cloudShadowsSize = CloudShadowsResolution.CloudShadowsResolution64,
 
             maxDirectionalLightsOnScreen = 16,
             maxPunctualLightsOnScreen = 512,
@@ -169,6 +171,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public LayerMask skyLightingOverrideLayerMask;
         /// <summary>Enable fabric specific convolution for probes and sky lighting.</summary>
         public bool supportFabricConvolution;
+        /// <summary>Resolution of the cloud texture.</summary>
+        public CloudResolution cloudTextureSize;
+        /// <summary>Resolution of the cloud shadows texture.</summary>
+        public CloudShadowsResolution cloudShadowsSize;
 
         /// <summary>Maximum number of directional lights at the same time on screen.</summary>
         public int maxDirectionalLightsOnScreen;

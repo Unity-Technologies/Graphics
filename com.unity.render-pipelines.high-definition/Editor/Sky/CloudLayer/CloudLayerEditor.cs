@@ -10,6 +10,17 @@ namespace UnityEditor.Rendering.HighDefinition
     [VolumeComponentEditor(typeof(CloudLayer))]
     class CloudLayerEditor : VolumeComponentEditor
     {
+        struct CloudSettingsParameter
+        {
+            public SerializedDataParameter rotation;
+            public SerializedDataParameter tint;
+            public SerializedDataParameter intensityMultiplier;
+            public SerializedDataParameter distortion;
+            public SerializedDataParameter scrollDirection;
+            public SerializedDataParameter scrollSpeed;
+            public SerializedDataParameter flowmap;
+        }
+
         struct CloudLightingParameter
         {
             public SerializedDataParameter mode;
@@ -22,16 +33,49 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public SerializedDataParameter cloudMap;
             public SerializedDataParameter[] opacities;
-            public SerializedDataParameter rotation;
-            public SerializedDataParameter tint;
-            public SerializedDataParameter intensityMultiplier;
+            public CloudSettingsParameter settings;
             public CloudLightingParameter lighting;
+        }
+
+        struct CloudCRTParameter
+        {
+            public SerializedDataParameter cloudCRT;
+            public CloudSettingsParameter settings;
+            public CloudLightingParameter lighting;
+        }
+
+        CloudSettingsParameter UnpackCloudSettings(SerializedProperty serializedProperty)
+        {
+            var p = new RelativePropertyFetcher<CloudLayer.CloudSettings>(serializedProperty);
+
+            return new CloudSettingsParameter
+            {
+                rotation = Unpack(p.Find(x => x.rotation)),
+                tint = Unpack(p.Find(x => x.tint)),
+                intensityMultiplier = Unpack(p.Find(x => x.intensityMultiplier)),
+                distortion = Unpack(p.Find(x => x.distortion)),
+                scrollDirection = Unpack(p.Find(x => x.scrollDirection)),
+                scrollSpeed = Unpack(p.Find(x => x.scrollSpeed)),
+                flowmap = Unpack(p.Find(x => x.flowmap)),
+            };
+        }
+
+        CloudLightingParameter UnpackCloudLighting(SerializedProperty serializedProperty)
+        {
+            var p = new RelativePropertyFetcher<CloudLayer.CloudLighting>(serializedProperty);
+
+            return new CloudLightingParameter
+            {
+                mode = Unpack(p.Find(x => x.lighting)),
+                steps = Unpack(p.Find(x => x.steps)),
+                thickness = Unpack(p.Find(x => x.thickness)),
+                castShadows = Unpack(p.Find(x => x.castShadows)),
+            };
         }
 
         CloudMapParameter UnpackCloudMap(SerializedProperty serializedProperty)
         {
             var p = new RelativePropertyFetcher<CloudLayer.CloudMap>(serializedProperty);
-            var l = new RelativePropertyFetcher<CloudLayer.CloudLighting>(p.Find(x => x.lighting));
 
             return new CloudMapParameter
             {
@@ -43,50 +87,27 @@ namespace UnityEditor.Rendering.HighDefinition
                     Unpack(p.Find(x => x.opacityB)),
                     Unpack(p.Find(x => x.opacityA))
                 },
-                rotation = Unpack(p.Find(x => x.rotation)),
-                tint = Unpack(p.Find(x => x.tint)),
-                intensityMultiplier = Unpack(p.Find(x => x.intensityMultiplier)),
-                lighting = new CloudLightingParameter
-                {
-                    mode = Unpack(l.Find(x => x.lighting)),
-                    steps = Unpack(l.Find(x => x.steps)),
-                    thickness = Unpack(l.Find(x => x.thickness)),
-                    castShadows = Unpack(l.Find(x => x.castShadows)),
-                }
+                settings = UnpackCloudSettings(p.Find(x => x.settings)),
+                lighting = UnpackCloudLighting(p.Find(x => x.lighting)),
             };
         }
 
-        void PropertyField(CloudMapParameter map, int index)
+        CloudCRTParameter UnpackCloudCRT(SerializedProperty serializedProperty)
         {
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField($"Map {(index == 0 ? 'A' : 'B')}", EditorStyles.miniLabel);
+            var p = new RelativePropertyFetcher<CloudLayer.CloudCRT>(serializedProperty);
 
-            PropertyField(map.cloudMap);
-            EditorGUI.indentLevel++;
-            for (int i = 0; i < 4; i++)
-                PropertyField(map.opacities[i]);
-            EditorGUI.indentLevel--;
-            PropertyField(map.rotation);
-            PropertyField(map.tint);
-            PropertyField(map.intensityMultiplier);
-            
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField($"Map {(index == 0 ? 'A' : 'B')} Lighting", EditorStyles.miniLabel);
-            PropertyField(map.lighting.mode);
-            if (map.lighting.mode.value.intValue == (int)CloudLightingMode.Raymarching)
+            return new CloudCRTParameter
             {
-                EditorGUI.indentLevel++;
-                PropertyField(map.lighting.steps);
-                PropertyField(map.lighting.thickness);
-                EditorGUI.indentLevel--;
-            }
-            PropertyField(map.lighting.castShadows);
+                cloudCRT = Unpack(p.Find(x => x.cloudCRT)),
+                settings = UnpackCloudSettings(p.Find(x => x.settings)),
+                lighting = UnpackCloudLighting(p.Find(x => x.lighting))
+            };
         }
-
 
         SerializedDataParameter m_Opacity, m_UpperHemisphereOnly;
         SerializedDataParameter m_Mode, m_Layers;
         CloudMapParameter[] m_Maps;
+        CloudCRTParameter m_Crt;
 
         public override void OnEnable()
         {
@@ -103,6 +124,61 @@ namespace UnityEditor.Rendering.HighDefinition
                 UnpackCloudMap(o.Find(x => x.mapA)),
                 UnpackCloudMap(o.Find(x => x.mapB))
             };
+
+            m_Crt = UnpackCloudCRT(o.Find(x => x.crt));
+        }
+
+
+
+        void PropertyField(CloudSettingsParameter settings)
+        {
+            PropertyField(settings.rotation);
+            PropertyField(settings.tint);
+            PropertyField(settings.intensityMultiplier);
+
+            PropertyField(settings.distortion);
+            if (settings.distortion.value.intValue != (int)CloudDistortionMode.None)
+            {
+                EditorGUI.indentLevel++;
+                PropertyField(settings.scrollDirection);
+                PropertyField(settings.scrollSpeed);
+                if (settings.distortion.value.intValue == (int)CloudDistortionMode.Flowmap)
+                {
+                    PropertyField(settings.flowmap);
+                }
+                EditorGUI.indentLevel--;
+            }
+        }
+
+        void PropertyField(CloudLightingParameter lighting, string label)
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(label, EditorStyles.miniLabel);
+
+            PropertyField(lighting.mode);
+            if (lighting.mode.value.intValue == (int)CloudLightingMode.Raymarching)
+            {
+                EditorGUI.indentLevel++;
+                PropertyField(lighting.steps);
+                PropertyField(lighting.thickness);
+                EditorGUI.indentLevel--;
+            }
+            PropertyField(lighting.castShadows);
+        }
+
+        void PropertyField(CloudMapParameter map, string label)
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(label, EditorStyles.miniLabel);
+
+            PropertyField(map.cloudMap);
+            EditorGUI.indentLevel++;
+            for (int i = 0; i < 4; i++)
+                PropertyField(map.opacities[i]);
+            EditorGUI.indentLevel--;
+
+            PropertyField(map.settings);
+            PropertyField(map.lighting, label + " Lighting");
         }
 
         public override void OnInspectorGUI()
@@ -117,9 +193,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_Layers);
                 EditorGUI.indentLevel--;
                 
-                PropertyField(m_Maps[0], 0);
+                PropertyField(m_Maps[0], "Map A");
                 if (m_Layers.value.intValue == (int)CloudMapMode.Double)
-                    PropertyField(m_Maps[1], 1);
+                    PropertyField(m_Maps[1], "Map B");
+            }
+            else if (m_Mode.value.intValue == (int)CloudLayerMode.RenderTexture)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("Custom Render Texture", EditorStyles.miniLabel);
+
+                PropertyField(m_Crt.cloudCRT);
+                PropertyField(m_Crt.settings);
+                PropertyField(m_Crt.lighting, "Lighting");
             }
         }
     }
