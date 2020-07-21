@@ -52,35 +52,28 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        HashSet<Light2D> GetLightsByLayer(int layerIndex)
+        bool CompareLightsInLayer(int layerIndex1, int layerIndex2)
         {
-            var startLayerValue = s_SortingLayers[layerIndex].id;
-            var lights = new HashSet<Light2D>();
-
+            var layerId1 = s_SortingLayers[layerIndex1].id;
+            var layerId2 = s_SortingLayers[layerIndex2].id;
             foreach (var lightStyle in Light2DManager.lights)
             {
                 foreach (var light in lightStyle)
                 {
-                    if (light.IsLitLayer(startLayerValue))
-                        lights.Add(light);
+                    if (light.IsLitLayer(layerId1) != light.IsLitLayer(layerId2))
+                        return false;
                 }
             }
-
-            return lights;
+            return true;
         }
 
         int FindUpperBoundInBatch(int startLayerIndex)
         {
-            var currentLights = GetLightsByLayer(startLayerIndex);
-
             // start checking at the next layer
             for (var i = startLayerIndex+1; i < s_SortingLayers.Length; i++)
             {
-                var lights = GetLightsByLayer(i);
-                if(!lights.SetEquals(currentLights))
-                {
+                if(!CompareLightsInLayer(startLayerIndex, i))
                     return i-1;
-                }
             }
             return s_SortingLayers.Length-1;
         }

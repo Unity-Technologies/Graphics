@@ -489,8 +489,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 cmd.SetRenderTarget(s_NormalsTarget.Identifier(), depthTarget);
                 cmd.ClearRenderTarget(true, true, k_NormalClearColor);
-                renderContext.ExecuteCommandBuffer(cmd);
             }
+            renderContext.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
             drawSettings.SetShaderPassName(0, k_NormalsRenderingPassName);
