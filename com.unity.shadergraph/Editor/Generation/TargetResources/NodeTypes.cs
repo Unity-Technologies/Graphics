@@ -223,6 +223,7 @@ namespace UnityEditor.ShaderGraph
                 typeof(MatrixConstructionNode ),
                 typeof(MatrixDeterminantNode ),
                 typeof(MatrixSplitNode ),
+                typeof(MatrixSwizzleNode),
                 typeof(MatrixTransposeNode )
             };
 
