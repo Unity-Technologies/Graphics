@@ -18,7 +18,7 @@ URP_Performance_Win_DX11_performance_counters_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --testfilter=Counters --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testfilter=Counters --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -38,7 +38,7 @@ URP_Performance_Win_DX11_performance_memory_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --testfilter=Memory --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testfilter=Memory --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -58,7 +58,7 @@ URP_Performance_Win_DX11_performance_build_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=Editor --testfilter=Build --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --suite=Editor --platform=StandaloneWindows64 --testfilter=Build --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -78,7 +78,7 @@ URP_Performance_Win_DX11_performance_counters_fast-trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --testfilter=Counters --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testfilter=Counters --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -98,7 +98,7 @@ URP_Performance_Win_DX11_performance_memory_fast-trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --testfilter=Memory --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testfilter=Memory --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -118,7 +118,7 @@ URP_Performance_Win_DX11_performance_build_fast-trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=Editor --testfilter=Build --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --suite=Editor --platform=StandaloneWindows64 --testfilter=Build --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -139,7 +139,7 @@ URP_Performance_Win_DX11_performance_counters_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --testfilter=Counters --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testfilter=Counters --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -160,7 +160,7 @@ URP_Performance_Win_DX11_performance_memory_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --testfilter=Memory --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --testfilter=Memory --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -181,7 +181,7 @@ URP_Performance_Win_DX11_performance_build_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=Editor --testfilter=Build --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP_Performance && utr --suite=Editor --platform=StandaloneWindows64 --testfilter=Build --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
