@@ -110,6 +110,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             m_MaxShadowDistance = renderingData.cameraData.maxShadowDistance * renderingData.cameraData.maxShadowDistance;
+            // To account for the decreasing range when using smooth shadow fade with cascades.
+            // See MainLightShadowCasterPass to see where it's reverted.
             if (m_ShadowCasterCascadesCount > 1)
                 m_MaxShadowDistance = m_MaxShadowDistance * 0.64f;
 

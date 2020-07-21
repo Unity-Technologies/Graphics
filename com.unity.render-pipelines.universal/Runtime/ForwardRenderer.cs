@@ -130,6 +130,8 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            // To account for the decreasing range when using smooth shadow fade with cascades.
+            // See MainLightShadowCasterPass to see where it's reverted.
             if (renderingData.shadowData.mainLightShadowCascadesCount > 1)
                 renderingData.cameraData.maxShadowDistance = renderingData.cameraData.maxShadowDistance * 1.25f;
 
