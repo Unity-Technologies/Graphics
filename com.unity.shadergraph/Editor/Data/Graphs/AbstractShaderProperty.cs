@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -33,6 +34,8 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public ConcretePrecision concretePrecision => m_ConcretePrecision;
 
+        internal virtual bool showPrecisionField => true;
+
         internal void ValidateConcretePrecision(ConcretePrecision graphPrecision)
         {
             m_ConcretePrecision = (precision == Precision.Inherit) ? graphPrecision : precision.ToConcrete();
@@ -55,6 +58,28 @@ namespace UnityEditor.ShaderGraph.Internal
         }
 
         internal string hideTagString => hidden ? "[HideInInspector]" : "";
+
+        [SerializeField]
+        List<string> m_SupportedRenderPipelines = new List<string>{SupportedRenderPipelinesDecorator.All};
+
+        internal virtual List<string> supportedRenderPipelines
+        {
+            get => m_SupportedRenderPipelines;
+            set => m_SupportedRenderPipelines = value;
+        }
+
+        internal string supportedRenderPipelinesTagString
+        {
+            get
+            {
+                if (supportedRenderPipelines.Contains(SupportedRenderPipelinesDecorator.All))
+                    return string.Empty;
+                else
+                    return $"[SupportedRenderPipelines({String.Join(",", supportedRenderPipelines)})]";
+            }
+        }
+
+        internal virtual bool showSupportedRenderPipelinesField => true;
 
         // simple properties use a single reference name; this function covers that case
         // complex properties can override this function to produce multiple reference names

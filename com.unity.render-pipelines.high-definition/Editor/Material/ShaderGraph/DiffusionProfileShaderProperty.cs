@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEngine;
 using UnityEditor.ShaderGraph.Drawing;
@@ -6,6 +7,8 @@ using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
+using System.Globalization;
+using static UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers.ShaderInputPropertyDrawer;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -79,6 +82,11 @@ namespace UnityEditor.Rendering.HighDefinition
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
         internal override bool isGpuInstanceable => true;
+
+        internal override List<string> supportedRenderPipelines => new List<string>{SupportedRenderPipelinesDecorator.GetRenderPipelineName(typeof(HDRenderPipeline))};
+
+        internal override bool showPrecisionField => false;
+        internal override bool showSupportedRenderPipelinesField => false;
         
         public override PropertyType propertyType => PropertyType.Vector1;
 
@@ -95,16 +103,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 asset = HDUtils.ConvertGUIDToVector4(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(value.diffusionProfile)));
             }
 
+            /// <summary>Float to string convertion function without any loss of precision</summary>
+            string f2s(float f) => System.Convert.ToDouble(f).ToString("0." + new string('#', 339));
+
             // TODO: render pipeline visibility attribute
-            return $@"
-[DiffusionProfile]{hideTagString}{referenceName}(""{displayName}"", Float) = {HDShadowUtils.Asfloat(hash)}
-[HideInInspector]{assetReferenceName}(""{displayName}"", Vector) = ({NodeUtils.FloatToShaderValueShaderLabSafe(asset.x)}, {NodeUtils.FloatToShaderValueShaderLabSafe(asset.y)}, {NodeUtils.FloatToShaderValueShaderLabSafe(asset.z)}, {NodeUtils.FloatToShaderValueShaderLabSafe(asset.w)})";
+            return
+$@"{supportedRenderPipelinesTagString}[DiffusionProfile]{hideTagString}{referenceName}(""{displayName}"", Float) = {f2s(HDShadowUtils.Asfloat(hash))}
+[HideInInspector]{assetReferenceName}(""{displayName}"", Vector) = ({f2s(asset.x)}, {f2s(asset.y)}, {f2s(asset.z)}, {f2s(asset.w)})";
         }
 
-        internal override string GetPropertyDeclarationString(string delimiter = ";")
-        {
-            return $@"";
-        }
+        public override string GetDefaultReferenceName() => $"DiffusionProfile_{objectId}";
+
+        internal override string GetPropertyDeclarationString(string delimiter = ";") => $@"float {referenceName}{delimiter}";
 
         internal override AbstractMaterialNode ToConcreteNode()
         {
@@ -134,19 +144,17 @@ namespace UnityEditor.Rendering.HighDefinition
             };
         }
 
-        void IShaderPropertyDrawer.HandlePropertyField(PropertySheet propertySheet)
+        void IShaderPropertyDrawer.HandlePropertyField(PropertySheet propertySheet, PreChangeValueCallback preChangeValueCallback, PostChangeValueCallback postChangeValueCallback)
         {
             var diffusionProfileDrawer = new DiffusionProfilePropertyDrawer();
-            // TODO:
-            // diffusionProfileDrawer.preValueChangeCallback = () => this._preChangeValueCallback("Change property value");
-            // diffusionProfileDrawer.postValueChangeCallback = () => this._postChangeValueCallback();
 
-            Debug.Log(diffusionProfileDrawer);
             propertySheet.Add(diffusionProfileDrawer.CreateGUI(
                 newValue => {
+                    preChangeValueCallback("Changed Diffusion Profile");
                     value = new SerializableDiffusionProfile{ diffusionProfile = newValue };
+                    postChangeValueCallback(true);
                 },
-                value?.diffusionProfile, // TODO: diffusion profile value
+                value?.diffusionProfile,
                 "Diffusion Profile",
                 out var _));
         }

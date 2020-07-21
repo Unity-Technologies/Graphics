@@ -15,11 +15,12 @@ using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.UIElements;
 using FloatField = UnityEditor.ShaderGraph.Drawing.FloatField;
+using static UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers.ShaderInputPropertyDrawer;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
     public interface IShaderPropertyDrawer
     {
-        internal void HandlePropertyField(PropertySheet propertySheet);
+        internal void HandlePropertyField(PropertySheet propertySheet, PreChangeValueCallback preChangeValueCallback, PostChangeValueCallback postChangeValueCallback);
     }
 }
