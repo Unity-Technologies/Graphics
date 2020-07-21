@@ -43,13 +43,13 @@ namespace UnityEditor.VFX
             None                        = 0,
 
             //VFX Time
-            VfxDeltaTime                   = 1 << 0,
-            VfxUnscaledDeltaTime           = 1 << 1,
-            VfxTotalTime                   = 1 << 2,
-            VfxFrameIndex                  = 1 << 3,
-            VfxPlayRate                    = 1 << 4,
-            VfxManagerFixedTimeStep        = 1 << 5,
-            VfxManagerMaxDeltaTime         = 1 << 6,
+            VfxDeltaTime                = 1 << 0,
+            VfxUnscaledDeltaTime        = 1 << 1,
+            VfxTotalTime                = 1 << 2,
+            VfxFrameIndex               = 1 << 3,
+            VfxPlayRate                 = 1 << 4,
+            VfxManagerFixedTimeStep     = 1 << 5,
+            VfxManagerMaxDeltaTime      = 1 << 6,
 
             //Game Time
             GameDeltaTime               = 1 << 7,
