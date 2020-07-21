@@ -25,11 +25,11 @@
     border-color: #44C0FF;
 }
 
-.resizer-icon {
+.blackboard > .resizer > .resizer-icon {
     cursor: resize-up-left;
 }
 
-.resizer {
+.blackboard > .resizer {
     bottom: 0;
     right: 0;
     padding-top: 0px;
