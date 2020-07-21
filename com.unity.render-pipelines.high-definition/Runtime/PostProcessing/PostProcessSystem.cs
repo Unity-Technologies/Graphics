@@ -53,6 +53,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeBuffer m_BokehIndirectCmd;
         ComputeBuffer m_NearBokehTileList;
         ComputeBuffer m_FarBokehTileList;
+        RTHandle[] dofSafePathMips = new RTHandle[4];
 
         //  AMD-CAS data
         ComputeBuffer m_ContrastAdaptiveSharpen;
@@ -651,10 +652,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 var fullresCoC = m_Pool.Get(Vector2.one, k_CoCFormat);
 
-                                RTHandle[] mips = new RTHandle[4];
                                 if (m_UseSafePath)
                                 {
-                                    PrepareDoFMipsTarget(scale, camera, ref mips);
+                                    PrepareDoFMipsTarget(scale, camera);
                                 }
 
                                 int passCount = Mathf.CeilToInt((dofParameters.nearMaxBlur + 2f) / 4f);
@@ -666,10 +666,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 RTHandle prevCoC = null;
                                 RTHandle nextCoC = null;
-                                GrabCoCHistory(camera, out prevCoC, out nextCoC, useMips: false);
+                                if(taaEnabled)
+                                    GrabCoCHistory(camera, out prevCoC, out nextCoC, useMips: false);
 
                                 DoDepthOfField(dofParameters, cmd, source, destination, pingNearRGB, pongNearRGB, nearCoC, nearAlpha,
-                                               dilatedNearCoC, pingFarRGB, pongFarRGB, farCoC, fullresCoC, mips, dilationPingPongRT, prevCoC, nextCoC, motionVecTexture, taaEnabled);
+                                               dilatedNearCoC, pingFarRGB, pongFarRGB, farCoC, fullresCoC, dofSafePathMips, dilationPingPongRT, prevCoC, nextCoC, motionVecTexture, taaEnabled);
 
                                 m_HDInstance.PushFullScreenDebugTexture(camera, cmd, fullresCoC, FullScreenDebugMode.DepthOfFieldCoc);
 
@@ -693,7 +694,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 {
                                     for (int i=0; i<4; ++i)
                                     {
-                                        m_Pool.Recycle(mips[i]);
+                                        m_Pool.Recycle(dofSafePathMips[i]);
                                     }
                                 }
 
@@ -709,7 +710,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 RTHandle prevCoC = null;
                                 RTHandle nextCoC = null;
-                                GrabCoCHistory(camera, out prevCoC, out nextCoC, useMips: true);
+                                if (taaEnabled)
+                                    GrabCoCHistory(camera, out prevCoC, out nextCoC, useMips: true);
 
                                 var fullresCoC = m_Pool.Get(Vector2.one, k_CoCFormat, true);
 
@@ -1977,14 +1979,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        void PrepareDoFMipsTarget(float dofScale, HDCamera camera, ref RTHandle[] mips)
+        void PrepareDoFMipsTarget(float dofScale, HDCamera camera)
         {
             var mipScale = dofScale;
             for (int i = 0; i < 4; i++)
             {
                 mipScale *= 0.5f;
                 var size = new Vector2Int(Mathf.RoundToInt(camera.actualWidth * mipScale), Mathf.RoundToInt(camera.actualHeight * mipScale));
-                mips[i] = m_Pool.Get(new Vector2(mipScale, mipScale), m_ColorFormat);
+                dofSafePathMips[i] = m_Pool.Get(new Vector2(mipScale, mipScale), m_ColorFormat);
             }
         }
 

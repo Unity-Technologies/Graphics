@@ -145,6 +145,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle dilationPingPongRT;
             public TextureHandle prevCoC;
             public TextureHandle nextCoC;
+            public bool taaEnabled;
         }
 
         TextureHandle GetPostprocessOutputHandle(RenderGraph renderGraph, string name)
@@ -518,7 +519,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
 
                             passData.fullresCoC = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                            { colorFormat = m_ColorFormat, enableRandomWrite = true, name = "Full res CoC" });
+                            { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Full res CoC" });
 
                             int passCount = Mathf.CeilToInt((passData.parameters.nearMaxBlur + 2f) / 4f);
                             passData.dilationPingPongRT = TextureHandle.nullHandle;
@@ -542,6 +543,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 });
                             }
 
+                            passData.taaEnabled = taaEnabled;
 
                             builder.SetRenderFunc(
                             (DepthofFieldData data, RenderGraphContext ctx) =>
@@ -553,8 +555,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                     mipsHandles[i] = data.mips[i];
                                 }
 
-                                DoDepthOfField(passData.parameters, ctx.cmd, passData.source, passData.destination, passData.pingNearRGB, passData.pongNearRGB, passData.nearCoC, passData.nearAlpha,
-                                               passData.dilatedNearCoC, passData.pingFarRGB, passData.pongFarRGB, passData.farCoC, passData.fullresCoC, mipsHandles, passData.dilationPingPongRT, prevCoC, nextCoC, passData.motionVecTexture, taaEnabled);
+                                DoDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.pingNearRGB, data.pongNearRGB, data.nearCoC, data.nearAlpha,
+                                               data.dilatedNearCoC, data.pingFarRGB, data.pongFarRGB, data.farCoC, data.fullresCoC, mipsHandles, data.dilationPingPongRT, data.prevCoC, data.nextCoC, data.motionVecTexture, data.taaEnabled);
                             });
 
                             source = passData.destination;
@@ -563,12 +565,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         else
                         {
                             passData.fullresCoC = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                            { colorFormat = m_ColorFormat, enableRandomWrite = true, useMipMap = true, name = "Full res CoC" });
+                            { colorFormat = k_CoCFormat, enableRandomWrite = true, useMipMap = true, name = "Full res CoC" });
 
                             builder.SetRenderFunc(
                             (DepthofFieldData data, RenderGraphContext ctx) =>
                             {
-                                DoPhysicallyBasedDepthOfField(passData.parameters, ctx.cmd, passData.source, passData.destination, passData.fullresCoC, prevCoC, nextCoC, passData.motionVecTexture, taaEnabled);
+                                DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.taaEnabled);
                             });
 
                             source = passData.destination;
