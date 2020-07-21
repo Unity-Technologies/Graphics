@@ -141,10 +141,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 error: "Screen Space Shadows are disabled in the current HDRP asset. You will not be able to toggle ray traced shadows on the lights in your scene. You can enable the feature in the HDRP asset under Lighting -> Shadows -> Screen Space Shadows", messageType: MessageType.Info);
             public static readonly ConfigStyle dxrReflections = new ConfigStyle(
                 label: "Reflections",
-                error: "Screen Space Reflections are disabled in the current HDRP asset. You will not be able to toggle ray traced reflections though your volume components. You can enable the feature in the HDRP asset under Lighting -> Relections -> Screen Space Relections", messageType: MessageType.Info);
+                error: "Screen Space Reflections are disabled in the current HDRP asset. You will not be able to toggle ray traced reflections though your volume components. You can enable the feature in the HDRP asset under Lighting -> Reflections -> Screen Space Reflections", messageType: MessageType.Info);
             public static readonly ConfigStyle dxrTransparentReflections = new ConfigStyle(
                 label: "Transparent Reflections",
-                error: "Transparent Screen Space Reflections are disabled in the current HDRP asset. You will not be able to toggle ray traced reflections on transparent objects though your volume components. You can enable the feature in the HDRP asset under Lighting -> Relections -> Transparent Screen Space Relections", messageType: MessageType.Info);
+                error: "Transparent Screen Space Reflections are disabled in the current HDRP asset. You will not be able to toggle ray traced reflections on transparent objects though your volume components. You can enable the feature in the HDRP asset under Lighting -> Reflections -> Transparent Screen Space Reflections", messageType: MessageType.Info);
             public static readonly ConfigStyle dxrGI = new ConfigStyle(
                 label: "Global Illumination",
                 error: "Screen Space Global Illumination is disabled in the current HDRP asset. You will not be able to toggle ray global illumination though your volume components. You can enable the feature in the HDRP asset under Lighting -> Screen Space Global Illumination", messageType: MessageType.Info);
