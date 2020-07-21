@@ -52,6 +52,7 @@
     "com.unity.modules.xr": "1.0.0"
   },
   "testables": [
-    "com.unity.testing.graphics-performance"
+    "com.unity.testing.graphics-performance",
+    "com.unity.testframework.graphics"
   ]
 }
