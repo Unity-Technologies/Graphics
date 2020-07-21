@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.Universal
 
     class XRPass
     {
-        readonly List<XRView> views = new List<XRView>(2);
+        internal List<XRView> views = new List<XRView>(2);
 
         internal bool enabled      { get => views.Count > 0; }
         internal bool xrSdkEnabled { get; private set; }
@@ -152,6 +152,28 @@ namespace UnityEngine.Rendering.Universal
             passInfo.copyDepth = false;
 
             return passInfo;
+        }
+
+        internal void UpdateView(int viewId, XRDisplaySubsystem.XRRenderPass xrSdkRenderPass, XRDisplaySubsystem.XRRenderParameter xrSdkRenderParameter)
+        {
+            if (viewId >= views.Count)
+                throw new NotImplementedException($"Invalid XR setup to update, trying to update non-existing xr view.");
+
+            views[viewId] = new XRView(xrSdkRenderPass, xrSdkRenderParameter);
+        }
+
+        internal void UpdateView(int viewId, Matrix4x4 proj, Matrix4x4 view, Rect vp, int textureArraySlice = -1)
+        {
+            if (viewId >= views.Count)
+                throw new NotImplementedException($"Invalid XR setup to update, trying to update non-existing xr view.");
+
+            views[viewId] = new XRView(proj, view, vp, textureArraySlice);
+        }
+
+        internal void UpdateCullingParams(int cullingPassId, ScriptableCullingParameters cullingParams)
+        {
+            this.cullingPassId = cullingPassId;
+            this.cullingParams = cullingParams;
         }
 
         internal void AddView(Matrix4x4 proj, Matrix4x4 view, Rect vp, int textureArraySlice = -1)
@@ -268,7 +290,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal void EndCamera(CommandBuffer cmd, Camera camera)
+        internal void EndCamera(CommandBuffer cmd, CameraData cameraData)
         {
             if (!enabled)
                 return;
@@ -280,7 +302,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 using (new ProfilingScope(cmd, _XRCustomMirrorProfilingSampler))
                 {
-                    customMirrorView(this, cmd, camera.targetTexture, camera.pixelRect);
+                    customMirrorView(this, cmd, cameraData.targetTexture, cameraData.pixelRect);
                 }
             }
         }

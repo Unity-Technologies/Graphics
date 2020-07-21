@@ -408,8 +408,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawAlphaCutoffGUI()
         {
-            EditorGUI.BeginChangeCheck();
-
             // For shadergraphs we show this slider only if the feature is enabled in the shader settings.
             bool showAlphaClipThreshold = true;
             
@@ -472,15 +470,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             EditorGUI.showMixedValue = false;
-
-            // Update the renderqueue when we change the alphaTest
-            if (EditorGUI.EndChangeCheck())
-            {
-                var renderQueueType = HDRenderQueue.GetTypeByRenderQueueValue(renderQueue);
-
-                bool receiveDecal = materials[0].HasProperty(kSupportDecals) && materials[0].GetFloat(kSupportDecals) > 0.0f;
-                renderQueue = HDRenderQueue.ChangeType(renderQueueType, (int)transparentSortPriority.floatValue, alphaCutoffEnable.floatValue == 1, receiveDecal);
-            }
         }
 
         void DrawDoubleSidedGUI()
@@ -538,7 +527,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (EditorGUI.EndChangeCheck())
                     {
                         transparentSortPriority.floatValue = HDRenderQueue.ClampsTransparentRangePriority((int)transparentSortPriority.floatValue);
-                        renderQueue = HDRenderQueue.ChangeType(HDRenderQueue.GetTypeByRenderQueueValue(renderQueue), offset: (int)transparentSortPriority.floatValue);
                     }
                 }
 
@@ -628,19 +616,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 materialEditor.RegisterPropertyChangeUndo(Styles.surfaceTypeText);
                 surfaceType.floatValue = (float)newMode;
-                HDRenderQueue.RenderQueueType targetQueueType;
-                switch(newMode)
-                {
-                    case SurfaceType.Opaque:
-                        targetQueueType = HDRenderQueue.GetOpaqueEquivalent(HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue));
-                        break;
-                    case SurfaceType.Transparent:
-                        targetQueueType = HDRenderQueue.GetTransparentEquivalent(HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue));
-                        break;
-                    default:
-                        throw new ArgumentException("Unknown SurfaceType");
-                }
-                renderQueue = HDRenderQueue.ChangeType(targetQueueType, (int)transparentSortPriority.floatValue, alphaTest, receiveDecal);
             }
             EditorGUI.showMixedValue = false;
 
@@ -780,13 +755,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (supportDecals != null)
             {
-                EditorGUI.BeginChangeCheck();
                 materialEditor.ShaderProperty(supportDecals, Styles.supportDecalsText);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    var renderQueueType = HDRenderQueue.GetTypeByRenderQueueValue(renderQueue);
-                    renderQueue = HDRenderQueue.ChangeType(renderQueueType, (int)transparentSortPriority.floatValue, alphaCutoffEnable.floatValue == 1, supportDecals.floatValue > 0.0f);
-                }
             }
 
             if (receivesSSR != null && receivesSSRTransparent != null)

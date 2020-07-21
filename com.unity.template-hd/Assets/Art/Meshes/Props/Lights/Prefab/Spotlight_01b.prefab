@@ -275,6 +275,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Spotlight_Spot_01b
       objectReference: {fileID: 0}
+    - target: {fileID: 3287326412846132226, guid: 43a2c40dd5bb4f6449d77cd82d533131,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: c9af0dbe88854d64aa8e276b41a10462, type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 43a2c40dd5bb4f6449d77cd82d533131, type: 3}
 --- !u!4 &8864834622078052951 stripped

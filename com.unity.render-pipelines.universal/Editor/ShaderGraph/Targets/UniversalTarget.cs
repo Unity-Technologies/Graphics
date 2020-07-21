@@ -149,6 +149,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             return isUniversalRenderPipeline && activeSubTarget.IsActive();
         }
 
+        public override bool IsNodeAllowedByTarget(Type nodeType)
+        {
+            SRPFilterAttribute srpFilter = NodeClassCache.GetAttributeOnNodeType<SRPFilterAttribute>(nodeType);
+            return srpFilter == null || srpFilter.srpTypes.Contains(typeof(UniversalRenderPipeline));
+        }
         public override void Setup(ref TargetSetupContext context)
         {
             // Setup the Target
