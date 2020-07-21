@@ -112,7 +112,7 @@ Shader "Hidden/Light2D-Point"
 
 #if USE_POINT_LIGHT_COOKIES
                 half4 cookieColor = SAMPLE_TEXTURE2D(_PointLightCookieTex, sampler_PointLightCookieTex, input.lookupUV);
-                half4 lightColor = cookieColor.a * cookieColor * _LightColor;
+                half4 lightColor = cookieColor * _LightColor;
 #else
                 half4 lightColor = _LightColor;
 #endif
