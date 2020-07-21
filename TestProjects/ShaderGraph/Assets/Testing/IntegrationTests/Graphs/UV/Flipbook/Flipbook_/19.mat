@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Flipbook
-  m_Shader: {fileID: -6465566751694194690, guid: e7c1cfb1785fbb8469ebd757acc60ba9,
+  m_Name: 19
+  m_Shader: {fileID: -6465566751694194690, guid: 4bc4779499976bd48bda069a802dade4,
     type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
@@ -20,16 +20,16 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
-    - Texture2D_C997E6:
-        m_Texture: {fileID: 2800000, guid: 42f8a74849b18c346a07099c80f4d3dc, type: 3}
+    - _SampleTexture2D_3bf00b574c0c49e89fb002420c233c3f_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 9ed8723a3b66aeb4c91a0d9aed732440, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _Texture:
-        m_Texture: {fileID: 2800000, guid: 42f8a74849b18c346a07099c80f4d3dc, type: 3}
+    - _SampleTexture2D_CE7F605B_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 9ed8723a3b66aeb4c91a0d9aed732440, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _Height: 0.66
-    - _Tile: 2.04
-    - _Width: 2.02
+    - FlipbookTile: 19
+    - Vector1_743AA750: 0
     m_Colors: []
+  m_BuildTextureStacks: []
