@@ -1546,9 +1546,12 @@ namespace UnityEngine.Rendering.HighDefinition
             dynResHandler.Update(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings, () =>
             {
                 var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-                var stencilBuffer = hdrp.m_SharedRTManager.GetDepthStencilBuffer().rt;
-                var stencilBufferSize = new Vector2Int(stencilBuffer.width, stencilBuffer.height);
-                hdrp.m_SharedRTManager.ComputeDepthBufferMipChainSize(DynamicResolutionHandler.instance.GetScaledSize(stencilBufferSize));
+                if (!m_EnableRenderGraph)
+                {
+                    var stencilBuffer = hdrp.m_SharedRTManager.GetDepthStencilBuffer().rt;
+                    var stencilBufferSize = new Vector2Int(stencilBuffer.width, stencilBuffer.height);
+                    hdrp.m_SharedRTManager.ComputeDepthBufferMipChainSize(DynamicResolutionHandler.instance.GetScaledSize(stencilBufferSize));
+                }
             }
             );
 

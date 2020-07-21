@@ -126,6 +126,27 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle destination;
         }
 
+        class DepthofFieldData
+        {
+            public DepthOfFieldParameters parameters;
+            public TextureHandle source;
+            public TextureHandle destination;
+            public TextureHandle motionVecTexture;
+            public TextureHandle pingNearRGB;
+            public TextureHandle pongNearRGB;
+            public TextureHandle nearCoC;
+            public TextureHandle nearAlpha;
+            public TextureHandle dilatedNearCoC;
+            public TextureHandle pingFarRGB;
+            public TextureHandle pongFarRGB;
+            public TextureHandle farCoC;
+            public TextureHandle fullresCoC;
+            public TextureHandle[] mips = new TextureHandle[4];
+            public TextureHandle dilationPingPongRT;
+            public TextureHandle prevCoC;
+            public TextureHandle nextCoC;
+        }
+
         TextureHandle GetPostprocessOutputHandle(RenderGraph renderGraph, string name)
         {
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
@@ -380,7 +401,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     else if (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.SubpixelMorphologicalAntiAliasing)
                     {
-                        using (var builder = renderGraph.AddRenderPass<SMAAData>("Temporal Anti-Aliasing", out var passData, ProfilingSampler.Get(HDProfileId.SMAA)))
+                        using (var builder = renderGraph.AddRenderPass<SMAAData>("SubpixelMorphological Anti-Aliasing", out var passData, ProfilingSampler.Get(HDProfileId.SMAA)))
                         {
                             passData.source = builder.ReadTexture(source);
                             passData.parameters = PrepareSMAAParameters(hdCamera);
@@ -410,32 +431,203 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                //                if (camera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
-                //                {
-                //                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CustomPostProcessBeforePP)))
-                //                    {
-                //                        foreach (var typeString in HDRenderPipeline.defaultAsset.beforePostProcessCustomPostProcesses)
-                //                            RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
-                //                    }
-                //                }
+                bool postDoFTAAEnabled = false;
 
-                //                // If Path tracing is enabled, then DoF is computed in the path tracer by sampling the lens aperure (when using the physical camera mode)
-                //                bool isDoFPathTraced = (camera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
-                //                     camera.volumeStack.GetComponent<PathTracing>().enable.value &&
-                //                     camera.camera.cameraType != CameraType.Preview &&
-                //                     m_DepthOfField.focusMode == DepthOfFieldMode.UsePhysicalCamera);
+                // If Path tracing is enabled, then DoF is computed in the path tracer by sampling the lens aperure (when using the physical camera mode)
+                bool isDoFPathTraced = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
+                     hdCamera.volumeStack.GetComponent<PathTracing>().enable.value &&
+                     hdCamera.camera.cameraType != CameraType.Preview &&
+                     m_DepthOfField.focusMode == DepthOfFieldMode.UsePhysicalCamera);
 
-                //                // Depth of Field is done right after TAA as it's easier to just re-project the CoC
-                //                // map rather than having to deal with all the implications of doing it before TAA
-                //                if (m_DepthOfField.IsActive() && !isSceneView && m_DepthOfFieldFS && !isDoFPathTraced)
-                //                {
-                //                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfField)))
-                //                    {
-                //                        var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
-                //                        DoDepthOfField(cmd, camera, source, destination, taaEnabled);
-                //                        PoolSource(ref source, destination);
-                //                    }
-                //                }
+                // Depth of Field is done right after TAA as it's easier to just re-project the CoC
+                // map rather than having to deal with all the implications of doing it before TAA
+                if (m_DepthOfField.IsActive() && !isSceneView && m_DepthOfFieldFS && !isDoFPathTraced)
+                {
+                    var dofParameters = PrepareDoFParameters(hdCamera);
+
+                    bool useHistoryMips = m_DepthOfField.physicallyBased;
+                    GrabCoCHistory(hdCamera, out var prevCoC, out var nextCoC, useMips: useHistoryMips);
+                    var prevCoCHandle = renderGraph.ImportTexture(prevCoC);
+                    var nextCoCHandle = renderGraph.ImportTexture(nextCoC);
+
+                    // If we switch DoF modes and the old one was not using TAA, make sure we invalidate the history
+                    if (taaEnabled && m_IsDoFHisotoryValid != m_DepthOfField.physicallyBased)
+                    {
+                        hdCamera.resetPostProcessingHistory = true;
+                    }
+
+                    using (var builder = renderGraph.AddRenderPass<DepthofFieldData>("Depth of Field", out var passData, ProfilingSampler.Get(HDProfileId.DepthOfField)))
+                    {
+                        passData.source = builder.ReadTexture(source);
+                        passData.parameters = dofParameters;
+                        passData.prevCoC = builder.ReadTexture(prevCoCHandle);
+                        passData.nextCoC = builder.WriteTexture(builder.ReadTexture(nextCoCHandle));
+
+                        float scale = 1f / (float)passData.parameters.resolution;
+                        var screenScale = new Vector2(scale, scale);
+
+                        TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "DoF Destination");
+                        passData.destination = builder.WriteTexture(dest);
+                        passData.motionVecTexture = builder.ReadTexture(motionVectors);
+
+                        if (!m_DepthOfField.physicallyBased)
+                        {
+                            if (passData.parameters.nearLayerActive)
+                            {
+                                passData.pingNearRGB = builder.CreateTransientTexture(new TextureDesc(screenScale, true, true)
+                                { colorFormat = m_ColorFormat, enableRandomWrite = true, name = "Ping Near RGB" });
+
+                                passData.pongNearRGB = builder.CreateTransientTexture(new TextureDesc(screenScale, true, true)
+                                { colorFormat = m_ColorFormat, enableRandomWrite = true, name = "Pong Near RGB" });
+
+                                passData.nearCoC = builder.CreateTransientTexture(new TextureDesc(screenScale, true, true)
+                                { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Near CoC" });
+
+                                passData.nearAlpha = builder.CreateTransientTexture(new TextureDesc(screenScale, true, true)
+                                { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Near Alpha" });
+
+                                passData.dilatedNearCoC = builder.CreateTransientTexture(new TextureDesc(screenScale, true, true)
+                                { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Dilated Near CoC" });
+
+                            }
+                            else
+                            {
+                                passData.pingNearRGB = TextureHandle.nullHandle;
+                                passData.pongNearRGB = TextureHandle.nullHandle;
+                                passData.nearCoC = TextureHandle.nullHandle;
+                                passData.nearAlpha = TextureHandle.nullHandle;
+                                passData.dilatedNearCoC = TextureHandle.nullHandle;
+                            }
+
+                            if (passData.parameters.farLayerActive)
+                            {
+                                passData.pingFarRGB = builder.CreateTransientTexture(new TextureDesc(screenScale, true, true)
+                                { colorFormat = m_ColorFormat, useMipMap = true, enableRandomWrite = true, name = "Ping Far RGB" });
+
+                                passData.pongFarRGB = builder.CreateTransientTexture(new TextureDesc(screenScale, true, true)
+                                { colorFormat = m_ColorFormat, enableRandomWrite = true, name = "Pong Far RGB" });
+
+                                passData.farCoC = builder.CreateTransientTexture(new TextureDesc(screenScale, true, true)
+                                { colorFormat = k_CoCFormat, useMipMap = true, enableRandomWrite = true, name = "Far CoC" });
+                            }
+                            else
+                            {
+                                passData.pingFarRGB = TextureHandle.nullHandle;
+                                passData.pongFarRGB = TextureHandle.nullHandle;
+                                passData.farCoC = TextureHandle.nullHandle;
+                            }
+
+                            passData.fullresCoC = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
+                            { colorFormat = m_ColorFormat, enableRandomWrite = true, name = "Full res CoC" });
+
+                            int passCount = Mathf.CeilToInt((passData.parameters.nearMaxBlur + 2f) / 4f);
+                            passData.dilationPingPongRT = TextureHandle.nullHandle;
+                            if (passCount > 1)
+                            {
+                                passData.dilationPingPongRT = builder.CreateTransientTexture(new TextureDesc(screenScale, true, true)
+                                { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Dilation ping pong CoC" });
+                            }
+
+                            var mipScale = scale;
+                            for (int i = 0; i < 4; ++i)
+                            {
+                                mipScale *= 0.5f;
+                                var size = new Vector2Int(Mathf.RoundToInt(hdCamera.actualWidth * mipScale), Mathf.RoundToInt(hdCamera.actualHeight * mipScale));
+
+                                passData.mips[i] = builder.CreateTransientTexture(new TextureDesc(new Vector2(mipScale, mipScale), true, true)
+                                {
+                                    colorFormat = m_ColorFormat,
+                                    enableRandomWrite = true,
+                                    name = "CoC Mip"
+                                });
+                            }
+
+
+                            builder.SetRenderFunc(
+                            (DepthofFieldData data, RenderGraphContext ctx) =>
+                            {
+                                var mipsHandles = ctx.renderGraphPool.GetTempArray<RTHandle>(4);
+
+                                for (int i = 0; i < 4; ++i)
+                                {
+                                    mipsHandles[i] = data.mips[i];
+                                }
+
+                                DoDepthOfField(passData.parameters, ctx.cmd, passData.source, passData.destination, passData.pingNearRGB, passData.pongNearRGB, passData.nearCoC, passData.nearAlpha,
+                                               passData.dilatedNearCoC, passData.pingFarRGB, passData.pongFarRGB, passData.farCoC, passData.fullresCoC, mipsHandles, passData.dilationPingPongRT, prevCoC, nextCoC, passData.motionVecTexture, taaEnabled);
+                            });
+
+                            source = passData.destination;
+
+                        }
+                        else
+                        {
+                            passData.fullresCoC = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
+                            { colorFormat = m_ColorFormat, enableRandomWrite = true, useMipMap = true, name = "Full res CoC" });
+
+                            builder.SetRenderFunc(
+                            (DepthofFieldData data, RenderGraphContext ctx) =>
+                            {
+                                DoPhysicallyBasedDepthOfField(passData.parameters, ctx.cmd, passData.source, passData.destination, passData.fullresCoC, prevCoC, nextCoC, passData.motionVecTexture, taaEnabled);
+                            });
+
+                            source = passData.destination;
+                        }
+                    }
+                }
+
+                // When physically based DoF is enabled, TAA runs two times, first to stabilize the color buffer before DoF and then after DoF to accumulate more aperture samples
+                if (taaEnabled && m_DepthOfField.physicallyBased)
+                {
+                    bool postDof = true;
+                    var taaParams = PrepareTAAParameters(hdCamera, postDof);
+
+
+                    using (var builder = renderGraph.AddRenderPass<TemporalAntiAliasingData>("Temporal Anti-Aliasing", out var passData, ProfilingSampler.Get(HDProfileId.TemporalAntialiasing)))
+                    {
+                        GrabTemporalAntialiasingHistoryTextures(hdCamera, out var prevHistory, out var nextHistory, postDof);
+
+                        passData.source = builder.ReadTexture(source);
+                        passData.parameters = PrepareTAAParameters(hdCamera);
+                        passData.depthBuffer = builder.ReadTexture(depthBuffer);
+                        passData.motionVecTexture = builder.ReadTexture(motionVectors);
+                        passData.depthMipChain = builder.ReadTexture(depthBufferMipChain);
+                        passData.prevHistory = builder.ReadTexture(renderGraph.ImportTexture(prevHistory));
+                        if (passData.parameters.camera.resetPostProcessingHistory)
+                        {
+                            passData.prevHistory = builder.WriteTexture(passData.prevHistory);
+                        }
+                        passData.nextHistory = builder.WriteTexture(renderGraph.ImportTexture(nextHistory));
+                        passData.prevMVLen = TextureHandle.nullHandle;
+                        passData.nextMVLen = TextureHandle.nullHandle;
+
+                        TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Post-DoF TAA Destination");
+                        passData.destination = builder.WriteTexture(dest); ;
+
+                        builder.SetRenderFunc(
+                        (TemporalAntiAliasingData data, RenderGraphContext ctx) =>
+                        {
+                            DoTemporalAntialiasing(data.parameters, ctx.cmd, data.source,
+                                                                             data.destination,
+                                                                             data.motionVecTexture,
+                                                                             data.depthBuffer,
+                                                                             data.depthMipChain,
+                                                                             data.prevHistory,
+                                                                             data.nextHistory,
+                                                                             data.prevMVLen,
+                                                                             data.nextMVLen);
+                        });
+
+                        source = passData.destination;
+                    }
+
+                    postDoFTAAEnabled = true;
+                }
+
+                if (!postDoFTAAEnabled)
+                {
+                    ReleasePostDoFTAAHistoryTextures(hdCamera);
+                }
 
                 // Motion blur after depth of field for aesthetic reasons (better to see motion
                 // blurred bokeh rather than out of focus motion blur)

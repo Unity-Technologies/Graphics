@@ -669,7 +669,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 GrabCoCHistory(camera, out prevCoC, out nextCoC, useMips: false);
 
                                 DoDepthOfField(dofParameters, cmd, source, destination, pingNearRGB, pongNearRGB, nearCoC, nearAlpha,
-                                               dilatedNearCoC, pingFarRGB, pongFarRGB, farCoC, fullresCoC, mips, dilationPingPongRT, prevCoC, nextCoC, taaEnabled);
+                                               dilatedNearCoC, pingFarRGB, pongFarRGB, farCoC, fullresCoC, mips, dilationPingPongRT, prevCoC, nextCoC, motionVecTexture, taaEnabled);
 
                                 m_HDInstance.PushFullScreenDebugTexture(camera, cmd, fullresCoC, FullScreenDebugMode.DepthOfFieldCoc);
 
@@ -713,7 +713,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 var fullresCoC = m_Pool.Get(Vector2.one, k_CoCFormat, true);
 
-                                DoPhysicallyBasedDepthOfField(dofParameters, cmd, source, destination, fullresCoC, prevCoC, nextCoC, taaEnabled);
+                                DoPhysicallyBasedDepthOfField(dofParameters, cmd, source, destination, fullresCoC, prevCoC, nextCoC, motionVecTexture, taaEnabled);
 
                                 m_Pool.Recycle(fullresCoC);
                             }
@@ -740,6 +740,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         ReleasePostDoFTAAHistoryTextures(camera);
                     }
+
                     // Motion blur after depth of field for aesthetic reasons (better to see motion
                     // blurred bokeh rather than out of focus motion blur)
                     if (m_MotionBlur.IsActive() && m_AnimatedMaterialsEnabled && !camera.resetPostProcessingHistory && m_MotionBlurFS)
@@ -2004,7 +2005,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static void DoDepthOfField(in DepthOfFieldParameters dofParameters, CommandBuffer cmd, RTHandle source, RTHandle destination,
             RTHandle pingNearRGB, RTHandle pongNearRGB, RTHandle nearCoC, RTHandle nearAlpha, RTHandle dilatedNearCoC,
             RTHandle pingFarRGB, RTHandle pongFarRGB, RTHandle farCoC, RTHandle fullresCoC, RTHandle[] mips, RTHandle dilationPingPong,
-            RTHandle prevCoCHistory, RTHandle nextCoCHistory,
+            RTHandle prevCoCHistory, RTHandle nextCoCHistory, RTHandle motionVecTexture,
             bool taaEnabled)
         {
             bool nearLayerActive = dofParameters.nearLayerActive;
@@ -2134,7 +2135,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (taaEnabled)
                 {
-                    ReprojectCoCHistory(dofParameters, cmd, dofParameters.camera, prevCoCHistory, nextCoCHistory, ref fullresCoC);
+                    ReprojectCoCHistory(dofParameters, cmd, dofParameters.camera, prevCoCHistory, nextCoCHistory, motionVecTexture, ref fullresCoC);
                 }
             }
 
@@ -2454,7 +2455,7 @@ namespace UnityEngine.Rendering.HighDefinition
             previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC);
         }
 
-        static void ReprojectCoCHistory(in DepthOfFieldParameters parameters, CommandBuffer cmd, HDCamera camera, RTHandle prevCoC, RTHandle nextCoC, ref RTHandle fullresCoC)
+        static void ReprojectCoCHistory(in DepthOfFieldParameters parameters, CommandBuffer cmd, HDCamera camera, RTHandle prevCoC, RTHandle nextCoC, RTHandle motionVecTexture, ref RTHandle fullresCoC)
         {
             var cocHistoryScale = new Vector2(camera.historyRTHandleProperties.rtHandleScale.z, camera.historyRTHandleProperties.rtHandleScale.w);
 
@@ -2465,6 +2466,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputHistoryCoCTexture, prevCoC);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputCoCTexture, nextCoC);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CameraMotionVectorsTexture, motionVecTexture);
             cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
 
             fullresCoC = nextCoC;
@@ -2484,7 +2486,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static void DoPhysicallyBasedDepthOfField(in DepthOfFieldParameters dofParameters, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle fullresCoC, RTHandle prevCoCHistory, RTHandle nextCoCHistory, bool taaEnabled)
+        static void DoPhysicallyBasedDepthOfField(in DepthOfFieldParameters dofParameters, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle fullresCoC, RTHandle prevCoCHistory, RTHandle nextCoCHistory, RTHandle motionVecTexture, bool taaEnabled)
         {
             float scale = 1f / (float)dofParameters.resolution;
             int targetWidth = Mathf.RoundToInt(dofParameters.camera.actualWidth * scale);
@@ -2540,7 +2542,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (taaEnabled)
                 {
-                    ReprojectCoCHistory(dofParameters, cmd, dofParameters.camera, prevCoCHistory, nextCoCHistory, ref fullresCoC);
+                    ReprojectCoCHistory(dofParameters, cmd, dofParameters.camera, prevCoCHistory, nextCoCHistory, motionVecTexture, ref fullresCoC);
                 }
             }
 
