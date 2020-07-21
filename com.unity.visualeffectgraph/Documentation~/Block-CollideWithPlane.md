@@ -1,10 +1,10 @@
-# Collide with AABox
+# Collide with Plane
 
-Menu Path : **Collision > Collide with AABox**
+Menu Path : **Collision > Collide with Plane**
 
-The **Collide with AABox** Block defines an axis-aligned box volume that particles collide with.
+The **Collide with Plane** Block defines a flat plane with infinite extends for particles to collide with.
 
-![](Images/Block-CollideWithAABoxMain.png)
+![](Images/Block-CollideWithPlaneMain.png)
 
 ## Block compatibility
 
@@ -16,7 +16,7 @@ This Block is compatible with the following Contexts:
 
 | **Setting**       | **Type** | **Description**                                              |
 | ----------------- | -------- | ------------------------------------------------------------ |
-| **Mode**          | Enum     | The collision shape mode. The options are:<br/>&#8226; **Solid**: Particles cannot enter the collider.<br/>&#8226; **Inverted**: Particles cannot leave the collider. The collider becomes a volume that the particles cannot exit. |
+| **Mode**          | Enum     | The collision shape mode. The options are:<br/>&#8226; **Solid**: Particles collide with the plane when travelling in an opposing direction to the plane's normal.<br/>&#8226; **Inverted**: Inverts the normal direction of the plane for the purpose of collisions. This means particles collide with the plane when travelling in a direction not opposing the plane's normal. |
 | **Radius Mode**   | Enum     | The mode that determines the collision radius of each particle. The options are:<br/>&#8226; **None**: Particles have a radius of zero.<br/>&#8226; **From Size**: Particles inherit their radius from their individual sizes.<br/>&#8226; **Custom**: Allows you to set the radius of the particles to a specific value. |
 | **Rough Surface** | Bool     | Toggles whether or not the collider simulates a rough surface. When enabled, Unity adds randomness to the direction in which particles bounce back to simulate collision with a rough surface. |
 
@@ -24,7 +24,7 @@ This Block is compatible with the following Contexts:
 
 | **Input**         | **Type**               | **Description**                                              |
 | ----------------- | ---------------------- | ------------------------------------------------------------ |
-| **Box**           | [AABox](Type-AABox.md) | The axis-aligned box that specifies the center position and size of the collision volume. |
+| **Plane**         | [Plane](Type-Plane.md) | The plane that specifies the center position and normal of the collision plane. |
 | **Bounce**        | Float                  | The amount of bounce to apply to particles after a collision. A value of 0 means the particles do not bounce. A value of 1 means particles bounce away with the same speed they impacted with. |
 | **Friction**      | Float                  | The speed that particles lose during collision. The minimum value is 0. |
 | **Lifetime Loss** | Float                  | The proportion of life a particle loses after collision.     |

@@ -31,6 +31,11 @@
   	* Block
     	* Collision
       	* [Collide with AABox](Block-CollideWithAABox.md)
+      	* [Collide with Cylinder](Block-CollideWithCylinder.md)
+      	* [Collide with Depth Buffer](Block-CollideWithDepthBuffer.md)
+      	* [Collide with Plane](Block-CollideWithPlane.md)
+      	* [Collide with Signed Distance Field](Block-CollideWithSignedDistanceField.md)
+      	* [Collide with Sphere](Block-CollideWithSphere.md)
     * [Update Particle](Context-Update.md)
   * Operator
     * Attribute
@@ -247,6 +252,7 @@
     * [Camera](Type-Camera.md)
     * [Circle](Type-Circle.md)
     * [Cone](Type-Cone.md)
+    * [Cylinder](Type-Cylinder.md)
     * [Direction](Type-Direction)
     * [Line](Type-Line.md)
     * [OrientedBox](Type-OrientedBox.md)
