@@ -100,9 +100,90 @@ namespace UnityEngine.Rendering.Universal.Internal
         private const float LightTypeIdentifierInShadowParams_Spot = 0;
         private const float LightTypeIdentifierInShadowParams_Point = 1;
 
-        // Empirical value found to remove gaps between point light shadow faces (adds to the 90 degrees value that native API CullingResult.ComputePointShadowMatricesAndCullingPrimitives uses for point light faces frustum)
-        // TODO: investigate how to use a more precise value. For reference, HDRP calls HDShadowUtils.CalcGuardAnglePerspective to compute a precise value
-        internal const float PointLightShadowFovBiasInDegrees = 4;
+
+        // Returns the guard angle that must be added to a frustum angle covering a projection map of resolution sliceResolutionInTexels,
+        // in order to also cover a guard band of size guardBandSizeInTexels around the projection map.
+        // Formula illustrated in https://i.ibb.co/wpW5Mnf/Calc-Guard-Angle.png
+        internal static float CalcGuardAngle(float frustumAngleInDegrees, float guardBandSizeInTexels, float sliceResolutionInTexels)
+        {
+            float frustumAngle = frustumAngleInDegrees * Mathf.Deg2Rad;
+            float halfFrustumAngle = frustumAngle/2;
+            float tanHalfFrustumAngle = Mathf.Tan(halfFrustumAngle);
+
+            float halfSliceResolution = sliceResolutionInTexels/2;
+            float halfGuardBand = guardBandSizeInTexels/2;
+            float factorBetweenAngleTangents = 1 + halfGuardBand/halfSliceResolution;
+
+            float tanHalfGuardAnglePlusHalfFrustumAngle = tanHalfFrustumAngle * factorBetweenAngleTangents;
+
+            float halfGuardAnglePlusHalfFrustumAngle = Mathf.Atan(tanHalfGuardAnglePlusHalfFrustumAngle);
+            float halfGuardAngleInRadian = halfGuardAnglePlusHalfFrustumAngle - halfFrustumAngle;
+
+            float guardAngleInRadian = 2*halfGuardAngleInRadian;
+            float guardAngleInDegree = guardAngleInRadian * Mathf.Rad2Deg;
+
+            return guardAngleInDegree;
+        }
+
+        // Returns the guard angle that must be added to a point light shadow face frustum angle
+        // in order to avoid shadows missing at the boundaries between cube faces.
+        internal static float GetPointLightShadowFrustumFovBiasInDegrees(int shadowSliceResolution, bool shadowFiltering)
+        {
+            // Commented-out code below uses the theoretical formula to compute the required guard angle based on the number of additional
+            // texels that the projection should cover. It is close to HDRP's HDShadowUtils.CalcGuardAnglePerspective method.
+            // However, due to precision issues or other filterings performed at lighting for example, this formula also still requires a fudge factor.
+            // Since we only handle a fixed number of resolutions, we use empirical values instead.
+            #if false
+            float fudgeFactor = 1.5f;
+            return fudgeFactor * CalcGuardAngle(90, shadowFiltering? 5 : 1, shadowSliceResolution);
+            #endif
+
+
+            float fovBias = 4.00f;
+
+            // Empirical value found to remove gaps between point light shadow faces in test scenes.
+            // We can see that the guard angle is roughly proportional to the inverse of resolution https://docs.google.com/spreadsheets/d/1QrIZJn18LxVKq2-K1XS4EFRZcZdZOJTTKKhDN8Z1b_s
+            if (shadowSliceResolution <= 8)
+                Debug.LogWarning("Too many additional punctual lights shadows, increase shadow atlas size or remove some shadowed lights");
+                // TODO: (If we decide to support it) Investigate why shadows are not rendered when single slice resolution is 8
+            else if (shadowSliceResolution <= 16)
+                fovBias = 43.0f;
+            else if (shadowSliceResolution <= 32)
+                fovBias = 18.55f;
+            else if (shadowSliceResolution <= 64)
+                fovBias = 8.63f;
+            else if (shadowSliceResolution <= 128)
+                fovBias = 4.13f;
+            else if (shadowSliceResolution <= 256)
+                fovBias = 2.03f;
+            else if (shadowSliceResolution <= 512)
+                fovBias = 1.00f;
+            else if (shadowSliceResolution <= 1024)
+                fovBias = 0.50f;
+
+            if(shadowFiltering)
+            {
+                if (shadowSliceResolution <= 16)
+                    Debug.LogWarning("Too many additional punctual lights shadows to use Soft Shadows. Increase shadow atlas size, remove some shadowed lights or use Hard Shadows.");
+                    // With such small resolutions no fovBias can give good visual results
+                else if (shadowSliceResolution <= 32)
+                    fovBias += 9.35f;
+                else if (shadowSliceResolution <= 64)
+                    fovBias += 4.07f;
+                else if (shadowSliceResolution <= 128)
+                    fovBias += 1.77f;
+                else if (shadowSliceResolution <= 256)
+                    fovBias += 0.85f;
+                else if (shadowSliceResolution <= 512)
+                    fovBias += 0.39f;
+                else if (shadowSliceResolution <= 1024)
+                    fovBias += 0.17f;
+
+                // TODO: Check if those values work on platforms for which m_SupportsBoxFilterForShadows is true (Mobile, Switch). Soft shadows are implemented differently on those platforms.
+            }
+
+            return fovBias;
+        }
 
         public bool Setup(ref RenderingData renderingData)
         {
@@ -124,6 +205,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (IsValidShadowCastingLight(ref renderingData.lightData, i))
                     totalShadowSlicesCount += GetPunctualLightShadowSlicesCount(visibleLights[i].lightType);
             }
+
+            int atlasWidth = renderingData.shadowData.additionalLightsShadowmapWidth;
+            int atlasHeight = renderingData.shadowData.additionalLightsShadowmapHeight;
+            // Compute a common sliceResolution that allows to fit all shadow slices in the shadow atlas
+            // i.e additional punctual light shadows resolution is adjusted every frame
+            int sliceResolution = ShadowUtils.GetMaxTileResolutionInAtlas(atlasWidth, atlasHeight, totalShadowSlicesCount);
 
             if (m_AdditionalLightsShadowSlices == null || m_AdditionalLightsShadowSlices.Length < totalShadowSlicesCount)
                 m_AdditionalLightsShadowSlices = new ShadowSliceData[totalShadowSlicesCount];
@@ -204,11 +291,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                             }
                             else if (lightType == LightType.Point)
                             {
+                                float fovBias = GetPointLightShadowFrustumFovBiasInDegrees(sliceResolution, (shadowLight.light.shadows==LightShadows.Soft));
+
+                                // store fovBias in spotAngle because it is used to compute ShadowUtils.GetShadowBias
+                                shadowLight.spotAngle = 90 + fovBias;
+
                                 bool success = ShadowUtils.ExtractPointLightMatrix(ref renderingData.cullResults,
                                     ref renderingData.shadowData,
                                     globalLightIndex,
                                     (CubemapFace)perLightShadowSlice,
-                                    PointLightShadowFovBiasInDegrees,
+                                    fovBias,
                                     out var shadowTransform,
                                     out m_AdditionalLightsShadowSlices[globalShadowSliceIndex].viewMatrix,
                                     out m_AdditionalLightsShadowSlices[globalShadowSliceIndex].projectionMatrix);
@@ -279,14 +371,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (validShadowCastingLightsCount == 0)
                 return false;
 
-            int atlasWidth = renderingData.shadowData.additionalLightsShadowmapWidth;
-            int atlasHeight = renderingData.shadowData.additionalLightsShadowmapHeight;
-
             int shadowCastingLightsBufferCount = m_ShadowSliceToGlobalLightIndex.Count;
-
-            // Compute a common sliceResolution that allows to fit all shadow slices in the shadow atlas
-            // i.e additional punctual light shadows resolution is adjusted every frame
-            int sliceResolution = ShadowUtils.GetMaxTileResolutionInAtlas(atlasWidth, atlasHeight, shadowCastingLightsBufferCount);
 
             // In the UI we only allow for square shadow map atlas. Here we check if we can fit
             // all shadow slices into half resolution of the atlas and adjust height to have tighter packing.
