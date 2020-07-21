@@ -37,6 +37,6 @@ class Editor_PinningMergeToTargetJob():
         job.set_agent(agent)
         job.add_var_custom('CI', True)
         job.add_commands(commands)
-        #job.add_dependencies([f'{abv_filepath()}#{abv_job_id_all_project_ci(editor)}'])
-        #job.add_trigger_integration_branch(target_branch_editor_ci)
+        #job.add_dependencies([f'{abv_filepath()}#{abv_job_id_all_project_ci(editor)}']) # TODO uncomment
+        job.add_trigger_integration_branch(target_branch_editor_ci)
         return job
