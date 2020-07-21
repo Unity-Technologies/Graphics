@@ -746,6 +746,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix sun disk intensity
 - Fixed unwanted ghosting for smooth surfaces.
 - Fixing an issue in the recursive rendering flag texture usage.
+- Fixed a missing dependecy for choosing to evaluate transparent SSR.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
