@@ -145,6 +145,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added missing SampleVirtualTextureNode address mode control in ShaderGraph
 - Fixed a badly named control on SampleVirtualTextureNode in ShaderGraph
 - Fixed an issue where multiple SampleVirtualTextureNodes created functions with names that may collide in ShaderGraph
+- Adjusted style sheet for Blackboard to prevent conflicts (depends on trunk PR #1415). https://fogbugz.unity3d.com/f/cases/1253962/, https://fogbugz.unity3d.com/f/cases/1163697/
 
 ## [7.1.1] - 2019-09-05
 ### Added
