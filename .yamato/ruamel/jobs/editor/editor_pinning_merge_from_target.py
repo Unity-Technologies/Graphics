@@ -24,7 +24,7 @@ class Editor_PinningMergeFromTargetJob():
             fi'''),
             f'git fetch',
             f'git checkout {target_branch_editor_ci}',
-            f'git merge --ff-only %GIT_REVISION%',
+            f'git merge --ff-only {target_branch }',
             f'git config --global user.name "noreply@unity3d.com"',
             f'git config --global user.email "noreply@unity3d.com"',
             f'git push'
