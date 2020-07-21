@@ -59,6 +59,7 @@ CBUFFER_END
 #endif
 
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
+
 StructuredBuffer<ShadowData> _AdditionalShadowsBuffer;
 StructuredBuffer<int> _AdditionalShadowsIndices;
 half4       _AdditionalShadowOffset0;
@@ -66,22 +67,40 @@ half4       _AdditionalShadowOffset1;
 half4       _AdditionalShadowOffset2;
 half4       _AdditionalShadowOffset3;
 float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
+
 #else
+
+#if defined(SHADER_API_MOBILE) && (SHADER_TARGET < 45)
+// Point lights can use 6 shadow slices
+#define MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO (MAX_VISIBLE_LIGHTS*6)
+#elif defined(SHADER_API_MOBILE) || (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) // Workaround for bug on Nintendo Switch where SHADER_API_GLCORE is mistakenly defined
+// Point lights can use 6 shadow slices
+#define MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO (MAX_VISIBLE_LIGHTS*6)
+#else
+// Point lights can use 6 shadow slices, but on some platforms max uniform block size is 64kb. This number ensures size of buffer AdditionalLightShadows does not exceed this 64kb limit.
+// Keep in sync with MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO in AdditionalLightsShadowCasterPass.cs
+#define MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO 545
+#endif
+
 // GLES3 causes a performance regression in some devices when using CBUFFER.
 #ifndef SHADER_API_GLES3
 CBUFFER_START(AdditionalLightShadows)
 #endif
-float4x4    _AdditionalLightsWorldToShadow[MAX_VISIBLE_LIGHTS];
-half4       _AdditionalShadowParams[MAX_VISIBLE_LIGHTS];
+
+float4x4    _AdditionalLightsWorldToShadow[MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO];
+half4       _AdditionalShadowParams[MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO];
 half4       _AdditionalShadowOffset0;
 half4       _AdditionalShadowOffset1;
 half4       _AdditionalShadowOffset2;
 half4       _AdditionalShadowOffset3;
 float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
+
 #ifndef SHADER_API_GLES3
 CBUFFER_END
 #endif
+
 #endif
+
 
 float4 _ShadowBias; // x: depth bias, y: normal bias
 

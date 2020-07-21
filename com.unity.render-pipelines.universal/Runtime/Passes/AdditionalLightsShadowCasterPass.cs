@@ -74,9 +74,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 // Preallocated a fixed size. CommandBuffer.SetGlobal* does allow this data to grow.
                 int maxLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
-                m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = new Matrix4x4[maxLights];
+                const int MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO = 545;  // keep in sync with MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO in Shadows.hlsl
+                int maxShadowSlices = Math.Min(6*maxLights, MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO);
+                m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = new Matrix4x4[maxShadowSlices];
                 m_GlobalLightIndexToShadowedAdditionalLightIndex = new int[maxLights];
-                m_ShadowedAdditionalLightIndexToShadowParams = new Vector4[maxLights];
+                m_ShadowedAdditionalLightIndexToShadowParams = new Vector4[maxShadowSlices];
             }
         }
 
