@@ -43,13 +43,13 @@ namespace UnityEditor.VFX
             None                        = 0,
 
             //VFX Time
-            VFXDeltaTime                   = 1 << 0,
-            VFXUnscaledDeltaTime           = 1 << 1,
-            VFXTotalTime                   = 1 << 2,
-            VFXFrameIndex                  = 1 << 3,
-            VFXPlayRate                    = 1 << 4,
-            VFXManagerFixedTimeStep        = 1 << 5,
-            VFXManagerMaxDeltaTime         = 1 << 6,
+            VfxDeltaTime                   = 1 << 0,
+            VfxUnscaledDeltaTime           = 1 << 1,
+            VfxTotalTime                   = 1 << 2,
+            VfxFrameIndex                  = 1 << 3,
+            VfxPlayRate                    = 1 << 4,
+            VfxManagerFixedTimeStep        = 1 << 5,
+            VfxManagerMaxDeltaTime         = 1 << 6,
 
             //Game Time
             GameDeltaTime               = 1 << 7,
@@ -66,18 +66,18 @@ namespace UnityEditor.VFX
             SystemSeed                  = 1 << 16,
         }
 
-        public static readonly BuiltInFlag s_allVFXTime = BuiltInFlag.VFXDeltaTime | BuiltInFlag.VFXUnscaledDeltaTime | BuiltInFlag.VFXTotalTime | BuiltInFlag.VFXFrameIndex | BuiltInFlag.VFXPlayRate | BuiltInFlag.VFXManagerFixedTimeStep | BuiltInFlag.VFXManagerMaxDeltaTime;
+        public static readonly BuiltInFlag s_allVFXTime = BuiltInFlag.VfxDeltaTime | BuiltInFlag.VfxUnscaledDeltaTime | BuiltInFlag.VfxTotalTime | BuiltInFlag.VfxFrameIndex | BuiltInFlag.VfxPlayRate | BuiltInFlag.VfxManagerFixedTimeStep | BuiltInFlag.VfxManagerMaxDeltaTime;
         public static readonly BuiltInFlag s_allGameTime = BuiltInFlag.GameDeltaTime | BuiltInFlag.GameUnscaledDeltaTime | BuiltInFlag.GameSmoothDeltaTime | BuiltInFlag.GameTotalTime | BuiltInFlag.GameUnscaledTotalTime | BuiltInFlag.GameTotalTimeSinceSceneLoad | BuiltInFlag.GameTimeScale;
         public static readonly Dictionary<BuiltInFlag, BuiltInInfo> s_BuiltInInfo = new Dictionary<BuiltInFlag, BuiltInInfo>
         {
             //VFX Time
-            { BuiltInFlag.VFXDeltaTime,                 new BuiltInInfo { expression = VFXBuiltInExpression.DeltaTime,                      shortName = "deltaTime",                longName = "vfxDeltaTime",                  operatorName = "Delta Time (VFX)",              tooltip = "The visual effect DeltaTime relying on Update mode"  } },
-            { BuiltInFlag.VFXUnscaledDeltaTime,         new BuiltInInfo { expression = VFXBuiltInExpression.UnscaledDeltaTime,              shortName = "unscaledDeltaTime",        longName = "vfxUnscaledDeltaTime",          operatorName = "Unscaled Delta Time (VFX)",     tooltip = "The visual effect Delta Time before the play rate scale" } },
-            { BuiltInFlag.VFXTotalTime,                 new BuiltInInfo { expression = VFXBuiltInExpression.TotalTime,                      shortName = "totalTime",                longName = "vfxTotalTime",                  operatorName = "Total Time (VFX)",              tooltip = "The visual effect time in second since component is enabled and visible" } },
-            { BuiltInFlag.VFXFrameIndex,                new BuiltInInfo { expression = VFXBuiltInExpression.FrameIndex,                     shortName = "frameIndex",               longName = "vfxFrameIndex",                 operatorName = "Frame Index (VFX)",             tooltip = "Global visual effect manager frame index" } },
-            { BuiltInFlag.VFXPlayRate,                  new BuiltInInfo { expression = VFXBuiltInExpression.PlayRate,                       shortName = "playRate",                 longName = "vfxPlayRate",                   operatorName = "Play Rate (VFX)",               tooltip = "The multiplier applied to the delta time when it updates the VisualEffect" } },
-            { BuiltInFlag.VFXManagerFixedTimeStep,      new BuiltInInfo { expression = VFXBuiltInExpression.ManagerFixedTimeStep,           shortName = "fixedTimeStep",            longName = "vfxFixedTimeStep",              operatorName = "Fixed Time Step (VFX)",         tooltip = "A VFXManager settings, the fixed interval in which the frame rate updates." } },
-            { BuiltInFlag.VFXManagerMaxDeltaTime,       new BuiltInInfo { expression = VFXBuiltInExpression.ManagerMaxDeltaTime,            shortName = "maxDeltaTime",             longName = "vfxMaxDeltaTime",               operatorName = "Max Delta Time (VFX)",          tooltip = "A VFXManager settings, the maximum allowed delta time for an update interval." } },
+            { BuiltInFlag.VfxDeltaTime,                 new BuiltInInfo { expression = VFXBuiltInExpression.DeltaTime,                      shortName = "deltaTime",                longName = "vfxDeltaTime",                  operatorName = "Delta Time (VFX)",              tooltip = "The visual effect DeltaTime relying on Update mode"  } },
+            { BuiltInFlag.VfxUnscaledDeltaTime,         new BuiltInInfo { expression = VFXBuiltInExpression.UnscaledDeltaTime,              shortName = "unscaledDeltaTime",        longName = "vfxUnscaledDeltaTime",          operatorName = "Unscaled Delta Time (VFX)",     tooltip = "The visual effect Delta Time before the play rate scale" } },
+            { BuiltInFlag.VfxTotalTime,                 new BuiltInInfo { expression = VFXBuiltInExpression.TotalTime,                      shortName = "totalTime",                longName = "vfxTotalTime",                  operatorName = "Total Time (VFX)",              tooltip = "The visual effect time in second since component is enabled and visible" } },
+            { BuiltInFlag.VfxFrameIndex,                new BuiltInInfo { expression = VFXBuiltInExpression.FrameIndex,                     shortName = "frameIndex",               longName = "vfxFrameIndex",                 operatorName = "Frame Index (VFX)",             tooltip = "Global visual effect manager frame index" } },
+            { BuiltInFlag.VfxPlayRate,                  new BuiltInInfo { expression = VFXBuiltInExpression.PlayRate,                       shortName = "playRate",                 longName = "vfxPlayRate",                   operatorName = "Play Rate (VFX)",               tooltip = "The multiplier applied to the delta time when it updates the VisualEffect" } },
+            { BuiltInFlag.VfxManagerFixedTimeStep,      new BuiltInInfo { expression = VFXBuiltInExpression.ManagerFixedTimeStep,           shortName = "fixedTimeStep",            longName = "vfxFixedTimeStep",              operatorName = "Fixed Time Step (VFX)",         tooltip = "A VFXManager settings, the fixed interval in which the frame rate updates." } },
+            { BuiltInFlag.VfxManagerMaxDeltaTime,       new BuiltInInfo { expression = VFXBuiltInExpression.ManagerMaxDeltaTime,            shortName = "maxDeltaTime",             longName = "vfxMaxDeltaTime",               operatorName = "Max Delta Time (VFX)",          tooltip = "A VFXManager settings, the maximum allowed delta time for an update interval." } },
 
             //Game Time
             { BuiltInFlag.GameDeltaTime,                new BuiltInInfo { expression = VFXBuiltInExpression.GameDeltaTime,                  shortName = "deltaTime",                longName = "gameDeltaTime",                 operatorName = "Delta Time (Game)",             tooltip = "The completion time in seconds since the last frame" } },
@@ -119,7 +119,7 @@ namespace UnityEditor.VFX
         }
 
         [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
-        protected BuiltInFlag m_BuiltInParameters = BuiltInFlag.VFXDeltaTime;
+        protected BuiltInFlag m_BuiltInParameters = BuiltInFlag.VfxDeltaTime;
 
         private IEnumerable<BuiltInFlag> builtInParameterEnumerable
         {
