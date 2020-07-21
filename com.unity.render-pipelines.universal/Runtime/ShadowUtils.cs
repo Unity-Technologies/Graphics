@@ -75,6 +75,7 @@ namespace UnityEngine.Rendering.Universal
 
             // In native API CullingResults.ComputeSpotShadowMatricesAndCullingPrimitives there is code that inverts the 3rd component of shadow-casting spot light's "world-to-local" matrix (it was so since its original addition to the code base):
             // https://github.cds.internal.unity3d.com/unity/unity/commit/34813e063526c4be0ef0448dfaae3a911dd8be58#diff-cf0b417fc6bd8ee2356770797e628cd4R331
+            // (the same transformation has also always been used in the Built-In Render Pipeline)
             //
             // However native API CullingResults.ComputePointShadowMatricesAndCullingPrimitives does not contain this transformation.
             // As a result, the view matrices returned for a point light shadow face, and for a spot light with same direction as that face, have opposite 3rd component.
@@ -163,7 +164,7 @@ namespace UnityEngine.Rendering.Universal
                 // handle this. For now, as a poor approximation we do a constant bias and compute the size of
                 // the frustum as if it was orthogonal considering the size at mid point between near and far planes.
                 // Depending on how big the light range is, it will be good enough with some tweaks in bias
-                frustumSize = Mathf.Tan(shadowLight.spotAngle * 0.5f * Mathf.Deg2Rad) * shadowLight.range; // Note: this formula currently computes *half*-diameter (in world-space units) of spot light cone's "base disk"
+                frustumSize = Mathf.Tan(shadowLight.spotAngle * 0.5f * Mathf.Deg2Rad) * shadowLight.range; // half-width (in world-space units) of shadow frustum's "far plane"
             }
             else if (shadowLight.lightType == LightType.Point)
             {

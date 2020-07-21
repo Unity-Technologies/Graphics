@@ -99,22 +99,32 @@ struct ShadowSamplingData
 ShadowSamplingData GetMainLightShadowSamplingData()
 {
     ShadowSamplingData shadowSamplingData;
+
+    // shadowOffsets are used in SampleShadowmapFiltered #if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
     shadowSamplingData.shadowOffset0 = _MainLightShadowOffset0;
     shadowSamplingData.shadowOffset1 = _MainLightShadowOffset1;
     shadowSamplingData.shadowOffset2 = _MainLightShadowOffset2;
     shadowSamplingData.shadowOffset3 = _MainLightShadowOffset3;
+
+    // shadowmapSize is used in SampleShadowmapFiltered for other platforms
     shadowSamplingData.shadowmapSize = _MainLightShadowmapSize;
+
     return shadowSamplingData;
 }
 
 ShadowSamplingData GetAdditionalLightShadowSamplingData()
 {
     ShadowSamplingData shadowSamplingData;
+
+    // shadowOffsets are used in SampleShadowmapFiltered #if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
     shadowSamplingData.shadowOffset0 = _AdditionalShadowOffset0;
     shadowSamplingData.shadowOffset1 = _AdditionalShadowOffset1;
     shadowSamplingData.shadowOffset2 = _AdditionalShadowOffset2;
     shadowSamplingData.shadowOffset3 = _AdditionalShadowOffset3;
+
+    // shadowmapSize is used in SampleShadowmapFiltered for other platforms
     shadowSamplingData.shadowmapSize = _AdditionalShadowmapSize;
+
     return shadowSamplingData;
 }
 
@@ -279,13 +289,16 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 ligh
     int shadowSliceIndex = shadowParams.w;
 
     // Test if this is a point light - Keep in sync with AdditionalLightsShadowCasterPass.LightTypeIdentifierInShadowParams_Point
-    // TODO: Investigate potential optimization: Try solutions that do not require branching, and compare performances
     if (shadowParams.z)
     {
         // This is a point light, we have to find out which shadow slice to sample from
         float cubemapFaceId = CubeMapFaceID(-lightDirection);
         shadowSliceIndex += cubemapFaceId;
     }
+    // TODO: Investigate potential optimization: Try solutions that do not require branching, and compare performances. for example:
+    //float cubemapFaceId = shadowParams.z * CubeMapFaceID(-lightDirection);
+    //shadowSliceIndex += cubemapFaceId;
+
     float4 shadowCoord = mul(_AdditionalLightsWorldToShadow[shadowSliceIndex], float4(positionWS, 1.0));
 
 #endif
