@@ -72,5 +72,7 @@ editor-pinning-merge-from-target:
       -  git fetch
       -  git checkout yamato/editor-pin
       -  git checkout yamato/editor-pin-ci
+      -  git config --global user.name "noreply@unity3d.com"
+      -  git config --global user.email "noreply@unity3d.com"
       -  git merge yamato/editor-pin
       -  git push
