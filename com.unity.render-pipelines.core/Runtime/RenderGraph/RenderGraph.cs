@@ -47,6 +47,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public MSAASamples  msaaSamples;
         ///<summary>Index of the current frame being rendered.</summary>
         public int          currentFrameIndex;
+        ///<summary>Scriptable Render Context used by the render pipeline.</summary>
+        public ScriptableRenderContext scriptableRenderContext;
+        ///<summary>Command Buffer used to execute graphic commands.</summary>
+        public CommandBuffer commandBuffer;
     }
 
     class RenderGraphDebugParams
@@ -57,7 +61,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public bool logFrameInformation;
         public bool logResources;
 
-        public void RegisterDebug()
+        public void RegisterDebug(string name)
         {
             var list = new List<DebugUI.Widget>();
             list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at creation", getter = () => clearRenderTargetsAtCreation, setter = value => clearRenderTargetsAtCreation = value });
@@ -82,13 +86,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 }
             });
 
-            var panel = DebugManager.instance.GetPanel("Render Graph", true);
+            var panel = DebugManager.instance.GetPanel(name.Length == 0 ? "Render Graph" : name, true);
             panel.children.Add(list.ToArray());
         }
 
-        public void UnRegisterDebug()
+        public void UnRegisterDebug(string name)
         {
-            DebugManager.instance.RemovePanel("Render Graph");
+            DebugManager.instance.RemovePanel(name.Length == 0 ? "Render Graph" : name);
         }
     }
 
@@ -200,6 +204,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
+        string                                  m_Name;
         RenderGraphResourceRegistry             m_Resources;
         RenderGraphObjectPool                   m_RenderGraphPool = new RenderGraphObjectPool();
         List<RenderGraphPass>                   m_RenderPasses = new List<RenderGraphPass>(64);
@@ -230,16 +235,18 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <summary>
         /// Render Graph constructor.
         /// </summary>
-        /// <param name="supportMSAA">Specify if this Render Graph should support MSAA.</param>
-        /// <param name="initialSampleCount">Specify the initial sample count of MSAA render textures.</param>
-        public RenderGraph(bool supportMSAA, MSAASamples initialSampleCount)
+        /// <param name="name">Optional name used to identify the render graph instnace.</param>
+        public RenderGraph(string name = "")
         {
-            m_Resources = new RenderGraphResourceRegistry(supportMSAA, initialSampleCount, m_DebugParameters, m_Logger);
+            m_Name = name;
+            m_Resources = new RenderGraphResourceRegistry(m_DebugParameters, m_Logger);
 
             for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
             {
                 m_CompiledResourcesInfos[i] = new DynamicArray<CompiledResourceInfo>();
             }
+
+            m_DebugParameters.RegisterDebug(m_Name);
         }
 
         /// <summary>
@@ -247,24 +254,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         public void Cleanup()
         {
+            m_DebugParameters.UnRegisterDebug(m_Name);
             m_Resources.Cleanup();
             m_DefaultResources.Cleanup();
-        }
-
-        /// <summary>
-        /// Register this Render Graph to the debug window.
-        /// </summary>
-        public void RegisterDebug()
-        {
-            m_DebugParameters.RegisterDebug();
-        }
-
-        /// <summary>
-        /// Unregister this Render Graph from the debug window.
-        /// </summary>
-        public void UnRegisterDebug()
-        {
-            m_DebugParameters.UnRegisterDebug();
         }
 
         /// <summary>
@@ -404,7 +396,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <param name="renderContext">ScriptableRenderContext used to execute Scriptable Render Pipeline.</param>
         /// <param name="cmd">Command Buffer used for Render Passes rendering.</param>
         /// <param name="parameters">Render Graph execution parameters.</param>
-        public void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, in RenderGraphExecuteParams parameters)
+        public void Execute(in RenderGraphExecuteParams parameters)
         {
             m_ExecutionExceptionWasRaised = false;
 
@@ -417,7 +409,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 LogFrameInformation(parameters.renderingWidth, parameters.renderingHeight);
 
                 CompileRenderGraph();
-                ExecuteRenderGraph(renderContext, cmd);
+                ExecuteRenderGraph(parameters.scriptableRenderContext, parameters.commandBuffer);
             }
             catch (Exception e)
             {
@@ -445,11 +437,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         // Internal for testing purpose only
         internal DynamicArray<CompiledPassInfo> GetCompiledPassInfos() { return m_CompiledPassInfos; }
-
-        private RenderGraph()
-        {
-
-        }
 
         // Internal for testing purpose only
         internal void ClearCompiledGraph()

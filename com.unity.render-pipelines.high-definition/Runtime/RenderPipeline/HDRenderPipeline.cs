@@ -962,8 +962,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitializeRenderGraph()
         {
-            m_RenderGraph = new RenderGraph(m_Asset.currentPlatformRenderPipelineSettings.supportMSAA, m_MSAASamples);
-            m_RenderGraph.RegisterDebug();
+            m_RenderGraph = new RenderGraph();
         }
 
         void CleanupRenderGraph()
@@ -971,7 +970,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_EnableRenderGraph)
             {
                 m_RenderGraph.Cleanup();
-                m_RenderGraph.UnRegisterDebug();
                 m_RenderGraph = null;
             }
         }
@@ -3602,7 +3600,7 @@ namespace UnityEngine.Rendering.HighDefinition
             switch (hdCamera.frameSettings.litShaderMode)
             {
                 case LitShaderMode.Forward:
-                    result.passName = "Full Depth Prepass (Forward)";     
+                    result.passName = "Full Depth Prepass (Forward)";
 
                     RenderStateBlock? stateBlock = null;
                     if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.AlphaToMask))

@@ -288,13 +288,15 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var renderGraphParams = new RenderGraphExecuteParams()
             {
+                scriptableRenderContext = renderContext,
+                commandBuffer = cmd,
                 renderingWidth = hdCamera.actualWidth,
                 renderingHeight = hdCamera.actualHeight,
                 msaaSamples = msaaSample,
                 currentFrameIndex = frameIndex
             };
 
-            renderGraph.Execute(renderContext, cmd, renderGraphParams);
+            renderGraph.Execute(renderGraphParams);
         }
 
         class FinalBlitPassData
