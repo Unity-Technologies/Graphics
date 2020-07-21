@@ -63,7 +63,12 @@ editor-pinning-merge-from-target:
         CI: true
     commands:
       -  echo %GIT_BRANCH%
-      -  if NOT "%GIT_BRANCH%" == "yamato/editor-pin" && exit 1
+      -  |5-
+
+                     if [[ "$GIT_BRANCH" != "yamato/editor-pin" ]]; then
+                         echo "Should run on 'yamato/editor-pin' but is running on '$GIT_BRANCH'"
+                         exit 1
+                     fi
       -  git fetch
       -  git checkout yamato/editor-pin-ci
       -  git merge --ff-only %GIT_REVISION%
