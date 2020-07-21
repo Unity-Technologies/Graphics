@@ -75,8 +75,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-
-
         struct RTReflectionDirGenParameters
         {
             // Camera parameters
@@ -306,7 +304,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return rtrUpscaleResources;
         }
 
-        void UpscaleRTReflections(CommandBuffer cmd, RTReflectionUpscaleParameters rtrUpscaleParameters, RTReflectionUpscaleResources rtrUpscaleResources)
+        static void UpscaleRTReflections(CommandBuffer cmd, RTReflectionUpscaleParameters rtrUpscaleParameters, RTReflectionUpscaleResources rtrUpscaleResources)
         {
             // Inject all the parameters for the compute
             cmd.SetComputeTextureParam(rtrUpscaleParameters.reflectionFilterCS, rtrUpscaleParameters.upscaleKernel, HDShaderIDs._SsrLightingTextureRW, rtrUpscaleResources.lightingTexture);
@@ -315,7 +313,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(rtrUpscaleParameters.reflectionFilterCS, rtrUpscaleParameters.upscaleKernel, HDShaderIDs._NormalBufferTexture, rtrUpscaleResources.normalBuffer);
             cmd.SetComputeTextureParam(rtrUpscaleParameters.reflectionFilterCS, rtrUpscaleParameters.upscaleKernel, HDShaderIDs._BlueNoiseTexture, rtrUpscaleParameters.blueNoiseTexture);
             cmd.SetComputeTextureParam(rtrUpscaleParameters.reflectionFilterCS, rtrUpscaleParameters.upscaleKernel, HDShaderIDs._RaytracingReflectionTexture, rtrUpscaleResources.outputTexture);
-            cmd.SetComputeTextureParam(rtrUpscaleParameters.reflectionFilterCS, rtrUpscaleParameters.upscaleKernel, HDShaderIDs._ScramblingTexture, m_Asset.renderPipelineResources.textures.scramblingTex);
             cmd.SetComputeIntParam(rtrUpscaleParameters.reflectionFilterCS, HDShaderIDs._SpatialFilterRadius, rtrUpscaleParameters.upscaleRadius);
             cmd.SetComputeIntParam(rtrUpscaleParameters.reflectionFilterCS, HDShaderIDs._RaytracingDenoiseRadius, rtrUpscaleParameters.denoise ? rtrUpscaleParameters.denoiserRadius : 0);
             cmd.SetComputeTextureParam(rtrUpscaleParameters.reflectionFilterCS, rtrUpscaleParameters.upscaleKernel, HDShaderIDs._SsrClearCoatMaskTexture, rtrUpscaleResources.clearCoatMaskTexture);
