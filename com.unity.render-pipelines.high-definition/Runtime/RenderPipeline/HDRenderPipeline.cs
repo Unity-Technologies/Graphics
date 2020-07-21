@@ -1166,8 +1166,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SharedRTManager.DisposeDebugDisplayBuffer();
             m_SharedRTManager.DisposeCoarseStencilBuffer();
 
-            CoreUtils.SafeRelease(EmptyUIntComputeBuffer);
             CoreUtils.SafeRelease(m_DepthPyramidMipLevelOffsetsBuffer);
+
+            CoreUtils.SafeRelease(EmptyUIntComputeBuffer);
+            EmptyUIntComputeBuffer = null;
 
             CustomPassVolume.Cleanup();
 
@@ -3081,9 +3083,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureXR.Initialize(cmd, defaultResources.shaders.clearUIntTextureCS);
 
-            if (EmptyUIntComputeBuffer != null)
-                CoreUtils.SafeRelease(EmptyUIntComputeBuffer);
-            EmptyUIntComputeBuffer = new ComputeBuffer(1, sizeof(uint));
+            if (EmptyUIntComputeBuffer == null)
+                EmptyUIntComputeBuffer = new ComputeBuffer(1, sizeof(uint));
 
             renderContext.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

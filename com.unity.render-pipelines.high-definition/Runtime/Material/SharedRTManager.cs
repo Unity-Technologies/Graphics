@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Buffer used for quad overshading and vertex density debug modes
         // Should be a texture but metal doesn't support texture atomics
-        ComputeBuffer m_DebugDisplayBuffer;
+        ComputeBuffer m_DebugDisplayBuffer = null;
 
         ComputeBuffer m_CoarseStencilBuffer = null;
         RTHandle m_DecalPrePassBuffer = null;
