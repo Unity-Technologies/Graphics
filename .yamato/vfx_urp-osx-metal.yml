@@ -23,7 +23,7 @@ VFX_URP_OSX_Metal_Standalone_2020.1:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_URP && ~/Graphics/TestProjects/VisualEffectGraph_URP/utr --suite=playmode --platform=StandaloneOSX  --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results --timeout=1400'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/VisualEffectGraph_URP && ~/Graphics/TestProjects/VisualEffectGraph_URP/utr --suite=playmode --platform=StandaloneOSX  --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results --timeout=2400"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/VisualEffectGraph_URP/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP/test-results/
@@ -52,7 +52,7 @@ VFX_URP_OSX_Metal_playmode_2020.1:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_URP && ~/Graphics/TestProjects/VisualEffectGraph_URP/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/VisualEffectGraph_URP && ~/Graphics/TestProjects/VisualEffectGraph_URP/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/VisualEffectGraph_URP/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP/test-results/
@@ -81,7 +81,7 @@ VFX_URP_OSX_Metal_Standalone_fast-2020.1:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_URP && ~/Graphics/TestProjects/VisualEffectGraph_URP/utr --suite=playmode --platform=StandaloneOSX  --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results --timeout=1400'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/VisualEffectGraph_URP && ~/Graphics/TestProjects/VisualEffectGraph_URP/utr --suite=playmode --platform=StandaloneOSX  --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results --timeout=2400"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/VisualEffectGraph_URP/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP/test-results/
@@ -110,7 +110,7 @@ VFX_URP_OSX_Metal_playmode_fast-2020.1:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_URP && ~/Graphics/TestProjects/VisualEffectGraph_URP/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/VisualEffectGraph_URP && ~/Graphics/TestProjects/VisualEffectGraph_URP/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/VisualEffectGraph_URP/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP/test-results/
@@ -140,7 +140,7 @@ VFX_URP_OSX_Metal_Standalone_CUSTOM-REVISION:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_URP && ~/Graphics/TestProjects/VisualEffectGraph_URP/utr --suite=playmode --platform=StandaloneOSX  --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results --timeout=1400'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/VisualEffectGraph_URP && ~/Graphics/TestProjects/VisualEffectGraph_URP/utr --suite=playmode --platform=StandaloneOSX  --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results --timeout=2400"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/VisualEffectGraph_URP/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP/test-results/
@@ -170,7 +170,7 @@ VFX_URP_OSX_Metal_playmode_CUSTOM-REVISION:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/VisualEffectGraph_URP && ~/Graphics/TestProjects/VisualEffectGraph_URP/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/VisualEffectGraph_URP && ~/Graphics/TestProjects/VisualEffectGraph_URP/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/VisualEffectGraph_URP/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP/test-results/
