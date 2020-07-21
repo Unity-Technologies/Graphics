@@ -745,6 +745,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed couple issues in the dependence of building the ray tracing acceleration structure.
 - Fix sun disk intensity
 - Fixed unwanted ghosting for smooth surfaces.
+- Fixing an issue in the recursive rendering flag texture usage.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -913,6 +914,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Avoid casting multiple rays and denoising for hard directional, point and spot ray traced shadows (1261040).
 - Making sure the preview cameras do not use ray tracing effects due to a by design issue to build ray tracing acceleration structures (1262166).
 - Preparing ray traced reflections for the render graph support (performance and quality).
+- Preparing recursive rendering for the render graph port.
 
 ## [7.1.1] - 2019-09-05
 
