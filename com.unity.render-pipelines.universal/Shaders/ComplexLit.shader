@@ -76,7 +76,7 @@ Shader "Universal Render Pipeline/Complex Lit"
         {
             // Lightmode matches the ShaderPassName set in UniversalRenderPipeline.cs. SRPDefaultUnlit and passes with
             // no LightMode tag are also rendered by Universal Render Pipeline
-            Name "ForwardComplexLit"
+            Name "ForwardLit"
             Tags{"LightMode" = "UniversalForwardOnly"}
 
             Blend[_SrcBlend][_DstBlend]
