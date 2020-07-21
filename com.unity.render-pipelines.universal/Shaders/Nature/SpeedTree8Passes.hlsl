@@ -268,6 +268,8 @@ SpeedTreeVertexOutput SpeedTree8Vert(SpeedTreeVertexInput input)
 
     output.clipPos = vertexInput.positionCS;
 
+    OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
+
     return output;
 }
 
