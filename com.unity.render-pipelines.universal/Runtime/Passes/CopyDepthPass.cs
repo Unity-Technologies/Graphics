@@ -118,6 +118,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
                 cmd.SetGlobalVector(m_ScaleBiasId, scaleBias);
 
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
             }
 
             context.ExecuteCommandBuffer(cmd);
