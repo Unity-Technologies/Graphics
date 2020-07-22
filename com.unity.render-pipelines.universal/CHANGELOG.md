@@ -196,6 +196,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where camera stacking with msaa on OpenGL resulted a black screen [case 1250602](https://issuetracker.unity3d.com/issues/urp-camera-stacking-results-in-black-screen-when-msaa-and-opengl-graphics-api-are-used)
 - Fixed an issue where URP Simple Lit shader had attributes swapped incorrectly for BaseMap and BaseColor properties.
 - Fixed profiler marker errors. [case 1240963](https://issuetracker.unity3d.com/issues/urp-errors-are-thrown-in-a-console-when-using-profiler-to-profile-editor)
+- Fixed material editor issue that caused transparents to render incorrectly. [Case 1261366](https://issuetracker.unity3d.com/issues/urp-materials-with-urp-shaders-which-have-surface-type-set-to-transparent-do-not-behave-correctly)
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
