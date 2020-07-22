@@ -16,7 +16,7 @@ Universal_Hybrid_Linux_Vulkan_Standalone_2020.2:
       -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalHybridTest/utr
       -  chmod +x TestProjects/UniversalHybridTest/utr
-      -  cd TestProjects/UniversalHybridTest && sudo unity-downloader-cli -u 8037ac78137e5807120bddf9b4b00d9241e5210b -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalHybridTest && sudo unity-downloader-cli -u 115217e1fb595e88a5da9e5fa9d22f95f8b49200 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalHybridTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:
@@ -35,7 +35,7 @@ Universal_Hybrid_Linux_Vulkan_playmode_2020.2:
       -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalHybridTest/utr
       -  chmod +x TestProjects/UniversalHybridTest/utr
-      -  cd TestProjects/UniversalHybridTest && sudo unity-downloader-cli -u 8037ac78137e5807120bddf9b4b00d9241e5210b -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalHybridTest && sudo unity-downloader-cli -u 115217e1fb595e88a5da9e5fa9d22f95f8b49200 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalHybridTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
