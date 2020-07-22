@@ -8,6 +8,12 @@ namespace UnityEngine.Rendering.Universal.Internal
     // Render all tiled-based deferred lights.
     internal class GBufferPass : ScriptableRenderPass
     {
+        static ShaderTagId s_ShaderTagLit = new ShaderTagId("Lit");
+        static ShaderTagId s_ShaderTagSimpleLit = new ShaderTagId("SimpleLit");
+        static ShaderTagId s_ShaderTagUnlit = new ShaderTagId("Unlit");
+        static ShaderTagId s_ShaderTagUniversalGBuffer = new ShaderTagId("UniversalGBuffer");
+        static ShaderTagId s_ShaderTagUniversalMaterialType = new ShaderTagId("UniversalMaterialType");
+
         ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Render GBuffer");
 
         DeferredLights m_DeferredLights;
@@ -42,15 +48,17 @@ namespace UnityEngine.Rendering.Universal.Internal
                 );
             }
 
-            m_ShaderTagValues = new ShaderTagId[3];
-            m_ShaderTagValues[0] = new ShaderTagId("Lit");
-            m_ShaderTagValues[1] = new ShaderTagId("SimpleLit");
-            m_ShaderTagValues[2] = new ShaderTagId("Unlit");
+            m_ShaderTagValues = new ShaderTagId[4];
+            m_ShaderTagValues[0] = s_ShaderTagLit;
+            m_ShaderTagValues[1] = s_ShaderTagSimpleLit;
+            m_ShaderTagValues[2] = s_ShaderTagUnlit;
+            m_ShaderTagValues[3] = new ShaderTagId(); // Special catch all case for materials where UniversalMaterialType is not defined or the tag value doesn't match anything we know.
 
-            m_RenderStateBlocks = new RenderStateBlock[3];
+            m_RenderStateBlocks = new RenderStateBlock[4];
             m_RenderStateBlocks[0] = OverwriteStencil(m_RenderStateBlock, (int)StencilUsage.MaterialMask, (int)StencilUsage.MaterialLit);
             m_RenderStateBlocks[1] = OverwriteStencil(m_RenderStateBlock, (int)StencilUsage.MaterialMask, (int)StencilUsage.MaterialSimpleLit);
             m_RenderStateBlocks[2] = OverwriteStencil(m_RenderStateBlock, (int)StencilUsage.MaterialMask, (int)StencilUsage.MaterialUnlit);
+            m_RenderStateBlocks[3] = m_RenderStateBlocks[0];
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
@@ -94,9 +102,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 ref CameraData cameraData = ref renderingData.cameraData;
                 Camera camera = cameraData.camera;
-                ShaderTagId lightModeTag = new ShaderTagId("UniversalGBuffer");
+                ShaderTagId lightModeTag = s_ShaderTagUniversalGBuffer;
                 DrawingSettings drawingSettings = CreateDrawingSettings(lightModeTag, ref renderingData, renderingData.cameraData.defaultOpaqueSortFlags);
-                ShaderTagId universalMaterialTypeTag = new ShaderTagId("UniversalMaterialType");
+                ShaderTagId universalMaterialTypeTag = s_ShaderTagUniversalMaterialType;
 
                 NativeArray<ShaderTagId> tagValues = new NativeArray<ShaderTagId>(m_ShaderTagValues, Allocator.Temp);
                 NativeArray<RenderStateBlock> stateBlocks = new NativeArray<RenderStateBlock>(m_RenderStateBlocks, Allocator.Temp);
