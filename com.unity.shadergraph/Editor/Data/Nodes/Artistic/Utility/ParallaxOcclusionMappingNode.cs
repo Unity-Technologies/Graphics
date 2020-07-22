@@ -9,7 +9,6 @@ using UnityEngine.Rendering.ShaderGraph;
 
 namespace UnityEditor.ShaderGraph
 {
-    [SRPFilter(typeof(HDRenderPipeline))]
     [Title("Utility", "Parallax Occlusion Mapping")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.ParallaxOcclusionMappingNode")]
     [FormerName("UnityEditor.Rendering.HighDefinition.ParallaxOcclusionMappingNode")]
