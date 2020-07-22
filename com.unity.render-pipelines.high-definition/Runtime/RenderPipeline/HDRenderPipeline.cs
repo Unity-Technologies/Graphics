@@ -3459,7 +3459,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
                 return;
 
-            HDUtils.DrawRendererList(renderContext, cmd, rendererList);
+            CoreUtils.DrawRendererList(renderContext, cmd, rendererList);
         }
 
         static void DrawTransparentRendererList(in ScriptableRenderContext renderContext, CommandBuffer cmd, in FrameSettings frameSettings, RendererList rendererList)
@@ -3467,7 +3467,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!frameSettings.IsEnabled(FrameSettingsField.TransparentObjects))
                 return;
 
-            HDUtils.DrawRendererList(renderContext, cmd, rendererList);
+            CoreUtils.DrawRendererList(renderContext, cmd, rendererList);
         }
 
         void AccumulateDistortion(CullingResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
@@ -3914,7 +3914,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, depthTexture);
 
-            HDUtils.DrawRendererList(renderContext, cmd, meshDecalsRendererList);
+            CoreUtils.DrawRendererList(renderContext, cmd, meshDecalsRendererList);
             DecalSystem.instance.RenderIntoDBuffer(cmd);
 
             cmd.ClearRandomWriteTargets();
@@ -3938,7 +3938,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
                 CoreUtils.SetRenderTarget(cmd, msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(msaa));
-                HDUtils.DrawRendererList(renderContext, cmd, RendererList.Create(PrepareForwardEmissiveRendererList(cullResults, hdCamera)));
+                CoreUtils.DrawRendererList(renderContext, cmd, RendererList.Create(PrepareForwardEmissiveRendererList(cullResults, hdCamera)));
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
                     DecalSystem.instance.RenderForwardEmissive(cmd);
@@ -4344,7 +4344,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer());
                 var rendererList = RendererList.Create(CreateOpaqueRendererListDesc(cullResults, hdCamera.camera, m_ForwardErrorPassNames, renderQueueRange: RenderQueueRange.all, overrideMaterial: m_ErrorMaterial));
-                HDUtils.DrawRendererList(renderContext, cmd, rendererList);
+                CoreUtils.DrawRendererList(renderContext, cmd, rendererList);
             }
         }
 

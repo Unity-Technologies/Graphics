@@ -867,7 +867,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (RenderForwardEmissivePassData data, RenderGraphContext context) =>
                 {
-                    HDUtils.DrawRendererList(context.renderContext, context.cmd, data.rendererList);
+                    CoreUtils.DrawRendererList(context.renderContext, context.cmd, data.rendererList);
                     if (data.enableDecals)
                         DecalSystem.instance.RenderForwardEmissive(context.cmd);
                 });
@@ -893,7 +893,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (ForwardPassData data, RenderGraphContext context) =>
                     {
-                        HDUtils.DrawRendererList(context.renderContext, context.cmd, data.rendererList);
+                        CoreUtils.DrawRendererList(context.renderContext, context.cmd, data.rendererList);
                     });
             }
         }
