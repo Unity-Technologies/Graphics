@@ -18,7 +18,7 @@ test_platforms:
   editmode: --suite=editor --platform=editmode
   performance_counters: --suite=playmode --testfilter=Counters --report-performance-data --performance-project-id=URP_Performance --platform=StandaloneWindows64
   performance_memory: --suite=playmode --testfilter=Memory --report-performance-data --performance-project-id=URP_Performance --platform=StandaloneWindows64
-  performance_build: --suite=playmode --testfilter=Build --report-performance-data --performance-project-id=URP_Performance --platform=StandaloneWindows64
+  performance_build: --suite=Editor --testfilter=Build --report-performance-data --performance-project-id=URP_Performance --platform=StandaloneWindows64
 project_platforms:
 platforms:
   Win:
