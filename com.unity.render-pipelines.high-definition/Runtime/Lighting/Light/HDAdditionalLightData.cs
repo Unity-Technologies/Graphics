@@ -1779,6 +1779,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// when Update Mode is set to On Demand. For example, to request the update of a second cascade, shadowIndex should be 1.
         /// Note: if shadowIndex is a 0-based index and it must be lower than the number of shadow maps a light renders (i.e. cascade count for directional lights, 6 for point lights).
         /// </summary>
+        /// <param name="shadowIndex">The index of the subshadow to update.</param>
         public void RequestSubShadowMapRendering(int shadowIndex)
         {
             if (shadowUpdateMode == ShadowUpdateMode.OnDemand)
