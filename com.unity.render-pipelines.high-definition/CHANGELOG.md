@@ -916,6 +916,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Making sure the preview cameras do not use ray tracing effects due to a by design issue to build ray tracing acceleration structures (1262166).
 - Preparing ray traced reflections for the render graph support (performance and quality).
 - Preparing recursive rendering for the render graph port.
+- Preparation pass for RTGI, temporal filter and diffuse denoiser for render graph.
 
 ## [7.1.1] - 2019-09-05
 
