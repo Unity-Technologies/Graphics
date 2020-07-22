@@ -1,5 +1,5 @@
 // Complex Lit is similar to Lit, but provides
-// advanced material properties and is always forward rendererd.
+// advanced material properties and is always forward rendered.
 // It also has higher hardware and shader model requirements.
 Shader "Universal Render Pipeline/Complex Lit"
 {
@@ -52,13 +52,6 @@ Shader "Universal Render Pipeline/Complex Lit"
         _ReceiveShadows("Receive Shadows", Float) = 1.0
         // Editmode props
         [HideInInspector] _QueueOffset("Queue offset", Float) = 0.0
-
-        // ObsoleteProperties
-        [HideInInspector] _MainTex("BaseMap", 2D) = "white" {}
-        [HideInInspector] _Color("Base Color", Color) = (1, 1, 1, 1)
-        [HideInInspector] _GlossMapScale("Smoothness", Float) = 0.0
-        [HideInInspector] _Glossiness("Smoothness", Float) = 0.0
-        [HideInInspector] _GlossyReflections("EnvironmentReflections", Float) = 0.0
     }
 
     SubShader

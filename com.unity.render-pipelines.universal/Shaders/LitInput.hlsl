@@ -15,10 +15,8 @@ half _Smoothness;
 half _Metallic;
 half _BumpScale;
 half _OcclusionStrength;
-#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
 half _ClearCoatMask;
 half _ClearCoatSmoothness;
-#endif
 CBUFFER_END
 
 // NOTE: Do not ifdef the properties for dots instancing, but ifdef the actual usage.
@@ -53,9 +51,7 @@ UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 TEXTURE2D(_OcclusionMap);       SAMPLER(sampler_OcclusionMap);
 TEXTURE2D(_MetallicGlossMap);   SAMPLER(sampler_MetallicGlossMap);
 TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);
-#if defined(_CLEARCOATMAP)
 TEXTURE2D(_ClearCoatMap);       SAMPLER(sampler_ClearCoatMap);
-#endif
 
 #ifdef _SPECULAR_SETUP
     #define SAMPLE_METALLICSPECULAR(uv) SAMPLE_TEXTURE2D(_SpecGlossMap, sampler_SpecGlossMap, uv)
