@@ -1131,7 +1131,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // PCSS settings
         [Range(1, 64)]
         [SerializeField, FormerlySerializedAs("blockerSampleCount")]
-        int      m_BlockerSampleCount = 24;
+        int      m_BlockerSampleCount = 2;
         /// <summary>
         /// Controls the number of samples used to detect blockers for PCSS shadows.
         /// </summary>
@@ -1149,7 +1149,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [Range(1, 64)]
         [SerializeField, FormerlySerializedAs("filterSampleCount")]
-        int      m_FilterSampleCount = 16;
+        int      m_FilterSampleCount = 4;
         /// <summary>
         /// Controls the number of samples used to filter for PCSS shadows.
         /// </summary>
