@@ -255,7 +255,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 layer.mapA.settings.scrollFactor += layer.mapA.settings.scrollSpeed.value * (Time.time - layer.lastTime) * 0.01f;
                 layer.lastTime = Time.time;
 
-                Vector4 params1 = new Vector4(layer.opacity.value, layer.upperHemisphereOnly.value?1:0, 0, 0);
+                Vector4 params1 = new Vector4(
+                        layer.opacity.value,
+                        layer.upperHemisphereOnly.value?1:0,
+                        (layer.mode.value == CloudLayerMode.CloudMap && layer.layers.value == CloudMapMode.Double)?1:0,
+                        0);
                 Vector4 params2 = layer.mapA.settings.GetRenderingParameters();
 
                 skyMaterial.EnableKeyword("USE_CLOUD_MAP");
@@ -281,10 +285,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal int GetBakingHashCode(out bool castShadows)
+        internal int GetBakingHashCode(out int numLayers, out bool castShadows)
         {
             int hash = 17;
             castShadows = false;
+            numLayers = 1;
 
             unchecked
             {
@@ -294,7 +299,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     hash = hash * 23 + layers.GetHashCode();
                     hash = hash * 23 + mapA.GetBakingHashCode(ref castShadows);
                     if (layers.value == CloudMapMode.Double)
+                    {
                         hash = hash * 23 + mapB.GetBakingHashCode(ref castShadows);
+                        numLayers = 2;
+                    }
                 }
                 else
                     hash = hash * 23 + crt.GetBakingHashCode(ref castShadows);

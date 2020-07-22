@@ -6,17 +6,17 @@ namespace UnityEngine.Rendering.HighDefinition
     internal class CloudRenderingContext
     {
         public RTHandle cloudTextureRT { get; private set; }
-        public RTHandle cloudShadowsRT { get; private set; } = null;
+        public RTHandle cloudShadowsRT { get; private set; }
+        public int numLayers { get; private set; }
         public bool supportShadows { get; private set; }
 
-        internal bool ambientProbeIsReady = false;
-
-        public CloudRenderingContext(int resolution, bool supportShadows, int shadowResolution)
+        public CloudRenderingContext(int resolution, int numLayers, bool supportShadows, int shadowResolution)
         {
+            this.numLayers = numLayers;
             this.supportShadows = supportShadows;
 
-            cloudTextureRT = RTHandles.Alloc(resolution, resolution / 2, colorFormat: GraphicsFormat.R16G16B16A16_SFloat,
-                dimension: TextureDimension.Tex2D, enableRandomWrite: true, useMipMap: false,
+            cloudTextureRT = RTHandles.Alloc(resolution, resolution / 2, numLayers, colorFormat: GraphicsFormat.R16G16B16A16_SFloat,
+                dimension: TextureDimension.Tex2DArray, enableRandomWrite: true, useMipMap: false,
                 filterMode: FilterMode.Bilinear, name: "Cloud Texture");
 
             if (supportShadows)
@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void Cleanup()
         {
             RTHandles.Release(cloudTextureRT);
-            if (cloudShadowsRT != null)
+            if (supportShadows)
                 CoreUtils.Destroy(cloudShadowsRT);
         }
     }

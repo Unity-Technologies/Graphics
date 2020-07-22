@@ -1,7 +1,7 @@
 #ifndef __CLOUDLAYER_H__
 #define __CLOUDLAYER_H__
 
-TEXTURE2D(_CloudTexture);
+TEXTURE2D_ARRAY(_CloudTexture);
 SAMPLER(sampler_CloudTexture);
     
 TEXTURE2D(_CloudFlowmap);
@@ -12,16 +12,17 @@ float4 _CloudParams2; // xyz tint, w intensity
 
 #define _CloudOpacity           _CloudParams1.x
 #define _CloudUpperHemisphere   _CloudParams1.y
+#define _CloudDoubleLayer       (_CloudParams1.z != 0.0)
 #define _CloudIntensity         _CloudParams2.x
 #define _CloudScrollFactor      _CloudParams2.y
 #define _CloudScrollDirection   _CloudParams2.zw
 
 #define USE_CLOUD_LAYER         defined(USE_CLOUD_MAP) || (!defined(USE_CLOUD_MAP) && defined(USE_CLOUD_MOTION))
 
-float4 sampleCloud(float3 dir)
+float4 sampleCloud(float3 dir, int layer)
 {
     float2 coords = GetLatLongCoords(dir, _CloudUpperHemisphere);
-    return SAMPLE_TEXTURE2D_LOD(_CloudTexture, sampler_CloudTexture, coords, 0);
+    return SAMPLE_TEXTURE2D_ARRAY_LOD(_CloudTexture, sampler_CloudTexture, coords, layer, 0);
 }
 
 float3 CloudRotationUp(float3 p, float2 cos_sin)
@@ -32,7 +33,7 @@ float3 CloudRotationUp(float3 p, float2 cos_sin)
     return float3(dot(rotDirX, p), p.y, dot(rotDirY, p));
 }
 
-float4 GetDistordedCloudColor(float3 dir)
+float4 GetDistordedCloudColor(float3 dir, int layer)
 {
 #if USE_CLOUD_MOTION
     float2 alpha = frac(float2(_CloudScrollFactor, _CloudScrollFactor + 0.5)) - 0.5;
@@ -52,33 +53,43 @@ float4 GetDistordedCloudColor(float3 dir)
 #endif
 
     // Sample twice
-    float4 color1 = sampleCloud(normalize(dir - alpha.x * dd));
-    float4 color2 = sampleCloud(normalize(dir - alpha.y * dd));
+    float4 color1 = sampleCloud(normalize(dir - alpha.x * dd), layer);
+    float4 color2 = sampleCloud(normalize(dir - alpha.y * dd), layer);
 
     // Blend color samples
     return lerp(color1, color2, abs(2.0 * alpha.x));
 
 #else
-    return sampleCloud(dir);
+    return sampleCloud(dir, layer);
 #endif
 }
 
 float GetCloudOpacity(float3 dir)
 {
+    float opacity = 0;
+
 #if USE_CLOUD_LAYER
     if (dir.y >= 0 || !_CloudUpperHemisphere)
-        return GetDistordedCloudColor(dir).a * _CloudOpacity;
+    {
+        opacity = GetDistordedCloudColor(dir, 0).a;
+        if (_CloudDoubleLayer)
+            opacity *= (1.0 - GetDistordedCloudColor(dir, 1).a);
+    }
     else
 #endif
 
-    return 0;
+    return opacity * _CloudOpacity;
 }
 
 float3 ApplyCloudLayer(float3 dir, float3 sky)
 {
 #if USE_CLOUD_LAYER
     if (dir.y >= 0 || !_CloudUpperHemisphere)
-        sky += GetDistordedCloudColor(dir).rgb * _CloudIntensity * _CloudOpacity;
+    {
+        if (_CloudDoubleLayer)
+            sky += GetDistordedCloudColor(dir, 1).rgb * _CloudIntensity * _CloudOpacity;
+        sky += GetDistordedCloudColor(dir, 0).rgb * _CloudIntensity * _CloudOpacity;
+    }
 #endif
 
     return sky;
