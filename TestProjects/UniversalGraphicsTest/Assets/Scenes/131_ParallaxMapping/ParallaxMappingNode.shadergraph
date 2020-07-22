@@ -1046,7 +1046,7 @@
     "m_ShaderOutputName": "Amplitude",
     "m_StageCapability": 2,
     "m_Value": 1.0,
-    "m_DefaultValue": 0.004999999888241291,
+    "m_DefaultValue": 1.0,
     "m_Labels": [
         "X"
     ]
@@ -1447,7 +1447,7 @@
 }
 
 {
-    "m_Type": "UnityEditor.Rendering.Universal.ParallaxMappingNode",
+    "m_Type": "UnityEditor.ShaderGraph.ParallaxMappingNode",
     "m_ObjectId": "ebfe416e4c5849778b6f53b9eb012b10",
     "m_Group": {
         "m_Id": ""
