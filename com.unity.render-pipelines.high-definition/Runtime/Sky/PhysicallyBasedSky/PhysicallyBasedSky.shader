@@ -118,8 +118,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     float cosInner = cos(radInner);
                     float cosOuter = cos(radInner + light.flareSize);
 
-                    // float solidAngle = TWO_PI * (1 - cosInner);
-                    float solidAngle = 1; // Don't scale...
+                    float solidAngle = TWO_PI * (1 - cosInner);
 
                     if (LdotV >= cosOuter)
                     {
