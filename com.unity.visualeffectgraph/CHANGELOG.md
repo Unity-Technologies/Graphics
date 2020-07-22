@@ -126,13 +126,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Subgraphs are not in hardcoded categories anymore : updated default subgraph templates + Samples to add meaningful categories.
 - Fix creation of StringPropertyRM
 - Enum fields having headers show the header in the inspector as well.
+- Fix for node window staying when clicking elsewhere
 - Harmonized position, direction and velocity composition modes for position (shape, sequential, depth) and Velocity from Direction & Speed blocks
-
 
 ## [7.1.1] - 2019-09-05
 ### Added
 - Moved High Definition templates and includes to com.unity.render-pipelines.high-definition package
-- Navigation commands for subgraph.
+- Navigati- Harmonized position, direction and velocity composition modes for position (shape, sequential, depth) and Velocity from Direction & Speed blocks
+on commands for subgraph.
 - Allow choosing the place to save vfx subgraph.
 - Particle strips for trails and ribbons. (Experimental)
 - Shadergraph integration into vfx. (Experimental)

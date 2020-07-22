@@ -34,8 +34,8 @@ namespace UnityEngine.Rendering.Universal
         {
             if (!renderingData.cameraData.xr.enabled)
                 return;
-            
-            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
+
+            CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 renderingData.cameraData.xr.StopSinglePass(cmd);

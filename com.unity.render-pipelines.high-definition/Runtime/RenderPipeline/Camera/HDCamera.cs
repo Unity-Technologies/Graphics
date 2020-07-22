@@ -768,16 +768,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (ExecuteCaptureActionsPassData data, RenderGraphContext ctx) =>
                 {
-                    var tempRT = ctx.resources.GetTexture(data.tempTexture);
                     var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
-                    mpb.SetTexture(HDShaderIDs._BlitTexture, ctx.resources.GetTexture(data.input));
+                    mpb.SetTexture(HDShaderIDs._BlitTexture, data.input);
                     mpb.SetVector(HDShaderIDs._BlitScaleBias, data.viewportScale);
                     mpb.SetFloat(HDShaderIDs._BlitMipLevel, 0);
-                    ctx.cmd.SetRenderTarget(tempRT);
+                    ctx.cmd.SetRenderTarget(data.tempTexture);
                     ctx.cmd.DrawProcedural(Matrix4x4.identity, data.blitMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
 
                     for (data.recorderCaptureActions.Reset(); data.recorderCaptureActions.MoveNext();)
-                        data.recorderCaptureActions.Current(tempRT, ctx.cmd);
+                        data.recorderCaptureActions.Current(data.tempTexture, ctx.cmd);
                 });
             }
         }
