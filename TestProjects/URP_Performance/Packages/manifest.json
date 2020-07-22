@@ -53,6 +53,7 @@
   },
   "testables": [
     "com.unity.testing.graphics-performance",
-    "com.unity.testframework.graphics"
+    "com.unity.testframework.graphics",
+    "com.unity.render-pipelines.universal"
   ]
 }
