@@ -8,6 +8,9 @@ using System.Linq;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine.Experimental.Rendering.Universal.LibTessDotNet;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
@@ -23,10 +26,23 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return (isOpaque && !isOutsideContour) || (!isOpaque && isOutsideContour);
         }
 
-        static int GetContourHash(Vector2 firstVertex, int vertexCount)
+        static int GetContourHash(List<Vector2> vertices, int vertexCount)
         {
-            return ((int)firstVertex.x & 8191) | (((int)firstVertex.y & 8191) << 13) | ((vertexCount & 63) << 26);
+            BinaryFormatter binaryFormatter = new BinaryFormatter();
+            MemoryStream memoryStream = new MemoryStream();
+
+            vertices.ForEach((vertex) =>
+            {
+                binaryFormatter.Serialize(memoryStream, vertex.x);
+                binaryFormatter.Serialize(memoryStream, vertex.y);
+            });
+
+            int hash = (int)MurmurHash2.Hash(memoryStream.ToArray());
+            memoryStream.Dispose();
+
+            return hash;
         }
+
 
         static void MakeShapes(ref int startShape, ref int startContour, ShapeLibrary shapeLib, ImageAlpha imageAlpha, int minAlphaCut, bool isOpaque)
         {
@@ -39,7 +55,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 if (vertices.Count > 0)
                 {
-                    int contourId = GetContourHash(vertices[0], vertices.Count());
+                    int contourId = GetContourHash(vertices, vertices.Count());
 
                     while (shapeIndex >= shapeLib.m_Shapes.Count)
                         shapeLib.m_Shapes.Add(new Shape());
