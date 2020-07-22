@@ -2571,7 +2571,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float sampleCount = Mathf.Max(dofParameters.nearSampleCount, dofParameters.farSampleCount);
 
                 // We only have up to 6 mip levels
-                float mipLevel = Mathf.Min(6, Mathf.Ceil(Mathf.Log(cocLimit, 2)));
+                float mipLevel = Mathf.Min(6, 1 + Mathf.Ceil(Mathf.Log(cocLimit, 2)));
                 GetMipMapDimensions(fullresCoC, (int)mipLevel, out var mipMapWidth, out var mipMapHeight);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, cocLimit, 0.0f, 0.0f));
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(mipLevel, mipMapWidth, mipMapHeight, 0.0f));
