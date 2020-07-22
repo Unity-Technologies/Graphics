@@ -201,7 +201,7 @@ namespace UnityEngine.Rendering.Universal
             }
 #endif
 
-#if UNITY_ANDROID
+#if UNITY_ANDROID || UNITY_WEBGL
             if (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan)
             {
                 // GLES can not use render texture's depth buffer with the color buffer of the backbuffer

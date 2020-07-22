@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -161,6 +161,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added shader graph nodes for rendering a complex eye shader.
 - Added more controls to contact shadows and increased quality in some parts. 
 - Added a physically based option in DoF volume.
+- Added API to check if a Camera, Light or ReflectionProbe is compatible with HDRP.
+- Added path tracing test scene for normal mapping.
 - Added quad overdraw and vertex density debug modes.
 
 ### Fixed
@@ -740,7 +742,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed some post processing using motion vectors when they are disabled
 - Fixed the multiplier of the environement lights being overriden with a wrong value for ray tracing (1260311).
 - Fixed a series of exceptions happening when trying to load an asset during wizard execution (1262171).
+- Fixed an issue with Stacklit shader not compiling correctly in player with debug display on (1260579)
 - Fixed couple issues in the dependence of building the ray tracing acceleration structure.
+- Fix sun disk intensity
+- Fixed unwanted ghosting for smooth surfaces.
+- Fixing an issue in the recursive rendering flag texture usage.
+- Fixed a missing dependecy for choosing to evaluate transparent SSR.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -906,6 +913,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Only building the RTAS if there is an effect that will require it (1262217).
 - Fixed the first ray tracing frame not having the light cluster being set up properly (1260311).
 - Render graph pre-setup for ray traced ambient occlusion.
+- Avoid casting multiple rays and denoising for hard directional, point and spot ray traced shadows (1261040).
+- Making sure the preview cameras do not use ray tracing effects due to a by design issue to build ray tracing acceleration structures (1262166).
+- Preparing ray traced reflections for the render graph support (performance and quality).
+- Preparing recursive rendering for the render graph port.
 
 ## [7.1.1] - 2019-09-05
 
