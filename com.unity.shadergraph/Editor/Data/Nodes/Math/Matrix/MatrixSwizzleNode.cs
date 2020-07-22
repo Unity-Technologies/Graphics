@@ -34,9 +34,7 @@ namespace UnityEditor.ShaderGraph
         public const int InputSlotId = 0;
         public const int OutputSlotId = 1;
         //TODO: Do we want to use build in matrix constrcut function??
-        const string kOutput4x4SlotName = "4x4";
-        const string kOutput3x3SlotName = "3x3";
-        const string kOutput2x2SlotName = "2x2";
+
         public const int Output4x4SlotId = 2;
         public const int Output3x3SlotId = 3;
         public const int Output2x2SlotId = 4;
@@ -118,12 +116,10 @@ namespace UnityEditor.ShaderGraph
         {
             AddSlot(new DynamicMatrixMaterialSlot(InputSlotId, kInputSlotName, kInputSlotName, SlotType.Input));
             AddSlot(new DynamicMatrixMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
+            //AddSlot(new DynamicValueMaterialSlot(InputSlotId, kInputSlotName, kInputSlotName, SlotType.Input, Matrix4x4.zero));
+            //AddSlot(new DynamicValueMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Matrix4x4.zero));
             RemoveSlotsNameNotMatching(new int[] { InputSlotId, OutputSlotId });
-            //TODO: Do we want to use build in matrix constrcut function??
-            //AddSlot(new Matrix4MaterialSlot(Output4x4SlotId, kOutput4x4SlotName, kOutput4x4SlotName, SlotType.Output));
-            //AddSlot(new Matrix3MaterialSlot(Output3x3SlotId, kOutput3x3SlotName, kOutput3x3SlotName, SlotType.Output));
-            //AddSlot(new Matrix2MaterialSlot(Output2x2SlotId, kOutput2x2SlotName, kOutput2x2SlotName, SlotType.Output));
-            //RemoveSlotsNameNotMatching(new int[] { InputSlotId, OutputSlotId, Output4x4SlotId, Output3x3SlotId, Output2x2SlotId });
+
         }
 
         int[] getIndex(float input)
@@ -178,7 +174,7 @@ namespace UnityEditor.ShaderGraph
         //4. map output matirx/vec according to index matrix/vec
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            Debug.LogError("swizzle update!" + m_OutputSize);
+            //Debug.LogError("swizzle update!" + m_OutputSize);
             //Debug.Log((int)index_Row0.x + " ,"+((index_Row0.x - Math.Truncate(index_Row0.x))*10));
             //Debug.Log(getIndex(index_Row1.z)[0]+" "+ getIndex(index_Row1.z)[1]);
 
@@ -204,6 +200,7 @@ namespace UnityEditor.ShaderGraph
 
             int concreteRowCount = useIndentity ? 2 : numInputRows;
             int outputRowCount = 0;
+
             //TODO: fix upscaling(3x3 -> 4x4)
             var inputIndecies = new Matrix4x4();
             inputIndecies.SetRow(0, index_Row0);
@@ -214,25 +211,10 @@ namespace UnityEditor.ShaderGraph
 
 
 
-
-            //Matrix4x4 outputMatrix4x4 = new Matrix4x4();
             string real_outputValue = " ";
             for (var r = 0; r < 4; r++)
             {
                 string outputValue = " ";
-                //if (r >= numInputRows)
-                //{
-                //    outputValue = string.Format("$precision{0}(", concreteRowCount);
-                //    for (int c = 0; c < concreteRowCount; c++)
-                //    {
-                //        if (c != 0)
-                //            outputValue += ", ";
-                //        outputValue += Matrix4x4.identity.GetRow(r)[c];
-                //    }
-                //    outputValue += ")";
-                //}
-                //else
-                //{
 
 
                 Vector4 indecies = inputIndecies.GetRow(r);
@@ -286,19 +268,14 @@ namespace UnityEditor.ShaderGraph
                                 {
                                     int input_x_R3 = getIndex(indecies.x)[0];
                                     string input_x_C3 = mapComp(getIndex(indecies.x)[1]);
-                                    //Debug.Log(input_x_R + "  , " + input_x_C);
-                                    //Debug.LogError(getIndex(indecies.w)[1]);
-
                                     int input_y_R3 = getIndex(indecies.y)[0];
                                     string input_y_C3 = mapComp(getIndex(indecies.y)[1]);
                                     int input_z_R3 = getIndex(indecies.z)[0];
                                     string input_z_C3 = mapComp(getIndex(indecies.z)[1]);
-                                    //int input_w_R3 = getIndex(indecies.w)[0];
-                                    //string input_w_C3 = mapComp(getIndex(indecies.w)[1]);
 
                                     if (r != 0)
                                         outputValue += ",";
-                            //inputValue = "MAT";
+
 
                                     outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_x_R3, input_x_C3);
                                     outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_y_R3, input_y_C3);
@@ -338,7 +315,6 @@ namespace UnityEditor.ShaderGraph
 
                                     if (r != 0)
                                         outputValue += ",";
-                                    //inputValue = "MAT";
 
                                     outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_x_R3, input_x_C3);
                                     outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_y_R3, input_y_C3);
@@ -377,7 +353,7 @@ namespace UnityEditor.ShaderGraph
 
                                     if (r != 0)
                                         outputValue += ",";
-                                    //inputValue = "MAT";
+
 
                                     outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_x_R3, input_x_C3);
                                     outputValue += Matrix4x4.identity.GetRow(r)[1] + ","; ;
@@ -385,128 +361,125 @@ namespace UnityEditor.ShaderGraph
                                     outputValue += Matrix4x4.identity.GetRow(r)[3];
                                     break;
                                 }
-                    case SwizzleOutputSize.Vector2:
-                        outputRowCount = 1;
-                        if (r >= 2)
-                        {
+                            case SwizzleOutputSize.Vector2:
+                                outputRowCount = 1;
+                                if (r >= 2)
+                                {
 
 
-                            for (int c = 0; c < 4; c++)
-                            {
+                                    for (int c = 0; c < 4; c++)
+                                    {
 
-                                outputValue += ", ";
-                                outputValue += Matrix4x4.identity.GetRow(r)[c];
-                            }
+                                        outputValue += ", ";
+                                        outputValue += Matrix4x4.identity.GetRow(r)[c];
+                                    }
 
-                            break;
-                        }
-                        else
-                        {
-                            int input_x_R3 = getIndex(indecies.x)[0];
-                            string input_x_C3 = mapComp(getIndex(indecies.x)[1]);
-                            //Debug.Log(input_x_R + "  , " + input_x_C);
-                            //Debug.LogError(getIndex(indecies.w)[1]);
+                                    break;
+                                }
+                                else
+                                {
+                                    int input_x_R3 = getIndex(indecies.x)[0];
+                                    string input_x_C3 = mapComp(getIndex(indecies.x)[1]);
+                                    //Debug.Log(input_x_R + "  , " + input_x_C);
+                                    //Debug.LogError(getIndex(indecies.w)[1]);
 
-                            //int input_y_R3 = getIndex(indecies.y)[0];
-                            //string input_y_C3 = mapComp(getIndex(indecies.y)[1]);
-                            //int input_z_R3 = getIndex(indecies.z)[0];
-                            //string input_z_C3 = mapComp(getIndex(indecies.z)[1]);
-                            //int input_w_R3 = getIndex(indecies.w)[0];
-                            //string input_w_C3 = mapComp(getIndex(indecies.w)[1]);
+                                    //int input_y_R3 = getIndex(indecies.y)[0];
+                                    //string input_y_C3 = mapComp(getIndex(indecies.y)[1]);
+                                    //int input_z_R3 = getIndex(indecies.z)[0];
+                                    //string input_z_C3 = mapComp(getIndex(indecies.z)[1]);
+                                    //int input_w_R3 = getIndex(indecies.w)[0];
+                                    //string input_w_C3 = mapComp(getIndex(indecies.w)[1]);
 
-                            if (r != 0)
-                                outputValue += ",";
-                            //inputValue = "MAT";
+                                    if (r != 0)
+                                        outputValue += ",";
 
-                            outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_x_R3, input_x_C3);
-                            outputValue += Matrix4x4.identity.GetRow(r)[1] + ","; ;
-                            outputValue += Matrix4x4.identity.GetRow(r)[2] + ",";
-                            outputValue += Matrix4x4.identity.GetRow(r)[3];
-                            break;
-                        }
-                    case SwizzleOutputSize.Vector3:
-                        outputRowCount = 1;
-                        if (r >= 3)
-                        {
-
-
-                            for (int c = 0; c < 4; c++)
-                            {
-
-                                outputValue += ", ";
-                                outputValue += Matrix4x4.identity.GetRow(r)[c];
-                            }
-
-                            break;
-                        }
-                        else
-                        {
-                            int input_x_R3 = getIndex(indecies.x)[0];
-                            string input_x_C3 = mapComp(getIndex(indecies.x)[1]);
-                            //Debug.Log(input_x_R + "  , " + input_x_C);
-                            //Debug.LogError(getIndex(indecies.w)[1]);
-
-                            //int input_y_R3 = getIndex(indecies.y)[0];
-                            //string input_y_C3 = mapComp(getIndex(indecies.y)[1]);
-                            //int input_z_R3 = getIndex(indecies.z)[0];
-                            //string input_z_C3 = mapComp(getIndex(indecies.z)[1]);
-                            //int input_w_R3 = getIndex(indecies.w)[0];
-                            //string input_w_C3 = mapComp(getIndex(indecies.w)[1]);
-
-                            if (r != 0)
-                                outputValue += ",";
-                            //inputValue = "MAT";
-
-                            outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_x_R3, input_x_C3);
-                            outputValue += Matrix4x4.identity.GetRow(r)[1] + ","; ;
-                            outputValue += Matrix4x4.identity.GetRow(r)[2] + ",";
-                            outputValue += Matrix4x4.identity.GetRow(r)[3];
-                            break;
-                        }
-                    case SwizzleOutputSize.Vector4:
-                        outputRowCount = 1;
-                        if (r >= 4)
-                        {
+                                    outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_x_R3, input_x_C3);
+                                    outputValue += Matrix4x4.identity.GetRow(r)[1] + ","; ;
+                                    outputValue += Matrix4x4.identity.GetRow(r)[2] + ",";
+                                    outputValue += Matrix4x4.identity.GetRow(r)[3];
+                                    break;
+                                }
+                            case SwizzleOutputSize.Vector3:
+                                outputRowCount = 1;
+                                if (r >= 3)
+                                {
 
 
-                            for (int c = 0; c < 4; c++)
-                            {
+                                    for (int c = 0; c < 4; c++)
+                                    {
 
-                                outputValue += ", ";
-                                outputValue += Matrix4x4.identity.GetRow(r)[c];
-                            }
+                                        outputValue += ", ";
+                                        outputValue += Matrix4x4.identity.GetRow(r)[c];
+                                    }
 
-                            break;
-                        }
-                        else
-                        {
-                            int input_x_R3 = getIndex(indecies.x)[0];
-                            string input_x_C3 = mapComp(getIndex(indecies.x)[1]);
-                            //Debug.Log(input_x_R + "  , " + input_x_C);
-                            //Debug.LogError(getIndex(indecies.w)[1]);
+                                    break;
+                                }
+                                else
+                                {
+                                    int input_x_R3 = getIndex(indecies.x)[0];
+                                    string input_x_C3 = mapComp(getIndex(indecies.x)[1]);
+                                    //Debug.Log(input_x_R + "  , " + input_x_C);
+                                    //Debug.LogError(getIndex(indecies.w)[1]);
 
-                            //int input_y_R3 = getIndex(indecies.y)[0];
-                            //string input_y_C3 = mapComp(getIndex(indecies.y)[1]);
-                            //int input_z_R3 = getIndex(indecies.z)[0];
-                            //string input_z_C3 = mapComp(getIndex(indecies.z)[1]);
-                            //int input_w_R3 = getIndex(indecies.w)[0];
-                            //string input_w_C3 = mapComp(getIndex(indecies.w)[1]);
+                                    //int input_y_R3 = getIndex(indecies.y)[0];
+                                    //string input_y_C3 = mapComp(getIndex(indecies.y)[1]);
+                                    //int input_z_R3 = getIndex(indecies.z)[0];
+                                    //string input_z_C3 = mapComp(getIndex(indecies.z)[1]);
+                                    //int input_w_R3 = getIndex(indecies.w)[0];
+                                    //string input_w_C3 = mapComp(getIndex(indecies.w)[1]);
 
-                            if (r != 0)
-                                outputValue += ",";
-                            //inputValue = "MAT";
+                                    if (r != 0)
+                                        outputValue += ",";
 
-                            outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_x_R3, input_x_C3);
-                            outputValue += Matrix4x4.identity.GetRow(r)[1] + ","; ;
-                            outputValue += Matrix4x4.identity.GetRow(r)[2] + ",";
-                            outputValue += Matrix4x4.identity.GetRow(r)[3];
-                            break;
-                        }
+                                    outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_x_R3, input_x_C3);
+                                    outputValue += Matrix4x4.identity.GetRow(r)[1] + ","; ;
+                                    outputValue += Matrix4x4.identity.GetRow(r)[2] + ",";
+                                    outputValue += Matrix4x4.identity.GetRow(r)[3];
+                                    break;
+                                }
+                            case SwizzleOutputSize.Vector4:
+                                outputRowCount = 1;
+                                if (r >= 4)
+                                {
+
+
+                                    for (int c = 0; c < 4; c++)
+                                    {
+
+                                        outputValue += ", ";
+                                        outputValue += Matrix4x4.identity.GetRow(r)[c];
+                                    }
+
+                                    break;
+                                }
+                                else
+                                {
+                                    int input_x_R3 = getIndex(indecies.x)[0];
+                                    string input_x_C3 = mapComp(getIndex(indecies.x)[1]);
+                                    //Debug.Log(input_x_R + "  , " + input_x_C);
+                                    //Debug.LogError(getIndex(indecies.w)[1]);
+
+                                    //int input_y_R3 = getIndex(indecies.y)[0];
+                                    //string input_y_C3 = mapComp(getIndex(indecies.y)[1]);
+                                    //int input_z_R3 = getIndex(indecies.z)[0];
+                                    //string input_z_C3 = mapComp(getIndex(indecies.z)[1]);
+                                    //int input_w_R3 = getIndex(indecies.w)[0];
+                                    //string input_w_C3 = mapComp(getIndex(indecies.w)[1]);
+
+                                    if (r != 0)
+                                        outputValue += ",";
+
+                                    outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_x_R3, input_x_C3);
+                                    outputValue += Matrix4x4.identity.GetRow(r)[1] + ","; ;
+                                    outputValue += Matrix4x4.identity.GetRow(r)[2] + ",";
+                                    outputValue += Matrix4x4.identity.GetRow(r)[3];
+                                    break;
+                                }
                 }
                  
 
 
-                //}
+
 
                 real_outputValue += outputValue;
 
@@ -522,10 +495,143 @@ namespace UnityEditor.ShaderGraph
 
         }
         //TODO: set up dynamic output slot?
+        //public override void EvaluateDynamicMaterialSlots()
+        //{
+        //    var dynamicInputSlotsToCompare = DictionaryPool<DynamicValueMaterialSlot, ConcreteSlotValueType>.Get();
+        //    var skippedDynamicSlots = ListPool<DynamicValueMaterialSlot>.Get();
+
+        //    // iterate the input slots
+        //    using (var tempSlots = PooledList<MaterialSlot>.Get())
+        //    {
+        //        GetInputSlots(tempSlots);
+        //        foreach (var inputSlot in tempSlots)
+        //        {
+        //            inputSlot.hasError = false;
+
+        //            // if there is a connection
+        //            var edges = owner.GetEdges(inputSlot.slotReference).ToList();
+        //            if (!edges.Any())
+        //            {
+        //                if (inputSlot is DynamicValueMaterialSlot)
+        //                    skippedDynamicSlots.Add(inputSlot as DynamicValueMaterialSlot);
+        //                continue;
+        //            }
+
+        //            // get the output details
+        //            var outputSlotRef = edges[0].outputSlot;
+        //            var outputNode = outputSlotRef.node;
+        //            if (outputNode == null)
+        //                continue;
+
+        //            var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(outputSlotRef.slotId);
+        //            if (outputSlot == null)
+        //                continue;
+
+        //            if (outputSlot.hasError)
+        //            {
+        //                inputSlot.hasError = true;
+        //                continue;
+        //            }
+
+        //            var outputConcreteType = outputSlot.concreteValueType;
+        //            // dynamic input... depends on output from other node.
+        //            // we need to compare ALL dynamic inputs to make sure they
+        //            // are compatable.
+        //            if (inputSlot is DynamicValueMaterialSlot)
+        //            {
+        //                dynamicInputSlotsToCompare.Add((DynamicValueMaterialSlot)inputSlot, outputConcreteType);
+        //                continue;
+        //            }
+        //        }
+        //        string output_type = GetOutputType(m_OutputSize);
+        //        Debug.LogError("output size" + output_type);
+
+        //        switch (output_type)
+        //        {
+        //            // As per dynamic matrix
+        //            default:
+        //                var dynamicMatrixType = ConvertDynamicMatrixInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
+        //                foreach (var dynamicKvP in dynamicInputSlotsToCompare)
+        //                    dynamicKvP.Key.SetConcreteType(dynamicMatrixType);
+        //                foreach (var skippedSlot in skippedDynamicSlots)
+        //                    skippedSlot.SetConcreteType(dynamicMatrixType);
+        //                break;
+
+        //            // As per dynamic vector
+        //            case "vector":
+        //                var dynamicVectorType = ConvertDynamicVectorInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
+        //                foreach (var dynamicKvP in dynamicInputSlotsToCompare)
+        //                    dynamicKvP.Key.SetConcreteType(dynamicVectorType);
+        //                foreach (var skippedSlot in skippedDynamicSlots)
+        //                    skippedSlot.SetConcreteType(dynamicVectorType);
+        //                break;
+        //        }
+
+        //        tempSlots.Clear();
+        //        GetInputSlots(tempSlots);
+        //        bool inputError = tempSlots.Any(x => x.hasError);
+        //        if (inputError)
+        //        {
+        //            owner.AddConcretizationError(objectId, string.Format("Node {0} had input error", objectId));
+        //            hasError = true;
+        //        }
+        //        // configure the output slots now
+        //        // their slotType will either be the default output slotType
+        //        // or the above dynanic slotType for dynamic nodes
+        //        // or error if there is an input error
+        //        tempSlots.Clear();
+        //        GetOutputSlots(tempSlots);
+
+
+
+        //        foreach (var outputSlot in tempSlots)
+        //        {
+        //            outputSlot.hasError = false;
+
+        //            if (inputError)
+        //            {
+        //                outputSlot.hasError = true;
+        //                continue;
+        //            }
+
+        //            if (outputSlot is DynamicValueMaterialSlot)
+        //            {
+        //                // Apply similar logic to output slot
+        //                switch (output_type)
+        //                {
+        //                    // As per dynamic matrix
+        //                    default:
+        //                        var dynamicMatrixType = ConvertDynamicMatrixInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
+        //                        (outputSlot as DynamicValueMaterialSlot).SetConcreteType(dynamicMatrixType);
+        //                        break;
+
+        //                    // As per dynamic vector
+        //                    case "vector":
+        //                        var dynamicVectorType = ConvertDynamicVectorInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
+        //                        (outputSlot as DynamicValueMaterialSlot).SetConcreteType(dynamicVectorType);
+        //                        break;
+        //                }
+        //                continue;
+        //            }
+        //        }
+
+
+        //        tempSlots.Clear();
+        //        GetOutputSlots(tempSlots);
+        //        if (tempSlots.Any(x => x.hasError))
+        //        {
+        //            owner.AddConcretizationError(objectId, string.Format("Node {0} had output error", objectId));
+        //            hasError = true;
+        //        }
+        //    }
+
+        //    CalculateNodeHasError();
+        //    ListPool<DynamicValueMaterialSlot>.Release(skippedDynamicSlots);
+        //    DictionaryPool<DynamicValueMaterialSlot, ConcreteSlotValueType>.Release(dynamicInputSlotsToCompare);
+        //}
         public override void EvaluateDynamicMaterialSlots()
         {
             var dynamicInputSlotsToCompare = DictionaryPool<DynamicVectorMaterialSlot, ConcreteSlotValueType>.Get();
-            var dynamicOnputSlotsToCompare = DictionaryPool<DynamicVectorMaterialSlot, ConcreteSlotValueType>.Get();
             var skippedDynamicSlots = ListPool<DynamicVectorMaterialSlot>.Get();
 
             var dynamicMatrixInputSlotsToCompare = DictionaryPool<DynamicMatrixMaterialSlot, ConcreteSlotValueType>.Get();
@@ -651,5 +757,18 @@ namespace UnityEditor.ShaderGraph
             ListPool<DynamicMatrixMaterialSlot>.Release(skippedDynamicMatrixSlots);
             DictionaryPool<DynamicMatrixMaterialSlot, ConcreteSlotValueType>.Release(dynamicMatrixInputSlotsToCompare);
         }
+        private string GetOutputType (SwizzleOutputSize SwizzleSize)
+        {
+            string str = SwizzleSize.ToString();
+            if (str.StartsWith("M"))
+            {
+                return "matrix";
+            }
+            else
+            {
+                return "vector";
+            }
+        }
+
     }
 }
