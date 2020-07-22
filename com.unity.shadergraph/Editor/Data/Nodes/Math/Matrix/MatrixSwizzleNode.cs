@@ -98,7 +98,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         SwizzleOutputSize m_OutputSize;
 
-        [EnumControl("")]
+        [EnumControl("Output Size")]
         SwizzleOutputSize outputSize
         {
             get { return m_OutputSize; }
@@ -108,6 +108,8 @@ namespace UnityEditor.ShaderGraph
                     return;
                 m_OutputSize = value;
                 Dirty(ModificationScope.Graph);
+                //probably don't want this here forever ? 
+                UpdateNodeAfterDeserialization();
             }
         }
 
@@ -115,9 +117,31 @@ namespace UnityEditor.ShaderGraph
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new DynamicMatrixMaterialSlot(InputSlotId, kInputSlotName, kInputSlotName, SlotType.Input));
-            AddSlot(new DynamicMatrixMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
-            //AddSlot(new DynamicValueMaterialSlot(InputSlotId, kInputSlotName, kInputSlotName, SlotType.Input, Matrix4x4.zero));
-            //AddSlot(new DynamicValueMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Matrix4x4.zero));
+            //this can probably be cleaner 
+            switch(m_OutputSize)
+            {
+                case SwizzleOutputSize.Matrix4:
+                    AddSlot(new Matrix4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
+                    break;
+                case SwizzleOutputSize.Matrix3:
+                    AddSlot(new Matrix3MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
+                    break;
+                case SwizzleOutputSize.Matrix2:
+                    AddSlot(new Matrix2MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
+                    break;
+                case SwizzleOutputSize.Vector4:
+                    AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
+                    break;
+                case SwizzleOutputSize.Vector3:
+                    AddSlot(new Vector3MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector3.zero));
+                    break;
+                case SwizzleOutputSize.Vector2:
+                    AddSlot(new Vector2MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector2.zero));
+                    break;
+                case SwizzleOutputSize.Vector1:
+                    AddSlot(new Vector1MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, 0));
+                    break;
+            }
             RemoveSlotsNameNotMatching(new int[] { InputSlotId, OutputSlotId });
 
         }
@@ -179,7 +203,7 @@ namespace UnityEditor.ShaderGraph
             //Debug.Log(getIndex(index_Row1.z)[0]+" "+ getIndex(index_Row1.z)[1]);
 
             //Get input matrix and its demension
-            var inputValue = GetSlotValue(InputSlotId, generationMode);
+            var inputValue = GetVariableNameForNode();
 
             var inputSlot = FindInputSlot<MaterialSlot>(InputSlotId);
             var numInputRows = 0;
@@ -767,6 +791,80 @@ namespace UnityEditor.ShaderGraph
             else
             {
                 return "vector";
+            }
+        }
+
+        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
+        {
+            if (!generationMode.IsPreview())
+                return;
+
+            //get input slot concrete value type 
+            //inject shader properties based on incoming matrix type 
+
+            //cleanup into an if statement to avoid duplicated code where possible 
+            switch(m_OutputSize)
+            {
+                case SwizzleOutputSize.Matrix2:
+                    properties.AddShaderProperty(new Vector2ShaderProperty()
+                    {
+                        overrideReferenceName = string.Format("_{0}_m0", GetVariableNameForNode()),
+                        generatePropertyBlock = false,
+                        value = index_Row0
+                    });
+                    properties.AddShaderProperty(new Vector2ShaderProperty()
+                    {
+                        overrideReferenceName = string.Format("_{0}_m1", GetVariableNameForNode()),
+                        generatePropertyBlock = false,
+                        value = index_Row1
+                    });
+                    break;
+                case SwizzleOutputSize.Matrix3:
+                    properties.AddShaderProperty(new Vector3ShaderProperty()
+                    {
+                        overrideReferenceName = string.Format("_{0}_m0", GetVariableNameForNode()),
+                        generatePropertyBlock = false,
+                        value = index_Row0
+                    });
+                    properties.AddShaderProperty(new Vector3ShaderProperty()
+                    {
+                        overrideReferenceName = string.Format("_{0}_m1", GetVariableNameForNode()),
+                        generatePropertyBlock = false,
+                        value = index_Row1
+                    });
+                    properties.AddShaderProperty(new Vector3ShaderProperty()
+                    {
+                        overrideReferenceName = string.Format("_{0}_m2", GetVariableNameForNode()),
+                        generatePropertyBlock = false,
+                        value = index_Row2
+                    });
+                    break;
+                case SwizzleOutputSize.Matrix4:
+                    properties.AddShaderProperty(new Vector4ShaderProperty()
+                    {
+                        overrideReferenceName = string.Format("_{0}_m0", GetVariableNameForNode()),
+                        generatePropertyBlock = false,
+                        value = index_Row0
+                    });
+                    properties.AddShaderProperty(new Vector4ShaderProperty()
+                    {
+                        overrideReferenceName = string.Format("_{0}_m1", GetVariableNameForNode()),
+                        generatePropertyBlock = false,
+                        value = index_Row1
+                    });
+                    properties.AddShaderProperty(new Vector4ShaderProperty()
+                    {
+                        overrideReferenceName = string.Format("_{0}_m2", GetVariableNameForNode()),
+                        generatePropertyBlock = false,
+                        value = index_Row2
+                    });
+                    properties.AddShaderProperty(new Vector4ShaderProperty()
+                    {
+                        overrideReferenceName = string.Format("_{0}_m3", GetVariableNameForNode()),
+                        generatePropertyBlock = false,
+                        value = index_Row3
+                    });
+                    break;
             }
         }
 
