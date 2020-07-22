@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_RenderStateBlocks = new RenderStateBlock[3];
             m_RenderStateBlocks[0] = OverwriteStencil(m_RenderStateBlock, (int)StencilUsage.MaterialMask, (int)StencilUsage.MaterialLit);
             m_RenderStateBlocks[1] = OverwriteStencil(m_RenderStateBlock, (int)StencilUsage.MaterialMask, (int)StencilUsage.MaterialSimpleLit);
-            m_RenderStateBlocks[2] = OverwriteStencil(m_RenderStateBlock, (int)StencilUsage.MaterialMask, (int)StencilUsage.MaterialBaked);
+            m_RenderStateBlocks[2] = OverwriteStencil(m_RenderStateBlock, (int)StencilUsage.MaterialMask, (int)StencilUsage.MaterialUnlit);
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)

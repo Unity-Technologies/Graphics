@@ -11,9 +11,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         _SimpleLitPunctualStencilReadMask ("SimpleLitPunctualStencilReadMask", Int) = 0
         _SimpleLitPunctualStencilWriteMask ("SimpleLitPunctualStencilWriteMask", Int) = 0
 
-        _LitDirStencilRef ("LitStencilDirWriteMask", Int) = 0
-        _LitDirStencilReadMask ("LitStencilDirReadMask", Int) = 0
-        _LitDirStencilWriteMask ("LitStencilDirWriteMask", Int) = 0
+        _LitDirStencilRef ("LitStencilDirStencilWriteMask", Int) = 0
+        _LitDirStencilReadMask ("LitStencilDirStencilReadMask", Int) = 0
+        _LitDirStencilWriteMask ("LitStencilDirStencilWriteMask", Int) = 0
 
         _SimpleLitDirStencilRef ("SimpleLitDirStencilWriteMask", Int) = 0
         _SimpleLitDirStencilReadMask ("SimpleLitDirStencilReadMask", Int) = 0
@@ -280,8 +280,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             Stencil {
                 Ref [_SimpleLitPunctualStencilRef]
-                ReadMask [_SimpleLitPunctualReadMask]
-                WriteMask [_SimpleLitPunctualWriteMask]
+                ReadMask [_SimpleLitPunctualStencilReadMask]
+                WriteMask [_SimpleLitPunctualStencilWriteMask]
                 CompBack Equal
                 PassBack Zero
                 FailBack Keep
@@ -354,8 +354,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             Stencil {
                 Ref [_SimpleLitDirStencilRef]
-                ReadMask [_SimpleLitDirReadMask]
-                WriteMask [_SimpleLitDirWriteMask]
+                ReadMask [_SimpleLitDirStencilReadMask]
+                WriteMask [_SimpleLitDirStencilWriteMask]
                 Comp Equal
                 Pass Keep
                 Fail Keep
