@@ -48,9 +48,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_ShaderTagValues[2] = new ShaderTagId("Unlit");
 
             m_RenderStateBlocks = new RenderStateBlock[3];
-            m_RenderStateBlocks[0] = OverwriteStencil(m_RenderStateBlock, 96, 32);
-            m_RenderStateBlocks[1] = OverwriteStencil(m_RenderStateBlock, 96, 64);
-            m_RenderStateBlocks[2] = OverwriteStencil(m_RenderStateBlock, 96, 0);
+            m_RenderStateBlocks[0] = OverwriteStencil(m_RenderStateBlock, (int)StencilUsage.MaterialMask, (int)StencilUsage.MaterialLit);
+            m_RenderStateBlocks[1] = OverwriteStencil(m_RenderStateBlock, (int)StencilUsage.MaterialMask, (int)StencilUsage.MaterialSimpleLit);
+            m_RenderStateBlocks[2] = OverwriteStencil(m_RenderStateBlock, (int)StencilUsage.MaterialMask, (int)StencilUsage.MaterialBaked);
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.ReleaseTemporaryRT(gbufferAttachments[i].id);
         }
 
-        RenderStateBlock OverwriteStencil(RenderStateBlock block, byte stencilWriteMask, int stencilRef)
+        RenderStateBlock OverwriteStencil(RenderStateBlock block, int stencilWriteMask, int stencilRef)
         {
             StencilState s = block.stencilState;
             CompareFunction funcFront = s.compareFunctionFront != CompareFunction.Disabled ? s.compareFunctionFront : CompareFunction.Always;
