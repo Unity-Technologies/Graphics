@@ -16,9 +16,9 @@ test_platforms:
   playmode_XR: --suite=playmode --extra-editor-arg="-xr-tests"
   playmode_RenderGraph: --suite=playmode --extra-editor-arg="-rendergraph-tests"
   editmode: --suite=editor --platform=editmode
-  performance_counters: --suite=playmode --testfilter=Counters --report-performance-data --performance-project-id=URP_Performance --platform=Standalone
-  performance_memory: --suite=playmode --testfilter=Memory --report-performance-data --performance-project-id=URP_Performance --platform=Standalone
-  performance_build: --suite=Editor --testfilter=Build --report-performance-data --performance-project-id=URP_Performance --platform=Standalone
+  performance_counters: --suite=playmode --testfilter=Counters --report-performance-data --performance-project-id=URP_Performance --platform=StandaloneWindows64
+  performance_memory: --suite=playmode --testfilter=Memory --report-performance-data --performance-project-id=URP_Performance --platform=StandaloneWindows64
+  performance_build: --suite=Editor --testfilter=Build --report-performance-data --performance-project-id=URP_Performance --platform=StandaloneWindows64
 project_platforms:
 platforms:
   Win:
