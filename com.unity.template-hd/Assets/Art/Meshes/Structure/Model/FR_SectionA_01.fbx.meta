@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: d2564ebb3beeaca47b554810141df024
 ModelImporter:
-  serializedVersion: 20100
+  serializedVersion: 20101
   internalIDToNameTable: []
   externalObjects:
   - first:
@@ -44,6 +44,11 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: ConcreteWhite_Mat
     second: {fileID: 2100000, guid: 55faf14096323624ebc74a2b76d76b65, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Drain_Mat
+    second: {fileID: 2100000, guid: 695771bab024a834dbb2756b86ed03ef, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
@@ -93,8 +98,9 @@ ModelImporter:
     importBlendShapes: 1
     importCameras: 1
     importLights: 1
+    fileIdsGeneration: 1
     swapUVChannels: 0
-    generateSecondaryUV: 0
+    generateSecondaryUV: 1
     useFileUnits: 1
     keepQuads: 0
     weldVertices: 1

@@ -183,11 +183,12 @@ The PCF algorithm applies a fixed size blur. PCSS applies a different blur size 
 
 Use these settings to enable or disable settings relating to lighting in HDRP.
 
-| **Property**                      | **Description**                                              |
-| --------------------------------- | ------------------------------------------------------------ |
-| **Maximum Directional On Screen** | The maximum number of Directional Lights HDRP can manage on screen at once. |
-| **Maximum Punctual On Screen**    | The maximum number of [Point and Spot Lights](Glossary.html#PunctualLight) HDRP can manage on screen at once. |
-| **Maximum Area On Screen**        | The maximum number of area Lights HDRP can manage on screen at once. |
+| **Property**                              | **Description**                                              |
+| ----------------------------------------- | ------------------------------------------------------------ |
+| **Maximum Directional On Screen**         | The maximum number of Directional Lights HDRP can manage on screen at once. |
+| **Maximum Punctual On Screen**            | The maximum number of [Point and Spot Lights](Glossary.html#PunctualLight) HDRP can manage on screen at once. |
+| **Maximum Area On Screen**                | The maximum number of area Lights HDRP can manage on screen at once. |
+| **Maximum Lights Per Cell (Ray Tracing)** | The maximum number of Lights that an individual grid cell in a [Light Cluster](Ray-Tracing-Light-Cluster.md) can store. |
 
 ## Material
 

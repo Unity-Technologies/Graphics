@@ -566,11 +566,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void UpdatePortInputTypes()
         {
-            foreach (var anchor in inputContainer.Query<ShaderPort>().ToList())
+            var portList = inputContainer.Query<ShaderPort>().ToList();
+            portList.AddRange(outputContainer.Query<ShaderPort>().ToList());
+            foreach (var anchor in portList)
             {
                 var slot = anchor.slot;
                 anchor.portName = slot.displayName;
                 anchor.visualClass = slot.concreteValueType.ToClassName();
+
                 if (GetPortInputView(anchor, out var portInputView))
                 {
                     portInputView.UpdateSlotType();

@@ -160,7 +160,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             VisibleLight shadowLight = lightData.visibleLights[shadowLightIndex];
 
-            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
+            // NOTE: Do NOT mix ProfilingScope with named CommandBuffers i.e. CommandBufferPool.Get("name").
+            // Currently there's an issue which results in mismatched markers.
+            CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 var settings = new ShadowDrawingSettings(cullResults, shadowLightIndex);
