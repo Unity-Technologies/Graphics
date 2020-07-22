@@ -190,5 +190,37 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return Shader.Find("Universal Render Pipeline/2D/Sprite-Lit-Default");
         }
 #endif
+
+
+        internal void InitializeTransient()
+        {
+            for (var i = 1; i < m_LightBlendStyles.Length; ++i)
+            {
+                if(m_LightBlendStyles[i].renderTargetHandle.id == 0)
+                    m_LightBlendStyles[i].renderTargetHandle.Init($"_ShapeLightTexture{i}");
+            }
+
+            lightMaterials ??= new Material[k_NumberOfLightMaterials];
+
+            if (normalsRenderTarget.id == 0)
+                normalsRenderTarget.Init("_NormalMap");
+
+            if (shadowsRenderTarget.id == 0)
+                shadowsRenderTarget.Init("_ShadowTex");
+
+            const int totalMaterials = 256;
+            shadowMaterials ??= new Material[totalMaterials];
+            removeSelfShadowMaterials ??= new Material[totalMaterials];
+        }
+
+        const int k_NumberOfLightMaterials = 1 << 5 + 3;  // 5 keywords +  volume bit, shape bit
+
+        // transient data
+        internal Material[] lightMaterials { get; set; }
+        internal Material[] shadowMaterials { get; set; }
+        internal Material[] removeSelfShadowMaterials { get; set; }
+
+        [NonSerialized] internal RenderTargetHandle normalsRenderTarget;
+        [NonSerialized] internal RenderTargetHandle shadowsRenderTarget;
     }
 }

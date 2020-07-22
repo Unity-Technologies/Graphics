@@ -5,7 +5,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
-    internal class Render2DLightingPass : ScriptableRenderPass
+    internal class Render2DLightingPass : ScriptableRenderPass, IRenderPass2D
     {
         static SortingLayer[] s_SortingLayers;
         Renderer2DData m_Renderer2DData;
@@ -105,20 +105,20 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bool isSceneLit = Light2D.IsSceneLit(camera);
             if (isSceneLit)
             {
-                RendererLighting.Setup(renderingData, m_Renderer2DData);
+                m_Renderer2DData.InitializeTransient();
 
                 CommandBuffer cmd = CommandBufferPool.Get();
                 cmd.Clear();
 
                 using (new ProfilingScope(cmd, m_ProfilingSampler))
                 {
-                    RendererLighting.CreateNormalMapRenderTexture(cmd);
+                    this.CreateNormalMapRenderTexture(renderingData, cmd);
 
                     cmd.SetGlobalFloat("_HDREmulationScale", m_Renderer2DData.hdrEmulationScale);
                     cmd.SetGlobalFloat("_InverseHDREmulationScale", 1.0f / m_Renderer2DData.hdrEmulationScale);
                     cmd.SetGlobalFloat("_UseSceneLighting", isLitView ? 1.0f : 0.0f);
                     cmd.SetGlobalColor("_RendererColor", Color.white);
-                    RendererLighting.SetShapeLightShaderGlobals(cmd);
+                    this.SetShapeLightShaderGlobals(cmd);
 
                     context.ExecuteCommandBuffer(cmd);
 
@@ -144,7 +144,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                             if (blendStyleUsed && !hasBeenInitialized[blendStyleIndex])
                             {
-                                RendererLighting.CreateBlendStyleRenderTexture(cmd, blendStyleIndex);
+                                this.CreateBlendStyleRenderTexture(renderingData, cmd, blendStyleIndex);
                                 hasBeenInitialized[blendStyleIndex] = true;
                             }
 
@@ -165,17 +165,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                         // Start Rendering
                         if (lightStats.totalNormalMapUsage > 0)
-                            RendererLighting.RenderNormals(context, renderingData.cullResults, normalsDrawSettings,
-                                filterSettings, depthAttachment);
+                            this.RenderNormals(context, renderingData.cullResults, normalsDrawSettings, filterSettings, depthAttachment);
 
                         cmd.Clear();
                         if (lightStats.totalLights > 0)
                         {
-                            RendererLighting.RenderLights(camera, cmd, layerToRender, lightStats.blendStylesUsed);
+                            this.RenderLights(renderingData, cmd, layerToRender, lightStats.blendStylesUsed);
                         }
                         else
                         {
-                            RendererLighting.ClearDirtyLighting(cmd, lightStats.blendStylesUsed);
+                            this.ClearDirtyLighting(cmd, lightStats.blendStylesUsed);
                         }
 
                         CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment, ClearFlag.None, Color.white);
@@ -189,8 +188,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         {
 
                             cmd.Clear();
-                            RendererLighting.RenderLightVolumes(camera, cmd, layerToRender, colorAttachment,
-                                depthAttachment, lightStats.blendStylesUsed);
+                            this.RenderLightVolumes(renderingData, cmd, layerToRender, colorAttachment, depthAttachment, lightStats.blendStylesUsed);
                             context.ExecuteCommandBuffer(cmd);
                             cmd.Clear();
                         }
@@ -201,7 +199,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                     cmd.Clear();
                     Profiler.BeginSample("RenderSpritesWithLighting - Release RenderTextures");
-                    RendererLighting.ReleaseRenderTextures(cmd);
+                    this.ReleaseRenderTextures(cmd);
                     Profiler.EndSample();
                 }
 
@@ -238,6 +236,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
             }
+        }
+
+        Renderer2DData IRenderPass2D.rendererData
+        {
+            get { return m_Renderer2DData; }
         }
     }
 }
