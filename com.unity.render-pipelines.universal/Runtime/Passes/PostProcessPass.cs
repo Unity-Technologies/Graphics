@@ -148,8 +148,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_EnableSRGBConversionIfNeeded = true;
         }
 
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        /// <inheritdoc/>
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
+            if (cmd == null)
+                throw new ArgumentNullException("cmd");
+
             if (m_Destination == RenderTargetHandle.CameraTarget)
                 return;
 
@@ -160,6 +164,21 @@ namespace UnityEngine.Rendering.Universal.Internal
             var desc = GetCompatibleDescriptor();
             desc.depthBufferBits = 0;
             cmd.GetTemporaryRT(m_Destination.id, desc, FilterMode.Point);
+        }
+
+        /// <inheritdoc/>
+        public override void OnCameraCleanup(CommandBuffer cmd)
+        {
+            if (cmd == null)
+                throw new ArgumentNullException("cmd");
+
+            if (m_Destination == RenderTargetHandle.CameraTarget)
+                return;
+
+            if (m_Destination.id == -2)
+                return;
+
+            cmd.ReleaseTemporaryRT(m_Destination.id);
         }
 
         public void ResetHistory()
