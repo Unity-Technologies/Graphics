@@ -166,23 +166,8 @@ namespace UnityEngine.Rendering.HighDefinition
             });
         }
 
-        public void Render(RenderGraph renderGraph,
-                            HDCamera hdCamera,
-                            BlueNoise blueNoise,
-                            TextureHandle colorBuffer,
-                            TextureHandle afterPostProcessTexture,
-                            TextureHandle depthBuffer,
-                            TextureHandle depthBufferMipChain,
-                            TextureHandle motionVectors,
-                            TextureHandle finalRT,
-                            bool flipY)
+        TextureHandle DoCopyAlpha(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
         {
-            var dynResHandler = DynamicResolutionHandler.instance;
-
-            bool isSceneView = hdCamera.camera.cameraType == CameraType.SceneView;
-            var source = colorBuffer;
-            TextureHandle alphaTexture = renderGraph.defaultResources.whiteTextureXR;
-
             // Save the alpha and apply it back into the final pass if rendering in fp16 and post-processing in r11g11b10
             if (m_KeepAlpha)
             {
@@ -199,25 +184,52 @@ namespace UnityEngine.Rendering.HighDefinition
                         DoCopyAlpha(data.parameters, data.source, data.outputAlpha, ctx.cmd);
                     });
 
-                    alphaTexture = passData.outputAlpha;
+                    return passData.outputAlpha;
                 }
             }
 
+            return renderGraph.defaultResources.whiteTextureXR;
+        }
+
+        TextureHandle ClearWithGuardBands(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
+        {
+            using (var builder = renderGraph.AddRenderPass<GuardBandPassData>("Guard Band Clear", out var passData, ProfilingSampler.Get(HDProfileId.GuardBandClear)))
+            {
+                passData.source = builder.WriteTexture(source);
+                passData.parameters = PrepareClearWithGuardBandsParameters(hdCamera);
+
+                builder.SetRenderFunc(
+                (GuardBandPassData data, RenderGraphContext ctx) =>
+                {
+                    ClearWithGuardBands(data.parameters, ctx.cmd, data.source);
+                });
+
+                return passData.source;
+            }
+
+        }
+
+        public void Render(RenderGraph renderGraph,
+                            HDCamera hdCamera,
+                            BlueNoise blueNoise,
+                            TextureHandle colorBuffer,
+                            TextureHandle afterPostProcessTexture,
+                            TextureHandle depthBuffer,
+                            TextureHandle depthBufferMipChain,
+                            TextureHandle motionVectors,
+                            TextureHandle finalRT,
+                            bool flipY)
+        {
+            var dynResHandler = DynamicResolutionHandler.instance;
+
+            bool isSceneView = hdCamera.camera.cameraType == CameraType.SceneView;
+            var source = colorBuffer;
+            TextureHandle alphaTexture = DoCopyAlpha(renderGraph, hdCamera, source);
+
             if (m_PostProcessEnabled)
             {
-                using (var builder = renderGraph.AddRenderPass<GuardBandPassData>("Guard Band Clear", out var passData, ProfilingSampler.Get(HDProfileId.GuardBandClear)))
-                {
-                    passData.source = builder.WriteTexture(source);
-                    passData.parameters = PrepareClearWithGuardBandsParameters(hdCamera);
 
-                    builder.SetRenderFunc(
-                    (GuardBandPassData data, RenderGraphContext ctx) =>
-                    {
-                        ClearWithGuardBands(data.parameters, ctx.cmd, data.source);
-                    });
-
-                    source = passData.source;
-                }
+                source = ClearWithGuardBands(renderGraph, hdCamera, source);
 
                 // Optional NaN killer before post-processing kicks in
                 bool stopNaNs = hdCamera.stopNaNs && m_StopNaNFS;
