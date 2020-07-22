@@ -27,7 +27,7 @@ class PreviewPublish_AutoVersionJob():
         
         # Running the expression on all branches on all pushes to test the globbing pattern
         # job.set_trigger_on_expression(f'pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["/com.unity.template*/**/*.json"]')
-        job.set_trigger_on_expression(f'NOT pull_request.push.changes.all match ["/com.unity.template*/**/*.json"]')
+        job.set_trigger_on_expression(f'NOT pull_request.push.changes.all match ["*template*/**/*.json"]')
         job.add_artifacts_packages()
         # if auto_version is True:
         #     job.add_trigger_integration_branch(target_branch)
