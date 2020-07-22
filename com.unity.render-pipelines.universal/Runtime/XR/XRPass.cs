@@ -364,7 +364,7 @@ namespace UnityEngine.Rendering.Universal
         internal bool enabled { get => false; }
         internal void StartSinglePass(CommandBuffer cmd) { }
         internal void StopSinglePass(CommandBuffer cmd) { }
-        internal void EndCamera(CommandBuffer cmd, Camera camera) { }
+        internal void EndCamera(CommandBuffer cmd, CameraData camera) { }
     }
 }
 #endif
