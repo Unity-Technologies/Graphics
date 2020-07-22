@@ -154,8 +154,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_Destination == RenderTargetHandle.CameraTarget)
                 return;
 
-            // If RenderTargetHandle already has valid render target identifier, we shouldn't create a temp
-            if (m_Destination.id == -2)
+            // If RenderTargetHandle already has a valid internal render target identifier, we shouldn't request a temp
+            if (m_Destination.HasInternalRenderTargetId())
                 return;
 
             var desc = GetCompatibleDescriptor();
@@ -169,7 +169,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_Destination == RenderTargetHandle.CameraTarget)
                 return;
 
-            if (m_Destination.id == -2)
+            // Logic here matches the if check in OnCameraSetup
+            if (m_Destination.HasInternalRenderTargetId())
                 return;
 
             cmd.ReleaseTemporaryRT(m_Destination.id);
