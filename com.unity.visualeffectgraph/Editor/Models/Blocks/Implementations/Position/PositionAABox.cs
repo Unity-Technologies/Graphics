@@ -23,11 +23,11 @@ namespace UnityEditor.VFX.Block
                 foreach (var p in GetExpressionsFromSlots(this).Where(e => e.name != "Thickness"))
                     yield return p;
 
+                VFXExpression boxSize = inputSlots[0][1].GetExpression();
+
                 if (positionMode == PositionMode.ThicknessAbsolute || positionMode == PositionMode.ThicknessRelative)
                 {
                     VFXExpression factor = VFXValue.Constant(Vector3.zero);
-                    VFXExpression boxSize = inputSlots[0][1].GetExpression();
-
                     switch (positionMode)
                     {
                         case PositionMode.ThicknessAbsolute:
@@ -59,6 +59,12 @@ namespace UnityEditor.VFX.Block
                     yield return new VFXNamedExpression(volumeXZ, "volumeXZ");
                     yield return new VFXNamedExpression(volumeYZ, "volumeYZ");
                     yield return new VFXNamedExpression(cumulativeVolumes, "cumulativeVolumes");
+
+                }
+                else
+                {
+                    VFXExpression absBoxSize = new VFXExpressionAbs(boxSize);
+                    yield return new VFXNamedExpression(absBoxSize, "absBoxSize");
                 }
             }
         }
@@ -86,7 +92,7 @@ namespace UnityEditor.VFX.Block
                 else if (positionMode == PositionMode.Surface)
                 {
                     outSource = @"
-Box_size = abs(Box_size);
+Box_size = absBoxSize;
 float areaXY = max(Box_size.x * Box_size.y, VFX_EPSILON);
 float areaXZ = max(Box_size.x * Box_size.z, VFX_EPSILON);
 float areaYZ = max(Box_size.y * Box_size.z, VFX_EPSILON);
