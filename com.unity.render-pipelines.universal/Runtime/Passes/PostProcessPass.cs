@@ -151,9 +151,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            if (cmd == null)
-                throw new ArgumentNullException("cmd");
-
             if (m_Destination == RenderTargetHandle.CameraTarget)
                 return;
 
@@ -169,9 +166,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void OnCameraCleanup(CommandBuffer cmd)
         {
-            if (cmd == null)
-                throw new ArgumentNullException("cmd");
-
             if (m_Destination == RenderTargetHandle.CameraTarget)
                 return;
 
