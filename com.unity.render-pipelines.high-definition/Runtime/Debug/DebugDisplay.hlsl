@@ -22,7 +22,7 @@ StructuredBuffer<int2>  _DebugDepthPyramidOffsets;
 // For vertex density, it stores the number of vertex projected in each pixel.
 // For quad overdraw, each 2x2 quad of the UAV contains the overdraw count in top-left pixel and the locked quad in the bottom-right pixel. The two other pixels of the quad are unused.
 // Because metal doesn't support atomics on textures, this is actually a buffer
-RWStructuredBuffer<uint> _DebugDisplayBuffer : register(u5);
+RWStructuredBuffer<uint> _DebugDisplayBuffer : register(u3);
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/PBRValidator.hlsl"
 

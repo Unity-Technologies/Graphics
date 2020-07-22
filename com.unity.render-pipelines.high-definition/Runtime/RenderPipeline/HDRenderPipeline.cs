@@ -3866,6 +3866,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader clearPropertyMaskBufferCS;
             public int clearPropertyMaskBufferKernel;
             public int propertyMaskBufferSize;
+            public bool debugDisplay;
         }
 
         RenderDBufferParameters PrepareRenderDBufferParameters(HDCamera hdCamera)
@@ -3876,6 +3877,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.clearPropertyMaskBufferCS = m_DbufferManager.clearPropertyMaskBufferShader;
             parameters.clearPropertyMaskBufferKernel = m_DbufferManager.clearPropertyMaskBufferKernel;
             parameters.propertyMaskBufferSize = m_DbufferManager.GetPropertyMaskBufferSize(m_MaxCameraWidth, m_MaxCameraHeight);
+            parameters.debugDisplay = m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled();
             return parameters;
         }
 
@@ -3921,7 +3923,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // clear decal property mask buffer
             cmd.SetComputeBufferParam(parameters.clearPropertyMaskBufferCS, parameters.clearPropertyMaskBufferKernel, HDShaderIDs._DecalPropertyMaskBuffer, propertyMaskBuffer);
             cmd.DispatchCompute(parameters.clearPropertyMaskBufferCS, parameters.clearPropertyMaskBufferKernel, parameters.propertyMaskBufferSize / 64, 1, 1);
-            cmd.SetRandomWriteTarget(parameters.use4RTs ? 4 : 3, propertyMaskBuffer);
+            cmd.SetRandomWriteTarget((parameters.debugDisplay ? 1 : 0) + (parameters.use4RTs ? 4 : 3), propertyMaskBuffer);
 
             if (parameters.useDecalLayers)
                 cmd.SetGlobalTexture(HDShaderIDs._DecalPrepassTexture, decalPrepassBuffer);
@@ -3956,7 +3958,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
                 CoreUtils.SetRenderTarget(cmd, msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(msaa));
                 if (debugDisplay)
-                    cmd.SetRandomWriteTarget(5, EmptyUIntComputeBuffer);
+                    cmd.SetRandomWriteTarget(3, EmptyUIntComputeBuffer);
 
                 HDUtils.DrawRendererList(renderContext, cmd, RendererList.Create(PrepareForwardEmissiveRendererList(cullResults, hdCamera)));
 
@@ -4000,7 +4002,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // we must override the state here.
 
                     CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.All, Color.clear);
-                    cmd.SetRandomWriteTarget(5, EmptyUIntComputeBuffer);
+                    cmd.SetRandomWriteTarget(3, EmptyUIntComputeBuffer);
 
                     // Render Opaque forward
                     var rendererListOpaque = RendererList.Create(CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_AllForwardOpaquePassNames, m_CurrentRendererConfigurationBakedLighting, stateBlock: m_DepthStateOpaque));
@@ -4072,7 +4074,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                                 CommandBuffer                   cmd)
         {
             CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer, clearFlag: ClearFlag.Color, clearColor: Color.black);
-            cmd.SetRandomWriteTarget(5, EmptyUIntComputeBuffer);
+            cmd.SetRandomWriteTarget(3, EmptyUIntComputeBuffer);
 
             // High res transparent objects, drawing in m_DebugFullScreenTempBuffer
             parameters.constantBuffer._DebugTransparencyOverdrawWeight = 1.0f;
@@ -4113,7 +4115,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (mode == FullScreenDebugMode.QuadOverdraw || mode == FullScreenDebugMode.VertexDensity)
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer());
-                cmd.SetRandomWriteTarget(5, m_SharedRTManager.GetDebugDisplayBuffer());
+                cmd.SetRandomWriteTarget(3, m_SharedRTManager.GetDebugDisplayBuffer());
 
                 // Depth test less equal + no color write
                 var stateBlock = new RenderStateBlock
@@ -4378,7 +4380,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CoreUtils.SetRenderTarget(cmd, renderTarget, depthBuffer);
             if (debugDisplay)
-                cmd.SetRandomWriteTarget(5, EmptyUIntComputeBuffer);
+                cmd.SetRandomWriteTarget(3, EmptyUIntComputeBuffer);
 
             if (opaque)
                 DrawOpaqueRendererList(renderContext, cmd, frameSettings, rendererList);
@@ -5139,7 +5141,7 @@ namespace UnityEngine.Rendering.HighDefinition
             mpb.SetFloat(HDShaderIDs._QuadOverdrawMaxQuadCost, (float)parameters.debugDisplaySettings.data.maxQuadCost);
             mpb.SetFloat(HDShaderIDs._VertexDensityMaxPixelCost, (float)parameters.debugDisplaySettings.data.maxVertexDensity);
 
-            cmd.SetRandomWriteTarget(5, parameters.debugDisplayBuffer);
+            cmd.SetRandomWriteTarget(3, parameters.debugDisplayBuffer);
 
             HDUtils.DrawFullScreen(cmd, parameters.debugFullScreenMaterial, output, mpb, 0);
 
