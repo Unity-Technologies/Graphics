@@ -3956,7 +3956,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
                 CoreUtils.SetRenderTarget(cmd, msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(msaa));
                 if (debugDisplay)
-                    cmd.SetRandomWriteTarget(5, TextureXR.GetBlackUIntTexture());
+                    cmd.SetRandomWriteTarget(5, EmptyUIntComputeBuffer);
 
                 HDUtils.DrawRendererList(renderContext, cmd, RendererList.Create(PrepareForwardEmissiveRendererList(cullResults, hdCamera)));
 
