@@ -17,6 +17,7 @@ namespace UnityEngine.Rendering.Universal
         Depth = 1 << 0,
         Normal = 1 << 1,
         Color = 1 << 2,
+        Motion = 1 <<3
     }
 
     // Note: Spaced built-in events so we can add events in between them
