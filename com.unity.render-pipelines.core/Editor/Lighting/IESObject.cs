@@ -101,9 +101,8 @@ namespace UnityEditor.Rendering
         /// </summary>
         [Range(1f, 179f)]
         public float SpotAngle = 120f;
-
         /// <summary>
-        /// IES Size of the texture used (same parameter for Point and Spot)
+        /// IES Size of the texture used (same parameter for Point & Spot)
         /// </summary>
         public IESResolution iesSize = IESResolution.IESResolution128;
 
