@@ -426,6 +426,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                          colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
 
                     bool isRenderToBackBufferTarget = cameraTarget == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;
+                    if (isRenderToBackBufferTarget)
+                        cmd.SetViewport(cameraData.pixelRect);
                     // We y-flip if
                     // 1) we are bliting from render texture to back buffer and
                     // 2) renderTexture starts UV at top
@@ -1156,6 +1158,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 cmd.SetRenderTarget(new RenderTargetIdentifier(cameraTarget, 0, CubemapFace.Unknown, -1),
                     colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                // XRTODO: Investigate this case: Must call SetViewport after SetRenderTarget. SetRenderTarget calls setViewport internally which invalidates SetViewport
+                cmd.SetViewport(cameraData.pixelRect); 
                 cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
                 cmd.DrawProcedural(Matrix4x4.identity, material, 0, MeshTopology.Quads, 4, 1, null);
             }
