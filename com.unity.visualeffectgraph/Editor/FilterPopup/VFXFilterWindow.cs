@@ -302,7 +302,6 @@ namespace UnityEditor.VFX.UI
             if (!(activeParent.WantsFocus))
             {
                 EditorGUI.FocusTextInControl("ComponentSearch");
-                Focus();
             }
             Rect searchRect = GUILayoutUtility.GetRect(10, 20);
             searchRect.x += 8;
