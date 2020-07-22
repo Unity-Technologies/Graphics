@@ -679,7 +679,6 @@ namespace UnityEngine.Rendering.Universal
                             {
                                 // SetRenderTarget might alter the internal device state(winding order).
                                 // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
-                                // XRTODO: Consolidate y-flip and winding order device state in URP
                                 int xrTargetIndex = RenderingUtils.IndexOf(renderPass.colorAttachments, cameraData.xr.renderTarget);
                                 bool isRenderToBackBufferTarget = (xrTargetIndex != -1) && !cameraData.xr.renderTargetIsRenderTexture;
                                 cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, !isRenderToBackBufferTarget);
@@ -749,7 +748,6 @@ namespace UnityEngine.Rendering.Universal
                         {
                             // SetRenderTarget might alter the internal device state(winding order).
                             // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
-                            // XRTODO: Consolidate y-flip and winding order device state in URP
                             bool isRenderToBackBufferTarget = (passColorAttachment == cameraData.xr.renderTarget) && !cameraData.xr.renderTargetIsRenderTexture;
                             cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, !isRenderToBackBufferTarget);
                         }

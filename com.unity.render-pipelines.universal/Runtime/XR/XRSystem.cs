@@ -151,7 +151,6 @@ namespace UnityEngine.Rendering.Universal
                 else
                     QualitySettings.vSyncCount = 0;
 
-                // XRTODO: handle camera.stereoTargetEye here ? or just add xrRendering on the camera ?
                 CreateLayoutFromXrSdk(camera, singlePassAllowed: true);
             }
             else
