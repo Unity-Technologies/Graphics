@@ -223,6 +223,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         #region Public Interface
 
+        /// <summary>
+        /// Set of default resources usable in a pass rendering code.
+        /// </summary>
         public RenderGraphDefaultResources defaultResources
         {
             get
@@ -393,8 +396,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <summary>
         /// Execute the Render Graph in its current state.
         /// </summary>
-        /// <param name="renderContext">ScriptableRenderContext used to execute Scriptable Render Pipeline.</param>
-        /// <param name="cmd">Command Buffer used for Render Passes rendering.</param>
         /// <param name="parameters">Render Graph execution parameters.</param>
         public void Execute(in RenderGraphExecuteParams parameters)
         {

@@ -882,7 +882,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Set a keyword to a compute shader
         /// </summary>
-        /// <param name="cmd">ComputeShader on which to set the keyword.</param>
+        /// <param name="cs">Compute Shader on which to set the keyword.</param>
         /// <param name="keyword">Keyword to be set.</param>
         /// <param name="state">Value of the keyword to be set.</param>
         public static void SetKeyword(ComputeShader cs, string keyword, bool state)
