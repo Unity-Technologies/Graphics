@@ -200,7 +200,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     m_LightBlendStyles[i].renderTargetHandle.Init($"_ShapeLightTexture{i}");
             }
 
-            lightMaterials ??= new Material[k_NumberOfLightMaterials];
+            if(lightMaterials == null || lightMaterials.Length == 0)
+                lightMaterials= new Material[k_NumberOfLightMaterials];
 
             if (normalsRenderTarget.id == 0)
                 normalsRenderTarget.Init("_NormalMap");
@@ -209,8 +210,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 shadowsRenderTarget.Init("_ShadowTex");
 
             const int totalMaterials = 256;
-            shadowMaterials ??= new Material[totalMaterials];
-            removeSelfShadowMaterials ??= new Material[totalMaterials];
+
+            if(shadowMaterials == null || shadowMaterials.Length == 0)
+                shadowMaterials = new Material[totalMaterials];
+            if(removeSelfShadowMaterials == null || removeSelfShadowMaterials.Length == 0)
+                removeSelfShadowMaterials = new Material[totalMaterials];
         }
 
         const int k_NumberOfLightMaterials = 1 << 5 + 3;  // 5 keywords +  volume bit, shape bit
