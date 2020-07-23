@@ -1853,7 +1853,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 0
+  m_PresetInfoIsWorld: 1
 --- !u!223 &662247325
 Canvas:
   m_ObjectHideFlags: 0
@@ -6760,7 +6760,7 @@ MonoBehaviour:
       customRenderingSettings: 1
       renderingPathCustomFrameSettings:
         bitDatas:
-          data1: 69140249284429
+          data1: 69140249288525
           data2: 4539628424926265344
         lodBias: 1
         lodBiasMode: 0
