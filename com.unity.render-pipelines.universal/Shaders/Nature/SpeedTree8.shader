@@ -126,7 +126,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             }
 
             HLSLPROGRAM
-
+            #pragma exclude_renderers d3d11_9x gles gles3 glcore
             #pragma vertex SpeedTree8Vert
             #pragma fragment SpeedTree8Frag
 
