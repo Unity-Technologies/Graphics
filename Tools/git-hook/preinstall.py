@@ -20,7 +20,6 @@ def save_existing_hooks():
 
 		with open(pre_installed_hook, 'r') as pre_installed_hook_file:
   			hook_data = pre_installed_hook_file.read()	  
-		hook_data = hook_data.replace('#!/bin/sh', '')
 
 		with open(tmp_hook, 'w') as tmp_hook_file:
 		  tmp_hook_file.write(hook_data)
