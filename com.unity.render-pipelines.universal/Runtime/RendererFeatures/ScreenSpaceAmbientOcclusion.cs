@@ -153,7 +153,6 @@ namespace UnityEngine.Rendering.Universal
             internal bool Setup(ScreenSpaceAmbientOcclusionSettings featureSettings)
             {
                 m_CurrentSettings = featureSettings;
-
                 switch (m_CurrentSettings.Source)
                 {
                     case ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth:

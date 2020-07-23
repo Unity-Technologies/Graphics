@@ -54,8 +54,6 @@ namespace UnityEngine.Rendering.Universal
         Material m_SamplingMaterial;
         Material m_ScreenspaceShadowsMaterial;
 
-        bool m_IsGLES2 = false;
-
         public ForwardRenderer(ForwardRendererData data) : base(data)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -112,8 +110,6 @@ namespace UnityEngine.Rendering.Universal
             m_ColorGradingLut.Init("_InternalGradingLut");
             m_ForwardLights = new ForwardLights();
 
-            m_IsGLES2 = SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2;
-            
             supportedRenderingFeatures = new RenderingFeatures()
             {
                 cameraStacking = true,
@@ -483,13 +479,6 @@ namespace UnityEngine.Rendering.Universal
                 inputSummary.requiresDepthPrepass   |= needsNormals || needsDepth && eventBeforeOpaque;
                 inputSummary.requiresNormalsTexture |= needsNormals;
                 inputSummary.requiresColorTexture   |= needsColor;
-            }
-
-            // DepthNormal texture is not supported in GLES2 atm
-            if (m_IsGLES2 && inputSummary.requiresNormalsTexture)
-            {
-                Debug.LogWarning("One or more render passes require camera normals texture as input. Camera normals are not supported in GLES2.");
-                inputSummary.requiresNormalsTexture = false;
             }
 
             return inputSummary;
