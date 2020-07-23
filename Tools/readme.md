@@ -2,7 +2,9 @@
 
 These tools are mainly to support CI and testing.
 
-## Scripts
+## Standalone scripts
+
+These are supposed to be run as one-off jobs, and can be called from the git-hooks.
 
 - `file_extension_to_lowercase`: Convert all file extensions in the specified folder from uppercase to lowercase (e.g. `file.FBX` will be converted to `file.fbx` as well as its meta file)
 	- Prerequisites: Python installed and accessible from the `PATH`
@@ -11,12 +13,13 @@ These tools are mainly to support CI and testing.
 
 ## Git hooks
 
-The folder `Tools/git-hooks` contains git hooks for the Graphics repository. 
+The folder `Tools/git-hook` contains git hooks for the Graphics repository. 
 
 ### Installation
 
 **Prerequisites:**
-- [NodeJS](https://nodejs.org/en/) is installed and present in your PATH
+- [NodeJS >= 10](https://nodejs.org/en/) is installed and present in your PATH.
+- [Python >= 3](https://www.python.org/downloads/) is installed and present in your PATH.
 
 **Steps:**
 
@@ -45,12 +48,14 @@ After trying the solutions below, you may want to delete the `Tools/node_modules
 	- All branches in lowercase, except for the enclosing `HDRP` folder (valid names: `HDRP/my-branch`, `something-else/my-branch`)
 - `check-shader-includes`: Compare the case sensitivity of the shader includes in the code files to the actual files in the filesystem. Generate a log if it differs.
 - `renormalize-files`: Ensure all files are normalized with LF line endings. CRLF line endings are not allowed on the remote.
+- `check-file-name-extension`: Make sure all files pushed have a lowercase extension so that imports are not broken on Linux.
 
 ### Contributing
 
-New git hooks should be added to the `./git-hooks` folder. They have to be linked to husky in the `.huskyrc.js` file.
+New git hooks should be added to the `./git-hook` folder. They have to be linked to husky in the `package.json` file.
 
 ### Packages
 
 We use the following packages to make the hooks work:
 - [husky](https://github.com/typicode/husky) - Easy access to Git hooks from Node scripts/tools.
+- [lint-staged](https://github.com/okonet/lint-staged) - Match all staged files to further process them in the git-hooks.
