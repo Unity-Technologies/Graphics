@@ -13,6 +13,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public TextureHandle cachedAreaShadowResult;
     }
 
+    // custom-begin:
+    public
+    // custom-end
     partial class HDShadowManager
     {
         internal static ShadowResult ReadShadowResult(in ShadowResult shadowResult, RenderGraphBuilder builder)
@@ -145,6 +148,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
+    // custom-begin:
+    public
+    // custom-end
     partial class HDShadowAtlas
     {
 

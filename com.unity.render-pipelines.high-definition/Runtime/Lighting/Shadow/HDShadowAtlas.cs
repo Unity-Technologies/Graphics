@@ -4,6 +4,9 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    // custom-begin:
+    public
+    // custom-end
     abstract partial class HDShadowAtlas
     {
         internal struct HDShadowAtlasInitParameters
