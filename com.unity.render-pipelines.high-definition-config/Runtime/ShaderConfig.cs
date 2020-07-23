@@ -100,6 +100,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Support for barn doors.</summary>
         BarnDoor = 0
+
+        // custom-begin
+        ,
+        // Set to zero to strip rendering customizations that depend on Asset Folder includes.
+        ProjectCustomizationsIsEnabled = 1
+        // custom-end
     };
 
     // Note: #define can't be use in include file in C# so we chose this way to configure both C# and hlsl
@@ -145,5 +151,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Indicates whether to support barn doors.</summary>
         ///<seealso cref="ShaderOptions.BarnDoor"/>
         public static int s_BarnDoor = (int)ShaderOptions.BarnDoor;
+        // custom-begin:
+        public static int s_ProjectCustomizationsIsEnabled = (int)ShaderOptions.ProjectCustomizationsIsEnabled;
+        // custom-end
     }
 }
