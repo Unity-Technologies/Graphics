@@ -229,7 +229,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        TextureHandle DoStopNaNs(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
+        TextureHandle StopNaNsPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
         {
             // Optional NaN killer before post-processing kicks in
             bool stopNaNs = hdCamera.stopNaNs && m_StopNaNFS;
@@ -261,7 +261,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
-        TextureHandle DoDynamicExposure(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
+        TextureHandle DynamicExposurePass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
         {
             // Dynamic exposure - will be applied in the next frame
             // Not considered as a post-process so it's not affected by its enabled state
@@ -383,7 +383,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
-        TextureHandle DoSMAA(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle source)
+        TextureHandle SMAAPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle source)
         {
             using (var builder = renderGraph.AddRenderPass<SMAAData>("Subpixel Morphological Anti-Aliasing", out var passData, ProfilingSampler.Get(HDProfileId.SMAA)))
             {
@@ -622,7 +622,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
-        TextureHandle DoMotionBlur(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle motionVectors, TextureHandle source)
+        TextureHandle MotionBlurPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle motionVectors, TextureHandle source)
         {
             if (m_MotionBlur.IsActive() && m_AnimatedMaterialsEnabled && !hdCamera.resetPostProcessingHistory && m_MotionBlurFS)
             {
@@ -899,12 +899,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 source = ClearWithGuardBands(renderGraph, hdCamera, source);
 
-                source = DoStopNaNs(renderGraph, hdCamera, source);
+                source = StopNaNsPass(renderGraph, hdCamera, source);
 
-                source = DoDynamicExposure(renderGraph, hdCamera, source);
-
-                // Temporal anti-aliasing goes first
-                bool taaEnabled = false;
+                source = DynamicExposurePass(renderGraph, hdCamera, source);
 
 
                 //if (camera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
@@ -916,17 +913,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 //    }
                 //}
 
+                // Temporal anti-aliasing goes first
                 if (m_AntialiasingFS)
                 {
-                    taaEnabled = hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
-
-                    if (taaEnabled)
+                    if (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing)
                     {
                         source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source);
                     }
                     else if (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.SubpixelMorphologicalAntiAliasing)
                     {
-                        source = DoSMAA(renderGraph, hdCamera, depthBuffer, source);
+                        source = SMAAPass(renderGraph, hdCamera, depthBuffer, source);
                     }
                 }
 
@@ -944,7 +940,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Motion blur after depth of field for aesthetic reasons (better to see motion
                 // blurred bokeh rather than out of focus motion blur)
-                source = DoMotionBlur(renderGraph, hdCamera, motionVectors, source);
+                source = MotionBlurPass(renderGraph, hdCamera, motionVectors, source);
 
                 // Panini projection is done as a fullscreen pass after all depth-based effects are
                 // done and before bloom kicks in
