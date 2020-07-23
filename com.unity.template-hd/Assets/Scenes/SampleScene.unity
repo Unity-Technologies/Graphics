@@ -97,8 +97,8 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 0}
-  m_LightingSettings: {fileID: 4890085278179872738, guid: ee2d11691bfc5384b89d821ffe96a394, type: 2}
+  m_LightingDataAsset: {fileID: 112000000, guid: 747f1aa18f9f8a44fba0d07a4e25c0de, type: 2}
+  m_LightingSettings: {fileID: 4890085278179872738, guid: 80aa856a29e92c64a95e7043ee007b3d, type: 2}
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -6233,7 +6233,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 553408022}
   m_LocalRotation: {x: -0.22395267, y: 0.670705, z: -0.670705, w: -0.22395267}
-  m_LocalPosition: {x: -3.26, y: 3.2076046, z: 7.94}
+  m_LocalPosition: {x: -3.023, y: 3.2076046, z: 8.623}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 966118099}
@@ -6260,7 +6260,7 @@ MonoBehaviour:
   m_AffectsTransparency: 1
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 0.25}
-  m_Size: {x: 8, y: 8, z: 0.5}
+  m_Size: {x: 6, y: 6, z: 0.5}
   m_FadeFactor: 0.612
 --- !u!1001 &553938282
 PrefabInstance:
@@ -13682,7 +13682,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 738646681595172698, guid: 573ac53c334415945bf239de2c2f0511, type: 3}
       propertyPath: taaHistorySharpening
-      value: 0.2
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 738646681595172698, guid: 573ac53c334415945bf239de2c2f0511, type: 3}
       propertyPath: taaSharpenStrength
@@ -13702,7 +13702,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 738646681744756156, guid: 573ac53c334415945bf239de2c2f0511, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -5
+      value: -7
       objectReference: {fileID: 0}
     - target: {fileID: 738646681744756156, guid: 573ac53c334415945bf239de2c2f0511, type: 3}
       propertyPath: m_LocalPosition.y
@@ -14215,7 +14215,7 @@ MonoBehaviour:
     meanFreePath: 100
     anisotropy: 0
     volumeMask: {fileID: 11700000, guid: 6039ee80a9a8a0f41b4297ca0dd5a90c, type: 2}
-    textureScrollingSpeed: {x: 0, y: 0.1, z: 0}
+    textureScrollingSpeed: {x: 0, y: 0.2, z: 0}
     textureTiling: {x: 1, y: 1, z: 1}
     positiveFade: {x: 0.375, y: 0.375, z: 0.375}
     negativeFade: {x: 0.375, y: 0.375, z: 0.375}
@@ -14228,7 +14228,7 @@ MonoBehaviour:
     distanceFadeStart: 50
     distanceFadeEnd: 60
     textureIndex: 0
-    textureOffset: {x: -0, y: -16.7754, z: 0}
+    textureOffset: {x: -0, y: -0.28314495, z: 0}
 --- !u!1001 &1504255721
 PrefabInstance:
   m_ObjectHideFlags: 0
