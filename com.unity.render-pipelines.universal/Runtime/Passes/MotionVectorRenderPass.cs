@@ -78,7 +78,7 @@ namespace kTools.Motion
                 ExecuteCommand(context, cmd);
 
                 // Shader uniforms
-                Shader.SetGlobalMatrix(kPreviousViewProjectionMatrix, m_MotionData.previousViewProjectionMatrix);
+                Shader.SetGlobalMatrix(kPreviousViewProjectionMatrix, m_MotionData.previousGPUViewProjectionMatrix);
 
                 // These flags are still required in SRP or the engine won't compute previous model matrices...
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.

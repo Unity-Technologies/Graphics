@@ -7,6 +7,9 @@ namespace kTools.Motion
 #region Fields
         bool m_IsFirstFrame;
         int m_LastFrameActive;
+        Matrix4x4 m_GpuViewProjectionMatrix;
+        Matrix4x4 m_PreviousGpuViewProjectionMatrix;
+        
         Matrix4x4 m_ViewProjectionMatrix;
         Matrix4x4 m_PreviousViewProjectionMatrix;
 #endregion
@@ -17,8 +20,8 @@ namespace kTools.Motion
             // Set data
             m_IsFirstFrame = true;
             m_LastFrameActive = -1;
-            m_ViewProjectionMatrix = Matrix4x4.identity;
-            m_PreviousViewProjectionMatrix = Matrix4x4.identity;
+            m_GpuViewProjectionMatrix = Matrix4x4.identity;
+            m_PreviousGpuViewProjectionMatrix = Matrix4x4.identity;
         }
 #endregion
 
@@ -33,6 +36,18 @@ namespace kTools.Motion
         {
             get => m_LastFrameActive;
             set => m_LastFrameActive = value;
+        }
+
+        internal Matrix4x4 gpuViewProjectionMatrix
+        {
+            get => m_GpuViewProjectionMatrix;
+            set => m_GpuViewProjectionMatrix = value;
+        }
+
+        internal Matrix4x4 previousGPUViewProjectionMatrix
+        {
+            get => m_PreviousGpuViewProjectionMatrix;
+            set => m_PreviousGpuViewProjectionMatrix = value;
         }
 
         internal Matrix4x4 viewProjectionMatrix
