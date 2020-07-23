@@ -361,20 +361,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         bool CheckForIntersection(uint[] lineIds, Vector2 lineStart, Vector2 lineEnd, bool debugLines)
         {
-            return m_ShapeLibrary.m_LineIntersectionManager.HasIntersection(lineIds, lineStart, lineEnd, debugLines);
+            bool isInBounds = m_ShapeLibrary.m_LineIntersectionManager.InsideBounds(lineStart) && m_ShapeLibrary.m_LineIntersectionManager.InsideBounds(lineEnd);
+            return !isInBounds || m_ShapeLibrary.m_LineIntersectionManager.HasIntersection(lineIds, lineStart, lineEnd, debugLines);
         }
 
-
-        void AddLine(Vertex vertex)
-        {
-
-        }
-
-        void RemoveLine(Vertex vertex)
-        {
-
-
-        }
 
         uint[] CreateConcaveLineIds(CircularListNode<Vertex> prev2Vertex, CircularListNode<Vertex> prevVertex, CircularListNode<Vertex> curVertex, CircularListNode<Vertex> nextVertex, CircularListNode<Vertex> next2Vertex)
         {

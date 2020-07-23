@@ -127,6 +127,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
+        public bool InsideBounds(Vector2 pos)
+        {
+            return pos.x >= 0 && pos.y >= 0 && pos.x <= m_WidthInCells && pos.y <= m_HeightInCells;
+        }
+
         public void AddLine(Vector2 start, Vector2 end)
         {
             AddLine(new float2(start.x, start.y), new float2(end.x, end.y));
@@ -156,11 +161,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         m_AllLines[pos.x, pos.y] = lines;
                     }
                 }
-            //else
-            //{
-            //    Debug.Log("Error outside bounds (" + start.x + "," + start.y + ") - (" + end.x + "," + end.y + ")");
-            //}
-        });
+                else
+                {
+                    Debug.Log("Error outside bounds (" + start.x + "," + start.y + ") - (" + end.x + "," + end.y + ")");
+                }
+            });
         }
 
 
