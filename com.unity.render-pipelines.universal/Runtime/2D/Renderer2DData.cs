@@ -194,7 +194,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal void InitializeTransient()
         {
-            for (var i = 1; i < m_LightBlendStyles.Length; ++i)
+            for (var i = 0; i < m_LightBlendStyles.Length; ++i)
             {
                 if(m_LightBlendStyles[i].renderTargetHandle.id == 0)
                     m_LightBlendStyles[i].renderTargetHandle.Init($"_ShapeLightTexture{i}");
