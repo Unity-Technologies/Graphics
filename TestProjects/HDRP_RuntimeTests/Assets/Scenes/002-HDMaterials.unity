@@ -6760,7 +6760,7 @@ MonoBehaviour:
       customRenderingSettings: 1
       renderingPathCustomFrameSettings:
         bitDatas:
-          data1: 70282844831565
+          data1: 69140249284429
           data2: 4539628424926265344
         lodBias: 1
         lodBiasMode: 0
