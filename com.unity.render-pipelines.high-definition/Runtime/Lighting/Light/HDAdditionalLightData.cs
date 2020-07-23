@@ -1314,7 +1314,10 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        float m_ShadowFadeDistance = 10000.0f;
+        // custom-begin:
+        // float m_ShadowFadeDistance = 10000.0f;
+        float m_ShadowFadeDistance = 100.0f;
+        // custom-end
         /// <summary>
         /// Get/Set the shadow fade distance.
         /// </summary>
