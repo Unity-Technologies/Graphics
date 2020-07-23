@@ -296,7 +296,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     // back to front alpha blending of the near, far and in-focus buckets
     for (int j = 0; j < NUM_BUCKETS; ++j)
     {
-        float alpha = saturate(totalColor[j].w * 4 * rcp(GetNumSamples(maxCoC[j], maxRadius))* rcp(GetSampleWeight(maxCoC[j])));
+        float alpha = saturate(totalColor[j].w * 2 * rcp(GetNumSamples(maxCoC[j], maxRadius))* rcp(GetSampleWeight(maxCoC[j])));
         outColor = (1.0 - alpha) * outColor + alpha * totalColor[j];
 #ifdef ENABLE_ALPHA
         outAlpha = (1.0 - alpha) * outAlpha + alpha * totalAlpha[j];
