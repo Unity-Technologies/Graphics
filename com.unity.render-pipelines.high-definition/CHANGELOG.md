@@ -918,6 +918,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Preparing ray traced reflections for the render graph support (performance and quality).
 - Preparing recursive rendering for the render graph port.
 - Preparation pass for RTGI, temporal filter and diffuse denoiser for render graph.
+- Preparation pass for RTSSS to be supported by render graph.
 
 ## [7.1.1] - 2019-09-05
 
