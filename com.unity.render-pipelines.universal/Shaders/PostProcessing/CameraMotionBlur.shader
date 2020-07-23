@@ -2,6 +2,7 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
 {
     HLSLINCLUDE
         #pragma multi_compile _ _USE_DRAW_PROCEDURAL
+        #pragma multi_compile _ _CAMERA_ONLY
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
@@ -10,6 +11,7 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
         TEXTURE2D_X(_SourceTex);
+        TEXTURE2D(_MotionVectorTexture);       SAMPLER(sampler_MotionVectorTexture);
 
         float4x4 _ViewProjM;
         float4x4 _PrevViewProjM;
@@ -49,8 +51,9 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
             return (len > 0.0) ? min(len, maxVelocity) * (velocity * rcp(len)) : 0.0;
         }
 
+        #if _CAMERA_ONLY
         // Per-pixel camera velocity
-        float2 GetCameraVelocity(float4 uv)
+        float2 GetVelocity(float4 uv)
         {
             float depth = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_PointClamp, uv.xy).r;
 
@@ -72,6 +75,12 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
 
             return ClampVelocity(prevPosCS - curPosCS, _Clamp);
         }
+        #else
+        float2 GetVelocity(float4 uv)
+        {
+           return SAMPLE_TEXTURE2D(_MotionVectorTexture, sampler_MotionVectorTexture, uv).rg;
+        }
+        #endif
 
         float3 GatherSample(float sampleNumber, float2 velocity, float invSampleCount, float2 centerUV, float randomVal, float velocitySign)
         {
@@ -85,7 +94,7 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv.xy);
-            float2 velocity = GetCameraVelocity(float4(uv, input.uv.zw)) * _Intensity;
+            float2 velocity = GetVelocity(float4(uv, input.uv.zw)) * _Intensity;
             float randomVal = InterleavedGradientNoise(uv * _SourceTex_TexelSize.zw, 0);
             float invSampleCount = rcp(iterations * 2.0);
 
@@ -111,10 +120,9 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
 
         Pass
         {
-            Name "Camera Motion Blur - Low Quality"
+            Name "Motion Blur - Low Quality"
 
             HLSLPROGRAM
-
                 #pragma vertex VertCMB
                 #pragma fragment Frag
 
@@ -128,10 +136,9 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
 
         Pass
         {
-            Name "Camera Motion Blur - Medium Quality"
+            Name "Motion Blur - Medium Quality"
 
             HLSLPROGRAM
-
                 #pragma vertex VertCMB
                 #pragma fragment Frag
 
@@ -139,16 +146,14 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
                 {
                     return DoMotionBlur(input, 3);
                 }
-
             ENDHLSL
         }
 
         Pass
         {
-            Name "Camera Motion Blur - High Quality"
+            Name "Motion Blur - High Quality"
 
             HLSLPROGRAM
-
                 #pragma vertex VertCMB
                 #pragma fragment Frag
 

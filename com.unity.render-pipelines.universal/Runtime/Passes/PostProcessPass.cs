@@ -777,6 +777,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             material.SetFloat("_Intensity", m_MotionBlur.intensity.value);
             material.SetFloat("_Clamp", m_MotionBlur.clamp.value);
+            
+            if(m_MotionBlur.mode == MotionBlurMode.CameraOnly)
+                material.EnableKeyword("_CAMERA_ONLY");
+            else
+                material.DisableKeyword("_CAMERA_ONLY");
 
             Blit(cmd, source, BlitDstDiscardContent(cmd, destination), material, (int)m_MotionBlur.quality.value);
             m_PrevViewProjM = viewProj;
