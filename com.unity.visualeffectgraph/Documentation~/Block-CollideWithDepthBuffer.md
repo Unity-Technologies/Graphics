@@ -32,5 +32,5 @@ This Block is compatible with the following Contexts:
 | **Lifetime Loss**     | Float    | The proportion of life a particle loses after collision.     |
 | **Roughness**         | Float    | The amount to randomly adjust the direction of a particle after it collides with the surface.<br/>This property only appears when you enable **Rough Surface**. |
 | **Radius**            | Float    | The radius of the particle this Block uses for collision detection.<br/>This property only appears when **Radius Mode** is set to **Custom**. |
-| **Camera**            | Camera   | Sets the Camera to use for generating the collision surface. <br/>This property only appears when **Camera** is set to **Custom**. |
-| **Surface Thickness** | Float    | Sets the thickness of the collision surface. <br/>This property only appears when **Surface Thickness** is set to **Custom**. |
+| **Camera**            | Camera   | The Camera to use for generating the collision surface. This Block uses the depth buffer from this Camera to generate the collision surface.<br/>This property only appears when **Camera** is set to **Custom**. |
+| **Surface Thickness** | Float    | The thickness of the collision surface. <br/>This property only appears when **Surface Thickness** is set to **Custom**. |
