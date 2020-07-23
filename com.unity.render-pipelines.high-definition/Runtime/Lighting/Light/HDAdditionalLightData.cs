@@ -1671,8 +1671,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // temporary matrix that stores the previous light data (mainly used to discard history for ray traced screen space shadows)
         [System.NonSerialized] internal Matrix4x4 previousTransform = Matrix4x4.identity;
+        
+        // custom-begin:
+        // Cache shadow data from render loop in order to simplify sending shadow data of light sources to custom data structures.
+        // This avoids manually authoring a ton of spaghetti code to wire up additional custom shadow data requests.
+        // Note: This will only be valid for on-screen light sources, as the light loop is only concerned with on-screen lights.
+        //
         // Temporary index that stores the current shadow index for the light
-        [System.NonSerialized] internal int shadowIndex = -1;
+        // [System.NonSerialized] internal int shadowIndex = -1;
+        [System.NonSerialized] public int shadowIndex = -1;
+        // custom-end
 
         // Runtime datas used to compute light intensity
         Light m_Light;
@@ -1841,12 +1849,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnDestroy()
         {
+            // custom-begin:
+            InstanceRemove();
+            // custom-end
+
             if(lightIdxForCachedShadows >= 0) // If it is within the cached system we need to evict it.
                 HDShadowManager.cachedShadowManager.EvictLight(this);
         }
 
         void OnDisable()
         {
+            // custom-begin:
+            InstanceRemove();
+            // custom-end
+
             // If it is within the cached system we need to evict it, unless user explicitly requires not to.
             if (!preserveCachedShadow && lightIdxForCachedShadows >= 0)
             {
@@ -2425,7 +2441,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif
 
-        internal bool useColorTemperature
+        // custom-begin:
+        // internal bool useColorTemperature
+        public bool useColorTemperature
+        // custom-end
         {
             get => legacyLight.useColorTemperature;
             set
@@ -3397,6 +3416,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnEnable()
         {
+            // custom-begin:
+            InstanceAdd();
+            // custom-end
+
             if (shadowUpdateMode != ShadowUpdateMode.EveryFrame && legacyLight.shadows != LightShadows.None)
             {
                 HDShadowManager.cachedShadowManager.RegisterLight(this);
@@ -3442,5 +3465,26 @@ namespace UnityEngine.Rendering.HighDefinition
             bool isDirectUsingBakedOcclusion = baking.mixedLightingMode == MixedLightingMode.Shadowmask || baking.mixedLightingMode == MixedLightingMode.Subtractive;
             return isDirectUsingBakedOcclusion && !isOcclusionSeparatelyBaked;
         }
+
+        // custom-begin:
+        [System.NonSerialized] public static List<HDAdditionalLightData> s_InstancesHDAdditionalLightData = new List<HDAdditionalLightData>();
+        [System.NonSerialized] public static List<Light> s_InstancesLight = new List<Light>();
+
+        private void InstanceAdd()
+        {
+            s_InstancesHDAdditionalLightData.Add(this);
+            s_InstancesLight.Add(this.GetComponent<Light>());
+        }
+
+        private void InstanceRemove()
+        {
+            int index = s_InstancesHDAdditionalLightData.IndexOf(this);
+            if (index != -1)
+            {
+                s_InstancesHDAdditionalLightData.RemoveAt(index);
+                s_InstancesLight.RemoveAt(index);
+            }
+        }
+        // custom-end
     }
 }

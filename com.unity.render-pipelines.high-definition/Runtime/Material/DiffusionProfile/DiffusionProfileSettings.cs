@@ -196,7 +196,11 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Diffusion-Profile" + Documentation.endURL)]
-    internal partial class DiffusionProfileSettings : ScriptableObject
+    // custom-begin
+    // internal
+    public
+    // custom-end
+    partial class DiffusionProfileSettings : ScriptableObject
     {
         [SerializeField]
         internal DiffusionProfile profile;

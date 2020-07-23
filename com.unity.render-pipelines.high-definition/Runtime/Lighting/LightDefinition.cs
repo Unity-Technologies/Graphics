@@ -6,6 +6,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
     // Caution: Order is important and is use for optimization in light loop
     [GenerateHLSL]
+    // custom-begin:
+    public
+    // custom-end
     enum GPULightType
     {
         Directional,
@@ -59,6 +62,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
     // These structures share between C# and hlsl need to be align on float4, so we pad them.
     [GenerateHLSL(PackingRules.Exact, false)]
+    // custom-begin:
+    public
+    // custom-end
     struct DirectionalLightData
     {
         // Packing order depends on chronological access to avoid cache misses
@@ -114,6 +120,9 @@ namespace UnityEngine.Rendering.HighDefinition
     };
 
     [GenerateHLSL(PackingRules.Exact, false)]
+    // custom-begin:
+    public
+    // custom-end
     struct LightData
     {
         // Packing order depends on chronological access to avoid cache misses
@@ -184,6 +193,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
     [GenerateHLSL]
+    // custom-begin:
+    public
+    // custom-end
     enum EnvShapeType
     {
         None,
@@ -205,6 +217,9 @@ namespace UnityEngine.Rendering.HighDefinition
     // Users can also chose to not have any projection, in this case we use the property minProjectionDistance to minimize code change. minProjectionDistance is set to huge number
     // that simulate effect of no shape projection
     [GenerateHLSL(PackingRules.Exact, false)]
+    // custom-begin:
+    public
+    // custom-end
     struct EnvLightData
     {
         // Packing order depends on chronological access to avoid cache misses

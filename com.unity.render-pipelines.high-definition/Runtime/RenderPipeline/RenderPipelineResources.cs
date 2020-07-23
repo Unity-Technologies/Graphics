@@ -5,6 +5,9 @@ using System.Collections.Generic;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
+    // custom-begin:
+    public
+    // custom-end
     partial class RenderPipelineResources : ScriptableObject
     {
         [Serializable, ReloadGroup]

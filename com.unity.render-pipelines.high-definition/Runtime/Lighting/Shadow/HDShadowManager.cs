@@ -24,6 +24,9 @@ namespace UnityEngine.Rendering.HighDefinition
         High = 2,
     }
 
+    // custom-begin:
+    public
+    // custom-end
     enum ShadowMapType
     {
         CascadedDirectional,
@@ -42,6 +45,9 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [GenerateHLSL(needAccessors = false)]
+    // custom-begin:
+    public
+    // custom-end
     struct HDShadowData
     {
         public Vector3      rot0;
@@ -84,6 +90,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public fixed float      cascadeBorders[4];
     }
 
+    // custom-begin:
+    public
+    // custom-end
     class HDShadowRequest
     {
         public Matrix4x4            view;
@@ -138,6 +147,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool         isMixedCached = false;
     }
 
+    // custom-begin:
+    public
+    // custom-end
     enum DirectionalShadowAlgorithm
     {
         PCF5x5,
@@ -267,6 +279,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
+    // custom-begin:
+    public
+    // custom-end
     partial class HDShadowManager : IDisposable
     {
         public const int            k_DirectionalShadowCascadeCount = 4;
@@ -965,5 +980,18 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_ClearShadowMaterial);
             cachedShadowManager.Dispose();
         }
+
+        // custom-begin:
+        // custom accessor so that game specific rendering code can access shadow data.
+        public List<HDShadowData> GetShadowDatas()
+        {
+            return m_ShadowDatas;
+        }
+
+        public HDShadowAtlas GetShadowAtlas()
+        {
+            return m_Atlas;
+        }
+        // custom-end
     }
 }

@@ -125,6 +125,9 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [GenerateHLSL]
+    // custom-begin:
+    public
+    // custom-end
     struct SFiniteLightBound
     {
         public Vector3 boxAxisX; // Scaled by the extents (half-size)
@@ -136,6 +139,9 @@ namespace UnityEngine.Rendering.HighDefinition
     };
 
     [GenerateHLSL]
+    // custom-begin:
+    public
+    // custom-end
     struct LightVolumeData
     {
         public Vector3 lightPos;     // Of light's "origin"
@@ -300,6 +306,9 @@ namespace UnityEngine.Rendering.HighDefinition
         #endif
 
         int m_MaxDirectionalLightsOnScreen;
+        // custom-begin:
+        public
+        // custom-end
         int m_MaxPunctualLightsOnScreen;
         int m_MaxAreaLightsOnScreen;
         int m_MaxDecalsOnScreen;
@@ -593,7 +602,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // Matrix used for LightList building, keep them around to avoid GC
         Matrix4x4[] m_LightListProjMatrices = new Matrix4x4[ShaderConfig.s_XrMaxViews];
 
-        internal class LightList
+        // custom-begin:
+        // internal class LightList
+        public class LightList
+        // custom-end
         {
             public List<DirectionalLightData> directionalLights;
             public List<LightData> lights;
@@ -779,6 +791,19 @@ namespace UnityEngine.Rendering.HighDefinition
         List<Matrix4x4> m_WorldToViewMatrices = new List<Matrix4x4>(ShaderConfig.s_XrMaxViews);
 
         static MaterialPropertyBlock m_LightLoopDebugMaterialProperties = new MaterialPropertyBlock();
+
+        // custom-begin:
+        // Accessor for non-hdrp custom render code.
+        public LightList GetLightList()
+        {
+            return m_lightList;
+        }
+
+        public HDShadowManager GetShadowManager()
+        {
+            return m_ShadowManager;
+        }
+        // custom-end
 
         bool HasLightToCull()
         {
