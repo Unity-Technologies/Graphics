@@ -372,18 +372,14 @@ namespace UnityEngine.Rendering.HighDefinition
                         ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RayTracedSubSurface, SubSurfaceHistoryBufferAllocatorFunction, 1);
 
                     // Check if we need to invalidate the history
-                    float historyValidity = 1.0f;
-#if UNITY_HDRP_DXR_TESTS_DEFINE
-                    if (Application.isPlaying)
-                        historyValidity = 0.0f;
-                    else
-#endif
-                        // We need to check if something invalidated the history buffers
-                         historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
+                    float historyValidity = EvaluateHistoryValidity(hdCamera);
 
                     // Apply temporal filtering to the buffer
                     HDTemporalFilter temporalFilter = GetTemporalFilter();
-                    temporalFilter.DenoiseBuffer(cmd, hdCamera, intermediateBuffer4, subsurfaceHistory, intermediateBuffer0, singleChannel: false, historyValidity: historyValidity);
+                    TemporalFilterParameters tfParameters = temporalFilter.PrepareTemporalFilterParameters(hdCamera, false, historyValidity);
+                    RTHandle validationBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.R0);
+                    TemporalFilterResources tfResources = temporalFilter.PrepareTemporalFilterResources(hdCamera, validationBuffer, intermediateBuffer4, subsurfaceHistory, intermediateBuffer0);
+                    HDTemporalFilter.DenoiseBuffer(cmd, tfParameters, tfResources);
 
                     // Now based on the mask, we need to blend the subsurface and the diffuse lighting
 
