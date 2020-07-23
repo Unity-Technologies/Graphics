@@ -422,7 +422,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle  perVoxelOffset;
             public ComputeBufferHandle  perTileLogBaseTweak;
             public FrameSettings        frameSettings;
-            public bool                 debugDisplay;
         }
 
         class ForwardOpaquePassData : ForwardPassData
@@ -506,7 +505,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.dbuffer = ReadDBuffer(dbuffer, builder);
                 passData.lightingBuffers = ReadLightingBuffers(lightingBuffers, builder);
-                passData.debugDisplay = debugDisplay;
 
                 builder.SetRenderFunc(
                 (ForwardOpaquePassData data, RenderGraphContext context) =>
@@ -519,7 +517,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     BindDBufferGlobalData(data.dbuffer, context);
                     BindGlobalLightingBuffers(data.lightingBuffers, context.cmd);
 
-                    RenderForwardRendererList(data.frameSettings, data.rendererList, mrt, data.depthBuffer, data.lightListBuffer, true, data.debugDisplay, context.renderContext, context.cmd);
+                    RenderForwardRendererList(data.frameSettings, data.rendererList, mrt, data.depthBuffer, data.lightListBuffer, true, context.renderContext, context.cmd);
                 });
             }
         }
@@ -561,7 +559,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
                 // decal datas count is 0 if no decals affect transparency
-                passData.debugDisplay = debugDisplay;
                 passData.decalsEnabled = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals)) && (DecalSystem.m_DecalDatasCount > 0);
                 passData.renderMotionVecForTransparent = NeedMotionVectorForTransparent(hdCamera.frameSettings);
                 passData.volumetricLighting = builder.ReadTexture(volumetricLighting);
@@ -604,7 +601,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     context.cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, data.transparentSSRLighting);
                     context.cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting, data.volumetricLighting);
 
-                    RenderForwardRendererList(  data.frameSettings, data.rendererList, mrt, data.depthBuffer, data.lightListBuffer, false, data.debugDisplay, context.renderContext, context.cmd);
+                    RenderForwardRendererList(  data.frameSettings, data.rendererList, mrt, data.depthBuffer, data.lightListBuffer, false, context.renderContext, context.cmd);
                 });
             }
         }

@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Buffer used for quad overshading and vertex density debug modes
         // Should be a texture but metal doesn't support texture atomics
-        ComputeBuffer m_DebugDisplayBuffer = null;
+        ComputeBuffer m_FullScreenDebugBuffer = null;
 
         ComputeBuffer m_CoarseStencilBuffer = null;
         RTHandle m_DecalPrePassBuffer = null;
@@ -346,9 +346,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_CameraDepthValuesBuffer;
         }
 
-        public ComputeBuffer GetDebugDisplayBuffer()
+        public ComputeBuffer GetFullScreenDebugBuffer()
         {
-            return m_DebugDisplayBuffer;
+            return m_FullScreenDebugBuffer;
         }
 
         public void SetNumMSAASamples(MSAASamples msaaSamples)
@@ -377,9 +377,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CoarseStencilBuffer = new ComputeBuffer(HDUtils.DivRoundUp(width, 8) * HDUtils.DivRoundUp(height, 8) * viewCount, sizeof(uint));
         }
 
-        public void AllocateDebugDisplayBuffer(int width, int height, int viewCount)
+        public void AllocateFullScreenDebugBuffer(int width, int height, int viewCount)
         {
-            m_DebugDisplayBuffer = new ComputeBuffer(width * height * viewCount, sizeof(uint));
+            m_FullScreenDebugBuffer = new ComputeBuffer(width * height * viewCount, sizeof(uint));
         }
 
         public void DisposeCoarseStencilBuffer()
@@ -387,9 +387,9 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(m_CoarseStencilBuffer);
         }
 
-        public void DisposeDebugDisplayBuffer()
+        public void DisposeFullScreenDebugBuffer()
         {
-            CoreUtils.SafeRelease(m_DebugDisplayBuffer);
+            CoreUtils.SafeRelease(m_FullScreenDebugBuffer);
         }
 
         public void Cleanup()

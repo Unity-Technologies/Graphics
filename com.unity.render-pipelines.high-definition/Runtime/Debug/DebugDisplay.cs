@@ -432,6 +432,16 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Returns true if a full screen debug display supporting the FullScreenDebug pass is enabled.
+        /// </summary>
+        /// <returns>True if a full screen debug display supporting the FullScreenDebug pass is enabled.</returns>
+        internal bool IsFullScreenDebugPassEnabled()
+        {
+            return data.fullScreenDebugMode == FullScreenDebugMode.QuadOverdraw ||
+                data.fullScreenDebugMode == FullScreenDebugMode.VertexDensity;
+        }
+
+        /// <summary>
         /// Returns true if any full screen exposure debug display is enabled.
         /// </summary>
         /// <returns>True if any full screen exposure debug display is enabled.</returns>

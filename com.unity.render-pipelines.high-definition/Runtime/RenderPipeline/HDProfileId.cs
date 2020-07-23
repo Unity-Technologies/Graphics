@@ -51,6 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthPyramid,
         PostProcessing,
         AfterPostProcessing,
+        RenderFullScreenDebug,
         RenderDebug,
         DisplayLightVolume,
         ClearBuffers,

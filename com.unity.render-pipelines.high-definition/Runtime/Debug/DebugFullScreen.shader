@@ -24,6 +24,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #define DEBUG_DISPLAY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/FullScreenDebug.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 
             CBUFFER_START (UnityDebug)
@@ -338,15 +339,15 @@ Shader "Hidden/HDRP/DebugFullScreen"
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_QUAD_OVERDRAW)
                 {
                     uint2 quad = (uint2)input.positionCS.xy & ~1;
-                    uint quad_00_idx = _ScreenSize.x * (_ScreenSize.y * SLICE_ARRAY_INDEX + quad.y) + quad.x;
-                    uint quad_11_idx = _ScreenSize.x * (_ScreenSize.y * SLICE_ARRAY_INDEX + quad.y + 1) + quad.x + 1;
+                    uint quad0_idx = _ScreenSize.x * (_ScreenSize.y * SLICE_ARRAY_INDEX + quad.y) + quad.x;
+                    uint quad1_idx = _ScreenSize.x * (_ScreenSize.y * SLICE_ARRAY_INDEX + quad.y) + quad.x + 1;
                     float4 color = (float4)0;
 
-                    float quadCost = (float)_DebugDisplayBuffer[quad_00_idx];
+                    float quadCost = (float)_FullScreenDebugBuffer[quad0_idx];
                     if (all(((uint2)input.positionCS.xy & 1) == 0)) // Write only once per quad
                     {
-                        _DebugDisplayBuffer[quad_00_idx] = 0; // Overdraw
-                        _DebugDisplayBuffer[quad_11_idx] = 0; // Lock
+                        _FullScreenDebugBuffer[quad0_idx] = 0; // Overdraw
+                        _FullScreenDebugBuffer[quad1_idx] = 0; // Lock
                     }
                     if ((quadCost > 0.001))
                         color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / _QuadOverdrawMaxQuadCost) * quadCost), 1.0, 1.0));
@@ -359,8 +360,8 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     uint quad_idx = _ScreenSize.x * (_ScreenSize.y * SLICE_ARRAY_INDEX + quad.y) + quad.x;
                     float4 color = (float4)0;
 
-                    float density = (float)_DebugDisplayBuffer[quad_idx];
-                    _DebugDisplayBuffer[quad_idx] = 0;
+                    float density = (float)_FullScreenDebugBuffer[quad_idx];
+                    _FullScreenDebugBuffer[quad_idx] = 0;
                     if ((density > 0.001))
                         color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / _VertexDensityMaxPixelCost) * density), 1.0, 1.0));
 

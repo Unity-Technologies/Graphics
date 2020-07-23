@@ -81,9 +81,6 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 #define EXTRA_BUFFER_TARGET SV_Target1
 #endif
 
-#if defined(DEBUG_DISPLAY) && !defined(_DEPTHOFFSET_ON)
-[earlydepthstencil] // quad overshading debug mode writes to UAV
-#endif
 void Frag(PackedVaryingsToPS packedInput,
         #ifdef OUTPUT_SPLIT_LIGHTING
             out float4 outColor : SV_Target0,  // outSpecularLighting
@@ -103,9 +100,6 @@ void Frag(PackedVaryingsToPS packedInput,
         #endif // OUTPUT_SPLIT_LIGHTING
         #ifdef _DEPTHOFFSET_ON
             , out float outputDepth : SV_Depth
-        #endif
-        #ifdef DEBUG_DISPLAY
-            , uint primitiveID : SV_PrimitiveID
         #endif
 )
 {
@@ -210,10 +204,6 @@ void Frag(PackedVaryingsToPS packedInput,
         {
             float4 result = _DebugTransparencyOverdrawWeight * float4(TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_A);
             outColor = result;
-        }
-        else if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_QUAD_OVERDRAW)
-        {
-            IncrementQuadOverdrawCounter(posInput.positionSS.xy, primitiveID);
         }
         else
 #endif

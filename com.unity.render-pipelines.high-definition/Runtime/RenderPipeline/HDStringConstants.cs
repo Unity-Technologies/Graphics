@@ -21,6 +21,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string s_PathTracingDXRStr = "PathTracingDXR";
         public static readonly string s_MetaStr = "META";
         public static readonly string s_ShadowCasterStr = "ShadowCaster";
+        public static readonly string s_FullScreenDebugStr = "FullScreenDebug";
         public static readonly string s_MeshDecalsMStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh_M];
         public static readonly string s_MeshDecalsSStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh_S];
         public static readonly string s_MeshDecalsMSStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh_MS];
@@ -49,6 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly ShaderTagId s_TransparentBackfaceName = new ShaderTagId(s_TransparentBackfaceStr);
         public static readonly ShaderTagId s_TransparentDepthPostpassName = new ShaderTagId(s_TransparentDepthPostpassStr);
         public static readonly ShaderTagId s_RayTracingPrepassName = new ShaderTagId(s_RayTracingPrepassStr);
+        public static readonly ShaderTagId s_FullScreenDebugName = new ShaderTagId(s_FullScreenDebugStr);
         public static readonly ShaderTagId s_MeshDecalsMName = new ShaderTagId(s_MeshDecalsMStr);
         public static readonly ShaderTagId s_MeshDecalsSName = new ShaderTagId(s_MeshDecalsSStr);
         public static readonly ShaderTagId s_MeshDecalsMSName = new ShaderTagId(s_MeshDecalsMSStr);
