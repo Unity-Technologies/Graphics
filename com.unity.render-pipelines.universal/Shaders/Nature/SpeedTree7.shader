@@ -193,7 +193,8 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             Tags{"LightMode" = "DepthNormals"}
 
             HLSLPROGRAM
-
+            // Does not support gles due to some float packing functions
+            #pragma exclude_renderers gles
             #pragma vertex SpeedTree7VertDepthNormal
             #pragma fragment SpeedTree7FragDepthNormal
 

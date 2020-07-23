@@ -225,7 +225,8 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             ZWrite On
 
             HLSLPROGRAM
-
+            // Does not support gles due to some float packing functions
+            #pragma exclude_renderers gles
             #pragma vertex SpeedTree8VertDepthNormal
             #pragma fragment SpeedTree8FragDepthNormal
 

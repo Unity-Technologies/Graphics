@@ -306,7 +306,8 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             ZWrite On
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x
+            // Does not support gles due to some float packing functions
+            #pragma exclude_renderers d3d11_9x gles
             #pragma target 2.0
 
             #pragma vertex DepthNormalOnlyVertex

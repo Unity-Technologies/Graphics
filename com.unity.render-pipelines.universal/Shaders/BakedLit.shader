@@ -414,7 +414,8 @@ Shader "Universal Render Pipeline/Baked Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore
+            // Does not support gles due to some float packing functions
+            #pragma only_renderers gles3 glcore
             #pragma target 2.0
 
             #pragma vertex DepthNormalsVertex

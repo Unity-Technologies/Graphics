@@ -137,6 +137,8 @@ namespace UnityEngine.Rendering.Universal
             private static readonly int s_SSAOTexture2ID = Shader.PropertyToID("_SSAO_OcclusionTexture2");
             private static readonly int s_SSAOTexture3ID = Shader.PropertyToID("_SSAO_OcclusionTexture3");
 
+            bool m_IsDeviceGLES2 = false;
+
             private enum ShaderPasses
             {
                 AO = 0,
@@ -148,12 +150,20 @@ namespace UnityEngine.Rendering.Universal
             internal ScreenSpaceAmbientOcclusionPass()
             {
                 m_CurrentSettings = new ScreenSpaceAmbientOcclusionSettings();
+                if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2)
+                    m_IsDeviceGLES2 = true;
             }
 
             internal bool Setup(ScreenSpaceAmbientOcclusionSettings featureSettings)
             {
                 m_CurrentSettings = featureSettings;
-                switch (m_CurrentSettings.Source)
+
+                // DepthNormals disabled in GLES due to requiring unsupported float packing functions
+                var source = (m_IsDeviceGLES2)
+                    ? ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth
+                    : m_CurrentSettings.Source;
+
+                switch (source)
                 {
                     case ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth:
                         ConfigureInput(ScriptableRenderPassInput.Depth);
