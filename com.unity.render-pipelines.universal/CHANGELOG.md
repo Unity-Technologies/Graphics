@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [8.3.0] - 2020-07-23
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [8.2.0] - 2020-07-08
 
 ### Added
@@ -15,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - URP is now computing tangent space per fragment.
 
 ### Fixed
+- Fixed an issue that caused WebGL to render blank screen when Depth texture was enabled [case 1240228](https://issuetracker.unity3d.com/issues/webgl-urp-scene-is-rendered-black-in-webgl-build-when-depth-texture-is-enabled)
 - Fixed an issue where grid lines were drawn on top of opaque objects in the preview window. [Case 1240723](https://issuetracker.unity3d.com/issues/urp-grid-is-rendered-in-front-of-the-model-in-the-inspector-animation-preview-window-when-depth-or-opaque-texture-is-enabled).
 - Fixed an issue where objects in the preview window were affected by layer mask settings in the default renderer. [Case 1204376](https://issuetracker.unity3d.com/issues/urp-prefab-preview-is-blank-when-a-custom-forward-renderer-data-and-default-layer-mask-is-mixed-are-used).
 - Fixed issues with performance when importing fbx files.
