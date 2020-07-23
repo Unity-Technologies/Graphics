@@ -76,6 +76,23 @@ int GetCoCBucket(float cocSize)
         return 2;
     }
 }
+float GetBucketWeight(float sampleCoC, float noise, int bucket)
+{
+    float w0 = saturate((sampleCoC - 5 - 7 * noise) / 7.0f);
+    float w1 = saturate((1.0 * noise - sampleCoC) / 1.0f);
+    if (bucket == 0)
+    {
+        return w0;
+    }
+    else if (bucket == 2)
+    {
+        return w1;
+    }
+    else
+    {
+        return 1.0 - w0 - w1;
+    }
+}
 
 float GetCoCRadius(int2 positionSS, out int bucketIndex)
 {
@@ -236,15 +253,20 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
             if (abs(sampleCoC) >= radius)
             {
-                float weight = ringWeight * GetSampleWeight(abs(sampleCoC));
-                RING_COLOR[sampleBucket] += float4(sampleColor.xyz * weight, weight);
-                RING_MAXCOC[sampleBucket] = max(RING_MAXCOC[sampleBucket], abs(sampleCoC));
+                for (int j = 0; j < NUM_BUCKETS; ++j)
+                {
+                    float weight = ringWeight * GetSampleWeight(abs(sampleCoC));
+                    float bucketWeight = GetBucketWeight(sampleCoC, noise, j);
+                    weight *= bucketWeight;
+                    RING_COLOR[j] += float4(sampleColor.xyz * weight, weight);
+                    RING_MAXCOC[j] = max(RING_MAXCOC[j] * bucketWeight, abs(sampleCoC));
 #ifdef OCTAWEB_SORTING
-                ringHits[sampleBucket] += 1.0;
+                    ringHits[j] += bucketWeight;
 #endif
 #ifdef ENABLE_ALPHA
-                RING_ALPHA[sampleBucket] = sampleColor.w * weight;
+                    RING_ALPHA[j] = sampleColor.w * weight;
 #endif
+                }
             }
         }
 
@@ -274,7 +296,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     // back to front alpha blending of the near, far and in-focus buckets
     for (int j = 0; j < NUM_BUCKETS; ++j)
     {
-        float alpha = saturate(totalColor[j].w * rcp(GetNumSamples(maxCoC[j], maxRadius))* rcp(GetSampleWeight(maxCoC[j])));
+        float alpha = saturate(totalColor[j].w * 4 * rcp(GetNumSamples(maxCoC[j], maxRadius))* rcp(GetSampleWeight(maxCoC[j])));
         outColor = (1.0 - alpha) * outColor + alpha * totalColor[j];
 #ifdef ENABLE_ALPHA
         outAlpha = (1.0 - alpha) * outAlpha + alpha * totalAlpha[j];
