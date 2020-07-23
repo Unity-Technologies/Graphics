@@ -272,10 +272,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public int      _HybridDeformedVertexStreamIndex;
 
+        // custom-begin
 		public uint _EnableDynamicBranchLighting;
+        public uint _BlueNoiseRGBTextureResolutionMinusOne;
 		public float   _Pad8;
 		public float   _Pad9;
-		public float   _Pad10;
         // custom-end
     }
 }

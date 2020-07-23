@@ -929,6 +929,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // custom-begin
         // Custom Properties:
         public static readonly int _EnableDynamicBranchLighting = Shader.PropertyToID("_EnableDynamicBranchLighting");
+        public static readonly int _BlueNoiseRGBTexture = Shader.PropertyToID("_BlueNoiseRGBTexture");
+        public static readonly int _BlueNoiseRGBTextureResolutionMinusOne = Shader.PropertyToID("_BlueNoiseRGBTextureResolutionMinusOne");
         // custom-end
     }
 
