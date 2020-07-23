@@ -32,6 +32,9 @@
         },
         {
             "m_Id": "e3377687dc54449c8dd3439b0dc26d51"
+        },
+        {
+            "m_Id": "a247a9ff7bd54dea964a689e41420b5b"
         }
     ],
     "m_GroupDatas": [],
@@ -96,6 +99,9 @@
             },
             {
                 "m_Id": "e3377687dc54449c8dd3439b0dc26d51"
+            },
+            {
+                "m_Id": "a247a9ff7bd54dea964a689e41420b5b"
             }
         ]
     },
@@ -221,7 +227,7 @@
     "m_Type": "UnityEditor.ShaderGraph.VFXTarget",
     "m_ObjectId": "588ee91392f849658a2b2a117e48fdbd",
     "m_Lit": true,
-    "m_AlphaTest": false
+    "m_AlphaTest": true
 }
 
 {
@@ -388,6 +394,37 @@
 
 {
     "m_Type": "UnityEditor.ShaderGraph.BlockNode",
+    "m_ObjectId": "a247a9ff7bd54dea964a689e41420b5b",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "SurfaceDescription.AlphaClipThreshold",
+    "m_NodeVersion": 0,
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 0.0,
+            "height": 0.0
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "a5d0989eb0844378bec47c0847303007"
+        }
+    ],
+    "m_Precision": 0,
+    "m_PreviewExpanded": true,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_SerializedDescriptor": "SurfaceDescription.AlphaClipThreshold"
+}
+
+{
+    "m_Type": "UnityEditor.ShaderGraph.BlockNode",
     "m_ObjectId": "a2d79c56920b471aa7d79bb810866f57",
     "m_Group": {
         "m_Id": ""
@@ -415,6 +452,23 @@
         "m_SerializableColors": []
     },
     "m_SerializedDescriptor": "SurfaceDescription.Metallic"
+}
+
+{
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "a5d0989eb0844378bec47c0847303007",
+    "m_Id": 0,
+    "m_DisplayName": "Alpha Clip Threshold",
+    "m_SlotType": 0,
+    "m_Priority": 2147483647,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "AlphaClipThreshold",
+    "m_StageCapability": 2,
+    "m_Value": 0.5,
+    "m_DefaultValue": 0.5,
+    "m_Labels": [
+        "X"
+    ]
 }
 
 {
