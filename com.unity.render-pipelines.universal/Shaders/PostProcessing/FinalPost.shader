@@ -2,12 +2,12 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
 {
     HLSLINCLUDE
 
-        #pragma multi_compile_local _ _FXAA
-        #pragma multi_compile_local _ _FILM_GRAIN
-        #pragma multi_compile_local _ _DITHERING
-        #pragma multi_compile_local _ _LINEAR_TO_SRGB_CONVERSION
-        #pragma multi_compile _ _USE_DRAW_PROCEDURAL
-
+        #pragma multi_compile_local_fragment _ _FXAA
+        #pragma multi_compile_local_fragment _ _FILM_GRAIN
+        #pragma multi_compile_local_fragment _ _DITHERING
+        #pragma multi_compile_local_fragment _ _LINEAR_TO_SRGB_CONVERSION
+		#pragma multi_compile _ _USE_DRAW_PROCEDURAL
+        
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"

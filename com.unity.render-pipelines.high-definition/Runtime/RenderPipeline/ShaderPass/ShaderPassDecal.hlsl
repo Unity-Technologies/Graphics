@@ -3,7 +3,7 @@
 #endif
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
-
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
 
 void MeshDecalsPositionZBias(inout VaryingsToPS input)
 {
@@ -24,7 +24,6 @@ PackedVaryingsType Vert(AttributesMesh inputMesh)
     return PackVaryingsType(varyingsType);
 }
 
-
 void Frag(  PackedVaryingsToPS packedInput,
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)
     OUTPUT_DBUFFER(outDBuffer)
@@ -44,17 +43,43 @@ void Frag(  PackedVaryingsToPS packedInput,
 
 	float depth = LoadCameraDepth(input.positionSS.xy);
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+
+    if (_EnableDecalLayers)
+    {
+        // Clip the decal if it does not pass the decal layer mask of the receiving material.
+        // Decal layer of the decal
+        uint decalLayerMask = uint(UNITY_ACCESS_INSTANCED_PROP(Decal, _DecalLayerMaskFromDecal).x);
+
+        // Decal layer mask accepted by the receiving material
+        DecalPrepassData material;
+        DecodeFromDecalPrepass(posInput.positionSS, material);
+
+        if ((decalLayerMask & material.decalLayerMask) == 0)
+            clipValue -= 2.0;
+    }
+
     // Transform from relative world space to decal space (DS) to clip the decal
     float3 positionDS = TransformWorldToObject(posInput.positionWS);
     positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.5, 0.5);
     if (!(all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f)))
     {
-        clipValue = -1.0; // helper lanes will be clipped
-        #ifndef SHADER_API_METAL
-        clip(clipValue); // call clip as early as possible
-        #endif
+        clipValue -= 2.0; // helper lanes will be clipped
     }
 
+    // call clip as early as possible
+#ifndef SHADER_API_METAL
+    // Calling clip here instead of inside the condition above shouldn't make any performance difference
+    // but case save one clip call.
+    clip(clipValue);
+#else
+    // Metal Shading Language declares that fragment discard invalidates
+    // derivatives for the rest of the quad, so we need to reorder when
+    // we discard during decal projection, or we get artifacts along the
+    // edges of the projection(any partial quads get bad partial derivatives
+    //regardless of whether they are computed implicitly or explicitly).
+    if (clipValue > 0.0)
+    {
+#endif
     input.texCoord0.xy = positionDS.xz;
     input.texCoord1.xy = positionDS.xz;
     input.texCoord2.xy = positionDS.xz;
@@ -75,7 +100,7 @@ void Frag(  PackedVaryingsToPS packedInput,
 
     GetSurfaceData(input, V, posInput, surfaceData);
 
-// Perform HTile optimization only on platform that support it
+    // Perform HTile optimization only on platform that support it
 #if ((SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)) && defined(PLATFORM_SUPPORTS_BUFFER_ATOMICS_IN_PIXEL_SHADER)
     uint2 htileCoord = input.positionSS.xy / 8;
     int stride = (_ScreenSize.x + 7) / 8;
@@ -93,7 +118,7 @@ void Frag(  PackedVaryingsToPS packedInput,
             mask = WaveActiveBitOr(surfaceData.HTileMask);
 
             // Is it the first active lane?
-            if(WaveIsFirstLane())
+            if (WaveIsFirstLane())
             {
                 // recalculate tileCoord1d, because on Xbox the register holding its value gets overwritten
                 if (tileCoord1d != -1)
@@ -121,11 +146,8 @@ void Frag(  PackedVaryingsToPS packedInput,
 
 
 #if ((SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)) && defined(SHADER_API_METAL)
-    // Metal Shading Language declares that fragment discard invalidates
-    // derivatives for the rest of the quad, so we need to reorder when
-    // we discard during decal projection, or we get artifacts along the
-    // edges of the projection(any partial quads get bad partial derivatives
-    //regardless of whether they are computed implicitly or explicitly).
+    } // if (clipValue > 0.0)
+
     clip(clipValue);
 #endif
 

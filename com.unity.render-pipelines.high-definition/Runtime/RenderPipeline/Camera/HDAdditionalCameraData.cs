@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// The minimum allowed aperture.
         /// </summary>
-        public const float kMinAperture = 1f;
+        public const float kMinAperture = 0.7f;
 
         /// <summary>
         /// The maximum allowed aperture.
@@ -337,6 +337,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public delegate void RequestAccessDelegate(ref BufferAccess bufferAccess);
         /// <summary>RequestAccessDelegate used to request access to various buffers of this camera.</summary>
         public event RequestAccessDelegate requestGraphicsBuffer;
+
+        /// <summary>The object used as a target for centering the Exposure's Procedural Mask metering mode when target object option is set (See Exposure Volume Component).</summary>
+        public GameObject exposureTarget = null;
 
         internal float probeCustomFixedExposure = 1.0f;
 

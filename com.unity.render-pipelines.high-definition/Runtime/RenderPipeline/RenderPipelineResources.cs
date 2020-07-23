@@ -33,6 +33,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader debugLightVolumeCS;
             [Reload("Runtime/Debug/DebugBlitQuad.Shader")]
             public Shader debugBlitQuad;
+            [Reload("Runtime/Debug/DebugVTBlit.Shader")]
+            public Shader debugViewVirtualTexturingBlit;
 
             // Lighting
             [Reload("Runtime/Lighting/Deferred.Shader")]
@@ -90,7 +92,6 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Lighting/ProbeVolume/DebugDisplayProbeVolume.shader")]
             public Shader debugDisplayProbeVolumePS;
 
-
             [Reload("Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.compute")]
             public ComputeShader subsurfaceScatteringCS;                // Disney SSS
             [Reload("Runtime/Material/SubsurfaceScattering/CombineLighting.shader")]
@@ -145,7 +146,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader inScatteredRadiancePrecomputationCS;
             [Reload("Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSky.shader")]
             public Shader        physicallyBasedSkyPS;
-
+            [Reload("Runtime/Lighting/PlanarReflectionFiltering.compute")]
+            public ComputeShader planarReflectionFilteringCS;
             // Material
             [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_GGXDisneyDiffuse.shader")]
             public Shader preIntegratedFGD_GGXDisneyDiffusePS;
@@ -169,6 +171,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader clearUIntTextureCS;
             [Reload("Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassUtils.shader")]
             public Shader customPassUtils;
+            [Reload("Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassRenderersUtils.shader")]
+            public Shader customPassRenderersUtils;
 
             // XR
             [Reload("Runtime/ShaderLibrary/XRMirrorView.shader")]
@@ -226,6 +230,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader histogramExposureCS;
             [Reload("Runtime/PostProcessing/Shaders/ApplyExposure.compute")]
             public ComputeShader applyExposureCS;
+            [Reload("Runtime/PostProcessing/Shaders/DebugHistogramImage.compute")]
+            public ComputeShader debugImageHistogramCS;
             [Reload("Runtime/PostProcessing/Shaders/UberPost.compute")]
             public ComputeShader uberPostCS;
             [Reload("Runtime/PostProcessing/Shaders/LutBuilder3D.compute")]
@@ -282,6 +288,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader SMAAPS;
             [Reload("Runtime/PostProcessing/Shaders/TemporalAntialiasing.shader")]
             public Shader temporalAntialiasingPS;
+
+            // Physicaly based DoF
+            [Reload("Runtime/PostProcessing/Shaders/DoFCircleOfConfusion.compute")]
+            public ComputeShader dofCircleOfConfusion;
+            [Reload("Runtime/PostProcessing/Shaders/DoFGather.compute")]
+            public ComputeShader dofGatherCS;
+            [Reload("Runtime/PostProcessing/Shaders/DoFCoCPyramid.compute")]
+            public ComputeShader DoFCoCPyramidCS;
 
             [Reload("Runtime/PostProcessing/Shaders/ContrastAdaptiveSharpen.compute")]
             public ComputeShader contrastAdaptiveSharpenCS;
@@ -384,6 +398,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             [Reload("Runtime/RenderPipelineResources/Texture/DefaultHDRISky.exr")]
             public Cubemap     defaultHDRISky;
+
+            [Reload("Runtime/RenderPipelineResources/Texture/DefaultCloudLayer.asset")]
+            public CustomRenderTexture defaultCloudLayer;
         }
 
         [Serializable, ReloadGroup]
@@ -396,7 +413,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             [Reload("Runtime/RenderPipelineResources/defaultDiffusionProfile.asset")]
             public DiffusionProfileSettings defaultDiffusionProfile;
-            
+
             //Area Light Emissive Meshes
             [Reload("Runtime/RenderPipelineResources/Mesh/Cylinder.fbx")]
             public Mesh emissiveCylinderMesh;

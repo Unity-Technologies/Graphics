@@ -12,86 +12,80 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             where PassData : class, new() => ((RenderGraphPass<PassData>)this).renderFunc;
 
         public abstract void Execute(RenderGraphContext renderGraphContext);
-        public abstract void Release(RenderGraphContext renderGraphContext);
+        public abstract void Release(RenderGraphObjectPool pool);
         public abstract bool HasRenderFunc();
 
         public string           name { get; protected set; }
         public int              index { get; protected set; }
         public ProfilingSampler customSampler { get; protected set; }
         public bool             enableAsyncCompute { get; protected set; }
+        public bool             allowPassCulling { get; protected set; }
 
         public TextureHandle    depthBuffer { get; protected set; }
         public TextureHandle[]  colorBuffers { get; protected set; } = new TextureHandle[RenderGraph.kMaxMRTCount];
         public int              colorBufferMaxIndex { get; protected set; } = -1;
         public int              refCount { get; protected set; }
 
-        List<TextureHandle>         m_TextureReadList = new List<TextureHandle>();
-        List<TextureHandle>         m_TextureWriteList = new List<TextureHandle>();
-        List<TextureHandle>         m_TransientTextureList = new List<TextureHandle>();
-        List<ComputeBufferHandle>   m_BufferReadList = new List<ComputeBufferHandle>();
-        List<ComputeBufferHandle>   m_BufferWriteList = new List<ComputeBufferHandle>();
-        List<RendererListHandle>    m_UsedRendererListList = new List<RendererListHandle>();
+        public List<ResourceHandle>[] resourceReadLists = new List<ResourceHandle>[(int)RenderGraphResourceType.Count];
+        public List<ResourceHandle>[] resourceWriteLists = new List<ResourceHandle>[(int)RenderGraphResourceType.Count];
+        public List<ResourceHandle>[] transientResourceList = new List<ResourceHandle>[(int)RenderGraphResourceType.Count];
 
-        public IReadOnlyCollection<TextureHandle>       textureReadList { get { return m_TextureReadList; } }
-        public IReadOnlyCollection<TextureHandle>       textureWriteList { get { return m_TextureWriteList; } }
-        public IReadOnlyCollection<TextureHandle>       transientTextureList { get { return m_TransientTextureList; } }
-        public IReadOnlyCollection<ComputeBufferHandle> bufferReadList { get { return m_BufferReadList; } }
-        public IReadOnlyCollection<ComputeBufferHandle> bufferWriteList { get { return m_BufferWriteList; } }
-        public IReadOnlyCollection<RendererListHandle> usedRendererListList { get { return m_UsedRendererListList; } }
+        public List<RendererListHandle>     usedRendererListList = new List<RendererListHandle>();
+
+        public RenderGraphPass()
+        {
+            for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
+            {
+                resourceReadLists[i] = new List<ResourceHandle>();
+                resourceWriteLists[i] = new List<ResourceHandle>();
+                transientResourceList[i] = new List<ResourceHandle>();
+            }
+        }
 
         public void Clear()
         {
             name = "";
             index = -1;
             customSampler = null;
-            m_TextureReadList.Clear();
-            m_TextureWriteList.Clear();
-            m_BufferReadList.Clear();
-            m_BufferWriteList.Clear();
-            m_TransientTextureList.Clear();
-            m_UsedRendererListList.Clear();
+            for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
+            {
+                resourceReadLists[i].Clear();
+                resourceWriteLists[i].Clear();
+                transientResourceList[i].Clear();
+            }
+
+            usedRendererListList.Clear();
             enableAsyncCompute = false;
+            allowPassCulling = true;
             refCount = 0;
 
             // Invalidate everything
             colorBufferMaxIndex = -1;
-            depthBuffer = new TextureHandle();
+            depthBuffer = TextureHandle.nullHandle;
             for (int i = 0; i < RenderGraph.kMaxMRTCount; ++i)
             {
-                colorBuffers[i] = new TextureHandle();
+                colorBuffers[i] = TextureHandle.nullHandle;
             }
         }
 
-        public void AddTextureWrite(TextureHandle texture)
+        public void AddResourceWrite(in ResourceHandle res)
         {
-            m_TextureWriteList.Add(texture);
-            refCount++;
+            resourceWriteLists[res.iType].Add(res);
         }
 
-        public void AddTextureRead(TextureHandle texture)
+        public void AddResourceRead(in ResourceHandle res)
         {
-            m_TextureReadList.Add(texture);
+            resourceReadLists[res.iType].Add(res);
         }
 
-        public void AddBufferWrite(ComputeBufferHandle buffer)
+        public void AddTransientResource(in ResourceHandle res)
         {
-            m_BufferWriteList.Add(buffer);
-            refCount++;
-        }
-
-        public void AddTransientTexture(TextureHandle texture)
-        {
-            m_TransientTextureList.Add(texture);
-        }
-
-        public void AddBufferRead(ComputeBufferHandle buffer)
-        {
-            m_BufferReadList.Add(buffer);
+            transientResourceList[res.iType].Add(res);
         }
 
         public void UseRendererList(RendererListHandle rendererList)
         {
-            m_UsedRendererListList.Add(rendererList);
+            usedRendererListList.Add(rendererList);
         }
 
         public void EnableAsyncCompute(bool value)
@@ -99,21 +93,26 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             enableAsyncCompute = value;
         }
 
+        public void AllowPassCulling(bool value)
+        {
+            allowPassCulling = value;
+        }
+
         public void SetColorBuffer(TextureHandle resource, int index)
         {
             Debug.Assert(index < RenderGraph.kMaxMRTCount && index >= 0);
             colorBufferMaxIndex = Math.Max(colorBufferMaxIndex, index);
             colorBuffers[index] = resource;
-            AddTextureWrite(resource);
+            AddResourceWrite(resource.handle);
         }
 
         public void SetDepthBuffer(TextureHandle resource, DepthAccess flags)
         {
             depthBuffer = resource;
-            if ((flags | DepthAccess.Read) != 0)
-                AddTextureRead(resource);
-            if ((flags | DepthAccess.Write) != 0)
-                AddTextureWrite(resource);
+            if ((flags & DepthAccess.Read) != 0)
+                AddResourceRead(resource.handle);
+            if ((flags & DepthAccess.Write) != 0)
+                AddResourceWrite(resource.handle);
         }
     }
 
@@ -138,13 +137,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             customSampler = sampler;
         }
 
-        public override void Release(RenderGraphContext renderGraphContext)
+        public override void Release(RenderGraphObjectPool pool)
         {
             Clear();
-            renderGraphContext.renderGraphPool.Release(data);
+            pool.Release(data);
             data = null;
             renderFunc = null;
-            renderGraphContext.renderGraphPool.Release(this);
+
+            // We need to do the release from here because we need the final type.
+            pool.Release(this);
         }
 
         public override bool HasRenderFunc()

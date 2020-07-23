@@ -280,7 +280,11 @@ namespace UnityEditor
         public virtual void DrawAdvancedOptions(Material material)
         {
             materialEditor.EnableInstancingField();
+            DrawQueueOffsetField();
+        }
 
+        protected void DrawQueueOffsetField()
+        {
             if (queueOffsetProp != null)
             {
                 EditorGUI.BeginChangeCheck();
@@ -482,6 +486,7 @@ namespace UnityEditor
                     // General Transparent Material Settings
                     material.SetOverrideTag("RenderType", "Transparent");
                     material.SetInt("_ZWrite", 0);
+                    material.renderQueue = (int)RenderQueue.Transparent;
                     material.renderQueue += material.HasProperty("_QueueOffset") ? (int) material.GetFloat("_QueueOffset") : 0;
                     material.SetShaderPassEnabled("ShadowCaster", false);
                 }

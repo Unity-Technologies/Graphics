@@ -28,7 +28,7 @@ To use a Terrain Lit Material, you must assign it to a Terrain:
 
 | **Property**       | **Description**                                              |
 | ------------------ | ------------------------------------------------------------ |
-| **Receive Decals** | Enable this checkbox to allow HDRP to draw decals on this Material’s surface. |
+| **Receive Decals** | Enable the checkbox to allow HDRP to draw decals on this Material’s surface. |
 
 ### Terrain
 

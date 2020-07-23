@@ -38,7 +38,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
 
 	HLSLINCLUDE
 
-	#pragma multi_compile __ _ALPHATEST_ON
+	#pragma multi_compile_fragment __ _ALPHATEST_ON
 
 	ENDHLSL
 
@@ -65,9 +65,10 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
-            #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
-            #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             // -------------------------------------
             // Unity defined keywords
@@ -77,9 +78,9 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
-            #pragma shader_feature_local _TERRAIN_BLEND_HEIGHT
+            #pragma shader_feature_local_fragment _TERRAIN_BLEND_HEIGHT
             #pragma shader_feature_local _NORMALMAP
-            #pragma shader_feature_local _MASKMAP
+            #pragma shader_feature_local_fragment _MASKMAP            
             // Sample normal in pixel shader when doing instancing
             #pragma shader_feature_local _TERRAIN_INSTANCED_PERPIXEL_NORMAL
             #define TERRAIN_SPLAT_ADDPASS
@@ -91,7 +92,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
 
         Pass
         {
-            Name "TerrainAddLit(GBuffer)"
+            Name "GBuffer"
             Tags{"LightMode" = "UniversalGBuffer"}
 
             Blend One One
@@ -136,9 +137,9 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
 
             #pragma shader_feature_local _TERRAIN_BLEND_HEIGHT
             #pragma shader_feature_local _NORMALMAP
-            #pragma shader_feature_local _MASKMAP    
+            #pragma shader_feature_local _MASKMAP
             // Sample normal in pixel shader when doing instancing
-            #pragma shader_feature_local _TERRAIN_INSTANCED_PERPIXEL_NORMAL            
+            #pragma shader_feature_local _TERRAIN_INSTANCED_PERPIXEL_NORMAL
             #define TERRAIN_SPLAT_ADDPASS 1
             #define TERRAIN_GBUFFER 1
 

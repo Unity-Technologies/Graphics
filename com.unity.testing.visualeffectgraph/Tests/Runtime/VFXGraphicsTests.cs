@@ -52,6 +52,14 @@ namespace UnityEngine.VFX.Test
             var testSettingsInScene = Object.FindObjectOfType<GraphicsTestSettings>();
             var vfxTestSettingsInScene = Object.FindObjectOfType<VFXGraphicsTestSettings>();
 
+            if (XRGraphicsAutomatedTests.enabled)
+            {
+                if (vfxTestSettingsInScene == null || vfxTestSettingsInScene.xrCompatible)
+                    XRGraphicsAutomatedTests.running = true;
+                else
+                    Assert.Ignore("Test scene is not compatible with XR and will be skipped.");
+            }
+
             //Setup frame rate capture
             float simulateTime = VFXGraphicsTestSettings.defaultSimulateTime;
             int captureFrameRate = VFXGraphicsTestSettings.defaultCaptureFrameRate;
@@ -96,7 +104,7 @@ namespace UnityEngine.VFX.Test
                     yield return null;
                 Assert.Greater(maxFrame, 0);
 
-                foreach (var component in vfxComponents) 
+                foreach (var component in vfxComponents)
                     component.Reinit();
 
 #if UNITY_EDITOR
@@ -163,6 +171,8 @@ namespace UnityEngine.VFX.Test
         [TearDown]
         public void TearDown()
         {
+            XRGraphicsAutomatedTests.running = false;
+
 #if UNITY_EDITOR
             UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
 #endif

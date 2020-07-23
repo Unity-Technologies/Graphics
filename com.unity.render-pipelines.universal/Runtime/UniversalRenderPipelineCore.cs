@@ -255,8 +255,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int viewAndProjectionMatrix = Shader.PropertyToID("unity_MatrixVP");
 
         public static readonly int inverseViewMatrix = Shader.PropertyToID("unity_MatrixInvV");
-        // Undefined:
-        // public static readonly int inverseProjectionMatrix = Shader.PropertyToID("unity_MatrixInvP");
+        public static readonly int inverseProjectionMatrix = Shader.PropertyToID("unity_MatrixInvP");
         public static readonly int inverseViewAndProjectionMatrix = Shader.PropertyToID("unity_MatrixInvVP");
 
         public static readonly int cameraProjectionMatrix = Shader.PropertyToID("unity_CameraProjection");
@@ -310,6 +309,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string FilmGrain = "_FILM_GRAIN";
         public static readonly string Fxaa = "_FXAA";
         public static readonly string Dithering = "_DITHERING";
+        public static readonly string ScreenSpaceOcclusion = "_SCREEN_SPACE_OCCLUSION";
 
         public static readonly string HighQualitySampling = "_HIGH_QUALITY_SAMPLING";
 

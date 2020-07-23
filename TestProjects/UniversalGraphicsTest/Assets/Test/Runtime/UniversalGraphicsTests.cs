@@ -6,6 +6,7 @@ using UnityEngine.TestTools;
 using UnityEngine.XR;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.SceneManagement;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Experimental.Rendering.Universal;
 
@@ -24,10 +25,11 @@ public class UniversalGraphicsTests
 
     public IEnumerator Run(GraphicsTestCase testCase)
     {
+#if ENABLE_VR
         // XRTODO: Fix XR tests on macOS or disable them from Yamato directly
-        if (XRSystem.testModeEnabled && (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer))
+        if (XRGraphicsAutomatedTests.enabled && (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer))
             Assert.Ignore("Universal XR tests do not run on macOS.");
-
+#endif
         SceneManager.LoadScene(testCase.ScenePath);
 
         // Always wait one frame for scene load
@@ -35,19 +37,21 @@ public class UniversalGraphicsTests
 
         var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x=>x.GetComponent<Camera>());
         var settings = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
-        Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");        
+        Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
 
-        if (XRSystem.testModeEnabled)
+#if ENABLE_VR
+        if (XRGraphicsAutomatedTests.enabled)
         {
             if (settings.XRCompatible)
             {
-                XRSystem.automatedTestRunning = true;
+                XRGraphicsAutomatedTests.running = true;
             }
             else
             {
                 Assert.Ignore("Test scene is not compatible with XR and will be skipped.");
             }
         }
+#endif
 
         Scene scene = SceneManager.GetActiveScene();
 
@@ -81,23 +85,17 @@ public class UniversalGraphicsTests
         bool allocatesMemory = false;
         var mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
 
-        // 2D Renderer is currently allocating memory, skip it as it will always fail GC alloc tests.
-        var additionalCameraData = mainCamera.GetUniversalAdditionalCameraData();
-        bool is2DRenderer = additionalCameraData.scriptableRenderer is Renderer2D;
-        
-        if (!is2DRenderer)
+        try
         {
-            try
-            {
-                ImageAssert.AllocatesMemory(mainCamera, settings?.ImageComparisonSettings);
-            }
-            catch (AssertionException)
-            {
-                allocatesMemory = true;
-            }
-            if (allocatesMemory)
-                Assert.Fail("Allocated memory when rendering what is on main camera");
+            ImageAssert.AllocatesMemory(mainCamera, settings?.ImageComparisonSettings);
         }
+        catch (AssertionException)
+        {
+            allocatesMemory = true;
+        }
+
+        if (allocatesMemory)
+            Assert.Fail("Allocated memory when rendering what is on main camera");
     }
 
 #if UNITY_EDITOR
@@ -107,10 +105,12 @@ public class UniversalGraphicsTests
         UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
     }
 
+#if ENABLE_VR
     [TearDown]
     public void ResetSystemState()
     {
-        XRSystem.automatedTestRunning = false;
+        XRGraphicsAutomatedTests.running = false;
     }
+#endif
 #endif
 }

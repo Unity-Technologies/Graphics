@@ -8,14 +8,17 @@ namespace UnityEngine.Rendering.HighDefinition
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Camera" + Documentation.endURL)]
     public class HDCameraData : Camera.IExtension, IFrameSettingsHistoryContainer
     {
-        internal static readonly HDCameraData k_DefaultInstance = new HDCameraData();
+        // This region is custom code for camera extensions
+        // the left code is a copy paste from HDAdditionalCameraData with very small changes
+        #region Extension compatibility code
+        internal string name => m_Camera.name;
+        internal Camera camera => m_Camera;
 
-        // Temporary wrappers
-        public Camera camera => m_Owner;
-        public string name => camera.name;
+        internal static HDCameraData k_DefaultInstance = new HDCameraData();
+        void Awake(Camera cameraHandler) => m_Camera = cameraHandler;
 
-        [NonSerialized]
-        Camera m_Owner;
+        T GetComponent<T>() where T : Component => m_Camera.GetComponent<T>();
+        #endregion
 
         /// <summary>
         /// How the camera should handle vertically flipping the frame at the end of rendering.
@@ -73,6 +76,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="camera">Requested camera.</param>
         /// <returns>The non oblique projection matrix for a particular camera.</returns>
         public delegate Matrix4x4 NonObliqueProjectionGetter(Camera camera);
+
+        Camera m_Camera;
 
         /// <summary>
         /// Clear mode for the camera background.
@@ -216,6 +221,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public delegate void RequestAccessDelegate(ref BufferAccess bufferAccess);
         /// <summary>RequestAccessDelegate used to request access to various buffers of this camera.</summary>
         public event RequestAccessDelegate requestGraphicsBuffer;
+
+        /// <summary>The object used as a target for centering the Exposure's Procedural Mask metering mode when target object option is set (See Exposure Volume Component).</summary>
+        public GameObject exposureTarget = null;
 
         internal float probeCustomFixedExposure = 1.0f;
 
@@ -425,10 +433,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Note camera's preview camera is registered with preview type but then change to game type that lead to issue.
                 // Do not attempt to not register them till this issue persist.
                 m_CameraRegisterName = name;
-                if (camera.cameraType != CameraType.Preview && camera.cameraType != CameraType.Reflection)
+                if (m_Camera.cameraType != CameraType.Preview && m_Camera.cameraType != CameraType.Reflection)
                 {
-                    DebugDisplaySettings.RegisterCamera(this);
-                    VolumeDebugSettings.RegisterCamera(this);
+                    //DebugDisplaySettings.RegisterCamera(this);
+                    //VolumeDebugSettings.RegisterCamera(this);
                 }
                 m_IsDebugRegistered = true;
             }
@@ -440,16 +448,14 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Note camera's preview camera is registered with preview type but then change to game type that lead to issue.
                 // Do not attempt to not register them till this issue persist.
-                if (camera.cameraType != CameraType.Preview && camera?.cameraType != CameraType.Reflection)
+                if (m_Camera.cameraType != CameraType.Preview && m_Camera?.cameraType != CameraType.Reflection)
                 {
-                    VolumeDebugSettings.UnRegisterCamera(this);
-                    DebugDisplaySettings.UnRegisterCamera(this);
+                    //VolumeDebugSettings.UnRegisterCamera(this);
+                    //DebugDisplaySettings.UnRegisterCamera(this);
                 }
                 m_IsDebugRegistered = false;
             }
         }
-
-        void Awake(Camera owner) => m_Owner = owner;
 
         void OnEnable()
         {
@@ -457,9 +463,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // When HDR option is enabled, Unity render in FP16 then convert to 8bit with a stretch copy (this cause banding as it should be convert to sRGB (or other color appropriate color space)), then do a final shader with sRGB conversion
             // When LDR, unity render in 8bitSRGB, then do a final shader with sRGB conversion
             // What should be done is just in our Post process we convert to sRGB and store in a linear 10bit, but require C++ change...
+            m_Camera = GetComponent<Camera>();
+            if (m_Camera == null)
+                return;
 
-            camera.allowMSAA = false; // We don't use this option in HD (it is legacy MSAA) and it produce a warning in the inspector UI if we let it
-            camera.allowHDR = false;
+            m_Camera.allowMSAA = false; // We don't use this option in HD (it is legacy MSAA) and it produce a warning in the inspector UI if we let it
+            m_Camera.allowHDR = false;
 
             RegisterDebug();
 
@@ -493,7 +502,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // This is called at the creation of the HD Additional Camera Data, to convert the legacy camera settings to HD
         internal static void InitDefaultHDAdditionalCameraData(HDCameraData cameraData)
         {
-            var camera = cameraData.camera;
+            var camera = cameraData.m_Camera;
 
             cameraData.clearDepth = camera.clearFlags != CameraClearFlags.Nothing;
 
@@ -529,7 +538,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>Requested buffer as a RTHandle. Can be null if the buffer is not available.</returns>
         public RTHandle GetGraphicsBuffer(BufferAccessType type)
         {
-            HDCamera hdCamera = HDCamera.GetOrCreate(camera);
+            HDCamera hdCamera = HDCamera.GetOrCreate(m_Camera);
             if ((type & BufferAccessType.Color) != 0)
                 return  hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
             else if ((type & BufferAccessType.Depth) != 0)

@@ -1,0 +1,29 @@
+project:
+  name: HDRP_DXR
+  folder: HDRP_DXR_Tests
+test_platforms:
+  - Standalone
+  - playmode
+  - playmode_XR
+  - playmode_RenderGraph
+platforms:
+  - name: Win
+    apis:
+      - DX12
+    overrides:
+      agents_project:
+        default:
+          type: Unity::VM::GPU
+          image: graphics-foundation/win10-dxr:stable
+          flavor: b1.large
+          model: rtx2080
+all:
+  dependencies:
+    - platform: Win
+      api: DX12
+      test_platforms:
+        - Standalone
+        - playmode
+        - playmode_XR
+        - playmode_RenderGraph
+

@@ -291,6 +291,19 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal GameObject exposureTarget
+        {
+            get
+            {
+                if (m_AdditionalCameraData != null)
+                {
+                    return m_AdditionalCameraData.exposureTarget;
+                }
+
+                return null;
+            }
+        }
+
         // This value will always be correct for the current camera, no need to check for
         // game view / scene view / preview in the editor, it's handled automatically
         internal AntialiasingMode antialiasing { get; private set; } = AntialiasingMode.None;
@@ -357,16 +370,19 @@ namespace UnityEngine.Rendering.HighDefinition
             return antialiasing == AntialiasingMode.TemporalAntialiasing;
         }
 
-        internal bool IsSSREnabled()
+        internal bool IsSSREnabled(bool transparent = false)
         {
             var ssr = volumeStack.GetComponent<ScreenSpaceReflection>();
-            return frameSettings.IsEnabled(FrameSettingsField.SSR) && ssr.enabled.value;
+            if (!transparent)
+                return frameSettings.IsEnabled(FrameSettingsField.SSR) && ssr.enabled.value;
+            else
+                return frameSettings.IsEnabled(FrameSettingsField.TransparentSSR) && ssr.enabled.value;
         }
 
-        internal bool IsTransparentSSREnabled()
+        internal bool IsSSGIEnabled()
         {
-            var ssr = volumeStack.GetComponent<ScreenSpaceReflection>();
-            return frameSettings.IsEnabled(FrameSettingsField.TransparentSSR) && ssr.enabled.value;
+            var ssgi = volumeStack.GetComponent<GlobalIllumination>();
+            return frameSettings.IsEnabled(FrameSettingsField.SSGI) && ssgi.enable.value;
         }
 
         internal bool IsVolumetricReprojectionEnabled()
@@ -419,7 +435,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDRenderPipeline.ReinitializeVolumetricBufferParams(this);
 
                 bool isCurrentColorPyramidRequired = frameSettings.IsEnabled(FrameSettingsField.Refraction) || frameSettings.IsEnabled(FrameSettingsField.Distortion);
-                bool isHistoryColorPyramidRequired = IsSSREnabled() || antialiasing == AntialiasingMode.TemporalAntialiasing;
+                bool isHistoryColorPyramidRequired = IsSSREnabled() || IsSSGIEnabled() || antialiasing == AntialiasingMode.TemporalAntialiasing;
                 bool isVolumetricHistoryRequired = IsVolumetricReprojectionEnabled();
 
                 int numColorPyramidBuffersRequired = 0;
@@ -435,6 +451,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // Reinit the system.
                     colorPyramidHistoryIsValid = false;
+                    // Since we nuke all history we must inform the post process system too.
+                    resetPostProcessingHistory = true;
 
                     HDRenderPipeline.DestroyVolumetricHistoryBuffers(this);
 
@@ -499,11 +517,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             HDRenderPipeline.UpdateVolumetricBufferParams(this, hdrp.GetFrameCount());
             HDRenderPipeline.ResizeVolumetricHistoryBuffers(this, hdrp.GetFrameCount());
-
-            // Here we use the non scaled resolution for the RTHandleSystem ref size because we assume that at some point we will need full resolution anyway.
-            // This is necessary because we assume that after post processes, we have the full size render target for debug rendering
-            // The only point of calling this here is to grow the render targets. The call in BeginRender will setup the current RTHandle viewport size.
-            RTHandles.SetReferenceSize(nonScaledViewport.x, nonScaledViewport.y, msaaSamples);
         }
 
         /// <summary>Set the RTHandle scale to the actual camera size (can be scaled)</summary>
@@ -650,6 +663,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float exposureMultiplierForProbes = 1.0f / Mathf.Max(probeRangeCompressionFactor, 1e-6f);
             cb._ProbeExposureScale  = exposureMultiplierForProbes;
+
+            cb._TransparentCameraOnlyMotionVectors = (frameSettings.IsEnabled(FrameSettingsField.MotionVectors) &&
+                                                      !frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector)) ? 1 : 0;
         }
 
 
@@ -739,7 +755,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<ExecuteCaptureActionsPassData>("Execute Capture Actions", out var passData))
             {
                 var inputDesc = renderGraph.GetTextureDesc(input);
-                var rtHandleScale = renderGraph.rtHandleProperties.rtHandleScale;
+                var rtHandleScale = RTHandles.rtHandleProperties.rtHandleScale;
                 passData.viewportScale = new Vector2(rtHandleScale.x, rtHandleScale.y);
                 passData.blitMaterial = HDUtils.GetBlitMaterial(inputDesc.dimension);
                 passData.recorderCaptureActions = m_RecorderCaptureActions;
@@ -752,16 +768,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (ExecuteCaptureActionsPassData data, RenderGraphContext ctx) =>
                 {
-                    var tempRT = ctx.resources.GetTexture(data.tempTexture);
                     var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
-                    mpb.SetTexture(HDShaderIDs._BlitTexture, ctx.resources.GetTexture(data.input));
+                    mpb.SetTexture(HDShaderIDs._BlitTexture, data.input);
                     mpb.SetVector(HDShaderIDs._BlitScaleBias, data.viewportScale);
                     mpb.SetFloat(HDShaderIDs._BlitMipLevel, 0);
-                    ctx.cmd.SetRenderTarget(tempRT);
+                    ctx.cmd.SetRenderTarget(data.tempTexture);
                     ctx.cmd.DrawProcedural(Matrix4x4.identity, data.blitMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
 
                     for (data.recorderCaptureActions.Reset(); data.recorderCaptureActions.MoveNext();)
-                        data.recorderCaptureActions.Current(tempRT, ctx.cmd);
+                        data.recorderCaptureActions.Current(data.tempTexture, ctx.cmd);
                 });
             }
         }
@@ -781,6 +796,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 skyAmbientMode = volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
 
                 visualSky.skySettings = SkyManager.GetSkySetting(volumeStack);
+                visualSky.cloudLayer = volumeStack.GetComponent<CloudLayer>();
 
                 // Now, see if we have a lighting override
                 // Update needs to happen before testing if the component is active other internal data structure are not properly updated yet.
@@ -1151,6 +1167,24 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 VolumeManager.instance.Update(volumeStack, volumeAnchor, volumeLayerMask);
             }
+
+            // Update info about current target mid gray
+            TargetMidGray requestedMidGray = volumeStack.GetComponent<Exposure>().targetMidGray.value;
+            switch (requestedMidGray)
+            {
+                case TargetMidGray.Grey125:
+                    ColorUtils.s_LightMeterCalibrationConstant = 12.5f;
+                    break;
+                case TargetMidGray.Grey14:
+                    ColorUtils.s_LightMeterCalibrationConstant = 14.0f;
+                    break;
+                case TargetMidGray.Grey18:
+                    ColorUtils.s_LightMeterCalibrationConstant = 18.0f;
+                    break;
+                default:
+                    ColorUtils.s_LightMeterCalibrationConstant = 12.5f;
+                    break;
+            }
         }
 
         Matrix4x4 GetJitteredProjectionMatrix(Matrix4x4 origProj)
@@ -1237,6 +1271,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             float verticalFoV = camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
+            if (!camera.usePhysicalProperties)
+            {
+                verticalFoV = Mathf.Atan(-1.0f / viewConstants.projMatrix[1, 1]) * 2;
+            }
             Vector2 lensShift = camera.GetGateFittedLensShift();
 
             return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, resolution, viewConstants.viewMatrix, false, aspect);
