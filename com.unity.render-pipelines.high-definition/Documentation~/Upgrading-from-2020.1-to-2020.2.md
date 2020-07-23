@@ -22,7 +22,7 @@ From Unity 2020.2, if you create a new [HDRP Asset](HDRP-Asset.md), the **MSAA W
 
 From Unity 2020.2, decals no longer require a full Depth Prepass. HDRP only renders Materials with **Receive Decals** enabled during the Depth Prepass. Unless other options force it.
 
-From Unity 2020.2, you can use the Decal Layers system which makes use of the **Rendering Layer Mask** property from a Mesh Renderer and Terrain. The default value of this property prior to 2020.2 does not include any Decal Layer flags. This means that when you enable this feature, no Meshes receive decals until you configure them correctly. A script **Edit > Render Pipeline/HD Render Pipeline > Upgrade from Previous Version > Enable Decal Layer Default on all loaded Mesh Renderer and Terrain** is provided to convert the already created Meshes, as well a version to apply only on a selection. Newly created Mesh Renderer or Terrain have the have **Decal Layer Default** enable by default.
+From Unity 2020.2, you can use the Decal Layers system which makes use of the **Rendering Layer Mask** property from a Mesh Renderer and Terrain. The default value of this property prior to 2020.2 does not include any Decal Layer flags. This means that when you enable this feature, no Meshes receive decals until you configure them correctly. A script **Edit > Render Pipeline/HD Render Pipeline > Upgrade from Previous Version > Add Decal Layer Default to Loaded Mesh Renderers and Terrains** is provided to convert the already created Meshes, as well a version to apply only on a selection. Newly created Mesh Renderer or Terrain have the have **Decal Layer Default** enable by default.
 
 Warning: 2020.2.0b1 does not include the modification for the default value of Rendering Layer Mask. If you use this version of Unity and create a new Mesh Renderer or Terrain, they do have the correct flag.
 
@@ -41,6 +41,10 @@ In the 2D Atlas Size drop-down, select a larger cookie resolution.
 From Unity 2020.2, the texture format of the color buffer in the HDRP Asset also applies to [Planar Reflection Probes](Planar-Reflection-Probe.md). Previously, Planar Reflection Probes always used a float16 rendertarget.
 
 From Unity 2020.2, the light layer properties have move from the HDRP settings to the HDRP Default setting Panel.
+
+From Unity 2020.2, in physically based sky, the sun disk intensity is proportional to its size. Before this the sun disk was incorrectly not drive by the sun disk size.
+
+For project migrating from old 9.x.x-preview package. There is a change in the order of enum of Exposure that may shift the current exposure mode to another one in Exposure Volume. This will need to be corrected manually by reselecting the correct Exposure mode.
 
 ## Shadows
 

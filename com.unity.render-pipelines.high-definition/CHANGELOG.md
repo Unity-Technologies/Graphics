@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -161,6 +161,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added shader graph nodes for rendering a complex eye shader.
 - Added more controls to contact shadows and increased quality in some parts. 
 - Added a physically based option in DoF volume.
+- Added API to check if a Camera, Light or ReflectionProbe is compatible with HDRP.
+- Added path tracing test scene for normal mapping.
+- Added missing API documentation.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -731,6 +734,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed path-traced subsurface scattering mixing with diffuse and specular BRDFs (1250601).
 - Fixed custom pass re-ordering issues.
 - Improved robustness of normal mapping when scale is 0, and mapping is extreme (normals in or below the tangent plane).
+- Fixed XR Display providers not getting zNear and zFar plane distances passed to them when in HDRP.
+- Fixed rendering breaking when disabling tonemapping in the frame settings.
+- Fixed issue with serialization of exposure modes in volume profiles not being consistent between HDRP versions (case 1261385).
+- Fixed issue with duplicate names in newly created sub-layers in the graphics compositor (case 1263093).
+- Remove MSAA debug mode when renderpipeline asset has no MSAA
+- Fixed some post processing using motion vectors when they are disabled
+- Fixed the multiplier of the environement lights being overriden with a wrong value for ray tracing (1260311).
+- Fixed a series of exceptions happening when trying to load an asset during wizard execution (1262171).
+- Fixed an issue with Stacklit shader not compiling correctly in player with debug display on (1260579)
+- Fixed couple issues in the dependence of building the ray tracing acceleration structure.
+- Fix sun disk intensity
+- Fixed unwanted ghosting for smooth surfaces.
+- Fixing an issue in the recursive rendering flag texture usage.
+- Fixed a missing dependecy for choosing to evaluate transparent SSR.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -892,6 +909,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with quality setting foldouts not opening when clicking on them (1253088).
 - Shutter speed can now be changed by dragging the mouse over the UI label (case 1245007).
 - Remove the 'Point Cube Size' for cookie, use the Cubemap size directly.
+- VFXTarget with Unlit now allows EmissiveColor output to be consistent with HDRP unlit.
+- Only building the RTAS if there is an effect that will require it (1262217).
+- Fixed the first ray tracing frame not having the light cluster being set up properly (1260311).
+- Render graph pre-setup for ray traced ambient occlusion.
+- Avoid casting multiple rays and denoising for hard directional, point and spot ray traced shadows (1261040).
+- Making sure the preview cameras do not use ray tracing effects due to a by design issue to build ray tracing acceleration structures (1262166).
+- Preparing ray traced reflections for the render graph support (performance and quality).
+- Preparing recursive rendering for the render graph port.
 
 ## [7.1.1] - 2019-09-05
 
