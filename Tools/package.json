@@ -13,6 +13,10 @@
     "husky": "^4.2.5",
     "lint-staged": "^10.2.11"
   },
+  "scripts": {
+    "preinstall": "python ./git-hook/preinstall.py",
+    "postinstall": "python ./git-hook/postinstall.py"
+  },
   "husky": {
     "hooks": {
       "pre-commit": "npx lint-staged && sh ./git-hook/pre-commit",
@@ -21,7 +25,7 @@
   },
   "lint-staged": {
     "../**/*": [
-        "python -m git-hook.precommit.check-file-name-extension"
+      "python -m git-hook.precommit.check-file-name-extension"
     ]
   }
 }
