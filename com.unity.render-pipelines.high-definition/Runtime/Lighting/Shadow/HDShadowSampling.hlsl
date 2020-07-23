@@ -293,9 +293,14 @@ float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, f
     tcs.z += depthBias;
 #endif
 
+    // custom-begin:
+    // uint taaFrameIndex = _TaaFrameInfo.z;
+    // float sampleJitterAngle = InterleavedGradientNoise(posSS.xy, taaFrameIndex) * 2.0 * PI;
+    // float2 sampleJitter = float2(sin(sampleJitterAngle), cos(sampleJitterAngle));
+
     uint taaFrameIndex = _TaaFrameInfo.z;
-    float sampleJitterAngle = InterleavedGradientNoise(posSS.xy, taaFrameIndex) * 2.0 * PI;
-    float2 sampleJitter = float2(sin(sampleJitterAngle), cos(sampleJitterAngle));
+    float2 sampleJitter = ComputePCSSSampleJitter(posSS.xy, taaFrameIndex);
+    // custom-end
 
 
     // Note: this is a hack, but the original implementation was faulty as it didn't scale offset based on the resolution of the atlas (*not* the shadow map).

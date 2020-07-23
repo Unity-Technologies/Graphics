@@ -1360,8 +1360,26 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ShaderVariablesGlobalCB._SpecularOcclusionBlend = 1.0f;
             }
 
+            // custom-begin:
+            UpdateShaderVariablesGlobalBlueNoise(ref m_ShaderVariablesGlobalCB, cmd);
+            // custom-end
+
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
         }
+
+        // custom-begin:
+        void UpdateShaderVariablesGlobalBlueNoise(ref ShaderVariablesGlobal cb, CommandBuffer cmd)
+        {
+            Texture2D blueNoiseTexture = GetBlueNoiseTextureForCurrentFrame();
+            cmd.SetGlobalTexture(HDShaderIDs._BlueNoiseRGBTexture, blueNoiseTexture);
+            cb._BlueNoiseRGBTextureResolutionMinusOne = (uint)blueNoiseTexture.width - 1;
+        }
+
+        public Texture2D GetBlueNoiseTextureForCurrentFrame()
+        {
+            return m_BlueNoise.textures16RGB[m_FrameCount % m_BlueNoise.textures16RGB.Length];
+        }
+        // custom-end
 
         void UpdateShaderVariablesXRCB(HDCamera hdCamera, CommandBuffer cmd)
         {

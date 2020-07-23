@@ -924,6 +924,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AtlasTextureOctahedralDepthScaleBias = Shader.PropertyToID("_AtlasTextureOctahedralDepthScaleBias");
         public static readonly int _ValidRange                     = Shader.PropertyToID("_ValidRange");
         public static readonly int _ProbeVolumeAtlasSliceMode      = Shader.PropertyToID("_ProbeVolumeAtlasSliceMode");
+    
+        // custom-begin
+        // Custom Properties:
+        public static readonly int _BlueNoiseRGBTexture = Shader.PropertyToID("_BlueNoiseRGBTexture");
+        public static readonly int _BlueNoiseRGBTextureResolutionMinusOne = Shader.PropertyToID("_BlueNoiseRGBTextureResolutionMinusOne");
+        // custom-end
     }
 
     // Shared material property names
