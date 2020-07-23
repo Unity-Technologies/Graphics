@@ -30,6 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// HDRP Additional light data component. It contains the light API and fields used by HDRP.
     /// </summary>
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Light-Component" + Documentation.endURL)]
+    [AddComponentMenu("")] // Hide in menu
     [RequireComponent(typeof(Light))]
     [ExecuteAlways]
     public partial class HDAdditionalLightData : MonoBehaviour, ISerializationCallbackReceiver
