@@ -200,6 +200,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     m_LightBlendStyles[i].renderTargetHandle.Init($"_ShapeLightTexture{i}");
             }
 
+            // The array size should be determined by the number of 'feature bit' the material index has. See GetLightMaterialIndex().
+            // Not all slots must be filled because certain combinations of the feature bits don't make sense (e.g. sprite bit on + shape bit off).
+            const int k_NumberOfLightMaterials = 1 << 5 + 3;  // 5 keywords +  volume bit, shape bit
             if(lightMaterials == null || lightMaterials.Length == 0)
                 lightMaterials= new Material[k_NumberOfLightMaterials];
 
@@ -210,21 +213,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 shadowsRenderTarget.Init("_ShadowTex");
 
             const int totalMaterials = 256;
-
             if(shadowMaterials == null || shadowMaterials.Length == 0)
                 shadowMaterials = new Material[totalMaterials];
             if(removeSelfShadowMaterials == null || removeSelfShadowMaterials.Length == 0)
                 removeSelfShadowMaterials = new Material[totalMaterials];
         }
 
-        const int k_NumberOfLightMaterials = 1 << 5 + 3;  // 5 keywords +  volume bit, shape bit
 
         // transient data
         internal Material[] lightMaterials { get; set; }
         internal Material[] shadowMaterials { get; set; }
         internal Material[] removeSelfShadowMaterials { get; set; }
 
-        [NonSerialized] internal RenderTargetHandle normalsRenderTarget;
-        [NonSerialized] internal RenderTargetHandle shadowsRenderTarget;
+        internal RenderTargetHandle normalsRenderTarget;
+        internal RenderTargetHandle shadowsRenderTarget;
     }
 }

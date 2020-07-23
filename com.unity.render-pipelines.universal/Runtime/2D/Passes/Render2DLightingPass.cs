@@ -155,7 +155,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                         // find the highest layer that share the same set of lights as this layer
                         var upperLayerInBatch = FindUpperBoundInBatch(i);
-                        // calculate the layer range
+                        // Some renderers override their sorting layer value with short.MinValue or short.MaxValue.
+                        // When drawing the first sorting layer, we should include the range from short.MinValue to layerValue.
+                        // Similarly, when drawing the last sorting layer, include the range from layerValue to short.MaxValue.
                         var startLayerValue = (short) s_SortingLayers[i].value;
                         var lowerBound = (i == 0) ? short.MinValue : startLayerValue;
                         var endLayerValue = (short) s_SortingLayers[upperLayerInBatch].value;

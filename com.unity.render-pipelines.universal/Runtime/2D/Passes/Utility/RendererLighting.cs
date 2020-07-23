@@ -84,7 +84,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             descriptor.dimension = TextureDimension.Tex2D;
 
             cmd.GetTemporaryRT(pass.rendererData.lightBlendStyles[blendStyleIndex].renderTargetHandle.id, descriptor, FilterMode.Bilinear);
-            pass.rendererData.lightBlendStyles[blendStyleIndex].IsDirty = true;
+            pass.rendererData.lightBlendStyles[blendStyleIndex].isDirty = true;
         }
 
         static public void EnableBlendStyle(CommandBuffer cmd, int blendStyleIndex, bool enabled)
@@ -414,12 +414,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if ((blendStylesUsed & (uint)(1 << i)) == 0)
                     continue;
 
-                if (!pass.rendererData.lightBlendStyles[i].IsDirty)
+                if (!pass.rendererData.lightBlendStyles[i].isDirty)
                     continue;
 
                 cmd.SetRenderTarget(pass.rendererData.lightBlendStyles[i].renderTargetHandle.Identifier());
                 cmd.ClearRenderTarget(false, true, Color.black);
-                pass.rendererData.lightBlendStyles[i].IsDirty = false;
+                pass.rendererData.lightBlendStyles[i].isDirty = false;
             }
         }
 
@@ -460,7 +460,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 else
                     rtDirty = true;
 
-                if (pass.rendererData.lightBlendStyles[i].IsDirty || rtDirty)
+                if (pass.rendererData.lightBlendStyles[i].isDirty || rtDirty)
                     cmdBuffer.ClearRenderTarget(false, true, clearColor);
 
                 rtDirty |= RenderLightSet(
@@ -473,7 +473,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     Light2D.GetLightsByBlendStyle(i)
                 );
 
-                pass.rendererData.lightBlendStyles[i].IsDirty = rtDirty;
+                pass.rendererData.lightBlendStyles[i].isDirty = rtDirty;
 
                 cmdBuffer.EndSample(sampleName);
             }

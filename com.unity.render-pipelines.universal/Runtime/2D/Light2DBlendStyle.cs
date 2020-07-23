@@ -125,8 +125,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
         // Transient data
-        internal bool IsDirty { get; set; }
-        [NonSerialized]
+        internal bool isDirty { get; set; }
         internal RenderTargetHandle renderTargetHandle;
 
     }
