@@ -215,7 +215,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        private static bool RenderLightSet(IRenderPass2D pass, RenderingData renderingData, Camera camera, int blendStyleIndex, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights)
+        private static bool RenderLightSet(IRenderPass2D pass, RenderingData renderingData, Camera camera, int blendStyleIndex, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, bool rtNeedsClear, Color clearColor, List<Light2D> lights)
         {
             bool renderedAnyLight = false;
 
@@ -231,6 +231,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         if (lightMesh != null)
                         {
                             RenderShadows(pass, renderingData, cmdBuffer, layerToRender, light, light.shadowIntensity, renderTexture, renderTexture);
+
+                            if (!renderedAnyLight && rtNeedsClear)
+                            {
+                                cmdBuffer.ClearRenderTarget(false, true, clearColor);
+                            }
 
                             renderedAnyLight = true;
 
@@ -260,6 +265,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         }
                     }
                 }
+            }
+
+            // If no lights were rendered, just clear the RenderTarget if needed
+            if (!renderedAnyLight && rtNeedsClear)
+            {
+                cmdBuffer.ClearRenderTarget(false, true, clearColor);
             }
 
             return renderedAnyLight;
@@ -460,9 +471,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 else
                     rtDirty = true;
 
-                if (pass.rendererData.lightBlendStyles[i].isDirty || rtDirty)
-                    cmdBuffer.ClearRenderTarget(false, true, clearColor);
-
                 rtDirty |= RenderLightSet(
                     pass, renderingData,
                     camera,
@@ -470,6 +478,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     cmdBuffer,
                     layerToRender,
                     rtID,
+                    (pass.rendererData.lightBlendStyles[i].isDirty || rtDirty),
+                    clearColor,
                     Light2D.GetLightsByBlendStyle(i)
                 );
 

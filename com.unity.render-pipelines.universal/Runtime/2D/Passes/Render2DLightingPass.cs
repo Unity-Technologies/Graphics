@@ -128,6 +128,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     SortingSettings sortSettings = combinedDrawSettings.sortingSettings;
                     GetTransparencySortingMode(camera, ref sortSettings);
                     combinedDrawSettings.sortingSettings = sortSettings;
+                    normalsDrawSettings.sortingSettings = sortSettings;
 
                     var blendStylesCount = m_Renderer2DData.lightBlendStyles.Length;
                     var hasBeenInitialized = new bool[blendStylesCount];
