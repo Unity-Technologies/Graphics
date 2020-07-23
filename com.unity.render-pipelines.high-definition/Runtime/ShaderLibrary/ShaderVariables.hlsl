@@ -155,6 +155,13 @@ SAMPLER(samplerunity_ProbeVolumeSH);
 TEXTURE2D(_ExposureTexture);
 TEXTURE2D(_PrevExposureTexture);
 
+// custom-begin
+// 3-Channel (RGB) noise look up texture for high quality, high frequency (low clumping) noise.
+// Cycles to new lut every frame (on a 16-frame loop).
+// Useful for monte-carlo integration over time.
+TEXTURE2D(_BlueNoiseRGBTexture);
+// custom-end
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesXR.cs.hlsl"
 
 // Note: To sample camera depth in HDRP we provide these utils functions because the way we store the depth mips can change
@@ -407,5 +414,15 @@ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderVariablesDecal.hlsl"
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
+
+// custom-begin
+float3 LoadBlueNoiseRGB(uint2 pixelCoords)
+{
+    // Tile-texture across screen.
+    uint2 textureCoords = uint2(pixelCoords.x & _BlueNoiseRGBTextureResolutionMinusOne, pixelCoords.y & _BlueNoiseRGBTextureResolutionMinusOne);
+    float4 blueNoiseSample = LOAD_TEXTURE2D_LOD(_BlueNoiseRGBTexture, textureCoords, 0);
+    return blueNoiseSample.xyz;
+}
+// custom-end
 
 #endif // UNITY_SHADER_VARIABLES_INCLUDED

@@ -86,6 +86,22 @@ static const float2 fibonacciSpiralDirection[DISK_SAMPLE_COUNT] =
     float2 (0.9205789302157817, 0.3905565685566777)
 };
 
+// custom-begin
+#define PCSS_SAMPLE_JITTER_MODE_INTERLEAVED_GRADIENT_NOISE 0
+#define PCSS_SAMPLE_JITTER_MODE_BLUE_NOISE 1
+#define PCSS_SAMPLE_JITTER_IMPLEMENTATION PCSS_SAMPLE_JITTER_MODE_BLUE_NOISE
+
+real2 ComputePCSSSampleJitter(real2 positionSS, uint taaFrameIndex)
+{
+#if PCSS_SAMPLE_JITTER_IMPLEMENTATION == PCSS_SAMPLE_JITTER_MODE_BLUE_NOISE
+    real sampleJitterAngle = LoadBlueNoiseRGB((uint2)positionSS).x * 2.0 * PI;
+#else
+    real sampleJitterAngle = InterleavedGradientNoise(positionSS, taaFrameIndex) * 2.0 * PI;
+#endif
+    return real2(sin(sampleJitterAngle), cos(sampleJitterAngle));
+}
+// custom-end
+
 real2 ComputeFibonacciSpiralDiskSample(const in int sampleIndex, const in real diskRadius, const in real sampleCountInverse, const in real sampleCountBias)
 {
     real sampleRadius = diskRadius * sqrt((real)sampleIndex * sampleCountInverse + sampleCountBias);
