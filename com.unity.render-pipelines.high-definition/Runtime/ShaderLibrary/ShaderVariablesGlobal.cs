@@ -27,6 +27,9 @@ namespace UnityEngine.Rendering.HighDefinition
     // Try to keep data grouped by access and rendering system as much as possible (fog params or light params together for example).
     // => Don't move a float parameter away from where it belongs for filling a hole. Add padding in this case.
     [GenerateHLSL(needAccessors = false, generateCBuffer = true, constantRegister = (int)ConstantRegister.Global)]
+    // custom-begin:
+    public
+    // custom-end
     unsafe struct ShaderVariablesGlobal
     {
         public const int RenderingLightLayersMask       = 0x000000FF;

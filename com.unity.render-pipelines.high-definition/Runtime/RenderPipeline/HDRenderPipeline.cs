@@ -96,7 +96,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string k_ShaderTagName = "HDRenderPipeline";
 
         readonly HDRenderPipelineAsset m_Asset;
-        internal HDRenderPipelineAsset asset { get { return m_Asset; } }
+        // custom-begin:
+        // internal
+        public
+        // custom-end
+        HDRenderPipelineAsset asset { get { return m_Asset; } }
         readonly HDRenderPipelineAsset m_DefaultAsset;
         internal RenderPipelineResources defaultResources { get { return m_DefaultAsset.renderPipelineResources; } }
 

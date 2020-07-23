@@ -469,7 +469,11 @@ namespace UnityEngine.Rendering.HighDefinition
         //HDAdditionalLightData that is not really added to the GameObject
         //In this case, the type property will return a false value as this will
         //be base on a default(HDAdditionnalData) which will have a point type
-        internal HDLightType ComputeLightType(Light attachedLight)
+        // custom-begin:
+        // internal
+        public
+        // custom-end 
+        HDLightType ComputeLightType(Light attachedLight)
         {
             // Shuriken lights won't have a Light component.
             if (attachedLight == null)

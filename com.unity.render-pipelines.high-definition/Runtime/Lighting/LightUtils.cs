@@ -6,6 +6,9 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Light Utils contains function to convert light intensities between units
     /// </summary>
+    // custom-begin:
+    public
+    // custom-end
     class LightUtils
     {
         static float s_LuminanceToEvFactor =  Mathf.Log(100f / ColorUtils.s_LightMeterCalibrationConstant, 2);
