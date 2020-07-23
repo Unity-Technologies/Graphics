@@ -18,7 +18,7 @@ namespace kTools.Motion
         /// The strength of the motion blur filter. Acts as a multiplier for velocities.
         /// </summary>
         [Tooltip("The strength of the motion blur filter. Acts as a multiplier for velocities.")]
-        public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
+        public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 10f);
         
         /// <summary>
         /// Is the component active?
