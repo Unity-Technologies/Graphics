@@ -290,7 +290,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-           // if (renderPassInputs.requiresMotionVectors)
+            if (renderPassInputs.requiresMotionVectors)
             {
                 var data = MotionVectorRendering.instance.GetMotionDataForCamera(renderingData.cameraData.camera);
                 m_MotionVectorPass.Setup(data);
