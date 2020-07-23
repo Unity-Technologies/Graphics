@@ -15,7 +15,8 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npx lint-staged && sh ./git-hook/pre-commit"
+      "pre-commit": "npx lint-staged && sh ./git-hook/pre-commit",
+      "pre-push": "sh ./git-hook/pre-push"
     }
   },
   "lint-staged": {
