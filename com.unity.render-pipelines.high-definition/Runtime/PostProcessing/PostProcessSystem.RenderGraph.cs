@@ -885,9 +885,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             TextureHandle finalRT,
                             bool flipY)
         {
-            var dynResHandler = DynamicResolutionHandler.instance;
 
-            bool isSceneView = hdCamera.camera.cameraType == CameraType.SceneView;
             var source = colorBuffer;
             TextureHandle alphaTexture = DoCopyAlpha(renderGraph, hdCamera, source);
 
