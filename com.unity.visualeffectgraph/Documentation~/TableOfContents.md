@@ -39,6 +39,11 @@
       * Position
         * [Set Position (Depth)](Block-SetPosition(Depth).md)
         * [Set Position (Shape : AABox)](Block-SetPosition(AABox).md)
+        * [Set Position (Shape : Circle)](Block-SetPosition(Circle).md)
+        * [Set Position (Shape : Cone)](Block-SetPosition(Cone).md)
+        * [Set Position (Shape : Cone)](Block-SetPosition(Line).md)
+        * [Set Position (Shape : Sphere)](Block-SetPosition(Sphere).md)
+        * [Set Position (Sequential)](Block-SetPosition(Sequential).md)
     * [Update Particle](Context-Update.md)
   * Operator
     * Attribute
