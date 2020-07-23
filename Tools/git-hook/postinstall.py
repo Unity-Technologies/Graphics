@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import sys, os, subprocess
+import sys, os, subprocess, re
 
 
 # To use with preinstall.py
@@ -11,19 +11,25 @@ def append_old_hooks():
 	root = subprocess.check_output(["git", "rev-parse", "--show-toplevel"])
 	path = root.decode('utf-8').rstrip() + "/.git/hooks/"
 	for hook in hooks:
-		pre_installed_hook = path + hook
+		newly_installed_hook = path + hook
 		tmp_hook = "./git-hook/tmp_" + hook
 
+		with open(newly_installed_hook, 'r') as newly_installed_hook_file:
+			newly_installed_hook_data = [ x.strip('\n') for x in list(newly_installed_hook_file) ]
 		with open(tmp_hook, 'r') as tmp_hook_file:
-  			hook_data = tmp_hook_file.read()	  
-		
-		# Append tmp, aka pre-existing hook to the one created by npm install
-		with open(pre_installed_hook, 'a') as pre_installed_hook_file:
-		  pre_installed_hook_file.write(hook_data)
+			tmp_hook_data = [ x.strip('\n') for x in list(tmp_hook_file) ]
+				
+		# Append only the difference
+		with open(newly_installed_hook, 'a') as newly_installed_hook_file:
+			newly_installed_hook_file.write('\n')
+			pattern = re.compile("^#\s\s\s(At:).*$")
+			for line in tmp_hook_data:
+				# Don't append the time tag husky is adding (not pattern.match(line))
+				if line not in newly_installed_hook_data and not pattern.match(line):
+					newly_installed_hook_file.write(line + '\n')
 		
 		os.remove(tmp_hook) 
 
 
 if __name__== "__main__":
 	append_old_hooks()
-
