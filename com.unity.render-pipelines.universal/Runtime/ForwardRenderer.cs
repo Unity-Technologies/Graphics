@@ -486,7 +486,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // DepthNormal texture is not supported in GLES2 atm
-            if (m_IsGLES2)
+            if (m_IsGLES2 && inputSummary.requiresNormalsTexture)
             {
                 Debug.LogWarning("One or more render passes require camera normals texture as input. Camera normals are not supported in GLES2.");
                 inputSummary.requiresNormalsTexture = false;
