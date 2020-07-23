@@ -96,17 +96,22 @@ namespace kTools.Motion
             var gpuView = camera.worldToCameraMatrix;
             var gpuVP = gpuProj * gpuView;
 
+            var vp = camera.projectionMatrix * camera.worldToCameraMatrix;
+
             // Set last frame data
             // A camera could be rendered multiple times per frame, only updates the previous view proj & pos if needed
             if (motionData.lastFrameActive != Time.frameCount)
             {
                 motionData.isFirstFrame = false;
+                motionData.previousGPUViewProjectionMatrix = motionData.isFirstFrame ? 
+                        gpuVP : motionData.gpuViewProjectionMatrix;
                 motionData.previousViewProjectionMatrix = motionData.isFirstFrame ? 
-                        gpuVP : motionData.viewProjectionMatrix;
+                        vp : motionData.viewProjectionMatrix;
             }
 
             // Set current frame data
-            motionData.viewProjectionMatrix = gpuVP;
+            motionData.gpuViewProjectionMatrix = gpuVP;
+            motionData.viewProjectionMatrix = vp;
             motionData.lastFrameActive = Time.frameCount;
         }
     }

@@ -36,7 +36,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         // Builtin effects settings
         DepthOfField m_DepthOfField;
-        MotionBlur m_MotionBlur;
         PaniniProjection m_PaniniProjection;
         Bloom m_Bloom;
         LensDistortion m_LensDistortion;
@@ -180,7 +179,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Some of the color-grading settings are only used in the color grading lut pass
             var stack = VolumeManager.instance.stack;
             m_DepthOfField        = stack.GetComponent<DepthOfField>();
-            m_MotionBlur          = stack.GetComponent<MotionBlur>();
             m_PaniniProjection    = stack.GetComponent<PaniniProjection>();
             m_Bloom               = stack.GetComponent<Bloom>();
             m_LensDistortion      = stack.GetComponent<LensDistortion>();
@@ -354,17 +352,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     Swap();
                 }
             }
-
-            // Motion blur
-            if (m_MotionBlur.IsActive() && !isSceneViewCamera)
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MotionBlur)))
-                {
-                    DoMotionBlur(cameraData.camera, cmd, GetSource(), GetDestination());
-                    Swap();
-                }
-            }
-
+            
             // Panini projection is done as a fullscreen pass after all depth-based effects are done
             // and before bloom kicks in
             if (m_PaniniProjection.IsActive() && !isSceneViewCamera)
@@ -751,40 +739,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.ReleaseTemporaryRT(ShaderConstants._FullCoCTexture);
             cmd.ReleaseTemporaryRT(ShaderConstants._PingTexture);
             cmd.ReleaseTemporaryRT(ShaderConstants._PongTexture);
-        }
-
-        #endregion
-
-        #region Motion Blur
-
-        void DoMotionBlur(Camera camera, CommandBuffer cmd, int source, int destination)
-        {
-            var material = m_Materials.cameraMotionBlur;
-
-            // This is needed because Blit will reset viewproj matrices to identity and UniversalRP currently
-            // relies on SetupCameraProperties instead of handling its own matrices.
-            // TODO: We need get rid of SetupCameraProperties and setup camera matrices in Universal
-            var proj = camera.nonJitteredProjectionMatrix;
-            var view = camera.worldToCameraMatrix;
-            var viewProj = proj * view;
-
-            material.SetMatrix("_ViewProjM", viewProj);
-
-            if (m_ResetHistory)
-                material.SetMatrix("_PrevViewProjM", viewProj);
-            else
-                material.SetMatrix("_PrevViewProjM", m_PrevViewProjM);
-
-            material.SetFloat("_Intensity", m_MotionBlur.intensity.value);
-            material.SetFloat("_Clamp", m_MotionBlur.clamp.value);
-            
-            if(m_MotionBlur.mode == MotionBlurMode.CameraOnly)
-                material.EnableKeyword("_CAMERA_ONLY");
-            else
-                material.DisableKeyword("_CAMERA_ONLY");
-
-            Blit(cmd, source, BlitDstDiscardContent(cmd, destination), material, (int)m_MotionBlur.quality.value);
-            m_PrevViewProjM = viewProj;
         }
 
         #endregion
