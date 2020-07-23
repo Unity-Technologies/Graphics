@@ -268,7 +268,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // Because the DepthPrepass doesn't have a DEBUG_DISPLAY variant, it is the only way to disable it for debug modes
         public float    _GlobalTessellationFactorMultiplier;
 
-        public float    _SpecularOcclusionBlend;
-        public float    _Pad9;
+		public float    _SpecularOcclusionBlend;
+        // custom-begin:
+        public uint _BlueNoiseRGBTextureResolutionMinusOne;
+        // public float    _Pad9;
+        // custom-end
     }
 }
