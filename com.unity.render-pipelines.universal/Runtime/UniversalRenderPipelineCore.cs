@@ -329,7 +329,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
 
         // XR
-        public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";    }
+        public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";
+    }
 
     public sealed partial class UniversalRenderPipeline
     {
