@@ -39,13 +39,13 @@ void IncrementQuadOverdrawCounter(uint2 positionSS, uint primitiveID)
             InterlockedCompareExchange(_FullScreenDebugBuffer[quad1_idx], 0, thisID, prevID);
 
         [branch]
-            if (prevID == 0)
-            {
-                // Wait a bit, then unlock for other quads
-                if (++lockCount == 2)
-                    InterlockedExchange(_FullScreenDebugBuffer[quad1_idx], 0, prevID);
-                processed = true;
-            }
+        if (prevID == 0)
+        {
+            // Wait a bit, then unlock for other quads
+            if (++lockCount == 2)
+                InterlockedExchange(_FullScreenDebugBuffer[quad1_idx], 0, prevID);
+            processed = true;
+        }
 
         if (prevID == thisID)
             processed = true;

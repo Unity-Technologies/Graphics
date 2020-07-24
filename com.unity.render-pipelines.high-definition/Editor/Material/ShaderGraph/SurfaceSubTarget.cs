@@ -103,6 +103,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (supportDistortion)
                     passes.Add(HDShaderPasses.GenerateDistortionPass(supportLighting), new FieldCondition(HDFields.TransparentDistortion, true));
 
+                passes.Add(HDShaderPasses.GenerateFullScreenDebug());
+
                 return passes;
             }
         }
