@@ -117,7 +117,7 @@ namespace UnityEditor.ShaderGraph
 
         public AbstractShaderProperty AsShaderProperty()
         {
-            return new ColorShaderProperty{ value = color.color, colorMode = color.mode };
+            return new ColorShaderProperty { value = color.color, colorMode = color.mode };
         }
 
         public int outputSlotId { get { return OutputSlotId; } }

@@ -10,7 +10,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_ContentContainer;
         VisualElement m_LabelContainer;
 
-        protected VisualElement container;
         public override VisualElement contentContainer
         {
             get { return m_ContentContainer; }
@@ -19,7 +18,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public HelpBoxRow(MessageType type)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/HelpBoxRow"));
-            container = new VisualElement {name = "container"};
+            VisualElement container = new VisualElement {name = "container"};
             m_ContentContainer = new VisualElement { name = "content"  };
             m_LabelContainer = new VisualElement {name = "label" };
 

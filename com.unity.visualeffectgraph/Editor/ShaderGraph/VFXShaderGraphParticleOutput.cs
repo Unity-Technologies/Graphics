@@ -49,9 +49,7 @@ namespace UnityEditor.VFX
         {
             switch (property.propertyType)
             {
-                case PropertyType.Color_V0:
-                    return typeof(Color);
-                case PropertyType.Color_V1:
+                case PropertyType.Color:
                     return typeof(Color);
                 case PropertyType.Texture2D:
                     return typeof(Texture2D);

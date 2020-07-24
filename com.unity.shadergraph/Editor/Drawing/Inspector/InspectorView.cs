@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -91,13 +91,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         // If any of the selected items are no longer selected, inspector requires an update
         public bool DoesInspectorNeedUpdate()
         {
-
             var needUpdate = !m_CachedSelectionList.SequenceEqual(selection);
-            if(graphView is MaterialGraphView mgv && mgv.graph.hasChangedViewData)
-            {
-                needUpdate = true;
-                mgv.graph.hasChangedViewData = false;
-            }
             return needUpdate;
         }
 

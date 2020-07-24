@@ -255,7 +255,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             if(material.HasProperty("_BumpMap"))
                 useNormalMap = material.GetTexture("_BumpMap");
 
-            bool useGPUInstancing = false;// ShaderUtil.HasProceduralInstancing(material.shader);
+            bool useGPUInstancing = ShaderUtil.HasProceduralInstancing(material.shader);
             if (useGPUInstancing && renderers.Count > 0)
             {
                 if (!renderers[0].enableGPUInstancing || renderers[0].renderMode != ParticleSystemRenderMode.Mesh)
@@ -316,10 +316,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 renderer.GetActiveVertexStreams(rendererStreams);
 
                 bool streamsValid;
-                if (false)//useGPUInstancing && renderer.renderMode == ParticleSystemRenderMode.Mesh && renderer.supportsMeshInstancing)
-#pragma warning disable CS0162 // Unreachable code detected
+                if (useGPUInstancing && renderer.renderMode == ParticleSystemRenderMode.Mesh && renderer.supportsMeshInstancing)
                     streamsValid = rendererStreams.SequenceEqual(instancedStreams);
-#pragma warning restore CS0162 // Unreachable code detected
                 else
                     streamsValid = rendererStreams.SequenceEqual(streams);
 
@@ -339,10 +337,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
                     foreach (ParticleSystemRenderer renderer in renderers)
                     {
-                        if (false)//useGPUInstancing && renderer.renderMode == ParticleSystemRenderMode.Mesh && renderer.supportsMeshInstancing)
-#pragma warning disable CS0162 // Unreachable code detected
+                        if (useGPUInstancing && renderer.renderMode == ParticleSystemRenderMode.Mesh && renderer.supportsMeshInstancing)
                             renderer.SetActiveVertexStreams(instancedStreams);
-#pragma warning restore CS0162 // Unreachable code detected
                         else
                             renderer.SetActiveVertexStreams(streams);
                     }
