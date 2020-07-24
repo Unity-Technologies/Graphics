@@ -50,4 +50,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/022_Lighting_BasicSpot.unity
     guid: ba93e261bd923804bb5f1444d8853f9d
+  - enabled: 1
+    path: Assets/Scenes/023_Lighting_Mixed_Indirect.unity
+    guid: 3b9dd7844d4cf584495331163737a037
+  - enabled: 1
+    path: Assets/Scenes/024_Shader_PBRvalidation_Specular.unity
+    guid: 9e128a81020f82644b26ad3971348914
+  - enabled: 1
+    path: Assets/Scenes/025_Shader_PBRvalidation_Metallic.unity
+    guid: f21ee3fbdef463f488ddc649446a7b39
   m_configObjects: {}
