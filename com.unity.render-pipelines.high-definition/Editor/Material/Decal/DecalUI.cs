@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// <summary>
     /// GUI for HDRP Decal materials (does not include ShaderGraphs)
     /// </summary>
-    class DecalUI : ShaderGUI
+    class DecalUI : HDShaderGUI
     {
         // Same hack as in HDShaderGUI but for some reason, this editor does not inherit from HDShaderGUI
         bool m_FirstFrame = true;
@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition
             new DecalSortingInputsUIBlock((MaterialUIBlock.Expandable)Expandable.Sorting),
         };
 
-        public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
+        protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             LoadMaterialProperties(props);
 
@@ -219,10 +219,6 @@ namespace UnityEditor.Rendering.HighDefinition
             CoreUtils.SetKeyword(material, "_EMISSIVEMAP", material.GetTexture(kEmissiveColorMap));
         }
 
-        //protected override void SetupMaterialKeywordsAndPassInternal(Material material)
-        void SetupMaterialKeywordsAndPassInternal(Material material)
-        {
-            SetupMaterialKeywordsAndPass(material);
-        }
+        protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
     }
 }
