@@ -101,6 +101,29 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             var propertySheet = new PropertySheet();
             shaderInput = actualObject as ShaderInput;
+            if (shaderInput is AbstractShaderProperty property)
+            {
+                if (property.version < property.latestVersion)
+                {
+                    var typeString = property.propertyType.ToString();
+                    if (ShaderGraphPreferences.allowDeprecatedBehaviors)
+                    {
+                        propertySheet.Add(new HelpBoxDeprecated(
+                            $"The {typeString} Property has new updates. This version maintains the old behavior. See the {typeString} Property documentation for more information.",
+                            property.latestVersion,
+                            property.ChangeVersion)); 
+
+                    }
+                    else
+                    {
+
+                        propertySheet.Add(new HelpBoxDeprecated(
+                            $"The {typeString} Property has new updates. This version maintains the old behavior. If you update a {typeString} Property, you can use Undo to change it back. See the {typeString} Property documentation for more information.",
+                            () => property.ChangeVersion(property.latestVersion)));
+                    }
+                }
+            }
+
             BuildPropertyNameLabel(propertySheet);
             BuildExposedField(propertySheet);
             BuildDisplayNameField(propertySheet);
@@ -226,10 +249,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             case Vector4ShaderProperty vector4Property:
                 HandleVector4ShaderProperty(propertySheet, vector4Property);
                 break;
-            case ColorShaderProperty_V0 colorProperty:
-                HandleDeprecatedColorProperty(propertySheet, colorProperty);
-                break;
-            case ColorShaderProperty_V1 colorProperty:
+            case ColorShaderProperty colorProperty:
                 HandleColorProperty(propertySheet, colorProperty);
                 break;
             case Texture2DShaderProperty texture2DProperty:
@@ -449,7 +469,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 out var propertyVec4Field));
         }
 
-        void HandleColorProperty(PropertySheet propertySheet, ColorShaderProperty_V1 colorProperty)
+        void HandleColorProperty(PropertySheet propertySheet, ColorShaderProperty colorProperty)
         {
             var colorPropertyDrawer = new ColorPropertyDrawer();
 
@@ -483,50 +503,51 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     ColorMode.Default,
                     out var colorModeField));
             }
+
         }
 
-        void HandleDeprecatedColorProperty(PropertySheet propertySheet, ColorShaderProperty_V0 colorProperty)
-        {
-            var colorPropertyDrawer = new ColorPropertyDrawer();
-            propertySheet.Add(colorPropertyDrawer.CreateGUI(
-                newValue =>
-                {
-                    this._preChangeValueCallback("Change property value");
-                    this._changeValueCallback(newValue);
-                    this._postChangeValueCallback();
-                },
-                colorProperty.value,
-                "Default",
-                out var propertyColorField));
+        //void HandleDeprecatedColorProperty(PropertySheet propertySheet, ColorShaderProperty_V0 colorProperty)
+        //{
+        //    var colorPropertyDrawer = new ColorPropertyDrawer();
+        //    propertySheet.Add(colorPropertyDrawer.CreateGUI(
+        //        newValue =>
+        //        {
+        //            this._preChangeValueCallback("Change property value");
+        //            this._changeValueCallback(newValue);
+        //            this._postChangeValueCallback();
+        //        },
+        //        colorProperty.value,
+        //        "Default",
+        //        out var propertyColorField));
 
-            var colorField = (ColorField)propertyColorField;
-            colorField.hdr = colorProperty.colorMode == ColorMode.HDR;
+        //    var colorField = (ColorField)propertyColorField;
+        //    colorField.hdr = colorProperty.colorMode == ColorMode.HDR;
 
-            if (!isSubGraph)
-            {
-                var enumPropertyDrawer = new EnumPropertyDrawer();
+        //    if (!isSubGraph)
+        //    {
+        //        var enumPropertyDrawer = new EnumPropertyDrawer();
 
-                propertySheet.Add(enumPropertyDrawer.CreateGUI(
-                    newValue =>
-                    {
-                        this._preChangeValueCallback("Change Color Mode");
-                        colorProperty.colorMode = (ColorMode)newValue;
-                        this._postChangeValueCallback(true, ModificationScope.Graph);
-                    },
-                    colorProperty.colorMode,
-                    "Mode",
-                    ColorMode.Default,
-                    out var colorModeField));
-            }
-            var dep = new HelpBoxDeprecated("The Color Property has new updates. This version maintains the old behavior. If you update a Color Property, you can use Undo to change it back. See the Color Property documentation for more information.",
-                graphData.owner,
-                () =>
-                {
-                    var newCol = new ColorShaderProperty_V1(colorProperty);
-                    graphData.AddAndReplaceGraphInput(colorProperty, newCol);
-                });
-            propertySheet.Insert(0, dep);
-        }
+        //        propertySheet.Add(enumPropertyDrawer.CreateGUI(
+        //            newValue =>
+        //            {
+        //                this._preChangeValueCallback("Change Color Mode");
+        //                colorProperty.colorMode = (ColorMode)newValue;
+        //                this._postChangeValueCallback(true, ModificationScope.Graph);
+        //            },
+        //            colorProperty.colorMode,
+        //            "Mode",
+        //            ColorMode.Default,
+        //            out var colorModeField));
+        //    }
+        //    var dep = new HelpBoxDeprecated("The Color Property has new updates. This version maintains the old behavior. If you update a Color Property, you can use Undo to change it back. See the Color Property documentation for more information.",
+        //        graphData.owner,
+        //        () =>
+        //        {
+        //            var newCol = new ColorShaderProperty_V1(colorProperty);
+        //            graphData.AddAndReplaceGraphInput(colorProperty, newCol);
+        //        });
+        //    propertySheet.Insert(0, dep);
+        //}
 
         void HandleTexture2DProperty(PropertySheet propertySheet, Texture2DShaderProperty texture2DProperty)
         {

@@ -38,9 +38,7 @@ namespace UnityEditor.ShaderGraph
                     return ConcreteSlotValueType.Vector1;
                 case PropertyType.Boolean:
                     return ConcreteSlotValueType.Boolean;
-                case PropertyType.Color_V0:
-                    return ConcreteSlotValueType.Vector4;
-                case PropertyType.Color_V1:
+                case PropertyType.Color:
                     return ConcreteSlotValueType.Vector4;
                 case PropertyType.VirtualTexture:
                     return ConcreteSlotValueType.VirtualTexture;

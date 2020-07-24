@@ -1744,7 +1744,7 @@ namespace UnityEditor.ShaderGraph
                     if (string.IsNullOrEmpty((string)defaultReferenceNameField.GetValue(property)))
                     {
                         // ColorShaderProperty is the only Property case where `GetDefaultReferenceName` was overriden
-                        if (MultiJson.ParseType(serializedProperty.typeInfo.fullName) == typeof(ColorShaderProperty_V1) || MultiJson.ParseType(serializedProperty.typeInfo.fullName) == typeof(ColorShaderProperty_V0))
+                        if (MultiJson.ParseType(serializedProperty.typeInfo.fullName) == typeof(ColorShaderProperty))
                         {
                             defaultReferenceNameField.SetValue(property, $"Color_{GuidEncoder.Encode(Guid.Parse(input0.m_Guid.m_GuidSerialized))}");
                         }

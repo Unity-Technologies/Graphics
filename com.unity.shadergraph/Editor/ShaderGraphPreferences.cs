@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -8,6 +8,7 @@ namespace UnityEditor.ShaderGraph
         {
             internal const string variantLimit = "UnityEditor.ShaderGraph.VariantLimit";
             internal const string autoAddRemoveBlocks = "UnityEditor.ShaderGraph.AutoAddRemoveBlocks";
+            internal const string allowDeprecatedBehaviors = "UnityEditor.ShaderGraph.AllowDeprecatedBehaviors";
         }
 
         static bool m_Loaded = false;
@@ -31,6 +32,13 @@ namespace UnityEditor.ShaderGraph
         {
             get => m_AutoAddRemoveBlocks;
             set => TrySave(ref m_AutoAddRemoveBlocks, value, Keys.autoAddRemoveBlocks);
+        }
+
+        static bool m_AllowDeprecatedBehaviors = false;
+        internal static bool allowDeprecatedBehaviors
+        {
+            get => m_AllowDeprecatedBehaviors;
+            set => TrySave(ref m_AllowDeprecatedBehaviors, value, Keys.allowDeprecatedBehaviors);
         }
 
         static ShaderGraphPreferences()
@@ -69,6 +77,13 @@ namespace UnityEditor.ShaderGraph
             if (EditorGUI.EndChangeCheck ()) 
             {
                 autoAddRemoveBlocks = autoAddRemoveBlocksValue;
+            }
+
+            EditorGUI.BeginChangeCheck();
+            var allowDeprecatedBehaviorsValue = EditorGUILayout.Toggle("Allow the use of deprecated versions of properties and nodes", allowDeprecatedBehaviors);
+            if(EditorGUI.EndChangeCheck())
+            {
+                allowDeprecatedBehaviors = allowDeprecatedBehaviorsValue;
             }
 
             EditorGUIUtility.labelWidth = previousLabelWidth;

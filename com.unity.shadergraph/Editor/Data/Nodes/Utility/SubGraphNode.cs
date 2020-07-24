@@ -368,7 +368,7 @@ namespace UnityEditor.ShaderGraph
                         {
                             var tSlot = slot as Vector4MaterialSlot;
                             var vector4Prop = prop as Vector4ShaderProperty;
-                            var colorProp = prop as ColorShaderProperty_V1;
+                            var colorProp = prop as ColorShaderProperty;
                             if (tSlot != null && vector4Prop != null)
                                 tSlot.value = vector4Prop.value;
                             else if (tSlot != null && colorProp != null)

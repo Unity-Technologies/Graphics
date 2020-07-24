@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return m_ContentContainer; }
         }
 
-        public HelpBoxDeprecated(string tooltip, UnityEngine.Object target, Action upgrade) 
+        private void Setup()
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/HelpBoxDeprecatedRow"));
             VisualElement container = new VisualElement { name = "container" };
@@ -27,10 +27,22 @@ namespace UnityEditor.ShaderGraph.Drawing
             container.Add(m_LabelContainer);
             container.Add(m_ContentContainer);
             hierarchy.Add(container);
+        }
+
+        public HelpBoxDeprecated(string tooltip, Action upgrade) 
+        {
+            Setup();
             var button = new Button(upgrade.Invoke) { text = "Update" };
             var label = new Label("DEPRECATED: Hover for info") { tooltip = tooltip };
             Add(label);
             Add(button);
+        }
+
+        public HelpBoxDeprecated(string tooltip, int numVersions, Action<int> setNewVersion)
+        {
+            Setup();
+            Add(new Label("Need a way to select version number here"));
+            //OnVersionSelection setNewVersion(selection);
         }
     }
 }
