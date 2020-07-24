@@ -58,4 +58,20 @@ public class RuntimeTests : PerformanceTests
         // And send the data using this format: `Timing,CPU,sampler.name`
         yield return MeasureProfilingSamplers(GetAllMarkers(), WarmupCount, MeasurementCount);
     }
+
+
+    static IEnumerable<MemoryTestDescription> GetMemoryTests()
+    {
+        if (testScenesAsset == null)
+            yield break;
+        foreach (var (scene, asset) in testScenesAsset.memoryTestSuite.GetTestList())
+            foreach (var objectType in GetMemoryObjectTypes())
+                yield return new MemoryTestDescription{ assetData = asset, sceneData = scene, assetType = objectType };
+    }
+
+    [Timeout(GlobalTimeout), Version("1"), UnityTest, Performance]
+    public IEnumerator Memory([ValueSource(nameof(GetMemoryTests))] MemoryTestDescription testDescription)
+    {
+        yield return ReportMemoryUsage(testDescription);
+    }
 }

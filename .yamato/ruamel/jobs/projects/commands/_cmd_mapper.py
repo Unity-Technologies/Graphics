@@ -1,10 +1,15 @@
-from . import win, osx_openglcore, osx_metal, linux, android, osx_metal_split, linux_split, iphone
+from . import win, win_perf, osx_openglcore, osx_metal, linux, android, osx_metal_split, linux_split, iphone
 
 cmd_map = {
     'win' : {
         'not_standalone': win.cmd_not_standalone,
         'standalone' : win.cmd_standalone,
         'standalone_build' : win.cmd_standalone_build
+    },
+    'win_perf' : {
+        'not_standalone': win_perf.cmd_not_standalone,
+        'standalone' : win_perf.cmd_standalone,
+        'standalone_build' : win_perf.cmd_standalone_build
     },
     'osx_openglcore' :  {
         'not_standalone': osx_openglcore.cmd_not_standalone,
