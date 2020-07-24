@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.Universal
 
     [CustomExtensionName("URP", typeof(UniversalRenderPipeline))]
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "camera-component-reference" + Documentation.endURL)]
-    public class UniversalCameraExtension : Camera.IExtension
+    public class UniversalCameraExtension : Camera.Extension
     {
         enum Version
         {
@@ -118,8 +118,6 @@ namespace UnityEngine.Rendering.Universal
             Max,
             Last = Max - 1
         }
-
-        private Camera m_Handler;
 
         [FormerlySerializedAs("renderShadows"), SerializeField]
         bool m_RenderShadows = true;
@@ -216,7 +214,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                if (IsInactiveExtension())
+                if (!IsActiveExtension())
                 {
                     Debug.LogWarning(string.Format("This camera's extension is not currently active."));
                     return null;
@@ -224,14 +222,14 @@ namespace UnityEngine.Rendering.Universal
 
                 if (renderType != CameraRenderType.Base)
                 {
-                    var camera = m_Handler.gameObject.GetComponent<Camera>();
+                    var camera = cameraHandler.gameObject.GetComponent<Camera>();
                     Debug.LogWarning(string.Format("{0}: This camera is of {1} type. Only Base cameras can have a camera stack.", camera.name, renderType));
                     return null;
                 }
 
                 if (scriptableRenderer.supportedRenderingFeatures.cameraStacking == false)
                 {
-                    var camera = m_Handler.gameObject.GetComponent<Camera>();
+                    var camera = cameraHandler.gameObject.GetComponent<Camera>();
                     Debug.LogWarning(string.Format("{0}: This camera has a ScriptableRenderer that doesn't support camera stacking. Camera stack is null.", camera.name));
                     return null;
                 }
@@ -358,16 +356,11 @@ namespace UnityEngine.Rendering.Universal
             set => m_Dithering = value;
         }
 
-        void Awake(Camera camera) => m_Handler = camera;
-
-        void OnDisable() => m_Handler = null;
-
-        public bool IsActiveExtension() => m_Handler != null;
-        public bool IsInactiveExtension() => m_Handler == null;
+        public bool IsActiveExtension() => cameraHandler.extension == this;
         
         public void OnDrawGizmos()
         {
-            if (IsInactiveExtension())
+            if (!IsActiveExtension())
                 return;
 
             string path = "Packages/com.unity.render-pipelines.universal/Editor/Gizmos/";
@@ -385,7 +378,7 @@ namespace UnityEngine.Rendering.Universal
 
 #if UNITY_2019_2_OR_NEWER
 #if UNITY_EDITOR
-            if (Selection.activeObject == m_Handler.gameObject)
+            if (Selection.activeObject == cameraHandler.gameObject)
             {
                 // Get the preferences selection color
                 tint = SceneView.selectedOutlineColor;
@@ -393,12 +386,12 @@ namespace UnityEngine.Rendering.Universal
 #endif
             if (!string.IsNullOrEmpty(gizmoName))
             {
-                Gizmos.DrawIcon(m_Handler.transform.position, gizmoName, true, tint);
+                Gizmos.DrawIcon(cameraHandler.transform.position, gizmoName, true, tint);
             }
 
             if (renderPostProcessing)
             {
-                Gizmos.DrawIcon(m_Handler.transform.position, $"{path}Camera_PostProcessing.png", true, tint);
+                Gizmos.DrawIcon(cameraHandler.transform.position, $"{path}Camera_PostProcessing.png", true, tint);
             }
 #else
             if (renderPostProcessing)
@@ -447,7 +440,7 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
-    [Obsolete("Use UniversalCameraExtension instead.")]
+    [Obsolete("Use UniversalCameraExtension instead.")] //[TODO: fix com.unity.xr.legacyinputhelpers that reference it, it creates warning that become error in test project] 
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Camera))]
     [ImageEffectAllowedInSceneView]
@@ -465,46 +458,48 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+#pragma warning disable CS0649 // Member not assigned
         [FormerlySerializedAs("renderShadows"), SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
-        bool m_RenderShadows = true;
+        bool m_RenderShadows;
 
         [SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
-        CameraOverrideOption m_RequiresDepthTextureOption = CameraOverrideOption.UsePipelineSettings;
+        CameraOverrideOption m_RequiresDepthTextureOption;
 
         [SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
-        CameraOverrideOption m_RequiresOpaqueTextureOption = CameraOverrideOption.UsePipelineSettings;
+        CameraOverrideOption m_RequiresOpaqueTextureOption;
 
         [SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
-        CameraRenderType m_CameraType = CameraRenderType.Base;
+        CameraRenderType m_CameraType;
 		[SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
-        List<Camera> m_Cameras = new List<Camera>();
+        List<Camera> m_Cameras;
 		[SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
-        int m_RendererIndex = -1;
+        int m_RendererIndex;
 
         [SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
-        LayerMask m_VolumeLayerMask = 1; // "Default"
+        LayerMask m_VolumeLayerMask;
         [SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
-        Transform m_VolumeTrigger = null;
+        Transform m_VolumeTrigger;
 
         [SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
-        bool m_RenderPostProcessing = false;
+        bool m_RenderPostProcessing;
         [SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
-        AntialiasingMode m_Antialiasing = AntialiasingMode.None;
+        AntialiasingMode m_Antialiasing;
         [SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
-        AntialiasingQuality m_AntialiasingQuality = AntialiasingQuality.High;
+        AntialiasingQuality m_AntialiasingQuality;
         [SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
-        bool m_StopNaN = false;
+        bool m_StopNaN;
         [SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
-        bool m_Dithering = false;
+        bool m_Dithering;
         [SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
-        bool m_ClearDepth = true;
+        bool m_ClearDepth;
 
         // Deprecated:
         [FormerlySerializedAs("requiresDepthTexture"), SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
-        bool m_RequiresDepthTexture = false;
+        bool m_RequiresDepthTexture;
 
         [FormerlySerializedAs("requiresColorTexture"), SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
-        bool m_RequiresColorTexture = false;
+        bool m_RequiresColorTexture;
+#pragma warning restore CS0649 // Member not assigned
 
         [HideInInspector, SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
         float m_Version = 2;
@@ -681,7 +676,9 @@ namespace UnityEngine.Rendering.Universal
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        void Awake()
+        void Awake() => Migrate();
+
+        void Migrate()
         {
 #pragma warning disable CS0618 // Type or member is obsolete
             if (m_Version <= 2)
@@ -698,6 +695,12 @@ namespace UnityEngine.Rendering.Universal
                     extension = cam.GetExtension<UniversalCameraExtension>();
                 else
                     extension = cam.CreateExtension<UniversalCameraExtension>();
+
+                //force migration of the whole stack at once when moving the base
+#pragma warning disable CS0618 // Type or member is obsolete
+                foreach (Camera c in m_Cameras)
+                    c.GetComponent<UniversalAdditionalCameraData>()?.Migrate();
+#pragma warning restore CS0618 // Type or member is obsolete
 
                 extension.InitFromMigration(
 #pragma warning disable CS0618 // Type or member is obsolete
