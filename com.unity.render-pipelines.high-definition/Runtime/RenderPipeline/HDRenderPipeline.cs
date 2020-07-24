@@ -205,6 +205,10 @@ namespace UnityEngine.Rendering.HighDefinition
         Lazy<RTHandle> m_CustomPassColorBuffer;
         Lazy<RTHandle> m_CustomPassDepthBuffer;
 
+        // custom-begin:
+        public ComputeBuffer computeBufferFallback = null;
+        // custom-end
+
         // Constant Buffers
         ShaderVariablesGlobal m_ShaderVariablesGlobalCB = new ShaderVariablesGlobal();
         ShaderVariablesXR m_ShaderVariablesXRCB = new ShaderVariablesXR();
@@ -796,6 +800,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_IndirectDiffuseBuffer3 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer3");
                 m_IndirectDiffuseHitPointBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseHitBuffer");
             }
+
+            // custom-begin:
+            computeBufferFallback = new ComputeBuffer(1, 4); // just giving it sizeof(float)
+            // custom-end
         }
 
         void GetOrCreateDebugTextures()
@@ -872,6 +880,11 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_IndirectDiffuseBuffer2);
             RTHandles.Release(m_IndirectDiffuseBuffer3);
             RTHandles.Release(m_IndirectDiffuseHitPointBuffer);
+
+            // custom-begin:
+            computeBufferFallback.Release();
+            // custom-end
+
         }
 
         void SetRenderingFeatures()
@@ -1371,6 +1384,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // custom-end
 
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
+
+            // custom-begin:
+            if (OnPushGlobalParameters != null)
+                    OnPushGlobalParameters(hdCamera, cmd);
+            // custom-end
         }
 
         // custom-begin:
@@ -2350,6 +2368,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             renderContext.ExecuteCommandBuffer(cmd);
                             CommandBufferPool.Release(cmd);
                             renderContext.Submit();
+
+                            // custom-begin:
+                            if (OnScreenshotCapture != null)
+                                OnScreenshotCapture(renderRequest.hdCamera.camera, renderRequest.target.copyToTarget);
+                            // custom-end
                         }
                     }
                 }
@@ -2770,6 +2793,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 var SSRTask = new HDGPUAsyncTask("Screen Space Reflection", ComputeQueueType.Background);
                 var SSAOTask = new HDGPUAsyncTask("SSAO", ComputeQueueType.Background);
 
+                // custom-begin:
+                var onPostBuildLightListsAsyncTask = new HDGPUAsyncTask("On post build light list async", ComputeQueueType.Background);
+                // custom-end
+
                 var haveAsyncTaskWithShadows = false;
                 if (hdCamera.frameSettings.BuildLightListRunsAsync())
                 {
@@ -2780,6 +2807,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     void Callback(CommandBuffer c, HDGPUAsyncTaskParams a)
                         => BuildGPULightListsCommon(a.hdCamera, c);
                 }
+
+                // custom-begin:
+                if (OnPostBuildLightLists != null
+                    && hdCamera.frameSettings.BuildLightListRunsAsync())
+                {
+                    onPostBuildLightListsAsyncTask.Start(cmd, asyncParams, Callback, !haveAsyncTaskWithShadows);
+                    haveAsyncTaskWithShadows = true;
+                    void Callback(CommandBuffer c, HDGPUAsyncTaskParams a) => OnPostBuildLightLists(a.renderContext, a.hdCamera, c);
+                }
+                // custom-end
 
                 if (hdCamera.frameSettings.VolumeVoxelizationRunsAsync())
                 {
@@ -2872,6 +2909,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     BuildGPULightLists(hdCamera, cmd);
+
+                    // custom-begin:
+                    if (OnPostBuildLightLists != null)
+                        OnPostBuildLightLists(renderContext, hdCamera, cmd);
+                    // custom-end
                 }
 
                 if (!hdCamera.frameSettings.SSAORunsAsync())
@@ -3055,6 +3097,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (aovRequest.isValid)
                 aovRequest.PushCameraTexture(cmd, AOVBuffers.Color, hdCamera, m_CameraColorBuffer, aovBuffers);
+
+            // custom-begin:
+            if (OnCameraPreRenderPostProcess != null)
+                OnCameraPreRenderPostProcess(renderContext, hdCamera, cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer());
+            // custom-end
 
             RenderTargetIdentifier postProcessDest = HDUtils.PostProcessIsFinalPass(hdCamera) ? target.id : m_IntermediateAfterPostProcessBuffer;
             RenderPostProcess(cullingResults, hdCamera, postProcessDest, renderContext, cmd);
