@@ -7,7 +7,10 @@
 //
 // UnityEngine.Rendering.HighDefinition.ShaderVariablesGlobal:  static fields
 //
-#define DEFAULT_LIGHT_LAYERS (255)
+#define RENDERING_LIGHT_LAYERS_MASK (255)
+#define RENDERING_LIGHT_LAYERS_MASK_SHIFT (0)
+#define RENDERING_DECAL_LAYERS_MASK (65280)
+#define RENDERING_DECAL_LAYERS_MASK_SHIFT (8)
 #define MAX_ENV2DLIGHT (32)
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesGlobal
@@ -143,12 +146,12 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     int _ProbeVolumeLeakMitigationMode;
     float _ProbeVolumeBilateralFilterWeightMin;
     float _ProbeVolumeBilateralFilterWeight;
-    float _Pad8;
+    uint _EnableDecalLayers;
     float4 _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7];
     int _TransparentCameraOnlyMotionVectors;
+    float _Pad8;
     float _Pad9;
     float _Pad10;
-    float _Pad11;
 CBUFFER_END
 
 

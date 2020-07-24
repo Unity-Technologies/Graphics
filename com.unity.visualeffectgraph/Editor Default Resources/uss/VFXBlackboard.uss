@@ -9,10 +9,10 @@ VFXBlackboard.blackboard
 {
     background-color: #2b2b2b;
     border-color: #191919;
-    margin-left:6 px;
-    margin-right:6 px;
-    margin-top:6 px;
-    margin-bottom:6 px;
+    margin-left:6px;
+    margin-right:6px;
+    margin-top:6px;
+    margin-bottom:6px;
     border-radius: 5px;
 }
 

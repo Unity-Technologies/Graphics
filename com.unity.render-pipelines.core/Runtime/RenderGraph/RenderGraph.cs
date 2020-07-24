@@ -20,7 +20,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     }
 
     /// <summary>
-    /// This struct specifies the context given to every render pass.
+    /// This class specifies the context given to every render pass.
     /// </summary>
     public class RenderGraphContext
     {
@@ -30,8 +30,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public CommandBuffer                cmd;
         ///<summary>Render Graph pooll used for temporary data.</summary>
         public RenderGraphObjectPool        renderGraphPool;
-        ///<summary>Render Graph Resource Registry used for accessing resources.</summary>
-        public RenderGraphResourceRegistry  resources;
         ///<summary>Render Graph default resources.</summary>
         public RenderGraphDefaultResources  defaultResources;
     }
@@ -56,7 +54,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public bool tagResourceNamesWithRG;
         public bool clearRenderTargetsAtCreation;
         public bool clearRenderTargetsAtRelease;
-        public bool unbindGlobalTextures;
         public bool logFrameInformation;
         public bool logResources;
 
@@ -66,7 +63,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             list.Add(new DebugUI.BoolField { displayName = "Tag Resources with RG", getter = () => tagResourceNamesWithRG, setter = value => tagResourceNamesWithRG = value });
             list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at creation", getter = () => clearRenderTargetsAtCreation, setter = value => clearRenderTargetsAtCreation = value });
             list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at release", getter = () => clearRenderTargetsAtRelease, setter = value => clearRenderTargetsAtRelease = value });
-            list.Add(new DebugUI.BoolField { displayName = "Unbind Global Textures", getter = () => unbindGlobalTextures, setter = value => unbindGlobalTextures = value });
             list.Add(new DebugUI.Button { displayName = "Log Frame Information", action = () => logFrameInformation = true });
             list.Add(new DebugUI.Button { displayName = "Log Resources", action = () => logResources = true });
 
@@ -269,11 +265,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Any pass writing to an imported texture will be considered having side effects and can't be automatically pruned.
         /// </summary>
         /// <param name="rt">External RTHandle that needs to be imported.</param>
-        /// <param name="shaderProperty">Optional property that allows you to specify a Shader property name to use for automatic resource binding.</param>
         /// <returns>A new TextureHandle.</returns>
-        public TextureHandle ImportTexture(RTHandle rt, int shaderProperty = 0)
+        public TextureHandle ImportTexture(RTHandle rt)
         {
-            return m_Resources.ImportTexture(rt, shaderProperty);
+            return m_Resources.ImportTexture(rt);
         }
 
         /// <summary>
@@ -290,22 +285,20 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Create a new Render Graph Texture resource.
         /// </summary>
         /// <param name="desc">Texture descriptor.</param>
-        /// <param name="shaderProperty">Optional property that allows you to specify a Shader property name to use for automatic resource binding.</param>
         /// <returns>A new TextureHandle.</returns>
-        public TextureHandle CreateTexture(in TextureDesc desc, int shaderProperty = 0)
+        public TextureHandle CreateTexture(in TextureDesc desc)
         {
-            return m_Resources.CreateTexture(desc, shaderProperty);
+            return m_Resources.CreateTexture(desc);
         }
 
         /// <summary>
         /// Create a new Render Graph Texture resource using the descriptor from another texture.
         /// </summary>
         /// <param name="texture">Texture from which the descriptor should be used.</param>
-        /// <param name="shaderProperty">Optional property that allows you to specify a Shader property name to use for automatic resource binding.</param>
         /// <returns>A new TextureHandle.</returns>
-        public TextureHandle CreateTexture(TextureHandle texture, int shaderProperty = 0)
+        public TextureHandle CreateTexture(TextureHandle texture)
         {
-            return m_Resources.CreateTexture(m_Resources.GetTextureResourceDesc(texture.handle), shaderProperty);
+            return m_Resources.CreateTexture(m_Resources.GetTextureResourceDesc(texture.handle));
         }
 
         /// <summary>
@@ -403,7 +396,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 m_Logger.Initialize();
 
-                m_Resources.BeginRender(parameters.renderingWidth, parameters.renderingHeight, parameters.msaaSamples, parameters.currentFrameIndex);
+                m_Resources.BeginRender(parameters.currentFrameIndex);
 
                 LogFrameInformation(parameters.renderingWidth, parameters.renderingHeight);
 
@@ -426,6 +419,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                 m_DebugParameters.logFrameInformation = false;
                 m_DebugParameters.logResources = false;
+
+                m_Resources.EndRender();
             }
         }
         #endregion
@@ -814,7 +809,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_RenderGraphContext.cmd = cmd;
             m_RenderGraphContext.renderContext = renderContext;
             m_RenderGraphContext.renderGraphPool = m_RenderGraphPool;
-            m_RenderGraphContext.resources = m_Resources;
             m_RenderGraphContext.defaultResources = m_DefaultResources;
 
             for (int passIndex = 0; passIndex < m_CompiledPassInfos.size; ++passIndex)
@@ -900,10 +894,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             // TODO RENDERGRAPH merge clear and setup here if possible
             RenderGraphPass pass = passInfo.pass;
 
-            // TODO RENDERGRAPH remove this when we do away with auto global texture setup
-            // (can't put it in the profiling scope otherwise it might be executed on compute queue which is not possible for global sets)
-            m_Resources.PreRenderPassSetGlobalTextures(rgContext, pass.resourceReadLists[(int)RenderGraphResourceType.Texture]);
-
             foreach (var texture in passInfo.resourceCreateList[(int)RenderGraphResourceType.Texture])
                 m_Resources.CreateAndClearTexture(rgContext, texture);
 
@@ -944,9 +934,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 CommandBufferPool.Release(rgContext.cmd);
                 rgContext.cmd = mainCmd; // Restore the main command buffer.
             }
-
-            if (m_DebugParameters.unbindGlobalTextures)
-                m_Resources.PostRenderPassUnbindGlobalTextures(rgContext, pass.resourceReadLists[(int)RenderGraphResourceType.Texture]);
 
             m_RenderGraphPool.ReleaseAllTempAlloc();
 
