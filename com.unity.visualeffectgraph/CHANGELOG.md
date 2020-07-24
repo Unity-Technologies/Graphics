@@ -127,6 +127,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix creation of StringPropertyRM
 - Enum fields having headers show the header in the inspector as well.
 - Fix for node window staying when clicking elsewhere
+- Missing System Seed in new dynamic built-in operator.
 
 ## [7.1.1] - 2019-09-05
 ### Added
