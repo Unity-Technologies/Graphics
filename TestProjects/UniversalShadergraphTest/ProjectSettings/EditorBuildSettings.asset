@@ -59,4 +59,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/025_Shader_PBRvalidation_Metallic.unity
     guid: f21ee3fbdef463f488ddc649446a7b39
+  - enabled: 1
+    path: Assets/Scenes/026_Shader_PBRscene.unity
+    guid: b480bc7319031ae4cb3ae45aa360a6e8
   m_configObjects: {}
