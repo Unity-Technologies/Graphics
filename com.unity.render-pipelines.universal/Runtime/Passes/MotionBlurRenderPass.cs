@@ -72,7 +72,7 @@ namespace kTools.Motion
 
                 // Blits
                 var passIndex = (int)m_MotionBlur.quality.value;
-                cmd.Blit(colorTextureIdentifier, renderTexture, m_Material, passIndex);
+                RenderingUtils.Blit(cmd, colorTextureIdentifier, renderTexture, m_Material, passIndex);
                 cmd.Blit(renderTexture, colorTextureIdentifier);
                 ExecuteCommand(context, cmd);
 
