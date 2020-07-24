@@ -34,7 +34,7 @@ This will add the hooks to your `.git/hooks` folder.
 
 **Troubleshooting:**
 
-After trying the solutions below, you may want to delete the `Tools/node_modules` folder and run `npm install` again.
+After trying the solutions below, you may want to run `npm install` again in the `Tools` folder.
 
 - _Cannot read property 'toString' of null ; husky > Failed to install_:
 	- `git` is probably not accessible from your `PATH` variable. You'll have to locate the `git` executable on your filesystem and add it to the `PATH` environment variable.
@@ -43,12 +43,12 @@ After trying the solutions below, you may want to delete the `Tools/node_modules
 	- Your version of NodeJS is outdated (We need at least version 10). You can update it [here](https://nodejs.org/en/download/). Make sure NodeJS is updated, not only npm.
 
 ### Available git hooks
-- `check-branch-name`: Ensure the current branch is following the convention:
+- `check-shader-includes` (pre-commit): Compare the case sensitivity of the shader includes in the code files to the actual files in the filesystem. Generate a log if it differs.
+- `renormalize-files` (pre-commit): Ensure all files are normalized with LF line endings. CRLF line endings are not allowed on the remote.
+- `check-file-name-extension` (pre-commit): Make sure all files pushed have a lowercase extension so that imports are not broken on Linux.
+- `check-branch-name` (pre-push): Ensure the current branch is following the convention:
 	- All new branches enclosed in a folder (valid name: `folder/my-branch`)
 	- All branches in lowercase, except for the enclosing `HDRP` folder (valid names: `HDRP/my-branch`, `something-else/my-branch`)
-- `check-shader-includes`: Compare the case sensitivity of the shader includes in the code files to the actual files in the filesystem. Generate a log if it differs.
-- `renormalize-files`: Ensure all files are normalized with LF line endings. CRLF line endings are not allowed on the remote.
-- `check-file-name-extension`: Make sure all files pushed have a lowercase extension so that imports are not broken on Linux.
 
 ### Contributing
 
