@@ -627,15 +627,25 @@ Shader ""Hidden/GraphErrorShader2""
             for (var i = 0; i < ports.Count; i++)
             {
                 result.outputCodeIndices[i] = portCodeIndices[i].ToArray();
-        }
-            
-            var outputMetadatas = new OutputMetadata[ports.Count];
-            for(int portIndex = 0; portIndex < outputMetadatas.Length; portIndex++)
-            {
-                outputMetadatas[portIndex] = new OutputMetadata(portIndex, ports[portIndex].shaderOutputName, originialPortIds[portIndex]);
             }
 
-            asset.SetOutputs(outputMetadatas);
+            var outputMetadatas = new List<OutputMetadata>();
+            var tmpCtx = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), null);
+            target.GetActiveBlocks(ref tmpCtx);
+            for (int portIndex = 0; portIndex < ports.Count; portIndex++)
+            {
+                var materialSlot = ports[portIndex];
+                if (tmpCtx.activeBlocks.Any(o => materialSlot.RawDisplayName() == o.displayName))
+                {
+                    outputMetadatas.Add(new OutputMetadata(portIndex, ports[portIndex].shaderOutputName, originialPortIds[portIndex]));
+                }
+                else
+                {
+                    //Inactive block, ignore it.
+                }
+            }
+
+            asset.SetOutputs(outputMetadatas.ToArray());
 
             asset.evaluationFunctionName = evaluationFunctionName;
             asset.inputStructName = inputStructName;
