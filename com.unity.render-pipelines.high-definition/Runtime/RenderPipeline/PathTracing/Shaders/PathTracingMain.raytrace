@@ -57,99 +57,6 @@ void MissMaterial(inout PathIntersection pathIntersection : SV_RayPayload)
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.value);
 }
 
-float2 SampleDiskUniform2(float r1, float r2)
-{
-    // TODO: Reference implementation, reduce all of this
-    // TODO: Fix uneven distribution of samples when moving from circle to NGon
-
-    // Returns a sample point for a given coordinates in a normalized square
-    // "A Low Distortion Map Between Disk and Square" [Shirley97] [Chiu97]
-    float phi, r;
-    float a = r1 * 2.0 - 1.0;
-    float b = r2 * 2.0 - 1.0;
-
-    if (a > -b)
-    {
-        if (a > b)
-        {
-            r = a;
-            phi = (PI / 4.0) * (b / a);
-        }
-        else
-        {
-            r = b;
-            phi = (PI / 4.0) * (2.0 - (a / b));
-        }
-    }
-    else
-    {
-        if (a < b)
-        {
-            r = -a;
-            phi = (PI / 4.0) * (4.0 + (b / a));
-        }
-        else
-        {
-            r = -b;
-
-            if (b != 0.0)
-            {
-                phi = (PI / 4.0) * (6.0 - (a / b));
-            }
-            else
-            {
-                phi = 0.0;
-            }
-        }
-    }
-
-    // Transform to rotated ngon
-    float u = r * cos(phi);
-    float v = r * sin(phi);
-
-    return float2(u, v);
-}
-
-float RandFloat(uint i, uint p)
-{
-    i ^= p;
-    i ^= i >> 17;
-    i ^= i >> 10; i *= 0xb36534e5;
-    i ^= i >> 12;
-    i ^= i >> 21;
-    i ^= 0xdf6e307f;
-    i ^= i >> 17; i *= 1 | p >> 18;
-    return i * (1.0f / 4294967808.0f);
-}
-
-uint permute(uint i, uint l, uint p)
-{
-    uint w = l - 1;
-    w |= w >> 1;
-    w |= w >> 2;
-    w |= w >> 4;
-    w |= w >> 8;
-    w |= w >> 16;
-
-    do
-    {
-        i ^= p;                 i *= 0xe170893d;
-        i ^= p       >> 16;
-        i ^= (i & w) >> 4;
-        i ^= p       >> 8;      i *= 0x0929eb3f;
-        i ^= p       >> 23;
-        i ^= (i & w) >> 1;      i *= 1 | p >> 27;
-        i *= 0x6935fa69;
-        i ^= (i & w) >> 11;     i *= 0x74dcb303;
-        i ^= (i & w) >> 2;      i *= 0x9e501cc3;
-        i ^= (i & w) >> 2;      i *= 0xc860a3df;
-        i &= w;
-        i ^= i       >> 5;
-    } while ( i>= l);
-
-    return (i + p) % p;
-}
-
 [shader("raygeneration")]
 void RayGen()
 {
@@ -172,27 +79,10 @@ void RayGen()
     {
         // Compute the ray origin and direction for a lens with non-zero aperture
 
-        const float TotalSamples = _RaytracingNumSamples;
-        const float SizeX = sqrt(TotalSamples);
-        const float dX = 1.0 / SizeX;
-        //uint iteration = permute(_RaytracingSampleIndex, TotalSamples, currentPixelCoord.x * currentPixelCoord.y * 0x51633e2du);
-        uint iteration = _RaytracingSampleIndex;
-        uint statumX = iteration / SizeX;
-        uint statumY = iteration % SizeX;
-
-#if 1
         // Sample the lens apperture using the next available dimensions (we use 40 for path tracing, 2 for sub-pixel jittering, 64 for SSS -> 106, 107)
         float r1 = GetSample(currentPixelCoord, _RaytracingSampleIndex, 106);
         float r2 = GetSample(currentPixelCoord, _RaytracingSampleIndex, 107);
-#else
-
-        float r1 = statumX * dX + dX * GetSample(currentPixelCoord, _RaytracingSampleIndex, 106);
-        //float r1 = statumX * dX + dX * RandFloat(statumX, currentPixelCoord.x * currentPixelCoord.y * 0xa399d265u);
-        float r2 = statumY * dX + dX * GetSample(currentPixelCoord, _RaytracingSampleIndex, 107);
-        //float r2 = statumY * dX + dX * RandFloat(statumY, currentPixelCoord.x * currentPixelCoord.y * 0x711ad6a5u);
-#endif
-
-        float2 uv = apertureRadius * SampleDiskUniform2(r1, r2);
+        float2 uv = apertureRadius * SampleDiskUniform(r1, r2);
 
         // Compute the new ray origin ( _ViewMatrix[0] = right, _ViewMatrix[1] = up, _ViewMatrix[2] = forward )
         cameraPosWS += _ViewMatrix[0] * uv.x + _ViewMatrix[1] * uv.y;
