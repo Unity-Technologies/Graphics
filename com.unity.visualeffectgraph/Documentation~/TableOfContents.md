@@ -28,7 +28,9 @@
   * [Spawner Callbacks](SpawnerCallbacks.md)
 * Node Library
   * Context
-  	* Block
+    * [Initialize Particle](Context-Initialize.md)
+    * [Update Particle](Context-Update.md)
+    * Block
     	* Collision
       	* [Collide with AABox](Block-CollideWithAABox.md)
       	* [Collide with Cylinder](Block-CollideWithCylinder.md)
@@ -44,7 +46,6 @@
         * [Set Position (Shape : Cone)](Block-SetPosition(Line).md)
         * [Set Position (Shape : Sphere)](Block-SetPosition(Sphere).md)
         * [Set Position (Sequential)](Block-SetPosition(Sequential).md)
-    * [Update Particle](Context-Update.md)
   * Operator
     * Attribute
       * [Age Over Lifetime](Operator-AgeOverLifetime.md)
