@@ -748,6 +748,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed unwanted ghosting for smooth surfaces.
 - Fixing an issue in the recursive rendering flag texture usage.
 - Fixed a missing dependecy for choosing to evaluate transparent SSR.
+- Fixed issue that failed compilation when XR is disabled.
+- Fixed a compilation error in the IES code.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -918,6 +920,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Preparing ray traced reflections for the render graph support (performance and quality).
 - Preparing recursive rendering for the render graph port.
 - Preparation pass for RTGI, temporal filter and diffuse denoiser for render graph.
+- Updated the documentation for the DXR implementation.
+- Changed the DXR wizard to support optional checks.
+- Changed the DXR wizard steps.
 - Preparation pass for RTSSS to be supported by render graph.
 
 ## [7.1.1] - 2019-09-05
