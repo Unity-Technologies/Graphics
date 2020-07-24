@@ -50,13 +50,25 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
 	surfaceData.baseColor.w = 0.0;	// dont blend any albedo
 #endif
 
-#ifdef _MASKMAP
+    // In case of Smoothness / AO / Metal, all the three are always computed but color mask can change
+    // Note: We always use a texture here as the decal atlas for transparent decal cluster only handle texture case
+    // If no texture is assign it is the white texture
+#ifdef _MATERIAL_AFFECTS_MASKMAP
+    #ifdef _MASKMAP
     surfaceData.mask = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, texCoords);
     surfaceData.mask.z *= _DecalMaskMapBlueScale;
 	maskMapBlend *= surfaceData.mask.z;	// store before overwriting with smoothness
     surfaceData.mask.x = _MetallicScale * surfaceData.mask.x;
     surfaceData.mask.y = lerp(_AORemapMin, _AORemapMax, surfaceData.mask.y);
     surfaceData.mask.z = lerp(_SmoothnessRemapMin, _SmoothnessRemapMax, surfaceData.mask.w);
+    #else
+    surfaceData.mask.z = _DecalMaskMapBlueScale;
+    maskMapBlend *= surfaceData.mask.z;	// store before overwriting with smoothness
+    surfaceData.mask.x = _Metallic;
+    surfaceData.mask.y = _AO;
+    surfaceData.mask.z = _Smoothness;
+    #endif
+
 	surfaceData.mask.w = _MaskBlendSrc ? maskMapBlend : albedoMapBlend;
 
     if (surfaceData.mask.w > 0.0)
@@ -66,13 +78,11 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
 #endif
 
 	// needs to be after mask, because blend source could be in the mask map blue
+    // Note: We always use a texture here as the decal atlas for transparent decal cluster only handle texture case
+    // If no texture is assign it is the bump texture (0.0, 0.0, 1.0)
 #ifdef _MATERIAL_AFFECTS_NORMAL
 
-    #ifdef _NORMALMAP
 	float3 normalTS = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, texCoords));
-    #else
-    float3 normalTS = float3(0.0, 0.0, 1.0);
-    #endif
     float3 normalWS = float3(0.0, 0.0, 0.0);
 
     #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
@@ -88,6 +98,7 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
     {
         surfaceData.HTileMask |= DBUFFERHTILEBIT_NORMAL;
     }
+
 #endif
 
 	surfaceData.MAOSBlend.xy = float2(surfaceData.mask.w, surfaceData.mask.w);

@@ -61,18 +61,37 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawDecalGUI()
         {
+            bool perChannelMask = false;
+            HDRenderPipelineAsset hdrp = HDRenderPipeline.currentAsset;
+            if (hdrp != null)
+            {
+                perChannelMask = hdrp.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
+            }
+
             if (affectsAlbedo != null)
                 materialEditor.ShaderProperty(affectsAlbedo, Styles.affectAlbedoText);
             if (affectsNormal != null)
                 materialEditor.ShaderProperty(affectsNormal, Styles.affectNormalText);
-            if (affectsMetal != null)
-                materialEditor.ShaderProperty(affectsMetal, Styles.affectMetalText);
-            if (affectsAO != null)
-                materialEditor.ShaderProperty(affectsAO, Styles.affectAmbientOcclusionText);
+
+            using (new EditorGUI.DisabledScope(!perChannelMask))
+            {
+                if (affectsMetal != null)
+                    materialEditor.ShaderProperty(affectsMetal, Styles.affectMetalText);
+                if (affectsAO != null)
+                    materialEditor.ShaderProperty(affectsAO, Styles.affectAmbientOcclusionText);
+            }
+
             if (affectsSmoothness != null)
                 materialEditor.ShaderProperty(affectsSmoothness, Styles.affectSmoothnessText);
+
             if (affectsEmission != null)
                 materialEditor.ShaderProperty(affectsEmission, Styles.affectEmissionText);
+
+            if (!perChannelMask && (affectsMetal != null || affectsAO != null))
+            {
+                EditorGUILayout.HelpBox("Enable 'Metal and AO properties' in your HDRP Asset if you want to control the Metal and AO properties of decals. There is a performance cost of enabling this option.",
+                                        MessageType.Info);
+            }
         }
     }
 }

@@ -51,7 +51,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     normalBlendSrc.floatValue = surfaceInputs.normalBlendSrcValue;
                     maskBlendSrc.floatValue = surfaceInputs.maskBlendSrcValue;
-                    maskBlendMode.floatValue = (float)surfaceInputs.maskBlendFlags;
                     smoothnessRemapMin.floatValue = surfaceInputs.smoothnessRemapMinValue;
                     smoothnessRemapMax.floatValue = surfaceInputs.smoothnessRemapMaxValue;
                     AORemapMin.floatValue = surfaceInputs.AORemapMinValue;
@@ -92,9 +91,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected MaterialProperty maskBlendSrc = new MaterialProperty();
         protected const string kMaskBlendSrc = "_MaskBlendSrc";
-
-        protected MaterialProperty maskBlendMode = new MaterialProperty();
-        protected const string kMaskBlendMode = "_MaskBlendMode";
 
         protected const string kMaskmapMetal = "_MaskmapMetal";
 
@@ -146,7 +142,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             normalBlendSrc = FindProperty(kNormalBlendSrc, properties);
             maskBlendSrc = FindProperty(kMaskBlendSrc, properties);
-            maskBlendMode = FindProperty(kMaskBlendMode, properties);
             AORemapMin = FindProperty(kAORemapMin, properties);
             AORemapMax = FindProperty(kAORemapMax, properties);
             smoothnessRemapMin = FindProperty(kSmoothnessRemapMin, properties);
@@ -220,7 +215,6 @@ namespace UnityEditor.Rendering.HighDefinition
             SetupCommonDecalMaterialKeywordsAndPass(material);
 
             CoreUtils.SetKeyword(material, "_COLORMAP", material.GetTexture(kBaseColorMap));
-            CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap));
             CoreUtils.SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
             CoreUtils.SetKeyword(material, "_EMISSIVEMAP", material.GetTexture(kEmissiveColorMap));
         }

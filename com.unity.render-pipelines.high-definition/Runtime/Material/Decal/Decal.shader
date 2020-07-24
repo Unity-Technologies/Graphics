@@ -9,10 +9,6 @@ Shader "HDRP/Decal"
         _DecalBlend("_DecalBlend", Range(0.0, 1.0)) = 0.5
 		[HideInInspector] _NormalBlendSrc("_NormalBlendSrc", Float) = 0.0
 		[HideInInspector] _MaskBlendSrc("_MaskBlendSrc", Float) = 1.0
-		[HideInInspector] _MaskBlendMode("_MaskBlendMode", Float) = 4.0 // smoothness 3RT default
-		[ToggleUI] _MaskmapMetal("_MaskmapMetal", Range(0.0, 1.0)) = 0.0
-		[ToggleUI] _MaskmapAO("_MaskmapAO", Range(0.0, 1.0)) = 0.0
-		[ToggleUI] _MaskmapSmoothness("_MaskmapSmoothness", Range(0.0, 1.0)) = 1.0
 		[HideInInspector] _DecalMeshDepthBias("_DecalMeshDepthBias", Float) = 0.0
 		[HideInInspector] _DrawOrder("_DrawOrder", Int) = 0
         [HDR] _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
@@ -35,6 +31,11 @@ Shader "HDRP/Decal"
         // scaling
         [HideInInspector] _MetallicScale("_MetallicScale", Range(0.0, 1.0)) = 1.0
         [HideInInspector] _DecalMaskMapBlueScale("_DecalMaskMapBlueScale", Range(0.0, 1.0)) = 1.0
+
+        // Alternative when no mask map is provided
+        [HideInInspector] _Smoothness("_Smoothness",  Range(0.0, 1.0)) = 0.5
+        [HideInInspector] _Metallic("_Metallic",  Range(0.0, 1.0)) = 0.0
+        [HideInInspector] _AO("_AO",  Range(0.0, 1.0)) = 1.0
 
         [HideInInspector][ToggleUI]_AffectAlbedo("Boolean", Float) = 1
         [HideInInspector][ToggleUI]_AffectNormal("Boolean", Float) = 1
@@ -68,12 +69,12 @@ Shader "HDRP/Decal"
     // Variant
     //-------------------------------------------------------------------------------------
     #pragma shader_feature_local _COLORMAP
-    #pragma shader_feature_local _NORMALMAP
     #pragma shader_feature_local _MASKMAP
     #pragma shader_feature_local _EMISSIVEMAP
 
 	#pragma shader_feature_local _MATERIAL_AFFECTS_ALBEDO
     #pragma shader_feature_local _MATERIAL_AFFECTS_NORMAL
+    #pragma shader_feature_local _MATERIAL_AFFECTS_MASKMAP
 
     #pragma multi_compile_instancing
 

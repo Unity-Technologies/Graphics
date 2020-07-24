@@ -54,7 +54,7 @@ void ApplyBlendMask(inout float4 dbuffer2, inout float2 dbuffer3, inout uint mat
     if (blendParams.y == 1.0)	// mask blend source is mask blue channel
         maskBlend = src.z * decalBlend;
     else
-        maskBlend = albedoBlend; // mask blend siurce is albedo alpha
+        maskBlend = albedoBlend; // mask blend source is albedo alpha
 
     src.z = src.w;	// remap so smoothness goes to blue and mask blend goes to alpha
     src.w = maskBlend;
@@ -166,8 +166,8 @@ void EvalDecalMask(PositionInputs posInput, float3 positionRWSDdx, float3 positi
         ApplyBlendDiffuse(DBuffer0, mask, sampleDiffuse, src, DBUFFERHTILEBIT_DIFFUSE, albedoBlend, lodDiffuse, diffuseTextureBound);
         alpha = alpha < albedoBlend ? albedoBlend : alpha;    // use decal alpha if it is higher than transparent alpha
 
-        float albedoContribution = decalData.normalToWorld[1][3];
-        if (albedoContribution == 0.0)
+        float affectAlbedo = decalData.normalToWorld[1][3];
+        if (affectAlbedo == 0.0)
         {
             mask = 0;	// diffuse will not get modified
         }

@@ -455,12 +455,51 @@ namespace UnityEditor.Rendering.HighDefinition
                     normalMap = propertyNormalTexture.FindPropertyRelative("m_Texture").objectReferenceValue != null ? 1.0f : 0.0f;
                 }
 
+                // For normal map we don't remove the property _NormalMap but just check if there is a texture assign and then enable _AffectNormal
+                const string kMaskMap = "_MaskMap";
+                float maskMap = 0.0f;
+                if (TryFindProperty(serializedMaterial, kNormalMap, SerializedType.Texture, out var propertyMaskMapTexture, out _, out _))
+                {
+                    maskMap = propertyMaskMapTexture.FindPropertyRelative("m_Texture").objectReferenceValue != null ? 1.0f : 0.0f;
+                }
+
+                const string kMaskmapMetal = "_MaskmapMetal";
+                float maskMapMetal = 0.0f;
+                if (TryFindProperty(serializedMaterial, kMaskmapMetal, SerializedType.Float, out var propertyMaskMapMetal, out _, out _))
+                {
+                    maskMapMetal = propertyMaskMapMetal.floatValue;
+                    RemoveSerializedFloat(serializedMaterial, kMaskmapMetal);
+                }
+
+                const string kMaskmapAO = "_MaskmapAO";
+                float maskMapAO = 0.0f;
+                if (TryFindProperty(serializedMaterial, kMaskmapAO, SerializedType.Float, out var propertyMaskMapAO, out _, out _))
+                {
+                    maskMapAO = propertyMaskMapAO.floatValue;
+                    RemoveSerializedFloat(serializedMaterial, kMaskmapAO);
+                }
+
+                const string kMaskmapSmoothness = "_MaskmapSmoothness";
+                float maskMapSmoothness = 0.0f;
+                if (TryFindProperty(serializedMaterial, kMaskmapSmoothness, SerializedType.Float, out var propertyMaskMapSmoothness, out _, out _))
+                {
+                    maskMapSmoothness = propertyMaskMapSmoothness.floatValue;
+                    RemoveSerializedFloat(serializedMaterial, kMaskmapSmoothness);
+                }
+
                 const string kEmissive = "_Emissive";
                 float emissive = 0.0f;
                 if (TryFindProperty(serializedMaterial, kEmissive, SerializedType.Float, out var propertyEmissive, out _, out _))
                 {
                     emissive = propertyEmissive.floatValue;
                     RemoveSerializedFloat(serializedMaterial, kEmissive);
+                }
+
+                // Not used anymore, just removed
+                const string kMaskBlendMode = "_MaskBlendMode";
+                if (TryFindProperty(serializedMaterial, kMaskBlendMode, SerializedType.Float, out var propertyUnused, out _, out _))
+                {
+                    RemoveSerializedFloat(serializedMaterial, kMaskBlendMode);
                 }
 
                 serializedMaterial.ApplyModifiedProperties();
@@ -471,6 +510,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 const string kAffectNormal = "_AffectNormal";
                 material.SetFloat(kAffectNormal, normalMap);
+
+                const string kAffectSmoothness = "_AffectSmoothness";
+                material.SetFloat(kAffectSmoothness, maskMapSmoothness * maskMap);
+
+                const string kAffectMetal = "_AffectMetal";
+                material.SetFloat(kAffectMetal, maskMapMetal * maskMap);
+
+                const string kAffectAO = "_AffectAO";
+                material.SetFloat(kAffectAO, maskMapAO * maskMap);
 
                 const string kAffectEmission = "_AffectEmission";
                 material.SetFloat(kAffectEmission, emissive);

@@ -382,9 +382,30 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_Blend = m_Material.GetFloat("_DecalBlend");
                     m_AffectAlbedo = m_Material.GetFloat("_AffectAlbedo");
                     m_BaseColor = m_Material.GetVector("_BaseColor");
-                    m_BlendParams = new Vector3(m_Material.GetFloat("_NormalBlendSrc"), m_Material.GetFloat("_MaskBlendSrc"), m_Material.GetFloat("_MaskBlendMode"));
-                    m_RemappingAOS = new Vector4(m_Material.GetFloat("_AORemapMin"), m_Material.GetFloat("_AORemapMax"), m_Material.GetFloat("_SmoothnessRemapMin"), m_Material.GetFloat("_SmoothnessRemapMax"));
-                    m_ScalingMAB = new Vector4(m_Material.GetFloat("_MetallicScale"), 0.0f, m_Material.GetFloat("_DecalMaskMapBlueScale"), 0.0f);
+                    m_BlendParams = new Vector3(m_Material.GetFloat("_NormalBlendSrc"), m_Material.GetFloat("_MaskBlendSrc"), 0.0f);
+                    int blend =
+                        // TODO - Need to update shader side code in cluster for transparent
+                        //(m_Material.GetFloat("_AffectAlbedo") != 0.0f ? (1 << 0) : 0) |
+                        //(m_Material.GetFloat("_AffectNormal") != 0.0f ? (1 << 1) : 0) |
+                        (m_Material.GetFloat("_AffectMetal") != 0.0f ? (1 << 0) : 0) |
+                        (m_Material.GetFloat("_AffectAO") != 0.0f ? (1 << 1) : 0) |
+                        (m_Material.GetFloat("_AffectSmoothness") != 0.0f ? (1 << 2) : 0);
+
+                    // convert to float
+                    m_BlendParams.z = (float)blend;
+
+                    m_ScalingMAB = new Vector4(0.0f, 0.0f, m_Material.GetFloat("_DecalMaskMapBlueScale"), 0.0f);
+                    // If we have a texture, we use the remapping parameter, otherwise we use the regular one and the default texture is white
+                    if (m_Material.GetTexture("_MaskMap"))
+                    {
+                        m_RemappingAOS = new Vector4(m_Material.GetFloat("_AORemapMin"), m_Material.GetFloat("_AORemapMax"), m_Material.GetFloat("_SmoothnessRemapMin"), m_Material.GetFloat("_SmoothnessRemapMax"));
+                        m_ScalingMAB.x = m_Material.GetFloat("_MetallicScale");
+                    }
+                    else
+                    {
+                        m_RemappingAOS = new Vector4(m_Material.GetFloat("_AO"), m_Material.GetFloat("_AO"), m_Material.GetFloat("_Smoothness"), m_Material.GetFloat("_Smoothness"));
+                        m_ScalingMAB.x = m_Material.GetFloat("_Metallic");
+                    }
 
                     // For HDRP/Decal, pass are always present but can be enabled/disabled
                     m_cachedProjectorPassValue = -1;
@@ -695,10 +716,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                 m_DecalDatas[m_DecalDatasCount].remappingAOS = m_RemappingAOS;
                                 m_DecalDatas[m_DecalDatasCount].scalingMAB = m_ScalingMAB;
                                 m_DecalDatas[m_DecalDatasCount].decalLayerMask = (uint)m_CachedDecalLayerMask[decalIndex];
-                                if (!perChannelMask)
-                                {
-                                    m_DecalDatas[m_DecalDatasCount].blendParams.z = (float)Decal.MaskBlendFlags.Smoothness;
-                                }
 
                                 // we have not allocated the textures in atlas yet, so only store references to them
                                 m_DiffuseTextureScaleBias[m_DecalDatasCount] = m_Diffuse;
@@ -826,21 +843,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (m_IsHDRenderPipelineDecal)
                     {
                         return this.m_Material.GetInt("_DrawOrder");
-                    }
-                    else
-                    {
-                        return 0;
-                    }
-                }
-            }
-
-            public int MaskBlendMode
-            {
-                get
-                {
-                    if (m_IsHDRenderPipelineDecal)
-                    {
-                        return (int)this.m_Material.GetFloat("_MaskBlendMode");
                     }
                     else
                     {

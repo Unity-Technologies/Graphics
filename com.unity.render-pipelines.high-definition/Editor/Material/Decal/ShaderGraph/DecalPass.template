@@ -139,6 +139,7 @@ Pass
             #endif
         #endif
 
+            // In case of Smoothness / AO / Metal, all the three are always computed but color mask can change
         #ifdef _MATERIAL_AFFECTS_MASKMAP
             $SurfaceDescription.Smoothness:     surfaceData.mask.z = surfaceDescription.Smoothness;
             $SurfaceDescription.MAOSAlpha:      surfaceData.mask.w = surfaceDescription.MAOSAlpha * fadeFactor;

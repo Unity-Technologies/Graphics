@@ -51,15 +51,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             RTFormat = m_RTFormat;
         }
-
-        [Flags]
-        public enum MaskBlendFlags
-        {
-            Metal = 1 << 0,
-            AO = 1 << 1,
-            Smoothness = 1 << 2,
-        }
-
     }
 
     // normal to world only uses 3x3 for actual matrix so some data is packed in the unused space
