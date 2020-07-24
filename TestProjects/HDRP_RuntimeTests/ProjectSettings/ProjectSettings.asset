@@ -454,7 +454,7 @@ PlayerSettings:
   ps4ParamSfxPath: 
   ps4VideoOutPixelFormat: 0
   ps4VideoOutInitialWidth: 1920
-  ps4VideoOutBaseModeInitialWidth: 1280
+  ps4VideoOutBaseModeInitialWidth: 1920
   ps4VideoOutReprojectionRate: 60
   ps4PronunciationXMLPath: 
   ps4PronunciationSIGPath: 

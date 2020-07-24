@@ -6755,12 +6755,12 @@ MonoBehaviour:
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: -0.70710677, y: 0, z: 0, w: 0.70710677}
-    resolution: 256
+    resolution: 1024
     cameraSettings:
       customRenderingSettings: 1
       renderingPathCustomFrameSettings:
         bitDatas:
-          data1: 70282710613837
+          data1: 70239895158604
           data2: 4539628424926265344
         lodBias: 1
         lodBiasMode: 0
