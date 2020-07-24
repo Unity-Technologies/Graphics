@@ -21,7 +21,7 @@ def check_norm():
 	branch_follows_convention = re.search(valid_branch_regex, local_branch)
 
 	if not remote_exists and not branch_follows_convention:
-		print(message)
+		print(message, file=sys.stderr)
 		exit(1)
 
 
