@@ -46,6 +46,7 @@
         * [Set Position (Shape : Cone)](Block-SetPosition(Line).md)
         * [Set Position (Shape : Sphere)](Block-SetPosition(Sphere).md)
         * [Set Position (Sequential)](Block-SetPosition(Sequential).md)
+        * [Tile/Warp Positions](Block-TileWarpPositions.md)
   * Operator
     * Attribute
       * [Age Over Lifetime](Operator-AgeOverLifetime.md)
