@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [8.3.0] - 2020-07-23
 
 ### Fixed
 - Fixed an issue where the package would fail to compile if the Animation module was disabled. [case 1227068](https://issuetracker.unity3d.com/product/unity/issues/guid/1227068/)
