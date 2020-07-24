@@ -141,7 +141,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x
+            #pragma exclude_renderers d3d11_9x gles
             #pragma target 2.0
 
             // -------------------------------------
