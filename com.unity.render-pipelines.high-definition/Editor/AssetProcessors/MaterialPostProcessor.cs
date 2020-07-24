@@ -458,7 +458,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // For normal map we don't remove the property _NormalMap but just check if there is a texture assign and then enable _AffectNormal
                 const string kMaskMap = "_MaskMap";
                 float maskMap = 0.0f;
-                if (TryFindProperty(serializedMaterial, kNormalMap, SerializedType.Texture, out var propertyMaskMapTexture, out _, out _))
+                if (TryFindProperty(serializedMaterial, kMaskMap, SerializedType.Texture, out var propertyMaskMapTexture, out _, out _))
                 {
                     maskMap = propertyMaskMapTexture.FindPropertyRelative("m_Texture").objectReferenceValue != null ? 1.0f : 0.0f;
                 }

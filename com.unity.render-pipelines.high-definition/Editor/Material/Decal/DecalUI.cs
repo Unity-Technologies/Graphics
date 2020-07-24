@@ -13,9 +13,6 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     class DecalUI : HDShaderGUI
     {
-        // Same hack as in HDShaderGUI but for some reason, this editor does not inherit from HDShaderGUI
-        bool m_FirstFrame = true;
-
         [Flags]
         enum Expandable : uint
         {
