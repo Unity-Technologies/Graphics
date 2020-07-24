@@ -174,7 +174,9 @@ namespace UnityEditor.VFX
             toggleRect.yMin += 2.0f;
             toggleRect.width = 18;
             EditorGUI.BeginChangeCheck();
+            EditorGUI.BeginProperty(toggleRect, GUIContent.none, overridenProperty);
             bool newOverriden = EditorGUI.Toggle(toggleRect, overrideMixed ? false : overridenProperty.boolValue, overrideMixed ? Styles.toggleMixedStyle : Styles.toggleStyle);
+            EditorGUI.EndProperty();
             overriddenChanged = EditorGUI.EndChangeCheck();
             if (overriddenChanged)
             {
@@ -655,7 +657,9 @@ namespace UnityEditor.VFX
                 fakeInitialEventNameField.stringValue = resource != null ? resource.initialEventName : "OnPlay";
 
                 EditorGUI.BeginChangeCheck();
+                EditorGUI.BeginProperty(toggleRect, GUIContent.none, m_InitialEventNameOverriden);
                 bool resultOverriden = EditorGUI.Toggle(toggleRect, m_InitialEventNameOverriden.boolValue, Styles.toggleStyle);
+                EditorGUI.EndProperty();
                 if (EditorGUI.EndChangeCheck())
                 {
                     m_InitialEventNameOverriden.boolValue = resultOverriden;
