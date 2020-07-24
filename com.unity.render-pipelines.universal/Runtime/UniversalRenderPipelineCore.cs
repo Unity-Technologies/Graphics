@@ -146,7 +146,12 @@ namespace UnityEngine.Rendering.Universal
 
             if (renderer != null)
             {
-                bool renderingToTexture = renderer.cameraColorTarget != BuiltinRenderTextureType.CameraTarget || targetTexture != null;
+                bool renderingToBackBufferTarget = renderer.cameraColorTarget == BuiltinRenderTextureType.CameraTarget;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (xr.enabled)
+                    renderingToBackBufferTarget |= renderer.cameraColorTarget == xr.renderTarget && !xr.renderTargetIsRenderTexture;
+#endif
+                bool renderingToTexture = !renderingToBackBufferTarget || targetTexture != null;
                 return SystemInfo.graphicsUVStartsAtTop && renderingToTexture;
             }
 
@@ -324,8 +329,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
 
         // XR
-        public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";
-    }
+        public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";    }
 
     public sealed partial class UniversalRenderPipeline
     {
