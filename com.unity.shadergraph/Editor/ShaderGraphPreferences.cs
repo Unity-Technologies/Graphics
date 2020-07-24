@@ -93,6 +93,7 @@ namespace UnityEditor.ShaderGraph
         {
             m_VariantLimit = EditorPrefs.GetInt(Keys.variantLimit, 128);
             m_AutoAddRemoveBlocks = EditorPrefs.GetBool(Keys.autoAddRemoveBlocks, true);
+            m_AllowDeprecatedBehaviors = EditorPrefs.GetBool(Keys.allowDeprecatedBehaviors, false);
 
             m_Loaded = true;
         }

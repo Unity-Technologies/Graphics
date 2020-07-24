@@ -94,6 +94,44 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         public Action inspectorUpdateDelegate { get; set; }
 
+        private void AddDeprecatedVisualElementsIfNeeded(PropertySheet propertySheet, AbstractShaderProperty property)
+        {
+            if (property.version < property.latestVersion || (ShaderGraphPreferences.allowDeprecatedBehaviors && property.latestVersion > 0))
+            {
+                var typeString = property.propertyType.ToString();
+                HelpBoxRow help;
+                if (ShaderGraphPreferences.allowDeprecatedBehaviors && property.latestVersion > 0)
+                {
+                    help = new HelpBoxRow(MessageType.Info);
+                    help.Add(new Label("OVERRIDE: Hover for info")
+                    {
+                        tooltip = $"The {typeString} Property has new updates. This version maintains the old behavior. See the {typeString} Property documentation for more information."
+                    });
+                    int[] entries = Enumerable.Range(0, property.latestVersion + 1).ToArray();
+                    help.Add(new IMGUIContainer(() =>
+                    {
+                        EditorGUI.BeginChangeCheck();
+                        int newVersion = EditorGUILayout.IntPopup(property.version, entries.Select(i => i.ToString()).ToArray(), entries);
+                        if(EditorGUI.EndChangeCheck())
+                        {
+                            property.ChangeVersion(newVersion);
+                        }
+                    }));
+                }
+                else
+                {
+                    help = new HelpBoxRow(MessageType.Warning);
+                    var label = new Label("DEPRECATED: Hover for info")
+                    {
+                        tooltip = $"The {typeString} Property has new updates. This version maintains the old behavior. If you update a {typeString} Property, you can use Undo to change it back. See the {typeString} Property documentation for more information."
+                    };
+                    help.Add(label);
+                    help.contentContainer.Add(new Button(() => property.ChangeVersion(property.latestVersion)) { text = "Update" } );
+                }
+                propertySheet.Add(help);
+            }
+        }
+
         public VisualElement DrawProperty(
             PropertyInfo propertyInfo,
             object actualObject,
@@ -103,27 +141,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             shaderInput = actualObject as ShaderInput;
             if (shaderInput is AbstractShaderProperty property)
             {
-                if (property.version < property.latestVersion)
-                {
-                    var typeString = property.propertyType.ToString();
-                    if (ShaderGraphPreferences.allowDeprecatedBehaviors)
-                    {
-                        propertySheet.Add(new HelpBoxDeprecated(
-                            $"The {typeString} Property has new updates. This version maintains the old behavior. See the {typeString} Property documentation for more information.",
-                            property.latestVersion,
-                            property.ChangeVersion)); 
-
-                    }
-                    else
-                    {
-
-                        propertySheet.Add(new HelpBoxDeprecated(
-                            $"The {typeString} Property has new updates. This version maintains the old behavior. If you update a {typeString} Property, you can use Undo to change it back. See the {typeString} Property documentation for more information.",
-                            () => property.ChangeVersion(property.latestVersion)));
-                    }
-                }
+                AddDeprecatedVisualElementsIfNeeded(propertySheet, property);
             }
-
             BuildPropertyNameLabel(propertySheet);
             BuildExposedField(propertySheet);
             BuildDisplayNameField(propertySheet);
