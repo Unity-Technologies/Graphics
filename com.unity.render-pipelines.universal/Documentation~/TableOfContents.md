@@ -7,6 +7,7 @@
   * [Install URP into an existing Project](InstallURPIntoAProject.md)
   * [The Universal Render Pipeline Asset](universalrp-asset.md)
 * [Upgrade guides](upgrade-guides.md)
+  * [Upgrading to URP 10.0.x](upgrade-guide-10-0-x.md)
   * [Upgrading to URP 9.0.x](upgrade-guide-9-0-x.md)
   * [Upgrading to URP 8.2.0](upgrade-guide-8-2-0.md)
   * [Upgrading to URP 8.1.0](upgrade-guide-8-1-0.md)
