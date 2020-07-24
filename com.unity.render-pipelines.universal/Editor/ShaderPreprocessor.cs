@@ -46,7 +46,8 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_DirectionalLightmap = new ShaderKeyword("DIRLIGHTMAP_COMBINED");
         ShaderKeyword m_AlphaTestOn = new ShaderKeyword("_ALPHATEST_ON");
         ShaderKeyword m_GbufferNormalsOct = new ShaderKeyword("_GBUFFER_NORMALS_OCT");
-
+        ShaderKeyword m_UseDrawProcedural = new ShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
+        
         int m_TotalVariantsInputCount;
         int m_TotalVariantsOutputCount;
 
@@ -121,6 +122,10 @@ namespace UnityEditor.Rendering.Universal
             if (compilerData.shaderCompilerPlatform == ShaderCompilerPlatform.GLES20)
             {
                 if (compilerData.shaderKeywordSet.IsEnabled(m_CascadeShadows))
+                    return true;
+
+                // GLES2 does not support VertexID that is required for full screen draw procedural pass;
+                if (compilerData.shaderKeywordSet.IsEnabled(m_UseDrawProcedural))
                     return true;
             }
 
