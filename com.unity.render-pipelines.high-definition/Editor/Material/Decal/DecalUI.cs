@@ -100,6 +100,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected const string kBaseColorMap = "_BaseColorMap";
         protected const string kMaskMap = "_MaskMap";
+        protected const string kNormalMap = "_NormalMap";
         protected const string kEmissiveColorMap = "_EmissiveColorMap";
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
@@ -109,6 +110,7 @@ namespace UnityEditor.Rendering.HighDefinition
             SetupCommonDecalMaterialKeywordsAndPass(material);
 
             CoreUtils.SetKeyword(material, "_COLORMAP", material.GetTexture(kBaseColorMap));
+            CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap));
             CoreUtils.SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
             CoreUtils.SetKeyword(material, "_EMISSIVEMAP", material.GetTexture(kEmissiveColorMap));
         }

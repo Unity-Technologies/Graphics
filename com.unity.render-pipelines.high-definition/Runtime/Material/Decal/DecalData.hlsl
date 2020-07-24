@@ -34,12 +34,13 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
     surfaceData.emissive = lerp(emissiveRcpExposure, surfaceData.emissive, _EmissiveExposureWeight);
 #endif // _MATERIAL_AFFECTS_EMISSION
 
+    // Following code match the code in DecalUtilities.hlsl used for cluster. It have the same kind of condition and similar code structure
     surfaceData.baseColor = _BaseColor;
 #ifdef _COLORMAP
     surfaceData.baseColor *= SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, texCoords);
  #endif
 	surfaceData.baseColor.w *= fadeFactor;
-	albedoMapBlend = surfaceData.baseColor.w;   
+    albedoMapBlend = surfaceData.baseColor.w;
     // outside _COLORMAP because we still have base color for albedoMapBlend
 #ifdef _MATERIAL_AFFECTS_ALBEDO
     if (surfaceData.baseColor.w > 0.0)
@@ -82,7 +83,11 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
     // If no texture is assign it is the bump texture (0.0, 0.0, 1.0)
 #ifdef _MATERIAL_AFFECTS_NORMAL
 
+    #ifdef _NORMALMAP
 	float3 normalTS = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, texCoords));
+    #else
+    float3 normalTS = float3(0.0, 0.0, 1.0);
+    #endif
     float3 normalWS = float3(0.0, 0.0, 0.0);
 
     #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)

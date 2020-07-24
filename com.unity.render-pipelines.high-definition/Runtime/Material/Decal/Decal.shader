@@ -39,7 +39,7 @@ Shader "HDRP/Decal"
 
         [HideInInspector][ToggleUI]_AffectAlbedo("Boolean", Float) = 1
         [HideInInspector][ToggleUI]_AffectNormal("Boolean", Float) = 1
-        [HideInInspector][ToggleUI]_AffectAO("Boolean", Float) = 1
+        [HideInInspector][ToggleUI]_AffectAO("Boolean", Float) = 0
         [HideInInspector][ToggleUI]_AffectMetal("Boolean", Float) = 1
         [HideInInspector][ToggleUI]_AffectSmoothness("Boolean", Float) = 1
         [HideInInspector][ToggleUI]_AffectEmission("Boolean", Float) = 0
@@ -70,6 +70,7 @@ Shader "HDRP/Decal"
     //-------------------------------------------------------------------------------------
     #pragma shader_feature_local _COLORMAP
     #pragma shader_feature_local _MASKMAP
+    #pragma shader_feature_local _NORMALMAP
     #pragma shader_feature_local _EMISSIVEMAP
 
 	#pragma shader_feature_local _MATERIAL_AFFECTS_ALBEDO

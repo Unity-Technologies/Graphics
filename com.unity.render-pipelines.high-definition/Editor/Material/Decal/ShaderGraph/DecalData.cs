@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        bool m_AffectsAO = true;
+        bool m_AffectsAO = false;
         public bool affectsAO
         {
             get => m_AffectsAO;

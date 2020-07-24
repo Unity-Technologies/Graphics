@@ -392,19 +392,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_Normal.Initialize(m_Material.GetTexture("_NormalMap"), Vector4.zero);
                     m_Mask.Initialize(m_Material.GetTexture("_MaskMap"), Vector4.zero);
                     m_Blend = m_Material.GetFloat("_DecalBlend");
-                    m_AffectAlbedo = m_Material.GetFloat("_AffectAlbedo");
                     m_BaseColor = m_Material.GetVector("_BaseColor");
                     m_BlendParams = new Vector3(m_Material.GetFloat("_NormalBlendSrc"), m_Material.GetFloat("_MaskBlendSrc"), 0.0f);
-                    int blend =
-                        // TODO - Need to update shader side code in cluster for transparent
-                        //(m_Material.GetFloat("_AffectAlbedo") != 0.0f ? (1 << 0) : 0) |
-                        //(m_Material.GetFloat("_AffectNormal") != 0.0f ? (1 << 1) : 0) |
-                        (m_Material.GetFloat("_AffectMetal") != 0.0f ? (1 << 0) : 0) |
-                        (m_Material.GetFloat("_AffectAO") != 0.0f ? (1 << 1) : 0) |
-                        (m_Material.GetFloat("_AffectSmoothness") != 0.0f ? (1 << 2) : 0);
+                    int affectFlags =
+                        (m_Material.GetFloat("_AffectAlbedo") != 0.0f ? (1 << 0) : 0) |
+                        (m_Material.GetFloat("_AffectNormal") != 0.0f ? (1 << 1) : 0) |
+                        (m_Material.GetFloat("_AffectMetal") != 0.0f ? (1 << 2) : 0) |
+                        (m_Material.GetFloat("_AffectAO") != 0.0f ? (1 << 3) : 0) |
+                        (m_Material.GetFloat("_AffectSmoothness") != 0.0f ? (1 << 4) : 0);
 
                     // convert to float
-                    m_BlendParams.z = (float)blend;
+                    m_BlendParams.z = (float)affectFlags;
 
                     m_ScalingMAB = new Vector4(0.0f, 0.0f, m_Material.GetFloat("_DecalMaskMapBlueScale"), 0.0f);
                     // If we have a texture, we use the remapping parameter, otherwise we use the regular one and the default texture is white
@@ -714,7 +712,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             normalToWorldBatch[instanceCount] = m_CachedNormalToWorld[decalIndex];
                             float fadeFactor = m_CachedFadeFactor[decalIndex] * Mathf.Clamp((cullDistance - distanceToDecal) / (cullDistance * (1.0f - m_CachedDrawDistances[decalIndex].y)), 0.0f, 1.0f);
                             normalToWorldBatch[instanceCount].m03 = fadeFactor * m_Blend;   // vector3 rotation matrix so bottom row and last column can be used for other data to save space
-                            normalToWorldBatch[instanceCount].m13 = m_AffectAlbedo;
+                            //normalToWorldBatch[instanceCount].m13 = 0.0; // Note: We have a free slot here if we need to store something
                             normalToWorldBatch[instanceCount].SetRow(3, m_CachedUVScaleBias[decalIndex]);
                             decalLayerMaskBatch[instanceCount] = (int)m_CachedDecalLayerMask[decalIndex];
 
@@ -885,7 +883,6 @@ namespace UnityEngine.Rendering.HighDefinition
             private Material m_Material;
             private MaterialPropertyBlock m_PropertyBlock = new MaterialPropertyBlock();
             private float m_Blend = 0.0f;
-            private float m_AffectAlbedo = 0.0f;
             private Vector4 m_BaseColor;
             private Vector4 m_RemappingAOS;
             private Vector4 m_ScalingMAB; // metal, base color alpha, mask map blue
