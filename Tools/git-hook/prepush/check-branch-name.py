@@ -10,7 +10,7 @@ import sys, subprocess
 import re
 
 
-valid_branch_regex="^((HDRP)|((?!hdrp)(([a-z0-9]|\-|_|\.)+)))(\/([a-z0-9]|\-|_|\.)+)+$"
+valid_branch_regex="^((HDRP)|((?!hdrp)([a-z0-9\-_\.]+)))(\/[a-z0-9\-_\.]+)+$"
 
 def check_norm():
 	local_branch = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"])
