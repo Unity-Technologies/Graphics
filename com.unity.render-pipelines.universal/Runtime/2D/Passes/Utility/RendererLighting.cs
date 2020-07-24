@@ -83,8 +83,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             descriptor.msaaSamples = 1;
             descriptor.dimension = TextureDimension.Tex2D;
 
-            cmd.GetTemporaryRT(pass.rendererData.lightBlendStyles[blendStyleIndex].renderTargetHandle.id, descriptor, FilterMode.Bilinear);
-            pass.rendererData.lightBlendStyles[blendStyleIndex].isDirty = true;
+            ref var blendStyle = ref pass.rendererData.lightBlendStyles[blendStyleIndex];
+            cmd.GetTemporaryRT(blendStyle.renderTargetHandle.id, descriptor, FilterMode.Bilinear);
+            blendStyle.hasRenderTarget = true;
+            blendStyle.isDirty = true;
         }
 
         static public void EnableBlendStyle(CommandBuffer cmd, int blendStyleIndex, bool enabled)
@@ -116,9 +118,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static void ReleaseRenderTextures(this IRenderPass2D pass, CommandBuffer cmd)
         {
-            foreach (var blendStyle in pass.rendererData.lightBlendStyles)
+            for (var i = 0; i < pass.rendererData.lightBlendStyles.Length; i++)
             {
-                cmd.ReleaseTemporaryRT(blendStyle.renderTargetHandle.id);
+                if(pass.rendererData.lightBlendStyles[i].hasRenderTarget)
+                {
+                    pass.rendererData.lightBlendStyles[i].hasRenderTarget = false;
+                    cmd.ReleaseTemporaryRT(pass.rendererData.lightBlendStyles[i].renderTargetHandle.id);
+                }
             }
 
             cmd.ReleaseTemporaryRT(pass.rendererData.normalsRenderTarget.id);

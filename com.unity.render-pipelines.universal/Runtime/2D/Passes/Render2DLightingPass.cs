@@ -131,7 +131,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     normalsDrawSettings.sortingSettings = sortSettings;
 
                     var blendStylesCount = m_Renderer2DData.lightBlendStyles.Length;
-                    var hasBeenInitialized = new bool[blendStylesCount];
                     for (var i = 0; i < s_SortingLayers.Length;)
                     {
                         var layerToRender = s_SortingLayers[i].id;
@@ -143,10 +142,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             uint blendStyleMask = (uint) (1 << blendStyleIndex);
                             bool blendStyleUsed = (lightStats.blendStylesUsed & blendStyleMask) > 0;
 
-                            if (blendStyleUsed && !hasBeenInitialized[blendStyleIndex])
+                            if (blendStyleUsed && !m_Renderer2DData.lightBlendStyles[blendStyleIndex].hasRenderTarget)
                             {
                                 this.CreateBlendStyleRenderTexture(renderingData, cmd, blendStyleIndex);
-                                hasBeenInitialized[blendStyleIndex] = true;
                             }
 
                             RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleUsed);
