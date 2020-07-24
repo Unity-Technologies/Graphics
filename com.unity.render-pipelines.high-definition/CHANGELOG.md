@@ -751,6 +751,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue that failed compilation when XR is disabled.
 - Fixed a compilation error in the IES code.
 - Fixed issue with dynamic resolution handler when no OnResolutionChange callback is specified. 
+- Fixed multiple volumes, planar reflection, and decal projector position when creating them from the menu.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
