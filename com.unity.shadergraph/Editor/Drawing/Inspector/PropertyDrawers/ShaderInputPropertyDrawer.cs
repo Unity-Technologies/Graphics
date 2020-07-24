@@ -506,49 +506,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         }
 
-        //void HandleDeprecatedColorProperty(PropertySheet propertySheet, ColorShaderProperty_V0 colorProperty)
-        //{
-        //    var colorPropertyDrawer = new ColorPropertyDrawer();
-        //    propertySheet.Add(colorPropertyDrawer.CreateGUI(
-        //        newValue =>
-        //        {
-        //            this._preChangeValueCallback("Change property value");
-        //            this._changeValueCallback(newValue);
-        //            this._postChangeValueCallback();
-        //        },
-        //        colorProperty.value,
-        //        "Default",
-        //        out var propertyColorField));
-
-        //    var colorField = (ColorField)propertyColorField;
-        //    colorField.hdr = colorProperty.colorMode == ColorMode.HDR;
-
-        //    if (!isSubGraph)
-        //    {
-        //        var enumPropertyDrawer = new EnumPropertyDrawer();
-
-        //        propertySheet.Add(enumPropertyDrawer.CreateGUI(
-        //            newValue =>
-        //            {
-        //                this._preChangeValueCallback("Change Color Mode");
-        //                colorProperty.colorMode = (ColorMode)newValue;
-        //                this._postChangeValueCallback(true, ModificationScope.Graph);
-        //            },
-        //            colorProperty.colorMode,
-        //            "Mode",
-        //            ColorMode.Default,
-        //            out var colorModeField));
-        //    }
-        //    var dep = new HelpBoxDeprecated("The Color Property has new updates. This version maintains the old behavior. If you update a Color Property, you can use Undo to change it back. See the Color Property documentation for more information.",
-        //        graphData.owner,
-        //        () =>
-        //        {
-        //            var newCol = new ColorShaderProperty_V1(colorProperty);
-        //            graphData.AddAndReplaceGraphInput(colorProperty, newCol);
-        //        });
-        //    propertySheet.Insert(0, dep);
-        //}
-
         void HandleTexture2DProperty(PropertySheet propertySheet, Texture2DShaderProperty texture2DProperty)
         {
             var texture2DPropertyDrawer = new Texture2DPropertyDrawer();
