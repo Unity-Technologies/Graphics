@@ -42,13 +42,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         Expandable  m_ExpandableBit;
 
-        public float normalBlendSrcValue;
-        public float maskBlendSrcValue;
-        public float smoothnessRemapMinValue;
-        public float smoothnessRemapMaxValue;
-        public float AORemapMinValue;
-        public float AORemapMaxValue;
-
         enum BlendSource
         {
             BaseColorMapAlpha,
@@ -208,93 +201,116 @@ namespace UnityEditor.Rendering.HighDefinition
                 perChannelMask = hdrp.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
             }
 
-            normalBlendSrcValue = normalBlendSrc.floatValue;
-            maskBlendSrcValue =  maskBlendSrc.floatValue;
-            smoothnessRemapMinValue = smoothnessRemapMin.floatValue;
-            smoothnessRemapMaxValue = smoothnessRemapMax.floatValue;
-            AORemapMinValue = AORemapMin.floatValue;
-            AORemapMaxValue = AORemapMax.floatValue;
+            bool allMaskMap = materials.All(m => m.GetTexture(kMaskMap));
 
-            // Detect any changes to the material
-            EditorGUI.BeginChangeCheck();
+            materialEditor.TexturePropertySingleLine((materials[0].GetFloat(kAffectAlbedo) == 1.0f) ? Styles.baseColorText : Styles.baseColorText2, baseColorMap, baseColor);
+
+            materialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);
+            if (materials.All(m => m.GetTexture(kNormalMap)))
             {
-                bool allMaskMap = materials.All(m => m.GetTexture(kMaskMap));
+                EditorGUI.indentLevel++;
+                
+                EditorGUI.BeginChangeCheck();
+                var normalBlendSrcValue = (int)normalBlendSrc.floatValue;
+                normalBlendSrcValue = EditorGUILayout.Popup(Styles.normalOpacityChannelText, normalBlendSrcValue, allMaskMap ? blendSourceNames : blendSourceNamesNoMap);
+                if (EditorGUI.EndChangeCheck())
+                    normalBlendSrc.floatValue = normalBlendSrcValue;
 
-                materialEditor.TexturePropertySingleLine((materials[0].GetFloat(kAffectAlbedo) == 1.0f) ? Styles.baseColorText : Styles.baseColorText2, baseColorMap, baseColor);
+                EditorGUI.indentLevel--;
+            }
 
-                materialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);
-                if (materials.All(m => m.GetTexture(kNormalMap)))
+            materialEditor.TexturePropertySingleLine(Styles.maskMapText, maskMap);
+            EditorGUI.indentLevel++;
+            if (allMaskMap)
+            {
+                if (perChannelMask)
                 {
-                    EditorGUI.indentLevel++;
-                    normalBlendSrcValue = EditorGUILayout.Popup(Styles.normalOpacityChannelText, (int)normalBlendSrcValue, allMaskMap ? blendSourceNames : blendSourceNamesNoMap);
-                    EditorGUI.indentLevel--;
+                    materialEditor.ShaderProperty(metallicScale, Styles.metallicScaleText);
+
+                    float AORemapMinValue = AORemapMin.floatValue;
+                    float AORemapMaxValue = AORemapMax.floatValue;
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.MinMaxSlider(Styles.aoRemappingText, ref AORemapMinValue, ref AORemapMaxValue, 0.0f, 1.0f);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        AORemapMin.floatValue = AORemapMinValue;
+                        AORemapMax.floatValue = AORemapMaxValue;
+                    }
                 }
 
-                materialEditor.TexturePropertySingleLine(Styles.maskMapText, maskMap);
-                if (allMaskMap)
+                float smoothnessRemapMinValue = smoothnessRemapMin.floatValue;
+                float smoothnessRemapMaxValue = smoothnessRemapMax.floatValue;
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.MinMaxSlider(Styles.smoothnessRemappingText, ref smoothnessRemapMinValue, ref smoothnessRemapMaxValue, 0.0f, 1.0f);
+                if (EditorGUI.EndChangeCheck())
                 {
-                    EditorGUI.indentLevel++;
+                    smoothnessRemapMin.floatValue = smoothnessRemapMinValue;
+                    smoothnessRemapMax.floatValue = smoothnessRemapMaxValue;
+                }
+            }
+            else
+            {
+                if (perChannelMask)
+                {
+                    materialEditor.ShaderProperty(metallic, Styles.metallicText);
+                    materialEditor.ShaderProperty(AO, Styles.aoText);
+                }
+                materialEditor.ShaderProperty(smoothness, Styles.smoothnessText);
+            }
 
-                    if (perChannelMask)
+            EditorGUI.BeginChangeCheck();
+            var maskBlendSrcValue = (int)maskBlendSrc.floatValue;
+            maskBlendSrcValue = EditorGUILayout.Popup(Styles.normalOpacityChannelText, maskBlendSrcValue, allMaskMap ? blendSourceNames : blendSourceNamesNoMap);
+            if (EditorGUI.EndChangeCheck())
+                maskBlendSrc.floatValue = maskBlendSrcValue;
+
+            EditorGUI.indentLevel--;
+
+            materialEditor.ShaderProperty(maskMapBlueScale, allMaskMap ? Styles.maskMapBlueScaleText : Styles.opacityBlueScaleText);
+
+
+            materialEditor.ShaderProperty(decalBlend, Styles.decalBlendText);
+            //if (affectEmission.floatValue == 1.0f) // Always show emissive part
+            using (var scope = new EditorGUI.ChangeCheckScope())
+            {
+                materialEditor.ShaderProperty(useEmissiveIntensity, Styles.useEmissionIntensityText);
+
+                if (useEmissiveIntensity.floatValue == 1.0f)
+                {
+                    materialEditor.TexturePropertySingleLine(Styles.emissionMapText, emissiveColorMap, emissiveColorLDR);
+                    using (new EditorGUILayout.HorizontalScope())
                     {
-                        materialEditor.ShaderProperty(metallicScale, Styles.metallicScaleText);
-                        EditorGUILayout.MinMaxSlider(Styles.aoRemappingText, ref AORemapMinValue, ref AORemapMaxValue, 0.0f, 1.0f);
+                        EmissiveIntensityUnit unit = (EmissiveIntensityUnit)emissiveIntensityUnit.floatValue;
+
+                        if (unit == EmissiveIntensityUnit.Nits)
+                            materialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
+                        else
+                        {
+                            float evValue = LightUtils.ConvertLuminanceToEv(emissiveIntensity.floatValue);
+                            evValue = EditorGUILayout.FloatField(Styles.emissiveIntensityText, evValue);
+                            emissiveIntensity.floatValue = LightUtils.ConvertEvToLuminance(evValue);
+                        }
+                        emissiveIntensityUnit.floatValue = (float)(EmissiveIntensityUnit)EditorGUILayout.EnumPopup(unit);
                     }
-                    EditorGUILayout.MinMaxSlider(Styles.smoothnessRemappingText, ref smoothnessRemapMinValue, ref smoothnessRemapMaxValue, 0.0f, 1.0f);
-
-                    maskBlendSrcValue = EditorGUILayout.Popup(Styles.maskOpacityChannelText, (int)maskBlendSrcValue, blendSourceNames);
-
-                    EditorGUI.indentLevel--;
-
-                    materialEditor.ShaderProperty(maskMapBlueScale, Styles.maskMapBlueScaleText);
                 }
                 else
                 {
-                    EditorGUI.indentLevel++;
-
-                    if (perChannelMask)
-                    {
-                        materialEditor.ShaderProperty(metallic, Styles.metallicText);
-                        materialEditor.ShaderProperty(AO, Styles.aoText);
-                    }
-                    materialEditor.ShaderProperty(smoothness, Styles.smoothnessText);
-
-                    maskBlendSrcValue = EditorGUILayout.Popup(Styles.maskOpacityChannelText, (int)maskBlendSrcValue, blendSourceNamesNoMap);
-
-                    EditorGUI.indentLevel--;
-
-                    materialEditor.ShaderProperty(maskMapBlueScale, Styles.opacityBlueScaleText);
+                    materialEditor.TexturePropertySingleLine(Styles.emissionMapText, emissiveColorMap, emissiveColorHDR);
                 }
 
-                materialEditor.ShaderProperty(decalBlend, Styles.decalBlendText);
-                //if (affectEmission.floatValue == 1.0f)
-                {
-                    materialEditor.ShaderProperty(useEmissiveIntensity, Styles.useEmissionIntensityText);
+                materialEditor.ShaderProperty(emissiveExposureWeight, Styles.emissiveExposureWeightText);
 
+                // If anything change, update the emission value
+                if (scope.changed)
+                {
                     if (useEmissiveIntensity.floatValue == 1.0f)
                     {
-                        materialEditor.TexturePropertySingleLine(Styles.emissionMapText, emissiveColorMap, emissiveColorLDR);
-                        using (new EditorGUILayout.HorizontalScope())
-                        {
-                            EmissiveIntensityUnit unit = (EmissiveIntensityUnit)emissiveIntensityUnit.floatValue;
-
-                            if (unit == EmissiveIntensityUnit.Nits)
-                                materialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
-                            else
-                            {
-                                float evValue = LightUtils.ConvertLuminanceToEv(emissiveIntensity.floatValue);
-                                evValue = EditorGUILayout.FloatField(Styles.emissiveIntensityText, evValue);
-                                emissiveIntensity.floatValue = LightUtils.ConvertEvToLuminance(evValue);
-                            }
-                            emissiveIntensityUnit.floatValue = (float)(EmissiveIntensityUnit)EditorGUILayout.EnumPopup(unit);
-                        }
+                        emissiveColor.colorValue = emissiveColorLDR.colorValue * emissiveIntensity.floatValue;
                     }
                     else
                     {
-                        materialEditor.TexturePropertySingleLine(Styles.emissionMapText, emissiveColorMap, emissiveColorHDR);
+                        emissiveColor.colorValue = emissiveColorHDR.colorValue;
                     }
-
-                    materialEditor.ShaderProperty(emissiveExposureWeight, Styles.emissiveExposureWeightText);
                 }
             }
         }
