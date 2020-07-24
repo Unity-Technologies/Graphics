@@ -58,7 +58,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ClusterCenterPosition = Shader.PropertyToID("_ClusterCenterPosition");
         public static readonly int _ClusterDimension = Shader.PropertyToID("_ClusterDimension");
 
-        // Temporary variables
+    // Temporary variables
+        // This value is now fixed for every HDRP asset
+        int m_NumLightsPerCell = 0;
+
+        // These values are overriden for every light cluster that is built
         Vector3 minClusterPos = new Vector3(0.0f, 0.0f, 0.0f);
         Vector3 maxClusterPos = new Vector3(0.0f, 0.0f, 0.0f);
         Vector3 clusterCellSize = new Vector3(0.0f, 0.0f, 0.0f);
@@ -68,7 +72,6 @@ namespace UnityEngine.Rendering.HighDefinition
         int areaLightCount = 0;
         int envLightCount = 0;
         int totalLightCount = 0;
-        int numLightsPerCell = 0;
         Bounds bounds = new Bounds();
         Vector3 minBounds = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
         Vector3 maxBounds = new Vector3(-float.MaxValue, -float.MaxValue, -float.MaxValue);
@@ -97,6 +100,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LightCluster = new ComputeBuffer(1, sizeof(uint));
             m_LightDataGPUArray = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
             m_EnvLightDataGPUArray = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
+
+            // Allocate the light cluster buffer at the right size
+            m_NumLightsPerCell = renderPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxLightsPerClusterCell;
+            int bufferSize = 64 * 64 * 32 * (renderPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxLightsPerClusterCell + 4);
+            ResizeClusterBuffer(bufferSize);
 
             // Create the material required for debug
             m_DebugMaterial = CoreUtils.CreateEngineMaterial(m_RenderPipelineRayTracingResources.lightClusterDebugS);
@@ -434,16 +442,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingBuildCluster)))
             {
-                var lightClusterSettings = hdCamera.volumeStack.GetComponent<LightCluster>();
-                numLightsPerCell = lightClusterSettings.maxNumLightsPercell.value;
-
-                // Make sure the Cluster buffer has the right size
-                int bufferSize = 64 * 64 * 32 * (numLightsPerCell + 4);
-                if (m_LightCluster.count != bufferSize)
-                {
-                    ResizeClusterBuffer(bufferSize);
-                }
-
                 // Grab the kernel
                 ComputeShader lightClusterCS = m_RenderPipelineRayTracingResources.lightClusterBuildCS;
                 int lightClusterKernel = lightClusterCS.FindKernel(m_LightClusterKernelName);
@@ -691,7 +689,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public int GetLightPerCellCount()
         {
-            return numLightsPerCell;
+            return m_NumLightsPerCell;
         }
 
         void InvalidateCluster()
@@ -710,7 +708,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return;
         }
 
-        public void CullForRayTracing(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights)
+        public void CullForRayTracing(HDCamera hdCamera, HDRayTracingLights rayTracingLights)
         {
             // If there is no lights to process or no environment not the shader is missing
             if (rayTracingLights.lightCount == 0 || !m_RenderPipeline.GetRayTracingState())
