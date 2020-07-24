@@ -257,6 +257,7 @@ Shader ""Hidden/GraphErrorShader2""
             var mode = GenerationMode.ForReals;
 
             asset.lit = target.lit;
+            asset.alphaClipping = target.alphaTest;
 
             var assetGuid = graph.assetGuid;
             var assetPath = AssetDatabase.GUIDToAssetPath(assetGuid);
