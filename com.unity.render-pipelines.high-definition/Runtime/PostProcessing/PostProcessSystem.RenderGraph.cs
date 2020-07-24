@@ -145,6 +145,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle dilationPingPongRT;
             public TextureHandle prevCoC;
             public TextureHandle nextCoC;
+
+            public ComputeBufferHandle bokehNearKernel;
+            public ComputeBufferHandle bokehFarKernel;
+            public ComputeBufferHandle bokehIndirectCmd;
+            public ComputeBufferHandle nearBokehTileList;
+            public ComputeBufferHandle farBokehTileList;
+
             public bool taaEnabled;
         }
         TextureHandle GetPostprocessOutputHandle(RenderGraph renderGraph, string name)
@@ -417,7 +424,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle DepthOfFieldPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle source)
         {
-
             bool postDoFTAAEnabled = false;
             bool isSceneView = hdCamera.camera.cameraType == CameraType.SceneView;
             bool taaEnabled = hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
@@ -533,6 +539,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         passData.taaEnabled = taaEnabled;
 
+                        passData.bokehNearKernel = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(dofParameters.nearSampleCount * dofParameters.nearSampleCount, sizeof(uint)) { name = "Bokeh Near Kernel" });
+                        passData.bokehFarKernel = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(dofParameters.farSampleCount * dofParameters.farSampleCount, sizeof(uint)) { name = "Bokeh Far Kernel" });
+                        passData.bokehIndirectCmd = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(3 * 2, sizeof(uint), ComputeBufferType.IndirectArguments) { name = "Bokeh Indirect Cmd" });
+                        passData.nearBokehTileList = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(dofParameters.threadGroup8.x * dofParameters.threadGroup8.y, sizeof(uint), ComputeBufferType.Append) { name = "Bokeh Near Tile List" });
+                        passData.farBokehTileList = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(dofParameters.threadGroup8.x * dofParameters.threadGroup8.y, sizeof(uint), ComputeBufferType.Append) { name = "Bokeh Far Tile List" });
+
+                        passData.bokehNearKernel = builder.ReadComputeBuffer(builder.WriteComputeBuffer(passData.bokehNearKernel));
+                        passData.bokehFarKernel = builder.ReadComputeBuffer(builder.WriteComputeBuffer(passData.bokehFarKernel));
+                        passData.bokehIndirectCmd = builder.ReadComputeBuffer(builder.WriteComputeBuffer(passData.bokehIndirectCmd));
+                        passData.nearBokehTileList = builder.ReadComputeBuffer(builder.WriteComputeBuffer(passData.nearBokehTileList));
+                        passData.farBokehTileList = builder.ReadComputeBuffer(builder.WriteComputeBuffer(passData.farBokehTileList));
+
                         builder.SetRenderFunc(
                         (DepthofFieldData data, RenderGraphContext ctx) =>
                         {
@@ -542,9 +560,13 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 mipsHandles[i] = data.mips[i];
                             }
+                           
+                            ((ComputeBuffer)data.nearBokehTileList).SetCounterValue(0u);
+                            ((ComputeBuffer)data.farBokehTileList).SetCounterValue(0u);
 
                             DoDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.pingNearRGB, data.pongNearRGB, data.nearCoC, data.nearAlpha,
-                                           data.dilatedNearCoC, data.pingFarRGB, data.pongFarRGB, data.farCoC, data.fullresCoC, mipsHandles, data.dilationPingPongRT, data.prevCoC, data.nextCoC, data.motionVecTexture, data.taaEnabled);
+                                           data.dilatedNearCoC, data.pingFarRGB, data.pongFarRGB, data.farCoC, data.fullresCoC, mipsHandles, data.dilationPingPongRT, data.prevCoC, data.nextCoC, data.motionVecTexture,
+                                           data.bokehNearKernel, data.bokehFarKernel, data.bokehIndirectCmd, data.nearBokehTileList, data.farBokehTileList, data.taaEnabled);
                         });
 
                         source = passData.destination;
