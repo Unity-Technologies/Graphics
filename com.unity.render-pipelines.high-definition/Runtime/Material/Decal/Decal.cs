@@ -52,7 +52,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RTFormat = m_RTFormat;
         }
 
-        // relies on the order shader passes are declared in decal.shader
         [Flags]
         public enum MaskBlendFlags
         {

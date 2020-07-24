@@ -21,7 +21,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Decal/ShaderGraph/DecalPass.template";
         protected override string[] templateMaterialDirectories =>  new string[]
         {
-            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates",
             $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/"
         };
         protected override string subTargetAssetGuid => "3ec927dfcb5d60e4883b2c224857b6c2";
@@ -59,13 +58,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             pass.keywords.Add(CoreKeywordDescriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true));
 
             // Emissive pass only have the emission keyword
-            if (pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalProjectorForwardEmissive] ||
-                pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalMeshForwardEmissive])
-            {
-                if (decalData.affectsEmission)
-                    pass.keywords.Add(DecalDefines.Emission);
-            }
-            else
+            if (!(pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalProjectorForwardEmissive] ||
+                pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalMeshForwardEmissive]))
             {
                 if (decalData.affectsAlbedo)
                     pass.keywords.Add(DecalDefines.Albedo);
@@ -144,17 +138,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             AddStencilProperty(HDMaterialProperties.kDecalStencilRef);
 
             if (decalData.affectsAlbedo)
-                AddAffectsProperty(HDMaterialProperties.kAffectsAlbedo);
+                AddAffectsProperty(HDMaterialProperties.kAffectAlbedo);
             if (decalData.affectsNormal)
-                AddAffectsProperty(HDMaterialProperties.kAffectsNormal);
+                AddAffectsProperty(HDMaterialProperties.kAffectNormal);
             if (decalData.affectsAO)
-                AddAffectsProperty(HDMaterialProperties.kAffectsAO);
+                AddAffectsProperty(HDMaterialProperties.kAffectAO);
             if (decalData.affectsMetal)
-                AddAffectsProperty(HDMaterialProperties.kAffectsMetal);
+                AddAffectsProperty(HDMaterialProperties.kAffectMetal);
             if (decalData.affectsSmoothness)
-                AddAffectsProperty(HDMaterialProperties.kAffectsSmoothness);
+                AddAffectsProperty(HDMaterialProperties.kAffectSmoothness);
             if (decalData.affectsEmission)
-                AddAffectsProperty(HDMaterialProperties.kAffectsEmission);
+                AddAffectsProperty(HDMaterialProperties.kAffectEmission);
 
             // Color mask configuration for writing to the mask map
             AddColorMaskProperty(kDecalColorMask0);
@@ -252,6 +246,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Conditional State
                 renderStates = DecalRenderStates.DecalProjectorForwardEmissive,
                 pragmas = DecalPragmas.Instanced,
+                defines = DecalDefines.Emission,
                 includes = DecalIncludes.Default,
             };
 
@@ -297,6 +292,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Conditional State
                 renderStates = DecalRenderStates.DecalMeshForwardEmissive,
                 pragmas = DecalPragmas.Instanced,
+                defines = DecalDefines.Emission,
                 includes = DecalIncludes.Default,
             };
 
@@ -504,7 +500,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static KeywordCollection Albedo = new KeywordCollection { { Descriptors.AffectsAlbedo, new FieldCondition(AffectsAlbedo, true) } };
             public static KeywordCollection Normal = new KeywordCollection { { Descriptors.AffectsNormal, new FieldCondition(AffectsNormal, true) } };
             public static KeywordCollection Maskmap = new KeywordCollection { { Descriptors.AffectsMaskmap, new FieldCondition(AffectsMaskMap, true) } };
-            public static KeywordCollection Emission = new KeywordCollection { { Descriptors.AffectsEmission, new FieldCondition(AffectsEmission, true) } };
+            public static DefineCollection Emission = new DefineCollection { { Descriptors.AffectsEmission, 1 } };
 
             public static KeywordCollection Decals = new KeywordCollection { { Descriptors.Decals } };
         }

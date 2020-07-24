@@ -21,6 +21,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string s_PathTracingDXRStr = "PathTracingDXR";
         public static readonly string s_MetaStr = "META";
         public static readonly string s_ShadowCasterStr = "ShadowCaster";
+        public static readonly string s_DBufferProjectorStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferProjector];
+        public static readonly string s_DecalProjectorForwardEmissiveStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalProjectorForwardEmissive];
         public static readonly string s_DBufferMeshStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh];
         public static readonly string s_DecalMeshForwardEmissiveStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalMeshForwardEmissive];
 
@@ -937,12 +939,13 @@ namespace UnityEngine.Rendering.HighDefinition
             Color.blue
         };
 
-        public static readonly string kAffectsAlbedo   = "_AffectsAlbedo";
-        public static readonly string kAffectsNormal   = "_AffectsNormal";
-        public static readonly string kAffectsAO = "_AffectsAO";
-        public static readonly string kAffectsMetal = "_AffectsMetal";
-        public static readonly string kAffectsSmoothness = "_AffectsSmoothness";
-        public static readonly string kAffectsEmission = "_AffectsEmission";
+        public static readonly string kAffectAlbedo   = "_AffectAlbedo";
+        public static readonly string kAffectNormal   = "_AffectNormal";
+        public static readonly string kAffectAO = "_AffectAO";
+        public static readonly string kAffectMetal = "_AffectMetal";
+        public static readonly string kAffectSmoothness = "_AffectSmoothness";
+        public static readonly string kAffectEmission = "_AffectEmission";
+
         public static readonly string kDecalColorMask0 = "_DecalColorMask0";
         public static readonly string kDecalColorMask1 = "_DecalColorMask1";
         public static readonly string kDecalColorMask2 = "_DecalColorMask2";

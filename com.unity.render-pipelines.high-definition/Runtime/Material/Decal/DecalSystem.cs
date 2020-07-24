@@ -352,11 +352,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return shader.name == "HDRP/Decal";
         }
 
+        const string kIdentifyHDRPDecal = "_Unity_Identify_HDRP_Decal";
+
         // Non alloc version of IsHDRenderPipelineDecal (Slower but does not generate garbage)
         static public bool IsHDRenderPipelineDecal(Material material)
         {
             // Check if the material has a marker _Unity_Identify_HDRP_Decal
-            return material.HasProperty("_Unity_Identify_HDRP_Decal");
+            return material.HasProperty(kIdentifyHDRPDecal);
         }
 
         private class DecalSet
@@ -378,26 +380,31 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_Normal.Initialize(m_Material.GetTexture("_NormalMap"), Vector4.zero);
                     m_Mask.Initialize(m_Material.GetTexture("_MaskMap"), Vector4.zero);
                     m_Blend = m_Material.GetFloat("_DecalBlend");
-                    m_AlbedoContribution = m_Material.GetFloat("_AlbedoMode");
+                    m_AffectAlbedo = m_Material.GetFloat("_AffectAlbedo");
                     m_BaseColor = m_Material.GetVector("_BaseColor");
                     m_BlendParams = new Vector3(m_Material.GetFloat("_NormalBlendSrc"), m_Material.GetFloat("_MaskBlendSrc"), m_Material.GetFloat("_MaskBlendMode"));
                     m_RemappingAOS = new Vector4(m_Material.GetFloat("_AORemapMin"), m_Material.GetFloat("_AORemapMax"), m_Material.GetFloat("_SmoothnessRemapMin"), m_Material.GetFloat("_SmoothnessRemapMax"));
                     m_ScalingMAB = new Vector4(m_Material.GetFloat("_MetallicScale"), 0.0f, m_Material.GetFloat("_DecalMaskMapBlueScale"), 0.0f);
 
-                    // For HDRP/Decal, projector pass is  always present and always enabled. We can't do emissive only decal but can discard the emissive pass
-                    m_cachedProjectorPassValue = (int)MaterialDecalPass.DBufferProjector;
+                    // For HDRP/Decal, pass are always present but can be enabled/disabled
+                    m_cachedProjectorPassValue = -1;
+                    if (m_Material.GetShaderPassEnabled(s_MaterialDecalPassNames[(int)MaterialDecalPass.DBufferProjector]))
+                        m_cachedProjectorPassValue = (int)MaterialDecalPass.DBufferProjector;
 
-                    if (m_Material.GetFloat("_Emissive") != 1.0f) // Emissive is disabled, discard
-                        m_cachedProjectorEmissivePassValue = -1;
-                    else
+                    m_cachedProjectorEmissivePassValue = -1;
+                    if (m_Material.GetShaderPassEnabled(s_MaterialDecalPassNames[(int)MaterialDecalPass.DecalProjectorForwardEmissive]))
                         m_cachedProjectorEmissivePassValue = (int)MaterialDecalPass.DecalProjectorForwardEmissive;
                 }
                 else
                 {
                     m_Blend = 1.0f;
-                    // With ShaderGraph m_cachedProjectorPassValue is setup to -1 if the pass isn't generated, thus we can create emissive only decal if required
+                    // With ShaderGraph it is possible that the pass isn't generated. But if it is, it can be disabled.
                     m_cachedProjectorPassValue = m_Material.FindPass(s_MaterialDecalPassNames[(int)MaterialDecalPass.DBufferProjector]);
+                    if (m_cachedProjectorPassValue != -1 && m_Material.GetShaderPassEnabled(s_MaterialDecalPassNames[(int)MaterialDecalPass.DBufferProjector]) == false)
+                        m_cachedProjectorPassValue = -1;
                     m_cachedProjectorEmissivePassValue = m_Material.FindPass(s_MaterialDecalPassNames[(int)MaterialDecalPass.DecalProjectorForwardEmissive]);
+                    if (m_cachedProjectorEmissivePassValue != -1 && m_Material.GetShaderPassEnabled(s_MaterialDecalPassNames[(int)MaterialDecalPass.DecalProjectorForwardEmissive]) == false)
+                        m_cachedProjectorEmissivePassValue = -1;
                 }
             }
 
@@ -674,7 +681,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             normalToWorldBatch[instanceCount] = m_CachedNormalToWorld[decalIndex];
                             float fadeFactor = m_CachedFadeFactor[decalIndex] * Mathf.Clamp((cullDistance - distanceToDecal) / (cullDistance * (1.0f - m_CachedDrawDistances[decalIndex].y)), 0.0f, 1.0f);
                             normalToWorldBatch[instanceCount].m03 = fadeFactor * m_Blend;   // vector3 rotation matrix so bottom row and last column can be used for other data to save space
-                            normalToWorldBatch[instanceCount].m13 = m_AlbedoContribution;
+                            normalToWorldBatch[instanceCount].m13 = m_AffectAlbedo;
                             normalToWorldBatch[instanceCount].SetRow(3, m_CachedUVScaleBias[decalIndex]);
                             decalLayerMaskBatch[instanceCount] = (int)m_CachedDecalLayerMask[decalIndex];
 
@@ -863,8 +870,8 @@ namespace UnityEngine.Rendering.HighDefinition
             private float[] m_CachedFadeFactor = new float[kDecalBlockSize];
             private Material m_Material;
             private MaterialPropertyBlock m_PropertyBlock = new MaterialPropertyBlock();
-            private float m_Blend = 0;
-            private float m_AlbedoContribution = 0;
+            private float m_Blend = 0.0f;
+            private float m_AffectAlbedo = 0.0f;
             private Vector4 m_BaseColor;
             private Vector4 m_RemappingAOS;
             private Vector4 m_ScalingMAB; // metal, base color alpha, mask map blue

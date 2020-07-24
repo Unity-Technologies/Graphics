@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        bool m_AffectsEmission = true;
+        bool m_AffectsEmission = false;
         public bool affectsEmission
         {
             get => m_AffectsEmission;

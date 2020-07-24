@@ -22,23 +22,26 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
     float maskMapBlend = fadeFactor;
 
     ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
-    surfaceData.baseColor = _BaseColor;
+
+#ifdef _MATERIAL_AFFECTS_EMISSION
     surfaceData.emissive = _EmissiveColor.rgb * fadeFactor;
-#ifdef _EMISSIVEMAP
+    #ifdef _EMISSIVEMAP
     surfaceData.emissive *= SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, texCoords).rgb;
-#endif
+    #endif
 
     // Inverse pre-expose using _EmissiveExposureWeight weight
     float3 emissiveRcpExposure = surfaceData.emissive * GetInverseCurrentExposureMultiplier();
     surfaceData.emissive = lerp(emissiveRcpExposure, surfaceData.emissive, _EmissiveExposureWeight);
+#endif // _MATERIAL_AFFECTS_EMISSION
 
+    surfaceData.baseColor = _BaseColor;
 #ifdef _COLORMAP
     surfaceData.baseColor *= SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, texCoords);
-#endif
+ #endif
 	surfaceData.baseColor.w *= fadeFactor;
 	albedoMapBlend = surfaceData.baseColor.w;   
-// outside _COLORMAP because we still have base color
-#ifdef _ALBEDOCONTRIBUTION
+    // outside _COLORMAP because we still have base color for albedoMapBlend
+#ifdef _MATERIAL_AFFECTS_ALBEDO
     if (surfaceData.baseColor.w > 0.0)
     {
         surfaceData.HTileMask |= DBUFFERHTILEBIT_DIFFUSE;
@@ -63,15 +66,22 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
 #endif
 
 	// needs to be after mask, because blend source could be in the mask map blue
-#ifdef _NORMALMAP
+#ifdef _MATERIAL_AFFECTS_NORMAL
+
+    #ifdef _NORMALMAP
 	float3 normalTS = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, texCoords));
+    #else
+    float3 normalTS = float3(0.0, 0.0, 1.0);
+    #endif
     float3 normalWS = float3(0.0, 0.0, 0.0);
-#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
+
+    #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
 	normalWS = mul((float3x3)normalToWorld, normalTS);
-#elif (SHADERPASS == SHADERPASS_DBUFFER_MESH)	
+    #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH)	
     // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
     normalWS = normalize(TransformTangentToWorld(normalTS, input.tangentToWorld));
-#endif
+    #endif
+
 	surfaceData.normalWS.xyz = normalWS;
 	surfaceData.normalWS.w = _NormalBlendSrc ? maskMapBlend : albedoMapBlend;
     if (surfaceData.normalWS.w > 0.0)
@@ -79,5 +89,6 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
         surfaceData.HTileMask |= DBUFFERHTILEBIT_NORMAL;
     }
 #endif
+
 	surfaceData.MAOSBlend.xy = float2(surfaceData.mask.w, surfaceData.mask.w);
 }

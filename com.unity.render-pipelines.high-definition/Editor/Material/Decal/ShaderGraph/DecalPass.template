@@ -106,40 +106,40 @@ Pass
         // setup defaults -- these are used if the graph doesn't output a value
         ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
 
-        #if _MATERIAL_AFFECTS_EMISSION
-            $SurfaceDescription.Emission:                   surfaceData.emissive.rgb = surfaceDescription.Emission.rgb * fadeFactor;
+        #ifdef _MATERIAL_AFFECTS_EMISSION
+            $SurfaceDescription.Emission:       surfaceData.emissive.rgb = surfaceDescription.Emission.rgb * fadeFactor;
         #endif
 
         // copy across graph values, if defined
-        #if _MATERIAL_AFFECTS_ALBEDO
-            $SurfaceDescription.BaseColor:                     surfaceData.baseColor.xyz = surfaceDescription.BaseColor;
-            $SurfaceDescription.Alpha:                surfaceData.baseColor.w = surfaceDescription.Alpha * fadeFactor;
-            if(surfaceData.baseColor.w > 0)
+        #ifdef _MATERIAL_AFFECTS_ALBEDO
+            $SurfaceDescription.BaseColor:      surfaceData.baseColor.xyz = surfaceDescription.BaseColor;
+            $SurfaceDescription.Alpha:          surfaceData.baseColor.w = surfaceDescription.Alpha * fadeFactor;
+            if (surfaceData.baseColor.w > 0)
             {
                 surfaceData.HTileMask |= DBUFFERHTILEBIT_DIFFUSE;
             }
         #endif
 
-        #if _MATERIAL_AFFECTS_NORMAL
+        #ifdef _MATERIAL_AFFECTS_NORMAL
             #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) 
-                $SurfaceDescription.NormalTS:                     surfaceData.normalWS.xyz = mul((float3x3)normalToWorld, surfaceDescription.NormalTS);
+                $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = mul((float3x3)normalToWorld, surfaceDescription.NormalTS);
             #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_FORWARD_PREVIEW)
                 // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
-                $SurfaceDescription.NormalTS:                     surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(surfaceDescription.NormalTS, fragInputs.tangentToWorld));
+                $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(surfaceDescription.NormalTS, fragInputs.tangentToWorld));
             #endif
 
-            $SurfaceDescription.NormalAlpha:                surfaceData.normalWS.w = surfaceDescription.NormalAlpha * fadeFactor;
-            if(surfaceData.normalWS.w > 0)
+            $SurfaceDescription.NormalAlpha:    surfaceData.normalWS.w = surfaceDescription.NormalAlpha * fadeFactor;
+            if (surfaceData.normalWS.w > 0)
             {
                 surfaceData.HTileMask |= DBUFFERHTILEBIT_NORMAL;
             }
         #else
             #if (SHADERPASS == SHADERPASS_FORWARD_PREVIEW) // Default to vertex normal
-                $SurfaceDescription.NormalTS:                     surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(float3(0.0, 0.0, 0.1), fragInputs.tangentToWorld));
+                $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(float3(0.0, 0.0, 0.1), fragInputs.tangentToWorld));
             #endif
         #endif
 
-        #if _MATERIAL_AFFECTS_MASKMAP
+        #ifdef _MATERIAL_AFFECTS_MASKMAP
             $SurfaceDescription.Smoothness:     surfaceData.mask.z = surfaceDescription.Smoothness;
             $SurfaceDescription.MAOSAlpha:      surfaceData.mask.w = surfaceDescription.MAOSAlpha * fadeFactor;
 
