@@ -127,6 +127,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix creation of StringPropertyRM
 - Enum fields having headers show the header in the inspector as well.
 - Fix for node window staying when clicking elsewhere
+- Missing System Seed in new dynamic built-in operator.
+- Prefab highlight missing for initial event name toggle [Case 1263012](https://issuetracker.unity3d.com/product/unity/issues/guid/1263012/)
 - Allow world position usage in shaderGraph plugged into an alpha/opacity output [Case 1259511](https://issuetracker.unity3d.com/product/unity/issues/guid/1259511/)
 
 ## [7.1.1] - 2019-09-05
