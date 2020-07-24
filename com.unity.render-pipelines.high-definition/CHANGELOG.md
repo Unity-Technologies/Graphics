@@ -750,6 +750,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a missing dependecy for choosing to evaluate transparent SSR.
 - Fixed issue that failed compilation when XR is disabled.
 - Fixed a compilation error in the IES code.
+- Fixed issue with dynamic resolution handler when no OnResolutionChange callback is specified. 
 
 ### Changed
 - Improve MIP selection for decals on Transparents
