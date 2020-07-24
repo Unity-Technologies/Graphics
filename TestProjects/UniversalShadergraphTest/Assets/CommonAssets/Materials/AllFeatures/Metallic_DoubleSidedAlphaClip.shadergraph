@@ -31,7 +31,11 @@
             "m_Id": "7002a5ce9d704539a0b9c2cf2df849dd"
         }
     ],
-    "m_Keywords": [],
+    "m_Keywords": [
+        {
+            "m_Id": "944fe94e2f884b63a94ba2a9769cf665"
+        }
+    ],
     "m_Nodes": [
         {
             "m_Id": "c7a759cec9b744d1b63f8d9b1e5cd610"
@@ -2246,6 +2250,24 @@
     "m_Hidden": false,
     "m_ShaderOutputName": "Sampler",
     "m_StageCapability": 3
+}
+
+{
+    "m_Type": "UnityEditor.ShaderGraph.ShaderKeyword",
+    "m_ObjectId": "944fe94e2f884b63a94ba2a9769cf665",
+    "m_Guid": {
+        "m_GuidSerialized": "ce7530ba-81a4-40a7-aac8-a49636c27e63"
+    },
+    "m_Name": "SpecularOff",
+    "m_DefaultReferenceName": "BOOLEAN_944FE94E2F884B63A94BA2A9769CF665_ON",
+    "m_OverrideReferenceName": "_SPECULARHIGHLIGHTS_OFF",
+    "m_GeneratePropertyBlock": true,
+    "m_KeywordType": 0,
+    "m_KeywordDefinition": 0,
+    "m_KeywordScope": 0,
+    "m_Entries": [],
+    "m_Value": 0,
+    "m_IsEditable": true
 }
 
 {
