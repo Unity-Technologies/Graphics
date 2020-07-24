@@ -361,6 +361,18 @@ namespace UnityEngine.Rendering.HighDefinition
             return material.HasProperty(kIdentifyHDRPDecal);
         }
 
+        static public bool IsDecalMaterial(Material material)
+        {
+            // Check if the material has at least one pass from the decal.shader / Shader Graph (shader stripping can remove one or more passes)
+            foreach (var passName in s_MaterialDecalPassNames)
+            {
+                if (material.FindPass(passName) != -1)
+                    return true;
+            }
+
+            return false;
+        }
+
         private class DecalSet
         {
             public void InitializeMaterialValues()
