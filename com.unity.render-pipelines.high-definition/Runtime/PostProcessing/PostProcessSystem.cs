@@ -233,7 +233,6 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_ClearBlackMaterial);
             CoreUtils.Destroy(m_SMAAMaterial);
             CoreUtils.Destroy(m_TemporalAAMaterial);
-            CoreUtils.SafeRelease(m_ContrastAdaptiveSharpen);
             CoreUtils.SafeRelease(m_HistogramBuffer);
             CoreUtils.SafeRelease(m_DebugImageHistogramBuffer);
             RTHandles.Release(m_DebugExposureData);
@@ -304,6 +303,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(m_BokehIndirectCmd);
             CoreUtils.SafeRelease(m_NearBokehTileList);
             CoreUtils.SafeRelease(m_FarBokehTileList);
+            CoreUtils.SafeRelease(m_ContrastAdaptiveSharpen);
 
             m_TempTexture1024           = null;
             m_TempTexture32             = null;
@@ -314,6 +314,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BokehIndirectCmd          = null;
             m_NearBokehTileList         = null;
             m_FarBokehTileList          = null;
+            m_ContrastAdaptiveSharpen   = null;
 
         }
 
@@ -862,7 +863,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ContrastAdaptiveSharpen)))
                     {
                         var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
-                        DoContrastAdaptiveSharpening(PrepareContrastAdaptiveSharpeningParameters(camera), cmd, source, destination);
+                        ValidateComputeBuffer(ref m_ContrastAdaptiveSharpen, 2, sizeof(uint) * 4);
+
+                        DoContrastAdaptiveSharpening(PrepareContrastAdaptiveSharpeningParameters(camera), cmd, source, destination, m_ContrastAdaptiveSharpen);
                         PoolSource(ref source, destination);
                     }
                 }
@@ -3737,9 +3740,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader casCS;
             public int initKernel;
             public int mainKernel;
-
-            public ComputeBuffer casParametersBuffer;
-
             public int viewCount;
         }
 
@@ -3751,15 +3751,12 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.initKernel = parameters.casCS.FindKernel("KInitialize");
             parameters.mainKernel = parameters.casCS.FindKernel("KMain");
 
-            ValidateComputeBuffer(ref m_ContrastAdaptiveSharpen, 2, sizeof(uint) * 4);
-            parameters.casParametersBuffer = m_ContrastAdaptiveSharpen;
-
             parameters.viewCount = camera.viewCount;
 
             return parameters;
         }
 
-        static void DoContrastAdaptiveSharpening(in CASParameters parameters, CommandBuffer cmd, RTHandle source, RTHandle destination)
+        static void DoContrastAdaptiveSharpening(in CASParameters parameters, CommandBuffer cmd, RTHandle source, RTHandle destination, ComputeBuffer casParametersBuffer)
         {
             var cs = parameters.casCS;
             int kInit = parameters.initKernel;
@@ -3772,8 +3769,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(cs, kMain, HDShaderIDs._OutputTexture, destination);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._OutputTextureDimensions, new Vector4(destination.rt.width, destination.rt.height));
 
-                cmd.SetComputeBufferParam(cs, kInit, "CasParameters", parameters.casParametersBuffer);
-                cmd.SetComputeBufferParam(cs, kMain, "CasParameters", parameters.casParametersBuffer);
+                cmd.SetComputeBufferParam(cs, kInit, "CasParameters", casParametersBuffer);
+                cmd.SetComputeBufferParam(cs, kMain, "CasParameters", casParametersBuffer);
 
                 cmd.DispatchCompute(cs, kInit, 1, 1, 1);
 

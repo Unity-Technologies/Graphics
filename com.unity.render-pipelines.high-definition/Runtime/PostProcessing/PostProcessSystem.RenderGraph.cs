@@ -124,6 +124,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public CASParameters parameters;
             public TextureHandle source;
             public TextureHandle destination;
+
+            public ComputeBufferHandle casParametersBuffer;
         }
 
         class DepthofFieldData
@@ -866,10 +868,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Contrast Adaptive Sharpen Destination");
                     passData.destination = builder.WriteTexture(dest); ;
 
+                    passData.casParametersBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(2, sizeof(uint) * 4) { name = "Cas Parameters" });
+
+
                     builder.SetRenderFunc(
                     (CASData data, RenderGraphContext ctx) =>
                     {
-                        DoContrastAdaptiveSharpening(data.parameters, ctx.cmd, data.source, data.destination);
+                        DoContrastAdaptiveSharpening(data.parameters, ctx.cmd, data.source, data.destination, data.casParametersBuffer);
                     });
 
                     source = passData.destination;
