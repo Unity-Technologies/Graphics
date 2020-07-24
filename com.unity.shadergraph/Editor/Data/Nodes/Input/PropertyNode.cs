@@ -150,8 +150,11 @@ namespace UnityEditor.ShaderGraph
                 case PropertyType.Vector4:
                     sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
                     break;
-                case PropertyType.Color:
+                case PropertyType.Color_V0:
                     sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    break;
+                case PropertyType.Color_V1:
+                    sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = IsGammaSpace() ? {property.referenceName} : SRGBToLinear({property.referenceName});");
                     break;
                 case PropertyType.Matrix2:
                     sb.AppendLine($"$precision2x2 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");

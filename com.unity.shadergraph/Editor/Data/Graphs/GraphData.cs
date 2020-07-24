@@ -275,6 +275,8 @@ namespace UnityEditor.ShaderGraph
         public MessageManager messageManager { get; set; }
         public bool isSubGraph { get; set; }
 
+        public bool hasChangedViewData { get; set; }
+
         [SerializeField]
         private ConcretePrecision m_ConcretePrecision = ConcretePrecision.Float;
 
@@ -1167,6 +1169,32 @@ namespace UnityEditor.ShaderGraph
             ValidateGraph();
         }
 
+        public void AddAndReplaceGraphInput(ShaderInput oldInput, ShaderInput newInput)
+        {
+            if(oldInput.concreteShaderValueType != newInput.concreteShaderValueType)
+            {
+                return;
+            }
+
+            owner.RegisterCompleteObjectUndo("Replace graph input");
+            int idx = m_Properties.IndexOf(oldInput as AbstractShaderProperty);
+            AddGraphInput(newInput, idx);
+
+            if(oldInput is AbstractShaderProperty oldProp && newInput is AbstractShaderProperty newProp)
+            {
+                foreach(var propNode in GetNodes<PropertyNode>())
+                {
+                    if(propNode.property == oldProp)
+                    {
+                        propNode.property = newProp; 
+                    }
+                }
+            }
+
+            RemoveGraphInput(oldInput);
+            hasChangedViewData = true;
+        }
+
         public void MoveProperty(AbstractShaderProperty property, int newIndex)
         {
             if (newIndex > m_Properties.Count || newIndex < 0)
@@ -1716,7 +1744,7 @@ namespace UnityEditor.ShaderGraph
                     if (string.IsNullOrEmpty((string)defaultReferenceNameField.GetValue(property)))
                     {
                         // ColorShaderProperty is the only Property case where `GetDefaultReferenceName` was overriden
-                        if (MultiJson.ParseType(serializedProperty.typeInfo.fullName) == typeof(ColorShaderProperty))
+                        if (MultiJson.ParseType(serializedProperty.typeInfo.fullName) == typeof(ColorShaderProperty_V1) || MultiJson.ParseType(serializedProperty.typeInfo.fullName) == typeof(ColorShaderProperty_V0))
                         {
                             defaultReferenceNameField.SetValue(property, $"Color_{GuidEncoder.Encode(Guid.Parse(input0.m_Guid.m_GuidSerialized))}");
                         }
@@ -2082,7 +2110,7 @@ namespace UnityEditor.ShaderGraph
 
         }
 
-        private void ReplaceNodeWithNode(LegacyUnknownTypeNode nodeToReplace, AbstractMaterialNode nodeReplacement)
+        private void ReplaceNodeWithNode(AbstractMaterialNode nodeToReplace, AbstractMaterialNode nodeReplacement)
         {
             var oldSlots = new List<MaterialSlot>();
             nodeToReplace.GetSlots(oldSlots);

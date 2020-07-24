@@ -108,6 +108,19 @@ namespace UnityEditor.ShaderGraph.Internal
         internal abstract AbstractMaterialNode ToConcreteNode();
         internal abstract PreviewProperty GetPreviewMaterialProperty();
         internal virtual bool isGpuInstanceable => false;
+
+        public string GetPropertyTypeString()
+        {
+            switch(propertyType)
+            {
+                case PropertyType.Color_V0:
+                    return "Color (Deprecated)";
+                case PropertyType.Color_V1:
+                    return "Color";
+                default:
+                    return propertyType.ToString();
+            }
+        }
     }
     
     [Serializable]

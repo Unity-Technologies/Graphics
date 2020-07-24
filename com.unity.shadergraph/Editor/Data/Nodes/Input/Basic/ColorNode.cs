@@ -79,7 +79,7 @@ namespace UnityEditor.ShaderGraph
             if (!generationMode.IsPreview())
                 return;
 
-            properties.AddShaderProperty(new ColorShaderProperty()
+            properties.AddShaderProperty(new ColorShaderProperty_V1()
             {
                 overrideReferenceName = GetVariableNameForNode(),
                 generatePropertyBlock = false,
@@ -108,7 +108,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            properties.Add(new PreviewProperty(PropertyType.Color)
+            properties.Add(new PreviewProperty(PropertyType.Color_V1)
             {
                 name = GetVariableNameForNode(),
                 colorValue = PlayerSettings.colorSpace == ColorSpace.Linear ? color.color.linear : color.color
@@ -117,7 +117,7 @@ namespace UnityEditor.ShaderGraph
 
         public AbstractShaderProperty AsShaderProperty()
         {
-            return new ColorShaderProperty { value = color.color, colorMode = color.mode };
+            return new ColorShaderProperty_V1 { value = color.color, colorMode = color.mode };
         }
 
         public int outputSlotId { get { return OutputSlotId; } }

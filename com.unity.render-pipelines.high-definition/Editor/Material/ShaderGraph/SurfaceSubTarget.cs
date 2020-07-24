@@ -274,7 +274,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // The user will then need to explicitly disable emissive GI if it is not needed.
             // To be able to automatically disable emission based on the ShaderGraph config when emission is black,
             // we will need a more general way to communicate this to the engine (not directly tied to a material property).
-            collector.AddShaderProperty(new ColorShaderProperty()
+            collector.AddShaderProperty(new ColorShaderProperty_V1()
             {
                 overrideReferenceName = "_EmissionColor",
                 hidden = true,

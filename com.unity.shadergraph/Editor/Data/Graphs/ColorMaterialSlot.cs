@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph
             if (matOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
-            var property = new ColorShaderProperty()
+            var property = new ColorShaderProperty_V1()
             {
                 overrideReferenceName = matOwner.GetVariableNameForSlot(id),
                 generatePropertyBlock = false,
@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void GetPreviewProperties(List<PreviewProperty> properties, string name)
         {
-            var pp = new PreviewProperty(PropertyType.Color)
+            var pp = new PreviewProperty(PropertyType.Color_V0)
             {
                 name = name,
                 colorValue = new Color(value.x, value.y, value.z, value.w),

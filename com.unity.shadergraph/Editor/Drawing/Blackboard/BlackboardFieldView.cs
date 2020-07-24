@@ -211,7 +211,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case Vector4ShaderProperty vector4Property:
                     vector4Property.value = (Vector4) newValue;
                     break;
-                case ColorShaderProperty colorProperty:
+                case ColorShaderProperty_V0 colorProperty:
+                    colorProperty.value = (Color) newValue;
+                    break;
+                case ColorShaderProperty_V1 colorProperty:
                     colorProperty.value = (Color) newValue;
                     break;
                 case Texture2DShaderProperty texture2DProperty:

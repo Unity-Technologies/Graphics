@@ -51,14 +51,14 @@ namespace UnityEditor.ShaderGraph
         {
             get
             {
-                if (propType != PropertyType.Color)
-                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Color, propType));
+                if (propType != PropertyType.Color_V0 && propType != PropertyType.Color_V1)
+                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Color_V1, propType));
                 return m_StructData.colorValue;
             }
             set
             {
-                if (propType != PropertyType.Color)
-                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Color, propType));
+                if (propType != PropertyType.Color_V0 && propType != PropertyType.Color_V1)
+                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Color_V1, propType));
                 m_StructData.colorValue = value;
             }
         }
@@ -201,7 +201,7 @@ namespace UnityEditor.ShaderGraph
                 mat.SetTexture(name, m_ClassData.textureValue);
             else if (propType == PropertyType.Cubemap && cubemapValue != null)
                 mat.SetTexture(name, m_ClassData.cubemapValue);
-            else if (propType == PropertyType.Color)
+            else if (propType == PropertyType.Color_V0 || propType == PropertyType.Color_V1)
                 mat.SetColor(name, m_StructData.colorValue);
             else if (propType == PropertyType.Vector2 || propType == PropertyType.Vector3 || propType == PropertyType.Vector4)
                 mat.SetVector(name, m_StructData.vector4Value);
