@@ -12,6 +12,6 @@ The **Get Attribute: mass** returns the mass, which is a [standard attribute](Re
 | ---------- | -------- | ------------------------------------------------------------ |
 | mass       | float    | The value of the mass attribute, based on **Location**.<br/>If this attribute has not been written to, this Operator returns the default attribute value. |
 
-## Notes
+## Details
 
 The value the attribute returns uses the system’s space (either local-space or world-space).

@@ -46,6 +46,6 @@ This Block is compatible with the following Contexts:
 | **Blend Position** | float    | The blend percentage between the current position attribute value and the newly calculated position value.<br/>This property only appears if you set **Composition Position** to **Blend**. |
 | **Blend Color**    | float    | The blend percentage between the current direction attribute value and the newly calculated direction value.<br/>This property only appears if you set **Composition Direction** to **Blend**. |
 
-## Notes
+## Details
 
 **Compatibility :** This Block is currently only compatible with the [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html), with any graphics API, except metal.

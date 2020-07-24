@@ -18,6 +18,6 @@ The **Get Custom Attribute** Operator returns the value of a named custom Attrib
 | ------------------- | --------- | ------------------------------------------------------------ |
 | **CustomAttribute** | Dependent | The value of the custom attribute (based on its Location). If the attribute has not yet been written to, this is the default value for the output's type.<br/>The type of this output matches the type you specify in **Attribute Type**. |
 
-## Notes
+## Details
 
 If the custom attribute this Operator reads from has not yet been written to, the output value is the default value for the output's type.

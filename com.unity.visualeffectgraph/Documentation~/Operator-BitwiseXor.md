@@ -17,6 +17,6 @@ For example, an input of 26 in the **A** input and 19 in the **B** input outputs
 | ---------- | -------- | ------------------------------------------------------------ |
 | **o**      | uint     | The result of a bitwise *Xor* operation between **A** and **B**. |
 
-## Notes
+## Details
 
 The Xor operation is exclusive. This means that the binary form of both input values must either be the same length or the equivalent of adding two bits and discarding the carry.

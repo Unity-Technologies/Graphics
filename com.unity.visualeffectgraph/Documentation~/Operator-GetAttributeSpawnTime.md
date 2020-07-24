@@ -12,6 +12,6 @@ The **Get Attribute: spawnTime** returns the spawnTime, which is a [standard att
 | ---------- | -------- | ------------------------------------------------------------ |
 | spawnTime  | float    | The value of the spawnTime attribute, based on **Location**.<br/>If this attribute has not been written to, this Operator returns the default attribute value. |
 
-## Notes
+## Details
 
 The value the attribute returns uses the system’s space (either local-space or world-space).

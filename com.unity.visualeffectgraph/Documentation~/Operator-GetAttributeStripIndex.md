@@ -12,6 +12,6 @@ The **Get Attribute: stripIndex** returns the stripIndex, which is a [standard a
 | ---------- | -------- | ------------------------------------------------------------ |
 | stripIndex | uint     | The value of the stripIndex attribute, based on **Location**.<br/>If this attribute has not been written to, this Operator returns the default attribute value. |
 
-## Notes
+## Details
 
 The value the attribute returns uses the system’s space (either local-space or world-space).

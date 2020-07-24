@@ -15,7 +15,7 @@ The **Nor** Operator takes two inputs and outputs the result of a logical *nor* 
 | ---------- | -------- | ------------------------------------------------------------ |
 | **o**      | bool     | If **A** or **B** is `false`, this value is `true`. Otherwise, if both **A** and **B** are `true` this value is `false`. |
 
-## Notes
+## Details
 
 This Operator provides the same result as the following graph :
 

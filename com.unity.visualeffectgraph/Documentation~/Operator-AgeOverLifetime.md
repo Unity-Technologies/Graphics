@@ -14,7 +14,7 @@ t = age / lifetime
 | ---------- | -------- | ------------------------------------------------- |
 | **t**      | float    | The age of the particle relative to its lifetime. |
 
-## Notes
+## Details
 
 If the system you use this Operator in does not include either age or lifetime, Unity uses the default attribute values instead.
 

@@ -79,7 +79,7 @@ You can use the following types for your **Input values** and **Output** ports:
 
 This list does not include any type that corresponds to a buffer or texture because it is not possible to assign these types as local variables in generated HLSL code.
 
-## Notes
+## Details
 
 The internal algorithm of this Operator can be described by this sample code :
 

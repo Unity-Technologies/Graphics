@@ -12,6 +12,6 @@ The **Get Attribute: age** returns the age, which is a [standard attribute](Refe
 | ---------- | -------- | ------------------------------------------------------------ |
 | age        | float    | The value of the age attribute, based on **Location**.<br/>If this attribute has not been written to, this Operator returns the default attribute value, which is `0.0`. |
 
-## Notes
+## Details
 
 The value the attribute returns uses the system’s space (either local-space or world-space).

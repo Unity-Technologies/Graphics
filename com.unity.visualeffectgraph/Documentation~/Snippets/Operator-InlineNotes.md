@@ -1,4 +1,4 @@
-## Notes
+## Details
 
 You can convert this Operator to a [Property](../Properties.md) or an Exposed Property. To do this, right-click on the Operator's header and select either **Convert to Property** or **Convert to Exposed Property**.
 

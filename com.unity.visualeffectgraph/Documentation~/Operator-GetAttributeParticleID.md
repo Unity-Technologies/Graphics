@@ -12,6 +12,6 @@ The **Get Attribute: particleID** returns the particleID, which is a [standard a
 | ---------- | -------- | ------------------------------------------------------------ |
 | particleID | uint     | The value of the particleID attribute, based on **Location**.<br/>If this attribute has not been written to, this Operator returns the default attribute value. |
 
-## Notes
+## Details
 
 The value the attribute returns uses the system’s space (either local-space or world-space).
