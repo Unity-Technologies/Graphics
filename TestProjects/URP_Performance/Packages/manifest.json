@@ -14,6 +14,8 @@
     "com.unity.shaderanalysis": "file:../../../com.unity.shaderanalysis",
     "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
     "com.unity.test-framework": "1.1.14",
+    "com.unity.test-framework.build": "0.0.1-preview.12",
+    "com.unity.test-framework.utp-reporter": "1.0.2-preview",
     "com.unity.testframework.graphics": "7.2.2-preview",
     "com.unity.testing.graphics-performance": "file:../../../com.unity.testing.graphics-performance",
     "com.unity.textmeshpro": "3.0.0-preview.1",
