@@ -2003,7 +2003,7 @@ MonoBehaviour:
   m_Name: ImageRecorderSettings
   m_EditorClassIdentifier: 
   enabled: 1
-  take: 5
+  take: 8
   captureEveryNthFrame: 1
   fileNameGenerator:
     m_Path:
