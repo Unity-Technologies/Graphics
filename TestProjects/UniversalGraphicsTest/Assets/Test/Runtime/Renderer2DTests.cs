@@ -10,15 +10,16 @@ class Renderer2DTests
     GameObject m_OverlayObj;
     Camera m_BaseCamera;
     Camera m_OverlayCamera;
-    UniversalAdditionalCameraData m_BaseCameraData;
-    UniversalAdditionalCameraData m_OverlayCameraData;
+    UniversalCameraExtension m_BaseCameraData;
+    UniversalCameraExtension m_OverlayCameraData;
 
     [SetUp]
     public void Setup()
     {
         m_BaseObj = new GameObject();
         m_BaseCamera = m_BaseObj.AddComponent<Camera>();
-        m_BaseCameraData = m_BaseObj.AddComponent<UniversalAdditionalCameraData>();
+        m_BaseCameraData = m_BaseCamera.CreateExtension<UniversalCameraExtension>();
+        m_BaseCamera.SwitchActiveExtensionTo<UniversalCameraExtension>();
 
         m_BaseCamera.allowHDR = false;
         m_BaseCameraData.SetRenderer(3);    // 2D Renderer. See the list of Renderers in CommonAssets/UniversalRPAsset.
@@ -27,7 +28,8 @@ class Renderer2DTests
 
         m_OverlayObj = new GameObject();
         m_OverlayCamera = m_OverlayObj.AddComponent<Camera>();
-        m_OverlayCameraData = m_OverlayObj.AddComponent<UniversalAdditionalCameraData>();
+        m_OverlayCameraData = m_BaseCamera.CreateExtension<UniversalCameraExtension>();
+        m_OverlayCamera.SwitchActiveExtensionTo<UniversalCameraExtension>();
 
         m_OverlayCamera.allowHDR = false;
         m_OverlayCameraData.SetRenderer(3);    // 2D Renderer. See the list of Renderers in CommonAssets/UniversalRPAsset.
