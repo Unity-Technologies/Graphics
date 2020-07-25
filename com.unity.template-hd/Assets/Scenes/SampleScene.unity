@@ -3741,7 +3741,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 361274623}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 31.97, y: 2.77, z: -2.06}
+  m_LocalPosition: {x: 31.970001, y: 2.6247444, z: -2.06}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1425786420}
@@ -3870,24 +3870,24 @@ MonoBehaviour:
       fadeDistance: 20
       rangeCompressionFactor: 1
     influence:
-      m_EditorAdvancedModeBlendDistancePositive: {x: 0.2, y: 0.2, z: 0.2}
-      m_EditorAdvancedModeBlendDistanceNegative: {x: 2, y: 0, z: 0}
+      m_EditorAdvancedModeBlendDistancePositive: {x: 0.1, y: 0.1, z: 0.1}
+      m_EditorAdvancedModeBlendDistanceNegative: {x: 0.1, y: 0, z: 0.1}
       m_EditorSimplifiedModeBlendDistance: 0.05
       m_EditorAdvancedModeBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
       m_EditorAdvancedModeBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
       m_EditorSimplifiedModeBlendNormalDistance: 0.4
-      m_EditorAdvancedModeEnabled: 0
+      m_EditorAdvancedModeEnabled: 1
       m_EditorAdvancedModeFaceFadePositive: {x: 1, y: 1, z: 1}
       m_EditorAdvancedModeFaceFadeNegative: {x: 1, y: 1, z: 1}
       m_Version: 1
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
       m_Shape: 0
-      m_BoxSize: {x: 4.25, y: 5, z: 4.25}
-      m_BoxBlendDistancePositive: {x: 0.05, y: 0.05, z: 0.05}
-      m_BoxBlendDistanceNegative: {x: 0.05, y: 0.05, z: 0.05}
-      m_BoxBlendNormalDistancePositive: {x: 0.4, y: 0.4, z: 0.4}
-      m_BoxBlendNormalDistanceNegative: {x: 0.4, y: 0.4, z: 0.4}
+      m_BoxSize: {x: 4.25, y: 5.290511, z: 4.25}
+      m_BoxBlendDistancePositive: {x: 0.1, y: 0.1, z: 0.1}
+      m_BoxBlendDistanceNegative: {x: 0.1, y: 0, z: 0.1}
+      m_BoxBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
+      m_BoxBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
       m_BoxSideFadePositive: {x: 1, y: 1, z: 1}
       m_BoxSideFadeNegative: {x: 1, y: 1, z: 1}
       m_SphereRadius: 3
@@ -4127,7 +4127,7 @@ ReflectionProbe:
   m_TimeSlicingMode: 0
   m_Resolution: 128
   m_UpdateFrequency: 0
-  m_BoxSize: {x: 4.25, y: 5, z: 4.25}
+  m_BoxSize: {x: 4.25, y: 5.290511, z: 4.25}
   m_BoxOffset: {x: 0, y: 0, z: 0}
   m_NearClip: 0.3
   m_FarClip: 1000
@@ -11287,6 +11287,14 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 2188331416668601384, guid: 71d265fb20018fb4db3a69616ed7db37, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2188331416670528232, guid: 71d265fb20018fb4db3a69616ed7db37, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5448418150993567024, guid: 71d265fb20018fb4db3a69616ed7db37, type: 3}
       propertyPath: m_Name
       value: NatureSetPiece_02
@@ -13232,7 +13240,7 @@ Camera:
   m_FOVAxisMode: 0
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
-  m_FocalLength: 12
+  m_FocalLength: 15.6
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -13241,7 +13249,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 90
+  field of view: 75.137184
   orthographic: 0
   orthographic size: 5
   m_Depth: 0
