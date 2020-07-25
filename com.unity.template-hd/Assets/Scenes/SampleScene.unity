@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 1481.9113, g: 1835.9701, b: 2430.3435, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -3865,7 +3865,7 @@ MonoBehaviour:
     realtimeMode: 1
     lighting:
       multiplier: 1
-      weight: 1
+      weight: 0.6
       lightLayer: 1
       fadeDistance: 20
       rangeCompressionFactor: 1
@@ -3873,12 +3873,12 @@ MonoBehaviour:
       m_EditorAdvancedModeBlendDistancePositive: {x: 0.1, y: 0.1, z: 0.1}
       m_EditorAdvancedModeBlendDistanceNegative: {x: 0.1, y: 0, z: 0.1}
       m_EditorSimplifiedModeBlendDistance: 0.05
-      m_EditorAdvancedModeBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
-      m_EditorAdvancedModeBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
+      m_EditorAdvancedModeBlendNormalDistancePositive: {x: 0.1, y: 0.1, z: 0.1}
+      m_EditorAdvancedModeBlendNormalDistanceNegative: {x: 0.1, y: 0, z: 0.1}
       m_EditorSimplifiedModeBlendNormalDistance: 0.4
       m_EditorAdvancedModeEnabled: 1
       m_EditorAdvancedModeFaceFadePositive: {x: 1, y: 1, z: 1}
-      m_EditorAdvancedModeFaceFadeNegative: {x: 1, y: 1, z: 1}
+      m_EditorAdvancedModeFaceFadeNegative: {x: 1, y: 1, z: 0}
       m_Version: 1
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
@@ -3886,10 +3886,10 @@ MonoBehaviour:
       m_BoxSize: {x: 4.25, y: 5.290511, z: 4.25}
       m_BoxBlendDistancePositive: {x: 0.1, y: 0.1, z: 0.1}
       m_BoxBlendDistanceNegative: {x: 0.1, y: 0, z: 0.1}
-      m_BoxBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
-      m_BoxBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
+      m_BoxBlendNormalDistancePositive: {x: 0.1, y: 0.1, z: 0.1}
+      m_BoxBlendNormalDistanceNegative: {x: 0.1, y: 0, z: 0.1}
       m_BoxSideFadePositive: {x: 1, y: 1, z: 1}
-      m_BoxSideFadeNegative: {x: 1, y: 1, z: 1}
+      m_BoxSideFadeNegative: {x: 1, y: 1, z: 0}
       m_SphereRadius: 3
       m_SphereBlendDistance: 0
       m_SphereBlendNormalDistance: 0
@@ -14058,7 +14058,7 @@ MonoBehaviour:
     distanceFadeStart: 50
     distanceFadeEnd: 60
     textureIndex: 0
-    textureOffset: {x: -0, y: -0, z: 0}
+    textureOffset: {x: -0, y: -85.62905, z: 0}
 --- !u!1001 &1504255721
 PrefabInstance:
   m_ObjectHideFlags: 0
