@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-3407379486608465658
+--- !u!114 &-1673804412681261599
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -16,58 +16,58 @@ MonoBehaviour:
   m_AdvancedMode: 0
   quality:
     m_OverrideState: 0
-    m_Value: 2
+    m_Value: 1
   focusMode:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 1
   focusDistance:
     m_OverrideState: 1
-    m_Value: 5.93
+    m_Value: 7.48
     min: 0.1
   nearFocusStart:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 0
     min: 0
   nearFocusEnd:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 4
     min: 0
   farFocusStart:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 10
     min: 0
   farFocusEnd:
-    m_OverrideState: 1
-    m_Value: 60
+    m_OverrideState: 0
+    m_Value: 20
     min: 0
   m_NearSampleCount:
     m_OverrideState: 0
-    m_Value: 8
+    m_Value: 5
     min: 3
     max: 8
   m_NearMaxBlur:
-    m_OverrideState: 1
-    m_Value: 8
+    m_OverrideState: 0
+    m_Value: 4
     min: 0
     max: 8
   m_FarSampleCount:
-    m_OverrideState: 1
-    m_Value: 16
+    m_OverrideState: 0
+    m_Value: 7
     min: 3
     max: 16
   m_FarMaxBlur:
-    m_OverrideState: 1
-    m_Value: 16
+    m_OverrideState: 0
+    m_Value: 8
     min: 0
     max: 16
   m_HighQualityFiltering:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 1
   m_Resolution:
-    m_OverrideState: 1
-    m_Value: 1
+    m_OverrideState: 0
+    m_Value: 2
   m_PhysicallyBased:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 0
 --- !u!114 &11400000
 MonoBehaviour:
@@ -79,7 +79,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
-  m_Name: Cinematic Camera 2 Profile
+  m_Name: Cinematic Camera 12 Profile
   m_EditorClassIdentifier: 
   components:
-  - {fileID: -3407379486608465658}
+  - {fileID: -1673804412681261599}
