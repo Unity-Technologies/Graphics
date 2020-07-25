@@ -1285,7 +1285,7 @@ namespace UnityEditor.VFX.Test
                 var currentName = commonBaseName + parameter.model.type.UserFriendlyName();
                 vfxComponent.ResetOverride(currentName);
 
-                var baseValue = GetValue_B_Type(parameter.model.type);
+                var baseValue = GetValue_A_Type(parameter.model.type);
                 object currentValue = null;
                 if (bindingModes)
                     currentValue = fnGet_UsingBindings(type, vfxComponent, currentName);
@@ -1299,7 +1299,7 @@ namespace UnityEditor.VFX.Test
                 {
                     Assert.IsTrue(fnCompareCurve((AnimationCurve)baseValue, (AnimationCurve)currentValue));
                 }
-                else if (bindingModes && parameter.model.type == typeof(Color))
+                else if (parameter.model.type == typeof(Color))
                 {
                     Color col = (Color)baseValue;
                     Assert.AreEqual(new Vector4(col.r, col.g, col.b, col.a), currentValue);
