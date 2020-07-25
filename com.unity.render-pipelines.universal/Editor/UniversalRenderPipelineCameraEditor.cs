@@ -414,7 +414,7 @@ namespace UnityEditor.Rendering.Universal
             m_AdditionalCameraDataCameraTypeProp = serializedExtension.FindPropertyRelative("m_CameraType");
             m_AdditionalCameraDataCameras = serializedExtension.FindPropertyRelative("m_Cameras");
 #if ENABLE_VR && ENABLE_XR_MODULE
-            m_AdditionalCameraDataAllowXRRendering = serializedExtension.FindProperty("m_AllowXRRendering");
+            m_AdditionalCameraDataAllowXRRendering = serializedExtension.FindPropertyRelative("m_AllowXRRendering");
 #endif
         }
 

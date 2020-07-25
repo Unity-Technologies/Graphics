@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="camera">The Camera to check</param>
         /// <returns>True if it is compatible, false otherwise</returns>
         public static bool IsUniversalCamera(Camera camera)
-            => camera.GetComponent<UniversalAdditionalCameraData>() != null;
+            => camera.extension is UniversalCameraExtension;
 
         /// <summary> Check if the provided light is compatible with Universal Render Pipeline </summary>
         /// <param name="light">The Light to check</param>

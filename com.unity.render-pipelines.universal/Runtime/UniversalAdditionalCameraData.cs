@@ -743,7 +743,8 @@ namespace UnityEngine.Rendering.Universal
                     m_Dithering,
                     m_ClearDepth,
                     m_RequiresDepthTexture,
-                    m_RequiresColorTexture
+                    m_RequiresColorTexture,
+                    m_AllowXRRendering
 #pragma warning restore CS0618 // Type or member is obsolete
                 );
 
