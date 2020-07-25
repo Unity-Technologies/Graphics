@@ -141,6 +141,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_StopNaN = false;
         [SerializeField] bool m_Dithering = false;
         [SerializeField] bool m_ClearDepth = true;
+        [SerializeField] bool m_AllowXRRendering = true;
 
         // Deprecated:
         [FormerlySerializedAs("requiresDepthTexture"), SerializeField]
@@ -355,6 +356,15 @@ namespace UnityEngine.Rendering.Universal
             get => m_Dithering;
             set => m_Dithering = value;
         }
+        
+        /// <summary>
+        /// Returns true if this camera allows render in XR.
+        /// </summary>
+        public bool allowXRRendering
+        {
+            get => m_AllowXRRendering;
+            set => m_AllowXRRendering = value;
+        }
 
         public bool IsActiveExtension() => cameraHandler.extension == this;
         
@@ -418,7 +428,8 @@ namespace UnityEngine.Rendering.Universal
             bool dithering,
             bool clearDepth,
             bool requiresDepthTexture,
-            bool requiresColorTexture
+            bool requiresColorTexture,
+            bool allowXRRendering
             )
         {
             m_RenderShadows = renderShadows;
@@ -437,6 +448,7 @@ namespace UnityEngine.Rendering.Universal
             m_ClearDepth = clearDepth;
             m_RequiresDepthTexture = requiresDepthTexture;
             m_RequiresColorTexture = requiresColorTexture;
+            m_AllowXRRendering = allowXRRendering;
         }
     }
 
@@ -492,6 +504,8 @@ namespace UnityEngine.Rendering.Universal
         bool m_Dithering;
         [SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
         bool m_ClearDepth;
+        [SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
+        bool m_AllowXRRendering;
 
         // Deprecated:
         [FormerlySerializedAs("requiresDepthTexture"), SerializeField, Obsolete("Keeped for migration only, use UniversalCameraExtension")]
@@ -661,7 +675,17 @@ namespace UnityEngine.Rendering.Universal
             get => redirect.dithering;
             set => redirect.dithering = value;
         }
-        
+
+        /// <summary>
+        /// Returns true if this camera allows render in XR.
+        /// </summary>
+        [Obsolete("Use directly UniversalCameraExtension.dithering instead.")]
+        public bool allowXRRendering
+        {
+            get => redirect.allowXRRendering;
+            set => redirect.allowXRRendering = value;
+        }
+
         public void OnBeforeSerialize() { }
         
         public void OnAfterDeserialize()
