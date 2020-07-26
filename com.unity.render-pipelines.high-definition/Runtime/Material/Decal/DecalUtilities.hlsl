@@ -124,12 +124,13 @@ void EvalDecalMask( PositionInputs posInput, float3 positionRWSDdx, float3 posit
 
             // Accumulate in dbuffer (mimic what ROP are doing)
             DBuffer2.x = (affectFlags & 4) ? src.x * src.w + DBuffer2.x * (1.0 - src.w) : DBuffer2.x; // Metal
-            DBuffer2.y = (affectFlags & 8) ? src.y * src.w + DBuffer2.y * (1.0 - src.w) : DBuffer2.y; // AO
-            DBuffer2.z = (affectFlags & 16) ? src.z * src.w + DBuffer2.z * (1.0 - src.w) : DBuffer2.z; // Smoothness
-
-            DBuffer2.w = (affectFlags & 16) ? DBuffer2.w * (1.0 - src.w) : DBuffer2.w; // Smoothness alpha
             DBuffer3.x = (affectFlags & 4) ? DBuffer3.x * (1.0 - src.w) : DBuffer3.x; // Metal alpha
+
+            DBuffer2.y = (affectFlags & 8) ? src.y * src.w + DBuffer2.y * (1.0 - src.w) : DBuffer2.y; // AO
             DBuffer3.y = (affectFlags & 8) ? DBuffer3.y * (1.0 - src.w) : DBuffer3.y; // AO alpha
+
+            DBuffer2.z = (affectFlags & 16) ? src.z * src.w + DBuffer2.z * (1.0 - src.w) : DBuffer2.z; // Smoothness
+            DBuffer2.w = (affectFlags & 16) ? DBuffer2.w * (1.0 - src.w) : DBuffer2.w; // Smoothness alpha
         }
 
         // Normal

@@ -85,9 +85,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(AffectsAlbedo,        decalData.affectsAlbedo);
             context.AddField(AffectsNormal,        decalData.affectsNormal);
             context.AddField(AffectsEmission,      decalData.affectsEmission);
-            context.AddField(AffectsMetal,         decalData.affectsMaskmap);
-            context.AddField(AffectsAO,            decalData.affectsMaskmap);
-            context.AddField(AffectsSmoothness,    decalData.affectsMaskmap);
+            context.AddField(AffectsMetal,         decalData.affectsMetal);
+            context.AddField(AffectsAO,            decalData.affectsAO);
+            context.AddField(AffectsSmoothness,    decalData.affectsSmoothness);
             context.AddField(AffectsMaskMap,       decalData.affectsMaskmap);
             context.AddField(DecalDefault,         decalData.affectsAlbedo || decalData.affectsNormal || decalData.affectsMetal ||
                                                                     decalData.affectsAO || decalData.affectsSmoothness );
