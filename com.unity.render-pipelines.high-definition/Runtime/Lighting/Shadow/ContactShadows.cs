@@ -52,7 +52,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter        thicknessScale = new ClampedFloatParameter(0.15f, 0.02f, 1.0f);
 
 
-
+        /// <summary>
+        /// Controls the numbers of samples taken during the ray-marching process for shadows. Increasing this might lead to higher quality at the expenses of performance.
+        /// </summary>
         public int sampleCount
         {
             get
