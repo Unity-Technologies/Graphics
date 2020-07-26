@@ -149,7 +149,7 @@ void EvalDecalMask( PositionInputs posInput, float3 positionRWSDdx, float3 posit
                 float2 sampleNormalDdx = positionDSDdx.xz * decalData.normalScaleBias.xy;
                 float2 sampleNormalDdy = positionDSDdy.xz * decalData.normalScaleBias.xy;
                 float  lodNormal = ComputeTextureLOD(sampleNormalDdx, sampleNormalDdy, _DecalAtlasResolution, 0.5);
-                normalTS = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, sampleNormal, lodNormal)) * 0.5 + 0.5;
+                normalTS = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, sampleNormal, lodNormal));
             }
             else
             {
@@ -157,7 +157,7 @@ void EvalDecalMask( PositionInputs posInput, float3 positionRWSDdx, float3 posit
             }
 
             float4 src;
-            src.xyz = mul((float3x3)decalData.normalToWorld, normalTS);
+            src.xyz = mul((float3x3)decalData.normalToWorld, normalTS) * 0.5 + 0.5; // The " * 0.5 + 0.5" mimic what is happening when calling EncodeIntoDBuffer()
             src.w = (decalData.blendParams.x == 1.0) ? maskMapBlend : albedoMapBlend;
 
             if (src.w > 0.0)
