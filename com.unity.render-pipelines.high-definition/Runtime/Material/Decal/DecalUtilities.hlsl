@@ -81,7 +81,11 @@ void EvalDecalMask( PositionInputs posInput, float3 positionRWSDdx, float3 posit
         }
 
         // Metal/ao/smoothness - 28 -> 1C
-        if (affectFlags & 0x1C) 
+        #ifdef DECALS_4RT
+        if (affectFlags & 0x1C)
+        #else // only smoothness in 3RT mode
+        if (affectFlags & 0x10)
+        #endif
         {
             float4 src;
 
@@ -102,16 +106,20 @@ void EvalDecalMask( PositionInputs posInput, float3 positionRWSDdx, float3 posit
                 src = SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, sampleMask, lodMask);
                 src.z *= decalData.scalingMAB.z; // Blue channel (opacity)
                 maskMapBlend *= src.z; // store before overwriting with smoothness
+                #ifdef DECALS_4RT
                 src.x *= decalData.scalingMAB.x; // Metal
-                src.y = lerp(decalData.remappingAOS.x, decalData.remappingAOS.y, src.y); // Remap AO                
+                src.y = lerp(decalData.remappingAOS.x, decalData.remappingAOS.y, src.y); // Remap AO
+                #endif
                 src.z = lerp(decalData.remappingAOS.z, decalData.remappingAOS.w, src.w); // Remap Smoothness
             }
             else
             {
                 src.z = decalData.scalingMAB.z; // Blue channel (opacity)
                 maskMapBlend *= src.z; // store before overwriting with smoothness
+                #ifdef DECALS_4RT
                 src.x = decalData.scalingMAB.x; // Metal
                 src.y = decalData.remappingAOS.x; // AO
+                #endif
                 src.z = decalData.remappingAOS.z; // Smoothness
             }
 
@@ -123,12 +131,13 @@ void EvalDecalMask( PositionInputs posInput, float3 positionRWSDdx, float3 posit
             }
 
             // Accumulate in dbuffer (mimic what ROP are doing)
+            #ifdef DECALS_4RT
             DBuffer2.x = (affectFlags & 4) ? src.x * src.w + DBuffer2.x * (1.0 - src.w) : DBuffer2.x; // Metal
             DBuffer3.x = (affectFlags & 4) ? DBuffer3.x * (1.0 - src.w) : DBuffer3.x; // Metal alpha
 
             DBuffer2.y = (affectFlags & 8) ? src.y * src.w + DBuffer2.y * (1.0 - src.w) : DBuffer2.y; // AO
             DBuffer3.y = (affectFlags & 8) ? DBuffer3.y * (1.0 - src.w) : DBuffer3.y; // AO alpha
-
+            #endif
             DBuffer2.z = (affectFlags & 16) ? src.z * src.w + DBuffer2.z * (1.0 - src.w) : DBuffer2.z; // Smoothness
             DBuffer2.w = (affectFlags & 16) ? DBuffer2.w * (1.0 - src.w) : DBuffer2.w; // Smoothness alpha
         }
