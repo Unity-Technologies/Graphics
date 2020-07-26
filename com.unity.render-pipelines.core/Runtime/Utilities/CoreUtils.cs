@@ -579,7 +579,7 @@ namespace UnityEngine.Rendering
         /// <returns>Generated names bassed on the provided parameters.</returns>
         public static string GetRenderTargetAutoName(int width, int height, int depth, RenderTextureFormat format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
             => GetRenderTargetAutoName(width, height, depth, format.ToString(), name, mips, enableMSAA, msaaSamples);
-            
+
         /// <summary>
         /// Generate a name based on render texture parameters.
         /// </summary>
@@ -882,7 +882,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Set a keyword to a compute shader
         /// </summary>
-        /// <param name="cmd">ComputeShader on which to set the keyword.</param>
+        /// <param name="cs">Compute Shader on which to set the keyword.</param>
         /// <param name="keyword">Keyword to be set.</param>
         /// <param name="state">Value of the keyword to be set.</param>
         public static void SetKeyword(ComputeShader cs, string keyword, bool state)
@@ -1062,7 +1062,7 @@ namespace UnityEngine.Rendering
             #if UNITY_2020_2_OR_NEWER
                     if (sv.camera == camera && sv.sceneViewState.alwaysRefreshEnabled)
             #else
-                    if (sv.camera == camera && sv.sceneViewState.materialUpdateEnabled)                    
+                    if (sv.camera == camera && sv.sceneViewState.materialUpdateEnabled)
             #endif
                     {
                         animateMaterials = true;
@@ -1191,6 +1191,30 @@ namespace UnityEngine.Rendering
 #endif
 
             return fogEnable;
+        }
+
+        /// <summary>
+        /// Draw a renderer list.
+        /// </summary>
+        /// <param name="renderContext">Current Scriptable Render Context.</param>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="rendererList">Renderer List to render.</param>
+        public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, RendererList rendererList)
+        {
+            if (!rendererList.isValid)
+                throw new ArgumentException("Invalid renderer list provided to DrawRendererList");
+
+            // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders or things will be executed out of order
+            renderContext.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+
+            if (rendererList.stateBlock == null)
+                renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings);
+            else
+            {
+                var renderStateBlock = rendererList.stateBlock.Value;
+                renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings, ref renderStateBlock);
+            }
         }
     }
 }
