@@ -4,7 +4,7 @@ namespace UnityEngine.VFX.Utility
     [RequireComponent(typeof(Rigidbody))]
     public class VFXOutputEventPrefabAttributeHandler_RigidBody : VFXOutputEventPrefabAttributeHandler
     {
-        static readonly int kVelocity = Shader.PropertyToID("velocity");
+        static readonly int k_Velocity = Shader.PropertyToID("velocity");
         Rigidbody m_RigidBody;
         public enum Space
         {
@@ -15,7 +15,7 @@ namespace UnityEngine.VFX.Utility
 
         public override void OnVFXEventAttribute(VFXEventAttribute eventAttribute, VisualEffect visualEffect)
         {
-            var velocity = eventAttribute.GetVector3(kVelocity);
+            var velocity = eventAttribute.GetVector3(k_Velocity);
 
             if (attributeSpace == Space.Local)
                 velocity = visualEffect.transform.localToWorldMatrix.MultiplyVector(velocity);

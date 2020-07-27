@@ -13,12 +13,12 @@ namespace UnityEngine.VFX.Utility
 #endif
     public class VFXOutputEventPrefabAttributeHandler_Light : VFXOutputEventPrefabAttributeHandler
     {
-        public float BrightnessScale = 1.0f;
-        static readonly int kColor = Shader.PropertyToID("color");
+        public float brightnessScale = 1.0f;
+        static readonly int k_Color = Shader.PropertyToID("color");
 
         public override void OnVFXEventAttribute(VFXEventAttribute eventAttribute, VisualEffect visualEffect)
         {
-            Vector3 color = eventAttribute.GetVector3(kColor);
+            Vector3 color = eventAttribute.GetVector3(k_Color);
 
             float intensity = color.magnitude;
             Color c = new Color(color.x, color.y, color.z) / intensity;
@@ -31,7 +31,7 @@ namespace UnityEngine.VFX.Utility
 #else
             var light = GetComponent<Light>();
             light.color = c;
-            light.intensity = intensity * BrightnessScale;
+            light.intensity = intensity * brightnessScale;
 #endif
         }
     }

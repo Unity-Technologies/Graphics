@@ -19,7 +19,7 @@ namespace UnityEngine.VFX.Utility
         [Tooltip("The Cinemachine Impulse Source to use in order to send impulses")]
         public CinemachineImpulseSource cinemachineImpulseSource;
         [Tooltip("The space in which the position and velocity attributes values are defined (local to the VFX, or world)")]
-        public Space sttributeSpace = Space.Local;
+        public Space attributeSpace = Space.Local;
 
         public override void OnVFXOutputEvent(VFXEventAttribute eventAttribute)
         {
@@ -28,7 +28,7 @@ namespace UnityEngine.VFX.Utility
                 Vector3 pos = eventAttribute.GetVector3(k_Position);
                 Vector3 vel = eventAttribute.GetVector3(k_Velocity);
 
-                if(sttributeSpace == Space.Local)
+                if(attributeSpace == Space.Local)
                 {
                     pos = transform.localToWorldMatrix.MultiplyPoint(pos);
                     vel = transform.localToWorldMatrix.MultiplyVector(vel);

@@ -11,17 +11,27 @@ namespace UnityEngine.VFX.Utility
 
         VisualEffect component;
         VFXEventAttribute cachedEventAttribute;
+        VisualEffectAsset cachedEventAttributeAsset;
 
         public override void OnVFXEventAttribute(VFXEventAttribute eventAttribute, VisualEffect visualEffect)
         {
             if(component == null)
             {
                 component = GetComponent<VisualEffect>();
-                cachedEventAttribute = component.CreateVFXEventAttribute();
+
+                if(cachedEventAttribute == null 
+                    || component.visualEffectAsset != cachedEventAttributeAsset)
+                {
+                    cachedEventAttribute = component.CreateVFXEventAttribute();
+                    cachedEventAttributeAsset = component.visualEffectAsset;
+                }
             }
 
-            cachedEventAttribute.CopyValuesFrom(eventAttribute);
-            component.SendEvent(eventToSend, cachedEventAttribute);
+            if(cachedEventAttribute != null)
+            {
+                cachedEventAttribute.CopyValuesFrom(eventAttribute);
+                component.SendEvent(eventToSend, cachedEventAttribute);
+            }
         }
     }
 }
