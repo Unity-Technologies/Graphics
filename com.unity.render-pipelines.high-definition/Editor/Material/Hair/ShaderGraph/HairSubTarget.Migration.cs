@@ -21,23 +21,25 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if(!(masterNode is HairMasterNode1 hairMasterNode))
                 return false;
 
+            m_MigrateFromOldSG = true;
+
             // Set data
             systemData.surfaceType = (SurfaceType)hairMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)hairMasterNode.m_AlphaMode);
             // Previous master node wasn't having any renderingPass. Assign it correctly now.
             systemData.renderingPass = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
             systemData.alphaTest = hairMasterNode.m_AlphaTest;
-            systemData.alphaTestDepthPrepass = hairMasterNode.m_AlphaTestDepthPrepass;
-            systemData.alphaTestDepthPostpass = hairMasterNode.m_AlphaTestDepthPostpass;
             systemData.sortPriority = hairMasterNode.m_SortPriority;
             systemData.doubleSidedMode = hairMasterNode.m_DoubleSidedMode;
             systemData.transparentZWrite = hairMasterNode.m_ZWrite;
             systemData.transparentCullMode = hairMasterNode.m_transparentCullMode;
             systemData.zTest = hairMasterNode.m_ZTest;
-            systemData.supportLodCrossFade = hairMasterNode.m_SupportLodCrossFade;
             systemData.dotsInstancing = hairMasterNode.m_DOTSInstancing;
             systemData.materialNeedsUpdateHash = hairMasterNode.m_MaterialNeedsUpdateHash;
 
+            builtinData.supportLodCrossFade = hairMasterNode.m_SupportLodCrossFade;
+            builtinData.transparentDepthPrepass = hairMasterNode.m_AlphaTestDepthPrepass;
+            builtinData.transparentDepthPostpass = hairMasterNode.m_AlphaTestDepthPostpass;
             builtinData.transparencyFog = hairMasterNode.m_TransparencyFog;
             builtinData.transparentWritesMotionVec = hairMasterNode.m_TransparentWritesMotionVec;
             builtinData.addPrecomputedVelocity = hairMasterNode.m_AddPrecomputedVelocity;
@@ -96,9 +98,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     case HairMasterNode1.SlotMask.AlphaClipThreshold:
                         return systemData.alphaTest;
                     case HairMasterNode1.SlotMask.AlphaClipThresholdDepthPrepass:
-                        return systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPrepass;
+                        return systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && builtinData.transparentDepthPrepass;
                     case HairMasterNode1.SlotMask.AlphaClipThresholdDepthPostpass:
-                        return systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPostpass;
+                        return systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && builtinData.transparentDepthPostpass;
                     case HairMasterNode1.SlotMask.AlphaClipThresholdShadow:
                         return systemData.alphaTest && builtinData.alphaTestShadow;
                     default:

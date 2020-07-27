@@ -12,7 +12,6 @@ using UnityEditorInternal;
 using Debug = UnityEngine.Debug;
 using System.Reflection;
 using System.Runtime.Remoting.Metadata.W3cXsd2001;
-using Data.Util;
 using UnityEditor.ProjectWindowCallback;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
@@ -133,6 +132,29 @@ namespace UnityEditor.ShaderGraph
 
     static class GraphUtil
     {
+        internal static bool CheckForRecursiveDependencyOnPendingSave(string saveFilePath, IEnumerable<SubGraphNode> subGraphNodes, string context = null)
+        {
+            var overwriteGUID = AssetDatabase.AssetPathToGUID(saveFilePath);
+            if (!string.IsNullOrEmpty(overwriteGUID))
+            {
+                foreach (var sgNode in subGraphNodes)
+                {
+                    if ((sgNode.asset.assetGuid == overwriteGUID) || sgNode.asset.descendents.Contains(overwriteGUID))
+                    {
+                        if (context != null)
+                        {
+                            Debug.LogWarning(context + " CANCELLED to avoid a generating a reference loop:  the SubGraph '" + sgNode.asset.name + "' references the target file '" + saveFilePath + "'");
+                            EditorUtility.DisplayDialog(
+                                context + " CANCELLED",
+                                "Saving the file would generate a reference loop, because the SubGraph '" + sgNode.asset.name + "' references the target file '" + saveFilePath + "'", "Cancel");
+                        }
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         internal static string ConvertCamelCase(string text, bool preserveAcronyms)
         {
             if (string.IsNullOrEmpty(text))

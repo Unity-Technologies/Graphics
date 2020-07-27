@@ -203,8 +203,17 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RenderingLayerNames[6] = m_RenderPipelineSettings.lightLayerName6;
             m_RenderingLayerNames[7] = m_RenderPipelineSettings.lightLayerName7;
 
+            m_RenderingLayerNames[8] = m_RenderPipelineSettings.decalLayerName0;
+            m_RenderingLayerNames[9] = m_RenderPipelineSettings.decalLayerName1;
+            m_RenderingLayerNames[10] = m_RenderPipelineSettings.decalLayerName2;
+            m_RenderingLayerNames[11] = m_RenderPipelineSettings.decalLayerName3;
+            m_RenderingLayerNames[12] = m_RenderPipelineSettings.decalLayerName4;
+            m_RenderingLayerNames[13] = m_RenderPipelineSettings.decalLayerName5;
+            m_RenderingLayerNames[14] = m_RenderPipelineSettings.decalLayerName6;
+            m_RenderingLayerNames[15] = m_RenderPipelineSettings.decalLayerName7;
+
             // Unused
-            for (int i = 8; i < m_RenderingLayerNames.Length; ++i)
+            for (int i = 16; i < m_RenderingLayerNames.Length; ++i)
             {
                 m_RenderingLayerNames[i] = string.Format("Unused {0}", i);
             }
@@ -251,6 +260,29 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 return m_LightLayerNames;
+            }
+        }
+
+        [System.NonSerialized]
+        string[] m_DecalLayerNames = null;
+        /// <summary>
+        /// Names used for display of light layers.
+        /// </summary>
+        public string[] decalLayerNames
+        {
+            get
+            {
+                if (m_DecalLayerNames == null)
+                {
+                    m_DecalLayerNames = new string[8];
+                }
+
+                for (int i = 0; i < 8; ++i)
+                {
+                    m_DecalLayerNames[i] = renderingLayerNames[i + 8];
+                }
+
+                return m_DecalLayerNames;
             }
         }
 

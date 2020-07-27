@@ -735,11 +735,15 @@ namespace UnityEditor.VFX.UI
                         {
                             p = viewController.AddVFXParameter(Vector2.zero, desc);
                             p.value = parameter.value.Get();
-                            p.hasRange = parameter.range;
-                            if (parameter.range)
+                            p.valueFilter = parameter.valueFilter;
+                            if (parameter.valueFilter == VFXValueFilter.Range)
                             {
-                                p.m_Min = parameter.min;
-                                p.m_Max = parameter.max;
+                                p.min = parameter.min.Get();
+                                p.max = parameter.max.Get();
+                            }
+                            else if( parameter.valueFilter == VFXValueFilter.Enum)
+                            {
+                                p.enumValues = parameter.enumValue.ToList();
                             }
                             p.SetSettingValue("m_Exposed", parameter.exposed);
                             if (viewController.model.visualEffectObject is VisualEffectSubgraphOperator)
