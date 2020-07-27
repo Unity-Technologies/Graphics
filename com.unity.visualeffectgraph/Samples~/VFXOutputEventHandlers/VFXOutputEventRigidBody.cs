@@ -1,3 +1,4 @@
+#if VFX_OUTPUTEVENT_PHYSICS
 using UnityEngine.Events;
 
 namespace UnityEngine.VFX.Utility
@@ -62,8 +63,7 @@ namespace UnityEngine.VFX.Utility
                 default:
                     break;
             }
-
         }
     }
-
 }
+#endif

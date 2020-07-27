@@ -17,27 +17,22 @@
         {
             "name": "com.unity.render-pipelines.high-definition",
             "expression": "10.0.0",
-            "define": "HDRP"
-        },
-        {
-            "name": "com.unity.render-pipelines.universal",
-            "expression": "10.0.0",
-            "define": "URP"
+            "define": "VFX_OUTPUTEVENT_HDRP_10_0_0_OR_NEWER"
         },
         {
             "name": "com.unity.cinemachine",
             "expression": "2.6.0",
-            "define": "CINEMACHINE"
+            "define": "VFX_OUTPUTEVENT_CINEMACHINE_2_6_0_OR_NEWER"
         },
         {
             "name": "com.unity.modules.physics",
             "expression": "1.0.0",
-            "define": "PHYSICS"
+            "define": "VFX_OUTPUTEVENT_PHYSICS"
         },
         {
             "name": "com.unity.modules.audio",
             "expression": "1.0.0",
-            "define": "AUDIO"
+            "define": "VFX_OUTPUTEVENT_AUDIO"
         }
     ],
     "noEngineReferences": false

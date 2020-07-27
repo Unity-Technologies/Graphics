@@ -9,60 +9,98 @@ namespace UnityEngine.VFX.Utility
         public uint instanceCount 
         { 
             get { return m_InstanceCount; }
-            set { ResetInstances(value); }
+            set { m_InstanceCount = value; ResetInstances(); }
         }
+
+        public GameObject prefabToSpawn
+        {
+            get { return m_PrefabToSpawn; }
+            set { m_PrefabToSpawn = value; DisposeInstances(); ResetInstances(); }
+        }
+        public bool parentInstances
+        {
+            get { return m_ParentInstances; }
+            set { m_ParentInstances = value; ResetInstances(); }
+        }
+
         [Header("Prefab Instances")]
-        [SerializeField]
+        [SerializeField, Tooltip("The maximum number of prefabs that can be active at a time")]
         protected uint m_InstanceCount = 5;
-        public GameObject PrefabToSpawn;
+        [SerializeField, Tooltip("The prefab to enable upon event received. Prefabs are created as hidden and stored in a pool, upon enabling this behavior. Upon receiving an event a prefab from the pool is enabled and will be disabled when reaching its lifetime.")]
+        protected GameObject m_PrefabToSpawn;
+        [SerializeField, Tooltip("Whether to attach prefab instances to current game object. Use this setting to treat position and angle attributes as local space.")]
+        protected bool m_ParentInstances;
 
         [Header("Event Attribute Usage")]
-        public bool UsePosition = true;
-        public bool UseAngle = true;
-        public bool UseScale = true;
-        public bool UseLifetime = true;
+        [Tooltip("Whether to use the position attribute to set prefab position on spawn")]
+        public bool usePosition = true;
+        [Tooltip("Whether to use the angle attribute to set prefab rotation on spawn")]
+        public bool useAngle = true;
+        [Tooltip("Whether to use the scale attribute to set prefab localScale on spawn")]
+        public bool useScale = true;
+        [Tooltip("Whether to use the lifetime attribute to determine how long the prefab will be enabled")]
+        public bool useLifetime = true;
 
         private GameObject[] m_Instances;
         private float[] m_TTLs;
 
+        bool isEditorPreview => Application.isEditor && !Application.isPlaying;
+
         protected override void OnEnable()
         {
             base.OnEnable();
-            ResetInstances(instanceCount);
+            ResetInstances();
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
-
-            for (int i = 0; i < instanceCount; i++)
-            {
-                DisposeInstance(m_Instances[i]);
-            }
+            DisposeInstances();
         }
 
-        void ResetInstances(uint newCount)
+        private void OnValidate()
         {
+#if UNITY_EDITOR
+            // Workaround call as you can't use neither Destroy() nor DestroyImmediate()
+            // in order to destroy GameObjects in OnValidate()
+            //
+            // https://forum.unity.com/threads/onvalidate-and-destroying-objects.258782/
+            UnityEditor.EditorApplication.delayCall += () =>
+            {
+                DisposeInstances();
+                ResetInstances();
+            };
+#endif
+        }
+
+        private void ResetInstances()
+        {
+            if (m_PrefabToSpawn == null || m_InstanceCount == 0)
+            {
+                DisposeInstances();
+                return;
+            }
+
             // Clean up Instances
             if (m_Instances == null)
             {
-                m_Instances = new GameObject[newCount];
-                for(uint i = 0; i < instanceCount; i++)
+                m_Instances = new GameObject[instanceCount];
+                for(uint i = 0; i < m_Instances.Length; i++)
                 {
                     m_Instances[i] = InitializeInstance();
                 }
             }
             else
             {
-                int maxCount = Math.Max((int)instanceCount, (int)newCount);
-                GameObject[] newArray = new GameObject[newCount];
+                int maxCount = Math.Max((int)instanceCount, (int)instanceCount);
+                GameObject[] newArray = new GameObject[instanceCount];
                 for(int i = 0; i < maxCount; i++)
                 {
                     if (i < instanceCount) // Create new Instances
                     {
                         newArray[i] = InitializeInstance();
                     }
-                    else if(i > newCount) // Reap old Instances
+                    else if(i > instanceCount) // Reap old Instances
                     {
                         DisposeInstance(m_Instances[i]);
                     }
@@ -75,48 +113,54 @@ namespace UnityEngine.VFX.Utility
                 m_Instances = newArray;
             }
 
-            m_InstanceCount = newCount;
-            m_TTLs = new float[newCount];
+            // Initialize TTLs
+            m_TTLs = new float[instanceCount];
         }
 
-        GameObject InitializeInstance()
+        private GameObject InitializeInstance()
         {
-            if (PrefabToSpawn == null)
-            {
-                Debug.LogWarning("PrefabToSpawn is null : Instantiating default Game Object");
-                return new GameObject();
-            }
-            else
-            {
-                PrefabToSpawn.SetActive(false);
-                var go = Instantiate(PrefabToSpawn);
-                go.SetActive(false);
-                go.hideFlags = HideFlags.HideAndDontSave;
-                return go;
-            }
+            var go = Instantiate(m_PrefabToSpawn);
+            go.SetActive(false);
+            go.hideFlags = HideFlags.HideAndDontSave;
+            return go;
         }
 
-        void DisposeInstance(GameObject instance)
+        private void DisposeInstances()
+        {
+            if (m_Instances == null)
+                return;
+
+            for (int i = 0; i < m_Instances.Length; i++)
+            {
+                DisposeInstance(m_Instances[i]);
+            }
+            m_Instances = null;
+        }
+
+        private void DisposeInstance(GameObject instance)
         {
             if (instance == null)
                 return;
 
-            if (Application.isEditor && !Application.isPlaying)
+            if (isEditorPreview)
                 DestroyImmediate(instance);
             else
                 Destroy(instance);
         }
 
-        static readonly int positionID = Shader.PropertyToID("position");
-        static readonly int angleID = Shader.PropertyToID("angle");
-        static readonly int scaleID = Shader.PropertyToID("scale");
-        static readonly int lifetimeID = Shader.PropertyToID("lifetime");
+        static readonly int k_PositionID = Shader.PropertyToID("position");
+        static readonly int k_AngleID = Shader.PropertyToID("angle");
+        static readonly int k_ScaleID = Shader.PropertyToID("scale");
+        static readonly int k_LifetimeID = Shader.PropertyToID("lifetime");
 
         public override void OnVFXOutputEvent(VFXEventAttribute eventAttribute)
         {
+            if (m_Instances == null)
+                return;
+
             // Find Slot
             int freeIdx = -1;
-            for(int i = 0; i <instanceCount; i++)
+            for(int i = 0; i < m_Instances.Length; i++)
             {
                 if (m_Instances[i] == null)
                     m_Instances[i] = InitializeInstance();
@@ -134,18 +178,29 @@ namespace UnityEngine.VFX.Utility
             // Activate Item if available
             var obj = m_Instances[freeIdx];
             obj.SetActive(true);
+            obj.transform.parent = m_ParentInstances ? transform : null;
 
-            if (UsePosition && eventAttribute.HasVector3(positionID))
-                obj.transform.position = eventAttribute.GetVector3(positionID);
+            if (usePosition && eventAttribute.HasVector3(k_PositionID))
+            {
+                if(parentInstances)
+                    obj.transform.localPosition = eventAttribute.GetVector3(k_PositionID);
+                else
+                    obj.transform.position = eventAttribute.GetVector3(k_PositionID);
+            }
 
-            if (UseAngle && eventAttribute.HasVector3(angleID))
-                obj.transform.eulerAngles = eventAttribute.GetVector3(angleID);
+            if (useAngle && eventAttribute.HasVector3(k_AngleID))
+            {
+                if (parentInstances)
+                    obj.transform.localEulerAngles = eventAttribute.GetVector3(k_AngleID);
+                else
+                    obj.transform.eulerAngles = eventAttribute.GetVector3(k_AngleID);
+            }
 
-            if (UseScale && eventAttribute.HasVector3(scaleID))
-                obj.transform.localScale = eventAttribute.GetVector3(scaleID);
+            if (useScale && eventAttribute.HasVector3(k_ScaleID))
+                obj.transform.localScale = eventAttribute.GetVector3(k_ScaleID);
 
-            if (UseLifetime && eventAttribute.HasFloat(lifetimeID))
-                m_TTLs[freeIdx] = eventAttribute.GetFloat(lifetimeID);
+            if (useLifetime && eventAttribute.HasFloat(k_LifetimeID))
+                m_TTLs[freeIdx] = eventAttribute.GetFloat(k_LifetimeID);
             else
                 m_TTLs[freeIdx] = float.NegativeInfinity;
 
@@ -166,9 +221,12 @@ namespace UnityEngine.VFX.Utility
 
         void UpdateInstanceTTL()
         {
+            if (m_Instances == null)
+                return;
+
             float dt = Time.deltaTime;
 
-            for(int i = 0; i< instanceCount; i++)
+            for(int i = 0; i< m_Instances.Length; i++)
             {
                 // Negative infinity for non-time managed
                 if (m_TTLs[i] == float.NegativeInfinity)

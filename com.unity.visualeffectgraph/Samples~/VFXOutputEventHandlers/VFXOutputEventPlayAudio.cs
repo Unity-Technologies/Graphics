@@ -1,4 +1,4 @@
-#if AUDIO
+#if VFX_OUTPUTEVENT_AUDIO
 using UnityEngine.Events;
 
 namespace UnityEngine.VFX.Utility

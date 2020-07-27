@@ -1,4 +1,4 @@
-#if CINEMACHINE
+#if VFX_OUTPUTEVENT_CINEMACHINE_2_6_0_OR_NEWER
 using Cinemachine;
 
 namespace UnityEngine.VFX.Utility
@@ -13,20 +13,22 @@ namespace UnityEngine.VFX.Utility
             World
         }
 
-        static readonly int position = Shader.PropertyToID("position");
-        static readonly int velocity = Shader.PropertyToID("velocity");
+        static readonly int k_Position = Shader.PropertyToID("position");
+        static readonly int k_Velocity = Shader.PropertyToID("velocity");
 
+        [Tooltip("The Cinemachine Impulse Source to use in order to send impulses")]
         public CinemachineImpulseSource cinemachineImpulseSource;
-        public Space AttributeSpace = Space.Local;
+        [Tooltip("The space in which the position and velocity attributes values are defined (local to the VFX, or world)")]
+        public Space sttributeSpace = Space.Local;
 
         public override void OnVFXOutputEvent(VFXEventAttribute eventAttribute)
         {
             if(cinemachineImpulseSource != null)
             {
-                Vector3 pos = eventAttribute.GetVector3(position);
-                Vector3 vel = eventAttribute.GetVector3(velocity);
+                Vector3 pos = eventAttribute.GetVector3(k_Position);
+                Vector3 vel = eventAttribute.GetVector3(k_Velocity);
 
-                if(AttributeSpace == Space.Local)
+                if(sttributeSpace == Space.Local)
                 {
                     pos = transform.localToWorldMatrix.MultiplyPoint(pos);
                     vel = transform.localToWorldMatrix.MultiplyVector(vel);

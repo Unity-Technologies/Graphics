@@ -1,20 +1,19 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-#if HDRP
+#if VFX_OUTPUTEVENT_HDRP_10_0_0_OR_NEWER
 using UnityEngine.Rendering.HighDefinition;
 #endif
 
 namespace UnityEngine.VFX.Utility
 {
     [RequireComponent(typeof(Light))]
-#if HDRP
+#if VFX_OUTPUTEVENT_HDRP_10_0_0_OR_NEWER
     [RequireComponent(typeof(HDAdditionalLightData))]
 #endif
     public class VFXOutputEventPrefabAttributeHandler_Light : VFXOutputEventPrefabAttributeHandler
     {
         public float BrightnessScale = 1.0f;
-
         static readonly int kColor = Shader.PropertyToID("color");
 
         public override void OnVFXEventAttribute(VFXEventAttribute eventAttribute, VisualEffect visualEffect)
@@ -24,7 +23,7 @@ namespace UnityEngine.VFX.Utility
             float intensity = color.magnitude;
             Color c = new Color(color.x, color.y, color.z) / intensity;
 
-#if HDRP
+#if VFX_OUTPUTEVENT_HDRP_10_0_0_OR_NEWER
             var hdlight = GetComponent<HDAdditionalLightData>();
 
             hdlight.SetColor(c);

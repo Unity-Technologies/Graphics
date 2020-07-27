@@ -9,7 +9,7 @@ namespace UnityEngine.VFX.Utility
         public UnityEvent onEvent;
         public override void OnVFXOutputEvent(VFXEventAttribute eventAttribute)
         {
-            onEvent.Invoke();
+            onEvent?.Invoke();
         }
     }
 

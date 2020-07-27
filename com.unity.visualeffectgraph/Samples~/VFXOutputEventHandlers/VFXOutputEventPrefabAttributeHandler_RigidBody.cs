@@ -1,4 +1,4 @@
-#if PHYSICS
+#if VFX_OUTPUTEVENT_PHYSICS
 namespace UnityEngine.VFX.Utility
 {
     [RequireComponent(typeof(Rigidbody))]
