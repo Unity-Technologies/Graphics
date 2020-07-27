@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Subgraphs are not in hardcoded categories anymore : updated default subgraph templates + Samples to add meaningful categories.
 - Enum fields having headers show the header in the inspector as well.
 - Fix incorrect propagation on expression flags [Case 1246738](https://issuetracker.unity3d.com/product/unity/issues/guid/1246738/)
+- fix crash when creating a loop in subgraph operators [Case 1251523](https://issuetracker.unity3d.com/product/unity/issues/guid/1251523/)
 
 ## [7.4.1] - 2020-06-03
 
