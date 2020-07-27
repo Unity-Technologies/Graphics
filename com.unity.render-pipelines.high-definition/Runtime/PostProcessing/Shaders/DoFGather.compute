@@ -78,8 +78,13 @@ int GetCoCBucket(float cocSize)
 }
 float GetBucketWeight(float sampleCoC, float noise, int bucket)
 {
-    float w0 = saturate((sampleCoC - 5 - 7 * noise) / 7.0f);
-    float w1 = saturate((1.0 * noise - sampleCoC) / 1.0f);
+    // Note: we could potentially get higher quality by allowing artists to fine-tune the bucket/cascade transitions,
+    // but DoF is not as sensitive as shadows, so for now it's better to not expose many settings.
+    const float bucketLimit[NUM_BUCKETS - 1] = { 5.0f, 0.0f };
+    const float bucketTransition[NUM_BUCKETS - 1] = { 7.0f, 1.0f };
+
+    float w0 = saturate((sampleCoC - bucketLimit[0] - bucketTransition[0] * noise) / bucketTransition[0]);
+    float w1 = saturate((bucketTransition[1] * noise - sampleCoC) / bucketTransition[1]);
     if (bucket == 0)
     {
         return w0;
@@ -205,10 +210,10 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     float noise2 = InterleavedGradientNoise(posInputs.positionSS.xy, 8 + sampleOffset);
 
     // Note: For zero radius we still go through the loop (for one iteration). We can avoid the cost of computing weigths if we early exit (at the cost of extra code complexity).
-    float TotalRings = maxRadius > 0 ? NumRings : 0;
+    float totalRings = maxRadius > 0 ? NumRings : 0;
 
     // Iterate over the octaweb pattern and gather the DoF samples
-    for (float ring = TotalRings; ring >= 0; ring -= 1.0)
+    for (float ring = totalRings; ring >= 0; ring -= 1.0)
     {
         float numSamples = max(ring * RING_DENSITY, 1);
         float dAng = 2.0f * PI / numSamples;
@@ -296,6 +301,9 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     // back to front alpha blending of the near, far and in-focus buckets
     for (int j = 0; j < NUM_BUCKETS; ++j)
     {
+        // Reference: "Next Generation Post-Processing in Call of Duty Advanced Warfare", Advances in real-time rendering, Siggraph 2014
+        // See slide 102 for the normalization factor for the alpha. The 2x factor (see slide 103) also helps with the far layers for 
+        // large amounts of defocus blur, but this might need more investigation.
         float alpha = saturate(totalColor[j].w * 2 * rcp(GetNumSamples(maxCoC[j], maxRadius))* rcp(GetSampleWeight(maxCoC[j])));
         outColor = (1.0 - alpha) * outColor + alpha * totalColor[j];
 #ifdef ENABLE_ALPHA

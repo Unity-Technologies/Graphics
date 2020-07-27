@@ -1926,6 +1926,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.dofPrecombineFarCS.shaderKeywords = null;
             parameters.dofCombineCS.shaderKeywords = null;
             parameters.pbDoFGatherCS.shaderKeywords = null;
+            parameters.dofCoCReprojectCS.shaderKeywords = null;
 
             bool nearLayerActive = parameters.nearLayerActive;
             bool farLayerActive = parameters.farLayerActive;
