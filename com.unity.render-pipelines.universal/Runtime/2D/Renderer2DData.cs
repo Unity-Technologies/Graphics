@@ -50,6 +50,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         [SerializeField, Reload("Runtime/Materials/Sprite-Unlit-Default.mat")]
         Material m_DefaultUnlitMaterial = null;
+
+        [SerializeField, Reload("Runtime/Materials/Sprite-Lit-Mask.mat")]
+        Material m_DefaultSpriteMaskMaterial = null;
 #endif
 
         [SerializeField, Reload("Shaders/2D/Light2D-Shape.shader")]
@@ -179,6 +182,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     return m_DefaultUnlitMaterial;
                 else
                     return m_DefaultCustomMaterial;
+            }
+            else if(materialType == DefaultMaterialType.SpriteMask)
+            {
+                return m_DefaultSpriteMaskMaterial;
             }
 
             return null;
