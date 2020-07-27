@@ -83,4 +83,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/046_Camera_OpaqueTexture.unity
     guid: b2035ba39f2a0154dbd09e5aea7d2102
+  - enabled: 1
+    path: Assets/Scenes/047_Lighting_DirectionalCascades.unity
+    guid: 43daa9b1fc7858d44b716cfe1bb9d4bc
   m_configObjects: {}
