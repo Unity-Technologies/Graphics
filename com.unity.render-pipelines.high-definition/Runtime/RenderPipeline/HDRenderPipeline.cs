@@ -2635,7 +2635,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     var depthTexture = m_SharedRTManager.GetDepthTexture();
                     var normalBuffer = m_SharedRTManager.GetNormalBuffer();
-                    var motionVectors = m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors ? m_SharedRTManager.GetMotionVectorsBuffer() : TextureXR.GetBlackTextureArray();
+                    var motionVectors = m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors ? m_SharedRTManager.GetMotionVectorsBuffer() : TextureXR.GetBlackTexture();
 
                     SSAOTask.Start(cmd, asyncParams, AsyncSSAODispatch, !haveAsyncTaskWithShadows);
                     haveAsyncTaskWithShadows = true;
@@ -2706,7 +2706,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (!hdCamera.frameSettings.SSAORunsAsync())
                 {
-                    var motionVectors = m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors ? m_SharedRTManager.GetMotionVectorsBuffer() : TextureXR.GetBlackTextureArray();
+                    var motionVectors = m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors ? m_SharedRTManager.GetMotionVectorsBuffer() : TextureXR.GetBlackTexture();
                     m_AmbientOcclusionSystem.Render(cmd, hdCamera, renderContext, m_SharedRTManager.GetDepthTexture(), m_SharedRTManager.GetNormalBuffer(), motionVectors, m_ShaderVariablesRayTracingCB, m_FrameCount);
                 }
 
