@@ -76,6 +76,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed the ETC1_EXTERNAL_ALPHA variant from Shader Graph Sprite shaders.
 - Eliminated some unnecessary clearing of render targets when using the 2D Renderer.
 - Removed the 8 renderer limit from URP Asset.
+- Changing the default value of Skip Iterations to 1 in Bloom effect editor
 
 ### Fixed
 - Fixed a performance problem with ShaderPreprocessor with large amount of active shader variants in the project 
