@@ -74,4 +74,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/034_Shader_HighlightsEnvironmentGradientBaked.unity
     guid: 7e6c9ba616efd1145be1b8946fa166af
+  - enabled: 1
+    path: Assets/Scenes/036_Lighting_Scene_DirectionalBakedDirectional.unity
+    guid: d3c09ae27b1494240a8f07168d548968
   m_configObjects: {}
