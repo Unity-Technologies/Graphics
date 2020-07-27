@@ -1974,6 +1974,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.dofGatherCS.EnableKeyword("USE_TILES");
             }
 
+            if (m_DepthOfField.physicallyBased)
+            {
+                parameters.dofCoCReprojectCS.EnableKeyword("ENABLE_MAX_BLENDING");
+            }
+
             parameters.useMipSafePath = m_UseSafePath;
 
             return parameters;
@@ -2496,7 +2501,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Map the old "max radius" parameters to a bigger range, so we can work on more challenging scenes
             float maxRadius = Mathf.Max(dofParameters.farMaxBlur, dofParameters.nearMaxBlur);
-            float cocLimit = Mathf.Clamp(4 * maxRadius, 1, 32);
+            float cocLimit = Mathf.Clamp(4 * maxRadius, 1, 64);
 
             ComputeShader cs;
             int kernel;
