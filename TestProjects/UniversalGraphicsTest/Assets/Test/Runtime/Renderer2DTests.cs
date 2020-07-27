@@ -28,7 +28,7 @@ class Renderer2DTests
 
         m_OverlayObj = new GameObject();
         m_OverlayCamera = m_OverlayObj.AddComponent<Camera>();
-        m_OverlayCameraData = m_BaseCamera.CreateExtension<UniversalCameraExtension>();
+        m_OverlayCameraData = m_OverlayCamera.CreateExtension<UniversalCameraExtension>();
         m_OverlayCamera.SwitchActiveExtensionTo<UniversalCameraExtension>();
 
         m_OverlayCamera.allowHDR = false;

@@ -722,8 +722,9 @@ namespace UnityEngine.Rendering.Universal
 
                 //force migration of the whole stack at once when moving the base
 #pragma warning disable CS0618 // Type or member is obsolete
-                foreach (Camera c in m_Cameras)
-                    c.GetComponent<UniversalAdditionalCameraData>()?.Migrate();
+                if (m_Cameras != null)
+                    foreach (Camera c in m_Cameras)
+                        c.GetComponent<UniversalAdditionalCameraData>()?.Migrate();
 #pragma warning restore CS0618 // Type or member is obsolete
 
                 extension.InitFromMigration(
