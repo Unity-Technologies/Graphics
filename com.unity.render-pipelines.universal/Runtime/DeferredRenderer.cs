@@ -255,9 +255,6 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
 
                 CreateCameraRenderTarget(context, ref renderingData.cameraData, m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
-
-                if (Camera.main == camera && camera.cameraType == CameraType.Game && cameraData.targetTexture == null)
-                    SetupBackbufferFormat(1, cameraData.xr.enabled);
             }
             else
             {
