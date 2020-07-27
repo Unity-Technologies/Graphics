@@ -226,9 +226,6 @@ namespace UnityEngine.Rendering.Universal
 
                 // if rendering to intermediate render texture we don't have to create msaa backbuffer
                 int backbufferMsaaSamples = (intermediateRenderTexture) ? 1 : cameraTargetDescriptor.msaaSamples;
-
-                if (Camera.main == camera && camera.cameraType == CameraType.Game && cameraData.targetTexture == null)
-                    SetupBackbufferFormat(backbufferMsaaSamples, cameraData.xr.enabled);
             }
             else
             {
