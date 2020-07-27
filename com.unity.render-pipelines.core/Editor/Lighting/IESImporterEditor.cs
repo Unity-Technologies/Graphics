@@ -35,11 +35,17 @@ namespace UnityEditor.Rendering
         SerializedProperty m_UseIESMaximumIntensityProp;
         SerializedProperty m_CookieCompressionProp;
 
+        /// <summary>
+        /// Property to the aim axis rotation for projection
+        /// </summary>
         protected SerializedProperty m_LightAimAxisRotationProp;
 
         bool m_ShowLuminaireProductInformation = true;
         bool m_ShowLightProperties = true;
 
+        /// <summary>
+        /// Object used to setup Preview renderer
+        /// </summary>
         protected PreviewRenderUtility m_PreviewRenderUtility = null;
 
         /// <summary>
@@ -49,22 +55,30 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Delegate prototype sent by the specialization of the IESImporterEditor per Render Pipeline
         /// </summary>
+        /// <param name="camera">Current camera</param>
         public delegate void SetupRenderPipelinePreviewCamera(Camera camera);
         /// <summary>
         /// Delegate prototype sent by the specialization of the IESImporterEditor per Render Pipeline
         /// </summary>
+        /// <param name="light">Light will be setuped, specialization for a given SRP</param>
         public delegate void SetupRenderPipelinePreviewLight(Light light);
         /// <summary>
         /// Delegate prototype sent by the specialization of the IESImporterEditor per Render Pipeline
         /// </summary>
+        /// <param name="wallRenderer">Setup a wall for the preview</param>
         public delegate void SetupRenderPipelinePreviewWallRenderer(MeshRenderer wallRenderer);
         /// <summary>
         /// Delegate prototype sent by the specialization of the IESImporterEditor per Render Pipeline
         /// </summary>
+        /// <param name="floorRenderer">Setup a floor for the preview</param>
         public delegate void SetupRenderPipelinePreviewFloorRenderer(MeshRenderer floorRenderer);
         /// <summary>
         /// Delegate prototype sent by the specialization of the IESImporterEditor per Render Pipeline
         /// </summary>
+        /// <param name="light">Light used to setup the IES</param>
+        /// <param name="useIESMaximumIntensityProp">Serialized property to the "useIESMaximumIntensity" property</param>
+        /// <param name="iesMaximumIntensityUnitProp">Serialized property to the "iesMaximumIntensityUnit" property</param>
+        /// <param name="iesMaximumIntensityProp">Serialized property to the "iesMaximumIntensity" property</param>
         public delegate void SetupRenderPipelinePreviewLightIntensity(Light light, SerializedProperty useIESMaximumIntensityProp, SerializedProperty iesMaximumIntensityUnitProp, SerializedProperty iesMaximumIntensityProp);
 
         /// <summary>
@@ -160,6 +174,7 @@ namespace UnityEditor.Rendering
         /// <param name="setupRenderPipelinePreviewFloorRenderer">Delegate provided by the Render pipeline to setup the Preview Light</param>
         /// <param name="setupRenderPipelinePreviewLight">Delegate provided by the Render pipeline to setup the Preview Wall</param>
         /// <param name="setupRenderPipelinePreviewWallRenderer">Delegate provided by the Render pipeline to setup the Preview Floor</param>
+        /// <returns>true to specified IES has a Preview</returns>
         public bool CommonHasPreviewGUI(SetupRenderPipelinePreviewCamera setupRenderPipelinePreviewCamera,
                                         SetupRenderPipelinePreviewLight setupRenderPipelinePreviewLight,
                                         SetupRenderPipelinePreviewWallRenderer setupRenderPipelinePreviewWallRenderer,
