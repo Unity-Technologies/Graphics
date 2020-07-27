@@ -4093,7 +4093,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetRandomWriteTarget(1, m_SharedRTManager.GetFullScreenDebugBuffer());
 
                 var rendererList = RendererList.Create(CreateOpaqueRendererListDesc(cullResults, hdCamera.camera, m_FullScreenDebugPassNames, renderQueueRange: RenderQueueRange.all));
-                HDUtils.DrawRendererList(renderContext, cmd, rendererList);
+                CoreUtils.DrawRendererList(renderContext, cmd, rendererList);
 
                 cmd.ClearRandomWriteTargets();
                 m_FullScreenDebugPushed = true;

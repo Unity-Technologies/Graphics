@@ -817,10 +817,6 @@ Shader "HDRP/LitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
-            // enable dithering LOD crossfade
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
-
             #define SHADERPASS SHADERPASS_FULLSCREEN_DEBUG
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
