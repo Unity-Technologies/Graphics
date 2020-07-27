@@ -44,10 +44,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         List<int> m_ShadowSliceToGlobalLightIndex = new List<int>(); // store indices of the shadow-casting punctual lights that might be in the whole lights list renderingData.lightData.visibleLights
         List<int> m_ShadowSliceToGlobalLightIndexMap = new List<int>(); // used when RenderingUtils.useStructuredBuffer is enabled
 
-        // Get the last shadow slice index for a visible light global(?) index, or -1. Used by Deferred Renderer.
-        // TODO: Point Light Shadows integration to Deferred Renderer - Check behavior with Deferred Renderer and add required fixes
-        List<int> m_ShadowCastingLightIndicesMap = new List<int>(); 
-
         bool m_SupportsBoxFilterForShadows;
         const string m_ProfilerTag = "Render Additional Shadows";
         ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
@@ -222,10 +218,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_AdditionalLightsShadowData == null || m_AdditionalLightsShadowData.Length < totalShadowSlicesCount) // used when RenderingUtils.useStructuredBuffer is enabled
                 m_AdditionalLightsShadowData = new ShaderInput.ShadowData[totalShadowSlicesCount];
 
-            // By default visible lights do not have shadow light indices.
-            for (int i = 0; i < visibleLights.Length; ++i)
-                m_ShadowCastingLightIndicesMap.Add(-1);
-
             int validShadowCastingLightsCount = 0;
             bool supportsSoftShadows = renderingData.shadowData.supportsSoftShadows;
             for (int globalLightIndex = 0; globalLightIndex < visibleLights.Length && m_ShadowSliceToGlobalLightIndex.Count < totalShadowSlicesCount; ++globalLightIndex)
@@ -359,8 +351,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                         m_AdditionalLightsShadowSlices[globalShadowSliceIndex].viewMatrix = identity;
                         m_AdditionalLightsShadowSlices[globalShadowSliceIndex].projectionMatrix = identity;
                     }
-
-                    m_ShadowCastingLightIndicesMap[globalLightIndex] = isValidShadowSlice ? globalShadowSliceIndex : -1;
                 }
 
                 if(isValidShadowCastingLight)
@@ -455,9 +445,15 @@ namespace UnityEngine.Rendering.Universal.Internal
         // For point lights, there are 6 shadow light indices: { (m_ShadowCastingLightIndicesMap[visibleLightIndex] - 5), (m_ShadowCastingLightIndicesMap[visibleLightIndex] - 4), ... , (m_ShadowCastingLightIndicesMap[visibleLightIndex]) }
         public int GetShadowLightIndexFromLightIndex(int visibleLightIndex)
         {
-            if (visibleLightIndex < 0 || visibleLightIndex >= m_ShadowCastingLightIndicesMap.Count)
+            if (visibleLightIndex < 0 || visibleLightIndex >= m_GlobalLightIndexToShadowedAdditionalLightIndex.Length)
                 return -1;
-            return m_ShadowCastingLightIndicesMap[visibleLightIndex];
+
+            if(m_UseStructuredBuffer)
+            {
+                // TODO: Check and fix "Structured Buffers" code path (currently disabled)
+            }
+
+            return m_GlobalLightIndexToShadowedAdditionalLightIndex[visibleLightIndex];
         }
 
         void Clear()
@@ -465,7 +461,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_ShadowSliceToGlobalLightIndex.Clear();
             m_ShadowSliceToGlobalLightIndexMap.Clear(); // used when RenderingUtils.useStructuredBuffer is enabled
             m_AdditionalLightsShadowmapTexture = null;
-            m_ShadowCastingLightIndicesMap.Clear();
         }
 
         void RenderAdditionalShadowmapAtlas(ref ScriptableRenderContext context, ref CullingResults cullResults, ref LightData lightData, ref ShadowData shadowData)
