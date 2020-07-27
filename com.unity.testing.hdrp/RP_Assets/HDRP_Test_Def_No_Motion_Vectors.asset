@@ -236,7 +236,7 @@ MonoBehaviour:
     decalLayerName5: Decal Layer 5
     decalLayerName6: Decal Layer 6
     decalLayerName7: Decal Layer 7
-    msaaSampleCount: 1
+    msaaSampleCount: 4
     supportMotionVectors: 0
     supportRuntimeDebugDisplay: 0
     supportDitheringCrossFade: 0
