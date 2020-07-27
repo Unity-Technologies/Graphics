@@ -411,3 +411,24 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: Android regression (temporarily disabled until investigation)
+  - FilteredScene: {fileID: 102900000, guid: 5fca56b2f8a46664e858cbb290338fc8, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 4
+    XrSdk: None
+    StereoModes: 0
+    Reason: Android 039 new faulty testscene
+  - FilteredScene: {fileID: 102900000, guid: 5fca56b2f8a46664e858cbb290338fc8, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: iOS 039 new faulty test scene
+  - FilteredScene: {fileID: 102900000, guid: 44c3bddf1a7da4af28d764901f2e9507, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 21
+    XrSdk: None
+    StereoModes: 0
+    Reason: Android Vulkan 143 regressed test scene
