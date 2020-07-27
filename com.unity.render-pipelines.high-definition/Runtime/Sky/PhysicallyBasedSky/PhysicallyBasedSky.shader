@@ -224,7 +224,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         }
 
         // Hacky way to boost the clouds for PBR sky
-        skyColor += ApplyCloudLayer(-V, 0) * 1000;
+        skyColor = ApplyCloudLayer(-V, skyColor);
         skyColor += radiance * (1 - skyOpacity);
         skyColor *= _IntensityMultiplier;
 

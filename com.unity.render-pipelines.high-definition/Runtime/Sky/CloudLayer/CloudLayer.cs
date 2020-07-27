@@ -57,7 +57,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         /// <summary>Enable fog.</summary>
         [Tooltip("Check to have a cloud layer in the sky.")]
-        public ClampedFloatParameter            opacity = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        public ClampedFloatParameter            opacity = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
         /// <summary>Enable to cover only the upper part of the sky.</summary>
         [Tooltip("Check this box if the cloud layer covers only the upper part of the sky.")]
         public BoolParameter        upperHemisphereOnly = new BoolParameter(true);
@@ -141,6 +141,8 @@ namespace UnityEngine.Rendering.HighDefinition
             [Tooltip("Cast Shadows.")]
             public BoolParameter    castShadows = new BoolParameter(false);
 
+            public int NumSteps => (lighting == CloudLightingMode.Raymarching) ? steps.value : 0;
+
 
             internal int GetBakingHashCode(ref bool castShadows)
             {
@@ -184,6 +186,25 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public Vector4 Opacities => new Vector4(opacityR.value, opacityG.value, opacityB.value, opacityA.value);
 
+            internal void Apply(Material skyMaterial, string mapKeyword, string motionKeyword)
+            {
+                if (settings.distortion.value != CloudDistortionMode.None)
+                {
+                    skyMaterial.EnableKeyword(motionKeyword);
+                    if (settings.distortion.value == CloudDistortionMode.Flowmap)
+                    {
+                        skyMaterial.EnableKeyword(mapKeyword);
+                        skyMaterial.SetTexture(HDShaderIDs._CloudFlowmap, settings.flowmap.value);
+                    }
+                    else
+                        skyMaterial.DisableKeyword(mapKeyword);
+                }
+                else
+                {
+                    skyMaterial.EnableKeyword(mapKeyword);
+                    skyMaterial.DisableKeyword(motionKeyword);
+                }
+            }
             
             internal int GetBakingHashCode(ref bool castShadows)
             {
@@ -250,38 +271,43 @@ namespace UnityEngine.Rendering.HighDefinition
         public static void Apply(BuiltinSkyParameters builtinParams, Material skyMaterial)
         {
             var layer = builtinParams.cloudLayer;
-            if (layer != null && layer.opacity.value != 0.0f)
+            if (layer == null || layer.opacity.value == 0.0f)
             {
-                layer.mapA.settings.scrollFactor += layer.mapA.settings.scrollSpeed.value * (Time.time - layer.lastTime) * 0.01f;
+                skyMaterial.DisableKeyword("USE_CLOUD_MAP");
+                skyMaterial.DisableKeyword("USE_CLOUD_MOTION");
+                skyMaterial.DisableKeyword("USE_SECOND_CLOUD_MAP");
+                skyMaterial.DisableKeyword("USE_SECOND_CLOUD_MOTION");
+                return;
+            }
+
+            if (layer.mode.value == CloudLayerMode.CloudMap)
+            {
+                float dt = (Time.time - layer.lastTime) * 0.01f;
+                layer.mapA.settings.scrollFactor += layer.mapA.settings.scrollSpeed.value * dt;
+                layer.mapB.settings.scrollFactor += layer.mapB.settings.scrollSpeed.value * dt;
                 layer.lastTime = Time.time;
 
                 Vector4 params1 = new Vector4(
                         layer.opacity.value,
                         layer.upperHemisphereOnly.value?1:0,
-                        (layer.mode.value == CloudLayerMode.CloudMap && layer.layers.value == CloudMapMode.Double)?1:0,
-                        0);
-                Vector4 params2 = layer.mapA.settings.GetRenderingParameters();
+                        0, 0);
+                Vector4[] params2 =  {
+                    layer.mapA.settings.GetRenderingParameters(),
+                    layer.mapB.settings.GetRenderingParameters()
+                };
 
-                skyMaterial.EnableKeyword("USE_CLOUD_MAP");
                 skyMaterial.SetTexture("_CloudTexture", builtinParams.cloudTexture);
                 skyMaterial.SetVector("_CloudParams1", params1);
-                skyMaterial.SetVector("_CloudParams2", params2);
+                skyMaterial.SetVectorArray("_CloudParams2", params2);
 
-                if (layer.mapA.settings.distortion.value != CloudDistortionMode.None)
-                {
-                    skyMaterial.EnableKeyword("USE_CLOUD_MOTION");
-                    if (layer.mapA.settings.distortion.value == CloudDistortionMode.Procedural)
-                        skyMaterial.DisableKeyword("USE_CLOUD_MAP");
-                    else
-                        skyMaterial.SetTexture(HDShaderIDs._CloudFlowmap, layer.mapA.settings.flowmap.value);
-                }
+                layer.mapA.Apply(skyMaterial, "USE_CLOUD_MAP", "USE_CLOUD_MOTION");
+                if (layer.layers.value == CloudMapMode.Double)
+                    layer.mapB.Apply(skyMaterial, "USE_SECOND_CLOUD_MAP", "USE_SECOND_CLOUD_MOTION");
                 else
-                    skyMaterial.DisableKeyword("USE_CLOUD_MOTION");
-            }
-            else
-            {
-                skyMaterial.DisableKeyword("USE_CLOUD_MAP");
-                skyMaterial.DisableKeyword("USE_CLOUD_MOTION");
+                {
+                    skyMaterial.DisableKeyword("USE_SECOND_CLOUD_MAP");
+                    skyMaterial.DisableKeyword("USE_SECOND_CLOUD_MOTION");
+                }
             }
         }
 

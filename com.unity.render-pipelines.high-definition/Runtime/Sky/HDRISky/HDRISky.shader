@@ -15,6 +15,8 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     #pragma multi_compile_local _ USE_CLOUD_MAP
     #pragma multi_compile_local _ USE_CLOUD_MOTION
+    #pragma multi_compile_local _ USE_SECOND_CLOUD_MAP
+    #pragma multi_compile_local _ USE_SECOND_CLOUD_MOTION
 
     #pragma multi_compile _ DEBUG_DISPLAY
     #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH

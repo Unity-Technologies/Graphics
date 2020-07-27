@@ -1073,12 +1073,20 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BuiltinParameters.debugSettings = debugSettings;
             m_BuiltinParameters.frameIndex = frameIndex;
             m_BuiltinParameters.skySettings = skyContext.skySettings;
-            m_BuiltinParameters.cloudLayer = skyContext.cloudLayer;
 
-            int cloudHash = ComputeCloudHash(skyContext.cloudLayer, sunLight, out int numLayers, out bool castShadows);
-            AcquireCloudRenderingContext(skyContext, cloudHash, numLayers, castShadows);
-            var cloudContext = m_CachedCloudContexts[skyContext.cachedCloudRenderingContextId].renderingContext;
-            m_BuiltinParameters.cloudTexture = cloudContext.cloudTextureRT;
+            if (skyContext.cloudLayer != null)
+            {
+                int cloudHash = ComputeCloudHash(skyContext.cloudLayer, sunLight, out int numLayers, out bool castShadows);
+                AcquireCloudRenderingContext(skyContext, cloudHash, numLayers, castShadows);
+                var cloudContext = m_CachedCloudContexts[skyContext.cachedCloudRenderingContextId].renderingContext;
+                m_BuiltinParameters.cloudLayer = skyContext.cloudLayer;
+                m_BuiltinParameters.cloudTexture = cloudContext.cloudTextureRT;
+            }
+            else
+            {
+                m_BuiltinParameters.cloudLayer = null;
+                m_BuiltinParameters.cloudTexture = null;
+            }
         }
 
         public void PreRenderSky(HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle normalBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)

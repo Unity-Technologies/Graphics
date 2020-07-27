@@ -10,6 +10,8 @@ Shader "Hidden/HDRP/Sky/GradientSky"
 
     #pragma multi_compile_local _ USE_CLOUD_MAP
     #pragma multi_compile_local _ USE_CLOUD_MOTION
+    #pragma multi_compile_local _ USE_SECOND_CLOUD_MAP
+    #pragma multi_compile_local _ USE_SECOND_CLOUD_MOTION
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
