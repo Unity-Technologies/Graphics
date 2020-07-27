@@ -23,7 +23,7 @@ class PreviewPublish_AutoVersionJob():
                 f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
                 f'upm-ci utils auto-version bump {bump_packages_args}',
                 f'upm-ci utils auto-version commit --push'])
-        job.add_trigger_integration_branch(target_branch)
+        job.set_trigger_on_expression(f'push.branch eq "{target_branch}" AND NOT push.changes.all match ["*template*/**/*.json"]')
         job.add_artifacts_packages()
         # if auto_version is True:
         #     job.add_trigger_integration_branch(target_branch)
