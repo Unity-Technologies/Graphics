@@ -1,5 +1,3 @@
-//#define HAVE_DEFAULT_RENDERING_LAYER_MASK
-
 using System.Collections.Generic;
 using UnityEngine.VFX;
 using System;
@@ -121,7 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_PreviousLightsUseColorTemperature;
         bool m_PreviousSRPBatcher;
 
-#if HAVE_DEFAULT_RENDERING_LAYER_MASK
+#if UNITY_2020_2_OR_NEWER
         uint m_PreviousDefaultRenderingLayerMask;
 #endif
         ShadowmaskMode m_PreviousShadowMaskMode;
@@ -237,11 +235,9 @@ namespace UnityEngine.Rendering.HighDefinition
         ShaderTagId[] m_RayTracingPrepassNames = { HDShaderPassNames.s_RayTracingPrepassName };
         ShaderTagId[] m_FullScreenDebugPassNames = { HDShaderPassNames.s_FullScreenDebugName };
         ShaderTagId[] m_ForwardErrorPassNames = { HDShaderPassNames.s_AlwaysName, HDShaderPassNames.s_ForwardBaseName, HDShaderPassNames.s_DeferredName, HDShaderPassNames.s_PrepassBaseName, HDShaderPassNames.s_VertexName, HDShaderPassNames.s_VertexLMRGBMName, HDShaderPassNames.s_VertexLMName };
-        ShaderTagId[] m_DecalsEmissivePassNames = { HDShaderPassNames.s_MeshDecalsForwardEmissiveName, HDShaderPassNames.s_ShaderGraphMeshDecalsForwardEmissiveName };
+        ShaderTagId[] m_DecalsEmissivePassNames = { HDShaderPassNames.s_DecalMeshForwardEmissiveName };
         ShaderTagId[] m_SinglePassName = new ShaderTagId[1];
-        ShaderTagId[] m_Decals4RTPassNames = { HDShaderPassNames.s_MeshDecalsMName , HDShaderPassNames.s_MeshDecalsAOName , HDShaderPassNames.s_MeshDecalsMAOName, HDShaderPassNames.s_MeshDecalsSName ,
-                                                HDShaderPassNames.s_MeshDecalsMSName, HDShaderPassNames.s_MeshDecalsAOSName, HDShaderPassNames.s_MeshDecalsMAOSName, HDShaderPassNames.s_ShaderGraphMeshDecalsName4RT};
-        ShaderTagId[] m_Decals3RTPassNames = { HDShaderPassNames.s_MeshDecals3RTName , HDShaderPassNames.s_ShaderGraphMeshDecalsName3RT };
+        ShaderTagId[] m_MeshDecalsPassNames = { HDShaderPassNames.s_DBufferMeshName };
 
         RenderStateBlock m_DepthStateOpaque;
         RenderStateBlock m_DepthStateNoWrite;
@@ -819,7 +815,7 @@ namespace UnityEngine.Rendering.HighDefinition
             GraphicsSettings.lightsUseColorTemperature = true;
             m_PreviousSRPBatcher = GraphicsSettings.useScriptableRenderPipelineBatching;
             GraphicsSettings.useScriptableRenderPipelineBatching = m_Asset.enableSRPBatcher;
-#if  HAVE_DEFAULT_RENDERING_LAYER_MASK
+#if  UNITY_2020_2_OR_NEWER
             m_PreviousDefaultRenderingLayerMask = GraphicsSettings.defaultRenderingLayerMask;
             GraphicsSettings.defaultRenderingLayerMask = ShaderVariablesGlobal.DefaultRenderingLayerMask;
 #endif
@@ -947,7 +943,7 @@ namespace UnityEngine.Rendering.HighDefinition
             GraphicsSettings.lightsUseLinearIntensity = m_PreviousLightsUseLinearIntensity;
             GraphicsSettings.lightsUseColorTemperature = m_PreviousLightsUseColorTemperature;
             GraphicsSettings.useScriptableRenderPipelineBatching = m_PreviousSRPBatcher;
-#if HAVE_DEFAULT_RENDERING_LAYER_MASK
+#if UNITY_2020_2_OR_NEWER
             GraphicsSettings.defaultRenderingLayerMask = m_PreviousDefaultRenderingLayerMask;
 #endif
             QualitySettings.shadowmaskMode = m_PreviousShadowMaskMode;
@@ -963,8 +959,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitializeRenderGraph()
         {
-            m_RenderGraph = new RenderGraph(m_Asset.currentPlatformRenderPipelineSettings.supportMSAA, m_MSAASamples);
-            m_RenderGraph.RegisterDebug();
+            m_RenderGraph = new RenderGraph();
         }
 
         void CleanupRenderGraph()
@@ -972,7 +967,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_EnableRenderGraph)
             {
                 m_RenderGraph.Cleanup();
-                m_RenderGraph.UnRegisterDebug();
                 m_RenderGraph = null;
             }
         }
@@ -1548,14 +1542,23 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             var dynResHandler = DynamicResolutionHandler.instance;
-            dynResHandler.Update(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings, () =>
+            if(m_EnableRenderGraph)
             {
-                var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-                var stencilBuffer = hdrp.m_SharedRTManager.GetDepthStencilBuffer().rt;
-                var stencilBufferSize = new Vector2Int(stencilBuffer.width, stencilBuffer.height);
-                hdrp.m_SharedRTManager.ComputeDepthBufferMipChainSize(DynamicResolutionHandler.instance.GetScaledSize(stencilBufferSize));
+                dynResHandler.Update(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings);
             }
-            );
+            else
+            {
+                dynResHandler.Update(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings, () =>
+                {
+                    var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+                    var stencilBuffer = hdrp.m_SharedRTManager.GetDepthStencilBuffer().rt;
+                    var stencilBufferSize = new Vector2Int(stencilBuffer.width, stencilBuffer.height);
+                    hdrp.m_SharedRTManager.ComputeDepthBufferMipChainSize(DynamicResolutionHandler.instance.GetScaledSize(stencilBufferSize));
+                }
+                );
+            }
+
+
 
             // This syntax is awful and hostile to debugging, please don't use it...
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
@@ -3470,7 +3473,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
                 return;
 
-            HDUtils.DrawRendererList(renderContext, cmd, rendererList);
+            CoreUtils.DrawRendererList(renderContext, cmd, rendererList);
         }
 
         static void DrawTransparentRendererList(in ScriptableRenderContext renderContext, CommandBuffer cmd, in FrameSettings frameSettings, RendererList rendererList)
@@ -3478,7 +3481,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!frameSettings.IsEnabled(FrameSettingsField.TransparentObjects))
                 return;
 
-            HDUtils.DrawRendererList(renderContext, cmd, rendererList);
+            CoreUtils.DrawRendererList(renderContext, cmd, rendererList);
         }
 
         void AccumulateDistortion(CullingResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
@@ -3611,7 +3614,7 @@ namespace UnityEngine.Rendering.HighDefinition
             switch (hdCamera.frameSettings.litShaderMode)
             {
                 case LitShaderMode.Forward:
-                    result.passName = "Full Depth Prepass (Forward)";     
+                    result.passName = "Full Depth Prepass (Forward)";
 
                     RenderStateBlock? stateBlock = null;
                     if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.AlphaToMask))
@@ -3829,7 +3832,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         RendererListDesc PrepareMeshDecalsRendererList(CullingResults cullingResults, HDCamera hdCamera, bool use4RTs)
         {
-            var desc = new RendererListDesc(use4RTs ? m_Decals4RTPassNames : m_Decals3RTPassNames, cullingResults, hdCamera.camera)
+            var desc = new RendererListDesc(m_MeshDecalsPassNames, cullingResults, hdCamera.camera)
             {
                 sortingCriteria = SortingCriteria.CommonOpaque,
                 rendererConfiguration = PerObjectData.None,
@@ -3925,7 +3928,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, depthTexture);
 
-            HDUtils.DrawRendererList(renderContext, cmd, meshDecalsRendererList);
+            CoreUtils.DrawRendererList(renderContext, cmd, meshDecalsRendererList);
             DecalSystem.instance.RenderIntoDBuffer(cmd);
 
             cmd.ClearRandomWriteTargets();
@@ -3949,7 +3952,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
                 CoreUtils.SetRenderTarget(cmd, msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(msaa));
-                HDUtils.DrawRendererList(renderContext, cmd, RendererList.Create(PrepareForwardEmissiveRendererList(cullResults, hdCamera)));
+                CoreUtils.DrawRendererList(renderContext, cmd, RendererList.Create(PrepareForwardEmissiveRendererList(cullResults, hdCamera)));
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
                     DecalSystem.instance.RenderForwardEmissive(cmd);
@@ -4351,7 +4354,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer());
                 var rendererList = RendererList.Create(CreateOpaqueRendererListDesc(cullResults, hdCamera.camera, m_ForwardErrorPassNames, renderQueueRange: RenderQueueRange.all, overrideMaterial: m_ErrorMaterial));
-                HDUtils.DrawRendererList(renderContext, cmd, rendererList);
+                CoreUtils.DrawRendererList(renderContext, cmd, rendererList);
             }
         }
 

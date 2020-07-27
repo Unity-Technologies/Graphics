@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an option to enable/disable Adaptive Performance when the Adaptive Performance package is available in the project.
 - Added support for 3DsMax's 2021 Simplified Physical Material from FBX files in the Model Importer.
 - Added support for DXT5nm-style normal maps on Android, iOS and tvOS
+- Added a warning message when a renderer is used with an unsupported graphics API, as the deferred renderer does not officially support GL-based platforms.
 - Added option to skip a number of final bloom iterations.
 - Added support for [Screen Space Ambient Occlusion](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@10.0/manual/post-processing-ssao.html) and a new shader variant _SCREEN_SPACE_OCCLUSION.
 - Added support for Normal Texture being generated in a prepass.
@@ -226,6 +227,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixing camera overlay stacking adding to respect unity general reference restrictions. [case 1240788](https://issuetracker.unity3d.com/issues/urp-overlay-camera-is-missing-in-stack-list-of-the-base-camera-prefab)
 - Fixed profiler marker errors. [case 1240963](https://issuetracker.unity3d.com/issues/urp-errors-are-thrown-in-a-console-when-using-profiler-to-profile-editor)
 - Fixed issue that caused the pipeline to not create _CameraColorTexture if a custom render pass is injected. [case 1232761](https://issuetracker.unity3d.com/issues/urp-the-intermediate-color-texture-is-no-longer-created-when-there-is-at-least-one-renderer-feature)
+- Fixed target eye UI for XR rendering is missing from camera inspector. [case 1261612](https://issuetracker.unity3d.com/issues/xr-cameras-target-eye-property-is-missing-when-inspector-is-in-normal-mode)
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
