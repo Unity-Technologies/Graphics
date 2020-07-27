@@ -1,22 +1,22 @@
 # Output Event Handlers
 
-Output Event Handlers is an API Helper that hooks into [Output Events](Contexts.md#output-events) in order to perform scripts based on these events.
+A VFXOutputEventHandler is an API helper that hooks into an [Output Event](Contexts.md#output-events) to allow you to execute scripts based on the event.
 
-A set of Example Scripts can be installed as samples
+The Visual Effect Graph includes a set of example scripts as a sample. For information on how to install the sample, see [Installing sample scripts](#installing-sample-scripts).
 
 ## Output Event Handler API
 
-The output event Handler API helps you write utility scripts based on the `UnityEngine.VFX.Utility.VFXOutputEventHandler` class. 
+To create your own output event handler, write a script that extends the `UnityEngine.VFX.Utility.VFXOutputEventHandler` class.
 
-Writing MonoBehaviours that extend this class reduce the amount of code required to perform a hook, the base class doing the job of filtering the event and calling a simple method :
+When you write a MonoBehaviour that extends this class, it reduces the  amount of code required to perform a hook. This is because the base  class does the job of filtering the event and calls the following method :
 
 `override void OnVFXOutputEvent(VFXEventAttribute eventAttribute)`
 
-Once implemented, this method is executed every time the event is sent, in to process it along with its attributes.
+When you implement this method, Unity calls it every time the event triggers and passes in the event's attributes.
 
 ### Example
 
-The following Example Teleports a Game Object to the Given position when an event is Received.
+The following example teleports a GameObject to the Given position when it receives an event.
 
 ```c#
 [RequireComponent(typeof(VisualEffect))]
@@ -36,4 +36,4 @@ public class VFXOutputEventTeleportObject : VFXOutputEventHandler
 
 ## Installing Sample Scripts
 
-You can install a set of Sample Scripts through the Package Manager, by selecting the Visual Effect Graph package, and clicking the Import Button that corresponds to the OutputEvent Helpers Sample.
+To help you create your own VFXOutputEventHandler, the Visual Effect  Graph package includes a set of example scripts that you can install via the Package Manager. To do this, select the Visual Effect Graph package then, next to **OutputEvent Helpers Sample**, click the **Import** button.

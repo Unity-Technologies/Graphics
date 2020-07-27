@@ -2,7 +2,7 @@
 namespace UnityEngine.VFX.Utility
 {
     [RequireComponent(typeof(Rigidbody))]
-    public class VFXOutputEventPrefabAttributeHandler_RigidBody : VFXOutputEventPrefabAttributeHandler
+    public class VFXOutputEventPrefabAttributeHandler_RigidBodyVelocity : VFXOutputEventPrefabAttributeHandler
     {
         static readonly int k_Velocity = Shader.PropertyToID("velocity");
         Rigidbody m_RigidBody;
@@ -20,9 +20,11 @@ namespace UnityEngine.VFX.Utility
             if (attributeSpace == Space.Local)
                 velocity = visualEffect.transform.localToWorldMatrix.MultiplyVector(velocity);
             
-            m_RigidBody = GetComponent<Rigidbody>();
-            m_RigidBody.WakeUp();
-            m_RigidBody.velocity = velocity;
+            if(TryGetComponent<Rigidbody>(out m_RigidBody))
+            {
+                m_RigidBody.WakeUp();
+                m_RigidBody.velocity = velocity;
+            }
         }
     }
 }
