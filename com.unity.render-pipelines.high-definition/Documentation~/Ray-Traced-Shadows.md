@@ -106,6 +106,7 @@ Ray-traced shadows offer the possibility of semi-transparent shadows for Point L
 | **Radius**            | Sets the radius of the sphere light that HDRP uses to evaluate the shadows. This increases the size of the surface that emits light. |
 | **Denoise**           | Enables the spatio-temporal filter that HDRP uses to remove noise from the ray-traced shadows. |
 | - **Denoiser Radius** | Controls the radius of the spatio-temporal filter.           |
+| - **Distance Based Denoising** | Specifies whether HDRP should take the distance to the occluder into account when it denoises the shadow. This increases the denoiser quality but also its resource intensity. |
 
 <a name="RectangleLight"></a>
 
