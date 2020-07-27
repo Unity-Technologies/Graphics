@@ -750,6 +750,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a missing dependecy for choosing to evaluate transparent SSR.
 - Fixed issue that failed compilation when XR is disabled.
 - Fixed a compilation error in the IES code.
+- Fixed issue with dynamic resolution handler when no OnResolutionChange callback is specified. 
+- Fixed multiple volumes, planar reflection, and decal projector position when creating them from the menu.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -923,6 +925,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated the documentation for the DXR implementation.
 - Changed the DXR wizard to support optional checks.
 - Changed the DXR wizard steps.
+- Preparation pass for RTSSS to be supported by render graph.
 
 ## [7.1.1] - 2019-09-05
 
