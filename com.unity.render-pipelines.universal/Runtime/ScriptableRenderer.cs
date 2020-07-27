@@ -863,6 +863,12 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
             }
+            
+            // Also, we execute the commands recorded at this point to ensure SetRenderTarget is called before RenderPass.Execute
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+
+            renderPass.Execute(context, ref renderingData);
         }
 
         void BeginXRRendering(CommandBuffer cmd, ScriptableRenderContext context, ref CameraData cameraData)
