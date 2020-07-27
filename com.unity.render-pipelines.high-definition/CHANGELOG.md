@@ -926,7 +926,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the DXR wizard to support optional checks.
 - Changed the DXR wizard steps.
 - Preparation pass for RTSSS to be supported by render graph.
-- Preparation pass for RTSSShadows to be supported by render graph (part1).
+- Preparation pass for RTSSShadows to be supported by render graph.
 
 ## [7.1.1] - 2019-09-05
 

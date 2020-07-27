@@ -115,7 +115,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return ssprtResources;
         }
 
-        static void ExecuteShadowDebugView(CommandBuffer cmd, SSSPunctualRayTraceParameters ssprtParams, SSSPunctualRayTraceResources ssprtResources)
+        static void ExecuteSSSPunctualRayTrace(CommandBuffer cmd, SSSPunctualRayTraceParameters ssprtParams, SSSPunctualRayTraceResources ssprtResources)
         {
             // Inject the ray-tracing sampling data
             BlueNoise.BindDitheredTextureSet(cmd, ssprtParams.ditheredTextureSet);
@@ -284,7 +284,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Ray trace for shadow evaluation
             SSSPunctualRayTraceParameters ssprtParams = PrepareSSSPunctualRayTraceParameters(hdCamera, additionalLightData, lightData, lightIndex);
             SSSPunctualRayTraceResources ssprtResources = PrepareSSSPunctualRayTraceResources(velocityBuffer, directionBuffer, rayLengthBuffer, distanceBuffer, outputShadowBuffer);
-            ExecuteShadowDebugView(cmd, ssprtParams, ssprtResources);
+            ExecuteSSSPunctualRayTrace(cmd, ssprtParams, ssprtResources);
 
             // If required, denoise the shadow
             if (additionalLightData.filterTracedShadow && ssprtParams.softShadow)

@@ -1,6 +1,5 @@
 using System;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
