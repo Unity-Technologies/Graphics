@@ -77,4 +77,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/036_Lighting_Scene_DirectionalBakedDirectional.unity
     guid: d3c09ae27b1494240a8f07168d548968
+  - enabled: 1
+    path: Assets/Scenes/041_Lighting_BasicArea.unity
+    guid: 807a5ef5de5072e4883ec540c18bc51c
+  - enabled: 1
+    path: Assets/Scenes/046_Camera_OpaqueTexture.unity
+    guid: b2035ba39f2a0154dbd09e5aea7d2102
   m_configObjects: {}
