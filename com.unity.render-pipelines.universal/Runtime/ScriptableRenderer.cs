@@ -78,11 +78,15 @@ namespace UnityEngine.Rendering.Universal
 
             if (setInverseMatrices)
             {
+                Matrix4x4 gpuProjectionMatrix = cameraData.GetGPUProjectionMatrix();
+                Matrix4x4 viewAndProjectionMatrix = gpuProjectionMatrix * viewMatrix;
                 Matrix4x4 inverseViewMatrix = Matrix4x4.Inverse(viewMatrix);
-                cmd.SetGlobalMatrix(ShaderPropertyId.cameraToWorldMatrix, inverseViewMatrix);
+                Matrix4x4 inverseProjectionMatrix = Matrix4x4.Inverse(gpuProjectionMatrix);
+                Matrix4x4 inverseViewProjection = inverseViewMatrix * inverseProjectionMatrix;
 
-                Matrix4x4 viewAndProjectionMatrix = cameraData.GetGPUProjectionMatrix() * viewMatrix;
-                Matrix4x4 inverseViewProjection = Matrix4x4.Inverse(viewAndProjectionMatrix);
+                cmd.SetGlobalMatrix(ShaderPropertyId.cameraToWorldMatrix, inverseViewMatrix);
+                cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewMatrix, inverseViewMatrix);
+                cmd.SetGlobalMatrix(ShaderPropertyId.inverseProjectionMatrix, inverseProjectionMatrix);
                 cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewAndProjectionMatrix, inverseViewProjection);
             }
 
@@ -208,6 +212,12 @@ namespace UnityEngine.Rendering.Universal
         /// <see cref="SupportedRenderingFeatures"/>
         /// </summary>
         public RenderingFeatures supportedRenderingFeatures { get; set; } = new RenderingFeatures();
+
+        /// <summary>
+        /// List of unsupported Graphics APIs for this renderer.
+        /// <see cref="unsupportedGraphicsDeviceTypes"/>
+        /// </summary>
+        public GraphicsDeviceType[] unsupportedGraphicsDeviceTypes { get; set; } = new GraphicsDeviceType[0];
 
         static class RenderPassBlock
         {
@@ -669,7 +679,6 @@ namespace UnityEngine.Rendering.Universal
                             {
                                 // SetRenderTarget might alter the internal device state(winding order).
                                 // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
-                                // XRTODO: Consolidate y-flip and winding order device state in URP
                                 int xrTargetIndex = RenderingUtils.IndexOf(renderPass.colorAttachments, cameraData.xr.renderTarget);
                                 bool isRenderToBackBufferTarget = (xrTargetIndex != -1) && !cameraData.xr.renderTargetIsRenderTexture;
                                 cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, !isRenderToBackBufferTarget);
@@ -739,7 +748,6 @@ namespace UnityEngine.Rendering.Universal
                         {
                             // SetRenderTarget might alter the internal device state(winding order).
                             // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
-                            // XRTODO: Consolidate y-flip and winding order device state in URP
                             bool isRenderToBackBufferTarget = (passColorAttachment == cameraData.xr.renderTarget) && !cameraData.xr.renderTargetIsRenderTexture;
                             cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, !isRenderToBackBufferTarget);
                         }
@@ -931,32 +939,6 @@ namespace UnityEngine.Rendering.Universal
 
                 list[j + 1] = curr;
             }
-        }
-
-        internal void SetupBackbufferFormat(int msaaSamples, bool stereo)
-        {
-#if ENABLE_VR && ENABLE_VR_MODULE
-            if (!stereo)
-                return;
-
-            bool msaaSampleCountHasChanged = false;
-            int currentQualitySettingsSampleCount = QualitySettings.antiAliasing;
-            if (currentQualitySettingsSampleCount != msaaSamples &&
-                !(currentQualitySettingsSampleCount == 0 && msaaSamples == 1))
-            {
-                msaaSampleCountHasChanged = true;
-            }
-
-            // There's no exposed API to control how a backbuffer is created with MSAA
-            // By settings antiAliasing we match what the amount of samples in camera data with backbuffer
-            // We only do this for the main camera and this only takes effect in the beginning of next frame.
-            // This settings should not be changed on a frame basis so that's fine.
-            if (msaaSampleCountHasChanged)
-            {
-                QualitySettings.antiAliasing = msaaSamples;
-                XR.XRDevice.UpdateEyeTextureMSAASetting();
-            }
-#endif
         }
     }
 }
