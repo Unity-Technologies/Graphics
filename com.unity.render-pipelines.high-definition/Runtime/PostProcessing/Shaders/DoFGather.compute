@@ -219,7 +219,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         float dAng = 2.0f * PI / numSamples;
 
 #ifndef GRADIENT_NOISE
-        float radius = ring * dR + stratum * dR;
+        float radius = max((ring - 1) * dR + stratum * dR, 0);
         float ringOffset = 0.5 * fmod(ring, 2.0f) * dAng;
 #else
         float radius = max((ring - 1) * dR + noise2 * dR, 0);
@@ -311,6 +311,8 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 #endif
     }
     outColor.xyz = outColor.xyz * rcp(outColor.w);
+    //int sampleBucket = 0;
+    //outColor.xyz = abs(GetCoCRadius(posInputs.positionSS, sampleBucket)) / 32;
 
 #ifdef ENABLE_ALPHA
     _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = float4(outColor.xyz, outAlpha * rcp(outColor.w));
