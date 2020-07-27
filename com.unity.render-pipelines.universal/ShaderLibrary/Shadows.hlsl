@@ -296,7 +296,7 @@ float ApplyShadowFade(float shadowAttenuation, float3 positionWS)
     float startShadowFadeDist = shadowDist * 0.9;
 
     float fade = saturate((distanceCamToPixel2 - startShadowFadeDist) / (shadowDist - startShadowFadeDist));
-    return shadowAttenuation + (1 - shadowAttenuation) * fade;
+    return shadowAttenuation + (1 - shadowAttenuation) * fade * fade;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
