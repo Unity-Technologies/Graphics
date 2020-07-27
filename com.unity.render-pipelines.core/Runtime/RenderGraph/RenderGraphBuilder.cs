@@ -73,7 +73,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <returns>A new transient TextureHandle.</returns>
         public TextureHandle CreateTransientTexture(in TextureDesc desc)
         {
-            var result = m_Resources.CreateTexture(desc, 0, m_RenderPass.index);
+            var result = m_Resources.CreateTexture(desc, m_RenderPass.index);
             m_RenderPass.AddTransientResource(result.handle);
             return result;
         }
@@ -87,7 +87,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle CreateTransientTexture(in TextureHandle texture)
         {
             var desc = m_Resources.GetTextureResourceDesc(texture.handle);
-            var result = m_Resources.CreateTexture(desc, 0, m_RenderPass.index);
+            var result = m_Resources.CreateTexture(desc, m_RenderPass.index);
             m_RenderPass.AddTransientResource(result.handle);
             return result;
         }
@@ -175,15 +175,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         /// <summary>
-        /// Allow or not pass pruning
-        /// By default all passes can be pruned out if the render graph detects it's not actually used.
+        /// Allow or not pass culling
+        /// By default all passes can be culled out if the render graph detects it's not actually used.
         /// In some cases, a pass may not write or read any texture but rather do something with side effects (like setting a global texture parameter for example).
-        /// This function can be used to tell the system that it should not prune this pass.
+        /// This function can be used to tell the system that it should not cull this pass.
         /// </summary>
-        /// <param name="value"></param>
-        public void AllowPassPruning(bool value)
+        /// <param name="value">True to allow pass culling.</param>
+        public void AllowPassCulling(bool value)
         {
-            m_RenderPass.AllowPassPruning(value);
+            m_RenderPass.AllowPassCulling(value);
         }
 
         /// <summary>

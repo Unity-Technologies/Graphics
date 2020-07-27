@@ -8,7 +8,8 @@ This table provides an overview of the current features supported in the Univers
 | Feature                                                      | Built-in Render Pipeline<br/>Unity 2019.3                               | Universal Render Pipeline                                    |
 | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | ***Camera***                                                 |                                                              |                                                              |
-| HDR                                                          | Yes                                                          | Yes                                                          |
+| HDR rendering                                                | Yes                                                          | Yes                                                          |
+| HDR output                                                   | Yes                                                          | In research                                                  |
 | MSAA                                                         | Yes                                                          | Yes                                                          |
 | Physical Camera                                              | Yes                                                          | Yes                                                          |
 | Dynamic Resolution                                           | Yes                                                          | Yes                                                          |
@@ -35,7 +36,7 @@ This table provides an overview of the current features supported in the Univers
 | *Culling*<br/>Per-Object<br/>Per-Layer                       | <br/>Yes<br/>Yes                                             | <br/>Yes<br/>Yes                                             |
 | *Light Limits*<br/>Main Directional Light<br/>Per Object<br/> <br/>Per Camera | <br/>1<br/>Unlimited<br/> <br/>Unlimited                           | <br/>1 <br/>8 (4 for GLES2).  Can be point, spot, and directional Lights.<br/>256 (16 for GLES 3.0 or lower, 32 on other mobile platforms) |
 | Attenuation                                                  | Legacy                                                       | InverseSquared                                               |
-| Vertex LIghts                                                | Yes                                                          | Yes                                                          |
+| Vertex Lights                                                | Yes                                                          | Yes                                                          |
 | SH Lights                                                    | Yes                                                          | In research                                                  |
 | ***Realtime Shadows***                                       |                                                              |                                                              |
 | *Light Types*<br/>Directional<br/>Spot<br/>Point<br/>Area    | <br/>Yes<br/>Yes<br/>Yes<br/>Not supported                   | <br/>Yes - only 1<br/>Yes<br/>In research<br/>Not supported |
@@ -137,7 +138,7 @@ This table provides an overview of the current features supported in the Univers
 | ***Particles***                                              |                                                              |                                                              |
 | VFX Graph (GPU)                                              | Not supported                                                | Yes                                                          |
 | Particles System (CPU)                                       | Yes                                                          | Yes                                                          |
-| *Shaders*<br/>Physically Based<br/>Simple LIghting (Blinn Phong)<br/>Unlit | <br/>Yes<br/>Yes<br/>Yes                                     | <br/>Yes ([Particles Lit](particles-lit-shader.md))<br/>Yes ([Particles Simple Lit](particles-simple-lit-shader.md))<br/>Yes ([Particles Unlit](particles-unlit-shader.md)) |
+| *Shaders*<br/>Physically Based<br/>Simple Lighting (Blinn Phong)<br/>Unlit | <br/>Yes<br/>Yes<br/>Yes                                     | <br/>Yes ([Particles Lit](particles-lit-shader.md))<br/>Yes ([Particles Simple Lit](particles-simple-lit-shader.md))<br/>Yes ([Particles Unlit](particles-unlit-shader.md)) |
 | Soft Particles                                               | Yes                                                          | Yes                                                          |
 | Distortion                                                   | Yes                                                          | Yes                                                          |
 | Flipbook Blending                                            | Yes                                                          | Yes                                                          |

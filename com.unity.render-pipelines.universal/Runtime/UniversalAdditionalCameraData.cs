@@ -146,6 +146,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_StopNaN = false;
         [SerializeField] bool m_Dithering = false;
         [SerializeField] bool m_ClearDepth = true;
+        [SerializeField] bool m_AllowXRRendering = true;
 
         // Deprecated:
         [FormerlySerializedAs("requiresDepthTexture"), SerializeField]
@@ -353,6 +354,15 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_Dithering;
             set => m_Dithering = value;
+        }
+
+        /// <summary>
+        /// Returns true if this camera allows render in XR.
+        /// </summary>
+        public bool allowXRRendering
+        {
+            get => m_AllowXRRendering;
+            set => m_AllowXRRendering = value;
         }
 
         public void OnBeforeSerialize()

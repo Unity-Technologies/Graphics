@@ -232,7 +232,7 @@ MonoBehaviour:
     UseBackBuffer: 1
     ImageResolution: 4
   WaitFrames: 2
-  XRCompatible: 0
+  XRCompatible: 1
 --- !u!114 &763890391
 MonoBehaviour:
   m_ObjectHideFlags: 0
