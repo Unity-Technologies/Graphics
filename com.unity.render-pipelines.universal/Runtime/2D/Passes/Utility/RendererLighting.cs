@@ -7,39 +7,61 @@ namespace UnityEngine.Experimental.Rendering.Universal
     internal static class RendererLighting
     {
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Clear Normals");
-        static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
-        static readonly Color k_NormalClearColor = new Color(0.5f, 0.5f, 1.0f, 1.0f);
-        static readonly string k_SpriteLightKeyword = "SPRITE_LIGHT";
-        static readonly string k_UsePointLightCookiesKeyword = "USE_POINT_LIGHT_COOKIES";
-        static readonly string k_LightQualityFastKeyword = "LIGHT_QUALITY_FAST";
-        static readonly string k_UseNormalMap = "USE_NORMAL_MAP";
-        static readonly string k_UseAdditiveBlendingKeyword = "USE_ADDITIVE_BLENDING";
+        private static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
+        private static readonly Color k_NormalClearColor = new Color(0.5f, 0.5f, 1.0f, 1.0f);
+        private static readonly string k_SpriteLightKeyword = "SPRITE_LIGHT";
+        private static readonly string k_UsePointLightCookiesKeyword = "USE_POINT_LIGHT_COOKIES";
+        private static readonly string k_LightQualityFastKeyword = "LIGHT_QUALITY_FAST";
+        private static readonly string k_UseNormalMap = "USE_NORMAL_MAP";
+        private static readonly string k_UseAdditiveBlendingKeyword = "USE_ADDITIVE_BLENDING";
 
-        static readonly string[] k_UseBlendStyleKeywords =
+        private static readonly string[] k_UseBlendStyleKeywords =
         {
             "USE_SHAPE_LIGHT_TYPE_0", "USE_SHAPE_LIGHT_TYPE_1", "USE_SHAPE_LIGHT_TYPE_2", "USE_SHAPE_LIGHT_TYPE_3"
         };
 
-        static readonly string[] k_BlendFactorsPropNames =
+        private static readonly string[] k_BlendFactorsPropNames =
         {
             "_ShapeLightBlendFactors0", "_ShapeLightBlendFactors1", "_ShapeLightBlendFactors2", "_ShapeLightBlendFactors3"
         };
 
-        static readonly string[] k_MaskFilterPropNames =
+        private static readonly string[] k_MaskFilterPropNames =
         {
             "_ShapeLightMaskFilter0", "_ShapeLightMaskFilter1", "_ShapeLightMaskFilter2", "_ShapeLightMaskFilter3"
         };
 
-        static readonly string[] k_InvertedFilterPropNames =
+        private static readonly string[] k_InvertedFilterPropNames =
         {
             "_ShapeLightInvertedFilter0", "_ShapeLightInvertedFilter1", "_ShapeLightInvertedFilter2", "_ShapeLightInvertedFilter3"
         };
 
-        static Texture s_LightLookupTexture;
-        static Texture s_FalloffLookupTexture;
+        private static GraphicsFormat s_RenderTextureFormatToUse = GraphicsFormat.R8G8B8A8_UNorm;
+        private static bool s_HasSetupRenderTextureFormatToUse;
 
-        static GraphicsFormat s_RenderTextureFormatToUse = GraphicsFormat.R8G8B8A8_UNorm;
-        static bool s_HasSetupRenderTextureFormatToUse;
+        private static readonly int SrcBlendID = Shader.PropertyToID("_SrcBlend");
+        private static readonly int DstBlendID = Shader.PropertyToID("_DstBlend");
+        private static readonly int ShadowStencilGroupID = Shader.PropertyToID("_ShadowStencilGroup");
+        private static readonly int ShadowIntensityID = Shader.PropertyToID("_ShadowIntensity");
+        private static readonly int ShadowVolumeIntensityID = Shader.PropertyToID("_ShadowVolumeIntensity");
+        private static readonly int LightPosID = Shader.PropertyToID("_LightPos");
+        private static readonly int ShadowRadiusID = Shader.PropertyToID("_ShadowRadius");
+        private static readonly int FalloffIntensityID = Shader.PropertyToID("_FalloffIntensity");
+        private static readonly int FalloffDistanceID = Shader.PropertyToID("_FalloffDistance");
+        private static readonly int FalloffOffsetID = Shader.PropertyToID("_FalloffOffset");
+        private static readonly int LightColorID = Shader.PropertyToID("_LightColor");
+        private static readonly int VolumeOpacityID = Shader.PropertyToID("_VolumeOpacity");
+        private static readonly int CookieTexID = Shader.PropertyToID("_CookieTex");
+        private static readonly int FalloffLookupID = Shader.PropertyToID("_FalloffLookup");
+        private static readonly int LightPositionID = Shader.PropertyToID("_LightPosition");
+        private static readonly int LightInvMatrixID = Shader.PropertyToID("_LightInvMatrix");
+        private static readonly int LightNoRotInvMatrixID = Shader.PropertyToID("_LightNoRotInvMatrix");
+        private static readonly int InnerRadiusMultID = Shader.PropertyToID("_InnerRadiusMult");
+        private static readonly int OuterAngleID = Shader.PropertyToID("_OuterAngle");
+        private static readonly int InnerAngleMultID = Shader.PropertyToID("_InnerAngleMult");
+        private static readonly int LightLookupID = Shader.PropertyToID("_LightLookup");
+        private static readonly int IsFullSpotlightID = Shader.PropertyToID("_IsFullSpotlight");
+        private static readonly int LightZDistanceID = Shader.PropertyToID("_LightZDistance");
+        private static readonly int PointLightCookieTexID = Shader.PropertyToID("_PointLightCookieTex");
 
         private static GraphicsFormat GetRenderTextureFormat()
         {
@@ -89,9 +111,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             blendStyle.isDirty = true;
         }
 
-        static public void EnableBlendStyle(CommandBuffer cmd, int blendStyleIndex, bool enabled)
+        public static void EnableBlendStyle(CommandBuffer cmd, int blendStyleIndex, bool enabled)
         {
-            string keyword = k_UseBlendStyleKeywords[blendStyleIndex];
+            var keyword = k_UseBlendStyleKeywords[blendStyleIndex];
 
             if (enabled)
                 cmd.EnableShaderKeyword(keyword);
@@ -105,7 +127,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var width = (int)(renderingData.cameraData.cameraTargetDescriptor.width * renderTextureScale);
             var height = (int)(renderingData.cameraData.cameraTargetDescriptor.height * renderTextureScale);
 
-            RenderTextureDescriptor descriptor = new RenderTextureDescriptor(width, height);
+            var descriptor = new RenderTextureDescriptor(width, height);
             descriptor.useMipMap = false;
             descriptor.autoGenerateMips = false;
             descriptor.depthBufferBits = 24;
@@ -120,155 +142,148 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             for (var i = 0; i < pass.rendererData.lightBlendStyles.Length; i++)
             {
-                if(pass.rendererData.lightBlendStyles[i].hasRenderTarget)
-                {
-                    pass.rendererData.lightBlendStyles[i].hasRenderTarget = false;
-                    cmd.ReleaseTemporaryRT(pass.rendererData.lightBlendStyles[i].renderTargetHandle.id);
-                }
+                if (!pass.rendererData.lightBlendStyles[i].hasRenderTarget)
+                    continue;
+
+                pass.rendererData.lightBlendStyles[i].hasRenderTarget = false;
+                cmd.ReleaseTemporaryRT(pass.rendererData.lightBlendStyles[i].renderTargetHandle.id);
             }
 
             cmd.ReleaseTemporaryRT(pass.rendererData.normalsRenderTarget.id);
             cmd.ReleaseTemporaryRT(pass.rendererData.shadowsRenderTarget.id);
         }
 
-
-        private static void RenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int layerToRender, Light2D light, float shadowIntensity, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture)
+        private static void RenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, Light2D light, float shadowIntensity, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture)
         {
-            cmdBuffer.SetGlobalFloat("_ShadowIntensity", 1 - light.shadowIntensity);
-            cmdBuffer.SetGlobalFloat("_ShadowVolumeIntensity", 1 - light.shadowVolumeIntensity);
+            cmd.SetGlobalFloat(ShadowIntensityID, 1 - light.shadowIntensity);
+            cmd.SetGlobalFloat(ShadowVolumeIntensityID, 1 - light.shadowVolumeIntensity);
 
-            if (shadowIntensity > 0)
+            if (!(shadowIntensity > 0))
+                return;
+
+            CreateShadowRenderTexture(pass, renderingData, cmd, light.blendStyleIndex);
+
+            cmd.SetRenderTarget(pass.rendererData.shadowsRenderTarget.Identifier(), RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+            cmd.ClearRenderTarget(true, true, Color.black);
+
+            var lightBounds = light.GetBoundingSphere(); // Gets the local bounding sphere...
+            var shadowRadius = 1.42f * lightBounds.radius;
+
+            cmd.SetGlobalVector(LightPosID, light.transform.position);
+            cmd.SetGlobalFloat(ShadowRadiusID, shadowRadius);
+
+            var shadowMaterial = pass.rendererData.GetShadowMaterial(1);
+            var removeSelfShadowMaterial = pass.rendererData.GetRemoveSelfShadowMaterial(1);
+            var shadowCasterGroups = ShadowCasterGroup2DManager.shadowCasterGroups;
+            if (shadowCasterGroups != null && shadowCasterGroups.Count > 0)
             {
-                CreateShadowRenderTexture(pass, renderingData, cmdBuffer, light.blendStyleIndex);
-
-                cmdBuffer.SetRenderTarget(pass.rendererData.shadowsRenderTarget.Identifier(), RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-                cmdBuffer.ClearRenderTarget(true, true, Color.black);
-
-                BoundingSphere lightBounds = light.GetBoundingSphere(); // Gets the local bounding sphere...
-                float shadowRadius = 1.42f * lightBounds.radius;
-
-                cmdBuffer.SetGlobalVector("_LightPos", light.transform.position);
-                cmdBuffer.SetGlobalFloat("_ShadowRadius", shadowRadius);
-
-                Material shadowMaterial = pass.rendererData.GetShadowMaterial(1);
-                Material removeSelfShadowMaterial = pass.rendererData.GetRemoveSelfShadowMaterial(1);
-                List<ShadowCasterGroup2D> shadowCasterGroups = ShadowCasterGroup2DManager.shadowCasterGroups;
-                if (shadowCasterGroups != null && shadowCasterGroups.Count > 0)
+                var previousShadowGroupIndex = -1;
+                var incrementingGroupIndex = 0;
+                foreach (var shadowCasterGroup in shadowCasterGroups)
                 {
-                    int previousShadowGroupIndex = -1;
-                    int incrementingGroupIndex = 0;
-                    for (int group = 0; group < shadowCasterGroups.Count; group++)
+                    var shadowCasters = shadowCasterGroup.GetShadowCasters();
+
+                    var shadowGroupIndex = shadowCasterGroup.GetShadowGroup();
+                    if (LightUtility.CheckForChange(shadowGroupIndex, ref previousShadowGroupIndex) || shadowGroupIndex == 0)
                     {
-                        ShadowCasterGroup2D shadowCasterGroup = shadowCasterGroups[group];
+                        incrementingGroupIndex++;
+                        shadowMaterial = pass.rendererData.GetShadowMaterial(incrementingGroupIndex);
+                        removeSelfShadowMaterial = pass.rendererData.GetRemoveSelfShadowMaterial(incrementingGroupIndex);
+                    }
 
-                        List<ShadowCaster2D> shadowCasters = shadowCasterGroup.GetShadowCasters();
+                    if (shadowCasters == null)
+                        continue;
 
-                        int shadowGroupIndex = shadowCasterGroup.GetShadowGroup();
-                        if (LightUtility.CheckForChange(shadowGroupIndex, ref previousShadowGroupIndex) || shadowGroupIndex == 0)
+                    // Draw the shadow casting group first, then draw the silhouttes..
+                    foreach (var shadowCaster in shadowCasters)
+                    {
+                        if (shadowCaster != null && shadowMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
                         {
-                            incrementingGroupIndex++;
-                            shadowMaterial = pass.rendererData.GetShadowMaterial(incrementingGroupIndex);
-                            removeSelfShadowMaterial = pass.rendererData.GetRemoveSelfShadowMaterial(incrementingGroupIndex);
+                            if (shadowCaster.castsShadows)
+                                cmd.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, shadowMaterial);
                         }
+                    }
 
-                        if (shadowCasters != null)
+                    foreach (var shadowCaster in shadowCasters)
+                    {
+                        if (shadowCaster != null && shadowMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
                         {
-                            // Draw the shadow casting group first, then draw the silhouttes..
-                            for (int i = 0; i < shadowCasters.Count; i++)
+                            if (shadowCaster.useRendererSilhouette)
                             {
-                                ShadowCaster2D shadowCaster = (ShadowCaster2D)shadowCasters[i];
-
-                                if (shadowCaster != null && shadowMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
+                                var renderer = shadowCaster.GetComponent<Renderer>();
+                                if (renderer != null)
                                 {
-                                    if (shadowCaster.castsShadows)
-                                        cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, shadowMaterial);
+                                    if (!shadowCaster.selfShadows)
+                                        cmd.DrawRenderer(renderer, removeSelfShadowMaterial);
+                                    else
+                                        cmd.DrawRenderer(renderer, shadowMaterial, 0, 1);
                                 }
                             }
-
-                            for (int i = 0; i < shadowCasters.Count; i++)
+                            else
                             {
-                                ShadowCaster2D shadowCaster = (ShadowCaster2D)shadowCasters[i];
-
-                                if (shadowCaster != null && shadowMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
+                                if (!shadowCaster.selfShadows)
                                 {
-                                    if (shadowCaster.useRendererSilhouette)
-                                    {
-                                        Renderer renderer = shadowCaster.GetComponent<Renderer>();
-                                        if (renderer != null)
-                                        {
-                                            if (!shadowCaster.selfShadows)
-                                                cmdBuffer.DrawRenderer(renderer, removeSelfShadowMaterial);
-                                            else
-                                                cmdBuffer.DrawRenderer(renderer, shadowMaterial, 0, 1);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (!shadowCaster.selfShadows)
-                                        {
-                                            Matrix4x4 meshMat = shadowCaster.transform.localToWorldMatrix;
-                                            cmdBuffer.DrawMesh(shadowCaster.mesh, meshMat, removeSelfShadowMaterial);
-                                        }
-                                    }
+                                    var meshMat = shadowCaster.transform.localToWorldMatrix;
+                                    cmd.DrawMesh(shadowCaster.mesh, meshMat, removeSelfShadowMaterial);
                                 }
                             }
                         }
                     }
                 }
-
-                cmdBuffer.ReleaseTemporaryRT(pass.rendererData.shadowsRenderTarget.id);
-                cmdBuffer.SetRenderTarget(renderTexture, depthTexture);
             }
+
+            cmd.ReleaseTemporaryRT(pass.rendererData.shadowsRenderTarget.id);
+            cmd.SetRenderTarget(renderTexture, depthTexture);
         }
 
-        private static bool RenderLightSet(IRenderPass2D pass, RenderingData renderingData, Camera camera, int blendStyleIndex, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, bool rtNeedsClear, Color clearColor, List<Light2D> lights)
+        private static bool RenderLightSet(IRenderPass2D pass, RenderingData renderingData, Camera camera, int blendStyleIndex, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTexture, bool rtNeedsClear, Color clearColor, List<Light2D> lights)
         {
-            bool renderedAnyLight = false;
+            var renderedAnyLight = false;
 
             foreach (var light in lights)
             {
                 if (light != null && light.lightType != Light2D.LightType.Global && light.blendStyleIndex == blendStyleIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                 {
                     // Render light
-                    Material lightMaterial = pass.rendererData.GetLightMaterial(light, false);
-                    if (lightMaterial != null)
+                    var lightMaterial = pass.rendererData.GetLightMaterial(light, false);
+                    if (lightMaterial == null)
+                        continue;
+
+                    var lightMesh = light.GetMesh();
+                    if (lightMesh == null)
+                        continue;
+
+                    RenderShadows(pass, renderingData, cmd, layerToRender, light, light.shadowIntensity, renderTexture, renderTexture);
+
+                    if (!renderedAnyLight && rtNeedsClear)
                     {
-                        Mesh lightMesh = light.GetMesh();
-                        if (lightMesh != null)
-                        {
-                            RenderShadows(pass, renderingData, cmdBuffer, layerToRender, light, light.shadowIntensity, renderTexture, renderTexture);
+                        cmd.ClearRenderTarget(false, true, clearColor);
+                    }
 
-                            if (!renderedAnyLight && rtNeedsClear)
-                            {
-                                cmdBuffer.ClearRenderTarget(false, true, clearColor);
-                            }
+                    renderedAnyLight = true;
 
-                            renderedAnyLight = true;
+                    if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
+                        cmd.SetGlobalTexture(CookieTexID, light.lightCookieSprite.texture);
 
-                            if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
-                                cmdBuffer.SetGlobalTexture("_CookieTex", light.lightCookieSprite.texture);
+                    cmd.SetGlobalFloat(FalloffIntensityID, light.falloffIntensity);
+                    cmd.SetGlobalFloat(FalloffDistanceID, light.shapeLightFalloffSize);
+                    cmd.SetGlobalVector(FalloffOffsetID, light.shapeLightFalloffOffset);
+                    cmd.SetGlobalColor(LightColorID, light.intensity * light.color);
+                    cmd.SetGlobalFloat(VolumeOpacityID, light.volumeOpacity);
 
-                            cmdBuffer.SetGlobalFloat("_FalloffIntensity", light.falloffIntensity);
-                            cmdBuffer.SetGlobalFloat("_FalloffDistance", light.shapeLightFalloffSize);
-                            cmdBuffer.SetGlobalVector("_FalloffOffset", light.shapeLightFalloffOffset);
-                            cmdBuffer.SetGlobalColor("_LightColor", light.intensity * light.color);
-                            cmdBuffer.SetGlobalFloat("_VolumeOpacity", light.volumeOpacity);
+                    if(light.useNormalMap || light.lightType == Light2D.LightType.Point)
+                        SetPointLightShaderGlobals(cmd, light);
 
-                            if(light.useNormalMap || light.lightType == Light2D.LightType.Point)
-                                RendererLighting.SetPointLightShaderGlobals(cmdBuffer, light);
-
-                            // Light code could be combined...
-                            if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
-                            {
-                                cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightMaterial);
-                            }
-                            else if(light.lightType == Light2D.LightType.Point)
-                            {
-                                Vector3 scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
-                                Matrix4x4 matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
-                                cmdBuffer.DrawMesh(lightMesh, matrix, lightMaterial);
-                            }
-                        }
+                    // Light code could be combined...
+                    if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
+                    {
+                        cmd.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightMaterial);
+                    }
+                    else if(light.lightType == Light2D.LightType.Point)
+                    {
+                        var scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
+                        var matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
+                        cmd.DrawMesh(lightMesh, matrix, lightMaterial);
                     }
                 }
             }
@@ -276,66 +291,64 @@ namespace UnityEngine.Experimental.Rendering.Universal
             // If no lights were rendered, just clear the RenderTarget if needed
             if (!renderedAnyLight && rtNeedsClear)
             {
-                cmdBuffer.ClearRenderTarget(false, true, clearColor);
+                cmd.ClearRenderTarget(false, true, clearColor);
             }
 
             return renderedAnyLight;
         }
 
-        private static void RenderLightVolumeSet(IRenderPass2D pass, RenderingData renderingData, Camera camera, int blendStyleIndex, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture, List<Light2D> lights)
+        private static void RenderLightVolumeSet(IRenderPass2D pass, RenderingData renderingData, Camera camera, int blendStyleIndex, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture, List<Light2D> lights)
         {
-            if (lights.Count > 0)
+            if (lights.Count <= 0)
+                return;
+
+            foreach (var light in lights)
             {
-                for (int i = 0; i < lights.Count; i++)
+                var topMostLayer = light.GetTopMostLitLayer();
+                if (layerToRender != topMostLayer)
+                    continue;
+
+                if (light != null && light.lightType != Light2D.LightType.Global && light.volumeOpacity > 0.0f && light.blendStyleIndex == blendStyleIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                 {
-                    Light2D light = lights[i];
+                    var lightVolumeMaterial = pass.rendererData.GetLightMaterial(light, true);
+                    if (lightVolumeMaterial == null)
+                        continue;
 
-                    int topMostLayer = light.GetTopMostLitLayer();
-                    if (layerToRender == topMostLayer)
+                    var lightMesh = light.GetMesh();
+                    if (lightMesh == null)
+                        continue;
+
+                    RenderShadows(pass, renderingData, cmd, layerToRender, light, light.shadowVolumeIntensity, renderTexture, depthTexture);
+
+                    if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
+                        cmd.SetGlobalTexture(CookieTexID, light.lightCookieSprite.texture);
+
+                    cmd.SetGlobalFloat(FalloffIntensityID, light.falloffIntensity);
+                    cmd.SetGlobalFloat(FalloffDistanceID, light.shapeLightFalloffSize);
+                    cmd.SetGlobalVector(FalloffOffsetID, light.shapeLightFalloffOffset);
+                    cmd.SetGlobalColor(LightColorID, light.intensity * light.color);
+                    cmd.SetGlobalFloat(VolumeOpacityID, light.volumeOpacity);
+
+                    // Is this needed
+                    if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
+                        RendererLighting.SetPointLightShaderGlobals(cmd, light);
+
+                    // Could be combined...
+                    if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
                     {
-                        if (light != null && light.lightType != Light2D.LightType.Global && light.volumeOpacity > 0.0f && light.blendStyleIndex == blendStyleIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
-                        {
-                            Material lightVolumeMaterial = pass.rendererData.GetLightMaterial(light, true);
-                            if (lightVolumeMaterial != null)
-                            {
-                                Mesh lightMesh = light.GetMesh();
-                                if (lightMesh != null)
-                                {
-                                    RenderShadows(pass, renderingData, cmdBuffer, layerToRender, light, light.shadowVolumeIntensity, renderTexture, depthTexture);
-
-                                    if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
-                                        cmdBuffer.SetGlobalTexture("_CookieTex", light.lightCookieSprite.texture);
-
-                                    cmdBuffer.SetGlobalFloat("_FalloffIntensity", light.falloffIntensity);
-                                    cmdBuffer.SetGlobalFloat("_FalloffDistance", light.shapeLightFalloffSize);
-                                    cmdBuffer.SetGlobalVector("_FalloffOffset", light.shapeLightFalloffOffset);
-                                    cmdBuffer.SetGlobalColor("_LightColor", light.intensity * light.color);
-                                    cmdBuffer.SetGlobalFloat("_VolumeOpacity", light.volumeOpacity);
-
-                                    // Is this needed
-                                    if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
-                                        RendererLighting.SetPointLightShaderGlobals(cmdBuffer, light);
-
-                                    // Could be combined...
-                                    if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
-                                    {
-                                        cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightVolumeMaterial);
-                                    }
-                                    else if (light.lightType == Light2D.LightType.Point)
-                                    {
-                                        Vector3 scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
-                                        Matrix4x4 matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
-                                        cmdBuffer.DrawMesh(lightMesh, matrix, lightVolumeMaterial);
-                                    }
-                                }
-                            }
-                        }
+                        cmd.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightVolumeMaterial);
+                    }
+                    else if (light.lightType == Light2D.LightType.Point)
+                    {
+                        var scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
+                        var matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
+                        cmd.DrawMesh(lightMesh, matrix, lightVolumeMaterial);
                     }
                 }
             }
         }
 
-        public static void SetShapeLightShaderGlobals(this IRenderPass2D pass, CommandBuffer cmdBuffer)
+        public static void SetShapeLightShaderGlobals(this IRenderPass2D pass, CommandBuffer cmd)
         {
             for(var i = 0; i < pass.rendererData.lightBlendStyles.Length; i++)
             {
@@ -343,85 +356,63 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if (i >= k_BlendFactorsPropNames.Length)
                     break;
 
-                cmdBuffer.SetGlobalVector(k_BlendFactorsPropNames[i], blendStyle.blendFactors);
-                cmdBuffer.SetGlobalVector(k_MaskFilterPropNames[i], blendStyle.maskTextureChannelFilter.mask);
-                cmdBuffer.SetGlobalVector(k_InvertedFilterPropNames[i], blendStyle.maskTextureChannelFilter.inverted);
+                cmd.SetGlobalVector(k_BlendFactorsPropNames[i], blendStyle.blendFactors);
+                cmd.SetGlobalVector(k_MaskFilterPropNames[i], blendStyle.maskTextureChannelFilter.mask);
+                cmd.SetGlobalVector(k_InvertedFilterPropNames[i], blendStyle.maskTextureChannelFilter.inverted);
             }
 
-            cmdBuffer.SetGlobalTexture("_FalloffLookup", RendererLighting.GetFalloffLookupTexture());
+            cmd.SetGlobalTexture(FalloffLookupID, Light2DLookupTexture.GetFalloffLookupTexture());
         }
 
-        static Texture GetLightLookupTexture()
-        {
-            if (s_LightLookupTexture == null)
-                s_LightLookupTexture = Light2DLookupTexture.CreatePointLightLookupTexture();
-
-            return s_LightLookupTexture;
-        }
-
-        static Texture GetFalloffLookupTexture()
-        {
-            if (s_FalloffLookupTexture == null)
-                s_FalloffLookupTexture = Light2DLookupTexture.CreateFalloffLookupTexture();
-
-            return s_FalloffLookupTexture;
-        }
-
-        static public float GetNormalizedInnerRadius(Light2D light)
+        private static float GetNormalizedInnerRadius(Light2D light)
         {
             return light.pointLightInnerRadius / light.pointLightOuterRadius;
         }
 
-        static public float GetNormalizedAngle(float angle)
+        private static float GetNormalizedAngle(float angle)
         {
             return (angle / 360.0f);
         }
 
-        static public void GetScaledLightInvMatrix(Light2D light, out Matrix4x4 retMatrix, bool includeRotation)
+        private static void GetScaledLightInvMatrix(Light2D light, out Matrix4x4 retMatrix, bool includeRotation)
         {
-            float outerRadius = light.pointLightOuterRadius;
-            Vector3 lightScale = Vector3.one;
-            Vector3 outerRadiusScale = new Vector3(lightScale.x * outerRadius, lightScale.y * outerRadius, lightScale.z * outerRadius);
+            var outerRadius = light.pointLightOuterRadius;
+            var lightScale = Vector3.one;
+            var outerRadiusScale = new Vector3(lightScale.x * outerRadius, lightScale.y * outerRadius, lightScale.z * outerRadius);
 
-            Quaternion rotation;
-            if (includeRotation)
-                rotation = light.transform.rotation;
-            else
-                rotation = Quaternion.identity;
+            var transform = light.transform;
+            var rotation = includeRotation ? transform.rotation : Quaternion.identity;
 
-            Matrix4x4 scaledLightMat = Matrix4x4.TRS(light.transform.position, rotation, outerRadiusScale);
+            var scaledLightMat = Matrix4x4.TRS(transform.position, rotation, outerRadiusScale);
             retMatrix = Matrix4x4.Inverse(scaledLightMat);
         }
 
-        static public void SetPointLightShaderGlobals(CommandBuffer cmdBuffer, Light2D light)
+        private static void SetPointLightShaderGlobals(CommandBuffer cmd, Light2D light)
         {
             // This is used for the lookup texture
-            Matrix4x4 lightInverseMatrix;
-            Matrix4x4 lightNoRotInverseMatrix;
-            GetScaledLightInvMatrix(light, out lightInverseMatrix, true);
-            GetScaledLightInvMatrix(light, out lightNoRotInverseMatrix, false);
+            GetScaledLightInvMatrix(light, out var lightInverseMatrix, true);
+            GetScaledLightInvMatrix(light, out var lightNoRotInverseMatrix, false);
 
-            float innerRadius = GetNormalizedInnerRadius(light);
-            float innerAngle = GetNormalizedAngle(light.pointLightInnerAngle);
-            float outerAngle = GetNormalizedAngle(light.pointLightOuterAngle);
-            float innerRadiusMult = 1 / (1 - innerRadius);
+            var innerRadius = GetNormalizedInnerRadius(light);
+            var innerAngle = GetNormalizedAngle(light.pointLightInnerAngle);
+            var outerAngle = GetNormalizedAngle(light.pointLightOuterAngle);
+            var innerRadiusMult = 1 / (1 - innerRadius);
 
-            cmdBuffer.SetGlobalVector("_LightPosition", light.transform.position);
-            cmdBuffer.SetGlobalMatrix("_LightInvMatrix", lightInverseMatrix);
-            cmdBuffer.SetGlobalMatrix("_LightNoRotInvMatrix", lightNoRotInverseMatrix);
-            cmdBuffer.SetGlobalFloat("_InnerRadiusMult", innerRadiusMult);
+            cmd.SetGlobalVector(LightPositionID, light.transform.position);
+            cmd.SetGlobalMatrix(LightInvMatrixID, lightInverseMatrix);
+            cmd.SetGlobalMatrix(LightNoRotInvMatrixID, lightNoRotInverseMatrix);
+            cmd.SetGlobalFloat(InnerRadiusMultID, innerRadiusMult);
+            cmd.SetGlobalFloat(OuterAngleID, outerAngle);
+            cmd.SetGlobalFloat(InnerAngleMultID, 1 / (outerAngle - innerAngle));
+            cmd.SetGlobalTexture(LightLookupID, Light2DLookupTexture.GetLightLookupTexture());
+            cmd.SetGlobalTexture(FalloffLookupID, Light2DLookupTexture.GetFalloffLookupTexture());
+            cmd.SetGlobalFloat(FalloffIntensityID, light.falloffIntensity);
+            cmd.SetGlobalFloat(IsFullSpotlightID, innerAngle == 1 ? 1.0f : 0.0f);
 
-            cmdBuffer.SetGlobalFloat("_OuterAngle", outerAngle);
-            cmdBuffer.SetGlobalFloat("_InnerAngleMult", 1 / (outerAngle - innerAngle));
-            cmdBuffer.SetGlobalTexture("_LightLookup", GetLightLookupTexture());
-            cmdBuffer.SetGlobalTexture("_FalloffLookup", GetFalloffLookupTexture());
-            cmdBuffer.SetGlobalFloat("_FalloffIntensity", light.falloffIntensity);
-            cmdBuffer.SetGlobalFloat("_IsFullSpotlight", innerAngle == 1 ? 1.0f : 0.0f);
-
-            cmdBuffer.SetGlobalFloat("_LightZDistance", light.pointLightDistance);
+            cmd.SetGlobalFloat(LightZDistanceID, light.pointLightDistance);
 
             if (light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
-                cmdBuffer.SetGlobalTexture("_PointLightCookieTex", light.lightCookieSprite.texture);
+                cmd.SetGlobalTexture(PointLightCookieTexID, light.lightCookieSprite.texture);
         }
 
         public static void ClearDirtyLighting(this IRenderPass2D pass, CommandBuffer cmd, uint blendStylesUsed)
@@ -455,7 +446,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             context.DrawRenderers(cullResults, ref drawSettings, ref filterSettings);
         }
 
-        public static void RenderLights(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int layerToRender, uint blendStylesUsed)
+        public static void RenderLights(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, uint blendStylesUsed)
         {
             var blendStyles = pass.rendererData.lightBlendStyles;
             var camera = renderingData.cameraData.camera;
@@ -466,10 +457,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     continue;
 
                 var sampleName = blendStyles[i].name;
-                cmdBuffer.BeginSample(sampleName);
+                cmd.BeginSample(sampleName);
 
                 var rtID = pass.rendererData.lightBlendStyles[i].renderTargetHandle.Identifier();
-                cmdBuffer.SetRenderTarget(rtID);
+                cmd.SetRenderTarget(rtID);
 
                 var rtDirty = false;
                 if (!Light2DManager.GetGlobalColor(layerToRender, i, out var clearColor))
@@ -481,7 +472,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     pass, renderingData,
                     camera,
                     i,
-                    cmdBuffer,
+                    cmd,
                     layerToRender,
                     rtID,
                     (pass.rendererData.lightBlendStyles[i].isDirty || rtDirty),
@@ -491,11 +482,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 pass.rendererData.lightBlendStyles[i].isDirty = rtDirty;
 
-                cmdBuffer.EndSample(sampleName);
+                cmd.EndSample(sampleName);
             }
         }
 
-        public static void RenderLightVolumes(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTarget, RenderTargetIdentifier depthTarget, uint blendStylesUsed)
+        public static void RenderLightVolumes(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTarget, RenderTargetIdentifier depthTarget, uint blendStylesUsed)
         {
             var blendStyles = pass.rendererData.lightBlendStyles;
             var camera = renderingData.cameraData.camera;
@@ -506,52 +497,52 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     continue;
 
                 string sampleName = blendStyles[i].name;
-                cmdBuffer.BeginSample(sampleName);
+                cmd.BeginSample(sampleName);
 
                 RenderLightVolumeSet(
                     pass, renderingData,
                     camera,
                     i,
-                    cmdBuffer,
+                    cmd,
                     layerToRender,
                     renderTarget,
                     depthTarget,
                     Light2D.GetLightsByBlendStyle(i)
                 );
 
-                cmdBuffer.EndSample(sampleName);
+                cmd.EndSample(sampleName);
             }
         }
 
-        static void SetBlendModes(Material material, BlendMode src, BlendMode dst)
+        private static void SetBlendModes(Material material, BlendMode src, BlendMode dst)
         {
-            material.SetFloat("_SrcBlend", (float)src);
-            material.SetFloat("_DstBlend", (float)dst);
+            material.SetFloat(SrcBlendID, (float)src);
+            material.SetFloat(DstBlendID, (float)dst);
         }
 
-        static uint GetLightMaterialIndex(Light2D light, bool isVolume)
+        private static uint GetLightMaterialIndex(Light2D light, bool isVolume)
         {
-            int bitIndex = 0;
-            uint volumeBit = isVolume ? 1u << bitIndex : 0u;
+            var bitIndex = 0;
+            var volumeBit = isVolume ? 1u << bitIndex : 0u;
             bitIndex++;
-            uint shapeBit = light.IsShapeLight() ? 1u << bitIndex : 0u;
+            var shapeBit = light.IsShapeLight() ? 1u << bitIndex : 0u;
             bitIndex++;
-            uint additiveBit = light.alphaBlendOnOverlap ? 0u : 1u << bitIndex;
+            var additiveBit = light.alphaBlendOnOverlap ? 0u : 1u << bitIndex;
             bitIndex++;
-            uint spriteBit = light.lightType == Light2D.LightType.Sprite ? 1u << bitIndex : 0u;
+            var spriteBit = light.lightType == Light2D.LightType.Sprite ? 1u << bitIndex : 0u;
             bitIndex++;
-            uint pointCookieBit = (!light.IsShapeLight() && light.lightCookieSprite != null && light.lightCookieSprite.texture != null) ? 1u << bitIndex : 0u;
+            var pointCookieBit = (!light.IsShapeLight() && light.lightCookieSprite != null && light.lightCookieSprite.texture != null) ? 1u << bitIndex : 0u;
             bitIndex++;
-            uint pointFastQualityBit = (!light.IsShapeLight() && light.pointLightQuality == Light2D.PointLightQuality.Fast) ? 1u << bitIndex : 0u;
+            var pointFastQualityBit = (!light.IsShapeLight() && light.pointLightQuality == Light2D.PointLightQuality.Fast) ? 1u << bitIndex : 0u;
             bitIndex++;
-            uint useNormalMap = light.useNormalMap ? 1u << bitIndex : 0u;
+            var useNormalMap = light.useNormalMap ? 1u << bitIndex : 0u;
 
             return pointFastQualityBit | pointCookieBit | spriteBit | additiveBit | shapeBit | volumeBit | useNormalMap;
         }
 
         private static Material CreateLightMaterial(Renderer2DData rendererData, Light2D light, bool isVolume)
         {
-            bool isShape = light.IsShapeLight();
+            var isShape = light.IsShapeLight();
             Material material;
 
             if (isVolume)
@@ -586,7 +577,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private static Material GetLightMaterial(this Renderer2DData rendererData, Light2D light, bool isVolume)
         {
-            uint materialIndex = GetLightMaterialIndex(light, isVolume);
+            var materialIndex = GetLightMaterialIndex(light, isVolume);
 
             if (rendererData.lightMaterials[materialIndex] == null)
                 rendererData.lightMaterials[materialIndex] = CreateLightMaterial(rendererData, light, isVolume);
@@ -596,11 +587,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private static Material GetShadowMaterial(this Renderer2DData rendererData, int index)
         {
-            int shadowMaterialIndex = index % 255;
+            var shadowMaterialIndex = index % 255;
             if(rendererData.shadowMaterials[shadowMaterialIndex] == null)
             {
                 rendererData.shadowMaterials[shadowMaterialIndex] = CoreUtils.CreateEngineMaterial(rendererData.shadowGroupShader);
-                rendererData.shadowMaterials[shadowMaterialIndex].SetFloat("_ShadowStencilGroup", index);
+                rendererData.shadowMaterials[shadowMaterialIndex].SetFloat(ShadowStencilGroupID, index);
             }
 
             return rendererData.shadowMaterials[shadowMaterialIndex];
@@ -608,11 +599,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private static Material GetRemoveSelfShadowMaterial(this Renderer2DData rendererData, int index)
         {
-            int shadowMaterialIndex = index % 255;
+            var shadowMaterialIndex = index % 255;
             if (rendererData.removeSelfShadowMaterials[shadowMaterialIndex] == null)
             {
                 rendererData.removeSelfShadowMaterials[shadowMaterialIndex] = CoreUtils.CreateEngineMaterial(rendererData.removeSelfShadowShader);
-                rendererData.removeSelfShadowMaterials[shadowMaterialIndex].SetFloat("_ShadowStencilGroup", index);
+                rendererData.removeSelfShadowMaterials[shadowMaterialIndex].SetFloat(ShadowStencilGroupID, index);
             }
 
             return rendererData.removeSelfShadowMaterials[shadowMaterialIndex];
