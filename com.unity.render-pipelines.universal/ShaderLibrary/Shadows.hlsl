@@ -52,7 +52,7 @@ half4       _MainLightShadowOffset0;
 half4       _MainLightShadowOffset1;
 half4       _MainLightShadowOffset2;
 half4       _MainLightShadowOffset3;
-half4       _MainLightShadowParams;  // (x: shadowStrength, y: 1.0 if soft shadows, 0.0 otherwise, z: 1.0 if smooth shadow fade, 0.0 otherwise)
+half4       _MainLightShadowParams;  // (x: shadowStrength, y: 1.0 if soft shadows, 0.0 otherwise, z: oneOverFadeDist, w: minusStartFade)
 float4      _MainLightShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
 #ifndef SHADER_API_GLES3
 CBUFFER_END
@@ -292,10 +292,8 @@ float ApplyShadowFade(float shadowAttenuation, float3 positionWS)
 {
     float3 camToPixel = positionWS - _WorldSpaceCameraPos;
     float distanceCamToPixel2 = dot(camToPixel, camToPixel);
-    float shadowDist = _MainLightShadowParams.z;
-    float startShadowFadeDist = shadowDist * 0.9;
 
-    float fade = saturate((distanceCamToPixel2 - startShadowFadeDist) / (shadowDist - startShadowFadeDist));
+    float fade = saturate(distanceCamToPixel2 * _MainLightShadowParams.z + _MainLightShadowParams.w);
     return shadowAttenuation + (1 - shadowAttenuation) * fade * fade;
 }
 
