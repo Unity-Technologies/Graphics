@@ -254,7 +254,7 @@ namespace UnityEditor.ShaderGraph
             //TODO: Should give what row/columns the problems are
             var inputIndecies = new Matrix4x4();
 
-            //set all indecies that won't be used to zero
+            //set all indicies that won't be used to zero
             switch (m_OutputSize)
             {
                 default:
@@ -301,7 +301,7 @@ namespace UnityEditor.ShaderGraph
                     break;
             }
 
-            //Check indeceis sizes
+            //Check indicies sizes
             if (!(IsIndexSizeCorrect(inputIndecies.GetRow(0), concreteRowCount)&&
                 IsIndexSizeCorrect(inputIndecies.GetRow(1), concreteRowCount)&&
                 IsIndexSizeCorrect(inputIndecies.GetRow(2), concreteRowCount) && IsIndexSizeCorrect(inputIndecies.GetRow(3), concreteRowCount)) )
