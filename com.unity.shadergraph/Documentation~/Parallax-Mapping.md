@@ -1,6 +1,6 @@
 # Parallax Mapping Node
 
-The Parallax Mapping Node allows you to create a parallax effect that displaces a Material's UVs to create the illusion of depth inside a Material. Uses single step process that does not account for occlusion.
+The Parallax Mapping node lets you create a parallax effect that displaces a Material's UVs to create the illusion of depth inside a Material. This implementation uses the single step process that does not account for occlusion. For information on how the effect looks, see the [Height Map](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterHeightMap.html) page.
 
 ## Ports
 
