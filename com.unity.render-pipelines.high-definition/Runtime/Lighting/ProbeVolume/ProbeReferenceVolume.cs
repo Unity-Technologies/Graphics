@@ -391,7 +391,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // create a registry entry for this request
             RegId id;
-            id.id = ++m_id;
+            m_id++;
+            id.id = m_id;
             m_Registry.Add(id, ch_list);
 
             // update the index
