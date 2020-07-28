@@ -81,7 +81,9 @@
     * Bitwise
       * [And](Operator-BitwiseAnd.md)
       * [Complement](Operator-BitwiseComplement.md)
+      * [Left Shift](Operator-BitwiseLeftShift.md)
       * [Or](Operator-BitwiseOr.md)
+      * [Right Shift](Operator-BitwiseRightShift.md)
       * [Xor](Operator-BitwiseXor.md)
     * Builtin
       * [Delta Time](Operator-DeltaTime.md)
