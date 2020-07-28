@@ -151,6 +151,11 @@ namespace UnityEditor.VFX
     {
         [Tooltip("Sets the center of the cone."), VFXSpace(SpaceableType.Position)]
         public Vector3 center;
+        [Tooltip("Sets the direction of the cone."), VFXSpace(SpaceableType.Direction)]
+        public Vector3 direction;
+        [Tooltip("Sets the up of the cone."), VFXSpace(SpaceableType.Direction)]
+        public Vector3 up;
+
         [Min(0.0f), Tooltip("Sets the base radius of the cone.")]
         public float radius0;
         [Min(0.0f), Tooltip("Sets the top radius of the cone.")]
@@ -160,7 +165,15 @@ namespace UnityEditor.VFX
         [Angle, Range(0, Mathf.PI * 2.0f), Tooltip("Controls how much of the cone is used. The value is in radians.")]
         public float arc;
 
-        public static ArcCone defaultValue = new ArcCone { radius0 = 1.0f, radius1 = 0.1f, height = 1.0f, arc = 2.0f * Mathf.PI};
+        public static ArcCone defaultValue = new ArcCone
+        {
+            radius0 = 1.0f,
+            radius1 = 0.1f,
+            height = 1.0f,
+            arc = 2.0f * Mathf.PI,
+            direction = new Vector3(1.0f, 0.0f, 0.0f),
+            up = new Vector3(0.0f, 1.0f, 0.0f)
+        };
     }
 
     [VFXType, Serializable]
