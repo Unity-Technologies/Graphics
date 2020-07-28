@@ -60,6 +60,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (i != m_DeferredLights.GBufferLightingIndex)
                 {
                     RenderTextureDescriptor gbufferSlice = cameraTextureDescriptor;
+                    gbufferSlice.depthBufferBits = 0; // make sure no depth surface is actually created
+                    gbufferSlice.stencilFormat = GraphicsFormat.None;
                     gbufferSlice.graphicsFormat = m_DeferredLights.GetGBufferFormat(i);
                     cmd.GetTemporaryRT(m_DeferredLights.GbufferAttachments[i].id, gbufferSlice);
                 }
@@ -67,9 +69,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             ConfigureTarget(m_DeferredLights.GbufferAttachmentIdentifiers, m_DeferredLights.DepthAttachmentIdentifier);
 
-            // If depth-prepass exists, do not clear depth here or we will lose it.
-            // Lighting buffer is cleared independently regardless of what we ask for here.
-            ConfigureClear(m_DeferredLights.HasDepthPrepass ? ClearFlag.None : ClearFlag.Depth, Color.black);
+            // Only need to clear depth.
+            ConfigureClear(ClearFlag.Depth, Color.black);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
