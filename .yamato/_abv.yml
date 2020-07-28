@@ -104,6 +104,12 @@ all_project_ci_nightly_trunk:
          rerun: on-new-revision
       -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_trunk
          rerun: on-new-revision
+      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_Standalone_trunk
+         rerun: on-new-revision
+      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_editmode_trunk
+         rerun: on-new-revision
+      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_trunk
+         rerun: on-new-revision
     triggers:
         recurring:
           -  branch: master
@@ -214,7 +220,7 @@ all_project_ci_fast-trunk:
       -  path: .yamato/all-vfx_urp.yml#All_VFX_URP_fast-trunk
          rerun: on-new-revision
     triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*"]
+        expression: pull_request.target eq "master" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*", ".github/**/*", "Tools/**/*"]
 trunk_verification_fast-trunk:
     name: Trunk verification - fast-trunk
     dependencies:

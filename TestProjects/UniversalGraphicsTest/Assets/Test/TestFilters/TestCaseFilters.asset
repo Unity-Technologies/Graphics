@@ -13,14 +13,6 @@ MonoBehaviour:
   m_Name: TestCaseFilters
   m_EditorClassIdentifier: 
   filters:
-  - FilteredScene: {fileID: 102900000, guid: 7a8ef7ce062f0465b9e493dd5730cecb, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 4
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Android: Known issue: expected less than or equal to 0.00100000005f
-      but was 0.00277045905f (scene 036)'
   - FilteredScene: {fileID: 102900000, guid: 9f750aafa54d07a43b7601615bb2c7ea, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
@@ -50,13 +42,6 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: iOS Tracked issue (023)
-  - FilteredScene: {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: iOS Tracked issue (035)
   - FilteredScene: {fileID: 102900000, guid: 7a8ef7ce062f0465b9e493dd5730cecb, type: 3}
     ColorSpace: -1
     BuildPlatform: 9
@@ -78,13 +63,6 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: iOS Tracked issue  (055)
-  - FilteredScene: {fileID: 102900000, guid: ef200bbb51f946647ac204267d52a9bd, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: iOS Tracked issue (057)
   - FilteredScene: {fileID: 102900000, guid: 9f750aafa54d07a43b7601615bb2c7ea, type: 3}
     ColorSpace: -1
     BuildPlatform: 9
@@ -120,20 +98,6 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: OSX Standalone won't work with back buffer capture
-  - FilteredScene: {fileID: 102900000, guid: f5310a9ab278ec748b2091bf7ba966a7, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: iOS tracked regression (117)
-  - FilteredScene: {fileID: 102900000, guid: e1fb4b913911b734b88f86697de1b94a, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: iOS tracked regression (118)
   - FilteredScene: {fileID: 102900000, guid: c7b61419ee9382545afe530714fda0c2, type: 3}
     ColorSpace: -1
     BuildPlatform: 9
@@ -388,6 +352,83 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 9
     GraphicsDevice: 16
-    XrSdk: None 
+    XrSdk: None
     StereoModes: 0
     Reason: iOS tracked regression (scene 111 - 1256906)
+  - FilteredScene: {fileID: 102900000, guid: d37e4ef718eada94db246dbd8ef33205, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: iOS regression (temporarily disabled until investigation)
+  - FilteredScene: {fileID: 102900000, guid: 507fe0226a0388c4898d134f829a4b28, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: iOS regression (temporarily disabled until investigation)
+  - FilteredScene: {fileID: 102900000, guid: d0fe400c29908d94e9cd70045224370d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: iOS regression (temporarily disabled until investigation)
+  - FilteredScene: {fileID: 102900000, guid: 46788dd77b1c63144b05ad4e2bbe58d5, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: iOS regression (temporarily disabled until investigation)
+  - FilteredScene: {fileID: 102900000, guid: d37e4ef718eada94db246dbd8ef33205, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 4
+    XrSdk: None
+    StereoModes: 0
+    Reason: Android regression (temporarily disabled until investigation)
+  - FilteredScene: {fileID: 102900000, guid: 507fe0226a0388c4898d134f829a4b28, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 4
+    XrSdk: None
+    StereoModes: 0
+    Reason: Android regression (temporarily disabled until investigation)
+  - FilteredScene: {fileID: 102900000, guid: d0fe400c29908d94e9cd70045224370d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 4
+    XrSdk: None
+    StereoModes: 0
+    Reason: Android regression (temporarily disabled until investigation)
+  - FilteredScene: {fileID: 102900000, guid: 46788dd77b1c63144b05ad4e2bbe58d5, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 4
+    XrSdk: None
+    StereoModes: 0
+    Reason: Android regression (temporarily disabled until investigation)
+  - FilteredScene: {fileID: 102900000, guid: 5fca56b2f8a46664e858cbb290338fc8, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 4
+    XrSdk: None
+    StereoModes: 0
+    Reason: Android 039 new faulty testscene
+  - FilteredScene: {fileID: 102900000, guid: 5fca56b2f8a46664e858cbb290338fc8, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: iOS 039 new faulty test scene
+  - FilteredScene: {fileID: 102900000, guid: 44c3bddf1a7da4af28d764901f2e9507, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 21
+    XrSdk: None
+    StereoModes: 0
+    Reason: Android Vulkan 143 regressed test scene

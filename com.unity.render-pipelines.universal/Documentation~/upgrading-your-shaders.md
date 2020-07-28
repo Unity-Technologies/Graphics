@@ -1,6 +1,6 @@
 # Upgrading your Shaders
 
-If your Project uses shaders from the built-in render pipeline, and you want to [switch your Project to use the Universal Render Pipeline instead](installing-universalrp-into-an-existing-project), you must convert those Shaders to the URP Shaders. This is because built-in Lit shaders are not compatible with URP Shaders. For an overview of the mapping between built-in shaders and URP Shaders, see [Shader mappings](#shader-mappings).
+If your Project uses shaders from the built-in render pipeline, and you want to [switch your Project to use the Universal Render Pipeline instead](InstallURPIntoAProject.md), you must convert those Shaders to the URP Shaders. This is because built-in Lit shaders are not compatible with URP Shaders. For an overview of the mapping between built-in shaders and URP Shaders, see [Shader mappings](#shader-mappings).
 
 To upgrade built-in Shaders:
 
@@ -12,6 +12,8 @@ To upgrade built-in Shaders:
 **Tip:** If the Preview thumbnails in Project View are incorrect after you've upgraded, try right-clicking anywhere in the Project View window and selecting __Reimport All__.
 
 For [SpeedTree](https://docs.unity3d.com/Manual/SpeedTree.html) Shaders, Unity does not re-generate Materials when you re-import them, unless you click the **Generate Materials** or **Apply & Generate Materials** button.
+
+<a name="built-in-to-urp-shader-mappings">
 
 ## Shader mappings
 
