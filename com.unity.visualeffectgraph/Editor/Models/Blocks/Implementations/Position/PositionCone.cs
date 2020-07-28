@@ -38,27 +38,30 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                foreach (var p in GetExpressionsFromSlots(this).Where(e => e.name != "Thickness" || e.name != "ArcCone_center"))
-                    yield return p;
+                foreach (var p in GetExpressionsFromSlots(this).Where(      e => e.name != "Thickness"
+                                                                        ||  e.name != "ArcCone_center"))
+                    yield return p; //TODOPAUL, exclude unused slot
 
                 yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, 0, 1), "volumeFactor");
 
                 VFXExpression center = inputSlots[0][0].GetExpression();
                 VFXExpression direction = inputSlots[0][1].GetExpression();
-                VFXExpression upVector = inputSlots[0][2].GetExpression();
+                VFXExpression up = inputSlots[0][2].GetExpression();
 
-                var left = VFXOperatorUtility.Cross(direction, upVector);
+                var left = VFXOperatorUtility.Cross(direction, up);
 
                 //Test building a matrix
                 var zero = VFXOperatorUtility.ZeroExpression[VFXValueType.Float];
                 var one = VFXOperatorUtility.OneExpression[VFXValueType.Float];
                 var m0 = new VFXExpressionCombine(direction.x, direction.y, direction.z, zero);
-                var m1 = new VFXExpressionCombine(upVector.x, upVector.y, upVector.z, zero);
+                var m1 = new VFXExpressionCombine(up.x, up.y, up.z, zero);
                 var m2 = new VFXExpressionCombine(left.x, left.y, left.z, zero);
                 var m3 = new VFXExpressionCombine(center.x, center.y, center.z, one);
-                var matrix = new VFXExpressionVector4sToMatrix(m0, m1, m2, m3);
 
-                yield return new VFXNamedExpression(matrix, "transformMatrix");
+                yield return new VFXNamedExpression(direction, "transformMatrix_a");
+                yield return new VFXNamedExpression(up, "transformMatrix_b");
+                yield return new VFXNamedExpression(left, "transformMatrix_c");
+                yield return new VFXNamedExpression(center, "transformMatrix_d");
 
                 VFXExpression radius0 = inputSlots[0][3].GetExpression();
                 VFXExpression radius1 = inputSlots[0][4].GetExpression();
@@ -129,7 +132,15 @@ float hNorm = HeightSequencer;
                 outSource += @"
 direction.xzy = normalize(float3(pos * sincosSlope.x, sincosSlope.y));
 float3 finalPos = lerp(float3(pos * ArcCone_radius0, 0.0f), float3(pos * ArcCone_radius1, ArcCone_height), hNorm).xzy;
-finalPos = mul(transformMatrix, float4(finalPos, 1.0f)).xyz;
+
+float3x4 trsMatrix =
+{
+    transformMatrix_a.x, transformMatrix_b.x, transformMatrix_c.x, transformMatrix_d.x,
+    transformMatrix_a.y, transformMatrix_b.y, transformMatrix_c.y, transformMatrix_d.y,
+    transformMatrix_a.z, transformMatrix_b.z, transformMatrix_c.z, transformMatrix_d.z
+};
+
+finalPos = mul(trsMatrix, float4(finalPos, 1.0f)).xyz;
 position += finalPos;
 ";
                 return outSource;
