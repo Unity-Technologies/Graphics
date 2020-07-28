@@ -86,4 +86,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/047_Lighting_DirectionalCascades.unity
     guid: 43daa9b1fc7858d44b716cfe1bb9d4bc
+  - enabled: 1
+    path: Assets/Scenes/054_Lighting_Attenuation.unity
+    guid: 049ea2a9edbeea345befff2afe0fe6d9
   m_configObjects: {}
