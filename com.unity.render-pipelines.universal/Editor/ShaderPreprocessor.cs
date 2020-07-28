@@ -348,11 +348,11 @@ namespace UnityEditor.Rendering.Universal
                 if (renderer is ForwardRenderer)
                 {
                     ForwardRenderer forwardRenderer = (ForwardRenderer)renderer;
-                    if (forwardRenderer.DeferredShading)
+                    if (forwardRenderer.shadingMode == ShadingMode.Deferred)
                     {
                         hasDeferredRenderer |= true;
-                        withAccurateGbufferNormals |= forwardRenderer.AccurateGbufferNormals;
-                        withoutAccurateGbufferNormals |= !forwardRenderer.AccurateGbufferNormals;
+                        withAccurateGbufferNormals |= forwardRenderer.accurateGbufferNormals;
+                        withoutAccurateGbufferNormals |= !forwardRenderer.accurateGbufferNormals;
                     }
                 }
             }

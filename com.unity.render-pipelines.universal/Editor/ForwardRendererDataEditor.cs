@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent OpaqueMask = new GUIContent("Opaque Layer Mask", "Controls which opaque layers this renderer draws.");
             public static readonly GUIContent TransparentMask = new GUIContent("Transparent Layer Mask", "Controls which transparent layers this renderer draws.");
             public static readonly GUIContent LightingLabel = new GUIContent("Lighting", "Controls how lights are shaded.");
-            public static readonly GUIContent DeferredShadingLabel = new GUIContent("Deferred Shading", "Enable deferred shading on compatible lights.");
+            public static readonly GUIContent ShadingLabel = new GUIContent("Shading", "Enable deferred shading on compatible lights.");
             public static readonly GUIContent accurateGbufferNormalsLabel = EditorGUIUtility.TrTextContent("Accurate G-buffer normals", "normals in G-buffer use octaedron encoding/decoding (expensive)");
             public static readonly GUIContent tiledDeferredShadingLabel = EditorGUIUtility.TrTextContent("Tiled Deferred Shading (Experimental)", "Allows Tiled Deferred Shading on appropriate lights");
             public static readonly GUIContent defaultStencilStateLabel = EditorGUIUtility.TrTextContent("Default Stencil State", "Configure stencil state for the opaque and transparent render passes.");
@@ -38,7 +38,7 @@ namespace UnityEditor.Rendering.Universal
         {
             m_OpaqueLayerMask = serializedObject.FindProperty("m_OpaqueLayerMask");
             m_TransparentLayerMask = serializedObject.FindProperty("m_TransparentLayerMask");
-            m_DeferredShading = serializedObject.FindProperty("m_DeferredShading");
+            m_DeferredShading = serializedObject.FindProperty("m_ShadingMode");
             m_AccurateGbufferNormals = serializedObject.FindProperty("m_AccurateGbufferNormals");
             // Not exposed yet.
             //m_TiledDeferredShading = serializedObject.FindProperty("m_TiledDeferredShading");
@@ -68,8 +68,8 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUILayout.LabelField(Styles.LightingLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(m_DeferredShading, Styles.DeferredShadingLabel);
-            if (m_DeferredShading.boolValue)
+            EditorGUILayout.PropertyField(m_DeferredShading, Styles.ShadingLabel);
+            if (m_DeferredShading.intValue == (int)ShadingMode.Deferred)
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_AccurateGbufferNormals, Styles.accurateGbufferNormalsLabel, true);
