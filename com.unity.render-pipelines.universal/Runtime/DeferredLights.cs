@@ -701,6 +701,82 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_stencilVisLightOffsets.Dispose();
         }
 
+        public static StencilState OverwriteStencil(StencilState s, int stencilWriteMask)
+        {
+            if (!s.enabled)
+            {
+                return new StencilState(
+                    true,
+                    0, 0,
+                    CompareFunction.Always, StencilOp.Replace, StencilOp.Keep, StencilOp.Keep,
+                    CompareFunction.Always, StencilOp.Replace, StencilOp.Keep, StencilOp.Keep
+                );
+            }
+
+            CompareFunction funcFront = s.compareFunctionFront != CompareFunction.Disabled ? s.compareFunctionFront : CompareFunction.Always;
+            CompareFunction funcBack = s.compareFunctionBack != CompareFunction.Disabled ? s.compareFunctionBack : CompareFunction.Always;
+            StencilOp passFront = s.passOperationFront;
+            StencilOp failFront = s.failOperationFront;
+            StencilOp zfailFront = s.zFailOperationFront;
+            StencilOp passBack = s.passOperationBack;
+            StencilOp failBack = s.failOperationBack;
+            StencilOp zfailBack = s.zFailOperationBack;
+
+            // Detect invalid parameter.
+            if ((passFront != StencilOp.Replace && failFront != StencilOp.Replace && zfailFront != StencilOp.Replace)
+             || (passBack != StencilOp.Replace && failBack != StencilOp.Replace && zfailBack != StencilOp.Replace))
+                Debug.LogWarning("Stencil overrides for GBuffer pass will not write correct material types in stencil buffer");
+
+            return new StencilState(
+                true,
+                (byte)(s.readMask & 0x0F), (byte)(s.writeMask | stencilWriteMask),
+                funcFront, passFront, failFront, zfailFront,
+                funcBack, passBack, failBack, zfailBack
+            );
+        }
+
+        public static RenderStateBlock OverwriteStencil(RenderStateBlock block, int stencilWriteMask, int stencilRef)
+        {
+            if (!block.stencilState.enabled)
+            {
+                block.stencilState = new StencilState(
+                    true,
+                    0, (byte)stencilWriteMask,
+                    CompareFunction.Always, StencilOp.Replace, StencilOp.Keep, StencilOp.Keep,
+                    CompareFunction.Always, StencilOp.Replace, StencilOp.Keep, StencilOp.Keep
+                );
+            }
+            else
+            {
+                StencilState s = block.stencilState;
+                CompareFunction funcFront = s.compareFunctionFront != CompareFunction.Disabled ? s.compareFunctionFront : CompareFunction.Always;
+                CompareFunction funcBack = s.compareFunctionBack != CompareFunction.Disabled ? s.compareFunctionBack : CompareFunction.Always;
+                StencilOp passFront = s.passOperationFront;
+                StencilOp failFront = s.failOperationFront;
+                StencilOp zfailFront = s.zFailOperationFront;
+                StencilOp passBack = s.passOperationBack;
+                StencilOp failBack = s.failOperationBack;
+                StencilOp zfailBack = s.zFailOperationBack;
+
+                // Detect invalid parameter.
+                if ((passFront != StencilOp.Replace && failFront != StencilOp.Replace && zfailFront != StencilOp.Replace)
+                 || (passBack != StencilOp.Replace && failBack != StencilOp.Replace && zfailBack != StencilOp.Replace))
+                    Debug.LogWarning("Stencil overrides for GBuffer pass will not write correct material types in stencil buffer");
+
+                block.stencilState = new StencilState(
+                    true,
+                    (byte)(s.readMask & 0x0F), (byte)(s.writeMask | stencilWriteMask),
+                    funcFront, passFront, failFront, zfailFront,
+                    funcBack, passBack, failBack, zfailBack
+                );
+            }
+
+            block.mask |= RenderStateMask.Stencil;
+            block.stencilReference = (block.stencilReference & (int)StencilUsage.UserMask) | stencilRef;
+
+            return block;
+        }
+
         public bool HasTileLights()
         {
             return m_HasTileVisLights;
