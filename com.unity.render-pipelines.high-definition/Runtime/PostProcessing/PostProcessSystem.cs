@@ -1541,22 +1541,47 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(cs, kernel, 1, 1, 1);
         }
 
-        // TODO_FCC: TODO ADD! MISSING! << todo
-        internal void GenerateDebugImageHistogram(CommandBuffer cmd, HDCamera camera, RTHandle sourceTexture)
+        internal struct DebugImageHistogramParameters
         {
-            var cs = m_Resources.shaders.debugImageHistogramCS;
-            int kernel = cs.FindKernel("KHistogramGen");
+            public ComputeShader debugImageHistogramCS;
+            public ComputeBuffer imageHistogram;
+
+            public int debugImageHistogramKernel;
+            public int cameraWidth;
+            public int cameraHeight;
+        }
+
+        internal DebugImageHistogramParameters PrepareDebugImageHistogramParameters(HDCamera camera)
+        {
+            DebugImageHistogramParameters parameters = new DebugImageHistogramParameters();
+
+            parameters.debugImageHistogramCS = m_Resources.shaders.debugImageHistogramCS;
+            parameters.debugImageHistogramKernel = parameters.debugImageHistogramCS.FindKernel("KHistogramGen");
 
             ValidateComputeBuffer(ref m_DebugImageHistogramBuffer, k_DebugImageHistogramBins * 4, sizeof(uint));
             m_DebugImageHistogramBuffer.SetData(m_EmptyDebugImageHistogram);    // Clear the histogram
+
+            parameters.imageHistogram = m_DebugImageHistogramBuffer;
+
+            parameters.cameraWidth = camera.actualWidth;
+            parameters.cameraHeight = camera.actualHeight;
+
+            return parameters;
+        }
+
+        static internal void GenerateDebugImageHistogram(in DebugImageHistogramParameters parameters, CommandBuffer cmd, RTHandle sourceTexture)
+        {
+            var cs = parameters.debugImageHistogramCS;
+            int kernel = parameters.debugImageHistogramKernel;
+
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SourceTexture, sourceTexture);
-            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._HistogramBuffer, m_DebugImageHistogramBuffer);
+            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._HistogramBuffer, parameters.imageHistogram);
 
             int threadGroupSizeX = 16;
             int threadGroupSizeY = 16;
-            int dispatchSizeX = HDUtils.DivRoundUp(camera.actualWidth / 2, threadGroupSizeX);
-            int dispatchSizeY = HDUtils.DivRoundUp(camera.actualHeight / 2, threadGroupSizeY);
-            int totalPixels = camera.actualWidth * camera.actualHeight;
+            int dispatchSizeX = HDUtils.DivRoundUp(parameters.cameraWidth / 2, threadGroupSizeX);
+            int dispatchSizeY = HDUtils.DivRoundUp(parameters.cameraHeight / 2, threadGroupSizeY);
+            int totalPixels = parameters.cameraWidth * parameters.cameraHeight;
             cmd.DispatchCompute(cs, kernel, dispatchSizeX, dispatchSizeY, 1);
         }
 

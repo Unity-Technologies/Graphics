@@ -2886,7 +2886,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // If requested, compute histogram of the very final image
             if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView)
             {
-                m_PostProcessSystem.GenerateDebugImageHistogram(cmd, hdCamera, m_IntermediateAfterPostProcessBuffer);
+                var debugImageHistogramParam = m_PostProcessSystem.PrepareDebugImageHistogramParameters(hdCamera);
+                PostProcessSystem.GenerateDebugImageHistogram(debugImageHistogramParam, cmd, m_IntermediateAfterPostProcessBuffer);
             }
 
             PushFullScreenExposureDebugTexture(cmd, m_IntermediateAfterPostProcessBuffer);
