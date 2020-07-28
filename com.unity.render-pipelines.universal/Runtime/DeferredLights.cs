@@ -666,11 +666,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             StencilOp failBack = s.failOperationBack;
             StencilOp zfailBack = s.zFailOperationBack;
 
-            // Detect invalid parameter.
-            if ((passFront != StencilOp.Replace && failFront != StencilOp.Replace && zfailFront != StencilOp.Replace)
-             || (passBack != StencilOp.Replace && failBack != StencilOp.Replace && zfailBack != StencilOp.Replace))
-                Debug.LogWarning("Stencil overrides for GBuffer pass will not write correct material types in stencil buffer");
-
             return new StencilState(
                 true,
                 (byte)(s.readMask & 0x0F), (byte)(s.writeMask | stencilWriteMask),
@@ -701,11 +696,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 StencilOp passBack = s.passOperationBack;
                 StencilOp failBack = s.failOperationBack;
                 StencilOp zfailBack = s.zFailOperationBack;
-
-                // Detect invalid parameter.
-                if ((passFront != StencilOp.Replace && failFront != StencilOp.Replace && zfailFront != StencilOp.Replace)
-                 || (passBack != StencilOp.Replace && failBack != StencilOp.Replace && zfailBack != StencilOp.Replace))
-                    Debug.LogWarning("Stencil overrides for GBuffer pass will not write correct material types in stencil buffer");
 
                 block.stencilState = new StencilState(
                     true,

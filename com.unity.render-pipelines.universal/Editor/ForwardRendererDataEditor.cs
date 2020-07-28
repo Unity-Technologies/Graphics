@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent tiledDeferredShadingLabel = EditorGUIUtility.TrTextContent("Tiled Deferred Shading (Experimental)", "Allows Tiled Deferred Shading on appropriate lights");
             public static readonly GUIContent defaultStencilStateLabel = EditorGUIUtility.TrTextContent("Default Stencil State", "Configure stencil state for the opaque and transparent render passes.");
             public static readonly GUIContent shadowTransparentReceiveLabel = EditorGUIUtility.TrTextContent("Transparent Receive Shadows", "When disabled, none of the transparent objects will receive shadows.");
-            public static readonly GUIContent invalidStencilOverride = EditorGUIUtility.TrTextContent("Deferred renderer reserves the 4 highest bits of stencil to store material types. Stencil Overrides settings are constrained to ensure correct lighting results.\n");
+            public static readonly GUIContent invalidStencilOverride = EditorGUIUtility.TrTextContent("Error: Deferred Renderer requires the control over the 4 highest bits of the stencil buffer to store Material types. The current combination of the stencil override options prevents the Renderer from controlling the required bits. Try changing one of the options to Replace.");
         }
 
         SerializedProperty m_OpaqueLayerMask;
@@ -99,15 +99,7 @@ namespace UnityEditor.Rendering.Universal
                 bool invalidOp = stencilPass != StencilOp.Replace && stencilFail != StencilOp.Replace && stencilZFail != StencilOp.Replace;
 
                 if (invalidFunction || invalidOp)
-                {
-                    string errorMsg = Styles.invalidStencilOverride.text;
-                    if (invalidFunction)
-                        errorMsg += "\nError: Stencil Compare Function cannot be 'Disabled' or 'Never'.";
-                    if (invalidOp)
-                        errorMsg += "\nError: At least one of the Stencil Pass, Fail and ZFail actions must be 'Replace'.";
-
-                    EditorGUILayout.HelpBox(errorMsg, MessageType.Error, true);
-                }
+                    EditorGUILayout.HelpBox(Styles.invalidStencilOverride.text, MessageType.Error, true);
             }
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
