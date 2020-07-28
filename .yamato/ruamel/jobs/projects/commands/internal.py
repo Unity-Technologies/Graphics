@@ -17,7 +17,7 @@ def cmd_not_standalone(project_folder, platform, api, test_platform_args):
     base.extend([
         f'cd {TEST_PROJECTS_DIR}/URP-Update-testing/{project_folder} && utr {test_platform_args} --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}'
     ])
-    base[-1] += f' --extra-editor-arg="{platform["apis"][api]}"' if (api != "" and platform["apis"][api] != None)  else ''
+    base[-1] += f' --extra-editor-arg="{api["cmd"]}"' if api["name"] != ""  else ''
     return base
 
 def cmd_standalone(project_folder, platform, api, test_platform_args):

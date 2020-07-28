@@ -1,6 +1,6 @@
 project:
-  name: URPUpdate
-  folder: URP-Update-Testing
+  name: URPUpdate_Top_Asset_Store
+  folder: Top-URP-Assets
 test_platforms:
   - playmode
   - editmode
@@ -20,7 +20,3 @@ all:
       test_platforms:
         - editmode
         - playmode
-    - project: URPUpdate_BoatAttack
-      all: true
-    - project: URPUpdate_Top_Asset_Store
-      all: true  

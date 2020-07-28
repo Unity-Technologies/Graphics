@@ -13,4 +13,10 @@ platforms:
 #    apis:
 #      - OpenGLCore
 #      - Metal
-
+all:
+  dependencies:
+    - platform: Win
+      api: DX11
+      test_platforms:
+        - editmode
+        - playmode
