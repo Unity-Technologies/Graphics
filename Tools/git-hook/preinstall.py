@@ -1,10 +1,12 @@
 #!/usr/bin/python
 
 import sys, os, subprocess, shutil
+from os import path as os_path
 
 
 def clean_node_modules():
-	shutil.rmtree("./node_modules")
+	if os_path.exists("./node_modules"):
+	  shutil.rmtree("./node_modules")
 
 
 # Sometimes git hooks are already existing in .git/hooks. 
@@ -17,6 +19,9 @@ def save_existing_hooks():
 	for hook in hooks:
 		pre_installed_hook = path + hook
 		tmp_hook = "./git-hook/tmp_" + hook
+
+		if not os_path.exists(pre_installed_hook):
+			continue
 
 		with open(pre_installed_hook, 'r') as pre_installed_hook_file:
   			hook_data = pre_installed_hook_file.read()	  
