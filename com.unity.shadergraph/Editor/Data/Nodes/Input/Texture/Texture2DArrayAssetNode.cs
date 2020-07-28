@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph
             properties.AddShaderProperty(new Texture2DArrayShaderProperty()
             {
                 overrideReferenceName = GetVariableNameForSlot(OutputSlotId),
-                generatePropertyBlock = true,
+                inputLevelDescriptor = ShaderInput.InputLevelDescriptor.PerMaterial,
                 value = m_Texture,
                 modifiable = false
             });

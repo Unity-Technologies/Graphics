@@ -109,8 +109,18 @@ namespace UnityEditor.ShaderGraph
             set => m_IsEditable = !value;
         }
 
-        internal override bool isExposable => !isBuiltIn
-            && (keywordType == KeywordType.Enum || referenceName.EndsWith("_ON"));
+        internal override bool SupportsBlockUsage(PropertyBlockUsage usage)
+        {
+            switch(usage)
+            {
+                case PropertyBlockUsage.Excluded:
+                    return true;
+                case PropertyBlockUsage.Included:
+                    return !isBuiltIn && (keywordType == KeywordType.Enum || referenceName.EndsWith("_ON"));
+                default:
+                    return false;
+            }
+        }
 
         internal override bool isRenamable => !isBuiltIn;
 
@@ -189,15 +199,15 @@ namespace UnityEditor.ShaderGraph
             // When copying dependent nodes
             return new ShaderKeyword()
             {
-                displayName = displayName,
-                overrideReferenceName = overrideReferenceName,
-                generatePropertyBlock = generatePropertyBlock,
-                isBuiltIn = isBuiltIn,
-                keywordType = keywordType,
-                keywordDefinition = keywordDefinition,
-                keywordScope = keywordScope,
-                entries = entries,
-                value = value,
+                displayName = this.displayName,
+                overrideReferenceName = this.overrideReferenceName,
+                inputLevelDescriptor = this.inputLevelDescriptor,
+                isBuiltIn = this.isBuiltIn,
+                keywordType = this.keywordType,
+                keywordDefinition = this.keywordDefinition,
+                keywordScope = this.keywordScope,
+                entries = this.entries,
+                value = this.value,
             };
         }
     }

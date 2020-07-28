@@ -154,7 +154,7 @@ namespace UnityEditor.ShaderGraph
             properties.AddShaderProperty(new Vector1ShaderProperty
             {
                 overrideReferenceName = GetVariableNameForNode(),
-                generatePropertyBlock = false
+                inputLevelDescriptor = ShaderInput.InputLevelDescriptor.Global
             });
         }
 

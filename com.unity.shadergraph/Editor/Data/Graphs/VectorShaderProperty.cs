@@ -8,8 +8,10 @@ namespace UnityEditor.ShaderGraph.Internal
     [Serializable]
     public abstract class VectorShaderProperty : AbstractShaderProperty<Vector4>
     {
-        internal override bool isBatchable => true;
-        internal override bool isExposable => true;
+        internal override bool SupportsBlockUsage(PropertyBlockUsage usage) => true;
+
+        internal override bool SupportsCBufferUsage(CBufferUsage usage) => true;
+
         internal override bool isRenamable => true;
 
         internal override string GetPropertyBlockString()

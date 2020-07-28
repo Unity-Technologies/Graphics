@@ -106,7 +106,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             property.overrideReferenceName = matOwner.GetVariableNameForSlot(id);
-            property.generatePropertyBlock = false;
+            property.inputLevelDescriptor = ShaderInput.InputLevelDescriptor.Global;
             properties.AddShaderProperty(property);
         }
 

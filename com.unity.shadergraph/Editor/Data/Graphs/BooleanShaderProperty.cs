@@ -17,8 +17,6 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public override PropertyType propertyType => PropertyType.Boolean;
 
-        internal override bool isBatchable => true;
-        internal override bool isExposable => true;
         internal override bool isRenamable => true;
 
         internal override string GetPropertyBlockString()
@@ -50,5 +48,9 @@ namespace UnityEditor.ShaderGraph.Internal
                 precision = precision,
             };
         }
+
+        internal override bool SupportsCBufferUsage(CBufferUsage usage) => true;
+
+        internal override bool SupportsBlockUsage(PropertyBlockUsage usage) => true;
     }
 }

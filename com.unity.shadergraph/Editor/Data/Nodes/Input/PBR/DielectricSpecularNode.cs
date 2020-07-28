@@ -151,7 +151,7 @@ namespace UnityEditor.ShaderGraph
                 properties.AddShaderProperty(new Vector1ShaderProperty()
                 {
                     overrideReferenceName = string.Format("_{0}_Range", GetVariableNameForNode()),
-                    generatePropertyBlock = false
+                    inputLevelDescriptor = ShaderInput.InputLevelDescriptor.Global
                 });
             }
             else if (material.type == DielectricMaterialType.Custom)
@@ -159,7 +159,7 @@ namespace UnityEditor.ShaderGraph
                 properties.AddShaderProperty(new Vector1ShaderProperty()
                 {
                     overrideReferenceName = string.Format("_{0}_IOR", GetVariableNameForNode()),
-                    generatePropertyBlock = false
+                    inputLevelDescriptor = ShaderInput.InputLevelDescriptor.Global
                 });
             }
         }

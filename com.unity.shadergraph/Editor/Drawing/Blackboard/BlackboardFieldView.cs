@@ -137,8 +137,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 shaderInputPropertyDrawer.GetPropertyData(
                     m_Graph.isSubGraph,
                     m_Graph,
-                    ChangeExposedField,
                     ChangeDisplayNameField,
+                    ChangeInputLevelField,
                     ChangeReferenceNameField,
                     () => m_Graph.ValidateGraph(),
                     () => m_Graph.OnKeywordChanged(),
@@ -153,10 +153,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void ChangeExposedField(bool newValue)
+        void ChangeInputLevelField(ShaderInput.InputLevelDescriptor newValue)
         {
-            m_Input.generatePropertyBlock = newValue;
-            icon = m_Input.generatePropertyBlock ? BlackboardProvider.exposedIcon : null;
+            m_Input.inputLevelDescriptor = newValue;
+            //icon = m_Input.generatePropertyBlock ? BlackboardProvider.exposedIcon : null;
         }
         void ChangeDisplayNameField(string newValue)
         {

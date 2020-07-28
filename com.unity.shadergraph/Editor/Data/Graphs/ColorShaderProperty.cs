@@ -16,10 +16,7 @@ namespace UnityEditor.ShaderGraph.Internal
         
         public override PropertyType propertyType => PropertyType.Color;
         
-        internal override bool isBatchable => true;
-        internal override bool isExposable => true;
         internal override bool isRenamable => true;
-        internal override bool isGpuInstanceable => true;
         
         internal string hdrTagString => colorMode == ColorMode.HDR ? "[HDR]" : "";
 
@@ -65,8 +62,13 @@ namespace UnityEditor.ShaderGraph.Internal
                 value = value,
                 colorMode = colorMode,
                 precision = precision,
-                gpuInstanced = gpuInstanced,
+                cBufferUsage = cBufferUsage,
+                propertyBlockUsage = propertyBlockUsage
             };
         }
+
+        internal override bool SupportsCBufferUsage(CBufferUsage usage) => true;
+
+        internal override bool SupportsBlockUsage(PropertyBlockUsage usage) => true;
     }
 }

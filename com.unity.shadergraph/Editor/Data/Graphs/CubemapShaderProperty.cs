@@ -17,8 +17,6 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public override PropertyType propertyType => PropertyType.Cubemap;
 
-        internal override bool isBatchable => false;
-        internal override bool isExposable => true;
         internal override bool isRenamable => true;
 
         internal string modifiableTagString => modifiable ? "" : "[NonModifiableTextureData]";
@@ -71,5 +69,9 @@ namespace UnityEditor.ShaderGraph.Internal
                 precision = precision,
             };
         }
+
+        internal override bool SupportsCBufferUsage(CBufferUsage usage) => usage == CBufferUsage.Excluded;
+
+        internal override bool SupportsBlockUsage(PropertyBlockUsage usage) => true;
     }
 }

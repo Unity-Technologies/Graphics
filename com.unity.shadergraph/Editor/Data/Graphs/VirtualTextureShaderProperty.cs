@@ -26,10 +26,6 @@ namespace UnityEditor.ShaderGraph
         public override PropertyType propertyType => PropertyType.VirtualTexture;
 
         // isBatchable should never be called of we override hasBatchable / hasNonBatchableProperties
-        internal override bool isBatchable
-        {
-            get { throw new NotImplementedException(); }
-        }
 
         internal override bool hasBatchableProperties => true;
         internal override bool hasNonBatchableProperties => true;
@@ -55,7 +51,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         // this is used for properties exposed to the Material in the shaderlab Properties{} block
-        internal override void AppendPropertyBlockStrings(ShaderStringBuilder builder)
+        internal override void AppendPropertyBlockStrings(ShaderStringBuilder builder, bool hidden = false)
         {
             if (!value.procedural)
             {
@@ -64,7 +60,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     string layerName = value.layers[layer].layerName;
                     string layerRefName = value.layers[layer].layerRefName;
-                    builder.AppendLine($"{hideTagString}[TextureStack.{referenceName}({layer})][NoScaleOffset]{layerRefName}(\"{layerName}\", 2D) = \"white\" {{}}");
+                    builder.AppendLine($"{(hidden ? hideTagString : "")}[TextureStack.{referenceName}({layer})][NoScaleOffset]{layerRefName}(\"{layerName}\", 2D) = \"white\" {{}}");
                 }
             }
         }

@@ -1286,7 +1286,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             ShaderInput copy = original.Copy();
             graph.SanitizeGraphInputName(copy);
             graph.AddGraphInput(copy, index);
-            copy.generatePropertyBlock = original.generatePropertyBlock;
+            copy.inputLevelDescriptor = original.inputLevelDescriptor;
             return copy;
         }
 

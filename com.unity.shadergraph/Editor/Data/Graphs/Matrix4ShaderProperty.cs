@@ -45,7 +45,8 @@ namespace UnityEditor.ShaderGraph
                 hidden = hidden,
                 value = value,
                 precision = precision,
-                gpuInstanced = gpuInstanced,
+                cBufferUsage = cBufferUsage,
+                propertyBlockUsage = propertyBlockUsage
             };
         }
     }

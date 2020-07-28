@@ -71,7 +71,7 @@ namespace UnityEditor.ShaderGraph
             properties.AddShaderProperty(new SamplerStateShaderProperty()
             {
                 overrideReferenceName = string.Format("{0}_{1}_{2}", NodeUtils.GetHLSLSafeName(name), m_filter, m_wrap),
-                generatePropertyBlock = false,
+                inputLevelDescriptor = ShaderInput.InputLevelDescriptor.Global,
 
                 value = new TextureSamplerState()
                 {

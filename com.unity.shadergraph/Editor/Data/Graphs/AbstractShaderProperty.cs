@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Internal
@@ -7,6 +8,14 @@ namespace UnityEditor.ShaderGraph.Internal
     [Serializable]
     public abstract class AbstractShaderProperty : ShaderInput
     {
+
+        internal enum CBufferUsage
+        {
+            PerMaterial,
+            HybridRenderer,
+            Excluded
+        }
+
         public abstract PropertyType propertyType { get; }
 
         internal override ConcreteSlotValueType concreteShaderValueType => propertyType.ToConcreteShaderValueType();
@@ -14,14 +23,6 @@ namespace UnityEditor.ShaderGraph.Internal
         [SerializeField]
         Precision m_Precision = Precision.Inherit;
         
-        [SerializeField]
-        private bool m_GPUInstanced = false;
-
-        public bool gpuInstanced
-        {
-            get { return m_GPUInstanced; }
-            set { m_GPUInstanced = value; }
-        }
 
         ConcretePrecision m_ConcretePrecision = ConcretePrecision.Float;
 
@@ -39,7 +40,34 @@ namespace UnityEditor.ShaderGraph.Internal
         }
 
         // the simple interface for simple properties
-        internal abstract bool isBatchable { get; }
+        internal bool isBatchable { get => SupportsCBufferUsage(CBufferUsage.PerMaterial) || SupportsCBufferUsage(CBufferUsage.HybridRenderer); }
+
+        internal abstract bool SupportsCBufferUsage(CBufferUsage usage);
+
+        [SerializeField]
+        private CBufferUsage m_CBufferUsage = CBufferUsage.Excluded;
+        internal CBufferUsage cBufferUsage
+        {
+            get => m_CBufferUsage;
+            set
+            {
+                if(value == m_CBufferUsage)
+                {
+                    return;
+                }
+
+                if(SupportsCBufferUsage(value))
+                {
+                    m_CBufferUsage = value;
+                }
+                else
+                {
+                    Debug.LogError("Cannot set CBufferUsage to unsupported " + value.ToString());
+                }
+            }
+        }
+
+
 
         // the more complex interface for complex properties (defaulted for simple properties)
         internal virtual bool hasBatchableProperties { get { return isBatchable; } }
@@ -74,9 +102,9 @@ namespace UnityEditor.ShaderGraph.Internal
         }
 
         // the more complex interface for complex properties (defaulted for simple properties)
-        internal virtual void AppendPropertyBlockStrings(ShaderStringBuilder builder)
+        internal virtual void AppendPropertyBlockStrings(ShaderStringBuilder builder, bool hidden = false)
         {
-            builder.AppendLine(GetPropertyBlockString());
+            builder.AppendLine((hidden ? hideTagString : "") + GetPropertyBlockString());
         }
 
         // the simple interface for simple properties
@@ -107,7 +135,6 @@ namespace UnityEditor.ShaderGraph.Internal
         
         internal abstract AbstractMaterialNode ToConcreteNode();
         internal abstract PreviewProperty GetPreviewMaterialProperty();
-        internal virtual bool isGpuInstanceable => false;
     }
     
     [Serializable]

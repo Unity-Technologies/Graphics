@@ -7,8 +7,10 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     abstract class MatrixShaderProperty : AbstractShaderProperty<Matrix4x4>
     {
-        internal override bool isBatchable => true;
-        internal override bool isExposable => false;
+        internal override bool SupportsCBufferUsage(CBufferUsage usage) => true;
+
+        internal override bool SupportsBlockUsage(PropertyBlockUsage usage) => true;
+
         internal override bool isRenamable => true;
 
         internal override string GetPropertyDeclarationString(string delimiter = ";")

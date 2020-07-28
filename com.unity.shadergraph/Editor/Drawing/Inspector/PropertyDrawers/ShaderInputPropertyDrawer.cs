@@ -21,8 +21,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
     [SGPropertyDrawer(typeof(ShaderInput))]
     class ShaderInputPropertyDrawer : IPropertyDrawer
     {
-        internal delegate void ChangeExposedFieldCallback(bool newValue);
         internal delegate  void ChangeDisplayNameCallback(string newValue);
+        internal delegate void ChangeInputLevelFieldCallback(ShaderInput.InputLevelDescriptor newValue);
         internal delegate void ChangeReferenceNameCallback(string newValue);
         internal delegate void ChangeValueCallback(object newValue);
         internal delegate void PreChangeValueCallback(string actionName);
@@ -60,8 +60,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         GraphData graphData;
         bool isSubGraph { get ; set;  }
-        ChangeExposedFieldCallback _exposedFieldChangedCallback;
         ChangeDisplayNameCallback _displayNameChangedCallback;
+        ChangeInputLevelFieldCallback _inputLevelFieldChangedCallback;
         ChangeReferenceNameCallback _referenceNameChangedCallback;
         Action _precisionChangedCallback;
         Action _keywordChangedCallback;
@@ -71,8 +71,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         public void GetPropertyData(
             bool isSubGraph,
             GraphData graphData,
-            ChangeExposedFieldCallback exposedFieldCallback,
             ChangeDisplayNameCallback displayNameCallback,
+            ChangeInputLevelFieldCallback inputLevelFieldCallback,
             ChangeReferenceNameCallback referenceNameCallback,
             Action precisionChangedCallback,
             Action keywordChangedCallback,
@@ -82,8 +82,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             this.isSubGraph = isSubGraph;
             this.graphData = graphData;
-            this._exposedFieldChangedCallback = exposedFieldCallback;
             this._displayNameChangedCallback = displayNameCallback;
+            this._inputLevelFieldChangedCallback = inputLevelFieldCallback;
             this._referenceNameChangedCallback = referenceNameCallback;
             this._precisionChangedCallback = precisionChangedCallback;
             this._changeValueCallback = changeValueCallback;
@@ -102,8 +102,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             var propertySheet = new PropertySheet();
             shaderInput = actualObject as ShaderInput;
             BuildPropertyNameLabel(propertySheet);
-            BuildExposedField(propertySheet);
             BuildDisplayNameField(propertySheet);
+            BuildInputLevelField(propertySheet, shaderInput);
             BuildReferenceNameField(propertySheet);
             BuildPropertyFields(propertySheet);
             BuildKeywordFields(propertySheet, shaderInput);
@@ -118,22 +118,24 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 propertySheet.Add(PropertyDrawerUtils.CreateLabel($"Property: {shaderInput.displayName}", 0, FontStyle.Bold));
         }
 
-        void BuildExposedField(PropertySheet propertySheet)
+        void BuildInputLevelField(PropertySheet propertySheet, ShaderInput input)
         {
-            if(!isSubGraph)
+            if(!isSubGraph && input is AbstractShaderProperty property)
             {
-                var toggleDataPropertyDrawer = new ToggleDataPropertyDrawer();
-                propertySheet.Add(toggleDataPropertyDrawer.CreateGUI(
-                    evt =>
+                var inputLevelDataPropertyDrawer = new EnumPropertyDrawer();
+                propertySheet.Add(inputLevelDataPropertyDrawer.CreateGUI(
+                    newValue =>
                     {
                         this._preChangeValueCallback("Change Exposed Toggle");
-                        this._exposedFieldChangedCallback(evt.isOn);
+                        if (property.inputLevelDescriptor == (ShaderInput.InputLevelDescriptor)newValue)
+                            return;
+                        this._inputLevelFieldChangedCallback((ShaderInput.InputLevelDescriptor) newValue);
                         this._postChangeValueCallback(false, ModificationScope.Graph);
                     },
-                    new ToggleData(shaderInput.generatePropertyBlock),
-                    "Exposed",
-                    out var propertyToggle));
-                propertyToggle.SetEnabled(shaderInput.isExposable);
+                    shaderInput.inputLevelDescriptor,
+                    "Input Level",
+                    ShaderInput.InputLevelDescriptor.PerMaterial,
+                    out var inputLevelField));
             }
         }
 
@@ -514,7 +516,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     Texture2DShaderProperty.DefaultType.White,
                     out var textureModeField));
 
-                textureModeField.SetEnabled(texture2DProperty.generatePropertyBlock);
+                textureModeField.SetEnabled(texture2DProperty.inputLevelDescriptor == ShaderInput.InputLevelDescriptor.PerMaterial);
             }
         }
 

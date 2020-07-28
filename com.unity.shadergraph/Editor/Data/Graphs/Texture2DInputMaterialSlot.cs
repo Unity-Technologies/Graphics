@@ -63,12 +63,14 @@ namespace UnityEditor.ShaderGraph
             if (matOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
-            var prop = new Texture2DShaderProperty();
-            prop.overrideReferenceName = matOwner.GetVariableNameForSlot(id);
-            prop.modifiable = false;
-            prop.generatePropertyBlock = true;
+            var prop = new Texture2DShaderProperty
+            {
+                overrideReferenceName = matOwner.GetVariableNameForSlot(id),
+                modifiable = false,
+                inputLevelDescriptor = ShaderInput.InputLevelDescriptor.PerMaterial,
+                defaultType = defaultType
+            };
             prop.value.texture = texture;
-            prop.defaultType = defaultType;
             properties.AddShaderProperty(prop);
         }
 

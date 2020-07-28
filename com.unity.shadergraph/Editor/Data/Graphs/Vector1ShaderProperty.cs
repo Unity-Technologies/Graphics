@@ -19,10 +19,11 @@ namespace UnityEditor.ShaderGraph.Internal
         
         public override PropertyType propertyType => PropertyType.Vector1;
         
-        internal override bool isBatchable => true;
-        internal override bool isExposable => true;
+        internal override bool SupportsBlockUsage(PropertyBlockUsage usage) => true;
+
+        internal override bool SupportsCBufferUsage(CBufferUsage usage) => true;
+
         internal override bool isRenamable => true;
-        internal override bool isGpuInstanceable => true;
         
         string enumTagString
         {
@@ -150,7 +151,8 @@ namespace UnityEditor.ShaderGraph.Internal
                 enumNames = enumNames,
                 enumValues = enumValues,
                 precision = precision,
-                gpuInstanced = gpuInstanced,
+                cBufferUsage = cBufferUsage,
+                propertyBlockUsage = propertyBlockUsage
             };
         }
     }

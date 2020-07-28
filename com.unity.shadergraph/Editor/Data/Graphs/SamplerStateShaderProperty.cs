@@ -15,8 +15,10 @@ namespace UnityEditor.ShaderGraph
 
         public override PropertyType propertyType => PropertyType.SamplerState;
 
-        internal override bool isBatchable => false;
-        internal override bool isExposable => false;
+        internal override bool SupportsBlockUsage(PropertyBlockUsage usage) => usage == PropertyBlockUsage.Excluded;
+
+        internal override bool SupportsCBufferUsage(CBufferUsage usage) => usage == CBufferUsage.Excluded;
+
         internal override bool isRenamable => false;
 
         public override TextureSamplerState value

@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph
                     wrap = TextureSamplerState.WrapMode.Repeat
                 },
                 overrideReferenceName = $"{matOwner.GetVariableNameForSlot(id)}_Linear_Repeat",
-                generatePropertyBlock = false,
+                inputLevelDescriptor = Internal.ShaderInput.InputLevelDescriptor.Global,
             });
         }
 

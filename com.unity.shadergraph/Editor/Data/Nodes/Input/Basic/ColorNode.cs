@@ -82,7 +82,7 @@ namespace UnityEditor.ShaderGraph
             properties.AddShaderProperty(new ColorShaderProperty()
             {
                 overrideReferenceName = GetVariableNameForNode(),
-                generatePropertyBlock = false,
+                inputLevelDescriptor = ShaderInput.InputLevelDescriptor.Global,
                 value = color.color,
                 colorMode = color.mode
             });

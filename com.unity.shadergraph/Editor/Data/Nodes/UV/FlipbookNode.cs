@@ -127,7 +127,7 @@ namespace UnityEditor.ShaderGraph
             properties.AddShaderProperty(new Vector2ShaderProperty()
             {
                 overrideReferenceName = string.Format("_{0}_Invert", GetVariableNameForNode()),
-                generatePropertyBlock = false
+                inputLevelDescriptor = ShaderInput.InputLevelDescriptor.Global
             });
         }
 

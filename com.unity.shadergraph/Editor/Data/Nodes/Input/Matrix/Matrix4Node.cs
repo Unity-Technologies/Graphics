@@ -81,28 +81,28 @@ namespace UnityEditor.ShaderGraph
             properties.AddShaderProperty(new Vector4ShaderProperty()
             {
                 overrideReferenceName = string.Format("_{0}_m0", GetVariableNameForNode()),
-                generatePropertyBlock = false,
+                inputLevelDescriptor = ShaderInput.InputLevelDescriptor.Global,
                 value = m_Row0
             });
 
             properties.AddShaderProperty(new Vector4ShaderProperty()
             {
                 overrideReferenceName = string.Format("_{0}_m1", GetVariableNameForNode()),
-                generatePropertyBlock = false,
+                inputLevelDescriptor = ShaderInput.InputLevelDescriptor.Global,
                 value = m_Row1
             });
 
             properties.AddShaderProperty(new Vector4ShaderProperty()
             {
                 overrideReferenceName = string.Format("_{0}_m2", GetVariableNameForNode()),
-                generatePropertyBlock = false,
+                inputLevelDescriptor = ShaderInput.InputLevelDescriptor.Global,
                 value = m_Row2
             });
 
             properties.AddShaderProperty(new Vector4ShaderProperty()
             {
                 overrideReferenceName = string.Format("_{0}_m3", GetVariableNameForNode()),
-                generatePropertyBlock = false,
+                inputLevelDescriptor = ShaderInput.InputLevelDescriptor.Global,
                 value = m_Row3
             });
         }

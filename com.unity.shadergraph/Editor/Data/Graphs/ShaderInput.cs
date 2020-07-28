@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Linq;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
@@ -59,18 +60,54 @@ namespace UnityEditor.ShaderGraph.Internal
             set => m_OverrideReferenceName = value;
         }
 
-        [SerializeField]
-        bool m_GeneratePropertyBlock = true;
-
-        internal bool generatePropertyBlock
+        internal enum InputLevelDescriptor
         {
-            get => m_GeneratePropertyBlock;
-            set => m_GeneratePropertyBlock = value;
+            PerMaterial,
+            Global,
+            HybridInstanced
         }
 
+        [SerializeField]
+        InputLevelDescriptor m_InputLevelDescriptor = InputLevelDescriptor.PerMaterial;
+
+        internal InputLevelDescriptor inputLevelDescriptor { get => m_InputLevelDescriptor; set => m_InputLevelDescriptor = value; }
+
         internal abstract ConcreteSlotValueType concreteShaderValueType { get; }
-        internal abstract bool isExposable { get; }
         internal abstract bool isRenamable { get; }
+
+        internal enum PropertyBlockUsage
+        {
+            Included,
+            Hidden,
+            Excluded
+        }
+
+        internal abstract bool SupportsBlockUsage(PropertyBlockUsage usage); 
+
+        [SerializeField]
+        private PropertyBlockUsage m_PropertyBlockUsage = PropertyBlockUsage.Excluded;
+        internal PropertyBlockUsage propertyBlockUsage
+        {
+            get => m_PropertyBlockUsage;
+            set
+            {
+                if(value == m_PropertyBlockUsage)
+                {
+                    return;
+                }
+
+                if(SupportsBlockUsage(value))
+                {
+                    m_PropertyBlockUsage = value;
+                }
+                else
+                {
+                    Debug.LogError("Cannot set PropertyBlockUsage to unsupported " + value.ToString());
+                }
+            }
+        }
+
+
 
         internal abstract ShaderInput Copy();
     }

@@ -338,7 +338,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (create)
             {
                 m_Graph.SanitizeGraphInputName(input);
-                input.generatePropertyBlock = input.isExposable;
+                input.inputLevelDescriptor = input.isExposable ? ShaderInput.InputLevelDescriptor.PerMaterial : ShaderInput.InputLevelDescriptor.Global;
             }
 
             BlackboardFieldView field = null;
@@ -348,7 +348,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 case AbstractShaderProperty property:
                 {
-                    var icon = (m_Graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? exposedIcon : null;
+                    var icon = (m_Graph.isSubGraph || (property.isExposable && property.inputLevelDescriptor == ShaderInput.InputLevelDescriptor.PerMaterial)) ? exposedIcon : null;
                     field = new BlackboardFieldView(m_Graph, property, UpdateBlackboardView, icon, property.displayName, property.propertyType.ToString()) { userData = property };
                     field.RegisterCallback<AttachToPanelEvent>(UpdateSelectionAfterUndoRedo);
                     row = new BlackboardRow(field, null);
@@ -365,7 +365,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 case ShaderKeyword keyword:
                 {
-                    var icon = (m_Graph.isSubGraph || (keyword.isExposable && keyword.generatePropertyBlock)) ? exposedIcon : null;
+                    var icon = (m_Graph.isSubGraph || (keyword.isExposable && keyword.inputLevelDescriptor == ShaderInput.InputLevelDescriptor.PerMaterial)) ? exposedIcon : null;
 
                     string typeText = keyword.keywordType.ToString()  + " Keyword";
                     typeText = keyword.isBuiltIn ? "Built-in " + typeText : typeText;

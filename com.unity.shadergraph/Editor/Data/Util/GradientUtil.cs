@@ -1,4 +1,4 @@
-﻿using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.Graphing;
 using UnityEngine;
 
@@ -63,21 +63,21 @@ namespace UnityEditor.ShaderGraph
             {
                 overrideReferenceName = $"{name}_Type",
                 value = (int)value.mode,
-                generatePropertyBlock = false
+                inputLevelDescriptor = ShaderInput.InputLevelDescriptor.Global
             });
 
             properties.AddShaderProperty(new Vector1ShaderProperty()
             {
                 overrideReferenceName = $"{name}_ColorsLength",
                 value = value.colorKeys.Length,
-                generatePropertyBlock = false
+                inputLevelDescriptor = ShaderInput.InputLevelDescriptor.Global
             });
 
             properties.AddShaderProperty(new Vector1ShaderProperty()
             {
                 overrideReferenceName = $"{name}_AlphasLength",
                 value = value.alphaKeys.Length,
-                generatePropertyBlock = false
+                inputLevelDescriptor = ShaderInput.InputLevelDescriptor.Global
             });
 
             for (int i = 0; i < 8; i++)
@@ -86,7 +86,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     overrideReferenceName = $"{name}_ColorKey{i}",
                     value = i < value.colorKeys.Length ? GradientUtil.ColorKeyToVector(value.colorKeys[i]) : Vector4.zero,
-                    generatePropertyBlock = false
+                    inputLevelDescriptor = ShaderInput.InputLevelDescriptor.Global
                 });
             }
 
@@ -96,7 +96,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     overrideReferenceName = $"{name}_AlphaKey{i}",
                     value = i < value.alphaKeys.Length ? GradientUtil.AlphaKeyToVector(value.alphaKeys[i]) : Vector2.zero,
-                    generatePropertyBlock = false
+                    inputLevelDescriptor = ShaderInput.InputLevelDescriptor.Global
                 });
             }
         }

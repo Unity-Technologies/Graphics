@@ -618,9 +618,16 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine("Properties");
             using (sb.BlockScope())
             {
-                foreach (var prop in propertyCollector.properties.Where(x => x.generatePropertyBlock))
+                foreach (var prop in propertyCollector.properties)
                 {
-                    prop.AppendPropertyBlockStrings(sb);
+                    if (prop.propertyBlockUsage == ShaderInput.PropertyBlockUsage.Included)
+                    {
+                        prop.AppendPropertyBlockStrings(sb);
+                    }
+                    else if (prop.propertyBlockUsage == ShaderInput.PropertyBlockUsage.Hidden)
+                    {
+                        prop.AppendPropertyBlockStrings(sb, true);
+                    }
                 }
 
                 // Keywords use hardcoded state in preview
@@ -628,9 +635,12 @@ namespace UnityEditor.ShaderGraph
                 if(mode == GenerationMode.Preview)
                     return;
 
-                foreach (var key in keywordCollector.keywords.Where(x => x.generatePropertyBlock))
+                foreach (var key in keywordCollector.keywords)
                 {
-                    sb.AppendLine(key.GetPropertyBlockString());
+                    if (key.propertyBlockUsage == ShaderInput.PropertyBlockUsage.Included)
+                    {
+                        sb.AppendLine(key.GetPropertyBlockString());
+                    }
                 }
             }
         }

@@ -61,7 +61,7 @@ namespace UnityEditor.ShaderGraph
             var property = new ColorShaderProperty()
             {
                 overrideReferenceName = matOwner.GetVariableNameForSlot(id),
-                generatePropertyBlock = false,
+                inputLevelDescriptor = ShaderInput.InputLevelDescriptor.Global,
                 value = new Color(value.x, value.y, value.z)
             };
             properties.AddShaderProperty(property);

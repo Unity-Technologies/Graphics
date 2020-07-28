@@ -65,7 +65,7 @@ namespace UnityEditor.ShaderGraph
             var property = new Matrix2ShaderProperty()
             {
                 overrideReferenceName = matOwner.GetVariableNameForSlot(id),
-                generatePropertyBlock = false,
+                inputLevelDescriptor = ShaderInput.InputLevelDescriptor.Global,
                 value = value
             };
             properties.AddShaderProperty(property);

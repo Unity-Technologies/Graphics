@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph
             properties.AddShaderProperty(new BooleanShaderProperty()
             {
                 overrideReferenceName = GetVariableNameForNode(),
-                generatePropertyBlock = false,
+                inputLevelDescriptor = ShaderInput.InputLevelDescriptor.Global,
                 value = m_Value
             });
         }

@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph
             // Getting the generatePropertyBlock property to see if it is exposed or not
             var graph = node.owner as GraphData;
             var property = node.property;
-            var icon = (graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? exposedIcon : null;
+            var icon = (graph.isSubGraph || (property.isExposable && property.inputLevelDescriptor == ShaderInput.InputLevelDescriptor.PerMaterial)) ? exposedIcon : null;
             this.icon = icon;
 
             // Setting the position of the node, otherwise it ends up in the center of the canvas
@@ -78,8 +78,8 @@ namespace UnityEditor.ShaderGraph
                 shaderInputPropertyDrawer.GetPropertyData(
                     graph.isSubGraph,
                     graph,
-                    this.ChangeExposedField,
                     this.ChangeDisplayNameField,
+                    this.ChangeInputLevelField,
                     this.ChangeReferenceNameField,
                     () => graph.ValidateGraph(),
                     () => graph.OnKeywordChanged(),
@@ -92,10 +92,10 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        void ChangeExposedField(bool newValue)
+        void ChangeInputLevelField(ShaderInput.InputLevelDescriptor newValue)
         {
-            property.generatePropertyBlock = newValue;
-            icon = property.generatePropertyBlock ? BlackboardProvider.exposedIcon : null;
+            property.inputLevelDescriptor = newValue;
+            icon = property.inputLevelDescriptor == ShaderInput.InputLevelDescriptor.PerMaterial ? BlackboardProvider.exposedIcon : null;
         }
 
         void ChangeDisplayNameField(string newValue)
@@ -265,7 +265,7 @@ namespace UnityEditor.ShaderGraph
                 var graph = node.owner as GraphData;
                 var property = propNode.property;
 
-                var icon = property.generatePropertyBlock ? exposedIcon : null;
+                var icon = property.inputLevelDescriptor == ShaderInput.InputLevelDescriptor.PerMaterial ? exposedIcon : null;
                 this.icon = icon;
             }
 
