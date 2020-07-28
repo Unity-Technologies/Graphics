@@ -11,6 +11,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
     #pragma multi_compile_local _ USE_CLOUD_MAP
     #pragma multi_compile_local _ USE_CLOUD_MOTION
+    #pragma multi_compile_local _ USE_SECOND_CLOUD_MAP
+    #pragma multi_compile_local _ USE_SECOND_CLOUD_MOTION
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -223,8 +225,9 @@ Shader "Hidden/HDRP/Sky/PbrSky"
             EvaluatePbrAtmosphere(_WorldSpaceCameraPos1, V, distAlongRay, renderSunDisk, skyColor, skyOpacity);
         }
 
-        // Hacky way to boost the clouds for PBR sky
-        skyColor = ApplyCloudLayer(-V, skyColor);
+        // Hacky way to boost the clouds to match other sky types
+        float cloudIntensity = 200.0;
+        skyColor = ApplyCloudLayer(-V, skyColor / cloudIntensity) * cloudIntensity;
         skyColor += radiance * (1 - skyOpacity);
         skyColor *= _IntensityMultiplier;
 

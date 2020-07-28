@@ -1,6 +1,9 @@
 #ifndef __CLOUDLAYER_H__
 #define __CLOUDLAYER_H__
 
+#define USE_CLOUD_LAYER         (defined(USE_CLOUD_MAP) || defined(USE_CLOUD_MOTION))
+#define USE_SECOND_CLOUD_LAYER  (defined(USE_SECOND_CLOUD_MAP) || defined(USE_SECOND_CLOUD_MOTION))
+
 TEXTURE2D_ARRAY(_CloudTexture);
 SAMPLER(sampler_CloudTexture);
     
@@ -10,18 +13,16 @@ SAMPLER(sampler_CloudFlowmap1);
 TEXTURE2D(_CloudFlowmap2);
 SAMPLER(sampler_CloudFlowmap2);
 
-float4 _CloudParams1; // x opacity, y upper hemisphere only
-float4 _CloudParams2[2]; // For each layer: x intensity, y scroll factor, zw scroll direction (cosPhi and sinPhi)
+float4 _CloudParams1[2];
+float4 _CloudParams2[2];
 
-#define USE_CLOUD_LAYER         (defined(USE_CLOUD_MAP) || defined(USE_CLOUD_MOTION))
-#define USE_SECOND_CLOUD_LAYER  (defined(USE_SECOND_CLOUD_MAP) || defined(USE_SECOND_CLOUD_MOTION))
+#define _CloudScrollDirection(l)    _CloudParams1[l].xy
+#define _CloudScrollFactor(l)       _CloudParams1[l].z
+#define _CloudOpacity               _CloudParams1[0].w
+#define _CloudUpperHemisphere       (_CloudParams1[1].w != 0.0)
 
-#define _CloudOpacity           _CloudParams1.x
-#define _CloudUpperHemisphere   (_CloudParams1.y != 0.0)
-
-#define _CloudIntensity(l)          _CloudParams2[l].x
-#define _CloudScrollFactor(l)       _CloudParams2[l].y
-#define _CloudScrollDirection(l)    _CloudParams2[l].zw
+#define _CloudTint(l)       _CloudParams2[l].xyz
+#define _CloudIntensity(l)  _CloudParams2[l].w
 
 struct CloudLayerData
 {
@@ -33,10 +34,10 @@ struct CloudLayerData
 };
 
 
-float4 SampleCloudMap(float3 dir, int layer)
+float2 SampleCloudMap(float3 dir, int layer)
 {
     float2 coords = GetLatLongCoords(dir, _CloudUpperHemisphere);
-    return SAMPLE_TEXTURE2D_ARRAY_LOD(_CloudTexture, sampler_CloudTexture, coords, layer, 0);
+    return SAMPLE_TEXTURE2D_ARRAY_LOD(_CloudTexture, sampler_CloudTexture, coords, layer, 0).rg;
 }
 
 float3 CloudRotationUp(float3 p, float2 cos_sin)
@@ -82,7 +83,7 @@ CloudLayerData GetCloudLayer(int index)
 
 float4 GetCloudLayerColor(float3 dir, int index)
 {
-    float4 color;
+    float2 color;
 
     CloudLayerData layer = GetCloudLayer(index);
     if (layer.distort)
@@ -107,8 +108,8 @@ float4 GetCloudLayerColor(float3 dir, int index)
         }
 
         // Sample twice
-        float4 color1 = SampleCloudMap(normalize(dir - alpha.x * delta), layer.index);
-        float4 color2 = SampleCloudMap(normalize(dir - alpha.y * delta), layer.index);
+        float2 color1 = SampleCloudMap(normalize(dir - alpha.x * delta), layer.index);
+        float2 color2 = SampleCloudMap(normalize(dir - alpha.y * delta), layer.index);
 
         // Blend color samples
         color = lerp(color1, color2, abs(2.0 * alpha.x));
@@ -116,9 +117,7 @@ float4 GetCloudLayerColor(float3 dir, int index)
     else
         color = SampleCloudMap(dir, layer.index);
 
-    color.rgb *= _CloudIntensity(layer.index);
-    color.a *= _CloudOpacity;
-    return color;
+    return float4(color.x * _CloudIntensity(layer.index) * _CloudTint(layer.index), color.y * _CloudOpacity);
 }
 
 float GetCloudOpacity(float3 dir)
@@ -128,14 +127,14 @@ float GetCloudOpacity(float3 dir)
 #if USE_CLOUD_LAYER
     if (dir.y >= 0 || !_CloudUpperHemisphere)
     {
-        //opacity = GetDistordedCloudColor(dir, 0).a;
 #if USE_SECOND_CLOUD_LAYER
-            //opacity *= (1.0 - GetDistordedCloudColor(dir, 1).a);
+        opacity = GetCloudLayerColor(dir, 1).a;
 #endif
+        opacity = lerp(opacity, 1.0, GetCloudLayerColor(dir, 0).a);
     }
 #endif
 
-    return opacity * _CloudOpacity;
+    return opacity;
 }
 
 float3 ApplyCloudLayer(float3 dir, float3 sky)

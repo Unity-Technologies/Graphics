@@ -614,27 +614,28 @@ namespace UnityEngine.Rendering.HighDefinition
                 var layer = skyContext.cloudLayer;
 
                 Vector4 params1 = sunLight.transform.forward;
-                params1.w = 1.0f / (float)m_CloudResolution;
+                params1.w = (layer.upperHemisphereOnly.value ? 1.0f : -1.0f) / (float)m_CloudResolution;
 
                 cmd.SetComputeVectorParam(m_BakeCloudTextureCS, "_Params1", params1);
                 cmd.SetComputeTextureParam(m_BakeCloudTextureCS, m_BakeCloudTextureKernel, m_CloudTextureOutputParam, renderingContext.cloudTextureRT);
 
+                cmd.SetComputeTextureParam(m_BakeCloudTextureCS, m_BakeCloudTextureKernel, "_CloudMapA", layer.mapA.cloudMap.value);
+                var paramsA = layer.mapA.GetBakingParameters();
+
                 if (renderingContext.numLayers == 1)
                 {
                     m_BakeCloudTextureCS.DisableKeyword("CLOUD_LAYER_DOUBLE_MODE");
-                    cmd.SetComputeVectorParam(m_BakeCloudTextureCS, "_Params2", layer.mapA.Opacities);
-                    cmd.SetComputeVectorParam(m_BakeCloudTextureCS, "_Params3", layer.mapA.settings.GetBakingParameters());
-                    cmd.SetComputeTextureParam(m_BakeCloudTextureCS, m_BakeCloudTextureKernel, "_CloudMapA", layer.mapA.cloudMap.value);
+                    cmd.SetComputeVectorParam(m_BakeCloudTextureCS, "_Params2", paramsA.Item1);
+                    cmd.SetComputeVectorParam(m_BakeCloudTextureCS, "_Params3", paramsA.Item2);
                 }
                 else
                 {
-                    m_BakeCloudTextureCS.EnableKeyword("CLOUD_LAYER_DOUBLE_MODE");
-                    cmd.SetComputeVectorArrayParam(m_BakeCloudTextureCS, "_Params2", new Vector4[]
-                            { layer.mapA.Opacities, layer.mapB.Opacities });
-                    cmd.SetComputeVectorArrayParam(m_BakeCloudTextureCS, "_Params3", new Vector4[]
-                            { layer.mapA.settings.GetBakingParameters(), layer.mapB.settings.GetBakingParameters() });
-                    cmd.SetComputeTextureParam(m_BakeCloudTextureCS, m_BakeCloudTextureKernel, "_CloudMapA", layer.mapA.cloudMap.value);
                     cmd.SetComputeTextureParam(m_BakeCloudTextureCS, m_BakeCloudTextureKernel, "_CloudMapB", layer.mapB.cloudMap.value);
+                    var paramsB = layer.mapB.GetBakingParameters();
+
+                    m_BakeCloudTextureCS.EnableKeyword("CLOUD_LAYER_DOUBLE_MODE");
+                    cmd.SetComputeVectorArrayParam(m_BakeCloudTextureCS, "_Params2", new Vector4[] { paramsA.Item1, paramsB.Item1 });
+                    cmd.SetComputeVectorArrayParam(m_BakeCloudTextureCS, "_Params3", new Vector4[] { paramsA.Item2, paramsB.Item2 });
                 }
 
                 const int groupSizeX = 8;

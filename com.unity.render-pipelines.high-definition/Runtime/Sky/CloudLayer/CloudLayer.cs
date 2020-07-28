@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ColorParameter           tint                = new ColorParameter(Color.white);
             /// <summary>Intensity multipler of the clouds.</summary>
             [Tooltip("Sets the intensity multiplier for the clouds.")]
-            public MinFloatParameter        intensityMultiplier = new MinFloatParameter(1.0f, 0.0f);
+            public MinFloatParameter        intensityMultiplier = new MinFloatParameter(10.0f, 0.0f);
 
             /// <summary>Distortion mode.</summary>
             [Tooltip("Distortion mode.")]
@@ -97,30 +97,13 @@ namespace UnityEngine.Rendering.HighDefinition
             internal float scrollFactor = 0.0f;
 
 
-            internal Vector4 GetBakingParameters()
-            {
-                Vector4 param = tint.value;
-                param.w = rotation.value / 360.0f;
-                return param;
-            }
-
-            internal Vector4 GetRenderingParameters()
+            internal (Vector4, Vector4) GetRenderingParameters()
             {
                 float dir = -Mathf.Deg2Rad * scrollDirection.value;
-                return new Vector4(intensityMultiplier.value, scrollFactor, Mathf.Cos(dir), Mathf.Sin(dir));
-            }
-
-            internal int GetBakingHashCode()
-            {
-                int hash = 17;
-
-                unchecked
-                {
-                    hash = hash * 23 + rotation.GetHashCode();
-                    hash = hash * 23 + tint.GetHashCode();
-                }
-
-                return hash;
+                var params1 = new Vector4(Mathf.Cos(dir), Mathf.Sin(dir), scrollFactor, 0);
+                Vector4 params2 = tint.value;
+                params2.w = intensityMultiplier.value;
+                return (params1, params2);
             }
         }
 
@@ -135,8 +118,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ClampedIntParameter                  steps       = new ClampedIntParameter(4, 1, 10);
             /// <summary>.</summary>
             [Tooltip(".")]
-            public FloatParameter                       thickness   = new FloatParameter(1.0f);
-            
+            public ClampedFloatParameter                thickness   = new ClampedFloatParameter(1.0f, 0.0f, 2.0f);
+
             /// <summary>Enable to cast shadows.</summary>
             [Tooltip("Cast Shadows.")]
             public BoolParameter    castShadows = new BoolParameter(false);
@@ -173,18 +156,30 @@ namespace UnityEngine.Rendering.HighDefinition
             public ClampedFloatParameter    opacityR    = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
             /// <summary>Opacity of the green layer.</summary>
             [Tooltip("Opacity of the green layer.")]
-            public ClampedFloatParameter    opacityG    = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+            public ClampedFloatParameter    opacityG    = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
             /// <summary>Opacity of the blue layer.</summary>
             [Tooltip("Opacity of the blue layer.")]
-            public ClampedFloatParameter    opacityB    = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+            public ClampedFloatParameter    opacityB    = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
             /// <summary>Opacity of the alpha layer.</summary>
             [Tooltip("Opacity of the alpha layer.")]
-            public ClampedFloatParameter    opacityA    = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+            public ClampedFloatParameter    opacityA    = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
             
             public CloudSettings settings = new CloudSettings();
             public CloudLighting lighting = new CloudLighting();
 
             public Vector4 Opacities => new Vector4(opacityR.value, opacityG.value, opacityB.value, opacityA.value);
+
+
+            internal (Vector4, Vector4) GetBakingParameters()
+            {
+                Vector4 parameters = new Vector4(
+                    settings.rotation.value,
+                    lighting.NumSteps,
+                    lighting.thickness.value,
+                    0
+                );
+                return (Opacities, parameters);
+            }
 
             internal void Apply(Material skyMaterial, string mapKeyword, string motionKeyword)
             {
@@ -218,7 +213,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     hash = hash * 23 + opacityB.GetHashCode();
                     hash = hash * 23 + opacityA.GetHashCode();
 
-                    hash = hash * 23 + settings.GetBakingHashCode();
+                    hash = hash * 23 + settings.rotation.GetHashCode();
                     hash = hash * 23 + lighting.GetBakingHashCode(ref castShadows);
                 }
 
@@ -244,7 +239,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 unchecked
                 {
                     hash = hash * 23 + cloudCRT.GetHashCode();
-                    hash = hash * 23 + settings.GetBakingHashCode();
+                    hash = hash * 23 + settings.rotation.GetHashCode();
                     hash = hash * 23 + lighting.GetBakingHashCode(ref castShadows);
                 }
 
@@ -287,18 +282,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 layer.mapB.settings.scrollFactor += layer.mapB.settings.scrollSpeed.value * dt;
                 layer.lastTime = Time.time;
 
-                Vector4 params1 = new Vector4(
-                        layer.opacity.value,
-                        layer.upperHemisphereOnly.value?1:0,
-                        0, 0);
-                Vector4[] params2 =  {
-                    layer.mapA.settings.GetRenderingParameters(),
-                    layer.mapB.settings.GetRenderingParameters()
-                };
+                var paramsA = layer.mapA.settings.GetRenderingParameters();
+                var paramsB = layer.mapB.settings.GetRenderingParameters();
+                paramsA.Item1.w = layer.opacity.value;
+                paramsB.Item1.w = layer.upperHemisphereOnly.value ? 1 : 0;
 
                 skyMaterial.SetTexture("_CloudTexture", builtinParams.cloudTexture);
-                skyMaterial.SetVector("_CloudParams1", params1);
-                skyMaterial.SetVectorArray("_CloudParams2", params2);
+                skyMaterial.SetVectorArray("_CloudParams1", new Vector4[]{ paramsA.Item1, paramsB.Item1 });
+                skyMaterial.SetVectorArray("_CloudParams2", new Vector4[]{ paramsA.Item2, paramsB.Item2 });
 
                 layer.mapA.Apply(skyMaterial, "USE_CLOUD_MAP", "USE_CLOUD_MOTION");
                 if (layer.layers.value == CloudMapMode.Double)

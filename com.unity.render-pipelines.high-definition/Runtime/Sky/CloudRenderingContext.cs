@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
             this.numLayers = numLayers;
             this.supportShadows = supportShadows;
 
-            cloudTextureRT = RTHandles.Alloc(resolution, resolution / 2, numLayers, colorFormat: GraphicsFormat.R16G16B16A16_SFloat,
+            cloudTextureRT = RTHandles.Alloc(resolution, resolution / 2, numLayers, colorFormat: GraphicsFormat.R16G16_SFloat,
                 dimension: TextureDimension.Tex2DArray, enableRandomWrite: true, useMipMap: false,
                 filterMode: FilterMode.Bilinear, name: "Cloud Texture");
 
