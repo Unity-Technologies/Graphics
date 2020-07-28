@@ -7,7 +7,6 @@ using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine.Rendering;
-using Data.Interfaces;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
@@ -15,7 +14,6 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using Node = UnityEditor.Experimental.GraphView.Node;
-using Drawing.Inspector.PropertyDrawers;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -568,11 +566,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void UpdatePortInputTypes()
         {
-            foreach (var anchor in inputContainer.Query<ShaderPort>().ToList())
+            var portList = inputContainer.Query<ShaderPort>().ToList();
+            portList.AddRange(outputContainer.Query<ShaderPort>().ToList());
+            foreach (var anchor in portList)
             {
                 var slot = anchor.slot;
                 anchor.portName = slot.displayName;
                 anchor.visualClass = slot.concreteValueType.ToClassName();
+
                 if (GetPortInputView(anchor, out var portInputView))
                 {
                     portInputView.UpdateSlotType();

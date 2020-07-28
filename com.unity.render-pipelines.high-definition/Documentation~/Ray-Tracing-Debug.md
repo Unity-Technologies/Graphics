@@ -13,9 +13,12 @@ The High Definition Render Pipeline (HDRP) includes the [Render Pipeline Debug w
 
 | **Fullscreen Debug Mode**   | **Description**                                              |
 | --------------------------- | ------------------------------------------------------------ |
-| **SSAO**                    | When [Ray-Traced Ambient Occlusion](Ray-Traced-Ambient-Occlusion.html) is active, this displays the screen space buffer that holds the ambient occlusion. |
+| **Screen Space Ambient Occlusion** | When [Ray-Traced Ambient Occlusion](Ray-Traced-Ambient-Occlusion.html) is active, this displays the screen space buffer that holds the ambient occlusion. |
 | **Screen Space Reflection** | When [Ray-Traced Reflections](Ray-Traced-Reflections.html) are active, this displays the ray-traced reflections. |
+| **Transparent Screen Space Reflection** | When [Ray-Traced Reflections](Ray-Traced-Reflections.html) are active, this displays the ray-traced reflections on transparent objects. |
 | **Contact Shadows** 		  | When [Ray-Traced Contact Shadows](Ray-Traced-Contact-Shadows.html) are active, this displays the ray-traced contact shadows. |
 | **Screen Space Shadows**    | When screen space shadows are active, this displays the set of screen space shadows. If you select this option, Unity exposes the **Screen Space Shadow Index** slider that allows you to change the currently active shadows. Area lights shadows take two channels. |
-| **Indirect Diffuse**        | When [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination.html) is active, this displays a screen space buffer that holds the indirect diffuse lighting. |
+| **Screen Space Global Illumination**  | When [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination.html) is active, this displays a screen space buffer that holds the indirect diffuse lighting. |
+| **Recursive Ray-Tracing**             | When [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.html) is active, this displays the pixels that have been evaluated using the effect. |
+| **Ray-Traced Subsurface Scattering**  | When [Ray-Traced Subsurface Scattering](Ray-Traced-Subsurface-Scattering.html) is active, this displays the subsurface lighting value for the pixels that have been evaluated using the technique. |
 | **Light Cluster**           | This displays the cluster using a debug view that allows you to see the regions of the Scene where light density is higher, and potentially more resource-intensive to evaluate. |

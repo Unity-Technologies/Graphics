@@ -35,7 +35,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass
 
             // -------------------------------------
             // Unity defined keywords
-            #pragma multi_compile_fragment _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
 
@@ -69,9 +69,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass
             }
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
+            #pragma exclude_renderers d3d11_9x gles
             #pragma target 2.0
 
             // -------------------------------------

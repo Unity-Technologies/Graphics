@@ -45,6 +45,7 @@ Depth Of Field includes [more options](More-Options.html) that you must manually
 | -------------------------- | ------------------------------------------------------------ |
 | **Resolution**             | Use the drop-down to set the resolution at which HDRP processes the depth of field effect. If you target consoles that use a very high resolution (for example, 4k), select **Quarter,** because it is less resource intensive.<br />&#8226; **Quarter**: Uses quarter the screen resolution.<br />&#8226; **Half**: Uses half the screen resolution.<br />This property only appears when you enable [more options](More-Options.html). |
 | **High Quality Filtering** | Enable the checkbox to make HDRP use bicubic filtering instead of bilinear filtering. This increases the resource intensity of the Depth Of Field effect, but results in smoother visuals.<br />This property only appears when you enable [more options](More-Options.html). |
+| **Physically Based** | Enable the checkbox to make HDRP use a more accurate but slower physically-based technique for the computation of Deph-of-Field. It is highly recommended to enable [Temporal anti-aliasing (TAA)](Anti-Aliasing) at the same time, for improved quality and performance.|
 
 <a name="PhysicalCameraSettings"></a>
 

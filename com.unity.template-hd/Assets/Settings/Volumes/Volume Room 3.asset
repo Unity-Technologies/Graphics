@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: Fog
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
+  m_AdvancedMode: 1
   enabled:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 1
   colorMode:
     m_OverrideState: 0
@@ -63,7 +63,7 @@ MonoBehaviour:
     showEyeDropper: 1
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 50000
+    m_Value: 100000
     min: 1
   enableVolumetricFog:
     m_OverrideState: 0

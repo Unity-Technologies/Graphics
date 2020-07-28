@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.Universal
     {
         const int k_DepthStencilBufferBits = 32;
         const string k_CreateCameraTextures = "Create Camera Texture";
+        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_CreateCameraTextures);
 
         ColorGradingLutPass m_ColorGradingLutPass;
         DepthOnlyPass m_DepthPrepass;
@@ -187,6 +188,7 @@ namespace UnityEngine.Rendering.Universal
                 requiresDepthPrepass = true;
 
             bool createColorTexture = RequiresIntermediateColorTexture(ref cameraData);
+            createColorTexture |= (rendererFeatures.Count != 0);
             createColorTexture |= renderPassInputs.requiresColorTexture;
             createColorTexture &= !isPreviewCamera;
 
@@ -201,7 +203,7 @@ namespace UnityEngine.Rendering.Universal
             }
 #endif
 
-#if UNITY_ANDROID
+#if UNITY_ANDROID || UNITY_WEBGL
             if (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan)
             {
                 // GLES can not use render texture's depth buffer with the color buffer of the backbuffer
@@ -226,9 +228,6 @@ namespace UnityEngine.Rendering.Universal
 
                 // if rendering to intermediate render texture we don't have to create msaa backbuffer
                 int backbufferMsaaSamples = (intermediateRenderTexture) ? 1 : cameraTargetDescriptor.msaaSamples;
-
-                if (Camera.main == camera && camera.cameraType == CameraType.Game && cameraData.targetTexture == null)
-                    SetupBackbufferFormat(backbufferMsaaSamples, cameraData.xr.enabled);
             }
             else
             {
@@ -486,22 +485,25 @@ namespace UnityEngine.Rendering.Universal
 
         void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor, bool createColor, bool createDepth)
         {
-            CommandBuffer cmd = CommandBufferPool.Get(k_CreateCameraTextures);
-            int msaaSamples = descriptor.msaaSamples;
-            if (createColor)
+            CommandBuffer cmd = CommandBufferPool.Get();
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
-                bool useDepthRenderBuffer = m_ActiveCameraDepthAttachment == RenderTargetHandle.CameraTarget;
-                var colorDescriptor = descriptor;
-                colorDescriptor.depthBufferBits = (useDepthRenderBuffer) ? k_DepthStencilBufferBits : 0;
-                cmd.GetTemporaryRT(m_ActiveCameraColorAttachment.id, colorDescriptor, FilterMode.Bilinear);
-            }
+                int msaaSamples = descriptor.msaaSamples;
+                if (createColor)
+                {
+                    bool useDepthRenderBuffer = m_ActiveCameraDepthAttachment == RenderTargetHandle.CameraTarget;
+                    var colorDescriptor = descriptor;
+                    colorDescriptor.depthBufferBits = (useDepthRenderBuffer) ? k_DepthStencilBufferBits : 0;
+                    cmd.GetTemporaryRT(m_ActiveCameraColorAttachment.id, colorDescriptor, FilterMode.Bilinear);
+                }
 
-            if (createDepth)
-            {
-                var depthDescriptor = descriptor;
-                depthDescriptor.colorFormat = RenderTextureFormat.Depth;
-                depthDescriptor.depthBufferBits = k_DepthStencilBufferBits;
-                cmd.GetTemporaryRT(m_ActiveCameraDepthAttachment.id, depthDescriptor, FilterMode.Point);
+                if (createDepth)
+                {
+                    var depthDescriptor = descriptor;
+                    depthDescriptor.colorFormat = RenderTextureFormat.Depth;
+                    depthDescriptor.depthBufferBits = k_DepthStencilBufferBits;
+                    cmd.GetTemporaryRT(m_ActiveCameraDepthAttachment.id, depthDescriptor, FilterMode.Point);
+                }
             }
 
             context.ExecuteCommandBuffer(cmd);
