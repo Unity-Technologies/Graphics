@@ -4,8 +4,8 @@ The High Definition Render Pipeline (HDRP) adds the HDRP Default Settings tab to
 
 - Assign Render Pipeline resource Assets for your HDRP Project.
 - Set the verboseness of Shader variant information that Unity writes to the Console window when you build your Project.
-- Set up default [Frame Settings](Frame-Settings.html) for [Cameras](HDRP-Camera.html) to use.
-- Assign and edit a default [Volume Profile](Volume-Profile.html).
+- Set up default [Frame Settings](Frame-Settings.md) for [Cameras](HDRP-Camera.md) to use.
+- Assign and edit a default [Volume Profile](Volume-Profile.md).
 
 The HDRP Default Settings tab is part of the Project Settings window. To get to this tab, select **Edit > Project Settings** and then, in the sidebar, click **HDRP Default Settings**.
 
@@ -22,17 +22,17 @@ The HDRP Default Settings tab is part of the Project Settings window. To get to 
 
 ## Frame Settings
 
-[Frame Settings](Frame-Settings.html) control the rendering passes that Cameras make at runtime. This section allows you to set default Frame Settings that all Cameras use if you do not enable their Custom Frame Settings checkbox. For information about what each property does, see [Frame Settings](Frame-Settings.html).
+[Frame Settings](Frame-Settings.md) control the rendering passes that Cameras make at runtime. This section allows you to set default Frame Settings that all Cameras use if you do not enable their Custom Frame Settings checkbox. For information about what each property does, see [Frame Settings](Frame-Settings.md).
 
 ## Volume Components
 
-You can use this section to assign and edit a [Volume Profile](Volume-Profile.html) that [Volumes](Volumes.html) use by default in your Scenes. You do not need to create a Volume for this specific Volume Profile to be active, because HDRP always processes it as if it is assigned to a global Volume in the Scene, but with the lowest priority. This means that any Volume that you add to a Scene takes priority. 
+You can use this section to assign and edit a [Volume Profile](Volume-Profile.md) that [Volumes](Volumes.md) use by default in your Scenes. You do not need to create a Volume for this specific Volume Profile to be active, because HDRP always processes it as if it is assigned to a global Volume in the Scene, but with the lowest priority. This means that any Volume that you add to a Scene takes priority. 
 
-The Default Volume Profile Asset references a Volume Profile in the HDRP Package folder called DefaultSettingsVolumeProfile by default. Below it, you can add [Volume overrides](Volume-Components.html), and edit their properties. You can also assign your own Volume Profile to this property field. Be aware that this property must always reference a Volume Profile. If you assign your own Volume Profile and then delete it, HDRP automatically re-assigns the DefaultSettingsVolumeProfile from the HDRP Package folder.
+The Default Volume Profile Asset references a Volume Profile in the HDRP Package folder called DefaultSettingsVolumeProfile by default. Below it, you can add [Volume overrides](Volume-Components.md), and edit their properties. You can also assign your own Volume Profile to this property field. Be aware that this property must always reference a Volume Profile. If you assign your own Volume Profile and then delete it, HDRP automatically re-assigns the DefaultSettingsVolumeProfile from the HDRP Package folder.
 
-The LookDev Volume Profile Asset references the Volume Profile that will be used in the [LookDev window](Look-Dev.html). It works the same way than the Default Volume profile except that in this asset you can't put a [Visual Environment Component](Override-Visual-Environment.html) or skies component because they are overwritten by the LookDev.
+The LookDev Volume Profile Asset references the Volume Profile that will be used in the [LookDev window](Look-Dev.md). It works the same way than the Default Volume profile except that in this asset you can't put a [Visual Environment Component](Override-Visual-Environment.md) or skies component because they are overwritten by the LookDev.
 
 ## Custom Post Process Orders
 
 Use this section to select which custom post processing effect will be used in the project and in which order they will be executed.  
-You have one list per post processing injection point: `After Opaque And Sky`, `Before Post Process` and `After Post Process`. See the [Custom Post Process](Custom-Post-Process.html) documentation for more details.
+You have one list per post processing injection point: `After Opaque And Sky`, `Before Post Process` and `After Post Process`. See the [Custom Post Process](Custom-Post-Process.md) documentation for more details.
