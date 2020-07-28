@@ -200,6 +200,7 @@ namespace UnityEditor.Rendering.HighDefinition
              AlphaToMaskUIFix,
              MigrateDecalRenderQueue,
              ExposedDecalInputsFromShaderGraph,
+             FixIncorrectEmissiveColorSpace,
         };
 
         #region Migrations
@@ -560,6 +561,16 @@ namespace UnityEditor.Rendering.HighDefinition
             if (id == HDShaderUtils.ShaderID.Decal || id == HDShaderUtils.ShaderID.SG_Decal)
             {
                 HDShaderUtils.ResetMaterialKeywords(material);
+            }
+        }     
+
+        static void FixIncorrectEmissiveColorSpace(Material material, HDShaderUtils.ShaderID id)
+        {
+            const string kEmissiveColorLDR = "_EmissiveColorLDR";
+            float emissiveColorLDR = 0.0f;
+            if (TryFindProperty(serializedMaterial, kEmissiveColorLDR, SerializedType.Float, out var propertyEmissive, out _, out _))
+            {
+
             }
         }
 
