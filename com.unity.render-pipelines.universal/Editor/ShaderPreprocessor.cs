@@ -45,6 +45,8 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_DeprecatedShadowsCascade = new ShaderKeyword("_SHADOWS_CASCADE");
         ShaderKeyword m_DeprecatedLocalShadowsEnabled = new ShaderKeyword("_LOCAL_SHADOWS_ENABLED");
 
+        ShaderKeyword m_UseDrawProcedural = new ShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
+
         int m_TotalVariantsInputCount;
         int m_TotalVariantsOutputCount;
 
@@ -142,6 +144,10 @@ namespace UnityEditor.Rendering.Universal
             if (compilerData.shaderCompilerPlatform == ShaderCompilerPlatform.GLES20)
             {
                 if (compilerData.shaderKeywordSet.IsEnabled(m_CascadeShadows))
+                    return true;
+
+                // GLES2 does not support VertexID that is required for full screen draw procedural pass;
+                if (compilerData.shaderKeywordSet.IsEnabled(m_UseDrawProcedural))
                     return true;
             }
 
