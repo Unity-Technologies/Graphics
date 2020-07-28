@@ -565,13 +565,13 @@ namespace UnityEditor.Rendering.HighDefinition
         }     
 
         static void FixIncorrectEmissiveColorSpace(Material material, HDShaderUtils.ShaderID id)
-        {
+        {/*
             const string kEmissiveColorLDR = "_EmissiveColorLDR";
             float emissiveColorLDR = 0.0f;
             if (TryFindProperty(serializedMaterial, kEmissiveColorLDR, SerializedType.Float, out var propertyEmissive, out _, out _))
             {
 
-            }
+            }*/
         }
 
         #region Serialization_API
