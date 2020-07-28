@@ -16,7 +16,7 @@
     "versionDefines": [
         {
             "name": "com.unity.render-pipelines.high-definition",
-            "expression": "10.0.0",
+            "expression": "10.0.0-preview.1",
             "define": "VFX_OUTPUTEVENT_HDRP_10_0_0_OR_NEWER"
         },
         {

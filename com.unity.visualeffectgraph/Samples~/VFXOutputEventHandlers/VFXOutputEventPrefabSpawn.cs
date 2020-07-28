@@ -6,8 +6,8 @@ namespace UnityEngine.VFX.Utility
     [RequireComponent(typeof(VisualEffect))]
     public class VFXOutputEventPrefabSpawn : VFXOutputEventHandler
     {
-        public uint instanceCount 
-        { 
+        public uint instanceCount
+        {
             get { return m_InstanceCount; }
             set { m_InstanceCount = value; ResetInstances(); }
         }
@@ -58,6 +58,11 @@ namespace UnityEngine.VFX.Utility
             DisposeInstances();
         }
 
+        private void OnDestroy()
+        {
+            DisposeInstances();
+        }
+
         private void OnValidate()
         {
 #if UNITY_EDITOR
@@ -65,13 +70,23 @@ namespace UnityEngine.VFX.Utility
             // in order to destroy GameObjects in OnValidate()
             //
             // https://forum.unity.com/threads/onvalidate-and-destroying-objects.258782/
-            UnityEditor.EditorApplication.delayCall += () =>
-            {
-                DisposeInstances();
-                ResetInstances();
-            };
+            
+            if(enabled)
+                UnityEditor.EditorApplication.delayCall += () =>
+                {
+                    // In some cases (enter playmode), this delay call is performed *after* object has been destroyed.
+                    if (this == null)
+                        return;
+
+                    DisposeInstances();
+
+                    if (enabled)
+                        ResetInstances();
+                };
 #endif
         }
+
+
 
         private void ResetInstances()
         {
@@ -85,22 +100,22 @@ namespace UnityEngine.VFX.Utility
             if (m_Instances == null)
             {
                 m_Instances = new GameObject[instanceCount];
-                for(uint i = 0; i < m_Instances.Length; i++)
+                for (int i = 0; i < m_Instances.Length; i++)
                 {
-                    m_Instances[i] = InitializeInstance();
+                    m_Instances[i] = InitializeInstance(i);
                 }
             }
             else
             {
                 int maxCount = Math.Max((int)instanceCount, (int)instanceCount);
                 GameObject[] newArray = new GameObject[instanceCount];
-                for(int i = 0; i < maxCount; i++)
+                for (int i = 0; i < maxCount; i++)
                 {
                     if (i < instanceCount) // Create new Instances
                     {
-                        newArray[i] = InitializeInstance();
+                        newArray[i] = InitializeInstance(i);
                     }
-                    else if(i > instanceCount) // Reap old Instances
+                    else if (i > instanceCount) // Reap old Instances
                     {
                         DisposeInstance(m_Instances[i]);
                     }
@@ -117,10 +132,12 @@ namespace UnityEngine.VFX.Utility
             m_TTLs = new float[instanceCount];
         }
 
-        private GameObject InitializeInstance()
+        private GameObject InitializeInstance(int index)
         {
             var go = Instantiate(m_PrefabToSpawn);
+            go.name = $"#{index} - {m_PrefabToSpawn.name}";
             go.SetActive(false);
+            //go.hideFlags = HideFlags.DontSaveInEditor;
             go.hideFlags = HideFlags.HideAndDontSave;
             return go;
         }
@@ -163,7 +180,7 @@ namespace UnityEngine.VFX.Utility
             for(int i = 0; i < m_Instances.Length; i++)
             {
                 if (m_Instances[i] == null)
-                    m_Instances[i] = InitializeInstance();
+                    m_Instances[i] = InitializeInstance(i);
 
                 if(!m_Instances[i].activeInHierarchy)
                 {
