@@ -242,7 +242,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             foreach (var light in lights)
             {
-                if (light != null && light.lightType != Light2D.LightType.Global && light.blendStyleIndex == blendStyleIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
+                if (light != null &&
+                    light.lightType != Light2D.LightType.Global &&
+                    light.blendStyleIndex == blendStyleIndex &&
+                    light.IsLitLayer(layerToRender))
                 {
                     // Render light
                     var lightMaterial = pass.rendererData.GetLightMaterial(light, false);
@@ -308,7 +311,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if (layerToRender != topMostLayer)
                     continue;
 
-                if (light != null && light.lightType != Light2D.LightType.Global && light.volumeOpacity > 0.0f && light.blendStyleIndex == blendStyleIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
+                if (light != null &&
+                    light.lightType != Light2D.LightType.Global &&
+                    light.volumeOpacity > 0.0f &&
+                    light.blendStyleIndex == blendStyleIndex &&
+                    light.IsLitLayer(layerToRender))
                 {
                     var lightVolumeMaterial = pass.rendererData.GetLightMaterial(light, true);
                     if (lightVolumeMaterial == null)
@@ -463,7 +470,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmd.SetRenderTarget(rtID);
 
                 var rtDirty = false;
-                if (!Light2DManager.GetGlobalColor(layerToRender, i, out var clearColor))
+                if (!LightManager2D.GetGlobalColor(layerToRender, i, out var clearColor))
                     clearColor = Color.black;
                 else
                     rtDirty = true;
@@ -477,7 +484,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     rtID,
                     (pass.rendererData.lightBlendStyles[i].isDirty || rtDirty),
                     clearColor,
-                    Light2D.GetLightsByBlendStyle(i)
+                    LightManager2D.visibleLights
                 );
 
                 pass.rendererData.lightBlendStyles[i].isDirty = rtDirty;
@@ -507,7 +514,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     layerToRender,
                     renderTarget,
                     depthTarget,
-                    Light2D.GetLightsByBlendStyle(i)
+                    LightManager2D.visibleLights
                 );
 
                 cmd.EndSample(sampleName);
