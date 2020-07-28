@@ -95,4 +95,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/056_2D_Lights_Shader_Graph.unity
     guid: 43d3bf91003239746b7d6e158cc1d31b
+  - enabled: 1
+    path: Assets/Scenes/056_2D_Lights-Shadows.unity
+    guid: fb3b78838a0550140bd0119b3a307133
+  - enabled: 1
+    path: Assets/Scenes/069_2D_Forward_Shader_Compatibility_Forward.unity
+    guid: 3f53c9ed98ccb50469b69adb10f00d65
   m_configObjects: {}
