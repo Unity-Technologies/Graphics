@@ -10,7 +10,7 @@ platforms:
   - name: Win
     apis:
       - DX11
-#      - DX12
+      - DX12
       - Vulkan
   - name: OSX 
     apis:
@@ -48,5 +48,5 @@ all:
         - editmode  
     - project: Universal_Stereo
       all: true
-    - project: Universal_Hybrid
-      all: true  
+    #- project: Universal_Hybrid
+    #  all: true  

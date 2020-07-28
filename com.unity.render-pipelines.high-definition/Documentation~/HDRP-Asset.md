@@ -82,25 +82,13 @@ These settings control the draw distance and resolution of the decals atlas that
 | **- Force Screen Percentage**   | Enable the checkbox to force HDRP to use a specific screen percentage for dynamic resolution. This feature is useful for debugging dynamic resolution. |
 | **- Forced Screen Percentage**  | The specific screen percentage that HDRP uses for dynamic resolution. This property is only visible when you enable the **Force Screen Percentage**.. |
 
-
-
 ## Lighting
 
 | **Property**                       | **Description**                                              |
 | ---------------------------------- | ------------------------------------------------------------ |
 | **Screen Space Ambient Occlusion** | Enable the checkbox to make HDRP support screen space ambient occlusion (SSAO). SSAO is a technique for approximating ambient occlusion efficiently in real time. |
 | **Volumetrics**                    | Enable the checkbox to make HDRP support volumetrics. This allows you to use **Volumetric Fog** for the **Fog Type** in the [Visual Environment](Override-Visual-Environment.html). |
-| **- high quality**                 | Enable the checkbox to increase the resolution of volumetrics. This increases the quality of fog effects, but increases the resource intensity greatly. |
-| **Light Layers**                   | Enable the checkbox to make HDRP support Light Layers. You can assign a Layer to a Light which then only lights up Mesh Renderers with a matching rendering Layer. |
-
-### Light Layers
-
-Light Layers are used to separate lighting into different layers in order to make object only reacting to certain lights.
-
-| **Property**           | **Description**                                              |
-| ---------------------- | ------------------------------------------------------------ |
-| **Enable**             | Enable the checkbox to make HDRP support Light Layers. You can assign a Layer to a Light which then only lights up Mesh Renderers with a matching rendering Layer. |
-| **Light Layer Name i** | The name displayed on light and meshes when using this HDRenderPipelineAsset. |
+| **Light Layers**                   | Enable the checkbox to make HDRP support Light Layers. You can assign a Layer to a Light which then only lights up Mesh Renderers or Terrain with a matching rendering Layer. |
 
 ### Cookies
 
@@ -195,11 +183,12 @@ The PCF algorithm applies a fixed size blur. PCSS applies a different blur size 
 
 Use these settings to enable or disable settings relating to lighting in HDRP.
 
-| **Property**                      | **Description**                                              |
-| --------------------------------- | ------------------------------------------------------------ |
-| **Maximum Directional On Screen** | The maximum number of Directional Lights HDRP can manage on screen at once. |
-| **Maximum Punctual On Screen**    | The maximum number of [Point and Spot Lights](Glossary.html#PunctualLight) HDRP can manage on screen at once. |
-| **Maximum Area On Screen**        | The maximum number of area Lights HDRP can manage on screen at once. |
+| **Property**                              | **Description**                                              |
+| ----------------------------------------- | ------------------------------------------------------------ |
+| **Maximum Directional On Screen**         | The maximum number of Directional Lights HDRP can manage on screen at once. |
+| **Maximum Punctual On Screen**            | The maximum number of [Point and Spot Lights](Glossary.html#PunctualLight) HDRP can manage on screen at once. |
+| **Maximum Area On Screen**                | The maximum number of area Lights HDRP can manage on screen at once. |
+| **Maximum Lights Per Cell (Ray Tracing)** | The maximum number of Lights that an individual grid cell in a [Light Cluster](Ray-Tracing-Light-Cluster.md) can store. |
 
 ## Material
 

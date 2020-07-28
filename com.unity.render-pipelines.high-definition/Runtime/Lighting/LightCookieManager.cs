@@ -36,7 +36,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // Structure for cookies used by directional and spotlights
         PowerOfTwoTextureAtlas m_CookieAtlas;
 
+#if UNITY_2020_1_OR_NEWER
+#else
         int m_CookieCubeResolution;
+#endif
 
         // During the light loop, when reserving space for the cookies (first part of the light loop) the atlas
         // can run out of space, in this case, we set to true this flag which will trigger a re-layouting of the
@@ -64,7 +67,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_CookieAtlas = new PowerOfTwoTextureAtlas(cookieAtlasSize, gLightLoopSettings.cookieAtlasLastValidMip, cookieFormat, name: "Cookie Atlas (Punctual Lights)", useMipMap: true);
 
+#if UNITY_2020_1_OR_NEWER
+#else
             m_CookieCubeResolution = (int)gLightLoopSettings.pointCookieSize;
+#endif
         }
 
         public void NewFrame()
@@ -303,7 +309,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (width < k_MinCookieSize || height < k_MinCookieSize)
                 return Vector4.zero;
 
-            int projectionSize = 2*(int)Mathf.Max((float)m_CookieCubeResolution, Mathf.Max((float)cookie.width, (float)ies.width));
+#if UNITY_2020_1_OR_NEWER
+            int projectionSize = 2 * (int)Mathf.Max((float)cookie.width, (float)ies.width);
+#else
+            int projectionSize = 2 * (int)Mathf.Max((float)m_CookieCubeResolution, Mathf.Max((float)cookie.width, (float)ies.width));
+#endif
 
             if (!m_CookieAtlas.IsCached(out var scaleBias, cookie, ies) && !m_NoMoreSpace)
                 Debug.LogError($"Area Light cookie texture {cookie} & {ies} can't be fetched without having reserved. You can try to increase the cookie atlas resolution in the HDRP settings.");
@@ -386,7 +396,11 @@ namespace UnityEngine.Rendering.HighDefinition
             Debug.Assert(cookie != null);
             Debug.Assert(cookie.dimension == TextureDimension.Cube);
 
-            int projectionSize = 2*(int)Mathf.Max((float)m_CookieCubeResolution, (float)cookie.width);
+#if UNITY_2020_1_OR_NEWER
+            int projectionSize = 2 * cookie.width;
+#else
+            int projectionSize = 2 * (int)Mathf.Max((float)m_CookieCubeResolution, (float)cookie.width);
+#endif
             if (projectionSize < k_MinCookieSize)
                 return Vector4.zero;
 
@@ -411,7 +425,11 @@ namespace UnityEngine.Rendering.HighDefinition
             Debug.Assert(cookie.dimension == TextureDimension.Cube);
             Debug.Assert(ies.dimension == TextureDimension.Cube);
 
-            int projectionSize = 2*(int)Mathf.Max((float)m_CookieCubeResolution, (float)cookie.width);
+#if UNITY_2020_1_OR_NEWER
+            int projectionSize = 2 * cookie.width;
+#else
+            int projectionSize = 2 * (int)Mathf.Max((float)m_CookieCubeResolution, (float)cookie.width);
+#endif
             if (projectionSize < k_MinCookieSize)
                 return Vector4.zero;
 

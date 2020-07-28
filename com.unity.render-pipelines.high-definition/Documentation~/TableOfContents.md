@@ -1,9 +1,11 @@
 * [High Definition Render Pipeline](index)
+* [Requirements](System-Requirements.md)
+* [What's new](whats-new.md)
+  * [10.0](whats-new-10-0.md)
 * Features
   * [Features List](HDRP-Features)
   * [Comparison with the Built-in Render Pipeline](Feature-Comparison)
 * Getting started
-  * [System Requirements](System-Requirements.md)
   * [Getting Started with HDRP](Getting-started-with-HDRP)
   * [Upgrading to HDRP](Upgrading-To-HDRP)
   * [Render Pipeline Wizard](Render-Pipeline-Wizard)
@@ -11,6 +13,7 @@
   * [Exposing More Options](More-Options)
   * [Sample Content](HDRP-Sample-Content)
   * [Sample project](HDRP-Sample-Projects)
+  * [Menu Items](Menu-Items.md)
 * Upgrading HDRP between Unity Versions
   * [Material Upgrade](Material-Upgrade)
   * [2019.1 to 2019.2](Upgrading-from-2019.1-to-2019.2)
@@ -40,6 +43,7 @@
       * [Physically Based Sky](Override-Physically-Based-Sky)
       * [Procedural Sky](Override-Procedural-Sky)
     * [Visual Environment](Override-Visual-Environment)
+  * [Volumes API](Volumes-API.md)
 * Render Pipeline Settings
   * [HDRP Asset](HDRP-Asset)
   * [Frame Settings](Frame-Settings)
@@ -55,6 +59,7 @@
   * [Mask Map and Detail Map](Mask-Map-and-Detail-Map)
   * [Material Type](Material-Type)
   * [Renderer and Material Priority](Renderer-And-Material-Priority)
+  * [Decal](Decal)
   * [Surface Type](Surface-Type)
   * Subsurface Scattering
     * [Subsurface Scattering Materials](Subsurface-Scattering)

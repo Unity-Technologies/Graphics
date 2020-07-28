@@ -6,7 +6,19 @@
 
 float3 _LightDirection;
 
+#ifdef VFX_VARYING_PS_INPUTS
 void VFXTransformPSInputs(inout VFX_VARYING_PS_INPUTS input) {}
+
+float4 VFXApplyPreExposure(float4 color, float exposureWeight)
+{
+    return color;
+}
+
+float4 VFXApplyPreExposure(float4 color, VFX_VARYING_PS_INPUTS input)
+{
+    return color;
+}
+#endif
 
 float4 VFXTransformFinalColor(float4 color)
 {
@@ -128,9 +140,4 @@ float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
    color.rgb = lerp(fog.rgb * color.a, color.rgb, fog.a);
 #endif
    return color;
-}
-
-float4 VFXApplyPreExposure(float4 color, VFX_VARYING_PS_INPUTS input)
-{
-    return color;
 }
