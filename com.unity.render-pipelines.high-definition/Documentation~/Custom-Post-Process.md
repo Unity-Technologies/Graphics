@@ -182,7 +182,7 @@ Shader "Hidden/Shader/GrayScale"
 
 If none of your Scenes reference the Shader, Unity does not build the Shader and the effect does not work when you run your application outside of the Editor. To resolve this, either add the Shader to a [Resources folder](https://docs.unity3d.com/Manual/LoadingResourcesatRuntime.html), or go to **Edit > Project Settings > Graphics** and add the Shader to the **Always Included Shaders** list.
 
-:warning: Note that, when we execute your post process, we use a render target pooling system. It implies that you don't know what the current color buffer contains, which is why we never use any instructions that could show this color buffer. In other words, don't use transparency, blend modes or the the **clip()** instruction in your Shader, otherwise your effect breaks.
+:warning: Note that, when HDRP executes your post-process effect, it uses a render target pooling system. It means that you don't know what the current color buffer contains, which is why you should never use any instructions that could show this color buffer. Do not use transparency, blend modes, or the **clip()** instruction in your Shader, otherwise your effect breaks.
 
 #### Shader inputs
 
@@ -280,4 +280,4 @@ If your effect does not display correctly:
 
 * In the Volume that contains your post process, make sure that it has a high enough priority and that your Camera is inside its bounds.
 
-* Checks that your shader doesn't contains any **clip()** instruction, that the blend mode is set to Off and the output alpha is always 1.
+* Check that your shader doesn't contain any **clip()** instructions, that the blend mode is set to Off and the output alpha is always 1.
