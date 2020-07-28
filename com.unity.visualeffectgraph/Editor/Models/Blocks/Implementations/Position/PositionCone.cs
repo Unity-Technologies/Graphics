@@ -49,14 +49,8 @@ namespace UnityEditor.VFX.Block
                 VFXExpression up = inputSlots[0][2].GetExpression();
 
                 var left = VFXOperatorUtility.Cross(direction, up);
-
-                //Test building a matrix
-                var zero = VFXOperatorUtility.ZeroExpression[VFXValueType.Float];
-                var one = VFXOperatorUtility.OneExpression[VFXValueType.Float];
-                var m0 = new VFXExpressionCombine(direction.x, direction.y, direction.z, zero);
-                var m1 = new VFXExpressionCombine(up.x, up.y, up.z, zero);
-                var m2 = new VFXExpressionCombine(left.x, left.y, left.z, zero);
-                var m3 = new VFXExpressionCombine(center.x, center.y, center.z, one);
+                left = VFXOperatorUtility.Normalize(left);
+                up = VFXOperatorUtility.Cross(left, direction);
 
                 yield return new VFXNamedExpression(direction, "transformMatrix_a");
                 yield return new VFXNamedExpression(up, "transformMatrix_b");
