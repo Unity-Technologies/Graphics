@@ -98,7 +98,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         SwizzleOutputSize m_OutputSize;
 
-        [EnumControl("")]
+        [EnumControl("Output Size:")]
         SwizzleOutputSize outputSize
         {
             get { return m_OutputSize; }
@@ -109,6 +109,7 @@ namespace UnityEditor.ShaderGraph
                 m_OutputSize = value;
                 Dirty(ModificationScope.Graph);
                 UpdateNodeAfterDeserialization();
+                //EvaluateDynamicMaterialSlots();
             }
         }
 
@@ -202,12 +203,14 @@ namespace UnityEditor.ShaderGraph
             list.AddRange(w);
 
             inputSize -= 1;
+            
 
             bool check = true;
             foreach (int index in list)
             {
                 if ((inputSize - index)<0 )
                 {
+
                     check = false;
                 }
             }
@@ -216,16 +219,13 @@ namespace UnityEditor.ShaderGraph
         }
 
 
-        //TODO:
+        
         //1. get input matrix and demension
         //2. get swizzle output size
         //3. get index matrix (HACKYYYYYYY)
         //4. map output matirx/vec according to index matrix/vec
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            //Debug.LogError("swizzle update!" + m_OutputSize);
-            //Debug.Log((int)index_Row0.x + " ,"+((index_Row0.x - Math.Truncate(index_Row0.x))*10));
-            //Debug.Log(getIndex(index_Row1.z)[0]+" "+ getIndex(index_Row1.z)[1]);
 
             //Get input matrix and its demension
             var inputValue = GetSlotValue(InputSlotId, generationMode);
@@ -250,18 +250,61 @@ namespace UnityEditor.ShaderGraph
             int concreteRowCount = useIndentity ? 2 : numInputRows;
             int outputRowCount = 0;
 
-            //validate indecies
+            //INDECIES VALIDATION
+            //TODO: Should give what row/columns the problems are
             var inputIndecies = new Matrix4x4();
-            if (IsIndexSizeCorrect(index_Row0, concreteRowCount)&&
-                IsIndexSizeCorrect(index_Row1, concreteRowCount)&&
-                IsIndexSizeCorrect(index_Row2, concreteRowCount) && IsIndexSizeCorrect(index_Row3, concreteRowCount) )
+
+            //set all indecies that won't be used to zero
+            switch (m_OutputSize)
             {
-                inputIndecies.SetRow(0, index_Row0);
-                inputIndecies.SetRow(1, index_Row1);
-                inputIndecies.SetRow(2, index_Row2);
-                inputIndecies.SetRow(3, index_Row3);
+                default:
+                    inputIndecies.SetRow(0, index_Row0);
+                    inputIndecies.SetRow(1, index_Row1);
+                    inputIndecies.SetRow(2, index_Row2);
+                    inputIndecies.SetRow(3, index_Row3);
+                    break;
+                case SwizzleOutputSize.Matrix3:
+                    inputIndecies.SetRow(0, new Vector4(index_Row0.x, index_Row0.y, index_Row0.z, 0));
+                    inputIndecies.SetRow(1, new Vector4(index_Row1.x, index_Row1.y, index_Row1.z, 0));
+                    inputIndecies.SetRow(2, new Vector4(index_Row2.x, index_Row2.y, index_Row2.z, 0));
+                    inputIndecies.SetRow(3, new Vector4(0,0,0,0));
+                    break;
+                case SwizzleOutputSize.Matrix2:
+                    inputIndecies.SetRow(0, new Vector4(index_Row0.x, index_Row0.y, 0, 0));
+                    inputIndecies.SetRow(1, new Vector4(index_Row1.x, index_Row1.y, 0, 0));
+                    inputIndecies.SetRow(2, new Vector4(0, 0, 0, 0));
+                    inputIndecies.SetRow(3, new Vector4(0, 0, 0, 0));
+                    break;
+                case SwizzleOutputSize.Vector4:
+                    inputIndecies.SetRow(0, new Vector4(index_Row0.x, 0, 0, 0));
+                    inputIndecies.SetRow(1, new Vector4(index_Row1.x, 0 ,0, 0));
+                    inputIndecies.SetRow(2, new Vector4(index_Row2.x, 0, 0, 0));
+                    inputIndecies.SetRow(3, new Vector4(index_Row3.x, 0, 0, 0));
+                    break;
+                case SwizzleOutputSize.Vector3:
+                    inputIndecies.SetRow(0, new Vector4(index_Row0.x, 0, 0, 0));
+                    inputIndecies.SetRow(1, new Vector4(index_Row1.x, 0, 0, 0));
+                    inputIndecies.SetRow(2, new Vector4(index_Row2.x, 0, 0, 0));
+                    inputIndecies.SetRow(3, new Vector4(0, 0, 0, 0));
+                    break;
+                case SwizzleOutputSize.Vector2:
+                    inputIndecies.SetRow(0, new Vector4(index_Row0.x, 0, 0, 0));
+                    inputIndecies.SetRow(1, new Vector4(index_Row1.x, 0, 0, 0));
+                    inputIndecies.SetRow(2, new Vector4(0, 0, 0, 0));
+                    inputIndecies.SetRow(3, new Vector4(0, 0, 0, 0));
+                    break;
+                case SwizzleOutputSize.Vector1:
+                    inputIndecies.SetRow(0, new Vector4(index_Row0.x, 0, 0, 0));
+                    inputIndecies.SetRow(1, new Vector4(0, 0, 0, 0));
+                    inputIndecies.SetRow(2, new Vector4(0, 0, 0, 0));
+                    inputIndecies.SetRow(3, new Vector4(0, 0, 0, 0));
+                    break;
             }
-            else
+
+            //Check indeceis sizes
+            if (!(IsIndexSizeCorrect(inputIndecies.GetRow(0), concreteRowCount)&&
+                IsIndexSizeCorrect(inputIndecies.GetRow(1), concreteRowCount)&&
+                IsIndexSizeCorrect(inputIndecies.GetRow(2), concreteRowCount) && IsIndexSizeCorrect(inputIndecies.GetRow(3), concreteRowCount)) )
             {
                 Debug.LogError("Indices need to be smaller than input size!");
                 inputIndecies.SetRow(0, new Vector4(0,0,0,0));
@@ -289,7 +332,6 @@ namespace UnityEditor.ShaderGraph
                                 outputRowCount = 4;
 
                                 //get indicies for input matrix at current output matrix position
-                                //Vector4 indecies = inputIndecies.GetRow(r);
                                 int input_x_R = getIndex(indecies.x)[0];
                                 string input_x_C = mapComp(getIndex(indecies.x)[1]);
 
@@ -309,11 +351,11 @@ namespace UnityEditor.ShaderGraph
                                 outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_y_R, input_y_C);
                                 outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_z_R, input_z_C);
                                 outputValue += string.Format("_{0}_m{1}.{2}", inputValue, input_w_R, input_w_C);
-                                UpdateNodeAfterDeserialization();
+
 
                                 break;
                             case SwizzleOutputSize.Matrix3:
-                                UpdateNodeAfterDeserialization();
+
                                 outputRowCount = 3;
                                 if (r >= 3)
                                 {
@@ -336,7 +378,7 @@ namespace UnityEditor.ShaderGraph
                                     outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_x_R3, input_x_C3);
                                     outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_y_R3, input_y_C3);
                                     outputValue += string.Format("_{0}_m{1}.{2}", inputValue, input_z_R3, input_z_C3);
-                                    UpdateNodeAfterDeserialization();
+
 
                                     break;
                                 }
@@ -456,9 +498,8 @@ namespace UnityEditor.ShaderGraph
                 real_outputValue += outputValue;
 
             }
-            //Debug.Log("matrixSwizzle: " + GetVariableNameForSlot(OutputSlotId) + ", input: " + inputValue);
-            Debug.Log("output: " + real_outputValue + outputRowCount);
-            //sb.AppendLine(string.Format("$precision4x4 {0} = {1};", GetVariableNameForSlot(OutputSlotId), inputValue));
+
+           // Debug.Log("output: " + real_outputValue + outputRowCount);
             if (IsOutputMatrix(m_OutputSize))
             {
                 sb.AppendLine(string.Format("$precision{2}x{2} {0} = $precision{2}x{2} ({1});", GetVariableNameForSlot(OutputSlotId), real_outputValue, outputRowCount));
@@ -481,7 +522,6 @@ namespace UnityEditor.ShaderGraph
 
             var dynamicMatrixInputSlotsToCompare = DictionaryPool<DynamicMatrixMaterialSlot, ConcreteSlotValueType>.Get();
             var skippedDynamicMatrixSlots = ListPool<DynamicMatrixMaterialSlot>.Get();
-
             // iterate the input slots
             using (var tempSlots = PooledList<MaterialSlot>.Get())
             {
@@ -504,6 +544,7 @@ namespace UnityEditor.ShaderGraph
                     // get the output details
                     var outputSlotRef = edges[0].outputSlot;
                     var outputNode = outputSlotRef.node;
+                    
                     if (outputNode == null)
                         continue;
 
@@ -529,12 +570,15 @@ namespace UnityEditor.ShaderGraph
                     else if (inputSlot is DynamicMatrixMaterialSlot)
                     {
                         dynamicMatrixInputSlotsToCompare.Add((DynamicMatrixMaterialSlot)inputSlot, outputConcreteType);
+                        Debug.Log("inputSlot:" + inputSlot + ", outputConcreteType: "+ outputConcreteType);
                         continue;
                     }
                 }
 
                 // and now dynamic matrices
+                //input matrix type
                 var dynamicMatrixType = ConvertDynamicMatrixInputTypeToConcrete(dynamicMatrixInputSlotsToCompare.Values);
+               // Debug.Log("dynamicMatrixType: " + dynamicMatrixType);
                 foreach (var dynamicKvP in dynamicMatrixInputSlotsToCompare)
                     dynamicKvP.Key.SetConcreteType(dynamicMatrixType);
                 foreach (var skippedSlot in skippedDynamicMatrixSlots)
@@ -572,14 +616,19 @@ namespace UnityEditor.ShaderGraph
                         continue;
                     }
 
+                    //var this_ouputSlot = owner.FindInputSlot<MaterialSlot>(OutputSlotId);
+                    var this_outputConcreteType = FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType;
+                    //Debug.Log("this_outputConcreteType: " + this_outputConcreteType);
+                    //var ouputType = ConvertDynamicMatrixInputTypeToConcrete(this_ouputSlot.concreteValueType);
+
                     if (outputSlot is DynamicVectorMaterialSlot)
                     {
-                        (outputSlot as DynamicVectorMaterialSlot).SetConcreteType(dynamicType);
+                        (outputSlot as DynamicVectorMaterialSlot).SetConcreteType(this_outputConcreteType);
                         continue;
                     }
                     else if (outputSlot is DynamicMatrixMaterialSlot)
                     {
-                        (outputSlot as DynamicMatrixMaterialSlot).SetConcreteType(dynamicMatrixType);
+                        (outputSlot as DynamicMatrixMaterialSlot).SetConcreteType(this_outputConcreteType);
                         continue;
                     }
                 }
@@ -601,8 +650,87 @@ namespace UnityEditor.ShaderGraph
 
             ListPool<DynamicMatrixMaterialSlot>.Release(skippedDynamicMatrixSlots);
             DictionaryPool<DynamicMatrixMaterialSlot, ConcreteSlotValueType>.Release(dynamicMatrixInputSlotsToCompare);
+
+            //UpdateNodeAfterDeserialization();
         }
-        private bool IsOutputMatrix (SwizzleOutputSize SwizzleSize)
+
+        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
+        {
+            if (!generationMode.IsPreview())
+                return;
+
+            //get input slot concrete value type 
+            //inject shader properties based on incoming matrix type 
+
+            //cleanup into an if statement to avoid duplicated code where possible 
+            switch (m_OutputSize)
+            {
+                case SwizzleOutputSize.Matrix2:
+                    properties.AddShaderProperty(new Vector2ShaderProperty()
+                    {
+                        overrideReferenceName = string.Format("_{0}_m0", GetVariableNameForNode()),
+                        generatePropertyBlock = false,
+                        value = index_Row0
+                    });
+                    properties.AddShaderProperty(new Vector2ShaderProperty()
+                    {
+                        overrideReferenceName = string.Format("_{0}_m1", GetVariableNameForNode()),
+                        generatePropertyBlock = false,
+                        value = index_Row1
+                    });
+                    break;
+                case SwizzleOutputSize.Matrix3:
+                    properties.AddShaderProperty(new Vector3ShaderProperty()
+                    {
+                        overrideReferenceName = string.Format("_{0}_m0", GetVariableNameForNode()),
+                        generatePropertyBlock = false,
+                        value = index_Row0
+                    });
+                    properties.AddShaderProperty(new Vector3ShaderProperty()
+                    {
+                        overrideReferenceName = string.Format("_{0}_m1", GetVariableNameForNode()),
+                        generatePropertyBlock = false,
+                        value = index_Row1
+                    });
+                    properties.AddShaderProperty(new Vector3ShaderProperty()
+                    {
+                        overrideReferenceName = string.Format("_{0}_m2", GetVariableNameForNode()),
+                        generatePropertyBlock = false,
+                        value = index_Row2
+                    });
+                    break;
+                case SwizzleOutputSize.Matrix4:
+                    properties.AddShaderProperty(new Vector4ShaderProperty()
+                    {
+                        overrideReferenceName = string.Format("_{0}_m0", GetVariableNameForNode()),
+                        generatePropertyBlock = false,
+                        value = index_Row0
+                    });
+                    properties.AddShaderProperty(new Vector4ShaderProperty()
+                    {
+                        overrideReferenceName = string.Format("_{0}_m1", GetVariableNameForNode()),
+                        generatePropertyBlock = false,
+                        value = index_Row1
+                    });
+                    properties.AddShaderProperty(new Vector4ShaderProperty()
+                    {
+                        overrideReferenceName = string.Format("_{0}_m2", GetVariableNameForNode()),
+                        generatePropertyBlock = false,
+                        value = index_Row2
+                    });
+                    properties.AddShaderProperty(new Vector4ShaderProperty()
+                    {
+                        overrideReferenceName = string.Format("_{0}_m3", GetVariableNameForNode()),
+                        generatePropertyBlock = false,
+                        value = index_Row3
+                    });
+                    break;
+            }
+        }
+
+    
+
+    private bool IsOutputMatrix (SwizzleOutputSize SwizzleSize)
         {
             string str = SwizzleSize.ToString();
             if (str.StartsWith("M"))
