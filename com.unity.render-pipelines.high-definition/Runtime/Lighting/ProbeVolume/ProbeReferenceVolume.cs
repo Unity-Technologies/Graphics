@@ -404,7 +404,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return id;
         }
 
-        public void ReleaseBricks(ref RegId id)
+        public void ReleaseBricks(RegId id)
         {
             List<Chunk> ch_list;
             if (!m_Registry.TryGetValue(id, out ch_list))
@@ -419,8 +419,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // clean up the pool
             m_Pool.Deallocate(ch_list);
             m_Registry.Remove(id);
-
-            id.Invalidate();
         }
 
         private void Transform(Volume inVolume, out Volume outVolume)
