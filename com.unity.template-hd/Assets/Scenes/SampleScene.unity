@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 1481.7462, g: 1835.5404, b: 2429.8123, a: 1}
+  m_IndirectSpecularColor: {r: 1481.9113, g: 1835.9701, b: 2430.3435, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -13887,7 +13887,7 @@ MonoBehaviour:
     distanceFadeStart: 50
     distanceFadeEnd: 60
     textureIndex: 0
-    textureOffset: {x: -0, y: -291.6274, z: 0}
+    textureOffset: {x: -0, y: -128.64453, z: 0}
 --- !u!1001 &1504255721
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -21275,7 +21275,7 @@ MonoBehaviour:
       rangeCompressionFactor: 1
     influence:
       m_EditorAdvancedModeBlendDistancePositive: {x: 0, y: 0, z: 0.0000014305115}
-      m_EditorAdvancedModeBlendDistanceNegative: {x: 2.6986656, y: 0, z: 0.96114683}
+      m_EditorAdvancedModeBlendDistanceNegative: {x: 2.8215714, y: 0, z: 0.96114683}
       m_EditorSimplifiedModeBlendDistance: 1
       m_EditorAdvancedModeBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
       m_EditorAdvancedModeBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
@@ -21287,9 +21287,9 @@ MonoBehaviour:
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
       m_Shape: 0
-      m_BoxSize: {x: 9.987732, y: 9.683645, z: 9.103324}
+      m_BoxSize: {x: 12.37841, y: 9.683645, z: 9.103324}
       m_BoxBlendDistancePositive: {x: 0, y: 0, z: 0.0000014305115}
-      m_BoxBlendDistanceNegative: {x: 2.6986656, y: 0, z: 0.96114683}
+      m_BoxBlendDistanceNegative: {x: 2.8215714, y: 0, z: 0.96114683}
       m_BoxBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
       m_BoxBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
       m_BoxSideFadePositive: {x: 1, y: 1, z: 1}
@@ -21526,12 +21526,12 @@ ReflectionProbe:
   m_Enabled: 1
   serializedVersion: 2
   m_Type: 0
-  m_Mode: 2
+  m_Mode: 1
   m_RefreshMode: 2
   m_TimeSlicingMode: 0
   m_Resolution: 128
   m_UpdateFrequency: 0
-  m_BoxSize: {x: 9.987732, y: 9.683645, z: 9.103324}
+  m_BoxSize: {x: 12.37841, y: 9.683645, z: 9.103324}
   m_BoxOffset: {x: 0, y: 0, z: 0}
   m_NearClip: 0.3
   m_FarClip: 1000
@@ -21557,7 +21557,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1973713850}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 39.180046, y: 4.7781773, z: 5.2345824}
+  m_LocalPosition: {x: 37.984707, y: 4.7781773, z: 5.2345824}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1425786420}
@@ -23069,7 +23069,7 @@ MonoBehaviour:
       fadeDistance: 80
       rangeCompressionFactor: 1
     influence:
-      m_EditorAdvancedModeBlendDistancePositive: {x: 4.0074234, y: 0, z: 0}
+      m_EditorAdvancedModeBlendDistancePositive: {x: 2.3849678, y: 0, z: 0}
       m_EditorAdvancedModeBlendDistanceNegative: {x: 2.0979242, y: 0, z: 1.9805937}
       m_EditorSimplifiedModeBlendDistance: 1
       m_EditorAdvancedModeBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
@@ -23082,8 +23082,8 @@ MonoBehaviour:
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
       m_Shape: 0
-      m_BoxSize: {x: 17.137085, y: 9.689503, z: 12.905022}
-      m_BoxBlendDistancePositive: {x: 4.0074234, y: 0, z: 0}
+      m_BoxSize: {x: 14.88467, y: 9.689503, z: 12.905022}
+      m_BoxBlendDistancePositive: {x: 2.3849678, y: 0, z: 0}
       m_BoxBlendDistanceNegative: {x: 2.0979242, y: 0, z: 1.9805937}
       m_BoxBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
       m_BoxBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
@@ -23101,13 +23101,13 @@ MonoBehaviour:
       m_SphereRadius: 1
     proxySettings:
       useInfluenceVolumeAsProxyVolume: 1
-      capturePositionProxySpace: {x: 1.0329647, y: -3.3809984, z: 2.0572448}
+      capturePositionProxySpace: {x: -4.839512, y: -3.3809984, z: -1.2509124}
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
     resolution: 512
     cameraSettings:
-      customRenderingSettings: 0
+      customRenderingSettings: 1
       renderingPathCustomFrameSettings:
         bitDatas:
           data1: 70280160476997
@@ -23124,7 +23124,7 @@ MonoBehaviour:
         materialQuality: 0
       renderingPathCustomFrameSettingsOverrideMask:
         mask:
-          data1: 536870912
+          data1: 1610612736
           data2: 0
       bufferClearing:
         clearColorMode: 0
@@ -23457,7 +23457,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 284117423428631096}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 30.06818, y: 4.7752485, z: 3.3337333}
+  m_LocalPosition: {x: 28.941973, y: 4.7752485, z: 3.3337336}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1425786420}
@@ -23490,12 +23490,12 @@ ReflectionProbe:
   m_Enabled: 1
   serializedVersion: 2
   m_Type: 0
-  m_Mode: 2
+  m_Mode: 1
   m_RefreshMode: 2
   m_TimeSlicingMode: 0
   m_Resolution: 128
   m_UpdateFrequency: 0
-  m_BoxSize: {x: 17.137085, y: 9.689503, z: 12.905022}
+  m_BoxSize: {x: 14.88467, y: 9.689503, z: 12.905022}
   m_BoxOffset: {x: 0, y: 0, z: 0}
   m_NearClip: 0.3
   m_FarClip: 1000
