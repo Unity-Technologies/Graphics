@@ -244,7 +244,7 @@ namespace UnityEditor.ShaderGraph
             }
             for (int i = 0; i < collector.properties.Count; ++i)
             {
-                // override nondeterministic guids with obviously local ids.
+                // override nondeterminstic guids with obviously local ids.
                 collector.properties[i].ObjectIdUnsafe = "SubGraphImporter_propertyNode_luid_"+i;
                 byte[] guidBytes = new byte[16];
                 BitConverter.GetBytes(i+1).CopyTo(guidBytes, 0);

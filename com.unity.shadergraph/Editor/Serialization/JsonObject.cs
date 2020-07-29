@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.Serialization
         public string ObjectIdUnsafe
         {
             get { return m_ObjectId; }
-            set { m_ObjectId = value; } // TODO: Maybe throw exception if the assigned Id is not a valid guid.
+            set { m_ObjectId = value; }
         }
 
         public string objectId => m_ObjectId;
