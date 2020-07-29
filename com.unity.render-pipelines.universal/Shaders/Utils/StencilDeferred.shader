@@ -1,7 +1,9 @@
 Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 {
     Properties {
-        _StencilReadWriteMask ("StencilReadWriteMask", Int) = 0
+        _StencilRef ("StencilRef", Int) = 0
+        _StencilReadMask ("StencilReadMask", Int) = 0
+        _StencilWriteMask ("StencilWriteMask", Int) = 0
 
         _LitPunctualStencilRef ("LitPunctualStencilWriteMask", Int) = 0
         _LitPunctualStencilReadMask ("LitPunctualStencilReadMask", Int) = 0
@@ -209,12 +211,13 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             ColorMask 0
 
             Stencil {
-                WriteMask [_StencilReadWriteMask]
-                ReadMask [_StencilReadWriteMask]
-                CompFront Always
+                Ref [_StencilRef]
+                ReadMask [_StencilReadMask]
+                WriteMask [_StencilWriteMask]
+                CompFront NotEqual
                 PassFront Keep
                 ZFailFront Invert
-                CompBack Always
+                CompBack NotEqual
                 PassBack Keep
                 ZFailBack Invert
             }

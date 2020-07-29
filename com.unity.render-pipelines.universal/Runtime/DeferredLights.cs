@@ -113,7 +113,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _SimpleLitStencilRef = Shader.PropertyToID("_SimpleLitStencilRef");
             public static readonly int _SimpleLitStencilReadMask = Shader.PropertyToID("_SimpleLitStencilReadMask");
             public static readonly int _SimpleLitStencilWriteMask = Shader.PropertyToID("_SimpleLitStencilWriteMask");
-            public static readonly int _StencilReadWriteMask = Shader.PropertyToID("_StencilReadWriteMask");
+            public static readonly int _StencilRef = Shader.PropertyToID("_StencilRef");
+            public static readonly int _StencilReadMask = Shader.PropertyToID("_StencilReadMask");
+            public static readonly int _StencilWriteMask = Shader.PropertyToID("_StencilWriteMask");
             public static readonly int _LitPunctualStencilRef = Shader.PropertyToID("_LitPunctualStencilRef");
             public static readonly int _LitPunctualStencilReadMask = Shader.PropertyToID("_LitPunctualStencilReadMask");
             public static readonly int _LitPunctualStencilWriteMask = Shader.PropertyToID("_LitPunctualStencilWriteMask");
@@ -346,7 +348,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_TileDeferredMaterial.SetInt(ShaderConstants._SimpleLitStencilReadMask, (int)StencilUsage.MaterialMask);
             m_TileDeferredMaterial.SetInt(ShaderConstants._SimpleLitStencilWriteMask, 0);
 
-            m_StencilDeferredMaterial.SetInt(ShaderConstants._StencilReadWriteMask, (int)StencilUsage.StencilLight);
+            m_StencilDeferredMaterial.SetInt(ShaderConstants._StencilRef, (int)StencilUsage.MaterialUnlit);
+            m_StencilDeferredMaterial.SetInt(ShaderConstants._StencilReadMask, (int)StencilUsage.MaterialMask);
+            m_StencilDeferredMaterial.SetInt(ShaderConstants._StencilWriteMask, (int)StencilUsage.StencilLight);
             m_StencilDeferredMaterial.SetInt(ShaderConstants._LitPunctualStencilRef, (int)StencilUsage.StencilLight | (int)StencilUsage.MaterialLit);
             m_StencilDeferredMaterial.SetInt(ShaderConstants._LitPunctualStencilReadMask, (int)StencilUsage.StencilLight | (int)StencilUsage.MaterialMask);
             m_StencilDeferredMaterial.SetInt(ShaderConstants._LitPunctualStencilWriteMask, (int)StencilUsage.StencilLight);
