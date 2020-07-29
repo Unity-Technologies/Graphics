@@ -581,8 +581,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     // Important:  The color picker for kEmissiveColorLDR is LDR and in sRGB color space but Unity don't perform any color space conversion in the color
                     // picker BUT only when sending the color data to the shader... So as we are doing our own calculation here in C#, we must do the conversion ourselves.
                     Color emissiveColorLDR = material.GetColor(kEmissiveColorLDR);
-                    Color emissiveColorLDRLinear = new Color(Mathf.LinearToGammaSpace(emissiveColorLDR.r), Mathf.LinearToGammaSpace(emissiveColorLDR.g), Mathf.LinearToGammaSpace(emissiveColorLDR.b));
-                    material.SetColor(kEmissiveColorLDR, emissiveColorLDRLinear);
+                    Color emissiveColorLDRsRGB = new Color(Mathf.LinearToGammaSpace(emissiveColorLDR.r), Mathf.LinearToGammaSpace(emissiveColorLDR.g), Mathf.LinearToGammaSpace(emissiveColorLDR.b));
+                    material.SetColor(kEmissiveColorLDR, emissiveColorLDRsRGB);
                 }
 
                 // Reset the value of kEmissiveColor
