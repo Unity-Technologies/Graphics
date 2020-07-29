@@ -20,6 +20,8 @@ Only one Light can cast Contact Shadows at a time. This means that, if you have 
 
 ![](Images/Override-ContactShadows1.png)
 
+[!include[](Snippets/Volume-Override-Enable-Properties.md)]
+
 | Property                  | Description                                                    |
 | :------------------------ | :----------------------------------------------------------- |
 | __Enable__                | Enable the checkbox to make HDRP process Contact Shadows for this [Volume](Volumes.md).       |
