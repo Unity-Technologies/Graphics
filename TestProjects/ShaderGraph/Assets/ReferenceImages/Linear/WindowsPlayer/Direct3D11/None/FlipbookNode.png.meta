@@ -1,13 +1,17 @@
 fileFormatVersion: 2
+<<<<<<< HEAD:com.unity.template-hd/Assets/Scenes/SampleScene/ReflectionProbe-10.exr.meta
+guid: 77b82b7287aef874eb3a971659242486
+=======
 guid: 912a7dd8df7a853458a069a2de68ecc9
+>>>>>>> 531db1963dcdc3a05f8b7dca6e06a497e9defd98:TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/WindowsPlayer/Direct3D11/None/FlipbookNode.png.meta
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
     mipMapMode: 0
-    enableMipMap: 1
-    sRGBTexture: 1
+    enableMipMap: 0
+    sRGBTexture: 0
     linearTexture: 0
     fadeOut: 0
     borderMipMap: 0
@@ -32,12 +36,21 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
+<<<<<<< HEAD:com.unity.template-hd/Assets/Scenes/SampleScene/ReflectionProbe-10.exr.meta
+    filterMode: 1
+    aniso: 1
+    mipBias: -100
+    wrapU: 0
+    wrapV: 0
+    wrapW: 0
+=======
     filterMode: -1
     aniso: -1
     mipBias: -100
     wrapU: -1
     wrapV: -1
     wrapW: -1
+>>>>>>> 531db1963dcdc3a05f8b7dca6e06a497e9defd98:TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/WindowsPlayer/Direct3D11/None/FlipbookNode.png.meta
   nPOTScale: 1
   lightmap: 0
   compressionQuality: 50
@@ -53,7 +66,11 @@ TextureImporter:
   alphaIsTransparency: 0
   spriteTessellationDetail: -1
   textureType: 0
+<<<<<<< HEAD:com.unity.template-hd/Assets/Scenes/SampleScene/ReflectionProbe-10.exr.meta
+  textureShape: 2
+=======
   textureShape: 1
+>>>>>>> 531db1963dcdc3a05f8b7dca6e06a497e9defd98:TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/WindowsPlayer/Direct3D11/None/FlipbookNode.png.meta
   singleChannelComponent: 0
   flipbookRows: 1
   flipbookColumns: 1
