@@ -752,6 +752,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a compilation error in the IES code.
 - Fixed issue with dynamic resolution handler when no OnResolutionChange callback is specified. 
 - Fixed multiple volumes, planar reflection, and decal projector position when creating them from the menu.
+- Reduced the number of global keyword used in deferredTile.shader
 - Fixed incorrect processing of Ambient occlusion probe (9% error was introduced)
 
 ### Changed
