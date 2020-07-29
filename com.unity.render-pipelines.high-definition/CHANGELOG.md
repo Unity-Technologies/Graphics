@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Remove MSAA debug mode when renderpipeline asset has no MSAA
+- Reduced the number of global keyword used in deferredTile.shader
 
 ## [8.2.0] - 2020-07-08
 
