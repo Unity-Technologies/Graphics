@@ -37,7 +37,11 @@
             "m_Id": "707944c9aacf475fbdb7337673e20bed"
         }
     ],
-    "m_GroupDatas": [],
+    "m_GroupDatas": [
+        {
+            "m_Id": "4c9c6a2df659485c88136c8a64d98e41"
+        }
+    ],
     "m_StickyNoteDatas": [],
     "m_Edges": [
         {
@@ -402,6 +406,16 @@
 }
 
 {
+    "m_Type": "UnityEditor.ShaderGraph.GroupData",
+    "m_ObjectId": "4c9c6a2df659485c88136c8a64d98e41",
+    "m_Title": "Disabled branch",
+    "m_Position": {
+        "x": 10.0,
+        "y": 10.0
+    }
+}
+
+{
     "m_Type": "UnityEditor.ShaderGraph.VFXTarget",
     "m_ObjectId": "588ee91392f849658a2b2a117e48fdbd",
     "m_Lit": false,
@@ -467,7 +481,7 @@
     "m_Type": "UnityEditor.ShaderGraph.CosineNode",
     "m_ObjectId": "707944c9aacf475fbdb7337673e20bed",
     "m_Group": {
-        "m_Id": ""
+        "m_Id": "4c9c6a2df659485c88136c8a64d98e41"
     },
     "m_Name": "Cosine",
     "m_NodeVersion": 0,
@@ -765,7 +779,7 @@
     "m_Type": "UnityEditor.ShaderGraph.SineNode",
     "m_ObjectId": "cc1a0459764b4479bbd46168067ce88a",
     "m_Group": {
-        "m_Id": ""
+        "m_Id": "4c9c6a2df659485c88136c8a64d98e41"
     },
     "m_Name": "Sine",
     "m_NodeVersion": 0,
@@ -798,7 +812,7 @@
     "m_Type": "UnityEditor.ShaderGraph.SampleTexture2DNode",
     "m_ObjectId": "ceef97a6af7d4cdfa6afe2a6a19017fe",
     "m_Group": {
-        "m_Id": ""
+        "m_Id": "4c9c6a2df659485c88136c8a64d98e41"
     },
     "m_Name": "Sample Texture 2D",
     "m_NodeVersion": 0,
