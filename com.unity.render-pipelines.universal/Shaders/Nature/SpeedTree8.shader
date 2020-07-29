@@ -126,7 +126,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             }
 
             HLSLPROGRAM
-
+            #pragma exclude_renderers d3d11_9x gles
             #pragma vertex SpeedTree8Vert
             #pragma fragment SpeedTree8Frag
 
@@ -225,7 +225,6 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             ZWrite On
 
             HLSLPROGRAM
-
             #pragma vertex SpeedTree8VertDepthNormal
             #pragma fragment SpeedTree8FragDepthNormal
 

@@ -1,8 +1,8 @@
 # Volume Profile
 
-A Volume Profile is a [Scriptable Object](https://docs.unity3d.com/Manual/class-ScriptableObject.html) which contains properties that [Volumes](Volumes.html) use to determine how to render the Scene environment for Cameras they affect. A Volume references a Volume Profile in its **Profile** field and uses values from the Volume Profile it references.
+A Volume Profile is a [Scriptable Object](https://docs.unity3d.com/Manual/class-ScriptableObject.html) which contains properties that [Volumes](Volumes.md) use to determine how to render the Scene environment for Cameras they affect. A Volume references a Volume Profile in its **Profile** field and uses values from the Volume Profile it references.
 
-A Volume Profile organizes its properties into structures which control different environment settings. These structures all have default values that you can use, but you can use [Volume Overrides](Volume-Components.html) to override these values and customize the environment settings.
+A Volume Profile organizes its properties into structures which control different environment settings. These structures all have default values that you can use, but you can use [Volume Overrides](Volume-Components.md) to override these values and customize the environment settings.
 
 ## Creating and customizing a Volume Profile
 

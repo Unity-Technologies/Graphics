@@ -214,11 +214,16 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Returns an RThandle reference to the realtime texture where the color result of the probe is stored.
+        /// </summary>
         public RTHandle realtimeTextureRTH
         {
             get => m_RealtimeTexture;
         }
-
+        /// <summary>
+        /// Returns an RThandle reference to the realtime texture where the depth result of the probe is stored.
+        /// </summary>
         public RTHandle realtimeDepthTextureRTH
         {
             get => m_RealtimeDepthBuffer;
