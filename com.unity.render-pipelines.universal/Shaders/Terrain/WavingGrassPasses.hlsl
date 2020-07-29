@@ -203,12 +203,14 @@ struct VertexOutput
     float2 uv           : TEXCOORD0;
     half4 color         : TEXCOORD1;
     float4 clipPos      : SV_POSITION;
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 VertexOutput DepthOnlyVertex(VertexInput v)
 {
     VertexOutput o = (VertexOutput)0;
     UNITY_SETUP_INSTANCE_ID(v);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
     o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);
     // MeshGrass v.color.a: 1 on top vertices, 0 on bottom vertices
@@ -240,12 +242,14 @@ struct VertexDepthNormalOutput
     half4 color         : TEXCOORD1;
     half3  normal       : TEXCOORD2;
     float4 clipPos      : SV_POSITION;
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 VertexDepthNormalOutput DepthNormalOnlyVertex(VertexDepthNormalInput v)
 {
     VertexDepthNormalOutput o = (VertexDepthNormalOutput)0;
     UNITY_SETUP_INSTANCE_ID(v);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
     o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);
     // MeshGrass v.color.a: 1 on top vertices, 0 on bottom vertices
