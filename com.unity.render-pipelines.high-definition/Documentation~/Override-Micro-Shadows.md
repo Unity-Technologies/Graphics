@@ -22,6 +22,8 @@ Micro shadowing only works with directional [Lights](Light-Component.md). If you
 
 ![](Images/OverrideMicroShadows2.png)
 
+[!include[](Snippets/Volume-Override-Enable-Properties.md)]
+
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
 | **Enable**   | Enable the checkbox to make HDRP calculate micro shadows when this Volume affects the Camera. |

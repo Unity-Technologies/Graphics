@@ -16,6 +16,8 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSR, so to enable and 
 
 ![](Images/Override-ScreenSpaceReflection1.png)
 
+[!include[](Snippets/Volume-Override-Enable-Properties.md)]
+
 | **Property**                  | **Description**                                              |
 | ----------------------------- | ------------------------------------------------------------ |
 | **Screen Edge Fade Distance** | Use the slider to control the distance at which HDRP fades out screen space reflections when the destination of the ray is near the boundaries of the screen. Increase this value to increase the distance from the screen edge at which HDRP fades out screen space reflections for a ray destination. |

@@ -101,7 +101,7 @@ To set up lighting in your HDRP Project:
     2. Create a new Volume Profile for this Volume. To do this, open the Inspector for the Volume and click the **New** button.
 
     3. Add a **Shadows** override (**Add Override > Shadowing > Shadows**), then enable **Max Distance** and set it to **50**.
-4. On the Light that represents the Sun (which is the Light component on the **Directional Light** GameObject), set the **Intensity** to **100000** and the **Color** to white. Then, to see the sun in the sky, go to the **General** panel, enable [More Options](More-Options.html), and set the **Angular Diameter** to **3**.
+4. On the Light that represents the Sun (which is the Light component on the **Directional Light** GameObject), set the **Intensity** to **100000** and the **Color** to white. Then, to see the sun in the sky, go to the **Shape** section and set the **Angular Diameter** to **3**.
 5. The Scene is now over-exposed. To fix this, select the **Global Settings** GameObject you created in step **3a** and add an **Exposure** override to its Volume component (**Add Override > Exposure**). Then, set the **Mode** to **Automatic**.
 6. To refresh the exposure, go to the Scene view and enable **Animate Materials**.
     ![](Images/UpgradingToHDRP2.png)
@@ -116,7 +116,7 @@ To set up lighting in your HDRP Project:
 
     2. Change the **Intensity** to **17000** **Lumen**. This is to represent two 8500 Lumen light bulbs.
 
-    3. In the **Emission** section, enable [More Options](More-Options.html).
+    3. In the **Emission** section, enable [More Options](More-Options.md).
 
     4. Enable the **Reflector** checkbox. This simulates a reflective surface behind the spot Light to adjust the visual intensity.
 9. Make the light bulb Material emissive:
