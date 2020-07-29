@@ -3,9 +3,9 @@ using UnityEngine.Rendering.Universal.Internal;
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
-    /// Shading modes for Unviersal renderer.
+    /// Rendering modes for Universal renderer.
     /// </summary>
-    public enum ShadingMode
+    public enum RenderingMode
     {
         Forward,
         Deferred
@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.Universal
         static readonly string k_CreateCameraTextures = "Create Camera Texture";
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_CreateCameraTextures);
 
-        internal ShadingMode shadingMode { get; set; }
+        internal RenderingMode renderingMode { get; set; }
         internal bool accurateGbufferNormals { get { return m_DeferredLights != null ? m_DeferredLights.AccurateGbufferNormals : false; } set { if (m_DeferredLights != null) m_DeferredLights.AccurateGbufferNormals = value; } }
 
         ColorGradingLutPass m_ColorGradingLutPass;
@@ -104,7 +104,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_ForwardLights = new ForwardLights();
             //m_DeferredLights.LightCulling = data.lightCulling;
-            this.shadingMode = data.shadingMode;
+            this.renderingMode = data.renderingMode;
 
             // Note: Since all custom render passes inject first and we have stable sort,
             // we inject the builtin passes in the before events.
@@ -117,7 +117,7 @@ namespace UnityEngine.Rendering.Universal
             m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrepasses, data.postProcessData);
 
-            if (this.shadingMode == ShadingMode.Deferred)
+            if (this.renderingMode == RenderingMode.Deferred)
             {
                 m_DeferredLights = new DeferredLights(m_TileDepthInfoMaterial, m_TileDeferredMaterial, m_StencilDeferredMaterial);
                 m_DeferredLights.AccurateGbufferNormals = data.accurateGbufferNormals;
@@ -167,7 +167,7 @@ namespace UnityEngine.Rendering.Universal
             m_CameraDepthAttachment.Init("_CameraDepthAttachment");
             m_DepthTexture.Init("_CameraDepthTexture");
             m_NormalsTexture.Init("_CameraNormalsTexture");
-            if (this.shadingMode == ShadingMode.Deferred)
+            if (this.renderingMode == RenderingMode.Deferred)
             {
                 m_GBufferAttachments = new RenderTargetHandle[m_DeferredLights.GBufferSliceCount];
                 m_GBufferAttachments[m_DeferredLights.GBufferAlbedoIndex].Init("_GBuffer0");
@@ -235,7 +235,7 @@ namespace UnityEngine.Rendering.Universal
             bool generateColorGradingLUT = anyPostProcessing && cameraData.renderType == CameraRenderType.Base;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
             bool isPreviewCamera = cameraData.isPreviewCamera;
-            bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || this.shadingMode == ShadingMode.Deferred;
+            bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || this.renderingMode == RenderingMode.Deferred;
 
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
             bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
@@ -270,7 +270,7 @@ namespace UnityEngine.Rendering.Universal
             // around a bug where during gbuffer pass (MRT pass), the camera depth attachment is correctly bound, but during
             // deferred pass ("camera color" + "camera depth"), the implicit depth surface of "camera color" is used instead of "camera depth",
             // because BuiltinRenderTextureType.CameraTarget for depth means there is no explicit depth attachment...
-            bool createDepthTexture = cameraData.requiresDepthTexture && !requiresDepthPrepass || this.shadingMode == ShadingMode.Deferred;
+            bool createDepthTexture = cameraData.requiresDepthTexture && !requiresDepthPrepass || this.renderingMode == RenderingMode.Deferred;
             createDepthTexture |= (cameraData.renderType == CameraRenderType.Base && !cameraData.resolveFinalTarget);
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
@@ -366,7 +366,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_ColorGradingLutPass);
             }
 
-            if (this.shadingMode == ShadingMode.Deferred)
+            if (this.renderingMode == RenderingMode.Deferred)
                 EnqueueDeferred(ref renderingData, requiresDepthPrepass, mainLightShadows, additionalLightShadows);
             else
                 EnqueuePass(m_RenderOpaqueForwardPass);
@@ -376,7 +376,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_DrawSkyboxPass);
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
-            if (!requiresDepthPrepass && renderingData.cameraData.requiresDepthTexture && createDepthTexture && this.shadingMode != ShadingMode.Deferred)
+            if (!requiresDepthPrepass && renderingData.cameraData.requiresDepthTexture && createDepthTexture && this.renderingMode != RenderingMode.Deferred)
             {
                 m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
                 EnqueuePass(m_CopyDepthPass);
@@ -479,7 +479,7 @@ namespace UnityEngine.Rendering.Universal
             m_ForwardLights.Setup(context, ref renderingData);
 
             // Perform per-tile light culling on CPU
-            if (this.shadingMode == ShadingMode.Deferred)
+            if (this.renderingMode == RenderingMode.Deferred)
                 m_DeferredLights.SetupLights(context, ref renderingData);
         }
 
@@ -503,7 +503,7 @@ namespace UnityEngine.Rendering.Universal
                 cullingParameters.cullingOptions &= ~CullingOptions.ShadowCasters;
             }
 
-            if (this.shadingMode == ShadingMode.Deferred)
+            if (this.renderingMode == RenderingMode.Deferred)
                 cullingParameters.maximumVisibleLights = 0xFFFF;
             else
             {

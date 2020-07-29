@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
         [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData() { passOperation = StencilOp.Replace }; // This default state is compatible with deferred renderer.
         [SerializeField] bool m_ShadowTransparentReceive = true;
-        [SerializeField] ShadingMode m_ShadingMode = ShadingMode.Forward;
+        [SerializeField] RenderingMode m_RenderingMode = RenderingMode.Forward;
         [SerializeField] bool m_AccurateGbufferNormals = false;
         //[SerializeField] bool m_TiledDeferredShading = false;
 
@@ -142,15 +142,15 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Use deferred shading path for compatible lights.
+        /// Rendering mode.
         /// </summary>
-        public ShadingMode shadingMode
+        public RenderingMode renderingMode
         {
-            get => m_ShadingMode;
+            get => m_RenderingMode;
             set
             {
                 SetDirty();
-                m_ShadingMode = value;
+                m_RenderingMode = value;
             }
         }
 

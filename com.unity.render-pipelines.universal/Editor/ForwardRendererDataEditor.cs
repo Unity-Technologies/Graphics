@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent OpaqueMask = new GUIContent("Opaque Layer Mask", "Controls which opaque layers this renderer draws.");
             public static readonly GUIContent TransparentMask = new GUIContent("Transparent Layer Mask", "Controls which transparent layers this renderer draws.");
             public static readonly GUIContent LightingLabel = new GUIContent("Lighting", "Controls how lights are shaded.");
-            public static readonly GUIContent ShadingLabel = new GUIContent("Shading", "Enable deferred shading on compatible lights.");
+            public static readonly GUIContent RenderingModeLabel = new GUIContent("Rendering Path", "Choose a rendering path");
             public static readonly GUIContent accurateGbufferNormalsLabel = EditorGUIUtility.TrTextContent("Accurate G-buffer normals", "normals in G-buffer use octaedron encoding/decoding (expensive)");
             public static readonly GUIContent tiledDeferredShadingLabel = EditorGUIUtility.TrTextContent("Tiled Deferred Shading (Experimental)", "Allows Tiled Deferred Shading on appropriate lights");
             public static readonly GUIContent defaultStencilStateLabel = EditorGUIUtility.TrTextContent("Default Stencil State", "Configure stencil state for the opaque and transparent render passes.");
@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.Universal
 
         SerializedProperty m_OpaqueLayerMask;
         SerializedProperty m_TransparentLayerMask;
-        SerializedProperty m_DeferredShading;
+        SerializedProperty m_RenderingMode;
         SerializedProperty m_AccurateGbufferNormals;
         //SerializedProperty m_TiledDeferredShading;
         SerializedProperty m_DefaultStencilState;
@@ -38,7 +38,7 @@ namespace UnityEditor.Rendering.Universal
         {
             m_OpaqueLayerMask = serializedObject.FindProperty("m_OpaqueLayerMask");
             m_TransparentLayerMask = serializedObject.FindProperty("m_TransparentLayerMask");
-            m_DeferredShading = serializedObject.FindProperty("m_ShadingMode");
+            m_RenderingMode = serializedObject.FindProperty("m_RenderingMode");
             m_AccurateGbufferNormals = serializedObject.FindProperty("m_AccurateGbufferNormals");
             // Not exposed yet.
             //m_TiledDeferredShading = serializedObject.FindProperty("m_TiledDeferredShading");
@@ -68,8 +68,8 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUILayout.LabelField(Styles.LightingLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(m_DeferredShading, Styles.ShadingLabel);
-            if (m_DeferredShading.intValue == (int)ShadingMode.Deferred)
+            EditorGUILayout.PropertyField(m_RenderingMode, Styles.RenderingModeLabel);
+            if (m_RenderingMode.intValue == (int)RenderingMode.Deferred)
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_AccurateGbufferNormals, Styles.accurateGbufferNormalsLabel, true);
@@ -89,7 +89,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_DefaultStencilState, Styles.defaultStencilStateLabel, true);
             SerializedProperty overrideStencil = m_DefaultStencilState.FindPropertyRelative("overrideStencilState");
-            if (overrideStencil.boolValue && m_DeferredShading.intValue == (int)ShadingMode.Deferred)
+            if (overrideStencil.boolValue && m_RenderingMode.intValue == (int)RenderingMode.Deferred)
             {
                 CompareFunction stencilFunction = (CompareFunction)m_DefaultStencilState.FindPropertyRelative("stencilCompareFunction").enumValueIndex;
                 StencilOp stencilPass = (StencilOp)m_DefaultStencilState.FindPropertyRelative("passOperation").enumValueIndex;
