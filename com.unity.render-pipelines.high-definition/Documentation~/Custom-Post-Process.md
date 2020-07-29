@@ -1,6 +1,6 @@
 # Custom Post Process
 
-The High Definition Render Pipeline (HDRP) allows you to write your own post-processing effects that automatically integrate into [Volume](Volumes.html). A custom effect needs two files. A **C# Custom Post Process**(C# file) and an associated **FullScreen Shader** (HLSL file). You can generate a template of each:
+The High Definition Render Pipeline (HDRP) allows you to write your own post-processing effects that automatically integrate into [Volume](Volumes.md). A custom effect needs two files. A **C# Custom Post Process**(C# file) and an associated **FullScreen Shader** (HLSL file). You can generate a template of each:
 
 * **C# Custom Post Process**: Right click in the Assets folder and select **Create > Rendering > C# Post Process Volume**.
 
@@ -322,7 +322,7 @@ sealed class GrayScaleEditor : VolumeComponentEditor
 
 }
 ```
-This custom editor is not really useful as it produces the same result as the editor that Unity creates. Custom Volume component editors also support a [more options button](More-Options.html). To add it, you have to set hasAdvancedMode override to true. Then, inside the OnInspectorGUI, you can use the isInAdvancedMode boolean to display more properties.
+This custom editor is not really useful as it produces the same result as the editor that Unity creates. Custom Volume component editors also support a [more options button](More-Options.md). To add it, you have to set hasAdvancedMode override to true. Then, inside the OnInspectorGUI, you can use the isInAdvancedMode boolean to display more properties.
 
 ## TroubleShooting
 
