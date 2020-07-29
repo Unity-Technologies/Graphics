@@ -1,8 +1,9 @@
-using UnityEditor.AssetImporters;
 using UnityEditor.Experimental;
 using UnityEngine;
 using UnityEngine.Rendering;
-#if !UNITY_2020_2_OR_NEWER
+#if UNITY_2020_2_OR_NEWER
+using UnityEditor.AssetImporters;
+#else
 using UnityEditor.Experimental.AssetImporters;
 #endif
 
