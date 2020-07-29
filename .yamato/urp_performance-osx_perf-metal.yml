@@ -23,7 +23,7 @@ URP_Performance_OSX_perf_Metal_performance_playmode_counters_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --suite=playmode --testfilter=Counters --platform=StandaloneOSX  --testproject=/Users/bokken/Graphics/TestProjects/URP_Performance --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/URP_Performance/test-results --timeout=2400'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --suite=playmode --testfilter=Counters --platform=StandaloneOSX  --report-performance-data --performance-project-id=URP_Performance --testproject=/Users/bokken/Graphics/TestProjects/URP_Performance --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/URP_Performance/test-results --timeout=2400'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/
@@ -52,7 +52,7 @@ URP_Performance_OSX_perf_Metal_performance_playmode_memory_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --suite=playmode --testfilter=Memory --platform=StandaloneOSX  --testproject=/Users/bokken/Graphics/TestProjects/URP_Performance --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/URP_Performance/test-results --timeout=2400'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --suite=playmode --testfilter=Memory --platform=StandaloneOSX  --report-performance-data --performance-project-id=URP_Performance --testproject=/Users/bokken/Graphics/TestProjects/URP_Performance --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/URP_Performance/test-results --timeout=2400'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/
@@ -81,7 +81,7 @@ URP_Performance_OSX_perf_Metal_performance_editmode_build_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --testproject=/Users/bokken/Graphics/TestProjects/URP_Performance --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/URP_Performance/test-results'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --suite=Editor --testfilter=Build --platform=StandaloneOSX --report-performance-data --performance-project-id=URP_Performance --testproject=/Users/bokken/Graphics/TestProjects/URP_Performance --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/URP_Performance/test-results'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/
@@ -110,7 +110,7 @@ URP_Performance_OSX_perf_Metal_performance_playmode_counters_fast-trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --suite=playmode --testfilter=Counters --platform=StandaloneOSX  --testproject=/Users/bokken/Graphics/TestProjects/URP_Performance --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/URP_Performance/test-results --timeout=2400'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --suite=playmode --testfilter=Counters --platform=StandaloneOSX  --report-performance-data --performance-project-id=URP_Performance --testproject=/Users/bokken/Graphics/TestProjects/URP_Performance --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/URP_Performance/test-results --timeout=2400'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/
@@ -139,7 +139,7 @@ URP_Performance_OSX_perf_Metal_performance_playmode_memory_fast-trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --suite=playmode --testfilter=Memory --platform=StandaloneOSX  --testproject=/Users/bokken/Graphics/TestProjects/URP_Performance --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/URP_Performance/test-results --timeout=2400'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --suite=playmode --testfilter=Memory --platform=StandaloneOSX  --report-performance-data --performance-project-id=URP_Performance --testproject=/Users/bokken/Graphics/TestProjects/URP_Performance --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/URP_Performance/test-results --timeout=2400'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/
@@ -168,7 +168,7 @@ URP_Performance_OSX_perf_Metal_performance_editmode_build_fast-trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --testproject=/Users/bokken/Graphics/TestProjects/URP_Performance --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/URP_Performance/test-results'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --suite=Editor --testfilter=Build --platform=StandaloneOSX --report-performance-data --performance-project-id=URP_Performance --testproject=/Users/bokken/Graphics/TestProjects/URP_Performance --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/URP_Performance/test-results'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/
@@ -198,7 +198,7 @@ URP_Performance_OSX_perf_Metal_performance_playmode_counters_CUSTOM-REVISION:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --suite=playmode --testfilter=Counters --platform=StandaloneOSX  --testproject=/Users/bokken/Graphics/TestProjects/URP_Performance --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/URP_Performance/test-results --timeout=2400'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --suite=playmode --testfilter=Counters --platform=StandaloneOSX  --report-performance-data --performance-project-id=URP_Performance --testproject=/Users/bokken/Graphics/TestProjects/URP_Performance --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/URP_Performance/test-results --timeout=2400'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/
@@ -228,7 +228,7 @@ URP_Performance_OSX_perf_Metal_performance_playmode_memory_CUSTOM-REVISION:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --suite=playmode --testfilter=Memory --platform=StandaloneOSX  --testproject=/Users/bokken/Graphics/TestProjects/URP_Performance --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/URP_Performance/test-results --timeout=2400'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --suite=playmode --testfilter=Memory --platform=StandaloneOSX  --report-performance-data --performance-project-id=URP_Performance --testproject=/Users/bokken/Graphics/TestProjects/URP_Performance --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/URP_Performance/test-results --timeout=2400'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/
@@ -258,7 +258,7 @@ URP_Performance_OSX_perf_Metal_performance_editmode_build_CUSTOM-REVISION:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --testproject=/Users/bokken/Graphics/TestProjects/URP_Performance --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/URP_Performance/test-results'
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/URP_Performance && ~/Graphics/TestProjects/URP_Performance/utr --suite=Editor --testfilter=Build --platform=StandaloneOSX --report-performance-data --performance-project-id=URP_Performance --testproject=/Users/bokken/Graphics/TestProjects/URP_Performance --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/URP_Performance/test-results'
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/URP_Performance/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/URP_Performance/test-results/ TestProjects/URP_Performance/test-results/

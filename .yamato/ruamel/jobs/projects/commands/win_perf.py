@@ -11,7 +11,7 @@ def _cmd_base(project_folder, components):
 def cmd_not_standalone(project_folder, platform, api, test_platform_args):
     base = _cmd_base(project_folder, platform["components"])
     base.extend([
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {test_platform_args} --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}'
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {test_platform_args}Windows64 --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}'
     ])
     base[-1] += f' --extra-editor-arg="{api["cmd"]}"' if api["name"] != ""  else ''
     return base

@@ -18,7 +18,7 @@ test_platforms:
   editmode: --suite=editor --platform=editmode
   performance_playmode_counters: --suite=playmode --testfilter=Counters --platform=Standalone
   performance_playmode_memory: --suite=playmode --testfilter=Memory --platform=Standalone
-  performance_editmode_build: --suite=Editor --testfilter=Build --platform=StandaloneWindows64
+  performance_editmode_build: --suite=Editor --testfilter=Build --platform=Standalone
 project_platforms:
 platforms:
   Win:
