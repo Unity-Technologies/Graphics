@@ -138,8 +138,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader skyboxCubemapPS;
             [Reload("Runtime/Sky/GradientSky/GradientSky.shader")]
             public Shader gradientSkyPS;
-            [Reload("Runtime/Sky/CloudLayer/CloudTextureBaking.compute")]
+            [Reload("Runtime/Sky/CloudLayer/BakeCloudTexture.compute")]
             public ComputeShader bakeCloudTextureCS;
+            [Reload("Runtime/Sky/CloudLayer/ComputeCloudShadows.compute")]
+            public ComputeShader computeCloudShadowsCS;
             [Reload("Runtime/Sky/AmbientProbeConvolution.compute")]
             public ComputeShader ambientProbeConvolutionCS;
             [Reload("Runtime/Sky/PhysicallyBasedSky/GroundIrradiancePrecomputation.compute")]

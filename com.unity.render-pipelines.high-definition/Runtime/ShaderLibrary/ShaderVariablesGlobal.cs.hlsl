@@ -104,7 +104,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _MicroShadowOpacity;
     uint _EnableProbeVolumes;
     uint _ProbeVolumeCount;
-    float _Pad6;
+    float _CloudShadowOpacity;
     float4 _CookieAtlasSize;
     float4 _CookieAtlasData;
     float4 _PlanarAtlasData;
@@ -119,7 +119,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     uint _NumTileClusteredX;
     uint _NumTileClusteredY;
     int _EnvSliceSize;
-    float _Pad7;
+    float _CloudShadowScale;
     float4 _ShapeParamsAndMaxScatterDists[16];
     float4 _TransmissionTintsAndFresnel0[16];
     float4 _WorldScalesAndFilterRadiiAndThicknessRemaps[16];

@@ -61,13 +61,21 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Enable to cover only the upper part of the sky.</summary>
         [Tooltip("Check this box if the cloud layer covers only the upper part of the sky.")]
         public BoolParameter        upperHemisphereOnly = new BoolParameter(true);
-        /// <summary>.</summary>
-        [Tooltip("")]
+        /// <summary>Select the cloud layer mode.</summary>
+        [Tooltip("Choose the cloud layer mode;")]
         public VolumeParameter<CloudLayerMode>  mode    = new VolumeParameter<CloudLayerMode>();
-        /// <summary>.</summary>
-        [Tooltip("")]
+        /// <summary>Choose the number of cloud layers.</summary>
         public VolumeParameter<CloudMapMode>    layers  = new VolumeParameter<CloudMapMode>();
-        
+       
+
+        /// <summary>Controls the opacity of the cloud shadows.</summary>
+        [Tooltip("Controls the opacity of the cloud shadows.")]
+        public ClampedFloatParameter    shadowsOpacity      = new ClampedFloatParameter(0.5f, 0.0f, 4.0f);
+        /// <summary>Controls the scale of the cloud shadows.</summary>
+        [Tooltip("Controls the scale of the cloud shadows.")]
+        public MinFloatParameter        shadowsScale        = new MinFloatParameter(500.0f, 0.0f); 
+
+
         [Serializable]
         public class CloudSettings
         {
@@ -116,18 +124,18 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>Number of raymarching steps.</summary>
             [Tooltip("Number of raymarching steps.")]
             public ClampedIntParameter                  steps       = new ClampedIntParameter(4, 1, 10);
-            /// <summary>.</summary>
-            [Tooltip(".")]
-            public ClampedFloatParameter                thickness   = new ClampedFloatParameter(1.0f, 0.0f, 2.0f);
+            /// <summary>Thickness of the clouds.</summary>
+            [Tooltip("Controls the thickness of the clouds.")]
+            public ClampedFloatParameter                thickness   = new ClampedFloatParameter(1, 0, 2);
 
             /// <summary>Enable to cast shadows.</summary>
-            [Tooltip("Cast Shadows.")]
+            [Tooltip("Enable or disable cloud shadows.")]
             public BoolParameter    castShadows = new BoolParameter(false);
 
-            public int NumSteps => (lighting == CloudLightingMode.Raymarching) ? steps.value : 0;
+            internal int NumSteps => (lighting == CloudLightingMode.Raymarching) ? steps.value : 0;
 
 
-            internal int GetBakingHashCode(ref bool castShadows)
+            internal int GetBakingHashCode(ref bool cloudShadows)
             {
                 int hash = 17;
 
@@ -139,7 +147,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     hash = hash * 23 + castShadows.GetHashCode();
                 }
 
-                castShadows |= this.castShadows.value;
+                cloudShadows |= castShadows.value;
                 return hash;
             }
         }
@@ -167,13 +175,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public CloudSettings settings = new CloudSettings();
             public CloudLighting lighting = new CloudLighting();
 
-            public Vector4 Opacities => new Vector4(opacityR.value, opacityG.value, opacityB.value, opacityA.value);
+            internal Vector4 Opacities => new Vector4(opacityR.value, opacityG.value, opacityB.value, opacityA.value);
 
 
             internal (Vector4, Vector4) GetBakingParameters()
             {
                 Vector4 parameters = new Vector4(
-                    settings.rotation.value,
+                    settings.rotation.value / 360.0f,
                     lighting.NumSteps,
                     lighting.thickness.value,
                     0
@@ -181,7 +189,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return (Opacities, parameters);
             }
 
-            internal void Apply(Material skyMaterial, string mapKeyword, string motionKeyword)
+            internal bool Apply(Material skyMaterial, string mapKeyword, string motionKeyword)
             {
                 if (settings.distortion.value != CloudDistortionMode.None)
                 {
@@ -189,7 +197,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (settings.distortion.value == CloudDistortionMode.Flowmap)
                     {
                         skyMaterial.EnableKeyword(mapKeyword);
-                        skyMaterial.SetTexture(HDShaderIDs._CloudFlowmap, settings.flowmap.value);
+                        return true;
                     }
                     else
                         skyMaterial.DisableKeyword(mapKeyword);
@@ -199,6 +207,28 @@ namespace UnityEngine.Rendering.HighDefinition
                     skyMaterial.EnableKeyword(mapKeyword);
                     skyMaterial.DisableKeyword(motionKeyword);
                 }
+                return false;
+            }
+
+            internal bool SetComputeParams(ComputeShader cs, string mapKeyword, string motionKeyword)
+            {
+                if (settings.distortion.value != CloudDistortionMode.None)
+                {
+                    cs.EnableKeyword(motionKeyword);
+                    if (settings.distortion.value == CloudDistortionMode.Flowmap)
+                    {
+                        cs.EnableKeyword(mapKeyword);
+                        return true;
+                    }
+                    else
+                        cs.DisableKeyword(mapKeyword);
+                }
+                else
+                {
+                    cs.EnableKeyword(mapKeyword);
+                    cs.DisableKeyword(motionKeyword);
+                }
+                return false;
             }
             
             internal int GetBakingHashCode(ref bool castShadows)
@@ -291,14 +321,43 @@ namespace UnityEngine.Rendering.HighDefinition
                 skyMaterial.SetVectorArray("_CloudParams1", new Vector4[]{ paramsA.Item1, paramsB.Item1 });
                 skyMaterial.SetVectorArray("_CloudParams2", new Vector4[]{ paramsA.Item2, paramsB.Item2 });
 
-                layer.mapA.Apply(skyMaterial, "USE_CLOUD_MAP", "USE_CLOUD_MOTION");
+                if (layer.mapA.Apply(skyMaterial, "USE_CLOUD_MAP", "USE_CLOUD_MOTION"))
+                    skyMaterial.SetTexture("_CloudFlowmap1", layer.mapA.settings.flowmap.value);
+
                 if (layer.layers.value == CloudMapMode.Double)
-                    layer.mapB.Apply(skyMaterial, "USE_SECOND_CLOUD_MAP", "USE_SECOND_CLOUD_MOTION");
+                {
+                    if (layer.mapB.Apply(skyMaterial, "USE_SECOND_CLOUD_MAP", "USE_SECOND_CLOUD_MOTION"))
+                        skyMaterial.SetTexture("_CloudFlowmap2", layer.mapB.settings.flowmap.value);
+                }
                 else
                 {
                     skyMaterial.DisableKeyword("USE_SECOND_CLOUD_MAP");
                     skyMaterial.DisableKeyword("USE_SECOND_CLOUD_MOTION");
                 }
+            }
+        }
+
+        internal void SetComputeParams(CommandBuffer cmd, ComputeShader cs, int kernel)
+        {
+            var paramsA = mapA.settings.GetRenderingParameters();
+            var paramsB = mapB.settings.GetRenderingParameters();
+            paramsA.Item1.w = opacity.value;
+            paramsB.Item1.w = upperHemisphereOnly.value ? 1 : 0;
+
+            cmd.SetComputeVectorArrayParam(cs, "_CloudParams1", new Vector4[]{ paramsA.Item1, paramsB.Item1 });
+
+            if (mapA.SetComputeParams(cs, "USE_CLOUD_MAP", "USE_CLOUD_MOTION"))
+                cmd.SetComputeTextureParam(cs, kernel, "_CloudFlowmap1", mapA.settings.flowmap.value);
+
+            if (layers.value == CloudMapMode.Double)
+            {
+                if (mapB.SetComputeParams(cs, "USE_SECOND_CLOUD_MAP", "USE_SECOND_CLOUD_MOTION"))
+                    cmd.SetComputeTextureParam(cs, kernel, "_CloudFlowmap2", mapB.settings.flowmap.value);
+            }
+            else
+            {
+                cs.DisableKeyword("USE_SECOND_CLOUD_MAP");
+                cs.DisableKeyword("USE_SECOND_CLOUD_MOTION");
             }
         }
 

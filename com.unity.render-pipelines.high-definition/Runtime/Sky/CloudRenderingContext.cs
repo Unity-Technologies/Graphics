@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             RTHandles.Release(cloudTextureRT);
             if (supportShadows)
-                CoreUtils.Destroy(cloudShadowsRT);
+                RTHandles.Release(cloudShadowsRT);
         }
     }
 }

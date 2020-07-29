@@ -191,7 +191,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _MicroShadowOpacity;
         public uint  _EnableProbeVolumes;
         public uint  _ProbeVolumeCount;
-        public float _Pad6;
+        public float _CloudShadowOpacity;
 
         public Vector4  _CookieAtlasSize;
         public Vector4  _CookieAtlasData;
@@ -211,7 +211,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint     _NumTileClusteredX;
         public uint     _NumTileClusteredY;
         public int      _EnvSliceSize;
-        public float    _Pad7;
+        public float    _CloudShadowScale;
 
         // Subsurface scattering
         // Use float4 to avoid any packing issue between compute and pixel shaders

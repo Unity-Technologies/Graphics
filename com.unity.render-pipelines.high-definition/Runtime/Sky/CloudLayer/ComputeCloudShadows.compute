@@ -1,0 +1,58 @@
+#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+#pragma multi_compile_local _ USE_CLOUD_MAP
+#pragma multi_compile_local _ USE_CLOUD_MOTION
+#pragma multi_compile_local _ USE_SECOND_CLOUD_MAP
+#pragma multi_compile_local _ USE_SECOND_CLOUD_MOTION
+
+#pragma kernel ComputeCloudShadows KERNEL_NAME=ComputeCloudShadows
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/CloudLayer/CloudLayer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+RW_TEXTURE2D(float, _CloudShadowsOutput);
+
+float3 _SunDirection;
+float _Resolution;
+
+static float3 tangent;
+static float3 bitangent;
+
+float ComputeCloudShadow(float2 uv)
+{
+    const float width = 0.1;
+    float3 dir = -_SunDirection + uv.x * width * tangent + uv.y * width * bitangent;
+
+    return GetCloudOpacity(dir);
+}
+
+[numthreads(8, 8, 1)]
+void KERNEL_NAME(uint2 dispatchThreadId : SV_DispatchThreadID)
+{
+    tangent = normalize(cross(-_SunDirection, float3(0.0, 1.0, 0.0)));
+    bitangent = cross(tangent, -_SunDirection);
+
+    float2 uv = float2(dispatchThreadId.x * _Resolution, dispatchThreadId.y * _Resolution) * 2.0 - 1.0;
+    float shadow = ComputeCloudShadow(uv);
+
+    // Blend with the other borders to make the texture tileable
+    const float border = 0.3;
+    float2 uv2 = uv - (1.0 - border);
+    float2 weights = saturate(uv2 / border);
+
+    if (uv2.x > 0.0)
+        shadow = lerp(shadow, ComputeCloudShadow(uv - float2(2.0, 0.0)), weights.x);
+
+    if (uv2.y > 0.0)
+    {
+        float shadow2 = ComputeCloudShadow(uv - float2(0.0, 2.0));
+        if (uv2.x > 0.0)
+            shadow2 = lerp(shadow2, ComputeCloudShadow(uv - float2(2.0, 2.0)), weights.x);
+
+        shadow = lerp(shadow, shadow2, weights.y);
+    }
+
+    _CloudShadowsOutput[dispatchThreadId] = shadow;
+}

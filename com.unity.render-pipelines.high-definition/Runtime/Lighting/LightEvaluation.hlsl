@@ -292,6 +292,15 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
         g_DebugShadowAttenuation = shadow;
 #endif
 
+    // Cloud shadows
+    float3x3 lightToWorld = float3x3(light.right, light.up, light.forward);
+    float3   lightToSample = posInput.positionWS - light.positionRWS;
+    float3   positionLS   = mul(lightToSample, transpose(lightToWorld));
+
+    float2 uv = positionLS.xy / _CloudShadowScale;
+    float cloudShadow = SAMPLE_TEXTURE2D_LOD(_CloudShadows, sampler_CloudShadows, uv, 0).r;
+    shadow = saturate(lerp(shadow, _CloudShadowOpacity, cloudShadow));
+
     return shadow;
 #else // LIGHT_EVALUATION_NO_SHADOWS
     return 1.0;

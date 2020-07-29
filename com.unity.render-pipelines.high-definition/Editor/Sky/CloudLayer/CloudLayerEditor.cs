@@ -106,6 +106,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         SerializedDataParameter m_Opacity, m_UpperHemisphereOnly;
         SerializedDataParameter m_Mode, m_Layers;
+        SerializedDataParameter m_ShadowsOpacity, m_ShadowsScale;
         CloudMapParameter[] m_Maps;
         CloudCRTParameter m_Crt;
 
@@ -119,6 +120,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_UpperHemisphereOnly = Unpack(o.Find(x => x.upperHemisphereOnly));
             m_Mode = Unpack(o.Find(x => x.mode));
             m_Layers = Unpack(o.Find(x => x.layers));
+
+            m_ShadowsOpacity = Unpack(o.Find(x => x.shadowsOpacity));
+            m_ShadowsScale = Unpack(o.Find(x => x.shadowsScale));
 
             m_Maps = new CloudMapParameter[] {
                 UnpackCloudMap(o.Find(x => x.mapA)),
@@ -194,8 +198,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.indentLevel--;
                 
                 PropertyField(m_Maps[0], "Map A");
+                bool cloudShadows = m_Maps[0].lighting.castShadows.value.boolValue;
+
                 if (m_Layers.value.intValue == (int)CloudMapMode.Double)
+                {
                     PropertyField(m_Maps[1], "Map B");
+                    cloudShadows |= m_Maps[1].lighting.castShadows.value.boolValue;
+                }
+
+                if (cloudShadows)
+                {
+                    EditorGUILayout.Space();
+                    EditorGUILayout.LabelField("Cloud Shadows", EditorStyles.miniLabel);
+
+                    PropertyField(m_ShadowsOpacity, new GUIContent("Opacity"));
+                    PropertyField(m_ShadowsScale, new GUIContent("Scale"));
+                }
             }
             else if (m_Mode.value.intValue == (int)CloudLayerMode.RenderTexture)
             {

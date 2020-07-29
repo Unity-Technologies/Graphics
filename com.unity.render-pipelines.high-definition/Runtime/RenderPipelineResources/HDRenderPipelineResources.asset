@@ -72,6 +72,7 @@ MonoBehaviour:
     skyboxCubemapPS: {fileID: 103, guid: 0000000000000000f000000000000000, type: 0}
     gradientSkyPS: {fileID: 4800000, guid: 2b5d4f1b26f03dc4a873b093e0c4adb1, type: 3}
     bakeCloudTextureCS: {fileID: 7200000, guid: ab3c4e1fdc13358468dc6ee4caf14fc2, type: 3}
+    computeCloudShadowsCS: {fileID: 7200000, guid: 09410d5c082f02848be25be02bbe8edf, type: 3}
     ambientProbeConvolutionCS: {fileID: 7200000, guid: 6d048f7b1bd45e840b4e79ec92639fa8, type: 3}
     groundIrradiancePrecomputationCS: {fileID: 7200000, guid: eb6ae6f326207ee4d987a3e5adddf63a, type: 3}
     inScatteredRadiancePrecomputationCS: {fileID: 7200000, guid: 70c69d514688f8545855680760d77418, type: 3}
