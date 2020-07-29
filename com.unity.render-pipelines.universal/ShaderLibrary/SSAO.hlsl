@@ -225,10 +225,6 @@ void SampleDepthNormalView(float2 uv, float2 p11_22, float2 p13_31, out float de
 float3x3 GetCoordinateConversionParameters(out float2 p11_22, out float2 p13_31)
 {
     float3x3 camProj = (float3x3)unity_CameraProjection;
-    #ifdef UNITY_STEREO_INSTANCING_ENABLED
-        camProj._22 *= _ScaleBiasRt.x;
-        camProj._23 *= _ScaleBiasRt.x;
-    #endif
 
     p11_22 = rcp(float2(camProj._11, camProj._22));
     p13_31 = float2(camProj._13, camProj._23);
