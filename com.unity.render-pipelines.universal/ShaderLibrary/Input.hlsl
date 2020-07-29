@@ -28,6 +28,7 @@ struct InputData
     half    fogCoord;
     half3   vertexLighting;
     half3   bakedGI;
+    float2  normalizedScreenSpaceUV;
 #if defined(SHADOWS_SHADOWMASK)
     half4   bakedAtten;
 #endif
@@ -52,6 +53,9 @@ half4 _MainLightSpotDir;
 // w is used for knowing whether the object is opaque(1) or alpha blended(0)
 half4 _DrawObjectPassData;
 
+// xyz are currently unused
+// w directLightStrength
+half4 _AmbientOcclusionParam;
 
 half4 _AdditionalLightsCount;
 
@@ -78,7 +82,7 @@ CBUFFER_END
 #define UNITY_MATRIX_V     unity_MatrixV
 #define UNITY_MATRIX_I_V   unity_MatrixInvV
 #define UNITY_MATRIX_P     OptimizeProjectionMatrix(glstate_matrix_projection)
-#define UNITY_MATRIX_I_P   ERROR_UNITY_MATRIX_I_P_IS_NOT_DEFINED
+#define UNITY_MATRIX_I_P   unity_MatrixInvP
 #define UNITY_MATRIX_VP    unity_MatrixVP
 #define UNITY_MATRIX_I_VP  unity_MatrixInvVP
 #define UNITY_MATRIX_MV    mul(UNITY_MATRIX_V, UNITY_MATRIX_M)

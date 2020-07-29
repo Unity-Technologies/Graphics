@@ -25,6 +25,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Intensity multipler of the clouds.</summary>
         [Tooltip("Sets the intensity multiplier for the clouds.")]
         public MinFloatParameter        intensityMultiplier = new MinFloatParameter(1.0f, 0.0f);
+        /// <summary>Rotation of the clouds.</summary>
+        [Tooltip("Sets the rotation of the clouds.")]
+        public ClampedFloatParameter    rotation            = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
 
         /// <summary>Enable to have cloud distortion.</summary>
         [Tooltip("Enable or disable cloud distortion.")]
@@ -40,7 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter    scrollDirection     = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
         /// <summary>Speed of the distortion.</summary>
         [Tooltip("Sets the cloud scrolling speed. The higher the value, the faster the clouds will move.")]
-        public MinFloatParameter        scrollSpeed         = new MinFloatParameter(2.0f, 0.0f);
+        public MinFloatParameter        scrollSpeed         = new MinFloatParameter(1.0f, 0.0f);
 
 
         private float scrollFactor = 0.0f, lastTime = 0.0f;
@@ -57,11 +60,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>The shader parameters of the cloud layer.</returns>
         public Vector4 GetParameters()
         {
-                scrollFactor += scrollSpeed.value * (Time.time - lastTime) * 0.01f;
-                lastTime = Time.time;
-
                 float rot = -Mathf.Deg2Rad*scrollDirection.value;
-                return new Vector4(upperHemisphereOnly.value ? 1.0f : 0.0f, scrollFactor, Mathf.Cos(rot), Mathf.Sin(rot));
+                float upper = upperHemisphereOnly.value ? 1.0f : -1.0f;
+                return new Vector4(upper * (rotation.value / 360.0f + 1), scrollFactor, Mathf.Cos(rot), Mathf.Sin(rot));
         }
 
         /// <summary>Sets keywords and parameters on a sky material to render the cloud layer.</summary>
@@ -71,6 +72,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (layer != null && layer.enabled.value == true)
             {
+                layer.scrollFactor += layer.scrollSpeed.value * (Time.time - layer.lastTime) * 0.01f;
+                layer.lastTime = Time.time;
+
                 Vector4 cloudParam = layer.GetParameters();
                 Vector4 cloudParam2 = layer.tint.value;
                 cloudParam2.w = layer.intensityMultiplier.value;
@@ -108,40 +112,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
             unchecked
             {
-#if UNITY_2019_3 // In 2019.3, when we call GetHashCode on a VolumeParameter it generate garbage (due to the boxing of the generic parameter)
-                hash = cloudMap.value != null ? hash * 23 + cloudMap.value.GetHashCode() : hash;
-                hash = flowmap.value != null ? hash * 23 + flowmap.value.GetHashCode() : hash;
-                hash = hash * 23 + enabled.value.GetHashCode();
-                hash = hash * 23 + upperHemisphereOnly.value.GetHashCode();
-                hash = hash * 23 + tint.value.GetHashCode();
-                hash = hash * 23 + intensityMultiplier.value.GetHashCode();
-                hash = hash * 23 + enableDistortion.value.GetHashCode();
-                hash = hash * 23 + procedural.value.GetHashCode();
-                hash = hash * 23 + scrollDirection.value.GetHashCode();
-                hash = hash * 23 + scrollSpeed.value.GetHashCode();
-
-                hash = cloudMap.value != null ? hash * 23 + cloudMap.overrideState.GetHashCode() : hash;
-                hash = flowmap.value != null ? hash * 23 + flowmap.overrideState.GetHashCode() : hash;
-                hash = hash * 23 + enabled.overrideState.GetHashCode();
-                hash = hash * 23 + upperHemisphereOnly.overrideState.GetHashCode();
-                hash = hash * 23 + tint.overrideState.GetHashCode();
-                hash = hash * 23 + intensityMultiplier.overrideState.GetHashCode();
-                hash = hash * 23 + enableDistortion.overrideState.GetHashCode();
-                hash = hash * 23 + procedural.overrideState.GetHashCode();
-                hash = hash * 23 + scrollDirection.overrideState.GetHashCode();
-                hash = hash * 23 + scrollSpeed.overrideState.GetHashCode();
-#else
-                hash = cloudMap.value != null ? hash * 23 + cloudMap.GetHashCode() : hash;
-                hash = flowmap.value != null ? hash * 23 + flowmap.GetHashCode() : hash;
+                hash = hash * 23 + cloudMap.GetHashCode();
+                hash = hash * 23 + flowmap.GetHashCode();
                 hash = hash * 23 + enabled.GetHashCode();
                 hash = hash * 23 + upperHemisphereOnly.GetHashCode();
                 hash = hash * 23 + tint.GetHashCode();
                 hash = hash * 23 + intensityMultiplier.GetHashCode();
+                hash = hash * 23 + rotation.GetHashCode();
                 hash = hash * 23 + enableDistortion.GetHashCode();
                 hash = hash * 23 + procedural.GetHashCode();
                 hash = hash * 23 + scrollDirection.GetHashCode();
                 hash = hash * 23 + scrollSpeed.GetHashCode();
-#endif
             }
 
             return hash;

@@ -3,9 +3,7 @@ abv: # specify the editor versions for which to create the expression trigger fo
     - fast-trunk
   projects:
     - name: Universal
-    - name: Universal_Stereo
     - name: ShaderGraph
-    - name: ShaderGraph_Stereo
     - name: HDRP
     - name: VFX_HDRP
     - name: VFX_URP
@@ -28,10 +26,14 @@ nightly:
       api: Metal
       test_platforms:
         - Standalone
-    - project: HDRP_Hybrid
-      all: true
-    - project: Universal_Hybrid
-      all: true
+    - project: Universal
+      platform: Win
+      api: DX12
+      test_platforms:
+        - Standalone
+        - editmode
+        - playmode
+        # - playmode_XR # uncomment once bug fixed on XR side 
 smoke_test: # specifications for smoke tests
   folder: SRP_SmokeTest
   agent: sdet_win_large # used for editmode

@@ -28,6 +28,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         const string k_RenderPostProcessingTag = "Render PostProcessing Effects";
         const string k_RenderFinalPostProcessingTag = "Render Final PostProcessing Pass";
+        private static readonly ProfilingSampler m_ProfilingRenderPostProcessing = new ProfilingSampler(k_RenderPostProcessingTag);
+        private static readonly ProfilingSampler m_ProfilingRenderFinalPostProcessing = new ProfilingSampler(k_RenderFinalPostProcessingTag);
 
         MaterialLibrary m_Materials;
         PostProcessData m_Data;
@@ -192,8 +194,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (m_IsFinalPass)
             {
-                var cmd = CommandBufferPool.Get(k_RenderFinalPostProcessingTag);
-                RenderFinalPass(cmd, ref renderingData);
+                var cmd = CommandBufferPool.Get();
+                using (new ProfilingScope(cmd, m_ProfilingRenderFinalPostProcessing))
+                {
+                    RenderFinalPass(cmd, ref renderingData);
+                }
+                
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }
@@ -206,8 +212,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 // Regular render path (not on-tile) - we do everything in a single command buffer as it
                 // makes it easier to manage temporary targets' lifetime
-                var cmd = CommandBufferPool.Get(k_RenderPostProcessingTag);
-                Render(cmd, ref renderingData);
+                var cmd = CommandBufferPool.Get();
+                using (new ProfilingScope(cmd, m_ProfilingRenderPostProcessing))
+                {
+                    Render(cmd, ref renderingData);
+                }
+
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }
@@ -416,6 +426,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                          colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
 
                     bool isRenderToBackBufferTarget = cameraTarget == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;
+                    if (isRenderToBackBufferTarget)
+                        cmd.SetViewport(cameraData.pixelRect);
                     // We y-flip if
                     // 1) we are bliting from render texture to back buffer and
                     // 2) renderTexture starts UV at top
@@ -858,6 +870,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Determine the iteration count
             int maxSize = Mathf.Max(tw, th);
             int iterations = Mathf.FloorToInt(Mathf.Log(maxSize, 2f) - 1);
+            iterations -= m_Bloom.skipIterations.value;
             int mipCount = Mathf.Clamp(iterations, 1, k_MaxPyramidSize);
 
             // Pre-filtering parameters
@@ -1145,6 +1158,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 cmd.SetRenderTarget(new RenderTargetIdentifier(cameraTarget, 0, CubemapFace.Unknown, -1),
                     colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                cmd.SetViewport(cameraData.pixelRect);
                 cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
                 cmd.DrawProcedural(Matrix4x4.identity, material, 0, MeshTopology.Quads, 4, 1, null);
             }

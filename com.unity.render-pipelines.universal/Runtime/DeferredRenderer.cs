@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int k_DepthStencilBufferBits = 32;
 
         static readonly string k_CreateCameraTextures = "Create Camera Texture";
+        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_CreateCameraTextures);
 
         ColorGradingLutPass m_ColorGradingLutPass;
         // Forward renderer depth-prepass is used to generate a depth-texture. It is NOT intended to prime the depth buffer and speed up
@@ -40,6 +41,9 @@ namespace UnityEngine.Rendering.Universal
         PostProcessPass m_FinalPostProcessPass;
         FinalBlitPass m_FinalBlitPass;
         CapturePass m_CapturePass;
+#if ENABLE_VR && ENABLE_XR_MODULE
+        XROcclusionMeshPass m_XROcclusionMeshPass;
+#endif
 
 #if UNITY_EDITOR
         SceneViewDepthCopyPass m_SceneViewDepthCopyPass;
@@ -75,6 +79,10 @@ namespace UnityEngine.Rendering.Universal
 
         public DeferredRenderer(DeferredRendererData data) : base(data)
         {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            UniversalRenderPipeline.m_XRSystem.InitializeXRSystemData(data.xrSystemData);
+#endif
+
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
             m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
@@ -105,6 +113,9 @@ namespace UnityEngine.Rendering.Universal
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
+#if ENABLE_VR && ENABLE_XR_MODULE
+            m_XROcclusionMeshPass = new XROcclusionMeshPass(RenderPassEvent.BeforeRenderingPrepasses);
+#endif
             m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(RenderPassEvent.BeforeRenderingPrepasses, m_ScreenspaceShadowsMaterial);
             m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrepasses, data.postProcessData);
             m_GBufferPass = new GBufferPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference, m_DeferredLights);
@@ -120,7 +131,7 @@ namespace UnityEngine.Rendering.Universal
             m_RenderOpaqueForwardOnlyPass = new DrawObjectsPass("Render Opaques Forward Only", new ShaderTagId[] { new ShaderTagId("SRPDefaultUnlit"), new ShaderTagId("UniversalForwardOnly") }, true, RenderPassEvent.BeforeRenderingOpaques + 5, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_CopyDepthPass1 = new CopyDepthPass(RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
-            m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingTransparents, m_SamplingMaterial);
+            m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingTransparents, m_SamplingMaterial, m_BlitMaterial);
             m_TransparentSettingsPass = new TransparentSettingsPass(RenderPassEvent.BeforeRenderingTransparents, data.shadowTransparentReceive);
             m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
@@ -156,6 +167,12 @@ namespace UnityEngine.Rendering.Universal
             {
                 cameraStacking = false,
                 msaa = false,
+            };
+
+            unsupportedGraphicsDeviceTypes = new GraphicsDeviceType[] {
+                GraphicsDeviceType.OpenGLCore,
+                GraphicsDeviceType.OpenGLES2,
+                GraphicsDeviceType.OpenGLES3
             };
         }
 
@@ -222,7 +239,6 @@ namespace UnityEngine.Rendering.Universal
 
             // We generate color LUT in the base camera only. This allows us to not break render pass execution for overlay cameras.
             bool generateColorGradingLUT = anyPostProcessing && cameraData.renderType == CameraRenderType.Base;
-            bool isStereoEnabled = cameraData.xr.enabled;
 
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
             bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
@@ -239,9 +255,6 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
 
                 CreateCameraRenderTarget(context, ref renderingData.cameraData, m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
-
-                if (Camera.main == camera && camera.cameraType == CameraType.Game && cameraData.targetTexture == null)
-                    SetupBackbufferFormat(1, isStereoEnabled);
             }
             else
             {
@@ -249,7 +262,21 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
             }
 
-            ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), m_ActiveCameraDepthAttachment.Identifier());
+            // Assign camera targets (color and depth)
+            {
+                var activeColorRenderTargetId = m_ActiveCameraColorAttachment.Identifier();
+                var activeDepthRenderTargetId = m_ActiveCameraDepthAttachment.Identifier();
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled)
+                {
+                    activeColorRenderTargetId = new RenderTargetIdentifier(activeColorRenderTargetId, 0, CubemapFace.Unknown, -1);
+                    activeDepthRenderTargetId = new RenderTargetIdentifier(activeDepthRenderTargetId, 0, CubemapFace.Unknown, -1);
+                }
+#endif
+
+                ConfigureCameraTarget(activeColorRenderTargetId, activeDepthRenderTargetId);
+            }
 
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {
@@ -270,6 +297,14 @@ namespace UnityEngine.Rendering.Universal
 
             if (additionalLightShadows)
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.hasValidOcclusionMesh)
+            {
+                m_XROcclusionMeshPass.Setup(m_ActiveCameraDepthAttachment);
+                EnqueuePass(m_XROcclusionMeshPass);
+            }
+#endif
 
             if (requiresDepthPrepass)
             {
@@ -442,15 +477,19 @@ namespace UnityEngine.Rendering.Universal
 
         void EnqueueDeferred(ref RenderingData renderingData, bool hasDepthPrepass, bool applyMainShadow, bool applyAdditionalShadow)
         {
+            var activeColorRenderTargetId = m_ActiveCameraColorAttachment.Identifier();
+            var activeDepthRenderTargetId = m_ActiveCameraDepthAttachment.Identifier();
+
             m_GBufferAttachments[m_DeferredLights.GBufferLightingIndex] = m_ActiveCameraColorAttachment; // the last slice is the lighting buffer created in DeferredRenderer.cs
-            m_GBufferPass.Setup(ref renderingData, m_CameraDepthAttachment, m_GBufferAttachments, hasDepthPrepass);
+
+            m_DeferredLights.Setup(ref renderingData, applyAdditionalShadow ? m_AdditionalLightsShadowCasterPass : null, hasDepthPrepass, m_CameraDepthTexture, m_DepthInfoTexture, m_TileDepthInfoTexture, m_CameraDepthAttachment, m_GBufferAttachments);
+
             EnqueuePass(m_GBufferPass);
 
             //Must copy depth for deferred shading: TODO wait for API fix to bind depth texture as read-only resource.
             m_CopyDepthPass0.Setup(m_CameraDepthAttachment, m_CameraDepthTexture);
             EnqueuePass(m_CopyDepthPass0);
 
-            m_DeferredLights.Setup(ref renderingData, applyAdditionalShadow ? m_AdditionalLightsShadowCasterPass : null, m_CameraDepthTexture, m_DepthInfoTexture, m_TileDepthInfoTexture, m_CameraDepthAttachment, m_GBufferAttachments);
             // Note: DeferredRender.Setup is called by UniversalRenderPipeline.RenderSingleCamera (overrides ScriptableRenderer.Setup).
             // At this point, we do not know if m_DeferredLights.m_Tilers[x].m_Tiles actually contain any indices of lights intersecting tiles (If there are no lights intersecting tiles, we could skip several following passes) : this information is computed in DeferredRender.SetupLights, which is called later by UniversalRenderPipeline.RenderSingleCamera (via ScriptableRenderer.Execute).
             // However HasTileLights uses m_HasTileVisLights which is calculated by CheckHasTileLights from all visibleLights. visibleLights is the list of lights that have passed camera culling, so we know they are in front of the camera. So we can assume m_DeferredLights.m_Tilers[x].m_Tiles will not be empty in that case.
@@ -463,7 +502,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // On some platform, splitting the bitmasks computation into two passes:
                 //   1/ Compute bitmasks for individual or small blocks of pixels
-                //   2/ merge those individual bitmasks into per-tile bitmasks    
+                //   2/ merge those individual bitmasks into per-tile bitmasks
                 // provides better performance that doing it in a single above pass.
                 if (m_DeferredLights.HasTileDepthRangeExtraPass())
                     EnqueuePass(m_TileDepthRangeExtraPass);
@@ -477,24 +516,27 @@ namespace UnityEngine.Rendering.Universal
 
         void CreateCameraRenderTarget(ScriptableRenderContext context, ref CameraData cameraData, RenderTargetHandle colorTarget, RenderTargetHandle depthTarget)
         {
-            CommandBuffer cmd = CommandBufferPool.Get(k_CreateCameraTextures);
-            var descriptor = cameraData.cameraTargetDescriptor;
-            int msaaSamples = descriptor.msaaSamples;
-            if (colorTarget != RenderTargetHandle.CameraTarget)
+            CommandBuffer cmd = CommandBufferPool.Get();
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
-                bool useDepthRenderBuffer = depthTarget == RenderTargetHandle.CameraTarget;
-                var colorDescriptor = descriptor; // Camera decides if HDR format is needed. ScriptableRenderPipelineCore.cs decides between FP16 and R11G11B10.
-                colorDescriptor.depthBufferBits = (useDepthRenderBuffer) ? k_DepthStencilBufferBits : 0;
-                cmd.GetTemporaryRT(colorTarget.id, colorDescriptor, FilterMode.Bilinear);
-            }
+                var descriptor = cameraData.cameraTargetDescriptor;
+                int msaaSamples = descriptor.msaaSamples;
+                if (colorTarget != RenderTargetHandle.CameraTarget)
+                {
+                    bool useDepthRenderBuffer = depthTarget == RenderTargetHandle.CameraTarget;
+                    var colorDescriptor = descriptor; // Camera decides if HDR format is needed. ScriptableRenderPipelineCore.cs decides between FP16 and R11G11B10.
+                    colorDescriptor.depthBufferBits = (useDepthRenderBuffer) ? k_DepthStencilBufferBits : 0;
+                    cmd.GetTemporaryRT(colorTarget.id, colorDescriptor, FilterMode.Bilinear);
+                }
 
-            if (depthTarget != RenderTargetHandle.CameraTarget)
-            {
-                var depthDescriptor = descriptor;
-                depthDescriptor.colorFormat = RenderTextureFormat.Depth;
-                depthDescriptor.depthBufferBits = k_DepthStencilBufferBits;
-                depthDescriptor.bindMS = msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
-                cmd.GetTemporaryRT(depthTarget.id, depthDescriptor, FilterMode.Point);
+                if (depthTarget != RenderTargetHandle.CameraTarget)
+                {
+                    var depthDescriptor = descriptor;
+                    depthDescriptor.colorFormat = RenderTextureFormat.Depth;
+                    depthDescriptor.depthBufferBits = k_DepthStencilBufferBits;
+                    depthDescriptor.bindMS = msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
+                    cmd.GetTemporaryRT(depthTarget.id, depthDescriptor, FilterMode.Point);
+                }
             }
 
             context.ExecuteCommandBuffer(cmd);

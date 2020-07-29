@@ -19,7 +19,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public int              index { get; protected set; }
         public ProfilingSampler customSampler { get; protected set; }
         public bool             enableAsyncCompute { get; protected set; }
-        public bool             allowPassPruning { get; protected set; }
+        public bool             allowPassCulling { get; protected set; }
 
         public TextureHandle    depthBuffer { get; protected set; }
         public TextureHandle[]  colorBuffers { get; protected set; } = new TextureHandle[RenderGraph.kMaxMRTCount];
@@ -56,15 +56,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             usedRendererListList.Clear();
             enableAsyncCompute = false;
-            allowPassPruning = true;
+            allowPassCulling = true;
             refCount = 0;
 
             // Invalidate everything
             colorBufferMaxIndex = -1;
-            depthBuffer = new TextureHandle();
+            depthBuffer = TextureHandle.nullHandle;
             for (int i = 0; i < RenderGraph.kMaxMRTCount; ++i)
             {
-                colorBuffers[i] = new TextureHandle();
+                colorBuffers[i] = TextureHandle.nullHandle;
             }
         }
 
@@ -93,9 +93,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             enableAsyncCompute = value;
         }
 
-        public void AllowPassPruning(bool value)
+        public void AllowPassCulling(bool value)
         {
-            allowPassPruning = value;
+            allowPassCulling = value;
         }
 
         public void SetColorBuffer(TextureHandle resource, int index)

@@ -16,10 +16,11 @@ ShaderGraph_Linux_OpenGLCore_playmode_trunk:
          rerun: on-new-revision
     commands:
       -  sudo -H pip install --upgrade pip
-      -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
+      -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
+      -  chmod +x TestProjects/ShaderGraph/utr
       -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 utr/utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
+      -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
     artifacts:
         logs:
             paths:
@@ -37,10 +38,11 @@ ShaderGraph_Linux_OpenGLCore_editmode_trunk:
          rerun: on-new-revision
     commands:
       -  sudo -H pip install --upgrade pip
-      -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
+      -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
+      -  chmod +x TestProjects/ShaderGraph/utr
       -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 utr/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
+      -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
     artifacts:
         logs:
             paths:
@@ -58,10 +60,11 @@ ShaderGraph_Linux_OpenGLCore_playmode_fast-trunk:
          rerun: on-new-revision
     commands:
       -  sudo -H pip install --upgrade pip
-      -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
+      -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
+      -  chmod +x TestProjects/ShaderGraph/utr
       -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 utr/utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
+      -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
     artifacts:
         logs:
             paths:
@@ -79,10 +82,11 @@ ShaderGraph_Linux_OpenGLCore_editmode_fast-trunk:
          rerun: on-new-revision
     commands:
       -  sudo -H pip install --upgrade pip
-      -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
+      -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
+      -  chmod +x TestProjects/ShaderGraph/utr
       -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 utr/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
+      -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
     artifacts:
         logs:
             paths:
@@ -101,10 +105,11 @@ ShaderGraph_Linux_OpenGLCore_playmode_CUSTOM-REVISION:
          rerun: always
     commands:
       -  sudo -H pip install --upgrade pip
-      -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
+      -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
+      -  chmod +x TestProjects/ShaderGraph/utr
       -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 utr/utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
+      -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
     artifacts:
         logs:
             paths:
@@ -123,10 +128,11 @@ ShaderGraph_Linux_OpenGLCore_editmode_CUSTOM-REVISION:
          rerun: always
     commands:
       -  sudo -H pip install --upgrade pip
-      -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
+      -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
+      -  chmod +x TestProjects/ShaderGraph/utr
       -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 utr/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
+      -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
     artifacts:
         logs:
             paths:

@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Serialization;
 
 using RenderQueueType = UnityEngine.Rendering.HighDefinition.HDRenderQueue.RenderQueueType;
 
@@ -89,21 +90,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_AlphaTest = value;
         }
 
-        [SerializeField]
-        bool m_AlphaTestDepthPrepass;
-        public bool alphaTestDepthPrepass
-        {
-            get => m_AlphaTestDepthPrepass;
-            set => m_AlphaTestDepthPrepass = value;
-        }
+        [SerializeField, Obsolete("Keep for migration")]
+        internal bool m_TransparentDepthPrepass;
 
-        [SerializeField]
-        bool m_AlphaTestDepthPostpass;
-        public bool alphaTestDepthPostpass
-        {
-            get => m_AlphaTestDepthPostpass;
-            set => m_AlphaTestDepthPostpass = value;
-        }
+        [SerializeField, Obsolete("Keep for migration")]
+        internal bool m_TransparentDepthPostpass;
+
+        [SerializeField, Obsolete("Keep for migration")]
+        internal bool m_SupportLodCrossFade;
 
         [SerializeField]
         DoubleSidedMode m_DoubleSidedMode;
@@ -111,14 +105,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             get => m_DoubleSidedMode;
             set => m_DoubleSidedMode = value;
-        }
-
-        [SerializeField]
-        bool m_SupportLodCrossFade;
-        public bool supportLodCrossFade
-        {
-            get => m_SupportLodCrossFade;
-            set => m_SupportLodCrossFade = value;
         }
 
         // TODO: This was on HDUnlitMaster but not used anywhere
@@ -132,6 +118,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_DOTSInstancing = value;
         }
 
+        [SerializeField]
+        ShaderGraphVersion m_Version = MigrationDescription.LastVersion<ShaderGraphVersion>();
+        public ShaderGraphVersion version
+        {
+            get => m_Version;
+            set => m_Version = value;
+        }
+
+        [SerializeField]
+        bool m_FirstTimeMigrationExecuted = false;
+        public bool firstTimeMigrationExecuted
+        {
+            get => m_FirstTimeMigrationExecuted;
+            set => m_FirstTimeMigrationExecuted = value;
+        }
+
+
+        [SerializeField]
         internal int inspectorFoldoutMask;
     }
 

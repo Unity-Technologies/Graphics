@@ -55,6 +55,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
             #pragma multi_compile __ LOD_FADE_CROSSFADE
             #pragma multi_compile_fog
@@ -125,7 +126,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             }
 
             HLSLPROGRAM
-
+            #pragma exclude_renderers d3d11_9x gles
             #pragma vertex SpeedTree8Vert
             #pragma fragment SpeedTree8Frag
 
@@ -212,6 +213,35 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #include "SpeedTree8Input.hlsl"
             #include "SpeedTree8Passes.hlsl"
 
+            ENDHLSL
+        }
+
+        // This pass is used when drawing to a _CameraNormalsTexture texture
+        Pass
+        {
+            Name "DepthNormals"
+            Tags{"LightMode" = "DepthNormals"}
+
+            ZWrite On
+
+            HLSLPROGRAM
+            #pragma vertex SpeedTree8VertDepthNormal
+            #pragma fragment SpeedTree8FragDepthNormal
+
+            #pragma shader_feature_local _WINDQUALITY_NONE _WINDQUALITY_FASTEST _WINDQUALITY_FAST _WINDQUALITY_BETTER _WINDQUALITY_BEST _WINDQUALITY_PALM
+            #pragma shader_feature_local EFFECT_BUMP
+
+            #pragma multi_compile_instancing
+            #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
+            #pragma multi_compile __ LOD_FADE_CROSSFADE
+
+            #pragma instancing_options assumeuniformscaling maxcount:50
+
+            #define ENABLE_WIND
+            #define EFFECT_BACKSIDE_NORMALS
+
+            #include "SpeedTree8Input.hlsl"
+            #include "SpeedTree8Passes.hlsl"
             ENDHLSL
         }
     }

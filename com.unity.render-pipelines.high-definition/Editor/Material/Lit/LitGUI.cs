@@ -17,14 +17,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
-            new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: SurfaceOptionUIBlock.Features.Lit ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass),
+            new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: SurfaceOptionUIBlock.Features.Lit),
             new TessellationOptionsUIBlock(MaterialUIBlock.Expandable.Tesselation),
             new LitSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Input, features: litSurfaceFeatures),
             new DetailInputsUIBlock(MaterialUIBlock.Expandable.Detail),
             // We don't want distortion in Lit
             new TransparencyUIBlock(MaterialUIBlock.Expandable.Transparency, features: TransparencyUIBlock.Features.All & ~TransparencyUIBlock.Features.Distortion),
             new EmissionUIBlock(MaterialUIBlock.Expandable.Emissive),
-            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance),
+            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.StandardLit),
         };
 
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)

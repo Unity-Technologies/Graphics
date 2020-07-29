@@ -324,10 +324,22 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="bilinear">Enable bilinear filtering.</param>
         public static void BlitTexture(CommandBuffer cmd, RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
         {
-            s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
-            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
             s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevel);
-            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(TextureXR.dimension), bilinear ? 1 : 0, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
+            BlitTexture(cmd, source, scaleBias, GetBlitMaterial(TextureXR.dimension), bilinear ? 1 : 0);
+        }
+        /// <summary>
+        /// Blit a RTHandle texture
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="source">Source RTHandle.</param>
+        /// <param name="scaleBias">Scale and bias for sampling the input texture.</param>
+        /// <param name="material">Material to invoke when blitting.</param>
+        /// <param name="pass">Pass idx within the material to invoke.</param>
+        static void BlitTexture(CommandBuffer cmd, RTHandle source, Vector4 scaleBias, Material material, int pass)
+        {
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
+            s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
+            cmd.DrawProcedural(Matrix4x4.identity, material, pass, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
         }
 
         // In the context of HDRP, the internal render targets used during the render loop are the same for all cameras, no matter the size of the camera.
@@ -349,6 +361,24 @@ namespace UnityEngine.Rendering.HighDefinition
             // Will set the correct camera viewport as well.
             CoreUtils.SetRenderTarget(cmd, destination);
             BlitTexture(cmd, source, viewportScale, mipLevel, bilinear);
+        }
+
+        /// <summary>
+        /// Blit a RTHandle to another RTHandle.
+        /// This will properly account for partial usage (in term of resolution) of the texture for the current viewport.
+        /// This overloads allows the user to override the default blit shader
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="source">Source RTHandle.</param>
+        /// <param name="destination">Destination RTHandle.</param>
+        /// <param name="material">The material to use when blitting</param>
+        /// <param name="pass">pass to use of the provided material</param>
+        public static void BlitCameraTexture(CommandBuffer cmd, RTHandle source, RTHandle destination, Material material, int pass)
+        {
+            Vector2 viewportScale = new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y);
+            // Will set the correct camera viewport as well.
+            CoreUtils.SetRenderTarget(cmd, destination);
+            BlitTexture(cmd, source, viewportScale, material, pass);
         }
 
 
@@ -737,31 +767,37 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif
 
+        internal static bool IsMacOSVersionAtLeast(string os, int majorVersion, int minorVersion, int patchVersion)
+        {
+            int startIndex = os.LastIndexOf(" ");
+            var parts = os.Substring(startIndex + 1).Split('.');
+            int currentMajorVersion = Convert.ToInt32(parts[0]);
+            int currentMinorVersion = Convert.ToInt32(parts[1]);
+            int currentPatchVersion = Convert.ToInt32(parts[2]);
+
+            if (currentMajorVersion < majorVersion) return false;
+            if (currentMajorVersion > majorVersion) return true;
+            if (currentMinorVersion < minorVersion) return false;
+            if (currentMinorVersion > minorVersion) return true;
+            if (currentPatchVersion < patchVersion) return false;
+            if (currentPatchVersion > patchVersion) return true;
+            return true;
+        }
+
         internal static bool IsOperatingSystemSupported(string os)
         {
             // Metal support depends on OS version:
             // macOS 10.11.x doesn't have tessellation / earlydepthstencil support, early driver versions were buggy in general
             // macOS 10.12.x should usually work with AMD, but issues with Intel/Nvidia GPUs. Regardless of the GPU, there are issues with MTLCompilerService crashing with some shaders
-            // macOS 10.13.x is expected to work, and if it's a driver/shader compiler issue, there's still hope on getting it fixed to next shipping OS patch release
+            // macOS 10.13.x should work, but active development tests against current OS
             //
             // Has worked experimentally with iOS in the past, but it's not currently supported
             //
 
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
             {
-                if (os.StartsWith("Mac"))
-                {
-                    // TODO: Expose in C# version number, for now assume "Mac OS X 10.10.4" format with version 10 at least
-                    int startIndex = os.LastIndexOf(" ");
-                    var parts = os.Substring(startIndex + 1).Split('.');
-                    int a = Convert.ToInt32(parts[0]);
-                    int b = Convert.ToInt32(parts[1]);
-                    // In case in the future there's a need to disable specific patch releases
-                    // int c = Convert.ToInt32(parts[2]);
-
-                    if (a < 10 || b < 13)
-                        return false;
-                }
+                if (os.StartsWith("Mac") && !IsMacOSVersionAtLeast(os, 10, 13, 0))
+                    return false;
             }
 
             return true;
@@ -893,22 +929,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="renderContext">Current Scriptable Render Context.</param>
         /// <param name="cmd">Command Buffer used for rendering.</param>
         /// <param name="rendererList">Renderer List to render.</param>
+        [Obsolete("Please use CoreUtils.DrawRendererList instead.")]
         public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, RendererList rendererList)
         {
-            if (!rendererList.isValid)
-                throw new ArgumentException("Invalid renderer list provided to DrawRendererList");
-
-            // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders or things will be executed out of order
-            renderContext.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
-
-            if (rendererList.stateBlock == null)
-                renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings);
-            else
-            {
-                var renderStateBlock = rendererList.stateBlock.Value;
-                renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings, ref renderStateBlock);
-            }
+            CoreUtils.DrawRendererList(renderContext, cmd, rendererList);
         }
 
         // $"HDProbe RenderCamera ({probeName}: {face:00} for viewer '{viewerName}')"

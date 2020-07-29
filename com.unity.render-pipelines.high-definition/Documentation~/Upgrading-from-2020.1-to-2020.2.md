@@ -18,18 +18,31 @@ Currently, the only publicly accessible variables in the `ShaderVariablesGlobal`
 
 From Unity 2020.2, if you create a new [HDRP Asset](HDRP-Asset.md), the **MSAA Within Forward** Frame Setting is enabled by default.
 
+## Decal
+
+From Unity 2020.2, decals no longer require a full Depth Prepass. HDRP only renders Materials with **Receive Decals** enabled during the Depth Prepass. Unless other options force it.
+
+From Unity 2020.2, you can use the Decal Layers system which makes use of the **Rendering Layer Mask** property from a Mesh Renderer and Terrain. The default value of this property prior to 2020.2 does not include any Decal Layer flags. This means that when you enable this feature, no Meshes receive decals until you configure them correctly. A script **Edit > Render Pipeline/HD Render Pipeline > Upgrade from Previous Version > Add Decal Layer Default to Loaded Mesh Renderers and Terrains** is provided to convert the already created Meshes, as well a version to apply only on a selection. Newly created Mesh Renderer or Terrain have the have **Decal Layer Default** enable by default.
+
 ## Lighting
 
 From Unity 2020.2, if you disable the sky override used as the **Static Lighting Sky** in the **Lighting** window, the sky no longer affects the baked lighting. Previously, the sky affected the baked lighting even when it was disabled.
 
-From Unity 2020.2, HDRP has removed the Cubemap Array for Point [Light](Light-Component.md) cookies and now uses octahedral projection with a regular 2D-Cookie atlas. This is to allow for a single path for light cookies and IES, but it may produce visual artifacts when using a low-resolution cube-cookie. For example, projecting pixel art data.
+From Unity 2020.2, HDRP has 
+the Cubemap Array for Point [Light](Light-Component.md) cookies and now uses octahedral projection with a regular 2D-Cookie atlas. This is to allow for a single path for light cookies and IES, but it may produce visual artifacts when using a low-resolution cube-cookie. For example, projecting pixel art data.
 
-As the **Cubemap cookie atlas no longer exists**, it is possible that HDRP does not have enough space on the current 2D atlas for the cookies. If this is the case, HDRP displays an error in the Console window. To fix this, increase the size of the 2D cookie atlas. To do this:
+As the **Cubemap cookie atlas** no longer exists, it is possible that HDRP does not have enough space on the current 2D atlas for the cookies. If this is the case, HDRP displays an error in the Console window. To fix this, increase the size of the 2D cookie atlas. To do this:
 Select your [HDRP Asset](HDRP-Asset.md).
 In the Inspector, go to Lighting > Cookies.
 In the 2D Atlas Size drop-down, select a larger cookie resolution.
 
-From Unity 2020.2, the texture format of the color buffer selected in HDRP asset is apply to planar reflection probe. Previously planar reflection probe where always using float16 rendertarget.
+From Unity 2020.2, the texture format of the color buffer in the HDRP Asset also applies to [Planar Reflection Probes](Planar-Reflection-Probe.md). Previously, Planar Reflection Probes always used a float16 rendertarget.
+
+From Unity 2020.2, the light layer properties have move from the HDRP settings to the HDRP Default setting Panel.
+
+From Unity 2020.2, in physically based sky, the sun disk intensity is proportional to its size. Before this the sun disk was incorrectly not drive by the sun disk size.
+
+For project migrating from old 9.x.x-preview package. There is a change in the order of enum of Exposure that may shift the current exposure mode to another one in Exposure Volume. This will need to be corrected manually by reselecting the correct Exposure mode.
 
 ## Shadows
 
@@ -39,13 +52,15 @@ HDRP now stores OnEnable and OnDemand shadows in a separate atlas and more API i
 
 The shader function `SampleShadow_PCSS` now requires you to pass in an additional float2 parameter which contains the shadow atlas resolution in x and the inverse of the atlas resolution in y.
 
+Ray bias and thickness parameters have been added to contact shadows. These might lead to small changes to the visual impact of contact shadows with the default parameters. Please consider tuning those values to fit the needs of your project.
+
 ## Shader config file
 
-From Unity 2020.2, due to the change of shadow map, the enum HDShadowFilteringQuality have been moved to HDShadowManager.cs and the variables ShaderConfig.s_DeferredShadowFiltering as well as the option ShaderOptions.DeferredShadowFiltering have been removed from the code as they have no impact anymore.
+From Unity 2020.2, due to the change of the shadow map, HDRP moved the HDShadowFilteringQuality enum to HDShadowManager.cs. HDRP also removed ShaderConfig.s_DeferredShadowFiltering and ShaderOptions.DeferredShadowFiltering from the source code because they have no effect anymore.
 
 From Unity 2020.2, a new option is available named ColoredShadow. It allows you to control whether a shadow is chromatic or monochrome. ColoredShadow is enabled by default and currently only works with [Ray-traced shadows](Ray-Traced-Shadows.md). Note that colored shadows are more resource-intensive to process than standard shadows.
 
-From Unity 2020.2, the Raytracing option and equivalent generated shader macro SHADEROPTIONS_RAYTRACING have been removed. It is not longer require to edit shader config file to use Raytracing features of HDRP.
+From Unity 2020.2, the Raytracing option and equivalent generated shader macro SHADEROPTIONS_RAYTRACING have been removed. You no longer need to edit the shader config file to use ray-traced effects in HDRP.
 
 ## Shader code
 
@@ -81,16 +96,22 @@ From Unity 2020.2, HDRP includes a new rectangular area shadow evaluation functi
 
 From Unity 2020.2, the macro ENABLE_RAYTRACING, SHADEROPTIONS_RAYTRACING, and RAYTRACING_ENABLED have been removed. A new multicompile is introduce for forward pass: SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON. This allow to enable raytracing effect without requiring edition of shader config file.
 
+From Unity 2020.2,SHADERPASS for TransparentDepthPrepass and TransparentDepthPostpass identification is using respectively SHADERPASS_TRANSPARENT_DEPTH_PREPASS and SHADERPASS_TRANSPARENT_DEPTH_POSTPASS. Previously it was SHADERPASS_DEPTH_ONLY. Define CUTOFF_TRANSPARENT_DEPTH_PREPASS and CUTOFF_TRANSPARENT_DEPTH_POSTPASS and been removed as the new path macro can now be used.
+
+Unity 2020.2 introduces a new multi-compile for Depth Prepass and Motion vector pass to allow for support of the Decal Layers feature. These passes now require you to add #pragma multi_compile _ WRITE_DECAL_BUFFER.
+
+From Unity 2020.2, the shader code of Decal.shader have change. Previously the code was using around 16 passes to handle the different decal attributes rendering. This have been changed to only 4 passes: DBufferProjector, DecalProjectorForwardEmissive, DBufferMesh, DecalMeshForwardEmissive. Pass names have change, DBufferProjector and DBufferMesh now use a multi_compile DECALS_3RT DECALS_4RT to handle the differents varaint and shader stripper have been updated as well. Various Shader Decal Properties have been renamed/change to match a new set of AffectXXX properties (_AlbedoMode, _MaskBlendMode, _MaskmapMetal, _MaskmapAO, _MaskmapSmoothness, _Emissive have been change to _AffectAlbedo, _AffectNormal, _AffectAO, _AffectMetal, _AffectSmoothness, _AffectEmission - Keyword _ALBEDOCONTRIBUTION is rename _MATERIAL_AFFECTS_ALBEDO and two new keyword are added _MATERIAL_AFFECTS_NORMAL, _MATERIAL_AFFECTS_MASKMAP). Those new properties now match with properties from Decal Shader Graph which are now expose in the Material. A Material upgrade process automatically all the Decal Material. However, any C# script creating Material and manipulating those properties and keyword will need to be updated, the migration don't work on procedurally generated Decal Material.
+
 ## Custom pass API
 
 The signature of the Execute function has changed to simplify the parameters, now it only takes a CustomPassContext as its input:
 `void Execute(CustomPassContext ctx)`
 
-The CustomPassContext contains all the parameters of the old Execute function, but also all the available Render Textures as well as a MaterialPropertyBlock unique to the custom pass instance.
+The CustomPassContext contains all the parameters of the old `Execute` function, but also all the available Render Textures as well as a MaterialPropertyBlock unique to the custom pass instance.
 
-This context allows you to use the new [CustomPassUtils]( ../api/UnityEngine.Rendering.HighDefinition.CustomPassUtils.html) class which contains functions to speed up the development of your custom passes.
+This context allows you to use the new [CustomPassUtils]( ../api/UnityEngine.Rendering.HighDefinition.CustomPassUtils.md) class which contains functions to speed up the development of your custom passes.
 
-For information on custom pass utilities, see the [custom pass manual](Custom-Pass-API-User-Manual.md) or the [CustomPassUtils API documentation](../api/UnityEngine.Rendering.HighDefinition.CustomPassUtils.html).
+For information on custom pass utilities, see the [custom pass manual](Custom-Pass-API-User-Manual.md) or the [CustomPassUtils API documentation](../api/UnityEngine.Rendering.HighDefinition.CustomPassUtils.md).
 
 To upgrade your custom pass, replace the original execute function prototype with the new one. To do this, replace:
 

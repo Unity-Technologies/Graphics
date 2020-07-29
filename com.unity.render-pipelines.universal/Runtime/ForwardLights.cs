@@ -22,11 +22,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             public static int _AdditionalLightOcclusionProbeChannel;
         }
-        
+
         int m_AdditionalLightsBufferId;
         int m_AdditionalLightsIndicesId;
 
         const string k_SetupLightConstants = "Setup Light Constants";
+        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_SetupLightConstants);
         MixedLightingSetup m_MixedLightingSetup;
 
         Vector4[] m_AdditionalLightPositions;
@@ -36,7 +37,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         Vector4[] m_AdditionalLightOcclusionProbeChannels;
 
         bool m_UseStructuredBuffer;
-        
+
         public ForwardLights()
         {
             m_UseStructuredBuffer = RenderingUtils.useStructuredBuffer;
@@ -72,27 +73,29 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             int additionalLightsCount = renderingData.lightData.additionalLightsCount;
             bool additionalLightsPerVertex = renderingData.lightData.shadeAdditionalLightsPerVertex;
-            CommandBuffer cmd = CommandBufferPool.Get(k_SetupLightConstants);
-            SetupShaderLightConstants(cmd, ref renderingData);
+            CommandBuffer cmd = CommandBufferPool.Get();
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            {
+                SetupShaderLightConstants(cmd, ref renderingData);
 
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsVertex,
-                additionalLightsCount > 0 && additionalLightsPerVertex);
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsPixel,
-                additionalLightsCount > 0 && !additionalLightsPerVertex);
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive,
-                renderingData.lightData.supportsMixedLighting &&
-                m_MixedLightingSetup == MixedLightingSetup.Subtractive);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsVertex,
+                    additionalLightsCount > 0 && additionalLightsPerVertex);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsPixel,
+                    additionalLightsCount > 0 && !additionalLightsPerVertex);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive,
+                    renderingData.lightData.supportsMixedLighting &&
+                    m_MixedLightingSetup == MixedLightingSetup.Subtractive);
 
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ShadowMaskAlways,
-                renderingData.lightData.supportsMixedLighting &&
-                m_MixedLightingSetup == MixedLightingSetup.ShadowMask &&
-                QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask);
+            	CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ShadowMaskAlways,
+                	renderingData.lightData.supportsMixedLighting &&
+                	m_MixedLightingSetup == MixedLightingSetup.ShadowMask &&
+                	QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask);
 
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ShadowMaskDistance,
-                renderingData.lightData.supportsMixedLighting &&
-                m_MixedLightingSetup == MixedLightingSetup.ShadowMask &&
-                QualitySettings.shadowmaskMode == ShadowmaskMode.DistanceShadowmask);
-
+            	CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ShadowMaskDistance,
+                	renderingData.lightData.supportsMixedLighting &&
+                	m_MixedLightingSetup == MixedLightingSetup.ShadowMask &&
+                	QualitySettings.shadowmaskMode == ShadowmaskMode.DistanceShadowmask);
+            }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
@@ -192,7 +195,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     int lightIndices = cullResults.lightAndReflectionProbeIndexCount;
                     var lightIndicesBuffer = ShaderData.instance.GetLightIndicesBuffer(lightIndices);
-                    
+
                     cmd.SetGlobalBuffer(m_AdditionalLightsBufferId, lightDataBuffer);
                     cmd.SetGlobalBuffer(m_AdditionalLightsIndicesId, lightIndicesBuffer);
 
@@ -229,7 +232,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalVector(LightConstantBuffer._AdditionalLightsCount, Vector4.zero);
             }
         }
-        
+
         int SetupPerObjectLightIndices(CullingResults cullResults, ref LightData lightData)
         {
             if (lightData.additionalLightsCount == 0)
@@ -272,7 +275,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Assertions.Assert.IsTrue(lightAndReflectionProbeIndices > 0, "Pipelines configures additional lights but per-object light and probe indices count is zero.");
                 cullResults.FillLightAndReflectionProbeIndices(ShaderData.instance.GetLightIndicesBuffer(lightAndReflectionProbeIndices));
             }
-            
+
             perObjectLightIndexMap.Dispose();
             return additionalLightsCount;
         }

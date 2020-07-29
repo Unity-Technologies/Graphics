@@ -118,6 +118,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     /// 
     [ExecuteAlways, DisallowMultipleComponent]
     [AddComponentMenu("Rendering/2D/Light 2D (Experimental)")]
+    [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DLightProperties.html")]
     sealed public partial class Light2D : MonoBehaviour
     {
         /// <summary>
@@ -133,7 +134,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Global = 4
         }
 
+#if USING_ANIMATION_MODULE
         [UnityEngine.Animations.NotKeyable]
+#endif
         [SerializeField]
         LightType m_LightType = LightType.Parametric;
         LightType m_PreviousLightType = (LightType)LightType.Parametric;
