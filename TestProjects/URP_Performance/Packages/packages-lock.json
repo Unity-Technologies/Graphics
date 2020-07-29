@@ -45,7 +45,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.external.test-protocol": {
-      "version": "1.0.0-preview",
+      "version": "1.0.1-preview",
       "depth": 1,
       "source": "registry",
       "dependencies": {
@@ -111,8 +111,8 @@
       "source": "local",
       "dependencies": {
         "com.unity.mathematics": "1.1.0",
-        "com.unity.render-pipelines.core": "10.0.0-preview.23",
-        "com.unity.shadergraph": "10.0.0-preview.20"
+        "com.unity.render-pipelines.core": "10.0.0-preview.29",
+        "com.unity.shadergraph": "10.0.0-preview.26"
       }
     },
     "com.unity.searcher": {
@@ -133,7 +133,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.render-pipelines.core": "10.0.0-preview.23",
+        "com.unity.render-pipelines.core": "10.0.0-preview.29",
         "com.unity.searcher": "4.3.1"
       }
     },
@@ -155,6 +155,15 @@
       },
       "url": "https://packages.unity.com"
     },
+    "com.unity.test-framework.build": {
+      "version": "0.0.1-preview.12",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.test-framework": "1.0.17"
+      },
+      "url": "https://packages.unity.com"
+    },
     "com.unity.test-framework.performance": {
       "version": "2.0.8-preview",
       "depth": 1,
@@ -162,6 +171,16 @@
       "dependencies": {
         "com.unity.test-framework": "1.1.0",
         "com.unity.nuget.newtonsoft-json": "2.0.0-preview"
+      },
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.test-framework.utp-reporter": {
+      "version": "1.0.2-preview",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.test-framework": "1.1.1",
+        "com.unity.external.test-protocol": "1.0.1-preview"
       },
       "url": "https://packages.unity.com"
     },
