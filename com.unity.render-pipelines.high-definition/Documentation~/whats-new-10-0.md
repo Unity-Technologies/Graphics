@@ -229,9 +229,9 @@ In the past, HDRP experienced stability issues for DirectX12, Vulkan, Metal, Lin
 
 In terms of performance, one of the most resource intensive operations for HDRP is processing lights before it sends them to the GPU. For many high-end projects that include a lot of lights in their Scene, this is particularly problematic. This version of HDRP introduces an optimization that reduces the resource intensity of the light loop by up to 80% which drastically improves CPU performance in the vast majority of cases.
 
-### Decal improvement
+### Decal optimization
 
-HDRP no longer forces a full depth pre-pass when you enable decals in Deferred Lit Mode. Only materials with the **Receive Decals** property enabled render in the pre-pass. Decal shader code have been improve with less shader variant and better UI to control which attribute are affected. Finally, Decal Shader Graph now expose affects flags control on the Material.
+HDRP no longer forces a full depth pre-pass when you enable decals in Deferred Lit Mode. Only materials with the **Receive Decals** property enabled render in the pre-pass.
 
 ### Constant buffer setup optimization
 

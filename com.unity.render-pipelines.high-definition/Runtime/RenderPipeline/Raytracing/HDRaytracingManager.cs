@@ -587,7 +587,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_ValidRayTracingState && RayTracingLightClusterRequired(hdCamera))
             {
-                m_RayTracingLightCluster.CullForRayTracing(hdCamera, m_RayTracingLights);
+                m_RayTracingLightCluster.CullForRayTracing(cmd, hdCamera, m_RayTracingLights);
                 m_ValidRayTracingClusterCulling = true;
             }
         }
@@ -611,19 +611,6 @@ namespace UnityEngine.Rendering.HighDefinition
 				
 				m_RayTracingLightCluster.BuildLightClusterBuffer(cmd, hdCamera, m_RayTracingLights);
             }
-        }
-
-        internal float EvaluateHistoryValidity(HDCamera hdCamera)
-        {
-            float historyValidity = 1.0f;
-#if UNITY_HDRP_DXR_TESTS_DEFINE
-            if (Application.isPlaying)
-                historyValidity = 0.0f;
-            else
-#endif
-                // We need to check if something invalidated the history buffers
-                historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
-            return historyValidity;
         }
 
         void UpdateShaderVariablesRaytracingLightLoopCB(HDCamera hdCamera, CommandBuffer cmd)

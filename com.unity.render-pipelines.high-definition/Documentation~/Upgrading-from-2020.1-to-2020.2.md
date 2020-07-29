@@ -24,6 +24,8 @@ From Unity 2020.2, decals no longer require a full Depth Prepass. HDRP only rend
 
 From Unity 2020.2, you can use the Decal Layers system which makes use of the **Rendering Layer Mask** property from a Mesh Renderer and Terrain. The default value of this property prior to 2020.2 does not include any Decal Layer flags. This means that when you enable this feature, no Meshes receive decals until you configure them correctly. A script **Edit > Render Pipeline/HD Render Pipeline > Upgrade from Previous Version > Add Decal Layer Default to Loaded Mesh Renderers and Terrains** is provided to convert the already created Meshes, as well a version to apply only on a selection. Newly created Mesh Renderer or Terrain have the have **Decal Layer Default** enable by default.
 
+Warning: 2020.2.0b1 does not include the modification for the default value of Rendering Layer Mask. If you use this version of Unity and create a new Mesh Renderer or Terrain, they do have the correct flag.
+
 ## Lighting
 
 From Unity 2020.2, if you disable the sky override used as the **Static Lighting Sky** in the **Lighting** window, the sky no longer affects the baked lighting. Previously, the sky affected the baked lighting even when it was disabled.
@@ -99,8 +101,6 @@ From Unity 2020.2, the macro ENABLE_RAYTRACING, SHADEROPTIONS_RAYTRACING, and RA
 From Unity 2020.2,SHADERPASS for TransparentDepthPrepass and TransparentDepthPostpass identification is using respectively SHADERPASS_TRANSPARENT_DEPTH_PREPASS and SHADERPASS_TRANSPARENT_DEPTH_POSTPASS. Previously it was SHADERPASS_DEPTH_ONLY. Define CUTOFF_TRANSPARENT_DEPTH_PREPASS and CUTOFF_TRANSPARENT_DEPTH_POSTPASS and been removed as the new path macro can now be used.
 
 Unity 2020.2 introduces a new multi-compile for Depth Prepass and Motion vector pass to allow for support of the Decal Layers feature. These passes now require you to add #pragma multi_compile _ WRITE_DECAL_BUFFER.
-
-From Unity 2020.2, the shader code of Decal.shader have change. Previously the code was using around 16 passes to handle the different decal attributes rendering. This have been changed to only 4 passes: DBufferProjector, DecalProjectorForwardEmissive, DBufferMesh, DecalMeshForwardEmissive. Pass names have change, DBufferProjector and DBufferMesh now use a multi_compile DECALS_3RT DECALS_4RT to handle the differents varaint and shader stripper have been updated as well. Various Shader Decal Properties have been renamed/change to match a new set of AffectXXX properties (_AlbedoMode, _MaskBlendMode, _MaskmapMetal, _MaskmapAO, _MaskmapSmoothness, _Emissive have been change to _AffectAlbedo, _AffectNormal, _AffectAO, _AffectMetal, _AffectSmoothness, _AffectEmission - Keyword _ALBEDOCONTRIBUTION is rename _MATERIAL_AFFECTS_ALBEDO and two new keyword are added _MATERIAL_AFFECTS_NORMAL, _MATERIAL_AFFECTS_MASKMAP). Those new properties now match with properties from Decal Shader Graph which are now expose in the Material. A Material upgrade process automatically all the Decal Material. However, any C# script creating Material and manipulating those properties and keyword will need to be updated, the migration don't work on procedurally generated Decal Material.
 
 ## Custom pass API
 

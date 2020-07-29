@@ -15,9 +15,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         static readonly ShaderTagId k_LegacyPassName = new ShaderTagId("SRPDefaultUnlit");
         static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_LegacyPassName, k_CombinedRenderingPassName, k_CombinedRenderingPassNameOld };
 
-        const int k_BlendStylesCount = 4;
-        bool[] m_BlendStyleInitialized = new bool[k_BlendStylesCount];
-
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Render 2D Lighting");
         private static readonly ProfilingSampler m_ProfilingSamplerUnlit = new ProfilingSampler("Render Unlit");
 
@@ -105,11 +102,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     SortingSettings sortSettings = combinedDrawSettings.sortingSettings;
                     GetTransparencySortingMode(camera, ref sortSettings);
                     combinedDrawSettings.sortingSettings = sortSettings;
-                    normalsDrawSettings.sortingSettings = sortSettings;
+                    combinedDrawSettings.sortingSettings = sortSettings;
 
-                    for (int i = 0; i < m_BlendStyleInitialized.Length; ++i)
-                        m_BlendStyleInitialized[i] = false;
-                    
+                    const int blendStylesCount = 4;
+                    bool[] hasBeenInitialized = new bool[blendStylesCount];
                     for (int i = 0; i < s_SortingLayers.Length; i++)
                     {
 
@@ -127,15 +123,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         lightStats = Light2D.GetLightStatsByLayer(layerToRender, camera);
 
                         cmd.Clear();
-                        for (int blendStyleIndex = 0; blendStyleIndex < k_BlendStylesCount; blendStyleIndex++)
+                        for (int blendStyleIndex = 0; blendStyleIndex < blendStylesCount; blendStyleIndex++)
                         {
                             uint blendStyleMask = (uint) (1 << blendStyleIndex);
                             bool blendStyleUsed = (lightStats.blendStylesUsed & blendStyleMask) > 0;
 
-                            if (blendStyleUsed && !m_BlendStyleInitialized[blendStyleIndex])
+                            if (blendStyleUsed && !hasBeenInitialized[blendStyleIndex])
                             {
                                 RendererLighting.CreateBlendStyleRenderTexture(cmd, blendStyleIndex);
-                                m_BlendStyleInitialized[blendStyleIndex] = true;
+                                hasBeenInitialized[blendStyleIndex] = true;
                             }
 
                             RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleUsed);

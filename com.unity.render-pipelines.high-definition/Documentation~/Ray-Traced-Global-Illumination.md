@@ -1,6 +1,6 @@
 # Ray-Traced Global Illumination
 
-Ray-Traced Global Illumination is a ray tracing feature in the High Definition Render Pipeline (HDRP). It is a more accurate alternative to [Screen Space Global Illumination](Override-Screen), Light Probes and lightmaps.
+Ray-Traced Global Illumination is a ray tracing feature in the High Definition Render Pipeline (HDRP). It is a more accurate alternative to Light Probes and lightmaps.
 
 ![](Images/RayTracedGlobalIllumination1.png)
 
@@ -12,7 +12,7 @@ Ray-Traced Global Illumination is a ray tracing feature in the High Definition R
 
 ## Using Ray-Traced Global Illumination
 
-For information about ray tracing in HDRP, and how to set up your HDRP Project to support ray tracing, see [Getting started with ray tracing](Ray-Tracing-Getting-Started.html). Note that you should also enable **Screen Space Global Illumination** in your [HDRP Asset](HDRP-Asset.html).
+For information about ray tracing in HDRP, and how to set up your HDRP Project to support ray tracing, see [Getting started with ray tracing](Ray-Tracing-Getting-Started.html).
 
 ### Camera setup
 
@@ -47,8 +47,6 @@ Alongside the standard properties, Unity makes different properties available de
 | ------------------------------ | ------------------------------------------------------------ |
 | **Ray Tracing**                | Enable this to make HDRP use ray tracing to evaluate indirect diffuse lighting. This makes extra properties available that you can use to adjust the quality of Ray-Traced Global Illumination. |
 | **LayerMask**                  | Defines the layers that HDRP processes this ray-traced effect for. |
-| **Mode**                       | Defines if HDRP should evaluate the effect in **Performance** or **Quality** mode.<br/>This property only appears if you select set **Supported Ray Tracing Mode** in your HDRP Asset to **Both**. |
-| **Quality**                    | Specifies the preset HDRP uses to populate the values of the following nested properties. The options are:<br/>&#8226; **Low**: A preset that emphasizes performance over quality.<br/>&#8226; **Medium**: A preset that balances performance and quality.<br/>&#8226; **High**: A preset that emphasizes quality over performance.<br/>&#8226; **Custom**: Allows you to override each property individually.<br/>This property only appears in [Performance](Ray-Tracing-Getting-Started.md#ray-tracing-mode) mode. |
 | **Ray Length**                 | Set a value to control the length of the rays that HDRP uses for ray tracing. If a ray doesn't find an intersection, then the ray returns the color of the sky. |
 | **Clamp Value**                | Set a value to control the threshold that HDRP uses to clamp the pre-exposed value. This reduces the range of values and makes the global illumination more stable to denoise, but reduces quality. |
 | **Denoise**                    | Enable this to enable the spatio-temporal filter that HDRP uses to remove noise from the Ray-Traced Global Illumination. |

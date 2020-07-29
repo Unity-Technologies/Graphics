@@ -24,8 +24,5 @@ float _AORemapMax;
 float _MetallicScale;
 float _DecalMaskMapBlueScale;
 
-float _Smoothness;
-float _AO;
-float _Metallic;
 
 #endif

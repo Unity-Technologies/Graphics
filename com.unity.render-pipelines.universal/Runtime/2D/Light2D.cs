@@ -134,9 +134,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Global = 4
         }
 
-#if USING_ANIMATION_MODULE
         [UnityEngine.Animations.NotKeyable]
-#endif
         [SerializeField]
         LightType m_LightType = LightType.Parametric;
         LightType m_PreviousLightType = (LightType)LightType.Parametric;

@@ -35,7 +35,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Surface Type & Blend Mode
             context.AddField(Fields.SurfaceTransparent);
             context.AddField(Fields.BlendAlpha);
-            context.AddField(Fields.DoubleSided);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)

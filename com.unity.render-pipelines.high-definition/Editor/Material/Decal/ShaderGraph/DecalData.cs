@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        bool m_AffectsAO = false;
+        bool m_AffectsAO = true;
         public bool affectsAO
         {
             get => m_AffectsAO;
@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        bool m_AffectsEmission = false;
+        bool m_AffectsEmission = true;
         public bool affectsEmission
         {
             get => m_AffectsEmission;
@@ -61,7 +61,5 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_DrawOrder;
             set => m_DrawOrder = value;
         }
-
-        public bool affectsMaskmap => affectsSmoothness || affectsMetal || affectsAO;
     }
 }

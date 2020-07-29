@@ -268,19 +268,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (aoDenoiseParameters.denoise)
             {
-                // Prepare and execute the temporal filter
+                // Apply the temporal denoiser
                 HDTemporalFilter temporalFilter = m_RenderPipeline.GetTemporalFilter();
-                TemporalFilterParameters tfParameters = temporalFilter.PrepareTemporalFilterParameters(hdCamera, true, aoDenoiseParameters.historyValidity);
-                RTHandle validationBuffer = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.R0);
-                TemporalFilterResources tfResources = temporalFilter.PrepareTemporalFilterResources(hdCamera, validationBuffer, aoDenoiseResources.inputTexture, aoDenoiseResources.ambientOcclusionHistory, aoDenoiseResources.intermediateBuffer);
-                HDTemporalFilter.DenoiseBuffer(cmd, tfParameters, tfResources);
+                temporalFilter.DenoiseBuffer(cmd, hdCamera, aoDenoiseResources.inputTexture, aoDenoiseResources.ambientOcclusionHistory, aoDenoiseResources.intermediateBuffer, historyValidity: aoDenoiseParameters.historyValidity);
 
                 // Apply the diffuse denoiser
                 HDDiffuseDenoiser diffuseDenoiser = m_RenderPipeline.GetDiffuseDenoiser();
-                DiffuseDenoiserParameters ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, true, aoDenoiseParameters.denoiserRadius, false);
-                RTHandle intermediateBuffer = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
-                DiffuseDenoiserResources ddResources = diffuseDenoiser.PrepareDiffuseDenoiserResources(aoDenoiseResources.intermediateBuffer, intermediateBuffer, aoDenoiseResources.outputTexture);
-                HDDiffuseDenoiser.DenoiseBuffer(cmd, ddParams, ddResources);
+                diffuseDenoiser.DenoiseBuffer(cmd, hdCamera, aoDenoiseResources.intermediateBuffer, aoDenoiseResources.outputTexture, aoDenoiseParameters.denoiserRadius);
             }
             else
             {

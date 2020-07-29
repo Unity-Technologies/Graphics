@@ -1,10 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.HighDefinition;
-
-// Include material common properties names
-using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -16,15 +11,13 @@ namespace UnityEditor.Rendering.HighDefinition
         [Flags]
         enum Expandable : uint
         {
-            SurfaceOptions = 1 << 0,
-            SurfaceInputs = 1 << 1,
-            Sorting = 1 << 2,
+            Sorting = 1 << 0,
+            ShaderGraph = 1 << 1,
         }
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
-            new DecalSurfaceOptionsUIBlock((MaterialUIBlock.Expandable)Expandable.SurfaceOptions),
-            new ShaderGraphUIBlock((MaterialUIBlock.Expandable)Expandable.SurfaceInputs, ShaderGraphUIBlock.Features.None),
+            new ShaderGraphUIBlock((MaterialUIBlock.Expandable)Expandable.ShaderGraph, ShaderGraphUIBlock.Features.None),
             new DecalSortingInputsUIBlock((MaterialUIBlock.Expandable)Expandable.Sorting),
         };
 
@@ -44,12 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition
             materialEditor.serializedObject.ApplyModifiedProperties();
         }
 
-        // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
-        static public void SetupMaterialKeywordsAndPass(Material material)
-        {
-            DecalUI.SetupCommonDecalMaterialKeywordsAndPass(material);
-        }
-
-        protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
+        // We don't have any keyword/pass to setup currently for decal shader graphs
+        protected override void SetupMaterialKeywordsAndPassInternal(Material material) {}
     }
 }

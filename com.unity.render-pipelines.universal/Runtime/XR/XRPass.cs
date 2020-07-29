@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.Universal
 
     class XRPass
     {
-        internal List<XRView> views = new List<XRView>(2);
+        readonly List<XRView> views = new List<XRView>(2);
 
         internal bool enabled      { get => views.Count > 0; }
         internal bool xrSdkEnabled { get; private set; }
@@ -152,28 +152,6 @@ namespace UnityEngine.Rendering.Universal
             passInfo.copyDepth = false;
 
             return passInfo;
-        }
-
-        internal void UpdateView(int viewId, XRDisplaySubsystem.XRRenderPass xrSdkRenderPass, XRDisplaySubsystem.XRRenderParameter xrSdkRenderParameter)
-        {
-            if (viewId >= views.Count)
-                throw new NotImplementedException($"Invalid XR setup to update, trying to update non-existing xr view.");
-
-            views[viewId] = new XRView(xrSdkRenderPass, xrSdkRenderParameter);
-        }
-
-        internal void UpdateView(int viewId, Matrix4x4 proj, Matrix4x4 view, Rect vp, int textureArraySlice = -1)
-        {
-            if (viewId >= views.Count)
-                throw new NotImplementedException($"Invalid XR setup to update, trying to update non-existing xr view.");
-
-            views[viewId] = new XRView(proj, view, vp, textureArraySlice);
-        }
-
-        internal void UpdateCullingParams(int cullingPassId, ScriptableCullingParameters cullingParams)
-        {
-            this.cullingPassId = cullingPassId;
-            this.cullingParams = cullingParams;
         }
 
         internal void AddView(Matrix4x4 proj, Matrix4x4 view, Rect vp, int textureArraySlice = -1)
@@ -290,7 +268,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal void EndCamera(CommandBuffer cmd, CameraData cameraData)
+        internal void EndCamera(CommandBuffer cmd, Camera camera)
         {
             if (!enabled)
                 return;
@@ -302,7 +280,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 using (new ProfilingScope(cmd, _XRCustomMirrorProfilingSampler))
                 {
-                    customMirrorView(this, cmd, cameraData.targetTexture, cameraData.pixelRect);
+                    customMirrorView(this, cmd, camera.targetTexture, camera.pixelRect);
                 }
             }
         }
@@ -333,7 +311,6 @@ namespace UnityEngine.Rendering.Universal
         // Store array to avoid allocating every frame
         private Matrix4x4[] stereoProjectionMatrix = new Matrix4x4[2];
         private Matrix4x4[] stereoViewMatrix = new Matrix4x4[2];
-        private Matrix4x4[] stereoCameraProjectionMatrix = new Matrix4x4[2];
 
         internal void UpdateGPUViewAndProjectionMatrices(CommandBuffer cmd, ref CameraData cameraData, bool isRenderToTexture)
         {
@@ -344,11 +321,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 for (int i = 0; i < 2; i++)
                 {
-                    stereoCameraProjectionMatrix[i] = cameraData.xr.GetProjMatrix(i);
                     stereoViewMatrix[i] = cameraData.xr.GetViewMatrix(i);
-                    stereoProjectionMatrix[i] = GL.GetGPUProjectionMatrix(stereoCameraProjectionMatrix[i], isRenderToTexture);
+                    stereoProjectionMatrix[i] = GL.GetGPUProjectionMatrix(cameraData.xr.GetProjMatrix(i), isRenderToTexture);
                 }
-                RenderingUtils.SetStereoViewAndProjectionMatrices(cmd, stereoViewMatrix, stereoProjectionMatrix, stereoCameraProjectionMatrix, true);
+                RenderingUtils.SetStereoViewAndProjectionMatrices(cmd, stereoViewMatrix, stereoProjectionMatrix, true);
             }
         }
     }
@@ -364,7 +340,7 @@ namespace UnityEngine.Rendering.Universal
         internal bool enabled { get => false; }
         internal void StartSinglePass(CommandBuffer cmd) { }
         internal void StopSinglePass(CommandBuffer cmd) { }
-        internal void EndCamera(CommandBuffer cmd, CameraData camera) { }
+        internal void EndCamera(CommandBuffer cmd, Camera camera) { }
     }
 }
 #endif

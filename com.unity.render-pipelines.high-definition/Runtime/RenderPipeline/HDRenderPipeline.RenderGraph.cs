@@ -288,15 +288,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var renderGraphParams = new RenderGraphExecuteParams()
             {
-                scriptableRenderContext = renderContext,
-                commandBuffer = cmd,
                 renderingWidth = hdCamera.actualWidth,
                 renderingHeight = hdCamera.actualHeight,
                 msaaSamples = msaaSample,
                 currentFrameIndex = frameIndex
             };
 
-            renderGraph.Execute(renderGraphParams);
+            renderGraph.Execute(renderContext, cmd, renderGraphParams);
         }
 
         class FinalBlitPassData
@@ -867,7 +865,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (RenderForwardEmissivePassData data, RenderGraphContext context) =>
                 {
-                    CoreUtils.DrawRendererList(context.renderContext, context.cmd, data.rendererList);
+                    HDUtils.DrawRendererList(context.renderContext, context.cmd, data.rendererList);
                     if (data.enableDecals)
                         DecalSystem.instance.RenderForwardEmissive(context.cmd);
                 });
@@ -893,7 +891,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (ForwardPassData data, RenderGraphContext context) =>
                     {
-                        CoreUtils.DrawRendererList(context.renderContext, context.cmd, data.rendererList);
+                        HDUtils.DrawRendererList(context.renderContext, context.cmd, data.rendererList);
                     });
             }
         }

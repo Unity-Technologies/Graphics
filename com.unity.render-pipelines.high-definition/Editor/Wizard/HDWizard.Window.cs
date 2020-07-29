@@ -138,16 +138,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 error: "Direct3D 12 is needed! (Editor restart is required)");
             public static readonly ConfigStyle dxrScreenSpaceShadow = new ConfigStyle(
                 label: "Screen Space Shadow",
-                error: "Screen Space Shadows are disabled in the current HDRP asset. You will not be able to toggle ray traced shadows on the lights in your scene. You can enable the feature in the HDRP asset under Lighting -> Shadows -> Screen Space Shadows", messageType: MessageType.Info);
+                error: "Screen Space Shadow is required!");
             public static readonly ConfigStyle dxrReflections = new ConfigStyle(
                 label: "Reflections",
-                error: "Screen Space Reflections are disabled in the current HDRP asset. You will not be able to toggle ray traced reflections though your volume components. You can enable the feature in the HDRP asset under Lighting -> Reflections -> Screen Space Reflections", messageType: MessageType.Info);
-            public static readonly ConfigStyle dxrTransparentReflections = new ConfigStyle(
-                label: "Transparent Reflections",
-                error: "Transparent Screen Space Reflections are disabled in the current HDRP asset. You will not be able to toggle ray traced reflections on transparent objects though your volume components. You can enable the feature in the HDRP asset under Lighting -> Reflections -> Transparent Screen Space Reflections", messageType: MessageType.Info);
-            public static readonly ConfigStyle dxrGI = new ConfigStyle(
-                label: "Global Illumination",
-                error: "Screen Space Global Illumination is disabled in the current HDRP asset. You will not be able to toggle ray global illumination though your volume components. You can enable the feature in the HDRP asset under Lighting -> Screen Space Global Illumination", messageType: MessageType.Info);
+                error: "Screen Space Reflections are required!");
             public static readonly ConfigStyle dxrStaticBatching = new ConfigStyle(
                 label: "Static Batching",
                 error: "Static Batching is not supported!");
@@ -484,8 +478,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     () => entry.check(),
                     entry.fix == null ? (Action)null : () => entry.fix(fromAsync: false),
                     entry.indent,
-                    entry.configStyle.messageType == MessageType.Error || entry.forceDisplayCheck,
-                    entry.skipErrorIcon));
+                    entry.configStyle.messageType == MessageType.Error));
         }
 
         void AddHDRPConfigInfo(VisualElement container)
@@ -493,7 +486,7 @@ namespace UnityEditor.Rendering.HighDefinition
         void AddVRConfigInfo(VisualElement container)
             => GroupEntriesForDisplay(container, InclusiveScope.VR);
         void AddDXRConfigInfo(VisualElement container)
-            => GroupEntriesForDisplay(container, InclusiveScope.DXROptional);
+            => GroupEntriesForDisplay(container, InclusiveScope.DXR);
 
         Label CreateTitle(string title)
         {

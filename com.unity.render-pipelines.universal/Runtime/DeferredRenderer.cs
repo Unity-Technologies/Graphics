@@ -168,12 +168,6 @@ namespace UnityEngine.Rendering.Universal
                 cameraStacking = false,
                 msaa = false,
             };
-
-            unsupportedGraphicsDeviceTypes = new GraphicsDeviceType[] {
-                GraphicsDeviceType.OpenGLCore,
-                GraphicsDeviceType.OpenGLES2,
-                GraphicsDeviceType.OpenGLES3
-            };
         }
 
         /// <inheritdoc />
@@ -255,6 +249,9 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
 
                 CreateCameraRenderTarget(context, ref renderingData.cameraData, m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
+
+                if (Camera.main == camera && camera.cameraType == CameraType.Game && cameraData.targetTexture == null)
+                    SetupBackbufferFormat(1, cameraData.xr.enabled);
             }
             else
             {

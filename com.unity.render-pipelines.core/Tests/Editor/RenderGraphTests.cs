@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Tests
 {
     class RenderGraphTests
     {
-        RenderGraph m_RenderGraph = new RenderGraph();
+        RenderGraph m_RenderGraph = new RenderGraph(false, MSAASamples.None);
 
         [SetUp]
         public void SetupRenderGraph()

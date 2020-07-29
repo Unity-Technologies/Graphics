@@ -159,8 +159,7 @@ namespace UnityEngine.Rendering
                     ScalableBufferManager.ResizeBuffers(m_CurrentFraction, m_CurrentFraction);
                 }
 
-                if(OnResolutionChange != null)
-                    OnResolutionChange();
+                OnResolutionChange();
             }
             else
             {
@@ -170,8 +169,7 @@ namespace UnityEngine.Rendering
                     if(ScalableBufferManager.widthScaleFactor != m_PrevHWScaleWidth  ||
                         ScalableBufferManager.heightScaleFactor != m_PrevHWScaleHeight)
                     {
-                        if (OnResolutionChange != null)
-                            OnResolutionChange();
+                        OnResolutionChange();
                     }
                 }
             }

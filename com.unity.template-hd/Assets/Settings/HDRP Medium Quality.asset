@@ -249,7 +249,7 @@ MonoBehaviour:
       cookieFormat: 74
       cookieAtlasLastValidMip: 0
       cookieTexArraySize: 16
-      planarReflectionAtlasSize: 1024
+      planarReflectionAtlasSize: 512
       reflectionProbeCacheSize: 32
       reflectionCubemapSize: 256
       reflectionCacheCompressed: 1

@@ -118,8 +118,6 @@ NavMeshSettings:
     manualTileSize: 0
     tileSize: 256
     accuratePlacement: 0
-    maxJobWorkers: 0
-    preserveTilesOutsideBounds: 0
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
@@ -277,11 +275,6 @@ PrefabInstance:
       propertyPath: waitFrames
       value: 5
       objectReference: {fileID: 0}
-    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: renderGraphCompatible
-      value: 0
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
 --- !u!1 &930401665
@@ -315,6 +308,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Profile: {fileID: 11400000, guid: 919acda9bae911e4fac8930ea8b43b73, type: 2}
   m_StaticLightingSkyUniqueID: 0
+  m_SkySettings: {fileID: 0}
+  m_SkySettingsFromProfile: {fileID: 0}
 --- !u!4 &930401667
 Transform:
   m_ObjectHideFlags: 1
@@ -520,7 +515,7 @@ PrefabInstance:
     - target: {fileID: 8260598193632443328, guid: 2fa6f5d58b5b25c4291462020a1cc105,
         type: 3}
       propertyPath: m_AreaSize.y
-      value: 2.000008
+      value: 2.000009
       objectReference: {fileID: 0}
     - target: {fileID: 8260598193632443329, guid: 2fa6f5d58b5b25c4291462020a1cc105,
         type: 3}
@@ -541,21 +536,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_FilterSizeTraced
       value: 8
-      objectReference: {fileID: 0}
-    - target: {fileID: 8260598193632443335, guid: 2fa6f5d58b5b25c4291462020a1cc105,
-        type: 3}
-      propertyPath: m_Version
-      value: 11
-      objectReference: {fileID: 0}
-    - target: {fileID: 8260598193632443335, guid: 2fa6f5d58b5b25c4291462020a1cc105,
-        type: 3}
-      propertyPath: m_AreaLightEmissiveMeshShadowCastingMode
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8260598193632443335, guid: 2fa6f5d58b5b25c4291462020a1cc105,
-        type: 3}
-      propertyPath: m_AreaLightEmissiveMeshMotionVectorGenerationMode
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8260598193881476736, guid: 2fa6f5d58b5b25c4291462020a1cc105,
         type: 3}
@@ -622,7 +602,5 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 8260598193632443333, guid: 2fa6f5d58b5b25c4291462020a1cc105, type: 3}
-    - {fileID: 8260598193632443334, guid: 2fa6f5d58b5b25c4291462020a1cc105, type: 3}
+    m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2fa6f5d58b5b25c4291462020a1cc105, type: 3}

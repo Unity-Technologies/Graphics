@@ -17,9 +17,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] float m_PointLightOuterRadius = 1.0f;
         [SerializeField] float m_PointLightDistance = 3.0f;
 
-#if USING_ANIMATION_MODULE        
         [UnityEngine.Animations.NotKeyable]
-#endif
         [SerializeField] PointLightQuality m_PointLightQuality = PointLightQuality.Accurate;
 
         public float pointLightInnerAngle

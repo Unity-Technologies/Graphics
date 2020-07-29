@@ -154,7 +154,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             }
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             // -------------------------------------

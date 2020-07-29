@@ -137,7 +137,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Enable XR layout only for game camera
             bool isGameCamera = (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR);
-            bool xrSupported = isGameCamera && camera.targetTexture == null && cameraData.xrRendering;
+            bool xrSupported = isGameCamera && camera.targetTexture == null;
 
             if (XRGraphicsAutomatedTests.enabled && XRGraphicsAutomatedTests.running && isGameCamera && LayoutSinglePassTestMode(cameraData, new XRLayout() { camera = camera, xrSystem = this }))
             {
@@ -152,6 +152,7 @@ namespace UnityEngine.Rendering.Universal
                 else
                     QualitySettings.vSyncCount = 0;
 
+                // XRTODO: handle camera.stereoTargetEye here ? or just add xrRendering on the camera ?
                 CreateLayoutFromXrSdk(camera, singlePassAllowed: true);
             }
             else
@@ -202,45 +203,32 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Used for camera stacking where we need to update the parameters per camera
-        internal void UpdateFromCamera(ref XRPass xrPass, CameraData cameraData)
+        internal void UpdateFromCamera(ref XRPass xrPass, Camera camera)
         {
-            bool isGameCamera = (cameraData.camera.cameraType == CameraType.Game || cameraData.camera.cameraType == CameraType.VR);
-            if (XRGraphicsAutomatedTests.enabled && XRGraphicsAutomatedTests.running && isGameCamera)
-            {
-                // XR test framework code path. Update 2nd view with camera's view projection data
-                Matrix4x4 projMatrix = cameraData.camera.projectionMatrix;
-                Matrix4x4 viewMatrix = cameraData.camera.worldToCameraMatrix;
-                Rect      viewport = new Rect(0, 0, testRenderTexture.width, testRenderTexture.height);
-                int       textureArraySlice = -1;
-                xrPass.UpdateView(1, projMatrix, viewMatrix, viewport, textureArraySlice);
-
-                // Update culling params for this xr pass using camera's culling params
-                cameraData.camera.TryGetCullingParameters(false, out var cullingParams);
-                //// Disable legacy stereo culling path
-                cullingParams.cullingOptions &= ~CullingOptions.Stereo;
-                xrPass.UpdateCullingParams(0, cullingParams);
-            }
-            else if (xrPass.enabled && display != null)
+            if (xrPass.enabled && display != null)
             {
                 display.GetRenderPass(xrPass.multipassId, out var renderPass);
-                display.GetCullingParameters(cameraData.camera, renderPass.cullingPassIndex, out var cullingParams);
+                display.GetCullingParameters(camera, renderPass.cullingPassIndex, out var cullingParams);
+
                 // Disable legacy stereo culling path
                 cullingParams.cullingOptions &= ~CullingOptions.Stereo;
 
-                xrPass.UpdateCullingParams(cullingPassId: renderPass.cullingPassIndex, cullingParams);
                 if (xrPass.singlePassEnabled)
                 {
+                    xrPass = XRPass.Create(renderPass, multipassId: xrPass.multipassId, cullingParams, occlusionMeshMaterial);
 
                     for (int renderParamIndex = 0; renderParamIndex < renderPass.GetRenderParameterCount(); ++renderParamIndex)
                     {
-                        renderPass.GetRenderParameter(cameraData.camera, renderParamIndex, out var renderParam);
-                        xrPass.UpdateView(renderParamIndex, renderPass, renderParam);
+                        renderPass.GetRenderParameter(camera, renderParamIndex, out var renderParam);
+                        xrPass.AddView(renderPass, renderParam);
                     }
                 }
                 else
                 {
-                    renderPass.GetRenderParameter(cameraData.camera, 0, out var renderParam);
-                    xrPass.UpdateView(0, renderPass, renderParam);
+                    renderPass.GetRenderParameter(camera, 0, out var renderParam);
+
+                    xrPass = XRPass.Create(renderPass, multipassId: xrPass.multipassId, cullingParams, occlusionMeshMaterial);
+                    xrPass.AddView(renderPass, renderParam);
                 }
             }
         }
@@ -331,6 +319,7 @@ namespace UnityEngine.Rendering.Universal
             using (new ProfilingScope(cmd, _XRMirrorProfilingSampler))
             {
                 cmd.SetRenderTarget(camera.targetTexture != null  ? camera.targetTexture : new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget));
+                cmd.SetViewport(camera.pixelRect);
                 bool yflip = camera.targetTexture != null || camera.cameraType == CameraType.SceneView || camera.cameraType == CameraType.Preview;
                 int mirrorBlitMode = display.GetPreferredMirrorBlitMode();
                 if (display.GetMirrorViewBlitDesc(null, out var blitDesc, mirrorBlitMode))
@@ -349,7 +338,7 @@ namespace UnityEngine.Rendering.Universal
                                                         new Vector4(blitParam.srcRect.width, blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.y);
                             Vector4 scaleBiasRt = new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y);
 
-                            mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBRead, (blitParam.srcTex.sRGB) ? 0 : 1);
+                            mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBRead, (!display.sRGB || blitParam.srcTex.sRGB) ? 0 : 1);
                             mirrorViewMaterialProperty.SetTexture(ShaderPropertyId.sourceTex, blitParam.srcTex);
                             mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBias, scaleBias);
                             mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
@@ -371,7 +360,7 @@ namespace UnityEngine.Rendering.Universal
         {
             Camera camera = frameLayout.camera;
 
-            if (camera == null)
+            if (camera == null || camera != Camera.main)
                 return false;
 
             if (camera.TryGetCullingParameters(false, out var cullingParams))
@@ -385,12 +374,7 @@ namespace UnityEngine.Rendering.Universal
                     RenderTextureDescriptor rtDesc = cameraData.cameraTargetDescriptor;
                     rtDesc.dimension = TextureDimension.Tex2DArray;
                     rtDesc.volumeDepth = 2;
-                    // If camera renders to subrect and it renders to backbuffer, we adjust size to match back buffer
-                    if(!cameraData.isDefaultViewport && cameraData.targetTexture == null)
-                    {
-                        rtDesc.width = (int)(rtDesc.width / cameraData.camera.rect.width);
-                        rtDesc.height = (int)(rtDesc.height / cameraData.camera.rect.height);
-                    }
+
                     testRenderTexture = RenderTexture.GetTemporary(rtDesc);
                 }
 
@@ -408,7 +392,7 @@ namespace UnityEngine.Rendering.Universal
                         scaleBias.w = 1.0f;
                     }
 
-                    mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBRead, (testRenderTexture.sRGB) ? 0 : 1);
+                    mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBRead, (rt != null && rt.sRGB) ? 0 : 1);
                     mirrorViewMaterialProperty.SetTexture(ShaderPropertyId.sourceTex, testRenderTexture);
                     mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBias, scaleBias);
                     mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBiasRt, scaleBiasRT);
@@ -433,7 +417,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     projMatrix = camera.projectionMatrix,
                     viewMatrix = camera.worldToCameraMatrix,
-                    viewport = new Rect(0, 0, testRenderTexture.width, testRenderTexture.height),
+                    viewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight),
                     textureArraySlice = -1
                 };
 

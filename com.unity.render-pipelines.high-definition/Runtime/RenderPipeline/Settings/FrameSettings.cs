@@ -747,8 +747,8 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AlphaToMask] &= msaa;
 
             // No recursive reflections
-            bool ssr = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSR] &= renderPipelineSettings.supportSSR && !msaa && !preview;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentSSR] &= ssr && renderPipelineSettings.supportSSRTransparent;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSR] &= renderPipelineSettings.supportSSR && !msaa && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentSSR] &= renderPipelineSettings.supportSSRTransparent && renderPipelineSettings.supportSSR && !msaa && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Refraction] &= !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAO] &= renderPipelineSettings.supportSSAO && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSGI] &= renderPipelineSettings.supportSSGI && !preview;

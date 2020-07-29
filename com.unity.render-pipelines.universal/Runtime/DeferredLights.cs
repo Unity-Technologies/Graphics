@@ -464,9 +464,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 using (new ProfilingScope(cmd, m_ProfilingSetupLightConstants))
                 {
                     SetupShaderLightConstants(cmd, ref renderingData);
+                    context.ExecuteCommandBuffer(cmd);
                 }
 
-                context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }
 
