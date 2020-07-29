@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         void InitializeProbeConstants(NativeArray<VisibleReflectionProbe> probes, int probeIndex, out Vector4 probePosition, out Vector4 probeBoxMin, out Vector4 probeBoxMax)
         {
             var probeData = probes[probeIndex];
-            probePosition = probeData.center;
+            probePosition = probeData.center;  // #note this may not be world position but offset? And thus be incorrect? 
             probePosition.w = (probeData.isBoxProjection) ? 1f : 0f;
             probeBoxMin = probeData.bounds.min;
             probeBoxMax = probeData.bounds.max;
