@@ -45,11 +45,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             descriptor.depthBufferBits = 32; //TODO: do we really need this. double check;
             descriptor.msaaSamples = 1;
             if (this.AllocateRT)
-                cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point); 
-        }
-
-        public override void Configure(CommandBuffer cmd, ref RenderingData renderingData)
-        {
+                cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
             ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1));
             ConfigureClear(ClearFlag.None, Color.black);
         }

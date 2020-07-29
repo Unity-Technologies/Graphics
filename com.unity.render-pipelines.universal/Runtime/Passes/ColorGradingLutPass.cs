@@ -70,10 +70,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             var desc = new RenderTextureDescriptor(lutWidth, lutHeight, format, 0);
             desc.vrUsage = VRTextureUsage.None; // We only need one for both eyes in VR
             cmd.GetTemporaryRT(m_InternalLut.id, desc, FilterMode.Bilinear);
-        }
-
-        public override void Configure(CommandBuffer cmd, ref RenderingData renderingData)
-        {
             ConfigureTarget(m_InternalLut.Identifier());
             ConfigureClear(ClearFlag.None, Color.black);
         }

@@ -656,7 +656,7 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingSetRenderTarget))
             {
-                renderPass.Configure(cmd, ref renderingData);
+                renderPass.Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
 
                 ClearFlag cameraClearFlag = GetCameraClearFlag(ref cameraData);
 
@@ -666,12 +666,6 @@ namespace UnityEngine.Rendering.Universal
 
                 RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment;
                 RenderTargetIdentifier passDepthAttachment = renderPass.depthAttachment;
-
-                if (!renderPass.overrideCameraTarget)
-                {
-                    passColorAttachment = m_CameraColorTarget;
-                    passDepthAttachment = m_CameraDepthTarget;
-                }
 
                 var renderTextureNone = GetRenderTexture(UniversalRenderTextureType.None);
                 if (passColorAttachment == currentActiveTarget)

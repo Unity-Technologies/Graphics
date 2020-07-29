@@ -62,10 +62,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             cmd.GetTemporaryRT(destination.id, descriptor, m_DownsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
-        }
-
-        public override void Configure(CommandBuffer cmd, ref RenderingData renderingData)
-        {
             ConfigureTarget(destination.Identifier());
             ConfigureClear(clearFlag, clearColor);
         }
