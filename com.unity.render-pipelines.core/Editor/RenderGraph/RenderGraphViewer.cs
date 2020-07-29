@@ -22,7 +22,7 @@ public class RenderGraphViewer : EditorWindow
     }
 
     VisualElement m_Root;
-    VisualElement m_EmptyCorner;
+    VisualElement m_Corner;
     VisualElement m_ResourceLifeTimeContainer;
     float m_PassNamesContainerHeight = 0.0f;
 
@@ -37,7 +37,7 @@ public class RenderGraphViewer : EditorWindow
         m_PassNamesContainerHeight = Mathf.Max(label.parent.parent.style.height.value.value, desiredHeight);
         label.parent.parent.style.height = m_PassNamesContainerHeight;
 
-        m_EmptyCorner.style.height = m_PassNamesContainerHeight;
+        m_Corner.style.height = m_PassNamesContainerHeight;
     }
 
     int[] resourceReads = { 1, 4, 3 };
@@ -46,6 +46,7 @@ public class RenderGraphViewer : EditorWindow
     StyleColor m_ResourceColorRead = new StyleColor(new Color(0.2f, 1.0f, 0.2f));
     StyleColor m_ResourceColorWrite = new StyleColor(new Color(1.0f, 0.2f, 0.2f));
     StyleColor m_OriginalResourceLifeColor;
+    StyleColor m_BorderColor = new StyleColor(new Color(0.6f, 0.6f, 0.6f));
 
 
     void MouseEnterPassCallback(MouseEnterEvent evt, int index)
@@ -109,7 +110,7 @@ public class RenderGraphViewer : EditorWindow
     {
         var container = evt.currentTarget as VisualElement;
         //var width = container.style.width;
-        m_EmptyCorner.style.width = evt.newRect.width;
+        m_Corner.style.width = evt.newRect.width;
     }
 
     VisualElement CreateResourceLabel(string name)
@@ -123,6 +124,34 @@ public class RenderGraphViewer : EditorWindow
         return label;
     }
 
+    VisualElement CreateCornerLegend(string name, StyleColor color)
+    {
+        VisualElement legend = new VisualElement();
+        legend.style.flexDirection = FlexDirection.Row;
+        legend.Add(new Label(name));
+        Button button = new Button();
+        button.style.width = kRenderPassWidth * 2;
+        button.style.backgroundColor = color;
+        button.style.marginBottom = 0.0f;
+        button.style.marginLeft = 0.0f;
+        button.style.marginRight = 0.0f;
+        button.style.marginTop = 0.0f;
+        legend.Add(button);
+        return legend;
+    }
+
+    void ApplyBorder(VisualElement element)
+    {
+        //element.style.borderBottomColor = m_BorderColor;
+        //element.style.borderLeftColor = m_BorderColor;
+        //element.style.borderRightColor = m_BorderColor;
+        //element.style.borderTopColor = m_BorderColor;
+        //element.style.borderBottomWidth = 1.0f;
+        //element.style.borderLeftWidth = 1.0f;
+        //element.style.borderRightWidth = 1.0f;
+        //element.style.borderTopWidth = 1.0f;
+    }
+
     void OnEnable()
     {
         titleContent = Style.title;
@@ -133,14 +162,22 @@ public class RenderGraphViewer : EditorWindow
         topRowContainer.name = "TopRowContainer";
         topRowContainer.style.flexDirection = FlexDirection.Row;
 
-        m_EmptyCorner = new VisualElement();
-        m_EmptyCorner.name = "EmptyCorner";
+        m_Corner = new VisualElement();
+        m_Corner.name = "Corner";
+        m_Corner.style.flexDirection = FlexDirection.Column;
+        m_Corner.style.justifyContent = Justify.Center;
+        m_Corner.Add(CreateCornerLegend("Resource Read", m_ResourceColorRead));
+        m_Corner.Add(CreateCornerLegend("Resource Write", m_ResourceColorWrite));
+        ApplyBorder(m_Corner);
+
+
         //m_EmptyCorner.style.width = 100.0f;
-        topRowContainer.Add(m_EmptyCorner);
+        topRowContainer.Add(m_Corner);
 
         var passNamesContainer = new VisualElement();
         passNamesContainer.name = "PassNamesContainer";
         passNamesContainer.style.flexDirection = FlexDirection.Row;
+        ApplyBorder(passNamesContainer);
         //passNamesPanel.style.justifyContent = Justify.FlexStart;
         //passNamesPanel.style.alignContent = Align.FlexEnd;
         //passNamesPanel.style.height = 100.0f;
@@ -159,6 +196,7 @@ public class RenderGraphViewer : EditorWindow
         topRowContainer.Add(passNamesContainer);
 
         var resourceContainer = new VisualElement();
+        ApplyBorder(resourceContainer);
         resourceContainer.name = "ResourceContainer";
         resourceContainer.style.flexDirection = FlexDirection.Row;
 
@@ -168,6 +206,7 @@ public class RenderGraphViewer : EditorWindow
         resourceNamesContainer.RegisterCallback<GeometryChangedEvent>(ResourceNamesContainerChanged);
 
         m_ResourceLifeTimeContainer = new VisualElement();
+        ApplyBorder(m_ResourceLifeTimeContainer);
         m_ResourceLifeTimeContainer.name = "ResourceLifeTimeContainer";
         m_ResourceLifeTimeContainer.style.flexDirection = FlexDirection.Column;
         m_ResourceLifeTimeContainer.style.width = kRenderPassWidth * passNames.Length;
