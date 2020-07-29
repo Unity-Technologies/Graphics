@@ -204,7 +204,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        string                                  m_Name;
         RenderGraphResourceRegistry             m_Resources;
         RenderGraphObjectPool                   m_RenderGraphPool = new RenderGraphObjectPool();
         List<RenderGraphPass>                   m_RenderPasses = new List<RenderGraphPass>(64);
@@ -221,7 +220,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         DynamicArray<CompiledPassInfo>          m_CompiledPassInfos = new DynamicArray<CompiledPassInfo>();
         Stack<int>                              m_CullingStack = new Stack<int>();
 
+        // Global list of living render graphs
+        static List<RenderGraph>                s_RegisteredGraphs = new List<RenderGraph>();
+
         #region Public Interface
+        /// <summary>Name of the Render Graph.</summary>
+        public string name { get; private set; } = "RenderGraph";
 
         /// <summary>
         /// Set of default resources usable in a pass rendering code.
@@ -241,7 +245,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <param name="name">Optional name used to identify the render graph instnace.</param>
         public RenderGraph(string name = "")
         {
-            m_Name = name;
+            this.name = name;
             m_Resources = new RenderGraphResourceRegistry(m_DebugParameters, m_Logger);
 
             for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
@@ -249,7 +253,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 m_CompiledResourcesInfos[i] = new DynamicArray<CompiledResourceInfo>();
             }
 
-            m_DebugParameters.RegisterDebug(m_Name);
+            m_DebugParameters.RegisterDebug(this.name);
+
+            s_RegisteredGraphs.Add(this);
         }
 
         /// <summary>
@@ -257,9 +263,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         public void Cleanup()
         {
-            m_DebugParameters.UnRegisterDebug(m_Name);
+            m_DebugParameters.UnRegisterDebug(this.name);
             m_Resources.Cleanup();
             m_DefaultResources.Cleanup();
+
+            s_RegisteredGraphs.Remove(this);
         }
 
         /// <summary>
@@ -434,7 +442,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
         #endregion
 
-        #region Private Interface
+        #region Internal Interface
+        internal static List<RenderGraph>  GetRegisteredRenderGraphs()
+        {
+            return s_RegisteredGraphs;
+        }
 
         // Internal for testing purpose only
         internal DynamicArray<CompiledPassInfo> GetCompiledPassInfos() { return m_CompiledPassInfos; }
@@ -450,6 +462,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 m_CompiledResourcesInfos[i].Clear();
             m_CompiledPassInfos.Clear();
         }
+        #endregion
+
+        #region Private Interface
 
         void InitResourceInfosData(DynamicArray<CompiledResourceInfo> resourceInfos, int count)
         {

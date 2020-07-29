@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 public class RenderGraphViewer : EditorWindow
@@ -152,11 +153,18 @@ public class RenderGraphViewer : EditorWindow
         //element.style.borderTopWidth = 1.0f;
     }
 
+    string RenderGraphPopCallback(RenderGraph rg)
+    {
+        return rg.name;
+    }
+
     void OnEnable()
     {
         titleContent = Style.title;
 
         m_Root = new VisualElement();
+
+        var renderGraphs = RenderGraph.GetRegisteredRenderGraphs();
 
         var topRowContainer = new VisualElement();
         topRowContainer.name = "TopRowContainer";
@@ -166,6 +174,7 @@ public class RenderGraphViewer : EditorWindow
         m_Corner.name = "Corner";
         m_Corner.style.flexDirection = FlexDirection.Column;
         m_Corner.style.justifyContent = Justify.Center;
+        m_Corner.Add(new PopupField<RenderGraph>("Current Graph", renderGraphs, 0, RenderGraphPopCallback));
         m_Corner.Add(CreateCornerLegend("Resource Read", m_ResourceColorRead));
         m_Corner.Add(CreateCornerLegend("Resource Write", m_ResourceColorWrite));
         ApplyBorder(m_Corner);
