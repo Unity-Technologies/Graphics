@@ -18,7 +18,7 @@ ShaderGraph_Win_Vulkan_Standalone_2020.1:
          rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraph/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraph && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
@@ -39,7 +39,7 @@ Build_ShaderGraph_Win_Vulkan_Player_2020.1:
          rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraph/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraph && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
@@ -62,7 +62,7 @@ ShaderGraph_Win_Vulkan_playmode_2020.1:
          rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraph/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraph && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
@@ -82,7 +82,7 @@ ShaderGraph_Win_Vulkan_editmode_2020.1:
          rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraph/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraph && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
@@ -104,7 +104,7 @@ ShaderGraph_Win_Vulkan_Standalone_fast-2020.1:
          rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraph/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraph && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
@@ -125,7 +125,7 @@ Build_ShaderGraph_Win_Vulkan_Player_fast-2020.1:
          rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraph/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraph && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
@@ -148,7 +148,7 @@ ShaderGraph_Win_Vulkan_playmode_fast-2020.1:
          rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraph/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraph && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
@@ -168,7 +168,7 @@ ShaderGraph_Win_Vulkan_editmode_fast-2020.1:
          rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraph/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraph && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
@@ -191,7 +191,7 @@ ShaderGraph_Win_Vulkan_Standalone_CUSTOM-REVISION:
          rerun: always
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraph/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraph && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
@@ -213,7 +213,7 @@ Build_ShaderGraph_Win_Vulkan_Player_CUSTOM-REVISION:
          rerun: always
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraph/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraph && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
@@ -237,7 +237,7 @@ ShaderGraph_Win_Vulkan_playmode_CUSTOM-REVISION:
          rerun: always
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraph/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraph && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
@@ -258,7 +258,7 @@ ShaderGraph_Win_Vulkan_editmode_CUSTOM-REVISION:
          rerun: always
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraph/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraph && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
