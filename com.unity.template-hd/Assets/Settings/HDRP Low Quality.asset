@@ -182,7 +182,7 @@ MonoBehaviour:
     materialQuality: 0
   m_RenderingPathDefaultRealtimeReflectionFrameSettings:
     bitDatas:
-      data1: 139991494955789
+      data1: 139716617048837
       data2: 4539628424389459968
     lodBias: 1
     lodBiasMode: 0
@@ -205,7 +205,7 @@ MonoBehaviour:
       m_Values: 140000002800000050000000
       m_SchemaId:
         m_Id: With3Levels
-    supportVolumetrics: 0
+    supportVolumetrics: 1
     supportLightLayers: 1
     lightLayerName0: Light LayerDefault
     lightLayerName1: InteriorOnly
@@ -249,19 +249,11 @@ MonoBehaviour:
       cookieFormat: 74
       cookieAtlasLastValidMip: 0
       cookieTexArraySize: 16
-<<<<<<< HEAD
-      planarReflectionAtlasSize: 256
-      reflectionProbeCacheSize: 32
-      reflectionCubemapSize: 256
-      reflectionCacheCompressed: 1
-      skyReflectionSize: 1024
-=======
       planarReflectionAtlasSize: 512
       reflectionProbeCacheSize: 32
       reflectionCubemapSize: 256
       reflectionCacheCompressed: 1
       skyReflectionSize: 256
->>>>>>> 531db1963dcdc3a05f8b7dca6e06a497e9defd98
       skyLightingOverrideLayerMask:
         serializedVersion: 2
         m_Bits: 0
@@ -276,9 +268,9 @@ MonoBehaviour:
     hdShadowInitParams:
       maxShadowRequests: 128
       directionalShadowsDepthBits: 16
-      shadowFilteringQuality: 0
+      shadowFilteringQuality: 1
       punctualLightShadowAtlas:
-        shadowAtlasResolution: 2048
+        shadowAtlasResolution: 4096
         shadowAtlasDepthBits: 16
         useDynamicViewportRescale: 0
       areaLightShadowAtlas:

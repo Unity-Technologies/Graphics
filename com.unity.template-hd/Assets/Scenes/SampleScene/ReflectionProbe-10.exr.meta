@@ -1,13 +1,5 @@
 fileFormatVersion: 2
-<<<<<<< HEAD
-<<<<<<< HEAD:com.unity.template-hd/Assets/Scenes/SampleScene/ReflectionProbe-10.exr.meta
 guid: 77b82b7287aef874eb3a971659242486
-=======
-guid: 912a7dd8df7a853458a069a2de68ecc9
->>>>>>> 531db1963dcdc3a05f8b7dca6e06a497e9defd98:TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/WindowsPlayer/Direct3D11/None/FlipbookNode.png.meta
-=======
-guid: 77b82b7287aef874eb3a971659242486
->>>>>>> 531db1963dcdc3a05f8b7dca6e06a497e9defd98
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -40,27 +32,12 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-<<<<<<< HEAD
-<<<<<<< HEAD:com.unity.template-hd/Assets/Scenes/SampleScene/ReflectionProbe-10.exr.meta
-=======
->>>>>>> 531db1963dcdc3a05f8b7dca6e06a497e9defd98
     filterMode: 1
     aniso: 1
     mipBias: -100
     wrapU: 0
     wrapV: 0
     wrapW: 0
-<<<<<<< HEAD
-=======
-    filterMode: -1
-    aniso: -1
-    mipBias: -100
-    wrapU: -1
-    wrapV: -1
-    wrapW: -1
->>>>>>> 531db1963dcdc3a05f8b7dca6e06a497e9defd98:TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/WindowsPlayer/Direct3D11/None/FlipbookNode.png.meta
-=======
->>>>>>> 531db1963dcdc3a05f8b7dca6e06a497e9defd98
   nPOTScale: 1
   lightmap: 0
   compressionQuality: 50
@@ -76,15 +53,7 @@ TextureImporter:
   alphaIsTransparency: 0
   spriteTessellationDetail: -1
   textureType: 0
-<<<<<<< HEAD
-<<<<<<< HEAD:com.unity.template-hd/Assets/Scenes/SampleScene/ReflectionProbe-10.exr.meta
   textureShape: 2
-=======
-  textureShape: 1
->>>>>>> 531db1963dcdc3a05f8b7dca6e06a497e9defd98:TestProjects/ShaderGraph/Assets/ReferenceImages/Linear/WindowsPlayer/Direct3D11/None/FlipbookNode.png.meta
-=======
-  textureShape: 2
->>>>>>> 531db1963dcdc3a05f8b7dca6e06a497e9defd98
   singleChannelComponent: 0
   flipbookRows: 1
   flipbookColumns: 1
@@ -92,7 +61,7 @@ TextureImporter:
   compressionQualitySet: 0
   textureFormatSet: 0
   ignorePngGamma: 0
-  applyGammaDecoding: 0
+  applyGammaDecoding: 1
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
