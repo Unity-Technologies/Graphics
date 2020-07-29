@@ -153,90 +153,97 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cmd.ReleaseTemporaryRT(pass.rendererData.shadowsRenderTarget.id);
         }
 
-        private static void RenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, Light2D light, float shadowIntensity, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture)
+
+        private static void RenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int layerToRender, Light2D light, float shadowIntensity, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture)
         {
-            cmd.SetGlobalFloat(ShadowIntensityID, 1 - light.shadowIntensity);
-            cmd.SetGlobalFloat(ShadowVolumeIntensityID, 1 - light.shadowVolumeIntensity);
+            cmdBuffer.SetGlobalFloat(ShadowIntensityID, 1 - light.shadowIntensity);
+            cmdBuffer.SetGlobalFloat(ShadowVolumeIntensityID, 1 - light.shadowVolumeIntensity);
 
-            if (!(shadowIntensity > 0))
-                return;
-
-            CreateShadowRenderTexture(pass, renderingData, cmd, light.blendStyleIndex);
-
-            cmd.SetRenderTarget(pass.rendererData.shadowsRenderTarget.Identifier(), RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-            cmd.ClearRenderTarget(true, true, Color.black);
-
-            var lightBounds = light.GetBoundingSphere(); // Gets the local bounding sphere...
-            var shadowRadius = 1.42f * lightBounds.radius;
-
-            cmd.SetGlobalVector(LightPosID, light.transform.position);
-            cmd.SetGlobalFloat(ShadowRadiusID, shadowRadius);
-
-            var shadowMaterial = pass.rendererData.GetShadowMaterial(1);
-            var removeSelfShadowMaterial = pass.rendererData.GetRemoveSelfShadowMaterial(1);
-            var shadowCasterGroups = ShadowCasterGroup2DManager.shadowCasterGroups;
-            if (shadowCasterGroups != null && shadowCasterGroups.Count > 0)
+            if (shadowIntensity > 0)
             {
-                var previousShadowGroupIndex = -1;
-                var incrementingGroupIndex = 0;
-                foreach (var shadowCasterGroup in shadowCasterGroups)
+                CreateShadowRenderTexture(pass, renderingData, cmdBuffer, light.blendStyleIndex);
+
+                cmdBuffer.SetRenderTarget(pass.rendererData.shadowsRenderTarget.Identifier(), RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                cmdBuffer.ClearRenderTarget(true, true, Color.black);
+
+                var lightBounds = light.GetBoundingSphere(); // Gets the local bounding sphere...
+                var shadowRadius = 1.42f * lightBounds.radius;
+
+                cmdBuffer.SetGlobalVector(LightPosID, light.transform.position);
+                cmdBuffer.SetGlobalFloat(ShadowRadiusID, shadowRadius);
+
+                var shadowMaterial = pass.rendererData.GetShadowMaterial(1);
+                var removeSelfShadowMaterial = pass.rendererData.GetRemoveSelfShadowMaterial(1);
+                var shadowCasterGroups = ShadowCasterGroup2DManager.shadowCasterGroups;
+                if (shadowCasterGroups != null && shadowCasterGroups.Count > 0)
                 {
-                    var shadowCasters = shadowCasterGroup.GetShadowCasters();
-
-                    var shadowGroupIndex = shadowCasterGroup.GetShadowGroup();
-                    if (LightUtility.CheckForChange(shadowGroupIndex, ref previousShadowGroupIndex) || shadowGroupIndex == 0)
+                    var previousShadowGroupIndex = -1;
+                    var incrementingGroupIndex = 0;
+                    for (var group = 0; group < shadowCasterGroups.Count; group++)
                     {
-                        incrementingGroupIndex++;
-                        shadowMaterial = pass.rendererData.GetShadowMaterial(incrementingGroupIndex);
-                        removeSelfShadowMaterial = pass.rendererData.GetRemoveSelfShadowMaterial(incrementingGroupIndex);
-                    }
+                        var shadowCasterGroup = shadowCasterGroups[group];
 
-                    if (shadowCasters == null)
-                        continue;
+                        var shadowCasters = shadowCasterGroup.GetShadowCasters();
 
-                    // Draw the shadow casting group first, then draw the silhouttes..
-                    foreach (var shadowCaster in shadowCasters)
-                    {
-                        if (shadowCaster != null && shadowMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
+                        var shadowGroupIndex = shadowCasterGroup.GetShadowGroup();
+                        if (LightUtility.CheckForChange(shadowGroupIndex, ref previousShadowGroupIndex) || shadowGroupIndex == 0)
                         {
-                            if (shadowCaster.castsShadows)
-                                cmd.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, shadowMaterial);
+                            incrementingGroupIndex++;
+                            shadowMaterial = pass.rendererData.GetShadowMaterial(incrementingGroupIndex);
+                            removeSelfShadowMaterial = pass.rendererData.GetRemoveSelfShadowMaterial(incrementingGroupIndex);
                         }
-                    }
 
-                    foreach (var shadowCaster in shadowCasters)
-                    {
-                        if (shadowCaster != null && shadowMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
+                        if (shadowCasters != null)
                         {
-                            if (shadowCaster.useRendererSilhouette)
+                            // Draw the shadow casting group first, then draw the silhouttes..
+                            for (var i = 0; i < shadowCasters.Count; i++)
                             {
-                                var renderer = shadowCaster.GetComponent<Renderer>();
-                                if (renderer != null)
+                                var shadowCaster = shadowCasters[i];
+
+                                if (shadowCaster != null && shadowMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
                                 {
-                                    if (!shadowCaster.selfShadows)
-                                        cmd.DrawRenderer(renderer, removeSelfShadowMaterial);
-                                    else
-                                        cmd.DrawRenderer(renderer, shadowMaterial, 0, 1);
+                                    if (shadowCaster.castsShadows)
+                                        cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, shadowMaterial);
                                 }
                             }
-                            else
+
+                            for (var i = 0; i < shadowCasters.Count; i++)
                             {
-                                if (!shadowCaster.selfShadows)
+                                var shadowCaster = shadowCasters[i];
+
+                                if (shadowCaster != null && shadowMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
                                 {
-                                    var meshMat = shadowCaster.transform.localToWorldMatrix;
-                                    cmd.DrawMesh(shadowCaster.mesh, meshMat, removeSelfShadowMaterial);
+                                    if (shadowCaster.useRendererSilhouette)
+                                    {
+                                        var renderer = shadowCaster.GetComponent<Renderer>();
+                                        if (renderer != null)
+                                        {
+                                            if (!shadowCaster.selfShadows)
+                                                cmdBuffer.DrawRenderer(renderer, removeSelfShadowMaterial);
+                                            else
+                                                cmdBuffer.DrawRenderer(renderer, shadowMaterial, 0, 1);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (!shadowCaster.selfShadows)
+                                        {
+                                            var meshMat = shadowCaster.transform.localToWorldMatrix;
+                                            cmdBuffer.DrawMesh(shadowCaster.mesh, meshMat, removeSelfShadowMaterial);
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            cmd.ReleaseTemporaryRT(pass.rendererData.shadowsRenderTarget.id);
-            cmd.SetRenderTarget(renderTexture, depthTexture);
+                cmdBuffer.ReleaseTemporaryRT(pass.rendererData.shadowsRenderTarget.id);
+                cmdBuffer.SetRenderTarget(renderTexture, depthTexture);
+            }
         }
 
-        private static bool RenderLightSet(IRenderPass2D pass, RenderingData renderingData, Camera camera, int blendStyleIndex, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTexture, bool rtNeedsClear, Color clearColor, List<Light2D> lights)
+        private static bool RenderLightSet(IRenderPass2D pass, RenderingData renderingData, int blendStyleIndex, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTexture, bool rtNeedsClear, Color clearColor, List<Light2D> lights)
         {
             var renderedAnyLight = false;
 
@@ -300,56 +307,54 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return renderedAnyLight;
         }
 
-        private static void RenderLightVolumeSet(IRenderPass2D pass, RenderingData renderingData, Camera camera, int blendStyleIndex, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture, List<Light2D> lights)
+        private static void RenderLightVolumeSet(IRenderPass2D pass, RenderingData renderingData, int blendStyleIndex, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture, List<Light2D> lights)
         {
-            if (lights.Count <= 0)
-                return;
-
-            foreach (var light in lights)
+            if (lights.Count > 0)
             {
-                var topMostLayer = light.GetTopMostLitLayer();
-                if (layerToRender != topMostLayer)
-                    continue;
-
-                if (light != null &&
-                    light.lightType != Light2D.LightType.Global &&
-                    light.volumeOpacity > 0.0f &&
-                    light.blendStyleIndex == blendStyleIndex &&
-                    light.IsLitLayer(layerToRender))
+                for (int i = 0; i < lights.Count; i++)
                 {
-                    var lightVolumeMaterial = pass.rendererData.GetLightMaterial(light, true);
-                    if (lightVolumeMaterial == null)
-                        continue;
+                    Light2D light = lights[i];
 
-                    var lightMesh = light.GetMesh();
-                    if (lightMesh == null)
-                        continue;
-
-                    RenderShadows(pass, renderingData, cmd, layerToRender, light, light.shadowVolumeIntensity, renderTexture, depthTexture);
-
-                    if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
-                        cmd.SetGlobalTexture(CookieTexID, light.lightCookieSprite.texture);
-
-                    cmd.SetGlobalFloat(FalloffIntensityID, light.falloffIntensity);
-                    cmd.SetGlobalFloat(FalloffDistanceID, light.shapeLightFalloffSize);
-                    cmd.SetGlobalVector(FalloffOffsetID, light.shapeLightFalloffOffset);
-                    cmd.SetGlobalColor(LightColorID, light.intensity * light.color);
-                    cmd.SetGlobalFloat(VolumeOpacityID, light.volumeOpacity);
-
-                    // Is this needed
-                    if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
-                        RendererLighting.SetPointLightShaderGlobals(cmd, light);
-
-                    // Could be combined...
-                    if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
+                    int topMostLayer = light.GetTopMostLitLayer();
+                    if (layerToRender == topMostLayer)
                     {
-                        cmd.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightVolumeMaterial);
-                    }
-                    else if (light.lightType == Light2D.LightType.Point)
-                    {
-                        var scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
-                        var matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
-                        cmd.DrawMesh(lightMesh, matrix, lightVolumeMaterial);
+                        if (light != null && light.lightType != Light2D.LightType.Global && light.volumeOpacity > 0.0f && light.blendStyleIndex == blendStyleIndex && light.IsLitLayer(layerToRender))
+                        {
+                            Material lightVolumeMaterial = pass.rendererData.GetLightMaterial(light, true);
+                            if (lightVolumeMaterial != null)
+                            {
+                                Mesh lightMesh = light.GetMesh();
+                                if (lightMesh != null)
+                                {
+                                    RenderShadows(pass, renderingData, cmdBuffer, layerToRender, light, light.shadowVolumeIntensity, renderTexture, depthTexture);
+
+                                    if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
+                                        cmdBuffer.SetGlobalTexture(CookieTexID, light.lightCookieSprite.texture);
+
+                                    cmdBuffer.SetGlobalFloat(FalloffIntensityID, light.falloffIntensity);
+                                    cmdBuffer.SetGlobalFloat(FalloffDistanceID, light.shapeLightFalloffSize);
+                                    cmdBuffer.SetGlobalVector(FalloffOffsetID, light.shapeLightFalloffOffset);
+                                    cmdBuffer.SetGlobalColor(LightColorID, light.intensity * light.color);
+                                    cmdBuffer.SetGlobalFloat(VolumeOpacityID, light.volumeOpacity);
+
+                                    // Is this needed
+                                    if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
+                                        SetPointLightShaderGlobals(cmdBuffer, light);
+
+                                    // Could be combined...
+                                    if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
+                                    {
+                                        cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightVolumeMaterial);
+                                    }
+                                    else if (light.lightType == Light2D.LightType.Point)
+                                    {
+                                        Vector3 scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
+                                        Matrix4x4 matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
+                                        cmdBuffer.DrawMesh(lightMesh, matrix, lightVolumeMaterial);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -456,7 +461,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public static void RenderLights(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, uint blendStylesUsed)
         {
             var blendStyles = pass.rendererData.lightBlendStyles;
-            var camera = renderingData.cameraData.camera;
 
             for (var i = 0; i < blendStyles.Length; ++i)
             {
@@ -477,7 +481,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 rtDirty |= RenderLightSet(
                     pass, renderingData,
-                    camera,
                     i,
                     cmd,
                     layerToRender,
@@ -496,7 +499,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public static void RenderLightVolumes(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTarget, RenderTargetIdentifier depthTarget, uint blendStylesUsed)
         {
             var blendStyles = pass.rendererData.lightBlendStyles;
-            var camera = renderingData.cameraData.camera;
 
             for (var i = 0; i < blendStyles.Length; ++i)
             {
@@ -508,7 +510,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 RenderLightVolumeSet(
                     pass, renderingData,
-                    camera,
                     i,
                     cmd,
                     layerToRender,
