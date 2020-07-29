@@ -22,11 +22,11 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportSSR;
         public SerializedProperty supportSSRTransparent;
         public SerializedProperty supportSSAO;
+        public SerializedProperty supportSSGI;
         public SerializedProperty supportSubsurfaceScattering;
         public SerializedScalableSetting sssSampleBudget;
         [FormerlySerializedAs("supportVolumetric")]
         public SerializedProperty supportVolumetrics;
-        public SerializedProperty increaseResolutionOfVolumetrics;
         public SerializedProperty supportLightLayers;
         public SerializedProperty lightLayerName0;
         public SerializedProperty lightLayerName1;
@@ -42,6 +42,16 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty customBufferFormat;
 
         public SerializedProperty supportDecals;
+        public SerializedProperty supportDecalLayers;
+        public SerializedProperty decalLayerName0;
+        public SerializedProperty decalLayerName1;
+        public SerializedProperty decalLayerName2;
+        public SerializedProperty decalLayerName3;
+        public SerializedProperty decalLayerName4;
+        public SerializedProperty decalLayerName5;
+        public SerializedProperty decalLayerName6;
+        public SerializedProperty decalLayerName7;
+
         public bool supportMSAA => MSAASampleCount.GetEnumValue<UnityEngine.Rendering.MSAASamples>() != UnityEngine.Rendering.MSAASamples.None;
         public SerializedProperty MSAASampleCount;
         public SerializedProperty supportMotionVectors;
@@ -49,6 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportDitheringCrossFade;
         public SerializedProperty supportTerrainHole;
         public SerializedProperty supportRayTracing;
+        public SerializedProperty supportedRayTracingMode;
         public SerializedProperty supportDistortion;
         public SerializedProperty supportTransparentBackface;
         public SerializedProperty supportTransparentDepthPrepass;
@@ -84,10 +95,10 @@ namespace UnityEditor.Rendering.HighDefinition
             supportSSR                      = root.Find((RenderPipelineSettings s) => s.supportSSR);
             supportSSRTransparent           = root.Find((RenderPipelineSettings s) => s.supportSSRTransparent);
             supportSSAO                     = root.Find((RenderPipelineSettings s) => s.supportSSAO);
+            supportSSGI                     = root.Find((RenderPipelineSettings s) => s.supportSSGI);
             supportSubsurfaceScattering     = root.Find((RenderPipelineSettings s) => s.supportSubsurfaceScattering);
             sssSampleBudget                 = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.sssSampleBudget));
             supportVolumetrics              = root.Find((RenderPipelineSettings s) => s.supportVolumetrics);
-            increaseResolutionOfVolumetrics = root.Find((RenderPipelineSettings s) => s.increaseResolutionOfVolumetrics);
             supportLightLayers              = root.Find((RenderPipelineSettings s) => s.supportLightLayers);
             lightLayerName0                 = root.Find((RenderPipelineSettings s) => s.lightLayerName0);
             lightLayerName1                 = root.Find((RenderPipelineSettings s) => s.lightLayerName1);
@@ -103,6 +114,15 @@ namespace UnityEditor.Rendering.HighDefinition
             supportedLitShaderMode          = root.Find((RenderPipelineSettings s) => s.supportedLitShaderMode);
 
             supportDecals                   = root.Find((RenderPipelineSettings s) => s.supportDecals);
+            supportDecalLayers              = root.Find((RenderPipelineSettings s) => s.supportDecalLayers);
+            decalLayerName0                 = root.Find((RenderPipelineSettings s) => s.decalLayerName0);
+            decalLayerName1                 = root.Find((RenderPipelineSettings s) => s.decalLayerName1);
+            decalLayerName2                 = root.Find((RenderPipelineSettings s) => s.decalLayerName2);
+            decalLayerName3                 = root.Find((RenderPipelineSettings s) => s.decalLayerName3);
+            decalLayerName4                 = root.Find((RenderPipelineSettings s) => s.decalLayerName4);
+            decalLayerName5                 = root.Find((RenderPipelineSettings s) => s.decalLayerName5);
+            decalLayerName6                 = root.Find((RenderPipelineSettings s) => s.decalLayerName6);
+            decalLayerName7                 = root.Find((RenderPipelineSettings s) => s.decalLayerName7);
             MSAASampleCount                 = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);
             supportMotionVectors            = root.Find((RenderPipelineSettings s) => s.supportMotionVectors);
             supportRuntimeDebugDisplay      = root.Find((RenderPipelineSettings s) => s.supportRuntimeDebugDisplay);
@@ -115,6 +135,7 @@ namespace UnityEditor.Rendering.HighDefinition
             supportProbeVolume              = root.Find((RenderPipelineSettings s) => s.supportProbeVolume);
 
             supportRayTracing               = root.Find((RenderPipelineSettings s) => s.supportRayTracing);
+            supportedRayTracingMode         = root.Find((RenderPipelineSettings s) => s.supportedRayTracingMode);
 
             lightLoopSettings = new SerializedGlobalLightLoopSettings(root.Find((RenderPipelineSettings s) => s.lightLoopSettings));
             hdShadowInitParams = new SerializedHDShadowInitParameters(root.Find((RenderPipelineSettings s) => s.hdShadowInitParams));

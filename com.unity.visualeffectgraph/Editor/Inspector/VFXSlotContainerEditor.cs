@@ -71,7 +71,7 @@ class VFXSlotContainerEditor : Editor
                     prop.Value.stringValue = strings[result];
                 }
             }
-            else if(prop.Key.FieldType.IsEnum)
+            else if (prop.Key.FieldType.IsEnum && prop.Key.FieldType.GetCustomAttributes(typeof(FlagsAttribute), false).Length == 0)
             {
                 GUIContent[] enumNames = null;
                 int[] enumValues = null;
@@ -94,6 +94,11 @@ class VFXSlotContainerEditor : Editor
                 }
                 enumNames = values.Select(t => new GUIContent(Enum.GetName(prop.Key.FieldType, t))).ToArray();
                 enumValues = values.ToArray();
+
+                HeaderAttribute attr = prop.Key.GetCustomAttributes<HeaderAttribute>().FirstOrDefault();
+
+                if( attr != null)
+                    GUILayout.Label( attr.header, EditorStyles.boldLabel);
 
                 EditorGUILayout.IntPopup(prop.Value,enumNames,enumValues );
             }

@@ -12,6 +12,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
         SerializedDataParameter m_LayerMask;
         SerializedDataParameter m_MaxDepth;
         SerializedDataParameter m_RayLength;
+        SerializedDataParameter m_MinSmoothness;
 
         public override void OnEnable()
         {
@@ -21,6 +22,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             m_LayerMask = Unpack(o.Find(x => x.layerMask));
             m_MaxDepth = Unpack(o.Find(x => x.maxDepth));
             m_RayLength = Unpack(o.Find(x => x.rayLength));
+            m_MinSmoothness = Unpack(o.Find(x => x.minSmoothness));
         }
 
         public override void OnInspectorGUI()
@@ -44,6 +46,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                     PropertyField(m_LayerMask);
                     PropertyField(m_MaxDepth);
                     PropertyField(m_RayLength);
+                    PropertyField(m_MinSmoothness);
                     EditorGUI.indentLevel--;
                 }
             }

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using UnityEditor.ShaderGraph.Serialization;
 using Debug = UnityEngine.Debug;
 using UnityEditor.VersionControl;
 
@@ -7,14 +8,14 @@ namespace UnityEditor.ShaderGraph
 {
     static class FileUtilities
     {
-        public static bool WriteShaderGraphToDisk<T>(string path, T data)
+        public static bool WriteShaderGraphToDisk(string path, GraphData data)
         {
             if (data == null)
             {
                 throw new ArgumentNullException(nameof(data));
             }
 
-            return WriteToDisk(path, EditorJsonUtility.ToJson(data, true));
+            return WriteToDisk(path, MultiJson.Serialize(data));
         }
 
         public static bool WriteToDisk(string path, string text)

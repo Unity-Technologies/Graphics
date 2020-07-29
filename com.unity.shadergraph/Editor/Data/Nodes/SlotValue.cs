@@ -23,7 +23,8 @@ namespace UnityEditor.ShaderGraph
         Vector2,
         Vector1,
         Dynamic,
-        Boolean
+        Boolean,
+        VirtualTexture
     }
 
     enum ConcreteSlotValueType
@@ -41,7 +42,8 @@ namespace UnityEditor.ShaderGraph
         Vector3,
         Vector2,
         Vector1,
-        Boolean
+        Boolean,
+        VirtualTexture
     }
 
     static class SlotValueHelper
@@ -122,6 +124,7 @@ namespace UnityEditor.ShaderGraph
                     {ConcreteSlotValueType.Cubemap, new List<SlotValueType>() {SlotValueType.Cubemap}},
                     {ConcreteSlotValueType.SamplerState, new List<SlotValueType>() {SlotValueType.SamplerState}},
                     {ConcreteSlotValueType.Gradient, new List<SlotValueType>() {SlotValueType.Gradient}},
+                    {ConcreteSlotValueType.VirtualTexture, new List<SlotValueType>() {SlotValueType.VirtualTexture}}
                 };
             }
 

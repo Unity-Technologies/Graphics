@@ -4,13 +4,7 @@ This page shows you how  to install Visual Effect Graph, and gives a brief overv
 Visual Effect Graph is a Unity package that uses a [Scriptable Render Pipeline](https://docs.unity3d.com/Manual/ScriptableRenderPipeline.html) to render visual effects. Visual Effect graph uses on compute Shaders to simulate effects.
 
 ## Requirements
-* Unity 2018.3 or newer. Verified packages start at Unity 2019.3.
-* A [Scriptable Render Pipeline](https://docs.unity3d.com/Manual/ScriptableRenderPipeline.html) package:
-  * [Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html)(2019.3 or newer)
-  * [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?preview=1) (2018.3 or newer. Verified packages start at Unity 2019.3.)
-
-**Note:** When you download the High Definition Render Pipeline package from Package Manager, Unity automatically installs the Visual Effect Graph package.
-* A target device that can use compute Shaders, such as aWindows PC, Playstation 4, XBox One, or Mac running MacOS.
+For information on system requirements for the Visual Effect Graph, see [Requirements and compatibility](System-Requirements.md).
 
 ## Installing Visual Effect Graph
 
@@ -69,7 +63,7 @@ To preview an effect, you can:
 
 This lets you edit parameters directly in the Scene, see the lighting on your effect, and use the [Target GameObject Panel](VisualEffectGraphWindow.md#target-visual-effect-gameobject) features for the specific target instance of your effect.
 
-## Manipulating Graph Elements
+## Manipulating graph elements
 When you open an Asset inside the Visual Effect Graph window, you can see and edit the graph for that specific Asset.
 
 A Visual Effect Graph contains [Operator Nodes](Operators.md) and [Blocks](Blocks.md). Each Node is in charge of processing its input properties. You can link Nodes together to perform a series of calculations. All Nodes end up connecting into a Block (or a context) : A Block defines an operation on an effect, based on its input properties.

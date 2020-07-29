@@ -62,7 +62,7 @@ namespace UnityEditor
         [MenuItem("GameObject/Visual Effects/Visual Effect", false, 10)]
         public static void CreateVisualEffectGameObject(MenuCommand menuCommand)
         {
-            GameObject go = new GameObject("Visual Effect");
+            GameObject go = new GameObject(GameObjectUtility.GetUniqueNameForSibling(null,"Visual Effect"));
             GameObjectUtility.SetParentAndAlign(go, menuCommand.context as GameObject);
             var vfxComp = go.AddComponent<VisualEffect>();
 
@@ -110,6 +110,22 @@ namespace UnityEditor
             Texture2D texture = EditorGUIUtility.FindTexture(typeof(VisualEffectAsset));
             var action = ScriptableObject.CreateInstance<DoCreateNewVFX>();
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, action, "New VFX.vfx", texture, null);
+        }
+
+        [MenuItem("Assets/Create/Visual Effects/Visual Effect Defaults", false, 307)]
+        public static void CreateVisualEffectDefaults()
+        {
+            var obj = VFXResources.CreateInstance<VFXResources>();
+            obj.SetDefaults();
+            AssetDatabase.CreateAsset(obj, "Assets/Visual Effects Defaults.asset");
+            Selection.activeObject = obj;
+        }
+
+        [MenuItem("Assets/Create/Visual Effects/Visual Effect Defaults", true)]
+        public static bool IsCreateVisualEffectDefaultsActive()
+        {
+            var resources = Resources.FindObjectsOfTypeAll<VFXResources>();
+            return resources == null || resources.Length == 0;
         }
 
         internal class DoCreateNewVFX : EndNameEditAction

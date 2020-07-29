@@ -1,6 +1,6 @@
 # Light Cluster
 
-To compute light bounces for ray-traced effects, such as [Reflections](Ray-Traced-Reflections.html), [Global Illumination](Ray-Traced-Global-Illumination.html), [Recursive Rendering](Ray-Tracing-Recursive-Rendering.html), or Path Tracing. HDRP uses a structure to store the set of [Lights](Light-Component.html) that affect each region. In rasterization, HDRP uses the tile structure for opaque objects and the cluster structure for transparent objects. The main difference between these two structures and this one used for ray tracing is that this one is not based on the Camera frustum.
+To compute light bounces for ray-traced effects, such as [Reflections](Ray-Traced-Reflections.html), [Global Illumination](Ray-Traced-Global-Illumination.html), [Recursive Rendering](Ray-Tracing-Recursive-Rendering.html), or path tracing. HDRP uses a structure to store the set of [Lights](Light-Component.html) that affect each region. In rasterization, HDRP uses the tile structure for opaque objects and the cluster structure for transparent objects. The main difference between these two structures and this one used for ray tracing is that this one is not based on the Camera frustum.
 For ray tracing, HDRP builds an axis-aligned grid which, in each cell, stores the list of Lights to fetch if an intersection occurs in that cell. Use this [Volume Override](Volume-Components.html) to change how HDRP builds this structure.
 
 ![](Images/RayTracingLightCluster1.png)

@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph
 
     static class MayRequireTangentExtensions
     {
-        public static NeededCoordinateSpace RequiresTangent(this ISlot slot)
+        public static NeededCoordinateSpace RequiresTangent(this MaterialSlot slot)
         {
             var mayRequireTangent = slot as IMayRequireTangent;
             return mayRequireTangent != null ? mayRequireTangent.RequiresTangent() : NeededCoordinateSpace.None;

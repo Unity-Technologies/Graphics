@@ -137,3 +137,12 @@ A function that describes a wave that represents the human eye’s relative sens
 #### punctual lights: 
 A light is considered to be punctual if it emits light from a single point. HDRPs Spot and Point Lights are punctual.
 
+## Rendering Artifacts
+
+<a name="Disocclusion"></a>
+#### disocclusion
+A rendering artifact that describes the situation where a GameObject that was previously occluded becomes visible.
+
+<a name="Ghosting"></a>
+#### ghosting
+A rendering artifact that describes the situation where a moving GameObject leaves a trail of pixels behind it.

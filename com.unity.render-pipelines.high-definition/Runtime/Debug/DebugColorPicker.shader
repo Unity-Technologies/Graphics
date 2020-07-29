@@ -184,10 +184,6 @@ Shader "Hidden/HDRP/DebugColorPicker"
                     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
                         mouseResult = mouseResult * LUXMETER_COMPRESSION_RATIO;
 
-                    // Reverse debug exposure in order to display the real values.
-                    // _DebugExposure will be set to zero if the debug view does not need it so we don't need to make a special case here. It's handled in only one place in C#
-                    mouseResult = mouseResult / exp2(_DebugExposure);
-
                     result = DisplayPixelInformationAtMousePosition(input, result, mouseResult, mousePixelCoord);
                 }
 

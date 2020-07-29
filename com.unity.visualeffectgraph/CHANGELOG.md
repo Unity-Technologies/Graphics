@@ -25,6 +25,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Range and Min attributes support on int and uint parameters
 - New Construct Matrix from Vector4 operator
 - Allow filtering enums in VFXModels' VFXSettings.
+- Sample vertices of a mesh with the Position (Mesh) block and the Sample Mesh operator
+- New built-in operator providing new times access
+- More efficient update modes inspector
+- Ability to read attribute in spawn context through graph
+- Added save button to save only the current visual effect graph.
+- Added Degrees / Radians conversion subgraphs in samples
+- uint parameter can be seen as an enum.
+- New TransformVector4 operator
+- New GetTextureDimensions operator
+- Output Event context for scripting API event retrieval.
+- per-particle GPU Frustum culling
+- Compute culling of particle which have their alive attribute set to false in output
+- Mesh and lit mesh outputs can now have up to 4 differents meshes that can be set per Particle (Experimental)
+- Screen space per particle LOD on mesh and lit mesh outputs (Experimental)
 - New particle strip attribute in Initialize: spawnIndexInStrip
 - New operator for strips that adds Orientation modes
 
@@ -86,6 +100,39 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix space issues with blocks and operators taking a camera as input
 - Generated shaderName are now consistent with displayed system names
 - Remove some shader warnings
+- Fixed Sample Flipbook Texture File Names
+- Don't lose SRP output specific data when SRP package is not present
+- Fix visual effect graph when a subgraph or shader graph dependency changes
+- Support of flag settings in model inspector
+- height of initial event name.
+- fix colorfield height.
+- fix for capacity change for locked asset.
+- fix null value not beeing assignable to slot.
+- Prevent capacity from being 0 [Case 1233044](https://issuetracker.unity3d.com/product/unity/issues/guid/1233044/)
+- Fix for dragged parameters order when there are categories
+- Avoid NullReferenceException in Previous Position Binder" component. [Case 1242351](https://issuetracker.unity3d.com/product/unity/issues/guid/1242351/)
+- Don't show the blocks window when context cant have blocks
+- Prevent from creating a context in VisualEffectSugraphOperator by draggingfrom an output slot.
+- Avoid NullReferenceException when VisualEffectAsset is null if VFXPropertyBinder [Case 1219061](https://issuetracker.unity3d.com/product/unity/issues/guid/1219061/)
+- Missing Reset function in VFXPropertyBinder [Case 1219063](https://issuetracker.unity3d.com/product/unity/issues/guid/1219063/)
+- Fix issue with strips outputs that could cause too many vertices to be renderered
+- SpawnIndex attribute returns correct value in update and outputs contexts
+- Disable Reset option in context menu for all VFXObject [Case 1251519](https://issuetracker.unity3d.com/product/unity/issues/guid/1251519/) & [Case 1251533](https://issuetracker.unity3d.com/product/unity/issues/guid/1251533/)
+- Avoid other NullReferenceException using property binders
+- Fix culture issues when generating attributes defines in shaders [Case 1222819](https://issuetracker.unity3d.com/product/unity/issues/guid/1222819/)
+- Move the VFXPropertyBinder from Update to LateUpdate [Case 1254340](https://issuetracker.unity3d.com/product/unity/issues/guid/1254340/)
+- Properties in blackboard are now exposed by default
+- Dissociated Colors for bool, uint and int
+- De-nicified attribute name (conserve case) in Set Custom Attribute title
+- Changed the default "No Asset" message when opening the visual effect graph window
+- Subgraphs are not in hardcoded categories anymore : updated default subgraph templates + Samples to add meaningful categories.
+- Fix creation of StringPropertyRM
+- Enum fields having headers show the header in the inspector as well.
+- Fix for node window staying when clicking elsewhere
+- Make VisualEffect created from the GameObject menu have unique names [Case 1262989](https://issuetracker.unity3d.com/product/unity/issues/guid/1262989/)
+- Missing System Seed in new dynamic built-in operator.
+- Prefab highlight missing for initial event name toggle [Case 1263012](https://issuetracker.unity3d.com/product/unity/issues/guid/1263012/)
+- fix crash when creating a loop in subgraph operators [Case 1251523](https://issuetracker.unity3d.com/product/unity/issues/guid/1251523/)
 - SpawnOverDistance spawner block now behaves correctly
 
 ## [7.1.1] - 2019-09-05

@@ -25,7 +25,7 @@ This process does not duplicate the Textures and other resources that the origin
 
 ### Creating AxF Materials from scratch
 
-New Materials in HDRP use the [Lit Shader](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@7.1/manual/Lit-Shader.html) by default. To create an AxF Material from scratch, create a Material and then make it use the AxF Shader. To do this:
+New Materials in HDRP use the [Lit Shader](Lit-Shader.md) by default. To create an AxF Material from scratch, create a Material and then make it use the AxF Shader. To do this:
 
 1. In the Unity Editor, navigate to your Project's Asset window.
 2. Right-click the Asset Window and select **Create > Material**. This adds a new Material to your Unity Project’s Asset folder.
@@ -58,10 +58,11 @@ Note: The AxF Importer imports every Texture as half float, linear, sRGB gamut (
 
 | **Property**          | **Description**                                              |
 | --------------------- | ------------------------------------------------------------ |
-| **Material Tiling U** | Sets the tile rate along the x-axis for every Texture in the **Surface Inputs** section. HDRP uses this value to tile the Textures along the x-axis of the Material’s surface, in object space. |
-| **Material Tiling V** | Sets the tile rate along the y-axis for every Texture in the **Surface Inputs** section. HDRP uses this value to tile the Textures along the y-axis of the Material’s surface, in object space. |
-| **BRDF Type**         | Controls the main AxF Material representation.<br/>&#8226; **SVBRDF**: For information on the properties Unity makes visible when you select this option, see [BRDF Type - SVBRDF](https://docs.google.com/document/d/1_Oq2hsx3J7h8GHKoQM_8qf6Ip5VlHv_31K7dYYVOEmU/edit#heading=h.f1msh9g44mev).<br/>&#8226;**CAR_PAINT**: For information on the properties Unity makes visible when you select this option, see [BRDF Type - CAR_PAINT](https://docs.google.com/document/d/1_Oq2hsx3J7h8GHKoQM_8qf6Ip5VlHv_31K7dYYVOEmU/edit#heading=h.eorkre6buegg). |
+| **Mapping Mode**         | Controls the texture mapping mode of the material for all textures.<br/>&#8226; **UV0..UV3**: Like in Lit, uses a UV set from UV0 to UV3 vertex attributes. Note that UV1 is used for baked lightmaps in Unity, so it isn't recommended to use this set.<br/>&#8226; **PlanarXY,YZ,ZX**: Uses planar mapping along the specified plane.<br/>&#8226; **Triplanar**: Uses triplanar mapping.<br/>&#8226; **Planar Space**: When a planar or triplanar mapping mode is selected, you can select whether the coordinates used are world space or object space using the "planar space" option set to (respectively) "world" or "local". |
+| **Main Tiling & Offset** | Sets the tiling rate (xy) and offsets (zw) for every Texture in the **Surface Inputs** section. HDRP uses these values to tile the Textures along the xy-axes of the Material’s surface, in the object's tangent space. Each texture property can also specify additional tiling and offset values that are applied on top of these main values (Texture property-specific tiling rates are multiplied and offsets are added to the main values set here). These additional tiling and offsets appear next to each texture property on the same line.  |
+| **BRDF Type**         | Controls the main AxF Material representation.<br/>&#8226; **SVBRDF**: For information on the properties Unity makes visible when you select this option, see [BRDF Type - SVBRDF](#SVBRDF).<br/>&#8226;**CAR_PAINT**: For information on the properties Unity makes visible when you select this option, see [BRDF Type - CAR_PAINT](#CAR_PAINT). |
 
+<a name="SVBRDF"></a>
 #### BRDF Type - SVBRDF
 
 | **Property**            | **Description**                                              |
@@ -86,6 +87,7 @@ Note: The AxF Importer imports every Texture as half float, linear, sRGB gamut (
 | **- Enable Refraction** | Indicates whether the clear coat is refractive. If you enable this checkbox, HDRP uses angles refracted by the clear coat to evaluate the undercoat of the Material surface. |
 | **- - Clearcoat IOR**   | Specifies a Texture (red channel only) that implicitly defines the index of refraction (IOR) for the clear coat by encoding it to a monochromatic (single value) F0 (aka as specular color or Fresnel reflectance at 0 degree incidence. This also assumes the coat interfaces with air). As such, the value is in the range of **0** to **1** and HDRP calculates the final IOR as:<br/>`IOR =  (1.0 + squareRoot(R) ) / (1.0 - squareRoot(R))`<br/>Where **R** is the normalized value in the red color channel of this Texture.  Note: HDRP uses this IOR for both coat refraction and, if enabled, transmission and reflectance calculations through and on the coat. Therefore, you must always assign a Texture to this property when you enable clear coat. |
 
+<a name="CAR_PAINT"></a>
 #### BRDF Type - CAR_PAINT
 
 | **Property**                              | **Description**                                              |

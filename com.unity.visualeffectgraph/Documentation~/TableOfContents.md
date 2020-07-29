@@ -1,4 +1,5 @@
 * [Visual Effect Graph](index.md)
+* [Requirements](System-Requirements.md)
 * [Getting Started](GettingStarted.md)
   * [Visual Effect Graph Assets](VisualEffectGraphAsset.md)
   * [Visual Effect Graph Window](VisualEffectGraphWindow.md)
@@ -12,6 +13,7 @@
   * [Attributes](Attributes.md)
   * [Subgraph](Subgraph.md)
   * [Blackboard](Blackboard.md)
+  * [Sticky Notes](StickyNotes.md)
   * [Project Settings](VisualEffectProjectSettings.md)
   * [Preferences](VisualEffectPreferences.md)
 * [The Visual Effect Component](VisualEffectComponent.md)
@@ -25,5 +27,14 @@
   * [Point Caches](PointCaches.md)
   * [Point Cache Bake Tool](PointCacheBakeTool.md)
   * [Spawner Callbacks](SpawnerCallbacks.md)
+  * [Mesh Sampling](MeshSampling.md)
+* Node Library
+  * Context
+  * Operator
+    * Math
+      * Geometry
+        * [Transform (Vector4)](Operator-Transform(Vector4).md)
+    * Sampling
+      * [Get Texture Dimensions](Operator-GetTextureDimensions.md)
 * Reference
   * [Standard Attributes](Reference-Attributes.md)

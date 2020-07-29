@@ -90,6 +90,27 @@ struct LightVolumeData
     float unused2;
 };
 
+// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesLightList
+// PackingRules = Exact
+CBUFFER_START(ShaderVariablesLightList)
+    float4x4 g_mInvScrProjectionArr[2];
+    float4x4 g_mScrProjectionArr[2];
+    float4x4 g_mInvProjectionArr[2];
+    float4x4 g_mProjectionArr[2];
+    float4 g_screenSize;
+    int2 g_viDimensions;
+    int g_iNrVisibLights;
+    uint g_isOrthographic;
+    uint g_BaseFeatureFlags;
+    int g_iNumSamplesMSAA;
+    uint _EnvLightIndexShift;
+    uint _DecalIndexShift;
+    uint _DensityVolumeIndexShift;
+    uint _ProbeVolumeIndexShift;
+    uint _Pad0_SVLL;
+    uint _Pad1_SVLL;
+CBUFFER_END
+
 //
 // Accessors for UnityEngine.Rendering.HighDefinition.SFiniteLightBound
 //
