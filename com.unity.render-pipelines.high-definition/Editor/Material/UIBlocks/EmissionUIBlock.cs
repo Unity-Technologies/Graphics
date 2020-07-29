@@ -104,15 +104,12 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        void UpdateEmissiveColorAndIntensity()
+        void UpdateEmissiveColorFromIntensityAndEmissiveColorLDR()
         {
             materialEditor.serializedObject.ApplyModifiedProperties();
             foreach (Material target in materials)
             {
-                if (target.HasProperty(kEmissiveColorLDR) && target.HasProperty(kEmissiveIntensity) && target.HasProperty(kEmissiveColor))
-                {
-                    target.SetColor(kEmissiveColor, target.GetColor(kEmissiveColorLDR) * target.GetFloat(kEmissiveIntensity));
-                }
+                target.UpdateEmissiveColorFromIntensityAndEmissiveColorLDR();
             }
             materialEditor.serializedObject.Update();
         }
@@ -145,11 +142,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
-                EditorGUI.BeginChangeCheck();
-                DoEmissiveTextureProperty(emissiveColorLDR);
-                if (EditorGUI.EndChangeCheck() || updateEmissiveColor)
-                    UpdateEmissiveColorAndIntensity();
-
                 float newUnitFloat;
                 float newIntensity = emissiveIntensity.floatValue;
                 bool unitIsMixed = emissiveIntensityUnit.hasMixedValue;
@@ -158,6 +150,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool unitChanged = false;
                 EditorGUI.BeginChangeCheck();
                 {
+                    DoEmissiveTextureProperty(emissiveColorLDR);
+
                     using (new EditorGUILayout.HorizontalScope())
                     {
                         EmissiveIntensityUnit unit = (EmissiveIntensityUnit)emissiveIntensityUnit.floatValue;
@@ -217,7 +211,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (intensityChanged && !unitIsMixed)
                         emissiveIntensity.floatValue = newIntensity;
 
-                    UpdateEmissiveColorAndIntensity();
+                    UpdateEmissiveColorFromIntensityAndEmissiveColorLDR();
                 }
             }
 
