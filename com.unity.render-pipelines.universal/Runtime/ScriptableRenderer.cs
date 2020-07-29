@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.UIElements;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -12,12 +13,6 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public enum UniversalRenderTextureType
     {
-        /// <summary>
-        /// Target texture of currently rendering camera.
-        /// It can be either the intermediate color buffer, the camera render texture (offscreen camera) or the backbuffer
-        /// </summary>
-        CameraTarget = -1,
- 
         /// <summary>
         /// Special render target identifier to signal the pipeline to not bind any surface.
         /// Can be used to tell the pipeline to not bind any render texture as attachment, f.ex, compute render passes.
@@ -30,20 +25,21 @@ namespace UnityEngine.Rendering.Universal
         CurrentActive = 1, 
 
         /// <summary>
+        /// Target texture of currently rendering camera.
+        /// It can be either the intermediate color buffer, the camera render texture (offscreen camera) or the backbuffer
+        /// </summary>
+        CameraTarget = 2,
+        
+        /// <summary>
         /// Camera intermediate color texture. It can be bound in shaders as _CameraColorTexture.
         /// </summary>
-        ColorBuffer = 2,
+        ColorBuffer = 3,
 
         /// <summary>
         /// Camera intermediate depth texture. It can be bound in shaders as _CameraDepthAttachment.
         /// This texture is write-only, to read camera depth texture you should read from _CameraDepthTexture.
         /// </summary>
-        DepthBuffer = 3,
-
-        // TODO: Add DepthTexture
-        // Camera readable depth texture, either output from depth pre-pass or copy depth
-        // _CameraDepthTexture
-        //DepthTexture = 4,
+        DepthBuffer = 4,
     }
     
     /// <summary>
@@ -353,16 +349,16 @@ namespace UnityEngine.Rendering.Universal
             switch (type)
             {
                 case UniversalRenderTextureType.ColorBuffer:
-                    return cameraColorTarget;
+                    return m_CameraColorTarget;
 
                 case UniversalRenderTextureType.DepthBuffer:
                 {
                     // if camera depth is none, this means we have a created depth implicitly by
                     // requesting a color texture + depth bits
-                    if (cameraDepth == GetRenderTexture(UniversalRenderTextureType.None))
+                    if (m_CameraDepthTarget == GetRenderTexture(UniversalRenderTextureType.None))
                         return BuiltinRenderTextureType.None;
                     
-                    return cameraDepth;
+                    return m_CameraDepthTarget;
                 }
 
                 case UniversalRenderTextureType.CurrentActive:
