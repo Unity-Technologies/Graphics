@@ -7,25 +7,62 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
-    internal static class LightManager2D
+    internal struct LightStats
     {
-        internal struct LightStats
+        public int totalLights;
+        public int totalNormalMapUsage;
+        public int totalVolumetricUsage;
+        public uint blendStylesUsed;
+    }
+
+    internal interface ILight2DCullResult
+    {
+        List<Light2D> visibleLights { get; }
+        LightStats GetLightStatsByLayer(int layer);
+        bool IsSceneLit();
+    }
+    internal class Light2DCullResult : ILight2DCullResult
+    {
+        private List<Light2D> m_VisibleLights = new List<Light2D>();
+        public List<Light2D> visibleLights => m_VisibleLights;
+
+        public bool IsSceneLit()
         {
-            public int totalLights;
-            public int totalNormalMapUsage;
-            public int totalVolumetricUsage;
-            public uint blendStylesUsed;
+            if (visibleLights.Count > 0)
+                return true;
+
+            foreach (var light in LightManager2D.lights)
+            {
+                if (light.lightType == Light2D.LightType.Global)
+                    return true;
+            }
+
+            return false;
+        }
+        public LightStats GetLightStatsByLayer(int layer)
+        {
+            var returnStats = new LightStats();
+            foreach (var light in visibleLights)
+            {
+                if (!light.IsLitLayer(layer))
+                    continue;
+
+                returnStats.totalLights++;
+                if (light.useNormalMap)
+                    returnStats.totalNormalMapUsage++;
+                if (light.volumeOpacity > 0)
+                    returnStats.totalVolumetricUsage++;
+
+                returnStats.blendStylesUsed |= (uint)(1 << light.blendStyleIndex);;
+            }
+            return returnStats;
         }
 
-        private static List<Light2D> m_Lights = new List<Light2D>();
-        private static List<Light2D> m_VisibleLights = new List<Light2D>();
-        public static List<Light2D> visibleLights => m_VisibleLights;
-
-        public static void SetupCulling(ref ScriptableCullingParameters cullingParameters, ref CameraData cameraData)
+        public void SetupCulling(ref ScriptableCullingParameters cullingParameters, ref CameraData cameraData)
         {
             Profiler.BeginSample("Cull 2D Lights");
             m_VisibleLights.Clear();
-            foreach (var light in m_Lights)
+            foreach (var light in LightManager2D.lights)
             {
                 if ((cameraData.camera.cullingMask & (1 << light.gameObject.layer)) == 0)
                     continue;
@@ -55,9 +92,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             // must be sorted here because light order could change
             m_VisibleLights.Sort((l1, l2) => l1.lightOrder - l2.lightOrder);
-
             Profiler.EndSample();
         }
+    }
+
+    internal static class LightManager2D
+    {
+        private static List<Light2D> m_Lights = new List<Light2D>();
+        public static List<Light2D> lights => m_Lights;
 
         // Called during OnEnable
         public static void RegisterLight(Light2D light)
@@ -72,41 +114,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             Debug.Assert(m_Lights.Contains(light));
             m_Lights.Remove(light);
-        }
-
-        public static bool IsSceneLit()
-        {
-            if (visibleLights.Count > 0)
-                return true;
-
-            foreach (var light in m_Lights)
-            {
-                if (light.lightType == Light2D.LightType.Global)
-                    return true;
-            }
-
-            return false;
-        }
-
-        public static LightStats GetLightStatsByLayer(int layer)
-        {
-            var returnStats = new LightStats();
-
-            foreach (var light in visibleLights)
-            {
-                if (!light.IsLitLayer(layer))
-                    continue;
-
-                returnStats.totalLights++;
-                if (light.useNormalMap)
-                    returnStats.totalNormalMapUsage++;
-                if (light.volumeOpacity > 0)
-                    returnStats.totalVolumetricUsage++;
-
-                returnStats.blendStylesUsed |= (uint)(1 << light.blendStyleIndex);;
-            }
-
-            return returnStats;
         }
 
         public static bool GetGlobalColor(int sortingLayerIndex, int blendStyleIndex, out Color color)

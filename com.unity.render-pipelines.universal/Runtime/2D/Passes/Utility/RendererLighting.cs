@@ -484,7 +484,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     rtID,
                     (pass.rendererData.lightBlendStyles[i].isDirty || rtDirty),
                     clearColor,
-                    LightManager2D.visibleLights
+                    pass.rendererData.lightCullResult.visibleLights
                 );
 
                 pass.rendererData.lightBlendStyles[i].isDirty = rtDirty;
@@ -514,7 +514,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     layerToRender,
                     renderTarget,
                     depthTarget,
-                    LightManager2D.visibleLights
+                    pass.rendererData.lightCullResult.visibleLights
                 );
 
                 cmd.EndSample(sampleName);

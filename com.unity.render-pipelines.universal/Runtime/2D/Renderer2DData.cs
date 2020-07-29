@@ -227,5 +227,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal RenderTargetHandle normalsRenderTarget;
         internal RenderTargetHandle shadowsRenderTarget;
+
+        // this shouldn've been in RenderingData along with other cull results
+        internal ILight2DCullResult lightCullResult { get; set; }
     }
 }

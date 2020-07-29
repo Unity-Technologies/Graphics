@@ -67,7 +67,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             var layerId1 = s_SortingLayers[layerIndex1].id;
             var layerId2 = s_SortingLayers[layerIndex2].id;
-            foreach (var light in LightManager2D.visibleLights)
+            foreach (var light in m_Renderer2DData.lightCullResult.visibleLights)
             {
                 if (light.IsLitLayer(layerId1) != light.IsLitLayer(layerId2))
                     return false;
@@ -108,7 +108,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             filterSettings.renderingLayerMask = 0xFFFFFFFF;
             filterSettings.sortingLayerRange = SortingLayerRange.all;
 
-            var isSceneLit = LightManager2D.IsSceneLit();
+            var isSceneLit = m_Renderer2DData.lightCullResult.IsSceneLit();
             if (isSceneLit)
             {
                 m_Renderer2DData.InitializeTransient();
@@ -140,7 +140,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     for (var i = 0; i < s_SortingLayers.Length;)
                     {
                         var layerToRender = s_SortingLayers[i].id;
-                        var lightStats = LightManager2D.GetLightStatsByLayer(layerToRender);
+                        var lightStats = m_Renderer2DData.lightCullResult.GetLightStatsByLayer(layerToRender);
 
                         cmd.Clear();
                         for (var blendStyleIndex = 0; blendStyleIndex < blendStylesCount; blendStyleIndex++)
