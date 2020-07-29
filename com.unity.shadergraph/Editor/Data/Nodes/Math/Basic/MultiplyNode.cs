@@ -49,8 +49,6 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new DynamicValueMaterialSlot(Input2SlotId, kInput2SlotName, kInput2SlotName, SlotType.Input, new Matrix4x4(new Vector4(2, 2, 2, 2), new Vector4(2, 2, 2, 2), new Vector4(2, 2, 2, 2), new Vector4(2, 2, 2, 2))));
             AddSlot(new DynamicValueMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Matrix4x4.zero));
             RemoveSlotsNameNotMatching(new[] { Input1SlotId, Input2SlotId, OutputSlotId });
-            Debug.Log("UpdateNodeAfterDeserialization");
-            
         }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
@@ -61,7 +59,6 @@ namespace UnityEditor.ShaderGraph
 
             sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutputSlotId));
             sb.AppendLine("{0}({1}, {2}, {3});", GetFunctionHeader(), input1Value, input2Value, outputValue);
-            Debug.Log("GenerateNodeCode");
         }
 
         string GetFunctionName()
@@ -136,7 +133,6 @@ namespace UnityEditor.ShaderGraph
                     }
 
                     var outputConcreteType = outputSlot.concreteValueType;
-                    Debug.Log("mutyply node is getting: outputConcreteType" + outputConcreteType);
                     // dynamic input... depends on output from other node.
                     // we need to compare ALL dynamic inputs to make sure they
                     // are compatable.
