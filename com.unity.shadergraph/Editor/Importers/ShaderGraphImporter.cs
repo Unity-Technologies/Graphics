@@ -278,6 +278,16 @@ Shader ""Hidden/GraphErrorShader2""
                 NodeUtils.DepthFirstCollectNodesFromNode(nodes, fragmentBlock);
             }
 
+            //Remove inactive blocks from generation
+            {
+                var tmpCtx = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), null);
+                target.GetActiveBlocks(ref tmpCtx);
+                ports.RemoveAll(materialSlot =>
+                {
+                    return !tmpCtx.activeBlocks.Any(o => materialSlot.RawDisplayName() == o.displayName);
+                });
+            }
+
             var bodySb = new ShaderStringBuilder(1);
             var registry = new FunctionRegistry(new ShaderStringBuilder(), true);
 
@@ -629,23 +639,13 @@ Shader ""Hidden/GraphErrorShader2""
                 result.outputCodeIndices[i] = portCodeIndices[i].ToArray();
             }
 
-            var outputMetadatas = new List<OutputMetadata>();
-            var tmpCtx = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), null);
-            target.GetActiveBlocks(ref tmpCtx);
-            for (int portIndex = 0; portIndex < ports.Count; portIndex++)
+            var outputMetadatas = new OutputMetadata[ports.Count];
+            for (int portIndex = 0; portIndex < outputMetadatas.Length; portIndex++)
             {
-                var materialSlot = ports[portIndex];
-                if (tmpCtx.activeBlocks.Any(o => materialSlot.RawDisplayName() == o.displayName))
-                {
-                    outputMetadatas.Add(new OutputMetadata(portIndex, ports[portIndex].shaderOutputName, originialPortIds[portIndex]));
-                }
-                else
-                {
-                    //Inactive block, ignore it.
-                }
+                outputMetadatas[portIndex] = new OutputMetadata(portIndex, ports[portIndex].shaderOutputName, originialPortIds[portIndex]);
             }
 
-            asset.SetOutputs(outputMetadatas.ToArray());
+            asset.SetOutputs(outputMetadatas);
 
             asset.evaluationFunctionName = evaluationFunctionName;
             asset.inputStructName = inputStructName;
