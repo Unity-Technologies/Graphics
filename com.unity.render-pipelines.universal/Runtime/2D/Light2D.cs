@@ -156,7 +156,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         [SerializeField] float m_LightVolumeOpacity = 0.0f;
         [SerializeField] int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
-        [SerializeField] Sprite m_LightCookieSprite = null;
+
+        //[SerializeField] Sprite m_LightCookieSprite = null;
+
+        [SerializeField] Sprite m_PointLightCookie = null;
+        [SerializeField] Sprite m_SpriteLightCookie = null;
+
         [SerializeField] bool m_UseNormalMap = false;
 
         [SerializeField] int m_LightOrder = 0;
@@ -165,8 +170,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
         int m_PreviousLightOrder = -1;
         int m_PreviousBlendStyleIndex;
         float       m_PreviousLightVolumeOpacity;
-        bool        m_PreviousLightCookieSpriteExists = false;
-        Sprite      m_PreviousLightCookieSprite     = null;
+        bool        m_PreviousSpriteLightCookieExists   = false;
+        Sprite      m_PreviousSpriteLightCookie         = null;
+        bool        m_PreviousPointLightCookieExists    = false;
+        Sprite      m_PreviousPointLightCookie          = null;
+
         Mesh        m_Mesh;
         int         m_LightCullingIndex             = -1;
         Bounds      m_LocalBounds;
@@ -232,7 +240,30 @@ namespace UnityEngine.Experimental.Rendering.Universal
         /// The lights current intensity
         /// </summary>
         public float volumeOpacity => m_LightVolumeOpacity;
-        public Sprite lightCookieSprite => m_LightCookieSprite;
+
+        public Sprite lightCookieSprite
+        {
+            get
+            {
+                if (lightType == LightType.Sprite)
+                    return m_SpriteLightCookie;
+                else if (lightType == LightType.Point)
+                    return m_PointLightCookie;
+                else
+                    return null;
+            }
+            set
+            {
+                if (lightType == LightType.Sprite)
+                    m_SpriteLightCookie = value;
+                else if (lightType == LightType.Point)
+                    m_PointLightCookie = value;
+                else
+                    Debug.LogWarning("Unable to assign light cookie to " + lightType.ToString() + " light");
+            }
+        }
+
+
         public float falloffIntensity => m_FalloffIntensity;
         public bool useNormalMap => m_UseNormalMap;
         public bool alphaBlendOnOverlap => m_AlphaBlendOnOverlap;
@@ -400,7 +431,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     break;
                 case LightType.Sprite:
                     m_Mesh.Clear();
-                    m_LocalBounds = LightUtility.GenerateSpriteMesh(ref m_Mesh, m_LightCookieSprite, 1);
+                    m_LocalBounds = LightUtility.GenerateSpriteMesh(ref m_Mesh, m_SpriteLightCookie, 1);
                     break;
                 case LightType.Point:
                     m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, 1.412135f, 0, 0, 4);
@@ -554,10 +585,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides);
             rebuildMesh |= LightUtility.CheckForChange(m_LightVolumeOpacity, ref m_PreviousLightVolumeOpacity);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset);
-            rebuildMesh |= LightUtility.CheckForChange(m_LightCookieSprite != null, ref m_PreviousLightCookieSpriteExists);
-            rebuildMesh |= LightUtility.CheckForChange(m_LightCookieSprite, ref m_PreviousLightCookieSprite);
+            rebuildMesh |= LightUtility.CheckForChange(m_SpriteLightCookie != null, ref m_PreviousSpriteLightCookieExists);
+            rebuildMesh |= LightUtility.CheckForChange(m_SpriteLightCookie, ref m_PreviousSpriteLightCookie);
+            rebuildMesh |= LightUtility.CheckForChange(m_SpriteLightCookie != null, ref m_PreviousPointLightCookieExists);
+            rebuildMesh |= LightUtility.CheckForChange(m_SpriteLightCookie, ref m_PreviousPointLightCookie);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightFalloffOffset, ref m_PreviousShapeLightFalloffOffset);
-
+            
 #if UNITY_EDITOR
             rebuildMesh |= LightUtility.CheckForChange(LightUtility.GetShapePathHash(m_ShapePath), ref m_PreviousShapePathHash);
 #endif
