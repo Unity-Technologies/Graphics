@@ -29,14 +29,6 @@ struct Varyings
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-inline float4 EncodeDepthNormal(float depth, float3 normal)
-{
-    float4 enc;
-    enc.xy = PackNormalOctRectEncode(normal);
-    enc.zw = PackFloatToR8G8(depth);
-    return enc;
-}
-
 Varyings DepthNormalsVertex(Attributes input)
 {
     Varyings output = (Varyings)0;
