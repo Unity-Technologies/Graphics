@@ -1,6 +1,6 @@
 # Volume Overrides
 
-__Volume Overrides__ are structures which contain values that override the default properties in a [Volume Profile](Volume-Profile.html). The Universal Render Pipeline (URP) uses these Profiles within the [Volume](Volumes.html) framework. For example, you could use a Volume Override in your Unity Project to darken the outside edges of yours Scene. 
+__Volume Overrides__ are structures which contain values that override the default properties in a [Volume Profile](VolumeProfile.md). The Universal Render Pipeline (URP) uses these Profiles within the [Volume](Volumes.html) framework. For example, you could use a Volume Override in your Unity Project to darken the outside edges of yours Scene. 
 
 ![__Vignette__ is an example of a Volume Override.](Images/Inspectors/Vignette.png)
 
