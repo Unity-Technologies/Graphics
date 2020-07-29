@@ -33,5 +33,6 @@ def save_existing_hooks():
 
 
 if __name__== "__main__":
+	print(f'Any question about the hooks or problem with the installation? Take a look at the FAQ in Tools/readme.md.\n')
 	clean_node_modules()
 	save_existing_hooks()
