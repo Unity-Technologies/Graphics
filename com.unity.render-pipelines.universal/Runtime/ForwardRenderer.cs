@@ -7,7 +7,9 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public enum RenderingMode
     {
+        /// <summary>Render all objects and lighting in one pass, with a hard limit on the number of lights that can be applied on an object.</summary>
         Forward,
+        /// <summary>Render all objects first in a g-buffer pass, then apply all lighting in a separate pass using deferred shading.</summary>
         Deferred
     };
 
