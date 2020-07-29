@@ -107,9 +107,12 @@ namespace UnityEditor.ShaderGraph
                 if (m_OutputSize.Equals(value))
                     return;
                 m_OutputSize = value;
-                Dirty(ModificationScope.Graph);
+                
                 UpdateNodeAfterDeserialization();
-                //EvaluateDynamicMaterialSlots();
+                owner.ValidateGraph();
+                Dirty(ModificationScope.Topological);
+
+
             }
         }
 
