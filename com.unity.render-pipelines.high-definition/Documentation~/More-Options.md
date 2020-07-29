@@ -4,7 +4,7 @@ The High Definition Render Pipeline (HDRP) components expose standard properties
 
 ## Exposing more options
 
-Not every component includes more options. If one does, it has a cog icon to the right of each property section header that includes more options. Click this cog icon to expose more options for that property section. For example, the [Light component’s](Light-Component.html) **General** section includes more options:
+Not every component includes more options. If one does, it has a cog icon to the right of each property section header that includes more options. Click this cog icon to expose more options for that property section. For example, the [Light component’s](Light-Component.md) **General** section includes more options:
 
 ![](Images/MoreOptions1.png)
 

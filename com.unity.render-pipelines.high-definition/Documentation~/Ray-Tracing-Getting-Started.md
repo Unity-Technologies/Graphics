@@ -49,7 +49,7 @@ Once you have completed one of these, move onto [Final setup](#FinalSetup).
 
 ### Render Pipeline Wizard setup
 
-You can use the [Render Pipeline Wizard](Render-Pipeline-Wizard.html) to set up ray tracing in your HDRP Project.
+You can use the [Render Pipeline Wizard](Render-Pipeline-Wizard.md) to set up ray tracing in your HDRP Project.
 
 1. To open the Render Pipeline Wizard, go to Window > Render Pipeline and select HD Render Pipeline Wizard.
 2. Select the HDRP + DXR tab.
@@ -95,7 +95,7 @@ Next, you need to disable static batching, because HDRP does not support this fe
 
 #### HDRP Asset configuration
 
-Now that Unity is running in DirectX 12, and you have disabled [static batching](https://docs.unity3d.com/Manual/DrawCallBatching.html), enable and configure ray tracing in your [HDRP Asset](HDRP-Asset.html). The previous steps configured Unity to support ray tracing; the following step enables it in your HDRP Unity Project.
+Now that Unity is running in DirectX 12, and you have disabled [static batching](https://docs.unity3d.com/Manual/DrawCallBatching.html), enable and configure ray tracing in your [HDRP Asset](HDRP-Asset.md). The previous steps configured Unity to support ray tracing; the following step enables it in your HDRP Unity Project.
 
 1. Click on your HDRP Asset in the Project window to view it in the Inspector.
 2. In the Rendering section, enable Realtime Ray Tracing. This triggers a recompilation, which makes ray tracing available in your HDRP Project.
@@ -142,7 +142,7 @@ Now that your HDRP Project supports ray tracing, there are a few steps you must 
 
 #### Frame Settings
 
-To make HDRP calculates ray tracing effects for [Cameras](HDRP-Camera.html) in your Scene, make sure your Cameras use [Frame Settings](Frame-Settings.html) that have ray tracing enabled. You can enable ray tracing for all Cameras by default, or you can enable ray tracing for specific Cameras in your Scene.
+To make HDRP calculates ray tracing effects for [Cameras](HDRP-Camera.md) in your Scene, make sure your Cameras use [Frame Settings](Frame-Settings.md) that have ray tracing enabled. You can enable ray tracing for all Cameras by default, or you can enable ray tracing for specific Cameras in your Scene.
 
 To enable ray tracing by default:
 
@@ -162,13 +162,13 @@ To enable ray tracing for a specific Camera:
 
 HDRP uses ray tracing to replace some of its screen space effects, shadowing techniques, and Mesh rendering techniques.
 
-- [Ray-Traced Ambient Occlusion](Ray-Traced-Ambient-Occlusion.html) replaces [screen space ambient occlusion](Override-Ambient-Occlusion.html) with a more accurate, ray-traced, ambient occlusion technique that can use off screen data.
-- [Ray-Traced Contact Shadows](Ray-Traced-Contact-Shadows.html) replaces [contact shadows](Override-Contact-Shadows.html) with a more accurate, ray-traced, contact shadow technique that can use off screen data.
-- [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination.html) is an alternative to Light Probes and lightmaps in HDRP.
-- [Ray-Traced Reflections](Ray-Traced-Reflections.html) is a replacement for [screen space reflection](Override-Screen-Space-Reflection.html) that uses a ray-traced reflection technique that can use off-screen data.
-- [Ray-Traced Shadows](Ray-Traced-Shadows.html) replace shadow maps for Directional, Point, and Area [Lights](Light-Component.html).
-- [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.html) replaces the rendering pipeline for Meshes. Meshes that use this feature cast refraction and reflection rays recursively.
-- [Ray-Traced Subsurface Scattering](Ray-Traced-Subsurface-Scattering.html) replaces [subsurface scattering](Subsurface-Scattero,g.html) with a more accurate, ray-traced, subsurface scattering technique that can use off screen data.
+- [Ray-Traced Ambient Occlusion](Ray-Traced-Ambient-Occlusion.md) replaces [screen space ambient occlusion](Override-Ambient-Occlusion.md) with a more accurate, ray-traced, ambient occlusion technique that can use off screen data.
+- [Ray-Traced Contact Shadows](Ray-Traced-Contact-Shadows.md) replaces [contact shadows](Override-Contact-Shadows.md) with a more accurate, ray-traced, contact shadow technique that can use off screen data.
+- [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination.md) is an alternative to Light Probes and lightmaps in HDRP.
+- [Ray-Traced Reflections](Ray-Traced-Reflections.md) is a replacement for [screen space reflection](Override-Screen-Space-Reflection.md) that uses a ray-traced reflection technique that can use off-screen data.
+- [Ray-Traced Shadows](Ray-Traced-Shadows.md) replace shadow maps for Directional, Point, and Area [Lights](Light-Component.md).
+- [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.md) replaces the rendering pipeline for Meshes. Meshes that use this feature cast refraction and reflection rays recursively.
+- [Ray-Traced Subsurface Scattering](Ray-Traced-Subsurface-Scattering.md) replaces [subsurface scattering](Subsurface-Scattero,g.md) with a more accurate, ray-traced, subsurface scattering technique that can use off screen data.
 
 ## Ray tracing mode
 
