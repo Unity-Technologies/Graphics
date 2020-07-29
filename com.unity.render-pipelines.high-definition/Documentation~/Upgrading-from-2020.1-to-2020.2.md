@@ -42,6 +42,8 @@ From Unity 2020.2, the light layer properties have move from the HDRP settings t
 
 From Unity 2020.2, in physically based sky, the sun disk intensity is proportional to its size. Before this the sun disk was incorrectly not drive by the sun disk size.
 
+From Unity 2020.2, if you previously used the **UseEmissiveIntensity** property in either a Decal, Lit, LayeredLit, or Unlit Material, be aware that the **EmissiveColorLDR** property is in sRGB color space. Previously HDRP handled **EmissiveColor** as being in linear RGB color space so there may be a mismatch in visuals between versions. To fix this mismatch, HDRP includes a migration script that handles the conversion automatically.
+
 For project migrating from old 9.x.x-preview package. There is a change in the order of enum of Exposure that may shift the current exposure mode to another one in Exposure Volume. This will need to be corrected manually by reselecting the correct Exposure mode.
 
 ## Shadows
