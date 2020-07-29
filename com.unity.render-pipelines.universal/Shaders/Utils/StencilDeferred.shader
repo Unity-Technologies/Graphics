@@ -1,5 +1,27 @@
 Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 {
+    Properties {
+        _StencilRef ("StencilRef", Int) = 0
+        _StencilReadMask ("StencilReadMask", Int) = 0
+        _StencilWriteMask ("StencilWriteMask", Int) = 0
+
+        _LitPunctualStencilRef ("LitPunctualStencilWriteMask", Int) = 0
+        _LitPunctualStencilReadMask ("LitPunctualStencilReadMask", Int) = 0
+        _LitPunctualStencilWriteMask ("LitPunctualStencilWriteMask", Int) = 0
+
+        _SimpleLitPunctualStencilRef ("SimpleLitPunctualStencilWriteMask", Int) = 0
+        _SimpleLitPunctualStencilReadMask ("SimpleLitPunctualStencilReadMask", Int) = 0
+        _SimpleLitPunctualStencilWriteMask ("SimpleLitPunctualStencilWriteMask", Int) = 0
+
+        _LitDirStencilRef ("LitStencilDirStencilWriteMask", Int) = 0
+        _LitDirStencilReadMask ("LitStencilDirStencilReadMask", Int) = 0
+        _LitDirStencilWriteMask ("LitStencilDirStencilWriteMask", Int) = 0
+
+        _SimpleLitDirStencilRef ("SimpleLitDirStencilWriteMask", Int) = 0
+        _SimpleLitDirStencilReadMask ("SimpleLitDirStencilReadMask", Int) = 0
+        _SimpleLitDirStencilWriteMask ("SimpleLitDirStencilWriteMask", Int) = 0
+    }
+
     HLSLINCLUDE
 
     // _ADDITIONAL_LIGHT_SHADOWS is shader keyword globally enabled for a range of render-passes.
@@ -188,14 +210,14 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             Cull Off
             ColorMask 0
 
-            // Bit 4 is used for the stencil volume.
             Stencil {
-                WriteMask 16
-                ReadMask 16
-                CompFront Always
+                Ref [_StencilRef]
+                ReadMask [_StencilReadMask]
+                WriteMask [_StencilWriteMask]
+                CompFront NotEqual
                 PassFront Keep
                 ZFailFront Invert
-                CompBack Always
+                CompBack NotEqual
                 PassBack Keep
                 ZFailBack Invert
             }
@@ -222,12 +244,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             Blend One One, Zero One
             BlendOp Add, Add
 
-            // [Stencil] Bit 4 is used for the stencil volume.
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
-                Ref 48       // 0b00110000
-                WriteMask 16 // 0b00010000
-                ReadMask 112 // 0b01110000
+                Ref [_LitPunctualStencilRef]
+                ReadMask [_LitPunctualStencilReadMask]
+                WriteMask [_LitPunctualStencilWriteMask]
                 Comp Equal
                 Pass Zero
                 Fail Keep
@@ -261,12 +281,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             Blend One One, Zero One
             BlendOp Add, Add
 
-            // [Stencil] Bit 4 is used for the stencil volume.
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
-                Ref 80       // 0b01010000
-                WriteMask 16 // 0b00010000
-                ReadMask 112 // 0b01110000
+                Ref [_SimpleLitPunctualStencilRef]
+                ReadMask [_SimpleLitPunctualStencilReadMask]
+                WriteMask [_SimpleLitPunctualStencilWriteMask]
                 CompBack Equal
                 PassBack Zero
                 FailBack Keep
@@ -300,12 +318,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             Blend One One, Zero One
             BlendOp Add, Add
 
-            // [Stencil] Bit 4 is used for the stencil volume.
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
-                Ref 32      // 0b00100000
-                WriteMask 0 // 0b00000000
-                ReadMask 96 // 0b01100000
+                Ref [_LitDirStencilRef]
+                ReadMask [_LitDirReadMask]
+                WriteMask [_LitDirWriteMask]
                 Comp Equal
                 Pass Keep
                 Fail Keep
@@ -339,12 +355,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             Blend One One, Zero One
             BlendOp Add, Add
 
-            // [Stencil] Bit 4 is used for the stencil volume.
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
-                Ref 64      // 0b01000000
-                WriteMask 0 // 0b00000000
-                ReadMask 96 // 0b01100000
+                Ref [_SimpleLitDirStencilRef]
+                ReadMask [_SimpleLitDirStencilReadMask]
+                WriteMask [_SimpleLitDirStencilWriteMask]
                 Comp Equal
                 Pass Keep
                 Fail Keep

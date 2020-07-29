@@ -46,6 +46,15 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
 
+            [Reload("Shaders/Utils/TileDepthInfo.shader")]
+            public Shader tileDepthInfoPS;
+
+            [Reload("Shaders/Utils/TileDeferred.shader")]
+            public Shader tileDeferredPS;
+
+            [Reload("Shaders/Utils/StencilDeferred.shader")]
+            public Shader stencilDeferredPS;
+
             [Reload("Shaders/Utils/FallbackError.shader")]
             public Shader fallbackErrorPS;
         }
@@ -62,8 +71,11 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
-        [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData();
+        [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData() { passOperation = StencilOp.Replace }; // This default state is compatible with deferred renderer.
         [SerializeField] bool m_ShadowTransparentReceive = true;
+        [SerializeField] ShadingMode m_ShadingMode = ShadingMode.Forward;
+        [SerializeField] bool m_AccurateGbufferNormals = false;
+        //[SerializeField] bool m_TiledDeferredShading = false;
 
         protected override ScriptableRenderer Create()
         {
@@ -129,7 +141,46 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        protected override void OnEnable()
+        /// <summary>
+        /// Use deferred shading path for compatible lights.
+        /// </summary>
+        public ShadingMode shadingMode
+        {
+            get => m_ShadingMode;
+            set
+            {
+                SetDirty();
+                m_ShadingMode = value;
+            }
+        }
+
+        /// <summary>
+        /// Use Octaedron Octahedron normal vector encoding for gbuffer normals.
+        /// The overhead is negligible from desktop GPUs, while it should be avoided for mobile GPUs.
+        /// </summary>
+        public bool accurateGbufferNormals
+        {
+            get => m_AccurateGbufferNormals;
+            set
+            {
+                SetDirty();
+                m_AccurateGbufferNormals = value;
+            }
+        }
+
+        /*
+        public bool tiledDeferredShading
+        {
+            get => m_TiledDeferredShading;
+            set
+            {
+                SetDirty();
+                m_TiledDeferredShading = value;
+            }
+        }
+        */
+
+       protected override void OnEnable()
         {
             base.OnEnable();
 

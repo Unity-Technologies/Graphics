@@ -345,12 +345,15 @@ namespace UnityEditor.Rendering.Universal
             for (int rendererIndex = 0; rendererIndex < rendererCount; ++rendererIndex)
             {
                 ScriptableRenderer renderer = pipelineAsset.GetRenderer(rendererIndex);
-                if (renderer is DeferredRenderer)
+                if (renderer is ForwardRenderer)
                 {
-                    hasDeferredRenderer |= true;
-                    DeferredRenderer deferredRenderer = (DeferredRenderer)renderer;
-                    withAccurateGbufferNormals |= deferredRenderer.AccurateGbufferNormals;
-                    withoutAccurateGbufferNormals |= !deferredRenderer.AccurateGbufferNormals;
+                    ForwardRenderer forwardRenderer = (ForwardRenderer)renderer;
+                    if (forwardRenderer.shadingMode == ShadingMode.Deferred)
+                    {
+                        hasDeferredRenderer |= true;
+                        withAccurateGbufferNormals |= forwardRenderer.accurateGbufferNormals;
+                        withoutAccurateGbufferNormals |= !forwardRenderer.accurateGbufferNormals;
+                    }
                 }
             }
 
