@@ -45,8 +45,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.SetDefaultShaderGUI("ShaderGraph.PBRMasterGUI"); // TODO: This should be owned by URP
 
             // Process SubShaders
-            SubShaderDescriptor[] subShaders = { SubShaders.Lit, SubShaders.LitDOTS };
-            for(int i = 0; i < subShaders.Length; i++)
+            bool isTransparent = (target.surfaceType == SurfaceType.Transparent);
+            SubShaderDescriptor[] subShaders = new SubShaderDescriptor[2];
+            subShaders[0] = isTransparent ? SubShaders.LitTransparent     : SubShaders.Lit;
+            subShaders[1] = isTransparent ? SubShaders.LitDOTSTransparent : SubShaders.LitDOTS;
+            for (int i = 0; i < subShaders.Length; i++)
             {
                 // Update Render State
                 subShaders[i].renderType = target.renderType;
@@ -233,6 +236,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 },
             };
 
+            public static SubShaderDescriptor LitTransparent = new SubShaderDescriptor()
+            {
+                pipelineTag = UniversalTarget.kPipelineTag,
+                generatesPreview = true,
+                passes = new PassCollection
+                {
+                    { LitPasses.Forward },
+                    { LitPasses.GBuffer },
+                    { LitPasses.Meta },
+                    { LitPasses._2D },
+                },
+            };
+
             public static SubShaderDescriptor LitDOTS
             {
                 get
@@ -264,6 +280,35 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                             { shadowCaster },
                             { depthOnly },
                             { depthNormalOnly },
+                            { meta },
+                            { _2d },
+                        },
+                    };
+                }
+            }
+
+            public static SubShaderDescriptor LitDOTSTransparent
+            {
+                get
+                {
+                    var forward = LitPasses.Forward;
+                    var gbuffer = LitPasses.GBuffer;
+                    var meta = LitPasses.Meta;
+                    var _2d = LitPasses._2D;
+
+                    forward.pragmas = CorePragmas.DOTSForward;
+                    gbuffer.pragmas = CorePragmas.DOTSGBuffer;
+                    meta.pragmas = CorePragmas.DOTSDefault;
+                    _2d.pragmas = CorePragmas.DOTSDefault;
+
+                    return new SubShaderDescriptor()
+                    {
+                        pipelineTag = UniversalTarget.kPipelineTag,
+                        generatesPreview = true,
+                        passes = new PassCollection
+                        {
+                            { forward },
+                            { gbuffer },
                             { meta },
                             { _2d },
                         },
