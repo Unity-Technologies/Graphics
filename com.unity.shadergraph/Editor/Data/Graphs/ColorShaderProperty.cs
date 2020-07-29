@@ -77,6 +77,7 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             return new ColorShaderProperty()
             {
+                version = version,
                 displayName = displayName,
                 hidden = hidden,
                 value = value,

@@ -79,7 +79,7 @@ namespace UnityEditor.ShaderGraph
             if (!generationMode.IsPreview())
                 return;
 
-            properties.AddShaderProperty(new ColorShaderProperty()
+            properties.AddShaderProperty(new ColorShaderProperty(1)
             {
                 overrideReferenceName = GetVariableNameForNode(),
                 generatePropertyBlock = false,
@@ -117,7 +117,7 @@ namespace UnityEditor.ShaderGraph
 
         public AbstractShaderProperty AsShaderProperty()
         {
-            return new ColorShaderProperty { value = color.color, colorMode = color.mode };
+            return new ColorShaderProperty(1) { value = color.color, colorMode = color.mode };
         }
 
         public int outputSlotId { get { return OutputSlotId; } }
