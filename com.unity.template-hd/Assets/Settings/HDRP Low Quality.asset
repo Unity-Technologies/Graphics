@@ -205,7 +205,7 @@ MonoBehaviour:
       m_Values: 140000002800000050000000
       m_SchemaId:
         m_Id: With3Levels
-    supportVolumetrics: 1
+    supportVolumetrics: 0
     supportLightLayers: 1
     lightLayerName0: Light LayerDefault
     lightLayerName1: InteriorOnly
