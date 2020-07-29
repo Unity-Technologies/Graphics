@@ -212,40 +212,50 @@ namespace UnityEngine.Rendering.HighDefinition
             return historyValidity;
         }
 
-        void DenoisePunctualScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera, HDAdditionalLightData additionalLightData, LightData lightData,
-            RTHandle velocityBuffer, RTHandle distanceBuffer,
-            RTHandle shadowHistoryArray, RTHandle shadowHistoryValidityArray,
-            RTHandle inoutBuffer)
+        void DenoisePunctualScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera,
+                                                HDAdditionalLightData additionalLightData, in LightData lightData,
+                                                RTHandle velocityBuffer, RTHandle distanceBuffer, RTHandle shadowBuffer)
         {
             // Request the additional temporary buffers we shall be using
             RTHandle intermediateBuffer1 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA1);
-            RTHandle distanceBuffer3 = GetRayTracingBuffer(InternalRayTracingBuffers.RG1);
+            RTHandle denoisedDistanceBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.RG1);
 
             // Is the history still valid?
             float historyValidity = EvaluateHistoryValidityPointShadow(hdCamera, lightData, additionalLightData);
+
+            // Evaluate the channel mask
+            GetShadowChannelMask(lightData.screenSpaceShadowIndex, ScreenSpaceShadowType.GrayScale, ref m_ShadowChannelMask0);
 
             // Apply the temporal denoiser
             HDTemporalFilter temporalFilter = GetTemporalFilter();
             if (additionalLightData.distanceBasedFiltering)
             {
-                // Evaluate the channel mask
-                GetShadowChannelMask(lightData.screenSpaceShadowIndex, ScreenSpaceShadowType.GrayScale, ref m_ShadowChannelMask0);
-
                 // Request the distance history buffer
                 RTHandle shadowHistoryDistanceArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowDistanceValidity)
                         ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowDistanceValidity, ShadowHistoryDistanceBufferAllocatorFunction, 1);
+                // Grab the history buffers for shadows
+                RTHandle shadowHistoryArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistory)
+                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistory, ShadowHistoryBufferAllocatorFunction, 1);
+                RTHandle shadowHistoryValidityArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistoryValidity)
+                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistoryValidity, ShadowHistoryValidityBufferAllocatorFunction, 1);
 
-                temporalFilter.DenoiseBuffer(cmd, hdCamera, inoutBuffer, shadowHistoryArray,
+                temporalFilter.DenoiseBuffer(cmd, hdCamera, shadowBuffer, shadowHistoryArray,
                                     shadowHistoryValidityArray,
                                     velocityBuffer,
                                     intermediateBuffer1,
                                     lightData.screenSpaceShadowIndex / 4, m_ShadowChannelMask0,
-                                    distanceBuffer, shadowHistoryDistanceArray, distanceBuffer3, m_ShadowChannelMask0,
+                                    distanceBuffer, shadowHistoryDistanceArray, denoisedDistanceBuffer, m_ShadowChannelMask0,
                                     singleChannel: true, historyValidity: historyValidity);
             }
             else
             {
-                temporalFilter.DenoiseBuffer(cmd, hdCamera, inoutBuffer, shadowHistoryArray,
+                // Grab the history buffers for shadows
+                RTHandle shadowHistoryArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistory)
+                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistory, ShadowHistoryBufferAllocatorFunction, 1);
+                RTHandle shadowHistoryValidityArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistoryValidity)
+                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistoryValidity, ShadowHistoryValidityBufferAllocatorFunction, 1);
+
+                temporalFilter.DenoiseBuffer(cmd, hdCamera, shadowBuffer, shadowHistoryArray,
                                     shadowHistoryValidityArray,
                                     velocityBuffer,
                                     intermediateBuffer1,
@@ -258,12 +268,12 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Apply the spatial denoiser
                 HDDiffuseShadowDenoiser shadowDenoiser = GetDiffuseShadowDenoiser();
-                shadowDenoiser.DenoiseBufferSphere(cmd, hdCamera, intermediateBuffer1, distanceBuffer3, inoutBuffer, additionalLightData.filterSizeTraced, additionalLightData.transform.position, additionalLightData.shapeRadius);
+                shadowDenoiser.DenoiseBufferSphere(cmd, hdCamera, intermediateBuffer1, denoisedDistanceBuffer, shadowBuffer, additionalLightData.filterSizeTraced, additionalLightData.transform.position, additionalLightData.shapeRadius);
             }
             else
             {
                 HDSimpleDenoiser simpleDenoiser = GetSimpleDenoiser();
-                simpleDenoiser.DenoiseBufferNoHistory(cmd, hdCamera, intermediateBuffer1, inoutBuffer, additionalLightData.filterSizeTraced, singleChannel: true);
+                simpleDenoiser.DenoiseBufferNoHistory(cmd, hdCamera, intermediateBuffer1, shadowBuffer, additionalLightData.filterSizeTraced, singleChannel: true);
             }
 
             // Now that we have overriden this history, mark is as used by this light
@@ -271,15 +281,14 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void RenderPunctualScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera
-            , in LightData lightData, HDAdditionalLightData additionalLightData, int lightIndex
-            , RTHandle shadowHistoryArray, RTHandle shadowHistoryValidityArray)
+            , in LightData lightData, HDAdditionalLightData additionalLightData, int lightIndex)
         {
             // Request the intermediate buffers we shall be using
             RTHandle outputShadowBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
             RTHandle directionBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.Direction);
             RTHandle velocityBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.R1);
-            RTHandle distanceBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.Distance);
-            RTHandle rayLengthBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.RG0);
+            RTHandle distanceBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.RG0);
+            RTHandle rayLengthBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.Distance);
 
             // Ray trace for shadow evaluation
             SSSPunctualRayTraceParameters ssprtParams = PrepareSSSPunctualRayTraceParameters(hdCamera, additionalLightData, lightData, lightIndex);
@@ -289,7 +298,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // If required, denoise the shadow
             if (additionalLightData.filterTracedShadow && ssprtParams.softShadow)
             {
-                DenoisePunctualScreenSpaceShadow(cmd, hdCamera, additionalLightData, lightData, velocityBuffer, distanceBuffer, shadowHistoryArray, shadowHistoryValidityArray, outputShadowBuffer);
+                DenoisePunctualScreenSpaceShadow(cmd, hdCamera, additionalLightData, lightData, velocityBuffer, distanceBuffer, outputShadowBuffer);
             }
 
             // Write the result texture to the screen space shadow buffer

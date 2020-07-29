@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public RTHandle gbuffer3;
             public RTHandle cookieAtlasTexture;
             public RTHandle shadowHistoryArray;
-            public RTHandle shadowHistoryValidityArray;
+            public RTHandle analyticHistoryArray;
 
             // Intermediate buffers
             public RTHandle directionBuffer;
@@ -127,7 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         SSSAreaRayTraceResources PrepareSSSAreaRayTraceResources(HDCamera hdCamera, RTHandle directionBuffer, RTHandle rayLengthBuffer,
                                                                     RTHandle intermediateBufferRGBA0, RTHandle intermediateBufferRGBA1, RTHandle intermediateBufferRG0,
-                                                                    RTHandle shadowHistoryArray, RTHandle shadowHistoryValidityArray)
+                                                                    RTHandle shadowHistoryArray, RTHandle analyticHistoryArray)
         {
             SSSAreaRayTraceResources sssartResources = new SSSAreaRayTraceResources();
 
@@ -151,7 +151,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             sssartResources.cookieAtlasTexture = m_TextureCaches.lightCookieManager.atlasTexture;
             sssartResources.shadowHistoryArray = shadowHistoryArray;
-            sssartResources.shadowHistoryValidityArray = shadowHistoryValidityArray;
+            sssartResources.analyticHistoryArray = analyticHistoryArray;
 
             // Intermediate buffers
             sssartResources.directionBuffer = directionBuffer;
@@ -300,7 +300,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(sssartParams.screenSpaceShadowsFilterCS, sssartParams.areaShadowApplyTAAKernel, HDShaderIDs._AnalyticProbBuffer, sssartResources.intermediateBufferRG0);
                 cmd.SetComputeTextureParam(sssartParams.screenSpaceShadowsFilterCS, sssartParams.areaShadowApplyTAAKernel, HDShaderIDs._DepthTexture, sssartResources.depthStencilBuffer);
                 cmd.SetComputeTextureParam(sssartParams.screenSpaceShadowsFilterCS, sssartParams.areaShadowApplyTAAKernel, HDShaderIDs._AreaShadowHistory, sssartResources.shadowHistoryArray);
-                cmd.SetComputeTextureParam(sssartParams.screenSpaceShadowsFilterCS, sssartParams.areaShadowApplyTAAKernel, HDShaderIDs._AnalyticHistoryBuffer, sssartResources.shadowHistoryValidityArray);
+                cmd.SetComputeTextureParam(sssartParams.screenSpaceShadowsFilterCS, sssartParams.areaShadowApplyTAAKernel, HDShaderIDs._AnalyticHistoryBuffer, sssartResources.analyticHistoryArray);
                 cmd.SetComputeTextureParam(sssartParams.screenSpaceShadowsFilterCS, sssartParams.areaShadowApplyTAAKernel, HDShaderIDs._DenoiseInputTexture, sssartResources.intermediateBufferRGBA0);
                 cmd.SetComputeTextureParam(sssartParams.screenSpaceShadowsFilterCS, sssartParams.areaShadowApplyTAAKernel, HDShaderIDs._DenoiseOutputTextureRW, sssartResources.intermediateBufferRGBA1);
                 cmd.SetComputeFloatParam(sssartParams.screenSpaceShadowsFilterCS, HDShaderIDs._HistoryValidity, sssartParams.historyValidity);
@@ -308,7 +308,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Update the shadow history buffer
                 cmd.SetComputeTextureParam(sssartParams.screenSpaceShadowsFilterCS, sssartParams.areaUpdateAnalyticHistoryKernel, HDShaderIDs._AnalyticProbBuffer, sssartResources.intermediateBufferRG0);
-                cmd.SetComputeTextureParam(sssartParams.screenSpaceShadowsFilterCS, sssartParams.areaUpdateAnalyticHistoryKernel, HDShaderIDs._AnalyticHistoryBuffer, sssartResources.shadowHistoryValidityArray);
+                cmd.SetComputeTextureParam(sssartParams.screenSpaceShadowsFilterCS, sssartParams.areaUpdateAnalyticHistoryKernel, HDShaderIDs._AnalyticHistoryBuffer, sssartResources.analyticHistoryArray);
                 cmd.DispatchCompute(sssartParams.screenSpaceShadowsFilterCS, sssartParams.areaUpdateAnalyticHistoryKernel, numTilesX, numTilesY, sssartParams.viewCount);
 
                 // Update the analytic history buffer
@@ -359,8 +359,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void RenderAreaScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera
-        , in LightData lightData, HDAdditionalLightData additionalLightData, int lightIndex
-        , RTHandle shadowHistoryArray, RTHandle shadowHistoryValidityArray)
+        , in LightData lightData, HDAdditionalLightData additionalLightData, int lightIndex)
         {
             RTHandle intermediateBufferRG0 = GetRayTracingBuffer(InternalRayTracingBuffers.RG0);
             RTHandle intermediateBufferRGBA0 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
@@ -368,13 +367,19 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle directionBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.Direction);
             RTHandle rayLengthBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.Distance);
 
+            // Grab the history buffers for shadows
+            RTHandle shadowHistoryArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistory)
+                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistory, ShadowHistoryBufferAllocatorFunction, 1);
+            RTHandle analyticHistoryArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistoryValidity)
+                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistoryValidity, ShadowHistoryValidityBufferAllocatorFunction, 1);
+
             SSSAreaRayTraceParameters sssartParams = PrepareSSSAreaRayTraceParameters(hdCamera, additionalLightData, lightData, lightIndex);
             SSSAreaRayTraceResources sssartResources = PrepareSSSAreaRayTraceResources(hdCamera, directionBuffer, rayLengthBuffer,
                                                                                         intermediateBufferRGBA0, intermediateBufferRGBA1, intermediateBufferRG0,
-                                                                                        shadowHistoryArray, shadowHistoryValidityArray);
+                                                                                        shadowHistoryArray, analyticHistoryArray);
             ExecuteSSSAreaRayTrace(cmd, sssartParams, sssartResources);
 
-            // Small prepass to do if we had to filter
+            // IF we had to filter, then we have to execute this
             if (additionalLightData.filterTracedShadow)
             {
                 int areaShadowSlot = m_lightList.lights[lightIndex].screenSpaceShadowIndex;
