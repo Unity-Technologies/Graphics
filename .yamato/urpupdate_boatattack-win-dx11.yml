@@ -17,7 +17,7 @@ URPUpdate_BoatAttack_Win_DX11_playmode_trunk:
     commands:
       -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-testing
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP-Update-testing/BoatAttack-19-4/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.shadergraph" /Y
@@ -41,7 +41,7 @@ URPUpdate_BoatAttack_Win_DX11_editmode_trunk:
     commands:
       -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-testing
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP-Update-testing/BoatAttack-19-4/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.shadergraph" /Y
@@ -65,7 +65,7 @@ URPUpdate_BoatAttack_Win_DX11_playmode_fast-trunk:
     commands:
       -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-testing
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP-Update-testing/BoatAttack-19-4/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.shadergraph" /Y
@@ -89,7 +89,7 @@ URPUpdate_BoatAttack_Win_DX11_editmode_fast-trunk:
     commands:
       -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-testing
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP-Update-testing/BoatAttack-19-4/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.shadergraph" /Y
@@ -114,7 +114,7 @@ URPUpdate_BoatAttack_Win_DX11_playmode_CUSTOM-REVISION:
     commands:
       -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-testing
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP-Update-testing/BoatAttack-19-4/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.shadergraph" /Y
@@ -139,7 +139,7 @@ URPUpdate_BoatAttack_Win_DX11_editmode_CUSTOM-REVISION:
     commands:
       -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-testing
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP-Update-testing/BoatAttack-19-4/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.shadergraph" /Y
