@@ -18,7 +18,7 @@ test_platforms:
   editmode: --suite=editor --platform=editmode
   performance_playmode_counters: --suite=playmode --testfilter=Counters --platform=Standalone
   performance_playmode_memory: --suite=playmode --testfilter=Memory --platform=Standalone
-  performance_editmode_build: --suite=Editor --testfilter=Build --platform=StandaloneWindows64
+  performance_editmode_build: --suite=Editor --testfilter=Build --platform=Standalone
 project_platforms:
 platforms:
   Win:
@@ -87,6 +87,35 @@ platforms:
     editorpath: .\.Editor
   OSX:
     name: OSX
+    os: macos
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+          - editmode
+      - name: OpenGLCore
+        exclude_test_platforms:
+          - Standalone
+    components:
+      - editor
+      - il2cpp
+    agents_project_Metal:
+      default:
+        type: Unity::metal::macmini
+        image: slough-ops/macos-10.14-xcode:stable
+        flavor: m1.mac
+    agents_project_OpenGLCore:
+      default:
+        type: Unity::VM::osx
+        image: buildfarm/mac:stable
+        flavor: m1.mac
+    agent_package: 
+      type: Unity::VM::osx
+      image: package-ci/mac:stable
+      flavor: m1.mac
+    copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
+    editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
+  OSX_perf:
+    name: OSX_perf
     os: macos
     apis:
       - name: Metal

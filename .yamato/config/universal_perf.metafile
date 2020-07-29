@@ -10,10 +10,19 @@ platforms:
     apis:
       - DX11
       - Vulkan
+  - name: OSX_perf
+    apis:
+      - Metal
 all:
   dependencies:
     - platform: Win_perf
       api: DX11
+      test_platforms:
+        - performance_playmode_counters
+        - performance_playmode_memory
+        - performance_editmode_build
+    - platform: OSX_perf
+      api: Metal
       test_platforms:
         - performance_playmode_counters
         - performance_playmode_memory

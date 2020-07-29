@@ -251,8 +251,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (viewCount <= TextureXR.slices)
                     {
-                        // XRTODO: check gfxDevice multiview extension support here
-                        if (Application.platform == RuntimePlatform.Android)
+                        if (SystemInfo.supportsMultiview)
                         {
                             cmd.EnableShaderKeyword("STEREO_MULTIVIEW_ON");
                             cmd.SetGlobalVectorArray("unity_StereoEyeIndices", stereoEyeIndices);
@@ -277,7 +276,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (singlePassEnabled)
                 {
-                    if (Application.platform == RuntimePlatform.Android)
+                    if (SystemInfo.supportsMultiview)
                     {
                         cmd.DisableShaderKeyword("STEREO_MULTIVIEW_ON");
                     }
@@ -333,6 +332,7 @@ namespace UnityEngine.Rendering.Universal
         // Store array to avoid allocating every frame
         private Matrix4x4[] stereoProjectionMatrix = new Matrix4x4[2];
         private Matrix4x4[] stereoViewMatrix = new Matrix4x4[2];
+        private Matrix4x4[] stereoCameraProjectionMatrix = new Matrix4x4[2];
 
         internal void UpdateGPUViewAndProjectionMatrices(CommandBuffer cmd, ref CameraData cameraData, bool isRenderToTexture)
         {
@@ -343,10 +343,11 @@ namespace UnityEngine.Rendering.Universal
             {
                 for (int i = 0; i < 2; i++)
                 {
+                    stereoCameraProjectionMatrix[i] = cameraData.xr.GetProjMatrix(i);
                     stereoViewMatrix[i] = cameraData.xr.GetViewMatrix(i);
-                    stereoProjectionMatrix[i] = GL.GetGPUProjectionMatrix(cameraData.xr.GetProjMatrix(i), isRenderToTexture);
+                    stereoProjectionMatrix[i] = GL.GetGPUProjectionMatrix(stereoCameraProjectionMatrix[i], isRenderToTexture);
                 }
-                RenderingUtils.SetStereoViewAndProjectionMatrices(cmd, stereoViewMatrix, stereoProjectionMatrix, true);
+                RenderingUtils.SetStereoViewAndProjectionMatrices(cmd, stereoViewMatrix, stereoProjectionMatrix, stereoCameraProjectionMatrix, true);
             }
         }
     }
@@ -362,7 +363,7 @@ namespace UnityEngine.Rendering.Universal
         internal bool enabled { get => false; }
         internal void StartSinglePass(CommandBuffer cmd) { }
         internal void StopSinglePass(CommandBuffer cmd) { }
-        internal void EndCamera(CommandBuffer cmd, Camera camera) { }
+        internal void EndCamera(CommandBuffer cmd, CameraData camera) { }
     }
 }
 #endif
