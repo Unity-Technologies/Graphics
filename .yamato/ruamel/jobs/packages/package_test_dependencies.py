@@ -23,7 +23,7 @@ class Package_TestDependenciesJob():
         # define commands
         commands =  [
                 f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
-                f'pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade',
+                f'pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade',
                 f'unity-downloader-cli --source-file {PATH_UNITY_REVISION} -c editor --wait --published-only']
         if package.get('hascodependencies', None) is not None:
             commands.append(platform["copycmd"])
