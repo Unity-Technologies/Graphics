@@ -14,6 +14,7 @@ using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
+using System.Security.Cryptography;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -43,6 +44,7 @@ namespace UnityEditor.ShaderGraph
             var subGraphPath = ctx.assetPath;
             var subGraphGuid = AssetDatabase.AssetPathToGUID(subGraphPath);
             graphAsset.assetGuid = subGraphGuid;
+            graphAsset.subGraphObjectIdOverride = "SubGraphImporter_subGraphData_luid_X";
             var textGraph = File.ReadAllText(subGraphPath, Encoding.UTF8);
             var messageManager = new MessageManager();
             var graphData = new GraphData
@@ -240,6 +242,15 @@ namespace UnityEditor.ShaderGraph
             {
                 node.CollectShaderProperties(collector, GenerationMode.ForReals);
             }
+            for (int i = 0; i < collector.properties.Count; ++i)
+            {
+                // override nondeterministic guids with obviously local ids.
+                collector.properties[i].ObjectIdUnsafe = "SubGraphImporter_propertyNode_luid_"+i;
+                byte[] guidBytes = new byte[16];
+                BitConverter.GetBytes(i+1).CopyTo(guidBytes, 0);
+                collector.properties[i].GuidUnsafe = new Guid(guidBytes);
+            }
+
             asset.WriteData(graph.properties, graph.keywords, collector.properties, outputSlots, graph.unsupportedTargets);
             outputSlots.Dispose();
         }

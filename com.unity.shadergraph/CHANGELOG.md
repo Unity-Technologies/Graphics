@@ -145,6 +145,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added missing SampleVirtualTextureNode address mode control in ShaderGraph
 - Fixed a badly named control on SampleVirtualTextureNode in ShaderGraph
 - Fixed an issue where multiple SampleVirtualTextureNodes created functions with names that may collide in ShaderGraph
+- Made sub graph importer deterministic to avoid cascading shader recompiles when no change was present.
 
 ## [7.1.1] - 2019-09-05
 ### Added

@@ -25,6 +25,7 @@ namespace UnityEditor.ShaderGraph
         public Guid guid
         {
             get { return m_Guid; }
+            set { m_Guid = value; }
         }
 
         public virtual void OnBeforeSerialize()

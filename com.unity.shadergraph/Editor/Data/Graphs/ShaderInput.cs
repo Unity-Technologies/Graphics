@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
@@ -10,7 +10,13 @@ namespace UnityEditor.ShaderGraph.Internal
         SerializableGuid m_Guid = new SerializableGuid();
 
         internal Guid guid => m_Guid.guid;
-        
+
+        public Guid GuidUnsafe
+        {
+            get { return m_Guid.guid; }
+            set { m_Guid.guid = value; }
+        }
+
         [SerializeField]
         string m_Name;
 
