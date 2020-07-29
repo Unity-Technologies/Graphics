@@ -15,6 +15,15 @@ struct LightData
     float4 occlusionProbeChannels;
 };
 
+// Generated from UnityEngine.Rendering.Universal.ShaderInput+ReflectionProbeData
+// PackingRules = Exact
+struct ReflectionProbeData
+{
+    float4 position;
+    float4 boxMin;
+    float4 boxMax;
+};
+
 // Generated from UnityEngine.Rendering.Universal.ShaderInput+ShadowData
 // PackingRules = Exact
 struct ShadowData

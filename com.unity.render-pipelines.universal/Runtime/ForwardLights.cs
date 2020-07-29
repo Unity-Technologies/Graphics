@@ -8,6 +8,9 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public class ForwardLights
     {
+        // #note probably need to move this to a setting like additional lights.
+        const int k_MaxReflectionProbesPerObject = 2;
+
         static class LightConstantBuffer
         {
             public static int _MainLightPosition;
@@ -20,10 +23,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static int _AdditionalLightsSpotDir;
 
             public static int _AdditionalLightOcclusionProbeChannel;
+
+            public static int _ReflectionProbesCount;
         }
         
         int m_AdditionalLightsBufferId;
         int m_AdditionalLightsIndicesId;
+
+        int m_ReflectionProbesBufferId;
+        int m_ReflectionProbesIndicesId;
+
+        int m_ReflectionProbeTexturesId;
 
         const string k_SetupLightConstants = "Setup Light Constants";
         MixedLightingSetup m_MixedLightingSetup;
@@ -54,11 +64,15 @@ namespace UnityEngine.Rendering.Universal.Internal
             LightConstantBuffer._MainLightPosition = Shader.PropertyToID("_MainLightPosition");
             LightConstantBuffer._MainLightColor = Shader.PropertyToID("_MainLightColor");
             LightConstantBuffer._AdditionalLightsCount = Shader.PropertyToID("_AdditionalLightsCount");
+            LightConstantBuffer._ReflectionProbesCount = Shader.PropertyToID("_ReflectionProbesCount");
 
             if (m_UseStructuredBuffer)
             {
                 m_AdditionalLightsBufferId = Shader.PropertyToID("_AdditionalLightsBuffer");
                 m_AdditionalLightsIndicesId = Shader.PropertyToID("_AdditionalLightsIndices");
+                m_ReflectionProbesBufferId = Shader.PropertyToID("_ReflectionProbesBuffer");
+                m_ReflectionProbesIndicesId = Shader.PropertyToID("_ReflectionProbeIndices");
+                m_ReflectionProbeTexturesId = Shader.PropertyToID("_ReflectionProbeTextures");
             }
             else
             {
@@ -93,6 +107,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_MixedLightingSetup == MixedLightingSetup.Subtractive);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+        }
+
+        void InitializeProbeConstants(NativeArray<VisibleReflectionProbe> probes, int probeIndex, out Vector4 probePosition, out Vector4 probeBoxMin, out Vector4 probeBoxMax)
+        {
+            var probeData = probes[probeIndex];
+            probePosition = probeData.center;
+            probePosition.w = (probeData.isBoxProjection) ? 1f : 0f;
+            probeBoxMin = probeData.bounds.min;
+            probeBoxMax = probeData.bounds.max;
         }
 
         void InitializeLightConstants(NativeArray<VisibleLight> lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightAttenuation, out Vector4 lightSpotDir, out Vector4 lightOcclusionProbeChannel)
@@ -209,6 +232,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Universal pipeline also supports only a single shadow light, if available it will be the main light.
             SetupMainLightConstants(cmd, ref renderingData.lightData);
             SetupAdditionalLightConstants(cmd, ref renderingData);
+            SetupReflectionProbeConstants(cmd, ref renderingData);
         }
 
         void SetupMainLightConstants(CommandBuffer cmd, ref LightData lightData)
@@ -218,6 +242,68 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             cmd.SetGlobalVector(LightConstantBuffer._MainLightPosition, lightPos);
             cmd.SetGlobalVector(LightConstantBuffer._MainLightColor, lightColor);
+        }
+
+        void SetupReflectionProbeConstants(CommandBuffer cmd, ref RenderingData renderingData)
+        {
+            var cullResults = renderingData.cullResults;
+            var probes = cullResults.visibleReflectionProbes;
+            int reflectionProbesCount = SetupPerObjectReflectionProbeIndices(cullResults);
+            if(reflectionProbesCount > 0)
+            {
+                if (m_UseStructuredBuffer)
+                {
+                    var reflectionProbeData = new NativeArray<ShaderInput.ReflectionProbeData>(reflectionProbesCount, Allocator.Temp);
+
+                    for (int i = 0, probeIter = 0; i < probes.Length && probeIter < k_MaxReflectionProbesPerObject; ++i)
+                    {
+                        VisibleReflectionProbe probe = probes[i];
+                        ShaderInput.ReflectionProbeData data;
+                        InitializeProbeConstants(probes, i, out data.position, out data.boxMin, out data.boxMax);
+                        reflectionProbeData[probeIter] = data;
+                        probeIter++;
+                    }
+
+                    var probeDataBuffer = ShaderData.instance.GetReflectionProbeDataBuffer(reflectionProbesCount);
+                    probeDataBuffer.SetData(reflectionProbeData);
+
+                    int probeIndices = cullResults.lightAndReflectionProbeIndexCount;
+                    var probeIndicesBuffer = ShaderData.instance.GetReflectionProbeIndicesBuffer(probeIndices);
+
+                    cmd.SetGlobalBuffer(m_ReflectionProbesBufferId, probeDataBuffer);
+                    cmd.SetGlobalBuffer(m_ReflectionProbesIndicesId, probeIndicesBuffer);
+
+                    // #note handle CubeMapTextureArray cache here?? See HDRP (TextureCacheCubeMap.cs & ReflectionProbeCache.cs)
+                    // Notes @mortenm:
+                    //  This is an important one too: TransferToSlice() in those files
+                    //  to convert on the fly from cube map to panorama the array requires an uncompressed format. If on the other hand you know the platform supports cube map arrays then you could use a compressed format such as BC6
+                    //  but initially to get it running you could just always set it to RGBm or 4xfp16 or 11_11_10F
+                    //  also an unrelated subtlety I wanted to mention since it is easy to miss is NewFrame() must be called on each texture cache once per frame
+                    //  also have you been able to find the blit shader used in TransferToPanoCache()? It's in ../com.unity.render-pipelines.high-definition/Runtime/Core/CoreResources It is CubeToPano.shader
+                    var colors = new Color[16 * 16];
+                    for (int i = 0; i < 16 * 16; i++)
+                        colors[i] = Color.yellow;
+                    var textureArray = new Texture2DArray(16, 16, 1, TextureFormat.RGBA32, true);
+                    textureArray.SetPixelData(colors, 0, 0);
+                    textureArray.Apply();
+
+                    cmd.SetGlobalTexture(m_ReflectionProbeTexturesId, textureArray);
+
+                    reflectionProbeData.Dispose();
+                }
+                else
+                {
+                    // #note To do implement UBO fall back path...
+                }
+
+                // #note might need to pack more data into this??
+                cmd.SetGlobalVector(LightConstantBuffer._ReflectionProbesCount, new Vector4(k_MaxReflectionProbesPerObject,
+                    0.0f, 0.0f, 0.0f));
+            }
+            else
+            {
+                cmd.SetGlobalVector(LightConstantBuffer._ReflectionProbesCount, Vector4.zero);
+            }
         }
 
         void SetupAdditionalLightConstants(CommandBuffer cmd, ref RenderingData renderingData)
@@ -287,6 +373,33 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 cmd.SetGlobalVector(LightConstantBuffer._AdditionalLightsCount, Vector4.zero);
             }
+        }
+
+        int SetupPerObjectReflectionProbeIndices(CullingResults cullResults)
+        {
+            if (cullResults.reflectionProbeIndexCount == 0)
+                return cullResults.reflectionProbeIndexCount;
+
+            var perObjectReflectionProbeIndexMap = cullResults.GetReflectionProbeIndexMap(Allocator.Temp);
+            // #note to do: discard reflection probes exceeding the max allowed number of probes
+            var reflectionProbesCount = perObjectReflectionProbeIndexMap.Length;// Mathf.Min(perObjectReflectionProbeIndexMap.Length, k_MaxReflectionProbesPerObject);
+
+            //// Disable reflection probes that do not fit into the buffer.
+            //for (int i = k_MaxReflectionProbesPerObject; i < perObjectReflectionProbeIndexMap.Length; ++i)
+            //    perObjectReflectionProbeIndexMap[i] = -1;
+
+            cullResults.SetReflectionProbeIndexMap(perObjectReflectionProbeIndexMap);
+
+            // #note duplicate code & work with SetupPerObjectLightIndices.
+            if (m_UseStructuredBuffer && reflectionProbesCount > 0)
+            {
+                int lightAndReflectionProbeIndices = cullResults.lightAndReflectionProbeIndexCount;
+                Assertions.Assert.IsTrue(lightAndReflectionProbeIndices > 0, "Pipelines configures reflection probes but per-object light and probe indices count is zero.");
+                cullResults.FillLightAndReflectionProbeIndices(ShaderData.instance.GetReflectionProbeIndicesBuffer(lightAndReflectionProbeIndices));
+            }
+
+            perObjectReflectionProbeIndexMap.Dispose();
+            return reflectionProbesCount;
         }
         
         int SetupPerObjectLightIndices(CullingResults cullResults, ref LightData lightData)

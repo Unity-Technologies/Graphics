@@ -12,6 +12,16 @@ namespace UnityEngine.Rendering.Universal
             public Vector4 occlusionProbeChannels;
         }
 
+        // #note probably want to add the HDR vec4 in here too?
+        //   regenerate through edit>render pipeline> generate shader includes
+        [GenerateHLSL(PackingRules.Exact, false)]
+        public struct ReflectionProbeData
+        {
+            public Vector4 position;
+            public Vector4 boxMin;
+            public Vector4 boxMax;
+        }
+
         [GenerateHLSL(PackingRules.Exact, false)]
         public struct ShadowData
         {

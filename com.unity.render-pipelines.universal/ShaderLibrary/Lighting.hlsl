@@ -168,10 +168,39 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
     return light;
 }
 
+ReflectionProbeData GetAdditionalPerObjectReflectionProbe(int perObjectReflectionProbeIndex)
+{
+#if defined(USE_STRUCTURED_BUFFER_FOR_REFLECTION_PROBE_DATA)
+    float4 probePositionWS = _ReflectionProbesBuffer[perObjectReflectionProbeIndex].position;
+    float4 probeBoxMin = _ReflectionProbesBuffer[perObjectReflectionProbeIndex].boxMin;
+    float4 probeBoxMax = _ReflectionProbesBuffer[perObjectReflectionProbeIndex].boxMax;
+#else
+// #note todo UBO implementation
+    float4 probePositionWS = float4(0);
+    float4 probeBoxMin = float4(0);
+    float4 probeBoxMax  = float4(0);
+#endif
+
+    ReflectionProbeData probe;
+    probe.position = probePositionWS;
+    probe.boxMin = probeBoxMin;
+    probe.boxMax = probeBoxMax;
+    return probe;
+}
+
 uint GetPerObjectLightIndexOffset()
 {
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
     return unity_LightData.x;
+#else
+    return 0;
+#endif
+}
+
+uint GetPerObjectReflectionProbeIndexOffset()
+{
+#if defined(USE_STRUCTURED_BUFFER_FOR_REFLECTION_PROBE_DATA)
+    return unity_ReflectionProbeData.x;
 #else
     return 0;
 #endif
@@ -220,6 +249,17 @@ int GetPerObjectLightIndex(uint index)
 #endif
 }
 
+int GetPerObjectReflectionProbeIndex(uint index)
+{
+#if defined(USE_STRUCTURED_BUFFER_FOR_REFLECTION_PROBE_DATA)
+    uint offset = unity_ReflectionProbeData.x;
+    return _ReflectionProbeIndices[offset + index];
+#else
+// #note todo UBO implementation
+    return -1;
+#endif
+}
+
 // Fills a light struct given a loop i index. This will convert the i
 // index to a perObjectLightIndex
 Light GetAdditionalLight(uint i, float3 positionWS)
@@ -228,12 +268,23 @@ Light GetAdditionalLight(uint i, float3 positionWS)
     return GetAdditionalPerObjectLight(perObjectLightIndex, positionWS);
 }
 
+ReflectionProbeData GetReflectionProbe(uint i)
+{
+    int perObjectReflectionProbeIndex = GetPerObjectReflectionProbeIndex(i);
+    return GetAdditionalPerObjectReflectionProbe(perObjectReflectionProbeIndex);
+}
+
 int GetAdditionalLightsCount()
 {
     // TODO: we need to expose in SRP api an ability for the pipeline cap the amount of lights
     // in the culling. This way we could do the loop branch with an uniform
     // This would be helpful to support baking exceeding lights in SH as well
     return min(_AdditionalLightsCount.x, unity_LightData.y);
+}
+
+int GetReflectionProbesCount()
+{
+    return min(_ReflectionProbesCount.x, unity_ReflectionProbeData.y);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -463,16 +514,6 @@ half3 HackSampleSH(half3 normalWS)
 #define SAMPLE_GI(lmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
 #endif
 
-struct ReflectionProbeData
-{
-    real4 probePosition;
-    real4 boxMin;
-    real4 boxMax;
-    TEXTURECUBE(specCube);
-    SAMPLER(sampler_specCube);
-    real4 specCube_HDR;
-};
-
 half3 BoxProjectedCubemapDirection(half3 reflectVector, half3 positionWS, real4 cubemapCenter, real4 boxMin, real4 boxMax)
 {    
     float3 boxMinMax = (reflectVector > 0.0f) ? boxMax.xyz : boxMin.xyz;
@@ -502,6 +543,7 @@ half3 getIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, R
     //But reverse the order such the the highest priority and smallest reflection probes is first.
     float blendFactor = 1.0;
     half3 irradiance = half3(0,0,0);
+/*
     // First Probe
     float weight = min(getWeight(positionWS, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax), blendFactor);
     blendFactor = saturate(blendFactor - weight);
@@ -534,8 +576,11 @@ half3 getIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, R
 #else
     irradiance += weight * encodedIrradiance.rbg;
 #endif
+*/
 
-    /*
+    // #note use GetReflectionProbesCount() to determine how many reflection probes we should loop over
+    //    use 0 to GetReflectionProbesCount() in GetReflectionProbe(i) to get the probes
+
     for (int i = 0; i < 2; i++)
     {
         float weight = min(getWeight(positionWS, reflectionProbes[i].boxMin, reflectionProbes[i].boxMax), blendFactor);
@@ -543,17 +588,27 @@ half3 getIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, R
 
 
         half3 originalReflectVector = reflectVector;
-        reflectVector = (1 - reflectionProbes[i].probePosition.w) * originalReflectVector
-            + reflectionProbes[i].probePosition.w * BoxProjectedCubemapDirection(reflectVector, positionWS, reflectionProbes[i].probePosition, reflectionProbes[i].boxMin, reflectionProbes[i].boxMax);
+        reflectVector = (1 - reflectionProbes[i].position.w) * originalReflectVector
+            + reflectionProbes[i].position.w * BoxProjectedCubemapDirection(reflectVector, positionWS, reflectionProbes[i].position, reflectionProbes[i].boxMin, reflectionProbes[i].boxMax);
         half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
-        half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(reflectionProbes[i].specCube, reflectionProbes[i].samplerunity_specCube, reflectVector, mip);
+        half4 encodedIrradiance;
+        // #note to do Sample TextureCubeArray
+        //half4 encodedIrradiance1 = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_ReflectionProbeTextures, s_trilinear_clamp_sampler, reflectVector, 0, mip);
+        if(i == 0)
+            encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
+        else
+            encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube1, samplerunity_SpecCube1, reflectVector, mip);
 #if !defined(UNITY_USE_NATIVE_HDR)
-        irradiance += weight * DecodeHDREnvironment(encodedIrradiance, reflectionProbes[i].specCube_HDR);
+        // #note include HDR in ReflectionProbeData buffer?
+        if(i == 0)
+            irradiance += weight * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
+        else
+            irradiance += weight * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube1_HDR);
 #else
         irradiance += weight * encodedIrradiance.rbg;
 #endif
     }
-    */
+    
     return irradiance;
 }
 
@@ -561,6 +616,8 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, half3 positionWS, half pe
 {
 #if !defined(_ENVIRONMENTREFLECTIONS_OFF)
     ReflectionProbeData reflectionProbes[2];
+    reflectionProbes[0] = GetReflectionProbe(0);
+    reflectionProbes[1] = GetReflectionProbe(1);
     half3 irradiance = getIrradianceFromReflectionProbes(reflectVector, positionWS, reflectionProbes, perceptualRoughness);
     return irradiance * occlusion;
 #endif // GLOSSY_REFLECTIONS

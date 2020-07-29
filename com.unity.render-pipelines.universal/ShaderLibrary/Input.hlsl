@@ -4,6 +4,7 @@
 #define MAX_VISIBLE_LIGHTS_UBO  32
 #define MAX_VISIBLE_LIGHTS_SSBO 256
 #define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 0
+#define USE_STRUCTURED_BUFFER_FOR_REFLECTION_PROBE_DATA 1 // #note switch based on support
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
 
@@ -53,6 +54,17 @@ half4 _AdditionalLightsColor[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsAttenuation[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsSpotDir[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
+#endif
+
+half4 _ReflectionProbesCount;
+TEXTURECUBE_ARRAY_ABSTRACT(_ReflectionProbeTextures);
+SAMPLER(s_trilinear_clamp_sampler); // #note copied from HDRP, not sure if we want to handle Samplers the same way
+
+#if USE_STRUCTURED_BUFFER_FOR_REFLECTION_PROBE_DATA
+StructuredBuffer<ReflectionProbeData> _ReflectionProbesBuffer;
+StructuredBuffer<int> _ReflectionProbeIndices;
+#else
+// #note todo UBO implementation for reflection probes
 #endif
 
 #define UNITY_MATRIX_M     unity_ObjectToWorld
