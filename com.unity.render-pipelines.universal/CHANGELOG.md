@@ -75,7 +75,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - 2D shaders now use half-precision floats whenever precise results are not necessary.
 - Removed the ETC1_EXTERNAL_ALPHA variant from Shader Graph Sprite shaders.
 - Eliminated some unnecessary clearing of render targets when using the 2D Renderer.
+- The rendering of 2D lights is more effient as sorting layers affected by the same set of lights are now batched.
 - Removed the 8 renderer limit from URP Asset.
+- Changing the default value of Skip Iterations to 1 in Bloom effect editor
 - Use SystemInfo to check if multiview is supported instead of being platform hardcoded
 
 ### Fixed
