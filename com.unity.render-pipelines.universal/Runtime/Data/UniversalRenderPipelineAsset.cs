@@ -457,6 +457,16 @@ namespace UnityEngine.Rendering.Universal
 
 #endif
 
+        public void AddRendererToRendererDataList(ScriptableRendererData rendererData)
+        {
+            if (!m_RendererDataList.Contains(rendererData))
+            {
+                m_RendererDataList = m_RendererDataList.Append(rendererData).ToArray();
+            }
+        }
+
+        public ScriptableRendererData[] RendererDataList { get => m_RendererDataList; }
+
         internal int[] rendererIndexList
         {
             get

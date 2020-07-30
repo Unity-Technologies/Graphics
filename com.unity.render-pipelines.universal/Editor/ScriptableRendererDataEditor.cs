@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Scripting.APIUpdating;
 using Object = UnityEngine.Object;
@@ -26,6 +27,7 @@ namespace UnityEditor.Rendering.Universal
 
             public static GUIStyle BoldLabelSimple;
 
+            public static GUIContent renderPipelineAssetsText = EditorGUIUtility.TrTextContent("Assigned to these RenderPipelineAssets", "This Renderer Data has been assigned to these Renderer Pipeline Assets.");
             static Styles()
             {
                 BoldLabelSimple = new GUIStyle(EditorStyles.label);
@@ -33,6 +35,10 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
+        // Temporary saved bools for foldout header
+        SavedBool m_RenderPipelineAssetsFoldout;
+
+        List<ValueTuple<string, string>> m_RenderPipeLineAssets;
         private SerializedProperty m_RendererFeatures;
         private SerializedProperty m_RendererFeaturesMap;
         private SerializedProperty m_FalseBool;
@@ -46,6 +52,46 @@ namespace UnityEditor.Rendering.Universal
             var editorObj = new SerializedObject(this);
             m_FalseBool =  editorObj.FindProperty(nameof(falseBool));
             UpdateEditorList();
+            m_RenderPipelineAssetsFoldout = new SavedBool($"{target.GetType()}.RenderPipelineAssetsFoldout", true);
+            m_RenderPipeLineAssets = new List<ValueTuple<string,string>>();
+            FindAssignedRenderPipelineAssets();
+        }
+
+        protected override void OnHeaderGUI()
+        {
+            base.OnHeaderGUI();
+            // New button in header to assign asset
+            Rect fullRect = EditorGUILayout.GetControlRect();
+            float titleHeight = EditorGUIUtility.singleLineHeight + 5;
+            Rect titleRect = new Rect(fullRect.x, fullRect.y, fullRect.width, titleHeight);
+            if (GUI.Button(titleRect, "Assign to Renderer List"))
+            {
+                UniversalRenderPipelineAsset rp = GraphicsSettings.defaultRenderPipeline as UniversalRenderPipelineAsset;
+                rp?.AddRendererToRendererDataList(target as ScriptableRendererData);
+                FindAssignedRenderPipelineAssets();
+            }
+        }
+
+        public void FindAssignedRenderPipelineAssets()
+        {
+            m_RenderPipeLineAssets.Clear();
+            var rpAssets = AssetDatabase.FindAssets("t:RenderPipelineAsset");
+            foreach (string asset in rpAssets)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(asset);
+                UniversalRenderPipelineAsset urpAsset = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>(path) as UniversalRenderPipelineAsset;
+                if (urpAsset != null)
+                {
+                    var renderers = urpAsset.RendererDataList;
+                    foreach(var renderer in renderers)
+                    {
+                        if (target == renderer)
+                        {
+                            m_RenderPipeLineAssets.Add((urpAsset.name, path));
+                        }
+                    }
+                }
+            }
         }
 
         public override void OnInspectorGUI()
@@ -55,6 +101,25 @@ namespace UnityEditor.Rendering.Universal
 
             serializedObject.Update();
             DrawRendererFeatureList();
+            DrawRenderPipelineAssetList();
+        }
+
+        void DrawRenderPipelineAssetList()
+        {
+            // Foldout header
+            m_RenderPipelineAssetsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_RenderPipelineAssetsFoldout.value, Styles.renderPipelineAssetsText);
+            if (m_RenderPipelineAssetsFoldout.value)
+            {
+                foreach ((string, string) renderPipeLineAsset in m_RenderPipeLineAssets)
+                {
+                    if(GUILayout.Button(renderPipeLineAsset.Item1, "Label"))
+                    {
+                        var asset = AssetDatabase.LoadAssetAtPath<Object>(renderPipeLineAsset.Item2);
+                        EditorGUIUtility.PingObject(asset);
+                    }
+                }
+            }
+            EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
         private void DrawRendererFeatureList()

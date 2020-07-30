@@ -279,17 +279,14 @@ namespace UnityEditor.Rendering.Universal
             // New button in header to assign asset
             Rect fullRect = EditorGUILayout.GetControlRect();
             float titleHeight = EditorGUIUtility.singleLineHeight+5;
-            Rect titleRect;
-            titleRect = new Rect(fullRect.x, fullRect.y, fullRect.width, titleHeight);
+            Rect titleRect = new Rect(fullRect.x, fullRect.y, fullRect.width, titleHeight);
             if (GUI.Button(titleRect, "Assign to Project Settings - Graphics"))
             {
                 if (GraphicsSettings.defaultRenderPipeline != (RenderPipelineAsset)target)
                 {
                     // Reflection to be able to get the GraphicSettings Object.
                     // We need the object to do record an Undo action here when switching RenderPipelineAsset
-                    // The call to GetGraphicsSettings is [FreeFunction] extern internal static GetGraphicsSettings()
-                    MethodInfo dynMethod = typeof(GraphicsSettings).GetMethod("GetGraphicsSettings", BindingFlags.Static | BindingFlags.NonPublic);
-                    Object obj = dynMethod.Invoke(null, null) as Object;
+                    Object obj = GraphicsSettings.GetGraphicsSettings();
                     Undo.RecordObject(obj, $"Assigned {target.name}");
                     GraphicsSettings.defaultRenderPipeline = target as RenderPipelineAsset;
                 }

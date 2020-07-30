@@ -42,6 +42,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent clearDepth = EditorGUIUtility.TrTextContent("Clear Depth", "If enabled, depth from the previous camera will be cleared.");
 
             public static GUIContent rendererType = EditorGUIUtility.TrTextContent("Renderer", "Controls which renderer this camera uses.");
+            public static GUIContent rendererSettingsText = EditorGUIUtility.TrIconContent("_Menu", "Opens settings for this renderer.");
 
             public static GUIContent volumeLayerMask = EditorGUIUtility.TrTextContent("Volume Mask", "This camera will only be affected by volumes in the selected scene-layers.");
             public static GUIContent volumeTrigger = EditorGUIUtility.TrTextContent("Volume Trigger", "A transform that will act as a trigger for volume blending. If none is set, the camera itself will act as a trigger.");
@@ -787,7 +788,20 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.BeginChangeCheck();
 
             EditorGUI.showMixedValue = m_AdditionalCameraDataRendererProp.hasMultipleDifferentValues;
-            int selectedRenderer = EditorGUILayout.IntPopup(Styles.rendererType, selectedRendererOption, m_UniversalRenderPipeline.rendererDisplayList, UniversalRenderPipeline.asset.rendererIndexList);
+            var controlRect = EditorGUILayout.GetControlRect();
+
+            Rect rendererRect = new Rect(controlRect.x, controlRect.y, controlRect.width - 25, EditorGUIUtility.singleLineHeight);
+            int selectedRenderer = EditorGUI.IntPopup(rendererRect, Styles.rendererType, selectedRendererOption, m_UniversalRenderPipeline.rendererDisplayList, UniversalRenderPipeline.asset.rendererIndexList);
+            Rect selectRect = new Rect(controlRect.x + controlRect.width - 24, controlRect.y, 24, EditorGUIUtility.singleLineHeight);
+            if (m_UniversalRenderPipeline.ValidateRendererData(selectedRendererOption))
+            {
+                if (GUI.Button(selectRect, Styles.rendererSettingsText))
+                {
+                    var rendererList = m_UniversalRenderPipeline.RendererDataList;
+                    var obj = rendererList[selectedRendererOption];
+                    Selection.SetActiveObjectWithContext((Object)obj, null);
+                }
+            }
 
             if (!m_UniversalRenderPipeline.ValidateRendererDataList())
             {
