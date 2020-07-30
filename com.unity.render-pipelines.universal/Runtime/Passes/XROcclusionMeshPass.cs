@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.Universal
             m_TargetDepthTarget = targetDepth;
         }
 
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             var targetDepthId = new RenderTargetIdentifier(m_TargetDepthTarget.Identifier(), 0, CubemapFace.Unknown, -1);
             ConfigureTarget(targetDepthId, targetDepthId);

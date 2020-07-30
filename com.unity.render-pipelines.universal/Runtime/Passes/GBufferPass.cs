@@ -32,11 +32,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
+            var cameraTextureDescriptor = renderingData.cameraData.cameraTargetDescriptor;
             RenderTargetHandle[] gbufferAttachments = m_DeferredLights.GbufferAttachments;
 
-                // Create and declare the render targets used in the pass
+            // Create and declare the render targets used in the pass
             for (int i = 0; i < gbufferAttachments.Length; ++i)
             {
                 // Lighting buffer has already been declared with line ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), ...) in DeferredRenderer.Setup

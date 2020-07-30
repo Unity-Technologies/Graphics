@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_PassIndex = passIndex;
         }
 
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             RenderTargetHandle outputTex;
             RenderTextureDescriptor desc;

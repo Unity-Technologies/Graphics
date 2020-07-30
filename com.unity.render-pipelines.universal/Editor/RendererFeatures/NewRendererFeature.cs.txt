@@ -11,8 +11,13 @@ public class #SCRIPTNAME# : ScriptableRendererFeature
         // When empty this render pass will render to the active camera render target.
         // You should never call CommandBuffer.SetRenderTarget. Instead call <c>ConfigureTarget</c> and <c>ConfigureClear</c>.
         // The render pipeline will ensure target setup and clearing happens in an performance manner.
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
+            var renderer = renderingData.cameraData.renderer;
+            var colorBuffer = renderer.GetRenderTexture(UniversalRenderTextureType.ColorBuffer);
+            var depthBuffer = renderer.GetRenderTexture(UniversalRenderTextureType.DepthBuffer);
+            ConfigureTarget(colorBuffer, depthBuffer);
+            ConfigureClear(clearFlag, clearColor);
         }
 
         // Here you can implement the rendering logic.

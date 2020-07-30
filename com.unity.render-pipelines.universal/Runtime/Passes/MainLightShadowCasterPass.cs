@@ -111,7 +111,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return true;
         }
 
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             m_MainLightShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth,
                     m_ShadowmapHeight, k_ShadowmapBufferBits);

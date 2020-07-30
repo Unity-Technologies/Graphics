@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         // ScriptableRenderPass
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescripor)
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             RenderTargetIdentifier lightingAttachmentId = m_DeferredLights.GbufferAttachmentIdentifiers[m_DeferredLights.GBufferLightingIndex];
             RenderTargetIdentifier depthAttachmentId = m_DeferredLights.DepthAttachmentIdentifier;

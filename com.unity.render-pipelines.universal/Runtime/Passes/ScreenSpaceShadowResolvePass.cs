@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 : GraphicsFormat.B8G8R8A8_UNorm;
         }
 
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             cmd.GetTemporaryRT(m_ScreenSpaceShadowmap.id, m_RenderTextureDescriptor, FilterMode.Bilinear);
 

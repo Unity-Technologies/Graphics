@@ -648,7 +648,9 @@ namespace UnityEngine.Rendering.Universal
             using (new ProfilingScope(cmd, m_ProfilingSetRenderTarget))
             {
                 ref CameraData cameraData = ref renderingData.cameraData;
+#pragma warning disable 618
                 renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
+#pragma warning restore 618
                 SetupAttachments(cmd, renderPass, ref cameraData);
             }
             
