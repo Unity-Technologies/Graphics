@@ -174,7 +174,7 @@ namespace UnityEditor.Rendering.Universal
             m_DefaultRendererProp = serializedObject.FindProperty("m_DefaultRendererIndex");
             m_RendererDataList = new ReorderableList(serializedObject, m_RendererDataProp, false, true, true, true);
 
-            DrawRendererListLayout(m_RendererDataList, m_RendererDataProp);
+            DrawRendererListLayout(m_RendererDataList);
 
             m_RequireDepthTextureProp = serializedObject.FindProperty("m_RequireDepthTexture");
             m_RequireOpaqueTextureProp = serializedObject.FindProperty("m_RequireOpaqueTexture");
@@ -434,81 +434,88 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
-        void DrawRendererListLayout(ReorderableList list, SerializedProperty prop)
+        void DrawRendererListLayout(ReorderableList list)
         {
-            list.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
-            {
-                rect.y += 2;
-                Rect indexRect = new Rect(rect.x, rect.y, 14, EditorGUIUtility.singleLineHeight);
-                EditorGUI.LabelField(indexRect, index.ToString());
-                Rect objRect = new Rect(rect.x + indexRect.width, rect.y, rect.width - 134, EditorGUIUtility.singleLineHeight);
+            list.drawElementCallback = DrawElement;
+            list.drawHeaderCallback = DrawHeader;
+            list.index = list.count - 1;
+            list.onCanRemoveCallback = CanRemoveElement;
+            list.onRemoveCallback = RemoveElement;
+        }
 
-                EditorGUI.BeginChangeCheck();
-                EditorGUI.ObjectField(objRect, prop.GetArrayElementAtIndex(index), GUIContent.none);
-                if(EditorGUI.EndChangeCheck())
-                    EditorUtility.SetDirty(target);
+        void DrawElement(Rect rect, int index, bool isactive, bool isfocused)
+        {
+            rect.y += 2;
+            Rect indexRect = new Rect(rect.x, rect.y, 14, EditorGUIUtility.singleLineHeight);
+            EditorGUI.LabelField(indexRect, index.ToString());
+            Rect objRect = new Rect(rect.x + indexRect.width, rect.y, rect.width - 134, EditorGUIUtility.singleLineHeight);
 
-                Rect defaultButton = new Rect(rect.width - 90, rect.y, 86, EditorGUIUtility.singleLineHeight);
-                var defaultRenderer = m_DefaultRendererProp.intValue;
-                GUI.enabled = index != defaultRenderer;
-                if(GUI.Button(defaultButton, !GUI.enabled ? Styles.rendererDefaultText : Styles.rendererSetDefaultText))
-                {
-                    m_DefaultRendererProp.intValue = index;
-                    EditorUtility.SetDirty(target);
-                }
-                GUI.enabled = true;
-
-                Rect selectRect = new Rect(rect.x + rect.width - 24, rect.y, 24, EditorGUIUtility.singleLineHeight);
-
-                UniversalRenderPipelineAsset asset = target as UniversalRenderPipelineAsset;
-
-                if (asset.ValidateRendererData(index))
-                {
-                    if (GUI.Button(selectRect, Styles.rendererSettingsText))
-                    {
-                        Selection.SetActiveObjectWithContext(prop.GetArrayElementAtIndex(index).objectReferenceValue,
-                            null);
-                    }
-                }
-                else // Missing ScriptableRendererData
-                {
-                    if (GUI.Button(selectRect, index == defaultRenderer ? Styles.rendererDefaultMissingText : Styles.rendererMissingText))
-                    {
-                        EditorGUIUtility.ShowObjectPicker<ScriptableRendererData>(null, false, null, index);
-                    }
-                }
-
-                // If object selector chose an object, assign it to the correct ScriptableRendererData slot.
-                if (Event.current.commandName == "ObjectSelectorUpdated" && EditorGUIUtility.GetObjectPickerControlID() == index)
-                {
-                    prop.GetArrayElementAtIndex(index).objectReferenceValue = EditorGUIUtility.GetObjectPickerObject();
-                }
-            };
-
-            list.drawHeaderCallback = (Rect rect) =>
-            {
-                EditorGUI.LabelField(rect, Styles.rendererHeaderText);
-                list.index = list.count - 1;
-            };
-
-            list.onCanRemoveCallback = li => { return li.count > 1; };
-
-            list.onRemoveCallback = li =>
-            {
-                if (li.serializedProperty.arraySize - 1 != m_DefaultRendererProp.intValue)
-                {
-                    if(li.serializedProperty.GetArrayElementAtIndex(li.serializedProperty.arraySize - 1).objectReferenceValue != null)
-                        li.serializedProperty.DeleteArrayElementAtIndex(li.serializedProperty.arraySize - 1);
-                    li.serializedProperty.arraySize--;
-                    li.index = li.count - 1;
-                }
-                else
-                {
-                    EditorUtility.DisplayDialog(Styles.rendererListDefaultMessage.text, Styles.rendererListDefaultMessage.tooltip,
-                        "Close");
-                }
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.ObjectField(objRect, m_RendererDataProp.GetArrayElementAtIndex(index), GUIContent.none);
+            if(EditorGUI.EndChangeCheck())
                 EditorUtility.SetDirty(target);
-            };
+
+            Rect defaultButton = new Rect(rect.width - 90, rect.y, 86, EditorGUIUtility.singleLineHeight);
+            var defaultRenderer = m_DefaultRendererProp.intValue;
+            GUI.enabled = index != defaultRenderer;
+            if(GUI.Button(defaultButton, !GUI.enabled ? Styles.rendererDefaultText : Styles.rendererSetDefaultText))
+            {
+                m_DefaultRendererProp.intValue = index;
+                EditorUtility.SetDirty(target);
+            }
+            GUI.enabled = true;
+
+            Rect selectRect = new Rect(rect.x + rect.width - 24, rect.y, 24, EditorGUIUtility.singleLineHeight);
+
+            UniversalRenderPipelineAsset asset = target as UniversalRenderPipelineAsset;
+
+            if (asset.ValidateRendererData(index))
+            {
+                if (GUI.Button(selectRect, Styles.rendererSettingsText))
+                {
+                    Selection.SetActiveObjectWithContext(m_RendererDataProp.GetArrayElementAtIndex(index).objectReferenceValue,
+                        null);
+                }
+            }
+            else // Missing ScriptableRendererData
+            {
+                if (GUI.Button(selectRect, index == defaultRenderer ? Styles.rendererDefaultMissingText : Styles.rendererMissingText))
+                {
+                    EditorGUIUtility.ShowObjectPicker<ScriptableRendererData>(null, false, null, index);
+                }
+            }
+
+            // If object selector chose an object, assign it to the correct ScriptableRendererData slot.
+            if (Event.current.commandName == "ObjectSelectorUpdated" && EditorGUIUtility.GetObjectPickerControlID() == index)
+            {
+                m_RendererDataProp.GetArrayElementAtIndex(index).objectReferenceValue = EditorGUIUtility.GetObjectPickerObject();
+            }
+        }
+
+        void DrawHeader(Rect rect)
+        {
+            EditorGUI.LabelField(rect, Styles.rendererHeaderText);
+        }
+
+        bool CanRemoveElement(ReorderableList list)
+        {
+           return list.count > 1;
+        }
+
+        void RemoveElement(ReorderableList list)
+        {
+            if (list.serializedProperty.arraySize - 1 != m_DefaultRendererProp.intValue)
+            {
+                if(list.serializedProperty.GetArrayElementAtIndex(list.serializedProperty.arraySize - 1).objectReferenceValue != null)
+                    list.serializedProperty.DeleteArrayElementAtIndex(list.serializedProperty.arraySize - 1);
+                list.serializedProperty.arraySize--;
+                list.index = list.count - 1;
+            }
+            else
+            {
+                EditorUtility.DisplayDialog(Styles.rendererListDefaultMessage.text, Styles.rendererListDefaultMessage.tooltip, "Close");
+            }
+            EditorUtility.SetDirty(target);
         }
 
         bool ValidateRendererGraphicsAPIs(UniversalRenderPipelineAsset pipelineAsset, out string unsupportedGraphicsApisMessage)

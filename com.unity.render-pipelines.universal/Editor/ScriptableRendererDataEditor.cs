@@ -64,7 +64,7 @@ namespace UnityEditor.Rendering.Universal
             Rect fullRect = EditorGUILayout.GetControlRect();
             float titleHeight = EditorGUIUtility.singleLineHeight + 5;
             Rect titleRect = new Rect(fullRect.x, fullRect.y, fullRect.width, titleHeight);
-            if (GUI.Button(titleRect, "Assign to Renderer List"))
+            if (GUI.Button(titleRect, $"Assign to Renderer List of {GraphicsSettings.defaultRenderPipeline.name}"))
             {
                 UniversalRenderPipelineAsset rp = GraphicsSettings.defaultRenderPipeline as UniversalRenderPipelineAsset;
                 rp?.AddRendererToRendererDataList(target as ScriptableRendererData);
