@@ -318,7 +318,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Post-processing not supported in GLES2.
             anyPostProcessingEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
-            
+
             bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
 
             InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
@@ -426,17 +426,19 @@ namespace UnityEngine.Rendering.Universal
 
         static void UpdateVolumeFramework(Camera camera, UniversalAdditionalCameraData additionalCameraData)
         {
-            // We only disable volume updates if the user has specifically disabled it in the renderer
-            bool shouldUpdateVolumes = camera.cameraType == CameraType.SceneView
-                                       || additionalCameraData == null
-                                       || additionalCameraData.scriptableRenderer == null
-                                       || additionalCameraData.scriptableRenderer.shouldUpdateVolumeFramework;
+            bool isSceneCamera = camera.cameraType == CameraType.SceneView;
 
-            if (!shouldUpdateVolumes)
+            // We always update the scene camera
+            if (!isSceneCamera)
             {
-                return;
+                // We skip updating if we have a renderer and it isn't set to EveryFrame
+                ScriptableRenderer renderer = additionalCameraData?.scriptableRenderer;
+                if (renderer != null
+                    && renderer.volumeFrameworkRefreshMode != ScriptableRenderer.RefreshMode.EveryFrame)
+                {
+                    return;
+                }
             }
-
 
             // Default values when there's no additional camera data available
             LayerMask layerMask = 1; // "Default"
@@ -449,14 +451,16 @@ namespace UnityEngine.Rendering.Universal
                     ? additionalCameraData.volumeTrigger
                     : trigger;
             }
-            else if (camera.cameraType == CameraType.SceneView)
+            else if (isSceneCamera)
             {
                 // Try to mirror the MainCamera volume layer mask for the scene view - do not mirror the target
                 var mainCamera = Camera.main;
                 UniversalAdditionalCameraData mainAdditionalCameraData = null;
 
                 if (mainCamera != null && mainCamera.TryGetComponent(out mainAdditionalCameraData))
+                {
                     layerMask = mainAdditionalCameraData.volumeLayerMask;
+                }
 
                 trigger = mainAdditionalCameraData != null && mainAdditionalCameraData.volumeTrigger != null ? mainAdditionalCameraData.volumeTrigger : trigger;
             }

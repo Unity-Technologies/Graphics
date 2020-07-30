@@ -27,6 +27,7 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] internal List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
         [SerializeField] internal List<long> m_RendererFeatureMap = new List<long>(10);
+        [SerializeField] internal ScriptableRenderer.RefreshMode m_VolumeFrameworkRefreshMode = ScriptableRenderer.RefreshMode.EveryFrame;
 
         /// <summary>
         /// List of additional render pass features for this renderer.
@@ -35,6 +36,12 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_RendererFeatures;
         }
+
+        /// <summary>
+        /// Controls whether the volume framework should be updated every frame by
+        /// this renderer each frame or via scripting
+        /// </summary>
+        internal ScriptableRenderer.RefreshMode VolumeFrameworkRefreshMode => m_VolumeFrameworkRefreshMode;
 
         /// <summary>
         /// Use SetDirty when changing seeings in the ScriptableRendererData.

@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent TransparentMask = new GUIContent("Transparent Layer Mask", "Controls which transparent layers this renderer draws.");
             public static readonly GUIContent defaultStencilStateLabel = EditorGUIUtility.TrTextContent("Default Stencil State", "Configure stencil state for the opaque and transparent render passes.");
             public static readonly GUIContent shadowTransparentReceiveLabel = EditorGUIUtility.TrTextContent("Transparent Receive Shadows", "When disabled, none of the transparent objects will receive shadows.");
-            public static readonly GUIContent shouldUpdateVolumeFrameworkLabel = EditorGUIUtility.TrTextContent("Update Volume Framework", "When disabled, the volume framework will not be updated for this renderer");
+            public static readonly GUIContent volumeFrameworkRefreshModeLabel = EditorGUIUtility.TrTextContent("Refresh Mode", "Controls how the volume framework is updated");
         }
 
         SerializedProperty m_OpaqueLayerMask;
@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_PostProcessData;
         SerializedProperty m_Shaders;
         SerializedProperty m_ShadowTransparentReceiveProp;
-        SerializedProperty m_ShouldUpdateVolumeFrameworkProp;
+        SerializedProperty m_VolumeFrameworkRefreshModeProp;
 
         private void OnEnable()
         {
@@ -36,7 +36,7 @@ namespace UnityEditor.Rendering.Universal
             m_PostProcessData = serializedObject.FindProperty("postProcessData");
             m_Shaders = serializedObject.FindProperty("shaders");
             m_ShadowTransparentReceiveProp = serializedObject.FindProperty("m_ShadowTransparentReceive");
-            m_ShouldUpdateVolumeFrameworkProp = serializedObject.FindProperty("m_ShouldUpdateVolumeFramework");
+            m_VolumeFrameworkRefreshModeProp = serializedObject.FindProperty("m_VolumeFrameworkRefreshMode");
         }
 
         public override void OnInspectorGUI()
@@ -65,7 +65,7 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUILayout.LabelField("Volumes", EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(m_ShouldUpdateVolumeFrameworkProp, Styles.shouldUpdateVolumeFrameworkLabel);
+            EditorGUILayout.PropertyField(m_VolumeFrameworkRefreshModeProp, Styles.volumeFrameworkRefreshModeLabel);
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 
