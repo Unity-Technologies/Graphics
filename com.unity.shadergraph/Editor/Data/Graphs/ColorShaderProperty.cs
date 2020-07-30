@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Internal
         internal ColorShaderProperty()
         {
             displayName = "Color";
-            version = 0;
+            version = latestVersion;
         }
 
         internal ColorShaderProperty(int version) : base()

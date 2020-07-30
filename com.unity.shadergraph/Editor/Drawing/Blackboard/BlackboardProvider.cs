@@ -206,7 +206,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             gm.AddItem(new GUIContent($"Vector2"), false, () => AddInputRow(new Vector2ShaderProperty(), true));
             gm.AddItem(new GUIContent($"Vector3"), false, () => AddInputRow(new Vector3ShaderProperty(), true));
             gm.AddItem(new GUIContent($"Vector4"), false, () => AddInputRow(new Vector4ShaderProperty(), true));
-            gm.AddItem(new GUIContent($"Color"), false, () => AddInputRow(new ColorShaderProperty(1), true));
+            gm.AddItem(new GUIContent($"Color"), false, () => AddInputRow(new ColorShaderProperty(), true));
             if(ShaderGraphPreferences.allowDeprecatedBehaviors)
             {
                 gm.AddItem(new GUIContent($"Color (Deprecated)"), false, () => AddInputRow(new ColorShaderProperty(0), true));

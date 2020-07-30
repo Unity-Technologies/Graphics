@@ -361,7 +361,9 @@ namespace UnityEditor.ShaderGraph.Serialization
             {
                 return new UnknownJsonObject(typeString);
             }
-            return (JsonObject)Activator.CreateInstance(type, true);
+            var output = (JsonObject)Activator.CreateInstance(type, true);
+            output.ChangeVersion(0);
+            return output;
         }
 
         private static FieldInfo s_ObjectIdField =

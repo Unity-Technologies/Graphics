@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             EditorGUI.BeginChangeCheck();
-            var allowDeprecatedBehaviorsValue = EditorGUILayout.Toggle("Allow the use of deprecated versions of properties and nodes", allowDeprecatedBehaviors);
+            var allowDeprecatedBehaviorsValue = EditorGUILayout.Toggle("Enable Deprecated Nodes", allowDeprecatedBehaviors);
             if(EditorGUI.EndChangeCheck())
             {
                 allowDeprecatedBehaviors = allowDeprecatedBehaviorsValue;

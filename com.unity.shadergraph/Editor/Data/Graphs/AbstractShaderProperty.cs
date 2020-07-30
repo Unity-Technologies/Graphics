@@ -8,35 +8,6 @@ namespace UnityEditor.ShaderGraph.Internal
     public abstract class AbstractShaderProperty : ShaderInput
     {
 
-        public virtual int latestVersion { get; } = 0;
-        public virtual int version { get; protected set; } = 0;
-
-        internal protected delegate void VersionChange(int newVersion);
-        internal protected VersionChange onBeforeVersionChange;
-        internal protected Action onAfterVersionChange;
-
-        internal void ChangeVersion(int newVersion)
-        {
-            if(newVersion == version)
-            {
-                return;
-            }
-            if(newVersion < 0)
-            {
-                Debug.LogError("Cant downgrade past version 0");
-                return;
-            }
-            if(newVersion > latestVersion)
-            {
-                Debug.LogError("Cant upgrade to a version >= the current latest version");
-                return;
-            }
-
-            onBeforeVersionChange?.Invoke(newVersion);
-            version = newVersion;
-            onAfterVersionChange?.Invoke();
-        }
-
         public abstract PropertyType propertyType { get; }
 
         internal override ConcreteSlotValueType concreteShaderValueType => propertyType.ToConcreteShaderValueType();

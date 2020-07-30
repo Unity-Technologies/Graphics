@@ -133,7 +133,7 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            switch(property.propertyType)
+            switch (property.propertyType)
             {
                 case PropertyType.Boolean:
                     sb.AppendLine($"$precision {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
@@ -151,13 +151,16 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
                     break;
                 case PropertyType.Color:
-                    if (property.version == 0)
+                    switch (property.version)
                     {
-                        sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
-                    }
-                    else
-                    {
-                        sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = IsGammaSpace() ? {property.referenceName} : SRGBToLinear({property.referenceName});");
+                        case 0:
+                            sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                            break;
+                        case 1:
+                            sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = IsGammaSpace() ? {property.referenceName} : SRGBToLinear({property.referenceName});");
+                            break;
+                        default:
+                            throw new Exception($"Unknown Color Property Version on property {property.displayName}");
                     }
                     break;
                 case PropertyType.Matrix2:

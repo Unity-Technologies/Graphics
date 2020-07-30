@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph
             if (matOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
-            var property = new ColorShaderProperty(1)
+            var property = new ColorShaderProperty()
             {
                 overrideReferenceName = matOwner.GetVariableNameForSlot(id),
                 generatePropertyBlock = false,
