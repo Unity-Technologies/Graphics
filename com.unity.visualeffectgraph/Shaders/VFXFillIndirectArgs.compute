@@ -19,7 +19,7 @@ struct InputData //TODO use generic name (indexCount isn't always what it expect
 
 ByteAddressBuffer inputGpuBuffer;
 StructuredBuffer<InputData> inputCpuBuffer;
-RWBuffer<uint> outputIndirectArgs;
+RWStructuredBuffer<uint> outputIndirectArgs;
 RWByteAddressBuffer outputAdditional;
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]

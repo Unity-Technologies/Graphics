@@ -33,8 +33,8 @@ Shader "Hidden/DefaultCloudLayer"
             float Opacity_B;
             float Opacity_A;
 
-            float4 frag(v2f_customrendertexture IN) : COLOR
-            {               
+            float4 frag(v2f_customrendertexture IN) : SV_Target
+            {
                 float2 UV = float2 (IN.localTexcoord.x, IN.localTexcoord.y);
                 float4 opacity = float4(Opacity_R, Opacity_G, Opacity_B, Opacity_A);
                 float4 clouds = tex2D(_Tex, UV) * opacity;

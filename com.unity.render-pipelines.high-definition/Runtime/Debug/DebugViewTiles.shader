@@ -50,7 +50,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
             uint _NumTiles;
 
             StructuredBuffer<uint> g_TileList;
-            Buffer<uint> g_DispatchIndirectBuffer;
+            StructuredBuffer<uint> g_DispatchIndirectBuffer;
 
             uint GetDispatchIndirectCount(uint variant)
             {

@@ -20,7 +20,7 @@ Shader "Hidden/HDRP/CustomPassUtils"
 
     float           _Radius;
     float           _SampleCount;
-    Buffer<float>   _GaussianWeights;
+    StructuredBuffer<float>   _GaussianWeights;
 
     float2 GetScaledUVs(Varyings varyings)
     {
