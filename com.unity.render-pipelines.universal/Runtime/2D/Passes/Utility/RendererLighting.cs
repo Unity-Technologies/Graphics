@@ -474,7 +474,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmd.SetRenderTarget(rtID);
 
                 var rtDirty = false;
-                if (!LightManager2D.GetGlobalColor(layerToRender, i, out var clearColor))
+                if (!Light2DManager.GetGlobalColor(layerToRender, i, out var clearColor))
                     clearColor = Color.black;
                 else
                     rtDirty = true;

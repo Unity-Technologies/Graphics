@@ -216,7 +216,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 int sortingLayer = m_ApplyToSortingLayers[i];
 
-                if(LightManager2D.ContainsDuplicateGlobalLight(sortingLayer, blendStyleIndex))
+                if(Light2DManager.ContainsDuplicateGlobalLight(sortingLayer, blendStyleIndex))
                     Debug.LogError("More than one global light on layer " + SortingLayer.IDToName(sortingLayer) + " for light blend style index " + m_BlendStyleIndex);
             }
         }
@@ -233,12 +233,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             m_PreviousLightType = m_LightType;
 
-            LightManager2D.RegisterLight(this);
+            Light2DManager.RegisterLight(this);
         }
 
         private void OnDisable()
         {
-            LightManager2D.DeregisterLight(this);
+            Light2DManager.DeregisterLight(this);
         }
 
         internal List<Vector2> GetFalloffShape()
