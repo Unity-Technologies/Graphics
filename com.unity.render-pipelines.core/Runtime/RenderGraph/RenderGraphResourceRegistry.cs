@@ -51,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         #region Resources
-        [DebuggerDisplay("Resource ({ResType}:{GetName()})")]
+        [DebuggerDisplay("Resource ({GetType().Name}:{GetName()})")]
         class RenderGraphResource<DescType, ResType>
             : IRenderGraphResource
             where DescType : struct
@@ -77,7 +77,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             public override string GetName()
             {
-                return desc.name;
+                if (imported)
+                    return resource.name;
+                else
+                    return desc.name;
             }
         }
 
@@ -86,7 +89,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             public override string GetName()
             {
-                return desc.name;
+                if (imported)
+                    return "ImportedComputeBuffer";
+                else
+                    return desc.name;
             }
         }
 
@@ -183,9 +189,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         void CheckHandleValidity(in ResourceHandle res)
         {
-            var resources = m_Resources[res.iType];
-            if (res.index >= resources.size)
-                throw new ArgumentException($"Trying to access resource of type {res.type} with an invalid resource index {res.index}");
+            CheckHandleValidity(res.type, res.index);
+        }
+
+        void CheckHandleValidity(RenderGraphResourceType type, int index)
+        {
+            var resources = m_Resources[(int)type];
+            if (index >= resources.size)
+                throw new ArgumentException($"Trying to access resource of type {type} with an invalid resource index {index}");
         }
 
         internal string GetResourceName(in ResourceHandle res)
@@ -194,10 +205,22 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return m_Resources[res.iType][res.index].GetName();
         }
 
+        internal string GetResourceName(RenderGraphResourceType type, int index)
+        {
+            CheckHandleValidity(type, index);
+            return m_Resources[(int)type][index].GetName();
+        }
+
         internal bool IsResourceImported(in ResourceHandle res)
         {
             CheckHandleValidity(res);
             return m_Resources[res.iType][res.index].imported;
+        }
+
+        internal bool IsResourceImported(RenderGraphResourceType type, int index)
+        {
+            CheckHandleValidity(type, index);
+            return m_Resources[(int)type][index].imported;
         }
 
         internal int GetResourceTransientIndex(in ResourceHandle res)

@@ -104,6 +104,48 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// <param name="renderGraphContext">Global Render Graph context.</param>
     public delegate void RenderFunc<PassData>(PassData data, RenderGraphContext renderGraphContext) where PassData : class, new();
 
+    public class RenderGraphDebugData
+    {
+        [DebuggerDisplay("PassDebug: {name}")]
+        public struct PassDebugData
+        {
+            public string name;
+            public List<int>[] resourceReadLists;
+            public List<int>[] resourceWriteLists;
+            public bool culled;
+        }
+
+        [DebuggerDisplay("ResourceDebug: {name} [{creationPassIndex}:{releasePassIndex}]")]
+        public struct ResourceDebugData
+        {
+            public string name;
+            public bool imported;
+            public int creationPassIndex;
+            public int releasePassIndex;
+
+            public List<int> consumerList;
+            public List<int> producerList;
+        }
+
+        public List<PassDebugData> passList = new List<PassDebugData>();
+        public List<ResourceDebugData>[] resourceLists = new List<ResourceDebugData>[(int)RenderGraphResourceType.Count];
+
+        public void Clear()
+        {
+            passList.Clear();
+
+            // Create if needed
+            if (resourceLists[0] == null)
+            {
+                for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
+                    resourceLists[i] = new List<ResourceDebugData>();
+            }
+
+            for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
+                resourceLists[i].Clear();
+        }
+    }
+
     /// <summary>
     /// This class is the main entry point of the Render Graph system.
     /// </summary>
@@ -220,12 +262,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         DynamicArray<CompiledPassInfo>          m_CompiledPassInfos = new DynamicArray<CompiledPassInfo>();
         Stack<int>                              m_CullingStack = new Stack<int>();
 
+        RenderGraphDebugData                    m_RenderGraphDebugData = new RenderGraphDebugData();
+
         // Global list of living render graphs
         static List<RenderGraph>                s_RegisteredGraphs = new List<RenderGraph>();
 
         #region Public Interface
         /// <summary>Name of the Render Graph.</summary>
         public string name { get; private set; } = "RenderGraph";
+        /// <summary>If true, the Render Graph will generate execution debug information.</summary>
+        public static bool requireDebugData { get; set; } = false;
 
         /// <summary>
         /// Set of default resources usable in a pass rendering code.
@@ -256,6 +302,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_DebugParameters.RegisterDebug(this.name);
 
             s_RegisteredGraphs.Add(this);
+            onGraphRegistered?.Invoke(this);
         }
 
         /// <summary>
@@ -268,6 +315,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_DefaultResources.Cleanup();
 
             s_RegisteredGraphs.Remove(this);
+            onGraphUnregistered?.Invoke(this);
+        }
+
+        /// <summary>
+        /// Returns the last rendered frame debug data. Can be null if requireDebugData is set to false.
+        /// </summary>
+        /// <returns>The last rendered frame debug data</returns>
+        public RenderGraphDebugData GetDebugData()
+        {
+            return m_RenderGraphDebugData;
         }
 
         /// <summary>
@@ -441,6 +498,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
             finally
             {
+                GenerateDebugData();
+
                 ClearCompiledGraph();
 
                 if (m_DebugParameters.logFrameInformation || m_DebugParameters.logResources)
@@ -514,6 +573,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 m_CompiledResourcesInfos[i].Clear();
             m_CompiledPassInfos.Clear();
         }
+
+        internal delegate void OnGraphRegisteredDelegate(RenderGraph graph);
+        internal static event OnGraphRegisteredDelegate onGraphRegistered;
+        internal static event OnGraphRegisteredDelegate onGraphUnregistered;
+
         #endregion
 
         #region Private Interface
@@ -1092,6 +1156,64 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
 
             return sampler;
+        }
+
+        void GenerateDebugData()
+        {
+            m_RenderGraphDebugData.Clear();
+
+            for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
+            {
+                for (int i = 0; i < m_CompiledResourcesInfos[type].size; ++i)
+                {
+                    ref var resourceInfo = ref m_CompiledResourcesInfos[type][i];
+                    RenderGraphDebugData.ResourceDebugData newResource = new RenderGraphDebugData.ResourceDebugData();
+                    newResource.name = m_Resources.GetResourceName((RenderGraphResourceType)type, i);
+                    newResource.imported = m_Resources.IsResourceImported((RenderGraphResourceType)type, i);
+
+                    newResource.consumerList = new List<int>(resourceInfo.consumers);
+                    newResource.producerList = new List<int>(resourceInfo.producers);
+
+                    m_RenderGraphDebugData.resourceLists[type].Add(newResource);
+                }
+            }
+
+            for (int i = 0; i < m_CompiledPassInfos.size; ++i)
+            {
+                ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[i];
+                RenderGraphDebugData.PassDebugData newPass = new RenderGraphDebugData.PassDebugData();
+                newPass.name = passInfo.pass.name;
+                newPass.culled = passInfo.culled;
+                newPass.resourceReadLists = new List<int>[(int)RenderGraphResourceType.Count];
+                newPass.resourceWriteLists = new List<int>[(int)RenderGraphResourceType.Count];
+
+                for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
+                {
+                    newPass.resourceReadLists[type] = new List<int>();
+                    newPass.resourceWriteLists[type] = new List<int>();
+
+                    foreach (var resourceRead in passInfo.pass.resourceReadLists[type])
+                        newPass.resourceReadLists[type].Add(resourceRead);
+                    foreach (var resourceWrite in passInfo.pass.resourceWriteLists[type])
+                        newPass.resourceWriteLists[type].Add(resourceWrite);
+
+                    foreach (var resourceCreate in passInfo.resourceCreateList[type])
+                    {
+                        var res = m_RenderGraphDebugData.resourceLists[type][resourceCreate];
+                        res.creationPassIndex = i;
+                        m_RenderGraphDebugData.resourceLists[type][resourceCreate] = res;
+                    }
+
+                    foreach (var resourceRelease in passInfo.resourceReleaseList[type])
+                    {
+                        var res = m_RenderGraphDebugData.resourceLists[type][resourceRelease];
+                        res.releasePassIndex = i;
+                        m_RenderGraphDebugData.resourceLists[type][resourceRelease] = res;
+                    }
+                }
+
+                m_RenderGraphDebugData.passList.Add(newPass);
+            }
         }
 
         #endregion

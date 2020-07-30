@@ -3,11 +3,12 @@ using UnityEngine.UIElements;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using System.Collections.Generic;
 
 public class RenderGraphViewer : EditorWindow
 {
-    public const float kRenderPassWidth = 25.0f;
-    public const float kResourceHeight = 20.0f;
+    public const float kRenderPassWidth = 20.0f;
+    public const float kResourceHeight = 15.0f;
 
     static class Style
     {
@@ -22,10 +23,18 @@ public class RenderGraphViewer : EditorWindow
         window.titleContent = new GUIContent("Render Graph Viewer");
     }
 
+    RenderGraph m_CurrentRenderGraph;
+
     VisualElement m_Root;
-    VisualElement m_Corner;
-    VisualElement m_ResourceLifeTimeContainer;
-    float m_PassNamesContainerHeight = 0.0f;
+    VisualElement m_HeaderElement;
+    VisualElement m_GraphViewerElement;
+
+    StyleColor m_ResourceColorRead = new StyleColor(new Color(0.2f, 1.0f, 0.2f));
+    StyleColor m_ResourceColorWrite = new StyleColor(new Color(1.0f, 0.2f, 0.2f));
+    StyleColor m_ImportedResourceColor = new StyleColor(new Color(0.3f, 0.75f, 0.75f));
+    StyleColor m_CulledPassColor = new StyleColor(Color.black);
+    StyleColor m_OriginalResourceLifeColor;
+    StyleColor m_OriginalPassColor;
 
     void RenderPassLabelChanged(GeometryChangedEvent evt)
     {
@@ -35,71 +44,124 @@ public class RenderGraphViewer : EditorWindow
         float desiredHeight = Mathf.Sqrt(textWidth * textWidth - kRenderPassWidth * kRenderPassWidth);
         // Should be able to do that and rely on the parent layout but for some reason flex-end does not work so I set the parent's parent height instead.
         //label.parent.style.height = desiredHeight;
-        m_PassNamesContainerHeight = Mathf.Max(label.parent.parent.style.height.value.value, desiredHeight);
-        label.parent.parent.style.height = m_PassNamesContainerHeight;
+        var passNamesContainerHeight = Mathf.Max(label.parent.parent.style.height.value.value, desiredHeight);
+        label.parent.parent.style.height = passNamesContainerHeight;
+        label.parent.parent.style.minHeight = passNamesContainerHeight;
 
-        m_Corner.style.height = m_PassNamesContainerHeight;
+        var topRowElement = m_GraphViewerElement.Q<VisualElement>("GraphViewer.TopRowElement");
+        topRowElement.style.minHeight = passNamesContainerHeight;
     }
-
-    int[] resourceReads = { 1, 4, 3 };
-    int[] resourceWrites = { 2, 4, 5 };
-
-    StyleColor m_ResourceColorRead = new StyleColor(new Color(0.2f, 1.0f, 0.2f));
-    StyleColor m_ResourceColorWrite = new StyleColor(new Color(1.0f, 0.2f, 0.2f));
-    StyleColor m_OriginalResourceLifeColor;
-    StyleColor m_BorderColor = new StyleColor(new Color(0.6f, 0.6f, 0.6f));
-
 
     void MouseEnterPassCallback(MouseEnterEvent evt, int index)
     {
-        foreach (int resourceRead in resourceReads)
+        var resourceLifeTimeElement = m_GraphViewerElement.Q<VisualElement>("GraphViewer.Resources.ResourceLifeTime");
+
+        var debugData = m_CurrentRenderGraph.GetDebugData();
+        var pass = debugData.passList[index];
+
+        if (pass.culled)
+            return;
+
+        foreach (int resourceRead in pass.resourceReadLists[0])
         {
-            VisualElement resourceLifetime = m_ResourceLifeTimeContainer.ElementAt(resourceRead);
+            VisualElement resourceLifetime = resourceLifeTimeElement.ElementAt(resourceRead);
             resourceLifetime.style.backgroundColor = m_ResourceColorRead;
         }
 
-        foreach (int resourceWrite in resourceWrites)
+        foreach (int resourceWrite in pass.resourceWriteLists[0])
         {
-            VisualElement resourceLifetime = m_ResourceLifeTimeContainer.ElementAt(resourceWrite);
+            VisualElement resourceLifetime = resourceLifeTimeElement.ElementAt(resourceWrite);
             resourceLifetime.style.backgroundColor = m_ResourceColorWrite;
         }
     }
 
     void MouseLeavePassCallback(MouseLeaveEvent evt, int index)
     {
-        foreach (int resourceRead in resourceReads)
+        var resourceLifeTimeElement = m_GraphViewerElement.Q<VisualElement>("GraphViewer.Resources.ResourceLifeTime");
+
+        var debugData = m_CurrentRenderGraph.GetDebugData();
+        var pass = debugData.passList[index];
+
+        if (pass.culled)
+            return;
+
+        foreach (int resourceRead in pass.resourceReadLists[0])
         {
-            VisualElement resourceLifetime = m_ResourceLifeTimeContainer.ElementAt(resourceRead);
+            VisualElement resourceLifetime = resourceLifeTimeElement.ElementAt(resourceRead);
             resourceLifetime.style.backgroundColor = m_OriginalResourceLifeColor;
         }
 
-        foreach (int resourceWrite in resourceWrites)
+        foreach (int resourceWrite in pass.resourceWriteLists[0])
         {
-            VisualElement resourceLifetime = m_ResourceLifeTimeContainer.ElementAt(resourceWrite);
+            VisualElement resourceLifetime = resourceLifeTimeElement.ElementAt(resourceWrite);
             resourceLifetime.style.backgroundColor = m_OriginalResourceLifeColor;
         }
     }
 
-    VisualElement CreateRenderPassLabel(string name, int index)
+    void MouseEnterResourceCallback(MouseEnterEvent evt, int index)
+    {
+        var passNamesElement = m_GraphViewerElement.Q<VisualElement>("GraphViewer.TopRowElement.PassNames");
+
+        var debugData = m_CurrentRenderGraph.GetDebugData();
+        var resource = debugData.resourceLists[0][index];
+
+        foreach (int consumer in resource.consumerList)
+        {
+            VisualElement passButton = passNamesElement.ElementAt(consumer).Q("PassNameButton");
+            passButton.style.backgroundColor = m_ResourceColorRead;
+        }
+
+        foreach (int producer in resource.producerList)
+        {
+            VisualElement passButton = passNamesElement.ElementAt(producer).Q("PassNameButton");
+            passButton.style.backgroundColor = m_ResourceColorWrite;
+        }
+    }
+
+    void MouseLeaveResourceCallback(MouseLeaveEvent evt, int index)
+    {
+        var passNamesElement = m_GraphViewerElement.Q<VisualElement>("GraphViewer.TopRowElement.PassNames");
+
+        var debugData = m_CurrentRenderGraph.GetDebugData();
+        var resource = debugData.resourceLists[0][index];
+
+        foreach (int consumer in resource.consumerList)
+        {
+            VisualElement passButton = passNamesElement.ElementAt(consumer).Q("PassNameButton");
+            passButton.style.backgroundColor = m_OriginalPassColor;
+        }
+
+        foreach (int producer in resource.producerList)
+        {
+            VisualElement passButton = passNamesElement.ElementAt(producer).Q("PassNameButton");
+            passButton.style.backgroundColor = m_OriginalPassColor;
+        }
+    }
+
+    VisualElement CreateRenderPassLabel(string name, int index, bool culled)
     {
         var labelContainer = new VisualElement();
         labelContainer.style.width = kRenderPassWidth;
-        //labelContainer.style.backgroundColor = new StyleColor(new Color(0.3f, 0.1f, 0.1f));
         labelContainer.style.overflow = Overflow.Visible;
         labelContainer.style.flexDirection = FlexDirection.ColumnReverse;
+        labelContainer.style.minWidth = kRenderPassWidth;
 
         var button = new Button();
+        button.name = "PassNameButton";
         button.style.marginBottom = 0.0f;
         button.style.marginLeft = 0.0f;
         button.style.marginRight = 0.0f;
         button.style.marginTop = 0.0f;
         button.RegisterCallback<MouseEnterEvent, int>(MouseEnterPassCallback, index);
         button.RegisterCallback<MouseLeaveEvent, int>(MouseLeavePassCallback, index);
+        if (culled)
+            button.style.backgroundColor = m_CulledPassColor;
         labelContainer.Add(button);
+
+        m_OriginalPassColor = button.style.backgroundColor;
 
         var label = new Label(name);
         label.transform.rotation = Quaternion.Euler(new Vector3(0.0f, 0.0f, -45.0f));
-        //label.style.backgroundColor = new StyleColor(new Color(0.3f, 0.3f, 0.3f));
         labelContainer.Add(label);
 
         label.RegisterCallback<GeometryChangedEvent>(RenderPassLabelChanged);
@@ -109,145 +171,238 @@ public class RenderGraphViewer : EditorWindow
 
     void ResourceNamesContainerChanged(GeometryChangedEvent evt)
     {
-        var container = evt.currentTarget as VisualElement;
-        //var width = container.style.width;
-        m_Corner.style.width = evt.newRect.width;
+        var cornerElement = m_GraphViewerElement.Q<VisualElement>("GraphViewer.Corner");
+        cornerElement.style.width = evt.newRect.width;
+        cornerElement.style.minWidth = evt.newRect.width;
     }
 
-    VisualElement CreateResourceLabel(string name)
+    VisualElement CreateResourceLabel(string name, bool imported)
     {
         var label = new Label(name);
         label.style.height = kResourceHeight;
-        //label.style.backgroundColor = new StyleColor(new Color(0.3f, 0.3f, 0.3f));
-
-        //label.RegisterCallback<GeometryChangedEvent>(ResourceLabelChanged);
+        if (imported)
+            label.style.color = m_ImportedResourceColor;
 
         return label;
     }
 
-    VisualElement CreateCornerLegend(string name, StyleColor color)
+    VisualElement CreateColorLegend(string name, StyleColor color)
     {
         VisualElement legend = new VisualElement();
         legend.style.flexDirection = FlexDirection.Row;
-        legend.Add(new Label(name));
+        var label = new Label(name);
+        label.style.unityTextAlign = TextAnchor.MiddleCenter;
+        legend.Add(label);
         Button button = new Button();
-        button.style.width = kRenderPassWidth * 2;
+        button.style.width = kRenderPassWidth;// * 2;
         button.style.backgroundColor = color;
-        button.style.marginBottom = 0.0f;
-        button.style.marginLeft = 0.0f;
-        button.style.marginRight = 0.0f;
-        button.style.marginTop = 0.0f;
         legend.Add(button);
         return legend;
     }
 
-    void ApplyBorder(VisualElement element)
-    {
-        //element.style.borderBottomColor = m_BorderColor;
-        //element.style.borderLeftColor = m_BorderColor;
-        //element.style.borderRightColor = m_BorderColor;
-        //element.style.borderTopColor = m_BorderColor;
-        //element.style.borderBottomWidth = 1.0f;
-        //element.style.borderLeftWidth = 1.0f;
-        //element.style.borderRightWidth = 1.0f;
-        //element.style.borderTopWidth = 1.0f;
-    }
-
-    string RenderGraphPopCallback(RenderGraph rg)
+    string RenderGraphPopupCallback(RenderGraph rg)
     {
         return rg.name;
     }
 
-    void OnEnable()
+    string EmptyRenderGraphPopupCallback(RenderGraph rg)
     {
-        titleContent = Style.title;
+        return "NotAvailable";
+    }
 
-        m_Root = new VisualElement();
+    void OnCaptureGraph()
+    {
+        RebuildGraphViewerUI();
+    }
 
-        var renderGraphs = RenderGraph.GetRegisteredRenderGraphs();
+    void RebuildHeaderUI()
+    {
+        m_HeaderElement.Clear();
 
-        var topRowContainer = new VisualElement();
-        topRowContainer.name = "TopRowContainer";
-        topRowContainer.style.flexDirection = FlexDirection.Row;
+        var renderGraphList = new List<RenderGraph>(RenderGraph.GetRegisteredRenderGraphs());
 
-        m_Corner = new VisualElement();
-        m_Corner.name = "Corner";
-        m_Corner.style.flexDirection = FlexDirection.Column;
-        m_Corner.style.justifyContent = Justify.Center;
-        m_Corner.Add(new PopupField<RenderGraph>("Current Graph", renderGraphs, 0, RenderGraphPopCallback));
-        m_Corner.Add(CreateCornerLegend("Resource Read", m_ResourceColorRead));
-        m_Corner.Add(CreateCornerLegend("Resource Write", m_ResourceColorWrite));
-        ApplyBorder(m_Corner);
+        PopupField<RenderGraph> popup = null;
+        if (renderGraphList.Count != 0)
+        {
+            popup = new PopupField<RenderGraph>("Current Graph", renderGraphList, 0, RenderGraphPopupCallback, RenderGraphPopupCallback);
+        }
+        else
+        {
+            renderGraphList.Add(null);
+            popup = new PopupField<RenderGraph>("Current Graph", renderGraphList, 0, EmptyRenderGraphPopupCallback, EmptyRenderGraphPopupCallback);
+        }
 
+        popup.labelElement.style.minWidth = 0;
+        popup.name = "Header.RenderGraphPopup";
+        m_HeaderElement.Add(popup);
 
-        //m_EmptyCorner.style.width = 100.0f;
-        topRowContainer.Add(m_Corner);
+        var captureButton = new Button(OnCaptureGraph);
+        captureButton.text = "Capture Graph";
+        //captureButton.disable = renderGraphList.Count != 0 ? true : false;
+        m_HeaderElement.Add(captureButton);
 
-        var passNamesContainer = new VisualElement();
-        passNamesContainer.name = "PassNamesContainer";
-        passNamesContainer.style.flexDirection = FlexDirection.Row;
-        ApplyBorder(passNamesContainer);
-        //passNamesPanel.style.justifyContent = Justify.FlexStart;
-        //passNamesPanel.style.alignContent = Align.FlexEnd;
-        //passNamesPanel.style.height = 100.0f;
-        //passNamesPanel.style.backgroundColor = new StyleColor(new Color(0.1f, 0.3f, 0.1f));
+        m_HeaderElement.Add(CreateColorLegend("Resource Read", m_ResourceColorRead));
+        m_HeaderElement.Add(CreateColorLegend("Resource Write", m_ResourceColorWrite));
+        m_HeaderElement.Add(CreateColorLegend("Culled Pass", m_CulledPassColor));
+        m_HeaderElement.Add(CreateColorLegend("Imported Resource", m_ImportedResourceColor));
+    }
 
-        string[] passNames = { "name", "name 2", "very long name I don't really blabla", "another quite long name", "oh", "aahaha", "blabla blibli" }; // 7
-        string[] resourceNames = { "pwette", "pwette 2", "very long resource I don't really care about", "another resource LOO", "oh", "aahaha", "blabla blibli" }; // 7
-        (int begin, int end)[] resourceLifeTimes = { (0, 2), (1, 3), (0, 6), (3, 5), (2, 6), (1, 2), (3, 6) };
+    RenderGraph GetCurrentRenderGraph()
+    {
+        var popup = m_HeaderElement.Q<PopupField<RenderGraph>>("Header.RenderGraphPopup");
+        if (popup != null)
+        {
+            return popup.value;
+        }
+
+        return null;
+    }
+
+    void RebuildGraphViewerUI()
+    {
+        m_GraphViewerElement.Clear();
+
+        m_CurrentRenderGraph = GetCurrentRenderGraph();
+        if (m_CurrentRenderGraph == null)
+            return;
+
+        var horizontalScrollView = new ScrollView(ScrollViewMode.Horizontal);
+
+        var graphViewerElement = new VisualElement();
+        graphViewerElement.style.flexDirection = FlexDirection.Column;
+
+        var topRowElement = new VisualElement();
+        topRowElement.name = "GraphViewer.TopRowElement";
+        topRowElement.style.flexDirection = FlexDirection.Row;
+
+        var cornerElement = new VisualElement();
+        cornerElement.name = "GraphViewer.Corner";
+
+        topRowElement.Add(cornerElement);
+
+        var passNamesElement = new VisualElement();
+        passNamesElement.name = "GraphViewer.TopRowElement.PassNames";
+        passNamesElement.style.flexDirection = FlexDirection.Row;
+
+        var debugData = m_CurrentRenderGraph.GetDebugData();
 
         int passIndex = 0;
-        foreach (var passName in passNames)
+        foreach(var pass in debugData.passList)
         {
-            passNamesContainer.Add(CreateRenderPassLabel(passName, passIndex++));
+            passNamesElement.Add(CreateRenderPassLabel(pass.name, passIndex++, pass.culled));
         }
 
-        topRowContainer.Add(passNamesContainer);
+        topRowElement.Add(passNamesElement);
 
-        var resourceContainer = new VisualElement();
-        ApplyBorder(resourceContainer);
-        resourceContainer.name = "ResourceContainer";
-        resourceContainer.style.flexDirection = FlexDirection.Row;
+        var resourceScrollView = new ScrollView(ScrollViewMode.Vertical);
+
+        var resourceElement = new VisualElement();
+        resourceElement.name = "GraphViewer.Resources";
+        resourceElement.style.flexDirection = FlexDirection.Row;
 
         var resourceNamesContainer = new VisualElement();
-        resourceNamesContainer.name = "ResourceNamesContainer";
+        resourceNamesContainer.name = "GraphViewer.Resources.ResourceNames";
         resourceNamesContainer.style.flexDirection = FlexDirection.Column;
+        resourceNamesContainer.style.overflow = Overflow.Hidden;
+        resourceNamesContainer.style.alignItems = Align.FlexEnd;
         resourceNamesContainer.RegisterCallback<GeometryChangedEvent>(ResourceNamesContainerChanged);
 
-        m_ResourceLifeTimeContainer = new VisualElement();
-        ApplyBorder(m_ResourceLifeTimeContainer);
-        m_ResourceLifeTimeContainer.name = "ResourceLifeTimeContainer";
-        m_ResourceLifeTimeContainer.style.flexDirection = FlexDirection.Column;
-        m_ResourceLifeTimeContainer.style.width = kRenderPassWidth * passNames.Length;
+        var resourcesLifeTimeElement = new VisualElement();
+        resourcesLifeTimeElement.name = "GraphViewer.Resources.ResourceLifeTime";
+        resourcesLifeTimeElement.style.flexDirection = FlexDirection.Column;
+        resourcesLifeTimeElement.style.width = kRenderPassWidth * debugData.passList.Count;
 
-        foreach (var resourceName in resourceNames)
+        int index = 0;
+        foreach (var resource in debugData.resourceLists[0])
         {
-            resourceNamesContainer.Add(CreateResourceLabel(resourceName));
-        }
+            resourceNamesContainer.Add(CreateResourceLabel(resource.name, resource.imported));
 
-        foreach (var resourceLifeTime in resourceLifeTimes)
-        {
             var newButton = new Button();
             newButton.style.position = Position.Relative;
-            newButton.style.left = resourceLifeTime.begin * kRenderPassWidth;
-            newButton.style.width = (resourceLifeTime.end - resourceLifeTime.begin + 1) * kRenderPassWidth;
+            newButton.style.left = resource.creationPassIndex * kRenderPassWidth;
+            newButton.style.width = (resource.releasePassIndex - resource.creationPassIndex + 1) * kRenderPassWidth;
             newButton.style.marginBottom = 0.0f;
             newButton.style.marginLeft = 0.0f;
             newButton.style.marginRight = 0.0f;
             newButton.style.marginTop = 0.0f;
             newButton.style.height = kResourceHeight;
 
-            m_ResourceLifeTimeContainer.Add(newButton);
+            newButton.RegisterCallback<MouseEnterEvent, int>(MouseEnterResourceCallback, index);
+            newButton.RegisterCallback<MouseLeaveEvent, int>(MouseLeaveResourceCallback, index);
+
+            resourcesLifeTimeElement.Add(newButton);
 
             m_OriginalResourceLifeColor = newButton.style.color;
+            index++;
         }
 
-        resourceContainer.Add(resourceNamesContainer);
-        resourceContainer.Add(m_ResourceLifeTimeContainer);
+        resourceElement.Add(resourceNamesContainer);
+        resourceElement.Add(resourcesLifeTimeElement);
+        resourceScrollView.Add(resourceElement);
 
+        graphViewerElement.Add(topRowElement);
+        graphViewerElement.Add(resourceScrollView);
 
-        m_Root.Add(topRowContainer);
-        m_Root.Add(resourceContainer);
+        horizontalScrollView.Add(graphViewerElement);
+
+        m_GraphViewerElement.Add(horizontalScrollView);
+    }
+
+    void RebuildUI()
+    {
+        rootVisualElement.Clear();
+
+        titleContent = Style.title;
+
+        m_Root = new VisualElement();
+        m_Root.name = "Root";
+        m_Root.style.flexDirection = FlexDirection.Column;
+
+        m_HeaderElement = new VisualElement();
+        m_HeaderElement.name = "Header";
+        m_HeaderElement.style.flexDirection = FlexDirection.Row;
+        m_HeaderElement.style.minHeight = 25.0f;
+        m_HeaderElement.style.marginBottom = 1.0f;
+        m_HeaderElement.style.marginTop = 1.0f;
+        m_HeaderElement.style.borderTopWidth = 1.0f;
+        m_HeaderElement.style.borderBottomWidth = 1.0f;
+
+        RebuildHeaderUI();
+
+        m_GraphViewerElement = new VisualElement();
+        m_GraphViewerElement.name = "GraphViewer";
+        m_GraphViewerElement.style.flexDirection = FlexDirection.Column;
+
+        RebuildGraphViewerUI();
+
+        m_Root.Add(m_HeaderElement);
+        m_Root.Add(m_GraphViewerElement);
         rootVisualElement.Add(m_Root);
+    }
+
+    void OnGraphRegistered(RenderGraph graph)
+    {
+        RebuildHeaderUI();
+    }
+
+    void OnGraphUnregistered(RenderGraph graph)
+    {
+        RebuildHeaderUI();
+    }
+
+    void OnEnable()
+    {
+        RenderGraph.requireDebugData = true;
+        RenderGraph.onGraphRegistered += OnGraphRegistered;
+        RenderGraph.onGraphRegistered += OnGraphUnregistered;
+
+        RebuildUI();
+    }
+
+    void OnDisable()
+    {
+        RenderGraph.requireDebugData = false;
+        RenderGraph.onGraphRegistered -= OnGraphRegistered;
+        RenderGraph.onGraphRegistered -= OnGraphUnregistered;
     }
 }
