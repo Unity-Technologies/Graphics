@@ -18,9 +18,6 @@ HDRP_DXR_Win_DX12_Standalone_trunk:
       -  path: .yamato/hdrp_dxr-win-dx12.yml#Build_HDRP_DXR_Win_DX12_Player_trunk
          rerun: on-new-revision
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -129,9 +126,6 @@ HDRP_DXR_Win_DX12_Standalone_fast-trunk:
       -  path: .yamato/hdrp_dxr-win-dx12.yml#Build_HDRP_DXR_Win_DX12_Player_fast-trunk
          rerun: on-new-revision
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -241,9 +235,6 @@ HDRP_DXR_Win_DX12_Standalone_CUSTOM-REVISION:
       -  path: .yamato/hdrp_dxr-win-dx12.yml#Build_HDRP_DXR_Win_DX12_Player_CUSTOM-REVISION
          rerun: always
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:

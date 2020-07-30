@@ -17,7 +17,7 @@ def cmd_not_standalone(project_folder, platform, api, test_platform_args):
     return base
 
 def cmd_standalone(project_folder, platform, api, test_platform_args):
-    base = _cmd_base(project_folder, platform["components"])
+    base = []
 
     if project_folder.lower() == 'UniversalGraphicsTest'.lower():
         base.append('cd Tools && powershell -command ". .\\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"')
