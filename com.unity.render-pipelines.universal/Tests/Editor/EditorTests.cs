@@ -59,6 +59,9 @@ class EditorTests
     {
         string templatePath = AssetDatabase.GUIDToAssetPath(ResourceGuid.rendererTemplate);
         Assert.IsFalse(string.IsNullOrEmpty(templatePath));
+        
+        string renderPassTemplatePath = AssetDatabase.GUIDToAssetPath(ResourceGuid.rendererTemplate);
+        Assert.IsFalse(string.IsNullOrEmpty(renderPassTemplatePath));
 
         string editorResourcesPath = AssetDatabase.GUIDToAssetPath(UniversalRenderPipelineAsset.editorResourcesGUID);
         Assert.IsFalse(string.IsNullOrEmpty(editorResourcesPath));

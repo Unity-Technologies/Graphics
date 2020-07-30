@@ -13,6 +13,11 @@ namespace UnityEditor.Rendering.Universal.Internal
         /// GUId for the <c>ScriptableRendererFeature</c> template file.
         /// </summary>
         public static readonly string rendererTemplate = "51493ed8d97d3c24b94c6cffe834630b";
+
+        /// <summary>
+        /// GUId for the <c>ScriptableRenderPass</c> tempate file.
+        /// </summary>
+        public static readonly string renderPassTemplate = "47556bd267f3d4112bd72569aa83c102";
     }
 }
 
