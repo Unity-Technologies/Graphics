@@ -17,6 +17,7 @@ VFX_HDRP_Win_Vulkan_Standalone_trunk:
       -  path: .yamato/vfx_hdrp-win-vulkan.yml#Build_VFX_HDRP_Win_Vulkan_Player_trunk
          rerun: on-new-revision
     commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_HDRP/utr.bat
       -  cd TestProjects/VisualEffectGraph_HDRP && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -120,6 +121,7 @@ VFX_HDRP_Win_Vulkan_Standalone_fast-trunk:
       -  path: .yamato/vfx_hdrp-win-vulkan.yml#Build_VFX_HDRP_Win_Vulkan_Player_fast-trunk
          rerun: on-new-revision
     commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_HDRP/utr.bat
       -  cd TestProjects/VisualEffectGraph_HDRP && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -224,6 +226,7 @@ VFX_HDRP_Win_Vulkan_Standalone_CUSTOM-REVISION:
       -  path: .yamato/vfx_hdrp-win-vulkan.yml#Build_VFX_HDRP_Win_Vulkan_Player_CUSTOM-REVISION
          rerun: always
     commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_HDRP/utr.bat
       -  cd TestProjects/VisualEffectGraph_HDRP && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:

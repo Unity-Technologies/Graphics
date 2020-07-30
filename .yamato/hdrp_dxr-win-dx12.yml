@@ -18,6 +18,7 @@ HDRP_DXR_Win_DX12_Standalone_trunk:
       -  path: .yamato/hdrp_dxr-win-dx12.yml#Build_HDRP_DXR_Win_DX12_Player_trunk
          rerun: on-new-revision
     commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -126,6 +127,7 @@ HDRP_DXR_Win_DX12_Standalone_fast-trunk:
       -  path: .yamato/hdrp_dxr-win-dx12.yml#Build_HDRP_DXR_Win_DX12_Player_fast-trunk
          rerun: on-new-revision
     commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -235,6 +237,7 @@ HDRP_DXR_Win_DX12_Standalone_CUSTOM-REVISION:
       -  path: .yamato/hdrp_dxr-win-dx12.yml#Build_HDRP_DXR_Win_DX12_Player_CUSTOM-REVISION
          rerun: always
     commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  cd TestProjects/HDRP_DXR_Tests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
