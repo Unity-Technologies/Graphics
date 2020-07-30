@@ -38,3 +38,4 @@ ShaderGraph/Testing/IntegrationTests/.Failed
 TestProjects/*/ProjectSettings/ProjectVersion.txt
 TestProjects/VisualEffectGraph_HDRP/GraphViz/
 node_modules
+TestProjects/URP_Performance/TmpBuild*

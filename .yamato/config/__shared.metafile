@@ -119,11 +119,6 @@ platforms:
     os: macos
     apis:
       - name: Metal
-        exclude_test_platforms:
-          - editmode
-      - name: OpenGLCore
-        exclude_test_platforms:
-          - Standalone
     components:
       - editor
       - il2cpp
@@ -132,17 +127,6 @@ platforms:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
         flavor: m1.mac
-    agents_project_OpenGLCore:
-      default:
-        type: Unity::VM::osx
-        image: buildfarm/mac:stable
-        flavor: m1.mac
-    agent_package: 
-      type: Unity::VM::osx
-      image: package-ci/mac:stable
-      flavor: m1.mac
-    copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-    editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
   Linux:
     name: Linux
     os: linux
