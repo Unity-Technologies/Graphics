@@ -62,7 +62,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static bool ContainsDuplicateGlobalLight(int sortingLayerIndex, int blendStyleIndex)
         {
-            int globalLightCount = 0;
+            var globalLightCount = 0;
 
             // This should be rewritten to search only global lights
             foreach(var light in m_Lights)
