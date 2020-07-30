@@ -214,7 +214,7 @@ Material:
     - _Ior: 1
     - _IridescenceMask: 1
     - _IridescenceThickness: 1
-    - _LeafStiffness: 0.9
+    - _LeafStiffness: 0.95
     - _LeafTurbulence: 2
     - _LinkDetailsWithBase: 1
     - _MaterialID: 0
@@ -254,7 +254,7 @@ Material:
     - _StencilWriteMaskDistortionVec: 4
     - _StencilWriteMaskGBuffer: 14
     - _StencilWriteMaskMV: 40
-    - _Stiffness: 0.85
+    - _Stiffness: 1
     - _Strength: 0.2
     - _SubsurfaceMask: 1
     - _SupportDecals: 1
