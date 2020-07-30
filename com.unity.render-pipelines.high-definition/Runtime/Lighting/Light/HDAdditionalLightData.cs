@@ -1421,6 +1421,19 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [SerializeField]
+        bool m_AlwaysDrawDynamicShadows = false;
+
+        /// <summary>
+        /// Get/Set the shadow update mode.
+        /// </summary>
+        /// <value></value>
+        public bool alwaysDrawDynamicShadows
+        {
+            get => m_AlwaysDrawDynamicShadows;
+            set { m_AlwaysDrawDynamicShadows = value; }
+        }
+
         // Only for Rectangle area lights.
         [Range(0.0f, 90.0f)]
         [SerializeField]
@@ -1790,6 +1803,11 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool ShadowIsUpdatedEveryFrame()
         {
             return shadowUpdateMode == ShadowUpdateMode.EveryFrame;
+        }
+
+        internal bool ShadowIsMixedCached()
+        {
+            return shadowUpdateMode != ShadowUpdateMode.EveryFrame && m_AlwaysDrawDynamicShadows;
         }
 
         internal void EvaluateShadowState(HDCamera hdCamera, in ProcessedLightData processedLight, CullingResults cullResults, FrameSettings frameSettings, int lightIndex)
