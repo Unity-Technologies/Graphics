@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             public static int _MainLightPosition;   // DeferredLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
             public static int _MainLightColor;      // DeferredLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
+            public static int _MainLightSpotDir;    // Deferred?
 
             public static int _AdditionalLightsCount;
             public static int _AdditionalLightsPosition;
@@ -43,6 +44,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             LightConstantBuffer._MainLightPosition = Shader.PropertyToID("_MainLightPosition");
             LightConstantBuffer._MainLightColor = Shader.PropertyToID("_MainLightColor");
+            LightConstantBuffer._MainLightSpotDir = Shader.PropertyToID("_MainLightSpotDir");
             LightConstantBuffer._AdditionalLightsCount = Shader.PropertyToID("_AdditionalLightsCount");
 
             if (m_UseStructuredBuffer)
@@ -83,8 +85,17 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive,
                     renderingData.lightData.supportsMixedLighting &&
                     m_MixedLightingSetup == MixedLightingSetup.Subtractive);
-            }
 
+            	CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ShadowMaskAlways,
+                	renderingData.lightData.supportsMixedLighting &&
+                	m_MixedLightingSetup == MixedLightingSetup.ShadowMask &&
+                	QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask);
+
+            	CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ShadowMaskDistance,
+                	renderingData.lightData.supportsMixedLighting &&
+                	m_MixedLightingSetup == MixedLightingSetup.ShadowMask &&
+                	QualitySettings.shadowmaskMode == ShadowmaskMode.DistanceShadowmask);
+            }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
@@ -101,13 +112,35 @@ namespace UnityEngine.Rendering.Universal.Internal
             VisibleLight lightData = lights[lightIndex];
             Light light = lightData.light;
 
-            // TODO: Add support to shadow mask
+            // Set the occlusion probe channel.
+            int occlusionProbeChannel = light != null ? light.bakingOutput.occlusionMaskChannel : -1;
+
+            // If we have baked the light, the occlusion channel is the index we need to sample in 'unity_ProbesOcclusion'
+            // If we have not baked the light, the occlusion channel is -1.
+            // In case there is no occlusion channel is -1, we set it to zero, and then set the second value in the
+            // input to one. We then, in the shader max with the second value for non-occluded lights.
+            lightOcclusionProbeChannel.x = occlusionProbeChannel == -1 ? 0f : occlusionProbeChannel;
+            lightOcclusionProbeChannel.y = occlusionProbeChannel == -1 ? 1f : 0f;
+            
             if (light != null && light.bakingOutput.mixedLightingMode == MixedLightingMode.Subtractive && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
             {
                 if (m_MixedLightingSetup == MixedLightingSetup.None && lightData.light.shadows != LightShadows.None)
                 {
                     m_MixedLightingSetup = MixedLightingSetup.Subtractive;
                 }
+            }
+            if (light.bakingOutput.mixedLightingMode == MixedLightingMode.Shadowmask && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
+            {
+                if (lightData.light.shadows != LightShadows.None)
+                {
+                    m_MixedLightingSetup = MixedLightingSetup.ShadowMask;
+                }
+                int channel = light.bakingOutput.occlusionMaskChannel;
+                //light index is baked in the alpha channel of the light's direction
+                lightSpotDir.w = channel + 1;
+            } else
+            {
+                lightSpotDir.w = 0;//If mask should not be used, light index is 0
             }
         }
 
@@ -128,6 +161,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             cmd.SetGlobalVector(LightConstantBuffer._MainLightPosition, lightPos);
             cmd.SetGlobalVector(LightConstantBuffer._MainLightColor, lightColor);
+            cmd.SetGlobalVector(LightConstantBuffer._MainLightSpotDir, lightSpotDir);
         }
 
         void SetupAdditionalLightConstants(CommandBuffer cmd, ref RenderingData renderingData)

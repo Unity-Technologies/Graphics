@@ -172,7 +172,7 @@ FragmentOutput ParticlesGBufferFragment(VaryingsParticle input)
     InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
 
     Light mainLight = GetMainLight(inputData.shadowCoord);                                      // TODO move this to a separate full-screen single gbuffer pass?
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0)); // TODO move this to a separate full-screen single gbuffer pass?
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(1, 1, 1, 1), half4(0, 0, 0, 0)); // TODO move this to a separate full-screen single gbuffer pass?
 
     half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.normalWS, inputData.viewDirectionWS);
 

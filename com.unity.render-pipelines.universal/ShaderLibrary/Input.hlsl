@@ -15,6 +15,10 @@
     #define MAX_VISIBLE_LIGHTS 256
 #endif
 
+#if defined(_SHADOW_MASK_DISTANCE) || defined(_SHADOW_MASK_ALWAYS)
+    #define SHADOWS_SHADOWMASK
+#endif
+
 struct InputData
 {
     float3  positionWS;
@@ -25,6 +29,9 @@ struct InputData
     half3   vertexLighting;
     half3   bakedGI;
     float2  normalizedScreenSpaceUV;
+#if defined(SHADOWS_SHADOWMASK)
+    half4   bakedAtten;
+#endif
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -39,6 +46,7 @@ float4 _ScaledScreenParams;
 
 float4 _MainLightPosition;
 half4 _MainLightColor;
+half4 _MainLightSpotDir;
 
 // Global object render pass data containing various settings.
 // x,y,z are currently unused

@@ -49,6 +49,7 @@ struct Light
     half    shadowAttenuation;
 };
 
+
 ///////////////////////////////////////////////////////////////////////////////
 //                        Attenuation Functions                               /
 ///////////////////////////////////////////////////////////////////////////////
@@ -231,6 +232,15 @@ Light GetAdditionalLight(uint i, float3 positionWS)
 {
     int perObjectLightIndex = GetPerObjectLightIndex(i);
     return GetAdditionalPerObjectLight(perObjectLightIndex, positionWS);
+}
+
+Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
+{
+    int perObjectLightIndex = GetPerObjectLightIndex(i);
+    Light light = GetAdditionalPerObjectLight(perObjectLightIndex, positionWS);
+    half bakedshadow = AdditionalLightBakedShadow(perObjectLightIndex, shadowMask);
+    light.shadowAttenuation = min(light.shadowAttenuation, bakedshadow);
+    return light;
 }
 
 int GetAdditionalLightsCount()
@@ -662,10 +672,18 @@ half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3
     return GlobalIllumination(brdfData, noClearCoat, 0.0, bakedGI, occlusion, normalWS, viewDirectionWS);
 }
 
-void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI, half4 shadowMask)
+void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI, half4 shadowMask, float4 shadowCoord)
 {
+    half maskChannel = _MainLightSpotDir.w - 1;
 #if defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_ON)
     bakedGI = SubtractDirectMainLightFromLightmap(light, normalWS, bakedGI);
+#elif defined(_SHADOW_MASK_DISTANCE)
+    half bakedShadow = BEYOND_SHADOW_FAR(shadowCoord) ? shadowMask[maskChannel] : 1.0;
+#elif defined(_SHADOW_MASK_ALWAYS)
+    half bakedShadow = shadowMask[maskChannel];
+#endif
+#if defined(_SHADOW_MASK_DISTANCE) || defined(_SHADOW_MASK_ALWAYS)
+    light.shadowAttenuation = min(light.shadowAttenuation, bakedShadow + 1 - saturate(_MainLightSpotDir.w));
 #endif
 }
 
@@ -773,6 +791,7 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
     uint lightsCount = GetAdditionalLightsCount();
     for (uint lightIndex = 0u; lightIndex < lightsCount; ++lightIndex)
     {
+
         Light light = GetAdditionalLight(lightIndex, positionWS);
         half3 lightColor = light.color * light.distanceAttenuation;
         vertexLightColor += LightingLambert(lightColor, light.direction, normalWS);
@@ -813,7 +832,12 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
         surfaceData.occlusion = min(surfaceData.occlusion, aoFactor.indirectAmbientOcclusion);
     #endif
 
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
+    half4 shadowMask = half4(1, 1, 1, 1);
+#if defined(SHADOWS_SHADOWMASK)
+    shadowMask = inputData.bakedAtten;
+#endif
+
+	MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, shadowMask, inputData.shadowCoord);
     half3 color = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
                                      inputData.bakedGI, surfaceData.occlusion,
                                      inputData.normalWS, inputData.viewDirectionWS);
@@ -826,7 +850,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     uint pixelLightCount = GetAdditionalLightsCount();
     for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
     {
-        Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
+        Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowMask);
         #if defined(_SCREEN_SPACE_OCCLUSION)
             light.color *= aoFactor.directAmbientOcclusion;
         #endif
@@ -872,7 +896,12 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
         inputData.bakedGI *= aoFactor.indirectAmbientOcclusion;
     #endif
 
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
+	half4 shadowMask = half4(1, 1, 1, 1);
+#if defined(LIGHTMAP_ON) && defined(SHADOWS_SHADOWMASK)
+    shadowMask = inputData.bakedAtten;
+#endif
+
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, shadowMask, inputData.shadowCoord);
 
     half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
     half3 diffuseColor = inputData.bakedGI + LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
@@ -882,7 +911,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     uint pixelLightCount = GetAdditionalLightsCount();
     for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
     {
-        Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
+        Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowMask);
         #if defined(_SCREEN_SPACE_OCCLUSION)
             light.color *= aoFactor.directAmbientOcclusion;
         #endif
