@@ -198,10 +198,6 @@ This Project is already set up with ray tracing support.
 
 ## Advice and supported feature of preview ray tracing
 
-DX12 and DXR are currently in preview and are thus missing some functionnality. 
-When you enable DX12, Unity shows this error message:
-d3d12: generating mipmaps for array textures is not yet supported.
-
 There is no support for ray tracing on other platform than DX12 for now.
 
 HDRP ray tracing in Unity 2020.2 has the following limitations:
