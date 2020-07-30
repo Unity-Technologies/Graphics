@@ -4174,13 +4174,13 @@ VisualEffect:
       - m_Value: 0.09
         m_Name: Distance Size Multiplier
         m_Overridden: 1
-      - m_Value: 2
+      - m_Value: 3
         m_Name: Min Dust Size
         m_Overridden: 1
-      - m_Value: 5
+      - m_Value: 6
         m_Name: Max Dist Size
         m_Overridden: 1
-      - m_Value: 50
+      - m_Value: 100
         m_Name: Spawn Rate
         m_Overridden: 1
       - m_Value: 0
@@ -8649,7 +8649,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 766848764}
   m_LocalRotation: {x: 0, y: 0, z: 0.11060168, w: 0.99386483}
-  m_LocalPosition: {x: 48.717, y: 3.601, z: 0}
+  m_LocalPosition: {x: 48.811, y: 3.185, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1.0100002}
   m_Children: []
   m_Father: {fileID: 1766869843}
@@ -8727,7 +8727,7 @@ VisualEffect:
       - m_Value: 2
         m_Name: Min Dust Size
         m_Overridden: 1
-      - m_Value: 3
+      - m_Value: 5
         m_Name: Max Dist Size
         m_Overridden: 1
       - m_Value: 5
@@ -8742,10 +8742,10 @@ VisualEffect:
       - m_Value: 5
         m_Name: Visible Distance (Fade Out)
         m_Overridden: 1
-      - m_Value: 0.5
+      - m_Value: 0
         m_Name: Fade In Start
         m_Overridden: 1
-      - m_Value: 1
+      - m_Value: 0.5
         m_Name: Fade In End
         m_Overridden: 1
       - m_Value: 6
@@ -8761,7 +8761,7 @@ VisualEffect:
       - m_Value: {x: 12, y: 5, z: 8}
         m_Name: Size
         m_Overridden: 1
-      - m_Value: {x: 4, y: 0.5, z: 0.5}
+      - m_Value: {x: 5, y: 1, z: 1}
         m_Name: Box Size
         m_Overridden: 1
     m_Vector4f:
@@ -9052,7 +9052,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 819419775}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 63.719, y: 2.85, z: -0.242}
+  m_LocalPosition: {x: 63.719, y: 2.3, z: -0.242}
   m_LocalScale: {x: 1, y: 1, z: 1.0100002}
   m_Children: []
   m_Father: {fileID: 1766869843}
@@ -9127,10 +9127,10 @@ VisualEffect:
       - m_Value: 0.09
         m_Name: Distance Size Multiplier
         m_Overridden: 1
-      - m_Value: 2
+      - m_Value: 3
         m_Name: Min Dust Size
         m_Overridden: 1
-      - m_Value: 4
+      - m_Value: 6
         m_Name: Max Dist Size
         m_Overridden: 1
       - m_Value: 5
@@ -9139,16 +9139,16 @@ VisualEffect:
       - m_Value: 20
         m_Name: Spawn Rate
         m_Overridden: 1
-      - m_Value: 0.5
+      - m_Value: 0
         m_Name: Fade In Start
         m_Overridden: 1
-      - m_Value: 1
+      - m_Value: 0.5
         m_Name: Fade In End
         m_Overridden: 1
-      - m_Value: 6
+      - m_Value: 8
         m_Name: Fade Out Start
         m_Overridden: 1
-      - m_Value: 10
+      - m_Value: 12
         m_Name: Fade Out End
         m_Overridden: 1
     m_Vector2f:
@@ -9158,7 +9158,7 @@ VisualEffect:
       - m_Value: {x: 12, y: 5, z: 8}
         m_Name: Size
         m_Overridden: 1
-      - m_Value: {x: 2, y: 1, z: 2}
+      - m_Value: {x: 2, y: 3, z: 2}
         m_Name: Box Size
         m_Overridden: 1
     m_Vector4f:
@@ -9449,13 +9449,13 @@ VisualEffect:
       - m_Value: 2
         m_Name: Min Dust Size
         m_Overridden: 1
-      - m_Value: 3
+      - m_Value: 5
         m_Name: Max Dist Size
         m_Overridden: 1
       - m_Value: 5
         m_Name: Particle Count
         m_Overridden: 1
-      - m_Value: 10
+      - m_Value: 30
         m_Name: Spawn Rate
         m_Overridden: 1
       - m_Value: 1
@@ -9464,10 +9464,10 @@ VisualEffect:
       - m_Value: 5
         m_Name: Visible Distance (Fade Out)
         m_Overridden: 1
-      - m_Value: 0.5
+      - m_Value: 0
         m_Name: Fade In Start
         m_Overridden: 1
-      - m_Value: 1
+      - m_Value: 0.5
         m_Name: Fade In End
         m_Overridden: 1
       - m_Value: 6
@@ -9483,7 +9483,7 @@ VisualEffect:
       - m_Value: {x: 12, y: 5, z: 8}
         m_Name: Size
         m_Overridden: 1
-      - m_Value: {x: 4, y: 0.5, z: 0.5}
+      - m_Value: {x: 4.5, y: 1, z: 0.5}
         m_Name: Box Size
         m_Overridden: 1
     m_Vector4f:
@@ -13978,7 +13978,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 738646681744756156, guid: 573ac53c334415945bf239de2c2f0511, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 4.5
+      value: 4.2
       objectReference: {fileID: 0}
     - target: {fileID: 738646681744756156, guid: 573ac53c334415945bf239de2c2f0511, type: 3}
       propertyPath: m_LocalPosition.z
@@ -14500,7 +14500,7 @@ MonoBehaviour:
     distanceFadeStart: 50
     distanceFadeEnd: 60
     textureIndex: 0
-    textureOffset: {x: -0, y: -16.450579, z: 0}
+    textureOffset: {x: -0, y: -22.812202, z: 0}
 --- !u!1001 &1504255721
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -16269,16 +16269,16 @@ VisualEffect:
       - m_Value: 3
         m_Name: Min Dust Size
         m_Overridden: 1
-      - m_Value: 5
+      - m_Value: 6
         m_Name: Max Dist Size
         m_Overridden: 1
       - m_Value: 10
         m_Name: Particle Count
         m_Overridden: 1
-      - m_Value: 0.5
+      - m_Value: 0
         m_Name: Fade In Start
         m_Overridden: 1
-      - m_Value: 1
+      - m_Value: 0.5
         m_Name: Fade In End
         m_Overridden: 1
       - m_Value: 8
@@ -16287,7 +16287,7 @@ VisualEffect:
       - m_Value: 12
         m_Name: Fade Out End
         m_Overridden: 1
-      - m_Value: 10
+      - m_Value: 30
         m_Name: Spawn Rate
         m_Overridden: 1
     m_Vector2f:
