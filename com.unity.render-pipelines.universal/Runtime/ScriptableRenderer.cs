@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine.Scripting.APIUpdating;
-using UnityEngine.UIElements;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -320,6 +319,7 @@ namespace UnityEngine.Rendering.Universal
                 m_RendererFeatures.Add(feature);
             }
             Clear(CameraRenderType.Base);
+            m_ActiveRenderPassQueue.Clear();
         }
 
         public void Dispose()
@@ -447,7 +447,7 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
                 float time = Application.isPlaying ? Time.time : Time.realtimeSinceStartup;
 #else
-            float time = Time.time;
+                float time = Time.time;
 #endif
                 float deltaTime = Time.deltaTime;
                 float smoothDeltaTime = Time.smoothDeltaTime;
@@ -622,8 +622,6 @@ namespace UnityEngine.Rendering.Universal
 
             m_FirstTimeCameraColorTargetIsBound = cameraType == CameraRenderType.Base;
             m_FirstTimeCameraDepthTargetIsBound = true;
-
-            m_ActiveRenderPassQueue.Clear();
 
             m_CameraColorTarget = colorBuffer;
             m_CameraDepthTarget = depthBuffer;
@@ -1020,7 +1018,6 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingReleaseResources))
             {
-
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                     m_ActiveRenderPassQueue[i].FrameCleanup(cmd);
 
@@ -1032,6 +1029,8 @@ namespace UnityEngine.Rendering.Universal
 
                     FinishRendering(cmd);
                 }
+                
+                m_ActiveRenderPassQueue.Clear();
             }
 
             context.ExecuteCommandBuffer(cmd);
