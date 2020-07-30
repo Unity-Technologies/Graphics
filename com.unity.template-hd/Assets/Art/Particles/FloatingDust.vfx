@@ -82,8 +82,8 @@ MonoBehaviour:
     max: Infinity
     enumValues: []
     descendantCount: 0
-  - name: Max Dist Size
-    path: Max Dist Size
+  - name: Max Dust Size
+    path: Max Dust Size
     tooltip: 
     sheetType: m_Float
     realType: Single
@@ -3528,7 +3528,7 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661615071}
-  m_ExposedName: Max Dist Size
+  m_ExposedName: Max Dust Size
   m_Exposed: 1
   m_Order: 2
   m_Category: 
