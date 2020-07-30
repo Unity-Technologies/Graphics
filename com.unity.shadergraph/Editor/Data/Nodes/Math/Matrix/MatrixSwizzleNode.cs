@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using NUnit.Framework;
 using UnityEditor.PackageManager.Requests;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.Rendering;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -56,28 +57,28 @@ namespace UnityEditor.ShaderGraph
         public Vector4 row0
         {
             get { return index_Row0; }
-            set { SetRow(ref index_Row0, value); }
+            set { SetRow(ref index_Row0, value);  }
         }
 
         [MultiFloatControl("", " m", "   m", "   m", "   m")]
         public Vector4 row1
         {
             get { return index_Row1; }
-            set { SetRow(ref index_Row1, value); }
+            set { SetRow(ref index_Row1, value);  }
         }
 
         [MultiFloatControl("", " m", "   m", "   m", "   m")]
         public Vector4 row2
         {
             get { return index_Row2; }
-            set { SetRow(ref index_Row2, value); }
+            set { SetRow(ref index_Row2, value);  }
         }
 
         [MultiFloatControl("", " m", "   m", "   m", "   m")]
         public Vector4 row3
         {
             get { return index_Row3; }
-            set { SetRow(ref index_Row3, value); }
+            set { SetRow(ref index_Row3, value);  }
         }
 
         void SetRow(ref Vector4 row, Vector4 value)
@@ -85,7 +86,8 @@ namespace UnityEditor.ShaderGraph
             if (value == row)
                 return;
             row = value;
-            Dirty(ModificationScope.Node);
+            //Dirty(ModificationScope.Node);
+            Dirty(ModificationScope.Topological);
         }
 
 
@@ -222,10 +224,20 @@ namespace UnityEditor.ShaderGraph
         }
 
 
-        
+        private bool AreIndiciesValid = true;
+        public override void ValidateNode()
+        {
+            base.ValidateNode();
+
+            if (!AreIndiciesValid)
+            {
+                owner.AddValidationError(objectId, "Indices need to be smaller than input size!", ShaderCompilerMessageSeverity.Error);
+            }
+
+        }
         //1. get input matrix and demension
         //2. get swizzle output size
-        //3. get index matrix (HACKYYYYYYY)
+        //3. get index matrix 
         //4. map output matirx/vec according to index matrix/vec
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
@@ -254,7 +266,7 @@ namespace UnityEditor.ShaderGraph
             int outputRowCount = 0;
 
             //INDECIES VALIDATION
-            //TODO: Should give what row/columns the problems are
+            //TODO: Should give what row/columns the problems are?
             var inputIndecies = new Matrix4x4();
 
             //set all indices that won't be used to zero
@@ -309,14 +321,15 @@ namespace UnityEditor.ShaderGraph
                 IsIndexSizeCorrect(inputIndecies.GetRow(1), concreteRowCount)&&
                 IsIndexSizeCorrect(inputIndecies.GetRow(2), concreteRowCount) && IsIndexSizeCorrect(inputIndecies.GetRow(3), concreteRowCount)) )
             {
-                Debug.LogError("Indices need to be smaller than input size!");
+                AreIndiciesValid = false;
+                ValidateNode();
                 inputIndecies.SetRow(0, new Vector4(0,0,0,0));
                 inputIndecies.SetRow(1, new Vector4(0, 0, 0, 0));
                 inputIndecies.SetRow(2, new Vector4(0, 0, 0, 0));
                 inputIndecies.SetRow(3, new Vector4(0, 0, 0, 0));
             }
 
-
+            AreIndiciesValid = true;
 
 
 
@@ -657,79 +670,7 @@ namespace UnityEditor.ShaderGraph
             //UpdateNodeAfterDeserialization();
         }
 
-        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
-        {
-            if (!generationMode.IsPreview())
-                return;
-
-            //get input slot concrete value type 
-            //inject shader properties based on incoming matrix type 
-
-            //cleanup into an if statement to avoid duplicated code where possible 
-            switch (m_OutputSize)
-            {
-                case SwizzleOutputSize.Matrix2:
-                    properties.AddShaderProperty(new Vector2ShaderProperty()
-                    {
-                        overrideReferenceName = string.Format("_{0}_m0", GetVariableNameForNode()),
-                        generatePropertyBlock = false,
-                        value = index_Row0
-                    });
-                    properties.AddShaderProperty(new Vector2ShaderProperty()
-                    {
-                        overrideReferenceName = string.Format("_{0}_m1", GetVariableNameForNode()),
-                        generatePropertyBlock = false,
-                        value = index_Row1
-                    });
-                    break;
-                case SwizzleOutputSize.Matrix3:
-                    properties.AddShaderProperty(new Vector3ShaderProperty()
-                    {
-                        overrideReferenceName = string.Format("_{0}_m0", GetVariableNameForNode()),
-                        generatePropertyBlock = false,
-                        value = index_Row0
-                    });
-                    properties.AddShaderProperty(new Vector3ShaderProperty()
-                    {
-                        overrideReferenceName = string.Format("_{0}_m1", GetVariableNameForNode()),
-                        generatePropertyBlock = false,
-                        value = index_Row1
-                    });
-                    properties.AddShaderProperty(new Vector3ShaderProperty()
-                    {
-                        overrideReferenceName = string.Format("_{0}_m2", GetVariableNameForNode()),
-                        generatePropertyBlock = false,
-                        value = index_Row2
-                    });
-                    break;
-                case SwizzleOutputSize.Matrix4:
-                    properties.AddShaderProperty(new Vector4ShaderProperty()
-                    {
-                        overrideReferenceName = string.Format("_{0}_m0", GetVariableNameForNode()),
-                        generatePropertyBlock = false,
-                        value = index_Row0
-                    });
-                    properties.AddShaderProperty(new Vector4ShaderProperty()
-                    {
-                        overrideReferenceName = string.Format("_{0}_m1", GetVariableNameForNode()),
-                        generatePropertyBlock = false,
-                        value = index_Row1
-                    });
-                    properties.AddShaderProperty(new Vector4ShaderProperty()
-                    {
-                        overrideReferenceName = string.Format("_{0}_m2", GetVariableNameForNode()),
-                        generatePropertyBlock = false,
-                        value = index_Row2
-                    });
-                    properties.AddShaderProperty(new Vector4ShaderProperty()
-                    {
-                        overrideReferenceName = string.Format("_{0}_m3", GetVariableNameForNode()),
-                        generatePropertyBlock = false,
-                        value = index_Row3
-                    });
-                    break;
-            }
-        }
+   
 
     
 
