@@ -34,41 +34,31 @@ struct imageblock_FragmentOutput_t
     float __RasterOrderGroup_0__Depth;
 };
 
-#if defined(GBUFFER_IMBLOCK_READ)
-#define PRE(name) IN_##name
-#define PRE_VAR(name, var) IN_##name##[0].##var
-#elif defined(GBUFFER_IMBLOCK_WRITE)
-#define PRE(name) OUT_##name
-#define PRE_VAR(name, var) OUT_##name##[0].##var
-#else
-#define PRE(name) INOUT_##name
-#define PRE_VAR(name, var) INOUT_##name##[0].##var
-#endif
-
+#define VAR(name, var) name##[0].##var
 #define GBUFFER_NM imageblock_fragmentOutput
 
-RWStructuredBuffer<imageblock_FragmentOutput_t> PRE(GBUFFER_NM);
+RWStructuredBuffer<imageblock_FragmentOutput_t> GBUFFER_NM;
 
 half4 GbufferToImageBlock(FragmentOutput output, float depth)
 {
-    PRE_VAR(GBUFFER_NM, __RasterOrderGroup_0__GBuffer0) = output.GBuffer0;
-    PRE_VAR(GBUFFER_NM, __RasterOrderGroup_0__GBuffer1) = output.GBuffer1;
-    PRE_VAR(GBUFFER_NM, __RasterOrderGroup_0__GBuffer2) = output.GBuffer2;
-    PRE_VAR(GBUFFER_NM, __RasterOrderGroup_0__Depth) = depth;
+    VAR(GBUFFER_NM, __RasterOrderGroup_0__GBuffer0) = output.GBuffer0;
+    VAR(GBUFFER_NM, __RasterOrderGroup_0__GBuffer1) = output.GBuffer1;
+    VAR(GBUFFER_NM, __RasterOrderGroup_0__GBuffer2) = output.GBuffer2;
+    VAR(GBUFFER_NM, __RasterOrderGroup_0__Depth) = depth;
     return output.GBuffer3;
 }
 
 float LoadDepthFromImageBlock()
 {
-    return PRE_VAR(GBUFFER_NM, __RasterOrderGroup_0__Depth);
+    return VAR(GBUFFER_NM, __RasterOrderGroup_0__Depth);
 }
 
 void LoadGBufferFromImageBlock(out float d, out half4 gbuffer0, out half4 gbuffer1, out half4 gbuffer2)
 {
     d = LoadDepthFromImageBlock();
-    gbuffer0 = PRE_VAR(GBUFFER_NM, __RasterOrderGroup_0__GBuffer0);
-    gbuffer1 = PRE_VAR(GBUFFER_NM, __RasterOrderGroup_0__GBuffer1);
-    gbuffer2 = PRE_VAR(GBUFFER_NM, __RasterOrderGroup_0__GBuffer2);
+    gbuffer0 = VAR(GBUFFER_NM, __RasterOrderGroup_0__GBuffer0);
+    gbuffer1 = VAR(GBUFFER_NM, __RasterOrderGroup_0__GBuffer1);
+    gbuffer2 = VAR(GBUFFER_NM, __RasterOrderGroup_0__GBuffer2);
 }
 
 #define GBUFFER_PASS_OUTPUT_TYPE half4

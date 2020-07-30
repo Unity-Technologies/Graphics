@@ -76,7 +76,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma fragment DeferredShading
             //#pragma enable_d3d11_debug_symbols
 
-            #define GBUFFER_IMBLOCK_READ
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferredInclude.hlsl"
 
             ENDHLSL
@@ -119,7 +118,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma fragment DeferredShading
             //#pragma enable_d3d11_debug_symbols
 
-            #define GBUFFER_IMBLOCK_READ
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferredInclude.hlsl"
 
             ENDHLSL
@@ -162,7 +160,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma fragment DeferredShading
             //#pragma enable_d3d11_debug_symbols
 
-            #define GBUFFER_IMBLOCK_READ
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferredInclude.hlsl"
 
             ENDHLSL
@@ -205,7 +202,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma fragment DeferredShading
             //#pragma enable_d3d11_debug_symbols
 
-            #define GBUFFER_IMBLOCK_READ
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferredInclude.hlsl"            
 
             ENDHLSL
@@ -232,7 +228,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma fragment FragFog
             //#pragma enable_d3d11_debug_symbols
 
-            #define GBUFFER_IMBLOCK_READ
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferredInclude.hlsl"            
 
             ENDHLSL
@@ -274,7 +269,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma fragment DeferredShading
             //#pragma enable_d3d11_debug_symbols
 
-            #define GBUFFER_IMBLOCK_READ
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferredInclude.hlsl"
 
             ENDHLSL
