@@ -19,8 +19,8 @@ struct LightData
 // PackingRules = Exact
 struct ShadowData
 {
-    float4x4 worldToShadowMatrix;
-    float4 shadowParams;
+    float4x4 worldToShadowMatrix; // per-shadow-slice
+    float4 shadowParams;          // per-casting-light
 };
 
 
