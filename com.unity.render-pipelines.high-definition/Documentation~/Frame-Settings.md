@@ -78,6 +78,7 @@ These settings control lighting features for your rendering components. Here you
 | **Shadowmask**                     | Enable the checkbox to make HDRP support the [Shadowmasks lighting mode](Lighting-Mode-Shadowmask.md).       |
 | **Screen Space Refection**         | Enable the checkbox to make HDRP process Screen Space Reflections (SSR). This allows HDRP to calculate SSR for this Camera/Reflection Probe. |
 | - **On Transparent** | Enable the checkbox to make HDRP process Screen Space Reflections (SSR) on transparent objects. |
+| **Screen Space Global Illumination** | Enable the checkbox to make HDRP process Screen Space Global Illumination (SSGI). |
 | **Screen Space Ambient Occlusion** | Enable the checkbox to make HDRP process Screen Space Ambient Occlusion (SSAO). This allows HDRP to calculate SSAO for this Camera/Reflection Probe. |
 | **Subsurface Scattering**          | Enable the checkbox to make HDRP process subsurface scattering. Enabling this feature causes HDRP to simulate how light penetrates surfaces of translucent GameObjects, scatters inside them, and exits from different locations. |
 | **Transmission**                   | Enable the checkbox to make HDRP process the transmission effect. This allows subsurface scattering Materials to use transmission, for example, light transmits through a leaf with a subsurface scattering Material. |
@@ -91,6 +92,10 @@ These settings control lighting features for your rendering components. Here you
 | **Metallic Indirect Fallback**     | Enable the checkbox to render Materials with base color as diffuse for this Camera. This renders metals as diffuse Materials. This is a useful Frame Setting to use for real-time Reflection Probes because it renders metals as diffuse Materials to stop them appearing black when Unity can't calculate several bounces of specular lighting. |
 | **Sky Reflection**                 | Enable the checkbox to allow this Camera to use the Sky Reflection. The Sky Reflection affects specular lighting. |
 | **Direct Specular Lighting**       | Enable the checkbox to allow this Camera to render direct specular lighting. This allows HDRP to disable direct view dependent lighting. It doesn't save any performance. |
+| **Subsurface Scattering** | Enable the checkbox to make HDRP compute Screen Space Subsurface Scattering. |
+| - **Quality Mode**        | Use the drop-down to select how the quality level for Subsurface Scattering is set.<br /> **From Quality Settings**: The Camera uses the Subsurface Scattering **Sample Budget** property that is set in the Material Section of your Unity Project's **Quality Settings**.<br /> **Override Quality Settings**: Allows you to set a custom sample budget for sample surface scattering for this Camera in the field below.|
+| - **Quality Level**       | Use the drop-down to select the quality level when the the **Quality Mode** is set to **From Quality Settings**.|
+| - **Custom Sample Budget**       | The custom number of samples that will be used for Subsurface Scattering computations when the **Quality Mode** is set to **Override Quality Settings**.|
 
 ### Asynchronous Compute Shaders
 
