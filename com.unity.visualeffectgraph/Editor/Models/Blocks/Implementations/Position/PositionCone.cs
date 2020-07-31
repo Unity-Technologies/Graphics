@@ -109,6 +109,14 @@ namespace UnityEditor.VFX.Block
             k = new VFXExpressionTransformDirection(matrix, k);
         }
 
+        static VFXExpression RemoveTranslatePart(VFXExpression matrix)
+        {
+            var i = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(0));
+            var j = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(1));
+            var k = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(2));
+            var o = VFXValue.Constant(new Vector4(0, 0, 0, 1));
+            return new VFXExpressionVector4sToMatrix(i, j, k, o);
+        }
 
         public override IEnumerable<VFXNamedExpression> parameters
         {
@@ -152,15 +160,16 @@ namespace UnityEditor.VFX.Block
                     if (slotSpace != systemSpace)
                     {
                         if (systemSpace == VFXCoordinateSpace.World)
-                            rotationMatrix = new VFXExpressionTransformMatrix(rotationMatrix, VFXBuiltInExpression.LocalToWorld);
+                            rotationMatrix = new VFXExpressionTransformMatrix(rotationMatrix, RemoveTranslatePart(VFXBuiltInExpression.LocalToWorld));
                         else if (systemSpace == VFXCoordinateSpace.Local)
-                            rotationMatrix = new VFXExpressionTransformMatrix(rotationMatrix, VFXBuiltInExpression.WorldToLocal);
+                            rotationMatrix = new VFXExpressionTransformMatrix(rotationMatrix, RemoveTranslatePart(VFXBuiltInExpression.WorldToLocal));
                         else
                             throw new System.NotImplementedException();
                     }
 
-                    var translateMatrix = new VFXExpressionTRSToMatrix(center, zeroF3, oneF3); //Can be simplified
-                    var matrix = rotationMatrix;//new VFXExpressionTransformMatrix(rotationMatrix, translateMatrix); //TODOPAUL
+                    //Can be simplified using matrix composition.
+                    var translateMatrix = new VFXExpressionTRSToMatrix(center, zeroF3, oneF3);
+                    var matrix = new VFXExpressionTransformMatrix(translateMatrix, rotationMatrix);
                     yield return new VFXNamedExpression(matrix, "transformMatrix");
                 }
                 else
