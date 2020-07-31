@@ -6,16 +6,15 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     [CustomExtensionName("HDRP", typeof(HDRenderPipeline))]
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Camera" + Documentation.endURL)]
-    public class HDCameraData : Camera.IExtension, IFrameSettingsHistoryContainer
+    public class HDCameraData : Camera.Extension, IFrameSettingsHistoryContainer
     {
         // This region is custom code for camera extensions
         // the left code is a copy paste from HDAdditionalCameraData with very small changes
         #region Extension compatibility code
-        internal string name => m_Camera.name;
-        internal Camera camera => m_Camera;
+        internal string name => cameraHandler.name;
+        internal Camera camera => cameraHandler;
 
         internal static HDCameraData k_DefaultInstance = new HDCameraData();
-        void Awake(Camera cameraHandler) => m_Camera = cameraHandler;
 
         T GetComponent<T>() where T : Component => m_Camera.GetComponent<T>();
         #endregion
