@@ -3536,19 +3536,19 @@ VisualEffect:
       - m_Value: 6
         m_Name: Max Dist Size
         m_Overridden: 1
-      - m_Value: 500
+      - m_Value: 300
         m_Name: Spawn Rate
         m_Overridden: 1
-      - m_Value: 0.25
+      - m_Value: 0.5
         m_Name: Fade In Start
         m_Overridden: 1
       - m_Value: 1
         m_Name: Fade In End
         m_Overridden: 1
-      - m_Value: 20
+      - m_Value: 30
         m_Name: Fade Out Start
         m_Overridden: 1
-      - m_Value: 30
+      - m_Value: 35
         m_Name: Fade Out End
         m_Overridden: 1
       - m_Value: 2
@@ -11657,8 +11657,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_FocusTracksTarget: 0
   m_FocusTracking: 4
-  m_FocusTarget: {fileID: 0}
-  m_FocusOffset: 3
+  m_FocusTarget: {fileID: 6006519896751425108}
+  m_FocusOffset: 2
   m_Profile: {fileID: 11400000, guid: 59a34a3881431c246b3564a0f0ca5bb0, type: 2}
 --- !u!114 &1202700837
 MonoBehaviour:
@@ -13576,8 +13576,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_FocusTracksTarget: 0
-  m_FocusTracking: 4
-  m_FocusTarget: {fileID: 0}
+  m_FocusTracking: 3
+  m_FocusTarget: {fileID: 2138815350}
   m_FocusOffset: 0.5
   m_Profile: {fileID: 11400000, guid: 59a34a3881431c246b3564a0f0ca5bb0, type: 2}
 --- !u!114 &1391687549
@@ -15561,7 +15561,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1594496557}
-  m_LocalRotation: {x: 0.62069726, y: -0.038981277, z: 0.037178054, w: 0.7821976}
+  m_LocalRotation: {x: 0.46469972, y: -0.029184263, z: 0.027834238, w: 0.88454944}
   m_LocalPosition: {x: -3.4893818, y: 3.7002506, z: -6.505281}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -15713,7 +15713,7 @@ MonoBehaviour:
   physicalParameters:
     m_Iso: 200
     m_ShutterSpeed: 0.005
-    m_Aperture: 1.4
+    m_Aperture: 1
     m_BladeCount: 9
     m_Curvature: {x: 2, y: 11}
     m_BarrelClipping: 0.25
@@ -15772,7 +15772,7 @@ Camera:
   m_FOVAxisMode: 0
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
-  m_FocalLength: 40
+  m_FocalLength: 40.400005
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -15781,7 +15781,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 33.39849
+  field of view: 33.085964
   orthographic: 0
   orthographic size: 5
   m_Depth: 0
@@ -15832,7 +15832,7 @@ MonoBehaviour:
   m_FocusTracksTarget: 0
   m_FocusTracking: 3
   m_FocusTarget: {fileID: 2138815350}
-  m_FocusOffset: 3.25
+  m_FocusOffset: 0
   m_Profile: {fileID: 11400000, guid: 59a34a3881431c246b3564a0f0ca5bb0, type: 2}
 --- !u!114 &1604315940
 MonoBehaviour:
@@ -21830,7 +21830,7 @@ Camera:
   m_FOVAxisMode: 0
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
-  m_FocalLength: 20
+  m_FocalLength: 40
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -21839,7 +21839,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 61.927517
+  field of view: 67.380135
   orthographic: 0
   orthographic size: 5
   m_Depth: 0
@@ -21864,7 +21864,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1922889286}
-  m_LocalRotation: {x: 0.9962553, y: -0.06256724, z: 0.05967296, w: -0.000000018660838}
+  m_LocalRotation: {x: 0.4569255, y: -0.028696025, z: 0.027368585, w: -0.82358736}
   m_LocalPosition: {x: -3.4893818, y: 3.7002506, z: -6.505281}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -23831,9 +23831,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_FocusTracksTarget: 0
-  m_FocusTracking: 1
+  m_FocusTracking: 4
   m_FocusTarget: {fileID: 6006519896751425108}
-  m_FocusOffset: 200
+  m_FocusOffset: 0.5
   m_Profile: {fileID: 11400000, guid: 59a34a3881431c246b3564a0f0ca5bb0, type: 2}
 --- !u!114 &2086215317
 MonoBehaviour:
@@ -23884,8 +23884,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2086215315}
-  m_LocalRotation: {x: 0.56248695, y: -0.035325527, z: 0.033691414, w: -0.8253639}
-  m_LocalPosition: {x: -3.4893818, y: 3.7002506, z: -6.505281}
+  m_LocalRotation: {x: 0.5425811, y: 0.10536864, z: 0.12730749, w: -0.82358736}
+  m_LocalPosition: {x: -3.4893813, y: 3.7002354, z: -6.5052705}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 926256711}
