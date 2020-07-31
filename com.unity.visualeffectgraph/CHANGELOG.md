@@ -4,6 +4,10 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [7.4.2] - 2020-08-XX
+#Fixed
+- Fix issue with strips outputs that could cause too many vertices to be renderered
+
 ## [7.4.1] - 2020-06-03
 
 Version Updated
