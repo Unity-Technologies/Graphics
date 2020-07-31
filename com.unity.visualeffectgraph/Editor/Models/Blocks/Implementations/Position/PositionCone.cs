@@ -127,13 +127,13 @@ namespace UnityEditor.VFX.Block
                 VFXExpression slope = new VFXExpressionATan(tanSlope);
                 yield return new VFXNamedExpression(new VFXExpressionCombine(new VFXExpression[] { new VFXExpressionSin(slope), new VFXExpressionCos(slope) }), "sincosSlope");
 
+                var slotSpace = inputSlots[0].space;
+                var systemSpace = ((VFXDataParticle)GetData()).space;
+
                 VFXExpression center = inputSlots[0][0].GetExpression();
                 if (arcCone_ModeTest == Type_Of_Transform_For_ArcCone.EulerAngle)
                 {
                     VFXExpression eulerAngle = inputSlots[0][1].GetExpression();
-
-                    var slotSpace = inputSlots[0].space;
-                    var systemSpace = ((VFXDataParticle)GetData()).space;
 
                     var zeroF3 = VFXOperatorUtility.ZeroExpression[VFXValueType.Float3];
                     var oneF3 = VFXOperatorUtility.OneExpression[VFXValueType.Float3];
@@ -152,13 +152,11 @@ namespace UnityEditor.VFX.Block
                     if (slotSpace != systemSpace)
                     {
                         if (systemSpace == VFXCoordinateSpace.World)
-                        {
                             rotationMatrix = new VFXExpressionTransformMatrix(rotationMatrix, VFXBuiltInExpression.LocalToWorld);
-                        }
-                        else
-                        {
+                        else if (systemSpace == VFXCoordinateSpace.Local)
                             rotationMatrix = new VFXExpressionTransformMatrix(rotationMatrix, VFXBuiltInExpression.WorldToLocal);
-                        }
+                        else
+                            throw new System.NotImplementedException();
                     }
 
                     var translateMatrix = new VFXExpressionTRSToMatrix(center, zeroF3, oneF3); //Can be simplified
@@ -175,16 +173,19 @@ namespace UnityEditor.VFX.Block
                         leftAxis = VFXValue.Constant(new Vector3(1, 0, 0)); //Local space or is depending of space of slot ? TODO
 
                         var upAxisRotation = inputSlots[0][2].GetExpression();
-
                         var cosTheta = new VFXExpressionCos(upAxisRotation);
                         var sinTheta = new VFXExpressionSin(upAxisRotation);
                         var zero = VFXOperatorUtility.ZeroExpression[VFXValueType.Float];
                         leftAxis = new VFXExpressionCombine(sinTheta, zero, cosTheta);
 
-                        VFXCoordinateSpace systemSpace = ((VFXDataParticle)GetData()).space;
-                        if (systemSpace != VFXCoordinateSpace.Local)
+                        if (systemSpace != slotSpace)
                         {
-                            leftAxis = new VFXExpressionTransformDirection(VFXBuiltInExpression.WorldToLocal, leftAxis);
+                            if (systemSpace == VFXCoordinateSpace.World)
+                                leftAxis = new VFXExpressionTransformDirection(VFXBuiltInExpression.LocalToWorld, leftAxis);
+                            else if (systemSpace == VFXCoordinateSpace.Local)
+                                leftAxis = new VFXExpressionTransformDirection(VFXBuiltInExpression.WorldToLocal, leftAxis);
+                            else
+                                throw new System.NotImplementedException();
                         }
                     }
                     else
@@ -194,6 +195,7 @@ namespace UnityEditor.VFX.Block
                     }
 
                     var directionAxis = VFXOperatorUtility.Cross(upAxis, leftAxis);
+                    //TODOPAUL : check length of directionAxis
                     directionAxis = VFXOperatorUtility.Normalize(directionAxis);
                     leftAxis = VFXOperatorUtility.Cross(directionAxis, upAxis);
 
@@ -202,11 +204,11 @@ namespace UnityEditor.VFX.Block
                     upAxis = VFXOperatorUtility.CastFloat(upAxis, VFXValueType.Float4, 0.0f);
                     leftAxis = VFXOperatorUtility.CastFloat(leftAxis, VFXValueType.Float4, 0.0f);
                     center = VFXOperatorUtility.CastFloat(center, VFXValueType.Float4, 1.0f);
-                    VFXExpression matrix = new VFXExpressionVector4sToMatrix(directionAxis, upAxis, leftAxis, center);
 
+                    VFXExpression matrix = new VFXExpressionVector4sToMatrix(directionAxis, upAxis, leftAxis, center);
                     yield return new VFXNamedExpression(matrix, "transformMatrix");
 
-                    //TODOPAUL : Could reduce number of cbuffer, not sure it's relevant.
+                    //TODOPAUL : Could reduce number of cbuffer, don't think it's relevant.
                     //yield return new VFXNamedExpression(directionAxis, "transformMatrix_a");
                     //yield return new VFXNamedExpression(upAxis, "transformMatrix_b");
                     //yield return new VFXNamedExpression(leftAxis, "transformMatrix_c");
