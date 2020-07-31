@@ -90,6 +90,9 @@ namespace UnityEditor.VFX.PerformanceTest
         public void Load_VFXLibrary()
         {
             UnityEngine.Debug.unityLogger.logEnabled = false;
+            bool oldState = ShaderUtil.allowAsyncCompilation;
+            ShaderUtil.allowAsyncCompilation = false;
+
             for (int i = 0; i < 8; i++) //Doing this multiple time to have an average result
             {
                 VFXLibrary.ClearLibrary();
@@ -98,6 +101,8 @@ namespace UnityEditor.VFX.PerformanceTest
                     VFXLibrary.Load();
                 }
             }
+
+            ShaderUtil.allowAsyncCompilation = oldState;
             UnityEngine.Debug.unityLogger.logEnabled = true;
         }
 
@@ -105,6 +110,8 @@ namespace UnityEditor.VFX.PerformanceTest
         public IEnumerator VFXViewWindow_Open_And_Render([ValueSource("allVisualEffectAsset")] string vfxAssetPath)
         {
             UnityEngine.Debug.unityLogger.logEnabled = false;
+            bool oldState = ShaderUtil.allowAsyncCompilation;
+            ShaderUtil.allowAsyncCompilation = false;
 
             VFXGraph graph;
             string fullPath;
@@ -143,6 +150,7 @@ namespace UnityEditor.VFX.PerformanceTest
                 yield return null; //Ensure window is closed for next test
             }
 
+            ShaderUtil.allowAsyncCompilation = oldState;
             UnityEngine.Debug.unityLogger.logEnabled = true;
         }
 
@@ -151,6 +159,8 @@ namespace UnityEditor.VFX.PerformanceTest
         public void Backup_And_Restore([ValueSource("allVisualEffectAsset")] string vfxAssetPath)
         {
             UnityEngine.Debug.unityLogger.logEnabled = false;
+            bool oldState = ShaderUtil.allowAsyncCompilation;
+            ShaderUtil.allowAsyncCompilation = false;
 
             VFXGraph graph;
             string fullPath;
@@ -176,6 +186,7 @@ namespace UnityEditor.VFX.PerformanceTest
                 }
             }
 
+            ShaderUtil.allowAsyncCompilation = oldState;
             UnityEngine.Debug.unityLogger.logEnabled = true;
         }
 
@@ -183,6 +194,8 @@ namespace UnityEditor.VFX.PerformanceTest
         public void Compilation([ValueSource("allForceShaderValidation")] string forceShaderValidationModeName, [ValueSource("allCompilationMode")] string compilationModeName, [ValueSource("allVisualEffectAsset")] string vfxAssetPath)
         {
             UnityEngine.Debug.unityLogger.logEnabled = false;
+            bool oldState = ShaderUtil.allowAsyncCompilation;
+            ShaderUtil.allowAsyncCompilation = false;
 
             VFXCompilationMode compilationMode;
             Enum.TryParse<VFXCompilationMode>(compilationModeName, out compilationMode);
@@ -207,6 +220,7 @@ namespace UnityEditor.VFX.PerformanceTest
                 }
             }
 
+            ShaderUtil.allowAsyncCompilation = oldState;
             UnityEngine.Debug.unityLogger.logEnabled = true;
         }
     }
