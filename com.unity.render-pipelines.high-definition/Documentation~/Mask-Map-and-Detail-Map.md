@@ -32,7 +32,9 @@ The following example image demonstrates the individual components of a full mas
 
 ## Detail map
 
-The detail map contains two grayscale Textures and one two-component Texture, which is the Material's normal map.
+The detail map allow you to overlay a second set of textures on top of the base surface information. Typically, the detail map would be scaled several times across the object’s surface to add small details to a material.
+The detail map contains two grayscale Textures and one two-component Texture, which is the Material's detail normal map.
+When importing the texture, make sure the `sRGB` checkbox is not ticked in the Import Settings.
 
 | **Color channel** | **Map**            |
 | ----------------- | ------------------ |
@@ -44,3 +46,19 @@ The detail map contains two grayscale Textures and one two-component Texture, wh
 The following example image demonstrates the individual components of a full detail map.
 
 ![](Images/MaskMapAndDetailMap3.png)
+
+### Desaturated albedo (red channel)
+
+The red channel represents the albedo variation. It can make the underlying material's albedo gradually darken down to black when going from `0.5` to `0` or brighten up to white when going from `0.5` to `1`. A value of `0.5` is neutral, which means the albedo won't be modified by detail map.
+
+The image below shows the impact of the detail albedo on the final color. As you can see, color interpolation is done in sRGB space.
+
+![](Images/DetailMap-red.png)
+
+### Smoothness (blue channel)
+
+The blue channel represents the smoothness variation and is computed the same way as the albedo variation. The underlying material's smoothness will be gradually decreased if the detail smoothness is below `0.5` or increased if it is above `0.5`. A value of `0.5` is neutral, which means the smoothness won't be modified by detail map.
+
+The image below shows the impact of the detail smoothness on the final color.
+
+![](Images/DetailMap-blue.png)
