@@ -78,11 +78,15 @@ namespace UnityEngine.Rendering.Universal
 
             if (setInverseMatrices)
             {
+                Matrix4x4 gpuProjectionMatrix = cameraData.GetGPUProjectionMatrix();
+                Matrix4x4 viewAndProjectionMatrix = gpuProjectionMatrix * viewMatrix;
                 Matrix4x4 inverseViewMatrix = Matrix4x4.Inverse(viewMatrix);
-                cmd.SetGlobalMatrix(ShaderPropertyId.cameraToWorldMatrix, inverseViewMatrix);
+                Matrix4x4 inverseProjectionMatrix = Matrix4x4.Inverse(gpuProjectionMatrix);
+                Matrix4x4 inverseViewProjection = inverseViewMatrix * inverseProjectionMatrix;
 
-                Matrix4x4 viewAndProjectionMatrix = cameraData.GetGPUProjectionMatrix() * viewMatrix;
-                Matrix4x4 inverseViewProjection = Matrix4x4.Inverse(viewAndProjectionMatrix);
+                cmd.SetGlobalMatrix(ShaderPropertyId.cameraToWorldMatrix, inverseViewMatrix);
+                cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewMatrix, inverseViewMatrix);
+                cmd.SetGlobalMatrix(ShaderPropertyId.inverseProjectionMatrix, inverseProjectionMatrix);
                 cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewAndProjectionMatrix, inverseViewProjection);
             }
 
@@ -209,6 +213,12 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public RenderingFeatures supportedRenderingFeatures { get; set; } = new RenderingFeatures();
 
+        /// <summary>
+        /// List of unsupported Graphics APIs for this renderer.
+        /// <see cref="unsupportedGraphicsDeviceTypes"/>
+        /// </summary>
+        public GraphicsDeviceType[] unsupportedGraphicsDeviceTypes { get; set; } = new GraphicsDeviceType[0];
+
         static class RenderPassBlock
         {
             // Executes render passes that are inputs to the main rendering
@@ -237,6 +247,9 @@ namespace UnityEngine.Rendering.Universal
         const string k_SetCameraRenderStateTag = "Set Camera Data";
         const string k_SetRenderTarget = "Set RenderTarget";
         const string k_ReleaseResourcesTag = "Release Resources";
+        private static readonly ProfilingSampler m_ProfilingSetCameraRenderState = new ProfilingSampler(k_SetCameraRenderStateTag);
+        private static readonly ProfilingSampler m_ProfilingSetRenderTarget = new ProfilingSampler(k_SetRenderTarget);
+        private static readonly ProfilingSampler m_ProfilingReleaseResources = new ProfilingSampler(k_ReleaseResourcesTag);
 
         static RenderTargetIdentifier[] m_ActiveColorAttachments = new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0, 0 };
         static RenderTargetIdentifier m_ActiveDepthAttachment;
@@ -357,97 +370,103 @@ namespace UnityEngine.Rendering.Universal
             ref CameraData cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;
 
-            CommandBuffer cmd = CommandBufferPool.Get(k_SetCameraRenderStateTag);
-            InternalStartRendering(context, ref renderingData);
+            CommandBuffer cmd = CommandBufferPool.Get();
+            using (new ProfilingScope(cmd, m_ProfilingSetCameraRenderState))
+            {
+                InternalStartRendering(context, ref renderingData);
 
-            // Cache the time for after the call to `SetupCameraProperties` and set the time variables in shader
-            // For now we set the time variables per camera, as we plan to remove `SetupCameraProperties`.
-            // Setting the time per frame would take API changes to pass the variable to each camera render.
-            // Once `SetupCameraProperties` is gone, the variable should be set higher in the call-stack.
+                // Cache the time for after the call to `SetupCameraProperties` and set the time variables in shader
+                // For now we set the time variables per camera, as we plan to remove `SetupCameraProperties`.
+                // Setting the time per frame would take API changes to pass the variable to each camera render.
+                // Once `SetupCameraProperties` is gone, the variable should be set higher in the call-stack.
 #if UNITY_EDITOR
-            float time = Application.isPlaying ? Time.time : Time.realtimeSinceStartup;
+                float time = Application.isPlaying ? Time.time : Time.realtimeSinceStartup;
 #else
             float time = Time.time;
 #endif
-            float deltaTime = Time.deltaTime;
-            float smoothDeltaTime = Time.smoothDeltaTime;
+                float deltaTime = Time.deltaTime;
+                float smoothDeltaTime = Time.smoothDeltaTime;
 
-            // Initialize Camera Render State
-            ClearRenderingState(cmd);
-            SetPerCameraShaderVariables(cmd, ref cameraData);
-            SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
+                // Initialize Camera Render State
+                ClearRenderingState(cmd);
+                SetPerCameraShaderVariables(cmd, ref cameraData);
+                SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
 
-            // Sort the render pass queue
-            SortStable(m_ActiveRenderPassQueue);
+                // Sort the render pass queue
+                SortStable(m_ActiveRenderPassQueue);
 
-            // Upper limits for each block. Each block will contains render passes with events below the limit.
-            NativeArray<RenderPassEvent> blockEventLimits = new NativeArray<RenderPassEvent>(k_RenderPassBlockCount, Allocator.Temp);
-            blockEventLimits[RenderPassBlock.BeforeRendering] = RenderPassEvent.BeforeRenderingPrepasses;
-            blockEventLimits[RenderPassBlock.MainRenderingOpaque] = RenderPassEvent.AfterRenderingOpaques;
-            blockEventLimits[RenderPassBlock.MainRenderingTransparent] = RenderPassEvent.AfterRenderingPostProcessing;
-            blockEventLimits[RenderPassBlock.AfterRendering] = (RenderPassEvent)Int32.MaxValue;
+                // Upper limits for each block. Each block will contains render passes with events below the limit.
+                NativeArray<RenderPassEvent> blockEventLimits = new NativeArray<RenderPassEvent>(k_RenderPassBlockCount, Allocator.Temp);
+                blockEventLimits[RenderPassBlock.BeforeRendering] = RenderPassEvent.BeforeRenderingPrepasses;
+                blockEventLimits[RenderPassBlock.MainRenderingOpaque] = RenderPassEvent.AfterRenderingOpaques;
+                blockEventLimits[RenderPassBlock.MainRenderingTransparent] = RenderPassEvent.AfterRenderingPostProcessing;
+                blockEventLimits[RenderPassBlock.AfterRendering] = (RenderPassEvent)Int32.MaxValue;
 
-            NativeArray<int> blockRanges = new NativeArray<int>(blockEventLimits.Length + 1, Allocator.Temp);
-            // blockRanges[0] is always 0
-            // blockRanges[i] is the index of the first RenderPass found in m_ActiveRenderPassQueue that has a ScriptableRenderPass.renderPassEvent higher than blockEventLimits[i] (i.e, should be executed after blockEventLimits[i])
-            // blockRanges[blockEventLimits.Length] is m_ActiveRenderPassQueue.Count
-            FillBlockRanges(blockEventLimits, blockRanges);
-            blockEventLimits.Dispose();
+                NativeArray<int> blockRanges = new NativeArray<int>(blockEventLimits.Length + 1, Allocator.Temp);
 
-            SetupLights(context, ref renderingData);
+                // blockRanges[0] is always 0
+                // blockRanges[i] is the index of the first RenderPass found in m_ActiveRenderPassQueue that has a ScriptableRenderPass.renderPassEvent higher than blockEventLimits[i] (i.e, should be executed after blockEventLimits[i])
+                // blockRanges[blockEventLimits.Length] is m_ActiveRenderPassQueue.Count
+                FillBlockRanges(blockEventLimits, blockRanges);
+                blockEventLimits.Dispose();
 
-            // Before Render Block. This render blocks always execute in mono rendering.
-            // Camera is not setup. Lights are not setup.
-            // Used to render input textures like shadowmaps.
-            ExecuteBlock(RenderPassBlock.BeforeRendering, blockRanges, context, ref renderingData);
+                SetupLights(context, ref renderingData);
 
-            // This is still required because of the following reasons:
-            // - Camera billboard properties.
-            // - Camera frustum planes: unity_CameraWorldClipPlanes[6]
-            // - _ProjectionParams.x logic is deep inside GfxDevice
-            // NOTE: The only reason we have to call this here and not at the beginning (before shadows)
-            // is because this need to be called for each eye in multi pass VR.
-            // The side effect is that this will override some shader properties we already setup and we will have to
-            // reset them.
-            context.SetupCameraProperties(camera);
-            SetCameraMatrices(cmd, ref cameraData, true);
+                // Before Render Block. This render blocks always execute in mono rendering.
+                // Camera is not setup. Lights are not setup.
+                // Used to render input textures like shadowmaps.
+                ExecuteBlock(RenderPassBlock.BeforeRendering, blockRanges, context, ref renderingData);
 
-            // Reset shader time variables as they were overridden in SetupCameraProperties. If we don't do it we might have a mismatch between shadows and main rendering
-            SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
+                // This is still required because of the following reasons:
+                // - Camera billboard properties.
+                // - Camera frustum planes: unity_CameraWorldClipPlanes[6]
+                // - _ProjectionParams.x logic is deep inside GfxDevice
+                // NOTE: The only reason we have to call this here and not at the beginning (before shadows)
+                // is because this need to be called for each eye in multi pass VR.
+                // The side effect is that this will override some shader properties we already setup and we will have to
+                // reset them.
+                context.SetupCameraProperties(camera);
+                SetCameraMatrices(cmd, ref cameraData, true);
+
+                // Reset shader time variables as they were overridden in SetupCameraProperties. If we don't do it we might have a mismatch between shadows and main rendering
+                SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
 
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
             //Triggers dispatch per camera, all global parameters should have been setup at this stage.
             VFX.VFXManager.ProcessCameraCommand(camera, cmd);
 #endif
 
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
+                BeginXRRendering(cmd, context, ref renderingData.cameraData);
+
+                // In the opaque and transparent blocks the main rendering executes.
+
+                // Opaque blocks...
+                ExecuteBlock(RenderPassBlock.MainRenderingOpaque, blockRanges, context, ref renderingData);
+
+                // Transparent blocks...
+                ExecuteBlock(RenderPassBlock.MainRenderingTransparent, blockRanges, context, ref renderingData);
+
+                // Draw Gizmos...
+                DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
+
+                // In this block after rendering drawing happens, e.g, post processing, video player capture.
+                ExecuteBlock(RenderPassBlock.AfterRendering, blockRanges, context, ref renderingData);
+
+                EndXRRendering(cmd, context, ref renderingData.cameraData);
+
+                DrawWireOverlay(context, camera);
+                DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
+
+                InternalFinishRendering(context, cameraData.resolveFinalTarget);
+                blockRanges.Dispose();
+            }
+
             context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
-
-            BeginXRRendering(cmd, context, ref renderingData.cameraData);
-
-            // In the opaque and transparent blocks the main rendering executes.
-
-            // Opaque blocks...
-            ExecuteBlock(RenderPassBlock.MainRenderingOpaque, blockRanges, context, ref renderingData);
-
-            // Transparent blocks...
-            ExecuteBlock(RenderPassBlock.MainRenderingTransparent, blockRanges, context, ref renderingData);
-
-            // Draw Gizmos...
-            DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
-
-            // In this block after rendering drawing happens, e.g, post processing, video player capture.
-            ExecuteBlock(RenderPassBlock.AfterRendering, blockRanges, context, ref renderingData);
-
-            EndXRRendering(cmd, context, ref renderingData.cameraData);
-
-            DrawWireOverlay(context, camera);
-            DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
-
-            InternalFinishRendering(context, cameraData.resolveFinalTarget);
-            blockRanges.Dispose();
             CommandBufferPool.Release(cmd);
         }
 
@@ -560,167 +579,182 @@ namespace UnityEngine.Rendering.Universal
             ref CameraData cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;
 
-            CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
-            renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
-
-            ClearFlag cameraClearFlag = GetCameraClearFlag(ref cameraData);
-
-            // We use a different code path for MRT since it calls a different version of API SetRenderTarget
-            if (RenderingUtils.IsMRT(renderPass.colorAttachments))
+            CommandBuffer cmd = CommandBufferPool.Get();
+            using (new ProfilingScope(cmd, m_ProfilingSetRenderTarget))
             {
-                // In the MRT path we assume that all color attachments are REAL color attachments,
-                // and that the depth attachment is a REAL depth attachment too.
+                renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
 
+                ClearFlag cameraClearFlag = GetCameraClearFlag(ref cameraData);
 
-                // Determine what attachments need to be cleared. ----------------
-
-                bool needCustomCameraColorClear = false;
-                bool needCustomCameraDepthClear = false;
-
-                int cameraColorTargetIndex = RenderingUtils.IndexOf(renderPass.colorAttachments, m_CameraColorTarget);
-                if (cameraColorTargetIndex != -1 && (m_FirstTimeCameraColorTargetIsBound))
+                // We use a different code path for MRT since it calls a different version of API SetRenderTarget
+                if (RenderingUtils.IsMRT(renderPass.colorAttachments))
                 {
-                    m_FirstTimeCameraColorTargetIsBound = false; // register that we did clear the camera target the first time it was bound
+                    // In the MRT path we assume that all color attachments are REAL color attachments,
+                    // and that the depth attachment is a REAL depth attachment too.
 
-                    // Overlay cameras composite on top of previous ones. They don't clear.
-                    // MTT: Commented due to not implemented yet
-                    //                    if (renderingData.cameraData.renderType == CameraRenderType.Overlay)
-                    //                        clearFlag = ClearFlag.None;
 
-                    // We need to specifically clear the camera color target.
-                    // But there is still a chance we don't need to issue individual clear() on each render-targets if they all have the same clear parameters.
-                    needCustomCameraColorClear = (cameraClearFlag & ClearFlag.Color) != (renderPass.clearFlag & ClearFlag.Color)
-                                                || CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor) != renderPass.clearColor;
-                }
+                    // Determine what attachments need to be cleared. ----------------
 
-                // Note: if we have to give up the assumption that no depthTarget can be included in the MRT colorAttachments, we might need something like this:
-                // int cameraTargetDepthIndex = IndexOf(renderPass.colorAttachments, m_CameraDepthTarget);
-                // if( !renderTargetAlreadySet && cameraTargetDepthIndex != -1 && m_FirstTimeCameraDepthTargetIsBound)
-                // { ...
-                // }
+                    bool needCustomCameraColorClear = false;
+                    bool needCustomCameraDepthClear = false;
 
-                if (renderPass.depthAttachment == m_CameraDepthTarget && m_FirstTimeCameraDepthTargetIsBound)
-                {
-                    m_FirstTimeCameraDepthTargetIsBound = false;
-                    needCustomCameraDepthClear = (cameraClearFlag & ClearFlag.Depth) != (renderPass.clearFlag & ClearFlag.Depth);
-                }
-
-                // Perform all clear operations needed. ----------------
-                // We try to minimize calls to SetRenderTarget().
-
-                // We get here only if cameraColorTarget needs to be handled separately from the rest of the color attachments.
-                if (needCustomCameraColorClear)
-                {
-                    // Clear camera color render-target separately from the rest of the render-targets.
-
-                    if ((cameraClearFlag & ClearFlag.Color) != 0)
-                        SetRenderTarget(cmd, renderPass.colorAttachments[cameraColorTargetIndex], renderPass.depthAttachment, ClearFlag.Color, CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
-
-                    if ((renderPass.clearFlag & ClearFlag.Color) != 0)
+                    int cameraColorTargetIndex = RenderingUtils.IndexOf(renderPass.colorAttachments, m_CameraColorTarget);
+                    if (cameraColorTargetIndex != -1 && (m_FirstTimeCameraColorTargetIsBound))
                     {
-                        uint otherTargetsCount = RenderingUtils.CountDistinct(renderPass.colorAttachments, m_CameraColorTarget);
-                        var nonCameraAttachments = m_TrimmedColorAttachmentCopies[otherTargetsCount];
-                        int writeIndex = 0;
-                        for (int readIndex = 0; readIndex < renderPass.colorAttachments.Length; ++readIndex)
-                        {
-                            if (renderPass.colorAttachments[readIndex] != m_CameraColorTarget && renderPass.colorAttachments[readIndex] != 0)
-                            {
-                                nonCameraAttachments[writeIndex] = renderPass.colorAttachments[readIndex];
-                                ++writeIndex;
-                            }
-                        }
-                        if (writeIndex != otherTargetsCount)
-                            Debug.LogError("writeIndex and otherTargetsCount values differed. writeIndex:" + writeIndex + " otherTargetsCount:" + otherTargetsCount);
-                        SetRenderTarget(cmd, nonCameraAttachments, m_CameraDepthTarget, ClearFlag.Color, renderPass.clearColor);
+                        m_FirstTimeCameraColorTargetIsBound = false; // register that we did clear the camera target the first time it was bound
+
+                        // Overlay cameras composite on top of previous ones. They don't clear.
+                        // MTT: Commented due to not implemented yet
+                        //                    if (renderingData.cameraData.renderType == CameraRenderType.Overlay)
+                        //                        clearFlag = ClearFlag.None;
+
+                        // We need to specifically clear the camera color target.
+                        // But there is still a chance we don't need to issue individual clear() on each render-targets if they all have the same clear parameters.
+                        needCustomCameraColorClear = (cameraClearFlag & ClearFlag.Color) != (renderPass.clearFlag & ClearFlag.Color)
+                            || CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor) != renderPass.clearColor;
                     }
-                }
 
-                // Bind all attachments, clear color only if there was no custom behaviour for cameraColorTarget, clear depth as needed.
-                ClearFlag finalClearFlag = ClearFlag.None;
-                finalClearFlag |= needCustomCameraDepthClear ? (cameraClearFlag & ClearFlag.Depth) : (renderPass.clearFlag & ClearFlag.Depth);
-                finalClearFlag |= needCustomCameraColorClear ? 0 : (renderPass.clearFlag & ClearFlag.Color);
+                    // Note: if we have to give up the assumption that no depthTarget can be included in the MRT colorAttachments, we might need something like this:
+                    // int cameraTargetDepthIndex = IndexOf(renderPass.colorAttachments, m_CameraDepthTarget);
+                    // if( !renderTargetAlreadySet && cameraTargetDepthIndex != -1 && m_FirstTimeCameraDepthTargetIsBound)
+                    // { ...
+                    // }
 
-                // Only setup render target if current render pass attachments are different from the active ones.
-                if (!RenderingUtils.SequenceEqual(renderPass.colorAttachments, m_ActiveColorAttachments) || renderPass.depthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
-                {
-                    int lastValidRTindex = RenderingUtils.LastValid(renderPass.colorAttachments);
-                    if (lastValidRTindex >= 0)
+                    if (renderPass.depthAttachment == m_CameraDepthTarget && m_FirstTimeCameraDepthTargetIsBound)
                     {
-                        int rtCount = lastValidRTindex + 1;
-                        var trimmedAttachments = m_TrimmedColorAttachmentCopies[rtCount];
-                        for (int i = 0; i < rtCount; ++i)
-                            trimmedAttachments[i] = renderPass.colorAttachments[i];
-                        SetRenderTarget(cmd, trimmedAttachments, renderPass.depthAttachment, finalClearFlag, renderPass.clearColor);
-                    }
-                }
-            }
-            else
-            {
-                // Currently in non-MRT case, color attachment can actually be a depth attachment.
-
-                RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment;
-                RenderTargetIdentifier passDepthAttachment = renderPass.depthAttachment;
-
-                // When render pass doesn't call ConfigureTarget we assume it's expected to render to camera target
-                // which might be backbuffer or the framebuffer render textures.
-                if (!renderPass.overrideCameraTarget)
-                {
-                    passColorAttachment = m_CameraColorTarget;
-                    passDepthAttachment = m_CameraDepthTarget;
-                }
-
-                ClearFlag finalClearFlag = ClearFlag.None;
-                Color finalClearColor;
-
-                if (passColorAttachment == m_CameraColorTarget && (m_FirstTimeCameraColorTargetIsBound))
-                {
-                    m_FirstTimeCameraColorTargetIsBound = false; // register that we did clear the camera target the first time it was bound
-
-                    finalClearFlag |= (cameraClearFlag & ClearFlag.Color);
-                    finalClearColor = CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor);
-
-                    if (m_FirstTimeCameraDepthTargetIsBound)
-                    {
-                        // m_CameraColorTarget can be an opaque pointer to a RenderTexture with depth-surface.
-                        // We cannot infer this information here, so we must assume both camera color and depth are first-time bound here (this is the legacy behaviour).
                         m_FirstTimeCameraDepthTargetIsBound = false;
-                        finalClearFlag |= (cameraClearFlag & ClearFlag.Depth);
+                        needCustomCameraDepthClear = (cameraClearFlag & ClearFlag.Depth) != (renderPass.clearFlag & ClearFlag.Depth);
+                    }
+
+                    // Perform all clear operations needed. ----------------
+                    // We try to minimize calls to SetRenderTarget().
+
+                    // We get here only if cameraColorTarget needs to be handled separately from the rest of the color attachments.
+                    if (needCustomCameraColorClear)
+                    {
+                        // Clear camera color render-target separately from the rest of the render-targets.
+
+                        if ((cameraClearFlag & ClearFlag.Color) != 0)
+                            SetRenderTarget(cmd, renderPass.colorAttachments[cameraColorTargetIndex], renderPass.depthAttachment, ClearFlag.Color, CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
+
+                        if ((renderPass.clearFlag & ClearFlag.Color) != 0)
+                        {
+                            uint otherTargetsCount = RenderingUtils.CountDistinct(renderPass.colorAttachments, m_CameraColorTarget);
+                            var nonCameraAttachments = m_TrimmedColorAttachmentCopies[otherTargetsCount];
+                            int writeIndex = 0;
+                            for (int readIndex = 0; readIndex < renderPass.colorAttachments.Length; ++readIndex)
+                            {
+                                if (renderPass.colorAttachments[readIndex] != m_CameraColorTarget && renderPass.colorAttachments[readIndex] != 0)
+                                {
+                                    nonCameraAttachments[writeIndex] = renderPass.colorAttachments[readIndex];
+                                    ++writeIndex;
+                                }
+                            }
+
+                            if (writeIndex != otherTargetsCount)
+                                Debug.LogError("writeIndex and otherTargetsCount values differed. writeIndex:" + writeIndex + " otherTargetsCount:" + otherTargetsCount);
+                            SetRenderTarget(cmd, nonCameraAttachments, m_CameraDepthTarget, ClearFlag.Color, renderPass.clearColor);
+                        }
+                    }
+
+                    // Bind all attachments, clear color only if there was no custom behaviour for cameraColorTarget, clear depth as needed.
+                    ClearFlag finalClearFlag = ClearFlag.None;
+                    finalClearFlag |= needCustomCameraDepthClear ? (cameraClearFlag & ClearFlag.Depth) : (renderPass.clearFlag & ClearFlag.Depth);
+                    finalClearFlag |= needCustomCameraColorClear ? 0 : (renderPass.clearFlag & ClearFlag.Color);
+
+                    // Only setup render target if current render pass attachments are different from the active ones.
+                    if (!RenderingUtils.SequenceEqual(renderPass.colorAttachments, m_ActiveColorAttachments) || renderPass.depthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
+                    {
+                        int lastValidRTindex = RenderingUtils.LastValid(renderPass.colorAttachments);
+                        if (lastValidRTindex >= 0)
+                        {
+                            int rtCount = lastValidRTindex + 1;
+                            var trimmedAttachments = m_TrimmedColorAttachmentCopies[rtCount];
+                            for (int i = 0; i < rtCount; ++i)
+                                trimmedAttachments[i] = renderPass.colorAttachments[i];
+                            SetRenderTarget(cmd, trimmedAttachments, renderPass.depthAttachment, finalClearFlag, renderPass.clearColor);
+
+                        #if ENABLE_VR && ENABLE_XR_MODULE
+                            if (cameraData.xr.enabled)
+                            {
+                                // SetRenderTarget might alter the internal device state(winding order).
+                                // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
+                                int xrTargetIndex = RenderingUtils.IndexOf(renderPass.colorAttachments, cameraData.xr.renderTarget);
+                                bool isRenderToBackBufferTarget = (xrTargetIndex != -1) && !cameraData.xr.renderTargetIsRenderTexture;
+                                cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, !isRenderToBackBufferTarget);
+                            }
+                        #endif
+                        }
                     }
                 }
                 else
                 {
-                    finalClearFlag |= (renderPass.clearFlag & ClearFlag.Color);
-                    finalClearColor = renderPass.clearColor;
-                }
+                    // Currently in non-MRT case, color attachment can actually be a depth attachment.
 
-                // Condition (m_CameraDepthTarget!=BuiltinRenderTextureType.CameraTarget) below prevents m_FirstTimeCameraDepthTargetIsBound flag from being reset during non-camera passes (such as Color Grading LUT). This ensures that in those cases, cameraDepth will actually be cleared during the later camera pass.
-                if (   (m_CameraDepthTarget!=BuiltinRenderTextureType.CameraTarget ) && (passDepthAttachment == m_CameraDepthTarget || passColorAttachment == m_CameraDepthTarget) && m_FirstTimeCameraDepthTargetIsBound )
-                {
-                    m_FirstTimeCameraDepthTargetIsBound = false;
+                    RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment;
+                    RenderTargetIdentifier passDepthAttachment = renderPass.depthAttachment;
 
-                    finalClearFlag |= (cameraClearFlag & ClearFlag.Depth);
+                    // When render pass doesn't call ConfigureTarget we assume it's expected to render to camera target
+                    // which might be backbuffer or the framebuffer render textures.
+                    if (!renderPass.overrideCameraTarget)
+                    {
+                        passColorAttachment = m_CameraColorTarget;
+                        passDepthAttachment = m_CameraDepthTarget;
+                    }
 
-                    // finalClearFlag |= (cameraClearFlag & ClearFlag.Color);  // <- m_CameraDepthTarget is never a color-surface, so no need to add this here.
-                }
-                else
-                    finalClearFlag |= (renderPass.clearFlag & ClearFlag.Depth);
+                    ClearFlag finalClearFlag = ClearFlag.None;
+                    Color finalClearColor;
 
-                // Only setup render target if current render pass attachments are different from the active ones
-                if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
-                {
-                    SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor);
+                    if (passColorAttachment == m_CameraColorTarget && (m_FirstTimeCameraColorTargetIsBound))
+                    {
+                        m_FirstTimeCameraColorTargetIsBound = false; // register that we did clear the camera target the first time it was bound
+
+                        finalClearFlag |= (cameraClearFlag & ClearFlag.Color);
+                        finalClearColor = CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor);
+
+                        if (m_FirstTimeCameraDepthTargetIsBound)
+                        {
+                            // m_CameraColorTarget can be an opaque pointer to a RenderTexture with depth-surface.
+                            // We cannot infer this information here, so we must assume both camera color and depth are first-time bound here (this is the legacy behaviour).
+                            m_FirstTimeCameraDepthTargetIsBound = false;
+                            finalClearFlag |= (cameraClearFlag & ClearFlag.Depth);
+                        }
+                    }
+                    else
+                    {
+                        finalClearFlag |= (renderPass.clearFlag & ClearFlag.Color);
+                        finalClearColor = renderPass.clearColor;
+                    }
+
+                    // Condition (m_CameraDepthTarget!=BuiltinRenderTextureType.CameraTarget) below prevents m_FirstTimeCameraDepthTargetIsBound flag from being reset during non-camera passes (such as Color Grading LUT). This ensures that in those cases, cameraDepth will actually be cleared during the later camera pass.
+                    if ((m_CameraDepthTarget != BuiltinRenderTextureType.CameraTarget) && (passDepthAttachment == m_CameraDepthTarget || passColorAttachment == m_CameraDepthTarget) && m_FirstTimeCameraDepthTargetIsBound)
+                    {
+                        m_FirstTimeCameraDepthTargetIsBound = false;
+
+                        finalClearFlag |= (cameraClearFlag & ClearFlag.Depth);
+
+                        // finalClearFlag |= (cameraClearFlag & ClearFlag.Color);  // <- m_CameraDepthTarget is never a color-surface, so no need to add this here.
+                    }
+                    else
+                        finalClearFlag |= (renderPass.clearFlag & ClearFlag.Depth);
+
+                    // Only setup render target if current render pass attachments are different from the active ones
+                    if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
+                    {
+                        SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-                    if (cameraData.xr.enabled)
-                    {
-                        // SetRenderTarget might alter the internal device state(winding order).
-                        // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
-                        // XRTODO: Consolidate y-flip and winding order device state in URP
-                        bool isRenderToBackBufferTarget = (passColorAttachment == cameraData.xr.renderTarget) && !cameraData.xr.renderTargetIsRenderTexture;
-                        cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, !isRenderToBackBufferTarget);
-                    }
+                        if (cameraData.xr.enabled)
+                        {
+                            // SetRenderTarget might alter the internal device state(winding order).
+                            // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
+                            bool isRenderToBackBufferTarget = (passColorAttachment == cameraData.xr.renderTarget) && !cameraData.xr.renderTargetIsRenderTexture;
+                            cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, !isRenderToBackBufferTarget);
+                        }
 #endif
+                    }
                 }
+
             }
 
             // Also, we execute the commands recorded at this point to ensure SetRenderTarget is called before RenderPass.Execute
@@ -828,7 +862,7 @@ namespace UnityEngine.Rendering.Universal
         [Conditional("UNITY_EDITOR")]
         void DrawWireOverlay(ScriptableRenderContext context, Camera camera)
         {
-#if UNITY_EDITOR
+#if UNITY_EDITOR && UNITY_2020_2_OR_NEWER
             context.DrawWireOverlay(camera);
 #endif
         }
@@ -856,29 +890,36 @@ namespace UnityEngine.Rendering.Universal
 
         void InternalStartRendering(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer cmd = CommandBufferPool.Get(k_ReleaseResourcesTag);
-            for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
+            CommandBuffer cmd = CommandBufferPool.Get();
+            using (new ProfilingScope(cmd, m_ProfilingReleaseResources))
             {
-                m_ActiveRenderPassQueue[i].OnCameraSetup(cmd, ref renderingData);
+                for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
+                {
+                    m_ActiveRenderPassQueue[i].OnCameraSetup(cmd, ref renderingData);
+                }
             }
+
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
 
         void InternalFinishRendering(ScriptableRenderContext context, bool resolveFinalTarget)
         {
-            CommandBuffer cmd = CommandBufferPool.Get(k_ReleaseResourcesTag);
-
-            for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
-                m_ActiveRenderPassQueue[i].FrameCleanup(cmd);
-
-            // Happens when rendering the last camera in the camera stack.
-            if (resolveFinalTarget)
+            CommandBuffer cmd = CommandBufferPool.Get();
+            using (new ProfilingScope(cmd, m_ProfilingReleaseResources))
             {
-                for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
-                    m_ActiveRenderPassQueue[i].OnFinishCameraStackRendering(cmd);
 
-                FinishRendering(cmd);
+                for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
+                    m_ActiveRenderPassQueue[i].FrameCleanup(cmd);
+
+                // Happens when rendering the last camera in the camera stack.
+                if (resolveFinalTarget)
+                {
+                    for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
+                        m_ActiveRenderPassQueue[i].OnFinishCameraStackRendering(cmd);
+
+                    FinishRendering(cmd);
+                }
             }
 
             context.ExecuteCommandBuffer(cmd);
@@ -898,32 +939,6 @@ namespace UnityEngine.Rendering.Universal
 
                 list[j + 1] = curr;
             }
-        }
-
-        internal void SetupBackbufferFormat(int msaaSamples, bool stereo)
-        {
-#if ENABLE_VR && ENABLE_VR_MODULE
-            if (!stereo)
-                return;
-
-            bool msaaSampleCountHasChanged = false;
-            int currentQualitySettingsSampleCount = QualitySettings.antiAliasing;
-            if (currentQualitySettingsSampleCount != msaaSamples &&
-                !(currentQualitySettingsSampleCount == 0 && msaaSamples == 1))
-            {
-                msaaSampleCountHasChanged = true;
-            }
-
-            // There's no exposed API to control how a backbuffer is created with MSAA
-            // By settings antiAliasing we match what the amount of samples in camera data with backbuffer
-            // We only do this for the main camera and this only takes effect in the beginning of next frame.
-            // This settings should not be changed on a frame basis so that's fine.
-            if (msaaSampleCountHasChanged)
-            {
-                QualitySettings.antiAliasing = msaaSamples;
-                XR.XRDevice.UpdateEyeTextureMSAASetting();
-            }
-#endif
         }
     }
 }

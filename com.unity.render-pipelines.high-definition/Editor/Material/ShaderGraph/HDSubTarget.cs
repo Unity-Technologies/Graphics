@@ -18,6 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         SystemData m_SystemData;
         protected bool m_MigrateFromOldCrossPipelineSG; // Use only for the migration to shader stack architecture
+        protected bool m_MigrateFromOldSG; // Use only for the migration from early shader stack architecture to recent one
 
         // Interface Properties
         SystemData IRequiresData<SystemData>.data
@@ -33,12 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_SystemData = value;
         }
 
-        protected virtual int ComputeMaterialNeedsUpdateHash()
-        {
-            // Alpha test is currently the only property in system data to trigger the material upgrade script.
-            int hash = systemData.alphaTest.GetHashCode();
-            return hash;
-        }
+        protected virtual int ComputeMaterialNeedsUpdateHash() => 0;
 
         public override bool IsActive() => true;
 
@@ -97,6 +93,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (migrationSteps.Migrate(this))
                 OnBeforeSerialize();
 
+            // Migration hack to have the case where SG doesn't have version yet but is already upgraded to the stack system
+            if (!systemData.firstTimeMigrationExecuted)
+            {
+                // Force the initial migration step
+                MigrateTo(ShaderGraphVersion.FirstTimeMigration);
+                systemData.firstTimeMigrationExecuted = true;
+                OnBeforeSerialize();
+            }
+
             foreach (var subShader in EnumerateSubShaders())
             {
                 // patch render type and render queue from pass declaration:
@@ -147,14 +152,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 }
                 passDescriptor.includes = finalIncludes;
 
-                // Add keywords from subshaders:
-                passDescriptor.keywords = passDescriptor.keywords == null ? new KeywordCollection() : new KeywordCollection{ passDescriptor.keywords }; // Duplicate keywords to avoid side effects (static list modification)
-                passDescriptor.defines = passDescriptor.defines == null ? new DefineCollection() : new DefineCollection{ passDescriptor.defines }; // Duplicate defines to avoid side effects (static list modification)
-                // foreach (var l in passDescriptor.keywords)
-                //     if (l.descriptor.referenceName.Contains("DEBUG_DISPLAY"))
-                //         Debug.Log(passDescriptor.lightMode);
-                CollectPassKeywords(ref passDescriptor);
-
                 // Replace valid pixel blocks by automatic thing so we don't have to write them
                 var tmpCtx = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), passDescriptor);
                 GetActiveBlocks(ref tmpCtx);
@@ -162,6 +159,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     passDescriptor.validPixelBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Fragment).ToArray();
                 if (passDescriptor.validVertexBlocks == null)
                     passDescriptor.validVertexBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Vertex).ToArray();
+
+                // Add keywords from subshaders:
+                passDescriptor.keywords = passDescriptor.keywords == null ? new KeywordCollection() : new KeywordCollection{ passDescriptor.keywords }; // Duplicate keywords to avoid side effects (static list modification)
+                passDescriptor.defines = passDescriptor.defines == null ? new DefineCollection() : new DefineCollection{ passDescriptor.defines }; // Duplicate defines to avoid side effects (static list modification)
+                CollectPassKeywords(ref passDescriptor);
 
                 // Set default values for HDRP "surface" passes:
                 if (passDescriptor.structs == null)
