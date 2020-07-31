@@ -1,8 +1,8 @@
 # Volume Overrides
 
-__Volume Overrides__ are structures which contain values that override the default properties in a [Volume Profile](Volume-Profile.html). The High Definition Render Pipeline (HDRP) uses these Profiles within the [Volume](Volumes.html) framework. For example, you could use a Volume Override in your Unity Project to render a different fog color in a certain area of your Scene.
+__Volume Overrides__ are structures which contain values that override the default properties in a [Volume Profile](Volume-Profile.md). The High Definition Render Pipeline (HDRP) uses these Profiles within the [Volume](Volumes.md) framework. For example, you could use a Volume Override in your Unity Project to render a different fog color in a certain area of your Scene.
 
-[Fog](Override-Fog.html) is an example of a Volume Override:
+[Fog](Override-Fog.md) is an example of a Volume Override:
 
 ![](Images/VolumeComponents1.png)
 

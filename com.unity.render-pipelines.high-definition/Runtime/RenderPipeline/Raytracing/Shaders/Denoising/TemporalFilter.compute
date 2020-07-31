@@ -35,7 +35,7 @@ TEXTURE2D_X(_DepthTexture);
 // Depth buffer of the previous frame
 TEXTURE2D_X(_HistoryDepthTexture);
 // Normal buffer of the previous frame
-TEXTURE2D_X(_HistoryNormalBufferTexture);
+TEXTURE2D_X(_HistoryNormalTexture);
 // Buffer that stores the result of the validation pass of the history
 RW_TEXTURE2D_X(float, _ValidationBufferRW);
 // Velocity buffer for history rejection
@@ -117,7 +117,7 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     }
 
     // Compute the world space normal (from previous frame)
-    float4 historyNormal = LOAD_TEXTURE2D_X(_HistoryNormalBufferTexture, historyTapCoord);
+    float4 historyNormal = LOAD_TEXTURE2D_X(_HistoryNormalTexture, historyTapCoord);
     NormalData historyNormalData;
     DecodeFromNormalBuffer(historyNormal, historyNormalData);
     

@@ -15,14 +15,14 @@ This document covers:
 ## Hardware requirements
 
 Full ray tracing hardware acceleration is available on following GPUs:
-- NVIDIA GeForce RTX 2060, RTX 2080 Super, RTX 2070, RTX 2070 Super, RTX 2080, RTX 2080 Super, RTX 2080 Ti
+- NVIDIA GeForce RTX 2060, RTX 2060 Super, RTX 2070, RTX 2070 Super, RTX 2080, RTX 2080 Super, RTX 2080 Ti, and
 NVIDIA TITAN RTX
 - NVIDIA Quadro RTX 3000 (laptop only), RTX 4000, RTX 5000, RTX 6000, RTX 8000
 
 NVIDIA also provides a ray tracing fallback for some previous generation graphics cards:
 - NVIDIA GeForce GTX
-  - Turing generation: GTX 1650, GTX 1660 Super, GTX 1660 Ti
-  - Pascal generation: GTX 1060, GTX 1070, GTX 1080, GTX 1080 Ti
+  - Turing generation: GTX 1660 Super, GTX 1660 Ti
+  - Pascal generation: GTX 1060 6GB, GTX 1070, GTX 1080, GTX 1080 Ti
 - NVIDIA TITAN V
 - NVIDIA Quadro: P4000, P5000, P6000, V100
 
@@ -49,11 +49,12 @@ Once you have completed one of these, move onto [Final setup](#FinalSetup).
 
 ### Render Pipeline Wizard setup
 
-You can use the [Render Pipeline Wizard](Render-Pipeline-Wizard.html) to set up ray tracing in your HDRP Project.
+You can use the [Render Pipeline Wizard](Render-Pipeline-Wizard.md) to set up ray tracing in your HDRP Project.
 
 1. To open the Render Pipeline Wizard, go to Window > Render Pipeline and select HD Render Pipeline Wizard.
 2. Select the HDRP + DXR tab.
 3. Click the Fix All button.
+4. (Optional) Enable the HDRP asset features that are required for the ray tracing effects. 
 
 Your HDRP Project now supports ray tracing. For information on how to set up ray tracing for your Scene, see [final setup](#FinalSetup).
 
@@ -67,8 +68,7 @@ To set up ray tracing manually, you need to:
 2. [Disable static batching on your HDRP project](#ManualSetup-DisablingStaticBatching).
 3. [Enable and configure ray tracing in your HDRP Asset](#ManualSetup-EnablingRayTracing).
 4. [Ensure ray tracing resources are properly assigned](#ManualSetup-RayTracingResources).
-5. [Make sure you have a local HDRP-config package that enables ray tracing](#ManualSetup-LocalHDRPConfig).
-6. [Enable Screen Space Shadows and Screen Space Reflections in your HDRP Asset](#ManualSetup-EnableSSRandShadows).
+5. (Optional) [Enable ray-traced effects in your HDRP Asset](#ManualSetup-EnableAssetFeatures).
 
 <a name="ManualSetup-EnablingDX12"></a>
 
@@ -95,7 +95,7 @@ Next, you need to disable static batching, because HDRP does not support this fe
 
 #### HDRP Asset configuration
 
-Now that Unity is running in DirectX 12, and you have disabled [static batching](https://docs.unity3d.com/Manual/DrawCallBatching.html), enable and configure ray tracing in your [HDRP Asset](HDRP-Asset.html). The previous steps configured Unity to support ray tracing; the following step enables it in your HDRP Unity Project.
+Now that Unity is running in DirectX 12, and you have disabled [static batching](https://docs.unity3d.com/Manual/DrawCallBatching.html), enable and configure ray tracing in your [HDRP Asset](HDRP-Asset.md). The previous steps configured Unity to support ray tracing; the following step enables it in your HDRP Unity Project.
 
 1. Click on your HDRP Asset in the Project window to view it in the Inspector.
 2. In the Rendering section, enable Realtime Ray Tracing. This triggers a recompilation, which makes ray tracing available in your HDRP Project.
@@ -109,24 +109,24 @@ To verify that HDRP has properly assigned ray tracing resources:
 1. Open the Project Settings window (menu: **Edit > Project Settings**), then select the HDRP Default Settings tab.
 2. Make sure there is a Render Pipeline Resources Asset assigned to the Render Pipeline Resources field.
 
-<a name="ManualSetup-LocalHDRPConfig"></a>
+<a name="ManualSetup-EnableAssetFeatures"></a>
 
-#### Local HDRP config and ShaderConfig macro validation
+#### (Optional) Enable ray-traced effects in your HDRP Asset
 
-The High Definition Render Pipeline (HDRP) uses a separate [package](https://docs.unity3d.com/Manual/Packages.html) to control the availability of some of its features. You can use it to configure certain settings in HDRP without changing the HDRP package itself.  First, create a local copy of this package in your Project and change the manifest.json file to point to it. For information on how to do this, see the [HDRP Config documentation](HDRP-Config-Package.html). Then, to enable ray tracing in HDRP, change the value of a macro in the ShaderConfig.cs.hlsl file.
+HDRP uses ray tracing to replace certain rasterized effects. In order to use a ray tracing effect in your Project, you must first enable the rasterized version of the effect. The four effects that require you to modify your HDRP Asset  are:
 
-Open **Packages > High Definition RP Config > Runtime > ShaderConfig.cs.hlsl** and set the **SHADEROPTIONS_RAYTRACING** macro to **1**.
+* **Screen Space Shadows**
+* **Screen Space Reflections**
+*  **Transparent Screen Space Reflections**
+* **Screen Space Global Illumination**
 
-<a name="ManualSetup-EnableSSRandShadows"></a>
-
-#### Enable Screen Space Shadows and Screen Space Reflections in your HDRP Asset
-
-HDRP uses ray tracing to replace certain rasterized effects. In order to use a ray tracing effect in your Project, you must first enable the rasterized version of the effect. The two effects that require you to modify your HDRP Asset  **Screen Space Shadows** and **Screen Space Reflections**. The following step enables them in your HDRP Unity Project.
+To enable the above effects in your HDRP Unity Project:
 
 1. Click on your HDRP Asset in the Project window to view it in the Inspector.
 2. Go to **Lighting > Reflections** and enable **Screen Space Reflection**.
-3. Go to **Lighting > Reflections** and enable **Screen Space Shadows**.
-3. Set the value for **Maximum** to be the maximum number of screen space shadows you want to evaluate each frame. If there are more than this number of Lights in your Scene, HDRP only ray casts shadows for this number of them, then uses a shadow map for the rest.
+3. After enabling **Screen Space Reflections**, go to **Lighting > Reflections** and enable **Transparent Screen Space Reflection**.
+4. Go to **Lighting > Shadows** and enable **Screen Space Shadows**.
+5. Go to **Lighting > Lighting** and enable **Screen Space Global Illumination**.
 
 Your HDRP Project now fully supports ray tracing. For information on how to set up ray tracing for your Scene, see [final setup](#FinalSetup).
 
@@ -142,7 +142,7 @@ Now that your HDRP Project supports ray tracing, there are a few steps you must 
 
 #### Frame Settings
 
-To make HDRP calculates ray tracing effects for [Cameras](HDRP-Camera.html) in your Scene, make sure your Cameras use [Frame Settings](Frame-Settings.html) that have ray tracing enabled. You can enable ray tracing for all Cameras by default, or you can enable ray tracing for specific Cameras in your Scene.
+To make HDRP calculates ray tracing effects for [Cameras](HDRP-Camera.md) in your Scene, make sure your Cameras use [Frame Settings](Frame-Settings.md) that have ray tracing enabled. You can enable ray tracing for all Cameras by default, or you can enable ray tracing for specific Cameras in your Scene.
 
 To enable ray tracing by default:
 
@@ -162,12 +162,33 @@ To enable ray tracing for a specific Camera:
 
 HDRP uses ray tracing to replace some of its screen space effects, shadowing techniques, and Mesh rendering techniques.
 
-- [Ray-Traced Ambient Occlusion](Ray-Traced-Ambient-Occlusion.html) replaces [screen space ambient occlusion](Override-Ambient-Occlusion.html) with a more accurate, ray-traced, ambient occlusion technique that can use off screen data.
-- [Ray-Traced Contact Shadows](Ray-Traced-Contact-Shadows.html) replaces [contact shadows](Override-Contact-Shadows.html) with a more accurate, ray-traced, contact shadow technique that can use off screen data.
-- [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination.html) is an alternative to Light Probes and lightmaps in HDRP.
-- [Ray-Traced Reflections](Ray-Traced-Reflections.html) is a replacement for [screen space reflection](Override-Screen-Space-Reflection.html) that uses a ray-traced reflection technique that can use off-screen data.
-- [Ray-Traced Shadows](Ray-Traced-Shadows.html) replace shadow maps for Directional, Point, and Area [Lights](Light-Component.html).
-- [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.html) replaces the rendering pipeline for Meshes. Meshes that use this feature cast refraction and reflection rays recursively.
+- [Ray-Traced Ambient Occlusion](Ray-Traced-Ambient-Occlusion.md) replaces [screen space ambient occlusion](Override-Ambient-Occlusion.md) with a more accurate, ray-traced, ambient occlusion technique that can use off screen data.
+- [Ray-Traced Contact Shadows](Ray-Traced-Contact-Shadows.md) replaces [contact shadows](Override-Contact-Shadows.md) with a more accurate, ray-traced, contact shadow technique that can use off screen data.
+- [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination.md) is an alternative to Light Probes and lightmaps in HDRP.
+- [Ray-Traced Reflections](Ray-Traced-Reflections.md) is a replacement for [screen space reflection](Override-Screen-Space-Reflection.md) that uses a ray-traced reflection technique that can use off-screen data.
+- [Ray-Traced Shadows](Ray-Traced-Shadows.md) replace shadow maps for Directional, Point, and Area [Lights](Light-Component.md).
+- [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.md) replaces the rendering pipeline for Meshes. Meshes that use this feature cast refraction and reflection rays recursively.
+- [Ray-Traced Subsurface Scattering](Ray-Traced-Subsurface-Scattering.md) replaces [subsurface scattering](Subsurface-Scattero,g.md) with a more accurate, ray-traced, subsurface scattering technique that can use off screen data.
+
+## Ray tracing mode
+
+HDRP includes two ray tracing modes that define how it evaluates certain ray-traced effects. The modes are:
+
+* **Performance**: This mode targets real-time applications. If you select this mode, ray-traced effects include presets that you can change to balance performance with quality.
+* **Quality**: This mode targets technical demos and applications that want the best quality results.
+
+Depending on which ray tracing mode you select, HDRP may expose difference properties for some ray-traced effects.
+
+You can change which ray tracing mode HDRP uses on either a Project level or effect level. To change it for your entire Project:
+
+1. Click on your HDRP Asset in the Project window to view it in the Inspector.
+2. In the Rendering section, select a ray tracing mode from the **Supported Ray Tracing Mode** drop-down. 
+
+If you select **Both**, you can change the ray tracing mode for each ray-traced effect. To do this:
+
+1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component that includes a ray-traced effect.
+2. In the Inspector for the ray-traced effect, change the **Mode** property to use the ray tracing mode you want the effect to use. This changes the properties available in the Inspector.
+
 
 ## Ray tracing project
 
@@ -177,17 +198,11 @@ This Project is already set up with ray tracing support.
 
 ## Advice and supported feature of preview ray tracing
 
-DX12 and DXR are currently in preview and are thus missing some functionnality. 
-When you enable DX12, Unity shows this error message:
-d3d12: generating mipmaps for array textures is not yet supported.
-
 There is no support for ray tracing on other platform than DX12 for now.
 
-HDRP ray tracing in Unity 2019.3 has the following limitations:
-- Does not support deformers (skinning, blend shape, alembic, vertex animation).
+HDRP ray tracing in Unity 2020.2 has the following limitations:
+- Does not support vertex animation.
 - Does not support tessellation
 - Does not support per pixel displacement (parallax occlusion mapping, height map, depth offset)
 - Does not support VFX and Terrain.
-- Does not support several of HDRP's Materials. This includes Hair, StackLit, Eye, and AxF Materials.
-- Does not have correct culling for shadows. It uses frustum culling instead.
-HDRP ray tracing in Unity 2020.1 and above add support for skinning, blend shapes and alembic.
+- Does not have accurate culling for shadows, you may experience missing shadows in the ray traced effects.

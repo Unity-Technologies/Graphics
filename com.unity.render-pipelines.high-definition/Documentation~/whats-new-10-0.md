@@ -229,9 +229,9 @@ In the past, HDRP experienced stability issues for DirectX12, Vulkan, Metal, Lin
 
 In terms of performance, one of the most resource intensive operations for HDRP is processing lights before it sends them to the GPU. For many high-end projects that include a lot of lights in their Scene, this is particularly problematic. This version of HDRP introduces an optimization that reduces the resource intensity of the light loop by up to 80% which drastically improves CPU performance in the vast majority of cases.
 
-### Decal optimization
+### Decal improvement
 
-HDRP no longer forces a full depth pre-pass when you enable decals in Deferred Lit Mode. Only materials with the **Receive Decals** property enabled render in the pre-pass.
+HDRP no longer forces a full depth pre-pass when you enable decals in Deferred Lit Mode. Only materials with the **Receive Decals** property enabled render in the pre-pass. Decal shader code has improved and now produces fewer shader variants and includes better UI to control which material attributes the decal affects. Finally, the [Decal Shader Graph](Master-Node-Decal.md) now exposes affects flags control on the Material.
 
 ### Constant buffer setup optimization
 
@@ -246,6 +246,10 @@ HDRP's previous temporal anti-aliasing (TAA) solution suffered from typical TAA 
 You can now control the texture mapping mode for all textures in the [AxF Shader](AxF-Shader.md). You can choose between planar, triplanar, or different uv sets.
 
 For more information about this improvement, see [AxF Shader](AxF-Shader.md).
+
+### Contact Shadows Improvements
+
+More control is given for contact shadows, in particular now a bias can be set to avoid self intersection issues and a new thickness parameter is introduced to fill gaps that can be left by contact shadows. 
 
 ### Exposure
 

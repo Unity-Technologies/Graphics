@@ -32,6 +32,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public static bool opened
                 => Resources.FindObjectsOfTypeAll(typeof(PlayerSettings).Assembly.GetType("UnityEditor.ObjectSelector")).Length > 0;
 
+            // Action to be called with the window is closed
+            static Action s_OnClose;
+
             static ObjectSelector()
             {
                 Type playerSettingsType = typeof(PlayerSettings);
@@ -73,12 +76,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 GetCurrentObject = getCurrentObjectLambda.Compile();
             }
 
-            public static void Show(UnityEngine.Object obj, Type type, Action<UnityEngine.Object> onChangedObject)
+            public static void Show(UnityEngine.Object obj, Type type, Action<UnityEngine.Object> onChangedObject, Action onClose)
             {
                 id = GUIUtility.GetControlID("s_ObjectFieldHash".GetHashCode(), FocusType.Keyboard);
                 GUIUtility.keyboardControl = id;
                 ShowObjectSelector(obj, type, onChangedObject);
                 selectorID = id;
+                ObjectSelector.s_OnClose = onClose;
+                EditorApplication.update += CheckClose;
+            }
+            static void CheckClose()
+            {
+                if (!opened)
+                {
+                    ObjectSelector.s_OnClose?.Invoke();
+                    EditorApplication.update -= CheckClose;
+                }
             }
 
             public static void CheckAssignationEvent<T>(Action<T> assignator)
@@ -132,8 +145,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     onCancel?.Invoke();
                     break;
                 case 2: //Load
-                    ObjectSelector.Show(target, typeof(T), o => onObjectChanged?.Invoke((T)o));
-                    break;
+                    {
+                        m_Fixer.Pause();
+                        ObjectSelector.Show(target, typeof(T), o => onObjectChanged?.Invoke((T)o), m_Fixer.Unpause);
+                        break;
+                    }
+
                 default:
                     throw new ArgumentException("Unrecognized option");
             }
@@ -325,16 +342,19 @@ namespace UnityEditor.Rendering.HighDefinition
                 const string k_IconFolder = @"Packages/com.unity.render-pipelines.high-definition/Editor/Wizard/WizardResources/";
                 public static readonly Texture ok = CoreEditorUtils.LoadIcon(k_IconFolder, "OK");
                 public static readonly Texture error = CoreEditorUtils.LoadIcon(k_IconFolder, "Error");
+                public static readonly Texture warning = CoreEditorUtils.LoadIcon(k_IconFolder, "Warning");
 
                 public const int k_IndentStepSize = 15;
             }
 
             readonly bool m_VisibleStatus;
+            readonly bool m_SkipErrorIcon;
 
-            public ConfigInfoLine(string label, string error, MessageType messageType, string resolverButtonLabel, Func<bool> tester, Action resolver, int indent = 0, bool visibleStatus = true)
+            public ConfigInfoLine(string label, string error, MessageType messageType, string resolverButtonLabel, Func<bool> tester, Action resolver, int indent = 0, bool visibleStatus = true, bool skipErrorIcon = false)
                 : base(tester, resolver != null)
             {
                 m_VisibleStatus = visibleStatus;
+                m_SkipErrorIcon = skipErrorIcon;
                 var testLabel = new Label(label)
                 {
                     name = "TestLabel"
@@ -397,7 +417,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (m_VisibleStatus)
                     {
                         this.Q(name: "StatusOK").style.display = statusOK ? DisplayStyle.Flex : DisplayStyle.None;
-                        this.Q(name: "StatusError").style.display = statusOK ? DisplayStyle.None : DisplayStyle.Flex;
+                        this.Q(name: "StatusError").style.display = !statusOK ? (m_SkipErrorIcon ? DisplayStyle.None: DisplayStyle.Flex) : DisplayStyle.None;
                     }
                     this.Q(name: "Resolver").style.display = statusOK || !haveFixer ? DisplayStyle.None : DisplayStyle.Flex;
                     this.Q(name: "HelpBox").style.display = statusOK ? DisplayStyle.None : DisplayStyle.Flex;

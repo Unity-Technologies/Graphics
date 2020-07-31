@@ -1,17 +1,16 @@
-### **Please read**
-**PR workflow guidelines**
-* SRP ABV will start automatically on Yamato when you open your PR
-* Changes to docs and md files will **not** trigger ABV jobs 
-* Consider making use of **draft PRs** if you are not 100% sure that your PR is ready for review
-* ABV will restart if you add a new commit to a branch with an open PR (hence why you should consider using draft PRs)
-* Adding [skip ci] (case insensitive) to the title of PRs will stop any jobs being trigger automatically - you will need to open Yamato and find your branch to run ABV
-* You can also add [skip ci] to commit messages to prevent CI from running on that push
-* Add [cancel old ci] to your commit message if you've made changes you want to test and no longer need the previous jobs
+# **Please read;**
+## **PR Workflow for the Graphics repository:**
+* **All PRs must be opened as draft initially**
+* Reviewers can be added while the PR is still in draft
+* The PR can be marked as “Ready for Review” once the reviewers have confirmed that **no more changes are needed**
+* Tests will start automatically after the PR is marked as “Ready for Review”
+* **Do not use [skip ci]** - this can break some of our tooling
+* Read the [Graphics repository & Yamato FAQ](http://go/graphics-yamato-faq).
 
 ### Checklist for PR maker
 - [ ] Have you added a backport label (if needed)? For example, the `need-backport-*` label. After you backport the PR, the label changes to `backported-*`.
 - [ ] Have you updated the changelog? Each package has a `CHANGELOG.md` file.
-- [ ] Have you updated or added the documentation for your PR? When you add a new feature, change a property name, or change the behavior of a feature, it's best practice to include related documentation changes in the same PR.
+- [ ]  Have you updated or added the documentation for your PR? When you add a new feature, change a property name, or change the behavior of a feature, it's best practice to include related documentation changes in the same PR. If you do add documentation, make sure to add the relevant Graphics Docs team member as a reviewer of the PR. If you are not sure which person to add, see the [Docs team contacts sheet](https://docs.google.com/spreadsheets/d/1rgUWWgwLFEHIQ3Rz-LnK6PAKmbM49DZZ9al4hvnztOo/edit#gid=1058860420).
 - [ ] Have you added a graphic test for your PR (if needed)? When you add a new feature, or discover a bug that tests don't cover, please add a graphic test.
 
 ---
