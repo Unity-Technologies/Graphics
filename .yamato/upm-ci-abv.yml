@@ -72,10 +72,10 @@ all_project_ci_nightly:
   {% endfor %}
     - path: .yamato/upm-ci-packages.yml#all_package_ci
       rerun: always
-  triggers:
-    recurring:
-      - branch: VirtualTexturingSampleTerrain-latest-vt
-        frequency: daily     
+  # triggers:
+  #   recurring:
+  #     - branch: VirtualTexturingSampleTerrain-latest-vt
+  #       frequency: daily     
 
 {% for testplatform in testplatforms %} 
 {% for editor in editors %}
