@@ -14,7 +14,7 @@ def cmd_not_standalone(project_folder, platform, api, test_platform_args):
         f'NetSh Advfirewall set allprofiles state off',
         pss(f'''
         set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-        utr --suite=playmode --platform=Android --editor-location=WindowsEditor -report-performance-data --performance-project-id=URP_Performance --artifacts_path={PATH_TEST_RESULTS} --player-load-path={PATH_PLAYERS} --scripting-backend=il2cpp --timeout=1200'''),
+        utr --suite=playmode --platform=Android --editor-location=WindowsEditor {test_platform_args} -report-performance-data --performance-project-id=URP_Performance --artifacts_path={PATH_TEST_RESULTS} --player-load-path={PATH_PLAYERS} --scripting-backend=il2cpp --timeout=1200'''),
         f'start %ANDROID_SDK_ROOT%\platform-tools\\adb.exe kill-server'
         ])
     return base
@@ -27,7 +27,7 @@ def cmd_standalone(project_folder, platform, api, test_platform_args):
         f'NetSh Advfirewall set allprofiles state off',
         pss(f'''
         set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-        utr --suite=playmode --platform=Android --editor-location=WindowsEditor -report-performance-data --performance-project-id=URP_Performance --artifacts_path={PATH_TEST_RESULTS} --player-load-path={PATH_PLAYERS} --scripting-backend=il2cpp --timeout=1200'''),
+        utr --suite=playmode --platform=Android --editor-location=WindowsEditor {test_platform_args} -report-performance-data --performance-project-id=URP_Performance --artifacts_path={PATH_TEST_RESULTS} --player-load-path={PATH_PLAYERS} --scripting-backend=il2cpp --timeout=1200'''),
         f'start %ANDROID_SDK_ROOT%\platform-tools\\adb.exe kill-server'
         ])
     return base

@@ -24,7 +24,7 @@ URP_Performance_Android_perf_Vulkan_performance_playmode_counters_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --editor-location=WindowsEditor -report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200
+                 utr --suite=playmode --platform=Android --editor-location=WindowsEditor --suite=playmode --testfilter=Counters -report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -75,7 +75,7 @@ URP_Performance_Android_perf_Vulkan_performance_playmode_memory_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --editor-location=WindowsEditor -report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200
+                 utr --suite=playmode --platform=Android --editor-location=WindowsEditor --suite=playmode --testfilter=Memory -report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -100,7 +100,7 @@ URP_Performance_Android_perf_Vulkan_performance_editmode_build_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --editor-location=WindowsEditor -report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200
+                 utr --suite=playmode --platform=Android --editor-location=WindowsEditor --suite=Editor --testfilter=Build -report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -127,7 +127,7 @@ URP_Performance_Android_perf_Vulkan_performance_playmode_counters_fast-trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --editor-location=WindowsEditor -report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200
+                 utr --suite=playmode --platform=Android --editor-location=WindowsEditor --suite=playmode --testfilter=Counters -report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -178,7 +178,7 @@ URP_Performance_Android_perf_Vulkan_performance_playmode_memory_fast-trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --editor-location=WindowsEditor -report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200
+                 utr --suite=playmode --platform=Android --editor-location=WindowsEditor --suite=playmode --testfilter=Memory -report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -203,7 +203,7 @@ URP_Performance_Android_perf_Vulkan_performance_editmode_build_fast-trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --editor-location=WindowsEditor -report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200
+                 utr --suite=playmode --platform=Android --editor-location=WindowsEditor --suite=Editor --testfilter=Build -report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -231,7 +231,7 @@ URP_Performance_Android_perf_Vulkan_performance_playmode_counters_CUSTOM-REVISIO
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --editor-location=WindowsEditor -report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200
+                 utr --suite=playmode --platform=Android --editor-location=WindowsEditor --suite=playmode --testfilter=Counters -report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -284,7 +284,7 @@ URP_Performance_Android_perf_Vulkan_performance_playmode_memory_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --editor-location=WindowsEditor -report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200
+                 utr --suite=playmode --platform=Android --editor-location=WindowsEditor --suite=playmode --testfilter=Memory -report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -310,7 +310,7 @@ URP_Performance_Android_perf_Vulkan_performance_editmode_build_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --editor-location=WindowsEditor -report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200
+                 utr --suite=playmode --platform=Android --editor-location=WindowsEditor --suite=Editor --testfilter=Build -report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:

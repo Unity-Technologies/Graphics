@@ -16,9 +16,9 @@ test_platforms:
   playmode_XR: --suite=playmode --extra-editor-arg="-xr-tests"
   playmode_RenderGraph: --suite=playmode --extra-editor-arg="-rendergraph-tests"
   editmode: --suite=editor --platform=editmode
-  performance_playmode_counters: --suite=playmode --testfilter=Counters --platform=Standalone
-  performance_playmode_memory: --suite=playmode --testfilter=Memory --platform=Standalone
-  performance_editmode_build: --suite=Editor --testfilter=Build --platform=Standalone
+  performance_playmode_counters: --suite=playmode --testfilter=Counters
+  performance_playmode_memory: --suite=playmode --testfilter=Memory
+  performance_editmode_build: --suite=Editor --testfilter=Build
 project_platforms:
 platforms:
   Win:
