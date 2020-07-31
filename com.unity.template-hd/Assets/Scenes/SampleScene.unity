@@ -10633,8 +10633,6 @@ PlayableDirector:
     value: {fileID: 1594496559}
   - key: {fileID: 6801458295379371517, guid: 5a54d61bc58f43341aa47f398b54ed14, type: 2}
     value: {fileID: 1922889287}
-  - key: {fileID: -4113859360870644669, guid: 5a54d61bc58f43341aa47f398b54ed14, type: 2}
-    value: {fileID: 0}
   - key: {fileID: 6457011845286483473, guid: 5a54d61bc58f43341aa47f398b54ed14, type: 2}
     value: {fileID: 1922889286}
   - key: {fileID: -1729864149966584170, guid: 5a54d61bc58f43341aa47f398b54ed14, type: 2}
@@ -15563,7 +15561,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1594496557}
-  m_LocalRotation: {x: 0.532042, y: -0.033413514, z: 0.03186785, w: 0.670475}
+  m_LocalRotation: {x: 0.62069726, y: -0.038981277, z: 0.037178054, w: 0.7821976}
   m_LocalPosition: {x: -3.4893818, y: 3.7002506, z: -6.505281}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -21832,7 +21830,7 @@ Camera:
   m_FOVAxisMode: 0
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
-  m_FocalLength: 40
+  m_FocalLength: 20
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -21841,7 +21839,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 67.380135
+  field of view: 61.927517
   orthographic: 0
   orthographic size: 5
   m_Depth: 0
@@ -21866,7 +21864,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1922889286}
-  m_LocalRotation: {x: 0.6060236, y: -0.03805975, z: 0.036299154, w: -0.8253639}
+  m_LocalRotation: {x: 0.9962553, y: -0.06256724, z: 0.05967296, w: -0.000000018660838}
   m_LocalPosition: {x: -3.4893818, y: 3.7002506, z: -6.505281}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
