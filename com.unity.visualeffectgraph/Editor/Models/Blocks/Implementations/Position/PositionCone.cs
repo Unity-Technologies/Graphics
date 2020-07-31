@@ -134,11 +134,6 @@ namespace UnityEditor.VFX.Block
 
                     var slotSpace = inputSlots[0].space;
                     var systemSpace = ((VFXDataParticle)GetData()).space;
-                    if (slotSpace != systemSpace)
-                    {
-                        //Revert center transform
-                        //TODO
-                    }
 
                     var zeroF3 = VFXOperatorUtility.ZeroExpression[VFXValueType.Float3];
                     var oneF3 = VFXOperatorUtility.OneExpression[VFXValueType.Float3];
@@ -167,12 +162,13 @@ namespace UnityEditor.VFX.Block
                     }
 
                     var translateMatrix = new VFXExpressionTRSToMatrix(center, zeroF3, oneF3); //Can be simplified
-                    var matrix = new VFXExpressionTransformMatrix(rotationMatrix, translateMatrix);
+                    var matrix = rotationMatrix;//new VFXExpressionTransformMatrix(rotationMatrix, translateMatrix); //TODOPAUL
                     yield return new VFXNamedExpression(matrix, "transformMatrix");
                 }
                 else
                 {
                     VFXExpression upAxis = inputSlots[0][1].GetExpression();
+                    upAxis = VFXOperatorUtility.Normalize(upAxis);
                     VFXExpression leftAxis;
                     if (arcCone_ModeTest == Type_Of_Transform_For_ArcCone.AxisUpAndRotation)
                     {
@@ -194,15 +190,23 @@ namespace UnityEditor.VFX.Block
                     else
                     {
                         leftAxis = inputSlots[0][2].GetExpression();
+                        leftAxis = VFXOperatorUtility.Normalize(leftAxis);
                     }
 
                     var directionAxis = VFXOperatorUtility.Cross(upAxis, leftAxis);
                     directionAxis = VFXOperatorUtility.Normalize(directionAxis);
                     leftAxis = VFXOperatorUtility.Cross(directionAxis, upAxis);
 
-                    var matrix = new VFXExpressionVector3sToMatrix(directionAxis, upAxis, leftAxis, center);
+                    //TODOPAUL : Check if we need this cast
+                    directionAxis = VFXOperatorUtility.CastFloat(directionAxis, VFXValueType.Float4, 0.0f);
+                    upAxis = VFXOperatorUtility.CastFloat(upAxis, VFXValueType.Float4, 0.0f);
+                    leftAxis = VFXOperatorUtility.CastFloat(leftAxis, VFXValueType.Float4, 0.0f);
+                    center = VFXOperatorUtility.CastFloat(center, VFXValueType.Float4, 1.0f);
+                    VFXExpression matrix = new VFXExpressionVector4sToMatrix(directionAxis, upAxis, leftAxis, center);
+
                     yield return new VFXNamedExpression(matrix, "transformMatrix");
-                    //TODO : Could reduce number of cbuffer, not sure it's relevant.
+
+                    //TODOPAUL : Could reduce number of cbuffer, not sure it's relevant.
                     //yield return new VFXNamedExpression(directionAxis, "transformMatrix_a");
                     //yield return new VFXNamedExpression(upAxis, "transformMatrix_b");
                     //yield return new VFXNamedExpression(leftAxis, "transformMatrix_c");
