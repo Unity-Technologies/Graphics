@@ -592,6 +592,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                 DoBokehDepthOfField(cmd, source, destination, pixelRect);
         }
 
+        void SetTextureSize(CommandBuffer cmd, int nameID, int width, int height)
+        {
+            float w = width * ScalableBufferManager.widthScaleFactor;
+            float h = height * ScalableBufferManager.heightScaleFactor;
+            cmd.SetGlobalVector(nameID, new Vector4(w, h, 1.0f / w, 1.0f / h));
+        }
+
         void DoGaussianDepthOfField(Camera camera, CommandBuffer cmd, int source, int destination, Rect pixelRect)
         {
             var material = m_Materials.gaussianDepthOfField;
@@ -615,6 +622,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.GetTemporaryRT(ShaderConstants._PingTexture, GetCompatibleDescriptor(wh, hh, m_DefaultHDRFormat), FilterMode.Bilinear);
             cmd.GetTemporaryRT(ShaderConstants._PongTexture, GetCompatibleDescriptor(wh, hh, m_DefaultHDRFormat), FilterMode.Bilinear);
             // Note: fresh temporary RTs don't require explicit RenderBufferLoadAction.DontCare, only when they are reused (such as PingTexture)
+
+            // TODO: Revisit this texel size setup once we have RTHandles
+            // Workaround for case 1225467, where texel size is not accounted for dynamic resolution
+            SetTextureSize(cmd, ShaderConstants._SourceSize, m_Descriptor.width, m_Descriptor.height);
+            SetTextureSize(cmd, ShaderConstants._HalfSourceSize, wh, hh);
 
             // Compute CoC
             Blit(cmd, source, ShaderConstants._FullCoCTexture, material, 0);
@@ -729,6 +741,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.GetTemporaryRT(ShaderConstants._FullCoCTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8_UNorm), FilterMode.Bilinear);
             cmd.GetTemporaryRT(ShaderConstants._PingTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear);
             cmd.GetTemporaryRT(ShaderConstants._PongTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear);
+
+            // TODO: Revisit this texel size setup once we have RTHandles
+            // Workaround for case 1225467, where texel size is not accounted for dynamic resolution
+            SetTextureSize(cmd, ShaderConstants._SourceSize, m_Descriptor.width, m_Descriptor.height);
+            SetTextureSize(cmd, ShaderConstants._HalfSourceSize, wh, hh);
 
             // Compute CoC
             Blit(cmd, source, ShaderConstants._FullCoCTexture, material, 0);
@@ -1276,6 +1293,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _UserLut_Params     = Shader.PropertyToID("_UserLut_Params");
             public static readonly int _InternalLut        = Shader.PropertyToID("_InternalLut");
             public static readonly int _UserLut            = Shader.PropertyToID("_UserLut");
+            public static readonly int _SourceSize         = Shader.PropertyToID("_SourceSize");
+            public static readonly int _HalfSourceSize     = Shader.PropertyToID("_HalfSourceSize");
 
             public static readonly int _FullscreenProjMat  = Shader.PropertyToID("_FullscreenProjMat");
 
