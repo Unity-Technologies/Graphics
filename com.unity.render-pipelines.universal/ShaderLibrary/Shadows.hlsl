@@ -60,8 +60,9 @@ CBUFFER_END
 
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
 
-StructuredBuffer<ShadowData> _AdditionalShadowsBuffer;
-StructuredBuffer<int> _AdditionalShadowsIndices;
+StructuredBuffer<float4>   _AdditionalShadowParams_SSBO;        // Per-light data - TODO: test if splitting _AdditionalShadowParams_SSBO[lightIndex].w into a separate StructuredBuffer<int> buffer is faster
+StructuredBuffer<float4x4> _AdditionalLightsWorldToShadow_SSBO; // Per-shadow-slice-data - A shadow casting light can have 6 shadow slices (if it's a point light)
+
 half4       _AdditionalShadowOffset0;
 half4       _AdditionalShadowOffset1;
 half4       _AdditionalShadowOffset2;
@@ -87,8 +88,9 @@ float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width an
 CBUFFER_START(AdditionalLightShadows)
 #endif
 
-float4x4    _AdditionalLightsWorldToShadow[MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO];
-half4       _AdditionalShadowParams[MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO];
+half4       _AdditionalShadowParams[MAX_VISIBLE_LIGHTS];                              // Per-light data
+float4x4    _AdditionalLightsWorldToShadow[MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO];  // Per-shadow-slice-data
+
 half4       _AdditionalShadowOffset0;
 half4       _AdditionalShadowOffset1;
 half4       _AdditionalShadowOffset2;
@@ -159,10 +161,12 @@ half4 GetMainLightShadowParams()
 // ShadowParams
 // x: ShadowStrength
 // y: 1.0 if shadow is soft, 0.0 otherwise
+// z: 0.0 if cast by a point light (6 shadow slices), 0.0 if cast by a spot light (1 shadow slice)
+// w: first shadow slice index for this light, there can be 6 in case of point lights. (-1 for non-shadow-casting-lights)
 half4 GetAdditionalLightShadowParams(int lightIndex)
 {
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-    return _AdditionalShadowsBuffer[lightIndex].shadowParams;
+    return _AdditionalShadowParams_SSBO[lightIndex];
 #else
     return _AdditionalShadowParams[lightIndex];
 #endif
@@ -285,41 +289,25 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 ligh
 
     ShadowSamplingData shadowSamplingData = GetAdditionalLightShadowSamplingData();
 
-#if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-
-    // With the introduction of point light shadows, the number of shadow slices becomes different from the number of punctual lights.
-    // Therefore light data and shadow slice data must be stored in different structured buffers (of different sizes).
-    // TODO: check and fix "Structured Buffers" code path - Possibly use one SSBO for light data and one for shadow slice data (same as UBO code path)
-
-    lightIndex = _AdditionalShadowsIndices[lightIndex]; // shadow slice index
-
-    // We have to branch here as otherwise we would sample buffer with lightIndex == -1.
-    // However this should be ok for platforms that store light in SSBO.
-    UNITY_BRANCH
-    if (lightIndex < 0)
-        return 1.0;
-
-    float4 shadowCoord = mul(_AdditionalShadowsBuffer[lightIndex].worldToShadowMatrix, float4(positionWS, 1.0));
-
-#else
-
     half4 shadowParams = GetAdditionalLightShadowParams(lightIndex);
 
     int shadowSliceIndex = shadowParams.w;
 
-    // Test if this is a point light - Keep in sync with AdditionalLightsShadowCasterPass.LightTypeIdentifierInShadowParams_Point
+    UNITY_BRANCH
+    if (shadowSliceIndex < 0)
+        return 1.0;
+
     if (shadowParams.z)
     {
         // This is a point light, we have to find out which shadow slice to sample from
         float cubemapFaceId = CubeMapFaceID(-lightDirection);
         shadowSliceIndex += cubemapFaceId;
     }
-    // TODO: Investigate potential optimization: Try solutions that do not require branching, and compare performances. for example:
-    //float cubemapFaceId = shadowParams.z * CubeMapFaceID(-lightDirection);
-    //shadowSliceIndex += cubemapFaceId;
 
+#if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
+    float4 shadowCoord = mul(_AdditionalLightsWorldToShadow_SSBO[shadowSliceIndex], float4(positionWS, 1.0));
+#else
     float4 shadowCoord = mul(_AdditionalLightsWorldToShadow[shadowSliceIndex], float4(positionWS, 1.0));
-
 #endif
 
     return SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_AdditionalLightsShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, true);
@@ -358,7 +346,7 @@ half GetMainLightShadowStrength()
 half GetAdditionalLightShadowStrenth(int lightIndex)
 {
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-    return _AdditionalShadowsBuffer[lightIndex].shadowParams.x;
+    return _AdditionalShadowParams_SSBO[lightIndex].x;
 #else
     return _AdditionalShadowParams[lightIndex].x;
 #endif
