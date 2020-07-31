@@ -16,8 +16,8 @@ The number of shadow maps HDRP renders per Light depends on the **Type** of the 
 - A Point Light renders six shadow maps (the number of faces in a cubemap).
 - A Directional Light renders one shadow map per cascade. Set the cascade count of Directional Lights from the [HD Shadow Settings](Override-Shadows.md) of your Scene’s [Volumes](Volumes.md). The default value is four cascades.
 
-Note that HDRP can perform dynamic rescale of the shadow maps in a way that the smaller the area of the screen that the light covers the more the resolution is scaled down from the value set on the Light component. This can be useful to maximize the usage of the space in the shadow atlases, but also to reduce the impact of lights that occupy a small portion of the screen on performance.  This option can be activated, per atlas, in the shadow section of the your Unity Project’s [HDRP Asset](HDRP-Asset.md).
-Please note that this option is not available for cached shadow maps. 
+HDRP can perform a dynamic rescale of shadow maps to maximize space usage in shadow atlases, but also to reduce the performance impact of lights that occupy a small portion of the screen. To do this, HDRP scales down a light's shadow map resolution depending on the size of the screen area the light covers. The smaller the area on the screen, the more HDRP scales the resolution down from the value set on the [Light component](https://github.com/Unity-Technologies/Graphics/pull/Light-Component.md). To enable this feature, go the Shadow section of your Unity Project’s [HDRP Asset](https://github.com/Unity-Technologies/Graphics/pull/HDRP-Asset.md) and enable the **Dynamic Rescale** property for the shadow atlas you want HDRP to dynamically rescale the shadow maps of.
+Note that HDRP does not support dynamic rescale for cached shadow maps. 
 
 ## Shadow atlases
 
