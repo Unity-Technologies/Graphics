@@ -13,6 +13,10 @@ platforms:
   - name: OSX_perf
     apis:
       - Metal
+  - name: Android_perf
+    apis: 
+      - Vulkan
+      - OpenGLES3
 all:
   dependencies:
     - platform: Win_perf
@@ -27,3 +31,8 @@ all:
         - performance_playmode_counters
         - performance_playmode_memory
         - performance_editmode_build
+    - platform: Android_perf
+      api: OpenGLES3
+      test_platforms:
+        - performance_playmode_counters
+        - performance_playmode_memory

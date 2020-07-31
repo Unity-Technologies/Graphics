@@ -179,6 +179,33 @@ platforms:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
         flavor: b1.large
+  Android_perf:
+    name: Android_perf
+    os: android
+    apis:
+      - name: OpenGLES3
+        exclude_test_platforms:
+          - editmode
+          - playmode
+          - playmode_XR
+      - name: Vulkan
+        exclude_test_platforms:
+          - editmode
+          - playmode
+          - playmode_XR
+    components:
+      - editor
+      - il2cpp
+      - android
+    agents_project:
+      default:
+        type: Unity::mobile::android
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
+      standalone_build:
+        type: Unity::VM
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
   iPhone:
     name: iPhone
     os: ios
