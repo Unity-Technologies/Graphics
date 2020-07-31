@@ -14,6 +14,10 @@ All_URPUpdate_trunk:
          rerun: on-new-revision
       -  path: .yamato/all-urpupdate_top_asset_store.yml#All_URPUpdate_Top_Asset_Store_trunk
          rerun: on-new-revision
+    triggers:
+        recurring:
+          -  branch: automation/update-testing
+             frequency: 0 * * ?
 All_URPUpdate_fast-trunk:
     name: All URPUpdate CI - fast-trunk
     dependencies:
