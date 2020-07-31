@@ -2,12 +2,12 @@
     "name": "Runtime",
     "rootNamespace": "",
     "references": [
-        "GUID:91836b14885b8a34196f4aa8303d7793",
-        "GUID:27619889b8ba8c24980f49ee34dbb44a",
-        "GUID:0acc523941302664db1f4e527237feb3",
-        "GUID:df380645f10b7bc4b97d4f5eb6303d95",
-        "GUID:295068ed467c2ce4a9cda3833065f650",
-        "GUID:15fc0a57446b3144c949da3e2b9737a9"
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.GraphicTests.Performance.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.PerformanceTesting"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
