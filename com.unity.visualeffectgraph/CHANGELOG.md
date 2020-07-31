@@ -127,6 +127,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix creation of StringPropertyRM
 - Enum fields having headers show the header in the inspector as well.
 - Fix for node window staying when clicking elsewhere
+- Make VisualEffect created from the GameObject menu have unique names [Case 1262989](https://issuetracker.unity3d.com/product/unity/issues/guid/1262989/)
+- Missing System Seed in new dynamic built-in operator.
+- Prefab highlight missing for initial event name toggle [Case 1263012](https://issuetracker.unity3d.com/product/unity/issues/guid/1263012/)
+- fixes the user created vfx default resources that were ignored unless loaded
+- fix crash when creating a loop in subgraph operators [Case 1251523](https://issuetracker.unity3d.com/product/unity/issues/guid/1251523/)
 - Harmonized position, direction and velocity composition modes for position (shape, sequential, depth) and Velocity from Direction & Speed blocks
 
 ## [7.1.1] - 2019-09-05
