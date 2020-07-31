@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   sodipodi:docname="ReflectionProbe_InfluenceBlendOverlap.svg"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
+   id="svg24"
+   version="1.1"
+   viewBox="0 0 511.99999 512.00002"
+   height="512"
+   width="512">
+  <defs
+     id="defs18">
+    <filter
+       height="1.0000024"
+       y="-1.2e-06"
+       width="1.0000024"
+       x="-1.2e-06"
+       id="filter33"
+       style="color-interpolation-filters:sRGB"
+       inkscape:collect="always">
+      <feGaussianBlur
+         id="feGaussianBlur35"
+         stdDeviation="0.0001525"
+         inkscape:collect="always" />
+    </filter>
+  </defs>
+  <sodipodi:namedview
+     inkscape:window-maximized="1"
+     inkscape:window-y="262"
+     inkscape:window-x="-8"
+     inkscape:window-height="1377"
+     inkscape:window-width="2560"
+     units="px"
+     showguides="true"
+     showgrid="true"
+     inkscape:document-rotation="0"
+     inkscape:current-layer="layer4"
+     inkscape:document-units="px"
+     inkscape:cy="84.626502"
+     inkscape:cx="296.40301"
+     inkscape:zoom="2.981403"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     borderopacity="1.0"
+     bordercolor="#666666"
+     pagecolor="#ffffff"
+     id="base">
+    <inkscape:grid
+       id="grid26"
+       type="xygrid" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata21">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Background"
+     id="layer5"
+     inkscape:groupmode="layer">
+    <rect
+       y="0"
+       x="0"
+       height="510"
+       width="580"
+       id="rect948"
+       style="fill:#ffffff;fill-opacity:0.996078;stroke:#ffffff;stroke-width:2.13284;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.996078" />
+  </g>
+  <g
+     inkscape:label="Scene"
+     id="layer3"
+     inkscape:groupmode="layer">
+    <rect
+       inkscape:label="Mesh object"
+       transform="scale(1,-1)"
+       y="-430"
+       x="255"
+       height="90"
+       width="165"
+       id="rect861"
+       style="fill:#82826f;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+    <text
+       inkscape:label="Mesh text"
+       id="text873"
+       y="423.88434"
+       x="308.37012"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:17.3333px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
+         y="423.88434"
+         x="308.37012"
+         id="tspan871"
+         sodipodi:role="line">Mesh object</tspan></text>
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     style="display:inline;filter:url(#filter33)"
+     id="layer1"
+     inkscape:label="Probe">
+    <g
+       inkscape:label="Probe 1"
+       id="g979">
+      <rect
+         style="fill:#ffff00;fill-opacity:0.0706638;stroke:#9fa500;stroke-width:3;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="rect30"
+         width="305"
+         height="305"
+         x="15"
+         y="-385"
+         transform="scale(1,-1)"
+         inkscape:label="Influence" />
+      <circle
+         style="opacity:0.615764;fill:#b3b3b3;fill-rule:evenodd"
+         id="path28"
+         cx="168.31493"
+         cy="232.85587"
+         r="20"
+         inkscape:label="Probe" />
+      <rect
+         inkscape:label="Blend volume"
+         transform="scale(1,-1)"
+         y="-355"
+         x="45"
+         height="245"
+         width="245"
+         id="rect894"
+         style="fill:#52c332;fill-opacity:0.137116;stroke:#287f0f;stroke-width:3.19565;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+    </g>
+    <g
+       transform="translate(245)"
+       id="g987"
+       inkscape:label="Probe 1">
+      <rect
+         inkscape:label="Influence"
+         transform="scale(1,-1)"
+         y="-385"
+         x="15"
+         height="305"
+         width="305"
+         id="rect981"
+         style="fill:#ffff00;fill-opacity:0.0706638;stroke:#9fa500;stroke-width:3;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <circle
+         inkscape:label="Probe"
+         r="20"
+         cy="232.85587"
+         cx="168.31493"
+         id="circle983"
+         style="opacity:0.615764;fill:#b3b3b3;fill-rule:evenodd" />
+      <rect
+         style="fill:#52c332;fill-opacity:0.137116;stroke:#287f0f;stroke-width:3.19565;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="rect985"
+         width="245"
+         height="245"
+         x="45"
+         y="-355"
+         transform="scale(1,-1)"
+         inkscape:label="Blend volume" />
+    </g>
+  </g>
+  <g
+     inkscape:label="Annotations"
+     id="layer4"
+     inkscape:groupmode="layer">
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:26.6667px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none"
+       x="382.9711"
+       y="53.751915"
+       id="text1009"><tspan
+         sodipodi:role="line"
+         id="tspan1007"
+         x="382.9711"
+         y="53.751915">Probe B</tspan></text>
+    <text
+       id="text1005"
+       y="53.081089"
+       x="105.92033"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:26.6667px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none"
+       xml:space="preserve"><tspan
+         y="53.081089"
+         x="105.92033"
+         id="tspan1003"
+         sodipodi:role="line">Probe A</tspan></text>
+    <g
+       inkscape:label="Arrow"
+       id="g995">
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 215,445 c 0,0 70,-50 75,-75 l -13,7"
+         id="path989" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 290,370 1,12"
+         id="path991" />
+    </g>
+    <text
+       id="text999"
+       y="439.02496"
+       x="48.845478"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:26.6667px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
+         y="439.02496"
+         x="48.845478"
+         id="tspan997"
+         sodipodi:role="line">Overlapping</tspan><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:26.6667px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
+         id="tspan1001"
+         y="489.02496"
+         x="48.845478"
+         sodipodi:role="line">influence</tspan></text>
+  </g>
+</svg>
