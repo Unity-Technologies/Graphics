@@ -10,7 +10,7 @@ To create your own sky, create some scripts to handle the following:
 
 ## Using your sky renderer
 
-When you complete all of the above steps, your new sky automatically appears in the **Sky Type** drop-down in the [Visual Environment](Override-Visual-Environment.html) override for [Volumes](Volumes.html) in your Unity Project.
+When you complete all of the above steps, your new sky automatically appears in the **Sky Type** drop-down in the [Visual Environment](Override-Visual-Environment.md) override for [Volumes](Volumes.md) in your Unity Project.
 
 <a name="SkySettings"></a>
 
@@ -24,7 +24,7 @@ You must include the following in this class:
 - **GetHashCode**: The sky system uses this function to determine when to re-render the sky reflection cubemap.
 - **GetSkyRendererType**: The sky system uses this function to instantiate the proper renderer.
 
-For example, here’s the [HDRI sky](Override-HDRI-Sky.html) implementation of SkySettings:
+For example, here’s the [HDRI sky](Override-HDRI-Sky.md) implementation of SkySettings:
 
 
 ```c#
@@ -186,7 +186,7 @@ Since each sky renderer can have very different needs, the responsbility to shar
 
 Finally, you need to actually create the Shader for your sky. The content of this Shader depends on the effects you want to include.
 
-For example, here’s the [HDRI sky](Override-HDRI-Sky.html) implementation of the SkyRenderer.
+For example, here’s the [HDRI sky](Override-HDRI-Sky.md) implementation of the SkyRenderer.
 ```
 Shader "Hidden/HDRP/Sky/NewSky"
 {
