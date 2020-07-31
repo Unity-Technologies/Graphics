@@ -46,7 +46,7 @@ Build_URP_Performance_Android_perf_OpenGLES3_Player_trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME%
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT%
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT%
-      -  utr --suite=playmode --platform=Android --testproject=TestProjects\URP_Performance --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --scripting-backend=il2cpp --timeout=1800 --build-only
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\URP_Performance --editor-location=WindowsEditor --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildAndroidGLES3Linear" --artifacts_path=test-results --player-save-path=players --scripting-backend=il2cpp --timeout=1800 --build-only
     artifacts:
         logs:
             paths:
@@ -149,7 +149,7 @@ Build_URP_Performance_Android_perf_OpenGLES3_Player_fast-trunk:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME%
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT%
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT%
-      -  utr --suite=playmode --platform=Android --testproject=TestProjects\URP_Performance --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --scripting-backend=il2cpp --timeout=1800 --build-only
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\URP_Performance --editor-location=WindowsEditor --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildAndroidGLES3Linear" --artifacts_path=test-results --player-save-path=players --scripting-backend=il2cpp --timeout=1800 --build-only
     artifacts:
         logs:
             paths:
@@ -254,7 +254,7 @@ Build_URP_Performance_Android_perf_OpenGLES3_Player_CUSTOM-REVISION:
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME%
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT%
       -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT%
-      -  utr --suite=playmode --platform=Android --testproject=TestProjects\URP_Performance --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --scripting-backend=il2cpp --timeout=1800 --build-only
+      -  utr --suite=playmode --platform=Android --testproject=TestProjects\URP_Performance --editor-location=WindowsEditor --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildAndroidGLES3Linear" --artifacts_path=test-results --player-save-path=players --scripting-backend=il2cpp --timeout=1800 --build-only
     artifacts:
         logs:
             paths:
