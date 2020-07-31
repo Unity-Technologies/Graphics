@@ -108,7 +108,9 @@ namespace UnityEngine.Rendering.Universal
         public bool isHdrEnabled;
         public bool requiresDepthTexture;
         public bool requiresOpaqueTexture;
-
+#if ENABLE_VR && ENABLE_XR_MODULE
+        public bool xrRendering;
+#endif
         internal bool requireSrgbConversion
         {
             get
@@ -324,7 +326,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
 
         // XR
-        public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";    }
+        public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";
+    }
 
     public sealed partial class UniversalRenderPipeline
     {

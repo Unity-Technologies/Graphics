@@ -1,11 +1,11 @@
 * [High Definition Render Pipeline](index)
+* [Requirements](System-Requirements.md)
 * [What's new](whats-new.md)
   * [10.0](whats-new-10-0.md)
 * Features
   * [Features List](HDRP-Features)
   * [Comparison with the Built-in Render Pipeline](Feature-Comparison)
 * Getting started
-  * [System Requirements](System-Requirements.md)
   * [Getting Started with HDRP](Getting-started-with-HDRP)
   * [Upgrading to HDRP](Upgrading-To-HDRP)
   * [Render Pipeline Wizard](Render-Pipeline-Wizard)

@@ -10,6 +10,22 @@
   "license": "SEE LICENSE IN LICENSE.md",
   "homepage": "https://github.com/Unity-Technologies/Graphics#readme",
   "devDependencies": {
-    "husky": "^4.2.5"
+    "husky": "^4.2.5",
+    "lint-staged": "^10.2.11"
+  },
+  "scripts": {
+    "preinstall": "python ./git-hook/preinstall.py",
+    "postinstall": "python ./git-hook/postinstall.py"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npx lint-staged && sh ./git-hook/pre-commit",
+      "pre-push": "python -m git-hook.prepush.check-branch-name"
+    }
+  },
+  "lint-staged": {
+    "../**/*": [
+      "python -m git-hook.precommit.check-file-name-extension"
+    ]
   }
 }

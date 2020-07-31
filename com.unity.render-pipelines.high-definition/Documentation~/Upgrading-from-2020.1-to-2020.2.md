@@ -24,8 +24,6 @@ From Unity 2020.2, decals no longer require a full Depth Prepass. HDRP only rend
 
 From Unity 2020.2, you can use the Decal Layers system which makes use of the **Rendering Layer Mask** property from a Mesh Renderer and Terrain. The default value of this property prior to 2020.2 does not include any Decal Layer flags. This means that when you enable this feature, no Meshes receive decals until you configure them correctly. A script **Edit > Render Pipeline/HD Render Pipeline > Upgrade from Previous Version > Add Decal Layer Default to Loaded Mesh Renderers and Terrains** is provided to convert the already created Meshes, as well a version to apply only on a selection. Newly created Mesh Renderer or Terrain have the have **Decal Layer Default** enable by default.
 
-Warning: 2020.2.0b1 does not include the modification for the default value of Rendering Layer Mask. If you use this version of Unity and create a new Mesh Renderer or Terrain, they do have the correct flag.
-
 ## Lighting
 
 From Unity 2020.2, if you disable the sky override used as the **Static Lighting Sky** in the **Lighting** window, the sky no longer affects the baked lighting. Previously, the sky affected the baked lighting even when it was disabled.
@@ -43,6 +41,8 @@ From Unity 2020.2, the texture format of the color buffer in the HDRP Asset also
 From Unity 2020.2, the light layer properties have move from the HDRP settings to the HDRP Default setting Panel.
 
 From Unity 2020.2, in physically based sky, the sun disk intensity is proportional to its size. Before this the sun disk was incorrectly not drive by the sun disk size.
+
+From Unity 2020.2, if you previously used the **UseEmissiveIntensity** property in either a Decal, Lit, LayeredLit, or Unlit Material, be aware that the **EmissiveColorLDR** property is in sRGB color space. Previously HDRP handled **EmissiveColor** as being in linear RGB color space so there may be a mismatch in visuals between versions. To fix this mismatch, HDRP includes a migration script that handles the conversion automatically.
 
 For project migrating from old 9.x.x-preview package. There is a change in the order of enum of Exposure that may shift the current exposure mode to another one in Exposure Volume. This will need to be corrected manually by reselecting the correct Exposure mode.
 
@@ -102,6 +102,7 @@ From Unity 2020.2,SHADERPASS for TransparentDepthPrepass and TransparentDepthPos
 
 Unity 2020.2 introduces a new multi-compile for Depth Prepass and Motion vector pass to allow for support of the Decal Layers feature. These passes now require you to add #pragma multi_compile _ WRITE_DECAL_BUFFER.
 
+From Unity 2020.2, the shader code for the Decal.shader has changed. Previously, the code used around 16 passes to handle the rendering of different decal attributes. It now only uses four passes: DBufferProjector, DecalProjectorForwardEmissive, DBufferMesh, DecalMeshForwardEmissive. Some pass names are also different. DBufferProjector and DBufferMesh now use a multi_compile DECALS_3RT DECALS_4RT to handle the differents variants and the shader stripper has been updated as well. Various Shader Decal Properties have been renamed/changed to match a new set of AffectXXX properties (_AlbedoMode, _MaskBlendMode, _MaskmapMetal, _MaskmapAO, _MaskmapSmoothness, _Emissive have been changed to _AffectAlbedo, _AffectNormal, _AffectAO, _AffectMetal, _AffectSmoothness, _AffectEmission - Keyword _ALBEDOCONTRIBUTION is now _MATERIAL_AFFECTS_ALBEDO and two new keywords, _MATERIAL_AFFECTS_NORMAL, _MATERIAL_AFFECTS_MASKMAP, have been added). These new properties now match with properties from the Decal Shader Graph which are now exposed in the Material. A Material upgrade process automatically upgrades all the Decal Materials. However, if your project includes any C# scripts that create or manipulate a Decal Material, you need to update the scripts to use the new properties and keyword; the migration does not work on procedurally generated Decal Materials.
 ## Custom pass API
 
 The signature of the Execute function has changed to simplify the parameters, now it only takes a CustomPassContext as its input:
@@ -109,9 +110,9 @@ The signature of the Execute function has changed to simplify the parameters, no
 
 The CustomPassContext contains all the parameters of the old `Execute` function, but also all the available Render Textures as well as a MaterialPropertyBlock unique to the custom pass instance.
 
-This context allows you to use the new [CustomPassUtils]( ../api/UnityEngine.Rendering.HighDefinition.CustomPassUtils.html) class which contains functions to speed up the development of your custom passes.
+This context allows you to use the new [CustomPassUtils]( ../api/UnityEngine.Rendering.HighDefinition.CustomPassUtils.md) class which contains functions to speed up the development of your custom passes.
 
-For information on custom pass utilities, see the [custom pass manual](Custom-Pass-API-User-Manual.md) or the [CustomPassUtils API documentation](../api/UnityEngine.Rendering.HighDefinition.CustomPassUtils.html).
+For information on custom pass utilities, see the [custom pass manual](Custom-Pass-API-User-Manual.md) or the [CustomPassUtils API documentation](../api/UnityEngine.Rendering.HighDefinition.CustomPassUtils.md).
 
 To upgrade your custom pass, replace the original execute function prototype with the new one. To do this, replace:
 

@@ -23,23 +23,23 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -4216859302048453862, guid: 6e3ba455dd217e04a9db01a0853f7bf6, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0
+      value: 63.5
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 6e3ba455dd217e04a9db01a0853f7bf6, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 5.3
+      value: 1.955
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 6e3ba455dd217e04a9db01a0853f7bf6, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -4.457
+      value: -1
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 6e3ba455dd217e04a9db01a0853f7bf6, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 6e3ba455dd217e04a9db01a0853f7bf6, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0
+      value: -0.38268343
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 6e3ba455dd217e04a9db01a0853f7bf6, type: 3}
       propertyPath: m_LocalRotation.z
@@ -47,7 +47,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 6e3ba455dd217e04a9db01a0853f7bf6, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.92387956
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 6e3ba455dd217e04a9db01a0853f7bf6, type: 3}
       propertyPath: m_RootOrder
@@ -59,7 +59,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 6e3ba455dd217e04a9db01a0853f7bf6, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
+      value: -45
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 6e3ba455dd217e04a9db01a0853f7bf6, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -71,11 +71,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5551014577142218206, guid: 6e3ba455dd217e04a9db01a0853f7bf6, type: 3}
       propertyPath: m_LODs.Array.data[0].screenRelativeHeight
-      value: 0.40090817
+      value: 0.23268087
       objectReference: {fileID: 0}
     - target: {fileID: 5551014577142218206, guid: 6e3ba455dd217e04a9db01a0853f7bf6, type: 3}
       propertyPath: m_LODs.Array.data[1].screenRelativeHeight
-      value: 0.18082982
+      value: 0.117940396
+      objectReference: {fileID: 0}
+    - target: {fileID: 5551014577142218206, guid: 6e3ba455dd217e04a9db01a0853f7bf6, type: 3}
+      propertyPath: m_LODs.Array.data[2].screenRelativeHeight
+      value: 0.045228112
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: -4418765996573446019, guid: 6e3ba455dd217e04a9db01a0853f7bf6, type: 3}
