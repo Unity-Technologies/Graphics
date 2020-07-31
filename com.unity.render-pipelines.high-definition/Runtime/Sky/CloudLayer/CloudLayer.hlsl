@@ -6,10 +6,10 @@
 
 TEXTURE2D_ARRAY(_CloudTexture);
 SAMPLER(sampler_CloudTexture);
-    
+
 TEXTURE2D(_CloudFlowmap1);
 SAMPLER(sampler_CloudFlowmap1);
-    
+
 TEXTURE2D(_CloudFlowmap2);
 SAMPLER(sampler_CloudFlowmap2);
 

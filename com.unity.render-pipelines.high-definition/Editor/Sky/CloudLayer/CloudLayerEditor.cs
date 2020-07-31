@@ -196,7 +196,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.indentLevel++;
                 PropertyField(m_Layers);
                 EditorGUI.indentLevel--;
-                
+
                 PropertyField(m_Maps[0], "Map A");
                 bool cloudShadows = m_Maps[0].lighting.castShadows.value.boolValue;
 

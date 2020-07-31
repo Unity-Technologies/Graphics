@@ -66,14 +66,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public VolumeParameter<CloudLayerMode>  mode    = new VolumeParameter<CloudLayerMode>();
         /// <summary>Choose the number of cloud layers.</summary>
         public VolumeParameter<CloudMapMode>    layers  = new VolumeParameter<CloudMapMode>();
-       
+
 
         /// <summary>Controls the opacity of the cloud shadows.</summary>
         [Tooltip("Controls the opacity of the cloud shadows.")]
         public ClampedFloatParameter    shadowsOpacity      = new ClampedFloatParameter(0.5f, 0.0f, 4.0f);
         /// <summary>Controls the scale of the cloud shadows.</summary>
         [Tooltip("Controls the scale of the cloud shadows.")]
-        public MinFloatParameter        shadowsScale        = new MinFloatParameter(500.0f, 0.0f); 
+        public MinFloatParameter        shadowsScale        = new MinFloatParameter(500.0f, 0.0f);
 
 
         [Serializable]
@@ -126,7 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ClampedIntParameter                  steps       = new ClampedIntParameter(4, 1, 10);
             /// <summary>Thickness of the clouds.</summary>
             [Tooltip("Controls the thickness of the clouds.")]
-            public ClampedFloatParameter                thickness   = new ClampedFloatParameter(1, 0, 2);
+            public ClampedFloatParameter                thickness   = new ClampedFloatParameter(0.5f, 0, 2);
 
             /// <summary>Enable to cast shadows.</summary>
             [Tooltip("Enable or disable cloud shadows.")]
@@ -171,7 +171,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>Opacity of the alpha layer.</summary>
             [Tooltip("Opacity of the alpha layer.")]
             public ClampedFloatParameter    opacityA    = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
-            
+
             public CloudSettings settings = new CloudSettings();
             public CloudLighting lighting = new CloudLighting();
 
@@ -230,7 +230,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 return false;
             }
-            
+
             internal int GetBakingHashCode(ref bool castShadows)
             {
                 int hash = 17;
@@ -257,11 +257,11 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>Texture used to render the clouds.</summary>
             [Tooltip("Specify the CustomRenderTexture HDRP uses to render the clouds (in LatLong layout).")]
             public TextureParameter         cloudCRT    = new TextureParameter(null);
-            
+
             public CloudSettings settings = new CloudSettings();
             public CloudLighting lighting = new CloudLighting();
 
-            
+
             internal int GetBakingHashCode(ref bool castShadows)
             {
                 int hash = 17;
