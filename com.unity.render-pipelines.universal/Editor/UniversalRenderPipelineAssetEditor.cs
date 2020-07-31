@@ -222,10 +222,7 @@ namespace UnityEditor.Rendering.Universal
             m_GeneralSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_GeneralSettingsFoldout.value, Styles.generalSettingsText);
             if (m_GeneralSettingsFoldout.value)
             {
-                EditorGUI.indentLevel++;
-
                 EditorGUILayout.Space();
-                EditorGUI.indentLevel--;
                 m_RendererDataList.DoLayoutList();
                 EditorGUI.indentLevel++;
 

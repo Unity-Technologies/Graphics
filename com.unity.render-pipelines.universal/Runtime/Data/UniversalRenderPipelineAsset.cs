@@ -457,7 +457,7 @@ namespace UnityEngine.Rendering.Universal
 
 #endif
 
-        public void AddRendererToRendererDataList(ScriptableRendererData rendererData)
+        internal void AddRendererToRendererDataList(ScriptableRendererData rendererData)
         {
             if (!m_RendererDataList.Contains(rendererData))
             {
@@ -465,7 +465,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public ScriptableRendererData[] RendererDataList { get => m_RendererDataList; }
+        internal ScriptableRendererData[] RendererDataList { get => m_RendererDataList; }
 
         internal int[] rendererIndexList
         {
