@@ -383,6 +383,11 @@ Shader "HDRP/LayeredLit"
         [HideInInspector][NoScaleOffset]unity_Lightmaps("unity_Lightmaps", 2DArray) = "" {}
         [HideInInspector][NoScaleOffset]unity_LightmapsInd("unity_LightmapsInd", 2DArray) = "" {}
         [HideInInspector][NoScaleOffset]unity_ShadowMasks("unity_ShadowMasks", 2DArray) = "" {}
+
+        // custom-begin:
+        [ToggleUI] _EnableDissolveOnOcclusion("Enable Dissolve on Occlusion", Float) = 0
+        [HideInInspector] _DissolveOnOcclusionOpacity("_DissolveOnOcclusionOpacity", Range(0.0, 1.0)) = 1
+        // custom-end
     }
 
     HLSLINCLUDE
@@ -462,6 +467,10 @@ Shader "HDRP/LayeredLit"
     #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local _DISABLE_SSR
     #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
+
+    // custom-begin:
+    #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
+    // custom-end
 
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
 

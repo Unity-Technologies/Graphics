@@ -134,6 +134,11 @@ float _SpecularAAThreshold;
 // TODO: Fix the code in legacy unity so we can customize the behavior for GI
 float3 _EmissionColor;
 
+// custom-begin:
+float _EnableDissolveOnOcclusion;
+float _DissolveOnOcclusionOpacity;
+// custom-end
+
 // Following three variables are feeded by the C++ Editor for Scene selection
 int _ObjectId;
 int _PassValue;

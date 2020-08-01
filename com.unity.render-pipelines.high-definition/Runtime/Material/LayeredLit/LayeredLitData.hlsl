@@ -676,6 +676,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 #endif
 
+// custom-begin:
+#if _EVALUATE_DISSOLVE_ON_OCCLUSION
+    ClipFromDissolveOccluders(posInput, _ScreenSize);
+#endif
+// custom-end
+
 #ifdef _DOUBLESIDED_ON
     float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
 #else
