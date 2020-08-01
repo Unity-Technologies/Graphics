@@ -156,6 +156,11 @@ float _SpecularAAThreshold;
 // Raytracing
 float _RayTracing;
 
+// custom-begin:
+float _EnableDissolveOnOcclusion;
+float _DissolveOnOcclusionOpacity;
+// custom-end
+
 #ifndef LAYERED_LIT_SHADER
 
 // Set of users variables

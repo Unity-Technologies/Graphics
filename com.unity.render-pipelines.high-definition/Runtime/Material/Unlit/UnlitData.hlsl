@@ -7,6 +7,11 @@
 #if !defined(SHADER_STAGE_RAY_TRACING)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl"
 #endif
+
+// custom-begin
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/DissolveOccluders/DissolveOccluders.hlsl"
+// custom-end
+
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
@@ -22,6 +27,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #ifdef _ALPHATEST_ON
     GENERIC_ALPHA_TEST(alpha, _AlphaCutoff);
 #endif
+
+// custom-begin:
+#if _EVALUATE_DISSOLVE_ON_OCCLUSION
+    ClipFromDissolveOccluders(posInput, _ScreenSize);
+#endif
+// custom-end
 
     // Builtin Data
     ZERO_BUILTIN_INITIALIZE(builtinData); // No call to InitBuiltinData as we don't have any lighting

@@ -885,6 +885,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kBuiltInUtilities = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl";
         public const string kMaterialUtilities = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl";
 
+        // custom-begin:
+        public const string kDissolveOnOcclusion = "Packages/com.unity.render-pipelines.high-definition/Runtime/DissolveOccluders/DissolveOccluders.hlsl";
+        // custom-end
+
         // Pregraph Raytracing
         public const string kRaytracingMacros = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl";
         public const string kShaderVariablesRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl";
@@ -1332,8 +1336,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
         };
-
-        public static KeywordDescriptor multiBounceIndirect = new KeywordDescriptor
+		
+		public static KeywordDescriptor multiBounceIndirect = new KeywordDescriptor
         {
             displayName = "Multi Bounce Indirect",
             referenceName = "MULTI_BOUNCE_INDIRECT",
@@ -1341,6 +1345,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
         };
+		
+		// custom-begin:
+        public static KeywordDescriptor DissolveOnOcclusion = new KeywordDescriptor()
+        {
+            displayName = "Enable Dissolve On Occlusion",
+            referenceName = "_ENABLE_DISSOLVE_ON_OCCLUSION",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global
+        };
+        // custom-end
     }
 #endregion
 }
