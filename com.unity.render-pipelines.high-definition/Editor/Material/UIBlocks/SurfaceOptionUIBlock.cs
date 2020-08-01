@@ -32,7 +32,13 @@ namespace UnityEditor.Rendering.HighDefinition
             ShowPrePassAndPostPass      = 1 << 12,
             ShowDepthOffsetOnly         = 1 << 13,
             PreserveSpecularLighting    = 1 << 14,
-            Unlit                       = Surface | BlendMode | DoubleSided | AlphaCutoff | AlphaCutoffThreshold | AlphaCutoffShadowThreshold| AlphaToMask | BackThenFrontRendering | ShowAfterPostProcessPass | ShowPrePassAndPostPass | ShowDepthOffsetOnly,
+			// custom-begin:
+            DissolveOccluders           = 1 << 15,
+            // custom-end
+            Unlit                       = Surface | BlendMode | DoubleSided | AlphaCutoff | AlphaCutoffThreshold | AlphaCutoffShadowThreshold| AlphaToMask | BackThenFrontRendering | ShowAfterPostProcessPass | ShowPrePassAndPostPass | ShowDepthOffsetOnly
+			// custom-begin:
+            | DissolveOccluders,
+            // custom-end
             Lit                         = All ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass ^ ShowDepthOffsetOnly, // Lit can't be display in after postprocess pass
             All                         = ~0,
         }
@@ -111,6 +117,11 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent opaqueCullModeText = new GUIContent("Cull Mode", "For opaque objects, change the cull mode of the object.");
 
             public static string afterPostProcessZTestInfoBox = "After post-process material wont be ZTested. Enable the \"ZTest For After PostProcess\" checkbox in the Frame Settings to force the depth-test if the TAA is disabled.";
+        
+            // custom-begin:
+            public static GUIContent enableDissolveOnOcclusionText = new GUIContent("Dissolve on Occlusion", "Enable or Disable");
+            public static GUIContent dissolveOnOcclusionOpacityText = new GUIContent("Dissolve on Occlusion Opacity", "The opacity of the material when dissolve is triggered. This will be driven by code, but is exposed here for clarity / debugging purposes.");
+            // custom-end
         }
 
         // Properties common to Unlit and Lit
@@ -181,6 +192,13 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kReceivesSSR = "_ReceivesSSR";
         MaterialProperty receivesSSRTransparent = null;
         const string kReceivesSSRTransparent = "_ReceivesSSRTransparent";
+
+        // custom-begin:
+        MaterialProperty enableDissolveOnOcclusion = null;
+        protected const string kEnableDissolveOnOcclusion = "_EnableDissolveOnOcclusion";
+        MaterialProperty dissolveOnOcclusionOpacity = null;
+        protected const string kDissolveOnOcclusionOpacity = "_DissolveOnOcclusionOpacity";
+        // custom-end
 
         MaterialProperty displacementMode = null;
         const string kDisplacementMode = "_DisplacementMode";
@@ -363,6 +381,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 receivesSSRTransparent = FindProperty(kReceivesSSRTransparent);
             }
 
+            // custom-begin:
+            if ((m_Features & Features.DissolveOccluders) != 0)
+            {
+                enableDissolveOnOcclusion = FindProperty(kEnableDissolveOnOcclusion);
+                dissolveOnOcclusionOpacity = FindProperty(kDissolveOnOcclusionOpacity);
+            }
+            // custom-end
+
             transparentZWrite = FindProperty(kTransparentZWrite);
             stencilRef = FindProperty(kStencilRef);
             zTest = FindProperty(kZTestTransparent);
@@ -392,6 +418,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if ((m_Features & Features.DoubleSided) != 0)
                 DrawDoubleSidedGUI();
+
+            // custom-begin:
+            if ((m_Features & Features.DissolveOccluders) != 0)
+                DrawDissolveOccludersGUI();
+            // custom-end
 
             DrawLitSurfaceOptions();
         }
@@ -471,6 +502,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUI.showMixedValue = false;
         }
+
+        // custom-begin:
+        void DrawDissolveOccludersGUI()
+        {
+            if (enableDissolveOnOcclusion != null)
+            {
+                materialEditor.ShaderProperty(enableDissolveOnOcclusion, Styles.enableDissolveOnOcclusionText);
+            }
+
+            if (dissolveOnOcclusionOpacity != null)
+            {
+                materialEditor.ShaderProperty(dissolveOnOcclusionOpacity, Styles.dissolveOnOcclusionOpacityText);
+            }
+        }
+        // custom-end
 
         void DrawDoubleSidedGUI()
         {

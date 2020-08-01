@@ -158,6 +158,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             pass.keywords.Add(CoreKeywordDescriptors.TransparentWritesMotionVector);
             pass.keywords.Add(CoreKeywordDescriptors.FogOnTransparent);
 
+            // custom-begin:
+            pass.keywords.Add(CoreKeywordDescriptors.DissolveOnOcclusion);
+            // custom-end
+
             if (pass.IsLightingOrMaterial())
                 pass.keywords.Add(CoreKeywordDescriptors.DebugDisplay);
             
@@ -344,6 +348,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 builtinData.backThenFrontRendering,
                 builtinData.transparencyFog
             );
+
+            // custom-begin:
+            HDSubShaderUtilities.AddDissolveOccludersProperties(collector, systemData.dissolveOnOcclusion, systemData.dissolveOnOcclusionOpacity);
+            // custom-end
         }
 
         public override void ProcessPreviewMaterial(Material material)

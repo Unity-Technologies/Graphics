@@ -94,6 +94,11 @@ Shader "HDRP/Unlit"
         // Debug constants must be exposed as properties so the shader is compatible
         // with the SRP batcher
         [HideInInspector] _UnlitColorMap_MipInfo("_UnlitColorMap_MipInfo", Vector) = (0, 0, 0, 0)
+
+        // custom-begin:
+        [ToggleUI] _EnableDissolveOnOcclusion("Enable Dissolve on Occlusion", Float) = 0
+        [HideInInspector] _DissolveOnOcclusionOpacity("_DissolveOnOcclusionOpacity", Range(0.0, 1.0)) = 1
+        // custom-end
     }
 
     HLSLINCLUDE
@@ -116,6 +121,10 @@ Shader "HDRP/Unlit"
     #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
 
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
+
+    // custom-begin:
+    #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
+    // custom-end
 
     //-------------------------------------------------------------------------------------
     // Define
