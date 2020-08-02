@@ -10,6 +10,10 @@ Shader "Universal Render Pipeline/Sprite-Lit-Mask"
         [MaterialToggle] PixelSnap ("Pixel snap", Float) = 0
     }
 
+    HLSLINCLUDE
+    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+    ENDHLSL
+
     SubShader
     {
         Tags
@@ -30,15 +34,15 @@ Shader "Universal Render Pipeline/Sprite-Lit-Mask"
         Pass
         {
             Tags{ "LightMode" = "Universal2D" }
-            CGPROGRAM
+            HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_local _ PIXELSNAP_ON
             #pragma multi_compile _ ETC1_EXTERNAL_ALPHA
-            #include "UnitySprites.cginc"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/SpriteShared.hlsl"
 
             // alpha below which a mask should discard a pixel, thereby preventing the stencil buffer from being marked with the Mask's presence
-            fixed _Cutoff;
+            half _Cutoff;
 
             struct appdata_masking
             {
@@ -61,7 +65,7 @@ Shader "Universal Render Pipeline/Sprite-Lit-Mask"
                 UNITY_SETUP_INSTANCE_ID(IN);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
 
-                OUT.pos = UnityObjectToClipPos(IN.vertex);
+                OUT.pos = TransformObjectToHClip(IN.vertex);
                 OUT.uv = IN.texcoord;
 
                 #ifdef PIXELSNAP_ON
@@ -72,28 +76,28 @@ Shader "Universal Render Pipeline/Sprite-Lit-Mask"
             }
 
 
-            fixed4 frag(v2f_masking IN) : SV_Target
+            half4 frag(v2f_masking IN) : SV_Target
             {
-                fixed4 c = SampleSpriteTexture(IN.uv);
+                half4 c = SampleSpriteTexture(IN.uv);
                 // for masks: discard pixel if alpha falls below MaskingCutoff
                 clip (c.a - _Cutoff);
                 return _Color;
             }
-            ENDCG
+            ENDHLSL
         }
 
         Pass
         {
             Tags{ "LightMode" = "NormalsRendering" }
-            CGPROGRAM
+            HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_local _ PIXELSNAP_ON
             #pragma multi_compile _ ETC1_EXTERNAL_ALPHA
-            #include "UnitySprites.cginc"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/SpriteShared.hlsl"
 
             // alpha below which a mask should discard a pixel, thereby preventing the stencil buffer from being marked with the Mask's presence
-            fixed _Cutoff;
+            half _Cutoff;
 
             struct appdata_masking
             {
@@ -116,7 +120,7 @@ Shader "Universal Render Pipeline/Sprite-Lit-Mask"
                 UNITY_SETUP_INSTANCE_ID(IN);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
 
-                OUT.pos = UnityObjectToClipPos(IN.vertex);
+                OUT.pos = TransformObjectToHClip(IN.vertex);
                 OUT.uv = IN.texcoord;
 
                 #ifdef PIXELSNAP_ON
@@ -127,14 +131,14 @@ Shader "Universal Render Pipeline/Sprite-Lit-Mask"
             }
 
 
-            fixed4 frag(v2f_masking IN) : SV_Target
+            half4 frag(v2f_masking IN) : SV_Target
             {
-                fixed4 c = SampleSpriteTexture(IN.uv);
+                half4 c = SampleSpriteTexture(IN.uv);
                 // for masks: discard pixel if alpha falls below MaskingCutoff
                 clip (c.a - _Cutoff);
                 return _Color;
             }
-            ENDCG
+            ENDHLSL
         }
 
     }
