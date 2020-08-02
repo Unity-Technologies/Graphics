@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 1481.9113, g: 1835.9701, b: 2430.3435, a: 1}
+  m_IndirectSpecularColor: {r: 1481.9738, g: 1836.0463, b: 2430.7146, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1058,7 +1058,7 @@ MonoBehaviour:
   m_Lens:
     FieldOfView: 26.991467
     OrthographicSize: 5
-    NearClipPlane: 0.3
+    NearClipPlane: 4
     FarClipPlane: 1000
     Dutch: 0
     LensShift: {x: 0, y: 0}
@@ -11683,7 +11683,7 @@ MonoBehaviour:
   m_Lens:
     FieldOfView: 26.991467
     OrthographicSize: 5
-    NearClipPlane: 0.3
+    NearClipPlane: 4
     FarClipPlane: 1000
     Dutch: 0
     LensShift: {x: 0, y: 0}
@@ -13916,25 +13916,9 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 738646681595172698, guid: 573ac53c334415945bf239de2c2f0511, type: 3}
-      propertyPath: taaHistorySharpening
-      value: 0.1
-      objectReference: {fileID: 0}
-    - target: {fileID: 738646681595172698, guid: 573ac53c334415945bf239de2c2f0511, type: 3}
-      propertyPath: taaSharpenStrength
-      value: 0.1
-      objectReference: {fileID: 0}
-    - target: {fileID: 738646681595172698, guid: 573ac53c334415945bf239de2c2f0511, type: 3}
-      propertyPath: stopNaNs
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 738646681744756154, guid: 573ac53c334415945bf239de2c2f0511, type: 3}
       propertyPath: m_Name
       value: PlayerControllerFPS
-      objectReference: {fileID: 0}
-    - target: {fileID: 738646681744756154, guid: 573ac53c334415945bf239de2c2f0511, type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 738646681744756156, guid: 573ac53c334415945bf239de2c2f0511, type: 3}
       propertyPath: m_LocalPosition.x
@@ -15561,7 +15545,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1594496557}
-  m_LocalRotation: {x: 0.46469972, y: -0.029184263, z: 0.027834238, w: 0.88454944}
+  m_LocalRotation: {x: 0.5811324, y: -0.03649652, z: 0.034808237, w: 0.8122447}
   m_LocalPosition: {x: -3.4893818, y: 3.7002506, z: -6.505281}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -15713,7 +15697,7 @@ MonoBehaviour:
   physicalParameters:
     m_Iso: 200
     m_ShutterSpeed: 0.005
-    m_Aperture: 1
+    m_Aperture: 1.4
     m_BladeCount: 9
     m_Curvature: {x: 2, y: 11}
     m_BarrelClipping: 0.25
@@ -15772,7 +15756,7 @@ Camera:
   m_FOVAxisMode: 0
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
-  m_FocalLength: 40.400005
+  m_FocalLength: 40
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -15781,7 +15765,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 33.085964
+  field of view: 33.39849
   orthographic: 0
   orthographic size: 5
   m_Depth: 0
@@ -21771,7 +21755,7 @@ MonoBehaviour:
   physicalParameters:
     m_Iso: 200
     m_ShutterSpeed: 0.005
-    m_Aperture: 2
+    m_Aperture: 1.4
     m_BladeCount: 9
     m_Curvature: {x: 2, y: 11}
     m_BarrelClipping: 0.25
@@ -21830,7 +21814,7 @@ Camera:
   m_FOVAxisMode: 0
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
-  m_FocalLength: 40
+  m_FocalLength: 50
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -21839,7 +21823,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 67.380135
+  field of view: 26.991467
   orthographic: 0
   orthographic size: 5
   m_Depth: 0
@@ -21864,7 +21848,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1922889286}
-  m_LocalRotation: {x: 0.4569255, y: -0.028696025, z: 0.027368585, w: -0.82358736}
+  m_LocalRotation: {x: 0.56471777, y: -0.03546564, z: 0.033825047, w: 0.8238276}
   m_LocalPosition: {x: -3.4893818, y: 3.7002506, z: -6.505281}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -23992,6 +23976,10 @@ PrefabInstance:
     - target: {fileID: 4939890636832620780, guid: 76336da601705b24888cb14d8af76073, type: 3}
       propertyPath: m_Name
       value: CeilingLamp_01
+      objectReference: {fileID: 0}
+    - target: {fileID: 4939890636832620780, guid: 76336da601705b24888cb14d8af76073, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5307934791213723907, guid: 76336da601705b24888cb14d8af76073, type: 3}
       propertyPath: m_IsActive
