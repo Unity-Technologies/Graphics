@@ -12,6 +12,6 @@ The Raytracing Quality Node is a builtin keyword and thus need to be created in 
 
 | Name          | Direction | Type           | Description                                                  |
 | :------------ | :-------- | :------------- | :----------------------------------------------------------- |
-| **normal**    | Input     | Vector4        | Sets regular value to use for the normal shader graph|
+| **default**   | Input     | Vector4        | Sets the value to use for the normal shader graph. This is the default path use to render this shader graph. |
 | **optimized** | Input     | Vector4        | Sets the value to use for the fast shader graph to use with the GPU heavy raytraced effect.|
 | **output**    | Output    | Vector4        | Outputs is the value which will be selected based on the context this shader graph is used. |
