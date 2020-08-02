@@ -933,6 +933,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Preparation pass for RTSSS to be supported by render graph.
 - Changed the color space of EmissiveColorLDR property on all shader. Was linear but should have been sRGB. Auto upgrade script handle the conversion.
 - Preparation pass for RTSSShadows to be supported by render graph.
+- Rename Raytracing Node to Raytracing Quality Node and rename high and low inputs as default and optimized.
 
 ## [7.1.1] - 2019-09-05
 
