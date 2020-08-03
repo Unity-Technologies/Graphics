@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed XR single-pass macros in tessellation shaders.
 - Fixed XR Display providers not getting zNear and zFar plane distances passed to them when in HDRP.
 - Fixed issue with white flash when enabling SSR.
+- Fixed issue with depth pyramid generation and dynamic resolution.
 
 ### Changed
 - Changed extensions of shader CAS include files.
