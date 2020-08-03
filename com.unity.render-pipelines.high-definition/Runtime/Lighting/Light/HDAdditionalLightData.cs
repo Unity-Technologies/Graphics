@@ -2160,12 +2160,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 needRefreshPrefabInstanceEmissiveMeshes = true;
             }
             m_NeedsPrefabInstanceCheck = false;
-
-            // Update the list of overlapping lights for the LightOverlap scene view mode
-            if (IsOverlapping())
-                s_overlappingHDLights.Add(this);
-            else
-                s_overlappingHDLights.Remove(this);
 #endif
 
 #if UNITY_EDITOR
