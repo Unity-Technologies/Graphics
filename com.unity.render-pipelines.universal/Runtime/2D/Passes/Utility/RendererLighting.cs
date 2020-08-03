@@ -587,8 +587,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             var materialIndex = GetLightMaterialIndex(light, isVolume);
 
-            if (rendererData.lightMaterials[materialIndex] == null)
-                rendererData.lightMaterials[materialIndex] = CreateLightMaterial(rendererData, light, isVolume);
+            if (!rendererData.lightMaterials.TryGetValue(materialIndex, out var material))
+            {
+                material = CreateLightMaterial(rendererData, light, isVolume);
+                rendererData.lightMaterials[materialIndex] = material;
+            }
 
             return rendererData.lightMaterials[materialIndex];
         }

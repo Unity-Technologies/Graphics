@@ -111,8 +111,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var isSceneLit = m_Renderer2DData.lightCullResult.IsSceneLit();
             if (isSceneLit)
             {
-                m_Renderer2DData.InitializeTransient();
-
                 var cmd = CommandBufferPool.Get();
                 cmd.Clear();
 
