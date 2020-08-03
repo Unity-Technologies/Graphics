@@ -471,8 +471,11 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             if (m_LayerCamera.enabled)
             {
-                // Refresh the camera data
+                // Refresh the camera data (but preserve the camera depth/draw-order [case 1264552])
+                var drawOrder = m_LayerCamera.depth;
                 m_LayerCamera.CopyFrom(m_Camera);
+                m_LayerCamera.depth = drawOrder;
+
                 var cameraDataOrig = m_Camera.GetComponent<HDAdditionalCameraData>();
                 var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
                 if (cameraDataOrig)
