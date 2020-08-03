@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.PlayerLoop;
 using UnityEngine.Serialization;
 using UnityEngine.Rendering;
 #if UNITY_EDITOR
@@ -20,7 +21,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         /// <summary>
         /// an enumeration of the types of light
         /// </summary>
-
         public enum LightType
         {
             Parametric = 0,
@@ -35,11 +35,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 #endif
         [SerializeField]
         LightType m_LightType = LightType.Parametric;
-        LightType m_PreviousLightType = (LightType)LightType.Parametric;
-
         [SerializeField, FormerlySerializedAs("m_LightOperationIndex")]
         int m_BlendStyleIndex = 0;
-
 
         [SerializeField]
         float m_FalloffIntensity = 0.5f;
@@ -58,13 +55,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] int m_LightOrder = 0;
         [SerializeField] bool m_AlphaBlendOnOverlap = false;
 
-        // int m_PreviousLightOrder = -1;
-        // int m_PreviousBlendStyleIndex;
-        float       m_PreviousLightVolumeOpacity;
-        bool        m_PreviousLightCookieSpriteExists = false;
-        Sprite      m_PreviousLightCookieSprite     = null;
-        Mesh        m_Mesh;
-        Bounds      m_LocalBounds;
+        int m_PreviousLightCookieSprite;
+        Mesh m_Mesh;
+        Bounds m_LocalBounds;
 
 
         [Range(0,1)]
@@ -80,6 +73,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             get => m_LightType;
             set
             {
+                if(m_LightType != value)
+                    UpdateMesh();
+
                 m_LightType = value;
                 ErrorIfDuplicateGlobalLight();
             }
@@ -104,26 +100,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
         /// <summary>
         /// The lights current color
         /// </summary>
-        public Color color
-        {
-            get { return m_Color; }
-            set { m_Color = value; }
-        }
+        public Color color { get => m_Color; set => m_Color = value; }
 
         /// <summary>
         /// The lights current intensity
         /// </summary>
-        public float intensity
-        {
-            get { return m_Intensity; }
-            set { m_Intensity = value; }
-        }
+        public float intensity { get => m_Intensity; set => m_Intensity = value; }
 
         /// <summary>
         /// The lights current intensity
         /// </summary>
         public float volumeOpacity => m_LightVolumeOpacity;
         public Sprite lightCookieSprite => m_LightCookieSprite;
+        private int lightCookieSpriteInstanceID => m_LightCookieSprite?.GetInstanceID() ?? 0;
         public float falloffIntensity => m_FalloffIntensity;
         public bool useNormalMap => m_UseNormalMap;
         public bool alphaBlendOnOverlap => m_AlphaBlendOnOverlap;
@@ -166,7 +155,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 return -1;
         }
 
-        void UpdateMesh()
+        internal void UpdateMesh()
         {
             GetMesh(true);
         }
@@ -231,8 +220,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (m_LightType == LightType.Global)
                 ErrorIfDuplicateGlobalLight();
 
-            m_PreviousLightType = m_LightType;
-
+            m_PreviousLightCookieSprite = lightCookieSpriteInstanceID;
             Light2DManager.RegisterLight(this);
         }
 
@@ -241,40 +229,21 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Light2DManager.DeregisterLight(this);
         }
 
-        internal List<Vector2> GetFalloffShape()
-        {
-            List<Vector2> shape = new List<Vector2>();
-            List<Vector2> extrusionDir = new List<Vector2>();
-            LightUtility.GetFalloffShape(m_ShapePath, ref extrusionDir);
-            for (int i = 0; i < m_ShapePath.Length; i++)
-            {
-                Vector2 position = new Vector2();
-                position.x = m_ShapePath[i].x + this.shapeLightFalloffSize * extrusionDir[i].x;
-                position.y = m_ShapePath[i].y + this.shapeLightFalloffSize * extrusionDir[i].y;
-                shape.Add(position);
-            }
-            return shape;
-        }
-
         private void LateUpdate()
         {
-            var rebuildMesh = false;
+            if (m_LightType == LightType.Global)
+                return;
 
             // Mesh Rebuilding
-            rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightFalloffSize, ref m_PreviousShapeLightFalloffSize);
-            rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricRadius, ref m_PreviousShapeLightParametricRadius);
-            rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides);
-            rebuildMesh |= LightUtility.CheckForChange(m_LightVolumeOpacity, ref m_PreviousLightVolumeOpacity);
-            rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset);
-            rebuildMesh |= LightUtility.CheckForChange(m_LightCookieSprite != null, ref m_PreviousLightCookieSpriteExists);
-            rebuildMesh |= LightUtility.CheckForChange(m_LightCookieSprite, ref m_PreviousLightCookieSprite);
-            rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightFalloffOffset, ref m_PreviousShapeLightFalloffOffset);
-
-#if UNITY_EDITOR
-            rebuildMesh |= LightUtility.CheckForChange(LightUtility.GetShapePathHash(m_ShapePath), ref m_PreviousShapePathHash);
-#endif
-            if(rebuildMesh && m_LightType != LightType.Global)
+            if (LightUtility.CheckForChange(m_ShapeLightFalloffSize, ref m_PreviousShapeLightFalloffSize) ||
+                LightUtility.CheckForChange(m_ShapeLightParametricRadius, ref m_PreviousShapeLightParametricRadius) ||
+                LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides) ||
+                LightUtility.CheckForChange(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset) ||
+                LightUtility.CheckForChange(lightCookieSpriteInstanceID, ref m_PreviousLightCookieSprite)
+            )
+            {
                 UpdateMesh();
+            }
         }
     }
 }

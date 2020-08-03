@@ -16,12 +16,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         int     m_PreviousShapeLightParametricSides         = -1;
         float   m_PreviousShapeLightParametricAngleOffset   = -1;
         float   m_PreviousShapeLightParametricRadius        = -1;
-        Vector2 m_PreviousShapeLightFalloffOffset           = Vector2.negativeInfinity;
 
-
-#if UNITY_EDITOR
-        int     m_PreviousShapePathHash                     = -1;
-#endif
 
         public int              shapeLightParametricSides       => m_ShapeLightParametricSides;
         public float            shapeLightParametricAngleOffset => m_ShapeLightParametricAngleOffset;
