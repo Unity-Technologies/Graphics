@@ -73,12 +73,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
 #endif
 
                 Profiler.BeginSample("Test Planes");
+                var position = light.transform.position;
                 var culled = false;
                 for (var i = 0; i < cullingParameters.cullingPlaneCount; ++i)
                 {
                     var plane = cullingParameters.GetCullingPlane(i);
                     // most of the time is spent getting world position
-                    var distance = math.dot(light.transform.position, plane.normal) + plane.distance;
+                    var distance = math.dot(position, plane.normal) + plane.distance;
                     if (distance < -light.boundingSphereRadius)
                     {
                         culled = true;
