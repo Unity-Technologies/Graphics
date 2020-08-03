@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with white flash when enabling SSR.
 - Fixed issue with depth pyramid generation and dynamic resolution.
 - Fixed an issue where opening the look dev window with the light theme would make the window blink and eventually crash unity.
+- Fixed a serialization issue, preventing quality level parameters to undo/redo and update scene view on change.
 
 ### Changed
 - Changed extensions of shader CAS include files.
