@@ -1,6 +1,6 @@
 # Decal
 
-The High Definition Render Pipeline (HDRP) includes two ways to create decals in a Scene. You can either use a decal Mesh and manually position the decal or use the [Decal Projector](Decal-Projector.html) component to project the decal. Both of these methods require that you create a decal Material, which is a Material that uses either the [Decal Shader](Decal-Shader.md) or [Decal master node](Master-Node-Decal.md). You can use either to create decal Materials that you can place or project into a Scene.
+The High Definition Render Pipeline (HDRP) includes two ways to create decals in a Scene. You can either use a decal Mesh and manually position the decal or use the [Decal Projector](Decal-Projector.md) component to project the decal. Both of these methods require that you create a decal Material, which is a Material that uses either the [Decal Shader](Decal-Shader.md) or [Decal master node](Master-Node-Decal.md). You can use either to create decal Materials that you can place or project into a Scene.
 
 ![](Images/HDRPFeatures-DecalShader.png)
 
