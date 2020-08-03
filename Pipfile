@@ -1,11 +1,7 @@
+  
 [[source]]
 name = "pypi-artifactory"
-url = "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple"
-verify_ssl = true
-
-[[source]]
-name = "pypi-artifactory-internal"
-url = "https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/unity-pypi-local/simple"
+url = "https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple"
 verify_ssl = true
 
 [dev-packages]
@@ -20,3 +16,6 @@ datetime = "*"
 six = "*"
 unity-downloader-cli = "*"
 requests = "*"
+#lz4 = "~=2.2.1"
+future = "*"
+semver = "*"
