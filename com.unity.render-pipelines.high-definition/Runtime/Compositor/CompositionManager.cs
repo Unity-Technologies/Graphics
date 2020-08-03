@@ -510,6 +510,9 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 }
                 SetLayerRenderTargets();
             }
+
+            // [case 1264552] layer.Update() copies the source layer camera properties to the internal layer camera, overwritting the ordering info. So we have to set it again. 
+            SetupLayerPriorities();
         }
 
         void OnDestroy()
