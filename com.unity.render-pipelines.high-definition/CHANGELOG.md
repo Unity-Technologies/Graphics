@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with blue line in prefabs for volume mode.
 - Fix issue that caused sky to incorrectly render when using a custom projection matrix.
 
+### Changed
+- Changed extensions of shader CAS include files.
+
 ## [7.4.1] - 2020-06-03
 
 Version Updated
