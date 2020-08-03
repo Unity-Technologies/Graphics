@@ -49,7 +49,7 @@ When you create an HDRP Asset, open it in the Inspector to edit its properties.
 | **Custom Pass**                         | Enable the checkbox to make HDRP support custom passes. If your Unity Project does not make use [Custom Passes](Custom-Pass.md), Uncheck this checkbox to save memory . |
 | - **Custom Buffer Format**              | Specify the texture format for the custom buffer. If you experience banding issues due to your custom passes, you can change it to either `R11G11B10` if you don't need alpha or `R16G16B16A16`. |
 | **Realtime Raytracing (Preview)**       | Enable the checkbox to enable HDRP realtime ray tracing (Experimental). It requires to have ray tracing compatible hardware. For more information, please refer to the [Ray Tracing Getting Started](Ray-Tracing-Getting-Started.md#HardwareRequirements) page. |
-| **Supported Ray Tracing Mode (Preview)**| Select the supported modes for ray tracing effects (Performance, Quality or Both). For more information, please refer to the [Ray Tracing Tier Table](Ray-Tracing-Getting-Started.md#TierTable). |
+| **Supported Ray Tracing Mode (Preview)**| Select the supported modes for ray tracing effects (Performance, Quality or Both). For more information, see the [Ray Tracing Getting Started](Ray-Tracing-Getting-Started.md) page. |
 | - **LOD Bias**                          | Set the value that Cameras use to calculate their LOD bias. The Camera uses this value differently depending on the **LOD Bias Mode** you select. |
 | - **Maximum LOD Level**                 | Set the value that Cameras use to calculate their maximum level of detail. The Camera uses this value differently depending on the **Maximum LOD Level Mode** you select. |
 
@@ -67,7 +67,7 @@ These settings control the draw distance and resolution of the decals atlas that
 | **- Atlas Height**                           | The Decal Atlas height. This atlas stores all decals that project onto transparent surfaces. |
 | **- Metal and Ambient Occlusion properties** | Enable the checkbox to allow decals to affect metallic and ambient occlusion Material properties. Enabling this feature has a performance impact. |
 | **- Maximum Clustered Decals on Screen**     | The maximum number of clustered decals that can affect transparent GameObjects on screen. Clustered decals refer to a list of decals that HDRP uses when it renders transparent GameObjects. |
-| **- Layers**                                 | Enable the checkbox to allow decals to affect only specific layers.|
+| **- Layers**                                 | Enable the checkbox to allow decals to only affect specific layers.|
 
 <a name="DynamicResolution"></a>
 
