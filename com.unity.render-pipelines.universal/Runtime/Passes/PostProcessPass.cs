@@ -589,13 +589,23 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian)
                 DoGaussianDepthOfField(camera, cmd, source, destination, pixelRect);
             else if (m_DepthOfField.mode.value == DepthOfFieldMode.Bokeh)
-                DoBokehDepthOfField(cmd, source, destination, pixelRect);
+                DoBokehDepthOfField(camera, cmd, source, destination, pixelRect);
         }
 
-        void SetTextureSize(CommandBuffer cmd, int nameID, int width, int height)
+        void SetTextureSize(Camera camera, CommandBuffer cmd, int nameID, int width, int height)
         {
-            float w = width * ScalableBufferManager.widthScaleFactor;
-            float h = height * ScalableBufferManager.heightScaleFactor;
+            float w;
+            float h;
+            if (camera.allowDynamicResolution)
+            {
+                w = width * ScalableBufferManager.widthScaleFactor;
+                h = height * ScalableBufferManager.heightScaleFactor;
+            }
+            else
+            {
+                w = width;
+                h = height;
+            }
             cmd.SetGlobalVector(nameID, new Vector4(w, h, 1.0f / w, 1.0f / h));
         }
 
@@ -625,8 +635,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // TODO: Revisit this texel size setup once we have RTHandles
             // Workaround for case 1225467, where texel size is not accounted for dynamic resolution
-            SetTextureSize(cmd, ShaderConstants._SourceSize, m_Descriptor.width, m_Descriptor.height);
-            SetTextureSize(cmd, ShaderConstants._HalfSourceSize, wh, hh);
+            SetTextureSize(camera, cmd, ShaderConstants._SourceSize, m_Descriptor.width, m_Descriptor.height);
+            SetTextureSize(camera, cmd, ShaderConstants._HalfSourceSize, wh, hh);
 
             // Compute CoC
             Blit(cmd, source, ShaderConstants._FullCoCTexture, material, 0);
@@ -711,7 +721,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return Mathf.Min(0.05f, kRadiusInPixels / viewportHeight);
         }
 
-        void DoBokehDepthOfField(CommandBuffer cmd, int source, int destination, Rect pixelRect)
+        void DoBokehDepthOfField(Camera camera, CommandBuffer cmd, int source, int destination, Rect pixelRect)
         {
             var material = m_Materials.bokehDepthOfField;
             int wh = m_Descriptor.width / 2;
@@ -744,8 +754,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // TODO: Revisit this texel size setup once we have RTHandles
             // Workaround for case 1225467, where texel size is not accounted for dynamic resolution
-            SetTextureSize(cmd, ShaderConstants._SourceSize, m_Descriptor.width, m_Descriptor.height);
-            SetTextureSize(cmd, ShaderConstants._HalfSourceSize, wh, hh);
+            SetTextureSize(camera, cmd, ShaderConstants._SourceSize, m_Descriptor.width, m_Descriptor.height);
+            SetTextureSize(camera, cmd, ShaderConstants._HalfSourceSize, wh, hh);
 
             // Compute CoC
             Blit(cmd, source, ShaderConstants._FullCoCTexture, material, 0);
