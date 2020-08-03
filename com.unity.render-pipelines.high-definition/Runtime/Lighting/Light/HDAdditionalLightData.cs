@@ -1810,6 +1810,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return shadowUpdateMode != ShadowUpdateMode.EveryFrame && m_AlwaysDrawDynamicShadows;
         }
 
+        internal ShadowMapUpdateType GetShadowUpdateType()
+        {
+            if (ShadowIsUpdatedEveryFrame()) return ShadowMapUpdateType.Dynamic;
+            if (m_AlwaysDrawDynamicShadows) return ShadowMapUpdateType.Mixed;
+            return ShadowMapUpdateType.Cached;
+        }
+
         internal void EvaluateShadowState(HDCamera hdCamera, in ProcessedLightData processedLight, CullingResults cullResults, FrameSettings frameSettings, int lightIndex)
         {
             Bounds bounds;

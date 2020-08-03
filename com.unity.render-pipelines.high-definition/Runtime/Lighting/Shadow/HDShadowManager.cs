@@ -31,6 +31,16 @@ namespace UnityEngine.Rendering.HighDefinition
         AreaLightAtlas
     }
 
+    enum ShadowMapUpdateType
+    {
+        // Fully dynamic shadow maps
+        Dynamic = 0,
+        // Fully cached shadow maps (nothing is rendered unless requested)
+        Cached,
+        // Mixed, static shadow caster are cached and updated as indicated, dynamic are drawn on top. 
+        Mixed
+    }
+
     [GenerateHLSL(needAccessors = false)]
     struct HDShadowData
     {

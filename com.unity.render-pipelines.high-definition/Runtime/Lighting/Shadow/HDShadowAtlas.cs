@@ -39,6 +39,11 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_IntermediateSummedAreaTexture;
         RTHandle m_SummedAreaTexture;
 
+        // This must be true for atlas that contain cached data (effectively this
+        // drives what to do with mixed cached shadow map -> if true we filter with only static
+        // if false we filter only for dynamic)
+        protected bool m_IsACacheForShadows;
+
         public HDShadowAtlas() { }
 
         public virtual void InitAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
@@ -58,6 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ClearMaterial = clearMaterial;
             m_BlurAlgorithm = blurAlgorithm;
             m_RenderPipelineResources = renderPipelineResources;
+            m_IsACacheForShadows = false;
 
             AllocateRenderTexture();
         }
@@ -130,7 +136,7 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowDrawSettings.useRenderingLayerMaskTest = frameSettings.IsEnabled(FrameSettingsField.LightLayers);
 
             var parameters = PrepareRenderShadowsParameters(globalCB);
-            RenderShadows(parameters, m_Atlas, shadowDrawSettings, renderContext, cmd);
+            RenderShadows(parameters, m_Atlas, shadowDrawSettings, renderContext, m_IsACacheForShadows, cmd);
 
             if (parameters.blurAlgorithm == BlurAlgorithm.IM)
             {
@@ -138,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else if (parameters.blurAlgorithm == BlurAlgorithm.EVSM)
             {
-                EVSMBlurMoments(parameters, m_Atlas, m_AtlasMoments, cmd);
+                EVSMBlurMoments(parameters, m_Atlas, m_AtlasMoments, m_IsACacheForShadows, cmd);
             }
         }
 
@@ -181,6 +187,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     RTHandle                    atlasRenderTexture,
                                     ShadowDrawingSettings       shadowDrawSettings,
                                     ScriptableRenderContext     renderContext,
+                                    bool                        renderingOnAShadowCache,
                                     CommandBuffer               cmd)
         {
             cmd.SetRenderTarget(atlasRenderTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
@@ -243,6 +250,7 @@ namespace UnityEngine.Rendering.HighDefinition
         unsafe static void EVSMBlurMoments( RenderShadowsParameters parameters,
                                             RTHandle atlasRenderTexture,
                                             RTHandle[] momentAtlasRenderTextures,
+                                            bool blurOnACache,
                                             CommandBuffer cmd)
         {
             ComputeShader shadowBlurMomentsCS = parameters.evsmShadowBlurMomentsCS;

@@ -99,6 +99,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public RenderShadowsParameters parameters;
             public ShadowDrawingSettings shadowDrawSettings;
+
+            public bool isRenderingOnACache;
         }
 
         TextureHandle AllocateMomentAtlas(RenderGraph renderGraph, string name)
@@ -120,6 +122,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // TODO: Get rid of this and refactor to use the same kind of API than RendererList
                 passData.shadowDrawSettings = new ShadowDrawingSettings(cullResults, 0);
                 passData.shadowDrawSettings.useRenderingLayerMaskTest = frameSettings.IsEnabled(FrameSettingsField.LightLayers);
+                passData.isRenderingOnACache = m_IsACacheForShadows;
                 passData.atlasTexture = builder.WriteTexture(
                         renderGraph.CreateTexture(  new TextureDesc(width, height)
                             { filterMode = m_FilterMode, depthBufferBits = m_DepthBufferBits, isShadowMap = true, name = m_Name, clearBuffer = passData.parameters.debugClearAtlas }));
@@ -152,7 +155,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderShadows(  data.parameters,
                                     data.atlasTexture,
                                     data.shadowDrawSettings,
-                                    context.renderContext, context.cmd);
+                                    context.renderContext,
+                                    data.isRenderingOnACache,
+                                    context.cmd);
 
                     if (data.parameters.blurAlgorithm == BlurAlgorithm.EVSM)
                     {
@@ -160,7 +165,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         momentTextures[0] = data.momentAtlasTexture1;
                         momentTextures[1] = data.momentAtlasTexture2;
 
-                        EVSMBlurMoments(data.parameters, data.atlasTexture, momentTextures, context.cmd);
+                        EVSMBlurMoments(data.parameters, data.atlasTexture, momentTextures, data.isRenderingOnACache, context.cmd);
                     }
                     else if (data.parameters.blurAlgorithm == BlurAlgorithm.IM)
                     {
