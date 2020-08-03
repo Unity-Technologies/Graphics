@@ -292,6 +292,7 @@ namespace UnityEngine.Rendering.Universal
                 m_RendererFeatures.Add(feature);
             }
             Clear(CameraRenderType.Base);
+            m_ActiveRenderPassQueue.Clear();
         }
 
         public void Dispose()
@@ -553,8 +554,6 @@ namespace UnityEngine.Rendering.Universal
 
             m_FirstTimeCameraColorTargetIsBound = cameraType == CameraRenderType.Base;
             m_FirstTimeCameraDepthTargetIsBound = true;
-
-            m_ActiveRenderPassQueue.Clear();
 
             m_CameraColorTarget = BuiltinRenderTextureType.CameraTarget;
             m_CameraDepthTarget = BuiltinRenderTextureType.CameraTarget;
@@ -920,6 +919,8 @@ namespace UnityEngine.Rendering.Universal
 
                     FinishRendering(cmd);
                 }
+
+                m_ActiveRenderPassQueue.Clear();
             }
 
             context.ExecuteCommandBuffer(cmd);
