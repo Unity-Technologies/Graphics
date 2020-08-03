@@ -224,12 +224,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, colorBuffer, backBuffer, cullingResults, hdCamera);
 
-            // TODO RENDERGRAPH
-            //// If requested, compute histogram of the very final image
-            //if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView)
-            //{
-            //    m_PostProcessSystem.GenerateDebugImageHistogram(cmd, hdCamera, m_IntermediateAfterPostProcessBuffer);
-            //}
+            // If requested, compute histogram of the very final image
+            if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView)
+            {
+                GenerateDebugImageHistogram(m_RenderGraph, hdCamera, postProcessDest);
+            }
             //PushFullScreenExposureDebugTexture(cmd, m_IntermediateAfterPostProcessBuffer);
 
             RenderCustomPass(m_RenderGraph, hdCamera, postProcessDest, prepassOutput.depthBuffer, prepassOutput.normalBuffer, customPassCullingResults, CustomPassInjectionPoint.AfterPostProcess, aovRequest, aovBuffers);
