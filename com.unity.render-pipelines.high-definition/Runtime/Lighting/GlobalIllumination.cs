@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         [SerializeField]
         [Tooltip("Controls the number of steps used for ray marching.")]
-        public ClampedIntParameter m_RaySteps = new ClampedIntParameter(24, 16, 128);
+        private ClampedIntParameter m_RaySteps = new ClampedIntParameter(24, 16, 128);
 
         /// <summary>
         /// The maximal world space radius from which we should get indirect lighting contribution.
@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         [SerializeField]
         [Tooltip("Controls the maximal world space radius from which we should get indirect lighting contribution.")]
-        public ClampedFloatParameter m_MaximalRadius = new ClampedFloatParameter(2.0f, 0.01f, 50.0f);
+        private ClampedFloatParameter m_MaximalRadius = new ClampedFloatParameter(2.0f, 0.01f, 50.0f);
 
         /// <summary>
         /// Defines if the effect should be evaluated at full resolution.
@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering.HighDefinition
             set { m_FullResolutionSS.value = value; }
         }
         [SerializeField]
-        public BoolParameter m_FullResolutionSS = new BoolParameter(true);
+        private BoolParameter m_FullResolutionSS = new BoolParameter(true);
 
         /// <summary>
         /// Defines if the effect should be evaluated at full resolution.
@@ -100,7 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
             set { m_ClampValueSS.value = value; }
         }
         [SerializeField]
-        public ClampedFloatParameter m_ClampValueSS = new ClampedFloatParameter(2.0f, 0.01f, 10.0f);
+        private ClampedFloatParameter m_ClampValueSS = new ClampedFloatParameter(2.0f, 0.01f, 10.0f);
 
         /// <summary>
         /// Defines the radius for the spatial filter
@@ -118,7 +118,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         [Tooltip("Filter Radius")]
         [SerializeField]
-        public ClampedIntParameter m_FilterRadius = new ClampedIntParameter(2, 2, 8);
+        private ClampedIntParameter m_FilterRadius = new ClampedIntParameter(2, 2, 8);
 
         /// <summary>
         /// Toggles ray traced global illumination.

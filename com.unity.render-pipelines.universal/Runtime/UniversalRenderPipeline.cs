@@ -339,7 +339,6 @@ namespace UnityEngine.Rendering.Universal
                 if (baseCameraData.xr.enabled)
                 {
                     xrActive = true;
-                    // XRTODO: Revisit URP cameraTargetDescriptor logic. The descriptor here is not for camera target, it is for intermediate render texture.
                     baseCameraData.cameraTargetDescriptor = baseCameraData.xr.renderTargetDesc;
                     if (baseCameraData.isHdrEnabled)
                     {
@@ -626,6 +625,9 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresDepthTexture = additionalCameraData.requiresDepthTexture;
                 cameraData.requiresOpaqueTexture = additionalCameraData.requiresColorTexture;
                 cameraData.renderer = additionalCameraData.scriptableRenderer;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                cameraData.xrRendering = additionalCameraData.allowXRRendering;
+#endif
             }
             else
             {

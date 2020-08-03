@@ -109,7 +109,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
             }
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles gles3 glcore
+            #pragma exclude_renderers d3d11_9x gles
             #pragma target 3.0
 
             #pragma vertex SplatmapVert
