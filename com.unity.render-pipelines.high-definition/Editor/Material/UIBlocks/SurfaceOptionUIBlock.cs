@@ -402,12 +402,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     if (transparentDepthPrepassEnable != null && transparentDepthPrepassEnable.floatValue == 1.0f)
                     {
-                        materialEditor.ShaderProperty(alphaCutoffPrepass, Styles.alphaCutoffPrepassText);
+                        if (alphaCutoffPrepass != null)
+                            materialEditor.ShaderProperty(alphaCutoffPrepass, Styles.alphaCutoffPrepassText);
                     }
 
                     if (transparentDepthPostpassEnable != null && transparentDepthPostpassEnable.floatValue == 1.0f)
                     {
-                        materialEditor.ShaderProperty(alphaCutoffPostpass, Styles.alphaCutoffPostpassText);
+                        if (alphaCutoffPostpass != null)
+                            materialEditor.ShaderProperty(alphaCutoffPostpass, Styles.alphaCutoffPostpassText);
                     }
                 }
                 EditorGUI.indentLevel--;

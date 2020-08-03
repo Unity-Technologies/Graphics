@@ -13,7 +13,7 @@ Material:
   m_LightmapFlags: 6
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 2050
+  m_CustomRenderQueue: 2000
   stringTagMap:
     RenderType: Opaque
   disabledShaderPasses: []
@@ -106,6 +106,7 @@ Material:
     - _EmissionColorWithMapUI: {r: 1, g: 1, b: 1, a: 1}
     - _SpecColor: {r: 0.72794116, g: 0.72794116, b: 0.72794116, a: 1}
     - _SpecularColor: {r: 0.7882353, g: 0.7882353, b: 0.7882353, a: 1}
+  m_BuildTextureStacks: []
 --- !u!114 &890071247540972588
 MonoBehaviour:
   m_ObjectHideFlags: 11
@@ -115,8 +116,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 1
+  version: 2
