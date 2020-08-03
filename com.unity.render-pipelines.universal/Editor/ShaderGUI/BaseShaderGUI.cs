@@ -282,7 +282,11 @@ namespace UnityEditor
         public virtual void DrawAdvancedOptions(Material material)
         {
             materialEditor.EnableInstancingField();
+            DrawQueueOffsetField();
+        }
 
+        protected void DrawQueueOffsetField()
+        {
             if (queueOffsetProp != null)
             {
                 EditorGUI.BeginChangeCheck();

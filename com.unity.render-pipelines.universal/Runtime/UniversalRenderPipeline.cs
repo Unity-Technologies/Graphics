@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering.Universal
 
         const string k_RenderCameraTag = "Render Camera";
         static ProfilingSampler _CameraProfilingSampler = new ProfilingSampler(k_RenderCameraTag);
+        private static readonly ProfilingSampler m_ProfilingXRMirrorView = new ProfilingSampler("XR Mirror View");
 
 #if ENABLE_VR && ENABLE_XR_MODULE
         internal static XRSystem m_XRSystem = new XRSystem();
@@ -72,12 +73,6 @@ namespace UnityEngine.Rendering.Universal
                 return (isMobile || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
                         ? k_MaxVisibleAdditionalLightsMobile : k_MaxVisibleAdditionalLightsNonMobile;
             }
-        }
-
-        // Internal max count for how many ScriptableRendererData can be added to a single Universal RP asset
-        internal static int maxScriptableRenderers
-        {
-            get => 8;
         }
 
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
@@ -217,8 +212,14 @@ namespace UnityEngine.Rendering.Universal
             ScriptableRenderer.current = renderer;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
+            // NOTE: Do NOT mix ProfilingScope with named CommandBuffers i.e. CommandBufferPool.Get("name").
+            // Currently there's an issue which results in mismatched markers.
+            // The named CommandBuffer will close its "profiling scope" on execution.
+            // That will orphan ProfilingScope markers as the named CommandBuffer markers are their parents.
+            // Resulting in following pattern:
+            // exec(cmd.start, scope.start, cmd.end) and exec(cmd.start, scope.end, cmd.end)
+            CommandBuffer cmd = CommandBufferPool.Get();
             ProfilingSampler sampler = (asset.debugLevel >= PipelineDebugLevel.Profiling) ? new ProfilingSampler(camera.name) : _CameraProfilingSampler;
-            CommandBuffer cmd = CommandBufferPool.Get(sampler.name);
             using (new ProfilingScope(cmd, sampler)) // Enqueues a "BeginSample" command into the CommandBuffer cmd
             {
                 renderer.Clear(cameraData.renderType);
@@ -247,7 +248,7 @@ namespace UnityEngine.Rendering.Universal
                 renderer.Execute(context, ref renderingData);
             } // When ProfilingSample goes out of scope, an "EndSample" command is enqueued into CommandBuffer cmd
 
-            cameraData.xr.EndCamera(cmd, camera);
+            cameraData.xr.EndCamera(cmd, cameraData);
             context.ExecuteCommandBuffer(cmd); // Sends to ScriptableRenderContext all the commands enqueued since cmd.Clear, i.e the "EndSample" command
             CommandBufferPool.Release(cmd);
             context.Submit(); // Actually execute the commands that we previously sent to the ScriptableRenderContext context
@@ -275,7 +276,6 @@ namespace UnityEngine.Rendering.Universal
             List<Camera> cameraStack = (supportsCameraStacking) ? baseCameraAdditionalData?.cameraStack : null;
 
             bool anyPostProcessingEnabled = baseCameraAdditionalData != null && baseCameraAdditionalData.renderPostProcessing;
-            anyPostProcessingEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             // We need to know the last active camera in the stack to be able to resolve
             // rendering to screen when rendering it. The last camera in the stack is not
@@ -316,7 +316,9 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-
+            // Post-processing not supported in GLES2.
+            anyPostProcessingEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
+            
             bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
 
             InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
@@ -337,16 +339,25 @@ namespace UnityEngine.Rendering.Universal
                 if (baseCameraData.xr.enabled)
                 {
                     xrActive = true;
-                    // XRTODO: Revisit URP cameraTargetDescriptor logic. The descriptor here is not for camera target, it is for intermediate render texture.
                     baseCameraData.cameraTargetDescriptor = baseCameraData.xr.renderTargetDesc;
                     if (baseCameraData.isHdrEnabled)
                     {
                         baseCameraData.cameraTargetDescriptor.graphicsFormat = originalTargetDesc.graphicsFormat;
                     }
                     baseCameraData.cameraTargetDescriptor.msaaSamples = originalTargetDesc.msaaSamples;
+                    // Update cameraData for XR
+                    Rect cameraRect = baseCamera.rect;
+                    Rect xrViewport = baseCameraData.xr.GetViewport();
+                    baseCameraData.pixelRect = new Rect(cameraRect.x * xrViewport.width + xrViewport.x,
+                                                        cameraRect.y * xrViewport.height + xrViewport.y,
+                                                        cameraRect.width * xrViewport.width,
+                                                        cameraRect.height * xrViewport.height);
+                    baseCameraData.pixelWidth  = (int)(cameraRect.width * xrViewport.width);
+                    baseCameraData.pixelHeight = (int)(cameraRect.height * xrViewport.height);
+                    baseCameraData.aspectRatio = (float)baseCameraData.pixelWidth / (float)baseCameraData.pixelHeight;
                 }
 #endif
-                BeginCameraRendering(context, baseCamera);
+            BeginCameraRendering(context, baseCamera);
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
                 //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
                 VFX.VFXManager.PrepareCamera(baseCamera);
@@ -374,10 +385,6 @@ namespace UnityEngine.Rendering.Universal
                             // Copy base settings from base camera data and initialize initialize remaining specific settings for this camera type.
                             CameraData overlayCameraData = baseCameraData;
                             bool lastCamera = i == lastActiveOverlayCameraIndex;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                            if (baseCameraData.xr.enabled)
-                                m_XRSystem.UpdateFromCamera(ref overlayCameraData.xr, currCamera);
-#endif
                             BeginCameraRendering(context, currCamera);
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
                             //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
@@ -385,6 +392,10 @@ namespace UnityEngine.Rendering.Universal
 #endif
                             UpdateVolumeFramework(currCamera, currCameraData);
                             InitializeAdditionalCameraData(currCamera, currCameraData, lastCamera, ref overlayCameraData);
+#if ENABLE_VR && ENABLE_XR_MODULE
+                            if (baseCameraData.xr.enabled)
+                                m_XRSystem.UpdateFromCamera(ref overlayCameraData.xr, overlayCameraData);
+#endif
                             RenderSingleCamera(context, overlayCameraData, anyPostProcessingEnabled);
                             EndCameraRendering(context, currCamera);
                         }
@@ -398,8 +409,12 @@ namespace UnityEngine.Rendering.Universal
 
             if (xrActive)
             {
-                CommandBuffer cmd = CommandBufferPool.Get("XR Mirror View");
-                m_XRSystem.RenderMirrorView(cmd, baseCamera);
+                CommandBuffer cmd = CommandBufferPool.Get();
+                using (new ProfilingScope(cmd, m_ProfilingXRMirrorView))
+                {
+                    m_XRSystem.RenderMirrorView(cmd, baseCamera);
+                }
+
                 context.ExecuteCommandBuffer(cmd);
                 context.Submit();
                 CommandBufferPool.Release(cmd);
@@ -470,7 +485,7 @@ namespace UnityEngine.Rendering.Universal
                 motionVectors = false,
                 receiveShadows = false,
                 reflectionProbes = true,
-                particleSystemInstancing = false
+                particleSystemInstancing = true
             };
             SceneViewDrawMode.SetupDrawMode();
 #endif
@@ -531,7 +546,7 @@ namespace UnityEngine.Rendering.Universal
             ///////////////////////////////////////////////////////////////////
             // Settings that control output of the camera                     /
             ///////////////////////////////////////////////////////////////////
-            
+
             var renderer = baseAdditionalCameraData?.scriptableRenderer;
             bool rendererSupportsMSAA = renderer != null && renderer.supportedRenderingFeatures.msaa;
 
@@ -610,6 +625,9 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresDepthTexture = additionalCameraData.requiresDepthTexture;
                 cameraData.requiresOpaqueTexture = additionalCameraData.requiresColorTexture;
                 cameraData.renderer = additionalCameraData.scriptableRenderer;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                cameraData.xrRendering = additionalCameraData.allowXRRendering;
+#endif
             }
             else
             {
@@ -863,7 +881,7 @@ namespace UnityEngine.Rendering.Universal
             Shader.SetGlobalVector(ShaderPropertyId.ambientSkyColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientSkyColor));
             Shader.SetGlobalVector(ShaderPropertyId.ambientEquatorColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientEquatorColor));
             Shader.SetGlobalVector(ShaderPropertyId.ambientGroundColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientGroundColor));
-            
+
             // Used when subtractive mode is selected
             Shader.SetGlobalVector(ShaderPropertyId.subtractiveShadowColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.subtractiveShadowColor));
         }

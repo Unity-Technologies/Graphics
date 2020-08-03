@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                     "When enabled, the Material samples reflections from the nearest Reflection Probes or Lighting Probe.");
 
             public static GUIContent heightMapText = new GUIContent("Height Map",
-                "Specifies the Height Map (G) for this Material..");
+                "Specifies the Height Map (G) for this Material.");
 
             public static GUIContent occlusionText = new GUIContent("Occlusion Map",
                 "Sets an occlusion map to simulate shadowing from ambient lighting.");
@@ -135,7 +135,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                     properties.occlusionMap.textureValue != null ? properties.occlusionStrength : null);
             }
 
-            DoClearCoat(properties, materialEditor, material);
+            // Check that we have all the required properties for clear coat,
+            // otherwise we will get null ref exception from MaterialEditor GUI helpers.
+            if (   material.HasProperty("_ClearCoat")
+                && material.HasProperty("_ClearCoatMap")
+                && material.HasProperty("_ClearCoatMask"))
+                //&& material.HasProperty("_ClearCoatSmoothness")) //TODO: enable
+            {
+                //DoClearCoat(properties, materialEditor, material);
+            }
+
         }
 
         private static void DoHeightmapArea(LitProperties properties, MaterialEditor materialEditor)

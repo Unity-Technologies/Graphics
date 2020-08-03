@@ -51,16 +51,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             RTFormat = m_RTFormat;
         }
-
-        // relies on the order shader passes are declared in decal.shader
-        [Flags]
-        public enum MaskBlendFlags
-        {
-            Metal = 1 << 0,
-            AO = 1 << 1,
-            Smoothness = 1 << 2,
-        }
-
     }
 
     // normal to world only uses 3x3 for actual matrix so some data is packed in the unused space
@@ -83,5 +73,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 remappingAOS;
         public Vector4 scalingMAB; // metalness, alpha basemap, blue mask map
         public Vector3 blendParams; // x normal blend source, y mask blend source, z mask blend mode
+        public uint decalLayerMask;
     };
 }
