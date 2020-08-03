@@ -1,4 +1,5 @@
 * [Universal Render Pipeline](index.md)
+* [Requirements](requirements)
 * [Features]()
   * [Feature Comparison with the Built-in Render Pipeline](universalrp-builtin-feature-comparison.md)
 * [Getting started](InstallingAndConfiguringURP.md)
@@ -60,6 +61,9 @@
   * [Particles Unlit](particles-unlit-shader.md)
   * [Upgrading shaders from Built-in](upgrading-your-shaders.md)
   * [Shader stripping](shader-stripping.md)
+
+* [Customizing URP](customizing-urp.md)
+  * [beginCameraRendering event](using-begincamerarendering.md)
 
 * [2D](2d-index.md)
   * [Introduction to Lights 2D](Lights-2D-intro.md)
