@@ -17,6 +17,7 @@ namespace UnityEditor
 
             public static readonly GUIContent Projection = EditorGUIUtility.TrTextContent("Projection");
             public static readonly GUIContent HDR = EditorGUIUtility.TrTextContent("HDR");
+	        public static readonly GUIContent BlendDistance = EditorGUIUtility.TrTextContent("Blend Distance");
 	        public static readonly GUIContent ShadowDistance = EditorGUIUtility.TrTextContent("Shadow Distance");
 	        public static readonly GUIContent NearPlane = EditorGUIUtility.TrTextContent("Near Plane");
 	        public static readonly GUIContent FarPlane = EditorGUIUtility.TrTextContent("Far Plane");
@@ -37,9 +38,9 @@ namespace UnityEditor
 
 		protected override LightingExplorerTableColumn[] GetReflectionProbeColumns()
 		{
-			return new[]
+            return new[]
 			{
-				new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, Styles.Enabled, "m_Enabled", 50), // 0: Enabled
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, Styles.Enabled, "m_Enabled", 50), // 0: Enabled
 				new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Name, Styles.Name, null, 200),  // 1: Name
 				new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Int, Styles.Mode, "m_Mode", 70, (r, prop, dep) =>
 				{
@@ -55,6 +56,7 @@ namespace UnityEditor
 				{
 					EditorGUI.IntPopup(r, prop, Styles.ReflectionProbeSizeTitles, Styles.ReflectionProbeSizeValues, GUIContent.none);
 				}), // 5: Probe Resolution
+				new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, Styles.BlendDistance, "m_BlendDistance", 100), // 6: Shadow Distance
 				new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, Styles.ShadowDistance, "m_ShadowDistance", 100), // 6: Shadow Distance
 				new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, Styles.NearPlane, "m_NearClip", 70), // 7: Near Plane
 				new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, Styles.FarPlane, "m_FarClip", 70), // 8: Far Plane

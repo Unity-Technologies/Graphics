@@ -22,6 +22,7 @@ struct ReflectionProbeData
     float4 position;
     float4 boxMin;
     float4 boxMax;
+    float4 hdr;
 };
 
 // Generated from UnityEngine.Rendering.Universal.ShaderInput+ShadowData
