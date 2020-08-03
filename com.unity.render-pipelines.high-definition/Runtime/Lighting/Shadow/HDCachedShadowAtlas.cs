@@ -514,7 +514,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.LogWarning("Trying to render a cached shadow map that doesn't have a slot in the atlas yet.");
             }
 
-            request.atlasViewport = new Rect(record.offsetInAtlas.x, record.offsetInAtlas.y, record.viewportSize, record.viewportSize);
+            request.cachedAtlasViewport = new Rect(record.offsetInAtlas.x, record.offsetInAtlas.y, record.viewportSize, record.viewportSize);
             request.resolution = new Vector2(record.viewportSize, record.viewportSize);
         }
 

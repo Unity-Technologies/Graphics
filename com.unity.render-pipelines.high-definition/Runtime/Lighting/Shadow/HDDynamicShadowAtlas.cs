@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 viewport.x = curX;
                 viewport.y = curY;
-                shadowRequest.atlasViewport = viewport;
+                shadowRequest.dynamicAtlasViewport = viewport;
                 shadowRequest.resolution = viewport.size;
                 curX += viewport.width;
             }
@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     y += r.height;
                     currentY = Mathf.Max(currentY, y);
                     currentMaxXCache = Mathf.Max(currentMaxXCache, currentMaxX + r.width);
-                    m_ShadowResolutionRequests[index].atlasViewport = r;
+                    m_ShadowResolutionRequests[index].dynamicAtlasViewport = r;
                     index++;
                 } while (y < currentMaxY && index < m_ShadowResolutionRequests.Count);
                 currentMaxY = Mathf.Max(currentMaxY, currentY);
@@ -137,7 +137,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     x += r.width;
                     currentX = Mathf.Max(currentX, x);
                     currentMaxYCache = Mathf.Max(currentMaxYCache, currentMaxY + r.height);
-                    m_ShadowResolutionRequests[index].atlasViewport = r;
+                    m_ShadowResolutionRequests[index].dynamicAtlasViewport = r;
                     index++;
                 } while (x < currentMaxX && index < m_ShadowResolutionRequests.Count);
                 currentMaxX = Mathf.Max(currentMaxX, currentX);
@@ -151,11 +151,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // Scale down every shadow rects to fit with the current atlas size
             foreach (var r in m_ShadowResolutionRequests)
             {
-                Vector4 s = new Vector4(r.atlasViewport.x, r.atlasViewport.y, r.atlasViewport.width, r.atlasViewport.height);
+                Vector4 s = new Vector4(r.dynamicAtlasViewport.x, r.dynamicAtlasViewport.y, r.dynamicAtlasViewport.width, r.dynamicAtlasViewport.height);
                 Vector4 reScaled = Vector4.Scale(s, scale);
 
-                r.atlasViewport = new Rect(reScaled.x, reScaled.y, reScaled.z, reScaled.w);
-                r.resolution = r.atlasViewport.size;
+                r.dynamicAtlasViewport = new Rect(reScaled.x, reScaled.y, reScaled.z, reScaled.w);
+                r.resolution = r.dynamicAtlasViewport.size;
             }
         }
 

@@ -94,8 +94,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public Matrix4x4            shadowToWorld;
         public Vector3              position;
         public Vector4              zBufferParam;
-        // Warning: this field is updated by ProcessShadowRequests and is invalid before
-        public Rect                 atlasViewport;
+        // Warning: these viewport fields are updated by ProcessShadowRequests and are invalid before
+        public Rect                 dynamicAtlasViewport;
+        public Rect                 cachedAtlasViewport;
         public bool                 zClip;
         public Vector4[]            frustumPlanes;
 
@@ -252,7 +253,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
     class HDShadowResolutionRequest
     {
-        public Rect             atlasViewport;
+        public Rect             dynamicAtlasViewport;
+        public Rect             cachedAtlasViewport;
         public Vector2          resolution;
         public ShadowMapType    shadowMapType;
 
@@ -425,8 +427,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (isDynamicShadow)
             {
                 m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter].resolution = resolution;
-                m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter].atlasViewport.width = resolution.x;
-                m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter].atlasViewport.height = resolution.y;
+                m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter].dynamicAtlasViewport.width = resolution.x;
+                m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter].dynamicAtlasViewport.height = resolution.y;
 
                 switch (shadowMapType)
                 {
@@ -532,13 +534,14 @@ namespace UnityEngine.Rendering.HighDefinition
             data.shadowToWorld = shadowRequest.shadowToWorld;
             data.cacheTranslationDelta = new Vector3(0.0f, 0.0f, 0.0f);
 
+            var viewport = shadowRequest.isInCachedAtlas ? shadowRequest.cachedAtlasViewport : shadowRequest.dynamicAtlasViewport;
 
             // Compute the scale and offset (between 0 and 1) for the atlas coordinates
             float rWidth = 1.0f / atlas.width;
             float rHeight = 1.0f / atlas.height;
-            data.atlasOffset = Vector2.Scale(new Vector2(rWidth, rHeight), new Vector2(shadowRequest.atlasViewport.x, shadowRequest.atlasViewport.y));
+            data.atlasOffset = Vector2.Scale(new Vector2(rWidth, rHeight), new Vector2(viewport.x, viewport.y));
 
-            data.shadowMapSize = new Vector4(shadowRequest.atlasViewport.width, shadowRequest.atlasViewport.height, 1.0f / shadowRequest.atlasViewport.width, 1.0f / shadowRequest.atlasViewport.height);
+            data.shadowMapSize = new Vector4(viewport.width, viewport.height, 1.0f / viewport.width, 1.0f / viewport.height);
 
             data.normalBias = shadowRequest.normalBias;
             data.worldTexelSize = shadowRequest.worldTexelSize;
@@ -812,14 +815,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 case ShadowMapType.PunctualAtlas:
                 {
                     if (shadowRequest.isInCachedAtlas)
-                        cachedShadowManager.punctualShadowAtlas.DisplayAtlas(atlasTextures.cachedPunctualShadowAtlas, cmd, debugMaterial, shadowRequest.atlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
+                        cachedShadowManager.punctualShadowAtlas.DisplayAtlas(atlasTextures.cachedPunctualShadowAtlas, cmd, debugMaterial, shadowRequest.cachedAtlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
                     else
-                        m_Atlas.DisplayAtlas(atlasTextures.punctualShadowAtlas, cmd, debugMaterial, shadowRequest.atlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
+                        m_Atlas.DisplayAtlas(atlasTextures.punctualShadowAtlas, cmd, debugMaterial, shadowRequest.dynamicAtlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
                     break;
                 }
                 case ShadowMapType.CascadedDirectional:
                 {
-                    m_CascadeAtlas.DisplayAtlas(atlasTextures.cascadeShadowAtlas, cmd, debugMaterial, shadowRequest.atlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
+                    m_CascadeAtlas.DisplayAtlas(atlasTextures.cascadeShadowAtlas, cmd, debugMaterial, shadowRequest.dynamicAtlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
                     break;
                 }
                 case ShadowMapType.AreaLightAtlas:
@@ -827,9 +830,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (ShaderConfig.s_AreaLights == 1)
                     {
                         if (shadowRequest.isInCachedAtlas)
-                            cachedShadowManager.areaShadowAtlas.DisplayAtlas(atlasTextures.cachedAreaShadowAtlas, cmd, debugMaterial, shadowRequest.atlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
+                            cachedShadowManager.areaShadowAtlas.DisplayAtlas(atlasTextures.cachedAreaShadowAtlas, cmd, debugMaterial, shadowRequest.cachedAtlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
                         else
-                            m_AreaLightShadowAtlas.DisplayAtlas(atlasTextures.areaShadowAtlas, cmd, debugMaterial, shadowRequest.atlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
+                            m_AreaLightShadowAtlas.DisplayAtlas(atlasTextures.areaShadowAtlas, cmd, debugMaterial, shadowRequest.dynamicAtlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
                     }
                     break;
                 }

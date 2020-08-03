@@ -241,6 +241,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 punctualShadowAtlas.UpdateResolutionRequest(ref request, shadowIdx);
             else if (shadowMapType == ShadowMapType.AreaLightAtlas)
                 areaShadowAtlas.UpdateResolutionRequest(ref request, shadowIdx);
+            else if (shadowMapType == ShadowMapType.CascadedDirectional)
+                request.cachedAtlasViewport = request.dynamicAtlasViewport;
         }
 
         internal void UpdateDebugSettings(LightingDebugSettings lightingDebugSettings)

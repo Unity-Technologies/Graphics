@@ -2105,7 +2105,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     SetCommonShadowRequestSettings(shadowRequest, visibleLight, cameraPos, invViewProjection, viewportSize, lightIndex, lightType, filteringQuality);
                 }
 
-                shadowRequest.atlasViewport = resolutionRequest.atlasViewport;
+                shadowRequest.dynamicAtlasViewport = resolutionRequest.dynamicAtlasViewport;
+                shadowRequest.cachedAtlasViewport = resolutionRequest.cachedAtlasViewport;
                 manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest, shadowIsInCachedSystem);
 
                 if(shadowIsInCachedSystem && shadowNeedsRendering)
@@ -2211,7 +2212,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 softness /= 100.0f;
             }
 
-            softness *= (shadowRequest.atlasViewport.width / 512);  // Make it resolution independent whereas the baseline is 512
+            var viewportWidth = shadowRequest.isInCachedAtlas ? shadowRequest.cachedAtlasViewport.width : shadowRequest.dynamicAtlasViewport.width;
+            softness *= (viewportWidth / 512);  // Make it resolution independent whereas the baseline is 512
 
             // Bias
             // This base bias is a good value if we expose a [0..1] since values within [0..5] are empirically shown to be sensible for the slope-scale bias with the width of our PCF.
