@@ -225,7 +225,9 @@ namespace UnityEditor.VFX.UI
             {
                 string path = d.modelDescriptor as string;
 
-                if (!path.StartsWith(VisualEffectAssetEditorUtility.templatePath))
+                if(path.StartsWith(VisualEffectAssetEditorUtility.templatePath) || ((VFXResources.defaultResources.userTemplateDirectory.Length > 0) && path.StartsWith(VFXResources.defaultResources.userTemplateDirectory)) )
+                    CreateTemplateSystem(path, mPos, groupNode);
+                else
                 {
                     if (Path.GetExtension(path) == VisualEffectSubgraphOperator.Extension)
                     {
@@ -243,8 +245,6 @@ namespace UnityEditor.VFX.UI
                         }
                     }
                 }
-                else
-                    CreateTemplateSystem(path, mPos, groupNode);
             }
             else if (d.modelDescriptor is GroupNodeAdder)
             {
@@ -1153,7 +1153,6 @@ namespace UnityEditor.VFX.UI
                 VFXGraph.explicitCompile = false;
             }
         }
-
 
         void OnSave()
         {
