@@ -1,8 +1,45 @@
-# Changelog
+﻿# Changelog
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+
+## [7.5.0] - 2020-07-02
+
+### Fixed
+- Fixed a bug where connections to the `Normal` slot on *Stack Lit Master* node would be lost when changing normal space. 
+- Fixed an issue where manipulating the color wheels in a volume component would reset the cursor every time.
+- Fixed an issue where static sky lighting would not be updated for a new scene until it's reloaded at least once.
+- Fixed missing include guards in shadow hlsl files.
+- Fixed issue with light layers bigger than 8 (and above the supported range).
+- Fixed issues with scene view and transparent motion vectors.
+- Fix reflection probe frame settings override
+- Workaround an issue caused by GetKernelThreadGroupSizes  failing to retrieve correct group size. 
+- Fixed transparent motion vector framesetting not sanitized.
+- Fix issue causing blocky artifacts when decals affect metallic and are applied on material with specular color workflow.
+- Fixed wrong order of post process frame settings.
+- Fixed warning in HDAdditionalLightData OnValidate (cases 1250864, 1244578)
+- Fixed issue with blue line in prefabs for volume mode.
+- Fix issue that caused sky to incorrectly render when using a custom projection matrix.
+- Fixed issue with completely black AO on double sided materials when normal mode is set to None.
+- Fixed issue with culling layer mask of area light's emissive mesh 
+- Fixed for area light not updating baked light result when modifying with gizmo.
+- Fixed errors when switching area light to disk shape while an area emissive mesh was displayed.
+- PBR Sky now doesn't go black when going below sea level, but it instead freezes calculation as if on the horizon.
+- Fixed XR single-pass macros in tessellation shaders.
+- Fixed XR Display providers not getting zNear and zFar plane distances passed to them when in HDRP.
+- Fixed issue with white flash when enabling SSR.
+- Fixed issue with depth pyramid generation and dynamic resolution.
+- Fixed an issue where opening the look dev window with the light theme would make the window blink and eventually crash unity.
+- Fixed a serialization issue, preventing quality level parameters to undo/redo and update scene view on change.
+
+### Changed
+- Changed extensions of shader CAS include files.
+
+## [7.4.1] - 2020-06-03
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
 
 ## [7.4.0] - 2020-05-22
 
@@ -10,7 +47,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add XR setting to control camera jitter for temporal effects #6259
 - Added an error message in the DrawRenderers custom pass when rendering opaque objects with an HDRP asset in DeferredOnly mode.
 - Added Light decomposition lighting debugging modes and support in AOV
-- Added exposure compensation to Fixed exposure mode
 - Added an info box to warn about depth test artifacts when rendering object twice in custom passes with MSAA.
 - Added Layer parameter on Area Light to modify Layer of generated Emissive Mesh
 
@@ -91,11 +127,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Microshadow not working correctly in deferred with LightLayers
 - Tentative fix for missing include in depth of field shaders.
 - Fix an issue in reading the gbuffer for ray traced subsurface scattering (case 1248358).
-- Fixed an issue where manipulating the color wheels in a volume component would reset the cursor every time.
-- Fixed an issue where static sky lighting would not be updated for a new scene until it's reloaded at least once.
-- Fixed missing include guards in shadow hlsl files.
-- Fixed issue with light layers bigger than 8 (and above the supported range). 
-- Fixed a serialization issue, preventing quality level parameters to undo/redo and update scene view on change.
+- Cloned volume profile from read only assets are created in the root of the project. (case 1154961)
+- Fixed Wizard check on default volume profile to also check it is not the default one in package.
+- Fixed a bug where not all entries were generated for the Attributes Struct in Shader Graph shaders. (case 1250275)
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
@@ -322,6 +356,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with MipRatio debug mode showing _DebugMatCapTexture not being set.
 - Fixed missing initialization of input params in Blit for VR.
 - Fix Inf source in LTC for area lights.
+- Fixed light layers not correctly disabled when the lightlayers is set to Nothing and Lightlayers isn't enabled in HDRP Asset
+- Fixed a wrong condition in CameraSwitcher, potentially causing out of bound exceptions.
+- Fixed an issue where editing the Look Dev default profile would not reflect directly in the Look Dev window.
+- Fix supported Mac platform detection to handle new major version (11.0) properly
 
 ### Changed
 - Hide unused LOD settings in Quality Settings legacy window.

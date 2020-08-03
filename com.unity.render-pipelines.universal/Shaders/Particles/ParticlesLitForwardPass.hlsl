@@ -168,6 +168,8 @@ half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
         surfaceData.metallic, half3(0, 0, 0), surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
 
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
+    color.a = OutputAlpha(color.a);
+    
     return color;
 }
 

@@ -118,14 +118,10 @@ A camera stack allows to composite results of several cameras together. The came
 
 You can use the stack property add Overlay cameras to the stack and they will render in the order as defined in the stack. For more information on configuring and using Camera Stacks, see [Camera Stacking](camera-stacking.md).
 
-__Important note:__ In this version of URP, Camera Stacking is not supported when using the 2D Renderer or when using the VR Multi Pass mode. Support for these will be added in upcoming versions of URP.
-
 <a name="overlay-camera"></a>
 ## Overlay Camera component reference
 
 ![Overlay Camera Inspector](Images/camera-inspector-overlay.png)
-
-__Important note:__ In this version of URP, Camera Stacking is not supported when using the 2D Renderer or when using the VR Multi Pass mode. Support for these will be added in upcoming versions of URP.
 
 When you use [Camera Stacking](camera-stacking.md), the [Base Camera](camera-types-and-render-mode.md#base-camera) of a Camera Stack determines most of the properties of the Camera Stack. Because [Overlay Cameras](camera-types-and-render-mode.md#overlay-camera) can only be used as part of a Camera Stack, you can configure only a limited number of settings on an Overlay Camera. Overlay cameras not assigned to a camera stack will skip rendering.
 
