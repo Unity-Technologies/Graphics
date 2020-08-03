@@ -6,7 +6,11 @@
 // For vertex density, it stores the number of vertex projected in each pixel.
 // For quad overdraw, each 2x2 quad of the UAV contains the overdraw count in top-left pixel and the locked quad id in the top-right pixel. The two other pixels of the quad are unused.
 // Because metal doesn't support atomics on textures, this is actually a buffer
+#if defined(SHADER_API_METAL)
+RWStructuredBuffer<uint> _FullScreenDebugBuffer;
+#else
 RWStructuredBuffer<uint> _FullScreenDebugBuffer : register(u1);
+#endif
 
 void IncrementVertexDensityCounter(float4 positionCS)
 {
