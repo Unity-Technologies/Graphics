@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - PBR Sky now doesn't go black when going below sea level, but it instead freezes calculation as if on the horizon.
 - Fixed XR single-pass macros in tessellation shaders.
 - Fixed XR Display providers not getting zNear and zFar plane distances passed to them when in HDRP.
+- Fixed issue with white flash when enabling SSR.
 
 ### Changed
 - Changed extensions of shader CAS include files.
