@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed warning in HDAdditionalLightData OnValidate (cases 1250864, 1244578)
 - Fixed issue with blue line in prefabs for volume mode.
 - Fix issue that caused sky to incorrectly render when using a custom projection matrix.
+- Fixed issue with completely black AO on double sided materials when normal mode is set to None.
 
 ### Changed
 - Changed extensions of shader CAS include files.
