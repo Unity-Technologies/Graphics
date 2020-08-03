@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import sys, os, subprocess, re
+from os import path as os_path
 
 
 # To use with preinstall.py
@@ -13,6 +14,9 @@ def append_old_hooks():
 	for hook in hooks:
 		newly_installed_hook = path + hook
 		tmp_hook = "./git-hook/tmp_" + hook
+
+		if not os_path.exists(tmp_hook):
+			continue
 
 		with open(newly_installed_hook, 'r') as newly_installed_hook_file:
 			newly_installed_hook_data = [ x.strip('\n') for x in list(newly_installed_hook_file) ]
