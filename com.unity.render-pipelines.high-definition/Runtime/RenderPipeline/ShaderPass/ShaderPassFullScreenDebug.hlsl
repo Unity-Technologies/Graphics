@@ -31,7 +31,11 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 #if !defined(_DEPTHOFFSET_ON)
 [earlydepthstencil] // quad overshading debug mode writes to UAV
 #endif
-void Frag(PackedVaryingsToPS packedInput, uint primitiveID : SV_PrimitiveID)
+void Frag(PackedVaryingsToPS packedInput
+#if !defined(SHADER_API_METAL) // Metal does not support SV_PrimitiveID
+        , uint primitiveID : SV_PrimitiveID
+#endif
+    )
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
@@ -40,6 +44,8 @@ void Frag(PackedVaryingsToPS packedInput, uint primitiveID : SV_PrimitiveID)
 
     if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_QUAD_OVERDRAW)
     {
+#if !defined(SHADER_API_METAL) // Metal does not support SV_PrimitiveID
         IncrementQuadOverdrawCounter(posInput.positionSS.xy, primitiveID);
+#endif
     }
 }
