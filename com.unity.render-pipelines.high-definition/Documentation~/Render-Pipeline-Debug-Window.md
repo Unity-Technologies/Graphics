@@ -124,6 +124,7 @@ The **Lighting** panel has tools that you can use to visualize various component
 | **- Layers Color**                    | Use the color pickers to select the display color of each light layer. |
 | **Exposure **                         | Allows you to select an [Exposure](Override-Exposure.md) debug mode to use. |
 | **- Debug Mode**                      | Use the drop-down to select a debug mode. See [Exposure](Override-Exposure.md) documentation for more information. |
+| **- Display Mask Only**               | Enable the checkbox to display only the metering mask in the picture-in-picture, if unchecked the mask will displayed after weighting the scene color instead. <br />This property only appears when you select **MeteringWeighted** from **Debug Mode**. |
 | - **Show Tonemap curve**              | Enable the checkbox to overlay the tonemap curve to the histogram debug view.<br/>This property only appears when you select **HistogramView** from **Debug Mode**. |
 | **- Center Around Exposure**          | Enable the checkbox to overlay the center the histogram around the current exposure value.<br/>This property only appears when you select **HistogramView** from **Debug Mode**. |
 | **- Display RGB Histogram**           | Enable the checkbox to display the Final Image Histogram as an RGB histogram instead of just luminance.<br />This property only appears when you select **FinalImageHistogramView** from **Debug Mode**. |
