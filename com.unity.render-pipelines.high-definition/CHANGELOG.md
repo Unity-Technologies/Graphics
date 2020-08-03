@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed a bug where connections to the `Normal` slot on *Stack Lit Master* node would be lost when changing normal space. 
+- Fixed an issue where manipulating the color wheels in a volume component would reset the cursor every time.
+- Fixed an issue where static sky lighting would not be updated for a new scene until it's reloaded at least once.
+- Fixed missing include guards in shadow hlsl files.
+- Fixed issue with light layers bigger than 8 (and above the supported range). 
 
 ## [7.4.1] - 2020-06-03
 
@@ -103,10 +107,6 @@ The version number for this package has increased due to a version update of a r
 - Cloned volume profile from read only assets are created in the root of the project. (case 1154961)
 - Fixed Wizard check on default volume profile to also check it is not the default one in package.
 - Fixed a bug where not all entries were generated for the Attributes Struct in Shader Graph shaders. (case 1250275)
-- Fixed an issue where manipulating the color wheels in a volume component would reset the cursor every time.
-- Fixed an issue where static sky lighting would not be updated for a new scene until it's reloaded at least once.
-- Fixed missing include guards in shadow hlsl files.
-- Fixed issue with light layers bigger than 8 (and above the supported range). 
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
