@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -161,7 +162,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="ev"></param>
         /// <returns></returns>
         public static float ConvertEvToLuminance(float ev)
-            => Mathf.Pow(2, ev - 3);
+        {
+            float k = ColorUtils.s_LightMeterCalibrationConstant;
+            return (k / 100.0f) * Mathf.Pow(2, ev);
+        }
+            
 
         /// <summary>
         /// Convert EV100 to Candela
@@ -189,7 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns></returns>
         public static float ConvertLuminanceToEv(float luminance)
         {
-            const float k = 12.5f;
+            float k = ColorUtils.s_LightMeterCalibrationConstant;
             return (float)Math.Log((luminance * 100f) / k, 2);
         }
 

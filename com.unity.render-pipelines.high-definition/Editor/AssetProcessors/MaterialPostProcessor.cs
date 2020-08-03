@@ -200,6 +200,7 @@ namespace UnityEditor.Rendering.HighDefinition
              AlphaToMaskUIFix,
              MigrateDecalRenderQueue,
              ExposedDecalInputsFromShaderGraph,
+             FixIncorrectEmissiveColorSpace,
         };
 
         #region Migrations
@@ -560,6 +561,32 @@ namespace UnityEditor.Rendering.HighDefinition
             if (id == HDShaderUtils.ShaderID.Decal || id == HDShaderUtils.ShaderID.SG_Decal)
             {
                 HDShaderUtils.ResetMaterialKeywords(material);
+            }
+        }     
+
+        static void FixIncorrectEmissiveColorSpace(Material material, HDShaderUtils.ShaderID id)
+        {
+            // kEmissiveColorLDR wasn't correctly converted to linear color space.
+            // so here we adjust the value of kEmissiveColorLDR to compensate. But only if not using a HDR Color
+            const string kUseEmissiveIntensity = "_UseEmissiveIntensity";
+
+            if (material.HasProperty(kUseEmissiveIntensity) && material.GetInt(kUseEmissiveIntensity) == 1)
+            {
+                const string kEmissiveColorLDR = "_EmissiveColorLDR";
+                const string kEmissiveColor = "_EmissiveColor";
+                const string kEmissiveIntensity = "_EmissiveIntensity";
+
+                if (material.HasProperty(kEmissiveColorLDR) && material.HasProperty(kEmissiveIntensity) && material.HasProperty(kEmissiveColor))
+                {
+                    // Important:  The color picker for kEmissiveColorLDR is LDR and in sRGB color space but Unity don't perform any color space conversion in the color
+                    // picker BUT only when sending the color data to the shader... So as we are doing our own calculation here in C#, we must do the conversion ourselves.
+                    Color emissiveColorLDR = material.GetColor(kEmissiveColorLDR);
+                    Color emissiveColorLDRsRGB = new Color(Mathf.LinearToGammaSpace(emissiveColorLDR.r), Mathf.LinearToGammaSpace(emissiveColorLDR.g), Mathf.LinearToGammaSpace(emissiveColorLDR.b));
+                    material.SetColor(kEmissiveColorLDR, emissiveColorLDRsRGB);
+                }
+
+                // Reset the value of kEmissiveColor
+                material.UpdateEmissiveColorFromIntensityAndEmissiveColorLDR();
             }
         }
 
