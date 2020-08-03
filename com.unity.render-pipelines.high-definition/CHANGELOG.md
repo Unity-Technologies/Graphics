@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed transparent motion vector framesetting not sanitized.
 - Fix issue causing blocky artifacts when decals affect metallic and are applied on material with specular color workflow.
 - Fixed wrong order of post process frame settings.
+- Fixed warning in HDAdditionalLightData OnValidate (cases 1250864, 1244578)
 
 ## [7.4.1] - 2020-06-03
 
