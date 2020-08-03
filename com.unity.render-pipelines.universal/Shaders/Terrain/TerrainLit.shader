@@ -42,7 +42,7 @@ Shader "Universal Render Pipeline/Terrain/Lit"
 
 	HLSLINCLUDE
 
-	#pragma multi_compile_fragment __ _ALPHATEST_ON
+	#pragma multi_compile __ _ALPHATEST_ON
 
 	ENDHLSL
 
