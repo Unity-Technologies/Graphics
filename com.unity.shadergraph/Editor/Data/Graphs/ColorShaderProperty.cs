@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.Internal
             version = latestVersion;
         }
 
-        internal ColorShaderProperty(int version) : base()
+        internal ColorShaderProperty(int version) : this()
         {
             this.version = version;
         }
