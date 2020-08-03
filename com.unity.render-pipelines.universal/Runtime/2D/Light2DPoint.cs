@@ -3,7 +3,7 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
-    sealed public partial class Light2D : MonoBehaviour
+    public sealed partial class Light2D
     {
         public enum PointLightQuality
         {
@@ -48,15 +48,5 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public float pointLightDistance => m_PointLightDistance;
         public PointLightQuality pointLightQuality => m_PointLightQuality;
-
-        private BoundingSphere GetPointLightBoundingSphere()
-        {
-            BoundingSphere boundingSphere;
-
-            boundingSphere.radius = m_PointLightOuterRadius;
-            boundingSphere.position = transform.position;
-
-            return boundingSphere;
-        }
     }
 }

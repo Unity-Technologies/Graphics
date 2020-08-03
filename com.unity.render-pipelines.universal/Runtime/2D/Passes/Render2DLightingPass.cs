@@ -7,8 +7,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal class Render2DLightingPass : ScriptableRenderPass, IRenderPass2D
     {
-        private static SortingLayer[] s_SortingLayers;
-
         private static readonly int k_HDREmulationScaleID = Shader.PropertyToID("_HDREmulationScale");
         private static readonly int k_InverseHDREmulationScaleID = Shader.PropertyToID("_InverseHDREmulationScale");
         private static readonly int k_UseSceneLightingID = Shader.PropertyToID("_UseSceneLighting");
@@ -31,9 +29,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public Render2DLightingPass(Renderer2DData rendererData)
         {
-            if (s_SortingLayers == null)
-                s_SortingLayers = SortingLayer.layers;
-
             m_Renderer2DData = rendererData;
         }
 
@@ -63,10 +58,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        private bool CompareLightsInLayer(int layerIndex1, int layerIndex2)
+        private bool CompareLightsInLayer(int layerIndex1, int layerIndex2, SortingLayer[] sortingLayers)
         {
-            var layerId1 = s_SortingLayers[layerIndex1].id;
-            var layerId2 = s_SortingLayers[layerIndex2].id;
+            var layerId1 = sortingLayers[layerIndex1].id;
+            var layerId2 = sortingLayers[layerIndex2].id;
             foreach (var light in m_Renderer2DData.lightCullResult.visibleLights)
             {
                 if (light.IsLitLayer(layerId1) != light.IsLitLayer(layerId2))
@@ -75,15 +70,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return true;
         }
 
-        private int FindUpperBoundInBatch(int startLayerIndex)
+        private int FindUpperBoundInBatch(int startLayerIndex, SortingLayer[] sortingLayers)
         {
             // start checking at the next layer
-            for (var i = startLayerIndex+1; i < s_SortingLayers.Length; i++)
+            for (var i = startLayerIndex+1; i < sortingLayers.Length; i++)
             {
-                if(!CompareLightsInLayer(startLayerIndex, i))
+                if(!CompareLightsInLayer(startLayerIndex, i, sortingLayers))
                     return i-1;
             }
-            return s_SortingLayers.Length-1;
+            return sortingLayers.Length-1;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -96,10 +91,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             if (renderingData.cameraData.camera.cameraType == CameraType.Preview)
                 isLitView = false;
-
-            if (!Application.isPlaying)
-                s_SortingLayers = SortingLayer.layers;
 #endif
+            var cachedSortingLayers = Light2DManager.GetCachedSortingLayer();
             var camera = renderingData.cameraData.camera;
 
             var filterSettings = new FilteringSettings();
@@ -135,9 +128,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     normalsDrawSettings.sortingSettings = sortSettings;
 
                     var blendStylesCount = m_Renderer2DData.lightBlendStyles.Length;
-                    for (var i = 0; i < s_SortingLayers.Length;)
+                    for (var i = 0; i < cachedSortingLayers.Length;)
                     {
-                        var layerToRender = s_SortingLayers[i].id;
+                        var layerToRender = cachedSortingLayers[i].id;
                         var lightStats = m_Renderer2DData.lightCullResult.GetLightStatsByLayer(layerToRender);
 
                         cmd.Clear();
@@ -157,14 +150,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         context.ExecuteCommandBuffer(cmd);
 
                         // find the highest layer that share the same set of lights as this layer
-                        var upperLayerInBatch = FindUpperBoundInBatch(i);
+                        var upperLayerInBatch = FindUpperBoundInBatch(i, cachedSortingLayers);
                         // Some renderers override their sorting layer value with short.MinValue or short.MaxValue.
                         // When drawing the first sorting layer, we should include the range from short.MinValue to layerValue.
                         // Similarly, when drawing the last sorting layer, include the range from layerValue to short.MaxValue.
-                        var startLayerValue = (short) s_SortingLayers[i].value;
+                        var startLayerValue = (short) cachedSortingLayers[i].value;
                         var lowerBound = (i == 0) ? short.MinValue : startLayerValue;
-                        var endLayerValue = (short) s_SortingLayers[upperLayerInBatch].value;
-                        var upperBound = (upperLayerInBatch == s_SortingLayers.Length - 1) ? short.MaxValue : endLayerValue;
+                        var endLayerValue = (short) cachedSortingLayers[upperLayerInBatch].value;
+                        var upperBound = (upperLayerInBatch == cachedSortingLayers.Length - 1) ? short.MaxValue : endLayerValue;
                         // renderer within this range share the same set of lights so they should be rendered together
                         filterSettings.sortingLayerRange = new SortingLayerRange(lowerBound, upperBound);
 

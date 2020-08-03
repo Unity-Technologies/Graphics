@@ -1,6 +1,6 @@
 namespace UnityEngine.Experimental.Rendering.Universal
 {
-    sealed public partial class Light2D : MonoBehaviour
+    public sealed partial class Light2D
     {
         //------------------------------------------------------------------------------------------
         //                                Variables/Properties
@@ -29,26 +29,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
         //                              Functions
         //==========================================================================================
 
-        internal bool IsShapeLight()
+        internal bool isShapeLight => m_LightType != LightType.Point;
+
+        float GetShapeLightBoundingSphere(Bounds bounds)
         {
-            return m_LightType != LightType.Point;
-        }
-
-        BoundingSphere GetShapeLightBoundingSphere()
-        {
-            BoundingSphere boundingSphere;
-
-            Vector3 maxBound = Vector3.Max(m_LocalBounds.max, m_LocalBounds.max + (Vector3)m_ShapeLightFalloffOffset);
-            Vector3 minBound = Vector3.Min(m_LocalBounds.min, m_LocalBounds.min + (Vector3)m_ShapeLightFalloffOffset);
-            Vector3 maximum = transform.TransformPoint(maxBound);
-            Vector3 minimum = transform.TransformPoint(minBound);
-            Vector3 center = 0.5f * (maximum + minimum);
-            float radius = Vector3.Magnitude(maximum - center);
-
-            boundingSphere.radius = radius;
-            boundingSphere.position = center;
-
-            return boundingSphere;
+            var maxBound = Vector3.Max(bounds.max, bounds.max + (Vector3)m_ShapeLightFalloffOffset);
+            var minBound = Vector3.Min(bounds.min, bounds.min + (Vector3)m_ShapeLightFalloffOffset);
+            return Vector3.Magnitude(maxBound - minBound) * 0.5f;
         }
     }
 }

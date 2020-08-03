@@ -5,22 +5,36 @@ namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal static class Light2DManager
     {
-        private static List<Light2D> m_Lights = new List<Light2D>();
-        public static List<Light2D> lights => m_Lights;
+        private static SortingLayer[] s_SortingLayers;
+
+        public static List<Light2D> lights { get; } = new List<Light2D>();
 
         // Called during OnEnable
         public static void RegisterLight(Light2D light)
         {
-            Debug.Assert(!m_Lights.Contains(light));
-            m_Lights.Add(light);
-
+            Debug.Assert(!lights.Contains(light));
+            lights.Add(light);
+            ErrorIfDuplicateGlobalLight(light);
         }
 
         // Called during OnEnable
         public static void DeregisterLight(Light2D light)
         {
-            Debug.Assert(m_Lights.Contains(light));
-            m_Lights.Remove(light);
+            Debug.Assert(lights.Contains(light));
+            lights.Remove(light);
+        }
+
+        public static void ErrorIfDuplicateGlobalLight(Light2D light)
+        {
+            if (light.lightType != Light2D.LightType.Global)
+                return;
+
+            foreach (var sortingLayer in light.affectedSortingLayers)
+            {
+                // should this really trigger at runtime?
+                if(ContainsDuplicateGlobalLight(sortingLayer, light.blendStyleIndex))
+                    Debug.LogError("More than one global light on layer " + SortingLayer.IDToName(sortingLayer) + " for light blend style index " + light.blendStyleIndex);
+            }
         }
 
         public static bool GetGlobalColor(int sortingLayerIndex, int blendStyleIndex, out Color color)
@@ -29,7 +43,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             color = Color.black;
 
             // This should be rewritten to search only global lights
-            foreach(var light in m_Lights)
+            foreach(var light in lights)
             {
                 if (light.lightType != Light2D.LightType.Global ||
                     light.blendStyleIndex != blendStyleIndex ||
@@ -60,12 +74,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return foundGlobalColor;
         }
 
-        public static bool ContainsDuplicateGlobalLight(int sortingLayerIndex, int blendStyleIndex)
+        private static bool ContainsDuplicateGlobalLight(int sortingLayerIndex, int blendStyleIndex)
         {
             var globalLightCount = 0;
 
             // This should be rewritten to search only global lights
-            foreach(var light in m_Lights)
+            foreach(var light in lights)
             {
                 if (light.lightType == Light2D.LightType.Global &&
                     light.blendStyleIndex == blendStyleIndex &&
@@ -86,5 +100,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             return false;
         }
+
+        public static SortingLayer[] GetCachedSortingLayer()
+        {
+            s_SortingLayers ??= SortingLayer.layers;
+#if UNITY_EDITOR
+            // we should fix. Make a non allocating version of this
+            if(!Application.isPlaying)
+                s_SortingLayers = SortingLayer.layers;
+#endif
+            return s_SortingLayers;
+        }
+
     }
 }

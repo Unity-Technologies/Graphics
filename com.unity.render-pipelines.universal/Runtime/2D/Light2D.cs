@@ -33,19 +33,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
 #if USING_ANIMATION_MODULE
         [UnityEngine.Animations.NotKeyable]
 #endif
-        [SerializeField]
-        LightType m_LightType = LightType.Parametric;
+        [SerializeField] LightType m_LightType = LightType.Parametric;
         [SerializeField, FormerlySerializedAs("m_LightOperationIndex")]
         int m_BlendStyleIndex = 0;
 
-        [SerializeField]
-        float m_FalloffIntensity = 0.5f;
+        [SerializeField] float m_FalloffIntensity = 0.5f;
 
         [ColorUsage(false)]
-        [SerializeField]
-        Color m_Color = Color.white;
-        [SerializeField]
-        float m_Intensity = 1;
+        [SerializeField] Color m_Color = Color.white;
+        [SerializeField] float m_Intensity = 1;
 
         [SerializeField] float m_LightVolumeOpacity = 0.0f;
         [SerializeField] int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
@@ -55,15 +51,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] int m_LightOrder = 0;
         [SerializeField] bool m_AlphaBlendOnOverlap = false;
 
-        int m_PreviousLightCookieSprite;
-        Mesh m_Mesh;
-        Bounds m_LocalBounds;
-
-
         [Range(0,1)]
         [SerializeField] float m_ShadowIntensity    = 0.0f;
         [Range(0,1)]
         [SerializeField] float m_ShadowVolumeIntensity = 0.0f;
+
+        // Transients
+        int m_PreviousLightCookieSprite;
+        Mesh m_Mesh;
+
+        internal int[] affectedSortingLayers => m_ApplyToSortingLayers;
+        private int lightCookieSpriteInstanceID => m_LightCookieSprite?.GetInstanceID() ?? 0;
+        internal float boundingSphereRadius { get; private set; }
+        internal Mesh lightMesh => m_Mesh;
 
         /// <summary>
         /// The lights current type
@@ -77,7 +77,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     UpdateMesh();
 
                 m_LightType = value;
-                ErrorIfDuplicateGlobalLight();
+                Light2DManager.ErrorIfDuplicateGlobalLight(this);
             }
         }
 
@@ -96,7 +96,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         /// </summary>
         public float shadowVolumeIntensity { get => m_ShadowVolumeIntensity; set => m_ShadowVolumeIntensity = Mathf.Clamp01(value); }
 
-
         /// <summary>
         /// The lights current color
         /// </summary>
@@ -112,34 +111,20 @@ namespace UnityEngine.Experimental.Rendering.Universal
         /// </summary>
         public float volumeOpacity => m_LightVolumeOpacity;
         public Sprite lightCookieSprite => m_LightCookieSprite;
-        private int lightCookieSpriteInstanceID => m_LightCookieSprite?.GetInstanceID() ?? 0;
         public float falloffIntensity => m_FalloffIntensity;
         public bool useNormalMap => m_UseNormalMap;
         public bool alphaBlendOnOverlap => m_AlphaBlendOnOverlap;
         public int lightOrder { get => m_LightOrder; set => m_LightOrder = value; }
 
-        static SortingLayer[] s_SortingLayers;
-
         internal int GetTopMostLitLayer()
         {
-            int largestIndex = -1;
-            int largestLayer = 0;
+            var largestIndex = -1;
+            var largestLayer = 0;
 
-            SortingLayer[] layers;
-            if (Application.isPlaying)
+            var layers = Light2DManager.GetCachedSortingLayer();
+            for (var i = 0; i < m_ApplyToSortingLayers.Length; ++i)
             {
-                if (s_SortingLayers == null)
-                    s_SortingLayers = SortingLayer.layers;
-
-                layers = s_SortingLayers;
-            }
-            else
-                layers = SortingLayer.layers;
-
-
-            for (int i = 0; i < m_ApplyToSortingLayers.Length; ++i)
-            {
-                for(int layer = layers.Length - 1; layer >= largestLayer; --layer)
+                for(var layer = layers.Length - 1; layer >= largestLayer; --layer)
                 {
                     if (layers[layer].id == m_ApplyToSortingLayers[i])
                     {
@@ -157,7 +142,24 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal void UpdateMesh()
         {
-            GetMesh(true);
+            var bounds = default(Bounds);
+            switch (m_LightType)
+            {
+                case LightType.Freeform:
+                    bounds = LightUtility.GenerateShapeMesh(ref m_Mesh, m_ShapePath, m_ShapeLightFalloffSize);
+                    break;
+                case LightType.Parametric:
+                    bounds = LightUtility.GenerateParametricMesh(ref m_Mesh, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
+                    break;
+                case LightType.Sprite:
+                    m_Mesh.Clear();
+                    bounds = LightUtility.GenerateSpriteMesh(ref m_Mesh, m_LightCookieSprite, 1);
+                    break;
+                case LightType.Point:
+                    bounds = LightUtility.GenerateParametricMesh(ref m_Mesh, 1.412135f, 0, 0, 4);
+                    break;
+            }
+            boundingSphereRadius = isShapeLight ? GetShapeLightBoundingSphere(bounds) : m_PointLightOuterRadius;
         }
 
         internal bool IsLitLayer(int layer)
@@ -165,61 +167,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return m_ApplyToSortingLayers != null ? Array.IndexOf(m_ApplyToSortingLayers, layer) >= 0 : false;
         }
 
-        internal BoundingSphere GetBoundingSphere()
-        {
-            return IsShapeLight() ? GetShapeLightBoundingSphere() : GetPointLightBoundingSphere();
-        }
-
-        internal Mesh GetMesh(bool forceUpdate = false)
-        {
-            if (m_Mesh != null && !forceUpdate)
-                return m_Mesh;
-
-            if (m_Mesh == null)
-                m_Mesh = new Mesh();
-
-            Color combinedColor = m_Intensity * m_Color;
-            switch (m_LightType)
-            {
-                case LightType.Freeform:
-                    m_LocalBounds = LightUtility.GenerateShapeMesh(ref m_Mesh, m_ShapePath, m_ShapeLightFalloffSize);
-                    break;
-                case LightType.Parametric:
-                    m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
-                    break;
-                case LightType.Sprite:
-                    m_Mesh.Clear();
-                    m_LocalBounds = LightUtility.GenerateSpriteMesh(ref m_Mesh, m_LightCookieSprite, 1);
-                    break;
-                case LightType.Point:
-                    m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, 1.412135f, 0, 0, 4);
-                    break;
-            }
-
-            return m_Mesh;
-        }
-
-        internal void ErrorIfDuplicateGlobalLight()
-        {
-            for (int i = 0; i < m_ApplyToSortingLayers.Length; ++i)
-            {
-                int sortingLayer = m_ApplyToSortingLayers[i];
-
-                if(Light2DManager.ContainsDuplicateGlobalLight(sortingLayer, blendStyleIndex))
-                    Debug.LogError("More than one global light on layer " + SortingLayer.IDToName(sortingLayer) + " for light blend style index " + m_BlendStyleIndex);
-            }
-        }
-
         private void Awake()
         {
-            GetMesh();
+            m_Mesh = new Mesh();
+            UpdateMesh();
         }
 
         void OnEnable()
         {
-            if (m_LightType == LightType.Global)
-                ErrorIfDuplicateGlobalLight();
-
             m_PreviousLightCookieSprite = lightCookieSpriteInstanceID;
             Light2DManager.RegisterLight(this);
         }
@@ -239,8 +194,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 LightUtility.CheckForChange(m_ShapeLightParametricRadius, ref m_PreviousShapeLightParametricRadius) ||
                 LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides) ||
                 LightUtility.CheckForChange(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset) ||
-                LightUtility.CheckForChange(lightCookieSpriteInstanceID, ref m_PreviousLightCookieSprite)
-            )
+                LightUtility.CheckForChange(lightCookieSpriteInstanceID, ref m_PreviousLightCookieSprite))
             {
                 UpdateMesh();
             }

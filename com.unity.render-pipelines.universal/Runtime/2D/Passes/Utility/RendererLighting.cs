@@ -166,8 +166,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmdBuffer.SetRenderTarget(pass.rendererData.shadowsRenderTarget.Identifier(), RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                 cmdBuffer.ClearRenderTarget(true, true, Color.black);
 
-                var lightBounds = light.GetBoundingSphere(); // Gets the local bounding sphere...
-                var shadowRadius = 1.42f * lightBounds.radius;
+                var shadowRadius = 1.42f * light.boundingSphereRadius;
 
                 cmdBuffer.SetGlobalVector(LightPosID, light.transform.position);
                 cmdBuffer.SetGlobalFloat(ShadowRadiusID, shadowRadius);
@@ -259,7 +258,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     if (lightMaterial == null)
                         continue;
 
-                    var lightMesh = light.GetMesh();
+                    var lightMesh = light.lightMesh;
                     if (lightMesh == null)
                         continue;
 
@@ -323,7 +322,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             var lightVolumeMaterial = pass.rendererData.GetLightMaterial(light, true);
                             if (lightVolumeMaterial != null)
                             {
-                                var lightMesh = light.GetMesh();
+                                var lightMesh = light.lightMesh;
                                 if (lightMesh != null)
                                 {
                                     RenderShadows(pass, renderingData, cmd, layerToRender, light, light.shadowVolumeIntensity, renderTexture, depthTexture);
@@ -530,18 +529,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private static uint GetLightMaterialIndex(Light2D light, bool isVolume)
         {
+            var isShape = light.isShapeLight;
             var bitIndex = 0;
             var volumeBit = isVolume ? 1u << bitIndex : 0u;
             bitIndex++;
-            var shapeBit = light.IsShapeLight() ? 1u << bitIndex : 0u;
+            var shapeBit = isShape ? 1u << bitIndex : 0u;
             bitIndex++;
             var additiveBit = light.alphaBlendOnOverlap ? 0u : 1u << bitIndex;
             bitIndex++;
             var spriteBit = light.lightType == Light2D.LightType.Sprite ? 1u << bitIndex : 0u;
             bitIndex++;
-            var pointCookieBit = (!light.IsShapeLight() && light.lightCookieSprite != null && light.lightCookieSprite.texture != null) ? 1u << bitIndex : 0u;
+            var pointCookieBit = (!isShape && light.lightCookieSprite != null && light.lightCookieSprite.texture != null) ? 1u << bitIndex : 0u;
             bitIndex++;
-            var pointFastQualityBit = (!light.IsShapeLight() && light.pointLightQuality == Light2D.PointLightQuality.Fast) ? 1u << bitIndex : 0u;
+            var pointFastQualityBit = (!isShape && light.pointLightQuality == Light2D.PointLightQuality.Fast) ? 1u << bitIndex : 0u;
             bitIndex++;
             var useNormalMap = light.useNormalMap ? 1u << bitIndex : 0u;
 
@@ -550,7 +550,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private static Material CreateLightMaterial(Renderer2DData rendererData, Light2D light, bool isVolume)
         {
-            var isShape = light.IsShapeLight();
+            var isShape = light.isShapeLight;
             Material material;
 
             if (isVolume)
