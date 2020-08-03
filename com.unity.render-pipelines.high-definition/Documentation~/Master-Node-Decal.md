@@ -62,7 +62,7 @@ To view these properties, click the **Cog** in the top right of the Master Node.
 
 ### Material Properties
 
-When creating a Decal Material from the Decal MAster node, following properties are available, alongside the properties that you exposed in the Shader Graph's Blackboard.
+When creating a Decal Material from the Decal master node, the following properties are available alongside the properties that you exposed in the Shader Graph's Blackboard.
 
 #### Surface Options
 
@@ -70,12 +70,12 @@ These properties allow you to set the affected attributes of the Material the de
 
 | **Property**                    | **Description**                                              |
 | ------------------------------- | ------------------------------------------------------------ |
-| **Affect BaseColor**            | Enable the checkbox to make this decal use the **baseColor** properties. Otherwise the decal has no baseColor effect. Either disabled or enabled, the alpha channel of the base color is still use as an opacity for its other properties. |
-| **Affect Normal**               | Enable the checkbox to make the decal use the **normal** property. Otherwise the decal do not modify normal of receiving Material. |
+| **Affect BaseColor**            | Enable the checkbox to make this decal use the **baseColor** properties. Otherwise the decal has no baseColor effect. Regardless of whether you enable or disable this property, HDRP still uses the alpha channel of the base color as an opacity for the other properties. |
+| **Affect Normal**               | Enable the checkbox to make the decal use the **normal** property. Otherwise, the decal does not modify the normals of the receiving Material. |
 | **Affect Metal**                | Enable the checkbox to make the decal use the metallic property of its **Mask Map**. Otherwise the decal has no metallic effect. Uses the red channel of the **Mask Map**.<br />This property only appears when you enable the **Metal and Ambient Occlusion properties** checkbox in your [HDRP Asset](HDRP-Asset.md#Decals). |
 | **Affect Ambient Occlusion**    | Enable the checkbox to make the decal use the ambient occlusion property of its **Mask Map**. Otherwise the decal has no ambient occlusion effect. Uses the green channel of the **Mask Map**.<br />This property only appears when you enable the **Metal and Ambient Occlusion properties** checkbox in your [HDRP Asset](HDRP-Asset.md#Decals). |
 | **Affect Smoothness**           | Enable the checkbox to make the decal use the smoothness property of its **Mask Map**. Otherwise the decal has no smoothness effect. Uses the alpha channel of the **Mask Map**.<br /> |
-| **Affect Emissive**             | Enable the checkbox to make this decal emissive. When enabled, this Material appears self-illuminated and acts as a visible source of light. This property don't work with Transparent Material receiver. |
+| **Affect Emissive**             | Enable the checkbox to make this decal emissive. When enabled, this Material appears self-illuminated and acts as a visible source of light. This property does not work with transparent receiving Materials. |
 
 #### Sorting Inputs
 
