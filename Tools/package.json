@@ -20,7 +20,7 @@
   "husky": {
     "hooks": {
       "pre-commit": "npx lint-staged && sh ./git-hook/pre-commit",
-      "pre-push": "python -m git-hook.prepush.check-branch-name"
+      "pre-push": "python -m git-hook.prepush.check_branch_name"
     }
   },
   "lint-staged": {
