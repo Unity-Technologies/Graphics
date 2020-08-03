@@ -55,7 +55,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             retEdge.AssignVertexIndices(triangles[triangleIndexA], triangles[triangleIndexB]);
             
             Vector3 vertex0 = vertices[retEdge.vertexIndex0];
+            vertex0.z = 0;
             Vector3 vertex1 = vertices[retEdge.vertexIndex1];
+            vertex1.z = 0;
 
             Vector3 edgeDir = Vector3.Normalize(vertex1 - vertex0);
             retEdge.tangent = Vector3.Cross(-Vector3.forward, edgeDir);
@@ -88,7 +90,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             edgesToProcess.Sort();
         }
 
-        static void CreateShadowTriangles(List<Vector3> vertices, List<int> triangles, List<Vector4> tangents, List<Edge> edges)
+        static void CreateShadowTriangles(List<Vector3> vertices, List<Color> colors, List<int> triangles, List<Vector4> tangents, List<Edge> edges)
         {
             for(int edgeIndex=0; edgeIndex<edges.Count; edgeIndex++)
             {
@@ -99,6 +101,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                     int newVertexIndex = vertices.Count;
                     vertices.Add(vertices[edge.vertexIndex0]);
+                    colors.Add(colors[edge.vertexIndex0]);
+
                     tangents.Add(-edge.tangent);
 
                     triangles.Add(edge.vertexIndex0);
@@ -121,16 +125,24 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static void GenerateShadowMesh(Mesh mesh, Vector3[] shapePath)
         {
-            Color meshInteriorColor = new Color(0, 0, 0, 1);
             List<Vector3> vertices = new List<Vector3>();
             List<int> triangles = new List<int>();
             List<Vector4> tangents = new List<Vector4>();
+            List<Color> extrusion = new List<Color>();
 
             // Create interior geometry
             int pointCount = shapePath.Length;
-            var inputs = new ContourVertex[pointCount];
-            for (int i = 0; i < pointCount; ++i)
-                inputs[i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y }, Data = meshInteriorColor };
+            var inputs = new ContourVertex[2 * pointCount];
+            for (int i = 0; i < pointCount; i++)
+            {
+                Color extrusionData = new Color(shapePath[i].x, shapePath[i].y, shapePath[i].x, shapePath[i].y);
+                int nextPoint = (i + 1) % pointCount;
+                inputs[2*i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y, Z=0 }, Data = extrusionData };
+
+                extrusionData = new Color(shapePath[i].x, shapePath[i].y, shapePath[nextPoint].x, shapePath[nextPoint].y);
+                Vector2 midPoint = 0.5f * (shapePath[i] + shapePath[nextPoint]);
+                inputs[2*i+1] = new ContourVertex() { Position = new Vec3() { X = midPoint.x, Y = midPoint.y, Z = 0}, Data = extrusionData };
+            }
 
             Tess tessI = new Tess();
             tessI.AddContour(inputs, ContourOrientation.Original);
@@ -138,17 +150,20 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             var indicesI = tessI.Elements.Select(i => i).ToArray();
             var verticesI = tessI.Vertices.Select(v => new Vector3(v.Position.X, v.Position.Y, 0)).ToArray();
+            var extrusionI = tessI.Vertices.Select(v => new Color(((Color)v.Data).r, ((Color)v.Data).g, ((Color)v.Data).b, ((Color)v.Data).a)).ToArray();
 
             vertices.AddRange(verticesI);
             triangles.AddRange(indicesI);
+            extrusion.AddRange(extrusionI);
 
             InitializeTangents(vertices.Count, tangents);
 
             List<Edge> edges = new List<Edge>();
             PopulateEdgeArray(vertices, triangles, edges);
             SortEdges(edges);
-            CreateShadowTriangles(vertices, triangles, tangents, edges);
+            CreateShadowTriangles(vertices, extrusion, triangles, tangents, edges);
 
+            Color[] finalExtrusion = extrusion.ToArray();
             Vector3[] finalVertices = vertices.ToArray();
             int[] finalTriangles = triangles.ToArray();
             Vector4[] finalTangents = tangents.ToArray();
@@ -157,6 +172,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             mesh.vertices = finalVertices;
             mesh.triangles = finalTriangles;
             mesh.tangents = finalTangents;
+            mesh.colors = finalExtrusion;
         }
     }
 }
