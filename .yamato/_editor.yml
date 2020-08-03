@@ -16,7 +16,7 @@ editor:priming:2020.2:macos:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --user --upgrade --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli -u 8037ac78137e5807120bddf9b4b00d9241e5210b -o macos --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
+      -  unity-downloader-cli -u 115217e1fb595e88a5da9e5fa9d22f95f8b49200 -o macos --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
     artifacts:
         unity_revision.zip:
             paths:
@@ -53,7 +53,7 @@ editor:priming:2020.2:android:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --user --upgrade --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli -u 8037ac78137e5807120bddf9b4b00d9241e5210b -o windows --wait --skip-download -c editor -c il2cpp -c android  > unity_revision.txt
+      -  unity-downloader-cli -u 115217e1fb595e88a5da9e5fa9d22f95f8b49200 -o windows --wait --skip-download -c editor -c il2cpp -c android  > unity_revision.txt
     artifacts:
         unity_revision.zip:
             paths:
@@ -90,7 +90,7 @@ editor:priming:2020.2:windows:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --user --upgrade --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli -u 8037ac78137e5807120bddf9b4b00d9241e5210b -o windows --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
+      -  unity-downloader-cli -u 115217e1fb595e88a5da9e5fa9d22f95f8b49200 -o windows --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
     artifacts:
         unity_revision.zip:
             paths:
@@ -127,7 +127,7 @@ editor:priming:2020.2:linux:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --user --upgrade --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli -u 8037ac78137e5807120bddf9b4b00d9241e5210b -o linux --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
+      -  unity-downloader-cli -u 115217e1fb595e88a5da9e5fa9d22f95f8b49200 -o linux --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
     artifacts:
         unity_revision.zip:
             paths:
@@ -164,7 +164,7 @@ editor:priming:2020.2:ios:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --user --upgrade --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli -u 8037ac78137e5807120bddf9b4b00d9241e5210b -o macos --wait --skip-download -c editor -c iOS  > unity_revision.txt
+      -  unity-downloader-cli -u 115217e1fb595e88a5da9e5fa9d22f95f8b49200 -o macos --wait --skip-download -c editor -c iOS  > unity_revision.txt
     artifacts:
         unity_revision.zip:
             paths:
