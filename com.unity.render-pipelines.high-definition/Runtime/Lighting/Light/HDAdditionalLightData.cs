@@ -1938,10 +1938,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int count = GetShadowRequestCount(shadowSettings, lightType);
 
-            bool needResolutionRequestNow = !shadowIsInCacheSystem || lightType == HDLightType.Directional;
+            var updateType = GetShadowUpdateType();
             for (int index = 0; index < count; index++)
             {
-                m_ShadowRequestIndices[index] = shadowManager.ReserveShadowResolutions(shadowIsInCacheSystem ? new Vector2(resolution, resolution) : viewportSize, shadowMapType, GetInstanceID(), index, needResolutionRequestNow);
+                m_ShadowRequestIndices[index] = shadowManager.ReserveShadowResolutions(shadowIsInCacheSystem ? new Vector2(resolution, resolution) : viewportSize, shadowMapType, GetInstanceID(), index, updateType);
             }
         }
 
@@ -2049,8 +2049,112 @@ namespace UnityEngine.Rendering.HighDefinition
             SetCommonShadowRequestSettings(shadowRequest, visibleLight, cameraPos, invViewProjection, viewportSize, lightIndex, lightType, filteringQuality);
         }
 
-        // Must return the first executed shadow request
         internal int UpdateShadowRequest(HDCamera hdCamera, HDShadowManager manager, HDShadowSettings shadowSettings, VisibleLight visibleLight,
+                                 CullingResults cullResults, int lightIndex, LightingDebugSettings lightingDebugSettings, HDShadowFilteringQuality filteringQuality, out int shadowRequestCount)
+        {
+            int firstShadowRequestIndex = -1;
+            Vector3 cameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos;
+            shadowRequestCount = 0;
+
+            HDLightType lightType = type;
+
+            int count = GetShadowRequestCount(shadowSettings, lightType);
+            var updateType = GetShadowUpdateType();
+            bool hasCachedComponent = !ShadowIsUpdatedEveryFrame();
+            bool isSampledFromCache = (updateType == ShadowMapUpdateType.Cached);
+
+            // Note if we are in cached system, but if a placement has not been found by this point we bail out shadows
+            bool shadowHasAtlasPlacement = true;
+            if (hasCachedComponent)
+            {
+                // If we force evicted the light, it will have lightIdxForCachedShadows == -1
+                shadowHasAtlasPlacement = !HDShadowManager.cachedShadowManager.LightIsPendingPlacement(this, shadowMapType) && (lightIdxForCachedShadows != -1);
+            }
+
+            for (int index = 0; index < count; index++)
+            {
+                var shadowRequest = shadowRequests[index];
+
+                Matrix4x4 invViewProjection = Matrix4x4.identity;
+                int shadowRequestIndex = m_ShadowRequestIndices[index];
+
+                HDShadowResolutionRequest resolutionRequest = manager.GetResolutionRequest(shadowRequestIndex);
+
+                if (resolutionRequest == null)
+                    continue;
+
+                int cachedShadowID = lightIdxForCachedShadows + index;
+                bool needToUpdateCachedContent = false;
+                bool needToUpdateDynamicContent = !isSampledFromCache;
+                bool hasUpdatedRequestData = false;
+
+                if (hasCachedComponent && shadowHasAtlasPlacement)
+                {
+                    needToUpdateCachedContent = HDShadowManager.cachedShadowManager.ShadowIsPendingUpdate(cachedShadowID, shadowMapType);
+                    HDShadowManager.cachedShadowManager.UpdateResolutionRequest(ref resolutionRequest, cachedShadowID, shadowMapType);
+                }
+
+                shadowRequest.isInCachedAtlas = isSampledFromCache;
+                shadowRequest.isMixedCached = updateType == ShadowMapUpdateType.Mixed;
+
+                Vector2 viewportSize = resolutionRequest.resolution;
+
+                if (shadowRequestIndex == -1)
+                    continue;
+
+                if (needToUpdateCachedContent)
+                {
+                    m_CachedViewPos = cameraPos;
+                    shadowRequest.cachedShadowData.cacheTranslationDelta = new Vector3(0.0f, 0.0f, 0.0f);
+
+                    // Write per light type matrices, splitDatas and culling parameters
+                    UpdateShadowRequestData(hdCamera, manager, shadowSettings, visibleLight, cullResults, lightIndex, lightingDebugSettings, filteringQuality, viewportSize, lightType, index, ref shadowRequest);
+
+                    hasUpdatedRequestData = true;
+                    shadowRequest.shouldUseCachedShadowData = false;
+                }
+                else if(hasCachedComponent)
+                {
+                    shadowRequest.cachedShadowData.cacheTranslationDelta = cameraPos - m_CachedViewPos;
+                    shadowRequest.shouldUseCachedShadowData = true;
+                    // If directional we still need to calculate the split data.
+                    if (lightType == HDLightType.Directional)
+                        UpdateDirectionalShadowRequest(manager, shadowSettings, visibleLight, cullResults, viewportSize, index, lightIndex, cameraPos, shadowRequest, out invViewProjection);
+
+                }
+
+                if(needToUpdateDynamicContent)
+                {
+                    shadowRequest.shouldUseCachedShadowData = false;
+                    shadowRequest.cachedShadowData.cacheTranslationDelta = new Vector3(0.0f, 0.0f, 0.0f);
+                    // Write per light type matrices, splitDatas and culling parameters
+                    UpdateShadowRequestData(hdCamera, manager, shadowSettings, visibleLight, cullResults, lightIndex, lightingDebugSettings, filteringQuality, viewportSize, lightType, index, ref shadowRequest);
+                }
+
+                shadowRequest.dynamicAtlasViewport = resolutionRequest.dynamicAtlasViewport;
+                shadowRequest.cachedAtlasViewport = resolutionRequest.cachedAtlasViewport;
+                manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest, updateType);
+
+                if (needToUpdateCachedContent)
+                {
+                    // Handshake with the cached shadow manager to notify about the rendering.
+                    // Technically the rendering has not happened yet, but it is scheduled.
+                    HDShadowManager.cachedShadowManager.MarkShadowAsRendered(cachedShadowID, shadowMapType);
+                }
+
+                // Store the first shadow request id to return it
+                if (firstShadowRequestIndex == -1)
+                    firstShadowRequestIndex = shadowRequestIndex;
+
+                shadowRequestCount++;
+            }
+
+            return shadowHasAtlasPlacement ? firstShadowRequestIndex : -1;
+        }
+
+
+        // Must return the first executed shadow request
+        internal int UpdateShadowRequest_Old(HDCamera hdCamera, HDShadowManager manager, HDShadowSettings shadowSettings, VisibleLight visibleLight,
                                          CullingResults cullResults, int lightIndex, LightingDebugSettings lightingDebugSettings, HDShadowFilteringQuality filteringQuality, out int shadowRequestCount)
         {
             int                 firstShadowRequestIndex = -1;
@@ -2060,6 +2164,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDLightType lightType = type;
 
             int count = GetShadowRequestCount(shadowSettings, lightType);
+            var updateType = GetShadowUpdateType();
 
             bool shadowIsInCachedSystem = !ShadowIsUpdatedEveryFrame();
             // Note if we are in cached system, but if a placement has not been found by this point we bail out shadows
@@ -2101,7 +2206,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!shadowNeedsRendering)
                 {
                     shadowRequest.cachedShadowData.cacheTranslationDelta = cameraPos - m_CachedViewPos;
-                    shadowRequest.shouldUseCachedShadow = true;
+                    shadowRequest.shouldUseCachedShadowData = true;
 
                     // If directional we still need to calculate the split data.
                     if (lightType == HDLightType.Directional)
@@ -2110,7 +2215,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     m_CachedViewPos = cameraPos;
-                    shadowRequest.shouldUseCachedShadow = false;
+                    shadowRequest.shouldUseCachedShadowData = false;
 
                     // Write per light type matrices, splitDatas and culling parameters
                     UpdateShadowRequestData(hdCamera, manager, shadowSettings, visibleLight, cullResults, lightIndex, lightingDebugSettings, filteringQuality, viewportSize, lightType, index, ref shadowRequest);
@@ -2118,7 +2223,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 shadowRequest.dynamicAtlasViewport = resolutionRequest.dynamicAtlasViewport;
                 shadowRequest.cachedAtlasViewport = resolutionRequest.cachedAtlasViewport;
-                manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest, shadowIsInCachedSystem);
+                manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest, updateType);
 
                 if(shadowIsInCachedSystem && shadowNeedsRendering)
                 {

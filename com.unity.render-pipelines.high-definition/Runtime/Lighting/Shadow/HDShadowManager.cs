@@ -129,10 +129,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector4              evsmParams;
 
-        public bool         shouldUseCachedShadow = false;
+        public bool         shouldUseCachedShadowData = false;
         public HDShadowData cachedShadowData;
 
         public bool         isInCachedAtlas;
+        public bool         isMixedCached = false;
     }
 
     enum DirectionalShadowAlgorithm
@@ -410,7 +411,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CascadeAtlas.UpdateSize(atlasResolution);
         }
 
-        internal int ReserveShadowResolutions(Vector2 resolution, ShadowMapType shadowMapType, int lightID, int index, bool isDynamicShadow)
+        internal int ReserveShadowResolutions(Vector2 resolution, ShadowMapType shadowMapType, int lightID, int index, ShadowMapUpdateType updateType)
         {
             if (m_ShadowRequestCount >= m_MaxShadowRequests)
             {
@@ -424,7 +425,7 @@ namespace UnityEngine.Rendering.HighDefinition
             //      - Maintain the limit of m_MaxShadowRequests
             //      - Avoid to refactor other parts that the shadow manager that get requests indices from here.
 
-            if (isDynamicShadow)
+            if (updateType != ShadowMapUpdateType.Cached || shadowMapType == ShadowMapType.CascadedDirectional)
             {
                 m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter].resolution = resolution;
                 m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter].dynamicAtlasViewport.width = resolution.x;
@@ -467,20 +468,23 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_ShadowResolutionRequests[index].resolution;
         }
 
-        internal void UpdateShadowRequest(int index, HDShadowRequest shadowRequest, bool isCached = false)
+        internal void UpdateShadowRequest(int index, HDShadowRequest shadowRequest, ShadowMapUpdateType updateType)
         {
             if (index >= m_ShadowRequestCount)
                 return;
 
             m_ShadowRequests[index] = shadowRequest;
 
+            bool addToCached = updateType == ShadowMapUpdateType.Cached || updateType == ShadowMapUpdateType.Mixed;
+            bool addDynamic = updateType == ShadowMapUpdateType.Dynamic || updateType == ShadowMapUpdateType.Mixed;
+
             switch (shadowRequest.shadowMapType)
             {
                 case ShadowMapType.PunctualAtlas:
                 {
-                    if (isCached)
+                    if (addToCached)
                         cachedShadowManager.punctualShadowAtlas.AddShadowRequest(shadowRequest);
-                    else
+                    if (addDynamic)
                         m_Atlas.AddShadowRequest(shadowRequest);
 
                     break;
@@ -492,9 +496,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 case ShadowMapType.AreaLightAtlas:
                 {
-                    if (isCached)
+                    if (addToCached)
                         cachedShadowManager.areaShadowAtlas.AddShadowRequest(shadowRequest);
-                    else
+                    if (addDynamic)
                         m_AreaLightShadowAtlas.AddShadowRequest(shadowRequest);
 
                     break;
@@ -637,7 +641,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 HDShadowData shadowData;
-                if (m_ShadowRequests[i].shouldUseCachedShadow)
+                if (m_ShadowRequests[i].shouldUseCachedShadowData)
                 {
                     shadowData = m_ShadowRequests[i].cachedShadowData;
                 }

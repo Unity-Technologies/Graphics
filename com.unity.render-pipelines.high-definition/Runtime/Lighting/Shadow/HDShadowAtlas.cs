@@ -198,8 +198,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
             foreach (var shadowRequest in parameters.shadowRequests)
             {
-                if (shadowRequest.shouldUseCachedShadow)
+                if (shadowRequest.shouldUseCachedShadowData)
                     continue;
+
+                if (shadowRequest.isMixedCached)
+                {
+                    shadowDrawSettings.objectsFilter = renderingOnAShadowCache ? ShadowObjectsFilter.StaticOnly : ShadowObjectsFilter.DynamicOnly;
+                }
+                else
+                {
+                    shadowDrawSettings.objectsFilter = ShadowObjectsFilter.AllObjects;
+                }
 
                 cmd.SetGlobalDepthBias(1.0f, shadowRequest.slopeBias);
                 cmd.SetViewport(renderingOnAShadowCache ? shadowRequest.cachedAtlasViewport : shadowRequest.dynamicAtlasViewport);
@@ -270,7 +279,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 int requestIdx = 0;
                 foreach (var shadowRequest in parameters.shadowRequests)
                 {
-                    if (shadowRequest.shouldUseCachedShadow)
+                    if (shadowRequest.shouldUseCachedShadowData)
                         continue;
 
                     var viewport = blurOnACache ? shadowRequest.cachedAtlasViewport : shadowRequest.dynamicAtlasViewport;
