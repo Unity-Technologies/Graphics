@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed XR Display providers not getting zNear and zFar plane distances passed to them when in HDRP.
 - Fixed issue with white flash when enabling SSR.
 - Fixed issue with depth pyramid generation and dynamic resolution.
+- Fixed an issue where opening the look dev window with the light theme would make the window blink and eventually crash unity.
 
 ### Changed
 - Changed extensions of shader CAS include files.
