@@ -12,6 +12,7 @@ editor-pinning-update:
     variables:
         CI: true
     commands:
+      -  sudo pip3 install --upgrade pip
       -  sudo pip3 install pipenv --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple
       -  python3 -m pipenv install --dev
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
