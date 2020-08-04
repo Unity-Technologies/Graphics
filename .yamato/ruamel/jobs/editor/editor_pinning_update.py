@@ -15,7 +15,6 @@ class Editor_PinningUpdateJob():
     def get_job_definition(self, agent, target_branch, target_branch_editor_ci):
 
         commands = [
-            #f'sudo pip3 install --upgrade pip',
             f'sudo pip3 install pipenv --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple',# Remove when the image has this preinstalled.
             f'python3 -m pipenv install --dev', 
             f'curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -',
@@ -38,6 +37,6 @@ class Editor_PinningUpdateJob():
         job.set_agent(agent)
         job.add_var_custom('CI', True)
         job.add_commands(commands)
-        # job.add_dependencies([f'{editor_pinning_filepath()}#{editor_job_id_merge_from_target()}'])TODO uncomment
+        job.add_dependencies([f'{editor_pinning_filepath()}#{editor_job_id_merge_from_target()}'])
         # job.add_trigger_recurrent(target_branch, '1 * * ?') TODO uncomment
         return job
