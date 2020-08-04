@@ -6,32 +6,32 @@ test_platforms:
   - performance_playmode_memory
   - performance_editmode_build
 platforms:
-  - name: Win_perf
+  - name: Win
     apis:
       - DX11
       - Vulkan
-  - name: OSX_perf
+  - name: OSX
     apis:
       - Metal
-  - name: Android_perf
+  - name: Android
     apis: 
       - Vulkan
       - OpenGLES3
 all:
   dependencies:
-    - platform: Win_perf
+    - platform: Win
       api: DX11
       test_platforms:
         - performance_playmode_counters
         - performance_playmode_memory
         - performance_editmode_build
-    - platform: OSX_perf
+    - platform: OSX
       api: Metal
       test_platforms:
         - performance_playmode_counters
         - performance_playmode_memory
         - performance_editmode_build
-    - platform: Android_perf
+    - platform: Android
       api: OpenGLES3
       test_platforms:
         - performance_playmode_counters

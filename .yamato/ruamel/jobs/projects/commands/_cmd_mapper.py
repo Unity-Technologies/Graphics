@@ -1,4 +1,4 @@
-from . import win, win_perf, osx_openglcore, osx_metal, osx_perf, linux, android, android_perf, osx_metal_split, linux_split, iphone
+from . import win, osx_openglcore, osx_metal, linux, android, osx_metal_split, linux_split, iphone
 
 cmd_map = {
     'win' : {
@@ -9,11 +9,6 @@ cmd_map = {
         'standalone_performance': win.cmd_standalone_performance,
         'standalone_build_performance': win.cmd_standalone_build_performance
     },
-    'win_perf' : {
-        'not_standalone': win_perf.cmd_not_standalone,
-        'standalone' : win_perf.cmd_standalone,
-        'standalone_build' : win_perf.cmd_standalone_build
-    },
     'osx_openglcore' :  {
         'not_standalone': osx_openglcore.cmd_not_standalone,
         'standalone' : osx_openglcore.cmd_standalone,
@@ -22,12 +17,10 @@ cmd_map = {
     'osx_metal' :  {
         'not_standalone': osx_metal.cmd_not_standalone,
         'standalone' : osx_metal.cmd_standalone,
-        'standalone_build' : osx_metal.cmd_standalone_build
-    },
-    'osx_perf' : {
-        'not_standalone': osx_perf.cmd_not_standalone,
-        'standalone' : osx_perf.cmd_standalone,
-        'standalone_build' : osx_perf.cmd_standalone_build
+        'standalone_build' : osx_metal.cmd_standalone_build,
+        'not_standalone_performance': osx_metal.cmd_not_standalone_performance,
+        'standalone_performance' : osx_metal.cmd_standalone_performance,
+        'standalone_build_performance' : osx_metal.cmd_standalone_build_performance
     },
     'linux' : {
         'not_standalone': linux.cmd_not_standalone,
@@ -37,12 +30,10 @@ cmd_map = {
     'android' : {
         'not_standalone': android.cmd_not_standalone,
         'standalone' : android.cmd_standalone,
-        'standalone_build' : android.cmd_standalone_build
-    },
-    'android_perf' : {
-        'not_standalone': android_perf.cmd_not_standalone,
-        'standalone' : android_perf.cmd_standalone,
-        'standalone_build' : android_perf.cmd_standalone_build
+        'standalone_build' : android.cmd_standalone_build,
+        'not_standalone_performance': android.cmd_not_standalone_performance,
+        'standalone_performance' : android.cmd_standalone_performance,
+        'standalone_build_performance' : android.cmd_standalone_build_performance
     },
     'iphone' : {
         'not_standalone': iphone.cmd_not_standalone,
