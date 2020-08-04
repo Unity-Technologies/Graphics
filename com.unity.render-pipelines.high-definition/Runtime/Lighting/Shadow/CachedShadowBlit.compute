@@ -3,6 +3,7 @@
 
 
 #pragma kernel CachedShadowBlit
+#pragma enable_d3d11_debug_symbols
 
 // We have one thread in flight per destination texel in the dynamic atlas. Ideally we should have a 1:1 mapping, but it might not be the case
 // if dynamic array is full and has been rescaled to accommodate.
@@ -11,25 +12,25 @@
 float4 _SrcRect;
 float4 _DstRect;
 
-#define _SrcSize        _SrcRect.zw
-#define _SrcOffsetUV    _SrcRect.xy // Offset is in UV
-#define _DstSize        (uint2)_DstRect.zw
-#define _DstOffsetSS    _DstRect.xy // Offset is in screen space
+#define _SrcSize        _SrcRect.xy
+#define _SrcOffsetUV    _SrcRect.zw // Offset is in UV
+#define _DstSize        (uint2)_DstRect.xy
+#define _DstOffsetSS    _DstRect.zw // Offset is in texture space
 
 TEXTURE2D(_CachedShadowmapAtlas);
-RW_TEXTURE2D(float, _ShadowmapAtlas);
+RW_TEXTURE2D(float, _OutputTexture);
 
 
 [numthreads(8, 8, 1)]
 void CachedShadowBlit(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    if (all(dispatchThreadId.xy < _DstSize))
+   // if (all(dispatchThreadId.xy < _DstSize))
     {
         float2 uv = (dispatchThreadId.xy) * rcp(_DstSize);
         uv += _SrcOffsetUV;
         float src = SAMPLE_TEXTURE2D_LOD(_CachedShadowmapAtlas, s_point_clamp_sampler, uv, 0).x;
 
         uint2 outCoords = dispatchThreadId.xy + _DstOffsetSS;
-        _ShadowmapAtlas[outCoords] = src;
+        _OutputTexture[dispatchThreadId.xy] = src;
     }
 }

@@ -294,6 +294,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Material                    m_ClearShadowMaterial;
 
+        ComputeShader               m_CachedShadowBlitCS;
+
         private static HDShadowManager s_Instance = new HDShadowManager();
 
         public static HDShadowManager instance { get { return s_Instance; } }
@@ -312,6 +314,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShadowResolutionRequests = new HDShadowResolutionRequest[initParams.maxShadowRequests];
             m_ShadowRequests = new HDShadowRequest[initParams.maxShadowRequests];
             m_CachedDirectionalShadowData = new HDDirectionalShadowData[1]; // we only support directional light shadow
+
+            m_CachedShadowBlitCS = renderPipelineResources.shaders.cachedShadowBlitCS;
 
             for (int i = 0; i < initParams.maxShadowRequests; i++)
             {
@@ -485,9 +489,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (addToCached)
                         cachedShadowManager.punctualShadowAtlas.AddShadowRequest(shadowRequest);
                     if (addDynamic)
+                    {
                         m_Atlas.AddShadowRequest(shadowRequest);
+                        if(updateType == ShadowMapUpdateType.Mixed)
+                            m_Atlas.AddRequestToPendingBlitFromCache(shadowRequest);
+                    }
 
-                    break;
+                        break;
                 }
                 case ShadowMapType.CascadedDirectional:
                 {
@@ -501,7 +509,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         cachedShadowManager.areaShadowAtlas.AddShadowRequest(shadowRequest);
                     }
                     if (addDynamic)
+                    {
                         m_AreaLightShadowAtlas.AddShadowRequest(shadowRequest);
+                        if (updateType == ShadowMapUpdateType.Mixed)
+                            m_AreaLightShadowAtlas.AddRequestToPendingBlitFromCache(shadowRequest);
+                    }
 
                     break;
                 }
@@ -716,10 +728,38 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void BlitCacheIntoAtlas(CommandBuffer cmd)
         {
-            // TODO_FCC: Move to RG ready
-            // TODO_FCC: Make area lights too
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitCachedShadowMaps)))
+            {
+                // TODO_FCC: Move to RG ready
+                // TODO_FCC: Make area lights too
+                var cs = m_CachedShadowBlitCS;
+                var kernel = cs.FindKernel("CachedShadowBlit");
 
+                foreach (var request in m_Atlas.MixedRequestsPendingBlits)
+                {
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._DstRect, new Vector4(request.dynamicAtlasViewport.width,
+                                                                                    request.dynamicAtlasViewport.height,
+                                                                                    request.dynamicAtlasViewport.x,
+                                                                                    request.dynamicAtlasViewport.y));
 
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._SrcRect, new Vector4(request.cachedAtlasViewport.width,
+                                                                                    request.cachedAtlasViewport.height,
+                                                                                    request.cachedAtlasViewport.x / cachedShadowManager.punctualShadowAtlas.width,
+                                                                                    request.cachedAtlasViewport.y / cachedShadowManager.punctualShadowAtlas.height));
+
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_Atlas.renderTarget);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CachedShadowmapAtlas, cachedShadowManager.punctualShadowAtlas.renderTarget);
+
+                    // We have one thread in flight per destination texel in the dynamic atlas.
+                    int dispatchX = HDUtils.DivRoundUp((int)request.dynamicAtlasViewport.width, 8);
+                    int dispatchY = HDUtils.DivRoundUp((int)request.dynamicAtlasViewport.height, 8);
+
+                    cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, 1);
+                }
+
+            }
+
+            m_Atlas.MixedRequestsPendingBlits.Clear();
 
         }
 

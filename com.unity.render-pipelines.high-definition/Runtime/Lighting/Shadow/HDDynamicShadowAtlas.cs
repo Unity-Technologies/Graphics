@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     partial class HDDynamicShadowAtlas : HDShadowAtlas
     {
         readonly List<HDShadowResolutionRequest>    m_ShadowResolutionRequests = new List<HDShadowResolutionRequest>();
-        readonly List<HDShadowRequest>              m_MixedRequestsPendingBlits = new List<HDShadowRequest>();
+        internal List<HDShadowRequest>              MixedRequestsPendingBlits = new List<HDShadowRequest>();
 
         float m_RcpScaleFactor = 1;
         HDShadowResolutionRequest[] m_SortedRequestsCache;
@@ -168,14 +168,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public void AddRequestToPendingBlitFromCache(HDShadowRequest request)
         {
             if (request.isMixedCached)
-                m_MixedRequestsPendingBlits.Add(request);
+                MixedRequestsPendingBlits.Add(request);
         }
 
         public override void Clear()
         {
             base.Clear();
             m_ShadowResolutionRequests.Clear();
-            m_MixedRequestsPendingBlits.Clear();
+            MixedRequestsPendingBlits.Clear();
         }
     }
 }

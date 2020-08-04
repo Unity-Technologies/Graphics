@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Atlas != null)
                 m_Atlas.Release();
 
-            m_Atlas = RTHandles.Alloc(width, height, filterMode: m_FilterMode, depthBufferBits: m_DepthBufferBits, isShadowMap: true, name: m_Name);
+            m_Atlas = RTHandles.Alloc(width, height, filterMode: m_FilterMode, depthBufferBits: m_DepthBufferBits, isShadowMap: true, enableRandomWrite: true, name: m_Name);
 
             if (m_BlurAlgorithm == BlurAlgorithm.IM)
             {

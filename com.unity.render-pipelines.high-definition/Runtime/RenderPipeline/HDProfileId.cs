@@ -135,6 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderEVSMShadowMaps,
         RenderEVSMShadowMapsBlur,
         RenderEVSMShadowMapsCopyToAtlas,
+        BlitCachedShadowMaps,
 
         // Profile sampler for tile pass
         LightLoopPushGlobalParameters,
