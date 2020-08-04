@@ -12,9 +12,8 @@ editor-pinning-update:
     variables:
         CI: true
     commands:
-      -  sudo pip3 install --upgrade pip
       -  sudo pip3 install pipenv --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
-      -  pipenv install --dev
+      -  python3 -m pipenv install --dev
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt-get update
@@ -28,8 +27,6 @@ editor-pinning-update:
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
       -  pipenv run python3 .yamato/ruamel/editor_pinning/update_revisions.py --target-branch yamato/editor-pin-ci --force-push
-    dependencies:
-      -  .yamato/_editor_pinning.yml#editor-pinning-merge-from-target
 editor-pinning-merge-to-target:
     name: Merge editor revisions to yamato/editor-pin
     agent:
