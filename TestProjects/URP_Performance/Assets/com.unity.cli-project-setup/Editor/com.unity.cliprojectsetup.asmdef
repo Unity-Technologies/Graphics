@@ -1,0 +1,17 @@
+{
+    "name": "com.unity.cli-project-setup",
+    "references": [
+        "Unity.RenderPipelines.Universal.Runtime",
+        "com.unity.tests.performance.runtimesettings",
+        "Unity.Burst"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

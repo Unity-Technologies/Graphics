@@ -1,0 +1,8 @@
+﻿# PR review process
+
+- Any PR must have an entry in the corresponding changelog in a separate commit (CHANGELOG.MD file)
+- Changelog follow these guidelines: https://github.com/Unity-Technologies/PostProcessing/blob/v2/CHANGELOG.md
+- Each release branch (2018.1, 2018.2...) have a unique Changelog file
+- when backporting, don't backport the changelog commit but update the branch changelog manually
+- (optional) add reviewver from doc team
+- Any more complex description of a change with future need to go in a release note file
