@@ -16,10 +16,10 @@
   * [Menu Items](Menu-Items.md)
 * Upgrading HDRP between Unity Versions
   * [Material Upgrade](Material-Upgrade)
-  * [2019.1 to 2019.2](Upgrading-from-2019.1-to-2019.2)
-  * [2019.2 to 2019.3](Upgrading-from-2019.2-to-2019.3)
-  * [2019.3 to 2020.1](Upgrading-from-2019.3-to-2020.1)
-  * [2020.1 to 2020.2](Upgrading-from-2020.1-to-2020.2)
+  * [5.x to 6.x](Upgrading-from-2019.1-to-2019.2)
+  * [6.x to 7.x](Upgrading-from-2019.2-to-2019.3)
+  * [7.x to 8.x](Upgrading-from-2019.3-to-2020.1)
+  * [8.x to 9.x-preview/10.x](Upgrading-from-2020.1-to-2020.2)
 * Volume Framework
   * [Volumes](Volumes)
   * [Volume Profiles](Volume-Profile)

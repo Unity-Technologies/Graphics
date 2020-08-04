@@ -12,12 +12,12 @@ TEXTURECUBE(_AmbientProbeInputCubemap);
 
 // Constants from SetSHEMapConstants function in the Stupid Spherical Harmonics Tricks paper:
 // http://www.ppsloan.org/publications/StupidSH36.pdf
-#define sqrtPI (sqrt(PI))
-#define fC0 (0.282095 * (1.0 / (2.0 * sqrtPI)))
-#define fC1 (0.488603 * (sqrt ( 3.0) / ( 3.0 * sqrtPI)))
-#define fC2 (1.092548 * (sqrt (15.0) / ( 8.0 * sqrtPI)))
-#define fC3 (0.315392 * (sqrt ( 5.0) / (16.0 * sqrtPI)))
-#define fC4 (0.546274 * 0.5 * fC2)
+//  [SH basis coeff] * [clamped cosine convolution factor]
+#define fC0 (rsqrt(PI * 4.0) * rsqrt(PI * 4.0))  // Equivalent (0.282095 * (1.0 / (2.0 * sqrtPI)))
+#define fC1 (rsqrt(PI * 4.0 / 3.0) * rsqrt(PI * 3.0)) // Equivalent to (0.488603 * (sqrt ( 3.0) / ( 3.0 * sqrtPI)))
+#define fC2 (rsqrt(PI * 4.0 / 15.0) * rsqrt(PI * 64.0 / 15.0)) // Equivalent to (1.092548 * (sqrt (15.0) / ( 8.0 * sqrtPI)))
+#define fC3 (rsqrt(PI * 16.0 / 5.0) * rsqrt(PI * 256.0 / 5.0)) // Equivalent to (0.315392 * (sqrt ( 5.0) / (16.0 * sqrtPI)))
+#define fC4 (rsqrt(PI * 16.0 / 15.0) * rsqrt(PI * 256.0 / 15.0)) // Equivalent to  (0.546274 * 0.5 * (sqrt (15.0) / ( 8.0 * sqrtPI)))
 
 #define SAMPLE_COUNT 256
 #define SH_COEFF_COUNT 27
