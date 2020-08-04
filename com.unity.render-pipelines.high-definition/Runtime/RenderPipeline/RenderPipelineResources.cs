@@ -189,6 +189,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader debugHDShadowMapPS;
             [Reload("Runtime/Lighting/Shadow/MomentShadows.compute")]
             public ComputeShader momentShadowsCS;
+            [Reload("Runtime/Lighting/Shadow/CachedShadowBlit.compute")]
+            public ComputeShader cachedShadowBlitCS;
 
             // Decal
             [Reload("Runtime/Material/Decal/DecalNormalBuffer.shader")]

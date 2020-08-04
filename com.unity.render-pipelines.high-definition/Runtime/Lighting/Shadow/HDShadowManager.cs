@@ -497,7 +497,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 case ShadowMapType.AreaLightAtlas:
                 {
                     if (addToCached)
+                    {
                         cachedShadowManager.areaShadowAtlas.AddShadowRequest(shadowRequest);
+                    }
                     if (addDynamic)
                         m_AreaLightShadowAtlas.AddShadowRequest(shadowRequest);
 
@@ -710,6 +712,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     cachedShadowManager.areaShadowAtlas.RenderShadows(cullResults, globalCB, hdCamera.frameSettings, renderContext, cmd);
                 }
             }
+        }
+
+        public void BlitCacheIntoAtlas(CommandBuffer cmd)
+        {
+            // TODO_FCC: Move to RG ready
+            // TODO_FCC: Make area lights too
+
+
+
         }
 
         public void PushGlobalParameters(CommandBuffer cmd)
