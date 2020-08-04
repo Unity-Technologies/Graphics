@@ -152,8 +152,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     bounds = LightUtility.GenerateParametricMesh(ref m_Mesh, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
                     break;
                 case LightType.Sprite:
-                    m_Mesh.Clear();
-                    bounds = LightUtility.GenerateSpriteMesh(ref m_Mesh, m_LightCookieSprite, 1);
+                    bounds = LightUtility.GenerateSpriteMesh(ref m_Mesh, m_LightCookieSprite);
                     break;
                 case LightType.Point:
                     bounds = LightUtility.GenerateParametricMesh(ref m_Mesh, 1.412135f, 0, 0, 4);

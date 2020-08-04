@@ -1,6 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine.Experimental.Rendering.Universal.LibTessDotNet;
+using UnityEngine.Rendering;
+using UnityEngine.U2D;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
@@ -72,13 +76,26 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return localBounds;
         }
 
+        private struct ParametricLightMeshVertex
+        {
+            public float3 position;
+            public Color color;
+        }
+
+        private struct SpriteLightMeshVertex
+        {
+            public Vector3 position;
+            public Color color;
+            public Vector2 uv;
+        }
+
         // Takes in a mesh that
         public static Bounds GenerateParametricMesh(ref Mesh mesh, float radius, float falloffDistance, float angle, int sides)
         {
             if (mesh == null)
                 mesh = new Mesh();
 
-            float angleOffset = Mathf.PI / 2.0f + Mathf.Deg2Rad * angle;
+            var angleOffset = Mathf.PI / 2.0f + Mathf.Deg2Rad * angle;
             if (sides < 3)
             {
                 radius = 0.70710678118654752440084436210485f * radius;
@@ -90,100 +107,112 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 angleOffset = Mathf.PI / 4.0f + Mathf.Deg2Rad * angle;
             }
 
-            // Return a shape with radius = 1
-            Vector3[] vertices;
-            int[] triangles;
-            Color[] colors;
-
-            int centerIndex;
-            vertices = new Vector3[1 + 2 * sides];
-            colors = new Color[1 + 2 * sides];
-            triangles = new int[3 * 3 * sides];
-            centerIndex = 2 * sides;
+            var vertexCount = 1 + 2 * sides;
+            var indexCount = 3 * 3 * sides;
+            var vertices = new NativeArray<ParametricLightMeshVertex>(vertexCount, Allocator.Temp);
+            var triangles = new NativeArray<ushort>(indexCount, Allocator.Temp);
+            var centerIndex = (ushort)(2 * sides);
 
             // Color will contain r,g = x,y extrusion direction, a = alpha. b is unused at the moment. The inner shape should not be extruded
-            Color color = new Color(0, 0, 0, 1);
-            vertices[centerIndex] = Vector3.zero;
-            colors[centerIndex] = color;
-            float radiansPerSide = 2 * Mathf.PI / sides;
-
-            for (int i = 0; i < sides; i++)
+            var color = new Color(0, 0, 0, 1);
+            vertices[centerIndex] = new ParametricLightMeshVertex
             {
-                float endAngle = (i + 1) * radiansPerSide;
+                position = float3.zero,
+                color = color
+            };
 
-                Vector3 extrudeDir = new Vector3(Mathf.Cos(endAngle + angleOffset), Mathf.Sin(endAngle + angleOffset), 0);
-                Vector3 endPoint = radius * extrudeDir;
+            var radiansPerSide = 2 * Mathf.PI / sides;
 
-                int vertexIndex;
-                vertexIndex = (2 * i + 2) % (2 * sides);
+            for (var i = 0; i < sides; i++)
+            {
+                var endAngle = (i + 1) * radiansPerSide;
 
-                vertices[vertexIndex] = endPoint; // This is the extruded endpoint
-                vertices[vertexIndex + 1] = endPoint;
+                var extrudeDir = new float3(math.cos(endAngle + angleOffset), math.sin(endAngle + angleOffset), 0);
+                var endPoint = radius * extrudeDir;
 
-                colors[vertexIndex] = new Color(extrudeDir.x, extrudeDir.y, 0, 0);
-                colors[vertexIndex + 1] = color;
+                var vertexIndex = (ushort)((2 * i + 2) % (2 * sides));
+
+                vertices[vertexIndex] = new ParametricLightMeshVertex
+                {
+                    position = endPoint, // This is the extruded endpoint
+                    color = new Color(extrudeDir.x, extrudeDir.y, 0, 0)
+                };
+
+                vertices[vertexIndex + 1] = new ParametricLightMeshVertex
+                {
+                    position = endPoint,
+                    color = color
+                };
 
                 // Triangle 1 (Tip)
-                int triangleIndex = 9 * i;
-                triangles[triangleIndex] = vertexIndex + 1;
-                triangles[triangleIndex + 1] = 2 * i + 1;
+                var triangleIndex = 9 * i;
+                triangles[triangleIndex] = (ushort)(vertexIndex + 1);
+                triangles[triangleIndex + 1] = (ushort)(2 * i + 1);
                 triangles[triangleIndex + 2] = centerIndex;
 
                 // Triangle 2 (Upper Top Left)
                 triangles[triangleIndex + 3] = vertexIndex;
-                triangles[triangleIndex + 4] = 2 * i;
-                triangles[triangleIndex + 5] = 2 * i + 1;
+                triangles[triangleIndex + 4] = (ushort)(2 * i);
+                triangles[triangleIndex + 5] = (ushort)(2 * i + 1);
 
                 // Triangle 2 (Bottom Top Left)
-                triangles[triangleIndex + 6] = vertexIndex + 1;
+                triangles[triangleIndex + 6] = (ushort)(vertexIndex + 1);
                 triangles[triangleIndex + 7] = vertexIndex;
-                triangles[triangleIndex + 8] = 2 * i + 1;
+                triangles[triangleIndex + 8] = (ushort)(2 * i + 1);
             }
 
-            mesh.Clear();
-            mesh.vertices = vertices;
-            mesh.colors = colors;
-            mesh.triangles = triangles;
+            mesh.Clear(); // not sure we need this
+            mesh.SetVertexBufferParams(vertexCount, new[]
+            {
+                new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
+                new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.Float32, 4),
+            });
+            mesh.SetVertexBufferData(vertices, 0, 0, vertexCount);
+            mesh.SetIndices(triangles, MeshTopology.Triangles, 0, true);
 
-            return CalculateBoundingSphere(ref vertices, ref colors, falloffDistance);
+            vertices.Dispose();
+            triangles.Dispose();
+
+            // as parametric, this should be calculatable
+            return mesh.bounds;
         }
 
-        public static Bounds GenerateSpriteMesh(ref Mesh mesh, Sprite sprite, float scale)
+        public static Bounds GenerateSpriteMesh(ref Mesh mesh, Sprite sprite)
         {
             if (mesh == null)
                 mesh = new Mesh();
 
             if (sprite != null)
             {
-                Vector2[] vertices2d = sprite.vertices;
-                Vector3[] vertices3d = new Vector3[vertices2d.Length];
-                Color[] colors = new Color[vertices2d.Length];
-                Vector4[] volumeColor = new Vector4[vertices2d.Length];
+                // this needs to be called before getting UV at the line below
+                var uvs = sprite.uv;
 
-                ushort[] triangles2d = sprite.triangles;
-                int[] triangles3d = new int[triangles2d.Length];
+                var srcVertices = sprite.GetVertexAttribute<Vector3>(VertexAttribute.Position);
+                var srcUVs = sprite.GetVertexAttribute<Vector2>(VertexAttribute.TexCoord0);
+                var srcIndices = sprite.GetIndices();
 
+                var center = 0.5f * (sprite.bounds.min + sprite.bounds.max);
+                var vertices = new NativeArray<SpriteLightMeshVertex>(srcIndices.Length, Allocator.Temp);
+                var color = new Color(0,0,0, 1);
 
-                Vector3 center = 0.5f * scale * (sprite.bounds.min + sprite.bounds.max);
-                for (int vertexIdx = 0; vertexIdx < vertices2d.Length; vertexIdx++)
+                for (var i = 0; i < srcVertices.Length; i++)
                 {
-                    Vector3 pos = new Vector3(vertices2d[vertexIdx].x, vertices2d[vertexIdx].y) - center;
-                    vertices3d[vertexIdx] = scale * pos;
-                    colors[vertexIdx] = new Color(0,0,0,1);  // This will not have any extrusion available. Alpha will be 1 * the pixel alpha
+                    vertices[i] = new SpriteLightMeshVertex
+                    {
+                        position = new Vector3(srcVertices[i].x, srcVertices[i].y, 0) - center,
+                        color = color,
+                        uv = srcUVs[i]
+                    };
                 }
-
-                for (int triangleIdx = 0; triangleIdx < triangles2d.Length; triangleIdx++)
+                mesh.SetVertexBufferParams(vertices.Length, new []
                 {
-                    triangles3d[triangleIdx] = (int)triangles2d[triangleIdx];
-                }
-
-                mesh.Clear();
-                mesh.vertices = vertices3d;
-                mesh.uv = sprite.uv;
-                mesh.triangles = triangles3d;
-                mesh.colors = colors;
-
-                return CalculateBoundingSphere(ref vertices3d, ref colors, 0);
+                    new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
+                    new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.Float32, 4),
+                    new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2),
+                });
+                mesh.SetVertexBufferData(vertices, 0, 0, vertices.Length);
+                mesh.SetIndices(srcIndices, MeshTopology.Triangles, 0, true);
+                return mesh.bounds;
             }
 
             return new Bounds(Vector3.zero, Vector3.zero);
