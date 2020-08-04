@@ -1,11 +1,18 @@
 using UnityEditor;
 using System.Collections.Generic;
+using com.unity.cliprojectsetup;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.TestTools.Graphics;
 
 public static class CustomBuild
 {
+
+    static void CliSetup()
+    {
+        var cliConfigManager = new CliProjectSetup();
+        cliConfigManager.ConfigureFromCmdlineArgs();
+    }
 
     [MenuItem("Tools/Build Android (GLES2 - Gamma)")]
     static void BuildAndroidGLES2Gamma()

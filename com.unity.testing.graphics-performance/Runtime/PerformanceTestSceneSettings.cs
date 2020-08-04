@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -25,7 +25,7 @@ public class PerformanceTestSceneSettings : MonoBehaviour
 
     [Header("Performance Counters Settings")]
     [Tooltip("Number of frame the performance counter test will use to record the timings.")]
-    public int measurementCount = 30;
+    public int measurementCount = 1000;
 
     [Header("Memory Settings")]
     [Tooltip("Minimum size in byte for an object to be detected by the performance test.")]
