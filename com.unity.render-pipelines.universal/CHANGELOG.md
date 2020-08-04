@@ -75,7 +75,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - 2D shaders now use half-precision floats whenever precise results are not necessary.
 - Removed the ETC1_EXTERNAL_ALPHA variant from Shader Graph Sprite shaders.
 - Eliminated some unnecessary clearing of render targets when using the 2D Renderer.
+- The rendering of 2D lights is more effient as sorting layers affected by the same set of lights are now batched.
 - Removed the 8 renderer limit from URP Asset.
+- Changing the default value of Skip Iterations to 1 in Bloom effect editor
+- Use SystemInfo to check if multiview is supported instead of being platform hardcoded
 
 ### Fixed
 - Fixed a performance problem with ShaderPreprocessor with large amount of active shader variants in the project 
@@ -90,6 +93,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a performance regression when you used the 2D Renderer.
 - Fixed an issue where the Freeform 2D Light gizmo didn't correctly show the Falloff offset.
 - Fixed an issue where the 2D Renderer rendered nothing when you used shadow-casting lights with incompatible Renderer2DData.
+- Fixed an issue where errors were generated when the Physics2D module was not included in the project's manifest.
 - Fixed an issue where Prefab previews were incorrectly lit when you used the 2D Renderer.
 - Fixed an issue where the Light didn't update correctly when you deleted a Sprite that a Sprite 2D Light uses.
 - Fixed an issue where 2D Lighting was broken for Perspective Cameras.
@@ -227,6 +231,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixing camera overlay stacking adding to respect unity general reference restrictions. [case 1240788](https://issuetracker.unity3d.com/issues/urp-overlay-camera-is-missing-in-stack-list-of-the-base-camera-prefab)
 - Fixed profiler marker errors. [case 1240963](https://issuetracker.unity3d.com/issues/urp-errors-are-thrown-in-a-console-when-using-profiler-to-profile-editor)
 - Fixed issue that caused the pipeline to not create _CameraColorTexture if a custom render pass is injected. [case 1232761](https://issuetracker.unity3d.com/issues/urp-the-intermediate-color-texture-is-no-longer-created-when-there-is-at-least-one-renderer-feature)
+- Fixed target eye UI for XR rendering is missing from camera inspector. [case 1261612](https://issuetracker.unity3d.com/issues/xr-cameras-target-eye-property-is-missing-when-inspector-is-in-normal-mode)
 - Fixed issue that caused color grading to not work correctly with camera stacking. [case 1263193](https://issuetracker.unity3d.com/product/unity/issues/guid/1263193/)
 
 ## [7.1.1] - 2019-09-05

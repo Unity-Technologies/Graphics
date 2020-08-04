@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1978862352675334064}
   - component: {fileID: 1526240796000064953}
   m_Layer: 0
-  m_Name: Light_Point_1200lm
+  m_Name: Light_Spot_1200lm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -75,7 +75,7 @@ Light:
       e32: 0
       e33: 1
     m_UseCullingMatrixOverride: 0
-  m_Cookie: {fileID: 0}
+  m_Cookie: {fileID: 2800000, guid: c3097fbf5286afe4692f9d336db11daa, type: 3}
   m_DrawHalo: 0
   m_Flare: {fileID: 0}
   m_RenderMode: 0
@@ -85,7 +85,7 @@ Light:
   m_RenderingLayerMask: 7
   m_Lightmapping: 1
   m_LightShadowCasterMode: 2
-  m_AreaSize: {x: 1, y: 1}
+  m_AreaSize: {x: 0.5, y: 0.5}
   m_BounceIntensity: 2
   m_ColorTemperature: 2800
   m_UseColorTemperature: 1
@@ -177,7 +177,7 @@ MonoBehaviour:
     m_Level: 2
   m_ShadowDimmer: 1
   m_VolumetricShadowDimmer: 1
-  m_ShadowFadeDistance: 14
+  m_ShadowFadeDistance: 16
   m_UseContactShadow:
     m_Override: 0
     m_UseOverride: 1
