@@ -49,7 +49,7 @@ When you create an HDRP Asset, open it in the Inspector to edit its properties.
 | **Custom Pass**                         | Enable the checkbox to make HDRP support custom passes. If your Unity Project does not make use [Custom Passes](Custom-Pass.md), Uncheck this checkbox to save memory . |
 | - **Custom Buffer Format**              | Specify the texture format for the custom buffer. If you experience banding issues due to your custom passes, you can change it to either `R11G11B10` if you don't need alpha or `R16G16B16A16`. |
 | **Realtime Raytracing (Preview)**       | Enable the checkbox to enable HDRP realtime ray tracing (Experimental). It requires to have ray tracing compatible hardware. For more information, please refer to the [Ray Tracing Getting Started](Ray-Tracing-Getting-Started.md#HardwareRequirements) page. |
-| **Raytracing Tier**                     | Select the active tier for ray tracing effects. For more information, please refer to the [Ray Tracing Tier Table](Ray-Tracing-Getting-Started.md#TierTable). |
+| **Supported Ray Tracing Mode (Preview)**| Select the supported modes for ray tracing effects (Performance, Quality or Both). For more information, see the [Ray Tracing Getting Started](Ray-Tracing-Getting-Started.md) page. |
 | - **LOD Bias**                          | Set the value that Cameras use to calculate their LOD bias. The Camera uses this value differently depending on the **LOD Bias Mode** you select. |
 | - **Maximum LOD Level**                 | Set the value that Cameras use to calculate their maximum level of detail. The Camera uses this value differently depending on the **Maximum LOD Level Mode** you select. |
 
@@ -67,6 +67,7 @@ These settings control the draw distance and resolution of the decals atlas that
 | **- Atlas Height**                           | The Decal Atlas height. This atlas stores all decals that project onto transparent surfaces. |
 | **- Metal and Ambient Occlusion properties** | Enable the checkbox to allow decals to affect metallic and ambient occlusion Material properties. Enabling this feature has a performance impact. |
 | **- Maximum Clustered Decals on Screen**     | The maximum number of clustered decals that can affect transparent GameObjects on screen. Clustered decals refer to a list of decals that HDRP uses when it renders transparent GameObjects. |
+| **- Layers**                                 | Enable the checkbox to allow decals to only affect specific layers.|
 
 <a name="DynamicResolution"></a>
 
@@ -84,11 +85,12 @@ These settings control the draw distance and resolution of the decals atlas that
 
 ## Lighting
 
-| **Property**                       | **Description**                                              |
-| ---------------------------------- | ------------------------------------------------------------ |
-| **Screen Space Ambient Occlusion** | Enable the checkbox to make HDRP support screen space ambient occlusion (SSAO). SSAO is a technique for approximating ambient occlusion efficiently in real time. |
-| **Volumetrics**                    | Enable the checkbox to make HDRP support volumetrics. This allows you to use **Volumetric Fog** for the **Fog Type** in the [Visual Environment](Override-Visual-Environment.md). |
-| **Light Layers**                   | Enable the checkbox to make HDRP support Light Layers. You can assign a Layer to a Light which then only lights up Mesh Renderers or Terrain with a matching rendering Layer. |
+| **Property**                         | **Description**                                              |
+| ------------------------------------ | ------------------------------------------------------------ |
+| **Screen Space Ambient Occlusion**   | Enable the checkbox to make HDRP support screen space ambient occlusion (SSAO). SSAO is a technique for approximating ambient occlusion efficiently in real time. |
+| **Screen Space Global Illumination** | Enable the checkbox to make HDRP support screen space global illumination (SSGI). SSGI is a technique for approximating global illumination efficiently in real time. |
+| **Volumetrics**                      | Enable the checkbox to make HDRP support volumetrics. This allows you to use **Volumetric Fog** for the **Fog Type** in the [Visual Environment](Override-Visual-Environment.md). |
+| **Light Layers**                     | Enable the checkbox to make HDRP support Light Layers. You can assign a Layer to a Light which then only lights up Mesh Renderers or Terrain with a matching rendering Layer. |
 
 ### Cookies
 
@@ -99,8 +101,6 @@ Use the Cookie settings to configure the maximum resolution of the atlas and it'
 | **2D Atlas Size**      | Use the drop-down to select the maximum size for 2D cookie atlas. HDRP uses 2D cookies for Directional, Spot Lights and Area Lights. |
 | **2D Atlas Last Valid Mip** | Adds padding to prevent area light cookie border to be cut but can blur the texture a lot if too high values are used. Generally the default value (0) works well in most cases. |
 | **Cookie Format** | The format of the cookies that HDRP will use, using R16G16B16A16 instead of R11G11B10 will double the memory usage but help you to avoid banding and adds the support for EXR cookies. |
-| **Point Cookie Size**  | Use the drop-down to select the maximum[Point Cookie](https://docs.unity3d.com/Manual/Cookies.html) size for cubemap cookies. HDRP uses cubemap cookies for Point Lights. |
-| **Cubemap Array Size** | The maximum cube map Array size for the Cube cookies that HDRP uses for Point Lights. Increase this to make HDRP support a greater number of cube map cookies concurrently on screen. |
 
 ### Reflections
 
@@ -114,7 +114,6 @@ Use the Reflection settings to configure the max number and resolution of the pr
 | **Probe Cache Size**                       | The maximum size of the Probe Cache. Defines how many Probe cube maps HDRP can save in cache. |
 | **Planar Reflection Atlas Size**           | Use the drop-down to select the resolution of the planar probe atlas. It defines how many reflection probe you'll be able to render at once and at which resolution.  |
 | **Max Planar Reflection On Screen**        | The maximum number of planar reflections on screen at once. |
-| **Planar Probe Cache Size**                | The maximum size of the Planer Reflection Probe cache. Defines how many Probe textures HDRP can save in cache. |
 | **Maximum Environment Lights on Screen**   | The maximum number of environment Lights HDRP can manage on screen at once. |
 
 <a name="SkyLighting"></a>
@@ -139,6 +138,7 @@ These settings adjust the size of the shadowmask. Smaller values causes Unity to
 | **Filtering Quality**            | Use the drop-down to select the filtering quality for shadows. Higher values increase the shadow quality in HDRP as better filtering near the edges of shadows reduce aliasing effects. Shadow quality only works for Cameras that use [forward rendering](Forward-And-Deferred-Rendering.md). **Deferred** mode uses Medium.<br />To edit this property, select **Both** or **Forward Only** from the **Lit Shader Mode** drop-down. For information on each filtering quality preset, see the [Filtering Qualities table](#FilteringQualities). |
 | **Screen Space Shadows**         | Enable the checkbox to allow HDRP to compute shadows in a separate pass and store them in a screen-aligned Texture. |
 | - **Maximum**                    | Set the maximum number of screen space shadows that HDRP can handle. |
+| - **Buffer Format**              | Defines the format (R11G11B10 or R16G16B16A16) of the buffer used for screen space shadows.|
 
 <a name="ShadowMapSettings"></a>
 
@@ -179,7 +179,7 @@ They all share the same properties, except **Directional Light Shadows** which d
 
 The PCF algorithm applies a fixed size blur. PCSS applies a different blur size depending on the distance between the shadowed pixel and the shadow caster. This results in a more realistic shadow, that is also more resource intensive to compute.
 
-### Light Loop
+### Lights
 
 Use these settings to enable or disable settings relating to lighting in HDRP.
 
@@ -207,6 +207,9 @@ Use these settings to enable or disable settings relating to lighting in HDRP.
 | **Grading LUT Size**   | The size of the internal and external color grading lookup textures (LUTs). This size is fixed for the Project. You can not mix and match LUT sizes, so decide on a size before you start the color grading process. The default value, **32**, provides a good balance of speed and quality. |
 | **Grading LUT Format** | Use the drop-down to select the format to encode the color grading LUTs with. Lower precision formats are faster and use less memory at the expense of color precision. These formats directly map to their equivalent in the built-in [GraphicsFormat](https://docs.unity3d.com/ScriptReference/Experimental.Rendering.GraphicsFormat.html) enum value. |
 | **Buffer Format** |  Use the drop-down to select the format of the color buffers that are used in the post-processing passes. Lower precision formats are faster and use less memory at the expense of color precision. These formats directly map to their equivalent in the built-in [GraphicsFormat](https://docs.unity3d.com/ScriptReference/Experimental.Rendering.GraphicsFormat.html) enum value. 
+
+## Post-processing Quality Settings
+These settings define the quality levels (low, medium, high) related to post processing effects in HDRP. For a detailed description of each setting, see the [Post-processing in HDRP](Post-Processing-Main) section of the documentation.
 
 ## Virtual Texturing
 
