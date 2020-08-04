@@ -231,7 +231,7 @@ In terms of performance, one of the most resource intensive operations for HDRP 
 
 ### Decal improvement
 
-HDRP no longer forces a full depth pre-pass when you enable decals in Deferred Lit Mode. Only materials with the **Receive Decals** property enabled render in the pre-pass. Decal shader code have been improve with less shader variant and better UI to control which attribute are affected. Finally, Decal Shader Graph now expose affects flags control on the Material.
+HDRP no longer forces a full depth pre-pass when you enable decals in Deferred Lit Mode. Only materials with the **Receive Decals** property enabled render in the pre-pass. Decal shader code has improved and now produces fewer shader variants and includes better UI to control which material attributes the decal affects. Finally, the [Decal Shader Graph](Master-Node-Decal.md) now exposes affects flags control on the Material.
 
 ### Constant buffer setup optimization
 
