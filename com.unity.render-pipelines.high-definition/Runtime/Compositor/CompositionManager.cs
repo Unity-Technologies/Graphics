@@ -132,6 +132,9 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         static private CompositionManager s_CompositorInstance;
 
+        // Built-in Color.black has an alpha of 1, so defien here a fully transparent black 
+        static Color s_TransparentBlack = new Color(0, 0, 0, 0); 
+
         #region Validation
         public void ValidateLayerListOrder(int oldIndex, int newIndex)
         {
@@ -750,7 +753,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     if (layer.clearsBackGround)
                     {
                         cmd.SetRenderTarget(layer.GetRenderTarget());
-                        cmd.ClearRenderTarget(false, true, Color.black);
+                        cmd.ClearRenderTarget(false, true, s_TransparentBlack);
                     }
                 }
             }
