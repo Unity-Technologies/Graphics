@@ -94,6 +94,12 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         [SerializeField] RTHandle m_AOVTmpRTHandle;
 
+        public bool clearsBackGround
+        {
+            get => m_ClearsBackGround;
+            set => m_ClearsBackGround = value;
+        }
+
         [SerializeField] bool m_ClearsBackGround = false;
 
         static readonly string[] k_AOVNames = System.Enum.GetNames(typeof(MaterialSharedProperty));

@@ -651,6 +651,9 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 if (m_InputLayers[i].outputTarget != CompositorLayer.OutputTarget.CameraStack)
                 {
                     lastLayer = m_InputLayers[i];
+
+                    m_InputLayers[i].clearsBackGround =
+                        (i + 1 < m_InputLayers.Count) ? (m_InputLayers[i + 1].outputTarget == CompositorLayer.OutputTarget.CompositorLayer) : true;
                 }
 
                 if (m_InputLayers[i].outputTarget == CompositorLayer.OutputTarget.CameraStack && i > 0)
@@ -740,6 +743,15 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 m_ShaderVariablesGlobalCB._WorldSpaceCameraPos_Internal = new Vector3(0.0f, 0.0f, 0.0f);
                 cmd.SetViewport(new Rect(0, 0, camera.camera.pixelWidth, camera.camera.pixelHeight));
                 cmd.ClearRenderTarget(true, false, Color.red);
+
+                foreach (var layer in m_InputLayers)
+                {
+                    if (layer.clearsBackGround)
+                    {
+                        cmd.SetRenderTarget(layer.GetRenderTarget());
+                        cmd.ClearRenderTarget(false, true, Color.black);
+                    }
+                }
             }
 
             if (camera.camera.targetTexture)
