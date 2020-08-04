@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent TransparentMask = new GUIContent("Transparent Layer Mask", "Controls which transparent layers this renderer draws.");
             public static readonly GUIContent defaultStencilStateLabel = EditorGUIUtility.TrTextContent("Default Stencil State", "Configure stencil state for the opaque and transparent render passes.");
             public static readonly GUIContent shadowTransparentReceiveLabel = EditorGUIUtility.TrTextContent("Transparent Receive Shadows", "When disabled, none of the transparent objects will receive shadows.");
-            public static readonly GUIContent volumeFrameworkRefreshModeLabel = EditorGUIUtility.TrTextContent("Refresh Mode", "Controls whether the volume framework is updated every frame or via custom scripts that call VolumeManager.instance.Update().");
+            public static readonly GUIContent volumeFrameworkRefreshModeLabel = EditorGUIUtility.TrTextContent("Refresh Mode", "Controls whether the volume framework is updated every frame or via custom scripts. This setting does not affect scene cameras and is only used in play mode.");
         }
 
         SerializedProperty m_OpaqueLayerMask;

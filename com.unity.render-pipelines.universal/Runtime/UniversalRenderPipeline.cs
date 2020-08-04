@@ -427,11 +427,12 @@ namespace UnityEngine.Rendering.Universal
         static void UpdateVolumeFramework(Camera camera, UniversalAdditionalCameraData additionalCameraData)
         {
             bool isSceneCamera = camera.cameraType == CameraType.SceneView;
+            bool isPlaying = Application.isPlaying;
 
-            // We always update the scene camera
-            if (!isSceneCamera)
+            // We always update scene cameras and game cameras when not in play-mode
+            if (!isSceneCamera && isPlaying)
             {
-                // We skip updating if we have a renderer and it isn't set to EveryFrame
+                // We skip updating if we have a renderer and the refresh mode isn't set to EveryFrame
                 ScriptableRenderer renderer = additionalCameraData?.scriptableRenderer;
                 if (renderer != null
                     && renderer.volumeFrameworkRefreshMode != ScriptableRenderer.RefreshMode.EveryFrame)

@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.Universal
 
             public static GUIContent volumeLayerMask = EditorGUIUtility.TrTextContent("Volume Mask", "This camera will only be affected by volumes in the selected scene-layers.");
             public static GUIContent volumeTrigger = EditorGUIUtility.TrTextContent("Volume Trigger", "A transform that will act as a trigger for volume blending. If none is set, the camera itself will act as a trigger.");
-            public static GUIContent volumeFrameworkRefreshMode = EditorGUIUtility.TrTextContent("Refresh Mode", "Is the volume framework updated every frame or via custom scripts that call VolumeManager.instance.Update(). This setting is controlled in the renderer.");
+            public static GUIContent volumeFrameworkRefreshMode = EditorGUIUtility.TrTextContent("Refresh Mode", "Is the volume framework updated every frame or via custom scripts. This setting is controlled in the renderer and is only used in play mode.");
 
             public static GUIContent renderPostProcessing = EditorGUIUtility.TrTextContent("Post Processing", "Enable this to make this camera render post-processing effects.");
             public static GUIContent antialiasing = EditorGUIUtility.TrTextContent("Anti-aliasing", "The anti-aliasing method to use.");
