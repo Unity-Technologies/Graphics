@@ -212,6 +212,27 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+
+        class DebugImageHistogramData
+        {
+            public PostProcessSystem.DebugImageHistogramParameters parameters;
+            public TextureHandle source;
+        }
+
+        void GenerateDebugImageHistogram(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
+        {
+            using (var builder = renderGraph.AddRenderPass<DebugImageHistogramData>("Generate Debug Image Histogram", out var passData, ProfilingSampler.Get(HDProfileId.FinalImageHistogram)))
+            {
+                passData.source = builder.ReadTexture(source);
+                passData.parameters = m_PostProcessSystem.PrepareDebugImageHistogramParameters(hdCamera);
+                builder.SetRenderFunc(
+                (DebugImageHistogramData data, RenderGraphContext ctx) =>
+                {
+                    PostProcessSystem.GenerateDebugImageHistogram(data.parameters, ctx.cmd, data.source);
+                });
+            }
+        }
+
         TextureHandle RenderDebug(  RenderGraph                 renderGraph,
                                     HDCamera                    hdCamera,
                                     TextureHandle               colorBuffer,

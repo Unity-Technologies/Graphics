@@ -908,6 +908,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kPassForwardUnlit = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl";
         public const string kPassConstant = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassConstant.hlsl";
 
+        public static IncludeCollection MinimalCorePregraph = new IncludeCollection
+        {
+            { kShaderVariables, IncludeLocation.Pregraph },
+            { kFragInputs, IncludeLocation.Pregraph },
+        };
+
         public static IncludeCollection CorePregraph = new IncludeCollection
         {
             { kTextureStack, IncludeLocation.Pregraph },        // TODO: put this on a conditional
