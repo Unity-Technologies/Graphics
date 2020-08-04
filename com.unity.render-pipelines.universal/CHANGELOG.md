@@ -225,6 +225,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where camera stacking with MSAA on OpenGL resulted in a black screen. [case 1250602](https://issuetracker.unity3d.com/issues/urp-camera-stacking-results-in-black-screen-when-msaa-and-opengl-graphics-api-are-used)
 - Optimized shader compilation times by compiling different variant sets for vertex and fragment shaders.
 - Fixed shadows for additional lights by limiting MAX_VISIBLE_LIGHTS to 16 for OpenGL ES 2.0 and 3.0 on mobile platforms. [case 1244391](https://issuetracker.unity3d.com/issues/android-urp-spotlight-shadows-are-not-being-rendered-on-adreno-330-and-320-when-built)
+- Fixed Lit/SimpleLit/ParticlesLit/ParticlesSimpleLit/ParticlesUnlit shaders emission color not to be converted from gamma to linear color space. [case 1249615]
 - Fixed missing unity_MatrixInvP for shader code and shaderGraph.
 - Fixed XR support for deferred renderer.
 - Fixing RenderObject to reflect name changes done at CustomForwardRenderer asset in project view. [case 1246256](https://issuetracker.unity3d.com/issues/urp-renderobject-name-does-not-reflect-inside-customforwardrendererdata-asset-on-renaming-in-the-inspector)
