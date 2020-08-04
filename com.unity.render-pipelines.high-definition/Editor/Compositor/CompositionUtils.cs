@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
     {
         public static readonly string k_DefaultCameraName = "MainCompositorCamera";
 
-        static public void RemoveDefaultCompositionGraph(CompositionManager compositor)
+        static public void RemoveCompositionProfileAsset(CompositionManager compositor)
         {
             if (compositor.profile)
             {

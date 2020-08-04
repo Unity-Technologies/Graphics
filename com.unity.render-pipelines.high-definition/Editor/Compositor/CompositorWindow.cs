@@ -113,7 +113,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
             if (compositor.shader == null)
             {
-                CompositionUtils.RemoveDefaultCompositionGraph(compositor);
+                CompositionUtils.RemoveCompositionProfileAsset(compositor);
                 CompositionUtils.LoadDefaultCompositionGraph(compositor);
                 CompositionUtils.LoadOrCreateCompositionProfileAsset(compositor);
                 compositor.SetupCompositionMaterial();
