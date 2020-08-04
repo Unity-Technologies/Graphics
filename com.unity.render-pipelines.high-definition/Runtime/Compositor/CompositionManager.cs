@@ -652,6 +652,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 {
                     lastLayer = m_InputLayers[i];
 
+                    // [case 1265061] If this layer does not have any cameras that will clear/draw the background, set a flag so the compositor will clear it explicitly.
                     m_InputLayers[i].clearsBackGround =
                         (i + 1 < m_InputLayers.Count) ? (m_InputLayers[i + 1].outputTarget == CompositorLayer.OutputTarget.CompositorLayer) : true;
                 }
@@ -764,7 +765,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             {
                 m_ShaderVariablesGlobalCB._ViewProjMatrix = m_ViewProjMatrix;
                 ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
-                cmd.Blit(null, BuiltinRenderTextureType.CurrentActive, m_Material, m_Material.FindPass("ForwardOnly"));
+                cmd.Blit(null, BuiltinRenderTextureType.CameraTarget, m_Material, m_Material.FindPass("ForwardOnly"));
             }
             
             context.ExecuteCommandBuffer(cmd);
