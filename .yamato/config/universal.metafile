@@ -1,0 +1,44 @@
+project:
+  name: Universal
+  folder: UniversalGraphicsTest
+test_platforms:
+  - Standalone
+  - playmode
+  - editmode
+  - playmode_XR
+platforms:
+  - name: Win
+    apis:
+      - DX11
+      - Vulkan
+  - name: OSX 
+    apis:
+      - Metal
+      - OpenGLCore
+  - name: Linux
+    apis: 
+      - Vulkan
+      - OpenGLCore
+  - name: Android
+    apis: 
+      - Vulkan
+      - OpenGLES3
+all:
+  dependencies:
+    - platform: Win
+      api: DX11
+      test_platforms:
+        - Standalone
+        - editmode
+        - playmode
+    - platform: OSX
+      api: Metal
+      test_platforms:
+        - Standalone
+        - playmode 
+    - platform: OSX
+      api: OpenGLCore
+      test_platforms:
+        - editmode  
+    - project: Universal_Stereo
+      all: true 
