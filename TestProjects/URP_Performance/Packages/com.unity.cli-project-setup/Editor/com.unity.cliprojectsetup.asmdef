@@ -1,5 +1,6 @@
 {
     "name": "com.unity.cli-project-setup",
+    "rootNamespace": "",
     "references": [
         "Unity.RenderPipelines.Universal.Runtime",
         "com.unity.tests.performance.runtimesettings",
@@ -8,10 +9,12 @@
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
+    "overrideReferences": true,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": [],
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
     "versionDefines": [],
     "noEngineReferences": false
 }

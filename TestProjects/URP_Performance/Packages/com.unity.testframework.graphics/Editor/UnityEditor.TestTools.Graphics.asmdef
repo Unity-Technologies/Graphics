@@ -1,11 +1,13 @@
 {
     "name": "UnityEditor.TestTools.Graphics",
+    "rootNamespace": "",
     "references": [
-        "GUID:c081bc530f560634bb5c21d4b323a7f1",
-        "GUID:27619889b8ba8c24980f49ee34dbb44a",
-        "GUID:0acc523941302664db1f4e527237feb3",
-        "GUID:f9fe0089ec81f4079af78eb2287a6163",
-        "GUID:e40ba710768534012815d3193fa296cb"
+        "UnityEngine.TestTools.Graphics",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "Unity.XR.Management.Editor",
+        "Unity.XR.Management",
+        "com.unity.cli-project-setup"
     ],
     "includePlatforms": [
         "Editor"

@@ -30,6 +30,12 @@
       },
       "url": "https://packages.unity.com"
     },
+    "com.unity.cli-project-setup": {
+      "version": "file:com.unity.cli-project-setup",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.unity.collab-proxy": {
       "version": "1.3.9",
       "depth": 0,
@@ -183,6 +189,18 @@
         "com.unity.external.test-protocol": "1.0.1-preview"
       },
       "url": "https://packages.unity.com"
+    },
+    "com.unity.test.metadata-manager": {
+      "version": "file:com.unity.test.metadata-manager",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.unity.test.performance.runtimesettings": {
+      "version": "file:com.unity.test.performance.runtimesettings",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
     },
     "com.unity.testframework.graphics": {
       "version": "file:com.unity.testframework.graphics",
