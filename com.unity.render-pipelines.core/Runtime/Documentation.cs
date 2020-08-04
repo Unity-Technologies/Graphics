@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         ///
         [Obsolete("Can not be used anymore, use Documentation.releaseVersion", false)]
-        public const string version = "7.3";
+        public const string version = "7.4";
     }
 
     //Need to live in Runtime as Attribute of documentation is on Runtime classes \o/
