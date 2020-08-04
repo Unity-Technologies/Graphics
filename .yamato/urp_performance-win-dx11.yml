@@ -3,8 +3,8 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-URP_Performance_Win_perf_Vulkan_performance_playmode_counters_trunk:
-    name: URP_Performance on Win_perf_Vulkan_performance_playmode_counters on version trunk
+URP_Performance_Win_DX11_performance_playmode_counters_trunk:
+    name: URP_Performance on Win_DX11_performance_playmode_counters on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -14,7 +14,7 @@ URP_Performance_Win_perf_Vulkan_performance_playmode_counters_trunk:
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
          rerun: on-new-revision
-      -  path: .yamato/urp_performance-win_perf-vulkan.yml#Build_URP_Performance_Win_perf_Vulkan_Player_trunk
+      -  path: .yamato/urp_performance-win-dx11.yml#Build_URP_Performance_Win_DX11_Player_trunk
          rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
@@ -23,8 +23,8 @@ URP_Performance_Win_perf_Vulkan_performance_playmode_counters_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-Build_URP_Performance_Win_perf_Vulkan_Player_trunk:
-    name: Build URP_Performance on Win_perf_Vulkan_Player on version trunk
+Build_URP_Performance_Win_DX11_Player_trunk:
+    name: Build URP_Performance on Win_DX11_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -38,7 +38,7 @@ Build_URP_Performance_Win_perf_Vulkan_Player_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
+      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
             paths:
@@ -46,8 +46,8 @@ Build_URP_Performance_Win_perf_Vulkan_Player_trunk:
         players:
             paths:
               -  "players/**"
-URP_Performance_Win_perf_Vulkan_performance_playmode_memory_trunk:
-    name: URP_Performance on Win_perf_Vulkan_performance_playmode_memory on version trunk
+URP_Performance_Win_DX11_performance_playmode_memory_trunk:
+    name: URP_Performance on Win_DX11_performance_playmode_memory on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -57,7 +57,7 @@ URP_Performance_Win_perf_Vulkan_performance_playmode_memory_trunk:
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
          rerun: on-new-revision
-      -  path: .yamato/urp_performance-win_perf-vulkan.yml#Build_URP_Performance_Win_perf_Vulkan_Player_trunk
+      -  path: .yamato/urp_performance-win-dx11.yml#Build_URP_Performance_Win_DX11_Player_trunk
          rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
@@ -66,8 +66,8 @@ URP_Performance_Win_perf_Vulkan_performance_playmode_memory_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-URP_Performance_Win_perf_Vulkan_performance_editmode_build_trunk:
-    name: URP_Performance on Win_perf_Vulkan_performance_editmode_build on version trunk
+URP_Performance_Win_DX11_performance_editmode_build_trunk:
+    name: URP_Performance on Win_DX11_performance_editmode_build on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -81,13 +81,13 @@ URP_Performance_Win_perf_Vulkan_performance_editmode_build_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/URP_Performance && utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-URP_Performance_Win_perf_Vulkan_performance_playmode_counters_fast-trunk:
-    name: URP_Performance on Win_perf_Vulkan_performance_playmode_counters on version fast-trunk
+URP_Performance_Win_DX11_performance_playmode_counters_fast-trunk:
+    name: URP_Performance on Win_DX11_performance_playmode_counters on version fast-trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -97,7 +97,7 @@ URP_Performance_Win_perf_Vulkan_performance_playmode_counters_fast-trunk:
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
          rerun: on-new-revision
-      -  path: .yamato/urp_performance-win_perf-vulkan.yml#Build_URP_Performance_Win_perf_Vulkan_Player_fast-trunk
+      -  path: .yamato/urp_performance-win-dx11.yml#Build_URP_Performance_Win_DX11_Player_fast-trunk
          rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
@@ -106,8 +106,8 @@ URP_Performance_Win_perf_Vulkan_performance_playmode_counters_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
-Build_URP_Performance_Win_perf_Vulkan_Player_fast-trunk:
-    name: Build URP_Performance on Win_perf_Vulkan_Player on version fast-trunk
+Build_URP_Performance_Win_DX11_Player_fast-trunk:
+    name: Build URP_Performance on Win_DX11_Player on version fast-trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -121,7 +121,7 @@ Build_URP_Performance_Win_perf_Vulkan_Player_fast-trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
+      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
             paths:
@@ -129,8 +129,8 @@ Build_URP_Performance_Win_perf_Vulkan_Player_fast-trunk:
         players:
             paths:
               -  "players/**"
-URP_Performance_Win_perf_Vulkan_performance_playmode_memory_fast-trunk:
-    name: URP_Performance on Win_perf_Vulkan_performance_playmode_memory on version fast-trunk
+URP_Performance_Win_DX11_performance_playmode_memory_fast-trunk:
+    name: URP_Performance on Win_DX11_performance_playmode_memory on version fast-trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -140,7 +140,7 @@ URP_Performance_Win_perf_Vulkan_performance_playmode_memory_fast-trunk:
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
          rerun: on-new-revision
-      -  path: .yamato/urp_performance-win_perf-vulkan.yml#Build_URP_Performance_Win_perf_Vulkan_Player_fast-trunk
+      -  path: .yamato/urp_performance-win-dx11.yml#Build_URP_Performance_Win_DX11_Player_fast-trunk
          rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
@@ -149,8 +149,8 @@ URP_Performance_Win_perf_Vulkan_performance_playmode_memory_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
-URP_Performance_Win_perf_Vulkan_performance_editmode_build_fast-trunk:
-    name: URP_Performance on Win_perf_Vulkan_performance_editmode_build on version fast-trunk
+URP_Performance_Win_DX11_performance_editmode_build_fast-trunk:
+    name: URP_Performance on Win_DX11_performance_editmode_build on version fast-trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -164,13 +164,13 @@ URP_Performance_Win_perf_Vulkan_performance_editmode_build_fast-trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/URP_Performance && utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-URP_Performance_Win_perf_Vulkan_performance_playmode_counters_CUSTOM-REVISION:
-    name: URP_Performance on Win_perf_Vulkan_performance_playmode_counters on version CUSTOM-REVISION
+URP_Performance_Win_DX11_performance_playmode_counters_CUSTOM-REVISION:
+    name: URP_Performance on Win_DX11_performance_playmode_counters on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -181,7 +181,7 @@ URP_Performance_Win_perf_Vulkan_performance_playmode_counters_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/urp_performance-win_perf-vulkan.yml#Build_URP_Performance_Win_perf_Vulkan_Player_CUSTOM-REVISION
+      -  path: .yamato/urp_performance-win-dx11.yml#Build_URP_Performance_Win_DX11_Player_CUSTOM-REVISION
          rerun: always
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
@@ -190,8 +190,8 @@ URP_Performance_Win_perf_Vulkan_performance_playmode_counters_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-Build_URP_Performance_Win_perf_Vulkan_Player_CUSTOM-REVISION:
-    name: Build URP_Performance on Win_perf_Vulkan_Player on version CUSTOM-REVISION
+Build_URP_Performance_Win_DX11_Player_CUSTOM-REVISION:
+    name: Build URP_Performance on Win_DX11_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -206,7 +206,7 @@ Build_URP_Performance_Win_perf_Vulkan_Player_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
+      -  cd TestProjects/URP_Performance && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
             paths:
@@ -214,8 +214,8 @@ Build_URP_Performance_Win_perf_Vulkan_Player_CUSTOM-REVISION:
         players:
             paths:
               -  "players/**"
-URP_Performance_Win_perf_Vulkan_performance_playmode_memory_CUSTOM-REVISION:
-    name: URP_Performance on Win_perf_Vulkan_performance_playmode_memory on version CUSTOM-REVISION
+URP_Performance_Win_DX11_performance_playmode_memory_CUSTOM-REVISION:
+    name: URP_Performance on Win_DX11_performance_playmode_memory on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -226,7 +226,7 @@ URP_Performance_Win_perf_Vulkan_performance_playmode_memory_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/urp_performance-win_perf-vulkan.yml#Build_URP_Performance_Win_perf_Vulkan_Player_CUSTOM-REVISION
+      -  path: .yamato/urp_performance-win-dx11.yml#Build_URP_Performance_Win_DX11_Player_CUSTOM-REVISION
          rerun: always
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
@@ -235,8 +235,8 @@ URP_Performance_Win_perf_Vulkan_performance_playmode_memory_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-URP_Performance_Win_perf_Vulkan_performance_editmode_build_CUSTOM-REVISION:
-    name: URP_Performance on Win_perf_Vulkan_performance_editmode_build on version CUSTOM-REVISION
+URP_Performance_Win_DX11_performance_editmode_build_CUSTOM-REVISION:
+    name: URP_Performance on Win_DX11_performance_editmode_build on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -251,7 +251,7 @@ URP_Performance_Win_perf_Vulkan_performance_editmode_build_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP_Performance/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/URP_Performance && utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
