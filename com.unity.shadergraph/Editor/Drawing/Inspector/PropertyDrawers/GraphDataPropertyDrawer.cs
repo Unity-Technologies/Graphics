@@ -87,9 +87,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             foreach(var targetName in reorderableTextListView.TextList)
             {
                 // Ensure enabled state is being tracked and get value
-                bool foldoutActive = true;
+                bool foldoutActive;
                 if(!m_TargetFoldouts.TryGetValue(targetName, out foldoutActive))
                 {
+                    foldoutActive = true;
                     m_TargetFoldouts.Add(targetName, foldoutActive);
                 }
 
@@ -149,4 +150,3 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         }
     }
 }
-

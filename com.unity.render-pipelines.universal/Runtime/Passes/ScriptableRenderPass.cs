@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// <c>ScriptableRenderPass</c> implements a logical rendering pass that can be used to extend Universal RP renderer.
     /// </summary>
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract class ScriptableRenderPass
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract partial class ScriptableRenderPass
     {
         public RenderPassEvent renderPassEvent { get; set; }
 
@@ -297,13 +297,5 @@ namespace UnityEngine.Rendering.Universal
             else
                 CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
         }
-
-
-        #region Obsolete
-
-        [Obsolete("This method is obsolete. Please use OnCameraCleanup()", false)]
-        public virtual void FrameCleanup(CommandBuffer cmd) => OnCameraCleanup(cmd);
-
-        #endregion
     }
 }
