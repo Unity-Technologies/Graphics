@@ -2316,7 +2316,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // we need to create it manually.
             if (m_DisplayAreaLightEmissiveMesh && (m_ChildEmissiveMeshViewer == null || m_ChildEmissiveMeshViewer.Equals(null)))
             {
-                CreateChildEmissiveMeshViewerIfNeeded();
                 UpdateAreaLightEmissiveMesh();
             }
 
