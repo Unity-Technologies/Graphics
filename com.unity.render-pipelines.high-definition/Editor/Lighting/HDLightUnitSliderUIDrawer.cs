@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
     internal class HDLightUnitSliderUIDrawer
     {
-        internal struct LightUnitTooltips
+        private struct LightUnitTooltips
         {
             public static string s_Empty = "";
         }
@@ -23,10 +24,11 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 // TODO: Take arbitrary value as input and fill the appropriate icon & tooltip, with respect to range
                 preset = GUIContent.none;
+                preset = presets[4];
             }
 
-            private readonly List<GUIContent> presets = new List<GUIContent>();
-            private readonly List<Vector2> ranges = new List<Vector2>();
+            private List<GUIContent> presets = new List<GUIContent>();
+            private List<Vector2> ranges = new List<Vector2>();
         }
 
         private static readonly Dictionary<LightUnit, LightUnitPresets> s_LightUnitPresets = new Dictionary<LightUnit, LightUnitPresets>();
@@ -46,16 +48,36 @@ namespace UnityEditor.Rendering.HighDefinition
             s_LightUnitPresets.Add(LightUnit.Lux, luxPresets);
         }
 
-        public void OnGUI(LightUnit unit, float value, Rect rect)
+        void DrawLightUnitSlider(Rect rect, SerializedProperty value)
         {
-            // TODO: Function that takes as input a LightUnit & value, and outputs a slider & icon.
-            if (s_LightUnitPresets.TryGetValue(unit, out LightUnitPresets unitPreset))
-            {
-                unitPreset.GetPreset(value, out var preset);
+            // TODO: Look into compiling a lambda to access internal slider function for background (markers) + logarithmic values.
+            value.floatValue = GUI.HorizontalSlider(rect, value.floatValue, 0f, 20000f, GUI.skin.horizontalSlider, GUI.skin.horizontalSliderThumb);
+        }
 
-                // TODO: Draw the custom slider + icon.
-                EditorGUI.LabelField(rect, preset);
-            }
+        public void OnGUI(LightUnit unit, SerializedProperty value)
+        {
+            OnGUI(unit, value, EditorGUILayout.GetControlRect());
+        }
+
+        public void OnGUI(LightUnit unit, SerializedProperty value, Rect rect)
+        {
+            if (!s_LightUnitPresets.TryGetValue(unit, out var unitPreset))
+                return;
+
+            // Fetch the presets for this light unit
+            unitPreset.GetPreset(value.floatValue, out var preset);
+
+            const int kCenterIcon = 7;
+            const int kIconWidth = 33;
+
+            var sliderRect = rect;
+            sliderRect.width -= kIconWidth;
+            DrawLightUnitSlider(sliderRect, value);
+
+            var iconRect = rect;
+            iconRect.x += iconRect.width - kIconWidth - kCenterIcon;
+            iconRect.width = kIconWidth;
+            EditorGUI.LabelField(iconRect, preset);
         }
     }
 }
