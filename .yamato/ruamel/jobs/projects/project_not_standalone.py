@@ -12,8 +12,10 @@ class Project_NotStandaloneJob():
 
 
     def get_job_definition(self, project, editor, platform, api, test_platform):
-
-        cmd = get_cmd(platform["name"], api, 'not_standalone')
+        if 'performance' in test_platform['name']:
+            cmd = get_cmd(platform["name"], api, 'not_standalone_performance')
+        else:
+            cmd = get_cmd(platform["name"], api, 'not_standalone')
         job = _job(project["name"], test_platform["name"], editor, platform, api, cmd(project["folder"], platform, api, test_platform["args"]))
         return job
     
