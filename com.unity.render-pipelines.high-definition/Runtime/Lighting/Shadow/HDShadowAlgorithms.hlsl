@@ -1,3 +1,5 @@
+#ifndef HD_SHADOW_ALGORITHMS_INCLUDED
+#define HD_SHADOW_ALGORITHMS_INCLUDED
 // Various shadow algorithms
 // There are two variants provided, one takes the texture and sampler explicitly so they can be statically passed in.
 // The variant without resource parameters dynamically accesses the texture when sampling.
@@ -341,3 +343,4 @@ float EvalShadow_SampleClosestDistance_Punctual(HDShadowData sd, Texture2D tex, 
 
     return distance(occluderPosWS, lightPositionWS);
 }
+#endif

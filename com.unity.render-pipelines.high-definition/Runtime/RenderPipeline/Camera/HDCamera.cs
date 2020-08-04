@@ -420,6 +420,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Reinit the system.
                     colorPyramidHistoryIsValid = false;
                     volumetricHistoryIsValid = false;
+                    // Since we nuke all history we must inform the post process system too.
+                    resetPostProcessingHistory = true;
 
                     // The history system only supports the "nuke all" option.
                     m_HistoryRTSystem.Dispose();
@@ -1213,6 +1215,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             float verticalFoV = camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
+            if (!camera.usePhysicalProperties)
+            {
+                verticalFoV = Mathf.Atan(-1.0f / viewConstants.projMatrix[1, 1]) * 2;
+            }
             Vector2 lensShift = camera.GetGateFittedLensShift();
 
             return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, resolution, viewConstants.viewMatrix, false, aspect);
