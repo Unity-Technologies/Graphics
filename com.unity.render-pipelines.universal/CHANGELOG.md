@@ -90,6 +90,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where the Bokeh Depth of Field shader would fail to compile on PS4.
 - Fixed an issue where the Scene lighting button didn't work when you used the 2D Renderer.
 - Fixed a performance regression when you used the 2D Renderer.
+- Fixed an issue where changes in a 2D Light's cookie would effect both the sprite and point light
 - Fixed an issue where the Freeform 2D Light gizmo didn't correctly show the Falloff offset.
 - Fixed an issue where the 2D Renderer rendered nothing when you used shadow-casting lights with incompatible Renderer2DData.
 - Fixed an issue where errors were generated when the Physics2D module was not included in the project's manifest.
