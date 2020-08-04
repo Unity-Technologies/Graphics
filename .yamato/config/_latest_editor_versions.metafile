@@ -43,27 +43,27 @@ editor_versions:
     version: ''
   2020.1_latest_internal:
     display_name: 2020.1 latest internal
-    revision: 2ab9c4179772
-    version: 2020.1.0f1
+    revision: 2285c3239188
+    version: 2020.1.1f1
   2020.1_latest_public:
     display_name: 2020.1 latest public
     revision: 2ab9c4179772
     version: 2020.1.0f1
   2020.1_staging:
     display_name: 2020.1 staging
-    revision: de331edd777c63506c2ff7886185212bd76fec33
+    revision: a8f5ee08a951081a7273f616bc3f38198da2c52f
     version: ''
   2020.2_latest_internal:
     display_name: 2020.2 latest internal
-    revision: 8037ac78137e
-    version: 2020.2.0a19
+    revision: 48a6bb4f7ce1
+    version: 2020.2.0a20
   2020.2_latest_public:
     display_name: 2020.2 latest public
-    revision: 4f8709444da6
-    version: 2020.2.0a18
+    revision: 8037ac78137e
+    version: 2020.2.0a19
   2020.2_staging:
     display_name: 2020.2 staging
-    revision: 115217e1fb595e88a5da9e5fa9d22f95f8b49200
+    revision: 0d4996d84e47ca136a0c046b2990fb8d76cda81d
     version: ''
   project_revision:
     display_name: project revision
