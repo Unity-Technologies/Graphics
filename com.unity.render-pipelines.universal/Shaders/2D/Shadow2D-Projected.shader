@@ -36,6 +36,9 @@ Shader "Hidden/2D/Shadow2D-Projected"
 
             HLSLPROGRAM
 
+            #pragma vertex vert
+            #pragma fragment frag
+
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/Shadow2D-Projected-Shared.hlsl"
 
@@ -58,6 +61,9 @@ Shader "Hidden/2D/Shadow2D-Projected"
             ColorMask 0
 
             HLSLPROGRAM
+
+            #pragma vertex vert
+            #pragma fragment frag
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/Shadow2D-Projected-Shared.hlsl"

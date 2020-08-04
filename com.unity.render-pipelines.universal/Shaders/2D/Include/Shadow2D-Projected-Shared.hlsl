@@ -1,10 +1,6 @@
 #if !defined(SHADOW2D_PROJECTED_SHARED)
 #define SHADOW2D_PROJECTED_SHARED
 
-#pragma vertex vert
-#pragma fragment frag
-
-
 struct Attributes
 {
     float3 vertex : POSITION;
