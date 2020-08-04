@@ -8,7 +8,7 @@ from ..shared.yml_job import YMLJob
 def _job(project_name, test_platform_name, editor, platform, api, cmd):
 
     # define name
-    if test_platform_name.lower() == 'standalone_build':
+    if test_platform_name.lower().startswith('standalone_build'):
         job_name = f'Build {project_name} on {platform["name"]}_{api["name"]}_Player on version {editor["version"]}'
     else:
         job_name = f'{project_name} on {platform["name"]}_{api["name"]}_{test_platform_name} on version {editor["version"]}'

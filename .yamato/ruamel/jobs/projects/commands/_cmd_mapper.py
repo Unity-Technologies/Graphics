@@ -4,7 +4,10 @@ cmd_map = {
     'win' : {
         'not_standalone': win.cmd_not_standalone,
         'standalone' : win.cmd_standalone,
-        'standalone_build' : win.cmd_standalone_build
+        'standalone_build' : win.cmd_standalone_build,
+        'not_standalone_performance': win.cmd_not_standalone_performance,
+        'standalone_performance': win.cmd_standalone_performance,
+        'standalone_build_performance': win.cmd_standalone_build_performance
     },
     'win_perf' : {
         'not_standalone': win_perf.cmd_not_standalone,
