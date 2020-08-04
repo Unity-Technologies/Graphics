@@ -63,8 +63,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField, Reload("Runtime/Data/PostProcessData.asset")]
         PostProcessData m_PostProcessData = null;
 
-        public float hdrEmulationScale => m_HDREmulationScale;
-        public Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
+        internal float hdrEmulationScale => m_HDREmulationScale;
+        internal Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
         internal bool useDepthStencilBuffer => m_UseDepthStencilBuffer;
 
         internal Shader shapeLightShader => m_ShapeLightShader;
@@ -93,7 +93,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         protected override void OnEnable()
         {
             base.OnEnable();
-
 #if UNITY_EDITOR
             OnEnableInEditor();
 #endif
@@ -115,7 +114,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         // transient data
         internal Dictionary<uint, Material> lightMaterials { get; } = new Dictionary<uint, Material>();
-
         internal Material[] shadowMaterials { get; private set; }
         internal Material[] removeSelfShadowMaterials { get; private set; }
 

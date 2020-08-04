@@ -55,10 +55,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return null;
         }
 
-        void OnEnableInEditor()
+        private void OnEnableInEditor()
         {
-            base.OnEnable();
-
             // Provide a list of suggested texture property names to Sprite Editor via EditorPrefs.
             const string suggestedNamesKey = "SecondarySpriteTexturePropertyNames";
             const string maskTex = "_MaskTex";
