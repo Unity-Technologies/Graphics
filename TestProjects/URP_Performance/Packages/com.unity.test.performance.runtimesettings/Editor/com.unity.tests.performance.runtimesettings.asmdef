@@ -1,11 +1,7 @@
 {
-    "name": "com.unity.cli-project-setup",
+    "name": "com.unity.tests.performance.runtimesettings",
     "rootNamespace": "",
-    "references": [
-        "com.unity.tests.performance.runtimesettings",
-        "Unity.Burst",
-        "Unity.RenderPipelines.Universal.Runtime"
-    ],
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

@@ -1,0 +1,17 @@
+{
+    "name": "com.unity.test.metadata-manager",
+    "references": [
+        "com.unity.tests.performance.runtimesettings"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        ""
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

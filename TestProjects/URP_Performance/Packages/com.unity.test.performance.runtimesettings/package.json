@@ -1,0 +1,7 @@
+{
+  "name": "com.unity.test.performance.runtimesettings",
+  "displayName": "Unity Performance Tests Runtime Settings",
+  "version": "0.1.0-preview",
+  "unity": "2018.1",
+  "description": "Used to write and read settings used at runtime during performance tests."
+}
