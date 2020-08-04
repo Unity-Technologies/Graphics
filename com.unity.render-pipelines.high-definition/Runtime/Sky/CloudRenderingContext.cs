@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 filterMode: FilterMode.Bilinear, name: "Cloud Texture");
 
             if (supportShadows)
-                cloudShadowsRT = RTHandles.Alloc(shadowResolution, shadowResolution, colorFormat: GraphicsFormat.R8_SNorm,
+                cloudShadowsRT = RTHandles.Alloc(shadowResolution, shadowResolution, colorFormat: GraphicsFormat.R16_SNorm,
                     dimension: TextureDimension.Tex2D, enableRandomWrite: true, useMipMap: false,
                     filterMode: FilterMode.Bilinear, name: "Cloud Shadows");
         }

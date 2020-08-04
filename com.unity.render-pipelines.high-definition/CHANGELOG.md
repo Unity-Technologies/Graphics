@@ -165,6 +165,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added path tracing test scene for normal mapping.
 - Added missing API documentation.
 - Added an option to have only the metering mask displayed in the debug mode.
+- Added lighting and shadows to the cloud layer
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)

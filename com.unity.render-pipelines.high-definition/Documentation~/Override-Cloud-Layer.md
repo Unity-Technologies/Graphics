@@ -9,32 +9,28 @@ The **Cloud Layer** uses the [Volume](Volumes.md) framework, so to enable and mo
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Sky** and click on **Cloud Layer**.
 
-After you add a **Cloud Layer** override, you must enable it in the override itself. In the override, Check the **Enable** property. HDRP now renders **Cloud Layer** for any Camera this Volume affects.
+To enable the **Cloud Layer** override, you must set the **Opacity** slider to a value higher than `0` and assign a Cloud Map. To assign a Cloud Map, you can refer to the [Cloud Map](#CloudMap) section to learn about the cloud map format or where to find a sample cloud map texture.
 
-<a name="DefaultCloudMap"></a>
+The Cloud Layer will bake the cloud map to an intermediate texture, which is recomputed everytime a parameter changes. The resolution of the baked texture is determined by the **Cloud Texture Size** parameter in the HDRP asset.
+Clouds shadows are also baked to a separate texture whose resolution is set by the **Cloud Shadows Size** parameter in the HDRP asset.
 
-## Using the default Cloud Map
+<a name="CloudMap"></a>
 
-HDRP includes an example Cloud Map texture named `DefaultCloudLayer`.
-This example Cloud Map is a read-only **CustomRenderTexture**. This means that, if you want to modify any of its properties, you need to create a duplicate of it and modify that instead. To duplicate the example Cloud Map:
+## About the Cloud Map
 
-1. Duplicate the `DefaultCloudLayer` asset.
-2. Duplicate the Material referenced by the DefaultCloudLayer asset. This Material is called `DefaultCloudLayerMaterial`.
-3. In the Inspector for the new `DefaultCloudLayer`, assign the new `DefaultCloudLayerMaterial` to the **Material** property.
+The Cloud Map is a 2D RGBA texture in LatLong layout (sometimes called Cylindrical or Equirectangular) where each channel contains a cloud opacity. For rendering, the 4 channels are mixed together using the **Opacities** parameters of the volume override. This allows to change the aspects of the clouds using a single texture and the volume framework.
 
-<a name="CustomizingCloudMap"></a>
+HDRP includes an example Cloud Map named `DefaultCloudMap`. This texture contains cumulus clouds in the red channel, stratus clouds in the green channel, cirrus clouds in the blue channel and wispy clouds in the alpha channel.
 
-## Customizing the Cloud Map
-
-The Cloud Map is a 2D texture in LatLong layout (sometimes called Cylindrical or Equirectangular) that contains cloud opacity in the red channel.
 If **Upper Hemisphere Only** is checked, the map is interpreted as being the upper half of a LatLong texture. It means that it will only conver the sky above the horizon.
 
 <a name="CustomizingFlowmap"></a>
 
 ## Customizing the Flowmap
 
-The Flowmap must have the same layout as the cloud map, and is also subject to the **Upper Hemisphere Only** property.
-Only the red and green channel are used and they represent respectively horizontal and vertical displacement. For each of these channels, a value of `0.5` means no displacement, a value of `0` means a negative displacement and a value of `1` means a positive displacement.
+You can assign a custom Flowmap to the **Cloud Layer** to have control over the cloud movement.
+The Flowmap has the same layout as the Cloud Map, and is also subject to the **Upper Hemisphere Only** property.
+Only the red and green channels are used and they represent respectively horizontal and vertical displacement. For each of these channels, a value of `0.5` means no displacement, a value of `0` means a negative displacement and a value of `1` means a positive displacement.
 
 ## Properties
 
@@ -42,14 +38,27 @@ Only the red and green channel are used and they represent respectively horizont
 
 | Property                      | Description                                                  |
 | ----------------------------- | ------------------------------------------------------------ |
-| **Enable**                    | Enables the cloud layer. |
-| **Cloud Map*                  | Assign a Texture that HDRP uses to render the cloud layer. Refer to the section [Using the default Cloud Map](#DefaultCloudMap) or [Customizing the Cloud Map](#CustomizingCloudMap) for more details. |
+| **Opacity**                   | This controls the global opacity of the cloud layer. |
 | **Upper Hemisphere Only**     | Check the box to display the cloud layer above the horizon only. |
+| **Layers**                    | Control the number of cloud layers. Each have its own set of parameters described in the table below. |
+| **Shadows Opacity**           | Controls the opacity of the clouds shadows. This property only appears if at least one cloud layer has **Cast Shadows** enabled. |
+| **Shadows Tiling**            | Controls the tiling of the cloud shadows. This property only appears if at least one cloud layer has **Cast Shadows** enabled. |
+
+| Map Property                  | Description                                                  |
+| ----------------------------- | ------------------------------------------------------------ |
+| **Cloud Map**                 | Assign a Texture that HDRP uses to render the cloud layer. Refer to the section [Cloud Map](#CloudMap) for more details. |
+| - **Opacity R**               | Opacity of the red layer. |
+| - **Opacity G**               | Opacity of the green layer. |
+| - **Opacity B**               | Opacity of the blue layer. |
+| - **Opacity A**               | Opacity of the alpha layer. |
+| **Rotation**                  | Use the slider to set the angle to rotate the Cloud Layer, in degrees. |
 | **Tint**                      | Specifies a color that HDRP uses to tint the Cloud Layer. |
 | **Intensity Multiplier**      | Set the multiplier by which HDRP multiplies the Cloud Layer color. |
-| **Rotation**                  | Use the slider to set the angle to rotate the Cloud Layer, in degrees. |
-| **Enable Distortion**         | Enable or disable cloud motion using UV distortion. |
-| - **Distortion Mode**         | Use the drop-down to select the method that HDRP uses to calculate the cloud distortion.<br />&#8226; **Procedural**: HDRP distorts the clouds using a uniform wind direction.<br />&#8226; **Flowmap**: HDRP distorts the clouds with a user provided flowmap. |
-| -- **Flowmap**                | Assign a flowmap, in LatLong layout, that HDRP uses to distort UVs when rendering the clouds. Refer to the section [Customizing the Flowmap](#CustomizingFlowmap) for more details.<br />This property only appears when you select **Flowmap** from the **Distortion Mode** drop-down. |
+| **Distortion**                | Use the dropdown to choose the distortion mode for simulating cloud motion.<br />&#8226; **None**: No distortion.<br />&#8226; **Procedural**: HDRP distorts the clouds using a uniform wind direction.<br />&#8226; **Flowmap**: HDRP distorts the clouds using the provided flowmap. |
 | - **Scroll direction**        | Use the slider to set the scrolling direction for the distortion. |
 | - **Scroll speed**            | Modify the speed at which HDRP scrolls the distortion texture. |
+| - **Flowmap**                 | Assign a flowmap that HDRP uses to distort UVs when rendering the clouds. Refer to the section [Customizing the Flowmap](#CustomizingFlowmap) for more details.<br />This property only appears when you select **Flowmap** from the **Distortion** drop-down. |
+| **Lighting**                  | Use the dropdown to choose the cloud lighting mode.<br />&#8226; **None**: No lighting.<br />&#8226; **Raymarching**: HDRP lights the clouds using 2D raymarching with the main directionnal light. |
+| - **Steps**                   | Use the slider to set the number of steps for the raymarching. |
+| - **Thickness**               | Set the thickness of the clouds. |
+| **Cast Shadows**              | Enable to have the clouds cast shadows for the main directionnal light. |

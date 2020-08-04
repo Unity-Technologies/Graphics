@@ -14,15 +14,18 @@
 
 RW_TEXTURE2D(float, _CloudShadowsOutput);
 
-float3 _SunDirection;
-float _Resolution;
+float4 _Params;
+float _CloudShadowOpacity;
+
+#define _SunDirection           _Params.xyz
+#define _Resolution             _Params.w
 
 static float3 tangent;
 static float3 bitangent;
 
 float ComputeCloudShadow(float2 uv)
 {
-    const float width = 0.1;
+    const float width = 0.15;
     float3 dir = -_SunDirection + uv.x * width * tangent + uv.y * width * bitangent;
 
     return GetCloudOpacity(dir);
@@ -34,7 +37,7 @@ void KERNEL_NAME(uint2 dispatchThreadId : SV_DispatchThreadID)
     tangent = normalize(cross(-_SunDirection, float3(0.0, 1.0, 0.0)));
     bitangent = cross(tangent, -_SunDirection);
 
-    float2 uv = float2(dispatchThreadId.x * _Resolution, dispatchThreadId.y * _Resolution) * 2.0 - 1.0;
+    float2 uv = float2(dispatchThreadId.x * _Resolution, 1.0 - dispatchThreadId.y * _Resolution) * 2.0 - 1.0;
     float shadow = ComputeCloudShadow(uv);
 
     // Blend with the other borders to make the texture tileable
@@ -54,5 +57,5 @@ void KERNEL_NAME(uint2 dispatchThreadId : SV_DispatchThreadID)
         shadow = lerp(shadow, shadow2, weights.y);
     }
 
-    _CloudShadowsOutput[dispatchThreadId] = shadow;
+    _CloudShadowsOutput[dispatchThreadId] = exp(-shadow * _CloudShadowOpacity);
 }

@@ -55,8 +55,8 @@ namespace UnityEngine.Rendering.HighDefinition
     [VolumeComponentMenu("Sky/Cloud Layer (Preview)")]
     public class CloudLayer : VolumeComponent
     {
-        /// <summary>Enable fog.</summary>
-        [Tooltip("Check to have a cloud layer in the sky.")]
+        /// <summary>Controls the global opacity of the cloud layer.</summary>
+        [Tooltip("Controls the global opacity of the cloud layer.")]
         public ClampedFloatParameter            opacity = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
         /// <summary>Enable to cover only the upper part of the sky.</summary>
         [Tooltip("Check this box if the cloud layer covers only the upper part of the sky.")]
@@ -70,10 +70,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Controls the opacity of the cloud shadows.</summary>
         [Tooltip("Controls the opacity of the cloud shadows.")]
-        public ClampedFloatParameter    shadowsOpacity      = new ClampedFloatParameter(0.5f, 0.0f, 4.0f);
-        /// <summary>Controls the scale of the cloud shadows.</summary>
-        [Tooltip("Controls the scale of the cloud shadows.")]
-        public MinFloatParameter        shadowsScale        = new MinFloatParameter(500.0f, 0.0f);
+        public ClampedFloatParameter    shadowsOpacity      = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        /// <summary>Controls the tiling of the cloud shadows.</summary>
+        [Tooltip("Controls the tiling of the cloud shadows.")]
+        public MinFloatParameter        shadowsTiling       = new MinFloatParameter(500.0f, 0.0f);
 
 
         [Serializable]
@@ -181,7 +181,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal (Vector4, Vector4) GetBakingParameters()
             {
                 Vector4 parameters = new Vector4(
-                    settings.rotation.value / 360.0f,
+                    -settings.rotation.value / 360.0f,
                     lighting.NumSteps,
                     lighting.thickness.value,
                     0
@@ -245,6 +245,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     hash = hash * 23 + settings.rotation.GetHashCode();
                     hash = hash * 23 + lighting.GetBakingHashCode(ref castShadows);
+#if UNITY_EDITOR
+                    // In the editor, we want to rebake the texture if the texture content is modified
+                    if (cloudMap.value != null)
+                        hash = hash * 23 + cloudMap.value.imageContentsHash.GetHashCode();
+#endif
                 }
 
                 return hash;
@@ -277,8 +282,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public CloudMap mapA = new CloudMap();
-        public CloudMap mapB = new CloudMap();
+        public CloudMap layerA = new CloudMap();
+        public CloudMap layerB = new CloudMap();
         public CloudCRT crt  = new CloudCRT();
 
         private float lastTime = 0.0f;
@@ -308,26 +313,26 @@ namespace UnityEngine.Rendering.HighDefinition
             if (layer.mode.value == CloudLayerMode.CloudMap)
             {
                 float dt = (Time.time - layer.lastTime) * 0.01f;
-                layer.mapA.settings.scrollFactor += layer.mapA.settings.scrollSpeed.value * dt;
-                layer.mapB.settings.scrollFactor += layer.mapB.settings.scrollSpeed.value * dt;
+                layer.layerA.settings.scrollFactor += layer.layerA.settings.scrollSpeed.value * dt;
+                layer.layerB.settings.scrollFactor += layer.layerB.settings.scrollSpeed.value * dt;
                 layer.lastTime = Time.time;
 
-                var paramsA = layer.mapA.settings.GetRenderingParameters();
-                var paramsB = layer.mapB.settings.GetRenderingParameters();
+                var paramsA = layer.layerA.settings.GetRenderingParameters();
+                var paramsB = layer.layerB.settings.GetRenderingParameters();
                 paramsA.Item1.w = layer.opacity.value;
                 paramsB.Item1.w = layer.upperHemisphereOnly.value ? 1 : 0;
 
-                skyMaterial.SetTexture("_CloudTexture", builtinParams.cloudTexture);
-                skyMaterial.SetVectorArray("_CloudParams1", new Vector4[]{ paramsA.Item1, paramsB.Item1 });
-                skyMaterial.SetVectorArray("_CloudParams2", new Vector4[]{ paramsA.Item2, paramsB.Item2 });
+                skyMaterial.SetTexture(HDShaderIDs._CloudTexture, builtinParams.cloudTexture);
+                skyMaterial.SetVectorArray(HDShaderIDs._CloudParams1, new Vector4[]{ paramsA.Item1, paramsB.Item1 });
+                skyMaterial.SetVectorArray(HDShaderIDs._CloudParams2, new Vector4[]{ paramsA.Item2, paramsB.Item2 });
 
-                if (layer.mapA.Apply(skyMaterial, "USE_CLOUD_MAP", "USE_CLOUD_MOTION"))
-                    skyMaterial.SetTexture("_CloudFlowmap1", layer.mapA.settings.flowmap.value);
+                if (layer.layerA.Apply(skyMaterial, "USE_CLOUD_MAP", "USE_CLOUD_MOTION"))
+                    skyMaterial.SetTexture(HDShaderIDs._CloudFlowmap1, layer.layerA.settings.flowmap.value);
 
                 if (layer.layers.value == CloudMapMode.Double)
                 {
-                    if (layer.mapB.Apply(skyMaterial, "USE_SECOND_CLOUD_MAP", "USE_SECOND_CLOUD_MOTION"))
-                        skyMaterial.SetTexture("_CloudFlowmap2", layer.mapB.settings.flowmap.value);
+                    if (layer.layerB.Apply(skyMaterial, "USE_SECOND_CLOUD_MAP", "USE_SECOND_CLOUD_MOTION"))
+                        skyMaterial.SetTexture(HDShaderIDs._CloudFlowmap2, layer.layerB.settings.flowmap.value);
                 }
                 else
                 {
@@ -339,20 +344,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void SetComputeParams(CommandBuffer cmd, ComputeShader cs, int kernel)
         {
-            var paramsA = mapA.settings.GetRenderingParameters();
-            var paramsB = mapB.settings.GetRenderingParameters();
+            var paramsA = layerA.settings.GetRenderingParameters();
+            var paramsB = layerB.settings.GetRenderingParameters();
             paramsA.Item1.w = opacity.value;
             paramsB.Item1.w = upperHemisphereOnly.value ? 1 : 0;
 
-            cmd.SetComputeVectorArrayParam(cs, "_CloudParams1", new Vector4[]{ paramsA.Item1, paramsB.Item1 });
+            cmd.SetComputeVectorArrayParam(cs, HDShaderIDs._CloudParams1, new Vector4[]{ paramsA.Item1, paramsB.Item1 });
 
-            if (mapA.SetComputeParams(cs, "USE_CLOUD_MAP", "USE_CLOUD_MOTION"))
-                cmd.SetComputeTextureParam(cs, kernel, "_CloudFlowmap1", mapA.settings.flowmap.value);
+            if (layerA.SetComputeParams(cs, "USE_CLOUD_MAP", "USE_CLOUD_MOTION"))
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CloudFlowmap1, layerA.settings.flowmap.value);
 
             if (layers.value == CloudMapMode.Double)
             {
-                if (mapB.SetComputeParams(cs, "USE_SECOND_CLOUD_MAP", "USE_SECOND_CLOUD_MOTION"))
-                    cmd.SetComputeTextureParam(cs, kernel, "_CloudFlowmap2", mapB.settings.flowmap.value);
+                if (layerB.SetComputeParams(cs, "USE_SECOND_CLOUD_MAP", "USE_SECOND_CLOUD_MOTION"))
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CloudFlowmap2, layerB.settings.flowmap.value);
             }
             else
             {
@@ -367,16 +372,17 @@ namespace UnityEngine.Rendering.HighDefinition
             castShadows = false;
             numLayers = 1;
 
+
             unchecked
             {
                 hash = hash * 23 + mode.GetHashCode();
                 if (mode.value == CloudLayerMode.CloudMap)
                 {
                     hash = hash * 23 + layers.GetHashCode();
-                    hash = hash * 23 + mapA.GetBakingHashCode(ref castShadows);
+                    hash = hash * 23 + layerA.GetBakingHashCode(ref castShadows);
                     if (layers.value == CloudMapMode.Double)
                     {
-                        hash = hash * 23 + mapB.GetBakingHashCode(ref castShadows);
+                        hash = hash * 23 + layerB.GetBakingHashCode(ref castShadows);
                         numLayers = 2;
                     }
                 }

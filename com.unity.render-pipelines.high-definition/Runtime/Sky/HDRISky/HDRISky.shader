@@ -188,7 +188,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         return IsHit(sdf, dir.y);
     }
 
-    float3 GetDistordedSkyColor(float3 dir)
+    float3 GetSkyColor(float3 dir)
     {
 #if SKY_MOTION
         if (dir.y >= 0 || !_UpperHemisphere)
@@ -222,19 +222,12 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         return SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb;
     }
 
-    float3 GetSkyColor(float3 dir)
-    {
-        float3 sky = GetDistordedSkyColor(dir);
-        return ApplyCloudLayer(dir, sky);
-    }
-
     float4 GetColorWithRotation(float3 dir, float exposure, float2 cos_sin)
     {
-        dir = RotationUp(dir, cos_sin);
+        float3 skyColor = GetSkyColor(RotationUp(dir, cos_sin));
+        skyColor = ApplyCloudLayer(dir, skyColor)*_Intensity*exposure;
 
-        float3 skyColor = GetSkyColor(dir)*_Intensity*exposure;
         skyColor = ClampToFloat16Max(skyColor);
-
         return float4(skyColor, 1.0);
     }
 

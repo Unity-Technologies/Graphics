@@ -59,7 +59,7 @@ public class NewSky : SkySettings
         }
         return hash;
     }
-    
+
     public override int GetHashCode(Camera camera)
     {
         // Implement if your sky depends on the camera settings (like position for instance)
@@ -168,7 +168,7 @@ class NewSkyRenderer : SkyRenderer
             m_PropertyBlock.SetMatrix(_PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
 
             if (SupportCloudLayer)
-                CloudLayer.Apply(builtinParams.cloudLayer, m_NewSkyMaterial);
+                CloudLayer.Apply(builtinParams, m_NewSkyMaterial);
 
             CoreUtils.DrawFullScreen(builtinParams.commandBuffer, m_NewSkyMaterial, m_PropertyBlock, passID);
         }
@@ -177,7 +177,7 @@ class NewSkyRenderer : SkyRenderer
 
 ```
 ### Important note:
-If your sky renderer has to manage heavy data (like precomputed textures or similar things) then particular care has to be taken. Indeed, one instance of the renderer will exist per camera so by default if this data is a member of the renderer, it willl also be duplicated in memory.
+If your sky renderer has to manage heavy data (like precomputed textures or similar things) then particular care has to be taken. Indeed, one instance of the renderer will exist per camera so by default if this data is a member of the renderer, it will also be duplicated in memory.
 Since each sky renderer can have very different needs, the responsbility to share this kind of data is the renderer's and need to be implemented by the user.
 
 <a name="RenderingShader"></a>
@@ -200,6 +200,8 @@ Shader "Hidden/HDRP/Sky/NewSky"
 
     #pragma multi_compile_local _ USE_CLOUD_MAP
     #pragma multi_compile_local _ USE_CLOUD_MOTION
+    #pragma multi_compile_local _ USE_SECOND_CLOUD_MAP
+    #pragma multi_compile_local _ USE_SECOND_CLOUD_MOTION
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"

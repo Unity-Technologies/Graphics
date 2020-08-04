@@ -402,10 +402,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _Flowmap = Shader.PropertyToID("_Flowmap");
         public static readonly int _FlowmapParam = Shader.PropertyToID("_FlowmapParam");
-        public static readonly int _CloudMap = Shader.PropertyToID("_CloudMap");
-        public static readonly int _CloudFlowmap = Shader.PropertyToID("_CloudFlowmap");
-        public static readonly int _CloudParam = Shader.PropertyToID("_CloudParam");
-        public static readonly int _CloudParam2 = Shader.PropertyToID("_CloudParam2");
+        public static readonly int _CloudMapA = Shader.PropertyToID("_CloudMapA");
+        public static readonly int _CloudMapB = Shader.PropertyToID("_CloudMapB");
+        public static readonly int _CloudTexture = Shader.PropertyToID("_CloudTexture");
+        public static readonly int _CloudParams1 = Shader.PropertyToID("_CloudParams1");
+        public static readonly int _CloudParams2 = Shader.PropertyToID("_CloudParams2");
+        public static readonly int _CloudFlowmap1 = Shader.PropertyToID("_CloudFlowmap1");
+        public static readonly int _CloudFlowmap2 = Shader.PropertyToID("_CloudFlowmap2");
+        public static readonly int _CloudShadows = Shader.PropertyToID("_CloudShadows");
+        public static readonly int _CloudShadowOpacity = Shader.PropertyToID("_CloudShadowOpacity");
 
         public static readonly int _Size = Shader.PropertyToID("_Size");
         public static readonly int _Source = Shader.PropertyToID("_Source");

@@ -39,6 +39,10 @@ namespace UnityEngine.Rendering.HighDefinition
         CloudResolution1024x512 = 1024,
         /// <summary>Size 2048x1024</summary>
         CloudResolution2048x1024 = 2048,
+        /// <summary>Size 4096x2048</summary>
+        CloudResolution4096x2048 = 4096,
+        /// <summary>Size 8192x4096</summary>
+        CloudResolution8192x4096 = 8192,
     }
 
     /// <summary>
@@ -55,6 +59,10 @@ namespace UnityEngine.Rendering.HighDefinition
         CloudShadowsResolution256 = 256,
         /// <summary>Size 512</summary>
         CloudShadowsResolution512 = 512,
+        /// <summary>Size 1024</summary>
+        CloudShadowsResolution1024 = 1024,
+        /// <summary>Size 2048</summary>
+        CloudShadowsResolution2048 = 2048,
     }
 
     /// <summary>
@@ -115,7 +123,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Reset()
         {
-            // We keep around the rendering context to avoid useless allocation if they get reused.
             hash = 0;
             refCount = 0;
         }
@@ -621,26 +628,26 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector4 params1 = sunLight == null ? Vector3.zero : sunLight.transform.forward;
                 params1.w = (layer.upperHemisphereOnly.value ? 1.0f : -1.0f) / (float)m_CloudResolution;
 
-                cmd.SetComputeVectorParam(m_BakeCloudTextureCS, "_Params1", params1);
+                cmd.SetComputeVectorParam(m_BakeCloudTextureCS, HDShaderIDs._Params, params1);
                 cmd.SetComputeTextureParam(m_BakeCloudTextureCS, m_BakeCloudTextureKernel, m_CloudTextureOutputParam, renderingContext.cloudTextureRT);
 
-                cmd.SetComputeTextureParam(m_BakeCloudTextureCS, m_BakeCloudTextureKernel, "_CloudMapA", layer.mapA.cloudMap.value);
-                var paramsA = layer.mapA.GetBakingParameters();
+                cmd.SetComputeTextureParam(m_BakeCloudTextureCS, m_BakeCloudTextureKernel, HDShaderIDs._CloudMapA, layer.layerA.cloudMap.value);
+                var paramsA = layer.layerA.GetBakingParameters();
 
                 if (renderingContext.numLayers == 1)
                 {
                     m_BakeCloudTextureCS.DisableKeyword("CLOUD_LAYER_DOUBLE_MODE");
-                    cmd.SetComputeVectorParam(m_BakeCloudTextureCS, "_Params2", paramsA.Item1);
-                    cmd.SetComputeVectorParam(m_BakeCloudTextureCS, "_Params3", paramsA.Item2);
+                    cmd.SetComputeVectorParam(m_BakeCloudTextureCS, HDShaderIDs._Params1, paramsA.Item1);
+                    cmd.SetComputeVectorParam(m_BakeCloudTextureCS, HDShaderIDs._Params2, paramsA.Item2);
                 }
                 else
                 {
-                    cmd.SetComputeTextureParam(m_BakeCloudTextureCS, m_BakeCloudTextureKernel, "_CloudMapB", layer.mapB.cloudMap.value);
-                    var paramsB = layer.mapB.GetBakingParameters();
+                    cmd.SetComputeTextureParam(m_BakeCloudTextureCS, m_BakeCloudTextureKernel, HDShaderIDs._CloudMapB, layer.layerB.cloudMap.value);
+                    var paramsB = layer.layerB.GetBakingParameters();
 
                     m_BakeCloudTextureCS.EnableKeyword("CLOUD_LAYER_DOUBLE_MODE");
-                    cmd.SetComputeVectorArrayParam(m_BakeCloudTextureCS, "_Params2", new Vector4[] { paramsA.Item1, paramsB.Item1 });
-                    cmd.SetComputeVectorArrayParam(m_BakeCloudTextureCS, "_Params3", new Vector4[] { paramsA.Item2, paramsB.Item2 });
+                    cmd.SetComputeVectorArrayParam(m_BakeCloudTextureCS, HDShaderIDs._Params1, new Vector4[] { paramsA.Item1, paramsB.Item1 });
+                    cmd.SetComputeVectorArrayParam(m_BakeCloudTextureCS, HDShaderIDs._Params2, new Vector4[] { paramsA.Item2, paramsB.Item2 });
                 }
 
                 const int groupSizeX = 8;
@@ -660,9 +667,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 var renderingContext = m_CachedCloudContexts[skyContext.cachedCloudRenderingContextId].renderingContext;
                 var layer = skyContext.cloudLayer;
 
-                cmd.SetComputeVectorParam(m_ComputeCloudShadowsCS, "_SunDirection", sunLight.transform.forward);
-                cmd.SetComputeFloatParam(m_ComputeCloudShadowsCS, "_Resolution", 1.0f / (float)m_CloudShadowsResolution);
-                cmd.SetComputeTextureParam(m_ComputeCloudShadowsCS, m_ComputeCloudShadowsKernel, "_CloudTexture", renderingContext.cloudTextureRT);
+                Vector4 _Params = sunLight.transform.forward;
+                _Params.w = 1.0f / (float)m_CloudShadowsResolution;
+
+                cmd.SetComputeVectorParam(m_ComputeCloudShadowsCS, HDShaderIDs._Params, _Params);
+                cmd.SetComputeFloatParam(m_ComputeCloudShadowsCS, HDShaderIDs._CloudShadowOpacity, 10.0f*layer.shadowsOpacity.value);
+                cmd.SetComputeTextureParam(m_ComputeCloudShadowsCS, m_ComputeCloudShadowsKernel, HDShaderIDs._CloudTexture, renderingContext.cloudTextureRT);
                 cmd.SetComputeTextureParam(m_ComputeCloudShadowsCS, m_ComputeCloudShadowsKernel, m_CloudShadowsOutputParam, renderingContext.cloudShadowsRT);
 
                 skyContext.cloudLayer.SetComputeParams(cmd, m_ComputeCloudShadowsCS, m_ComputeCloudShadowsKernel);
@@ -962,8 +972,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_BuiltinParameters.debugSettings = null; // We don't want any debug when updating the environment.
                 m_BuiltinParameters.frameIndex = frameIndex;
                 m_BuiltinParameters.skySettings = skyContext.skySettings;
-                m_BuiltinParameters.cloudLayer = skyContext.cloudLayer;
-                m_BuiltinParameters.cloudTexture = null;
 
                 bool cloudShadows = false;
                 if (skyContext.cloudLayer != null && skyContext.cloudLayer.opacity.value != 0.0f)
@@ -975,23 +983,29 @@ namespace UnityEngine.Rendering.HighDefinition
                         BakeCloudTexture(skyContext, sunLight);
 
                     var cloudContext = m_CachedCloudContexts[skyContext.cachedCloudRenderingContextId].renderingContext;
+                    m_BuiltinParameters.cloudLayer = skyContext.cloudLayer;
                     m_BuiltinParameters.cloudTexture = cloudContext.cloudTextureRT;
 
                     if (castShadows && sunLight != null)
                     {
                         cloudShadows = true;
                         ComputeCloudShadows(skyContext, sunLight);
-                        cmd.SetGlobalTexture("_CloudShadows", cloudContext.cloudShadowsRT);
+                        cmd.SetGlobalTexture(HDShaderIDs._CloudShadows, cloudContext.cloudShadowsRT);
                     }
                 }
-                else if (skyContext.cachedCloudRenderingContextId != -1)
+                else
                 {
-                    ReleaseCachedCloudContext(skyContext.cachedCloudRenderingContextId);
-                    skyContext.cachedCloudRenderingContextId = -1;
+                    if (skyContext.cachedCloudRenderingContextId != -1)
+                    {
+                        ReleaseCachedCloudContext(skyContext.cachedCloudRenderingContextId);
+                        skyContext.cachedCloudRenderingContextId = -1;
+                    }
+                    m_BuiltinParameters.cloudLayer = null;
+                    m_BuiltinParameters.cloudTexture = null;
                 }
 
                 if (!cloudShadows)
-                    cmd.SetGlobalTexture("_CloudShadows", Texture2D.blackTexture);
+                    cmd.SetGlobalTexture(HDShaderIDs._CloudShadows, Texture2D.whiteTexture);
 
                 int skyHash = ComputeSkyHash(hdCamera, skyContext, sunLight, ambientMode, staticSky);
                 bool forceUpdate = updateRequired;
@@ -1115,7 +1129,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BuiltinParameters.frameIndex = frameIndex;
             m_BuiltinParameters.skySettings = skyContext.skySettings;
 
-            if (skyContext.cloudLayer != null)
+            if (skyContext.cloudLayer != null && skyContext.cloudLayer.opacity.value != 0.0f)
             {
                 int cloudHash = ComputeCloudHash(skyContext.cloudLayer, sunLight, out int numLayers, out bool castShadows);
                 AcquireCloudRenderingContext(skyContext, cloudHash, numLayers, castShadows);

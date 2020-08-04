@@ -1455,14 +1455,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Build rows - recursively handles nested parameters
                     var rows = new List<DebugUI.Table.Row>();
-                    void AddParameterRows(Type type)
+                    void AddParameterRows(Type type, string prefix = null)
                     {
-                        void AddRow(FieldInfo f)
+                        void AddRow(FieldInfo f, string prefix)
                         {
-                            var fieldName = f.Name;
+                            var fieldName = prefix + f.Name;
                             var attr = (DisplayInfoAttribute[])f.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
                             if (attr.Length != 0)
-                                fieldName = attr[0].name;
+                                fieldName = prefix + attr[0].name;
 #if UNITY_EDITOR
                             // Would be nice to have the equivalent for the runtime debug.
                             else
@@ -1496,9 +1496,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             var fieldType = field.FieldType;
                             if (fieldType.IsSubclassOf(typeof(VolumeParameter)))
-                                AddRow(field);
+                                AddRow(field, prefix ?? "");
                             else if (!fieldType.IsArray && fieldType.IsClass)
-                                AddParameterRows(fieldType);
+                                AddParameterRows(fieldType, prefix ?? (field.Name + " "));
                         }
                     }
                     AddParameterRows(selectedType);
