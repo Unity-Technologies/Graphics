@@ -6,8 +6,7 @@
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "Unity.XR.Management.Editor",
-        "Unity.XR.Management",
-        "com.unity.cli-project-setup"
+        "Unity.XR.Management"
     ],
     "includePlatforms": [
         "Editor"

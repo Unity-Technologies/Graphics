@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78f911024ffd6bc4ea77b70450e92f89, type: 3}
   m_Name: settings
   m_EditorClassIdentifier: 
-  PlayerGraphicsApi: Vulkan
+  PlayerGraphicsApi: OpenGLES3
   MtRendering: 1
   GraphicsJobs: 0
   EnableBurst: 1
