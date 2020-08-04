@@ -8,7 +8,7 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [FormerName("RayTracingNode")]
+    [FormerName("UnityEditor.Rendering.HighDefinition.RayTracingNode")]
     class RayTracingQualityNode
     {
         private const string k_KeywordDefault = "RAYTRACING_SHADER_GRAPH_DEFAULT";
