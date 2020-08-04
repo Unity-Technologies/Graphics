@@ -508,7 +508,7 @@ namespace UnityEngine.Rendering.Universal
             CommandBufferPool.Release(cmd);
         }
 
-        bool PlatformRequiresExplicitAutoResolve()
+        bool PlatformRequiresExplicitMsaaResolve()
         {
             return !SystemInfo.supportsMultisampleAutoResolve &&
                    SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal;
@@ -532,7 +532,7 @@ namespace UnityEngine.Rendering.Universal
             int msaaSamples = cameraTargetDescriptor.msaaSamples;
             bool isScaledRender = !Mathf.Approximately(cameraData.renderScale, 1.0f);
             bool isCompatibleBackbufferTextureDimension = cameraTargetDescriptor.dimension == TextureDimension.Tex2D;
-            bool requiresExplicitMsaaResolve = msaaSamples > 1 && PlatformRequiresExplicitAutoResolve();
+            bool requiresExplicitMsaaResolve = msaaSamples > 1 && PlatformRequiresExplicitMsaaResolve();
             bool isOffscreenRender = cameraData.targetTexture != null && !isSceneViewCamera;
             bool isCapturing = cameraData.captureActions != null;
 
