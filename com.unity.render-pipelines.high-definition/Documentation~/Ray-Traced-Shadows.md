@@ -1,6 +1,6 @@
 # Ray-traced shadows
 
-Ray-traced shadows are shadows that HDRP generates by tracing rays of light from the following [Light](Light-Component.html) sources:
+Ray-traced shadows are shadows that HDRP generates by tracing rays of light from the following [Light](Light-Component.md) sources:
 
 - [Directional](#DirectionalLight)
 - [Point](#PointLight)
@@ -112,7 +112,7 @@ Ray-traced shadows offer the possibility of semi-transparent shadows for Point L
 
 ## Rectangle Light
 
-Ray-traced shadows offer an alternative to the [exponential variance shadow map](Glossary.html#ExponentialVarianceShadowMap) that Rectangle Lights use for opaque GameObjects.
+Ray-traced shadows offer an alternative to the [exponential variance shadow map](Glossary.md#ExponentialVarianceShadowMap) that Rectangle Lights use for opaque GameObjects.
 
 ![](Images/RayTracedShadows7.png)
 
