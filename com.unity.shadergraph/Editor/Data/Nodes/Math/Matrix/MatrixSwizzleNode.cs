@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -40,6 +40,26 @@ namespace UnityEditor.ShaderGraph
         public const int Output3x3SlotId = 3;
         public const int Output2x2SlotId = 4;
 
+        [SerializeField]
+        Vector4 text;
+
+        //[TextControl("", " m", "   m", "   m", "   m")]
+        //public Vector4 text_00
+        //{
+        //    get { return text; }
+        //    set { SetText(ref text, value); }
+        //}
+
+        //void SetText(ref Vector4 row, Vector4 value)
+        //{
+        //    if (value == row)
+        //        return;
+        //    row = value;
+        //    Debug.Log(value);
+        //    //Dirty(ModificationScope.Node);
+        //    Dirty(ModificationScope.Topological);
+        //}
+
 
         [SerializeField]
         Vector4 index_Row0;
@@ -53,28 +73,30 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         Vector4 index_Row3;
 
-        [MultiFloatControl("", " m", "   m", "   m", "   m")]
+        
+
+        [TextControl("", " m", "   m", "   m", "   m")]
         public Vector4 row0
         {
             get { return index_Row0; }
             set { SetRow(ref index_Row0, value);  }
         }
 
-        [MultiFloatControl("", " m", "   m", "   m", "   m")]
+        [TextControl("", " m", "   m", "   m", "   m")]
         public Vector4 row1
         {
             get { return index_Row1; }
             set { SetRow(ref index_Row1, value);  }
         }
 
-        [MultiFloatControl("", " m", "   m", "   m", "   m")]
+        [TextControl("", " m", "   m", "   m", "   m")]
         public Vector4 row2
         {
             get { return index_Row2; }
             set { SetRow(ref index_Row2, value);  }
         }
 
-        [MultiFloatControl("", " m", "   m", "   m", "   m")]
+        [TextControl("", " m", "   m", "   m", "   m")]
         public Vector4 row3
         {
             get { return index_Row3; }
@@ -86,6 +108,7 @@ namespace UnityEditor.ShaderGraph
             if (value == row)
                 return;
             row = value;
+            //Debug.Log(value);
             //Dirty(ModificationScope.Node);
             Dirty(ModificationScope.Topological);
         }
@@ -341,6 +364,7 @@ namespace UnityEditor.ShaderGraph
 
 
                 Vector4 indecies = inputIndecies.GetRow(r);
+                Debug.Log("row: " + r + "- " + indecies);
                 switch (m_OutputSize)
                         {
 
