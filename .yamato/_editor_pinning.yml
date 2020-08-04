@@ -12,8 +12,9 @@ editor-pinning-update:
     variables:
         CI: true
     commands:
+      -  sudo pip3 install --upgrade pip
       -  sudo pip3 install pipenv --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
-      -  python3 -m pipenv install --dev
+      -  pipenv install --dev
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt-get update
