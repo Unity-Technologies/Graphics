@@ -258,7 +258,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             if (m_Shader == null)
             {
-                Debug.Log("The composition shader graph must be set");
+                Debug.Log("A composition shader graph must be set in the compositor window");
                 return false;
             }
 
@@ -392,10 +392,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             // Create the composition material
             if (m_Shader)
             {
-                if (m_Material == null)
-                {
-                    m_Material = new Material(m_Shader);
-                }
+                m_Material = new Material(m_Shader);
 
                 m_CompositionProfile.AddPropertiesFromShaderAndMaterial(this, m_Shader, m_Material);
 
