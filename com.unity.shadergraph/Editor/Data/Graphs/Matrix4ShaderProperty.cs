@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph
             displayName = "Matrix4x4";
             value = Matrix4x4.identity;
         }
-        internal override bool isGpuInstanceable => true;
+        internal override bool SupportsCBufferUsage(CBufferUsage usage) => true;
         
         public override PropertyType propertyType => PropertyType.Matrix4;
         

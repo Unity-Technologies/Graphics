@@ -20,8 +20,10 @@ namespace UnityEditor.ShaderGraph
 
         public override PropertyType propertyType => PropertyType.Gradient;
 
-        internal override bool isBatchable => false;
-        internal override bool isExposable => false;
+        internal override bool SupportsCBufferUsage(CBufferUsage usage) => usage == CBufferUsage.Excluded;
+
+        internal override bool SupportsBlockUsage(PropertyBlockUsage usage) => usage == PropertyBlockUsage.Excluded;
+
         internal override bool isRenamable => true;
 
         internal override string GetPropertyDeclarationString(string delimiter = ";")

@@ -138,8 +138,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_Graph.isSubGraph,
                     m_Graph,
                     ChangeDisplayNameField,
-                    ChangeInputLevelField,
                     ChangeReferenceNameField,
+                    ChangeCBufferUsage,
+                    ChangePropertyBlockUsage,
                     () => m_Graph.ValidateGraph(),
                     () => m_Graph.OnKeywordChanged(),
                     ChangePropertyValue,
@@ -151,6 +152,16 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 this.RegisterCallback<DetachFromPanelEvent>(evt => m_inspectorUpdateTrigger());
             }
+        }
+
+        private void ChangePropertyBlockUsage(ShaderInput.PropertyBlockUsage newValue)
+        {
+            m_Input.propertyBlockUsage = newValue;
+        }
+
+        private void ChangeCBufferUsage(AbstractShaderProperty.CBufferUsage newValue)
+        {
+            (m_Input as AbstractShaderProperty).cBufferUsage = newValue;
         }
 
         void ChangeInputLevelField(ShaderInput.InputLevelDescriptor newValue)

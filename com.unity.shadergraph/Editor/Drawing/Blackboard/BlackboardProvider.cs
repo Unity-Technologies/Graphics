@@ -338,7 +338,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (create)
             {
                 m_Graph.SanitizeGraphInputName(input);
-                input.inputLevelDescriptor = input.isExposable ? ShaderInput.InputLevelDescriptor.PerMaterial : ShaderInput.InputLevelDescriptor.Global;
+                input.propertyBlockUsage = input.SupportsBlockUsage(ShaderInput.PropertyBlockUsage.Included) ? ShaderInput.PropertyBlockUsage.Included : ShaderInput.PropertyBlockUsage.Excluded;
             }
 
             BlackboardFieldView field = null;
@@ -348,7 +348,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 case AbstractShaderProperty property:
                 {
-                    var icon = (m_Graph.isSubGraph || (property.isExposable && property.inputLevelDescriptor == ShaderInput.InputLevelDescriptor.PerMaterial)) ? exposedIcon : null;
+                    var icon = (m_Graph.isSubGraph || property.SupportsBlockUsage(ShaderInput.PropertyBlockUsage.Included)) ? exposedIcon : null;
                     field = new BlackboardFieldView(m_Graph, property, UpdateBlackboardView, icon, property.displayName, property.propertyType.ToString()) { userData = property };
                     field.RegisterCallback<AttachToPanelEvent>(UpdateSelectionAfterUndoRedo);
                     row = new BlackboardRow(field, null);
@@ -365,7 +365,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 case ShaderKeyword keyword:
                 {
-                    var icon = (m_Graph.isSubGraph || (keyword.isExposable && keyword.inputLevelDescriptor == ShaderInput.InputLevelDescriptor.PerMaterial)) ? exposedIcon : null;
+                    var icon = (m_Graph.isSubGraph || keyword.SupportsBlockUsage(ShaderInput.PropertyBlockUsage.Included)) ? exposedIcon : null;
 
                     string typeText = keyword.keywordType.ToString()  + " Keyword";
                     typeText = keyword.isBuiltIn ? "Built-in " + typeText : typeText;

@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph
             // Getting the generatePropertyBlock property to see if it is exposed or not
             var graph = node.owner as GraphData;
             var property = node.property;
-            var icon = (graph.isSubGraph || (property.isExposable && property.inputLevelDescriptor == ShaderInput.InputLevelDescriptor.PerMaterial)) ? exposedIcon : null;
+            var icon = (graph.isSubGraph || property.propertyBlockUsage == ShaderInput.PropertyBlockUsage.Included) ? exposedIcon : null;
             this.icon = icon;
 
             // Setting the position of the node, otherwise it ends up in the center of the canvas
@@ -79,8 +79,9 @@ namespace UnityEditor.ShaderGraph
                     graph.isSubGraph,
                     graph,
                     this.ChangeDisplayNameField,
-                    this.ChangeInputLevelField,
                     this.ChangeReferenceNameField,
+                    this.ChangeCBufferUsage,
+                    this.ChangePropertyBlockUsage,
                     () => graph.ValidateGraph(),
                     () => graph.OnKeywordChanged(),
                     this.ChangePropertyValue,
@@ -92,10 +93,14 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        void ChangeInputLevelField(ShaderInput.InputLevelDescriptor newValue)
+        private void ChangeCBufferUsage(AbstractShaderProperty.CBufferUsage newValue)
         {
-            property.inputLevelDescriptor = newValue;
-            icon = property.inputLevelDescriptor == ShaderInput.InputLevelDescriptor.PerMaterial ? BlackboardProvider.exposedIcon : null;
+            property.cBufferUsage = newValue;   
+        }
+
+        private void ChangePropertyBlockUsage(ShaderInput.PropertyBlockUsage newValue)
+        {
+            property.propertyBlockUsage = newValue;
         }
 
         void ChangeDisplayNameField(string newValue)

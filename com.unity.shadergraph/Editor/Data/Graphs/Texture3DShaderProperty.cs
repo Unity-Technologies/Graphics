@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override string GetPropertyBlockString()
         {
-            return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 3D) = \"white\" {{}}";
+            return $"{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 3D) = \"white\" {{}}";
         }
 
         internal override string GetPropertyDeclarationString(string delimiter = ";")

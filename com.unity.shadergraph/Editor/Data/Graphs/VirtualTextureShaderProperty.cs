@@ -30,7 +30,10 @@ namespace UnityEditor.ShaderGraph
         internal override bool hasBatchableProperties => true;
         internal override bool hasNonBatchableProperties => true;
 
-        internal override bool isExposable => true;         // the textures are exposable at least..
+        internal override bool SupportsBlockUsage(PropertyBlockUsage usage) => true;
+
+        internal override bool SupportsCBufferUsage(CBufferUsage usage) => usage == CBufferUsage.Excluded;
+
         internal override bool isRenamable => true;
 
         internal override void GetPropertyReferenceNames(List<string> result)

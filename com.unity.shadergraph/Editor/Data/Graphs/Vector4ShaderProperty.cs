@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             displayName = "Vector4";
         }
-        internal override bool isGpuInstanceable => true;
         
         public override PropertyType propertyType => PropertyType.Vector4;
         
@@ -43,7 +42,8 @@ namespace UnityEditor.ShaderGraph.Internal
                 hidden = hidden,
                 value = value,
                 precision = precision,
-                gpuInstanced = gpuInstanced,
+                propertyBlockUsage = propertyBlockUsage,
+                cBufferUsage = cBufferUsage
             };
         }
     }

@@ -7,7 +7,7 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     abstract class MatrixShaderProperty : AbstractShaderProperty<Matrix4x4>
     {
-        internal override bool SupportsCBufferUsage(CBufferUsage usage) => true;
+        internal override bool SupportsCBufferUsage(CBufferUsage usage) => usage != CBufferUsage.HybridRenderer;
 
         internal override bool SupportsBlockUsage(PropertyBlockUsage usage) => true;
 

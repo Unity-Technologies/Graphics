@@ -401,7 +401,7 @@ Shader ""Hidden/GraphErrorShader2""
 
             foreach (var property in graph.properties)
             {
-                if (property.isExposable && property.inputLevelDescriptor == ShaderInput.InputLevelDescriptor.PerMaterial)
+                if (property.propertyBlockUsage == ShaderInput.PropertyBlockUsage.Included)
                 {
                     continue;
                 }
@@ -548,7 +548,7 @@ Shader ""Hidden/GraphErrorShader2""
 
             foreach (var property in graph.properties)
             {
-                if (!property.isExposable || property.inputLevelDescriptor != ShaderInput.InputLevelDescriptor.PerMaterial)
+                if (property.propertyBlockUsage == ShaderInput.PropertyBlockUsage.Excluded)
             {
                     continue;
                 }

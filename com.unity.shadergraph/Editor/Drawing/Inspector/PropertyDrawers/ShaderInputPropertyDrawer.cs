@@ -21,8 +21,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
     [SGPropertyDrawer(typeof(ShaderInput))]
     class ShaderInputPropertyDrawer : IPropertyDrawer
     {
-        internal delegate  void ChangeDisplayNameCallback(string newValue);
-        internal delegate void ChangeInputLevelFieldCallback(ShaderInput.InputLevelDescriptor newValue);
+        internal delegate void ChangeDisplayNameCallback(string newValue);
+        internal delegate void ChangeCBufferUsageFieldCallback(AbstractShaderProperty.CBufferUsage newValue);
+        internal delegate void ChangePropertyBlockUsageFieldCallback(ShaderInput.PropertyBlockUsage newValue);
         internal delegate void ChangeReferenceNameCallback(string newValue);
         internal delegate void ChangeValueCallback(object newValue);
         internal delegate void PreChangeValueCallback(string actionName);
@@ -61,7 +62,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         GraphData graphData;
         bool isSubGraph { get ; set;  }
         ChangeDisplayNameCallback _displayNameChangedCallback;
-        ChangeInputLevelFieldCallback _inputLevelFieldChangedCallback;
+        ChangeCBufferUsageFieldCallback _cBufferUsageFieldChangedCallback;
+        ChangePropertyBlockUsageFieldCallback _propertyBlockUsageFieldChangedCallback;
         ChangeReferenceNameCallback _referenceNameChangedCallback;
         Action _precisionChangedCallback;
         Action _keywordChangedCallback;
@@ -72,8 +74,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             bool isSubGraph,
             GraphData graphData,
             ChangeDisplayNameCallback displayNameCallback,
-            ChangeInputLevelFieldCallback inputLevelFieldCallback,
             ChangeReferenceNameCallback referenceNameCallback,
+            ChangeCBufferUsageFieldCallback cBufferUsageFieldCallback,
+            ChangePropertyBlockUsageFieldCallback propertyBlockUsageFieldCallback,
             Action precisionChangedCallback,
             Action keywordChangedCallback,
             ChangeValueCallback changeValueCallback,
@@ -83,7 +86,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             this.isSubGraph = isSubGraph;
             this.graphData = graphData;
             this._displayNameChangedCallback = displayNameCallback;
-            this._inputLevelFieldChangedCallback = inputLevelFieldCallback;
+            this._cBufferUsageFieldChangedCallback = cBufferUsageFieldCallback;
+            this._propertyBlockUsageFieldChangedCallback = propertyBlockUsageFieldCallback;
             this._referenceNameChangedCallback = referenceNameCallback;
             this._precisionChangedCallback = precisionChangedCallback;
             this._changeValueCallback = changeValueCallback;
@@ -103,7 +107,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             shaderInput = actualObject as ShaderInput;
             BuildPropertyNameLabel(propertySheet);
             BuildDisplayNameField(propertySheet);
-            BuildInputLevelField(propertySheet, shaderInput);
+            BuildUsageFields(propertySheet, shaderInput);
             BuildReferenceNameField(propertySheet);
             BuildPropertyFields(propertySheet);
             BuildKeywordFields(propertySheet, shaderInput);
@@ -118,24 +122,42 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 propertySheet.Add(PropertyDrawerUtils.CreateLabel($"Property: {shaderInput.displayName}", 0, FontStyle.Bold));
         }
 
-        void BuildInputLevelField(PropertySheet propertySheet, ShaderInput input)
+        void BuildUsageFields(PropertySheet propertySheet, ShaderInput input)
         {
-            if(!isSubGraph && input is AbstractShaderProperty property)
+            if (!isSubGraph)
             {
-                var inputLevelDataPropertyDrawer = new EnumPropertyDrawer();
-                propertySheet.Add(inputLevelDataPropertyDrawer.CreateGUI(
+                if (input is AbstractShaderProperty property)
+                {
+                    var cBufferUsage = new EnumPropertyDrawer();
+                    propertySheet.Add(cBufferUsage.CreateGUI(
                     newValue =>
                     {
-                        this._preChangeValueCallback("Change Exposed Toggle");
-                        if (property.inputLevelDescriptor == (ShaderInput.InputLevelDescriptor)newValue)
+                        this._preChangeValueCallback("Change CBuffer Usage");
+                        if (property.cBufferUsage == (AbstractShaderProperty.CBufferUsage)newValue)
                             return;
-                        this._inputLevelFieldChangedCallback((ShaderInput.InputLevelDescriptor) newValue);
+                        this._cBufferUsageFieldChangedCallback((AbstractShaderProperty.CBufferUsage)newValue);
                         this._postChangeValueCallback(false, ModificationScope.Graph);
                     },
-                    shaderInput.inputLevelDescriptor,
-                    "Input Level",
-                    ShaderInput.InputLevelDescriptor.PerMaterial,
-                    out var inputLevelField));
+                    property.cBufferUsage,
+                    "CBuffer Usage",
+                    AbstractShaderProperty.CBufferUsage.Excluded,
+                    out var cbufferUsageField));
+                }
+
+                var propertyBlockUsage = new EnumPropertyDrawer();
+                propertySheet.Add(propertyBlockUsage.CreateGUI(
+                    newValue =>
+                    {
+                        this._preChangeValueCallback("Change Property Block Usage");
+                        if (input.propertyBlockUsage == (ShaderInput.PropertyBlockUsage)newValue)
+                            return;
+                        this._propertyBlockUsageFieldChangedCallback((ShaderInput.PropertyBlockUsage)newValue);
+                        this._postChangeValueCallback(false, ModificationScope.Graph);
+                    },
+                    input.propertyBlockUsage,
+                    "Property Block Usage",
+                    ShaderInput.PropertyBlockUsage.Included,
+                    out var propertyBlockUsageField));
             }
         }
 
@@ -267,8 +289,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             }
 
             BuildPrecisionField(propertySheet, property);
-            if(property.isGpuInstanceable)
-                BuildGpuInstancingField(propertySheet, property);
+            //if(property.isGpuInstanceable)
+            //    BuildGpuInstancingField(propertySheet, property);
         }
 
         void BuildPrecisionField(PropertySheet propertySheet, AbstractShaderProperty property)
@@ -285,18 +307,18 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 }, property.precision, "Precision", Precision.Inherit, out var precisionField));
         }
 
-        void BuildGpuInstancingField(PropertySheet propertySheet, AbstractShaderProperty property)
-        {
-            var toggleDataPropertyDrawer = new ToggleDataPropertyDrawer();
-            propertySheet.Add(toggleDataPropertyDrawer.CreateGUI( newValue =>
-            {
-                this._preChangeValueCallback("Change Hybrid Instanced Toggle");
-                property.gpuInstanced = newValue.isOn;
-                this._postChangeValueCallback(false, ModificationScope.Graph);
-            }, new ToggleData(property.gpuInstanced), "Hybrid Instanced (experimental)", out var gpuInstancedToggle));
+        //void BuildGpuInstancingField(PropertySheet propertySheet, AbstractShaderProperty property)
+        //{
+        //    var toggleDataPropertyDrawer = new ToggleDataPropertyDrawer();
+        //    propertySheet.Add(toggleDataPropertyDrawer.CreateGUI( newValue =>
+        //    {
+        //        this._preChangeValueCallback("Change Hybrid Instanced Toggle");
+        //        property.gpuInstanced = newValue.isOn;
+        //        this._postChangeValueCallback(false, ModificationScope.Graph);
+        //    }, new ToggleData(property.gpuInstanced), "Hybrid Instanced (experimental)", out var gpuInstancedToggle));
 
-            gpuInstancedToggle.SetEnabled(property.isGpuInstanceable);
-        }
+        //    gpuInstancedToggle.SetEnabled(property.isGpuInstanceable);
+        //}
 
         void HandleVector1ShaderProperty(PropertySheet propertySheet, Vector1ShaderProperty vector1ShaderProperty)
         {

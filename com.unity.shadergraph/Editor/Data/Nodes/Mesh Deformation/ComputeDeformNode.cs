@@ -76,9 +76,12 @@ namespace UnityEditor.ShaderGraph
             {
                 displayName = "Compute Mesh Buffer Index Offset",
                 overrideReferenceName = "_ComputeMeshIndex",
-                gpuInstanced = true,
 #if ENABLE_HYBRID_RENDERER_V2
-                hidden = true,
+                propertyBlockUsage = ShaderInput.PropertyBlockUsage.Hidden,
+                cBufferUsage = AbstractShaderProperty.CBufferUsage.HybridRenderer,
+#else
+                propertyBlockUsage = ShaderInput.PropertyBlockUsage.Included,
+                cBufferUsage = AbstractShaderProperty.CBufferUsage.PerMaterial,
 #endif
                 value = 0
             });

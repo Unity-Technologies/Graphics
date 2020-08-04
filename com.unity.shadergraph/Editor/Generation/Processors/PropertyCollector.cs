@@ -34,12 +34,12 @@ namespace UnityEditor.ShaderGraph
             if (mode == GenerationMode.Preview)
             {
                 builder.AppendLine("CBUFFER_START(UnityPerMaterial)");
-                foreach (var prop in properties.Where(p => p.inputLevelDescriptor != ShaderInput.InputLevelDescriptor.HybridInstanced))    // all non-gpu instanced properties (even non-batchable ones) - preview is weird
+                foreach (var prop in properties.Where(p => p.cBufferUsage != AbstractShaderProperty.CBufferUsage.HybridRenderer))    // all non-gpu instanced properties (even non-batchable ones) - preview is weird
                 {
                     prop.AppendBatchablePropertyDeclarations(builder);
                     prop.AppendNonBatchablePropertyDeclarations(builder);
                 }
-                var GPUInstancedProperties = properties.Where(p => p.inputLevelDescriptor == ShaderInput.InputLevelDescriptor.HybridInstanced);
+                var GPUInstancedProperties = properties.Where(p => p.cBufferUsage == AbstractShaderProperty.CBufferUsage.HybridRenderer);
                 if (GPUInstancedProperties.Any())
                 {
                     builder.AppendLine("#ifdef UNITY_HYBRID_V1_INSTANCING_ENABLED");
@@ -139,7 +139,7 @@ namespace UnityEditor.ShaderGraph
             // declare non-batchable properties
             foreach (var prop in properties.Where(n => n.hasNonBatchableProperties || n.cBufferUsage == AbstractShaderProperty.CBufferUsage.Excluded))
             {
-                if (prop.hasBatchableProperties && prop.inputLevelDescriptor != ShaderInput.InputLevelDescriptor.PerMaterial) // batchable properties that don't generate property block can't be instanced, get put here
+                if (prop.hasBatchableProperties && prop.propertyBlockUsage == ShaderInput.PropertyBlockUsage.Excluded) // batchable properties that don't generate property block can't be instanced, get put here
                     prop.AppendBatchablePropertyDeclarations(builder);
 
                 prop.AppendNonBatchablePropertyDeclarations(builder);

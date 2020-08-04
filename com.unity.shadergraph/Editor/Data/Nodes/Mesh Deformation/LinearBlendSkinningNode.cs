@@ -74,9 +74,12 @@ namespace UnityEditor.ShaderGraph
             {
                 displayName = "Skin Matrix Index Offset",
                 overrideReferenceName = "_SkinMatrixIndex",
-                gpuInstanced = true,
 #if ENABLE_HYBRID_RENDERER_V2
-                hidden = true,
+                propertyBlockUsage = ShaderInput.PropertyBlockUsage.Hidden,
+                cBufferUsage = AbstractShaderProperty.CBufferUsage.HybridRenderer,
+#else
+                propertyBlockUsage = ShaderInput.PropertyBlockUsage.Included,
+                cBufferUsage = AbstractShaderProperty.CBufferUsage.PerMaterial,
 #endif
                 value = 0
             });
@@ -85,9 +88,12 @@ namespace UnityEditor.ShaderGraph
             properties.AddShaderProperty(new Vector1ShaderProperty()
             {
                 overrideReferenceName = "_SkinMatricesOffset",
-                gpuInstanced = true,
 #if ENABLE_HYBRID_RENDERER_V2
-                hidden = true,
+                propertyBlockUsage = ShaderInput.PropertyBlockUsage.Hidden,
+                cBufferUsage = AbstractShaderProperty.CBufferUsage.HybridRenderer,
+#else
+                propertyBlockUsage = ShaderInput.PropertyBlockUsage.Included,
+                cBufferUsage = AbstractShaderProperty.CBufferUsage.PerMaterial,
 #endif
                 value = 0
             });
