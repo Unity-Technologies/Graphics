@@ -19,7 +19,8 @@ PROJECT_VERSION_NAME = 'project_revision'
 PLATFORMS = ('windows', 'macos')
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
-DEFAULT_CONFIG_FILE = os.path.join(SCRIPT_DIR, 'config.yml')
+#DEFAULT_CONFIG_FILE = os.path.join(SCRIPT_DIR, 'config.yml')
+DEFAULT_CONFIG_FILE = os.path.join(os.path.abspath(git_cmd('rev-parse --show-toplevel', cwd='.').strip()),'.yamato','config','_editor.metafile')
 EXPECTATIONS_PATH = os.path.join('.yamato', 'expectations')
 
 INVALID_VERSION_ERROR = 'Are you sure this is actually a valid unity version?'
