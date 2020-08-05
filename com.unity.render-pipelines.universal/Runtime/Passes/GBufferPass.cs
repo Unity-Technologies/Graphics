@@ -81,6 +81,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 context.ExecuteCommandBuffer(gbufferCommands);
                 gbufferCommands.Clear();
 
+                if (renderingData.lightData.mainLightIndex >= 0)
+                    gbufferCommands.EnableShaderKeyword(ShaderKeywordStrings.MainLight);
+                else
+                    gbufferCommands.DisableShaderKeyword(ShaderKeywordStrings.MainLight);
+
                 if (m_DeferredLights.AccurateGbufferNormals)
                     gbufferCommands.EnableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
                 else

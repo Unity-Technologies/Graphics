@@ -154,12 +154,13 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
     BRDFData brdfData;
     InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
 
-    Light mainLight = GetMainLight(inputData.shadowCoord);                                      // TODO move this to a separate full-screen single gbuffer pass?
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0)); // TODO move this to a separate full-screen single gbuffer pass?
-
     half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.normalWS, inputData.viewDirectionWS);
 
+    #ifdef _MAIN_LIGHT
+    Light mainLight = GetMainLight(inputData.shadowCoord);                                      // TODO move this to a separate full-screen single gbuffer pass?
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0)); // TODO move this to a separate full-screen single gbuffer pass?
     color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS, specularHighlightsOff); // TODO move this to a separate full-screen single gbuffer pass?
+    #endif
 
     return BRDFDataToGbuffer(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color);
 }

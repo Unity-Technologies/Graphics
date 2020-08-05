@@ -498,6 +498,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #region Keywords
         static class LitKeywords
         {
+            public static KeywordDescriptor MainLight = new KeywordDescriptor()
+            {
+                displayName = "Main Light shading",
+                referenceName = "_MAIN_LIGHT",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.MultiCompile,
+                scope = KeywordScope.Global,
+            };
+
             public static KeywordDescriptor GBufferNormalsOct = new KeywordDescriptor()
             {
                 displayName = "GBuffer normal octaedron encoding",
@@ -538,6 +547,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.MainLightShadowsCascade },
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
+                { MainLight }, 
                 { GBufferNormalsOct },
             };
 

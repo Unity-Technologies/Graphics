@@ -63,6 +63,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass
 
             // -------------------------------------
             // Universal Pipeline keywords
+            #pragma multi_compile _ _MAIN_LIGHT
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX // _ADDITIONAL_LIGHTS

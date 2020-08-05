@@ -278,6 +278,7 @@ namespace UnityEngine.Rendering.Universal
 
     public static class ShaderKeywordStrings
     {
+        public static readonly string MainLight = "_MAIN_LIGHT";
         public static readonly string MainLightShadows = "_MAIN_LIGHT_SHADOWS";
         public static readonly string MainLightShadowCascades = "_MAIN_LIGHT_SHADOWS_CASCADE";
         public static readonly string AdditionalLightsVertex = "_ADDITIONAL_LIGHTS_VERTEX";
