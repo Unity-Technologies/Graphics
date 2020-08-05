@@ -2021,6 +2021,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (shadowRequestIndex == -1)
                     continue;
 
+                shadowRequest.atlasViewport = resolutionRequest.atlasViewport;
+
                 if (!shadowNeedsRendering)
                 {
                     shadowRequest.cachedShadowData.cacheTranslationDelta = cameraPos - m_CachedViewPos;
@@ -2080,7 +2082,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     SetCommonShadowRequestSettings(shadowRequest, visibleLight, cameraPos, invViewProjection, viewportSize, lightIndex, lightType, filteringQuality);
                 }
 
-                shadowRequest.atlasViewport = resolutionRequest.atlasViewport;
                 manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest, shadowIsInCachedSystem);
 
                 if(shadowIsInCachedSystem && shadowNeedsRendering)
