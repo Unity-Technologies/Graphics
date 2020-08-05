@@ -39,8 +39,8 @@ These properties allow you to change the rendering behavior of the decal.
 
 | **Property**              | **Description**                                              |
 | ------------------------- | ------------------------------------------------------------ |
-| **Draw order**            | Controls the order in which HDRP draws decals in the Scene. HDRP draws decals with lower values first, so it draws decals with a higher draw order value on top of those with lower values. This feature works for decals projected on opaque and transparent surfaces. |
-| **Mesh decal depth bias** | A depth bias that HDRP applies to the decal’s Mesh to stop it from overlapping with other Meshes. A negative value draws the decal in front of any overlapping Mesh, while a positive value offsets the decal and draw it behind. This property only affects decal Materials directly attached to GameObjects with a Mesh Renderer, so Decal Projectors do not use this property. |
+| **Draw Order**            | Controls the order in which HDRP draws decals in the Scene. HDRP draws decals with lower values first, so it draws decals with a higher draw order value on top of those with lower values. This feature works for decals projected on opaque and transparent surfaces.<br />**Note**: This property only applies to decals the [Decal Projector](Decal-Projector.md) creates and has no effect on Mesh decals. Additionally, if you have multiple Decal Materials with the same **Draw Order**, the order HDRP renders them in depends on the order you create the Materials. HDRP renders Decal Materials you create first before those you create later with the same **Draw Order**. |
+| **Mesh Decal Depth Bias** | A depth bias that HDRP applies to the decal’s Mesh to stop it from overlapping with other Meshes. A negative value draws the decal in front of any overlapping Mesh, while a positive value offsets the decal and draw it behind. This property only affects decal Materials directly attached to GameObjects with a Mesh Renderer, so Decal Projectors do not use this property. |
 
 ### HDRP Asset properties
 

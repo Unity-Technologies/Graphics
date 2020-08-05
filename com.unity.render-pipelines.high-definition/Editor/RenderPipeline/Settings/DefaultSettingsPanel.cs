@@ -22,12 +22,27 @@ namespace UnityEditor.Rendering.HighDefinition
                 keywords = SettingsProvider.GetSearchKeywordsFromGUIContentProperties<HDRenderPipelineUI.Styles.GeneralSection>()
                     .Concat(SettingsProvider.GetSearchKeywordsFromGUIContentProperties<DefaultSettingsPanelIMGUI.Styles>())
                     .Concat(OverridableFrameSettingsArea.frameSettingsKeywords).ToArray(),
-                guiHandler = s_IMGUIImpl.OnGUI,
+                guiHandler = s_IMGUIImpl.DoGUI,
             };
         }
 
         class DefaultSettingsPanelIMGUI
         {
+            // A wrapper for CoreEditorDrawers
+            class CoreEditorDrawerEditorWrapper : Editor, IDefaultFrameSettingsType
+            {
+                public FrameSettingsRenderType GetFrameSettingsType()
+                {
+                    switch (HDRenderPipelineUI.selectedFrameSettings)
+                    {
+                        case HDRenderPipelineUI.SelectedFrameSettings.Camera: return FrameSettingsRenderType.Camera;
+                        case HDRenderPipelineUI.SelectedFrameSettings.RealtimeReflection: return FrameSettingsRenderType.RealtimeReflection;
+                        case HDRenderPipelineUI.SelectedFrameSettings.BakedOrCustomReflection: return FrameSettingsRenderType.CustomOrBakedReflection;
+                    }
+                    throw new Exception("unreachable");
+                }
+            }
+
             public class Styles
             {
                 public const int labelWidth = 220;
@@ -40,12 +55,15 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             Vector2 m_ScrollViewPosition = Vector2.zero;
-            Editor m_Cached;
+            Editor m_CachedDefaultVolumeProfileEditor;
+            Editor m_CachedLookDevVolumeProfileEditor;
             ReorderableList m_BeforeTransparentCustomPostProcesses;
             ReorderableList m_BeforePostProcessCustomPostProcesses;
             ReorderableList m_AfterPostProcessCustomPostProcesses;
+            int m_CurrentVolumeProfileInstanceID;
+            private Editor m_Cache;
 
-            public void OnGUI(string searchContext)
+            public void DoGUI(string searchContext)
             {
                 m_ScrollViewPosition = GUILayout.BeginScrollView(m_ScrollViewPosition, EditorStyles.largeLabel);
                 Draw_GeneralSettings();
@@ -186,6 +204,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 var oldWidth = EditorGUIUtility.labelWidth;
                 EditorGUIUtility.labelWidth = Styles.labelWidth;
 
+                EditorGUILayout.BeginHorizontal();
                 var asset = EditorDefaultSettings.GetOrAssignDefaultVolumeProfile();
                 var newAsset = (VolumeProfile)EditorGUILayout.ObjectField(Styles.defaultVolumeProfileLabel, asset, typeof(VolumeProfile), false);
                 if (newAsset == null)
@@ -199,14 +218,30 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorUtility.SetDirty(hdrpAsset);
                 }
 
-                Editor.CreateCachedEditor(asset,
-                    Type.GetType("UnityEditor.Rendering.VolumeProfileEditor"), ref m_Cached);
+                if (GUILayout.Button(EditorGUIUtility.TrTextContent("New", "Create a new Volume Profile for default in your default resource folder (defined in Wizard)"), GUILayout.Width(38), GUILayout.Height(18)))
+                {
+                    DefaultVolumeProfileCreator.CreateAndAssign(DefaultVolumeProfileCreator.Kind.Default);
+                }
+                EditorGUILayout.EndHorizontal();
+
+                // The state of the profile can change without the asset reference changing so in this case we need to reset the editor.
+                if (m_CurrentVolumeProfileInstanceID != asset.GetInstanceID() && m_CachedDefaultVolumeProfileEditor != null)
+                {
+                    m_CurrentVolumeProfileInstanceID = asset.GetInstanceID();
+                    m_CachedDefaultVolumeProfileEditor = null;
+                }
+
+                Editor.CreateCachedEditor(asset, Type.GetType("UnityEditor.Rendering.VolumeProfileEditor"), ref m_CachedDefaultVolumeProfileEditor);
                 EditorGUIUtility.labelWidth -= 18;
-                m_Cached.OnInspectorGUI();
+                bool oldEnabled = GUI.enabled;
+                GUI.enabled = AssetDatabase.IsOpenForEdit(asset);
+                m_CachedDefaultVolumeProfileEditor.OnInspectorGUI();
+                GUI.enabled = oldEnabled;
                 EditorGUIUtility.labelWidth = oldWidth;
 
                 EditorGUILayout.Space();
 
+                EditorGUILayout.BeginHorizontal();
                 var lookDevAsset = EditorDefaultSettings.GetOrAssignLookDevVolumeProfile();
                 EditorGUIUtility.labelWidth = 221;
                 var newLookDevAsset = (VolumeProfile)EditorGUILayout.ObjectField(Styles.lookDevVolumeProfileLabel, lookDevAsset, typeof(VolumeProfile), false);
@@ -219,6 +254,20 @@ namespace UnityEditor.Rendering.HighDefinition
                     hdrpAsset.defaultLookDevProfile = newLookDevAsset;
                     EditorUtility.SetDirty(hdrpAsset);
                 }
+
+                if (GUILayout.Button(EditorGUIUtility.TrTextContent("New", "Create a new Volume Profile for default in your default resource folder (defined in Wizard)"), GUILayout.Width(38), GUILayout.Height(18)))
+                {
+                    DefaultVolumeProfileCreator.CreateAndAssign(DefaultVolumeProfileCreator.Kind.LookDev);
+                }
+                EditorGUILayout.EndHorizontal();
+
+                Editor.CreateCachedEditor(lookDevAsset, Type.GetType("UnityEditor.Rendering.VolumeProfileEditor"), ref m_CachedLookDevVolumeProfileEditor);
+                EditorGUIUtility.labelWidth -= 18;
+                oldEnabled = GUI.enabled;
+                GUI.enabled = AssetDatabase.IsOpenForEdit(asset);
+                m_CachedLookDevVolumeProfileEditor.OnInspectorGUI();
+                GUI.enabled = oldEnabled;
+                EditorGUIUtility.labelWidth = oldWidth;
 
                 if (lookDevAsset.Has<VisualEnvironment>())
                     EditorGUILayout.HelpBox("VisualEnvironment is not modifiable and will be overridden by the LookDev", MessageType.Warning);
@@ -235,9 +284,65 @@ namespace UnityEditor.Rendering.HighDefinition
                 var serializedObject = new SerializedObject(hdrpAsset);
                 var serializedHDRPAsset = new SerializedHDRenderPipelineAsset(serializedObject);
 
-                HDRenderPipelineUI.FrameSettingsSection.Draw(serializedHDRPAsset, null);
+                Editor.CreateCachedEditor(hdrpAsset, typeof(CoreEditorDrawerEditorWrapper), ref m_Cache);
+
+                HDRenderPipelineUI.FrameSettingsSection.Draw(serializedHDRPAsset, m_Cache);
                 serializedObject.ApplyModifiedProperties();
             }
+        }
+    }
+
+    class DefaultVolumeProfileCreator : ProjectWindowCallback.EndNameEditAction
+    {
+        public enum Kind { Default, LookDev }
+        Kind m_Kind;
+
+        void SetKind(Kind kind) => m_Kind = kind;
+
+        public override void Action(int instanceId, string pathName, string resourceFile)
+        {
+            var profile = VolumeProfileFactory.CreateVolumeProfileAtPath(pathName);
+            ProjectWindowUtil.ShowCreatedAsset(profile);
+            Assign(profile);
+        }
+
+        void Assign(VolumeProfile profile)
+        {
+            var hdrpAsset = HDRenderPipeline.defaultAsset;
+            switch (m_Kind)
+            {
+                case Kind.Default:
+                    hdrpAsset.defaultVolumeProfile = profile;
+                    break;
+                case Kind.LookDev:
+                    hdrpAsset.defaultLookDevProfile = profile;
+                    break;
+            }
+        }
+
+        static string GetDefaultName(Kind kind)
+        {
+            string defaultName;
+            switch (kind)
+            {
+                case Kind.Default:
+                    defaultName = "DefaultVolumeSettingsProfile";
+                    break;
+                case Kind.LookDev:
+                    defaultName = "LookDevVolumeSettingsProfile";
+                    break;
+                default:
+                    defaultName = "N/A";
+                    break;
+            }
+            return defaultName;
+        }
+
+        public static void CreateAndAssign(Kind kind)
+        {
+            var assetCreator = ScriptableObject.CreateInstance<DefaultVolumeProfileCreator>();
+            assetCreator.SetKind(kind);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(assetCreator.GetInstanceID(), assetCreator, $"Assets/{HDProjectSettings.projectSettingsFolderPath}/{GetDefaultName(kind)}.asset", null, null);
         }
     }
 }

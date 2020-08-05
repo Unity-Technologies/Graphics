@@ -75,6 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderWireFrame,
         PushToColorPicker,
         ResolveMSAAColor,
+        ResolveMSAAMotionVector,
         ResolveMSAADepth,
         ConvolveReflectionProbe,
         ConvolvePlanarReflectionProbe,
@@ -140,6 +141,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Misc
         VolumeUpdate,
         CustomPassVolumeUpdate,
+
+        // XR
         XROcclusionMesh,
         XRMirrorView,
         XRCustomMirrorView,

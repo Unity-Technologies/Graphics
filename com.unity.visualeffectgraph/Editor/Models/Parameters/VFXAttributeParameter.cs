@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using UnityEngine;
 
@@ -15,7 +16,7 @@ namespace UnityEditor.VFX
 
     class ReadWritableAttributeProvider : IStringProvider
     {
-        public string[] GetAvailableString() 
+        public string[] GetAvailableString()
         {
             return VFXAttribute.AllIncludingVariadicReadWritable.ToArray();
         }
@@ -91,7 +92,7 @@ namespace UnityEditor.VFX
             {
                 var attribute = VFXAttribute.Find(this.attribute);
 
-                var field = typeof(VFXAttribute).GetField(attribute.name.Substring(0, 1).ToUpper() + attribute.name.Substring(1), System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
+                var field = typeof(VFXAttribute).GetField(attribute.name.Substring(0, 1).ToUpper(CultureInfo.InvariantCulture) + attribute.name.Substring(1), System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
 
                 TooltipAttribute tooltip = null;
 
@@ -100,7 +101,7 @@ namespace UnityEditor.VFX
 
 
                 VFXPropertyAttribute[] attr = null;
-                if( tooltip != null)
+                if (tooltip != null)
                     attr = VFXPropertyAttribute.Create(tooltip);
 
                 if (attribute.variadic == VFXVariadic.True)

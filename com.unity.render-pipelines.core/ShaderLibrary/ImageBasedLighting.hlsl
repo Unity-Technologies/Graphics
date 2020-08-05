@@ -8,6 +8,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 
 #ifndef UNITY_SPECCUBE_LOD_STEPS
+    // This is actuall the last mip index, we generate 7 mips of convolution
     #define UNITY_SPECCUBE_LOD_STEPS 6
 #endif
 

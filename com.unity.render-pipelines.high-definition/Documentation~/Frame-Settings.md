@@ -49,7 +49,7 @@ These settings determine the method that the Cameras and Reflection Probes using
 | - **Panini Projection**               | Enable the checkbox to allow HDRP to add panini projection to Cameras affected by a Volume containing the [Panini Projection](Post-Processing-Panini-Projection.html) override. |
 | - **Bloom**                           | Enable the checkbox to allow HDRP to add bloom to Cameras affected by a Volume containing the [Bloom](Post-Processing-Bloom.html) override. |
 | - **Lens Distortion**                 | Enable the checkbox to allow HDRP to add lens distortion to Cameras affected by a Volume containing the [Lens Distortion](Post-Processing-Lens-Distortion.html) override. |
-| - **Chromatic Aberration**            | Enable the checkbox to allow HDRP to add chromatic aberration to Cameras affected by a Volume containing the [Chromatic Aberration](Post-Processing-) override. |
+| - **Chromatic Aberration**            | Enable the checkbox to allow HDRP to add chromatic aberration to Cameras affected by a Volume containing the [Chromatic Aberration](Post-Processing-Chromatic-Aberration.html) override. |
 | - **Vignette**                        | Enable the checkbox to allow HDRP add a vignette to Cameras affected by a Volume containing the [Vignette](Post-Processing-Vignette.html) override. |
 | - **Color Grading**                   | Enable the checkbox to allow HDRP to process color grading for Cameras. |
 | - **Tonemapping**                     | Enable the checkbox to allow HDRP to process tonemapping for Cameras. |

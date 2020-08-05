@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using UnityEditor.ShaderGraph;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.UIElements;
@@ -9,12 +9,12 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    class UnlitSettingsView : VisualElement
+    class UnlitSettingsView : MasterNodeSettingsView
     {
         UnlitMasterNode m_Node;
-        public UnlitSettingsView(UnlitMasterNode node)
+        public UnlitSettingsView(AbstractMaterialNode node) : base(node)
         {
-            m_Node = node;
+            m_Node = node as UnlitMasterNode;
 
             PropertySheet ps = new PropertySheet();
 
@@ -46,6 +46,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 });
 
             Add(ps);
+            Add(GetShaderGUIOverridePropertySheet());
         }
 
         void ChangeSurface(ChangeEvent<Enum> evt)

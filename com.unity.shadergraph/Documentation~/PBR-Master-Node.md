@@ -10,7 +10,9 @@ By default, Shader Graph expects the values you supply to the input **Normal** t
 
 | Name        | Direction           | Type  | Stage | Binding | Description |
 |:------------ |:-------------|:----|:-----|:---|:---|
-| Position      | Input | Vector 3 | Vertex | None | Defines the absolute object space vertex position per vertex. |
+| Vertex Position | Input | Vector 3 | Vertex | Object Space Position | Defines the absolute object space vertex position per vertex. |
+| Vertex Normal | Input | Vector 3 | Vertex | Object Space Normal | Defines the absolute object space vertex normal per vertex. |
+| Vertex Tangent | Input | Vector 3 | Vertex | Object Space Tangent | Defines the absolute object space vertex tangent per vertex. |
 | Albedo      | Input | Vector 3 | Fragment | None | Defines material's albedo value. Expected range 0 - 1. |
 | Normal      | Input | Vector 3 | Fragment | Tangent Space Normal | Defines material's normal value. Expects normals in tangent space.  |
 | Emission      | Input | Vector 3 | Fragment | None | Defines material's emission color value. Expects positive values.  |
@@ -33,3 +35,5 @@ By default, Shader Graph expects the values you supply to the input **Normal** t
 | Blend      | Dropdown | Alpha, Premultiply, Additive, Multiply | Defines blend mode of a transparent material. |
 | Fragment Normal Space | Dropdown | Tangent, Object, World | Defines the coordinate space of the value supplied to the **Normal** slot. |
 | Two Sided      | Toggle | True, False | If `true`, both front and back faces of the mesh are rendered. |
+| Override ShaderGUI | Toggle | True, False | Lets you override the [ShaderGUI](https://docs.unity3d.com/ScriptReference/ShaderGUI.html) that this Shader Graph uses. If `true`, the **ShaderGUI** property appears, which lets you specify the ShaderGUI to use. |
+| - ShaderGUI      | TextField | Text | The full name of the ShaderGUI class to use, including the class path. |

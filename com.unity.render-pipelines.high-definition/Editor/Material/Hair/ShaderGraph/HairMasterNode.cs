@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Serializable]
     [Title("Master", "Hair (HDRP)")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HairMasterNode")]
-    class HairMasterNode : MasterNode<IHairSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class HairMasterNode : MaterialMasterNode<IHairSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionSlotName = "Vertex Position";
         public const string PositionSlotDisplayName = "Vertex Position";
@@ -899,6 +899,7 @@ namespace UnityEditor.Rendering.HighDefinition
             );
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, alphaTest.isOn, alphaTestShadow.isOn);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSidedMode);
+            HDSubShaderUtilities.AddPrePostPassProperties(collector, alphaTestDepthPrepass.isOn, alphaTestDepthPostpass.isOn);
 
             base.CollectShaderProperties(collector, generationMode);
         }

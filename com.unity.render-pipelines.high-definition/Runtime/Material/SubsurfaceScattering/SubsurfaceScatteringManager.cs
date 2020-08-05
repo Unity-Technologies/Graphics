@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // We need to allocate the texture if we are in forward or both in case one of the cameras is in enable forward only mode
-            if (settings.supportMSAA)
+            if (settings.supportMSAA && settings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly)
             {
                  m_SSSColorMSAA = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8G8B8A8_SRGB, dimension: TextureXR.dimension, enableMSAA: true, bindTextureMS: true, useDynamicScale: true, name: "SSSBufferMSAA");
             }
@@ -350,10 +350,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Bind the textures for ray generation
                         cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._DepthTexture, sharedRTManager.GetDepthStencilBuffer());
                         cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._NormalBufferTexture, sharedRTManager.GetNormalBuffer());
-                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._GBufferTexture[0], m_GbufferManager.GetBuffer(0));
-                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._GBufferTexture[1], m_GbufferManager.GetBuffer(1));
-                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._GBufferTexture[2], m_GbufferManager.GetBuffer(2));
-                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._GBufferTexture[3], m_GbufferManager.GetBuffer(3));
                         cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._SSSBufferTexture, m_SSSColor);
                         cmd.SetGlobalTexture(HDShaderIDs._StencilTexture, sharedRTManager.GetDepthStencilBuffer(), RenderTextureSubElement.Stencil);
 
@@ -442,7 +438,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
-            
+
 
         // Combines specular lighting and diffuse lighting with subsurface scattering.
         // In the case our frame is MSAA, for the moment given the fact that we do not have read/write access to the stencil buffer of the MSAA target; we need to keep this pass MSAA

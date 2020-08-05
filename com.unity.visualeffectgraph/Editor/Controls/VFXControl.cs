@@ -44,7 +44,6 @@ namespace UnityEditor.VFX.UI
 
         public new virtual void SetEnabled(bool value)
         {
-            
         }
 
         public void ForceUpdate()

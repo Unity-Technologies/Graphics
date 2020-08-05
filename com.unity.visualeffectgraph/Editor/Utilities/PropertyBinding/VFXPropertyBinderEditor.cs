@@ -126,8 +126,21 @@ namespace UnityEditor.Experimental.VFX.Utility
 
         public void CheckTypeMenu(SerializedProperty property, VFXPropertyBindingAttribute attribute, VisualEffectAsset asset)
         {
-            GenericMenu menu = new GenericMenu();
-            var parameters = (asset.GetResource().graph as UnityEditor.VFX.VFXGraph).children.OfType<UnityEditor.VFX.VFXParameter>();
+            VFXGraph graph = null;
+            if (asset != null)
+            {
+                var resource = asset.GetResource();
+                if (resource != null) //If VisualEffectGraph is store in asset bundle, we can't use this following code
+                {
+                    graph = resource.graph as VFXGraph;
+                }
+            }
+
+            if (graph == null)
+                return;
+
+            var menu = new GenericMenu();
+            var parameters = graph.children.OfType<UnityEditor.VFX.VFXParameter>();
             foreach (var param in parameters)
             {
                 string typeName = param.type.ToString();
@@ -220,14 +233,13 @@ namespace UnityEditor.Experimental.VFX.Utility
                 EditorGUI.DrawRect(iconRect, errorColor);
                 GUI.Label(rect, "<color=red>(Missing or Null Property Binder)</color>", Styles.labelStyle);
             }
-
         }
 
         public void RemoveElement(ReorderableList list)
         {
             int index = m_List.index;
             var element = m_Elements.GetArrayElementAtIndex(index).objectReferenceValue;
-            if(element != null)
+            if (element != null)
             {
                 Undo.DestroyObjectImmediate(element);
                 m_Elements.DeleteArrayElementAtIndex(index); // Delete object reference

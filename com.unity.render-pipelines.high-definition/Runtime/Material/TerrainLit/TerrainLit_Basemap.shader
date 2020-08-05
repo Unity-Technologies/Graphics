@@ -42,7 +42,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
     #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local _TERRAIN_INSTANCED_PERPIXEL_NORMAL
@@ -51,7 +51,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
     #pragma multi_compile_instancing
     #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
-	#pragma multi_compile _ _ALPHATEST_ON
+	#pragma multi_compile_local _ _ALPHATEST_ON
 
     #pragma vertex Vert
     #pragma fragment Frag

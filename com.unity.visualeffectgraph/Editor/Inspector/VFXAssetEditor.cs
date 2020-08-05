@@ -133,17 +133,26 @@ class VisualEffectAssetEditor : Editor
 
     ReorderableList m_ReorderableList;
     List<IVFXSubRenderer> m_OutputContexts = new List<IVFXSubRenderer>();
+    VFXGraph m_CurrentGraph;
 
     void OnReorder(ReorderableList list)
     {
-        for(int i = 0; i < m_OutputContexts.Count(); ++i)
+        for (int i = 0; i < m_OutputContexts.Count(); ++i)
         {
-            m_OutputContexts[i].sortPriority =i;
+            m_OutputContexts[i].sortPriority = i;
         }
     }
+
     private void DrawOutputContextItem(Rect rect, int index, bool isActive, bool isFocused)
     {
-        EditorGUI.LabelField(rect, EditorGUIUtility.TempContent((m_OutputContexts[index] as VFXContext).fileName));
+        var context = m_OutputContexts[index] as VFXContext;
+
+        var systemName = context.GetGraph().systemNames.GetUniqueSystemName(context.GetData());
+        var contextLetter = context.letter;
+        var contextName = string.IsNullOrEmpty(context.label) ? context.libraryName : context.label;
+        var fullName = string.Format("{0}{1}/{2}", systemName, contextLetter != '\0' ? "/" + contextLetter : string.Empty, contextName);
+
+        EditorGUI.LabelField(rect, EditorGUIUtility.TempContent(fullName));
     }
 
     private void DrawHeader(Rect rect)
@@ -154,12 +163,15 @@ class VisualEffectAssetEditor : Editor
     static Mesh s_CubeWireFrame;
     void OnEnable()
     {
-
         m_OutputContexts.Clear();
         VisualEffectAsset target = this.target as VisualEffectAsset;
         var resource = target.GetResource();
         if (resource != null) //Can be null if VisualEffectAsset is in Asset Bundle
-            m_OutputContexts.AddRange(resource.GetOrCreateGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.sortPriority));
+        {
+            m_CurrentGraph = resource.GetOrCreateGraph();
+            m_CurrentGraph.systemNames.Sync(m_CurrentGraph);
+            m_OutputContexts.AddRange(m_CurrentGraph.children.OfType<IVFXSubRenderer>().OrderBy(t => t.sortPriority));
+        }
 
         m_ReorderableList = new ReorderableList(m_OutputContexts, typeof(IVFXSubRenderer));
         m_ReorderableList.displayRemove = false;
@@ -245,13 +257,13 @@ class VisualEffectAssetEditor : Editor
         if (targetResources.Any())
         {
             resourceObject = new SerializedObject(targetResources);
-        resourceUpdateModeProperty = resourceObject.FindProperty("m_Infos.m_UpdateMode");
-        cullingFlagsProperty = resourceObject.FindProperty("m_Infos.m_CullingFlags");
-        motionVectorRenderModeProperty = resourceObject.FindProperty("m_Infos.m_RendererSettings.motionVectorGenerationMode");
-        prewarmDeltaTime = resourceObject.FindProperty("m_Infos.m_PreWarmDeltaTime");
-        prewarmStepCount = resourceObject.FindProperty("m_Infos.m_PreWarmStepCount");
-        initialEventName = resourceObject.FindProperty("m_Infos.m_InitialEventName");
-    }
+            resourceUpdateModeProperty = resourceObject.FindProperty("m_Infos.m_UpdateMode");
+            cullingFlagsProperty = resourceObject.FindProperty("m_Infos.m_CullingFlags");
+            motionVectorRenderModeProperty = resourceObject.FindProperty("m_Infos.m_RendererSettings.motionVectorGenerationMode");
+            prewarmDeltaTime = resourceObject.FindProperty("m_Infos.m_PreWarmDeltaTime");
+            prewarmStepCount = resourceObject.FindProperty("m_Infos.m_PreWarmStepCount");
+            initialEventName = resourceObject.FindProperty("m_Infos.m_InitialEventName");
+        }
     }
 
     PreviewRenderUtility m_PreviewUtility;
@@ -335,7 +347,7 @@ class VisualEffectAssetEditor : Editor
             m_Distance *= 1 + (Event.current.delta.y * .015f);
         }
 
-        if(m_Mat == null)
+        if (m_Mat == null)
             m_Mat = (Material)EditorGUIUtility.LoadRequired("SceneView/HandleLines.mat");
 
         if (isRepaint)
@@ -423,7 +435,7 @@ class VisualEffectAssetEditor : Editor
         }
         EditorGUILayout.EndHorizontal();
 
-        if (prewarmDeltaTime!= null && prewarmStepCount != null)
+        if (prewarmDeltaTime != null && prewarmStepCount != null)
         {
             if (!prewarmDeltaTime.hasMultipleDifferentValues && !prewarmStepCount.hasMultipleDifferentValues)
             {
@@ -547,7 +559,7 @@ class VisualEffectAssetEditor : Editor
                     GUILayout.BeginHorizontal();
                     Rect r = GUILayoutUtility.GetRect(0, 18, GUILayout.ExpandWidth(true));
 
-                    int buttonsWidth = VFXExternalShaderProcessor.allowExternalization? 240:160;
+                    int buttonsWidth = VFXExternalShaderProcessor.allowExternalization ? 240 : 160;
 
 
                     Rect labelR = r;
@@ -556,7 +568,7 @@ class VisualEffectAssetEditor : Editor
                     int index = resource.GetShaderIndex(shader);
                     if (index >= 0)
                     {
-                        if (VFXExternalShaderProcessor.allowExternalization && index < resource.GetShaderSourceCount() )
+                        if (VFXExternalShaderProcessor.allowExternalization && index < resource.GetShaderSourceCount())
                         {
                             string shaderSourceName = resource.GetShaderSourceName(index);
                             string externalPath = directory + shaderSourceName;
@@ -598,7 +610,7 @@ class VisualEffectAssetEditor : Editor
                     Rect selectButtonR = r;
                     selectButtonR.xMin = labelR.xMax;
                     selectButtonR.width = 50;
-                    if (GUI.Button(selectButtonR,"Select"))
+                    if (GUI.Button(selectButtonR, "Select"))
                     {
                         Selection.activeObject = shader;
                     }

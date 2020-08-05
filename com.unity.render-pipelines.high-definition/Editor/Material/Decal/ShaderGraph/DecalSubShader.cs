@@ -547,7 +547,12 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
-            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.DecalGUI""");
+
+            if (!masterNode.OverrideEnabled)
+            {
+                subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.DecalGUI""");
+            }
+
             string s = subShader.GetShaderString(0);
             return s;
         }

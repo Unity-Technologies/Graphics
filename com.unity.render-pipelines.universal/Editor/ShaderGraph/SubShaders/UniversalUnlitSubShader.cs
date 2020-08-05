@@ -55,6 +55,7 @@ namespace UnityEditor.Rendering.Universal
                 "prefer_hlslcc gles",
                 "exclude_renderers d3d11_9x",
                 "target 2.0",
+                "multi_compile_fog",
                 "multi_compile_instancing",
             },
             keywords = new KeywordDescriptor[]
@@ -269,7 +270,7 @@ namespace UnityEditor.Rendering.Universal
             if (sourceAssetDependencyPaths != null)
             {
                 // LightWeightPBRSubShader.cs
-                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("3ef30c5c1d5fc412f88511ef5818b654"));
+                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("62511ee827d14492a8c78ba0ef167e7f"));
             }
 
             // Master Node data

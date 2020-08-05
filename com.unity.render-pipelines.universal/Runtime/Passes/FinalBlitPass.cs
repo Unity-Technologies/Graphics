@@ -40,8 +40,20 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return;
             }
 
-            bool requiresSRGBConvertion = Display.main.requiresSrgbBlitToBackbuffer;
+            // Note: We need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
+            // Overlay cameras need to output to the target described in the base camera while doing camera stack.
+            ref CameraData cameraData = ref renderingData.cameraData;
+            RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
 
+            bool requiresSRGBConvertion = Display.main.requiresSrgbBlitToBackbuffer;
+            bool isSceneViewCamera = cameraData.isSceneViewCamera;
+
+            // For stereo case, eye texture always want color data in sRGB space.
+            // If eye texture color format is linear, we do explicit sRGB convertion
+#if ENABLE_VR && ENABLE_VR_MODULE
+            if (cameraData.isStereoEnabled)
+                requiresSRGBConvertion = !XRGraphics.eyeTextureDesc.sRGB;
+#endif
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
 
             if (requiresSRGBConvertion)
@@ -49,16 +61,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             else
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
-            // Note: We need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
-            // Overlay cameras need to output to the target described in the base camera while doing camera stack.
-            ref CameraData cameraData = ref renderingData.cameraData;
-            RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
-
             // Use default blit for XR as we are not sure the UniversalRP blit handles stereo.
             // The blit will be reworked for stereo along the XRSDK work.
             Material blitMaterial = (cameraData.isStereoEnabled) ? null : m_BlitMaterial;
             cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
-            if (cameraData.isStereoEnabled || cameraData.isSceneViewCamera || cameraData.isDefaultViewport)
+            if (cameraData.isStereoEnabled || isSceneViewCamera || cameraData.isDefaultViewport)
             {
                 // This set render target is necessary so we change the LOAD state to DontCare.
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,

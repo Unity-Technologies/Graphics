@@ -33,5 +33,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Ray Length. This defines the maximal travel distance of rays.")]
         public ClampedFloatParameter rayLength = new ClampedFloatParameter(10f, 0f, 50f);
+
+        public RecursiveRendering()
+        {
+            displayName = "Recursive Rendering (Preview)";
+        }
     }
 }

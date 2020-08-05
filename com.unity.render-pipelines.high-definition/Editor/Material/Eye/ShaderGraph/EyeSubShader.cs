@@ -503,7 +503,10 @@ namespace UnityEditor.Rendering.HighDefinition
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
 
-            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.EyeGUI""");
+            if (!masterNode.OverrideEnabled)
+            {
+                subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.EyeGUI""");
+            }
 
             return subShader.GetShaderString(0);
         }

@@ -20,6 +20,11 @@
 // Tile size of this compute
 #define REFLECTION_FILTER_TILE_SIZE 8
 
+//#pragma enable_d3d11_debug_symbols
+
+// Thereshold at which we decide to reject the reflection history
+#define REFLECTION_HISTORY_REJECTION_THRESHOLD 0.75
+
 TEXTURE2D_X(_DenoiseInputTexture);
 TEXTURE2D_X(_HistoryBuffer);
 RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
@@ -51,9 +56,17 @@ void TemporalAccumulation(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gr
     float velocityLength = length(velocity);
 
     float2 uv = posInputs.positionNDC;
-
     float3 color = Fetch(_DenoiseInputTexture, uv, 0.0, _RTHandleScale.xy) * GetCurrentExposureMultiplier();
-    float3 history = Fetch(_HistoryBuffer, posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy) * GetCurrentExposureMultiplier();
+    float4 historyRaw = Fetch4(_HistoryBuffer, posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy);
+    float3 history = historyRaw.xyz * GetCurrentExposureMultiplier();
+
+    // If the validity of the history is lower than a given threshold, we do not want to use it
+    if (historyRaw.w < REFLECTION_HISTORY_REJECTION_THRESHOLD)
+    {
+        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color * GetInverseCurrentExposureMultiplier(), LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).w);
+        return;
+    }
+
     float3 topLeft = Fetch(_DenoiseInputTexture, uv, -RADIUS, _RTHandleScale.xy) * GetCurrentExposureMultiplier();
     float3 bottomRight = Fetch(_DenoiseInputTexture, uv, RADIUS, _RTHandleScale.xy) * GetCurrentExposureMultiplier();
 
@@ -100,7 +113,9 @@ void CopyHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (any(dispatchThreadId.xy > uint2(_ScreenSize.xy)))
         return;  // Out of bounds, discard
 
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+    float4 currentColor = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+    // We need to apply a step function on the blend factor to evaluate the validity of the history (if it is stricly higher than 0.0 then its valid)
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(currentColor.xyz, currentColor.w > 0.0 ? 1.0 : 0.0);
 }
 
 int _DenoiserFilterRadius;

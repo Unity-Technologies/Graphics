@@ -5,13 +5,14 @@ using UnityEditor.Graphing;
 using UnityEngine;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.Experimental.Rendering.Universal
 {
     [Serializable]
     [Title("Master", "Sprite Lit (Experimental)")]
     [FormerName("UnityEditor.Experimental.Rendering.LWRP.SpriteLitMasterNode")]
-    class SpriteLitMasterNode : MasterNode<ISpriteLitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class SpriteLitMasterNode : MaterialMasterNode<ISpriteLitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionName = "Vertex Position";
         public const string NormalName = "Vertex Normal";
@@ -32,6 +33,10 @@ namespace UnityEditor.Experimental.Rendering.Universal
             UpdateNodeAfterDeserialization();
         }
 
+        protected override VisualElement CreateCommonSettingsElement()
+        {
+            return new SpriteSettingsView(this);
+        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {

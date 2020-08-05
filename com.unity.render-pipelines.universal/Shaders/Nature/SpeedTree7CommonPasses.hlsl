@@ -40,7 +40,7 @@ struct SpeedTreeVertexOutput
         half3 viewDirWS             : TEXCOORD4;
     #endif
 
-    #ifdef _MAIN_LIGHT_SHADOWS
+    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
         float4 shadowCoord          : TEXCOORD6;
     #endif
 

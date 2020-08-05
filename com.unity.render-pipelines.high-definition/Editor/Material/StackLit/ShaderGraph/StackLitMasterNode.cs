@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Title("Master", "StackLit (HDRP)")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.StackLitMasterNode")]
     [FormerName("UnityEditor.ShaderGraph.StackLitMasterNode")]
-    class StackLitMasterNode : MasterNode<IStackLitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class StackLitMasterNode : MaterialMasterNode<IStackLitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionSlotName = "Vertex Position";
         public const string PositionSlotDisplayName = "Vertex Position";
@@ -402,10 +402,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     return;
 
                 m_NormalDropOffSpace = value;
+                if (!IsSlotConnected(NormalSlotId))
+                    updateNormalSlot = true;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
             }
         }
+        bool updateNormalSlot;
 
         // Features: material surface input parametrizations
         //
@@ -1046,19 +1049,23 @@ namespace UnityEditor.Rendering.HighDefinition
             AddSlot(new TangentMaterialSlot(VertexTangentSlotId, VertexTangentSlotName, VertexTangentSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
             validSlots.Add(VertexTangentSlotId);
 
-            RemoveSlot(NormalSlotId);                
             var coordSpace = CoordinateSpace.Tangent;
-            switch (m_NormalDropOffSpace)
+            if (updateNormalSlot)
             {
-                case NormalDropOffSpace.Tangent:
-                    coordSpace = CoordinateSpace.Tangent;
-                    break;
-                case NormalDropOffSpace.World:
-                    coordSpace = CoordinateSpace.World;
-                    break;
-                case NormalDropOffSpace.Object:
-                    coordSpace = CoordinateSpace.Object;
-                    break;
+                RemoveSlot(NormalSlotId);
+                switch (m_NormalDropOffSpace)
+                {
+                    case NormalDropOffSpace.Tangent:
+                        coordSpace = CoordinateSpace.Tangent;
+                        break;
+                    case NormalDropOffSpace.World:
+                        coordSpace = CoordinateSpace.World;
+                        break;
+                    case NormalDropOffSpace.Object:
+                        coordSpace = CoordinateSpace.Object;
+                        break;
+                }
+                updateNormalSlot = false;
             }
             AddSlot(new NormalMaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, coordSpace, ShaderStageCapability.Fragment));
             validSlots.Add(NormalSlotId);
@@ -1424,6 +1431,7 @@ namespace UnityEditor.Rendering.HighDefinition
             );
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, alphaTest.isOn, false);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSidedMode);
+            HDSubShaderUtilities.AddPrePostPassProperties(collector, false, false);
 
             base.CollectShaderProperties(collector, generationMode);
         }

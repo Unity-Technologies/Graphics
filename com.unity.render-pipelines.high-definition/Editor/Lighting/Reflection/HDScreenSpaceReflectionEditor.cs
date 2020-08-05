@@ -8,6 +8,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [VolumeComponentEditor(typeof(ScreenSpaceReflection))]
     class HDScreenSpaceReflectionEditor : VolumeComponentWithQualityEditor
     {
+        SerializedDataParameter m_Enable;
         SerializedDataParameter m_RayTracing;
 
         // Shared data
@@ -41,17 +42,18 @@ namespace UnityEditor.Rendering.HighDefinition
             base.OnEnable();
 
             var o = new PropertyFetcher<ScreenSpaceReflection>(serializedObject);
-            m_RayTracing              = Unpack(o.Find(x => x.rayTracing));
+            m_Enable                        = Unpack(o.Find(x => x.enabled));
+            m_RayTracing                    = Unpack(o.Find(x => x.rayTracing));
 
             // Shared data
-            m_MinSmoothness = Unpack(o.Find(x => x.minSmoothness));
-            m_SmoothnessFadeStart = Unpack(o.Find(x => x.smoothnessFadeStart));
-            m_ReflectSky          = Unpack(o.Find(x => x.reflectSky));
+            m_MinSmoothness                 = Unpack(o.Find(x => x.minSmoothness));
+            m_SmoothnessFadeStart           = Unpack(o.Find(x => x.smoothnessFadeStart));
+            m_ReflectSky                    = Unpack(o.Find(x => x.reflectSky));
 
             // SSR Data
-            m_DepthBufferThickness = Unpack(o.Find(x => x.depthBufferThickness));
-            m_RayMaxIterations = Unpack(o.Find(x => x.rayMaxIterations));
-            m_ScreenFadeDistance = Unpack(o.Find(x => x.screenFadeDistance));
+            m_DepthBufferThickness          = Unpack(o.Find(x => x.depthBufferThickness));
+            m_RayMaxIterations              = Unpack(o.Find(x => x.rayMaxIterations));
+            m_ScreenFadeDistance            = Unpack(o.Find(x => x.screenFadeDistance));
 
             // Generic ray tracing
             m_LayerMask                     = Unpack(o.Find(x => x.layerMask));
@@ -80,9 +82,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
+            PropertyField(m_Enable, EditorGUIUtility.TrTextContent("Enable"));
+
             bool rayTracingSupported = HDRenderPipeline.pipelineSupportsRayTracing;
             if (rayTracingSupported)
-                PropertyField(m_RayTracing, EditorGUIUtility.TrTextContent("Ray Tracing", "Enable ray traced reflections."));
+                PropertyField(m_RayTracing, EditorGUIUtility.TrTextContent("Ray Tracing (Preview)", "Enable ray traced reflections."));
 
             // Shared Data
             PropertyField(m_MinSmoothness,        EditorGUIUtility.TrTextContent("Minimum Smoothness", "Controls the smoothness value at which HDRP activates SSR and the smoothness-controlled fade out stops."));

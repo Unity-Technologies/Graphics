@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
+using System.Globalization;
 
 namespace UnityEditor.VFX.Block
 {
@@ -111,7 +112,7 @@ namespace UnityEditor.VFX.Block
             else
                 builder.Append("Inherit Source ");
 
-            builder.Append( ObjectNames.NicifyVariableName(attribute));
+            builder.Append(ObjectNames.NicifyVariableName(attribute));
             if (!libraryName && currentAttribute.variadic == VFXVariadic.True)
                 builder.AppendFormat(".{0}", channels.ToString());
 
@@ -188,7 +189,7 @@ namespace UnityEditor.VFX.Block
 
         static private string GenerateLocalAttributeName(string name)
         {
-            return name[0].ToString().ToUpper() + name.Substring(1);
+            return name[0].ToString().ToUpper(CultureInfo.InvariantCulture) + name.Substring(1);
         }
 
         public override string source
@@ -306,11 +307,11 @@ namespace UnityEditor.VFX.Block
                         var attrib = currentAttribute;
 
                         VFXPropertyAttribute[] attr = null;
-                        var field = typeof(VFXAttribute).GetField(attrib.name.Substring(0, 1).ToUpper() + attrib.name.Substring(1), System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
+                        var field = typeof(VFXAttribute).GetField(attrib.name.Substring(0, 1).ToUpper(CultureInfo.InvariantCulture) + attrib.name.Substring(1), System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
 
                         TooltipAttribute tooltip = null;
 
-                        if( field != null)
+                        if (field != null)
                             tooltip = field.GetCustomAttributes(typeof(TooltipAttribute), false).Cast<TooltipAttribute>().FirstOrDefault();
 
                         if (attrib.Equals(VFXAttribute.Color))
@@ -322,10 +323,10 @@ namespace UnityEditor.VFX.Block
                         }
                         else
                         {
-                            if(tooltip != null)
+                            if (tooltip != null)
                                 attr = VFXPropertyAttribute.Create(tooltip);
                         }
-                            
+
 
                         Type slotType = VFXExpression.TypeToType(attrib.type);
                         object content = attrib.value.GetContent();

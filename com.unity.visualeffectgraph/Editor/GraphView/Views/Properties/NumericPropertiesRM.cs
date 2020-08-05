@@ -6,7 +6,6 @@ using UnityEditor.UIElements;
 using UnityEditor.VFX.UIElements;
 
 
-
 namespace UnityEditor.VFX.UI
 {
     abstract class NumericPropertyRM<T, U> : SimpleUIPropertyRM<T, U>
@@ -43,7 +42,7 @@ namespace UnityEditor.VFX.UI
             if (!RangeShouldCreateSlider(range))
             {
                 result = CreateSimpleField(out m_TextField);
-                if(m_TextField != null)
+                if (m_TextField != null)
                 {
                     m_TextField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnKeyDown);
                     m_TextField.Q("unity-text-input").RegisterCallback<BlurEvent>(OnFocusLost);
@@ -86,7 +85,7 @@ namespace UnityEditor.VFX.UI
         {
             if (m_Slider != null)
                 return m_Slider.HasFocus();
-            if( m_TextField != null)
+            if (m_TextField != null)
                 return m_TextField.HasFocus();
             return false;
         }
@@ -108,7 +107,7 @@ namespace UnityEditor.VFX.UI
 
                 m_Slider.range = range;
             }
-            if( m_TooltipHolder != null && m_Value != null)
+            if (m_TooltipHolder != null && m_Value != null)
                 m_TooltipHolder.tooltip = m_Value.ToString();
             base.UpdateGUI(force);
         }
@@ -176,7 +175,7 @@ namespace UnityEditor.VFX.UI
 
         protected override INotifyValueChanged<long> CreateSimpleField(out TextValueField<long> textField)
         {
-            if(VFXPropertyAttribute.IsBitField(m_Provider.attributes))
+            if (VFXPropertyAttribute.IsBitField(m_Provider.attributes))
             {
                 var bitfield = new VFXLabeledField<VFX32BitField, long>(m_Label);
                 textField = null;

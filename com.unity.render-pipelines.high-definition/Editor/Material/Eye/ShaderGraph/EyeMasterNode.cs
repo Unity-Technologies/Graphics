@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [Serializable]
     [Title("Master", "Eye (HDRP)(Preview)")]
-    class EyeMasterNode : MasterNode<IEyeSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class EyeMasterNode : MaterialMasterNode<IEyeSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionSlotName = "Vertex Position";
         public const string PositionSlotDisplayName = "Vertex Position";
@@ -519,7 +519,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 AddSlot(new PositionMaterialSlot(PositionSlotId, PositionSlotDisplayName, PositionSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
                 validSlots.Add(PositionSlotId);
-            }            
+            }
 
             //Normal in Vertex
             if (MaterialTypeUsesSlotMask(SlotMask.VertexNormal))
@@ -783,6 +783,7 @@ namespace UnityEditor.Rendering.HighDefinition
             );
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, alphaTest.isOn, false);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSidedMode);
+            HDSubShaderUtilities.AddPrePostPassProperties(collector, alphaTestDepthPrepass.isOn, alphaTestDepthPostpass.isOn);
 
             base.CollectShaderProperties(collector, generationMode);
         }

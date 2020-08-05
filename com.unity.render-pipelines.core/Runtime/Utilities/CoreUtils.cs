@@ -1013,7 +1013,7 @@ namespace UnityEngine.Rendering
                     // Post-processing is disabled in scene view if either showImageEffects is disabled or we are
                     // rendering in wireframe mode.
                     if (sv.camera == camera &&
-                        (sv.sceneViewState.showImageEffects && sv.cameraMode.drawMode != UnityEditor.DrawCameraMode.Wireframe))
+                        (sv.sceneViewState.imageEffectsEnabled && sv.cameraMode.drawMode != UnityEditor.DrawCameraMode.Wireframe))
                     {
                         enabled = true;
                         break;
@@ -1045,7 +1045,7 @@ namespace UnityEngine.Rendering
                 for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++) // Using a foreach on an ArrayList generates garbage ...
                 {
                     var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
-                    if (sv.camera == camera && sv.sceneViewState.showMaterialUpdate)
+                    if (sv.camera == camera && sv.sceneViewState.materialUpdateEnabled)
                     {
                         animateMaterials = true;
                         break;
@@ -1106,6 +1106,32 @@ namespace UnityEngine.Rendering
             return disabled;
         }
 
+        /// <summary>
+        /// Returns true if the "Light Overlap" scene view draw mode is enabled.
+        /// </summary>
+        /// <param name="camera">Input camera.</param>
+        /// <returns>True if "Light Overlap" is enabled in the scene view associated with the input camera.</returns>
+        public static bool IsLightOverlapDebugEnabled(Camera camera)
+        {
+            bool enabled = false;
+#if UNITY_EDITOR
+            if (camera.cameraType == CameraType.SceneView)
+            {
+                // Determine whether the "LightOverlap" mode is enabled for the current view.
+                for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++)
+                {
+                    var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
+                    if (sv.camera == camera && sv.cameraMode.drawMode == UnityEditor.DrawCameraMode.LightOverlap)
+                    {
+                        enabled = true;
+                        break;
+                    }
+                }
+            }
+#endif
+            return enabled;
+        }
+
 #if UNITY_EDITOR
         static Func<List<UnityEditor.MaterialEditor>> materialEditors;
 
@@ -1137,7 +1163,7 @@ namespace UnityEngine.Rendering
                 for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++)
                 {
                     var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
-                    if (sv.camera == camera && sv.sceneViewState.showFog)
+                    if (sv.camera == camera && sv.sceneViewState.fogEnabled)
                     {
                         fogEnable = true;
                         break;

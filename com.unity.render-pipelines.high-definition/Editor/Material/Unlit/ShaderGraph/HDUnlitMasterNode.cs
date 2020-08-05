@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Serializable]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HDUnlitMasterNode")]
     [Title("Master", "Unlit (HDRP)")]
-    class HDUnlitMasterNode : MasterNode<IHDUnlitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class HDUnlitMasterNode : MaterialMasterNode<IHDUnlitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string ColorSlotName = "Color";
         public const string AlphaSlotName = "Alpha";
@@ -495,6 +495,7 @@ namespace UnityEditor.Rendering.HighDefinition
             );
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, alphaTest.isOn, false);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSided.isOn ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled);
+            HDSubShaderUtilities.AddPrePostPassProperties(collector, false, false);
 
             base.CollectShaderProperties(collector, generationMode);
         }

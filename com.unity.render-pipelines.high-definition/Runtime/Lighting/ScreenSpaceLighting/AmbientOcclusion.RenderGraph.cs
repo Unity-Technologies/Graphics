@@ -22,10 +22,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     EnsureRTSize(settings, hdCamera);
 
-                    var aoParameters = PrepareRenderAOParameters(hdCamera, renderGraph.rtHandleProperties, frameCount);
-
-                    var currentHistory = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion));
+                    var historyRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);
+                    var currentHistory = renderGraph.ImportTexture(historyRT);
                     var outputHistory = renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion));
+
+                    Vector2 historySize = new Vector2(historyRT.referenceSize.x * historyRT.scaleFactor.x,
+                                  historyRT.referenceSize.y * historyRT.scaleFactor.y);
+                    var rtScaleForHistory = hdCamera.historyRTHandleProperties.rtHandleScale;
+
+                    var aoParameters = PrepareRenderAOParameters(hdCamera, renderGraph.rtHandleProperties, historySize * rtScaleForHistory, frameCount);
 
                     var packedData = RenderAO(renderGraph, aoParameters, depthPyramid);
                     result = DenoiseAO(renderGraph, aoParameters, motionVectors, packedData, currentHistory, outputHistory);

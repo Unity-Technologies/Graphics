@@ -29,7 +29,7 @@ float3 GetFogColor(float3 V, float fragDist)
     if (_FogColorMode == FOGCOLORMODE_SKY_COLOR)
     {
         // Based on Uncharted 4 "Mip Sky Fog" trick: http://advances.realtimerendering.com/other/2016/naughty_dog/NaughtyDog_TechArt_Final.pdf
-        float mipLevel = (1.0 - _MipFogMaxMip * saturate((fragDist - _MipFogNear) / (_MipFogFar - _MipFogNear))) * _SkyTextureMipCount;
+        float mipLevel = (1.0 - _MipFogMaxMip * saturate((fragDist - _MipFogNear) / (_MipFogFar - _MipFogNear))) * (ENVCONSTANTS_CONVOLUTION_MIP_COUNT - 1);
         // For the atmospheric scattering, we use the GGX convoluted version of the cubemap. That matches the of the idnex 0
         color *= SampleSkyTexture(-V, mipLevel, 0).rgb; // '_FogColor' is the tint
     }
@@ -255,7 +255,13 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
 
 #ifdef DEBUG_DISPLAY
     // Don't sample atmospheric scattering when lighting debug more are enabled so fog is not visible
-    if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW || _DebugLightingMode == DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING || _DebugLightingMode == DEBUGLIGHTINGMODE_SPECULAR_LIGHTING || _DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING || _DebugLightingMode == DEBUGLIGHTINGMODE_SPECULAR_LIGHTING ||
+        _DebugLightingMode == DEBUGLIGHTINGMODE_DIRECT_DIFFUSE_LIGHTING || _DebugLightingMode == DEBUGLIGHTINGMODE_DIRECT_SPECULAR_LIGHTING ||
+        _DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_LIGHTING || _DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTION_LIGHTING ||
+        _DebugLightingMode == DEBUGLIGHTINGMODE_REFRACTION_LIGHTING || _DebugLightingMode == DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING)
+        return;
+
+    if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW || _DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER || _DebugLightingMode == DEBUGLIGHTINGMODE_LUMINANCE_METER)
         return;
 #endif
 

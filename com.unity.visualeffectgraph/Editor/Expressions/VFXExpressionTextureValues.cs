@@ -131,6 +131,5 @@ namespace UnityEditor.VFX
             var copy = new VFXMeshValue(Get(), mode);
             return copy;
         }
-
     }
 }

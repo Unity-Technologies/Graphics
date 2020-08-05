@@ -56,7 +56,7 @@ Shader "HDRP/TerrainLit"
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
     // Terrain builtin keywords
     #pragma shader_feature_local _TERRAIN_8_LAYERS
@@ -80,7 +80,7 @@ Shader "HDRP/TerrainLit"
     #pragma multi_compile_instancing
     #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
-	#pragma multi_compile _ _ALPHATEST_ON
+	#pragma multi_compile_local _ _ALPHATEST_ON
 
     // All our shaders use same name for entry point
     #pragma vertex Vert

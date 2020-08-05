@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using Utilities;
@@ -18,6 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// HDCamera class.
     /// This class holds all information for a given camera. Constants used for shading as well as buffers persistent from one frame to another etc.
     /// </summary>
+    [DebuggerDisplay("({camera.name})")]
     public class HDCamera
     {
         #region Public API
@@ -49,6 +51,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             /// <summary>Utility matrix (used by sky) to map screen position to WS view direction.</summary>
             public Matrix4x4 pixelCoordToViewDirWS;
+
+            // We need this to track the previous VP matrix with camera translation excluded. Internal since it is used only in its "previous" form
+            internal Matrix4x4 viewProjectionNoCameraTrans;
 
             /// <summary>World Space camera position.</summary>
             public Vector3 worldSpaceCameraPos;
@@ -251,6 +256,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        HDAdditionalCameraData.ClearColorMode m_PreviousClearColorMode = HDAdditionalCameraData.ClearColorMode.None;
+
+
         internal Color backgroundColorHDR
         {
             get
@@ -340,6 +348,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return antialiasing == AntialiasingMode.TemporalAntialiasing;
         }
 
+        internal bool IsSSREnabled()
+        {
+            var ssr = volumeStack.GetComponent<ScreenSpaceReflection>();
+            return frameSettings.IsEnabled(FrameSettingsField.SSR) && ssr.enabled.value;
+        }
+
         internal bool IsVolumetricReprojectionEnabled()
         {
             bool a = Fog.IsVolumetricFogEnabled(this);
@@ -389,7 +403,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 hdrp.ReinitializeVolumetricBufferParams(this);
 
                 bool isCurrentColorPyramidRequired = frameSettings.IsEnabled(FrameSettingsField.Refraction) || frameSettings.IsEnabled(FrameSettingsField.Distortion);
-                bool isHistoryColorPyramidRequired = frameSettings.IsEnabled(FrameSettingsField.SSR) || antialiasing == AntialiasingMode.TemporalAntialiasing;
+                bool isHistoryColorPyramidRequired = IsSSREnabled() || antialiasing == AntialiasingMode.TemporalAntialiasing;
                 bool isVolumetricHistoryRequired = IsVolumetricReprojectionEnabled();
 
                 int numColorPyramidBuffersRequired = 0;
@@ -406,6 +420,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Reinit the system.
                     colorPyramidHistoryIsValid = false;
                     volumetricHistoryIsValid = false;
+                    // Since we nuke all history we must inform the post process system too.
+                    resetPostProcessingHistory = true;
 
                     // The history system only supports the "nuke all" option.
                     m_HistoryRTSystem.Dispose();
@@ -458,16 +474,15 @@ namespace UnityEngine.Rendering.HighDefinition
             screenSize = new Vector4(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
             screenParams = new Vector4(screenSize.x, screenSize.y, 1 + screenSize.z, 1 + screenSize.w);
 
+            const int kMaxSampleCount = 8;
+            if (++taaFrameIndex >= kMaxSampleCount)
+                taaFrameIndex = 0;
+
             UpdateAllViewConstants();
             isFirstFrame = false;
             cameraFrameCount++;
 
             hdrp.UpdateVolumetricBufferParams(this);
-
-            // Here we use the non scaled resolution for the RTHandleSystem ref size because we assume that at some point we will need full resolution anyway.
-            // This is necessary because we assume that after post processes, we have the full size render target for debug rendering
-            // The only point of calling this here is to grow the render targets. The call in BeginRender will setup the current RTHandle viewport size.
-            RTHandles.SetReferenceSize(nonScaledViewport.x, nonScaledViewport.y, msaaSamples);
         }
 
         // Updating RTHandle needs to be done at the beginning of rendering (not during update of HDCamera which happens in batches)
@@ -546,6 +561,20 @@ namespace UnityEngine.Rendering.HighDefinition
             s_Cleanup.Clear();
         }
 
+        internal static void ResetAllHistoryRTHandleSystems(int width, int height)
+        {
+            foreach (var kvp in s_Cameras)
+            {
+                var hdCamera = kvp.Value;
+                var currentHistorySize = hdCamera.m_HistoryRTSystem.rtHandleProperties.currentRenderTargetSize;
+                // We only reset if the new size if smaller than current reference (otherwise we might increase the size of off screen camera with lower resolution than the new reference.
+                if (width < currentHistorySize.x || height < currentHistorySize.y)
+                {
+                    hdCamera.m_HistoryRTSystem.ResetReferenceSize(width, height);
+                }
+            }
+        }
+
         // Set up UnityPerView CBuffer.
         internal void SetupGlobalParams(CommandBuffer cmd, int frameCount)
         {
@@ -592,12 +621,13 @@ namespace UnityEngine.Rendering.HighDefinition
             float exposureMultiplierForProbes = 1.0f / Mathf.Max(probeRangeCompressionFactor, 1e-6f);
             cmd.SetGlobalFloat(HDShaderIDs._ProbeExposureScale, exposureMultiplierForProbes);
 
-            // TODO: qualify this code with xr.singlePassEnabled when compute shaders can use keywords
+            // XRTODO: qualify this code with xr.singlePassEnabled when compute shaders can use keywords
             if (true)
             {
                 cmd.SetGlobalInt(HDShaderIDs._XRViewCount, viewCount);
 
                 // Convert AoS to SoA for GPU constant buffer until we can use StructuredBuffer via command buffer
+                // XRTODO: use the new API and remove this code
                 for (int i = 0; i < viewCount; i++)
                 {
                     m_XRViewMatrix[i] = m_XRViewConstants[i].viewMatrix;
@@ -632,6 +662,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalVectorArray(HDShaderIDs._XRPrevWorldSpaceCameraPos, m_XRPrevWorldSpaceCameraPos);
             }
 
+            cmd.SetGlobalInt(HDShaderIDs._TransparentCameraOnlyMotionVectors, (frameSettings.IsEnabled(FrameSettingsField.MotionVectors) && !frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector)) ? 1 : 0);
         }
 
         internal void AllocateAmbientOcclusionHistoryBuffer(float scaleFactor)
@@ -829,7 +860,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
                 else if (camera.cameraType == CameraType.SceneView)
                 {
-                    var mode = HDRenderPipelinePreferences.sceneViewAntialiasing;
+                    var mode = HDAdditionalSceneViewSettings.sceneViewAntialiasing;
 
                     if (mode == AntialiasingMode.TemporalAntialiasing && !animateMaterials)
                         antialiasing = AntialiasingMode.None;
@@ -854,9 +885,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // When changing antialiasing mode to TemporalAA we must reset the history, otherwise we get one frame of garbage
-            if (previousAntialiasing != antialiasing && antialiasing == AntialiasingMode.TemporalAntialiasing)
+            if ( (previousAntialiasing != antialiasing && antialiasing == AntialiasingMode.TemporalAntialiasing)
+                || (m_PreviousClearColorMode != clearColorMode))
             {
                 resetPostProcessingHistory = true;
+                m_PreviousClearColorMode = clearColorMode;
             }
         }
 
@@ -873,6 +906,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_XRViewConstants == null || m_XRViewConstants.Length != viewCount)
             {
                 m_XRViewConstants = new ViewConstants[viewCount];
+                resetPostProcessingHistory = true;
+                isFirstFrame = true;
             }
 
             UpdateAllViewConstants(IsTAAEnabled(), true);
@@ -935,6 +970,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             var gpuVP = gpuNonJitteredProj * gpuView;
+            Matrix4x4 noTransViewMatrix = gpuView;
+            if (ShaderConfig.s_CameraRelativeRendering == 0)
+            {
+                noTransViewMatrix.SetColumn(3, new Vector4(0, 0, 0, 1));
+
+            }
+            var gpuVPNoTrans = gpuNonJitteredProj * noTransViewMatrix;
 
             // A camera can be rendered multiple times in a single frame with different resolution/fov that would change the projection matrix
             // In this case we need to update previous rendering information.
@@ -947,12 +989,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     viewConstants.prevWorldSpaceCameraPos = cameraPosition;
                     viewConstants.prevViewProjMatrix = gpuVP;
                     viewConstants.prevInvViewProjMatrix = viewConstants.prevViewProjMatrix.inverse;
+                    viewConstants.prevViewProjMatrixNoCameraTrans = gpuVPNoTrans;
                 }
                 else
                 {
                     viewConstants.prevWorldSpaceCameraPos = viewConstants.worldSpaceCameraPos;
                     viewConstants.prevViewProjMatrix = viewConstants.nonJitteredViewProjMatrix;
-                    viewConstants.prevViewProjMatrixNoCameraTrans = viewConstants.prevViewProjMatrix;
+                    viewConstants.prevViewProjMatrixNoCameraTrans = viewConstants.viewProjectionNoCameraTrans;
                 }
             }
 
@@ -965,6 +1008,7 @@ namespace UnityEngine.Rendering.HighDefinition
             viewConstants.nonJitteredViewProjMatrix = gpuNonJitteredProj * gpuView;
             viewConstants.worldSpaceCameraPos = cameraPosition;
             viewConstants.worldSpaceCameraPosViewOffset = Vector3.zero;
+            viewConstants.viewProjectionNoCameraTrans = gpuVPNoTrans;
 
             var gpuProjAspect = HDUtils.ProjectionMatrixAspect(gpuProj);
             viewConstants.pixelCoordToViewDirWS = ComputePixelCoordToWorldSpaceViewDirectionMatrix(viewConstants, screenSize, gpuProjAspect);
@@ -975,12 +1019,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 viewConstants.prevWorldSpaceCameraPos -= viewConstants.worldSpaceCameraPos; // Make it relative w.r.t. the curr cam pos
                 viewConstants.prevViewProjMatrix *= Matrix4x4.Translate(cameraDisplacement); // Now prevViewProjMatrix correctly transforms this frame's camera-relative positionWS
                 viewConstants.prevInvViewProjMatrix = viewConstants.prevViewProjMatrix.inverse;
-            }
-            else
-            {
-                Matrix4x4 noTransViewMatrix = viewMatrix;
-                noTransViewMatrix.SetColumn(3, new Vector4(0, 0, 0, 1));
-                viewConstants.prevViewProjMatrixNoCameraTrans = gpuNonJitteredProj * noTransViewMatrix;
             }
         }
 
@@ -1106,8 +1144,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Matrix4x4 GetJitteredProjectionMatrix(Matrix4x4 origProj)
         {
-            // Do not add extra jitter in VR (micro-variations from head tracking are enough)
-            if (xr.enabled)
+            // Do not add extra jitter in VR unless requested (micro-variations from head tracking are usually enough)
+            if (xr.enabled && !HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.xrSettings.cameraJitter)
             {
                 taaJitter = Vector4.zero;
                 return origProj;
@@ -1118,10 +1156,6 @@ namespace UnityEngine.Rendering.HighDefinition
             float jitterX = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 2) - 0.5f;
             float jitterY = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 3) - 0.5f;
             taaJitter = new Vector4(jitterX, jitterY, jitterX / actualWidth, jitterY / actualHeight);
-
-            const int kMaxSampleCount = 8;
-            if (++taaFrameIndex >= kMaxSampleCount)
-                taaFrameIndex = 0;
 
             Matrix4x4 proj;
 
@@ -1192,6 +1226,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             float verticalFoV = camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
+            if (!camera.usePhysicalProperties)
+            {
+                verticalFoV = Mathf.Atan(-1.0f / viewConstants.projMatrix[1, 1]) * 2;
+            }
             Vector2 lensShift = camera.GetGateFittedLensShift();
 
             return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, resolution, viewConstants.viewMatrix, false, aspect);

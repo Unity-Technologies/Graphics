@@ -302,42 +302,7 @@ DirectionalShadowType EvaluateShadow_Directional(LightLoopContext lightLoopConte
 // Punctual Light evaluation helper
 //-----------------------------------------------------------------------------
 
-// distances = {d, d^2, 1/d, d_proj}
-void ModifyDistancesForFillLighting(inout float4 distances, float lightSqRadius)
-{
-    // Apply the sphere light hack to soften the core of the punctual light.
-    // It is not physically plausible (using max() is more correct, but looks worse).
-    // See https://www.desmos.com/calculator/otqhxunqhl
-    // We only modify 1/d for performance reasons.
-    float sqDist = distances.y;
-    distances.z = rsqrt(sqDist + lightSqRadius); // Recompute 1/d
-}
-
-// Returns the normalized light vector L and the distances = {d, d^2, 1/d, d_proj}.
-void GetPunctualLightVectors(float3 positionWS, LightData light, out float3 L, out float4 distances)
-{
-    float3 lightToSample = positionWS - light.positionRWS;
-
-    distances.w = dot(lightToSample, light.forward);
-
-    if (light.lightType == GPULIGHTTYPE_PROJECTOR_BOX)
-    {
-        L = -light.forward;
-        distances.xyz = 1; // No distance or angle attenuation
-    }
-    else
-    {
-        float3 unL     = -lightToSample;
-        float  distSq  = dot(unL, unL);
-        float  distRcp = rsqrt(distSq);
-        float  dist    = distSq * distRcp;
-
-        L = unL * distRcp;
-        distances.xyz = float3(dist, distSq, distRcp);
-
-        ModifyDistancesForFillLighting(distances, light.size.x);
-    }
-}
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/PunctualLightCommon.hlsl"
 
 float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData light,
                                float3 lightToSample)
@@ -362,7 +327,12 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
         // Perform orthographic or perspective projection.
         float  perspectiveZ = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? positionLS.z : 1.0;
         float2 positionCS   = positionLS.xy / perspectiveZ;
-        bool   isInBounds   = Max3(abs(positionCS.x), abs(positionCS.y), 1.0 - positionLS.z) <= light.boxLightSafeExtent;
+
+        float z = positionLS.z;
+        float r = light.range;
+
+        // Box lights have no range attenuation, so we must clip manually.
+        bool isInBounds = Max3(abs(positionCS.x), abs(positionCS.y), abs(z - 0.5 * r) - 0.5 * r + 1) <= light.boxLightSafeExtent;
 
         // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
         float2 positionNDC = positionCS * 0.5 + 0.5;
@@ -390,7 +360,12 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
         // Perform orthographic or perspective projection.
         float  perspectiveZ = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? positionLS.z : 1.0;
         float2 positionCS   = positionLS.xy / perspectiveZ;
-        bool   isInBounds   = Max3(abs(positionCS.x), abs(positionCS.y), 1.0 - positionLS.z) <= light.boxLightSafeExtent;
+
+        float z = positionLS.z;
+        float r = light.range;
+
+        // Box lights have no range attenuation, so we must clip manually.
+        bool isInBounds = Max3(abs(positionCS.x), abs(positionCS.y), abs(z - 0.5 * r) - 0.5 * r + 1) <= light.boxLightSafeExtent;
 
         // Manually clamp to border (black).
         cookie.a = isInBounds ? 1.0 : 0.0;

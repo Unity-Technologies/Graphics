@@ -37,66 +37,65 @@ public class DynamicRes : MonoBehaviour
 
 {
 
-​    public float secondsToNextChange = 1.0f;
+    public float secondsToNextChange = 1.0f;
 
-​    public float fractionDeltaStep = 0.1f;
+    public float fractionDeltaStep = 0.1f;
 
-​    private float currentScale = 1.0f;
+    private float currentScale = 1.0f;
 
-​    private float directionOfChange = -1.0f;
+    private float directionOfChange = -1.0f;
 
-​    private float elapsedTimeSinceChange = 0.0f;
+    private float elapsedTimeSinceChange = 0.0f;
 
-​    // Simple example of a policy that scales the resolution every secondsToNextChange seconds. 
+    // Simple example of a policy that scales the resolution every secondsToNextChange seconds. 
 
-​    // Since this call uses DynamicResScalePolicyType.ReturnsMinMaxLerpFactor, HDRP uses currentScale in the following context:
+    // Since this call uses DynamicResScalePolicyType.ReturnsMinMaxLerpFactor, HDRP uses currentScale in the following context:
 
-​    // finalScreenPercentage = Mathf.Lerp(minScreenPercentage, maxScreenPercentage, currentScale);
+    // finalScreenPercentage = Mathf.Lerp(minScreenPercentage, maxScreenPercentage, currentScale);
 
-​    public float SetDynamicResolutionScale()
+    public float SetDynamicResolutionScale()
 
-​    {
+    {
 
-​        elapsedTimeSinceChange += Time.deltaTime;
+        elapsedTimeSinceChange += Time.deltaTime;
 
-​        // Waits for secondsToNextChange seconds then requests a change of resolution.
+        // Waits for secondsToNextChange seconds then requests a change of resolution.
 
-​        if (elapsedTimeSinceChange >= secondsToNextChange)
+        if (elapsedTimeSinceChange >= secondsToNextChange)
 
-​        {
+        {
 
-​            currentScale += directionOfChange * fractionDeltaStep;
+            currentScale += directionOfChange * fractionDeltaStep;
 
-​            // When currenScale reaches the minimum or maximum resolution, this switches the direction of resolution change.
+            // When currenScale reaches the minimum or maximum resolution, this switches the direction of resolution change.
 
-​            if (currentScale <= 0.0f || currentScale >= 1.0f)
+            if (currentScale <= 0.0f || currentScale >= 1.0f)
 
-​            {
+            {
 
-​                directionOfChange *= -1.0f;
+                directionOfChange *= -1.0f;
 
-​            }
+            }
 
-​            
+            
 
-​            elapsedTimeSinceChange = 0.0f;
+            elapsedTimeSinceChange = 0.0f;
 
-​        }
+        }
 
-​        return currentScale;
+        return currentScale;
 
-​    }
+    }
 
-​    void Start()
+    void Start()
 
-​    {
+    {
 
-​        // Binds the dynamic resolution policy defined above.
+        // Binds the dynamic resolution policy defined above.
 
-​        DynamicResolutionHandler.SetDynamicResScaler(SetDynamicResolutionScale, DynamicResScalePolicyType.ReturnsMinMaxLerpFactor);
+        DynamicResolutionHandler.SetDynamicResScaler(SetDynamicResolutionScale, DynamicResScalePolicyType.ReturnsMinMaxLerpFactor);
 
-​    }
+    }
 
 }
-​```
 ```

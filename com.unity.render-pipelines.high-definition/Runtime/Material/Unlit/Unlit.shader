@@ -87,12 +87,15 @@ Shader "HDRP/Unlit"
         _MainTex("Albedo", 2D) = "white" {}
         _Color("Color", Color) = (1,1,1,1)
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+
+        // Debug constants must be exposed as properties so the shader is compatible
+        // with the SRP batcher
+        [HideInInspector] _UnlitColorMap_MipInfo("_UnlitColorMap_MipInfo", Vector) = (0, 0, 0, 0)
     }
 
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
     //-------------------------------------------------------------------------------------
     // Variant
@@ -109,10 +112,6 @@ Shader "HDRP/Unlit"
     #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
 
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
-
-
-    //enable GPU instancing support
-    #pragma multi_compile_instancing
 
     //-------------------------------------------------------------------------------------
     // Define
@@ -152,6 +151,11 @@ Shader "HDRP/Unlit"
             ZWrite On
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
 
             // Note: Require _ObjectId and _PassValue variables
 
@@ -195,6 +199,12 @@ Shader "HDRP/Unlit"
             ColorMask 0 0
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+
             #pragma multi_compile _ WRITE_MSAA_DEPTH
             // Note we don't need to define WRITE_NORMAL_BUFFER
 
@@ -237,6 +247,12 @@ Shader "HDRP/Unlit"
             ColorMask 0 1
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+
             #pragma multi_compile _ WRITE_MSAA_DEPTH
             // Note we don't need to define WRITE_NORMAL_BUFFER
 
@@ -278,6 +294,11 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+
             #pragma multi_compile _ DEBUG_DISPLAY
 
             #ifdef DEBUG_DISPLAY
@@ -308,6 +329,11 @@ Shader "HDRP/Unlit"
             Cull Off
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
 
             // Lightmap memo
             // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light,
@@ -341,6 +367,11 @@ Shader "HDRP/Unlit"
             ColorMask 0
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
 
             #define SHADERPASS SHADERPASS_SHADOWS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -376,6 +407,11 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            
             #define SHADERPASS SHADERPASS_DISTORTION
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -400,6 +436,8 @@ Shader "HDRP/Unlit"
             Tags{ "LightMode" = "IndirectDXR" }
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11
 
             #pragma raytracing surface_shader
 
@@ -427,6 +465,8 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11
+
             #pragma raytracing surface_shader
 
             #define SHADERPASS SHADERPASS_RAYTRACING_FORWARD
@@ -451,6 +491,8 @@ Shader "HDRP/Unlit"
             Tags{ "LightMode" = "GBufferDXR" }
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11
 
             #pragma raytracing surface_shader
 
@@ -485,6 +527,8 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11
+
             #pragma raytracing surface_shader
 
             #define SHADOW_LOW
@@ -511,6 +555,8 @@ Shader "HDRP/Unlit"
             Tags{ "LightMode" = "PathTracingDXR" }
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11
 
             #pragma raytracing surface_shader
 

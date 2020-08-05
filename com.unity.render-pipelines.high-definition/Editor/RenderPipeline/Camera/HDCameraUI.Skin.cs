@@ -8,13 +8,12 @@ namespace UnityEditor.Rendering.HighDefinition
         const string generalSettingsHeaderContent = "General";
         const string physicalSettingsHeaderContent = "Physical";
         const string outputSettingsHeaderContent = "Output";
-        const string xrSettingsHeaderContent = "XR";
 
         const string clippingPlaneMultiFieldTitle = "Clipping Planes";
 
         const string msaaWarningMessage = "Manual MSAA target set with deferred rendering. This will lead to undefined behavior.";
 
-        static readonly GUIContent clearModeContent = EditorGUIUtility.TrTextContent("Background Type", "Specifies the type of background the Camera applies when it clears the screen before rendering a frame.");
+        static readonly GUIContent clearModeContent = EditorGUIUtility.TrTextContent("Background Type", "Specifies the type of background the Camera applies when it clears the screen before rendering a frame. Be aware that when setting this to None, the background is never cleared and since HDRP shares render texture between cameras, you may end up with garbage from previous rendering.");
         static readonly GUIContent backgroundColorContent = EditorGUIUtility.TrTextContent("Background Color", "The Background Color used to clear the screen when selecting Background Color before rendering.");
         static readonly GUIContent cullingMaskContent = EditorGUIUtility.TrTextContent("Culling Mask");
         static readonly GUIContent volumeLayerMaskContent = EditorGUIUtility.TrTextContent("Volume Layer Mask");
@@ -58,22 +57,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static readonly GUIContent viewportContent = EditorGUIUtility.TrTextContent("Viewport Rect", "Four values that indicate where on the screen HDRP draws this Camera view. Measured in Viewport Coordinates (values in the range of [0, 1]).");
         static readonly GUIContent depthContent = EditorGUIUtility.TrTextContent("Depth");
+        static readonly GUIContent xrRenderingContent = EditorGUIUtility.TrTextContent("XR Rendering");
 
 #if ENABLE_MULTIPLE_DISPLAYS
         static readonly GUIContent targetDisplayContent = EditorGUIUtility.TrTextContent("Target Display");
 #endif
-
-
-        static readonly GUIContent stereoSeparationContent = EditorGUIUtility.TrTextContent("Stereo Separation");
-        static readonly GUIContent stereoConvergenceContent = EditorGUIUtility.TrTextContent("Stereo Convergence");
-        static readonly GUIContent targetEyeContent = EditorGUIUtility.TrTextContent("Target Eye");
-        static readonly GUIContent[] k_TargetEyes = //order must match k_TargetEyeValues
-        {
-            new GUIContent("Both"),
-            new GUIContent("Left"),
-            new GUIContent("Right"),
-            new GUIContent("None (Main Display)"),
-        };
 
         static readonly GUIContent[] antialiasingModeNames =
         {

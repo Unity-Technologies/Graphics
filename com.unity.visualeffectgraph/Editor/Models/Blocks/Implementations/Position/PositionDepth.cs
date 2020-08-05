@@ -103,7 +103,9 @@ namespace UnityEditor.VFX.Block
             {
                 var expressions = CameraHelper.AddCameraExpressions(GetExpressionsFromSlots(this),camera);
 
-                CameraMatricesExpressions camMat = CameraHelper.GetMatricesExpressions(expressions, ((VFXDataParticle)GetData()).space);
+                VFXCoordinateSpace systemSpace = ((VFXDataParticle)GetData()).space;
+                // in custom camera mode, camera space is already in system space (conversion happened in slot)
+                CameraMatricesExpressions camMat = CameraHelper.GetMatricesExpressions(expressions, camera == CameraMode.Main ? VFXCoordinateSpace.World : systemSpace, systemSpace);
 
                 // Filter unused expressions
                 expressions = expressions.Where(t =>

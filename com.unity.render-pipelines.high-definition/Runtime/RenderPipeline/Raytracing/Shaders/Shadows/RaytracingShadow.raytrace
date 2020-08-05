@@ -141,10 +141,13 @@ void RayGenAreaShadows()
     // Given that the approximation used for LTC is completely different from what we would get from a real integration, we only rely on the not textured intensity.
     // To acheive that, we set cookie index to -1 so that the evaluatebsdf_rect function to not use any cookie. We also keep track of that cookie value to restore it after the evaluation.
     int cookieIndex = lightData.cookieIndex;
+    int cookieMode = lightData.cookieMode;
     lightData.cookieIndex = -1;
+    lightData.cookieIndex = COOKIEMODE_NONE;
     DirectLighting lighting = EvaluateBSDF_Rect(context, viewWS, posInput, preLightData, lightData, bsdfData, builtinData);
     lighting.diffuse = lighting.diffuse * bsdfData.diffuseColor;
     lightData.cookieIndex = cookieIndex;
+    lightData.cookieIndex = cookieMode;
 
     // Compute the non-occluded analytic luminance value
     float U = Luminance(lighting.diffuse + lighting.specular);
@@ -664,9 +667,9 @@ void RayGenSemiTransparentShadowSegmentSingle()
     if (rayIntersection.color.x != 0.0)
     {
         rayDescriptor.Origin = rayOrigin;
-        rayDescriptor.Direction = rayDirection;
+        rayDescriptor.Direction = rayDirection.xyz;
         rayDescriptor.TMin = 0.0;
-        rayDescriptor.TMax = 1000.0;
+        rayDescriptor.TMax = rayDistance;
         rayIntersection.color = float3(1.0, 1.0, 1.0);
 
         TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES 

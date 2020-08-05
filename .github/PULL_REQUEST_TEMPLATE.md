@@ -1,4 +1,11 @@
-**DONT FORGET TO ADD A CHANGELOG**
+# **Please read;**
+## **PR Workflow for the Graphics repository:**
+* **All PRs must be opened as draft initially**
+* Reviewers can be added while the PR is still in draft
+* The PR can be marked as “Ready for Review” once the reviewers have confirmed that **no more changes are needed**
+* Tests will start automatically after the PR is marked as “Ready for Review”
+* **Do not use [skip ci]** - this can break some of our tooling
+* Read the [Graphics repository & Yamato FAQ](http://go/graphics-yamato-faq).
 
 ### Checklist for PR maker
 - [ ] Have you added a backport label (if needed)? For example, the `need-backport-2019.3` label. After you backport the PR, the label changes to `backported-2019.3`.
@@ -25,7 +32,7 @@ Why is this PR needed, what hard problem is it solving/fixing?
 **Automated Tests**: What did you setup? (Add a screenshot or the reference image of the test please)
 
 **Yamato**: (Select your branch):
-https://yamato.prd.cds.internal.unity3d.com/jobs/78-ScriptableRenderPipeline
+https://yamato.prd.cds.internal.unity3d.com/jobs/902-Graphics
 
 Any test projects to go with this to help reviewers?
 

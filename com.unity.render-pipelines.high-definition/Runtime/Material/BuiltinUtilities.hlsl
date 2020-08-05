@@ -38,7 +38,8 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
 
     builtinData.opacity = alpha;
 
-#if RAYTRACING_ENABLED && (SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD)
+    // We only want to read the screen space buffer that holds the indirect diffuse signal if this is not a transparent surface
+#if RAYTRACING_ENABLED && (SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD) && !defined(_SURFACE_TYPE_TRANSPARENT)
     if (_RaytracedIndirectDiffuse == 1)
     {
         #if SHADERPASS == SHADERPASS_GBUFFER
@@ -104,8 +105,9 @@ void PostInitBuiltinData(   float3 V, PositionInputs posInput, SurfaceData surfa
 {
     // Apply control from the indirect lighting volume settings - This is apply here so we don't affect emissive
     // color in case of lit deferred for example and avoid material to have to deal with it
-    builtinData.bakeDiffuseLighting *= _IndirectLightingMultiplier.x;
-    builtinData.backBakeDiffuseLighting *= _IndirectLightingMultiplier.x;
+    float multiplier = GetIndirectDiffuseMultiplier(builtinData.renderingLayers);
+    builtinData.bakeDiffuseLighting *= multiplier;
+    builtinData.backBakeDiffuseLighting *= multiplier;
 
 #ifdef MODIFY_BAKED_DIFFUSE_LIGHTING
 

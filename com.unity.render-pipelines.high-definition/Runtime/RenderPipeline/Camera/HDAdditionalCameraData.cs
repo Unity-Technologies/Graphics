@@ -270,6 +270,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Vertical flip mode.</summary>
         public FlipYMode flipYMode;
 
+        /// <summary>Enable XR rendering.</summary>
+        public bool xrRendering = true;
+
         /// <summary>Skips rendering settings to directly render in fullscreen (Useful for video).</summary>
         [Tooltip("Skips rendering settings to directly render in fullscreen (Useful for video).")]
         public bool fullscreenPassthrough = false;
@@ -450,7 +453,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // When we are a preview, there is no way inside Unity to make a distinction between camera preview and material preview.
         // This property allow to say that we are an editor camera preview when the type is preview.
-        internal bool isEditorCameraPreview { get; set; }
+        /// <summary>
+        /// Unity support two type of preview: Camera preview and material preview. This property allow to know that we are an editor camera preview when the type is preview.
+        /// </summary>
+        public bool isEditorCameraPreview { get; internal set; }
 
         // This is use to copy data into camera for the Reset() workflow in camera editor
         /// <summary>
@@ -467,6 +473,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.volumeAnchorOverride = volumeAnchorOverride;
             data.antialiasing = antialiasing;
             data.dithering = dithering;
+            data.xrRendering = xrRendering;
             physicalParameters.CopyTo(data.physicalParameters);
 
             data.renderingPathCustomFrameSettings = renderingPathCustomFrameSettings;

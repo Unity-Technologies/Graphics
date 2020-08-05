@@ -196,6 +196,10 @@ namespace UnityEditor.Rendering.LookDev
             var lineRenderer = go.GetComponent<LineRenderer>();
             if (lineRenderer != null)
                 lineRenderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
+            
+            var volumes = go.GetComponents<UnityEngine.Rendering.Volume>();
+            foreach (var volume in volumes)
+                volume.UpdateLayer(); //force update of layer now as the Update can be called after we unregister volume from manager
 
             foreach (Transform child in go.transform)
                 InitAddedObjectsRecursively(child.gameObject);

@@ -18,7 +18,7 @@ namespace UnityEditor.VFX
 
         private bool hasGPUSpawner => inputContexts.Any(o => o.contextType == VFXContextType.SpawnerGPU);
 
-    public override IEnumerable<string> additionalDefines
+        public override IEnumerable<string> additionalDefines
         {
             get
             {
@@ -80,7 +80,7 @@ namespace UnityEditor.VFX
 
             // CPU
             var cpuMapper = new VFXExpressionMapper();
-            cpuMapper.AddExpressionsFromSlot(inputSlots[0], -1); // bounds   
+            cpuMapper.AddExpressionsFromSlot(inputSlots[0], -1); // bounds
             return cpuMapper;
         }
 
@@ -93,6 +93,5 @@ namespace UnityEditor.VFX
         {
             return GetData().GetSettings(listHidden, flags); // Just a bridge on data
         }
-
     }
 }

@@ -15,7 +15,8 @@ Custom Passes have been implemented through a volume system, but note that it's 
 - The data of the custom passes are saved in the volume GameObject in itself, not in an asset in the project
 
 Like in volumes, there is two modes for the custom pass volume: `Local` and `Global`. The `Local` mode uses colliders attached to the GameObject where the custom pass is to define a zone where the effect will be executed. `Global` volumes are executed everywhere in your scene.  
-Additionally you have a `fade` system that allow you to smooth the transition between your normal rendering and the custom custom pass. The control over the distance of the fade is done by the **Fade Radius** field in the UI of the Custom Pass Volume Component, the radius is exposed in meter and is not scaled with the object transform.  
+The priority is used to determine the execution order when you have multiple custom pass volumes in your scene that share the same injection point.  
+A `fade` system is also available to allow you to smooth the transition between your normal rendering and the custom custom pass. The control over the distance of the fade is done by the **Fade Radius** field in the UI of the Custom Pass Volume Component, the radius is exposed in meter and is not scaled with the object transform.  
 Because we give the full control over what can be done in the custom passes, the fading must be manually included in your effects. To help you, there is a builtin variable `_FadeValue` in the shader and `CustomPass.fadeValue` in the C# that contains a value between 0 and 1 representing how far the camera is from the collider bounding volume. If you want more details about the fading in script, you can [jump to the scripting API tag](#ScriptingAPI).
 
 Here you can see an example of a custom pass with a box collider (solid transparent box) and the fade radius is represented by the wireframe cube.
@@ -78,7 +79,7 @@ float4 FullScreenPass(Varyings varyings) : SV_Target
 
     // Load the camera color buffer at the mip 0 if we're not at the before rendering injection point
     if (_CustomPassInjectionPoint != CUSTOMPASSINJECTIONPOINT_BEFORE_RENDERING)
-        color = float4(CustomPassSampleCameraColor(posInput.positionNDC.xy, 0), 1);
+        color = float4(CustomPassLoadCameraColor(varyings.positionCS.xy, 0), 1);
 
     // Add your custom pass code here
 
@@ -97,6 +98,7 @@ In this snippet, we fetch a lot of useful input data that you might need in your
 | **Sampling the camera color with lods is only available in after and before post process passes**. Calling `CustomPassSampleCameraColor` at before rendering will only return black. |
 | **DrawRenderers Pass chained with FullScreen Pass**: In multi-pass setups where you draw objects in the camera color buffer and then read it from a fullscreen custom pass, you'll not see the objects you've drawn in the passes before your fullscreen pass (unless you are in Before Transparent). |
 | **MSAA**: When dealing with MSAA, you must check that the `Fetch color buffer` boolean is correctly setup because it will determine whether or not you'll be able to fetch the color buffer in this pass or not. |
+| **Before Pre-Refraction and After post-process**: On these injection points, the camera color buffer set as the target for the fullscreen pass is the same as the one you can access inside the shader. Because the camera color buffer is the target, and because of read/write restrictions on certain platforms, you cannot directly sample from the camera color buffer inside the shader. Instead, you need to split your effect into two passes and use the custom color buffer as an intermediate buffer. This avoids reading and writing simultaneously to the same buffer. |
 
 ### DrawRenderers Custom Pass
 
@@ -197,6 +199,8 @@ Here is the list of all the defines you can enable
 ```
 
 Note that you can also override the depth state of the objects in your pass. This is especially useful when you're rendering objects that are not in the camera culling mask (they are only rendered in the custom pass). Because in these objects, opaque ones will be rendered in `Depth Equal` test which only works if they already are in the depth buffer. In this case you may want to override the depth test to `Less Equal`.
+
+**⚠️ Be careful when rendering Opaque objects if you're in deferred: All objects rendered within custom passes are rendered in Forward. It means that you'll need to set your HDRP settings Lit Shader Mode to 'Both' in case you encounter issues when building in release.**
 
 <a name="ScriptingAPI"></a>
 
@@ -462,7 +466,7 @@ Shader "Hidden/Outline"
     #pragma vertex Vert
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassCommon.hlsl"
 

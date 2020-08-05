@@ -2,7 +2,7 @@ Shader "Hidden/ScriptableRenderPipeline/ShadowClear"
 {
     HLSLINCLUDE
         #pragma target 4.5
-        #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+        #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     ENDHLSL

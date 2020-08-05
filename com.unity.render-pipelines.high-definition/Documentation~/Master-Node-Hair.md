@@ -78,16 +78,18 @@ To view these properties, click the cog icon in the top right of the master node
 | **Override Baked GI**            | Enable this setting to expose two baked GI [input ports](#InputPorts). This makes this Materials ignore global illumination in your Scene and, instead, allows you to provide your own global illumination values and customize the way this Material looks. |
 | **Depth Offset**                 | Enable this setting to expose the DepthOffset [InputPort](#InputPorts) which you can use to increase the depth value of the fragment and push it away from the Camera. You can use this to reduce the flat appearance of hair cards. |
 | **Use Light Facing Normal**      | Enable this setting to make the hair normals always face towards light. This mimics the behavior of hair. |
+| **Override ShaderGUI**           | Lets you override the [ShaderGUI](https://docs.unity3d.com/ScriptReference/ShaderGUI.html) that this Shader Graph uses. If `true`, the **ShaderGUI** property appears, which lets you specify the ShaderGUI to use. |
+| **- ShaderGUI**                    |  The full name of the ShaderGUI class to use, including the class path. |
 
 <a name="MaterialProperties"></a>
 
 ### Material Inspector
 
-These properties are in the **Exposed Properties** section of the Inspector and sit alongside the properties that you exposed in the Shader Graph's Blackboard.
+These properties are in the **Exposed Properties** section of the Inspector and sit alongside the properties that you exposed in the Shader Graph's Blackboard. If you set **Override ShaderGUI** to `true`, the Material Properties section does not appear, and instead, the ShaderGUI you specified appears.
 
 | **Property**                           | **Description**                                              |
 | -------------------------------------- | ------------------------------------------------------------ |
-| **Enable GPU Instancing**              | Enable this setting to tell HDRP to render Meshes with the same geometry and Material in one batch when possible. This makes rendering faster. HDRP cannot render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you can not [static-batch](https://docs.unity3d.com/Manual/DrawCallBatching.html) GameObjects that have an animation based on the object pivot, but the GPU can instance them. |
+| **Enable GPU Instancing**              | Enable this setting to tell HDRP to render Meshes with the same geometry and Material in one batch when possible. This makes rendering faster. HDRP cannot render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you cannot [static-batch](https://docs.unity3d.com/Manual/DrawCallBatching.html) GameObjects that have an animation based on the object pivot, but the GPU can instance them. |
 | **Emission**                           | Enable this setting to make the emission color affect global illumination. |
 | **- Global Illumination**              | Use the drop-down to choose how color emission interacts with global illumination.<br />&#8226; **Realtime**: Select this option to make emission affect the result of real-time global illumination.<br />&#8226; **Baked**: Select this option to make emission only affect global illumination during the baking process.<br />&#8226; **None**: Select this option to make emission not affect global illumination. |
 | **Motion Vector For Vertex Animation** | Enable this setting to make HDRP write motion vectors for GameObjects that use vertex animation. This removes the ghosting that vertex animation can cause. |

@@ -107,9 +107,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // TODO RENDERGRAPH
                 //using (new ProfilingSample(cmd, "Render screen space shadows", CustomSamplerId.ScreenSpaceShadows.GetSampler()))
                 //{
-                //    hdCamera.xr.StartSinglePass(cmd, camera, renderContext);
+                //    hdCamera.xr.StartSinglePass(cmd);
                 //    RenderScreenSpaceShadows(hdCamera, cmd);
-                //    hdCamera.xr.StopSinglePass(cmd, camera, renderContext);
+                //    hdCamera.xr.StopSinglePass(cmd);
                 //}
 
                 var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, volumetricDensityBuffer, m_TileAndClusterData.bigTileLightList, shadowResult, m_FrameCount);
@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.MotionVectors, hdCamera, prepassOutput.resolvedMotionVectorsBuffer, aovBuffers);
 
                 // This final Gaussian pyramid can be reused by SSR, so disable it only if there is no distortion
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Distortion) || hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR))
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Distortion) || hdCamera.IsSSREnabled())
                     GenerateColorPyramid(m_RenderGraph, hdCamera, colorBuffer, currentColorPyramid, false);
 
                 var distortionBuffer = AccumulateDistortion(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, cullingResults);
@@ -754,7 +754,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderSky(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphMutableResource colorBuffer, RenderGraphResource volumetricLighting, RenderGraphMutableResource depthStencilBuffer, RenderGraphResource depthTexture)
         {
-            if (m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera))
+            if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
             {
                 return;
             }
@@ -815,7 +815,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
             }
             // This final Gaussian pyramid can be reused by SSR, so disable it only if there is no distortion
-            else if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Distortion) && !hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR))
+            else if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Distortion) && !hdCamera.IsSSREnabled())
             {
                 return;
             }

@@ -84,7 +84,7 @@ namespace UnityEditor.VFX.UI
         protected override void UpdateIndeterminate()
         {
             m_ColorField.indeterminate = indeterminate;
-            for(int i = 0; i < 4; ++i)
+            for (int i = 0; i < 4; ++i)
                 m_FloatFields[i].indeterminate = indeterminate;
         }
 

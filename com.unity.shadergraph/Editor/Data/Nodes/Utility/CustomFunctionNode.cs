@@ -283,10 +283,6 @@ namespace UnityEditor.ShaderGraph
 
         public override void ValidateNode()
         {
-            if (!this.GetOutputSlots<MaterialSlot>().Any())
-            {
-                owner.AddValidationError(tempId, k_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
-            }
             if(sourceType == HlslSourceType.File)
             {
                 if(!string.IsNullOrEmpty(functionSource))
@@ -299,8 +295,16 @@ namespace UnityEditor.ShaderGraph
                         {
                             owner.AddValidationError(tempId, k_InvalidFileType, ShaderCompilerMessageSeverity.Error);
                         }
+                        else
+                        {
+                            owner.ClearErrorsForNode(this);
+                        }
                     }
                 }
+            }
+            if (!this.GetOutputSlots<MaterialSlot>().Any())
+            {
+                owner.AddValidationError(tempId, k_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
             }
             ValidateSlotName();
 

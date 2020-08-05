@@ -50,10 +50,9 @@ namespace  UnityEditor.VFX.UI
 
         public void SelfChange()
         {
-            if(controller.isOutput)
+            if (controller.isOutput)
             {
                 icon = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor Default Resources/VFX/output dot.png");
-
             }
             else if (controller.exposed)
             {

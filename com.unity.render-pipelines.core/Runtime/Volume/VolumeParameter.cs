@@ -103,6 +103,11 @@ namespace UnityEngine.Rendering
             return type.BaseType != null
                 && IsObjectParameter(type.BaseType);
         }
+
+        /// <summary>
+        /// Override this method to free all allocated resources
+        /// </summary>
+        public virtual void Release() {}
     }
 
     /// <summary>
@@ -229,7 +234,7 @@ namespace UnityEngine.Rendering
                 int hash = 17;
                 hash = hash * 23 + overrideState.GetHashCode();
 
-                if (!ReferenceEquals(value, null))
+                if (!EqualityComparer<T>.Default.Equals(value, default)) // Catches null for references with boxing of value types
                     hash = hash * 23 + value.GetHashCode();
 
                 return hash;

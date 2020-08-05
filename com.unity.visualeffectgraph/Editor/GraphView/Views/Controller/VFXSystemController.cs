@@ -17,14 +17,13 @@ namespace UnityEditor.VFX.UI
     internal class VFXSystemController : Controller<VFXUI>
     {
         VFXViewController m_ViewController;
-        public VFXSystemController(VFXViewController viewController,VFXUI model):base(model)
+        public VFXSystemController(VFXViewController viewController, VFXUI model) : base(model)
         {
             m_ViewController = viewController;
         }
 
         protected override void ModelChanged(UnityEngine.Object obj)
         {
-
         }
 
         public string title

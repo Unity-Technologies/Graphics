@@ -223,7 +223,7 @@ namespace UnityEditor.VFX
             return true;
         }
 
-        public static bool CanConvertTo(Type from,Type to)
+        public static bool CanConvertTo(Type from, Type to)
         {
             return GetConverter(from, to) != null;
         }

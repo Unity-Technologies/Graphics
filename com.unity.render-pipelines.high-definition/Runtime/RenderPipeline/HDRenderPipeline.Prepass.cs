@@ -333,7 +333,7 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.gbufferRT[0] = builder.UseColorBuffer(sssBuffer, 0);
             passData.gbufferRT[1] = builder.UseColorBuffer(prepassOutput.normalBuffer, 1);
             // If we are in deferred mode and the SSR is enabled, we need to make sure that the second gbuffer is cleared given that we are using that information for clear coat selection
-            bool clearGBuffer2 = clearGBuffer || hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR);
+            bool clearGBuffer2 = clearGBuffer || hdCamera.IsSSREnabled();
             passData.gbufferRT[2] = builder.UseColorBuffer(renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = clearGBuffer2, clearColor = Color.clear, name = "GBuffer2" }, HDShaderIDs._GBufferTexture[2]), 2);
             passData.gbufferRT[3] = builder.UseColorBuffer(renderGraph.CreateTexture(

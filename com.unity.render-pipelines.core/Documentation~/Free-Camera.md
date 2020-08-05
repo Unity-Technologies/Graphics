@@ -4,8 +4,6 @@ The **FreeCamera** component provides you with an implementation for a simple fr
 
 ## Properties
 
-![](Images/FreeCamera1.png)
-
 | **Property**              | **Description**                                              |
 | ------------------------- | ------------------------------------------------------------ |
 | **Look Speed Controller** | Set the look speed of the Camera when using a controller.    |

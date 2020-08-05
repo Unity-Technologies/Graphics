@@ -232,7 +232,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 keywordNode.GetInputSlots(inputSlots);
                 inputSlots.OrderBy(x => x.id);
                 Assert.IsNotEmpty(keywordNodes, "No input Ports on Node.");
-                
+
                 switch(keyword.keywordType)
                 {
                     case KeywordType.Boolean:
@@ -271,7 +271,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             {
                 var localNodes = ListPool<AbstractMaterialNode>.Get();
                 NodeUtils.DepthFirstCollectNodesFromNode(localNodes, previewNode, NodeUtils.IncludeSelf.Include, keywordPermutation: m_Collector.permutations[i]);
-                
+
                 foreach(AbstractMaterialNode node in localNodes)
                 {
                     int nodeIndex = descendentNodes.IndexOf(node);
@@ -316,6 +316,59 @@ namespace UnityEditor.ShaderGraph.UnitTests
             int enumBIndex = descendentNodes.IndexOf(enumBNode);
             List<int> enumBPermutations = keywordPermutationsPerNode[enumBIndex];
             Assert.AreEqual(24, enumBPermutations.Count, "Enum B had incorrect permutations.");
+        }
+
+        [Test]
+        public void KeywordEnumCanAddAndRemovePort()
+        {
+            ShaderKeyword enumAKeyword = m_Collector.keywords.Where(x => x.displayName == "Enum A").FirstOrDefault();
+            ShaderKeyword enumBKeyword = m_Collector.keywords.Where(x => x.displayName == "Enum B").FirstOrDefault();
+            if (enumAKeyword == null || enumBKeyword == null)
+            {
+                Assert.Fail("One or more Keywords not in graph.");
+            }
+
+            var keywordNodes = m_Graph.GetNodes<KeywordNode>().ToList();
+            KeywordNode enumANode = keywordNodes.Where(x => x.keywordGuid == enumAKeyword.guid).FirstOrDefault();
+            KeywordNode enumBNode = keywordNodes.Where(x => x.keywordGuid == enumBKeyword.guid).FirstOrDefault();
+            if (enumANode == null || enumBNode == null)
+            {
+                Assert.Fail("One or more Keywords Nodes not in graph.");
+            }
+
+            KeywordEntry newEntry1 = new KeywordEntry(4, "D", "D");
+            KeywordEntry newEntry2 = new KeywordEntry(5, "E", "E");
+            KeywordEntry newEntry3 = new KeywordEntry(6, "F", "F");
+            KeywordEntry newEntry4 = new KeywordEntry(5, "E", "E");
+
+
+            enumAKeyword.entries.Add(newEntry1);
+            enumAKeyword.entries.Add(newEntry2);
+            enumAKeyword.entries.Add(newEntry3);
+            enumBKeyword.entries.Add(newEntry4);
+
+            Assert.AreEqual(6, enumAKeyword.entries.Count, "Enum A Keyword has incorrect # of entries after adding");
+            Assert.AreEqual(5, enumBKeyword.entries.Count, "Enum B Keyword has incorrect # of entries after adding");
+
+            enumANode.UpdateNode();
+            enumBNode.UpdateNode();
+
+            Assert.AreEqual(7, enumANode.GetSlots<ISlot>().Count(), "Enum A Node has incorrect # of entries after adding");
+            Assert.AreEqual(6, enumBNode.GetSlots<ISlot>().Count(), "Enum B Node has incorrect # of entries after adding");
+
+            enumAKeyword.entries.Remove(newEntry1);
+            enumAKeyword.entries.Remove(newEntry2);
+            enumAKeyword.entries.Remove(newEntry3);
+            enumBKeyword.entries.Remove(newEntry4);
+
+            Assert.AreEqual(3, enumAKeyword.entries.Count, "Enum A Keyword has incorrect # of entries after removing");
+            Assert.AreEqual(4, enumBKeyword.entries.Count, "Enum B Keyword has incorrect # of entries after removing");
+
+            enumANode.UpdateNode();
+            enumBNode.UpdateNode();
+
+            Assert.AreEqual(4, enumANode.GetSlots<ISlot>().Count(), "Enum A Node has incorrect # of entries after removing");
+            Assert.AreEqual(5, enumBNode.GetSlots<ISlot>().Count(), "Enum B Node has incorrect # of entries after removing");
         }
     }
 }

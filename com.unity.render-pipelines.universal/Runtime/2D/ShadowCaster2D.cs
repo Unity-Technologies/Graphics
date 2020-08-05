@@ -24,7 +24,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] Mesh m_Mesh;
         [SerializeField] int m_InstanceId;
 
-
         internal ShadowCasterGroup2D m_ShadowCasterGroup = null;
         internal ShadowCasterGroup2D m_PreviousShadowCasterGroup = null;
 
@@ -84,7 +83,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private void Awake()
         {
-            if(m_ApplyToSortingLayers == null)
+            if (m_ApplyToSortingLayers == null)
                 m_ApplyToSortingLayers = SetDefaultSortingLayers();
 
             Bounds bounds = new Bounds(transform.position, Vector3.one);
@@ -167,5 +166,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     ShadowCasterGroup2DManager.RemoveGroup(this);
             }
         }
+
+#if UNITY_EDITOR
+        void Reset()
+        {
+            Awake();
+            OnEnable();
+        }
+#endif
+
     }
 }

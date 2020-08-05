@@ -67,8 +67,8 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                return 
- $@"float3 vectorFieldCoord = mul(InvFieldTransform, float4(position,1.0f)).xyz;
+                return
+                    $@"float3 vectorFieldCoord = mul(InvFieldTransform, float4(position,1.0f)).xyz;
 
 float3 value = Generate{NoiseType.ToString()}CurlNoise(vectorFieldCoord + 0.5f, frequency, octaves, roughness, lacunarity);
 value = mul(FieldTransform,float4(value,0.0f)).xyz * Intensity;

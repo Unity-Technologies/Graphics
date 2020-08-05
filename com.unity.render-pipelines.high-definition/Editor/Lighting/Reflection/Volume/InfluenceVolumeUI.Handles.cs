@@ -23,6 +23,12 @@ namespace UnityEditor.Rendering.HighDefinition
                         s_SphereBaseHandle.DrawHandle();
                         if (EditorGUI.EndChangeCheck())
                         {
+                            Vector3 localSize = serialized.boxSize.vector3Value;
+                            for (int i = 0; i < 3; ++i)
+                            {
+                                localSize[i] = Mathf.Max(Mathf.Epsilon, localSize[i]);
+                            }
+                            serialized.boxSize.vector3Value = localSize;
                             float radius = s_SphereBaseHandle.radius;
                             serialized.sphereRadius.floatValue = radius;
                             serialized.sphereBlendDistance.floatValue = Mathf.Clamp(serialized.sphereBlendDistance.floatValue, 0, radius);
@@ -96,7 +102,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     break;
             }
         }
-
+        
         static void DrawBoxHandle(SerializedInfluenceVolume serialized, Editor owner, Transform transform, HierarchicalBox box)
         {
             using (new Handles.DrawingScope(Matrix4x4.TRS(Vector3.zero, transform.rotation, Vector3.one)))

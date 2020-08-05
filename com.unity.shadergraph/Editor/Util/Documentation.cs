@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.ShaderGraph
         //[HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "some-page" + Documentation.endURL)]
         //It cannot support String.Format nor string interpolation
         internal const string baseURL = "https://docs.unity3d.com/Packages/com.unity.shadergraph@";
-        internal const string version = "8.0";
+        internal const string version = "8.2";
         internal const string subURL = "/manual/";
         internal const string endURL = ".html";
 

@@ -21,8 +21,9 @@ Pass
     HLSLPROGRAM
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
     //#pragma enable_d3d11_debug_symbols
+
+    $splice(InstancingOptions)
 
     //-------------------------------------------------------------------------------------
     // Graph Defines
@@ -46,9 +47,6 @@ Pass
     #pragma shader_feature_local        _ENABLE_FOG_ON_TRANSPARENT
     $AddPrecomputedVelocity:            #define _ADD_PRECOMPUTED_VELOCITY
     $EnableShadowMatte:                 #define _ENABLE_SHADOW_MATTE
-
-    //enable GPU instancing support
-    #pragma multi_compile_instancing
 
     //-------------------------------------------------------------------------------------
     // End Variant Definitions

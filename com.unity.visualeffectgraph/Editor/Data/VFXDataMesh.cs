@@ -18,9 +18,10 @@ namespace UnityEditor.VFX
 
         public Shader shader
         {
-            get {
+            get
+            {
                 //This is needed for standard shaders ( for instance Unlit/Color ) that are not deserialized correctly during first import.
-                if (m_Shader == null && !object.ReferenceEquals(m_Shader,null) && !string.IsNullOrEmpty(m_ShaderName))
+                if (m_Shader == null && !object.ReferenceEquals(m_Shader, null) && !string.IsNullOrEmpty(m_ShaderName))
                 {
                     Shader newShader = Shader.Find(m_ShaderName);
                     if (newShader != null)
@@ -32,7 +33,7 @@ namespace UnityEditor.VFX
             {
                 m_Shader = value;
                 DestroyCachedMaterial();
-                if( m_Shader != null)
+                if (m_Shader != null)
                     m_ShaderName = m_Shader.name;
             }
         }
@@ -45,11 +46,11 @@ namespace UnityEditor.VFX
         {
             base.OnEnable();
 
-            if (object.ReferenceEquals(shader,null)) shader = VFXResources.defaultResources.shader;
+            if (object.ReferenceEquals(shader, null)) shader = VFXResources.defaultResources.shader;
 
-            if( m_Shader != null)
+            if (m_Shader != null)
             {
-                if(m_ShaderName != m_Shader.name )
+                if (m_ShaderName != m_Shader.name)
                 {
                     m_ShaderName = m_Shader.name;
                     EditorUtility.SetDirty(this);

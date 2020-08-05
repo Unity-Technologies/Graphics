@@ -229,7 +229,6 @@ Shader "HDRP/Lit"
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
     //-------------------------------------------------------------------------------------
     // Variant
@@ -297,10 +296,6 @@ Shader "HDRP/Lit"
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE
 
-    //enable GPU instancing support
-    #pragma multi_compile_instancing
-    #pragma instancing_options renderinglayer
-
     //-------------------------------------------------------------------------------------
     // Define
     //-------------------------------------------------------------------------------------
@@ -355,6 +350,11 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+
             // Note: Require _ObjectId and _PassValue variables
 
             // We reuse depth prepass for the scene selection, allow to handle alpha correctly as well as tessellation and vertex animation
@@ -392,6 +392,12 @@ Shader "HDRP/Lit"
             }
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
@@ -436,6 +442,12 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+
             // Lightmap memo
             // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light,
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
@@ -467,6 +479,12 @@ Shader "HDRP/Lit"
             ColorMask 0
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
 
             #define SHADERPASS SHADERPASS_SHADOWS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -500,6 +518,12 @@ Shader "HDRP/Lit"
             ZWrite On
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
 
             // In deferred, depth only pass don't output anything.
             // In forward it output the normal buffer
@@ -544,6 +568,13 @@ Shader "HDRP/Lit"
             ZWrite On
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
             #pragma multi_compile _ WRITE_MSAA_DEPTH
 
@@ -585,6 +616,12 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+
             #define SHADERPASS SHADERPASS_DISTORTION
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
@@ -608,6 +645,12 @@ Shader "HDRP/Lit"
             ColorMask 0
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #define CUTOFF_TRANSPARENT_DEPTH_PREPASS
@@ -636,6 +679,12 @@ Shader "HDRP/Lit"
             ZTest [_ZTestTransparent]
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
@@ -703,6 +752,12 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
@@ -762,6 +817,13 @@ Shader "HDRP/Lit"
             ColorMask 0
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #define CUTOFF_TRANSPARENT_DEPTH_POSTPASS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -786,6 +848,8 @@ Shader "HDRP/Lit"
             Tags{ "LightMode" = "IndirectDXR" }
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11
 
             #pragma raytracing surface_shader
 
@@ -831,6 +895,8 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11
+
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
@@ -871,6 +937,8 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11
+
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
@@ -907,6 +975,8 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
+            #pragma only_renderers d3d11
+
             #pragma raytracing surface_shader
 
             #define SHADERPASS SHADERPASS_RAYTRACING_VISIBILITY
@@ -933,6 +1003,8 @@ Shader "HDRP/Lit"
             Tags{ "LightMode" = "SubSurfaceDXR" }
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11
 
             #pragma raytracing surface_shader
 
@@ -965,6 +1037,8 @@ Shader "HDRP/Lit"
             Tags{ "LightMode" = "PathTracingDXR" }
 
             HLSLPROGRAM
+
+            #pragma only_renderers d3d11
 
             #pragma raytracing surface_shader
 

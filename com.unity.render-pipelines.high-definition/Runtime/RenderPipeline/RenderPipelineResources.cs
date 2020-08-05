@@ -188,6 +188,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader depthValuesPS;
             [Reload("Runtime/RenderPipeline/RenderPass/MSAA/ColorResolve.shader")]
             public Shader colorResolvePS;
+            [Reload("Runtime/RenderPipeline/RenderPass/MSAA/MotionVecResolve.shader")]
+            public Shader resolveMotionVecPS;
 
             // Post-processing
             [Reload("Runtime/PostProcessing/Shaders/AlphaCopy.compute")]
@@ -337,6 +339,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             [Reload("Runtime/RenderPipelineResources/defaultDiffusionProfile.asset")]
             public DiffusionProfileSettings defaultDiffusionProfile;
+            
+            //Area Light Emissive Meshes
+            [Reload("Runtime/RenderPipelineResources/Mesh/Cylinder.fbx")]
+            public Mesh emissiveCylinderMesh;
+            [Reload("Runtime/RenderPipelineResources/Mesh/Quad.FBX")]
+            public Mesh emissiveQuadMesh;
         }
 
         public ShaderResources shaders;

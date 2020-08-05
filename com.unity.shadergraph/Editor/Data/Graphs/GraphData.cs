@@ -788,6 +788,9 @@ namespace UnityEditor.ShaderGraph
             if (string.IsNullOrEmpty(name))
                 return;
 
+            if (Regex.IsMatch(name, @"^\d+"))
+                name = "_" + name;
+
             name = Regex.Replace(name, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
             switch(input)
             {
@@ -1055,6 +1058,9 @@ namespace UnityEditor.ShaderGraph
         {
             if (other == null)
                 throw new ArgumentException("Can only replace with another AbstractMaterialGraph", "other");
+
+            concretePrecision = other.concretePrecision;
+            m_ActiveOutputNodeGuid = other.m_ActiveOutputNodeGuid;
 
             using (var removedInputsPooledObject = ListPool<Guid>.GetDisposable())
             {

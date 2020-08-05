@@ -8,8 +8,8 @@
 // UnityEngine.Rendering.HighDefinition.Builtin+BuiltinData:  static fields
 //
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_OPACITY (100)
-#define DEBUGVIEW_BUILTIN_BUILTINDATA_BAKE_DIFFUSE_LIGHTING (101)
-#define DEBUGVIEW_BUILTIN_BUILTINDATA_BACK_BAKE_DIFFUSE_LIGHTING (102)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_BAKED_DIFFUSE_LIGHTING (101)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_BACK_BAKED_DIFFUSE_LIGHTING (102)
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_SHADOWMASK_0 (103)
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_SHADOWMASK_1 (104)
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_SHADOWMASK_2 (105)
@@ -58,11 +58,11 @@ void GetGeneratedBuiltinDataDebug(uint paramId, BuiltinData builtindata, inout f
         case DEBUGVIEW_BUILTIN_BUILTINDATA_OPACITY:
             result = builtindata.opacity.xxx;
             break;
-        case DEBUGVIEW_BUILTIN_BUILTINDATA_BAKE_DIFFUSE_LIGHTING:
+        case DEBUGVIEW_BUILTIN_BUILTINDATA_BAKED_DIFFUSE_LIGHTING:
             result = builtindata.bakeDiffuseLighting;
             needLinearToSRGB = true;
             break;
-        case DEBUGVIEW_BUILTIN_BUILTINDATA_BACK_BAKE_DIFFUSE_LIGHTING:
+        case DEBUGVIEW_BUILTIN_BUILTINDATA_BACK_BAKED_DIFFUSE_LIGHTING:
             result = builtindata.backBakeDiffuseLighting;
             needLinearToSRGB = true;
             break;

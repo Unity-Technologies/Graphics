@@ -179,20 +179,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_Internal.originalOrthoSize = m_Camera.orthographicSize;
         }
 
-        void LateUpdate()
-        {
-#if UNITY_EDITOR
-            if (!UnityEditor.EditorApplication.isPaused)
-#endif
-            {
-                // Reset the Cinemachine compatibility mode every frame.
-                // If any CinemachinePixelPerfect extension is present, they will turn this on 
-                // at a later time (during CinemachineBrain's LateUpdate(), which is 
-                // guaranteed to be after PixelPerfectCamera's LateUpdate()).
-                m_CinemachineCompatibilityMode = false;
-            }
-        }
-
         void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
         {
             if (camera != m_Camera)
@@ -230,6 +216,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         void OnEnable()
         {
+            m_CinemachineCompatibilityMode = false;
+
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
             RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
 

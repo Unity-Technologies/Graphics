@@ -40,7 +40,7 @@
 //
 // UnityEngine.Rendering.HighDefinition.EnvConstants:  static fields
 //
-#define ENVCONSTANTS_SPEC_CUBE_LOD_STEP (6)
+#define ENVCONSTANTS_CONVOLUTION_MIP_COUNT (7)
 
 //
 // UnityEngine.Rendering.HighDefinition.EnvCacheType:  static fields

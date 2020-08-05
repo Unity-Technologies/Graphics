@@ -16,6 +16,17 @@ IndirectLighting EvaluateBSDF_RaytracedRefraction(LightLoopContext lightLoopCont
 
     return lighting;
 }
+#if HAS_REFRACTION
+void OverrideRefractionData(SurfaceData surfaceData, float refractionDistance, float3 refractionPositionWS, inout BSDFData bsdfData, inout PreLightData preLightData)
+{
+    // This variable is only used for SSRefraction, we intentionally put an invalid value in it.
+    bsdfData.absorptionCoefficient = TransmittanceColorAtDistanceToAbsorption(surfaceData.transmittanceColor, refractionDistance);
+    preLightData.transparentRefractV = 0.0;
+    preLightData.transparentPositionWS = refractionPositionWS;
+    preLightData.transparentTransmittance = exp(-bsdfData.absorptionCoefficient * refractionDistance);
+}
+#endif
+
 #endif
 
 #if (SHADERPASS == SHADERPASS_RAYTRACING_GBUFFER)

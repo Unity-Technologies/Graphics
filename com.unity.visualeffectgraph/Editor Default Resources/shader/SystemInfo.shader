@@ -3,8 +3,8 @@ Shader "Hidden/VFX/SystemInfo"
     Properties
     {
         _Color("Color", Color) = (0.5,0.2,0,1)
-        _OrdinateScale("OrdinateScale", float) = 1 
-    } 
+        _OrdinateScale("OrdinateScale", float) = 1
+    }
 
     SubShader
     {
@@ -38,7 +38,7 @@ Shader "Hidden/VFX/SystemInfo"
             };
 
             fixed4 _Color;
-            uniform float _OrdinateScale; 
+            uniform float _OrdinateScale;
 
             uniform float4x4 _ClipMatrix;
             sampler2D _GUIClipTexture;
@@ -46,8 +46,8 @@ Shader "Hidden/VFX/SystemInfo"
             v2f vert(vs_input i)
             {
                 v2f o;
-                float2 shrinkedPoint = float2(i.vertex.x, (i.vertex.y * _OrdinateScale - 0.5) * 0.98 + 0.5); 
-                float2 screenPos = UnityObjectToViewPos(float3(shrinkedPoint, 0.0)).xy; 
+                float2 shrinkedPoint = float2(i.vertex.x, (i.vertex.y * _OrdinateScale - 0.5) * 0.98 + 0.5);
+                float2 screenPos = UnityObjectToViewPos(float3(shrinkedPoint, 0.0)).xy;
                 o.vertex = float4(2.0 * screenPos - 1.0, 0, 1);
                 o.clipUV = (mul(_ClipMatrix, float4(screenPos, 0, 1)).xy - float2(0.5, 0.5)) * 0.88 + float2(0.5,0.5);
 

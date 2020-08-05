@@ -1,4 +1,3 @@
-
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -55,6 +54,7 @@ namespace UnityEditor.VFX.UI
         {
             s_Clipboard = controller.value;
         }
+
         void OnPasteValue(DropdownMenuAction a)
         {
             controller.value = VFXConverter.ConvertTo(s_Clipboard, portType);
@@ -68,7 +68,7 @@ namespace UnityEditor.VFX.UI
         void OnAttachToPanel(AttachToPanelEvent e)
         {
             m_View = GetFirstAncestorOfType<VFXView>();
-            if( m_View == null)
+            if (m_View == null)
             {
                 //This can happen with asynchnous events.
                 return;

@@ -130,6 +130,9 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
         color.rgb = SampleSkyTexture(texCoord, lod, sliceIdx).rgb;
     }
 
+    // Planar, Reflection Probes and Sky aren't pre-expose, so best to clamp to max16 here in case of inf
+    color.rgb = ClampToFloat16Max(color.rgb);
+
     return color;
 }
 

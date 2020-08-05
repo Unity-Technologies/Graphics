@@ -164,10 +164,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     EditorGUI.BeginChangeCheck();
                     GUILayout.Label("Precision");
-                    graph.concretePrecision = (ConcretePrecision)EditorGUILayout.EnumPopup(graph.concretePrecision, GUILayout.Width(100f));
-                    GUILayout.Space(4);
+                    var precision = (ConcretePrecision)EditorGUILayout.EnumPopup(graph.concretePrecision, GUILayout.Width(100f));
                     if (EditorGUI.EndChangeCheck())
                     {
+                        m_Graph.owner.RegisterCompleteObjectUndo("Changed Graph Precision");
+                        graph.concretePrecision = precision;
+
                         var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
                         m_ColorManager.SetNodesDirty(nodeList);
                         graph.ValidateGraph();
@@ -261,6 +263,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                         item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, c.screenMousePosition - editorWindow.position.position),
                         c.screenMousePosition - editorWindow.position.position, null);
                 };
+            m_GraphView.RegisterCallback<FocusInEvent>( evt =>
+            {
+                //regenerate entries when graph view is refocused, to propogate subgraph changes
+                m_SearchWindowProvider.regenerateEntries = true;
+            });
 
             m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider, editorWindow);
 
@@ -285,15 +292,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdateSubWindowsVisibility()
         {
-            if (m_UserViewSettings.isBlackboardVisible)
-                m_GraphView.Insert(m_GraphView.childCount, m_BlackboardProvider.blackboard);
-            else
-                m_BlackboardProvider.blackboard.RemoveFromHierarchy();
+            // Master Preview and Blackboard both need to keep their layouts when hidden in order to restore user preferences.
+            // Because of their differences we do this is different ways, for now. + Blackboard needs to be effectively removed when hidden to avoid bugs.
+            m_MasterPreviewView.visible = m_UserViewSettings.isPreviewVisible;
 
-            if (m_UserViewSettings.isPreviewVisible)
-                m_GraphView.Insert(m_GraphView.childCount, m_MasterPreviewView);
+            if (m_UserViewSettings.isBlackboardVisible)
+                m_BlackboardProvider.blackboard.style.display = DisplayStyle.Flex;
             else
-                m_MasterPreviewView.RemoveFromHierarchy();
+                m_BlackboardProvider.blackboard.style.display = DisplayStyle.None;
         }
 
         Action<Group, string> m_GraphViewGroupTitleChanged;
@@ -535,14 +541,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_GraphView == null)
                 return;
 
+            IEnumerable<IShaderNodeView> theViews = m_GraphView.nodes.ToList().OfType<IShaderNodeView>();
+
             var dependentNodes = new List<AbstractMaterialNode>();
             NodeUtils.CollectNodesNodeFeedsInto(dependentNodes, inNode);
             foreach (var node in dependentNodes)
             {
-                var theViews = m_GraphView.nodes.ToList().OfType<IShaderNodeView>();
-                var viewsFound = theViews.Where(x => x.node.guid == node.guid).ToList();
-                foreach (var drawableNodeData in viewsFound)
-                    drawableNodeData.OnModified(scope);
+                var nodeView = theViews.FirstOrDefault(x => x.node.guid == node.guid);
+                if (nodeView != null)
+                    nodeView.OnModified(scope);
             }
         }
 
@@ -562,6 +569,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             previewManager.RenderPreviews();
+            if(m_Graph.addedInputs.Count() > 0 || m_Graph.removedInputs.Count() > 0)
+                m_SearchWindowProvider.regenerateEntries = true;
             m_BlackboardProvider.HandleGraphChanges();
             m_GroupHashSet.Clear();
 
@@ -740,16 +749,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (!(m_GraphView.GetNodeByGuid(node.guid.ToString()) is MaterialNodeView nodeView))
                     continue;
 
-                if (messageData.Value.Count == 0)
-                {
-                    var badge = nodeView.Q<IconBadge>();
-                    badge?.Detach();
-                    badge?.RemoveFromHierarchy();
-                }
-                else
+                if (messageData.Value.Count > 0)
                 {
                     var foundMessage = messageData.Value.First();
                     nodeView.AttachMessage(foundMessage.message, foundMessage.severity);
+                }
+                else
+                {
+                    nodeView.ClearMessage();
                 }
             }
         }
@@ -970,6 +977,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_MasterPreviewView?.RemoveFromHierarchy();
             CreateMasterPreview();
             ApplyMasterPreviewLayout();
+            UpdateSubWindowsVisibility();
         }
 
         void HandleEditorViewChanged(GeometryChangedEvent evt)

@@ -586,7 +586,7 @@
 #define mad(a, b, c) fma(a, b, c)
 #define SMAAGather(tex, coord) textureGather(tex, coord)
 #else
-#define mad(a, b, c) (a * b + c)
+#define mad(a, b, c) ((a) * (b) + (c))
 #endif
 #define float2 vec2
 #define float3 vec3

@@ -4,12 +4,38 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [8.0.1] - 2020-05-25
+## [8.2.0] - 2020-07-08
+
+### Fixed 
+- Fixed undo not being recorded properly for setting active master node, graph precision, and node defaults.
+- Fixed a bug where the object selector for Custom Function Nodes did not update correctly. [1176129](https://issuetracker.unity3d.com/product/unity/issues/guid/1176129/)
+- Fixed an issue where contextual entries in the searcher would not get regenerated 
+
+## [8.1.0] - 2020-04-21
+
+### Added
+- Added a field to the Master Nodes that overrides the generated shader's ShaderGUI.
+- When a Shader Graph or Sub Graph Asset associated with a open window has been deleted, Unity now displays a dialog that asks whether you would like to save the graph as a new Asset or close the window.
 
 ### Fixed
-- Fix Changelog
+- Fixed a bug where any change to the PBR master node settings would lose connection to the normal slot.
+- Fixed a bug where the user couldn't open up HDRP Master Node Shader Graphs without the Render Pipeline set to HDRP.
+- Fixed a bug where adding a HDRP Master Node to a Shader Graph would softlock the Shader Graph.
+- Fixed a bug where the input fields sometimes didn't render properly. [1176268](https://issuetracker.unity3d.com/issues/shadergraph-input-fields-get-cut-off-after-minimizing-and-maximizing-become-unusable)
+- Fixed a bug with the `Transform` node where converting from `Absolute World` space in a sub graph causes invalid subscript errors. [1190813](https://issuetracker.unity3d.com/issues/shadergraph-invalid-subscript-errors-are-thrown-when-connecting-a-subgraph-with-transform-node-with-unlit-master-node)
+- Fixed a bug where the `Position` node would change coordinate spaces from `World` to `Absolute World` when shaders recompile. [1184617](https://issuetracker.unity3d.com/product/unity/issues/guid/1184617/)
+- Optimized loading a large Shader Graph. [1209047](https://issuetracker.unity3d.com/issues/shader-graph-unresponsive-editor-when-using-large-graphs)
+- New deleted asset dialogue fixes a bug where deleted assets would throw a missing file exception in the console. [1232246](https://issuetracker.unity3d.com/product/unity/issues/guid/1232246/)
+- Fixed a bug where `Scene Depth` nodes would stop working after adding a keyword on the blackboard. [1203333](https://issuetracker.unity3d.com/product/unity/issues/guid/1203333/)
+- Fixed an issue where you could not select a custom mesh for the master preview [1205791](https://issuetracker.unity3d.com/product/unity/issues/guid/1205791/)
+- Fixed NaN issue in triplanar SG node when blend goes to 0.
 
-## [8.0.0] - 2020-05-25
+## [8.0.1] - 2020-02-25
+
+### Fixed
+- Fixed a bug where fog density node always returns 0 in the shader preview window when connected to an Unlit Master node. 
+
+## [8.0.0] - 2020-02-25
 
 ### Added
 - Added samples for Procedural Patterns to the package.
@@ -23,6 +49,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The Create Node Menu now has a tree view and support for fuzzy field searching.
 - Added a drop-down menu to the PBR Master Node that lets you select the final coordinate space of normals delivered from the fragment function. 
 - Added support for users to drag and drop Blackboard Properties from one graph to another.
+- Fixed a bug where undo would make the Master Preview visible regardless of its toggle status.
+- Fixed an issue where Sub Graphs sometimes had duplicate names when you converted nodes into Sub Graphs. 
+- Fixed an issue where the number of ports on Keyword nodes didn't update when you added or removed Enum Keyword entries.
+- Fixed an issue where colors in graphs didn't update when you changed a Blackboard Property's precision while the Color Mode is set to Precision.
 
 ### Changed
 - Changed the `Branch` node so that it uses a ternary operator (`Out = bool ? a : B`) instead of a linear interpolate function.
@@ -65,6 +95,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Blackboard Properties to support scientific notation.
 - Fixed a bug where the error `Output value 'vert' is not initialized` displayed on all PBR graphs in Universal. [1210710](https://issuetracker.unity3d.com/issues/output-value-vert-is-not-completely-initialized-error-is-thrown-when-pbr-graph-is-created-using-urp)
 - Fixed a bug where PBR and Unlit master nodes in Universal had Alpha Clipping enabled by default.
+- Fixed a bug where if a user had a Blackboard Property Reference start with a digit the generated shader would be broken.
+- Fixed an issue in where analytics wasn't always working.
 
 ## [7.1.1] - 2019-09-05
 ### Added
