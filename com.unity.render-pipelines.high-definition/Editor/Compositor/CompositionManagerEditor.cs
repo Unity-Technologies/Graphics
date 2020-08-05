@@ -45,6 +45,9 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
         public bool isDirty => m_IsEditorDirty;
 
+        public int defaultSelection = -1;
+        public int selectionIndex => m_layerList != null ? m_layerList.index : -1;
+
         void AddLayerOfTypeCallback(object type)
         {
             Undo.RecordObject(m_compositionManager, "Add compositor sublayer");
@@ -182,6 +185,12 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             {
                 var serializedLayerList = m_SerializedProperties.layerList;
                 m_layerList = new ReorderableList(m_SerializedProperties.compositorSO, serializedLayerList, true, false, true, true);
+
+                // Pre-select the "default" item in the list (used to remember the last selected item when re-creating the Editor) 
+                if (defaultSelection >= 0)
+                {
+                    m_layerList.index = defaultSelection;
+                }
 
                 m_layerList.drawHeaderCallback = (Rect rect) =>
                 {

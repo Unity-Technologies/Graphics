@@ -19,6 +19,10 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
         }
 
         static CompositorWindow s_Window;
+
+        // Remember the last selected layer
+        static int s_SelectionIndex = -1;
+
         CompositionManagerEditor m_Editor;
         Vector2 m_ScrollPosition = Vector2.zero;
         bool m_RequiresRedraw = false;
@@ -135,6 +139,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             {
                 m_Editor = (CompositionManagerEditor)Editor.CreateEditor(compositor);
                 m_RequiresRedraw = false;
+                m_Editor.defaultSelection = s_SelectionIndex;
             }
 
             m_ScrollPosition = GUILayout.BeginScrollView(m_ScrollPosition);
@@ -167,12 +172,15 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             }
 
             Undo.undoRedoPerformed -= UndoCallback;
+            s_SelectionIndex = m_Editor.selectionIndex;
         }
 
         void UndoCallback()
         {
             // Undo-redo might change the layer order, so we need to redraw the compositor UI and also refresh the layer setup
             m_Editor.CacheSerializedObjects();
+            m_RequiresRedraw = true;
+            s_SelectionIndex = m_Editor.selectionIndex;
 
             CompositionManager compositor = CompositionManager.GetInstance();
             {
