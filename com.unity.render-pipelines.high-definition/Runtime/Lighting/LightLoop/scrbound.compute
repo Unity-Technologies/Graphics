@@ -431,7 +431,8 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 
         // Make sure the W component is strictly positive.
         // It is helpful in order to simplify clipping and to avoid perspective division by 0.
-        float w = hapVert.w;
+        // For the orthographic projection, we only consider (w = 1)
+        float w = g_isOrthographic ? 1 : hapVert.w;
         float s = (w >= 0) ? 1 : -1;
 
         // Transform the X and Y components: [-w, w] -> [0, w].
