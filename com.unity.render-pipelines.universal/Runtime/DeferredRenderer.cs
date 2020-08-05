@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int k_DepthStencilBufferBits = 32;
 
         static readonly string k_CreateCameraTextures = "Create Camera Texture";
+        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_CreateCameraTextures);
 
         ColorGradingLutPass m_ColorGradingLutPass;
         // Forward renderer depth-prepass is used to generate a depth-texture. It is NOT intended to prime the depth buffer and speed up
@@ -461,7 +462,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // On some platform, splitting the bitmasks computation into two passes:
                 //   1/ Compute bitmasks for individual or small blocks of pixels
-                //   2/ merge those individual bitmasks into per-tile bitmasks    
+                //   2/ merge those individual bitmasks into per-tile bitmasks
                 // provides better performance that doing it in a single above pass.
                 if (m_DeferredLights.HasTileDepthRangeExtraPass())
                     EnqueuePass(m_TileDepthRangeExtraPass);
@@ -475,24 +476,27 @@ namespace UnityEngine.Rendering.Universal
 
         void CreateCameraRenderTarget(ScriptableRenderContext context, ref CameraData cameraData, RenderTargetHandle colorTarget, RenderTargetHandle depthTarget)
         {
-            CommandBuffer cmd = CommandBufferPool.Get(k_CreateCameraTextures);
-            var descriptor = cameraData.cameraTargetDescriptor;
-            int msaaSamples = descriptor.msaaSamples;
-            if (colorTarget != RenderTargetHandle.CameraTarget)
+            CommandBuffer cmd = CommandBufferPool.Get();
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
-                bool useDepthRenderBuffer = depthTarget == RenderTargetHandle.CameraTarget;
-                var colorDescriptor = descriptor; // Camera decides if HDR format is needed. ScriptableRenderPipelineCore.cs decides between FP16 and R11G11B10.
-                colorDescriptor.depthBufferBits = (useDepthRenderBuffer) ? k_DepthStencilBufferBits : 0;
-                cmd.GetTemporaryRT(colorTarget.id, colorDescriptor, FilterMode.Bilinear);
-            }
+                var descriptor = cameraData.cameraTargetDescriptor;
+                int msaaSamples = descriptor.msaaSamples;
+                if (colorTarget != RenderTargetHandle.CameraTarget)
+                {
+                    bool useDepthRenderBuffer = depthTarget == RenderTargetHandle.CameraTarget;
+                    var colorDescriptor = descriptor; // Camera decides if HDR format is needed. ScriptableRenderPipelineCore.cs decides between FP16 and R11G11B10.
+                    colorDescriptor.depthBufferBits = (useDepthRenderBuffer) ? k_DepthStencilBufferBits : 0;
+                    cmd.GetTemporaryRT(colorTarget.id, colorDescriptor, FilterMode.Bilinear);
+                }
 
-            if (depthTarget != RenderTargetHandle.CameraTarget)
-            {
-                var depthDescriptor = descriptor;
-                depthDescriptor.colorFormat = RenderTextureFormat.Depth;
-                depthDescriptor.depthBufferBits = k_DepthStencilBufferBits;
-                depthDescriptor.bindMS = msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
-                cmd.GetTemporaryRT(depthTarget.id, depthDescriptor, FilterMode.Point);
+                if (depthTarget != RenderTargetHandle.CameraTarget)
+                {
+                    var depthDescriptor = descriptor;
+                    depthDescriptor.colorFormat = RenderTextureFormat.Depth;
+                    depthDescriptor.depthBufferBits = k_DepthStencilBufferBits;
+                    depthDescriptor.bindMS = msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
+                    cmd.GetTemporaryRT(depthTarget.id, depthDescriptor, FilterMode.Point);
+                }
             }
 
             context.ExecuteCommandBuffer(cmd);

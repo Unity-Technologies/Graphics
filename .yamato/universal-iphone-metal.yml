@@ -37,7 +37,7 @@ Build_Universal_iPhone_Metal_Player_2020.1:
       -  path: .yamato/_editor.yml#editor:priming:2020.1:ios
          rerun: on-new-revision
     commands:
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file $YAMATO_SOURCE_DIR/unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
@@ -83,7 +83,7 @@ Build_Universal_iPhone_Metal_Player_fast-2020.1:
       -  path: .yamato/_editor.yml#editor:priming:fast-2020.1:ios
          rerun: on-new-revision
     commands:
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file $YAMATO_SOURCE_DIR/unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
@@ -131,7 +131,7 @@ Build_Universal_iPhone_Metal_Player_CUSTOM-REVISION:
       -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
     commands:
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file $YAMATO_SOURCE_DIR/unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
