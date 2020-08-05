@@ -38,5 +38,6 @@ class Editor_PinningMergeToTargetJob():
         job.add_var_custom('CI', True)
         job.add_commands(commands)
         #job.add_dependencies([f'{abv_filepath()}#{abv_job_id_all_project_ci(editor)}']) # TODO uncomment
-        job.add_trigger_integration_branch(target_branch_editor_ci)
+        job.set_trigger_on_expression(f'push.branch eq "{target_branch_editor_ci}" AND push.changes.any match "**/_latest_editor_versions.metafile"')
+        #job.add_trigger_integration_branch(target_branch_editor_ci)
         return job

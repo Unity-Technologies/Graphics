@@ -54,9 +54,7 @@ editor-pinning-merge-to-target:
       -  git config --global user.email "noreply@unity3d.com"
       -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/editor-pin
     triggers:
-        branches:
-            only:
-              -  yamato/editor-pin-ci
+        expression: push.branch eq "yamato/editor-pin-ci" AND push.changes.any match "**/_latest_editor_versions.metafile"
 editor-pinning-merge-from-target:
     name: Merge yamato/editor-pin to yamato/editor-pin-ci
     agent:
