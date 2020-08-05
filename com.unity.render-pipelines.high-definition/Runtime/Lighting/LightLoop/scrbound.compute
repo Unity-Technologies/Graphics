@@ -377,11 +377,11 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
     const uint groupLocalLightIndex = t / THREADS_PER_LIGHT;
     const uint firstVertexOffset    = NUM_VERTS * groupLocalLightIndex;
 
-    const float2 scale = lgtDat.scaleXY.xy;
+    const float  scale = lgtDat.scaleXY.x;    // scale.x = scale.y
     const float3 rbpC  = lgtDat.center.xyz;
-    const float3 rbpX  = lgtDat.boxAxisX.xyz;
-    const float3 rbpY  = lgtDat.boxAxisY.xyz;
-    const float3 rbpZ  = lgtDat.boxAxisZ.xyz;
+    const float3 rbpX  = lgtDat.boxAxisX.xyz; // Pre-scaled
+    const float3 rbpY  = lgtDat.boxAxisY.xyz; // Pre-scaled
+    const float3 rbpZ  = lgtDat.boxAxisZ.xyz; // Pre-scaled
 
 #ifndef USE_WAVE_INTRINSICS
     // Initialize the TGSM. All threads write the same value -> no data races.

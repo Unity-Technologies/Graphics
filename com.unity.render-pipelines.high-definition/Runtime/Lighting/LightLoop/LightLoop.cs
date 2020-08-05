@@ -130,8 +130,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 boxAxisY; // Scaled by the extents (half-size)
         public Vector3 boxAxisZ; // Scaled by the extents (half-size)
         public Vector3 center;   // Center of the bounds (box) in camera space
-        public Vector2 scaleXY;  // Scale applied to the top of the box to turn it into a truncated pyramid
-        public float radius;     // Circumscribed sphere for the bounds (box)
+        public float   scaleXY;  // Scale applied to the top of the box to turn it into a truncated pyramid (X = Y)
+        public float   radius;     // Circumscribed sphere for the bounds (box)
     };
 
     [GenerateHLSL]
@@ -1766,9 +1766,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 fAltDx *= range; fAltDy *= range;
 
                 // Handle case of pyramid with this select (currently unused)
-                var altDist = Mathf.Sqrt(fAltDy * fAltDy + (true ? 1.0f : 2.0f) * fAltDx * fAltDx);
-                bound.radius = altDist > (0.5f * range) ? altDist : (0.5f * range);       // will always pick fAltDist
-                bound.scaleXY = squeeze ? new Vector2(0.01f, 0.01f) : new Vector2(1.0f, 1.0f);
+                var altDist   = Mathf.Sqrt(fAltDy * fAltDy + (true ? 1.0f : 2.0f) * fAltDx * fAltDx);
+                bound.radius  = altDist > (0.5f * range) ? altDist : (0.5f * range);       // will always pick fAltDist
+                bound.scaleXY = squeeze ? 0.01f : 1.0f;
 
                 lightVolumeData.lightAxisX = vx;
                 lightVolumeData.lightAxisY = vy;
@@ -1791,8 +1791,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 bound.boxAxisX = vx * range;
                 bound.boxAxisY = vy * range;
                 bound.boxAxisZ = vz * range;
-                bound.scaleXY.Set(1.0f, 1.0f);
-                bound.radius = range;
+                bound.scaleXY  = 1.0f;
+                bound.radius   = range;
 
                 // fill up ldata
                 lightVolumeData.lightAxisX = vx;
@@ -1813,7 +1813,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bound.boxAxisY = extents.y * yAxisVS;
                 bound.boxAxisZ = extents.z * zAxisVS;
                 bound.radius   = extents.magnitude;
-                bound.scaleXY.Set(1.0f, 1.0f);
+                bound.scaleXY  = 1.0f;
 
                 lightVolumeData.lightPos   = centerVS;
                 lightVolumeData.lightAxisX = xAxisVS;
@@ -1833,7 +1833,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bound.boxAxisY = extents.y * yAxisVS;
                 bound.boxAxisZ = extents.z * zAxisVS;
                 bound.radius   = extents.magnitude;
-                bound.scaleXY.Set(1.0f, 1.0f);
+                bound.scaleXY  = 1.0f;
 
                 lightVolumeData.lightPos   = centerVS;
                 lightVolumeData.lightAxisX = xAxisVS;
@@ -1853,7 +1853,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bound.boxAxisY = extents.y * yAxisVS;
                 bound.boxAxisZ = extents.z * zAxisVS;
                 bound.radius   = extents.magnitude;
-                bound.scaleXY.Set(1.0f, 1.0f);
+                bound.scaleXY  = 1.0f;
 
                 lightVolumeData.lightPos   = centerVS;
                 lightVolumeData.lightAxisX = xAxisVS;
@@ -2055,8 +2055,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     bound.boxAxisX = influenceRightVS * influenceExtents.x;
                     bound.boxAxisY = influenceUpVS * influenceExtents.x;
                     bound.boxAxisZ = influenceForwardVS * influenceExtents.x;
-                    bound.scaleXY.Set(1.0f, 1.0f);
-                    bound.radius = influenceExtents.x;
+                    bound.scaleXY  = 1.0f;
+                    bound.radius   = influenceExtents.x;
                     break;
                 }
                 case LightVolumeType.Box:
@@ -2065,8 +2065,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     bound.boxAxisX = influenceExtents.x * influenceRightVS;
                     bound.boxAxisY = influenceExtents.y * influenceUpVS;
                     bound.boxAxisZ = influenceExtents.z * influenceForwardVS;
-                    bound.scaleXY.Set(1.0f, 1.0f);
-                    bound.radius = influenceExtents.magnitude;
+                    bound.scaleXY  = 1.0f;
+                    bound.radius   = influenceExtents.magnitude;
 
                     // The culling system culls pixels that are further
                     //   than a threshold to the box influence extents.
@@ -2114,7 +2114,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bound.boxAxisY = extentConservativeY * upVS;
             bound.boxAxisZ = extentConservativeZ * forwardVS;
             bound.radius   = extentConservativeMagnitude;
-            bound.scaleXY.Set(1.0f, 1.0f);
+            bound.scaleXY  = 1.0f;
 
             // The culling system culls pixels that are further
             //   than a threshold to the box influence extents.
