@@ -19,7 +19,7 @@ PROJECT_VERSION_NAME = 'project_revision'
 PLATFORMS = ('windows', 'macos')
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
-#DEFAULT_CONFIG_FILE = os.path.join(SCRIPT_DIR, 'config.yml')
+# DEFAULT_CONFIG_FILE = os.path.join(SCRIPT_DIR, 'config.yml')
 DEFAULT_CONFIG_FILE = os.path.join(os.path.abspath(git_cmd('rev-parse --show-toplevel', cwd='.').strip()),'.yamato','config','_editor.metafile')
 EXPECTATIONS_PATH = os.path.join('.yamato', 'expectations')
 
@@ -27,7 +27,7 @@ INVALID_VERSION_ERROR = 'Are you sure this is actually a valid unity version?'
 VERSION_PARSER_RE = re.compile(r'Grabbing unity release ([0-9\.a-z]+) which is revision')
 
 def parse_projectversion_file(projectversion_filename):
-    """Parse ProjectSettings.txt and return the version and revision as a tuple."""
+    """Parse ProjectSettings.txt and return the version and revision as a tuple. THIS IS DEPRECATED FOR GRAPHIS REPO (orginally taken from dots)"""
     REVISION_KEY = 'm_EditorVersionWithRevision'
     with open(projectversion_filename) as projectversion_file:
         for line in projectversion_file.readlines():
@@ -72,7 +72,7 @@ def generate_downloader_cmd(track, version, trunk_track, platform, unity_downloa
             '--wait --skip-download').split()
 
 
-def get_all_versions(tracks, trunk_track, unity_downloader_components, projectversion_filename, projectversion_dict):
+def get_all_versions(tracks, trunk_track, unity_downloader_components, projectversion_dict):
     """Gets all versions from unity-downloader-cli and the ProjectVersion.txt"""
     versions = get_versions_from_unity_downloader(tracks, trunk_track, unity_downloader_components)
 
@@ -275,7 +275,7 @@ def main(argv):
     try:
         versions = get_all_versions(config['editor_tracks'], config['trunk_track'],
                                     config['unity_downloader_components'],
-                                    projectversion_filename, config['project_version'])
+                                    config['project_version'])
         editor_versions_file = config['editor_versions_file']
         logging.info(f'Saving {editor_versions_file}.')
         write_versions_file(os.path.join(ROOT, editor_versions_file),
