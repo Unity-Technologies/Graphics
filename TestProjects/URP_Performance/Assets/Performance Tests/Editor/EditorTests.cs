@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.Rendering;
@@ -35,7 +35,7 @@ public class EditorTests : EditorPerformanceTests
             yield return new BuildTestDescription{ assetData = asset, sceneData = scene, testName = "SampleScene" };
     }
 
-    [Timeout(k_BuildTimeout), Version("1"), UnityTest, Performance]
+    [Timeout(k_BuildTimeout), Version("2"), UnityTest, Performance, Category("URP")]
     public IEnumerator Build([ValueSource(nameof(GetBuildTests))] BuildTestDescription testDescription)
     {
         //ShaderPreprocessor.shaderPreprocessed += ReportShaderStrippingData;

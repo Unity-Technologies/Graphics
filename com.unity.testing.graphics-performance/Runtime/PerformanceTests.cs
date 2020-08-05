@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
@@ -40,7 +40,7 @@ public class PerformanceTests : IPrebuildSetup
     [TearDown]
     public void TearDown() => CleanupTestSceneIfNeeded();
 
-    protected IEnumerator MeasureProfilingSamplers(IEnumerable<ProfilingSampler> samplers, int warmupFramesCount = 20, int measureFrameCount = 30)
+    protected IEnumerator MeasureProfilingSamplers(IEnumerable<ProfilingSampler> samplers, int warmupFramesCount = 120, int measureFrameCount = 1000)
     {
         // Enable all the markers
         foreach (var sampler in samplers)

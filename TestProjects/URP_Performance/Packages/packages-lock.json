@@ -30,6 +30,15 @@
       },
       "url": "https://packages.unity.com"
     },
+    "com.unity.burst": {
+      "version": "1.3.3",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.mathematics": "1.1.0"
+      },
+      "url": "https://packages.unity.com"
+    },
     "com.unity.collab-proxy": {
       "version": "1.3.9",
       "depth": 0,
@@ -111,8 +120,8 @@
       "source": "local",
       "dependencies": {
         "com.unity.mathematics": "1.1.0",
-        "com.unity.render-pipelines.core": "10.0.0-preview.31",
-        "com.unity.shadergraph": "10.0.0-preview.28"
+        "com.unity.render-pipelines.core": "10.0.0-preview.33",
+        "com.unity.shadergraph": "10.0.0-preview.30"
       }
     },
     "com.unity.searcher": {
@@ -133,7 +142,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.render-pipelines.core": "10.0.0-preview.31",
+        "com.unity.render-pipelines.core": "10.0.0-preview.33",
         "com.unity.searcher": "4.3.1"
       }
     },

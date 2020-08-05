@@ -6,7 +6,6 @@ using UnityEngine.TestTools.Graphics;
 
 public static class CustomBuild
 {
-
     [MenuItem("Tools/Build Android (GLES2 - Gamma)")]
     static void BuildAndroidGLES2Gamma()
     {
