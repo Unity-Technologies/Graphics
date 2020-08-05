@@ -48,6 +48,7 @@ def parse_projectversion_dict(projectversion_dict):
     index = REVISION_VALUE.find('(')
     version = REVISION_VALUE[len(REVISION_KEY) + 2: index - 1]
     revision = REVISION_VALUE[index + 1: -1]
+    print(version, revision)
     return (version, revision)
 
 
