@@ -1,8 +1,8 @@
 # Configuration. This decides what goes into the output file.
 # When new editor tracks are being added, this is where changes are made.
 editor_tracks:
-- '2019.3'
-- '2020.1'
+#- '2019.3'
+#- '2020.1'
 - '2020.2'
 
 trunk_track: '2020.2'

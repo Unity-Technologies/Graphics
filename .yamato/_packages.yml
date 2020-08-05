@@ -5,7 +5,7 @@
 
 pack_core:
     name: Pack Core
-    agent:  
+    agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
