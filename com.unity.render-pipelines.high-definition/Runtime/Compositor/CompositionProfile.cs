@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             }
 
             // For textures, check if we already have this layer in the layer list. If not, add it.
-            if (sp.propertyType == ShaderPropertyType.Texture)
+            if (sp.propertyType == ShaderPropertyType.Texture && sp.canBeUsedAsRT)
             {
                 int indx = compositor.layers.FindIndex(s => s.name == sp.propertyName);
                 if (indx < 0 && !hide)
