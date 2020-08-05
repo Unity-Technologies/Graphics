@@ -57,7 +57,6 @@ Shader "Hidden/2D/Shadow2D-Sprite"
             {
                 Ref       3      // Sprite Mask Bit, Self Shadow Bit
                 Comp      Equal
-                Pass      Keep
             }
 
             HLSLPROGRAM
@@ -81,7 +80,7 @@ Shader "Hidden/2D/Shadow2D-Sprite"
 
             Stencil
             {
-                Ref       1  // Sprite Mask Bit
+                Ref       1     // Sprite Mask Bit
                 Comp      Equal
             }
 
@@ -126,5 +125,33 @@ Shader "Hidden/2D/Shadow2D-Sprite"
 
             ENDHLSL
         }
+        Pass
+        {
+            Tags{ "LightMode" = "DrawShadows" }  // Draw if shadowed 
+
+            Stencil
+            {
+                Ref       4
+                ReadMask  4  // Shadow Bit, Self Shadow Bit
+                Comp      Equal
+            }
+
+            HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/Shadow2D-Sprite-Shared.hlsl"
+
+
+            half4 frag (Varyings i) : SV_Target
+            {
+                half alpha = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv).a;
+                return (_ShadowIntensity * _LightColor * (1-alpha)) + ((1 - _ShadowIntensity) * _LightColor);
+            }
+
+            ENDHLSL
+        }
+
     }
 }

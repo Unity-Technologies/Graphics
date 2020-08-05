@@ -24,9 +24,9 @@ Shader "Hidden/2D/Shadow2D-Projected"
 
             Stencil
             {
-                Ref         2
-                ReadMask    2
-                WriteMask   2
+                Ref         2           // Self Shadow Bit
+                ReadMask    2           // Self Shadow Bit
+                WriteMask   2           // Self Shadow Bit
                 Comp        NotEqual
                 Pass        Replace
                 Fail        Keep
@@ -50,9 +50,9 @@ Shader "Hidden/2D/Shadow2D-Projected"
 
             Stencil
             {
-                Ref         4
-                ReadMask    6
-                WriteMask   6
+                Ref         4           // Shadow Bit
+                ReadMask    6           // Self Shadow Bit, Shadow Bit
+                WriteMask   6           // Self Shadow Bit, Shadow Bit
                 Comp        NotEqual
                 Pass        Replace
                 Fail        Keep
