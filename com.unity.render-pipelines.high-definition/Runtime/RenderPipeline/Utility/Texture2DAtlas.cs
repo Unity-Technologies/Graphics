@@ -378,7 +378,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // For regular textures, values == 0 means that their GPU data needs to be updated (either because
             // the atlas have been re-layouted or the texture have never been uploaded. We also check if the mips
             // are valid for the texture if we need them
-            else if (m_IsGPUTextureUpToDate.TryGetValue(texture.GetInstanceID(), out var value))
+            else if (m_IsGPUTextureUpToDate.TryGetValue(key, out var value))
                 return value == 0 || (needMips && value == 1);
 
             return false;
@@ -388,7 +388,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             RenderTexture rtA = textureA as RenderTexture;
             RenderTexture rtB = textureB as RenderTexture;
-            int key = textureA.GetInstanceID() + 23 * textureB.GetInstanceID();
+            int key = GetTextureID(textureA, textureB);
             int textureHash = GetTextureHash(textureA, textureB);
 
             // Update the render texture if needed
