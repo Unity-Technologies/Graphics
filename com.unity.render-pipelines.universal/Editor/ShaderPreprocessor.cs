@@ -97,16 +97,27 @@ namespace UnityEditor.Rendering.Universal
             if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isAdditionalLightShadow)
                 return true;
 
-            // Additional light are shaded per-vertex. Strip additional lights per-pixel and shadow variants
-            bool isAdditionalLightPerPixel = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel);
-            if (IsFeatureEnabled(features, ShaderFeatures.VertexLighting) &&
-                (isAdditionalLightPerPixel || isAdditionalLightShadow))
-                return true;
 
-            // No additional lights
-            if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLights) &&
-                (isAdditionalLightPerPixel || isAdditionalLightShadow || compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsVertex)))
-                return true;
+            // Additional light are shaded per-vertex or per-pixel.
+            bool isAdditionalLightPerPixel = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel);
+            bool isAdditionalLightPerVertex = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsVertex);
+            if (isAdditionalLightPerPixel || isAdditionalLightShadow)
+            {
+                bool pixelLightingEnabled = IsFeatureEnabled(features, ShaderFeatures.AdditionalLights);
+                bool vertexLightingEnabled = IsFeatureEnabled(features, ShaderFeatures.VertexLighting);
+
+                // No additional lights
+                if (!pixelLightingEnabled && !vertexLightingEnabled)
+                    return true;
+
+                // Only Per-pixel is selected in every URP asset
+                if (!vertexLightingEnabled && isAdditionalLightPerVertex)
+                    return true;
+
+                // Only Per-vertex is selected in every URP asset
+                if (!pixelLightingEnabled && isAdditionalLightPerPixel)
+                    return true;
+            }
 
             // Screen Space Occlusion
             if (!IsFeatureEnabled(features, ShaderFeatures.ScreenSpaceOcclusion) &&
@@ -311,7 +322,6 @@ namespace UnityEditor.Rendering.Universal
 
             if (pipelineAsset.additionalLightsRenderingMode == LightRenderingMode.PerVertex)
             {
-                shaderFeatures |= ShaderFeatures.AdditionalLights;
                 shaderFeatures |= ShaderFeatures.VertexLighting;
             }
             else if (pipelineAsset.additionalLightsRenderingMode == LightRenderingMode.PerPixel)
