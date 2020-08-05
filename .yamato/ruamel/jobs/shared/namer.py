@@ -24,6 +24,9 @@ def package_job_id_pack(package_id):
 def package_job_id_publish(package_id):
     return f'publish_{package_id}'
 
+def package_job_id_publish_dry(package_id):
+    return f'publish_{package_id}_dry'
+
 def package_job_id_publish_all():
     return f'publish_all'
 
