@@ -28,7 +28,7 @@ class Project_TestJob():
 
         # construct job
         job = YMLJob()
-        job.set_name(f'Test all packages [project context]')
+        job.set_name(f'Test all packages [project context] {platform["name"]} {editor["version"]}')
         job.set_agent(platform['agent_package'])
         job.add_dependencies(dependencies)
         job.add_commands(commands)
