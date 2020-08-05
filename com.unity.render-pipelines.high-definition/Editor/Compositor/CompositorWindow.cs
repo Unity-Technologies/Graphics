@@ -33,6 +33,12 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             s_Window.Show();
         }
 
+        void OnEnable()
+        {
+            // Register a custom undo callback
+            Undo.undoRedoPerformed += UndoCallback;
+        }
+
         void Update()
         {
             m_TimeSinceLastRepaint += Time.deltaTime;
@@ -158,6 +164,22 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             if (compositor && compositor.shader != null)
             {
                 GraphData.onSaveGraph -= MarkShaderAsDirty;
+            }
+
+            Undo.undoRedoPerformed -= UndoCallback;
+        }
+
+        void UndoCallback()
+        {
+            // Undo-redo might change the layer order, so we need to redraw the compositor UI and also refresh the layer setup
+            m_Editor.CacheSerializedObjects();
+
+            CompositionManager compositor = CompositionManager.GetInstance();
+            {
+                // Some properties were changed, mark the profile as dirty so it can be saved if the user saves the scene
+                EditorUtility.SetDirty(compositor);
+                EditorUtility.SetDirty(compositor.profile);
+                compositor.UpdateLayerSetup();
             }
         }
     }

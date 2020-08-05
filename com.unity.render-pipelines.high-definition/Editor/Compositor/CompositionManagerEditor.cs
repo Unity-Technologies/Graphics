@@ -47,6 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
         void AddLayerOfTypeCallback(object type)
         {
+            Undo.RecordObject(m_compositionManager, "Add compositor sublayer");
             m_compositionManager.AddNewLayer(m_layerList.index + 1, (CompositorLayer.LayerType)type);
             m_SerializedProperties.layerList.serializedObject.Update();
             m_compositionManager.UpdateLayerSetup();
@@ -64,7 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             ShaderPropertyUI.Draw(m_SerializedShaderProperties);
         }
 
-        bool CacheSerializedObjects()
+        public bool CacheSerializedObjects()
         {
             try
             {
@@ -228,6 +229,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
                 m_layerList.onRemoveCallback = (list) =>
                 {
+                    Undo.RecordObject(m_compositionManager, "Remove compositor sublayer");
                     m_compositionManager.RemoveLayerAtIndex(list.index);
                     m_IsEditorDirty = true;
                     EditorUtility.SetDirty(m_compositionManager.profile);
