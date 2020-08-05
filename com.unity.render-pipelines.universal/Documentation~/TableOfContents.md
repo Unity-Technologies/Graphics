@@ -61,6 +61,12 @@
   * [Particles Unlit](particles-unlit-shader.md)
   * [Upgrading shaders from Built-in](upgrading-your-shaders.md)
   * [Shader stripping](shader-stripping.md)
+  * [Writing custom shaders](writing-custom-shaders-urp.md)
+    * [Creating a sample scene](writing-shaders-urp-basic-prerequisites.md)
+    * [URP basic unlit shader](writing-shaders-urp-basic-unlit-structure.md)    
+    * [URP unlit shader with color input](writing-shaders-urp-unlit-color.md)
+    * [Drawing a texture](writing-shaders-urp-unlit-texture.md)
+    * [Visualizing normal vectors](writing-shaders-urp-unlit-normals.md)
 
 * [Customizing URP](customizing-urp.md)
   * [beginCameraRendering event](using-begincamerarendering.md)
