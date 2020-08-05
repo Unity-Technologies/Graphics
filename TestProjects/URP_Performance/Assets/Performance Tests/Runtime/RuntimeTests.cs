@@ -1,22 +1,22 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using System;
 using UnityEngine.Rendering;
 using NUnit.Framework;
-using Unity.PerformanceTesting;
 using UnityEngine.TestTools;
+using Unity.PerformanceTesting;
 using static PerformanceTestUtils;
 
 public class RuntimeTests : PerformanceTests
 {
     // Number of frames before we start recording the profiling samplers
-    const int WarmupCount = 120;
+    const int WarmupCount = 20;
     // Number of frames we measure
-    const int MeasurementCount = 1000;
+    const int MeasurementCount = 30;
     // Timeout of a test in milliseconds
-    const int GlobalTimeout = 360 * 1000; // 6 min
+    const int GlobalTimeout = 120 * 1000; // 2 min
 
     // This function will help to generate the test you see in the test runner window.
     // The testScenesAsset is a reference to the Test Asset Description you
@@ -42,7 +42,7 @@ public class RuntimeTests : PerformanceTests
     // struct returned by GetCounterTests(). If you want to change the test
     // name structure, you'll have to create a new struct and function to
     // iterate over your test list.
-    [Timeout(GlobalTimeout), Version("2"), UnityTest, Performance, Category("URP")]
+    [Timeout(GlobalTimeout), Version("1"), UnityTest, Performance]
     public IEnumerator Counters([ValueSource(nameof(GetCounterTests))] CounterTestDescription testDescription)
     {
         // This function will load the scene and assign the SRP asset in parameter.
@@ -69,7 +69,7 @@ public class RuntimeTests : PerformanceTests
                 yield return new MemoryTestDescription{ assetData = asset, sceneData = scene, assetType = objectType };
     }
 
-    [Timeout(GlobalTimeout), Version("2"), UnityTest, Performance, Category("URP")]
+    [Timeout(GlobalTimeout), Version("1"), UnityTest, Performance]
     public IEnumerator Memory([ValueSource(nameof(GetMemoryTests))] MemoryTestDescription testDescription)
     {
         yield return ReportMemoryUsage(testDescription);

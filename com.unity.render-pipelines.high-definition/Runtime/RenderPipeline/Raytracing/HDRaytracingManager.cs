@@ -552,7 +552,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ValidRayTracingState = true;
         }
 
-        static internal bool ValidRayTracingHistory(HDCamera hdCamera)
+        internal bool ValidRayTracingHistory(HDCamera hdCamera)
         {
             return hdCamera.historyRTHandleProperties.previousViewportSize.x == hdCamera.actualWidth
                 && hdCamera.historyRTHandleProperties.previousViewportSize.y == hdCamera.actualHeight;
@@ -613,7 +613,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static internal float EvaluateHistoryValidity(HDCamera hdCamera)
+        internal float EvaluateHistoryValidity(HDCamera hdCamera)
         {
             float historyValidity = 1.0f;
 #if UNITY_HDRP_DXR_TESTS_DEFINE

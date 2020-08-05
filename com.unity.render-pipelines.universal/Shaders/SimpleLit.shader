@@ -17,7 +17,7 @@ Shader "Universal Render Pipeline/Simple Lit"
         [HideInInspector] _BumpScale("Scale", Float) = 1.0
         [NoScaleOffset] _BumpMap("Normal Map", 2D) = "bump" {}
 
-        [HDR] _EmissionColor("Emission Color", Color) = (0,0,0)
+        _EmissionColor("Emission Color", Color) = (0,0,0)
         [NoScaleOffset]_EmissionMap("Emission Map", 2D) = "white" {}
 
         // Blending state
