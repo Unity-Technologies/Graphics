@@ -264,7 +264,7 @@ namespace UnityEditor.ShaderGraph
                 this.icon = icon;
             }
 
-            if (scope == ModificationScope.Topological)
+            if (scope == ModificationScope.Topological || scope == ModificationScope.Node)
             {
                 // Updating the text label of the output slot
                 var slot = node.GetSlots<MaterialSlot>().ToList().First();

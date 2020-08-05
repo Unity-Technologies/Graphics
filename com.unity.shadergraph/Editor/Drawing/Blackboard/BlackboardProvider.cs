@@ -431,12 +431,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var node in m_Graph.GetNodes<PropertyNode>())
             {
                 node.OnEnable();
-                node.Dirty(ModificationScope.Topological);
+                node.Dirty(ModificationScope.Node);
             }
             foreach (var node in m_Graph.GetNodes<KeywordNode>())
             {
                 node.OnEnable();
-                node.Dirty(ModificationScope.Topological);
+                node.Dirty(ModificationScope.Node);
             }
         }
 
