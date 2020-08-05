@@ -761,6 +761,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed CoatMask block appearing when creating lit master node (case 1264632)
 - Fixed issue with SceneEV100 debug mode indicator when rescaling the window.
 - Fixed issue with PCSS filter being wrong on first frame. 
+- Fixed an issue where only one of the two lookdev views would update when changing the default lookdev volume profile.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
