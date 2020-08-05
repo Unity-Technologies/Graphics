@@ -30,6 +30,18 @@ def package_job_id_publish_all():
 def package_job_id_test_all(editor_version):
     return f'all_package_ci_{editor_version}'
 
+def projectcontext_filepath():
+    return f'{parent_dir}/_projectcontext.yml'.lower()
+
+def projectcontext_job_id_pack():
+    return f'pack_all_project'
+
+def projectcontext_job_id_test(platform_os, editor_version):
+    return f'test_all_project'
+
+def projectcontext_job_id_publish():
+    return f'publish_all_project'
+
 
 # template specific
 def templates_filepath():
