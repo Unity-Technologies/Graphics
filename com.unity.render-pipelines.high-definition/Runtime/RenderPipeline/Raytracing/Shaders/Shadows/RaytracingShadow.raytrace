@@ -281,7 +281,7 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
 
 // Texture that holds the raytracing data
 TEXTURE2D_X(_RaytracingDirectionBuffer);
-TEXTURE2D_X(_RaytracingDistanceBuffer);
+TEXTURE2D_X(_RayTracingLengthBuffer);
 
 [shader("raygeneration")]
 void RayGenAreaShadowSingle()
@@ -329,7 +329,7 @@ void RayGenAreaShadowSingle()
 
     // Read the ray distance
     float3 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentPixelCoord).xyz;
-    float rayDistance = LOAD_TEXTURE2D_X(_RaytracingDistanceBuffer, currentPixelCoord).x;
+    float rayDistance = LOAD_TEXTURE2D_X(_RayTracingLengthBuffer, currentPixelCoord).x;
 
     float3 rayOrigin = positionWS + rayDirection * rayDistance - lightData.forward * _RaytracingRayBias;
     float3 rayDestination = positionWS + normalData.normalWS * _RaytracingRayBias;
@@ -529,7 +529,7 @@ void RayGenShadowSegmentSingle()
         return;
 
     // Read the ray distance
-    float rayDistance = LOAD_TEXTURE2D_X(_RaytracingDistanceBuffer, currentPixelCoord).x;
+    float rayDistance = LOAD_TEXTURE2D_X(_RayTracingLengthBuffer, currentPixelCoord).x;
 
     // If the distance is negative, it means the rays is a visible intersection.
     if (rayDistance < 0.0)
@@ -617,7 +617,7 @@ void RayGenSemiTransparentShadowSegmentSingle()
         return;
 
     // Read the ray distance
-    float rayDistance = LOAD_TEXTURE2D_X(_RaytracingDistanceBuffer, currentPixelCoord).x;
+    float rayDistance = LOAD_TEXTURE2D_X(_RayTracingLengthBuffer, currentPixelCoord).x;
 
     // If the distance is negative, it means the rays is a visible intersection.
     if (rayDistance < 0.0)
