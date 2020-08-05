@@ -250,3 +250,8 @@ In your [HDRP Asset](HDRP-Asset.md), select **High** from the **Filtering Qualit
 | **Blocker Sample Count**       | The number of samples HDRP uses to evaluate the distance between the pixel receiving the shadow and the shadow caster. Higher values give better accuracy. |
 | **Filter Sample Count**        | The number of samples HDRP uses to blur shadows. Higher values give smoother results. |
 | **Minimum Size of the Filter** | The minimum size of the whole shadow’s blur effect, no matter the distance between the pixel and the shadow caster. Higher values give blurrier results. |
+
+#### Real-time light cookies:
+
+Users can set **RenderTexture** that they update themselves as light cookies. However for performance reasons, the cookie atlas is not updated every frame for every light cookie. For this reasons, users need to explicitly call **IncrementUpdateCount()** on the **RenderTexture** to notify the system that the content has changed and needs to be uploaded to the atlas otherwise the cookie will not be updated over time.
+
