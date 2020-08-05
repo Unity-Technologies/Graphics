@@ -2021,6 +2021,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (shadowRequestIndex == -1)
                     continue;
 
+                shadowRequest.atlasViewport = resolutionRequest.atlasViewport;
+
                 if (!shadowNeedsRendering)
                 {
                     shadowRequest.cachedShadowData.cacheTranslationDelta = cameraPos - m_CachedViewPos;
@@ -2080,7 +2082,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     SetCommonShadowRequestSettings(shadowRequest, visibleLight, cameraPos, invViewProjection, viewportSize, lightIndex, lightType, filteringQuality);
                 }
 
-                shadowRequest.atlasViewport = resolutionRequest.atlasViewport;
                 manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest, shadowIsInCachedSystem);
 
                 if(shadowIsInCachedSystem && shadowNeedsRendering)
@@ -2311,6 +2312,14 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
 #if UNITY_EDITOR
+
+            // If we requested an emissive mesh but for some reason (e.g. Reload scene unchecked in the Enter Playmode options) Awake has not been called,
+            // we need to create it manually.
+            if (m_DisplayAreaLightEmissiveMesh && (m_ChildEmissiveMeshViewer == null || m_ChildEmissiveMeshViewer.Equals(null)))
+            {
+                UpdateAreaLightEmissiveMesh();
+            }
+
             //if not parented anymore, refresh it
             if (m_ChildEmissiveMeshViewer != null && !m_ChildEmissiveMeshViewer.Equals(null))
             {
