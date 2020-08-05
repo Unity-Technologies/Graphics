@@ -204,9 +204,9 @@
       }
     },
     "com.unity.testing.graphics-performance": {
-      "version": "file:../../../com.unity.testing.graphics-performance",
+      "version": "file:com.unity.testing.graphics-performance",
       "depth": 0,
-      "source": "local",
+      "source": "embedded",
       "dependencies": {
         "com.unity.test-framework.performance": "2.3.1-preview",
         "com.unity.shaderanalysis": "10.0.0-preview.1"

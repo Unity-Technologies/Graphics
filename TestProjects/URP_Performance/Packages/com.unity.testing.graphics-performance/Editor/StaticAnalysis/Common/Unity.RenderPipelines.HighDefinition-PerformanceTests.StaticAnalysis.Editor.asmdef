@@ -1,0 +1,32 @@
+{
+    "name": "Unity.RenderPipelines.HighDefinition-PerformanceTests.StaticAnalysis.Editor",
+    "rootNamespace": "",
+    "references": [
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "Unity.ShaderAnalysis.Editor",
+        "Unity.GraphicTests.Performance.Runtime",
+        "Unity.PerformanceTesting"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "SHADERANALYSIS_SUPPORT"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.shaderanalysis",
+            "expression": "0.0",
+            "define": "SHADERANALYSIS_SUPPORT"
+        }
+    ],
+    "noEngineReferences": false
+}
