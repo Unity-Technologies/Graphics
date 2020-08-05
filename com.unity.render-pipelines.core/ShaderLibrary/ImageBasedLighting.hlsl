@@ -183,7 +183,7 @@ void SampleVisibleAnisoGGXDir(real2 u,
     real3x3 viewToLocal;
     if (VeqN)
     {
-        viewToLocal = k_identity3x3;
+        viewToLocal = k_Identity3x3;
     }
     else
     {
@@ -366,7 +366,7 @@ real4 IntegrateGGXAndDisneyDiffuseFGD(real NdotV, real roughness, uint sampleCou
     real3 V   = real3(sqrt(1 - NdotV * NdotV), 0, NdotV);
     real4 acc = real4(0.0, 0.0, 0.0, 0.0);
 
-    real3x3 localToWorld = k_identity3x3;
+    real3x3 localToWorld = k_Identity3x3;
 
     for (uint i = 0; i < sampleCount; ++i)
     {

@@ -1338,14 +1338,14 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     }
     else
     {
-        preLightData.ltcTransformDiffuse = k_identity3x3;   // Lambert
+        preLightData.ltcTransformDiffuse = k_Identity3x3;   // Lambert
     }
 
     // Load specular LTC & FGD
     switch ((_SVBRDF_BRDFType >> 1) & 7)
     {
     // Warning: all these LTC_MATRIX_INDEX_ are the same for now, and fitted for GGX, hence the code
-    // above that selected the UVs all used a preLightData.iblPerceptualRoughness value that used a 
+    // above that selected the UVs all used a preLightData.iblPerceptualRoughness value that used a
     // conversion formula for Beckmann NDF (exp) based BRDFs
     // (see switch ((_SVBRDF_BRDFType >> 1) & 7) above and usage of PerceptualRoughnessBeckmannToGGX)
     //
@@ -2037,7 +2037,7 @@ DirectLighting  EvaluateBSDF_Line(  LightLoopContext lightLoopContext,
 
     //-----------------------------------------------------------------------------
     // Use Lambert for diffuse
-    ltcValue = LTCEvaluate(P1, P2, B, k_identity3x3);    // No transform: Lambert uses identity
+    ltcValue = LTCEvaluate(P1, P2, B, k_Identity3x3);    // No transform: Lambert uses identity
     ltcValue *= lightData.diffuseDimmer;
     lighting.diffuse = ltcValue; // no FGD, lambert gives 1
 
@@ -2141,7 +2141,7 @@ DirectLighting  EvaluateBSDF_Line(  LightLoopContext lightLoopContext,
     {
         // Only lighting, not BSDF
         // Apply area light on lambert then multiply by PI to cancel Lambert
-        lighting.diffuse = LTCEvaluate(P1, P2, B, k_identity3x3);
+        lighting.diffuse = LTCEvaluate(P1, P2, B, k_Identity3x3);
         lighting.diffuse *= PI * lightData.diffuseDimmer;
     }
 #endif
@@ -2358,7 +2358,7 @@ DirectLighting  EvaluateBSDF_Rect(LightLoopContext lightLoopContext,
     {
         // Only lighting, not BSDF
         // Apply area light on lambert then multiply by PI to cancel Lambert
-        lighting.diffuse = PolygonIrradiance(mul(lightVerts, k_identity3x3));
+        lighting.diffuse = PolygonIrradiance(mul(lightVerts, k_Identity3x3));
         lighting.diffuse *= PI * lightData.diffuseDimmer;
     }
 #endif

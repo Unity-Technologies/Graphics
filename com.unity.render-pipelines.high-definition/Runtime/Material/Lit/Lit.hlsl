@@ -1082,7 +1082,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 
     // Note we load the matrix transpose (avoid to have to transpose it in shader)
 #ifdef USE_DIFFUSE_LAMBERT_BRDF
-    preLightData.ltcTransformDiffuse = k_identity3x3;
+    preLightData.ltcTransformDiffuse = k_Identity3x3;
 #else
     // Get the inverse LTC matrix for Disney Diffuse
     preLightData.ltcTransformDiffuse      = 0.0;
@@ -1417,7 +1417,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
             // Use the Lambertian approximation for performance reasons.
             // The matrix multiplication should not generate any extra ALU on GCN.
             // TODO: double evaluation is very inefficient! This is a temporary solution.
-            ltcValue  = LTCEvaluate(P1, P2, B, mul(flipMatrix, k_identity3x3));
+            ltcValue  = LTCEvaluate(P1, P2, B, mul(flipMatrix, k_Identity3x3));
             ltcValue *= lightData.diffuseDimmer;
             // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
             // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
@@ -1452,7 +1452,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
         {
             // Only lighting, not BSDF
             // Apply area light on lambert then multiply by PI to cancel Lambert
-            lighting.diffuse = LTCEvaluate(P1, P2, B, k_identity3x3);
+            lighting.diffuse = LTCEvaluate(P1, P2, B, k_Identity3x3);
             lighting.diffuse *= PI * lightData.diffuseDimmer;
         }
     #endif
@@ -1572,7 +1572,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 
                 // Use the Lambertian approximation for performance reasons.
                 // The matrix multiplication should not generate any extra ALU on GCN.
-                float3x3 ltcTransform = mul(flipMatrix, k_identity3x3);
+                float3x3 ltcTransform = mul(flipMatrix, k_Identity3x3);
 
                 // Polygon irradiance in the transformed configuration.
                 // TODO: double evaluation is very inefficient! This is a temporary solution.
@@ -1640,7 +1640,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             {
                 // Only lighting, not BSDF
                 // Apply area light on lambert then multiply by PI to cancel Lambert
-                lighting.diffuse = PolygonIrradiance(mul(lightVerts, k_identity3x3));
+                lighting.diffuse = PolygonIrradiance(mul(lightVerts, k_Identity3x3));
                 lighting.diffuse *= PI * lightData.diffuseDimmer;
             }
         #endif

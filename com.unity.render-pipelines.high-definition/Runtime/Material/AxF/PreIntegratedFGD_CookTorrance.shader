@@ -89,7 +89,7 @@ Shader "Hidden/HDRP/PreIntegratedFGD_CookTorrance"
                 float   NdotV    = ClampNdotV( dot(N, V) );
                 float4  acc      = float4(0.0, 0.0, 0.0, 0.0);
 
-                float3x3    localToWorld = GetLocalFrame(N); //TODO: N not needed, we use a frame aligned to N, should use k_identity3x3
+                float3x3    localToWorld = GetLocalFrame(N); //TODO: N not needed, we use a frame aligned to N, should use k_Identity3x3
 
                 for (uint i = 0; i < sampleCount; ++i)
                 {

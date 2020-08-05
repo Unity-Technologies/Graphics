@@ -57,7 +57,7 @@ void ComputeGgxIblSampleData(uint3 groupThreadId : SV_GroupThreadID)
                 // TODO: might be interesting to try Mitchell's Poisson disk sampling algorithm.
                 // In our case, samples would not have disks associated with them, but rather solid angles.
                 float2 u = Golden2dSeq(i, sampleCount);
-                SampleGGXDir(u, V, k_identity3x3, roughness, localL, NdotL, NdotH, LdotH, true);
+                SampleGGXDir(u, V, k_Identity3x3, roughness, localL, NdotL, NdotH, LdotH, true);
 
                 if (NdotL > 0)
                 {
@@ -77,7 +77,7 @@ void ComputeGgxIblSampleData(uint3 groupThreadId : SV_GroupThreadID)
 
         float2 u = Golden2dSeq(sampleIndex, sampleCount);
 
-        SampleGGXDir(u, V, k_identity3x3, roughness, localL, NdotL, NdotH, LdotH, true);
+        SampleGGXDir(u, V, k_Identity3x3, roughness, localL, NdotL, NdotH, LdotH, true);
 
         float pdf    = 0.25 * D_GGX(NdotH, roughness);
         float omegaS = rcp(sampleCount) * rcp(pdf);

@@ -852,11 +852,11 @@ void CompositeOver(real3 colorFront, real3 alphaFront,
 // Space transformations
 // ----------------------------------------------------------------------------
 
-static const float3x3 k_identity3x3 = {1, 0, 0,
+static const float3x3 k_Identity3x3 = {1, 0, 0,
                                        0, 1, 0,
                                        0, 0, 1};
 
-static const float4x4 k_identity4x4 = {1, 0, 0, 0,
+static const float4x4 k_Identity4x4 = {1, 0, 0, 0,
                                        0, 1, 0, 0,
                                        0, 0, 1, 0,
                                        0, 0, 0, 1};
@@ -880,7 +880,7 @@ float4 ComputeClipSpacePosition(float2 positionNDC, float deviceDepth)
 // (position = positionCS) => (clipSpaceTransform = use default)
 // (position = positionVS) => (clipSpaceTransform = UNITY_MATRIX_P)
 // (position = positionWS) => (clipSpaceTransform = UNITY_MATRIX_VP)
-float4 ComputeClipSpacePosition(float3 position, float4x4 clipSpaceTransform = k_identity4x4)
+float4 ComputeClipSpacePosition(float3 position, float4x4 clipSpaceTransform = k_Identity4x4)
 {
     return mul(clipSpaceTransform, float4(position, 1.0));
 }
@@ -890,7 +890,7 @@ float4 ComputeClipSpacePosition(float3 position, float4x4 clipSpaceTransform = k
 // (position = positionCS) => (clipSpaceTransform = use default)
 // (position = positionVS) => (clipSpaceTransform = UNITY_MATRIX_P)
 // (position = positionWS) => (clipSpaceTransform = UNITY_MATRIX_VP)
-float3 ComputeNormalizedDeviceCoordinatesWithZ(float3 position, float4x4 clipSpaceTransform = k_identity4x4)
+float3 ComputeNormalizedDeviceCoordinatesWithZ(float3 position, float4x4 clipSpaceTransform = k_Identity4x4)
 {
     float4 positionCS = ComputeClipSpacePosition(position, clipSpaceTransform);
 
@@ -912,7 +912,7 @@ float3 ComputeNormalizedDeviceCoordinatesWithZ(float3 position, float4x4 clipSpa
 // (position = positionCS) => (clipSpaceTransform = use default)
 // (position = positionVS) => (clipSpaceTransform = UNITY_MATRIX_P)
 // (position = positionWS) => (clipSpaceTransform = UNITY_MATRIX_VP)
-float2 ComputeNormalizedDeviceCoordinates(float3 position, float4x4 clipSpaceTransform = k_identity4x4)
+float2 ComputeNormalizedDeviceCoordinates(float3 position, float4x4 clipSpaceTransform = k_Identity4x4)
 {
     return ComputeNormalizedDeviceCoordinatesWithZ(position, clipSpaceTransform).xy;
 }
