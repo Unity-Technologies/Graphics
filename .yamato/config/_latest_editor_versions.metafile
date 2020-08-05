@@ -63,7 +63,7 @@ editor_versions:
     version: 2020.2.0a19
   2020.2_staging:
     display_name: 2020.2 staging
-    revision: 0d4996d84e47ca136a0c046b2990fb8d76cda81d
+    revision: 0d4996d84e47ca136a0c046b2990fb8d76cda81
     version: ''
   project_revision:
     display_name: project revision
