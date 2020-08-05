@@ -4,7 +4,7 @@ The **Cloud Layer** Volume component override controls an optional cloud layer y
 
 ## Using Cloud Layer
 
-The **Cloud Layer** uses the [Volume](Volumes.html) framework, so to enable and modify **Cloud Layer** properties, you must add a **Cloud Layer** override to a [Volume](Volumes.html) in your Scene. To add **Cloud Layer** to a Volume:
+The **Cloud Layer** uses the [Volume](Volumes.md) framework, so to enable and modify **Cloud Layer** properties, you must add a **Cloud Layer** override to a [Volume](Volumes.md) in your Scene. To add **Cloud Layer** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Sky** and click on **Cloud Layer**.

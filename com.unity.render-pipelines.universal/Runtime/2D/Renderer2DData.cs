@@ -190,5 +190,42 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return Shader.Find("Universal Render Pipeline/2D/Sprite-Lit-Default");
         }
 #endif
+
+
+        internal void InitializeTransient()
+        {
+            for (var i = 0; i < m_LightBlendStyles.Length; ++i)
+            {
+                if(m_LightBlendStyles[i].renderTargetHandle.id == 0)
+                    m_LightBlendStyles[i].renderTargetHandle.Init($"_ShapeLightTexture{i}");
+            }
+
+            // The array size should be determined by the number of 'feature bit' the material index has. See GetLightMaterialIndex().
+            // Not all slots must be filled because certain combinations of the feature bits don't make sense (e.g. sprite bit on + shape bit off).
+            const int k_NumberOfLightMaterials = 1 << 5 + 3;  // 5 keywords +  volume bit, shape bit
+            if(lightMaterials == null || lightMaterials.Length == 0)
+                lightMaterials= new Material[k_NumberOfLightMaterials];
+
+            if (normalsRenderTarget.id == 0)
+                normalsRenderTarget.Init("_NormalMap");
+
+            if (shadowsRenderTarget.id == 0)
+                shadowsRenderTarget.Init("_ShadowTex");
+
+            const int totalMaterials = 256;
+            if(shadowMaterials == null || shadowMaterials.Length == 0)
+                shadowMaterials = new Material[totalMaterials];
+            if(removeSelfShadowMaterials == null || removeSelfShadowMaterials.Length == 0)
+                removeSelfShadowMaterials = new Material[totalMaterials];
+        }
+
+
+        // transient data
+        internal Material[] lightMaterials { get; set; }
+        internal Material[] shadowMaterials { get; set; }
+        internal Material[] removeSelfShadowMaterials { get; set; }
+
+        internal RenderTargetHandle normalsRenderTarget;
+        internal RenderTargetHandle shadowsRenderTarget;
     }
 }
