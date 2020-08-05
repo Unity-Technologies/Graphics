@@ -170,6 +170,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add error message if a callback AOV allocation fail
 - Add marker for all AOV request operation on GPU
 - Add remapping options for Depth Pyramid debug view mode
+- Add an option to support AOV shader at runtime in HDRP settings (case 1265070)
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
