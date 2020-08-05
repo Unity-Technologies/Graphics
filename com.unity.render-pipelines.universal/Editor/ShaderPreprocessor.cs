@@ -23,7 +23,8 @@ namespace UnityEditor.Rendering.Universal
         TerrainHoles = (1 << 7),
         DeferredShading = (1 << 8), // DeferredRenderer is in the list of renderer
         DeferredWithAccurateGbufferNormals = (1 << 9),
-        DeferredWithoutAccurateGbufferNormals = (1 << 10)
+        DeferredWithoutAccurateGbufferNormals = (1 << 10),
+        ScreenSpaceOcclusion = (1 << 11)
     }
     internal class ShaderPreprocessor : IPreprocessShaders
     {
@@ -45,7 +46,8 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_AlphaTestOn = new ShaderKeyword("_ALPHATEST_ON");
         ShaderKeyword m_GbufferNormalsOct = new ShaderKeyword("_GBUFFER_NORMALS_OCT");
         ShaderKeyword m_UseDrawProcedural = new ShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
-        
+        ShaderKeyword m_ScreenSpaceOcclusion = new ShaderKeyword(ShaderKeywordStrings.ScreenSpaceOcclusion);
+
         int m_TotalVariantsInputCount;
         int m_TotalVariantsOutputCount;
 
@@ -89,7 +91,7 @@ namespace UnityEditor.Rendering.Universal
             if (compilerData.shaderKeywordSet.IsEnabled(m_MixedLightingSubtractive) &&
                 !IsFeatureEnabled(features, ShaderFeatures.MixedLighting))
                 return true;
-            
+
             // No additional light shadows
             bool isAdditionalLightShadow = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightShadows);
             if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isAdditionalLightShadow)
@@ -104,6 +106,11 @@ namespace UnityEditor.Rendering.Universal
             // No additional lights
             if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLights) &&
                 (isAdditionalLightPerPixel || isAdditionalLightShadow || compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsVertex)))
+                return true;
+
+            // Screen Space Occlusion
+            if (!IsFeatureEnabled(features, ShaderFeatures.ScreenSpaceOcclusion) &&
+                compilerData.shaderKeywordSet.IsEnabled(m_ScreenSpaceOcclusion))
                 return true;
 
             return false;
@@ -154,7 +161,7 @@ namespace UnityEditor.Rendering.Universal
 
             if (StripInvalidVariants(compilerData))
                 return true;
-            
+
             if (StripUnsupportedVariants(compilerData))
                 return true;
 
@@ -197,12 +204,12 @@ namespace UnityEditor.Rendering.Universal
                 Debug.Log(result);
             }
         }
-        
+
         public void OnProcessShader(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> compilerDataList)
         {
 #if PROFILE_BUILD
             Profiler.BeginSample(k_ProcessShaderTag);
-#endif    
+#endif
             UniversalRenderPipelineAsset urpAsset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
             if (urpAsset == null || compilerDataList == null || compilerDataList.Count == 0)
                 return;
@@ -212,7 +219,7 @@ namespace UnityEditor.Rendering.Universal
             var inputShaderVariantCount = compilerDataList.Count;
             for (int i = 0; i < inputShaderVariantCount;)
             {
-        
+
                 bool removeInput = StripUnused(ShaderBuildPreprocessor.supportedFeatures, shader, snippetData, compilerDataList[i]);
                 if (removeInput)
                     compilerDataList[i] = compilerDataList[--inputShaderVariantCount];
@@ -263,7 +270,7 @@ namespace UnityEditor.Rendering.Universal
             Profiler.enabled = false;
         }
 #endif
-        
+
         public void OnPreprocessBuild(BuildReport report)
         {
             FetchAllSupportedFeatures();
@@ -273,7 +280,7 @@ namespace UnityEditor.Rendering.Universal
             Profiler.enabled = true;
 #endif
         }
-        
+
         private static void FetchAllSupportedFeatures()
         {
             List<UniversalRenderPipelineAsset> urps = new List<UniversalRenderPipelineAsset>();
@@ -326,6 +333,7 @@ namespace UnityEditor.Rendering.Universal
             if (pipelineAsset.supportsTerrainHoles)
                 shaderFeatures |= ShaderFeatures.TerrainHoles;
 
+            bool hasScreenSpaceOcclusion = false;
             bool hasDeferredRenderer = false;
             bool withAccurateGbufferNormals = false;
             bool withoutAccurateGbufferNormals = false;
@@ -341,6 +349,18 @@ namespace UnityEditor.Rendering.Universal
                     withAccurateGbufferNormals |= deferredRenderer.AccurateGbufferNormals;
                     withoutAccurateGbufferNormals |= !deferredRenderer.AccurateGbufferNormals;
                 }
+
+                // Check for Screen Space Ambient Occlusion Renderer Feature
+                ScriptableRendererData rendererData = pipelineAsset.m_RendererDataList[rendererIndex];
+                if (rendererData != null)
+                {
+                    for (int rendererFeatureIndex = 0; rendererFeatureIndex < rendererData.rendererFeatures.Count; rendererFeatureIndex++)
+                    {
+                        ScriptableRendererFeature rendererFeature = rendererData.rendererFeatures[rendererFeatureIndex];
+                        ScreenSpaceAmbientOcclusion ssao = rendererFeature as ScreenSpaceAmbientOcclusion;
+                        hasScreenSpaceOcclusion |= ssao != null;
+                    }
+                }
             }
 
             if (hasDeferredRenderer)
@@ -349,8 +369,12 @@ namespace UnityEditor.Rendering.Universal
             // We can only strip accurateGbufferNormals related variants if all DeferredRenderers use the same option.
             if (withAccurateGbufferNormals && !withoutAccurateGbufferNormals)
                 shaderFeatures |= ShaderFeatures.DeferredWithAccurateGbufferNormals;
+
             if (!withAccurateGbufferNormals && withoutAccurateGbufferNormals)
                 shaderFeatures |= ShaderFeatures.DeferredWithoutAccurateGbufferNormals;
+
+            if (hasScreenSpaceOcclusion)
+                shaderFeatures |= ShaderFeatures.ScreenSpaceOcclusion;
 
             return shaderFeatures;
         }
