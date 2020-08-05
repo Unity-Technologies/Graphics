@@ -140,7 +140,7 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     output.normalWS = normalWS;
     output.tangentWS = tangentWS;
 #endif
-#if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_FULLSCREEN_DEBUG)
+#if !defined(SHADER_API_METAL) && defined(SHADERPASS) && (SHADERPASS == SHADERPASS_FULLSCREEN_DEBUG)
     if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VERTEX_DENSITY)
         IncrementVertexDensityCounter(output.positionCS);
 #endif
@@ -176,14 +176,8 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
 
     output.positionCS = TransformWorldToHClip(input.positionRWS);
 
-#if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_FULLSCREEN_DEBUG)
-#ifdef SHADER_API_METAL
-    // There is a bug with generated shader on metal when accessing the ShaderVariablesDebugDisplay cbuffer in this shader stage.
-    // This condition works since quad overdraw is the only other mode accessing the UAV and it sets the _GlobalTessellationFactorMultiplier to 0 (which is in another cbuffer so it's ok)
-    if (_GlobalTessellationFactorMultiplier != 0)
-#else
+#if !defined(SHADER_API_METAL) && defined(SHADERPASS) && (SHADERPASS == SHADERPASS_FULLSCREEN_DEBUG)
     if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VERTEX_DENSITY)
-#endif
         IncrementVertexDensityCounter(output.positionCS);
 #endif
 
