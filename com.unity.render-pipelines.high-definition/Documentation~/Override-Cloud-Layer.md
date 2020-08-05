@@ -53,12 +53,12 @@ Only the red and green channels are used and they represent respectively horizon
 | - **Opacity A**               | Opacity of the alpha layer. |
 | **Rotation**                  | Use the slider to set the angle to rotate the Cloud Layer, in degrees. |
 | **Tint**                      | Specifies a color that HDRP uses to tint the Cloud Layer. |
-| **Intensity Multiplier**      | Set the multiplier by which HDRP multiplies the Cloud Layer color. |
-| **Distortion**                | Use the dropdown to choose the distortion mode for simulating cloud motion.<br />&#8226; **None**: No distortion.<br />&#8226; **Procedural**: HDRP distorts the clouds using a uniform wind direction.<br />&#8226; **Flowmap**: HDRP distorts the clouds using the provided flowmap. |
+| **Exposure**                  | Set the amount of light per unit area that HDRP applies to the cloud layer. |
+| **Distortion Mode**           | Use the dropdown to choose the distortion mode for simulating cloud motion.<br />&#8226; **None**: No distortion.<br />&#8226; **Procedural**: HDRP distorts the clouds using a uniform wind direction.<br />&#8226; **Flowmap**: HDRP distorts the clouds using the provided flowmap. |
 | - **Scroll direction**        | Use the slider to set the scrolling direction for the distortion. |
 | - **Scroll speed**            | Modify the speed at which HDRP scrolls the distortion texture. |
 | - **Flowmap**                 | Assign a flowmap that HDRP uses to distort UVs when rendering the clouds. Refer to the section [Customizing the Flowmap](#CustomizingFlowmap) for more details.<br />This property only appears when you select **Flowmap** from the **Distortion** drop-down. |
-| **Lighting**                  | Use the dropdown to choose the cloud lighting mode.<br />&#8226; **None**: No lighting.<br />&#8226; **Raymarching**: HDRP lights the clouds using 2D raymarching with the main directionnal light. |
+| **Lighting Mode**             | Use the dropdown to choose the cloud lighting mode.<br />&#8226; **None**: No lighting.<br />&#8226; **Raymarching**: HDRP lights the clouds using 2D raymarching with the main directionnal light. |
 | - **Steps**                   | Use the slider to set the number of steps for the raymarching. |
 | - **Thickness**               | Set the thickness of the clouds. |
 | **Cast Shadows**              | Enable to have the clouds cast shadows for the main directionnal light. |

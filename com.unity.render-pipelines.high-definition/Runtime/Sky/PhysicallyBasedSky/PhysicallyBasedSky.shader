@@ -226,12 +226,10 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         }
 
         skyColor += radiance * (1 - skyOpacity);
-
-        // Hacky way to boost the clouds to match other sky types
-        float maxLuminance = (78.0f / (100.0f * 0.65)) * pow(2.0f, -13.5);
-        skyColor = ApplyCloudLayer(-V, skyColor * maxLuminance) / maxLuminance;
-
         skyColor *= _IntensityMultiplier;
+
+        skyColor = ApplyCloudLayer(-V, skyColor);
+
         return float4(skyColor, 1.0);
     }
 

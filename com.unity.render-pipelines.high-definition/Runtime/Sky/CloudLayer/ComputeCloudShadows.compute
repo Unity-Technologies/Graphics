@@ -15,28 +15,26 @@
 RW_TEXTURE2D(float, _CloudShadowsOutput);
 
 float4 _Params;
-float _CloudShadowOpacity;
+float4 _Params1;
+float4 _Params2;
 
-#define _SunDirection           _Params.xyz
-#define _Resolution             _Params.w
-
-static float3 tangent;
-static float3 bitangent;
+#define _SunForward         _Params.xyz
+#define _SunRight           _Params1.xyz
+#define _SunUp              _Params2.xyz
+#define _Resolution         _Params.w
+#define _CloudShadowOpacity _Params1.w
 
 float ComputeCloudShadow(float2 uv)
 {
     const float width = 0.15;
-    float3 dir = -_SunDirection + uv.x * width * tangent + uv.y * width * bitangent;
+    float3 dir = -_SunForward + uv.x * width * _SunRight + uv.y * width * _SunUp;
 
-    return GetCloudOpacity(dir);
+    return GetCloudOpacity(normalize(dir));
 }
 
 [numthreads(8, 8, 1)]
 void KERNEL_NAME(uint2 dispatchThreadId : SV_DispatchThreadID)
 {
-    tangent = normalize(cross(-_SunDirection, float3(0.0, 1.0, 0.0)));
-    bitangent = cross(tangent, -_SunDirection);
-
     float2 uv = float2(dispatchThreadId.x * _Resolution, 1.0 - dispatchThreadId.y * _Resolution) * 2.0 - 1.0;
     float shadow = ComputeCloudShadow(uv);
 

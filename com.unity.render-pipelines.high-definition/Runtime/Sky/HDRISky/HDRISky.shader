@@ -224,8 +224,8 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     float4 GetColorWithRotation(float3 dir, float exposure, float2 cos_sin)
     {
-        float3 skyColor = GetSkyColor(RotationUp(dir, cos_sin));
-        skyColor = ApplyCloudLayer(dir, skyColor)*_Intensity*exposure;
+        float3 skyColor = GetSkyColor(RotationUp(dir, cos_sin))*_Intensity;
+        skyColor = ApplyCloudLayer(dir, skyColor)*exposure;
 
         skyColor = ClampToFloat16Max(skyColor);
         return float4(skyColor, 1.0);

@@ -667,11 +667,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 var renderingContext = m_CachedCloudContexts[skyContext.cachedCloudRenderingContextId].renderingContext;
                 var layer = skyContext.cloudLayer;
 
-                Vector4 _Params = sunLight.transform.forward;
+                Vector4 _Params  = sunLight.transform.forward;
+                Vector4 _Params1 = sunLight.transform.right;
+                Vector4 _Params2 = sunLight.transform.up;
                 _Params.w = 1.0f / (float)m_CloudShadowsResolution;
+                _Params1.w = 10.0f * layer.shadowsOpacity.value;
 
                 cmd.SetComputeVectorParam(m_ComputeCloudShadowsCS, HDShaderIDs._Params, _Params);
-                cmd.SetComputeFloatParam(m_ComputeCloudShadowsCS, HDShaderIDs._CloudShadowOpacity, 10.0f*layer.shadowsOpacity.value);
+                cmd.SetComputeVectorParam(m_ComputeCloudShadowsCS, HDShaderIDs._Params1, _Params1);
+                cmd.SetComputeVectorParam(m_ComputeCloudShadowsCS, HDShaderIDs._Params2, _Params2);
+
                 cmd.SetComputeTextureParam(m_ComputeCloudShadowsCS, m_ComputeCloudShadowsKernel, HDShaderIDs._CloudTexture, renderingContext.cloudTextureRT);
                 cmd.SetComputeTextureParam(m_ComputeCloudShadowsCS, m_ComputeCloudShadowsKernel, m_CloudShadowsOutputParam, renderingContext.cloudShadowsRT);
 
@@ -973,7 +978,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_BuiltinParameters.frameIndex = frameIndex;
                 m_BuiltinParameters.skySettings = skyContext.skySettings;
 
-                bool cloudShadows = false;
                 if (skyContext.cloudLayer != null && skyContext.cloudLayer.opacity.value != 0.0f)
                 {
                     int cloudHash = ComputeCloudHash(skyContext.cloudLayer, sunLight, out int numLayers, out bool castShadows);
@@ -982,16 +986,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (AcquireCloudRenderingContext(skyContext, cloudHash, numLayers, castShadows))
                         BakeCloudTexture(skyContext, sunLight);
 
+                    if (castShadows && sunLight != null)
+                        ComputeCloudShadows(skyContext, sunLight);
+
                     var cloudContext = m_CachedCloudContexts[skyContext.cachedCloudRenderingContextId].renderingContext;
                     m_BuiltinParameters.cloudLayer = skyContext.cloudLayer;
                     m_BuiltinParameters.cloudTexture = cloudContext.cloudTextureRT;
 
-                    if (castShadows && sunLight != null)
-                    {
-                        cloudShadows = true;
-                        ComputeCloudShadows(skyContext, sunLight);
-                        cmd.SetGlobalTexture(HDShaderIDs._CloudShadows, cloudContext.cloudShadowsRT);
-                    }
                 }
                 else
                 {
@@ -1003,9 +1004,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_BuiltinParameters.cloudLayer = null;
                     m_BuiltinParameters.cloudTexture = null;
                 }
-
-                if (!cloudShadows)
-                    cmd.SetGlobalTexture(HDShaderIDs._CloudShadows, Texture2D.whiteTexture);
 
                 int skyHash = ComputeSkyHash(hdCamera, skyContext, sunLight, ambientMode, staticSky);
                 bool forceUpdate = updateRequired;
@@ -1129,6 +1127,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BuiltinParameters.frameIndex = frameIndex;
             m_BuiltinParameters.skySettings = skyContext.skySettings;
 
+            bool cloudShadows = false;
             if (skyContext.cloudLayer != null && skyContext.cloudLayer.opacity.value != 0.0f)
             {
                 int cloudHash = ComputeCloudHash(skyContext.cloudLayer, sunLight, out int numLayers, out bool castShadows);
@@ -1136,12 +1135,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 var cloudContext = m_CachedCloudContexts[skyContext.cachedCloudRenderingContextId].renderingContext;
                 m_BuiltinParameters.cloudLayer = skyContext.cloudLayer;
                 m_BuiltinParameters.cloudTexture = cloudContext.cloudTextureRT;
+
+                if (castShadows && sunLight != null)
+                {
+                    cloudShadows = true;
+                    cmd.SetGlobalTexture(HDShaderIDs._CloudShadows, cloudContext.cloudShadowsRT);
+                }
             }
             else
             {
                 m_BuiltinParameters.cloudLayer = null;
                 m_BuiltinParameters.cloudTexture = null;
             }
+
+            if (!cloudShadows)
+                cmd.SetGlobalTexture(HDShaderIDs._CloudShadows, Texture2D.whiteTexture);
         }
 
         public void PreRenderSky(HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle normalBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
@@ -1172,6 +1180,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 skyContext.skyRenderer.PreRenderSky(m_BuiltinParameters, false, hdCamera.camera.cameraType != CameraType.Reflection || skyContext.skySettings.includeSunInBaking.value);
             }
+            else
+                cmd.SetGlobalTexture(HDShaderIDs._CloudShadows, Texture2D.whiteTexture);
         }
 
         public void RenderSky(HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)

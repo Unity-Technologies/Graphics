@@ -3,17 +3,6 @@ using System;
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
-    /// Cloud Layer Mode.
-    /// </summary>
-    public enum CloudLayerMode
-    {
-        /// <summary>Cloud Map mode.</summary>
-        CloudMap,
-        /// <summary>CustomRenderTexture mode.</summary>
-        RenderTexture,
-    }
-
-    /// <summary>
     /// Cloud Map Mode.
     /// </summary>
     public enum CloudMapMode
@@ -61,9 +50,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Enable to cover only the upper part of the sky.</summary>
         [Tooltip("Check this box if the cloud layer covers only the upper part of the sky.")]
         public BoolParameter        upperHemisphereOnly = new BoolParameter(true);
-        /// <summary>Select the cloud layer mode.</summary>
-        [Tooltip("Choose the cloud layer mode;")]
-        public VolumeParameter<CloudLayerMode>  mode    = new VolumeParameter<CloudLayerMode>();
         /// <summary>Choose the number of cloud layers.</summary>
         public VolumeParameter<CloudMapMode>    layers  = new VolumeParameter<CloudMapMode>();
 
@@ -75,90 +61,12 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Controls the tiling of the cloud shadows.")]
         public MinFloatParameter        shadowsTiling       = new MinFloatParameter(500.0f, 0.0f);
 
-
-        [Serializable]
-        public class CloudSettings
-        {
-            /// <summary>Rotation of the clouds.</summary>
-            [Tooltip("Sets the rotation of the clouds.")]
-            public ClampedFloatParameter    rotation            = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
-            /// <summary>Color multiplier of the clouds.</summary>
-            [Tooltip("Specifies the color that HDRP uses to tint the clouds.")]
-            public ColorParameter           tint                = new ColorParameter(Color.white);
-            /// <summary>Intensity multipler of the clouds.</summary>
-            [Tooltip("Sets the intensity multiplier for the clouds.")]
-            public MinFloatParameter        intensityMultiplier = new MinFloatParameter(10.0f, 0.0f);
-
-            /// <summary>Distortion mode.</summary>
-            [Tooltip("Distortion mode.")]
-            public VolumeParameter<CloudDistortionMode> distortion      = new VolumeParameter<CloudDistortionMode>();
-            /// <summary>Direction of the distortion.</summary>
-            [Tooltip("Sets the rotation of the distortion (in degrees).")]
-            public ClampedFloatParameter                scrollDirection = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
-            /// <summary>Speed of the distortion.</summary>
-            [Tooltip("Sets the cloud scrolling speed. The higher the value, the faster the clouds will move.")]
-            public MinFloatParameter                    scrollSpeed     = new MinFloatParameter(1.0f, 0.0f);
-            /// <summary>Texture used to distort the UVs for the cloud layer.</summary>
-            [Tooltip("Specify the flowmap HDRP uses for cloud distortion (in LatLong layout).")]
-            public TextureParameter                     flowmap         = new TextureParameter(null);
-
-            internal float scrollFactor = 0.0f;
-
-
-            internal (Vector4, Vector4) GetRenderingParameters()
-            {
-                float dir = -Mathf.Deg2Rad * scrollDirection.value;
-                var params1 = new Vector4(Mathf.Cos(dir), Mathf.Sin(dir), scrollFactor, 0);
-                Vector4 params2 = tint.value;
-                params2.w = intensityMultiplier.value;
-                return (params1, params2);
-            }
-        }
-
-        [Serializable]
-        public class CloudLighting
-        {
-            /// <summary>Distortion mode.</summary>
-            [Tooltip("Distortion mode.")]
-            public VolumeParameter<CloudLightingMode>    lighting   = new VolumeParameter<CloudLightingMode>();
-            /// <summary>Number of raymarching steps.</summary>
-            [Tooltip("Number of raymarching steps.")]
-            public ClampedIntParameter                  steps       = new ClampedIntParameter(4, 1, 10);
-            /// <summary>Thickness of the clouds.</summary>
-            [Tooltip("Controls the thickness of the clouds.")]
-            public ClampedFloatParameter                thickness   = new ClampedFloatParameter(0.5f, 0, 2);
-
-            /// <summary>Enable to cast shadows.</summary>
-            [Tooltip("Enable or disable cloud shadows.")]
-            public BoolParameter    castShadows = new BoolParameter(false);
-
-            internal int NumSteps => (lighting == CloudLightingMode.Raymarching) ? steps.value : 0;
-
-
-            internal int GetBakingHashCode(ref bool cloudShadows)
-            {
-                int hash = 17;
-
-                unchecked
-                {
-                    hash = hash * 23 + lighting.GetHashCode();
-                    hash = hash * 23 + steps.GetHashCode();
-                    hash = hash * 23 + thickness.GetHashCode();
-                    hash = hash * 23 + castShadows.GetHashCode();
-                }
-
-                cloudShadows |= castShadows.value;
-                return hash;
-            }
-        }
-
         [Serializable]
         public class CloudMap
         {
             /// <summary>Texture used to render the clouds.</summary>
             [Tooltip("Specify the texture HDRP uses to render the clouds (in LatLong layout).")]
             public TextureParameter         cloudMap    = new TextureParameter(null);
-
             /// <summary>Opacity of the red layer.</summary>
             [Tooltip("Opacity of the red layer.")]
             public ClampedFloatParameter    opacityR    = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
@@ -172,29 +80,74 @@ namespace UnityEngine.Rendering.HighDefinition
             [Tooltip("Opacity of the alpha layer.")]
             public ClampedFloatParameter    opacityA    = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
 
-            public CloudSettings settings = new CloudSettings();
-            public CloudLighting lighting = new CloudLighting();
+            /// <summary>Rotation of the clouds.</summary>
+            [Tooltip("Sets the rotation of the clouds.")]
+            public ClampedFloatParameter    rotation            = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
+            /// <summary>Color multiplier of the clouds.</summary>
+            [Tooltip("Specifies the color that HDRP uses to tint the clouds.")]
+            public ColorParameter           tint                = new ColorParameter(Color.white);
+            /// <summary>Exposure of the clouds.</summary>
+            [Tooltip("Sets the exposure of the clouds in EV.")]
+            public FloatParameter           exposure            = new FloatParameter(0.0f);
 
+            /// <summary>Distortion mode.</summary>
+            [Tooltip("Distortion mode.")]
+            public VolumeParameter<CloudDistortionMode> distortionMode  = new VolumeParameter<CloudDistortionMode>();
+            /// <summary>Direction of the distortion.</summary>
+            [Tooltip("Sets the rotation of the distortion (in degrees).")]
+            public ClampedFloatParameter                scrollDirection = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
+            /// <summary>Speed of the distortion.</summary>
+            [Tooltip("Sets the cloud scrolling speed. The higher the value, the faster the clouds will move.")]
+            public MinFloatParameter                    scrollSpeed     = new MinFloatParameter(1.0f, 0.0f);
+            /// <summary>Texture used to distort the UVs for the cloud layer.</summary>
+            [Tooltip("Specify the flowmap HDRP uses for cloud distortion (in LatLong layout).")]
+            public TextureParameter                     flowmap         = new TextureParameter(null);
+
+            /// <summary>Lighting mode.</summary>
+            [Tooltip("Lighting mode.")]
+            public VolumeParameter<CloudLightingMode>    lightingMode   = new VolumeParameter<CloudLightingMode>();
+            /// <summary>Number of raymarching steps.</summary>
+            [Tooltip("Number of raymarching steps.")]
+            public ClampedIntParameter                  steps           = new ClampedIntParameter(4, 1, 10);
+            /// <summary>Thickness of the clouds.</summary>
+            [Tooltip("Controls the thickness of the clouds.")]
+            public ClampedFloatParameter                thickness       = new ClampedFloatParameter(0.5f, 0, 2);
+
+            /// <summary>Enable to cast shadows.</summary>
+            [Tooltip("Enable or disable cloud shadows.")]
+            public BoolParameter    castShadows = new BoolParameter(false);
+
+
+            internal float scrollFactor = 0.0f;
+            internal int NumSteps => (lightingMode == CloudLightingMode.Raymarching) ? steps.value : 0;
             internal Vector4 Opacities => new Vector4(opacityR.value, opacityG.value, opacityB.value, opacityA.value);
 
 
             internal (Vector4, Vector4) GetBakingParameters()
             {
                 Vector4 parameters = new Vector4(
-                    -settings.rotation.value / 360.0f,
-                    lighting.NumSteps,
-                    lighting.thickness.value,
+                    -rotation.value / 360.0f,
+                    NumSteps,
+                    thickness.value,
                     0
                 );
                 return (Opacities, parameters);
             }
 
+            internal (Vector4, Vector4) GetRenderingParameters()
+            {
+                float dir = -Mathf.Deg2Rad * scrollDirection.value;
+                var params1 = new Vector4(Mathf.Cos(dir), Mathf.Sin(dir), scrollFactor, 0);
+                Vector4 params2 = tint.value * ColorUtils.ConvertEV100ToExposure(-exposure.value);
+                return (params1, params2);
+            }
+
             internal bool Apply(Material skyMaterial, string mapKeyword, string motionKeyword)
             {
-                if (settings.distortion.value != CloudDistortionMode.None)
+                if (distortionMode.value != CloudDistortionMode.None)
                 {
                     skyMaterial.EnableKeyword(motionKeyword);
-                    if (settings.distortion.value == CloudDistortionMode.Flowmap)
+                    if (distortionMode.value == CloudDistortionMode.Flowmap)
                     {
                         skyMaterial.EnableKeyword(mapKeyword);
                         return true;
@@ -212,10 +165,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             internal bool SetComputeParams(ComputeShader cs, string mapKeyword, string motionKeyword)
             {
-                if (settings.distortion.value != CloudDistortionMode.None)
+                if (distortionMode.value != CloudDistortionMode.None)
                 {
                     cs.EnableKeyword(motionKeyword);
-                    if (settings.distortion.value == CloudDistortionMode.Flowmap)
+                    if (distortionMode.value == CloudDistortionMode.Flowmap)
                     {
                         cs.EnableKeyword(mapKeyword);
                         return true;
@@ -231,7 +184,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
             }
 
-            internal int GetBakingHashCode(ref bool castShadows)
+            internal int GetBakingHashCode(ref bool cloudShadows)
             {
                 int hash = 17;
 
@@ -243,8 +196,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     hash = hash * 23 + opacityB.GetHashCode();
                     hash = hash * 23 + opacityA.GetHashCode();
 
-                    hash = hash * 23 + settings.rotation.GetHashCode();
-                    hash = hash * 23 + lighting.GetBakingHashCode(ref castShadows);
+                    hash = hash * 23 + rotation.GetHashCode();
+
+                    hash = hash * 23 + lightingMode.GetHashCode();
+                    hash = hash * 23 + steps.GetHashCode();
+                    hash = hash * 23 + thickness.GetHashCode();
+                    hash = hash * 23 + castShadows.GetHashCode();
+
 #if UNITY_EDITOR
                     // In the editor, we want to rebake the texture if the texture content is modified
                     if (cloudMap.value != null)
@@ -252,41 +210,16 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
                 }
 
-                return hash;
-            }
-        }
-
-        [Serializable]
-        public class CloudCRT
-        {
-            /// <summary>Texture used to render the clouds.</summary>
-            [Tooltip("Specify the CustomRenderTexture HDRP uses to render the clouds (in LatLong layout).")]
-            public TextureParameter         cloudCRT    = new TextureParameter(null);
-
-            public CloudSettings settings = new CloudSettings();
-            public CloudLighting lighting = new CloudLighting();
-
-
-            internal int GetBakingHashCode(ref bool castShadows)
-            {
-                int hash = 17;
-
-                unchecked
-                {
-                    hash = hash * 23 + cloudCRT.GetHashCode();
-                    hash = hash * 23 + settings.rotation.GetHashCode();
-                    hash = hash * 23 + lighting.GetBakingHashCode(ref castShadows);
-                }
-
+                cloudShadows |= castShadows.value;
                 return hash;
             }
         }
 
         public CloudMap layerA = new CloudMap();
         public CloudMap layerB = new CloudMap();
-        public CloudCRT crt  = new CloudCRT();
 
         private float lastTime = 0.0f;
+        static internal Vector4[] vectorArray = new Vector4[2];
 
 
         CloudLayer()
@@ -310,54 +243,53 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
-            if (layer.mode.value == CloudLayerMode.CloudMap)
+            float dt = (Time.time - layer.lastTime) * 0.01f;
+            layer.layerA.scrollFactor += layer.layerA.scrollSpeed.value * dt;
+            layer.layerB.scrollFactor += layer.layerB.scrollSpeed.value * dt;
+            layer.lastTime = Time.time;
+
+            var paramsA = layer.layerA.GetRenderingParameters();
+            var paramsB = layer.layerB.GetRenderingParameters();
+            paramsA.Item1.w = layer.opacity.value;
+            paramsB.Item1.w = layer.upperHemisphereOnly.value ? 1 : 0;
+
+            skyMaterial.SetTexture(HDShaderIDs._CloudTexture, builtinParams.cloudTexture);
+            vectorArray[0] = paramsA.Item1; vectorArray[1] = paramsB.Item1;
+            skyMaterial.SetVectorArray(HDShaderIDs._CloudParams1, vectorArray);
+            vectorArray[0] = paramsA.Item2; vectorArray[1] = paramsB.Item2;
+            skyMaterial.SetVectorArray(HDShaderIDs._CloudParams2, vectorArray);
+
+            if (layer.layerA.Apply(skyMaterial, "USE_CLOUD_MAP", "USE_CLOUD_MOTION"))
+                skyMaterial.SetTexture(HDShaderIDs._CloudFlowmap1, layer.layerA.flowmap.value);
+
+            if (layer.layers.value == CloudMapMode.Double)
             {
-                float dt = (Time.time - layer.lastTime) * 0.01f;
-                layer.layerA.settings.scrollFactor += layer.layerA.settings.scrollSpeed.value * dt;
-                layer.layerB.settings.scrollFactor += layer.layerB.settings.scrollSpeed.value * dt;
-                layer.lastTime = Time.time;
-
-                var paramsA = layer.layerA.settings.GetRenderingParameters();
-                var paramsB = layer.layerB.settings.GetRenderingParameters();
-                paramsA.Item1.w = layer.opacity.value;
-                paramsB.Item1.w = layer.upperHemisphereOnly.value ? 1 : 0;
-
-                skyMaterial.SetTexture(HDShaderIDs._CloudTexture, builtinParams.cloudTexture);
-                skyMaterial.SetVectorArray(HDShaderIDs._CloudParams1, new Vector4[]{ paramsA.Item1, paramsB.Item1 });
-                skyMaterial.SetVectorArray(HDShaderIDs._CloudParams2, new Vector4[]{ paramsA.Item2, paramsB.Item2 });
-
-                if (layer.layerA.Apply(skyMaterial, "USE_CLOUD_MAP", "USE_CLOUD_MOTION"))
-                    skyMaterial.SetTexture(HDShaderIDs._CloudFlowmap1, layer.layerA.settings.flowmap.value);
-
-                if (layer.layers.value == CloudMapMode.Double)
-                {
-                    if (layer.layerB.Apply(skyMaterial, "USE_SECOND_CLOUD_MAP", "USE_SECOND_CLOUD_MOTION"))
-                        skyMaterial.SetTexture(HDShaderIDs._CloudFlowmap2, layer.layerB.settings.flowmap.value);
-                }
-                else
-                {
-                    skyMaterial.DisableKeyword("USE_SECOND_CLOUD_MAP");
-                    skyMaterial.DisableKeyword("USE_SECOND_CLOUD_MOTION");
-                }
+                if (layer.layerB.Apply(skyMaterial, "USE_SECOND_CLOUD_MAP", "USE_SECOND_CLOUD_MOTION"))
+                    skyMaterial.SetTexture(HDShaderIDs._CloudFlowmap2, layer.layerB.flowmap.value);
+            }
+            else
+            {
+                skyMaterial.DisableKeyword("USE_SECOND_CLOUD_MAP");
+                skyMaterial.DisableKeyword("USE_SECOND_CLOUD_MOTION");
             }
         }
 
         internal void SetComputeParams(CommandBuffer cmd, ComputeShader cs, int kernel)
         {
-            var paramsA = layerA.settings.GetRenderingParameters();
-            var paramsB = layerB.settings.GetRenderingParameters();
+            var paramsA = layerA.GetRenderingParameters();
+            var paramsB = layerB.GetRenderingParameters();
             paramsA.Item1.w = opacity.value;
             paramsB.Item1.w = upperHemisphereOnly.value ? 1 : 0;
 
             cmd.SetComputeVectorArrayParam(cs, HDShaderIDs._CloudParams1, new Vector4[]{ paramsA.Item1, paramsB.Item1 });
 
             if (layerA.SetComputeParams(cs, "USE_CLOUD_MAP", "USE_CLOUD_MOTION"))
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CloudFlowmap1, layerA.settings.flowmap.value);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CloudFlowmap1, layerA.flowmap.value);
 
             if (layers.value == CloudMapMode.Double)
             {
                 if (layerB.SetComputeParams(cs, "USE_SECOND_CLOUD_MAP", "USE_SECOND_CLOUD_MOTION"))
-                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CloudFlowmap2, layerB.settings.flowmap.value);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CloudFlowmap2, layerB.flowmap.value);
             }
             else
             {
@@ -375,19 +307,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             unchecked
             {
-                hash = hash * 23 + mode.GetHashCode();
-                if (mode.value == CloudLayerMode.CloudMap)
+                hash = hash * 23 + layers.GetHashCode();
+                hash = hash * 23 + layerA.GetBakingHashCode(ref castShadows);
+                if (layers.value == CloudMapMode.Double)
                 {
-                    hash = hash * 23 + layers.GetHashCode();
-                    hash = hash * 23 + layerA.GetBakingHashCode(ref castShadows);
-                    if (layers.value == CloudMapMode.Double)
-                    {
-                        hash = hash * 23 + layerB.GetBakingHashCode(ref castShadows);
-                        numLayers = 2;
-                    }
+                    hash = hash * 23 + layerB.GetBakingHashCode(ref castShadows);
+                    numLayers = 2;
                 }
-                else
-                    hash = hash * 23 + crt.GetBakingHashCode(ref castShadows);
             }
 
             return hash;

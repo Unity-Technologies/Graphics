@@ -23,7 +23,6 @@ float4 _CloudParams2[2];
 
 // TODO: Those 2 params can be premultiplied
 #define _CloudTint(l)       _CloudParams2[l].xyz
-#define _CloudIntensity(l)  _CloudParams2[l].w
 
 struct CloudLayerData
 {
@@ -118,7 +117,7 @@ float4 GetCloudLayerColor(float3 dir, int index)
     else
         color = SampleCloudMap(dir, layer.index);
 
-    return float4(color.x * _CloudIntensity(layer.index) * _CloudTint(layer.index), color.y * _CloudOpacity);
+    return float4(color.x * _CloudTint(layer.index), color.y * _CloudOpacity);
 }
 
 float GetCloudOpacity(float3 dir)
