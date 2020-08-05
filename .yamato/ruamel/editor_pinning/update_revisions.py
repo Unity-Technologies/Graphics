@@ -40,7 +40,7 @@ def parse_projectversion_file(projectversion_filename):
     return None
 
 
-def projectversion_dict(projectversion_dict):
+def parse_projectversion_dict(projectversion_dict):
     """Parse ProjectSettings.txt and return the version and revision as a tuple."""
     REVISION_KEY = 'm_EditorVersionWithRevision'
     REVISION_VALUE = projectversion_dict[REVISION_KEY]
