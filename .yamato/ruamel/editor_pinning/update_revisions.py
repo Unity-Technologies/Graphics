@@ -39,6 +39,18 @@ def parse_projectversion_file(projectversion_filename):
                 return (version, revision)
     return None
 
+
+def projectversion_dict(projectversion_dict):
+    """Parse ProjectSettings.txt and return the version and revision as a tuple."""
+    REVISION_KEY = 'm_EditorVersionWithRevision'
+    REVISION_VALUE = projectversion_dict[REVISION_KEY]
+
+    index = REVISION_VALUE.find('(')
+    version = REVISION_VALUE[len(REVISION_KEY) + 2: index - 1]
+    revision = REVISION_VALUE[index + 1: -1]
+    return (version, revision)
+
+
 def generate_downloader_cmd(track, version, trunk_track, platform, unity_downloader_components):
     """Generate a list of commmand arguments for the invovation of the unity-downloader-cli."""
     assert platform in PLATFORMS, f'Unsupported platform: {platform}'
@@ -60,12 +72,13 @@ def generate_downloader_cmd(track, version, trunk_track, platform, unity_downloa
             '--wait --skip-download').split()
 
 
-def get_all_versions(tracks, trunk_track, unity_downloader_components, projectversion_filename):
+def get_all_versions(tracks, trunk_track, unity_downloader_components, projectversion_filename, projectversion_dict):
     """Gets all versions from unity-downloader-cli and the ProjectVersion.txt"""
     versions = get_versions_from_unity_downloader(tracks, trunk_track, unity_downloader_components)
 
     # Add ProjectVersion.txt version and revision.
-    version, revision = parse_projectversion_file(projectversion_filename)
+    #version, revision = parse_projectversion_file(projectversion_filename)
+    version, revision = parse_projectversion_dict(projectversion_dict)
     versions[PROJECT_VERSION_NAME] = {
         'display_name': PROJECT_VERSION_NAME.replace('_', ' '),
         'revision': revision,
@@ -262,7 +275,7 @@ def main(argv):
     try:
         versions = get_all_versions(config['editor_tracks'], config['trunk_track'],
                                     config['unity_downloader_components'],
-                                    projectversion_filename)
+                                    projectversion_filename, config['project_version'])
         editor_versions_file = config['editor_versions_file']
         logging.info(f'Saving {editor_versions_file}.')
         write_versions_file(os.path.join(ROOT, editor_versions_file),
