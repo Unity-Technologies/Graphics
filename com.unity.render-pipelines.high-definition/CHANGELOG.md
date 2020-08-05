@@ -164,6 +164,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added API to check if a Camera, Light or ReflectionProbe is compatible with HDRP.
 - Added path tracing test scene for normal mapping.
 - Added missing API documentation.
+- Added an option to have only the metering mask displayed in the debug mode.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -748,6 +749,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed unwanted ghosting for smooth surfaces.
 - Fixing an issue in the recursive rendering flag texture usage.
 - Fixed a missing dependecy for choosing to evaluate transparent SSR.
+- Fixed issue that failed compilation when XR is disabled.
+- Fixed a compilation error in the IES code.
+- Fixed issue with dynamic resolution handler when no OnResolutionChange callback is specified. 
+- Fixed multiple volumes, planar reflection, and decal projector position when creating them from the menu.
+- Reduced the number of global keyword used in deferredTile.shader
+- Fixed incorrect processing of Ambient occlusion probe (9% error was introduced)
+- Fixed GPU hang on D3D12 on xbox. 
+- Fix several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
+- Fixed CoatMask block appearing when creating lit master node (case 1264632)
+- Fixed issue with SceneEV100 debug mode indicator when rescaling the window.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -917,6 +928,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Making sure the preview cameras do not use ray tracing effects due to a by design issue to build ray tracing acceleration structures (1262166).
 - Preparing ray traced reflections for the render graph support (performance and quality).
 - Preparing recursive rendering for the render graph port.
+- Preparation pass for RTGI, temporal filter and diffuse denoiser for render graph.
+- Updated the documentation for the DXR implementation.
+- Changed the DXR wizard to support optional checks.
+- Changed the DXR wizard steps.
+- Preparation pass for RTSSS to be supported by render graph.
+- Changed the color space of EmissiveColorLDR property on all shader. Was linear but should have been sRGB. Auto upgrade script handle the conversion.
+- Preparation pass for RTSSShadows to be supported by render graph.
+- Add tooltips with the full name of the (graphics) compositor properties to properly show large names that otherwise are clipped by the UI (case 1263590)
 
 ## [7.1.1] - 2019-09-05
 
