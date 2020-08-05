@@ -29,15 +29,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal List<Vector2> GetFalloffShape()
         {
-            List<Vector2> shape = new List<Vector2>();
-            List<Vector2> extrusionDir = new List<Vector2>();
-            LightUtility.GetFalloffShape(m_ShapePath, ref extrusionDir);
-            for (int i = 0; i < m_ShapePath.Length; i++)
+            var shape = new List<Vector2>();
+            var extrusionDir = LightUtility.GetFalloffShape(m_ShapePath);
+            for (var i = 0; i < m_ShapePath.Length; i++)
             {
-                Vector2 position = new Vector2();
-                position.x = m_ShapePath[i].x + this.shapeLightFalloffSize * extrusionDir[i].x;
-                position.y = m_ShapePath[i].y + this.shapeLightFalloffSize * extrusionDir[i].y;
-                shape.Add(position);
+                shape.Add(new Vector2
+                {
+                    x = m_ShapePath[i].x + this.shapeLightFalloffSize * extrusionDir[i].x,
+                    y = m_ShapePath[i].y + this.shapeLightFalloffSize * extrusionDir[i].y
+                });
             }
             return shape;
         }

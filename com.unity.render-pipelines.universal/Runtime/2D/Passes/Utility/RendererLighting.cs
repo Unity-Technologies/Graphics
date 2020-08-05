@@ -593,7 +593,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 rendererData.lightMaterials[materialIndex] = material;
             }
 
-            return rendererData.lightMaterials[materialIndex];
+            return material;
         }
 
         private static Material GetShadowMaterial(this Renderer2DData rendererData, int index)

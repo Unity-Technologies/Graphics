@@ -146,16 +146,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
             switch (m_LightType)
             {
                 case LightType.Freeform:
-                    bounds = LightUtility.GenerateShapeMesh(ref m_Mesh, m_ShapePath, m_ShapeLightFalloffSize);
+                    bounds = LightUtility.GenerateShapeMesh(m_Mesh, m_ShapePath, m_ShapeLightFalloffSize);
                     break;
                 case LightType.Parametric:
-                    bounds = LightUtility.GenerateParametricMesh(ref m_Mesh, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
+                    bounds = LightUtility.GenerateParametricMesh(m_Mesh, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
                     break;
                 case LightType.Sprite:
-                    bounds = LightUtility.GenerateSpriteMesh(ref m_Mesh, m_LightCookieSprite);
+                    bounds = LightUtility.GenerateSpriteMesh(m_Mesh, m_LightCookieSprite);
                     break;
                 case LightType.Point:
-                    bounds = LightUtility.GenerateParametricMesh(ref m_Mesh, 1.412135f, 0, 0, 4);
+                    bounds = LightUtility.GenerateParametricMesh(m_Mesh, 1.412135f, 0, 0, 4);
                     break;
             }
             boundingSphereRadius = isShapeLight ? GetShapeLightBoundingSphere(bounds) : m_PointLightOuterRadius;
