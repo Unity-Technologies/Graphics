@@ -269,8 +269,8 @@ def main(argv):
     ROOT = os.path.abspath(git_cmd('rev-parse --show-toplevel', cwd='.').strip())
 
     logging.info(f'Running in {os.path.abspath(os.curdir)}')
-    projectversion_filename = os.path.join(ROOT, config['project_version_file'])
-    assert os.path.isfile(projectversion_filename), f'Cannot find {projectversion_filename}'
+    # projectversion_filename = os.path.join(ROOT, config['project_version_file'])
+    # assert os.path.isfile(projectversion_filename), f'Cannot find {projectversion_filename}'
 
     try:
         versions = get_all_versions(config['editor_tracks'], config['trunk_track'],
