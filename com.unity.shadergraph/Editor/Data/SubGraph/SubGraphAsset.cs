@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph
         public string hlslName;
 
         public string assetGuid;
-        public string subGraphObjectIdOverride;
+        internal string subGraphObjectIdOverride; // allow id to be overwritten when necessary
 
         public ShaderGraphRequirements requirements;
 

@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.Serialization
         public string ObjectIdUnsafe
         {
             get { return m_ObjectId; }
-            set { m_ObjectId = value; }
+            internal set { m_ObjectId = value; }
         }
 
         public string objectId => m_ObjectId;

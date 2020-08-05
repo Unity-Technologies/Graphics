@@ -11,10 +11,10 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal Guid guid => m_Guid.guid;
 
-        public Guid GuidUnsafe
+        internal Guid GuidUnsafe
         {
             get { return m_Guid.guid; }
-            set { m_Guid.guid = value; }
+            set { m_Guid.guid = value; } // allow id to be overwritten when necessary
         }
 
         [SerializeField]
