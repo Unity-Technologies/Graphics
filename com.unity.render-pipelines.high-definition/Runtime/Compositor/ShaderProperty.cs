@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     shader.FindTextureStack(index, out string stackName, out int layerIndex);
                     sp.canBeUsedAsRT = (stackName.Length == 0);
 
-                    // Only 2D tetxures can be used as layers (no cube maps, 3d textures, etc)
+                    // Only 2D textures can be used as layers (no cube maps, 3d textures, etc)
                     sp.canBeUsedAsRT &= (shader.GetPropertyTextureDimension(index) == TextureDimension.Tex2D);
                 }
 
