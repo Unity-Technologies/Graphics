@@ -66,8 +66,8 @@ promote_core:
     variables:
         UPMCI_PROMOTION: 1
     dependencies:
-      -  .yamato/_packages.yml#publish_core
       -  .yamato/_packages.yml#pack_core
+      -  .yamato/_packages.yml#publish_core
       -  .yamato/_packages.yml#test_core_windows_trunk
       -  .yamato/_packages.yml#test_core_macos_trunk
     commands:
@@ -86,8 +86,8 @@ promote_core_dry:
     variables:
         UPMCI_PROMOTION: 1
     dependencies:
-      -  .yamato/_packages.yml#publish_core
       -  .yamato/_packages.yml#pack_core
+      -  .yamato/_packages.yml#publish_core_dry
       -  .yamato/_packages.yml#test_core_windows_trunk
       -  .yamato/_packages.yml#test_core_macos_trunk
     commands:
@@ -106,8 +106,8 @@ promote_universal:
     variables:
         UPMCI_PROMOTION: 1
     dependencies:
-      -  .yamato/_packages.yml#publish_universal
       -  .yamato/_packages.yml#pack_universal
+      -  .yamato/_packages.yml#publish_universal
       -  .yamato/_packages.yml#test_universal_windows_trunk
       -  .yamato/_packages.yml#test_universal_macos_trunk
     commands:
@@ -126,8 +126,8 @@ promote_universal_dry:
     variables:
         UPMCI_PROMOTION: 1
     dependencies:
-      -  .yamato/_packages.yml#publish_universal
       -  .yamato/_packages.yml#pack_universal
+      -  .yamato/_packages.yml#publish_universal_dry
       -  .yamato/_packages.yml#test_universal_windows_trunk
       -  .yamato/_packages.yml#test_universal_macos_trunk
     commands:
@@ -146,8 +146,8 @@ promote_hdrp:
     variables:
         UPMCI_PROMOTION: 1
     dependencies:
-      -  .yamato/_packages.yml#publish_hdrp
       -  .yamato/_packages.yml#pack_hdrp
+      -  .yamato/_packages.yml#publish_hdrp
       -  .yamato/_packages.yml#test_hdrp_windows_trunk
       -  .yamato/_packages.yml#test_hdrp_macos_trunk
     commands:
@@ -166,8 +166,8 @@ promote_hdrp_dry:
     variables:
         UPMCI_PROMOTION: 1
     dependencies:
-      -  .yamato/_packages.yml#publish_hdrp
       -  .yamato/_packages.yml#pack_hdrp
+      -  .yamato/_packages.yml#publish_hdrp_dry
       -  .yamato/_packages.yml#test_hdrp_windows_trunk
       -  .yamato/_packages.yml#test_hdrp_macos_trunk
     commands:
@@ -186,8 +186,8 @@ promote_shadergraph:
     variables:
         UPMCI_PROMOTION: 1
     dependencies:
-      -  .yamato/_packages.yml#publish_shadergraph
       -  .yamato/_packages.yml#pack_shadergraph
+      -  .yamato/_packages.yml#publish_shadergraph
       -  .yamato/_packages.yml#test_shadergraph_windows_trunk
       -  .yamato/_packages.yml#test_shadergraph_macos_trunk
     commands:
@@ -206,8 +206,8 @@ promote_shadergraph_dry:
     variables:
         UPMCI_PROMOTION: 1
     dependencies:
-      -  .yamato/_packages.yml#publish_shadergraph
       -  .yamato/_packages.yml#pack_shadergraph
+      -  .yamato/_packages.yml#publish_shadergraph_dry
       -  .yamato/_packages.yml#test_shadergraph_windows_trunk
       -  .yamato/_packages.yml#test_shadergraph_macos_trunk
     commands:
@@ -226,8 +226,8 @@ promote_vfx:
     variables:
         UPMCI_PROMOTION: 1
     dependencies:
-      -  .yamato/_packages.yml#publish_vfx
       -  .yamato/_packages.yml#pack_vfx
+      -  .yamato/_packages.yml#publish_vfx
       -  .yamato/_packages.yml#test_vfx_windows_trunk
       -  .yamato/_packages.yml#test_vfx_macos_trunk
     commands:
@@ -246,8 +246,8 @@ promote_vfx_dry:
     variables:
         UPMCI_PROMOTION: 1
     dependencies:
-      -  .yamato/_packages.yml#publish_vfx
       -  .yamato/_packages.yml#pack_vfx
+      -  .yamato/_packages.yml#publish_vfx_dry
       -  .yamato/_packages.yml#test_vfx_windows_trunk
       -  .yamato/_packages.yml#test_vfx_macos_trunk
     commands:
@@ -266,8 +266,8 @@ promote_config:
     variables:
         UPMCI_PROMOTION: 1
     dependencies:
-      -  .yamato/_packages.yml#publish_config
       -  .yamato/_packages.yml#pack_config
+      -  .yamato/_packages.yml#publish_config
       -  .yamato/_packages.yml#test_config_windows_trunk
       -  .yamato/_packages.yml#test_config_macos_trunk
     commands:
@@ -286,8 +286,8 @@ promote_config_dry:
     variables:
         UPMCI_PROMOTION: 1
     dependencies:
-      -  .yamato/_packages.yml#publish_config
       -  .yamato/_packages.yml#pack_config
+      -  .yamato/_packages.yml#publish_config_dry
       -  .yamato/_packages.yml#test_config_windows_trunk
       -  .yamato/_packages.yml#test_config_macos_trunk
     commands:
@@ -306,8 +306,8 @@ promote_lwrp:
     variables:
         UPMCI_PROMOTION: 1
     dependencies:
-      -  .yamato/_packages.yml#publish_lwrp
       -  .yamato/_packages.yml#pack_lwrp
+      -  .yamato/_packages.yml#publish_lwrp
       -  .yamato/_packages.yml#test_lwrp_windows_trunk
       -  .yamato/_packages.yml#test_lwrp_macos_trunk
     commands:
@@ -326,8 +326,8 @@ promote_lwrp_dry:
     variables:
         UPMCI_PROMOTION: 1
     dependencies:
-      -  .yamato/_packages.yml#publish_lwrp
       -  .yamato/_packages.yml#pack_lwrp
+      -  .yamato/_packages.yml#publish_lwrp_dry
       -  .yamato/_packages.yml#test_lwrp_windows_trunk
       -  .yamato/_packages.yml#test_lwrp_macos_trunk
     commands:

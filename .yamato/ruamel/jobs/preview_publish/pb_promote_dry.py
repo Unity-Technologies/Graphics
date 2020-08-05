@@ -10,7 +10,7 @@ class PreviewPublish_PromoteDryJob():
 
 
     def get_job_definition(self, agent, package, platforms, target_editor):
-        job = PreviewPublish_PromoteJob(agent, package, platforms, target_editor)
+        job = PreviewPublish_PromoteJob(agent, package, platforms, target_editor, dry_run=True)
         job.yml['commands'][-1] += ' --dry-run'
         job.yml['name'] += ' [dry run]'
 
