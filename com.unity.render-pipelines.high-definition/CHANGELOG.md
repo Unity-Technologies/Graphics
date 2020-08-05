@@ -758,6 +758,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed GPU hang on D3D12 on xbox. 
 - Fix several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
 - Fixed CoatMask block appearing when creating lit master node (case 1264632)
+- Fixed issue with SceneEV100 debug mode indicator when rescaling the window.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
