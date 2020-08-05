@@ -2837,7 +2837,9 @@ namespace UnityEngine.Rendering.HighDefinition
             shapeHeight = m_ShapeHeight;
 
 #if UNITY_EDITOR
-            legacyLight.areaSize = new Vector2(shapeWidth, shapeHeight);
+            // We don't want to update the disc area since their shape is largely handled by builtin.
+            if (GetLightTypeAndShape() != HDLightTypeAndShape.DiscArea)
+                legacyLight.areaSize = new Vector2(shapeWidth, shapeHeight);
 #endif
         }
 
