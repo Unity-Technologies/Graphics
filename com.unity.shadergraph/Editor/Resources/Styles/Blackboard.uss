@@ -35,7 +35,7 @@
     padding-top: 0px;
     padding-left: 0px;
     width: 10px;
-    height: 6px;
+    height: 10px;
 }
 
 .sgblackboard > .mainContainer {
