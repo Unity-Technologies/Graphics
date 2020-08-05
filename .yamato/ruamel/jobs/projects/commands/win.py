@@ -9,7 +9,9 @@ def _cmd_base(project_folder, components):
 
 
 def cmd_not_standalone(project_folder, platform, api, test_platform_args):
-    base = _cmd_base(project_folder, platform["components"])
+    base = [
+        f'curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output {TEST_PROJECTS_DIR}/{project_folder}/utr.bat'
+    ]
     base.extend([
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {test_platform_args} --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}'
     ])
