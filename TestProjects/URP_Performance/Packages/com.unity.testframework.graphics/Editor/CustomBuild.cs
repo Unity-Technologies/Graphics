@@ -1,6 +1,5 @@
 using UnityEditor;
 using System.Collections.Generic;
-using UnityEditor.Android;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.TestTools.Graphics;
@@ -17,7 +16,6 @@ public static class CustomBuild
         BuildOptions buildOptions = BuildOptions.None;
 
         GraphicsDeviceType[] graphicsAPIs = { GraphicsDeviceType.OpenGLES2 };
-        AndroidExternalToolsSettings.maxJvmHeapSize = 4096;
         BuildScenes(path, graphicsAPIs[0].ToString(), buildTarget, buildOptions, graphicsAPIs);
     }
 
@@ -30,7 +28,6 @@ public static class CustomBuild
         BuildOptions buildOptions = BuildOptions.None;
 
         GraphicsDeviceType[] graphicsAPIs = { GraphicsDeviceType.Vulkan };
-        AndroidExternalToolsSettings.maxJvmHeapSize = 4096;
         BuildScenes(path, graphicsAPIs[0].ToString(), buildTarget, buildOptions, graphicsAPIs);
     }
     
@@ -43,7 +40,6 @@ public static class CustomBuild
         BuildOptions buildOptions = BuildOptions.None;
 
         GraphicsDeviceType[] graphicsAPIs = { GraphicsDeviceType.OpenGLES3 };
-        AndroidExternalToolsSettings.maxJvmHeapSize = 4096;
         BuildScenes(path, graphicsAPIs[0].ToString(), buildTarget, buildOptions, graphicsAPIs);
     }
 
