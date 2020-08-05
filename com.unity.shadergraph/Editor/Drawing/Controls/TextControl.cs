@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -36,11 +37,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
     class TextControlView : VisualElement
     {
-        public static Type[] validTypes = { typeof(Vector4) };
+        public static Type[] validTypes = { typeof(string) };
 
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;
-        Vector4 m_Value;
+        string m_Value;
         int m_UndoGroup = -1;
 
         public TextControlView(string label, string subLabel1, string subLabel2, string subLabel3, string subLabel4, AbstractMaterialNode node, PropertyInfo propertyInfo)
@@ -53,14 +54,20 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             label = label ?? ObjectNames.NicifyVariableName(propertyInfo.Name);
             if (!string.IsNullOrEmpty(label))
                 Add(new Label(label));
-
             m_Value = GetValue();
+            
+            if (m_Value == "")
+            {
+                m_Value = "00000000";
+            }
+            SetValue(m_Value);
+            Debug.Log("m_value: "+m_Value);
             AddField(0, subLabel1);
             AddField(1, subLabel2);
             AddField(2, subLabel3);
             AddField(3, subLabel4);
         }
-
+        private char[] value_char = { '0', '0', '0', '0', '0', '0', '0', '0' };
         void AddField(int index, string subLabel)
         {
             //var dummy = new VisualElement { name = "dummy" };
@@ -68,19 +75,40 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             label.style.alignSelf = Align.FlexEnd;
             //dummy.Add(label);
             Add(label);
-            var field_x = new FloatField { userData = index, value = getIndex(m_Value[index])[0] };
-            var field_y = new FloatField { userData = index, value = getIndex(m_Value[index])[1] };
-            float x = 0;
-            float y = 0;
+            string field_value = m_Value;
+            if (m_Value.Length>= 2 * index + 1)
+            {
+                field_value = m_Value[2 * index].ToString();
+                field_value += m_Value[2 * index + 1].ToString();
+  
+            }
+ 
+                
+                var field_x = new TextField { userData = index, value = field_value };
+            //char[] value_char = {'0', '0', '0', '0', '0', '0', '0', '0' };
 
             field_x.RegisterCallback<MouseDownEvent>(Repaint);
             field_x.RegisterCallback<MouseMoveEvent>(Repaint);
             field_x.RegisterValueChangedCallback(evt =>
             {
                 var value = GetValue();
-                Debug.Log(index+"x: " +evt.newValue);
-                x = (float)evt.newValue;
-                value[index] = x + y * 0.1f;
+                
+
+                Debug.Log(index + "value_char: " + value_char);
+                value_char[2 * index] = evt.newValue[0];
+
+                if (evt.newValue.Length>=2)
+                value_char[2 * index + 1] = evt.newValue[1];
+
+                //for (int i = 0; i< value_char.Length; i++)
+                //{
+                //    Debug.Log("value_char[" + i + "]: " + value_char[i]);
+                //}
+
+
+                value = new string(value_char);
+                Debug.Log(index+ " evt.newValue: " + evt.newValue);
+                Debug.Log(index + "value: " + value);
                 SetValue(value);
                 m_UndoGroup = -1;
                 this.MarkDirtyRepaint();
@@ -92,12 +120,18 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     m_UndoGroup = Undo.GetCurrentGroup();
                     m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
                 }
-                float newValue;
-                if (!float.TryParse(evt.newData, NumberStyles.Float, CultureInfo.InvariantCulture.NumberFormat, out newValue))
-                    newValue = 0f;
+                string newValue = "";
+               // if (!float.TryParse(evt.newData, NumberStyles.Float, CultureInfo.InvariantCulture.NumberFormat, out newValue))
+                //    newValue = 0f;
                 var value = GetValue();
-                x = newValue;
-                value[index] = x + y * 0.1f;
+
+
+                value_char[2 * index] = newValue[0];
+
+                if (newValue.Length >= 2)
+                   value_char[2 * index + 1] = newValue[1];
+                value = new string(value_char);
+
                 SetValue(value);
                 this.MarkDirtyRepaint();
             });
@@ -113,91 +147,26 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 this.MarkDirtyRepaint();
             });
             Add(field_x);
-
-            field_y.RegisterCallback<MouseDownEvent>(Repaint);
-            field_y.RegisterCallback<MouseMoveEvent>(Repaint);
-            field_y.RegisterValueChangedCallback(evt =>
-            {
-                var value = GetValue();
-                Debug.Log(index+"y: " + evt.newValue);
-                y= (float)evt.newValue;
-                value[index] = x + y*0.1f;
-                SetValue(value);
-                m_UndoGroup = -1;
-                this.MarkDirtyRepaint();
-            });
-            field_y.Q("unity-text-input").RegisterCallback<InputEvent>(evt =>
-            {
-                if (m_UndoGroup == -1)
-                {
-                    m_UndoGroup = Undo.GetCurrentGroup();
-                    m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
-                }
-                float newValue;
-                if (!float.TryParse(evt.newData, NumberStyles.Float, CultureInfo.InvariantCulture.NumberFormat, out newValue))
-                    newValue = 0f;
-                var value = GetValue();
-                y = newValue;
-                value[index] = x + y * 0.1f;
-                SetValue(value);
-                this.MarkDirtyRepaint();
-            });
-            field_y.Q("unity-text-input").RegisterCallback<KeyDownEvent>(evt =>
-            {
-                if (evt.keyCode == KeyCode.Escape && m_UndoGroup > -1)
-                {
-                    Undo.RevertAllDownToGroup(m_UndoGroup);
-                    m_UndoGroup = -1;
-                    m_Value = GetValue();
-                    evt.StopPropagation();
-                }
-                this.MarkDirtyRepaint();
-            });
-            Add(field_y);
         }
 
-        object ValueToPropertyType(Vector4 value)
+
+
+        object ValueToPropertyType(string value)
         {
             return value;
         }
 
-        Vector4 GetValue()
+        string GetValue()
         {
             var value = m_PropertyInfo.GetValue(m_Node, null);
-            return (Vector4)value;
+            Debug.Log("GetValue():" + value);
+            return (string)value;
         }
 
-        void SetValue(Vector4 value)
+        void SetValue(string value)
         {
+            Debug.Log("SetValue():" + value);
             m_PropertyInfo.SetValue(m_Node, ValueToPropertyType(value), null);
-        }
-        float[] getIndex(float input)
-        {
-            var row = (int)input;
-            float temp_col = (float)(input - Math.Truncate(input)) * 10;
-            float col = 0;
-
-            if (temp_col > 2.5)
-            {
-                col = 3;
-            }
-            else if (temp_col > 1.5 && temp_col < 2.5)
-            {
-                col = 2;
-            }
-            else if (temp_col > 0.5 && temp_col < 1.5)
-            {
-                col = 1;
-            }
-            else
-            {
-                col = 0;
-            }
-
-            float[] index = { row, col };
-
-            return index;
-
         }
 
         void Repaint<T>(MouseEventBase<T> evt) where T : MouseEventBase<T>, new()

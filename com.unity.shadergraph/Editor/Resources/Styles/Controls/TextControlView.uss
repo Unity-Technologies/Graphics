@@ -16,14 +16,14 @@ TextControlView > #dummy > Label {
 
 
 .unity-base-field {
-    min-width: 5px;
+    min-width: 30px;
     flex-grow: 1;
     margin-top: 1px;
     margin-bottom: 1px;
-    margin-left: 1;
-    margin-right: 2;
+    margin-left: 0;
+    margin-right: 0;
     padding-left: 0;
-    padding-right: 1;
+    padding-right: 0;
     padding-top: 0;
     padding-bottom: 0;
 }

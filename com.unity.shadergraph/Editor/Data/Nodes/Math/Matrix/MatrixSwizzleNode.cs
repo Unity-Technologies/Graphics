@@ -62,48 +62,48 @@ namespace UnityEditor.ShaderGraph
 
 
         [SerializeField]
-        Vector4 index_Row0;
+        string index_Row0;
 
         [SerializeField]
-        Vector4 index_Row1;
+        string index_Row1;
 
         [SerializeField]
-        Vector4 index_Row2;
+        string index_Row2;
 
         [SerializeField]
-        Vector4 index_Row3;
+        string index_Row3;
 
         
 
         [TextControl("", " m", "   m", "   m", "   m")]
-        public Vector4 row0
+        public string row0
         {
             get { return index_Row0; }
             set { SetRow(ref index_Row0, value);  }
         }
 
         [TextControl("", " m", "   m", "   m", "   m")]
-        public Vector4 row1
+        public string row1
         {
             get { return index_Row1; }
             set { SetRow(ref index_Row1, value);  }
         }
 
         [TextControl("", " m", "   m", "   m", "   m")]
-        public Vector4 row2
+        public string row2
         {
             get { return index_Row2; }
             set { SetRow(ref index_Row2, value);  }
         }
 
         [TextControl("", " m", "   m", "   m", "   m")]
-        public Vector4 row3
+        public string row3
         {
             get { return index_Row3; }
             set { SetRow(ref index_Row3, value);  }
         }
 
-        void SetRow(ref Vector4 row, Vector4 value)
+        void SetRow(ref string row, string value)
         {
             if (value == row)
                 return;
@@ -218,6 +218,34 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        Vector4  StringToVec4 (string value)
+        {
+            
+            if (value.Length == 8)
+            {
+               // Debug.Log("input value: " + value);
+                char[] value_char = value.ToCharArray();
+                float x0 = (float)Char.GetNumericValue(value_char[0]);
+                float x1 = (float)Char.GetNumericValue(value_char[1]);
+                float y0 = (float)Char.GetNumericValue(value_char[2]);
+                float y1 = (float)Char.GetNumericValue(value_char[3]);
+                float z0 = (float)Char.GetNumericValue(value_char[4]);
+                float z1 = (float)Char.GetNumericValue(value_char[5]);
+                float w0 = (float)Char.GetNumericValue(value_char[6]);
+                float w1 = (float)Char.GetNumericValue(value_char[7]);
+
+                float x = x0 + x1 * 0.1f;
+                float y = y0 + y1 * 0.1f;
+                float z = z0 + z1 * 0.1f;
+                float w = w0 + w1 * 0.1f;
+               // Debug.Log("Vector4(x, y, z, w): " + new Vector4(x, y, z, w));
+                return new Vector4(x, y, z, w);
+                
+
+            }
+            return new Vector4(0, 0, 0, 0);
+        }
+
         bool IsIndexSizeCorrect(Vector4 vec, int inputSize)
         {
             int[] x = getIndex(vec.x);
@@ -287,6 +315,11 @@ namespace UnityEditor.ShaderGraph
 
             int concreteRowCount = useIndentity ? 2 : numInputRows;
             int outputRowCount = 0;
+            Vector4 r0 = StringToVec4(index_Row0);
+            Vector4 r1 = StringToVec4(index_Row1);
+            Vector4 r2 = StringToVec4(index_Row2);
+            Vector4 r3 = StringToVec4(index_Row3);
+
 
             //INDECIES VALIDATION
             //TODO: Should give what row/columns the problems are?
@@ -296,43 +329,43 @@ namespace UnityEditor.ShaderGraph
             switch (m_OutputSize)
             {
                 default:
-                    inputIndecies.SetRow(0, index_Row0);
-                    inputIndecies.SetRow(1, index_Row1);
-                    inputIndecies.SetRow(2, index_Row2);
-                    inputIndecies.SetRow(3, index_Row3);
+                    inputIndecies.SetRow(0, r0);
+                    inputIndecies.SetRow(1, r1);
+                    inputIndecies.SetRow(2, r2);
+                    inputIndecies.SetRow(3, r3);
                     break;
                 case SwizzleOutputSize.Matrix3:
-                    inputIndecies.SetRow(0, new Vector4(index_Row0.x, index_Row0.y, index_Row0.z, 0));
-                    inputIndecies.SetRow(1, new Vector4(index_Row1.x, index_Row1.y, index_Row1.z, 0));
-                    inputIndecies.SetRow(2, new Vector4(index_Row2.x, index_Row2.y, index_Row2.z, 0));
+                    inputIndecies.SetRow(0, new Vector4(r0.x, r0.y, r0.z, 0));
+                    inputIndecies.SetRow(1, new Vector4(r1.x, r1.y, r1.z, 0));
+                    inputIndecies.SetRow(2, new Vector4(r2.x, r2.y, r2.z, 0));
                     inputIndecies.SetRow(3, new Vector4(0,0,0,0));
                     break;
                 case SwizzleOutputSize.Matrix2:
-                    inputIndecies.SetRow(0, new Vector4(index_Row0.x, index_Row0.y, 0, 0));
-                    inputIndecies.SetRow(1, new Vector4(index_Row1.x, index_Row1.y, 0, 0));
+                    inputIndecies.SetRow(0, new Vector4(r0.x, r0.y, 0, 0));
+                    inputIndecies.SetRow(1, new Vector4(r1.x, r1.y, 0, 0));
                     inputIndecies.SetRow(2, new Vector4(0, 0, 0, 0));
                     inputIndecies.SetRow(3, new Vector4(0, 0, 0, 0));
                     break;
                 case SwizzleOutputSize.Vector4:
-                    inputIndecies.SetRow(0, new Vector4(index_Row0.x, 0, 0, 0));
-                    inputIndecies.SetRow(1, new Vector4(index_Row1.x, 0 ,0, 0));
-                    inputIndecies.SetRow(2, new Vector4(index_Row2.x, 0, 0, 0));
-                    inputIndecies.SetRow(3, new Vector4(index_Row3.x, 0, 0, 0));
+                    inputIndecies.SetRow(0, new Vector4(r0.x, 0, 0, 0));
+                    inputIndecies.SetRow(1, new Vector4(r1.x, 0 ,0, 0));
+                    inputIndecies.SetRow(2, new Vector4(r2.x, 0, 0, 0));
+                    inputIndecies.SetRow(3, new Vector4(r3.x, 0, 0, 0));
                     break;
                 case SwizzleOutputSize.Vector3:
-                    inputIndecies.SetRow(0, new Vector4(index_Row0.x, 0, 0, 0));
-                    inputIndecies.SetRow(1, new Vector4(index_Row1.x, 0, 0, 0));
-                    inputIndecies.SetRow(2, new Vector4(index_Row2.x, 0, 0, 0));
+                    inputIndecies.SetRow(0, new Vector4(r0.x, 0, 0, 0));
+                    inputIndecies.SetRow(1, new Vector4(r1.x, 0, 0, 0));
+                    inputIndecies.SetRow(2, new Vector4(r2.x, 0, 0, 0));
                     inputIndecies.SetRow(3, new Vector4(0, 0, 0, 0));
                     break;
                 case SwizzleOutputSize.Vector2:
-                    inputIndecies.SetRow(0, new Vector4(index_Row0.x, 0, 0, 0));
-                    inputIndecies.SetRow(1, new Vector4(index_Row1.x, 0, 0, 0));
+                    inputIndecies.SetRow(0, new Vector4(r0.x, 0, 0, 0));
+                    inputIndecies.SetRow(1, new Vector4(r1.x, 0, 0, 0));
                     inputIndecies.SetRow(2, new Vector4(0, 0, 0, 0));
                     inputIndecies.SetRow(3, new Vector4(0, 0, 0, 0));
                     break;
                 case SwizzleOutputSize.Vector1:
-                    inputIndecies.SetRow(0, new Vector4(index_Row0.x, 0, 0, 0));
+                    inputIndecies.SetRow(0, new Vector4(r0.x, 0, 0, 0));
                     inputIndecies.SetRow(1, new Vector4(0, 0, 0, 0));
                     inputIndecies.SetRow(2, new Vector4(0, 0, 0, 0));
                     inputIndecies.SetRow(3, new Vector4(0, 0, 0, 0));
@@ -364,7 +397,7 @@ namespace UnityEditor.ShaderGraph
 
 
                 Vector4 indecies = inputIndecies.GetRow(r);
-                Debug.Log("row: " + r + "- " + indecies);
+                //Debug.Log("row: " + r + "- " + indecies);
                 switch (m_OutputSize)
                         {
 
