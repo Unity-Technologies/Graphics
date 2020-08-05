@@ -613,17 +613,27 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        static bool GetPortInputView(ShaderPort port, out PortInputView view)
+        {
+            view = port.parent.Q<PortInputView>();
+            return view != null;
+        }
+
         public void UpdatePortInputTypes()
         {
-            foreach (var anchor in inputContainer.Children().Concat(outputContainer.Children()).OfType<ShaderPort>())
+            var portList = inputContainer.Query<ShaderPort>().ToList();
+            portList.AddRange(outputContainer.Query<ShaderPort>().ToList());
+            foreach (var anchor in portList)
             {
                 var slot = anchor.slot;
                 anchor.portName = slot.displayName;
                 anchor.visualClass = slot.concreteValueType.ToClassName();
-            }
 
-            foreach (var portInputView in m_PortInputContainer.Children().OfType<PortInputView>())
-                portInputView.UpdateSlotType();
+                if (GetPortInputView(anchor, out var portInputView))
+                {
+                    portInputView.UpdateSlotType();
+                }
+            }
 
             foreach (var control in m_ControlItems.Children())
             {
@@ -645,7 +655,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 UpdateSize();
             }
         }
-
+		
         void OnMouseHover(EventBase evt)
         {
             var graphEditorView = GetFirstAncestorOfType<GraphEditorView>();
