@@ -169,6 +169,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public float debugOverlayRatio = 0.33f;
             /// <summary>Current full screen debug mode.</summary>
             public FullScreenDebugMode fullScreenDebugMode = FullScreenDebugMode.None;
+            /// <summary>Enable range remapping.</summary>
+            public bool enableDebugRemap = false;
+            /// <summary>Range remapping values for some of the fullscreen mode. Only x and y are used.</summary>
+            public Vector4 fullScreenDebugRemap = new Vector4(0.0f, 1.0f, 0.0f, 0.0f);
             /// <summary>Current full screen debug mode mip level (when applicable).</summary>
             public float fullscreenDebugMip = 0.0f;
             /// <summary>Index of the light used for contact shadows display.</summary>
@@ -1175,7 +1179,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         children =
                         {
 
-                            new DebugUI.FloatField { displayName = "Fullscreen Debug Mip", getter = () => data.fullscreenDebugMip, setter = value => data.fullscreenDebugMip = value, min = () => 0f, max = () => 1f, incStep = 0.05f }
+                            new DebugUI.FloatField { displayName = "Debug Mip", getter = () => data.fullscreenDebugMip, setter = value => data.fullscreenDebugMip = value, min = () => 0f, max = () => 1f, incStep = 0.05f },                            
+                            new DebugUI.BoolField { displayName = "Enable Debug Remap", getter = () => data.enableDebugRemap, setter = value => data.enableDebugRemap = value },
+                            new DebugUI.FloatField { displayName = "Debug Remap min", getter = () => data.fullScreenDebugRemap.x, setter = value => data.fullScreenDebugRemap.x = value, min = () => 0f, max = () => 1f, incStep = 0.05f },
+                            new DebugUI.FloatField { displayName = "Debug Remap max", getter = () => data.fullScreenDebugRemap.y, setter = value => data.fullScreenDebugRemap.y = value, min = () => 0f, max = () => 1f, incStep = 0.05f }
                         }
                     });
                     break;

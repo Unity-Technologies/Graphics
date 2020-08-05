@@ -3,7 +3,6 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering.HighDefinition.Attributes;
 using UnityEngine.Rendering.HighDefinition.Compositor;
-using UnityEngine.Rendering.HighDefinition;
 
 using UnityEditor;
 using UnityEditorInternal;

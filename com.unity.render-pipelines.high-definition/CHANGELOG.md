@@ -166,6 +166,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added missing API documentation.
 - Added an option to have only the metering mask displayed in the debug mode.
 - Added a new mode to cluster visualization debug where users can see a slice instead of the cluster on opaque objects.
+- Add tooltips with the full name of the (graphics) compositor properties to properly show large names that otherwise are clipped by the UI (case 1263590)
+- Add error message if a callback AOV allocation fail
+- Add marker for all AOV request operation on GPU
+- Add remapping options for Depth Pyramid debug view mode
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -761,6 +765,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed CoatMask block appearing when creating lit master node (case 1264632)
 - Fixed issue with SceneEV100 debug mode indicator when rescaling the window.
 - Fixed issue with PCSS filter being wrong on first frame. 
+- Fixed AOV export of depth buffer which now correctly export linear depth (case 1265001)
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -937,7 +942,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Preparation pass for RTSSS to be supported by render graph.
 - Changed the color space of EmissiveColorLDR property on all shader. Was linear but should have been sRGB. Auto upgrade script handle the conversion.
 - Preparation pass for RTSSShadows to be supported by render graph.
-- Add tooltips with the full name of the (graphics) compositor properties to properly show large names that otherwise are clipped by the UI (case 1263590)
 
 ## [7.1.1] - 2019-09-05
 
