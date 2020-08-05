@@ -14,9 +14,6 @@ namespace UnityEngine.Rendering.Universal
         ParticlesSimpleLit,
         ParticlesUnlit,
         BakedLit,
-        SpeedTree7,
-        SpeedTree7Billboard,
-        SpeedTree8,
         Count
     }
 
@@ -32,9 +29,6 @@ namespace UnityEngine.Rendering.Universal
             "Universal Render Pipeline/Particles/Simple Lit",
             "Universal Render Pipeline/Particles/Unlit",
             "Universal Render Pipeline/Baked Lit",
-            "Universal Render Pipeline/Nature/SpeedTree7",
-            "Universal Render Pipeline/Nature/SpeedTree7 Billboard",
-            "Universal Render Pipeline/Nature/SpeedTree8",
         };
 
         public static string GetShaderPath(ShaderPathID id)
@@ -71,9 +65,6 @@ namespace UnityEngine.Rendering.Universal
             "8516d7a69675844a7a0b7095af7c46af",
             "0406db5a14f94604a8c57ccfbc9f3b46",
             "0ca6dca7396eb48e5849247ffd444914",
-            "0f4122b9a743b744abe2fb6a0a88868b",
-            "5ec81c81908db34429b4f6ddecadd3bd",
-            "99134b1f0c27d54469a840832a28fadf",
         };
 
         internal static string GetShaderGUID(ShaderPathID id)
