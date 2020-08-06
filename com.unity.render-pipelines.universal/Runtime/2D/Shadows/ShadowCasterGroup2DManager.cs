@@ -18,12 +18,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (s_ShadowCasterGroups == null)
                 s_ShadowCasterGroups = new List<ShadowCasterGroup2D>();
 
-            LightUtility.AddShadowCasterGroupToList(group, s_ShadowCasterGroups);
+            ShadowUtility.AddShadowCasterGroupToList(group, s_ShadowCasterGroups);
         }
         public static void RemoveGroup(ShadowCasterGroup2D group)
         {
             if (group != null && s_ShadowCasterGroups != null)
-                LightUtility.RemoveShadowCasterGroupFromList(group, s_ShadowCasterGroups);
+                ShadowUtility.RemoveShadowCasterGroupFromList(group, s_ShadowCasterGroups);
         }
     }
 }
