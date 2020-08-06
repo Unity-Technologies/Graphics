@@ -4090,9 +4090,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderFullScreenDebug)))
             {
-                bool isMetal = (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal);
                 CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer());
-                cmd.SetRandomWriteTarget(isMetal ? 3 : 1, m_SharedRTManager.GetFullScreenDebugBuffer());
+                cmd.SetRandomWriteTarget(1, m_SharedRTManager.GetFullScreenDebugBuffer());
 
                 var rendererList = RendererList.Create(CreateOpaqueRendererListDesc(cullResults, hdCamera.camera, m_FullScreenDebugPassNames, renderQueueRange: RenderQueueRange.all));
                 CoreUtils.DrawRendererList(renderContext, cmd, rendererList);
