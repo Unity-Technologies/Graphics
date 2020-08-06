@@ -19,6 +19,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Mask"
             "RenderType"="Transparent"
             "PreviewType"="Plane"
             "CanUseSpriteAtlas"="True"
+            "RenderPipeline" = "UniversalPipeline"
         }
 
         Cull Off
