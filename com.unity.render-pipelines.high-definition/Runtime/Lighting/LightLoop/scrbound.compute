@@ -696,7 +696,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
         // a set of maxs, and each set is equal to g_iNrVisibLights.
         const ScreenSpaceBoundsIndices boundsIndices = GenerateScreenSpaceBoundsIndices(lgtIndex, g_iNrVisibLights, eyeIndex);
 
-        float minLinearDepth = -1, maxLinearDepth = -1; // TODO
+        float minLinearDepth = 0, maxLinearDepth = FLT_MAX; // TODO
 
         g_vBoundsBuffer[boundsIndices.min] = float4(rapAaBbMinPt, minLinearDepth);
         g_vBoundsBuffer[boundsIndices.max] = float4(rapAaBbMaxPt, maxLinearDepth);
