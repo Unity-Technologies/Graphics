@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.Universal
         public static string GetShaderPath(ShaderPathID id)
         {
             int index = (int)id;
-            int arrayLength = s_ShaderGUIDs.Length;
+            int arrayLength = s_ShaderPaths.Length;
             if (arrayLength > 0 && index >= 0 && index < arrayLength)
                 return s_ShaderPaths[index];
 
