@@ -11,7 +11,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightCullUtils.hlsl"
 
-// #pragma enable_d3d11_debug_symbols
+#pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
 StructuredBuffer<SFiniteLightBound> g_data : register( t0 );
@@ -21,16 +21,11 @@ StructuredBuffer<SFiniteLightBound> g_data : register( t0 );
 // output buffer
 RWStructuredBuffer<float4> g_vBoundsBuffer : register( u0 );
 
-#define DUMB_COMPILER
+#define Z_BINNING
+// #define DUMB_COMPILER
 // #define USE_WAVE_INTRINSICS // We use TGSM and atomic operations if wave intrinsics are not supported
 
 #ifdef Z_BINNING
-
-// Computes r=(n/d) and rounds the result towards the largest adjacent integer.
-uint DivRoundUp(uint n, uint d)
-{
-    return (n + d - 1) / d; // No division by 0 checks
-}
 
 // Returns the location of the N-th set bit starting from the lowest order bit and working upward.
 // Slow implementation - do not use for large bit sets.
@@ -105,21 +100,24 @@ float4x4 PerspectiveProjection4x4(float a, float g, float n, float f)
                       0, 0, 1, 0);
 }
 
+#define CLEAR_SIGN_BIT(X)  (asuint(X) & INT_MAX)
+#define DIV_ROUND_UP(N, D) (((N) + (D) - 1) / (D)) // No division by 0 checks
+
 // Clipping a plane by a cube may produce a hexagon (6-gon).
 // Clipping a hexagon by 4 planes may produce a decagon (10-gon).
 #define MAX_CLIP_VERTS    (10)
-#define NUM_EDGES         (12)
 #define NUM_VERTS         (8)
 #define NUM_FACES         (6)
 #define NUM_PLANES        (6)
-#define THREADS_PER_LIGHT (4)
 #define THREADS_PER_GROUP (64)
+#define THREADS_PER_LIGHT (1) // Set to 1 for debugging
 #define LIGHTS_PER_GROUP  (THREADS_PER_GROUP / THREADS_PER_LIGHT)
 #define VERTS_PER_GROUP   (NUM_VERTS * LIGHTS_PER_GROUP)
 #define VERTS_PER_THREAD  (NUM_VERTS / THREADS_PER_LIGHT)
-#define FACES_PER_THREAD  DivRoundUp(NUM_FACES, THREADS_PER_LIGHT)
+#define FACES_PER_THREAD  DIV_ROUND_UP(NUM_FACES, THREADS_PER_LIGHT)
 
 // All planes and faces are always in the standard order (see below).
+// Near and far planes may be swapped for Reverse Z-Buffering, but it does not change the algorithm.
 #define FACE_LEFT   (1 << 0) // x = -1
 #define FACE_RIGHT  (1 << 1) // x = +1
 #define FACE_FRONT  (1 << 2) // y = -1
@@ -130,6 +128,8 @@ float4x4 PerspectiveProjection4x4(float a, float g, float n, float f)
 
 // TODO: the compiler generates 'tbuffer_load_format_x' instructions
 // when we access the look-up tables. Can we avoid this?
+
+// TODO: try vert order (0 0 0), (1 0 0), (0 1 0), (1 1 0), (0 0 1), (1 0 1), (0 1 1), (1 1 1)
 
 // All vertices are always in the standard order (see below).
 static const uint s_FaceMasksOfVerts[NUM_VERTS] =
@@ -148,12 +148,12 @@ static const uint s_FaceMasksOfVerts[NUM_VERTS] =
 // with normals pointing in the interior of the volume.
 static const uint s_VertMasksOfFaces[NUM_FACES] =
 {
-    3 << 9 | 7 << 6 | 4 << 3 | 0 << 0, // 0: FACE_LEFT
-    5 << 9 | 6 << 6 | 2 << 3 | 1 << 0, // 1: FACE_RIGHT
-    4 << 9 | 5 << 6 | 1 << 3 | 0 << 0, // 2: FACE_FRONT
-    2 << 9 | 6 << 6 | 7 << 3 | 3 << 0, // 3: FACE_BACK
-    1 << 9 | 2 << 6 | 3 << 3 | 0 << 0, // 4: FACE_TOP
-    7 << 9 | 6 << 6 | 5 << 3 | 4 << 0  // 5: FACE_BOTTOM
+    (3) << 9 | (7) << 6 | (4) << 3 | (0) << 0, // 0: FACE_LEFT
+    (5) << 9 | (6) << 6 | (2) << 3 | (1) << 0, // 1: FACE_RIGHT
+    (4) << 9 | (5) << 6 | (1) << 3 | (0) << 0, // 2: FACE_FRONT
+    (6) << 9 | (7) << 6 | (3) << 3 | (2) << 0, // 3: FACE_BACK
+    (1) << 9 | (2) << 6 | (3) << 3 | (0) << 0, // 4: FACE_TOP
+    (7) << 9 | (6) << 6 | (5) << 3 | (4) << 0  // 5: FACE_BOTTOM
 };
 
 // 5 arrays * 128 elements * 4 bytes each = 2560 bytes.
@@ -168,7 +168,7 @@ groupshared uint  gs_BehindMasksOfVerts[VERTS_PER_GROUP]; // 6 planes each (HLSL
 groupshared uint  gs_CullClipFaceMasks[LIGHTS_PER_GROUP]; // 6 faces  each (HLSL does not support small data types)
 
 // 6 arrays * 16 elements * 4 bytes each = 384 bytes.
-// Note that these are actually floats reinterpreted as uints.
+// These are actually floats reinterpreted as uints.
 // The reason is because floating-point atomic operations are not supported.
 groupshared uint  gs_RapAaBbMinPtX[LIGHTS_PER_GROUP];
 groupshared uint  gs_RapAaBbMaxPtX[LIGHTS_PER_GROUP];
@@ -302,8 +302,8 @@ void ClipFaceAgainstViewVolumeAndUpdateAaBb(uint f, uint behindMasksOfVerts[NUM_
         // Non-zero if ANY of the vertices are behind any of the planes.
         clipMaskOfFace |= behindMasksOfVerts[v];
 
-        // Note that not all edges may require clipping. However,
-        // filtering the vertex list is somewhat expensive, so we currently don't do it.
+        // Not all edges may require clipping. However, filtering the vertex list
+        // is somewhat expensive, so we currently don't do it.
         vertRingBuffer[j].x = gs_HapVertsX[firstVertexOffset + v];
         vertRingBuffer[j].y = gs_HapVertsY[firstVertexOffset + v];
         vertRingBuffer[j].z = gs_HapVertsZ[firstVertexOffset + v];
@@ -331,14 +331,14 @@ void ClipFaceAgainstViewVolumeAndUpdateAaBb(uint f, uint behindMasksOfVerts[NUM_
     uint modSrcIdx = srcBegin % MAX_CLIP_VERTS;
 #endif
 
-    for (int j = srcBegin; j < (srcBegin + srcSize); j++)
+    for (uint j = srcBegin; j < (srcBegin + srcSize); j++)
     {
     #ifndef DUMB_COMPILER
         uint modSrcIdx = j % MAX_CLIP_VERTS;
     #endif
 
         float4 hapVert = vertRingBuffer[modSrcIdx];
-        float3 rapVert = hapVert.xyz * rcp(hapVert.w);
+        float3 rapVert = saturate(hapVert.xyz * rcp(hapVert.w)); // Must not generate negative values
 
         rapAaBbMinPt = min(rapAaBbMinPt, rapVert);
         rapAaBbMaxPt = max(rapAaBbMaxPt, rapVert);
@@ -352,7 +352,10 @@ void ClipFaceAgainstViewVolumeAndUpdateAaBb(uint f, uint behindMasksOfVerts[NUM_
 
 #else // !Z_BINNING
 
-#define MAX_PNTS        9       // strictly this should be 10=6+4 but we get more wavefronts and 10 seems to never hit (fingers crossed)
+#define THREADS_PER_LIGHT (8)
+#define THREADS_PER_GROUP (64)
+#define LIGHTS_PER_GROUP  (THREADS_PER_GROUP / THREADS_PER_LIGHT)
+#define MAX_PNTS          (9)   // strictly this should be 10=6+4 but we get more wavefronts and 10 seems to never hit (fingers crossed)
                                 // However, worst case the plane that would be skipped if such an extreme case ever happened would be backplane
                                 // clipping gets skipped which doesn't cause any errors.
 
@@ -387,8 +390,8 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
     unsigned int g = groupID;
     unsigned int t = threadID;
 
-    const int subLigt = (uint) (t/8);
-    const int lgtIndex = subLigt+(uint) g*8;
+    const int subLigt = (uint) (t/THREADS_PER_LIGHT);
+    const int lgtIndex = subLigt+(uint) g*LIGHTS_PER_GROUP;
     const int sideIndex = (uint) (t%8);
 
     const int eyeAdjustedLgtIndex = GenerateLightCullDataIndex(lgtIndex, g_iNrVisibLights, eyeIndex);
@@ -402,13 +405,13 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
     // Since a light volume may be partially off-screen, we must clip it before computing the AABB.
     // Clipping the resulting AABB (rather than the light volume itself) may result in a loose AABB.
     //
-    // To avoid having to deal with toroidal properties of the perspective transform,
+    // To avoid having to deal with the "Moebius twist" property of the perspective transform,
     // we perform clipping using the homogeneous (projective) post-perspective coordinates.
     // This clipping method in described in Blinn's paper titled "Line Clipping".
     //
     // The algorithm processes a light on 4 threads. While all 6 faces may require clipping in the
     // worst case, clipping more than 4 faces is very uncommon (typically, we clip 0, 3 or 4).
-    // Note that some faces may require culling rather than clipping (the former is simpler).
+    // Some faces may require culling rather than clipping (the former is simpler).
     //
     // It's important to realize that face culling may end up culling 5 (or even all 6) faces.
     // This means that the clipped light volume may be reduced to a single polygon, or nothing at all.
@@ -428,20 +431,23 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 
     const float  scale = lgtDat.scaleXY;      // scale.x = scale.y
     const float3 rbpC  = lgtDat.center.xyz;
+    // TODO: store X, Y, Scale
     const float3 rbpX  = lgtDat.boxAxisX.xyz; // Pre-scaled
     const float3 rbpY  = lgtDat.boxAxisY.xyz; // Pre-scaled
     const float3 rbpZ  = lgtDat.boxAxisZ.xyz; // Pre-scaled
 
 #ifndef USE_WAVE_INTRINSICS
-    // Initialize the TGSM. All threads write the same value -> no data races.
-    // The hardware will coalesce the writes.
-    gs_CullClipFaceMasks[groupLocalLightIndex] = 0; // Initially inside
-    gs_RapAaBbMinPtX[groupLocalLightIndex]     = asuint(1.0f);
-    gs_RapAaBbMaxPtX[groupLocalLightIndex]     = asuint(0.0f);
-    gs_RapAaBbMinPtY[groupLocalLightIndex]     = asuint(1.0f);
-    gs_RapAaBbMaxPtY[groupLocalLightIndex]     = asuint(0.0f);
-    gs_RapAaBbMinPtZ[groupLocalLightIndex]     = asuint(1.0f);
-    gs_RapAaBbMaxPtZ[groupLocalLightIndex]     = asuint(0.0f);
+    // (0) Initialize the TGSM.
+    if (t % THREADS_PER_LIGHT == 0) // Avoid bank conflicts
+    {
+        gs_CullClipFaceMasks[groupLocalLightIndex] = 0; // Initially inside
+        gs_RapAaBbMinPtX[groupLocalLightIndex]     = asuint(1.0f);
+        gs_RapAaBbMaxPtX[groupLocalLightIndex]     = asuint(0.0f);
+        gs_RapAaBbMinPtY[groupLocalLightIndex]     = asuint(1.0f);
+        gs_RapAaBbMaxPtY[groupLocalLightIndex]     = asuint(0.0f);
+        gs_RapAaBbMinPtZ[groupLocalLightIndex]     = asuint(1.0f);
+        gs_RapAaBbMaxPtZ[groupLocalLightIndex]     = asuint(0.0f);
+    }
 #endif // USE_WAVE_INTRINSICS
 
     float3 rapAaBbMinPt = 1;
@@ -477,20 +483,16 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 
         float3 rbpVert = rbpC + m.x * rbpX + m.y * rbpY + m.z * rbpZ;
         // Avoid generating (w = 0).
-        rbpVert.z = (abs(rbpVert.z) >= FLT_EPS) ? rbpVert.z : FLT_EPS;
+        rbpVert.z = (abs(rbpVert.z) > FLT_MIN) ? rbpVert.z : FLT_MIN;
 
         float4 hapVert = mul(g_mProjection, float4(rbpVert, 1));
 
-        // Make sure the W component is strictly positive.
-        // It is helpful in order to simplify clipping and to avoid perspective division by 0.
-        float w = hapVert.w;
-        float s = (w >= 0) ? 1 : -1;
+        // Warning: the W component may be negative.
+        // Flipping the -W pyramid by negating all coordinates is incorrect
+        // and will break both classification and clipping.
 
         // Transform the X and Y components: [-w, w] -> [0, w].
-        hapVert.x = (0.5 * s) * hapVert.x + ((0.5 * s) * w);
-        hapVert.y = (0.5 * s) * hapVert.y + ((0.5 * s) * w);
-        hapVert.z = s * hapVert.z;
-        hapVert.w = s * hapVert.w;
+        hapVert.xy = 0.5 * hapVert.xy + (0.5 * hapVert.w);
 
         // For each vertex, we must determine whether it is within the bounds.
         // For culling and clipping, we must know, per culling plane, whether the vertex
@@ -504,17 +506,18 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
         // w is always valid
         // For the orthographic projection, (w = 1), so no modifications are necessary.
         // TODO: epsilon for numerical robustness?
-        w = hapVert.w;
 
         for (uint j = 0; j < (NUM_PLANES / 2); j++)
         {
+            float w = hapVert.w;
+
             behindMask |= (hapVert[j] < 0 ? 1 : 0) << (2 * j + 0); // Planes crossing '0'
             behindMask |= (hapVert[j] > w ? 1 : 0) << (2 * j + 1); // Planes crossing 'w'
         }
 
         if (behindMask == 0) // Inside?
         {
-            float3 rapVert = hapVert.xyz * rcp(hapVert.w);
+            float3 rapVert = saturate(hapVert.xyz * rcp(hapVert.w)); // Must not generate negative values
 
             rapAaBbMinPt = min(rapAaBbMinPt, rapVert);
             rapAaBbMaxPt = max(rapAaBbMaxPt, rapVert);
@@ -568,7 +571,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
             float4x4 invTranslateEye = Translation4x4(float3(0, 0, -e));
             float4x4 perspProjMatrix = PerspectiveProjection4x4(1, g, n, f);
 
-            lightSpaceMatrix = mul(perspProjMatrix, mul(invTranslateEye, lightSpaceMatrix));
+            lightSpaceMatrix = mul(mul(perspProjMatrix, invTranslateEye), lightSpaceMatrix);
         }
 
         for (uint i = 0; i < VERTS_PER_THREAD; i++)
@@ -596,7 +599,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
             // Consider the vertex to be inside the light volume if:
             // -w < x < w
             // -w < y < w   <-- exclude boundary points, as we will not clip using these vertices
-            // -w < z < w
+            // -w < z < w   <-- assume that Z-precision is not very important here
             // 0  < w
             // For the orthographic projection, (w = 1), so no modifications are necessary.
             // TODO: epsilon for numerical robustness?
@@ -622,20 +625,22 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
     }
 
     // (3) Cull the faces.
-    const uint cullFaceMask   = cullClipFaceMask;
-    const uint numFacesToCull = countbits(cullFaceMask); // [0, 6]
-
-    for (uint i = 0; i < FACES_PER_THREAD; i++)
     {
-        uint n = i * THREADS_PER_LIGHT + t % THREADS_PER_LIGHT;
+        const uint cullFaceMask   = cullClipFaceMask;
+        const uint numFacesToCull = countbits(cullFaceMask); // [0, 6]
 
-        if (n < numFacesToCull)
+        for (uint i = 0; i < FACES_PER_THREAD; i++)
         {
-            uint f = NthBitLow(cullFaceMask, n);
+            uint n = i * THREADS_PER_LIGHT + t % THREADS_PER_LIGHT;
 
-            if (TryCullFace(f, behindMasksOfVerts))
+            if (n < numFacesToCull)
             {
-                cullClipFaceMask ^= 1 << f; // Clear the bit
+                uint f = NthBitLow(cullFaceMask, n);
+
+                if (TryCullFace(f, behindMasksOfVerts))
+                {
+                    cullClipFaceMask ^= 1 << f; // Clear the bit
+                }
             }
         }
     }
@@ -651,19 +656,21 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 #endif
 
     // (4) Clip the faces.
-    const uint clipFaceMask   = cullClipFaceMask;
-    const uint numFacesToClip = countbits(clipFaceMask); // [0, 6]
-
-    for (uint i = 0; i < FACES_PER_THREAD; i++)
     {
-        uint n = i * THREADS_PER_LIGHT + t % THREADS_PER_LIGHT;
+        const uint clipFaceMask   = cullClipFaceMask;
+        const uint numFacesToClip = countbits(clipFaceMask); // [0, 6]
 
-        if (n < numFacesToCull)
+        for (uint i = 0; i < FACES_PER_THREAD; i++)
         {
-            uint f = NthBitLow(clipFaceMask, n);
+            uint n = i * THREADS_PER_LIGHT + t % THREADS_PER_LIGHT;
 
-            ClipFaceAgainstViewVolumeAndUpdateAaBb(f, behindMasksOfVerts, firstVertexOffset,
-                                                   rapAaBbMinPt, rapAaBbMaxPt);
+            if (n < numFacesToClip)
+            {
+                uint f = NthBitLow(clipFaceMask, n);
+
+                ClipFaceAgainstViewVolumeAndUpdateAaBb(f, behindMasksOfVerts, firstVertexOffset,
+                                                       rapAaBbMinPt, rapAaBbMaxPt);
+            }
         }
     }
 
@@ -672,12 +679,12 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 #else
     // Integer comparison works for floating-point numbers as long as the sign bit is 0.
     // We must take care of the signed zero ourselves.
-    InterlockedMin(gs_RapAaBbMinPtX[groupLocalLightIndex], asuint(rapAaBbMinPt.x) & INT_MAX);
-    InterlockedMax(gs_RapAaBbMaxPtX[groupLocalLightIndex], asuint(rapAaBbMaxPt.x) & INT_MAX);
-    InterlockedMin(gs_RapAaBbMinPtY[groupLocalLightIndex], asuint(rapAaBbMinPt.y) & INT_MAX);
-    InterlockedMax(gs_RapAaBbMaxPtY[groupLocalLightIndex], asuint(rapAaBbMaxPt.y) & INT_MAX);
-    InterlockedMin(gs_RapAaBbMinPtZ[groupLocalLightIndex], asuint(rapAaBbMinPt.z) & INT_MAX);
-    InterlockedMax(gs_RapAaBbMaxPtZ[groupLocalLightIndex], asuint(rapAaBbMaxPt.z) & INT_MAX);
+    InterlockedMin(gs_RapAaBbMinPtX[groupLocalLightIndex], asuint(CLEAR_SIGN_BIT(rapAaBbMinPt.x)));
+    InterlockedMax(gs_RapAaBbMaxPtX[groupLocalLightIndex], asuint(CLEAR_SIGN_BIT(rapAaBbMaxPt.x)));
+    InterlockedMin(gs_RapAaBbMinPtY[groupLocalLightIndex], asuint(CLEAR_SIGN_BIT(rapAaBbMinPt.y)));
+    InterlockedMax(gs_RapAaBbMaxPtY[groupLocalLightIndex], asuint(CLEAR_SIGN_BIT(rapAaBbMaxPt.y)));
+    InterlockedMin(gs_RapAaBbMinPtZ[groupLocalLightIndex], asuint(CLEAR_SIGN_BIT(rapAaBbMinPt.z)));
+    InterlockedMax(gs_RapAaBbMaxPtZ[groupLocalLightIndex], asuint(CLEAR_SIGN_BIT(rapAaBbMaxPt.z)));
 
     GroupMemoryBarrierWithGroupSync();
 
@@ -689,7 +696,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
     rapAaBbMaxPt.z = asfloat(gs_RapAaBbMaxPtZ[groupLocalLightIndex]);
 #endif // USE_WAVE_INTRINSICS
 
-    if (t % THREADS_PER_LIGHT == 0)
+    if (t % THREADS_PER_LIGHT == 0) // Avoid bank conflicts
     {
         // Each light's AABB is represented by two float3s, the min and max of the box.
         // And for stereo, we have two sets of lights. Therefore, each eye has a set of mins, followed by
