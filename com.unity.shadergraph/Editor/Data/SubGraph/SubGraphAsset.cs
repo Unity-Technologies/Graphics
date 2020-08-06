@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 #if UNITY_2020_2_OR_NEWER
 using UnityEditor.AssetImporters;
 #else
@@ -48,7 +47,6 @@ namespace UnityEditor.ShaderGraph
         public string hlslName;
 
         public string assetGuid;
-        internal string subGraphObjectIdOverride; // allow id to be overwritten when necessary
 
         public ShaderGraphRequirements requirements;
 
@@ -88,11 +86,9 @@ namespace UnityEditor.ShaderGraph
             if(m_SubGraphData == null)
             {
                 m_SubGraphData = new SubGraphData();
+                m_SubGraphData.OverrideObjectId(assetGuid + "_subGraphData");
             }
-            if (subGraphObjectIdOverride.Length != 0)
-            {
-                m_SubGraphData.OverrideObjectId(subGraphObjectIdOverride);
-            }
+
             m_SubGraphData.inputs.Clear();
             m_SubGraphData.keywords.Clear();
             m_SubGraphData.nodeProperties.Clear();
