@@ -1,7 +1,5 @@
 ﻿TextControlView {
-    
     flex-direction: row;
-    float: left
     padding-left: 8px;
     padding-right: 8px;
     padding-top: 4px;
