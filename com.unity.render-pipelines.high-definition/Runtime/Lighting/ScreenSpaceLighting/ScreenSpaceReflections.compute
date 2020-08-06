@@ -343,7 +343,7 @@ void ScreenSpaceReflectionsTracing(uint3 groupId          : SV_GroupID,
         // recompute it using the last value of 't', which would result in an overshoot.
         // It also needs to be precisely at the center of the pixel to avoid artifacts.
         float2 hitPositionNDC = floor(rayPos.xy) * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
-        _SsrHitPointTexture[COORD_TEXTURE2D_X(positionSS)] = hitPositionNDC;
+        _SsrHitPointTexture[COORD_TEXTURE2D_X(positionSS)] = float4(hitPositionNDC, t, iterCount);
     }
 
     // If we do not hit anything, 'rayPos.xy' provides an indication where we stopped the search.
@@ -388,6 +388,27 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
         return;
     }
 
+#ifdef DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
+    float  deviceDepth0 = LOAD_TEXTURE2D_X(_DepthTexture, positionSS).r;
+    float  deviceDepth1 = LOAD_TEXTURE2D_X(_DepthTexture, hitPositionNDC).r;
+#else
+    float  deviceDepth0 = LOAD_TEXTURE2D_X(_CameraDepthTexture, positionSS).r;
+    float  deviceDepth1 = LOAD_TEXTURE2D_X(_CameraDepthTexture, hitPositionNDC).r;
+#endif
+
+    bool killRay0 = deviceDepth0 == UNITY_RAW_FAR_CLIP_VALUE;
+    bool killRay1 = deviceDepth1 == UNITY_RAW_FAR_CLIP_VALUE;
+
+    float2 positionNDC0 = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw);
+
+    float3 position0WS = ComputeWorldSpacePosition(positionNDC0, deviceDepth0, UNITY_MATRIX_I_VP);
+    float3 position1WS = ComputeWorldSpacePosition(hitPositionNDC, deviceDepth1, UNITY_MATRIX_I_VP);
+
+    float linearZ0 = Linear01Depth(deviceDepth0, _ZBufferParams);
+    float linearZ1 = Linear01Depth(deviceDepth1, _ZBufferParams);
+
+    float allDist = abs(linearZ0 - linearZ1);
+
     float3 N;
     float perceptualRoughness;
     GetNormalAndPerceptualRoughness(positionSS, N, perceptualRoughness);
@@ -408,7 +429,8 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     opacity = isPosFin ? opacity : 0;
 
     // Use premultiplied alpha.
-    _SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = float4(color, 1) * opacity;
+    //allDist
+    _SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = float4(color, 1.0f) * opacity;
 }
 
 #endif
