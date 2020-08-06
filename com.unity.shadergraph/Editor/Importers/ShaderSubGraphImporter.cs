@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph
             var subGraphPath = ctx.assetPath;
             var subGraphGuid = AssetDatabase.AssetPathToGUID(subGraphPath);
             graphAsset.assetGuid = subGraphGuid;
-            graphAsset.subGraphObjectIdOverride = "SubGraphImporter_subGraphData_luid_X";
+            graphAsset.subGraphObjectIdOverride = "SubGraphImporter_subGraphDataId";
             var textGraph = File.ReadAllText(subGraphPath, Encoding.UTF8);
             var messageManager = new MessageManager();
             var graphData = new GraphData
@@ -245,10 +245,10 @@ namespace UnityEditor.ShaderGraph
             for (int i = 0; i < collector.properties.Count; ++i)
             {
                 // override nondeterminstic guids with obviously local ids.
-                collector.properties[i].ObjectIdUnsafe = "SubGraphImporter_propertyNode_luid_"+i;
+                collector.properties[i].OverrideObjectId("SubGraphImporter_propertyNode_luid_"+i);
                 byte[] guidBytes = new byte[16];
                 BitConverter.GetBytes(i+1).CopyTo(guidBytes, 0);
-                collector.properties[i].GuidUnsafe = new Guid(guidBytes);
+                collector.properties[i].OverrideGuid(new Guid(guidBytes));
             }
 
             asset.WriteData(graph.properties, graph.keywords, collector.properties, outputSlots, graph.unsupportedTargets);

@@ -14,11 +14,7 @@ namespace UnityEditor.ShaderGraph.Serialization
         [SerializeField]
         string m_ObjectId = Guid.NewGuid().ToString("N");
 
-        internal string ObjectIdUnsafe // allow id to be overwritten when necessary
-        {
-            get { return m_ObjectId; }
-            set { m_ObjectId = value; }
-        }
+        internal void OverrideObjectId(string newObjectId) { m_ObjectId = newObjectId; }
 
         public string objectId => m_ObjectId;
 

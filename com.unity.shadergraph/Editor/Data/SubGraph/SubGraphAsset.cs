@@ -91,7 +91,7 @@ namespace UnityEditor.ShaderGraph
             }
             if (subGraphObjectIdOverride.Length != 0)
             {
-                m_SubGraphData.ObjectIdUnsafe = subGraphObjectIdOverride;
+                m_SubGraphData.OverrideObjectId(subGraphObjectIdOverride);
             }
             m_SubGraphData.inputs.Clear();
             m_SubGraphData.keywords.Clear();
