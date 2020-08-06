@@ -1,10 +1,10 @@
 # Forward and Deferred rendering
 
-The High Definition Render Pipeline (HDRP) allows you to render Lit Materials using either Forward or Deferred rendering. You can configure your Unity Project to only use one of these modes, or allow it to use both and switch at runtime on a per-[Camera](HDRP-Camera.html) basis.
+The High Definition Render Pipeline (HDRP) allows you to render Lit Materials using either Forward or Deferred rendering. You can configure your Unity Project to only use one of these modes, or allow it to use both and switch at runtime on a per-[Camera](HDRP-Camera.md) basis.
 
 ## Using Forward or Deferred rendering
 
-Before you use forward or deferred rendering in your Unity Project, you must make sure your [HDRP Asset](HDRP-Asset.html) supports them. To do this:
+Before you use forward or deferred rendering in your Unity Project, you must make sure your [HDRP Asset](HDRP-Asset.md) supports them. To do this:
 
 1. Select your HDRP Asset in the Project window to view it in the Inspector.
 2. Under the **Rendering** section, use the **Lit Shader Mode** drop-down to select the rendering mode that HDRP supports.
@@ -17,7 +17,7 @@ You can choose between three rendering modes:
 | ------------------- | ------------------------------------------------------------ |
 | **Forward**         | HDRP calculates the lighting in a single pass when rendering each individual GameObject. |
 | **Deferred**        | HDRP renders the Material properties of every GameObject visible on screen into a GBuffer. HDRP then processes the lighting for every pixel in the frame. |
-| **Both**            | Use the [Frame Settings](Frame-Settings.html) to change between **Forward** and **Deferred** rendering mode on a per Camera and Reflection Probe basis at runtime. Selecting this increases Project [build time](#BuildTime). |
+| **Both**            | Use the [Frame Settings](Frame-Settings.md) to change between **Forward** and **Deferred** rendering mode on a per Camera basis. Selecting this increases Project [build time](#BuildTime). |
 
 If you select **Both**, you can set a rendering mode for all Cameras to use by default, and also override this default rendering mode at runtime for a specific Camera. For example, you can use Forward mode for a Planar Reflection Probe and then render your main Camera using Deferred mode. 
 

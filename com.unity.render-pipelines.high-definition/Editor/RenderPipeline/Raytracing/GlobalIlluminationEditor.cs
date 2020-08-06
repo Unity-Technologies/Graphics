@@ -83,6 +83,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SecondDenoiserRadius = Unpack(o.Find(x => x.secondDenoiserRadius));
         }
 
+        static public readonly GUIContent k_DepthBufferThicknessText = EditorGUIUtility.TrTextContent("Object Thickness", "Controls the typical thickness of objects the global illumination rays may pass behind.");
+
         public void DenoiserGUI()
         {
             PropertyField(m_Denoise);
@@ -196,7 +198,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_FilterRadius);
                 GUI.enabled = true;
                 EditorGUI.indentLevel--;
-                PropertyField(m_DepthBufferThickness);
+                PropertyField(m_DepthBufferThickness, k_DepthBufferThicknessText);
             }
 
             EditorGUI.indentLevel--;
