@@ -251,17 +251,16 @@ namespace UnityEditor.ShaderGraph
                 for (int i = previousPropertyCount; i < collector.properties.Count; ++i)
                 {
                     var prop = collector.properties[i];
-                    var newName = prop.referenceName + "_importId_" + i; // sufficiently unique object id.
+                    var newName = prop.referenceName + "_importId_" + i; // sufficiently unique object id for this generated property.
 
-                    // The ObjectId is normally generated as a Guid, but it may not be.
+                    // The Node's object Id is generated as a guid, but we can't assume it's valid.
                     if (!Guid.TryParse(node.objectId, out _))
                     {
                         Debug.LogWarning("Node objectId is not a valid Guid, using element order as local id instead." + node.objectId);
-                        prop.OverrideObjectId(newName);
-                        collector.properties[i].OverrideObjectId("SubGraphImporter_propertyNode_luid_" + i);
                         byte[] guidBytes = new byte[16];
                         BitConverter.GetBytes(i + 1).CopyTo(guidBytes, 0);
-                        collector.properties[i].OverrideGuid(new Guid(guidBytes));
+                        prop.OverrideObjectId(newName);
+                        prop.OverrideGuid(new Guid(guidBytes));
                         continue;
                     }
 
