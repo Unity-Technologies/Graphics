@@ -1,3 +1,8 @@
+
+#if !defined(SPRITE_MASK_SHARED)
+#define SPRITE_MASK_SHARED
+
+
 // alpha below which a mask should discard a pixel, thereby preventing the stencil buffer from being marked with the Mask's presence
 half  _Cutoff;
 
@@ -33,4 +38,6 @@ half4 MaskRenderingFragment(Varyings input) : SV_Target
     clip(c.a - _Cutoff);
     return 0;
 }
+
+#endif
 
