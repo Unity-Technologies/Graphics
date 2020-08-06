@@ -17,56 +17,172 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         string m_SubLabel2;
         string m_SubLabel3;
         string m_SubLabel4;
+        int m_row;
 
-        public TextControlAttribute(string label = null, string subLabel1 = "X", string subLabel2 = "Y", string subLabel3 = "Z", string subLabel4 = "W")
+        public TextControlAttribute(int row, string label = null, string subLabel1 = "X", string subLabel2 = "Y", string subLabel3 = "Z", string subLabel4 = "W")
         {
+
             m_SubLabel1 = subLabel1;
             m_SubLabel2 = subLabel2;
             m_SubLabel3 = subLabel3;
             m_SubLabel4 = subLabel4;
             m_Label = label;
+            m_row = row;
         }
 
         public VisualElement InstantiateControl(AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
             if (!TextControlView.validTypes.Contains(propertyInfo.PropertyType))
                 return null;
-            return new TextControlView(m_Label, m_SubLabel1, m_SubLabel2, m_SubLabel3, m_SubLabel4, node, propertyInfo);
+            return new TextControlView(m_row, m_Label, m_SubLabel1, m_SubLabel2, m_SubLabel3, m_SubLabel4, node, propertyInfo);
         }
     }
 
     class TextControlView : VisualElement
     {
         public static Type[] validTypes = { typeof(string) };
-
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;
         string m_Value;
+        int m_row;
         int m_UndoGroup = -1;
 
-        public TextControlView(string label, string subLabel1, string subLabel2, string subLabel3, string subLabel4, AbstractMaterialNode node, PropertyInfo propertyInfo)
+        public TextControlView(int row, string label, string subLabel1, string subLabel2, string subLabel3, string subLabel4, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
 
+            
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/TextControlView"));
             m_Node = node;
-            m_PropertyInfo = propertyInfo;
+            var MatrixSwizzleNode = m_Node as MatrixSwizzleNode;
+            if (MatrixSwizzleNode != null)
+            {
 
+                MatrixSwizzleNode.OnSizeChange += Callback;
+            }
+            m_PropertyInfo = propertyInfo;
+            m_row = row;
+            //Debug.LogError("size_IsMatrix: " + size_IsMatrix);
             label = label ?? ObjectNames.NicifyVariableName(propertyInfo.Name);
             if (!string.IsNullOrEmpty(label))
                 Add(new Label(label));
             m_Value = GetValue();
             
-            if (m_Value == "")
+            if (m_Value == null)
             {
                 m_Value = "00000000";
             }
             SetValue(m_Value);
-            Debug.Log("m_value: "+m_Value);
+            //Debug.Log("m_value: "+m_Value);
             AddField(0, subLabel1);
             AddField(1, subLabel2);
             AddField(2, subLabel3);
             AddField(3, subLabel4);
         }
+        //private Tuple<int, bool> size_IsMatrix;
+
+        private void Callback(string OutputSize)
+        {
+           
+            //Debug.LogError("callback OutputSize: " + OutputSize);
+            int size;
+            bool IsMatrix;
+            switch (OutputSize)
+            {
+                
+                default:
+                    size = 4;
+                    IsMatrix = true;
+                    SetVisibility(size, IsMatrix);
+                    break;
+                case "Matrix3":
+                    size = 3;
+                    IsMatrix = true;
+                    //unused row
+                    SetVisibility(size, IsMatrix);
+                    break;
+                case "Matrix2":
+                    size = 2;
+                    IsMatrix = true;
+                    //unused row
+                    SetVisibility(size, IsMatrix);
+                    break;
+                case "Vector4":
+                    size = 4;
+                    IsMatrix = false;
+                    //unused row
+                    SetVisibility(size, IsMatrix);
+                    break;
+                case "Vector3":
+                    size = 3;
+                    IsMatrix = false;
+                    //unused row
+                    SetVisibility(size, IsMatrix);
+                    break;
+                case "Vector2":
+                    size = 2;
+                    IsMatrix = false;
+                    //unused row
+                    SetVisibility(size, IsMatrix);
+                    break;
+                case "Vector1":
+                    size = 1;
+                    IsMatrix = false;
+                    //unused row
+                    SetVisibility(size, IsMatrix);
+                    break;
+
+
+            }
+            //size_IsMatrix = new Tuple<int, bool>(size, IsMatrix);
+
+        }
+
+        private void SetVisibility(int size, bool IsMatrix)
+        {
+
+            var childern = this.Children();
+            this.SetEnabled(true);
+            if (IsMatrix)
+            {
+                
+                //foreach child in childern:
+                for (int i = 0; i< this.childCount; i++)
+                {
+                    childern.ElementAt(i).SetEnabled(true);
+                    if (i>= 2 * size)
+                    {
+                        childern.ElementAt(i).SetEnabled(false);
+                    }
+                    
+                }
+
+                if (this.m_row >= size)
+                {
+                    this.SetEnabled(false);
+                }
+
+
+            }
+            else
+            {
+                for (int i = 0; i < this.childCount; i++)
+                {
+                    childern.ElementAt(i).SetEnabled(true);
+                    if (i >= 2 )
+                    {
+                        childern.ElementAt(i).SetEnabled(false);
+                    }
+
+                }
+
+                if (this.m_row >= size)
+                {
+                    this.SetEnabled(false);
+                }
+            }
+ 
+        }
+
         private char[] value_char = { '0', '0', '0', '0', '0', '0', '0', '0' };
         void AddField(int index, string subLabel)
         {
@@ -94,7 +210,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 var value = GetValue();
                 
 
-                Debug.Log(index + "value_char: " + value_char);
+                //Debug.Log(index + "value_char: " + value_char);
                 value_char[2 * index] = evt.newValue[0];
 
                 if (evt.newValue.Length>=2)
@@ -107,8 +223,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
 
                 value = new string(value_char);
-                Debug.Log(index+ " evt.newValue: " + evt.newValue);
-                Debug.Log(index + "value: " + value);
+                //Debug.Log(index+ " evt.newValue: " + evt.newValue);
+                //Debug.Log(index + "value: " + value);
                 SetValue(value);
                 m_UndoGroup = -1;
                 this.MarkDirtyRepaint();
@@ -159,13 +275,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         string GetValue()
         {
             var value = m_PropertyInfo.GetValue(m_Node, null);
-            Debug.Log("GetValue():" + value);
+            //Debug.Log("GetValue():" + value);
             return (string)value;
         }
 
         void SetValue(string value)
         {
-            Debug.Log("SetValue():" + value);
+            //Debug.Log("SetValue():" + value);
             m_PropertyInfo.SetValue(m_Node, ValueToPropertyType(value), null);
         }
 

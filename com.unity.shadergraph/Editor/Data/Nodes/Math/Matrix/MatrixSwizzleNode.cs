@@ -28,37 +28,20 @@ namespace UnityEditor.ShaderGraph
     [Title("Math", "Matrix", "Matrix Swizzle")]
     class MatrixSwizzleNode : AbstractMaterialNode, IGeneratesBodyCode
     {
+
+
+        public event Action<string> OnSizeChange;
         const string kInputSlotName = "In";
         const string kOutputSlotName = "Out";
       
 
         public const int InputSlotId = 0;
         public const int OutputSlotId = 1;
-        //TODO: Do we want to use build in matrix constrcut function??
 
         public const int Output4x4SlotId = 2;
         public const int Output3x3SlotId = 3;
         public const int Output2x2SlotId = 4;
 
-        [SerializeField]
-        Vector4 text;
-
-        //[TextControl("", " m", "   m", "   m", "   m")]
-        //public Vector4 text_00
-        //{
-        //    get { return text; }
-        //    set { SetText(ref text, value); }
-        //}
-
-        //void SetText(ref Vector4 row, Vector4 value)
-        //{
-        //    if (value == row)
-        //        return;
-        //    row = value;
-        //    Debug.Log(value);
-        //    //Dirty(ModificationScope.Node);
-        //    Dirty(ModificationScope.Topological);
-        //}
 
 
         [SerializeField]
@@ -75,28 +58,28 @@ namespace UnityEditor.ShaderGraph
 
         
 
-        [TextControl("", " m", "   m", "   m", "   m")]
+        [TextControl(0, "", " m", "   m", "   m", "   m")]
         public string row0
         {
             get { return index_Row0; }
             set { SetRow(ref index_Row0, value);  }
         }
 
-        [TextControl("", " m", "   m", "   m", "   m")]
+        [TextControl(1, "", " m", "   m", "   m", "   m")]
         public string row1
         {
             get { return index_Row1; }
             set { SetRow(ref index_Row1, value);  }
         }
 
-        [TextControl("", " m", "   m", "   m", "   m")]
+        [TextControl(2, "", " m", "   m", "   m", "   m")]
         public string row2
         {
             get { return index_Row2; }
             set { SetRow(ref index_Row2, value);  }
         }
 
-        [TextControl("", " m", "   m", "   m", "   m")]
+        [TextControl(3, "", " m", "   m", "   m", "   m")]
         public string row3
         {
             get { return index_Row3; }
@@ -108,6 +91,7 @@ namespace UnityEditor.ShaderGraph
             if (value == row)
                 return;
             row = value;
+            ValidateNode();
             //Debug.Log(value);
             //Dirty(ModificationScope.Node);
             Dirty(ModificationScope.Topological);
@@ -126,13 +110,15 @@ namespace UnityEditor.ShaderGraph
         [EnumControl("Output Size:")]
         SwizzleOutputSize outputSize
         {
-            get { return m_OutputSize; }
+            get {
+                OnSizeChange?.Invoke(m_OutputSize.ToString());
+                return m_OutputSize; }
             set
             {
                 if (m_OutputSize.Equals(value))
                     return;
                 m_OutputSize = value;
-                
+                OnSizeChange?.Invoke(value.ToString());
                 UpdateNodeAfterDeserialization();
                 owner.ValidateGraph();
                 Dirty(ModificationScope.Topological);
@@ -279,11 +265,12 @@ namespace UnityEditor.ShaderGraph
         public override void ValidateNode()
         {
             base.ValidateNode();
-
+            Debug.Log("AreIndiciesValid" + AreIndiciesValid);
             if (!AreIndiciesValid)
             {
                 owner.AddValidationError(objectId, "Indices need to be smaller than input size!", ShaderCompilerMessageSeverity.Error);
             }
+   
 
         }
         //1. get input matrix and demension
@@ -373,20 +360,22 @@ namespace UnityEditor.ShaderGraph
             }
 
             //Check indices sizes
+            Debug.Log("chekign in code" );
+            AreIndiciesValid = true;
             if (!(IsIndexSizeCorrect(inputIndecies.GetRow(0), concreteRowCount)&&
                 IsIndexSizeCorrect(inputIndecies.GetRow(1), concreteRowCount)&&
                 IsIndexSizeCorrect(inputIndecies.GetRow(2), concreteRowCount) && IsIndexSizeCorrect(inputIndecies.GetRow(3), concreteRowCount)) )
             {
                 AreIndiciesValid = false;
-                ValidateNode();
+                //ValidateNode();
                 inputIndecies.SetRow(0, new Vector4(0,0,0,0));
                 inputIndecies.SetRow(1, new Vector4(0, 0, 0, 0));
                 inputIndecies.SetRow(2, new Vector4(0, 0, 0, 0));
                 inputIndecies.SetRow(3, new Vector4(0, 0, 0, 0));
             }
 
-            AreIndiciesValid = true;
-
+            
+            //ValidateNode();
 
 
 
