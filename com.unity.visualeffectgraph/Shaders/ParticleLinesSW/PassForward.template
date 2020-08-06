@@ -11,7 +11,11 @@ Pass
 	{
 		float4 pos : SV_POSITION;
 		#if IS_TRANSPARENT_PARTICLE
+#ifdef SHADER_API_PSSL
+		/*noperspective (see case 1237742)*/ float pixelOffset : TEXCOORD0; // for AA
+#else
 		noperspective float pixelOffset : TEXCOORD0; // for AA
+#endif
 		#endif
 		#if VFX_NEEDS_COLOR_INTERPOLATOR
 		VFX_OPTIONAL_INTERPOLATION float4 color : COLOR0;
