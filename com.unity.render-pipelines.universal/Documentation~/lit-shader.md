@@ -58,11 +58,11 @@ The __Surface Inputs__ describe the surface itself. For example, you can use the
 
 ### Detail Inputs
 
-The __Detail Inputs__ allows adding additional details to the surface.
+The __Detail Inputs__ allows adding additional details to the surface. Not supported on GPUs that target shader model 2.0 or lower.
 
 | Property                    | Description                                                  |
 | --------------------------- | ------------------------------------------------------------ |
-| __Mask__                    | Specifies mask where details needs to be blanded with base surface. |
+| __Mask__                    | Specifies mask where details needs to be blended with base surface. |
 | __Base Map__                | Adds color to the surface detail. To add the map, click the object picker next to it. The normal map picks up ambient lighting in the environment. <br/>Use the slider next to the setting to modulate the albedo of the detail map (red channel) between 0 and 2. This is an overlay effect. |
 | __Normal Map__              | Adds a normal map to the surface detail. To add the map, click the object picker next to it. The normal map picks up ambient lighting in the environment. <br/>Use the slider next to the setting to modulate the intensity of the detail normal map, between 0 and 2. The default value is 1 and has no scale. |
 | __Tiling__                  | A 2D multiplier value that scales the __Base Map__ and __Normal Map__ to fit across a mesh according to the U and V axes. This is good for surfaces like floors and walls. The default value is 1, which means no scaling. Set a higher value to make the Texture repeat across your mesh. Set a lower value to stretch the Texture. Try different values until you reach your desired effect. |

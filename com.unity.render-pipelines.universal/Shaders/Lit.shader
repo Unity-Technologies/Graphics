@@ -91,7 +91,6 @@ Shader "Universal Render Pipeline/Lit"
             HLSLPROGRAM
             #pragma exclude_renderers d3d11_9x gles
             #pragma target 4.5
-            //#pragma enable_d3d11_debug_symbols
 
             // -------------------------------------
             // Material Keywords
@@ -235,7 +234,6 @@ Shader "Universal Render Pipeline/Lit"
 
             #pragma vertex LitGBufferPassVertex
             #pragma fragment LitGBufferPassFragment
-            //#pragma enable_d3d11_debug_symbols
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitGBufferPass.hlsl"
