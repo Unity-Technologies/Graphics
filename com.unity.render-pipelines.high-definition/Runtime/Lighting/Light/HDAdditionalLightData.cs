@@ -1723,7 +1723,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
 
                 m_AreaLightEmissiveMeshLayer = value;
-                if (emissiveMeshRenderer != null && !emissiveMeshRenderer.Equals(null))
+                if (emissiveMeshRenderer != null && !emissiveMeshRenderer.Equals(null) && m_AreaLightEmissiveMeshLayer != -1)
                 {
                     emissiveMeshRenderer.gameObject.layer = m_AreaLightEmissiveMeshLayer;
                 }
@@ -2518,7 +2518,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RefreshCachedShadow();
 
-            if (emissiveMeshRenderer != null && !emissiveMeshRenderer.Equals(null))
+            if (emissiveMeshRenderer != null && !emissiveMeshRenderer.Equals(null) && m_AreaLightEmissiveMeshLayer != -1)
             {
                 emissiveMeshRenderer.gameObject.layer = m_AreaLightEmissiveMeshLayer;
             }
@@ -2845,7 +2845,9 @@ namespace UnityEngine.Rendering.HighDefinition
             shapeHeight = m_ShapeHeight;
 
 #if UNITY_EDITOR
-            legacyLight.areaSize = new Vector2(shapeWidth, shapeHeight);
+            // We don't want to update the disc area since their shape is largely handled by builtin.
+            if (GetLightTypeAndShape() != HDLightTypeAndShape.DiscArea)
+                legacyLight.areaSize = new Vector2(shapeWidth, shapeHeight);
 #endif
         }
 
