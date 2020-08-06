@@ -63,8 +63,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField, Reload("Runtime/Data/PostProcessData.asset")]
         PostProcessData m_PostProcessData = null;
 
-        internal float hdrEmulationScale => m_HDREmulationScale;
-        internal Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
+        public float hdrEmulationScale => m_HDREmulationScale;
+        public Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
         internal bool useDepthStencilBuffer => m_UseDepthStencilBuffer;
 
         internal Shader shapeLightShader => m_ShapeLightShader;
