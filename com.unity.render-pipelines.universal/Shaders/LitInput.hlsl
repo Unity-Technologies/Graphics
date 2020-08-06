@@ -20,7 +20,9 @@ half _Cutoff;
 half _Smoothness;
 half _Metallic;
 half _BumpScale;
+#if defined(_PARALLAXMAP)
 half _Parallax;
+#endif
 half _OcclusionStrength;
 #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
 half _ClearCoatMask;
@@ -146,7 +148,9 @@ half2 SampleClearCoat(float2 uv)
 
 void ApplyPerPixelDisplacement(half3 viewDirTS, inout float2 uv)
 {
-    ApplyPerPixelDisplacement(TEXTURE2D_ARGS(_ParallaxMap, sampler_ParallaxMap), viewDirTS, _Parallax, uv);
+#if defined(_PARALLAXMAP)
+    uv += ParallaxMapping(TEXTURE2D_ARGS(_ParallaxMap, sampler_ParallaxMap), viewDirTS, _Parallax, uv);
+#endif
 }
 
 // Used for scaling detail albedo. Main features:

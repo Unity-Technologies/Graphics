@@ -34,11 +34,11 @@ half2 ParallaxOffset1Step(half height, half amplitude, half3 viewDirTS)
     return height * (v.xy / v.z);
 }
 
-void ApplyPerPixelDisplacement(TEXTURE2D_PARAM(heightMap, sampler_heightMap), half3 viewDirTS, half scale, inout float2 uv)
+float2 ParallaxMapping(TEXTURE2D_PARAM(heightMap, sampler_heightMap), half3 viewDirTS, half scale, float2 uv)
 {
     half h = SAMPLE_TEXTURE2D(heightMap, sampler_heightMap, uv).g;
     float2 offset = ParallaxOffset1Step(h, scale, viewDirTS);
-    uv += offset;
+    return offset;
 }
 
 #endif // UNIVERSAL_PARALLAX_MAPPING_INCLUDED
