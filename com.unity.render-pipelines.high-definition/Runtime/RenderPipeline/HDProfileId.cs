@@ -210,7 +210,7 @@ namespace UnityEngine.Rendering.HighDefinition
         AOVColor,
         AOVDepthStencil,
         AOVNormals,
-        AOVMotionVectors
+        AOVMotionVectors,
 
 #if ENABLE_VIRTUALTEXTURES
         VTFeedbackClear,
