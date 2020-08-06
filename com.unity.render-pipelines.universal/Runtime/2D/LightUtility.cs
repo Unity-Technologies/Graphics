@@ -36,7 +36,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             public float3 position;
             public Color color;
 
-            public static VertexAttributeDescriptor[] VertexLayout { get; } = new[]
+            public static readonly VertexAttributeDescriptor[] VertexLayout = new[]
             {
                 new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
                 new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.Float32, 4),
@@ -49,7 +49,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             public Color color;
             public Vector2 uv;
 
-            public static VertexAttributeDescriptor[] VertexLayout { get; } = new[]
+            public static readonly VertexAttributeDescriptor[] VertexLayout = new[]
             {
                 new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
                 new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.Float32, 4),
