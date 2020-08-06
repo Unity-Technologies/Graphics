@@ -58,6 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
         void AddFilterOfTypeCallback(object type)
         {
+            Undo.RecordObject(m_compositionManager, "Add input filter");
             m_compositionManager.AddInputFilterAtLayer(CompositionFilter.Create((CompositionFilter.FilterType)type), m_layerList.index);
             m_SerializedProperties.layerList.serializedObject.Update();
             CacheSerializedObjects();
@@ -189,7 +190,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 // Pre-select the "default" item in the list (used to remember the last selected item when re-creating the Editor) 
                 if (defaultSelection >= 0)
                 {
-                    m_layerList.index = defaultSelection;
+                    m_layerList.index = Math.Min(defaultSelection, m_layerList.count-1);
                 }
 
                 m_layerList.drawHeaderCallback = (Rect rect) =>
