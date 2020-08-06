@@ -160,6 +160,15 @@ namespace UnityEngine.Rendering.HighDefinition
             var result = new ProbeCapturePositionSettings();
             var proxyToWorld = probe.proxyToWorld;
             result.proxyPosition = proxyToWorld.GetColumn(3);
+
+            // If reference position and proxy position is exactly the same, we end up in some degeneracies triggered
+            // by engine code when computing culling parameters. This is an extremely rare case, but can happen
+            // in editor when focusing on the planar probe. So if that happens, we offset them 0.1 mm apart.
+            if(Vector3.Distance(result.proxyPosition, referencePosition) < 1e-4f)
+            {
+                referencePosition += new Vector3(1e-4f, 1e-4f, 1e-4f);
+            }
+
             result.proxyRotation = proxyToWorld.rotation;
             result.referencePosition = referencePosition;
             result.referenceRotation = referenceRotation;
