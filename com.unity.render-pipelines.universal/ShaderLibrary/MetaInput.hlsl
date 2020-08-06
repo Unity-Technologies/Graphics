@@ -51,11 +51,8 @@ half4 MetaFragment(MetaInput input)
     {
         res = half4(input.Albedo, 1.0);
 
-        // d3d9 shader compiler doesn't like NaNs and infinity.
-        unity_OneOverOutputBoost = saturate(unity_OneOverOutputBoost);
-
         // Apply Albedo Boost from LightmapSettings.
-        res.rgb = clamp(PositivePow(res.rgb, unity_OneOverOutputBoost), 0, unity_MaxOutputValue);
+        res.rgb = clamp(PositivePow(res.rgb, saturate(unity_OneOverOutputBoost)), 0, unity_MaxOutputValue);
     }
     if (unity_MetaFragmentControl.y)
     {

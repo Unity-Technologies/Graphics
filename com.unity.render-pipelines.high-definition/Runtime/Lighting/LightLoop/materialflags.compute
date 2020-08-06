@@ -24,11 +24,6 @@
 #define NR_THREADS              64                                  // default to 64 threads per group on other platforms..
 #endif
 
-CBUFFER_START(UnityMaterialFlags)
-uint2 g_viDimensions;
-uint g_BaseFeatureFlags;
-CBUFFER_END
-
 groupshared uint ldsFeatureFlags;
 RWStructuredBuffer<uint> g_TileFeatureFlags;
 

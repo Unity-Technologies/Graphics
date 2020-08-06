@@ -48,6 +48,8 @@ namespace UnityEditor.ShaderGraph
             set { m_Value = value; }
         }
 
+        public override bool isDefaultValue => value.Equals(defaultValue);
+
         public override SlotValueType valueType { get { return SlotValueType.DynamicMatrix; } }
 
         public override ConcreteSlotValueType concreteValueType
@@ -113,6 +115,15 @@ namespace UnityEditor.ShaderGraph
             var slot = foundSlot as DynamicMatrixMaterialSlot;
             if (slot != null)
                 value = slot.value;
+        }
+
+        public override void CopyDefaultValue(MaterialSlot other)
+        {
+            base.CopyDefaultValue(other);
+            if (other is IMaterialSlotHasValue<Matrix4x4> ms)
+            {
+                m_DefaultValue = ms.defaultValue;
+            }
         }
     }
 }

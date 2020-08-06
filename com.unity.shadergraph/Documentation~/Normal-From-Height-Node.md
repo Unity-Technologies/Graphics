@@ -2,13 +2,14 @@
 
 ## Description
 
-Creates a normal map from a height value defined by input **Input**.
+Creates a normal map from a height value defined by input **Input** with a strength defined by input **Strength**.
 
 ## Ports
 
 | Name        | Direction           | Type  | Description |
 |:------------ |:-------------|:-----|:---|
 | In      | Input | Vector 1 | Input height value |
+| Strength | Input | Vector 1 | The strength of the output normal. Considered in real-world units, recommended range is 0 - 0.1 . |
 | Out | Output      |    Vector 3 | Output value |
 
 ## Controls
@@ -24,16 +25,21 @@ The following example code represents one possible outcome of this node per **Ou
 **Tangent**
 
 ```
-void Unity_NormalFromHeight_Tangent(float In, out float3 Out)
+void Unity_NormalFromHeight_Tangent_float(float In, float Strength, float3 Position, float3x3 TangentMatrix, out float3 Out)
 {
-    float3 worldDirivativeX = ddx(Position * 100);
-    float3 worldDirivativeY = ddy(Position * 100);
-    float3 crossX = cross(TangentMatrix[2].xyz, worldDirivativeX);
-    float3 crossY = cross(TangentMatrix[2].xyz, worldDirivativeY);
-    float3 d = abs(dot(crossY, worldDirivativeX));
-    float3 inToNormal = ((((In + ddx(In)) - In) * crossY) + (((In + ddy(In)) - In) * crossX)) * sign(d);
-    inToNormal.y *= -1.0;
-    Out = normalize((d * TangentMatrix[2].xyz) - inToNormal);
+    float3 worldDerivativeX = ddx(Position);
+    float3 worldDerivativeY = ddy(Position);
+
+    float3 crossX = cross(TangentMatrix[2].xyz, worldDerivativeX);
+    float3 crossY = cross(worldDerivativeY, TangentMatrix[2].xyz);
+    float d = dot(worldDerivativeX, crossY);
+    float sgn = d < 0.0 ? (-1.0f) : 1.0f;
+    float surface = sgn / max(0.000000000000001192093f, abs(d));
+
+    float dHdx = ddx(In);
+    float dHdy = ddy(In);
+    float3 surfGrad = surface * (dHdx*crossY + dHdy*crossX);
+    Out = normalize(TangentMatrix[2].xyz - (Strength * surfGrad));
     Out = TransformWorldToTangent(Out, TangentMatrix);
 }
 ```
@@ -41,15 +47,20 @@ void Unity_NormalFromHeight_Tangent(float In, out float3 Out)
 **World**
 
 ```
-void Unity_NormalFromHeight_World(float In, out float3 Out)
+void Unity_NormalFromHeight_World_float(float In, float Strength, float3 Position, float3x3 TangentMatrix, out float3 Out)
 {
-    float3 worldDirivativeX = ddx(Position * 100);
-    float3 worldDirivativeY = ddy(Position * 100);
-    float3 crossX = cross(TangentMatrix[2].xyz, worldDirivativeX);
-    float3 crossY = cross(TangentMatrix[2].xyz, worldDirivativeY);
-    float3 d = abs(dot(crossY, worldDirivativeX));
-    float3 inToNormal = ((((In + ddx(In)) - In) * crossY) + (((In + ddy(In)) - In) * crossX)) * sign(d);
-    inToNormal.y *= -1.0;
-    Out = normalize((d * TangentMatrix[2].xyz) - inToNormal);
+    float3 worldDerivativeX = ddx(Position);
+    float3 worldDerivativeY = ddy(Position);
+
+    float3 crossX = cross(TangentMatrix[2].xyz, worldDerivativeX);
+    float3 crossY = cross(worldDerivativeY, TangentMatrix[2].xyz);
+    float d = dot(worldDerivativeX, crossY);
+    float sgn = d < 0.0 ? (-1.0f) : 1.0f;
+    float surface = sgn / max(0.000000000000001192093f, abs(d));
+
+    float dHdx = ddx(In);
+    float dHdy = ddy(In);
+    float3 surfGrad = surface * (dHdx*crossY + dHdy*crossX);
+    Out = normalize(TangentMatrix[2].xyz - (Strength * surfGrad));
 }
 ```

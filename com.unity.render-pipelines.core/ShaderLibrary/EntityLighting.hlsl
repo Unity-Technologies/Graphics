@@ -78,6 +78,7 @@ half3 SampleSH9(half4 SHCoefficients[7], half3 N)
     return res;
 }
 #endif
+
 float3 SampleSH9(float4 SHCoefficients[7], float3 N)
 {
     float4 shAr = SHCoefficients[0];
@@ -105,8 +106,10 @@ float3 SampleSH9(float4 SHCoefficients[7], float3 N)
 // TODO: the packing here is inefficient as we will fetch values far away from each other and they may not fit into the cache - Suggest we pack RGB continuously
 // TODO: The calcul of texcoord could be perform with a single matrix multicplication calcualted on C++ side that will fold probeVolumeMin and probeVolumeSizeInv into it and handle the identity case, no reasons to do it in C++ (ask Ionut about it)
 // It should also handle the camera relative path (if the render pipeline use it)
-float3 SampleProbeVolumeSH4(TEXTURE3D_PARAM(SHVolumeTexture, SHVolumeSampler), float3 positionWS, float3 normalWS, float4x4 WorldToTexture,
-                            float transformToLocal, float texelSizeX, float3 probeVolumeMin, float3 probeVolumeSizeInv)
+// bakeDiffuseLighting and backBakeDiffuseLighting must be initialize outside the function
+void SampleProbeVolumeSH4(TEXTURE3D_PARAM(SHVolumeTexture, SHVolumeSampler), float3 positionWS, float3 normalWS, float3 backNormalWS, float4x4 WorldToTexture,
+                            float transformToLocal, float texelSizeX, float3 probeVolumeMin, float3 probeVolumeSizeInv,
+                            inout float3 bakeDiffuseLighting, inout float3 backBakeDiffuseLighting)
 {
     float3 position = (transformToLocal == 1.0) ? mul(WorldToTexture, float4(positionWS, 1.0)).xyz : positionWS;
     float3 texCoord = (position - probeVolumeMin) * probeVolumeSizeInv.xyz;
@@ -123,14 +126,30 @@ float3 SampleProbeVolumeSH4(TEXTURE3D_PARAM(SHVolumeTexture, SHVolumeSampler), f
     texCoord.x += 0.25;
     float4 shAb = SAMPLE_TEXTURE3D_LOD(SHVolumeTexture, SHVolumeSampler, texCoord, 0);
 
-    return SHEvalLinearL0L1(normalWS, shAr, shAg, shAb);
+    bakeDiffuseLighting += SHEvalLinearL0L1(normalWS, shAr, shAg, shAb);
+    backBakeDiffuseLighting += SHEvalLinearL0L1(backNormalWS, shAr, shAg, shAb);
+}
+
+// Just a shortcut that call function above
+float3 SampleProbeVolumeSH4(TEXTURE3D_PARAM(SHVolumeTexture, SHVolumeSampler), float3 positionWS, float3 normalWS, float4x4 WorldToTexture,
+                                float transformToLocal, float texelSizeX, float3 probeVolumeMin, float3 probeVolumeSizeInv)
+{
+    float3 backNormalWSUnused = 0.0;
+    float3 bakeDiffuseLighting = 0.0;
+    float3 backBakeDiffuseLightingUnused = 0.0;
+    SampleProbeVolumeSH4(TEXTURE3D_ARGS(SHVolumeTexture, SHVolumeSampler), positionWS, normalWS, backNormalWSUnused, WorldToTexture,
+                            transformToLocal, texelSizeX, probeVolumeMin, probeVolumeSizeInv,
+                            bakeDiffuseLighting, backBakeDiffuseLightingUnused);
+    return bakeDiffuseLighting;
 }
 
 // The SphericalHarmonicsL2 coefficients are packed into 7 coefficients per color channel instead of 9.
 // The packing from 9 to 7 is done from engine code and will use the alpha component of the pixel to store an additional SH coefficient.
 // The 3D atlas texture will contain 7 SH coefficient parts.
-float3 SampleProbeVolumeSH9(TEXTURE3D_PARAM(SHVolumeTexture, SHVolumeSampler), float3 positionWS, float3 normalWS, float4x4 WorldToTexture,
-                                           float transformToLocal, float texelSizeX, float3 probeVolumeMin, float3 probeVolumeSizeInv)
+// bakeDiffuseLighting and backBakeDiffuseLighting must be initialize outside the function
+void SampleProbeVolumeSH9(TEXTURE3D_PARAM(SHVolumeTexture, SHVolumeSampler), float3 positionWS, float3 normalWS, float3 backNormalWS, float4x4 WorldToTexture,
+                                           float transformToLocal, float texelSizeX, float3 probeVolumeMin, float3 probeVolumeSizeInv,
+                                           inout float3 bakeDiffuseLighting, inout float3 backBakeDiffuseLighting)
 {
     float3 position = (transformToLocal == 1.0f) ? mul(WorldToTexture, float4(positionWS, 1.0)).xyz : positionWS;
     float3 texCoord = (position - probeVolumeMin) * probeVolumeSizeInv;
@@ -152,8 +171,23 @@ float3 SampleProbeVolumeSH9(TEXTURE3D_PARAM(SHVolumeTexture, SHVolumeSampler), f
         SHCoefficients[i] = SAMPLE_TEXTURE3D_LOD(SHVolumeTexture, SHVolumeSampler, texCoord, 0);
     }
 
-    return SampleSH9(SHCoefficients, normalize(normalWS));
+    bakeDiffuseLighting += SampleSH9(SHCoefficients, normalize(normalWS));
+    backBakeDiffuseLighting += SampleSH9(SHCoefficients, normalize(backNormalWS));
 }
+
+// Just a shortcut that call function above
+float3 SampleProbeVolumeSH9(TEXTURE3D_PARAM(SHVolumeTexture, SHVolumeSampler), float3 positionWS, float3 normalWS, float4x4 WorldToTexture,
+                                float transformToLocal, float texelSizeX, float3 probeVolumeMin, float3 probeVolumeSizeInv)
+{
+    float3 backNormalWSUnused = 0.0;
+    float3 bakeDiffuseLighting = 0.0;
+    float3 backBakeDiffuseLightingUnused = 0.0;
+    SampleProbeVolumeSH9(TEXTURE3D_ARGS(SHVolumeTexture, SHVolumeSampler), positionWS, normalWS, backNormalWSUnused, WorldToTexture,
+                            transformToLocal, texelSizeX, probeVolumeMin, probeVolumeSizeInv,
+                            bakeDiffuseLighting, backBakeDiffuseLightingUnused);
+    return bakeDiffuseLighting;
+}
+
 #endif
 
 float4 SampleProbeOcclusion(TEXTURE3D_PARAM(SHVolumeTexture, SHVolumeSampler), float3 positionWS, float4x4 WorldToTexture,
@@ -252,7 +286,8 @@ real3 SampleSingleLightmap(TEXTURE2D_PARAM(lightmapTex, lightmapSampler), float2
     return illuminance;
 }
 
-real3 SampleDirectionalLightmap(TEXTURE2D_PARAM(lightmapTex, lightmapSampler), TEXTURE2D_PARAM(lightmapDirTex, lightmapDirSampler), float2 uv, float4 transform, float3 normalWS, bool encodedLightmap, real4 decodeInstructions)
+void SampleDirectionalLightmap(TEXTURE2D_PARAM(lightmapTex, lightmapSampler), TEXTURE2D_PARAM(lightmapDirTex, lightmapDirSampler), float2 uv, float4 transform,
+    float3 normalWS, float3 backNormalWS, bool encodedLightmap, real4 decodeInstructions, inout real3 bakeDiffuseLighting, inout real3 backBakeDiffuseLighting)
 {
     // In directional mode Enlighten bakes dominant light direction
     // in a way, that using it for half Lambert and then dividing by a "rebalancing coefficient"
@@ -276,8 +311,24 @@ real3 SampleDirectionalLightmap(TEXTURE2D_PARAM(lightmapTex, lightmapSampler), T
     {
         illuminance = SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgb;
     }
+
     real halfLambert = dot(normalWS, direction.xyz - 0.5) + 0.5;
-    return illuminance * halfLambert / max(1e-4, direction.w);
+    bakeDiffuseLighting += illuminance * halfLambert / max(1e-4, direction.w);
+
+    real backHalfLambert = dot(backNormalWS, direction.xyz - 0.5) + 0.5;
+    backBakeDiffuseLighting += illuminance * backHalfLambert / max(1e-4, direction.w);
+}
+
+// Just a shortcut that call function above
+real3 SampleDirectionalLightmap(TEXTURE2D_PARAM(lightmapTex, lightmapSampler), TEXTURE2D_PARAM(lightmapDirTex, lightmapDirSampler), float2 uv, float4 transform, float3 normalWS, bool encodedLightmap, real4 decodeInstructions)
+{
+    float3 backNormalWSUnused = 0.0;
+    real3 bakeDiffuseLighting = 0.0;
+    real3 backBakeDiffuseLightingUnused = 0.0;
+    SampleDirectionalLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), TEXTURE2D_ARGS(lightmapDirTex, lightmapDirSampler), uv, transform,
+                                normalWS, backNormalWSUnused, encodedLightmap, decodeInstructions, bakeDiffuseLighting, backBakeDiffuseLightingUnused);
+
+    return bakeDiffuseLighting;
 }
 
 #endif // UNITY_ENTITY_LIGHTING_INCLUDED

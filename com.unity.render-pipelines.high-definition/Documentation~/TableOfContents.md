@@ -1,4 +1,7 @@
 * [High Definition Render Pipeline](index)
+* [Requirements](System-Requirements.md)
+* [What's new](whats-new.md)
+  * [10.0](whats-new-10-0.md)
 * Features
   * [Features List](HDRP-Features)
   * [Comparison with the Built-in Render Pipeline](Feature-Comparison)
@@ -10,10 +13,13 @@
   * [Exposing More Options](More-Options)
   * [Sample Content](HDRP-Sample-Content)
   * [Sample project](HDRP-Sample-Projects)
+  * [Menu Items](Menu-Items.md)
 * Upgrading HDRP between Unity Versions
   * [Material Upgrade](Material-Upgrade)
-  * [2019.1 to 2019.2](Upgrading-from-2019.1-to-2019.2)
-  * [2019.2 to 2019.3](Upgrading-from-2019.2-to-2019.3)
+  * [5.x to 6.x](Upgrading-from-2019.1-to-2019.2)
+  * [6.x to 7.x](Upgrading-from-2019.2-to-2019.3)
+  * [7.x to 8.x](Upgrading-from-2019.3-to-2020.1)
+  * [8.x to 9.x-preview/10.x](Upgrading-from-2020.1-to-2020.2)
 * Volume Framework
   * [Volumes](Volumes)
   * [Volume Profiles](Volume-Profile)
@@ -37,6 +43,7 @@
       * [Physically Based Sky](Override-Physically-Based-Sky)
       * [Procedural Sky](Override-Procedural-Sky)
     * [Visual Environment](Override-Visual-Environment)
+  * [Volumes API](Volumes-API.md)
 * Render Pipeline Settings
   * [HDRP Asset](HDRP-Asset)
   * [Frame Settings](Frame-Settings)
@@ -52,6 +59,7 @@
   * [Mask Map and Detail Map](Mask-Map-and-Detail-Map)
   * [Material Type](Material-Type)
   * [Renderer and Material Priority](Renderer-And-Material-Priority)
+  * [Decal](Decal)
   * [Surface Type](Surface-Type)
   * Subsurface Scattering
     * [Subsurface Scattering Materials](Subsurface-Scattering)
@@ -62,12 +70,14 @@
     * [Layered Lit Shader](Layered-Lit-Shader)
     * [Lit Tessellation Shader](Lit-Tessellation-Shader)
     * [Lit Shader](Lit-Shader)
+    * [Terrain Lit Shader](Terrain-Lit-Shader.md)
     * [Unlit Shader](Unlit-Shader)
   * Shader Graph Master Nodes
     * [Customizing Materials Using Master Nodes](Customizing-HDRP-materials-with-Shader-Graph)
     * [Decal](Master-Node-Decal)
     * [Fabric](Master-Node-Fabric)
     * [Hair](Master-Node-Hair)
+    * [Lit](Master-Node-Lit)
     * [Unlit](Master-Node-Unlit)
   * Shader Graph Nodes
     * [Emission](SGNode-Emission)
@@ -93,12 +103,18 @@
   * [Shadowmasks](Lighting-Mode-Shadowmask)
   * [Volumetric Lighting](Volumetric-Lighting)
   * [Physical Light Units and Intensities](Physical-Light-Units)
+  * IES
+    * [IES Profile](IES-Profile.md)
+    * [IES Importer](IES-Importer.md)
 * Camera
   * [HD Camera](HDRP-Camera)
+  * [Scene View Camera](Scene-View-Camera.md)
   * [Dynamic Resolution](Dynamic-Resolution)
   * [Motion Vectors](Motion-Vectors)
   * [Anti-Aliasing](Anti-Aliasing)
   * [Alpha Output](Alpha-Output)
+  * [Arbitrary Output Variables](AOVs)
+  * [Multiframe Rendering and Accumulation](Accumulation)
 * Post-processing
   * [Post-processing in HDRP](Post-Processing-Main)
   * [Effect Execution Order](Post-Processing-Execution-Order)
@@ -139,9 +155,10 @@
 * Components
   * [Decal Projector](Decal-Projector)
 * Tools
-  * Look Dev
-    * [Look Dev Window](Look-Dev)
-    * [Environment Library](Look-Dev-Environment-Library)
+  * [Look Dev](Look-Dev)
+  * [Compositor](Compositor-Main)
+    * [User Guide](Compositor-User-Guide)
+    * [User Options](Compositor-User-Options)
 * Debugging
   * [MatCap](MatCap)
   * [Render Pipeline Debug Window](Render-Pipeline-Debug-Window)
@@ -154,5 +171,6 @@
   * [Creating a Custom Sky](Creating-a-Custom-Sky)
   * [Creating a Custom Post-Process Effect](Custom-Post-Process)
   * [Creating a Custom Render Pass](Custom-Pass)
+  * [Editing Frame Settings at Runtime](Frame-Settings-API.md)
 * [HDRP Glossary](Glossary)
 * [Known Issues and How To Fix Them](Known-Issues)

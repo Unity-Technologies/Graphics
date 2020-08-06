@@ -18,7 +18,7 @@ Shader "Hidden/DistordTest"
 
 #define CENTER 0.15
 
-			float4 frag(v2f_customrendertexture IN) : COLOR
+			float4 frag(v2f_customrendertexture IN) : SV_Target
 			{
                 float4 col = float4(0,0,0,1);
 

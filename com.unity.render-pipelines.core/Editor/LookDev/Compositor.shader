@@ -391,7 +391,7 @@ Shader "Hidden/LookDev/Compositor"
             #pragma target 3.0
 
             float4 frag(float2 texcoord : TEXCOORD0,
-            UNITY_VPOS_TYPE vpos : VPOS) : COLOR
+            UNITY_VPOS_TYPE vpos : VPOS) : SV_Target
             {
                 float4 color = float4(ComputeColor(_Tex0MainView, _Tex0Shadows, ShadowMultiplier0, _ShadowColor0, texcoord) * exp2(ExposureValue1), 1.0);
                 color.rgb = ApplyToneMap(color.rgb);
@@ -409,7 +409,7 @@ Shader "Hidden/LookDev/Compositor"
             #pragma target 3.0
 
             float4 frag(float2 texcoord : TEXCOORD0,
-                        UNITY_VPOS_TYPE vpos : VPOS) : COLOR
+                        UNITY_VPOS_TYPE vpos : VPOS) : SV_Target
             {
                 float4 color = float4(ComputeColor(_Tex1MainView, _Tex1Shadows, ShadowMultiplier1, _ShadowColor1, texcoord) * exp2(ExposureValue2), 1.0);
                 color.rgb = ApplyToneMap(color.rgb);
@@ -427,7 +427,7 @@ Shader "Hidden/LookDev/Compositor"
             #pragma target 3.0
 
             float4 frag(float2 texcoord : TEXCOORD0,
-            UNITY_VPOS_TYPE vpos : VPOS) : COLOR
+            UNITY_VPOS_TYPE vpos : VPOS) : SV_Target
             {
                 float3 color1 = ComputeColor(_Tex0MainView, _Tex0Shadows, ShadowMultiplier0, _ShadowColor0, texcoord) * exp2(ExposureValue1);
                 float3 color2 = ComputeColor(_Tex1MainView, _Tex1Shadows, ShadowMultiplier1, _ShadowColor1, texcoord) * exp2(ExposureValue2);

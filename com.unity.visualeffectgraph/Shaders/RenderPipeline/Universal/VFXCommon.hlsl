@@ -6,7 +6,19 @@
 
 float3 _LightDirection;
 
+#ifdef VFX_VARYING_PS_INPUTS
 void VFXTransformPSInputs(inout VFX_VARYING_PS_INPUTS input) {}
+
+float4 VFXApplyPreExposure(float4 color, float exposureWeight)
+{
+    return color;
+}
+
+float4 VFXApplyPreExposure(float4 color, VFX_VARYING_PS_INPUTS input)
+{
+    return color;
+}
+#endif
 
 float4 VFXTransformFinalColor(float4 color)
 {
@@ -23,11 +35,6 @@ void VFXEncodeMotionVector(float2 velocity, out float4 outBuffer)
 {
     //TODO : LWRP doesn't support motion vector & TAA yet
     outBuffer = (float4)0.0f;
-}
-
-float3 GetCurrentViewPosition()
-{
-    return UNITY_MATRIX_I_V._14_24_34;
 }
 
 float4 VFXTransformPositionWorldToClip(float3 posWS)
@@ -133,9 +140,4 @@ float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
    color.rgb = lerp(fog.rgb * color.a, color.rgb, fog.a);
 #endif
    return color;
-}
-
-float4 VFXApplyPreExposure(float4 color, VFX_VARYING_PS_INPUTS input)
-{
-    return color;
 }

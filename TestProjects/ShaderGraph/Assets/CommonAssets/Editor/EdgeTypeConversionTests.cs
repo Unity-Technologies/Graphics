@@ -6,6 +6,7 @@ using NUnit.Framework;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.Rendering;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.UnitTests
@@ -17,9 +18,10 @@ namespace UnityEditor.ShaderGraph.UnitTests
             hideFlags = HideFlags.HideAndDontSave;
 
             var textGraph = File.ReadAllText(graphPath, Encoding.UTF8);
-            graph = JsonUtility.FromJson<GraphData>(textGraph);
+            graph = new GraphData();
             graph.messageManager = new MessageManager();
             graph.assetGuid = AssetDatabase.AssetPathToGUID(graphPath);
+            MultiJson.Deserialize(graph, textGraph);
             graph.OnEnable();
             graph.ValidateGraph();
         }
@@ -59,7 +61,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 var edge = m_Graph.GetEdges(slot.slotReference).FirstOrDefault();
                 if (edge == null) continue;
 
-                var outputNode = m_Graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                var outputNode = edge.outputSlot.node;
                 var outputSlot = outputNode.GetOutputSlots<MaterialSlot>().First(s => s.id == edge.outputSlot.slotId);
                 var curOutputType = outputSlot.valueType.ToConcreteSlotValueType();
 
@@ -73,7 +75,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                     // Verify all errors are expected
                     foreach (var message in m_Graph.messageManager.GetNodeMessages())
                     {
-                        if (message.Key.Equals(m_CFNode.guid) && message.Value.Exists(msg =>
+                        if (message.Key.Equals(m_CFNode.objectId) && message.Value.Exists(msg =>
                             msg.severity == ShaderCompilerMessageSeverity.Error))
                         {
                             Assert.IsFalse(SlotValueHelper.AreCompatible(slotValType, curOutputType),
@@ -105,29 +107,42 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 var edge = m_Graph.GetEdges(slot.slotReference).FirstOrDefault();
                 if (edge == null) continue;
 
-                var outputNode = m_Graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                var outputNode = edge.outputSlot.node;
                 var outputSlot = outputNode.GetOutputSlots<MaterialSlot>().First(s => s.id == edge.outputSlot.slotId);
 
-                RedirectNodeData.Create(m_Graph, outputSlot.valueType, Vector2.zero, edge.inputSlot, edge.outputSlot, Guid.Empty);
+                var redirNode = RedirectNodeData.Create(m_Graph, outputSlot.valueType, Vector2.zero, edge.inputSlot, edge.outputSlot, null);
 
                 m_Graph.ValidateGraph();
+                CompileNodeShader(m_CFNode, GenerationMode.Preview, m_CFNode.name);
+                CompileNodeShader(null, GenerationMode.ForReals, "Master Stack Shader");
 
                 // Verify all errors are expected
                 foreach (var message in m_Graph.messageManager.GetNodeMessages())
                 {
-                    if (message.Key.Equals(m_CFNode.guid) && message.Value.Exists(msg =>
-                        msg.severity == ShaderCompilerMessageSeverity.Error))
+                    if (message.Value.Exists(msg => msg.severity == ShaderCompilerMessageSeverity.Error))
                     {
                         Assert.Fail(message.Value.FirstOrDefault().message);
                     }
                 }
 
                 var redirectedValue = m_CFNode.GetSlotValue(slot.id, GenerationMode.ForReals);
+                var previewValue = m_CFNode.GetSlotValue(slot.id, GenerationMode.Preview);
 
-                Assert.AreEqual(originalValue, redirectedValue, $"Value of slot {slot.displayName} changed with redirect node");
+                Assert.AreEqual(originalValue, redirectedValue, $"Value of slot {slot.displayName} changed in final shader with redirect node");
+                Assert.AreEqual(originalValue, previewValue, $"Value of slot {slot.displayName} changed in preview shader with redirect node");
 
+                m_Graph.RemoveNode(redirNode);
                 m_Graph.ClearErrorsForNode(m_CFNode);
             }
+        }
+
+        void CompileNodeShader(AbstractMaterialNode node, GenerationMode mode, string nodeName)
+        {
+            var generator = new Generator(m_Graph, node, mode, nodeName);
+            var shader = ShaderUtil.CreateShaderAsset(generator.generatedShader, true);
+            shader.hideFlags = HideFlags.HideAndDontSave;
+            var mat = new Material(shader) {hideFlags = HideFlags.HideAndDontSave};
+            ShaderUtil.CompilePass(mat, 0, true);
         }
     }
 }

@@ -151,16 +151,16 @@ namespace UnityEditor.VFX.UI
 
         public string exposedName
         {
-            get { return m_ParentController.parameter.exposedName; }
+            get { return m_ParentController.model.exposedName; }
         }
         public bool exposed
         {
-            get { return m_ParentController.parameter.exposed; }
+            get { return m_ParentController.model.exposed; }
         }
 
         public int order
         {
-            get { return m_ParentController.parameter.order; }
+            get { return m_ParentController.model.order; }
         }
         public override bool expanded
         {
@@ -227,6 +227,7 @@ namespace UnityEditor.VFX.UI
         bool IPropertyRMProvider.expandableIfShowsEverything { get { return false; } }
 
 
+        IEnumerable<int> IPropertyRMProvider.filteredOutEnumerators { get { return null; } }
         public object value
         {
             get
@@ -243,7 +244,7 @@ namespace UnityEditor.VFX.UI
 
         object[] IPropertyRMProvider.customAttributes { get { return new object[] {}; } }
 
-        VFXPropertyAttribute[] IPropertyRMProvider.attributes { get { return new VFXPropertyAttribute[] {}; } }
+        VFXPropertyAttributes IPropertyRMProvider.attributes { get { return new VFXPropertyAttributes(); } }
 
         public Type portType
         {

@@ -16,7 +16,7 @@ Shader "Hidden/Checkerboard"
             static const float rows = 24;
             static const float columns = 24;
 
-            float4 frag(v2f_img i) : COLOR
+            float4 frag(v2f_img i) : SV_Target
             {
                 float3 col1 = float3(32.0/255.0, 32.0/255.0, 32.0/255.0);
                 float3 col2 = float3(42.0/255.0, 42.0/255.0, 42.0/255.0);

@@ -10,7 +10,6 @@ namespace UnityEngine.Rendering.HighDefinition
         List<HDProbe> m_VisibleProbes;
 
         public IReadOnlyList<HDProbe> visibleProbes => m_VisibleProbes ?? s_EmptyList;
-        internal List<HDProbe> writeableVisibleProbes => m_VisibleProbes;
 
         internal void Reset()
         {
@@ -20,11 +19,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_VisibleProbes.Clear();
         }
 
-        internal void Set(List<HDProbe> visibleProbes)
+        internal void AddProbe(HDProbe visibleProbes)
         {
             Assert.IsNotNull(m_VisibleProbes);
 
-            m_VisibleProbes.AddRange(visibleProbes);
+            m_VisibleProbes.Add(visibleProbes);
         }
     }
 }

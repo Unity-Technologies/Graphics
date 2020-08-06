@@ -4,7 +4,7 @@
 
 // Path tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingIntersection.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingVolume.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RayTracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 
 #ifdef HAS_LIGHTLOOP
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingLight.hlsl"
@@ -176,17 +176,11 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
                 nextPathIntersection.remainingDepth = pathIntersection.remainingDepth - 1;
                 nextPathIntersection.t = rayDescriptor.TMax;
 
-                // Adjust the max roughness, based on the estimated diff/spec ratio
-                nextPathIntersection.maxRoughness = (mtlResult.specPdf * max(mtlData.bsdfData.roughnessT, mtlData.bsdfData.roughnessB) + mtlResult.diffPdf) / pdf;
+                // Adjust the path max roughness (used for roughness clamping, to reduce fireflies)
+                nextPathIntersection.maxRoughness = AdjustPathRoughness(mtlData, mtlResult, isSampleBelow, pathIntersection.maxRoughness);
 
                 // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
                 nextPathIntersection.cone.spreadAngle = pathIntersection.cone.spreadAngle + roughnessToSpreadAngle(nextPathIntersection.maxRoughness);
-
-#ifdef _SURFACE_TYPE_TRANSPARENT
-                // When transmitting with an IOR close to 1.0, roughness is barely noticeable -> take that into account for roughness clamping
-                if (IsBelow(mtlData) != isSampleBelow)
-                    nextPathIntersection.maxRoughness = lerp(pathIntersection.maxRoughness, nextPathIntersection.maxRoughness, smoothstep(1.0, 1.3, mtlData.bsdfData.ior));
-#endif
 
                 // Shoot ray for indirect lighting
                 TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 2, rayDescriptor, nextPathIntersection);
@@ -203,19 +197,9 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
                     nextPathIntersection.value += lightValue * misWeight;
                 }
 
-#if defined(_SURFACE_TYPE_TRANSPARENT) && HAS_REFRACTION
-                // Apply absorption on rays below the interface, using Beer-Lambert's law
-                if (isSampleBelow)
-                {
-    #ifdef _REFRACTION_THIN
-                    nextPathIntersection.value *= exp(-mtlData.bsdfData.absorptionCoefficient * REFRACTION_THIN_DISTANCE);
-    #else
-                    // FIXME: maxDist might need some more tweaking
-                    float maxDist = surfaceData.atDistance * 10.0;
-                    nextPathIntersection.value *= exp(-mtlData.bsdfData.absorptionCoefficient * min(nextPathIntersection.t, maxDist));
-    #endif
-                }
-#endif
+                // Apply material absorption
+                float dist = min(nextPathIntersection.t, surfaceData.atDistance * 10.0);
+                nextPathIntersection.value = ApplyAbsorption(mtlData, dist, isSampleBelow, nextPathIntersection.value);
 
                 pathIntersection.value += value * rrFactor * nextPathIntersection.value;
             }
@@ -223,8 +207,29 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     }
 
 #else // HAS_LIGHTLOOP
+
     pathIntersection.value = (!currentDepth || computeDirect) ? bsdfData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
+
+// Simulate opacity blending by simply continuing along the current ray
+#ifdef _SURFACE_TYPE_TRANSPARENT
+    if (builtinData.opacity < 1.0)
+    {
+        RayDesc rayDescriptor;
+        rayDescriptor.Origin = GetAbsolutePositionWS(fragInput.positionRWS) - fragInput.tangentToWorld[2] * _RaytracingRayBias;
+        rayDescriptor.Direction = WorldRayDirection();
+        rayDescriptor.TMin = 0.0;
+        rayDescriptor.TMax = FLT_INF;
+
+        PathIntersection nextPathIntersection = pathIntersection;
+        nextPathIntersection.remainingDepth--;
+
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 2, rayDescriptor, nextPathIntersection);
+
+        pathIntersection.value = lerp(nextPathIntersection.value, pathIntersection.value, builtinData.opacity);
+    }
 #endif
+
+#endif // HAS_LIGHTLOOP
 
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value, computeDirect);
 

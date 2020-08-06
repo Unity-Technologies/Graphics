@@ -7,6 +7,9 @@ half4 _RendererColor;
 
 half4 CombinedShapeLightShared(half4 color, half4 mask, half2 lightingUV)
 {
+	if (color.a == 0.0)
+		discard;
+
     color = color * _RendererColor; // This is needed for sprite shape
 
 #if USE_SHAPE_LIGHT_TYPE_0
@@ -14,7 +17,7 @@ half4 CombinedShapeLightShared(half4 color, half4 mask, half2 lightingUV)
 
     if (any(_ShapeLightMaskFilter0))
     {
-        float4 processedMask = (1 - _ShapeLightInvertedFilter0) * mask + _ShapeLightInvertedFilter0 * (1 - mask);
+        half4 processedMask = (1 - _ShapeLightInvertedFilter0) * mask + _ShapeLightInvertedFilter0 * (1 - mask);
         shapeLight0 *= dot(processedMask, _ShapeLightMaskFilter0);
     }
 
@@ -30,7 +33,7 @@ half4 CombinedShapeLightShared(half4 color, half4 mask, half2 lightingUV)
 
     if (any(_ShapeLightMaskFilter1))
     {
-        float4 processedMask = (1 - _ShapeLightInvertedFilter1) * mask + _ShapeLightInvertedFilter1 * (1 - mask);
+        half4 processedMask = (1 - _ShapeLightInvertedFilter1) * mask + _ShapeLightInvertedFilter1 * (1 - mask);
         shapeLight1 *= dot(processedMask, _ShapeLightMaskFilter1);
     }
 
@@ -46,7 +49,7 @@ half4 CombinedShapeLightShared(half4 color, half4 mask, half2 lightingUV)
 
     if (any(_ShapeLightMaskFilter2))
     {
-        float4 processedMask = (1 - _ShapeLightInvertedFilter2) * mask + _ShapeLightInvertedFilter2 * (1 - mask);
+        half4 processedMask = (1 - _ShapeLightInvertedFilter2) * mask + _ShapeLightInvertedFilter2 * (1 - mask);
         shapeLight2 *= dot(processedMask, _ShapeLightMaskFilter2);
     }
 
@@ -62,7 +65,7 @@ half4 CombinedShapeLightShared(half4 color, half4 mask, half2 lightingUV)
 
     if (any(_ShapeLightMaskFilter3))
     {
-        float4 processedMask = (1 - _ShapeLightInvertedFilter3) * mask + _ShapeLightInvertedFilter3 * (1 - mask);
+        half4 processedMask = (1 - _ShapeLightInvertedFilter3) * mask + _ShapeLightInvertedFilter3 * (1 - mask);
         shapeLight3 *= dot(processedMask, _ShapeLightMaskFilter3);
     }
 

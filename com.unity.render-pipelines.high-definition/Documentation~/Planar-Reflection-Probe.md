@@ -1,10 +1,12 @@
 # Planar Reflection Probe
 
-The Planar Reflection Probe component is one of the types of [Reflection Probe](Reflection-Probes-Intro.html) that the High Definition Render Pipeline (HDRP) provides to help you create reactive and accurate reflective Materials.
+The Planar Reflection Probe component is one of the types of [Reflection Probe](Reflection-Probes-Intro.md) that the High Definition Render Pipeline (HDRP) provides to help you create reactive and accurate reflective Materials.
 
 ## Properties
 
-Planar Reflection Probes share many properties with the the [built-in render pipeline Reflection Probe](<https://docs.unity3d.com/Manual/class-ReflectionProbe.html>), and the [HDRP cubemap Reflection Probe](Reflection-Probe.html).
+Planar Reflection Probes share many properties with the the [built-in render pipeline Reflection Probe](https://docs.unity3d.com/Manual/class-ReflectionProbe.html), and the [HDRP cubemap Reflection Probe](Reflection-Probe.md).
+
+Planar Reflection Probes use the same texture format than the one selected in [HDRP Asset](HDRP-Asset.md) for Color Buffer Format.
 
 ![](Images/PlanarReflectionProbe1.png)
 
@@ -20,7 +22,7 @@ The following properties control the projection settings for this Planar Reflect
 
 | **Property**                             | **Description**                                              |
 | ---------------------------------------- | ------------------------------------------------------------ |
-| **Proxy Volume**                         | The [Reflection Proxy Volume](Reflection-Proxy-Volume.html) this Probe uses to correct displacement issues between the Probe’s capture point (**Mirror Position**) and the position of the reflective Material using the RenderTexture this Probe captures. Note: The **Proxy Volume** you assign must be the same **Shape** as the Influence Volume. |
+| **Proxy Volume**                         | The [Reflection Proxy Volume](Reflection-Proxy-Volume.md) this Probe uses to correct displacement issues between the Probe’s capture point (**Mirror Position**) and the position of the reflective Material using the RenderTexture this Probe captures. Note: The **Proxy Volume** you assign must be the same **Shape** as the Influence Volume. |
 | **Use Influence Volume As Proxy Volume** | Tick this checkbox to use the boundaries of the Influence Volume as the Proxy Volume.<br />This property only appears when you have not set a Reflection Proxy Volume to the **Proxy Volume** property. |
 
 <a name="InfluenceVolume"></a>
@@ -41,7 +43,7 @@ There are two workflows you can use to edit your Planar Reflection Probe’s Inf
 | **Shape**          | Defines the shape of the Influence Volume. The possible values are **Box** and **Sphere**. Selecting **Sphere** disables **Advanced** mode because you can only use **Advanced** mode for **Box** Influence Volumes. |
 | **Box Size**       | Defines the scale of each axis of the box that represents the Influence Volume. Only available with a **Box Shape**. |
 | **Radius**         | Defines the radius of the sphere that represents the Influence Volume. Only available with a **Sphere Shape**. |
-| **Blend Distance** | The inward distance from the **Box Size** or **Radius** at which this Planar Reflection Probe blends with other Reflection Probes. In **Normal** mode, this property is a single value that modulates the distance at which this Reflection Probe blends with other Reflection Probes in every direction. This mode is available for **Box** or **Sphere** Influence Volumes.In **Advanced** mode, this property uses six values, one for each side of the box. Use each of the six input fields to define the blend distance in each direction. For example, **Y** defines the blending distance for the face at the top of the box and **-Y** defines the blending distance for the face on the bottom. This mode is only available for **Box** Influence Volumes.This feature is only available for [deferred](Forward-And-Deferred-Rendering.html) Reflection Probes. |
+| **Blend Distance** | The inward distance from the **Box Size** or **Radius** at which this Planar Reflection Probe blends with other Reflection Probes. In **Normal** mode, this property is a single value that modulates the distance at which this Reflection Probe blends with other Reflection Probes in every direction. This mode is available for **Box** or **Sphere** Influence Volumes.In **Advanced** mode, this property uses six values, one for each side of the box. Use each of the six input fields to define the blend distance in each direction. For example, **Y** defines the blending distance for the face at the top of the box and **-Y** defines the blending distance for the face on the bottom. This mode is only available for **Box** Influence Volumes.This feature is only available for [deferred](Forward-And-Deferred-Rendering.md) Reflection Probes. |
 
 ### Capture Settings
 
@@ -51,18 +53,18 @@ The following properties control the method that the Planar Reflection Probe use
 | -------------------------- | ------------------------------------------------------------ |
 | **Mirror Position**        | Offsets the position of the mirror from the Transform Position. |
 | **Mirror Rotation**        | Offsets the rotation of the mirror from the Transform Rotation. |
-| **Clear Mode**             | Defines how to fill empty background areas of the RenderTexture this Probe captures.<br />&#8226; **Sky** uses the sky defined by the current [Volume](Volumes.html) settings to fill empty background areas.<br />&#8226; **Background** uses the **Background Color** setting to fill empty background areas.<br />&#8226; **None** reuses the previous value for each pixel that doesn’t represent a reflected GameObject, instead of filling in empty areas of the RenderTexture. |
+| **Clear Mode**             | Defines how to fill empty background areas of the RenderTexture this Probe captures.<br />&#8226; **Sky** uses the sky defined by the current [Volume](Volumes.md) settings to fill empty background areas.<br />&#8226; **Background** uses the **Background Color** setting to fill empty background areas.<br />&#8226; **None** reuses the previous value for each pixel that doesn’t represent a reflected GameObject, instead of filling in empty areas of the RenderTexture. |
 | **Background Color**       | The color to fill empty background areas of the RenderTexture if you set the **Clear Mode** to **Background**. |
 | **Clear Depth**            | Choose whether the Planar Reflection Probe clears the Depth Buffer or not. |
 | **Volume Layer Mask**      | A LayerMask that defines which Volumes affect this Planar Reflection Probe’s capture. |
-| **Volume Anchor Override** | Set the Transform that the [Volume](Volumes.html) system uses to handle the position of this Planar Reflection Probe. For example, if you want this Planar Reflection Probe to match post-processing effects with the view Camera, set this property to the view Camera’s Transform. The Volume system then uses the Camera’s position to process which Volume affects this Planar Reflection Probe. |
+| **Volume Anchor Override** | Set the Transform that the [Volume](Volumes.md) system uses to handle the position of this Planar Reflection Probe. For example, if you want this Planar Reflection Probe to match post-processing effects with the view Camera, set this property to the view Camera’s Transform. The Volume system then uses the Camera’s position to process which Volume affects this Planar Reflection Probe. |
 | **Use Occlusion Culling**  | Enables [Occlusion Culling](<https://docs.unity3d.com/Manual/OcclusionCulling.html>) for this Planar Reflection Probe. |
 | **Culling Mask**           | A LayerMask that defines which Layers to include in the reflection. GameObjects on the Layers included in this LayerMask appear in the reflection. |
 | **Field Of View**          | The field of view of the capture Camera. Planar Reflection Probes normally calculate the capture Camera’s field of view (FoV) using the **Mirror Position** and the bounds of the **Influence Volume**. Enable this property to override the capture Camera’s FoV with the value you set here. |
 | **Clip Planes - Near**     | The closest point relative to the Planar Reflection Probe that the Probe captures reflections. |
 | **Clip Planes - Far**      | The furthest point relative to the Planar Reflection Probe that it  captures reflections. |
 | **Probe Layer Mask**       | Acts as a culling mask for environment lights (light from other Planar Reflection Probes and Reflection Probes). This Planar Reflection Probe ignores all Reflection Probes that are on Layers not included in this Layer mask, so use this property to ignore certain Reflection Probes when rendering this one. |
-| **Custom Frame Settings**  | Allows you to define custom [Frame Settings](Frame-Settings.html) for this Probe. Disable this property to use the **Default Frame Settings** in your Unity Project’s [HDRP Asset](HDRP-Asset.html). |
+| **Custom Frame Settings**  | Allows you to define custom [Frame Settings](Frame-Settings.md) for this Probe. Disable this property to use the **Default Frame Settings** in your Unity Project’s [HDRP Asset](HDRP-Asset.md). |
 
 ### Custom Settings
 
@@ -70,7 +72,7 @@ The following properties control extra behavior options for fine-tuning the beha
 
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
-| **Light Layer** | A mask that allows you to choose which Light Layers this Reflection Probe affects. This Reflection Probe only affects Mesh Renderers with a matching **Rendering Layer Mask**.<br/>Navigate to your Project’s **HDRP Asset > Render Pipeline Supported Features** and enable **Light Layers** to use this property. |
+| **Light Layer** | A mask that allows you to choose which Light Layers this Reflection Probe affects. This Reflection Probe only affects Mesh Renderers or Terrain with a matching **Rendering Layer Mask**.<br/>Navigate to your Project’s **HDRP Asset > Render Pipeline Supported Features** and enable **Light Layers** to use this property. |
 | **Multiplier**  | A multiplier that HDRP applies to the RenderTexture captured by the Planar Reflection Probe. Higher multiplier values make the queried RenderTexture brighter, and lower multiplier values make the queried RenderTexture darker. |
 | **Weight**      | The overall weight of this Reflection Probe’s contribution to the reflective effect of Materials. When Reflection Probe’s blend together, the weight of each Probe determines their contribution to a reflective Material in the blend area. |
 

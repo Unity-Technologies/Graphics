@@ -45,7 +45,7 @@ The above list is a guideline for major versions of SRP, but there are often mul
 
 After you decide which version of SRP to use:
 
-1. Go to the [Scriptable Render Pipeline repository](https://github.com/Unity-Technologies/ScriptableRenderPipeline).
+1. Go to the [Unity Graphics repository](https://github.com/Unity-Technologies/Graphics).
 2. Click the **Branch** drop-down then click the **Tags** tab.
 3. Find the tag that corresponds to the version of SRP you want to use. When you clone the repository, you use this tag to check out the correct branch.
 
@@ -58,11 +58,11 @@ After you clone the repository, you can install the package into your Unity Proj
 ### Cloning the repository using the GitHub Desktop App:
 
 1. Open the GitHub Desktop App and click **File > Clone repository**.
-2. Click the **URL** tab and enter the following URL: https://github.com/Unity-Technologies/ScriptableRenderPipeline.
+2. Click the **URL** tab and enter the following URL: https://github.com/Unity-Technologies/Graphics.
 3. Click the **Choose…** button and navigate to your Unity Project’s base folder.
 4. Click the **Clone** button.
 
-After you clone the repository, open your console application of choice in the ScriptableRenderPipeline folder and run the following console command:
+After you clone the repository, open your console application of choice in the Graphics folder and run the following console command:
 
 `\> git checkout v7.1.8 (or the latest tag)`
 
@@ -75,13 +75,13 @@ Open your console application of choice and run the following console commands:
 ```
 \> cd <Path to your Unity project>
 
-\> git clone https://github.com/Unity-Technologies/ScriptableRenderPipeline
+\> git clone https://github.com/Unity-Technologies/Graphics
 
-\> cd ScriptableRenderPipeline
+\> cd Graphics
 
 \>  git checkout v7.1.8 (or the latest tag)
 ```
 
-## Sample Scenes in ScriptableRenderPipelineData
+## Sample Scenes in Graphics
 
-Unity provides sample Scenes to use with SRP. You can find these Scenes in the [ScriptableRenderPipelineData GitHub repository](https://github.com/Unity-Technologies/ScriptableRenderPipelineData). To add the Scenes to your Project, clone the repository into your Project's Assets folder.
+Unity provides sample Scenes to use with SRP. You can find these Scenes in the [Graphics GitHub repository](https://github.com/Unity-Technologies/Graphics). To add the Scenes to your Project, clone the repository into your Project's Assets folder.

@@ -63,7 +63,8 @@
     #define TEXTURE2D_X_UINT(textureName)                                    Texture2DArray<uint> textureName
     #define TEXTURE2D_X_UINT2(textureName)                                   Texture2DArray<uint2> textureName
     #define TEXTURE2D_X_UINT4(textureName)                                   Texture2DArray<uint4> textureName
-    #define TEXTURE2D_X_MSAA(type, textureName)                              Texture2DMSArray<type> textureName
+    //Using explicit sample count of 1 to force DXC to actually reflect the texture as MS. The actual count appears to be irrelevant and any 2D MS texture array should bind to it
+    #define TEXTURE2D_X_MSAA(type, textureName)                              Texture2DMSArray<type, 1> textureName
 
     #define RW_TEXTURE2D_X(type, textureName)                                RW_TEXTURE2D_ARRAY(type, textureName)
     #define LOAD_TEXTURE2D_X(textureName, unCoord2)                          LOAD_TEXTURE2D_ARRAY(textureName, unCoord2, SLICE_ARRAY_INDEX)
@@ -90,7 +91,8 @@
     #define TEXTURE2D_X_UINT(textureName)                                    Texture2D<uint> textureName
     #define TEXTURE2D_X_UINT2(textureName)                                   Texture2D<uint2> textureName
     #define TEXTURE2D_X_UINT4(textureName)                                   Texture2D<uint4> textureName
-    #define TEXTURE2D_X_MSAA(type, textureName)                              Texture2DMS<type> textureName
+    //Using explicit sample count of 1 to force DXC to actually reflect the texture as MS. The actual count appears to be irrelevant and any 2D MS texture should bind to it
+    #define TEXTURE2D_X_MSAA(type, textureName)                              Texture2DMS<type, 1> textureName
 
     #define RW_TEXTURE2D_X                                                   RW_TEXTURE2D
     #define LOAD_TEXTURE2D_X                                                 LOAD_TEXTURE2D

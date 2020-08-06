@@ -18,6 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty curvature;
         public SerializedProperty barrelClipping;
         public SerializedProperty anamorphism;
+        public SerializedProperty exposureTarget;
 
         public SerializedProperty antialiasing;
         public SerializedProperty SMAAQuality;
@@ -32,6 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty stopNaNs;
         public SerializedProperty clearColorMode;
         public SerializedProperty backgroundColorHDR;
+        public SerializedProperty xrRendering;
         public SerializedProperty passThrough;
         public SerializedProperty customRenderingSettings;
         public SerializedProperty clearDepth;
@@ -70,6 +72,8 @@ namespace UnityEditor.Rendering.HighDefinition
             barrelClipping = serializedAdditionalDataObject.FindProperty("physicalParameters.m_BarrelClipping");
             anamorphism = serializedAdditionalDataObject.FindProperty("physicalParameters.m_Anamorphism");
 
+            exposureTarget = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.exposureTarget);
+
             antialiasing = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.antialiasing);
             SMAAQuality = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.SMAAQuality);
             taaSharpenStrength = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaSharpenStrength);
@@ -84,6 +88,7 @@ namespace UnityEditor.Rendering.HighDefinition
             stopNaNs = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.stopNaNs);
             clearColorMode = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.clearColorMode);
             backgroundColorHDR = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.backgroundColorHDR);
+            xrRendering = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.xrRendering);
             passThrough = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.fullscreenPassthrough);
             customRenderingSettings = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.customRenderingSettings);
             clearDepth = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.clearDepth);

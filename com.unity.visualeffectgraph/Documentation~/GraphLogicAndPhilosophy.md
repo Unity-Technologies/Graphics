@@ -9,7 +9,7 @@ The Visual Effect Graph uses two distinct workflows:
 ## Processing workflow (vertical logic)
 The processing workflow links together a succession of customizable stages to define the complete system logic. This is where you can determine when the spawn, initialization, updating, and rendering of the particles happen during the effect.
 
-The processing workflow connects Contexts using their **Flow Slots** located at the top and the bottom of the Context Node.
+The processing workflow connects Contexts using their **flow slots** located at the top and the bottom of the Context Node.
 
 The processing logic defines the different stages of processing of a visual effect. Each stage consists of a large colored container called a [Contexts](Contexts.md). Each Context connects to another compatible Context, which defines how the next stage of processing uses the current Context.
 
@@ -23,13 +23,13 @@ The Visual Effect Graph comes with a large Block and Node library that you can t
 
 To customize how particles behave, you can connect horizontal Nodes to a Block to create a custom a mathematical expression. To do this, use the **Create Node** context menu to add Nodes, change their values, then connect the Nodes to Block properties.
 
-## Graph Elements
+## Graph elements
 
-A Visual Effect Graph provides a workspace where you can create Graph Elements and connect them together to define effect behaviors. The Visual Effect Graph comes with many different types of Graph Elements that fit into the workspace.
+A Visual Effect Graph provides a workspace where you can create graph elements and connect them together to define effect behaviors. The Visual Effect Graph comes with many different types of graph elements that fit into the workspace.
 
 ### Workspace
 
-A Visual Effect Graph provides a **Workspace** where you can create Graph Elements and connect them together to define effect behaviors.
+A Visual Effect Graph provides a **Workspace** where you can create graph elements and connect them together to define effect behaviors.
 
 ![The vertical workflow contains Systems, which then contain Contexts, which then contain Blocks. Together, they determine when something happens during the “lifecycle” of the visual effect.](Images/SystemVisual.png)
 
@@ -74,7 +74,7 @@ While the graph elements are different, their contents and behavior tend to be t
 
 #### Settings
 
-Settings are Fields that you cannot connect to using the property workflow. Every Graph Element displays settings:
+Settings are Fields that you cannot connect to using the property workflow. Every graph element displays settings:
 
 * In the **Graph** : Between the Title and the property container in the Graph.
 * In the **Inspector** : When you select a Node, the Inspector displays additional, advanced settings.
@@ -85,7 +85,7 @@ If you change the value of a setting, you need to recompile the Graph to see the
 
 [Properties](Properties.md) are Fields that you can edit and connect to using the property workflow. You can connect them to other properties contained in other graph elements.
 
-## Other Graph Elements
+## Other graph elements
 
 ### Groups
 

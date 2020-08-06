@@ -74,7 +74,7 @@ Shader "Hidden/HDRP/DebugViewMaterialGBuffer"
                 //   - a gBufferIndex (always stored in _DebugViewMaterialArray[1] as only one supported)
                 //   - a property index which is different for each kind of material even if reflecting the same thing (see MaterialSharedProperty)
                 // So here if the buffer is of size zero, it is the same as if we give in a 0 buffer index.
-                int bufferIndex = int(_DebugViewMaterialArray[0]) >= 1 ? int(_DebugViewMaterialArray[1]) : 0;
+                int bufferIndex = _DebugViewMaterialArray[0].x >= 1 ? _DebugViewMaterialArray[1].x : 0;
                 if (bufferIndex == DEBUGVIEWGBUFFER_DEPTH)
                 {
                     float linearDepth = frac(posInput.linearDepth * 0.1);
@@ -84,7 +84,7 @@ Shader "Hidden/HDRP/DebugViewMaterialGBuffer"
                 else if (bufferIndex == DEBUGVIEWGBUFFER_BAKE_DIFFUSE_LIGHTING_WITH_ALBEDO_PLUS_EMISSIVE)
                 {
                     result = builtinData.bakeDiffuseLighting;
-                    result *= exp2(_DebugExposure);
+                    result *= GetCurrentExposureMultiplier();
                     needLinearToSRGB = true;
                 }
 #ifdef SHADOWS_SHADOWMASK

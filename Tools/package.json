@@ -1,0 +1,32 @@
+{
+  "name": "graphics-tools",
+  "version": "0.0.0",
+  "description": "NPM tools to support CI and testing - This is not a Unity package!",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Unity-Technologies/Graphics.git"
+  },
+  "author": "",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "homepage": "https://github.com/Unity-Technologies/Graphics#readme",
+  "devDependencies": {
+    "husky": "^4.2.5",
+    "lint-staged": "^10.2.11"
+  },
+  "scripts": {
+    "preinstall": "python ./git-hook/preinstall.py",
+    "postinstall": "python ./git-hook/postinstall.py"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npx lint-staged",
+      "pre-push": "python -m git-hook.prepush.check_branch_name"
+    }
+  },
+  "lint-staged": {
+    "../**/*": [
+      "python -m git-hook.precommit.file_extension_to_lowercase",
+      "python -m git-hook.precommit.check_shader_includes"
+    ]
+  }
+}

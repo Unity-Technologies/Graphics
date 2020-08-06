@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
             title = "";
             m_ConnectorListener = connectorListener;
 
-            viewDataKey = node.guid.ToString();
+            viewDataKey = node.objectId;
 
             // Set the VisualElement's position
             SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
@@ -127,6 +127,12 @@ namespace UnityEditor.ShaderGraph
                 if (outputContainer.childCount > 0)
                     outputContainer.Sort((x, y) => slots.IndexOf(((ShaderPort)x).slot) - slots.IndexOf(((ShaderPort)y).slot));
             }
+        }
+
+        public bool FindPort(SlotReference slot, out ShaderPort port)
+        {
+            port = contentContainer.Q("top")?.Query<ShaderPort>().Where(p => p.slot.slotReference.Equals(slot)).First();
+            return port != null;
         }
 
         public void AttachMessage(string errString, ShaderCompilerMessageSeverity severity)

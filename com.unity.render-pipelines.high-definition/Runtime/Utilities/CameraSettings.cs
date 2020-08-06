@@ -356,5 +356,38 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField][FormerlySerializedAs("frameSettings")][Obsolete("For data migration")]
         internal ObsoleteFrameSettings m_ObsoleteFrameSettings;
 #pragma warning restore 618
+
+        internal Hash128 GetHash()
+        {
+            var h = new Hash128();
+            var h2 = new Hash128();
+
+            HashUtilities.ComputeHash128(ref bufferClearing, ref h);
+            HashUtilities.ComputeHash128(ref culling, ref h2);
+            HashUtilities.AppendHash(ref h2, ref h);
+            HashUtilities.ComputeHash128(ref customRenderingSettings, ref h2);
+            HashUtilities.AppendHash(ref h2, ref h);
+            HashUtilities.ComputeHash128(ref defaultFrameSettings, ref h2);
+            HashUtilities.AppendHash(ref h2, ref h);
+            HashUtilities.ComputeHash128(ref flipYMode, ref h2);
+            HashUtilities.AppendHash(ref h2, ref h);
+            HashUtilities.ComputeHash128(ref frustum, ref h2);
+            HashUtilities.AppendHash(ref h2, ref h);
+            HashUtilities.ComputeHash128(ref invertFaceCulling, ref h2);
+            HashUtilities.AppendHash(ref h2, ref h);
+            HashUtilities.ComputeHash128(ref probeLayerMask, ref h2);
+            HashUtilities.AppendHash(ref h2, ref h);
+            HashUtilities.ComputeHash128(ref probeRangeCompressionFactor, ref h2);
+            HashUtilities.AppendHash(ref h2, ref h);
+            HashUtilities.ComputeHash128(ref renderingPathCustomFrameSettings, ref h2);
+            HashUtilities.AppendHash(ref h2, ref h);
+            HashUtilities.ComputeHash128(ref renderingPathCustomFrameSettingsOverrideMask, ref h2);
+            HashUtilities.AppendHash(ref h2, ref h);
+            int volumeHash = volumes.GetHashCode();
+            h2 = new Hash128((ulong)volumeHash, 0);
+            HashUtilities.AppendHash(ref h2, ref h);
+
+            return h;
+        }
     }
 }

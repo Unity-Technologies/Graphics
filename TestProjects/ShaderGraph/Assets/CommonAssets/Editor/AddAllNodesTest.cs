@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 var allNodes = m_Graph.GetNodes<AbstractMaterialNode>().ToArray();
                 foreach (var node in allNodes)
                 {
-                    if(m_Graph.activeOutputNodeGuid != node.guid)
+                    if(m_Graph.outputNode != node)
                         m_Graph.RemoveNode(node);
                 }
             }

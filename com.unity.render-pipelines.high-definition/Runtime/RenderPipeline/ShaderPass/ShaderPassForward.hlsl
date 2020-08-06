@@ -35,7 +35,21 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 PackedVaryingsType Vert(AttributesMesh inputMesh)
 {
     VaryingsType varyingsType;
-    varyingsType.vmesh = VertMesh(inputMesh);
+
+#if defined(HAVE_RECURSIVE_RENDERING)
+    // If we have a recursive raytrace object, we will not render it.
+    // As we don't want to rely on renderqueue to exclude the object from the list,
+    // we cull it by settings position to NaN value.
+    // TODO: provide a solution to filter dyanmically recursive raytrace object in the DrawRenderer
+    if (_EnableRecursiveRayTracing && _RayTracing > 0.0)
+    {
+        ZERO_INITIALIZE(VaryingsType, varyingsType); // Divide by 0 should produce a NaN and thus cull the primitive.
+    }
+    else
+#endif
+    {
+        varyingsType.vmesh = VertMesh(inputMesh);
+    }
 
     return PackVaryingsType(varyingsType);
 }
@@ -60,20 +74,33 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/TessellationShare.hlsl"
 #endif
 
-void Frag(PackedVaryingsToPS packedInput,
-#ifdef OUTPUT_SPLIT_LIGHTING
-    out float4 outColor : SV_Target0,  // outSpecularLighting
-    out float4 outDiffuseLighting : SV_Target1,
-    OUTPUT_SSSBUFFER(outSSSBuffer)
+#ifdef UNITY_VIRTUAL_TEXTURING
+#define VT_BUFFER_TARGET SV_Target1
+#define EXTRA_BUFFER_TARGET SV_Target2
 #else
-    out float4 outColor : SV_Target0
-#ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
-    , out float4 outMotionVec : SV_Target1
-#endif // _WRITE_TRANSPARENT_MOTION_VECTOR
-#endif // OUTPUT_SPLIT_LIGHTING
-#ifdef _DEPTHOFFSET_ON
-    , out float outputDepth : SV_Depth
+#define EXTRA_BUFFER_TARGET SV_Target1
 #endif
+
+void Frag(PackedVaryingsToPS packedInput,
+        #ifdef OUTPUT_SPLIT_LIGHTING
+            out float4 outColor : SV_Target0,  // outSpecularLighting
+            #ifdef UNITY_VIRTUAL_TEXTURING
+                out float4 outVTFeedback : VT_BUFFER_TARGET,
+            #endif
+            out float4 outDiffuseLighting : EXTRA_BUFFER_TARGET,
+            OUTPUT_SSSBUFFER(outSSSBuffer)
+        #else
+            out float4 outColor : SV_Target0
+            #ifdef UNITY_VIRTUAL_TEXTURING
+                ,out float4 outVTFeedback : VT_BUFFER_TARGET
+            #endif
+        #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
+          , out float4 outMotionVec : EXTRA_BUFFER_TARGET
+        #endif // _WRITE_TRANSPARENT_MOTION_VECTOR
+        #endif // OUTPUT_SPLIT_LIGHTING
+        #ifdef _DEPTHOFFSET_ON
+            , out float outputDepth : SV_Depth
+        #endif
 )
 {
 #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
@@ -119,7 +146,7 @@ void Frag(PackedVaryingsToPS packedInput,
     ENCODE_INTO_SSSBUFFER(surfaceData, posInput.positionSS, outSSSBuffer);
 #endif
 
-    
+
 
     // Same code in ShaderPassForwardUnlit.shader
     // Reminder: _DebugViewMaterialArray[i]
@@ -129,7 +156,7 @@ void Frag(PackedVaryingsToPS packedInput,
     //   - a gBufferIndex (always stored in _DebugViewMaterialArray[1] as only one supported)
     //   - a property index which is different for each kind of material even if reflecting the same thing (see MaterialSharedProperty)
     bool viewMaterial = false;
-    int bufferSize = int(_DebugViewMaterialArray[0]);
+    int bufferSize = _DebugViewMaterialArray[0].x;
     if (bufferSize != 0)
     {
         bool needLinearToSRGB = false;
@@ -139,7 +166,7 @@ void Frag(PackedVaryingsToPS packedInput,
         // Works because GetSurfaceDataDebug will do nothing if the index is not a known one
         for (int index = 1; index <= bufferSize; index++)
         {
-            int indexMaterialProperty = int(_DebugViewMaterialArray[index]);
+            int indexMaterialProperty = _DebugViewMaterialArray[index].x;
 
             // skip if not really in use
             if (indexMaterialProperty != 0)
@@ -186,10 +213,12 @@ void Frag(PackedVaryingsToPS packedInput,
 #else
             uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE;
 #endif
-            float3 diffuseLighting;
-            float3 specularLighting;
+            LightLoopOutput lightLoopOutput;
+            LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
 
-            LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
+            // Alias
+            float3 diffuseLighting = lightLoopOutput.diffuseLighting;
+            float3 specularLighting = lightLoopOutput.specularLighting;
 
             diffuseLighting *= GetCurrentExposureMultiplier();
             specularLighting *= GetCurrentExposureMultiplier();
@@ -230,5 +259,9 @@ void Frag(PackedVaryingsToPS packedInput,
 
 #ifdef _DEPTHOFFSET_ON
     outputDepth = posInput.deviceDepth;
+#endif
+
+#ifdef UNITY_VIRTUAL_TEXTURING
+    outVTFeedback = builtinData.vtPackedFeedback;
 #endif
 }

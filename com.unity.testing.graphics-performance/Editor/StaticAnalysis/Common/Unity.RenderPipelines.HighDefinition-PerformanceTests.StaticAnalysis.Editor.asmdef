@@ -1,0 +1,32 @@
+{
+    "name": "Unity.RenderPipelines.HighDefinition-PerformanceTests.StaticAnalysis.Editor",
+    "references": [
+        "GUID:91836b14885b8a34196f4aa8303d7793",
+        "GUID:27619889b8ba8c24980f49ee34dbb44a",
+        "GUID:0acc523941302664db1f4e527237feb3",
+        "GUID:28e5f1c81336e0a45b3a1bf37e997b43",
+        "GUID:fed8b660da062c54790cf8b0512bea0e",
+        "GUID:295068ed467c2ce4a9cda3833065f650"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "SHADERANALYSIS_SUPPORT"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.shaderanalysis",
+            "expression": "0.0",
+            "define": "SHADERANALYSIS_SUPPORT"
+        }
+    ],
+    "noEngineReferences": false
+}

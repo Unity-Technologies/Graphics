@@ -47,7 +47,7 @@ internal class CopyToViewportRenderPass : ScriptableRenderPass
         CommandBufferPool.Release(cmd);
     }
 
-    public override void FrameCleanup(CommandBuffer cmd)
+    public override void OnCameraCleanup(CommandBuffer cmd)
     {
         cmd.ReleaseTemporaryRT(m_Destination.id);
     }

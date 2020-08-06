@@ -15,7 +15,7 @@ float4 VFXTransformPositionWorldToNonJitteredClip(float3 posWS)
 #if VFX_WORLD_SPACE
     posWS = GetCameraRelativePositionWS(posWS);
 #endif
-    return mul(_NonJitteredViewProjMatrix, float4(posWS, 1.0f));
+    return mul(UNITY_MATRIX_UNJITTERED_VP, float4(posWS, 1.0f));
 }
 
 float4 VFXTransformPositionWorldToPreviousClip(float3 posWS)
@@ -23,7 +23,7 @@ float4 VFXTransformPositionWorldToPreviousClip(float3 posWS)
 #if VFX_WORLD_SPACE
     posWS = GetCameraRelativePositionWS(posWS);
 #endif
-    return mul(_PrevViewProjMatrix, float4(posWS, 1.0f));
+    return mul(UNITY_MATRIX_PREV_VP, float4(posWS, 1.0f));
 }
 
 #ifdef VFX_VARYING_PS_INPUTS
@@ -157,16 +157,21 @@ float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
 }
 
 #ifdef VFX_VARYING_PS_INPUTS
+float4 VFXApplyPreExposure(float4 color, float exposureWeight)
+{
+    float exposure = lerp(1.0f, GetCurrentExposureMultiplier(), exposureWeight);
+    color.xyz *= exposure;
+    return color;
+}
+
 float4 VFXApplyPreExposure(float4 color, VFX_VARYING_PS_INPUTS input)
 {
 #ifdef VFX_VARYING_EXPOSUREWEIGHT
-	float exposure = lerp(1.0f, GetCurrentExposureMultiplier(),input.VFX_VARYING_EXPOSUREWEIGHT);
+    return VFXApplyPreExposure(color, input.VFX_VARYING_EXPOSUREWEIGHT);
 #elif VFX_BYPASS_EXPOSURE
-    float exposure = 1.0f;
+    return VFXApplyPreExposure(color, 0.0f);
 #else
-	float exposure = GetCurrentExposureMultiplier();
+    return VFXApplyPreExposure(color, 1.0f);
 #endif
-	color.xyz *= exposure;
-    return color;
 }
 #endif

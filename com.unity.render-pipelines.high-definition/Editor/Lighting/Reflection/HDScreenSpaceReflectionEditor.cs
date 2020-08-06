@@ -72,8 +72,104 @@ namespace UnityEditor.Rendering.HighDefinition
             m_BounceCount                   = Unpack(o.Find(x => x.bounceCount));
         }
 
+        static public readonly GUIContent k_RayTracingText = EditorGUIUtility.TrTextContent("Ray Tracing (Preview)", "Enable ray traced reflections.");
+        static public readonly GUIContent k_ReflectSkyText = EditorGUIUtility.TrTextContent("Reflect Sky", "When enabled, SSR handles sky reflection.");
+        static public readonly GUIContent k_LayerMaskText = EditorGUIUtility.TrTextContent("Layer Mask", "Layer mask used to include the objects for screen space reflection.");
+        static public readonly GUIContent k_MinimumSmoothnessText = EditorGUIUtility.TrTextContent("Minimum Smoothness", "Controls the smoothness value at which HDRP activates SSR and the smoothness-controlled fade out stops.");
+        static public readonly GUIContent k_SmoothnessFadeStartText = EditorGUIUtility.TrTextContent("Smoothness Fade Start", "Controls the smoothness value at which the smoothness-controlled fade out starts. The fade is in the range [Min Smoothness, Smoothness Fade Start].");
+        static public readonly GUIContent k_ScreenFaceDistanceText = EditorGUIUtility.TrTextContent("Screen Edge Fade Distance", "Controls the distance at which HDRP fades out SSR near the edge of the screen.");
+        static public readonly GUIContent k_DepthBufferThicknessText = EditorGUIUtility.TrTextContent("Object Thickness", "Controls the typical thickness of objects the reflection rays may pass behind.");
+        static public readonly GUIContent k_RayMaxIterationsText = EditorGUIUtility.TrTextContent("Max Ray Steps", "Sets the maximum number of steps HDRP uses for raytracing. Affects both correctness and performance.");
+        static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Ray Length", "Controls the length of reflection rays.");
+        static public readonly GUIContent k_ClampValueText = EditorGUIUtility.TrTextContent("Clamp Value", "Clamps the exposed intensity.");
+        static public readonly GUIContent k_SampleCountText = EditorGUIUtility.TrTextContent("Sample Count", "Number of samples for reflections.");
+        static public readonly GUIContent k_BounceCountText = EditorGUIUtility.TrTextContent("Bounce Count", "Number of bounces for reflection rays.");
+        static public readonly GUIContent k_ModeText = EditorGUIUtility.TrTextContent("Mode", "Controls which version of the effect should be used.");
+        static public readonly GUIContent k_DenoiseText = EditorGUIUtility.TrTextContent("Denoise", "Enable denoising on the ray traced reflections.");
+        static public readonly GUIContent k_UpscaleRadiusText = EditorGUIUtility.TrTextContent("Upscale Radius", "Controls the size of the upscale radius.");
+        static public readonly GUIContent k_FullResolutionText = EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode.");
+        static public readonly GUIContent k_DenoiseRadiusText = EditorGUIUtility.TrTextContent("Denoiser Radius", "Controls the radius of reflection denoiser.");
+
+        void RayTracingQualityModeGUI()
+        {
+            PropertyField(m_MinSmoothness, k_MinimumSmoothnessText);
+            PropertyField(m_SmoothnessFadeStart, k_SmoothnessFadeStartText);
+            m_SmoothnessFadeStart.value.floatValue  = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
+            PropertyField(m_RayLength, k_RayLengthText);
+            PropertyField(m_ClampValue, k_ClampValueText);
+            PropertyField(m_SampleCount, k_SampleCountText);
+            PropertyField(m_BounceCount, k_BounceCountText);
+            PropertyField(m_Denoise, k_DenoiseText);
+            {
+                EditorGUI.indentLevel++;
+                PropertyField(m_DenoiserRadius, k_DenoiseRadiusText);
+                EditorGUI.indentLevel--;
+            }
+        }
+
+
+        void RayTracingPerformanceModeGUI()
+        {
+            base.OnInspectorGUI();
+            GUI.enabled = useCustomValue;
+            {
+                EditorGUI.indentLevel++;
+                PropertyField(m_MinSmoothness, k_MinimumSmoothnessText);
+                PropertyField(m_SmoothnessFadeStart, k_SmoothnessFadeStartText);
+                m_SmoothnessFadeStart.value.floatValue  = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
+                PropertyField(m_RayLength, k_RayLengthText);
+                PropertyField(m_ClampValue, k_ClampValueText);
+                PropertyField(m_UpscaleRadius, k_UpscaleRadiusText);
+                PropertyField(m_FullResolution, k_FullResolutionText);
+                PropertyField(m_Denoise, k_DenoiseText);
+                {
+                    EditorGUI.indentLevel++;
+                    PropertyField(m_DenoiserRadius, k_DenoiseRadiusText);
+                    EditorGUI.indentLevel--;
+                }
+                EditorGUI.indentLevel--;
+            }
+            GUI.enabled = true;
+        }
+
+        void RayTracedReflectionGUI()
+        {
+            HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
+            PropertyField(m_ReflectSky, k_ReflectSkyText);
+            PropertyField(m_LayerMask, k_LayerMaskText);
+
+            if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both)
+            {
+                PropertyField(m_Mode, k_ModeText);
+                EditorGUI.indentLevel++;
+                switch (m_Mode.value.GetEnumValue<RayTracingMode>())
+                {
+                    case RayTracingMode.Performance:
+                    {
+                        RayTracingPerformanceModeGUI();
+                    }
+                    break;
+                    case RayTracingMode.Quality:
+                    {
+                        RayTracingQualityModeGUI();
+                    }
+                    break;
+                }
+                EditorGUI.indentLevel--;
+            }
+            else if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Quality)
+            {
+                RayTracingQualityModeGUI();
+            }
+            else
+            {
+                RayTracingPerformanceModeGUI();
+            }
+        }
+
         public override void OnInspectorGUI()
         {
+            // This whole editor has nothing to display if the SSR feature is not supported
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
             if (!currentAsset?.currentPlatformRenderPipelineSettings.supportSSR ?? false)
             {
@@ -84,58 +180,31 @@ namespace UnityEditor.Rendering.HighDefinition
 
             PropertyField(m_Enable, EditorGUIUtility.TrTextContent("Enable"));
 
+            // The ray tracing enabling checkbox is only displayed if the asset supports ray tracing
             bool rayTracingSupported = HDRenderPipeline.pipelineSupportsRayTracing;
             if (rayTracingSupported)
-                PropertyField(m_RayTracing, EditorGUIUtility.TrTextContent("Ray Tracing", "Enable ray traced reflections."));
+                PropertyField(m_RayTracing, k_RayTracingText);
 
-            // Shared Data
-            PropertyField(m_MinSmoothness,        EditorGUIUtility.TrTextContent("Minimum Smoothness", "Controls the smoothness value at which HDRP activates SSR and the smoothness-controlled fade out stops."));
-            PropertyField(m_SmoothnessFadeStart,  EditorGUIUtility.TrTextContent("Smoothness Fade Start", "Controls the smoothness value at which the smoothness-controlled fade out starts. The fade is in the range [Min Smoothness, Smoothness Fade Start]."));
-            PropertyField(m_ReflectSky,           EditorGUIUtility.TrTextContent("Reflect Sky", "When enabled, SSR handles sky reflection."));
-            m_SmoothnessFadeStart.value.floatValue  = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
-
-            // If ray tracing is supported and it is enabled on this volume, display the ray tracing options.
+            // The rest of the ray tracing UI is only displayed if the asset supports ray tracing and the checkbox is checked.
             if (rayTracingSupported && m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
             {
-                PropertyField(m_LayerMask, EditorGUIUtility.TrTextContent("Layer Mask", "Layer mask used to include the objects for screen space reflection."));
-                PropertyField(m_RayLength, EditorGUIUtility.TrTextContent("Ray Length", "Controls the length of reflection rays."));
-                PropertyField(m_ClampValue, EditorGUIUtility.TrTextContent("Clamp Value", "Clamps the exposed intensity."));
-                PropertyField(m_Mode, EditorGUIUtility.TrTextContent("Mode", "Controls which version of the effect should be used."));
-
-                EditorGUI.indentLevel++;
-                switch (m_Mode.value.GetEnumValue<RayTracingMode>())
-                {
-                    case RayTracingMode.Performance:
-                    {
-                        PropertyField(m_UpscaleRadius, EditorGUIUtility.TrTextContent("Upscale Radius", "Controls the size of the upscale radius."));
-                        PropertyField(m_FullResolution, EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode."));
-                    }
-                    break;
-                    case RayTracingMode.Quality:
-                    {
-                        PropertyField(m_SampleCount, EditorGUIUtility.TrTextContent("Sample Count", "Number of samples for reflections."));
-                        PropertyField(m_BounceCount, EditorGUIUtility.TrTextContent("Bounce Count", "Number of bounces for reflection rays."));
-                    }
-                    break;
-                }
-                EditorGUI.indentLevel--;
-                PropertyField(m_Denoise, EditorGUIUtility.TrTextContent("Denoise", "Enable denoising on the ray traced reflections."));
-                {
-                    EditorGUI.indentLevel++;
-                    PropertyField(m_DenoiserRadius, EditorGUIUtility.TrTextContent("Denoiser Radius", "Controls the radius of reflection denoiser."));
-                    EditorGUI.indentLevel--;
-                }
+                RayTracedReflectionGUI();
             }
             else
             {
-                PropertyField(m_ScreenFadeDistance,   EditorGUIUtility.TrTextContent("Screen Edge Fade Distance", "Controls the distance at which HDRP fades out SSR near the edge of the screen."));
-                PropertyField(m_DepthBufferThickness, EditorGUIUtility.TrTextContent("Object Thickness", "Controls the typical thickness of objects the reflection rays may pass behind."));
+                // Shared Data
+                PropertyField(m_MinSmoothness, k_MinimumSmoothnessText);
+                PropertyField(m_SmoothnessFadeStart, k_SmoothnessFadeStartText);
+                PropertyField(m_ReflectSky, k_ReflectSkyText);
+                m_SmoothnessFadeStart.value.floatValue  = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
+                PropertyField(m_ScreenFadeDistance, k_ScreenFaceDistanceText);
+                PropertyField(m_DepthBufferThickness, k_DepthBufferThicknessText);
 
                 m_DepthBufferThickness.value.floatValue = Mathf.Clamp(m_DepthBufferThickness.value.floatValue, 0.001f, 1.0f);
 
                 base.OnInspectorGUI();
                 GUI.enabled = useCustomValue;
-                PropertyField(m_RayMaxIterations, EditorGUIUtility.TrTextContent("Max Ray Steps", "Sets the maximum number of steps HDRP uses for raytracing. Affects both correctness and performance."));
+                PropertyField(m_RayMaxIterations, k_RayMaxIterationsText);
                 m_RayMaxIterations.value.intValue = Mathf.Max(0, m_RayMaxIterations.value.intValue);
                 GUI.enabled = true;
             }

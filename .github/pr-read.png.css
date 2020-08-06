@@ -1,0 +1,26 @@
+@import "github.css";
+ 
+#write{
+	max-width: none;
+    width: 709px;
+  	margin: 0 auto;
+  	padding: 5px;
+	border: 20px solid #bda668;
+	min-height: auto !important;
+}
+#write > ul:first-child,
+#write > ol:first-child{
+    margin-top: 0px;
+}
+
+body > *:first-child {
+    margin-top: 0 !important;
+}
+body > *:last-child {
+    margin-bottom: 0 !important;
+}
+
+h1, h2, h3, h4, h5, h6
+{
+	width: auto !important;
+}
