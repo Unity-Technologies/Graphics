@@ -2,6 +2,7 @@ from ..shared.namer import projectcontext_filepath
 from .project_pack import Project_PackJob
 from .project_publish import Project_PublishJob
 from .project_test import Project_TestJob
+from .project_publish_all import Project_PublishAllJob
 
 
 def create_projectcontext_ymls(metafile):
@@ -20,6 +21,8 @@ def create_projectcontext_ymls(metafile):
             job = Project_TestJob(platform, editor)
             yml[job.job_id] = job.yml
 
+    job = Project_PublishAllJob(metafile["packages"], metafile["target_branch"], metafile["agent_publish_all"])
+    yml[job.job_id] = job.yml
 
     yml_files[projectcontext_filepath()] = yml
     return yml_files

@@ -42,6 +42,9 @@ def projectcontext_job_id_test(platform_os, editor_version):
 def projectcontext_job_id_publish(package_id):
     return f'publish_{package_id}_project'
 
+def projectcontext_job_id_publish_all():
+    return f'publish_all_project'
+
 # template specific
 def templates_filepath():
     return f'{parent_dir}/_templates.yml'.lower()
