@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -165,6 +165,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added path tracing test scene for normal mapping.
 - Added missing API documentation.
 - Added an option to have only the metering mask displayed in the debug mode.
+- Added a new mode to cluster visualization debug where users can see a slice instead of the cluster on opaque objects.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -757,6 +758,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed incorrect processing of Ambient occlusion probe (9% error was introduced)
 - Fixed GPU hang on D3D12 on xbox. 
 - Fix several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
+- Fixed CoatMask block appearing when creating lit master node (case 1264632)
+- Fixed issue with SceneEV100 debug mode indicator when rescaling the window.
+- Fixed issue with PCSS filter being wrong on first frame. 
+- Fixed issue with emissive mesh for area light not appearing in playmode if Reload Scene option is disabled in Enter Playmode Settings.
+- Fixed issue when Reflection Probes are set to OnEnable and are never rendered if the probe is enabled when the camera is farther than the probe fade distance. 
+- Fixed issue with sun icon being clipped in the look dev window. 
+- Fixed error about layers when disabling emissive mesh for area lights.
+- Fix issue when the user deletes the composition graph or .asset in runtime (case 1263319)
 - Fixed assertion failure when changing resolution to compositor layers after using AOVs (case 1265023) 
 
 ### Changed
@@ -934,6 +943,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Preparation pass for RTSSS to be supported by render graph.
 - Changed the color space of EmissiveColorLDR property on all shader. Was linear but should have been sRGB. Auto upgrade script handle the conversion.
 - Preparation pass for RTSSShadows to be supported by render graph.
+- Add tooltips with the full name of the (graphics) compositor properties to properly show large names that otherwise are clipped by the UI (case 1263590)
+- Composition profile .asset files cannot be manually edited/reset by users (to avoid breaking things - case 1265631)
 
 ## [7.1.1] - 2019-09-05
 
