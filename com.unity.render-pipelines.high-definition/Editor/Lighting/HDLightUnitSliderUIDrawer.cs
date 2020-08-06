@@ -8,6 +8,22 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     internal class HDLightUnitSliderUIDrawer
     {
+        private class NoIndentScope : IDisposable
+        {
+            public NoIndentScope()
+            {
+                m_PrevIndentLevel = EditorGUI.indentLevel;
+                EditorGUI.indentLevel = 0;
+            }
+
+            public void Dispose()
+            {
+                EditorGUI.indentLevel = m_PrevIndentLevel;
+            }
+
+            private int m_PrevIndentLevel;
+        }
+
         private struct LightUnitLevel
         {
             public GUIContent content;
@@ -107,15 +123,12 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!s_LightUnitLevelMap.TryGetValue(unit, out var lightUnitLevels))
                 return;
 
-            // TODO: Disable indentation scope?
-            // Disable indentation (causes issues with manually rect management).
-            var prevLevel = EditorGUI.indentLevel;
-            EditorGUI.indentLevel = 0;
-
-            lightUnitLevels.Draw(rect, value);
-
-            // Restore indentation
-            EditorGUI.indentLevel = prevLevel;
+            // TODO: Is a scope really necessary for this? If so, move to HDEditorUtils.cs?
+            // Disable indentation (breaks tooltips otherwise).
+            using (new NoIndentScope())
+            {
+                lightUnitLevels.Draw(rect, value);
+            }
         }
 
         private static void GetRects(Rect baseRect, out Rect sliderRect, out Rect iconRect)
@@ -136,22 +149,25 @@ namespace UnityEditor.Rendering.HighDefinition
             value.floatValue = GUI.HorizontalSlider(rect, value.floatValue, leftValue, rightValue, GUI.skin.horizontalSlider, GUI.skin.horizontalSliderThumb);
         }
 
-        private static void DoMarker(Rect sliderRect, float x, string tooltip, float width = 4, float height = 2)
+        private static void DoMarker(Rect sliderRect, float x, string tooltip)
         {
+            const int width  = 4;
+            const int height = 2;
+
             var markerRect = sliderRect;
             markerRect.width  = width;
             markerRect.height = height;
 
-            // Align with slider.
+            // Vertically align with slider.
             markerRect.y += (EditorGUIUtility.singleLineHeight / 2f) - 1;
 
-            // Place on slider.
+            // Horizontally place on slider.
             markerRect.x = sliderRect.x + sliderRect.width * x;
 
             // Center the marker on value.
             markerRect.x -= markerRect.width / 2;
 
-            // Draw marker by manually drawing a rect, and an empty label with the tooltip.
+            // Draw marker by manually drawing the rect, and an empty label with the tooltip.
             EditorGUI.DrawRect(markerRect, Color.white);
 
             // TODO: Consider enlarging this tooltip rect so that it's easier to discover?
