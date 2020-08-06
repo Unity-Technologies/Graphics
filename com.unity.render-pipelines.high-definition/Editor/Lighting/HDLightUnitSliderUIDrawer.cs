@@ -80,7 +80,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 foreach (var l in m_Levels)
                 {
                     var markerValue = l.range.y / m_RangeMax;
-                    DoMarker(sliderRect, markerValue, l.content.tooltip);
+                    DoSliderMarker(sliderRect, markerValue, l.content.tooltip);
                 }
 
                 // Icon
@@ -145,16 +145,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
         private static void DoSlider(Rect rect, SerializedProperty value, float leftValue, float rightValue)
         {
-            // TODO: Look into compiling a lambda to access internal slider function for background (markers) + logarithmic values.
+            // TODO: Look into compiling a lambda to access internal slider function for logarithmic sliding.
             value.floatValue = GUI.HorizontalSlider(rect, value.floatValue, leftValue, rightValue, GUI.skin.horizontalSlider, GUI.skin.horizontalSliderThumb);
         }
 
-        private static void DoMarker(Rect sliderRect, float x, string tooltip)
+        private static void DoSliderMarker(Rect rect, float x, string tooltip)
         {
-            const int width  = 4;
-            const int height = 2;
+            const float width  = 4f;
+            const float height = 2f;
 
-            var markerRect = sliderRect;
+            var markerRect = rect;
             markerRect.width  = width;
             markerRect.height = height;
 
@@ -162,10 +162,16 @@ namespace UnityEditor.Rendering.HighDefinition
             markerRect.y += (EditorGUIUtility.singleLineHeight / 2f) - 1;
 
             // Horizontally place on slider.
-            markerRect.x = sliderRect.x + sliderRect.width * x;
+            markerRect.x = rect.x + rect.width * x;
+
+            // Clamp to the slider edges.
+            float halfWidth = width * 0.5f;
+            float min = rect.x + halfWidth;
+            float max = (rect.x + rect.width) - halfWidth;
+            markerRect.x = Mathf.Clamp(markerRect.x, min, max);
 
             // Center the marker on value.
-            markerRect.x -= markerRect.width / 2;
+            markerRect.x -= halfWidth;
 
             // Draw marker by manually drawing the rect, and an empty label with the tooltip.
             EditorGUI.DrawRect(markerRect, Color.white);
@@ -175,14 +181,14 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.LabelField(markerRect, s_MarkerContent, EditorStyles.inspectorDefaultMargins);
         }
 
-        private static void DoIcon(Rect iconRect, GUIContent icon)
+        private static void DoIcon(Rect rect, GUIContent icon)
         {
             var oldColor = GUI.color;
             GUI.color = Color.clear;
-            EditorGUI.DrawTextureTransparent(iconRect, icon.image);
+            EditorGUI.DrawTextureTransparent(rect, icon.image);
             GUI.color = oldColor;
 
-            EditorGUI.LabelField(iconRect, new GUIContent(string.Empty, icon.tooltip));
+            EditorGUI.LabelField(rect, new GUIContent(string.Empty, icon.tooltip));
         }
     }
 }
