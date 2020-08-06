@@ -392,7 +392,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             {
                 foreach (var handle in m_AOVHandles)
                 {
-                    CoreUtils.Destroy(handle);
+                    handle.Release();
                 }
             }
             if (m_AOVRenderTargets != null)
