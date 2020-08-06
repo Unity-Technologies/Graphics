@@ -260,6 +260,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal ProfilingSampler m_ProfilingSamplerDeferredFogPass = new ProfilingSampler(k_DeferredFogPass);
         
         int m_AllocatedGPUTileLightsCount = 0;
+        int m_GPUTileLightsCount = 0;
         ComputeBuffer m_GPUTileLightsBuffer = null;
 
         public DeferredLights(Material tileDepthInfoMaterial, Material tileDeferredMaterial, Material stencilDeferredMaterial)
@@ -403,6 +404,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_AllocatedGPUTileLightsCount = Mathf.Max(m_AllocatedGPUTileLightsCount, tileLightsCount);
             m_GPUTileLightsBuffer = DeferredShaderData.instance.ReserveBuffer<PunctualLightData>(m_AllocatedGPUTileLightsCount, DeferredConfig.kUseCBufferForLightData);
             m_GPUTileLightsBuffer.SetData(punctualLightBuffer, 0, 0, tileLightsCount);
+            m_GPUTileLightsCount = tileLightsCount;
 
             // Shared uniform constants for all lights.
             {
@@ -843,7 +845,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Use tile shading to further reduce imageblock read limiter
         // Also, this can reduce CPU cost on rendering stencil lights potentially
         void RenderTileLightsUsingTileShading(ScriptableRenderContext context, ref RenderingData renderingData, CommandBuffer cmd) 
-        { 
+        {
+            if (m_GPUTileLightsCount == 0) {
+                return;
+            }
+            
             if (m_StencilDeferredMaterial == null)
             {
                 Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", m_StencilDeferredMaterial, GetType().Name);
@@ -854,13 +860,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return;
 
             Profiler.BeginSample(k_DeferredStencilPass);
-
-            if (m_SphereMesh == null)
-                m_SphereMesh = CreateSphereMesh();
-            if (m_HemisphereMesh == null)
-                m_HemisphereMesh = CreateHemisphereMesh();
-            if (m_FullscreenMesh == null)
-                m_FullscreenMesh = CreateFullscreenMesh();
 
             using (new ProfilingScope(cmd, m_ProfilingSamplerDeferredStencilPass))
             {
