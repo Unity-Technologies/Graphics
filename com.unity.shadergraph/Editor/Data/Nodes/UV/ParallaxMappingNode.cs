@@ -78,10 +78,7 @@ namespace UnityEditor.ShaderGraph
             var amplitude = GetSlotValue(kAmplitudeSlotId, generationMode);
             var uvs = GetSlotValue(kUVsSlotId, generationMode);
 
-            sb.AppendLines(String.Format(@"
-ApplyPerPixelDisplacement({0}, {1}, IN.{2}, {3} * 0.01, {4});
-$precision2 {5} = {4};
-",
+            sb.AppendLines(String.Format(@"$precision2 {5} = {4} + ParallaxMapping({0}, {1}, IN.{2}, {3} * 0.01, {4});",
                 heightmap,
                 edgesSampler.Any() ? GetSlotValue(kHeightmapSamplerSlotId, generationMode) : "sampler" + heightmap,
                 CoordinateSpace.Tangent.ToVariableName(InterpolatorType.ViewDirection),
