@@ -51,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField, Reload("Runtime/Materials/Sprite-Unlit-Default.mat")]
         Material m_DefaultUnlitMaterial = null;
 
-        [SerializeField, Reload("Runtime/Materials/Sprite-Lit-Mask.mat")]
+        [SerializeField, Reload("Runtime/Materials/Sprite-Mask.mat")]
         Material m_DefaultSpriteMaskMaterial = null;
 #endif
 
