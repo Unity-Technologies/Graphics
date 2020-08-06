@@ -141,13 +141,14 @@ def get_versions_from_unity_downloader(tracks, trunk_track, unity_downloader_com
                             version = match.group(1)
                             versions[key]['version'] = version
                             break
-                    logging.info(f'[{platform}] Latest revision for track: {track} '
+                    print(f'INFO: [{platform}] Latest revision for track: {track} '
                                 f'type: {version_type} is {revision} (version: {version})')
 
                 except subprocess.CalledProcessError as err:
                     # Not great error handling but will hold until there's a better way.
                     if err.stderr and INVALID_VERSION_ERROR in err.stderr:
-                        logging.warning(
+                        print(
+                            f'WARNING: '
                             f'unity-downloader-cli did not find a version for track: {track} '
                             f'and version: {version}. This is expected in some cases, e.g. alphas '
                             'that are not public yet.')
@@ -231,7 +232,7 @@ def load_config(filename):
         assert isinstance(config['versions_dict_comment'], str)
         return config
     except AssertionError:
-        logging.error('Your configuration file {filename} has an error:')
+        print('ERROR: Your configuration file {filename} has an error:')
         raise
 
 
@@ -264,12 +265,12 @@ def main(argv):
         logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
     config = load_config(args.config)
 
-    logging.info('Updating editor revisions to the latest found using unity-downloader-cli')
-    logging.info(f'Configuration file: {args.config}')
+    print(f'INFO: Updating editor revisions to the latest found using unity-downloader-cli')
+    print(f'INFO: Configuration file: {args.config}')
 
     ROOT = os.path.abspath(git_cmd('rev-parse --show-toplevel', cwd='.').strip())
 
-    logging.info(f'Running in {os.path.abspath(os.curdir)}')
+    print(f'INFO: Running in {os.path.abspath(os.curdir)}')
     # projectversion_filename = os.path.join(ROOT, config['project_version_file'])
     # assert os.path.isfile(projectversion_filename), f'Cannot find {projectversion_filename}'
 
@@ -278,24 +279,24 @@ def main(argv):
                                     config['unity_downloader_components'],
                                     config['project_version'])
         editor_versions_file = config['editor_versions_file']
-        logging.info(f'Saving {editor_versions_file}.')
+        print(f'INFO: Saving {editor_versions_file}.')
         write_versions_file(os.path.join(ROOT, editor_versions_file),
                             config['versions_file_header'], config['versions_dict_comment'],
                             versions)
         if versions_file_is_unchanged(editor_versions_file, ROOT):
-            logging.info('No changes in the versions file, exiting')
+            print(f'INFO: No changes in the versions file, exiting')
         else:
             subprocess.call(['python', config['ruamel_build_file']])
             if args.yamato_parser:
-                logging.info(f'Running {args.yamato_parser} to generate unfolded Yamato YAML...')
+                print(f'INFO: Running {args.yamato_parser} to generate unfolded Yamato YAML...')
                 run_cmd(args.yamato_parser, cwd=ROOT)
             if not args.local:
                 checkout_and_push(editor_versions_file, config['yml_files_path'], args.target_branch, ROOT, args.force_push,
                                   'Updating pinned editor revisions')
-        logging.info('Done updating editor versions.')
+        print(f'INFO: Done updating editor versions.')
         return 0
     except subprocess.CalledProcessError as err:
-        logging.error(f"Failed to run '{err.cmd}'\nStdout:\n{err.stdout}\nStderr:\n{err.stderr}")
+        print(f"ERROR: Failed to run '{err.cmd}'\nStdout:\n{err.stdout}\nStderr:\n{err.stderr}")
         return 1
 
 
