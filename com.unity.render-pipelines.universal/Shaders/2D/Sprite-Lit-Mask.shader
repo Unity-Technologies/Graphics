@@ -47,16 +47,5 @@ Shader "Universal Render Pipeline/2D/Sprite-Mask"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/SpriteMaskShared.hlsl"
             ENDHLSL
         }
-        Pass
-        {
-            Tags{ "LightMode" = "UniversalForward" }
-            HLSLPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
-
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/SpriteMaskShared.hlsl"
-            ENDHLSL
-        }
-
     }
 }
