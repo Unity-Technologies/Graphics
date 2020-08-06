@@ -11,9 +11,9 @@ def create_projectcontext_ymls(metafile):
 
     job = Project_PackJob(metafile["agent_pack"])
     yml[job.job_id] = job.yml
-
-    job = Project_PublishJob(metafile["agent_publish"], metafile["platforms"], metafile["target_editor"])
-    yml[job.job_id] = job.yml
+    for package in metafile["packages"]:
+        job = Project_PublishJob(package, metafile["agent_publish"], metafile["platforms"], metafile["target_editor"])
+        yml[job.job_id] = job.yml
 
     for editor in metafile["editors"]:
         for platform in metafile["platforms"]:

@@ -16,8 +16,8 @@ pack_all_project:
         packages:
             paths:
               -  "upm-ci~/packages/**/*"
-publish_all_project:
-    name: Publish all [project context]
+publish_core_project:
+    name: Publish Core [project context]
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -28,7 +28,109 @@ publish_all_project:
       -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci project publish --project-path TestProjects/SRP_SmokeTest
+      -  upm-ci package publish --package-path com.unity.render-pipelines.core
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+publish_lwrp_project:
+    name: Publish Lightweight [project context]
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package publish --package-path com.unity.render-pipelines.lightweight
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+publish_shadergraph_project:
+    name: Publish ShaderGraph [project context]
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package publish --package-path com.unity.shadergraph
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+publish_hdrp_project:
+    name: Publish HDRP [project context]
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+publish_universal_project:
+    name: Publish Universal [project context]
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package publish --package-path com.unity.render-pipelines.universal
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+publish_vfx_project:
+    name: Publish VFX [project context]
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package publish --package-path com.unity.visualeffectgraph
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+publish_config_project:
+    name: Publish Config [project context]
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
         packages:
             paths:
@@ -46,7 +148,7 @@ test_all_project_windows_trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  upm-ci project test -u .\.Editor --project-path TestProjects/SRP_SmokeTest
+      -  upm-ci project test -u .\.Editor --project-path TestProjects/SRP_SmokeTest --type vetting-tests
     artifacts:
         logs:
             paths:
@@ -64,7 +166,7 @@ test_all_project_macos_trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  upm-ci project test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path TestProjects/SRP_SmokeTest
+      -  upm-ci project test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path TestProjects/SRP_SmokeTest --type vetting-tests
     artifacts:
         logs:
             paths:
@@ -82,7 +184,7 @@ test_all_project_windows_fast-trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  upm-ci project test -u .\.Editor --project-path TestProjects/SRP_SmokeTest
+      -  upm-ci project test -u .\.Editor --project-path TestProjects/SRP_SmokeTest --type vetting-tests
     artifacts:
         logs:
             paths:
@@ -100,7 +202,7 @@ test_all_project_macos_fast-trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  upm-ci project test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path TestProjects/SRP_SmokeTest
+      -  upm-ci project test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path TestProjects/SRP_SmokeTest --type vetting-tests
     artifacts:
         logs:
             paths:
@@ -118,7 +220,7 @@ test_all_project_windows_CUSTOM-REVISION:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  upm-ci project test -u .\.Editor --project-path TestProjects/SRP_SmokeTest
+      -  upm-ci project test -u .\.Editor --project-path TestProjects/SRP_SmokeTest --type vetting-tests
     artifacts:
         logs:
             paths:
@@ -136,7 +238,7 @@ test_all_project_macos_CUSTOM-REVISION:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  upm-ci project test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path TestProjects/SRP_SmokeTest
+      -  upm-ci project test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path TestProjects/SRP_SmokeTest --type vetting-tests
     artifacts:
         logs:
             paths:

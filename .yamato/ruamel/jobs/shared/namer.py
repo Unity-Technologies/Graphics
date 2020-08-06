@@ -39,9 +39,8 @@ def projectcontext_job_id_pack():
 def projectcontext_job_id_test(platform_os, editor_version):
     return f'test_all_project_{ platform_os }_{editor_version}'
 
-def projectcontext_job_id_publish():
-    return f'publish_all_project'
-
+def projectcontext_job_id_publish(package_id):
+    return f'publish_{package_id}_project'
 
 # template specific
 def templates_filepath():
