@@ -40,11 +40,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private static readonly int SrcBlendID = Shader.PropertyToID("_SrcBlend");
         private static readonly int DstBlendID = Shader.PropertyToID("_DstBlend");
-        private static readonly int ShadowStencilGroupID = Shader.PropertyToID("_ShadowStencilGroup");
-        private static readonly int ShadowIntensityID = Shader.PropertyToID("_ShadowIntensity");
-        private static readonly int ShadowVolumeIntensityID = Shader.PropertyToID("_ShadowVolumeIntensity");
-        private static readonly int LightPosID = Shader.PropertyToID("_LightPos");
-        private static readonly int ShadowRadiusID = Shader.PropertyToID("_ShadowRadius");
         private static readonly int FalloffIntensityID = Shader.PropertyToID("_FalloffIntensity");
         private static readonly int FalloffDistanceID = Shader.PropertyToID("_FalloffDistance");
         private static readonly int FalloffOffsetID = Shader.PropertyToID("_FalloffOffset");
@@ -121,23 +116,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmd.DisableShaderKeyword(keyword);
         }
 
-        private static void CreateShadowRenderTexture(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int blendStyleIndex)
-        {
-            var renderTextureScale = Mathf.Clamp(pass.rendererData.lightBlendStyles[blendStyleIndex].renderTextureScale, 0.01f, 1.0f);
-            var width = (int)(renderingData.cameraData.cameraTargetDescriptor.width * renderTextureScale);
-            var height = (int)(renderingData.cameraData.cameraTargetDescriptor.height * renderTextureScale);
-
-            var descriptor = new RenderTextureDescriptor(width, height);
-            descriptor.useMipMap = false;
-            descriptor.autoGenerateMips = false;
-            descriptor.depthBufferBits = 24;
-            descriptor.graphicsFormat = GraphicsFormat.R8G8B8A8_UNorm;
-            descriptor.msaaSamples = 1;
-            descriptor.dimension = TextureDimension.Tex2D;
-
-            cmd.GetTemporaryRT(pass.rendererData.shadowsRenderTarget.id, descriptor, FilterMode.Bilinear);
-        }
-
         public static void ReleaseRenderTextures(this IRenderPass2D pass, CommandBuffer cmd)
         {
             for (var i = 0; i < pass.rendererData.lightBlendStyles.Length; i++)
@@ -153,94 +131,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cmd.ReleaseTemporaryRT(pass.rendererData.shadowsRenderTarget.id);
         }
 
-
-        private static void RenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int layerToRender, Light2D light, float shadowIntensity, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture)
-        {
-            cmdBuffer.SetGlobalFloat(ShadowIntensityID, 1 - light.shadowIntensity);
-            cmdBuffer.SetGlobalFloat(ShadowVolumeIntensityID, 1 - light.shadowVolumeIntensity);
-
-            if (shadowIntensity > 0)
-            {
-                CreateShadowRenderTexture(pass, renderingData, cmdBuffer, light.blendStyleIndex);
-
-                cmdBuffer.SetRenderTarget(pass.rendererData.shadowsRenderTarget.Identifier(), RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-                cmdBuffer.ClearRenderTarget(true, true, Color.black);
-
-                var shadowRadius = 1.42f * light.boundingSphereRadius;
-
-                cmdBuffer.SetGlobalVector(LightPosID, light.transform.position);
-                cmdBuffer.SetGlobalFloat(ShadowRadiusID, shadowRadius);
-
-                var shadowMaterial = pass.rendererData.GetShadowMaterial(1);
-                var removeSelfShadowMaterial = pass.rendererData.GetRemoveSelfShadowMaterial(1);
-                var shadowCasterGroups = ShadowCasterGroup2DManager.shadowCasterGroups;
-                if (shadowCasterGroups != null && shadowCasterGroups.Count > 0)
-                {
-                    var previousShadowGroupIndex = -1;
-                    var incrementingGroupIndex = 0;
-                    for (var group = 0; group < shadowCasterGroups.Count; group++)
-                    {
-                        var shadowCasterGroup = shadowCasterGroups[group];
-
-                        var shadowCasters = shadowCasterGroup.GetShadowCasters();
-
-                        var shadowGroupIndex = shadowCasterGroup.GetShadowGroup();
-                        if (LightUtility.CheckForChange(shadowGroupIndex, ref previousShadowGroupIndex) || shadowGroupIndex == 0)
-                        {
-                            incrementingGroupIndex++;
-                            shadowMaterial = pass.rendererData.GetShadowMaterial(incrementingGroupIndex);
-                            removeSelfShadowMaterial = pass.rendererData.GetRemoveSelfShadowMaterial(incrementingGroupIndex);
-                        }
-
-                        if (shadowCasters != null)
-                        {
-                            // Draw the shadow casting group first, then draw the silhouttes..
-                            for (var i = 0; i < shadowCasters.Count; i++)
-                            {
-                                var shadowCaster = shadowCasters[i];
-
-                                if (shadowCaster != null && shadowMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
-                                {
-                                    if (shadowCaster.castsShadows)
-                                        cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, shadowMaterial);
-                                }
-                            }
-
-                            for (var i = 0; i < shadowCasters.Count; i++)
-                            {
-                                var shadowCaster = shadowCasters[i];
-
-                                if (shadowCaster != null && shadowMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
-                                {
-                                    if (shadowCaster.useRendererSilhouette)
-                                    {
-                                        var renderer = shadowCaster.GetComponent<Renderer>();
-                                        if (renderer != null)
-                                        {
-                                            if (!shadowCaster.selfShadows)
-                                                cmdBuffer.DrawRenderer(renderer, removeSelfShadowMaterial);
-                                            else
-                                                cmdBuffer.DrawRenderer(renderer, shadowMaterial, 0, 1);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (!shadowCaster.selfShadows)
-                                        {
-                                            var meshMat = shadowCaster.transform.localToWorldMatrix;
-                                            cmdBuffer.DrawMesh(shadowCaster.mesh, meshMat, removeSelfShadowMaterial);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                cmdBuffer.ReleaseTemporaryRT(pass.rendererData.shadowsRenderTarget.id);
-                cmdBuffer.SetRenderTarget(renderTexture, depthTexture);
-            }
-        }
 
         private static bool RenderLightSet(IRenderPass2D pass, RenderingData renderingData, int blendStyleIndex, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTexture, bool rtNeedsClear, Color clearColor, List<Light2D> lights)
         {
@@ -262,7 +152,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     if (lightMesh == null)
                         continue;
 
-                    RenderShadows(pass, renderingData, cmd, layerToRender, light, light.shadowIntensity, renderTexture, renderTexture);
+                    ShadowRendering.RenderShadows(pass, renderingData, cmd, layerToRender, light, light.shadowIntensity, renderTexture, renderTexture);
 
                     if (!renderedAnyLight && rtNeedsClear)
                     {
@@ -280,7 +170,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     cmd.SetGlobalColor(LightColorID, light.intensity * light.color);
                     cmd.SetGlobalFloat(VolumeOpacityID, light.volumeOpacity);
 
-                    if(light.useNormalMap || light.lightType == Light2D.LightType.Point)
+                    if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
                         SetPointLightShaderGlobals(cmd, light);
 
                     // Light code could be combined...
@@ -288,7 +178,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     {
                         cmd.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightMaterial);
                     }
-                    else if(light.lightType == Light2D.LightType.Point)
+                    else if (light.lightType == Light2D.LightType.Point)
                     {
                         var scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
                         var matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
@@ -325,7 +215,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                                 var lightMesh = light.lightMesh;
                                 if (lightMesh != null)
                                 {
-                                    RenderShadows(pass, renderingData, cmd, layerToRender, light, light.shadowVolumeIntensity, renderTexture, depthTexture);
+                                    ShadowRendering.RenderShadows(pass, renderingData, cmd, layerToRender, light, light.shadowVolumeIntensity, renderTexture, depthTexture);
 
                                     if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                                         cmd.SetGlobalTexture(CookieTexID, light.lightCookieSprite.texture);
@@ -361,7 +251,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static void SetShapeLightShaderGlobals(this IRenderPass2D pass, CommandBuffer cmd)
         {
-            for(var i = 0; i < pass.rendererData.lightBlendStyles.Length; i++)
+            for (var i = 0; i < pass.rendererData.lightBlendStyles.Length; i++)
             {
                 var blendStyle = pass.rendererData.lightBlendStyles[i];
                 if (i >= k_BlendFactorsPropNames.Length)
@@ -463,7 +353,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             for (var i = 0; i < blendStyles.Length; ++i)
             {
-                if ((blendStylesUsed & (uint)(1<<i)) == 0)
+                if ((blendStylesUsed & (uint)(1 << i)) == 0)
                     continue;
 
                 var sampleName = blendStyles[i].name;
@@ -594,30 +484,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
 
             return material;
-        }
-
-        private static Material GetShadowMaterial(this Renderer2DData rendererData, int index)
-        {
-            var shadowMaterialIndex = index % 255;
-            if(rendererData.shadowMaterials[shadowMaterialIndex] == null)
-            {
-                rendererData.shadowMaterials[shadowMaterialIndex] = CoreUtils.CreateEngineMaterial(rendererData.shadowGroupShader);
-                rendererData.shadowMaterials[shadowMaterialIndex].SetFloat(ShadowStencilGroupID, index);
-            }
-
-            return rendererData.shadowMaterials[shadowMaterialIndex];
-        }
-
-        private static Material GetRemoveSelfShadowMaterial(this Renderer2DData rendererData, int index)
-        {
-            var shadowMaterialIndex = index % 255;
-            if (rendererData.removeSelfShadowMaterials[shadowMaterialIndex] == null)
-            {
-                rendererData.removeSelfShadowMaterials[shadowMaterialIndex] = CoreUtils.CreateEngineMaterial(rendererData.removeSelfShadowShader);
-                rendererData.removeSelfShadowMaterials[shadowMaterialIndex].SetFloat(ShadowStencilGroupID, index);
-            }
-
-            return rendererData.removeSelfShadowMaterials[shadowMaterialIndex];
         }
     }
 }
