@@ -17,9 +17,7 @@ auto-version:
       -  upm-ci utils auto-version bump --package-path com.unity.render-pipelines.core --package-path com.unity.render-pipelines.universal --package-path com.unity.render-pipelines.high-definition --package-path com.unity.shadergraph --package-path com.unity.visualeffectgraph --package-path com.unity.render-pipelines.high-definition-config --package-path com.unity.render-pipelines.lightweight
       -  upm-ci utils auto-version commit --push
     triggers:
-        branches:
-            only:
-              -  9.x.x/release
+        expression: push.branch eq "9.x.x/release" AND NOT push.changes.all match ["*template*/**/*.json"]
     artifacts:
         packages:
             paths:
