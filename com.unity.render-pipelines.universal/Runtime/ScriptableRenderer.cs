@@ -534,7 +534,8 @@ namespace UnityEngine.Rendering.Universal
         {
             // Reset per-camera shader keywords. They are enabled depending on which render passes are executed.
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadows);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadowCascades);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadowsCascades);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadowsScreen);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
@@ -713,7 +714,7 @@ namespace UnityEngine.Rendering.Universal
                     // early return so we don't change current render target setup.
                     if (renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingOpaques)
                         return;
-                    
+
                     // Otherwise default is the pipeline camera target.
                     passColorAttachment = m_CameraColorTarget;
                     passDepthAttachment = m_CameraDepthTarget;

@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_AdditionalLightsVertex = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
         ShaderKeyword m_AdditionalLightsPixel = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
         ShaderKeyword m_AdditionalLightShadows = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
-        ShaderKeyword m_CascadeShadows = new ShaderKeyword(ShaderKeywordStrings.MainLightShadowCascades);
+        ShaderKeyword m_CascadeShadows = new ShaderKeyword(ShaderKeywordStrings.MainLightShadowsCascades);
         ShaderKeyword m_SoftShadows = new ShaderKeyword(ShaderKeywordStrings.SoftShadows);
         ShaderKeyword m_MixedLightingSubtractive = new ShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
         ShaderKeyword m_Lightmap = new ShaderKeyword("LIGHTMAP_ON");
@@ -235,7 +235,7 @@ namespace UnityEditor.Rendering.Universal
                 return;
 
             int prevVariantCount = compilerDataList.Count;
-            
+
             var inputShaderVariantCount = compilerDataList.Count;
             for (int i = 0; i < inputShaderVariantCount;)
             {
@@ -245,7 +245,7 @@ namespace UnityEditor.Rendering.Universal
                 else
                     ++i;
             }
-            
+
             if(compilerDataList is List<ShaderCompilerData> inputDataList)
                 inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
             else
@@ -262,7 +262,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        
+
     }
     class ShaderBuildPreprocessor : IPreprocessBuildWithReport
     {

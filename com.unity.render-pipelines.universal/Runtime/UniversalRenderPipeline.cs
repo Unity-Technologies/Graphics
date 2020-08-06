@@ -318,7 +318,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Post-processing not supported in GLES2.
             anyPostProcessingEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
-            
+
             bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
 
             InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
@@ -758,7 +758,7 @@ namespace UnityEngine.Rendering.Universal
                     break;
             }
 
-            shadowData.mainLightShadowCascadesCount = shadowCascadesCount;//(shadowData.requiresScreenSpaceShadowResolve) ? shadowCascadesCount : 1;
+            shadowData.mainLightShadowCascadesCount = shadowCascadesCount;
             shadowData.mainLightShadowmapWidth = settings.mainLightShadowmapResolution;
             shadowData.mainLightShadowmapHeight = settings.mainLightShadowmapResolution;
 

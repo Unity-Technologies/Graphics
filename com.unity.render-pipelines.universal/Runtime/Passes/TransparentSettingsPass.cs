@@ -11,7 +11,6 @@ namespace UnityEngine.Rendering.Universal
         const string m_ProfilerTag = "Transparent Settings Pass";
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
 
-
         public TransparentSettingsPass(RenderPassEvent evt, bool shadowReceiveSupported)
         {
             renderPassEvent = evt;
@@ -31,12 +30,16 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
+                ShadowData shadowData = renderingData.shadowData;
+                int cascadesCount = shadowData.mainLightShadowCascadesCount;
+
+                bool shouldReceiveNoCascades = m_shouldReceiveShadows && cascadesCount == 1;
+                bool shouldReceiveCascades = m_shouldReceiveShadows && cascadesCount > 1;
 
                 // Toggle light shadows enabled based on the renderer setting set in the constructor
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, m_shouldReceiveShadows);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, m_shouldReceiveShadows);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, shouldReceiveNoCascades);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowsCascades, shouldReceiveCascades);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, m_shouldReceiveShadows);
-
             }
 
             // Execute and release the command buffer...

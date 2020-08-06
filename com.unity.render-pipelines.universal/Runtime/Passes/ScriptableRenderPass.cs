@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.Universal
         BeforeRenderingShadows = 50,
         AfterRenderingShadows = 100,
         BeforeRenderingPrepasses = 150,
-        AfterRenderingPrePasses = 200,
+        AfterRenderingPrepasses = 200,
         BeforeRenderingOpaques = 250,
         AfterRenderingOpaques = 300,
         BeforeRenderingSkybox = 350,

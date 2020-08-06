@@ -74,7 +74,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         [SerializeField]
         string m_CustomEditorGUI;
-        
+
         public UniversalTarget()
         {
             displayName = "Universal";
@@ -112,7 +112,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             get => m_ActiveSubTarget;
             set => m_ActiveSubTarget = value;
         }
-        
+
         public SurfaceType surfaceType
         {
             get => m_SurfaceType;
@@ -234,7 +234,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             if(!subTargetType.IsSubclassOf(typeof(SubTarget)))
                 return false;
-            
+
             foreach(var subTarget in m_SubTargets)
             {
                 if(subTarget.GetType().Equals(subTargetType))
@@ -294,7 +294,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 if(!(subTarget is ILegacyTarget legacySubTarget))
                     continue;
-                
+
                 if(legacySubTarget.TryUpgradeFromMasterNode(masterNode, out blockMap))
                 {
                     m_ActiveSubTarget = subTarget;
@@ -716,19 +716,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static KeywordDescriptor MainLightShadows = new KeywordDescriptor()
         {
             displayName = "Main Light Shadows",
-            referenceName = "_MAIN_LIGHT_SHADOWS",
-            type = KeywordType.Boolean,
+            referenceName = "",
+            type = KeywordType.Enum,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-        };
-
-        public static KeywordDescriptor MainLightShadowsCascade = new KeywordDescriptor()
-        {
-            displayName = "Main Light Shadows Cascade",
-            referenceName = "_MAIN_LIGHT_SHADOWS_CASCADE",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "Off", referenceName = "" },
+                new KeywordEntry() { displayName = "No Cascade", referenceName = "MAIN_LIGHT_SHADOWS" },
+                new KeywordEntry() { displayName = "Cascade", referenceName = "MAIN_LIGHT_SHADOWS" },
+            }
         };
 
         public static KeywordDescriptor AdditionalLights = new KeywordDescriptor()
@@ -830,7 +827,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #region FieldDescriptors
     static class CoreFields
     {
-        public static FieldDescriptor UseLegacySpriteBlocks = new FieldDescriptor("Universal", "UseLegacySpriteBlocks", "UNIVERSAL_USELEGACYSPRITEBLOCKS"); 
+        public static FieldDescriptor UseLegacySpriteBlocks = new FieldDescriptor("Universal", "UseLegacySpriteBlocks", "UNIVERSAL_USELEGACYSPRITEBLOCKS");
     }
 #endregion
 }

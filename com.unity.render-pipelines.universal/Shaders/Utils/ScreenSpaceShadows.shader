@@ -6,10 +6,6 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
 
         HLSLINCLUDE
 
-        // Note: Screenspace shadow resolve is only performed when shadow cascades are enabled
-        // Shadow cascades require cascade index and shadowCoord to be computed on pixel.
-        #define _MAIN_LIGHT_SHADOWS_CASCADE
-
         #pragma prefer_hlslcc gles
         #pragma exclude_renderers d3d11_9x
         //Keep compiler quiet about Shadows.hlsl.
@@ -63,7 +59,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
             deviceDepth = 2 * deviceDepth - 1; //NOTE: Currently must massage depth before computing CS position.
 
             float3 vpos = ComputeViewSpacePosition(input.uv.zw, deviceDepth, unity_CameraInvProjection);
-            float3 wpos = mul(unity_CameraToWorld, float4(vpos, 1)).xyz;
+            float3 wpos = mul(unity_CameraToWorld, float4(vpos.x, vpos.y, -vpos.z, 1)).xyz;
 
             //Fetch shadow coordinates for cascade.
             float4 coords = TransformWorldToShadowCoord(wpos);
@@ -84,7 +80,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
             Cull Off
 
             HLSLPROGRAM
-            #pragma multi_compile _MAIN_LIGHT_SHADOWS
+            #pragma multi_compile _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile _ _SHADOWS_SOFT
 
             #pragma vertex   Vertex
