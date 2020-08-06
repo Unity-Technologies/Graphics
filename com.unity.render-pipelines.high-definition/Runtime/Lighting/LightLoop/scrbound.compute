@@ -94,14 +94,14 @@ float4x4 Homogenize3x3(float3x3 R)
     return M;
 }
 
-float4x4 PerspectiveProjection4x4(float s, float g, float n, float f)
+float4x4 PerspectiveProjection4x4(float a, float g, float n, float f)
 {
-    float a = (f + n) * rcp(f - n);
-    float b = -2 * f * n * rcp(f - n);
+    float b = (f + n) * rcp(f - n);
+    float c = -2 * f * n * rcp(f - n);
 
-    return float4x4(g/s, 0, 0, 0,
+    return float4x4(g/a, 0, 0, 0,
                       0, g, 0, 0,
-                      0, 0, a, b,
+                      0, 0, b, c,
                       0, 0, 1, 0);
 }
 
@@ -566,7 +566,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
             float g = f;                         // Distance from the eye to the projection plane
 
             float4x4 invTranslateEye = Translation4x4(float3(0, 0, -e));
-            float4x4 perspProjMatrix = PerspectiveProjection4x4(s, g, n, f);
+            float4x4 perspProjMatrix = PerspectiveProjection4x4(1, g, n, f);
 
             lightSpaceMatrix = mul(perspProjMatrix, mul(invTranslateEye, lightSpaceMatrix));
         }
