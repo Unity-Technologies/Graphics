@@ -1,6 +1,6 @@
 # Ray Tracing Settings
 
-In the High Definition Render Pipeline (HDRP), various ray-traced effects share common properties. Most of them are constants, but you may find it useful to control some of them. Use this [Volume Override](Volume-Components.html) to change these values.
+In the High Definition Render Pipeline (HDRP), various ray-traced effects share common properties. Most of them are constants, but you may find it useful to control some of them. Use this [Volume Override](Volume-Components.md) to change these values.
 
 ## Setting the ray-tracing global parameters
 
