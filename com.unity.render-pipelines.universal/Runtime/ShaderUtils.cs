@@ -1,6 +1,6 @@
 using System;
-using System.ComponentModel;
 using System.Linq;
+using System.ComponentModel;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
@@ -41,7 +41,8 @@ namespace UnityEngine.Rendering.Universal
         public static string GetShaderPath(ShaderPathID id)
         {
             int index = (int)id;
-            if (index >= 0 && index < s_ShaderPaths.Length)
+            int arrayLength = s_ShaderPaths.Length;
+            if (arrayLength > 0 && index >= 0 && index < arrayLength)
                 return s_ShaderPaths[index];
 
             Debug.LogError("Trying to access universal shader path out of bounds: (" + id + ": " + index + ")");
@@ -78,7 +79,8 @@ namespace UnityEngine.Rendering.Universal
         internal static string GetShaderGUID(ShaderPathID id)
         {
             int index = (int)id;
-            if (index >= 0 && index < s_ShaderGUIDs.Length)
+            int arrayLength = s_ShaderGUIDs.Length;
+            if (arrayLength > 0 && index >= 0 && index < arrayLength)
                 return s_ShaderGUIDs[index];
 
             Debug.LogError("Trying to access universal shader GUID out of bounds: (" + id + ": " + index + ")");
