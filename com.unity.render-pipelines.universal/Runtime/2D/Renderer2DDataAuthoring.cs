@@ -23,15 +23,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             m_LightBlendStyles = new Light2DBlendStyle[4];
 
-            m_LightBlendStyles[0].name = "Default";
-            m_LightBlendStyles[0].blendMode = Light2DBlendStyle.BlendMode.Multiply;
-            m_LightBlendStyles[0].renderTextureScale = 1.0f;
-
-            for (int i = 1; i < m_LightBlendStyles.Length; ++i)
+            for (int i = 0; i < m_LightBlendStyles.Length; ++i)
             {
                 m_LightBlendStyles[i].name = "Blend Style " + i;
                 m_LightBlendStyles[i].blendMode = Light2DBlendStyle.BlendMode.Multiply;
-                m_LightBlendStyles[i].renderTextureScale = 1.0f;
+                m_LightBlendStyles[i].renderTextureScale = 0.5f;
             }
         }
 
