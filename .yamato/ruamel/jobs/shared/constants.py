@@ -13,4 +13,4 @@ NPM_UPMCI_INSTALL_URL = 'https://artifactory.prd.cds.internal.unity3d.com/artifa
 
 
 def PATH_PACKAGES_pack_id(package_id):
-    return f'{package_id}/{PATH_PACKAGES_pack}'
+    return f'packages_temp/{package_id}/{PATH_PACKAGES_pack}'

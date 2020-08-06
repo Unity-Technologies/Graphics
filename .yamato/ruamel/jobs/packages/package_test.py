@@ -25,7 +25,8 @@ class Package_TestJob():
                 f'pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade',
                 f'unity-downloader-cli --source-file {PATH_UNITY_REVISION} -c editor --wait --published-only']
         if package.get('hascodependencies', None) is not None:
-            commands.append(f'copy {package["id"]}/upm-ci~/packages/packages.json upm-ci~/packages/')
+            commands.append('mkdir upm-ci~\\packages')
+            commands.append(f'copy packages_temp\\{package["id"]}\\upm-ci~\\packages\\packages.json upm-ci~\\packages')
             commands.append(platform["copycmd"])
         commands.append(f'upm-ci package test -u {platform["editorpath"]} --package-path {package["packagename"]}')
 
