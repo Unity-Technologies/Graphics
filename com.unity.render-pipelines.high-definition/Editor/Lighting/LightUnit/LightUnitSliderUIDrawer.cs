@@ -6,7 +6,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    internal class HDLightUnitSliderUIDrawer
+    internal class LightUnitSliderUIDrawer
     {
         private class NoIndentScope : IDisposable
         {
@@ -97,7 +97,7 @@ namespace UnityEditor.Rendering.HighDefinition
         private static readonly Dictionary<LightUnit, LightUnitLevels> s_LightUnitLevelMap = new Dictionary<LightUnit, LightUnitLevels>();
         private static readonly GUIContent s_MarkerContent;
 
-        static HDLightUnitSliderUIDrawer()
+        static LightUnitSliderUIDrawer()
         {
             // Load light unit icons from editor resources
             var editorTextures = HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures;
@@ -109,6 +109,13 @@ namespace UnityEditor.Rendering.HighDefinition
             luxPresets.AddLevel(editorTextures.lightUnitSunriseOrSunset, "Sunrise or Sunset", new Vector2(1,     10000));
             luxPresets.AddLevel(editorTextures.lightUnitMoonLight,       "Moon Light",        new Vector2(0,     1));;
             s_LightUnitLevelMap.Add(LightUnit.Lux, luxPresets);
+
+            var lumenPresets = new LightUnitLevels("Very High Intensity Light");
+            lumenPresets.AddLevel(editorTextures.lightUnitExterior,   "Exterior",   new Vector2(3000, 40000));
+            lumenPresets.AddLevel(editorTextures.lightUnitInterior,   "Interior",   new Vector2(300,   3000));
+            lumenPresets.AddLevel(editorTextures.lightUnitDecorative, "Decorative", new Vector2(15,     300));
+            lumenPresets.AddLevel(editorTextures.lightUnitCandle,     "Candle",     new Vector2(0,      15));
+            s_LightUnitLevelMap.Add(LightUnit.Lumen, lumenPresets);
 
             s_MarkerContent = new GUIContent(string.Empty);
         }
