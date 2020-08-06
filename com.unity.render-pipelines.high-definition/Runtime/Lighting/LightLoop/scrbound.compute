@@ -56,6 +56,55 @@ uint NthBitLow(uint value, uint n)
     return b;
 }
 
+float4x4 Translation4x4(float3 d)
+{
+    float4x4 M = k_Identity4x4;
+
+    M._14_24_34 = d; // Last column
+
+    return M;
+}
+
+float3x3 Rotation3x3(float3 xAxis, float3 yAxis, float3 zAxis)
+{
+    float3x3 R = float3x3(xAxis, yAxis, zAxis);
+    float3x3 C = transpose(R); // Row to column
+
+    return C;
+}
+
+float3x3 Invert3x3(float3x3 R)
+{
+    float3x3 C   = transpose(R); // Row to column
+    float    det = dot(C[0], cross(C[1], C[2]));
+    float3x3 adj = float3x3(cross(C[1], C[2]),
+                            cross(C[2], C[0]),
+                            cross(C[0], C[1]));
+
+    return rcp(det) * adj;
+}
+
+float4x4 Homogenize3x3(float3x3 R)
+{
+    float4x4 M = float4x4(float4(R[0], 0),
+                          float4(R[1], 0),
+                          float4(R[2], 0),
+                          float4(0,0,0,1));
+
+    return M;
+}
+
+float4x4 PerspectiveProjection4x4(float s, float g, float n, float f)
+{
+    float a = (f + n) * rcp(f - n);
+    float b = -2 * f * n * rcp(f - n);
+
+    return float4x4(g/s, 0, 0, 0,
+                      0, g, 0, 0,
+                      0, 0, a, b,
+                      0, 0, 1, 0);
+}
+
 // Clipping a plane by a cube may produce a hexagon (6-gon).
 // Clipping a hexagon by 4 planes may produce a decagon (10-gon).
 #define MAX_CLIP_VERTS    (10)
@@ -377,7 +426,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
     const uint groupLocalLightIndex = t / THREADS_PER_LIGHT;
     const uint firstVertexOffset    = NUM_VERTS * groupLocalLightIndex;
 
-    const float  scale = lgtDat.scaleXY.x;    // scale.x = scale.y
+    const float  scale = lgtDat.scaleXY;      // scale.x = scale.y
     const float3 rbpC  = lgtDat.center.xyz;
     const float3 rbpX  = lgtDat.boxAxisX.xyz; // Pre-scaled
     const float3 rbpY  = lgtDat.boxAxisY.xyz; // Pre-scaled
@@ -427,19 +476,21 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
         m.xy *= (v >= 4) ? 1 : scale;
 
         float3 rbpVert = rbpC + m.x * rbpX + m.y * rbpY + m.z * rbpZ;
+        // Avoid generating (w = 0).
+        rbpVert.z = (abs(rbpVert.z) >= FLT_EPS) ? rbpVert.z : FLT_EPS;
+
         float4 hapVert = mul(g_mProjection, float4(rbpVert, 1));
 
         // Make sure the W component is strictly positive.
         // It is helpful in order to simplify clipping and to avoid perspective division by 0.
-        // For the orthographic projection, we only consider (w = 1)
-        float w = g_isOrthographic ? 1 : hapVert.w;
+        float w = hapVert.w;
         float s = (w >= 0) ? 1 : -1;
 
         // Transform the X and Y components: [-w, w] -> [0, w].
         hapVert.x = (0.5 * s) * hapVert.x + ((0.5 * s) * w);
         hapVert.y = (0.5 * s) * hapVert.y + ((0.5 * s) * w);
         hapVert.z = s * hapVert.z;
-        hapVert.w = max(abs(w), FLT_MIN);
+        hapVert.w = s * hapVert.w;
 
         // For each vertex, we must determine whether it is within the bounds.
         // For culling and clipping, we must know, per culling plane, whether the vertex
@@ -448,8 +499,11 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 
         // Consider the vertex to be inside the view volume if:
         // 0 <= x <= w
-        // 0 <= y <= w
+        // 0 <= y <= w   <-- include boundary points, to avoid clipping them later
         // 0 <= z <= w
+        // w is always valid
+        // For the orthographic projection, (w = 1), so no modifications are necessary.
+        // TODO: epsilon for numerical robustness?
         w = hapVert.w;
 
         for (uint j = 0; j < (NUM_PLANES / 2); j++)
@@ -487,9 +541,77 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
     cullClipFaceMask = gs_CullClipFaceMasks[groupLocalLightIndex];
 #endif
 
+    // (2) Test the corners of the view volume.
     if (cullClipFaceMask != 0)
     {
-        // The light may be partially outside the view volume.
+        // The light is partially outside the view volume.
+        // Therefore, some of the corners of the view volume may be inside the light volume.
+        // We perform aggressive culling, so we must make sure they are accounted for.
+        // The light volume is a special type of cuboid - a right frustum.
+        // We can exploit this fact by building a light-space projection matrix.
+        float4x4 invTranslateToLightSpace      = Translation4x4(-rbpC);
+        float4x4 invRotateAndScaleInLightSpace = Homogenize3x3(Invert3x3(Rotation3x3(rbpX, rbpY, rbpZ)));
+        // TODO: avoid full inversion by using unit vectors and passing magnitudes explicitly.
+
+        // This (orhographic) projection matrix maps a view-space point to a light-space [-1, 1]^3 cube.
+        float4x4 lightSpaceMatrix = mul(invRotateAndScaleInLightSpace, invTranslateToLightSpace);
+
+        if (scale != 1) // Perspective light space?
+        {
+            // Compute the parameters of the perspective projection.
+            float s = scale;
+            float e = -1 - 2 * (s * rcp(1 - s)); // Signed distance from the origin to the eye
+            float n = -e - 1;                    // Distance from the eye to the near plane
+            float f = -e + 1;                    // Distance from the eye to the far plane
+            float g = f;                         // Distance from the eye to the projection plane
+
+            float4x4 invTranslateEye = Translation4x4(float3(0, 0, -e));
+            float4x4 perspProjMatrix = PerspectiveProjection4x4(s, g, n, f);
+
+            lightSpaceMatrix = mul(perspProjMatrix, mul(invTranslateEye, lightSpaceMatrix));
+        }
+
+        for (uint i = 0; i < VERTS_PER_THREAD; i++)
+        {
+            uint v = i * THREADS_PER_LIGHT + t % THREADS_PER_LIGHT;
+
+            // rapVertsCS[0] = (-1, -1, 0)
+            // rapVertsCS[1] = (+1, -1, 0)
+            // rapVertsCS[2] = (+1, +1, 0)
+            // rapVertsCS[3] = (-1, +1, 0)
+            // rapVertsCS[4] = (-1, -1, 1)
+            // rapVertsCS[5] = (+1, -1, 1)
+            // rapVertsCS[6] = (+1, +1, 1)
+            // rapVertsCS[7] = (-1, +1, 1)
+
+            float3 rapVertCS; // See the comment above
+
+            rapVertCS.x = (countbits(v % 4) == 1) ? 1 : -1;
+            rapVertCS.y = (v & 2 != 0)            ? 1 : -1;
+            rapVertCS.z = (v >= 4)                ? 1 :  0;
+
+            float4 hbpVertVS = mul(g_mInvProjection, float4(rapVertCS, 1)); // Clip to view space
+            float4 hapVertLS = mul(lightSpaceMatrix, hbpVertVS);            // View to light space
+
+            // Consider the vertex to be inside the light volume if:
+            // -w < x < w
+            // -w < y < w   <-- exclude boundary points, as we will not clip using these vertices
+            // -w < z < w
+            // 0  < w
+            // For the orthographic projection, (w = 1), so no modifications are necessary.
+            // TODO: epsilon for numerical robustness?
+
+            bool inside = Max3(abs(hapVertLS.x), abs(hapVertLS.y), abs(hapVertLS.z)) < hapVertLS.w;
+
+            if (inside)
+            {
+                float3 rapVertNDC = float3(rapVertCS.xy * 0.5 + 0.5, rapVertCS.z);
+
+                // Update the AABB.
+                rapAaBbMinPt = min(rapAaBbMinPt, rapVertNDC);
+                rapAaBbMaxPt = max(rapAaBbMaxPt, rapVertNDC);
+            }
+        }
     }
 
     uint behindMasksOfVerts[NUM_VERTS];
@@ -499,7 +621,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
         behindMasksOfVerts[i] = gs_BehindMasksOfVerts[firstVertexOffset + i];
     }
 
-    // (2) Cull the faces.
+    // (3) Cull the faces.
     const uint cullFaceMask   = cullClipFaceMask;
     const uint numFacesToCull = countbits(cullFaceMask); // [0, 6]
 
@@ -528,7 +650,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
     cullClipFaceMask = gs_CullClipFaceMasks[groupLocalLightIndex];
 #endif
 
-    // (3) Clip the faces.
+    // (4) Clip the faces.
     const uint clipFaceMask   = cullClipFaceMask;
     const uint numFacesToClip = countbits(clipFaceMask); // [0, 6]
 
