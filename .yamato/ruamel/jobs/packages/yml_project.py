@@ -3,7 +3,7 @@ from .project_pack import Project_PackJob
 from .project_publish import Project_PublishJob
 from .project_test import Project_TestJob
 from .project_publish_all import Project_PublishAllJob
-
+from .project_test_all import Project_AllPackageCiJob
 
 def create_projectcontext_ymls(metafile):
 
@@ -20,6 +20,10 @@ def create_projectcontext_ymls(metafile):
         for platform in metafile["platforms"]:
             job = Project_TestJob(platform, editor)
             yml[job.job_id] = job.yml
+    
+    for editor in metafile['editors']:
+        job = Project_AllPackageCiJob(metafile["packages"], metafile["agent_publish"], metafile["platforms"], metafile["target_editor"], metafile["target_branch"], editor)
+        yml[job.job_id] = job.yml
 
     job = Project_PublishAllJob(metafile["packages"], metafile["target_branch"], metafile["agent_publish_all"])
     yml[job.job_id] = job.yml

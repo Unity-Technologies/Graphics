@@ -45,6 +45,9 @@ def projectcontext_job_id_publish(package_id):
 def projectcontext_job_id_publish_all():
     return f'publish_all_project'
 
+def projectcontext_job_id_test_all(editor_version):
+    return f'all_package_ci_project_{editor_version}'
+
 def pb_projectcontext_job_id_promote(package_name):
     return f'promote_{package_name}_project'
 
