@@ -128,8 +128,6 @@ namespace UnityEngine.Rendering.HighDefinition
             isFirstFrame = true;
             cameraFrameCount = 0;
             resetPostProcessingHistory = true;
-            volumetricHistoryIsValid = false;
-            colorPyramidHistoryIsValid = false;
         }
 
         /// <summary>
