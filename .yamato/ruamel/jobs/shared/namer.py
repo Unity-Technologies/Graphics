@@ -45,6 +45,12 @@ def projectcontext_job_id_publish(package_id):
 def projectcontext_job_id_publish_all():
     return f'publish_all_project'
 
+def pb_projectcontext_job_id_promote(package_name):
+    return f'promote_{package_name}_project'
+
+def pb_projectcontext_job_id_promote_all_preview():
+    return f'promote_all_preview_project'
+
 # template specific
 def templates_filepath():
     return f'{parent_dir}/_templates.yml'.lower()
