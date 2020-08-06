@@ -767,6 +767,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error about layers when disabling emissive mesh for area lights.
 - Fix issue when the user deletes the composition graph or .asset in runtime (case 1263319)
 - Fixed assertion failure when changing resolution to compositor layers after using AOVs (case 1265023) 
+- Fixed flickering layers in graphics compositor (case 1264552)
 
 ### Changed
 - Improve MIP selection for decals on Transparents
