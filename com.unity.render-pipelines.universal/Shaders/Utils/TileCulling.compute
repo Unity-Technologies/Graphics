@@ -1,14 +1,193 @@
-﻿// Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel CSMain
+﻿/*
+1.use `#pragma metal_compute_shader` to flag this shader as a native metal 
+  compute shader. We use special compile process for this kind of shader.
+2.user header files are not supported(coming soon), we should include these files manually.
+3.use computeMain as the kernel name, and we support only 1 compute kernel in one file a.t.m
+*/
 
-// Create a RenderTexture with enableRandomWrite flag and set it
-// with cs.SetTexture
-RWTexture2D<float4> Result;
+#pragma kernel computeMain
+#pragma metal_compute_shader
 
-[numthreads(8,8,1)]
-void CSMain (uint3 id : SV_DispatchThreadID)
+#include <metal_stdlib>
+#include <simd/simd.h>
+
+using namespace metal;
+
+// Data constant across all threads, vertices, and fragments
+typedef struct
 {
-    // TODO: insert actual code here!
+    vector_float4 _ZBufferParams;
+    vector_float4 _ScreenParams;
+    float4x4 glstate_matrix_projection;
+    float4x4 unity_MatrixV;
+    int AAPLNumLights;
+} AAPLUniforms;
 
-    Result[id.xy] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
+#define AAPLMaxLightsPerTile 64
+
+// Per-tile data computed by our culling kernel
+struct TileData
+{
+    atomic_int numLights;
+    float minDepth;
+    float maxDepth;
+};
+
+// Outputs for our color attachments
+typedef struct
+{
+    half4 lighting [[color(0)]];
+    float depth    [[color(1)]];
+} ColorData;
+
+float LinearEyeDepth(float depth, constant AAPLUniforms &uniforms)
+{
+    return 1.0 / (uniforms._ZBufferParams.z * depth + uniforms._ZBufferParams.w);
+}
+
+float3 ReconstructViewPos(constant AAPLUniforms &uniforms, int srcX, int srcY, float depth) 
+{
+    depth = LinearEyeDepth(depth, uniforms);
+    float2 clipPos = float2(srcX, srcY) * (uniforms._ScreenParams.zw - 1) * 2 - 1;
+    return float3((clipPos - float2(uniforms.glstate_matrix_projection[0][2], uniforms.glstate_matrix_projection[1][2])/*projMatrix._13_23*/) * depth / float2(uniforms.glstate_matrix_projection[0][0], uniforms.glstate_matrix_projection[1][1])/*projMatrix._11_22*/, depth);
+}
+
+// Perform per tile culling for lights and writes out list of visible lights into tile memory
+
+// This kernel determines the min and max depth of all geometry rendered to each tile. It then culls
+//   each light's volume against the top, bottom, left, and right planes of the tile.
+// It also culls each light's volume to the min and max depth that we compute here.  This makes
+//   our culling volume even smaller; there is no geometry outside the min and max depth, so if a
+//   light's volume is outside that range, we don't need to draw the light.  Consequently, if the
+//   min and max depth are the same, there is no geometry in the tile and no volume, so no lights
+//   need to be rendered for the tile
+kernel void computeMain(imageblock<ColorData,imageblock_layout_implicit> imageBlock,
+                        constant AAPLUniforms &uniforms       [[ buffer(0) ]],
+                        device vector_float4 *light_positions [[ buffer(1) ]],
+                        threadgroup int *visible_lights       [[ threadgroup(0) ]],
+                        threadgroup TileData *tile_data       [[ threadgroup(1) ]],
+                        ushort2 thread_local_position         [[ thread_position_in_threadgroup ]],
+                        ushort2 threadgroup_size              [[ threads_per_threadgroup ]],
+                        ushort2 threadgroup_id                [[ threadgroup_position_in_grid ]],
+                        uint thread_linear_id                 [[ thread_index_in_threadgroup]],
+                        uint simd_lane_id                     [[ thread_index_in_quadgroup ]])
+{
+    const device vector_float4* _light_positions = reinterpret_cast<const device vector_float4*>(reinterpret_cast<const device atomic_uint*>(light_positions) + 1);
+
+    ColorData f = imageBlock.read(thread_local_position);
+
+    uint threadgroup_linear_size = threadgroup_size.x*threadgroup_size.y;
+
+    // When the thread group begins...
+    if(thread_linear_id == 0)
+    {
+        // Set our counter for the number of lights in this tile to 0
+        atomic_store_explicit(&tile_data->numLights,0,memory_order_relaxed);
+
+        // Initialize our min and max depth values
+        tile_data->minDepth = INFINITY;
+        tile_data->maxDepth = 0.0;
+    }
+
+    // Insert a barrier here before we get the min an max depth for the entire tile to enure
+    //   that ALL threads in the threadgroup have determined the min and max depth for their quads
+    //   first
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+
+    // Determine the min and max depth in our quad group.  Note that quad groups execute in step, so
+    //   we can determine the min and max depth value in the quad group without needing to use barriers
+
+    float minDepth = 1.0 - f.depth; // reverse-z
+    minDepth = min(minDepth, quad_shuffle_xor(minDepth, 2));
+    minDepth = min(minDepth, quad_shuffle_xor(minDepth, 1));
+
+    float maxDepth = 1.0 - f.depth; // reverse-z
+    maxDepth = max(maxDepth, quad_shuffle_xor(maxDepth, 2));
+    maxDepth = max(maxDepth, quad_shuffle_xor(maxDepth, 1));
+
+
+    // For one quad lane...
+    if (simd_lane_id == 0)
+    {
+        // ...compare vs everyother depth value in the threadgroups and set it if min depth value
+        //   (or max depth value) of the quad  is the min depth value (or max depth value) of the
+        //   entire tile
+        atomic_fetch_min_explicit((threadgroup atomic_uint *)&tile_data->minDepth, as_type<uint>(minDepth), memory_order_relaxed);
+        atomic_fetch_max_explicit((threadgroup atomic_uint *)&tile_data->maxDepth, as_type<uint>(maxDepth), memory_order_relaxed);
+    }
+
+    // Ensure our fetch of min/max values of all quad groups withing the thread group hava finished
+    //   execution before using the values to test against light volumes
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+
+    // Unproject depth from screens space to view/eye space where we do the culling
+    float3 v[4];
+    v[0] = ReconstructViewPos(uniforms, threadgroup_id.x * threadgroup_size.x, threadgroup_id.y * threadgroup_size.y, 1.0);
+    v[1] = ReconstructViewPos(uniforms, (threadgroup_id.x + 1) * threadgroup_size.x, threadgroup_id.y * threadgroup_size.y, 1.0);
+    v[2] = ReconstructViewPos(uniforms, (threadgroup_id.x + 1) * threadgroup_size.x, (threadgroup_id.y + 1) * threadgroup_size.y, 1.0);
+    v[3] = ReconstructViewPos(uniforms, threadgroup_id.x * threadgroup_size.x, (threadgroup_id.y + 1) * threadgroup_size.y, 1.0);
+
+    // Calculate normals of the tile bounding planes
+    float3 tile_plane_normal[6];
+    tile_plane_normal[3] = normalize(cross(v[1] - v[0], v[0]));   // bottom
+    tile_plane_normal[0] = normalize(cross(v[2] - v[1], v[1]));   // right
+    tile_plane_normal[1] = normalize(cross(v[3] - v[2], v[2]));   // top
+    tile_plane_normal[2] = normalize(cross(v[0] - v[3], v[3]));   // left
+    tile_plane_normal[4] = float3(0.0, 0.0, -1.0); // near
+    tile_plane_normal[5] = float3(0.0, 0.0, 1.0);  // far
+
+    // Calculate culling offsets
+    float tile_plane_offset[6];
+
+    // Top/Bottom/Right/Left offsets are 0 since center of eye space coordinate system belongs to
+    //   all these planes
+    tile_plane_offset[0] = 0.0f;
+    tile_plane_offset[1] = 0.0f;
+    tile_plane_offset[2] = 0.0f;
+    tile_plane_offset[3] = 0.0f;
+
+    // Use the min and max depth so we cull light volumes that are completely in front of the nearest
+    //   geometry in the tile or completely in back of the furthes geometry in the tile
+    tile_plane_offset[4] = LinearEyeDepth(1.0 - tile_data->minDepth, uniforms);
+    tile_plane_offset[5] = -LinearEyeDepth(1.0 - tile_data->maxDepth, uniforms);
+
+    // Create list of visible lights inside threadgroup memory
+    for (uint baseLightId = 0; baseLightId < uniforms.AAPLNumLights; baseLightId += threadgroup_linear_size)
+    {
+        uint32_t visible = 1;
+
+        // Light id for current thread and iteration
+        uint lightId = baseLightId+thread_linear_id;
+        if(lightId > uniforms.AAPLNumLights-1)
+        {
+            visible = 0;
+            lightId = 0;
+        }
+
+        // Get light data
+        float4 light_pos_eye_space = (uniforms.unity_MatrixV * float4(_light_positions[lightId].xyz,1));
+
+        // Cull light against all 6 planes
+        for(int j = 0; j < 6; j++)
+        {
+            if(dot(tile_plane_normal[j],light_pos_eye_space.xyz)-tile_plane_offset[j] > _light_positions[lightId].w)
+            {
+                visible = 0; // separating axis found
+                break;
+            }
+        }
+
+        // Perform stream compaction into tile memory
+
+        // If this light is visible...
+        if (visible)
+        {
+            // Increase the count of lights for this tile and get a slot
+            int slot = atomic_fetch_add_explicit(&tile_data->numLights, 1, memory_order_relaxed);
+
+            // Insert the lightId into or visibile light list for this tile
+            if (slot < AAPLMaxLightsPerTile)
+                visible_lights[slot] = (int)lightId;
+        }
+    }
 }
