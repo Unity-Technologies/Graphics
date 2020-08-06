@@ -761,6 +761,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed CoatMask block appearing when creating lit master node (case 1264632)
 - Fixed issue with SceneEV100 debug mode indicator when rescaling the window.
 - Fixed issue with PCSS filter being wrong on first frame. 
+- Fixed issue with emissive mesh for area light not appearing in playmode if Reload Scene option is disabled in Enter Playmode Settings.
+- Fixed issue when Reflection Probes are set to OnEnable and are never rendered if the probe is enabled when the camera is farther than the probe fade distance. 
+- Fixed issue with sun icon being clipped in the look dev window. 
+- Fixed error about layers when disabling emissive mesh for area lights.
+- Fix issue when the user deletes the composition graph or .asset in runtime (case 1263319)
+- Fixed assertion failure when changing resolution to compositor layers after using AOVs (case 1265023) 
+- Fixed flickering layers in graphics compositor (case 1264552)
 - Fix issue causing the editor field not updating the disc area light radius.
 
 ### Changed
@@ -939,6 +946,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the color space of EmissiveColorLDR property on all shader. Was linear but should have been sRGB. Auto upgrade script handle the conversion.
 - Preparation pass for RTSSShadows to be supported by render graph.
 - Add tooltips with the full name of the (graphics) compositor properties to properly show large names that otherwise are clipped by the UI (case 1263590)
+- Composition profile .asset files cannot be manually edited/reset by users (to avoid breaking things - case 1265631)
 
 ## [7.1.1] - 2019-09-05
 

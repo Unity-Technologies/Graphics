@@ -1723,7 +1723,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
 
                 m_AreaLightEmissiveMeshLayer = value;
-                if (emissiveMeshRenderer != null && !emissiveMeshRenderer.Equals(null))
+                if (emissiveMeshRenderer != null && !emissiveMeshRenderer.Equals(null) && m_AreaLightEmissiveMeshLayer != -1)
                 {
                     emissiveMeshRenderer.gameObject.layer = m_AreaLightEmissiveMeshLayer;
                 }
@@ -2312,6 +2312,14 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
 #if UNITY_EDITOR
+
+            // If we requested an emissive mesh but for some reason (e.g. Reload scene unchecked in the Enter Playmode options) Awake has not been called,
+            // we need to create it manually.
+            if (m_DisplayAreaLightEmissiveMesh && (m_ChildEmissiveMeshViewer == null || m_ChildEmissiveMeshViewer.Equals(null)))
+            {
+                UpdateAreaLightEmissiveMesh();
+            }
+
             //if not parented anymore, refresh it
             if (m_ChildEmissiveMeshViewer != null && !m_ChildEmissiveMeshViewer.Equals(null))
             {
@@ -2510,7 +2518,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RefreshCachedShadow();
 
-            if (emissiveMeshRenderer != null && !emissiveMeshRenderer.Equals(null))
+            if (emissiveMeshRenderer != null && !emissiveMeshRenderer.Equals(null) && m_AreaLightEmissiveMeshLayer != -1)
             {
                 emissiveMeshRenderer.gameObject.layer = m_AreaLightEmissiveMeshLayer;
             }
