@@ -764,6 +764,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with emissive mesh for area light not appearing in playmode if Reload Scene option is disabled in Enter Playmode Settings.
 - Fixed issue when Reflection Probes are set to OnEnable and are never rendered if the probe is enabled when the camera is farther than the probe fade distance. 
 - Fixed issue with sun icon being clipped in the look dev window. 
+- Fixed "Screen position out of view frustum" error when camera is at exactly the planar reflection probe location.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
