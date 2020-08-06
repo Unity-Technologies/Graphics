@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed XR Display providers not getting zNear and zFar plane distances passed to them when in HDRP.
 - Fixed issue that failed compilation when XR is disabled.
 - Fixed issue with dynamic resolution handler when no OnResolutionChange callback is specified. 
+- Fixed error about layers when disabling emissive mesh for area lights.
 
 ### Changed
 - Remove MSAA debug mode when renderpipeline asset has no MSAA
