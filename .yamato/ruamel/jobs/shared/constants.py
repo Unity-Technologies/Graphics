@@ -10,3 +10,7 @@ PATH_UNITY_REVISION = 'unity_revision.txt'
 PATH_PLAYERS_padded = 'players/**'
 PATH_PLAYERS = 'players'
 NPM_UPMCI_INSTALL_URL = 'https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm'
+
+
+def PATH_PACKAGES_pack_id(package_id):
+    return f'upm-ci~/packages/{package_id}/**/*'

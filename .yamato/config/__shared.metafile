@@ -47,7 +47,7 @@ platforms:
       type: Unity::VM
       image: package-ci/win10:stable
       flavor: b1.large
-    copycmd: copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+    copycmd: copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
     editorpath: .\.Editor
   OSX:
     name: OSX

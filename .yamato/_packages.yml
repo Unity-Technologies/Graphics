@@ -15,7 +15,7 @@ pack_core:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/core/**/*"
 publish_core:
     name: Publish Core
     agent:
@@ -45,7 +45,7 @@ pack_lwrp:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/lwrp/**/*"
 publish_lwrp:
     name: Publish Lightweight
     agent:
@@ -75,7 +75,7 @@ pack_shadergraph:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/shadergraph/**/*"
 publish_shadergraph:
     name: Publish ShaderGraph
     agent:
@@ -105,7 +105,7 @@ pack_hdrp:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/hdrp/**/*"
 publish_hdrp:
     name: Publish HDRP
     agent:
@@ -135,7 +135,7 @@ pack_universal:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/universal/**/*"
 publish_universal:
     name: Publish Universal
     agent:
@@ -165,7 +165,7 @@ pack_vfx:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/vfx/**/*"
 publish_vfx:
     name: Publish VFX
     agent:
@@ -195,7 +195,7 @@ pack_config:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/packages/config/**/*"
 publish_config:
     name: Publish Config
     agent:
@@ -266,7 +266,8 @@ test_lwrp_windows_trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~/packages/lwrp/packages.json upm-ci~/packages/
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.lightweight
     artifacts:
         logs:
@@ -289,7 +290,7 @@ test_lwrp_windows_trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.lightweight
     artifacts:
         logs:
@@ -309,7 +310,8 @@ test_shadergraph_windows_trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~/packages/shadergraph/packages.json upm-ci~/packages/
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --package-path com.unity.shadergraph
     artifacts:
         logs:
@@ -330,7 +332,7 @@ test_shadergraph_windows_trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.shadergraph
     artifacts:
         logs:
@@ -353,7 +355,8 @@ test_hdrp_windows_trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~/packages/hdrp/packages.json upm-ci~/packages/
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.high-definition
     artifacts:
         logs:
@@ -377,7 +380,7 @@ test_hdrp_windows_trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.high-definition
     artifacts:
         logs:
@@ -398,7 +401,8 @@ test_universal_windows_trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~/packages/universal/packages.json upm-ci~/packages/
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.universal
     artifacts:
         logs:
@@ -420,7 +424,7 @@ test_universal_windows_trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.universal
     artifacts:
         logs:
@@ -441,7 +445,8 @@ test_vfx_windows_trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~/packages/vfx/packages.json upm-ci~/packages/
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --package-path com.unity.visualeffectgraph
     artifacts:
         logs:
@@ -463,7 +468,7 @@ test_vfx_windows_trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.visualeffectgraph
     artifacts:
         logs:
@@ -483,7 +488,8 @@ test_config_windows_trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~/packages/config/packages.json upm-ci~/packages/
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
         logs:
@@ -504,7 +510,7 @@ test_config_windows_trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
         logs:
@@ -563,6 +569,7 @@ test_lwrp_macos_trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  copy upm-ci~/packages/lwrp/packages.json upm-ci~/packages/
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.lightweight
     artifacts:
@@ -606,6 +613,7 @@ test_shadergraph_macos_trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  copy upm-ci~/packages/shadergraph/packages.json upm-ci~/packages/
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.shadergraph
     artifacts:
@@ -650,6 +658,7 @@ test_hdrp_macos_trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  copy upm-ci~/packages/hdrp/packages.json upm-ci~/packages/
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.high-definition
     artifacts:
@@ -695,6 +704,7 @@ test_universal_macos_trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  copy upm-ci~/packages/universal/packages.json upm-ci~/packages/
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.universal
     artifacts:
@@ -738,6 +748,7 @@ test_vfx_macos_trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  copy upm-ci~/packages/vfx/packages.json upm-ci~/packages/
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.visualeffectgraph
     artifacts:
@@ -780,6 +791,7 @@ test_config_macos_trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  copy upm-ci~/packages/config/packages.json upm-ci~/packages/
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
@@ -860,7 +872,8 @@ test_lwrp_windows_fast-trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~/packages/lwrp/packages.json upm-ci~/packages/
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.lightweight
     artifacts:
         logs:
@@ -883,7 +896,7 @@ test_lwrp_windows_fast-trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.lightweight
     artifacts:
         logs:
@@ -903,7 +916,8 @@ test_shadergraph_windows_fast-trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~/packages/shadergraph/packages.json upm-ci~/packages/
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --package-path com.unity.shadergraph
     artifacts:
         logs:
@@ -924,7 +938,7 @@ test_shadergraph_windows_fast-trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.shadergraph
     artifacts:
         logs:
@@ -947,7 +961,8 @@ test_hdrp_windows_fast-trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~/packages/hdrp/packages.json upm-ci~/packages/
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.high-definition
     artifacts:
         logs:
@@ -971,7 +986,7 @@ test_hdrp_windows_fast-trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.high-definition
     artifacts:
         logs:
@@ -992,7 +1007,8 @@ test_universal_windows_fast-trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~/packages/universal/packages.json upm-ci~/packages/
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.universal
     artifacts:
         logs:
@@ -1014,7 +1030,7 @@ test_universal_windows_fast-trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.universal
     artifacts:
         logs:
@@ -1035,7 +1051,8 @@ test_vfx_windows_fast-trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~/packages/vfx/packages.json upm-ci~/packages/
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --package-path com.unity.visualeffectgraph
     artifacts:
         logs:
@@ -1057,7 +1074,7 @@ test_vfx_windows_fast-trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.visualeffectgraph
     artifacts:
         logs:
@@ -1077,7 +1094,8 @@ test_config_windows_fast-trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~/packages/config/packages.json upm-ci~/packages/
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
         logs:
@@ -1098,7 +1116,7 @@ test_config_windows_fast-trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
         logs:
@@ -1157,6 +1175,7 @@ test_lwrp_macos_fast-trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  copy upm-ci~/packages/lwrp/packages.json upm-ci~/packages/
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.lightweight
     artifacts:
@@ -1200,6 +1219,7 @@ test_shadergraph_macos_fast-trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  copy upm-ci~/packages/shadergraph/packages.json upm-ci~/packages/
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.shadergraph
     artifacts:
@@ -1244,6 +1264,7 @@ test_hdrp_macos_fast-trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  copy upm-ci~/packages/hdrp/packages.json upm-ci~/packages/
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.high-definition
     artifacts:
@@ -1289,6 +1310,7 @@ test_universal_macos_fast-trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  copy upm-ci~/packages/universal/packages.json upm-ci~/packages/
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.universal
     artifacts:
@@ -1332,6 +1354,7 @@ test_vfx_macos_fast-trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  copy upm-ci~/packages/vfx/packages.json upm-ci~/packages/
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.visualeffectgraph
     artifacts:
@@ -1374,6 +1397,7 @@ test_config_macos_fast-trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  copy upm-ci~/packages/config/packages.json upm-ci~/packages/
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
@@ -1454,7 +1478,8 @@ test_lwrp_windows_CUSTOM-REVISION:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~/packages/lwrp/packages.json upm-ci~/packages/
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.lightweight
     artifacts:
         logs:
@@ -1477,7 +1502,7 @@ test_lwrp_windows_CUSTOM-REVISION_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.lightweight
     artifacts:
         logs:
@@ -1497,7 +1522,8 @@ test_shadergraph_windows_CUSTOM-REVISION:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~/packages/shadergraph/packages.json upm-ci~/packages/
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --package-path com.unity.shadergraph
     artifacts:
         logs:
@@ -1518,7 +1544,7 @@ test_shadergraph_windows_CUSTOM-REVISION_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.shadergraph
     artifacts:
         logs:
@@ -1541,7 +1567,8 @@ test_hdrp_windows_CUSTOM-REVISION:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~/packages/hdrp/packages.json upm-ci~/packages/
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.high-definition
     artifacts:
         logs:
@@ -1565,7 +1592,7 @@ test_hdrp_windows_CUSTOM-REVISION_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.high-definition
     artifacts:
         logs:
@@ -1586,7 +1613,8 @@ test_universal_windows_CUSTOM-REVISION:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~/packages/universal/packages.json upm-ci~/packages/
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.universal
     artifacts:
         logs:
@@ -1608,7 +1636,7 @@ test_universal_windows_CUSTOM-REVISION_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.universal
     artifacts:
         logs:
@@ -1629,7 +1657,8 @@ test_vfx_windows_CUSTOM-REVISION:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~/packages/vfx/packages.json upm-ci~/packages/
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --package-path com.unity.visualeffectgraph
     artifacts:
         logs:
@@ -1651,7 +1680,7 @@ test_vfx_windows_CUSTOM-REVISION_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.visualeffectgraph
     artifacts:
         logs:
@@ -1671,7 +1700,8 @@ test_config_windows_CUSTOM-REVISION:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~/packages/config/packages.json upm-ci~/packages/
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
         logs:
@@ -1692,7 +1722,7 @@ test_config_windows_CUSTOM-REVISION_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      -  copy upm-ci~\packages\**\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
         logs:
@@ -1751,6 +1781,7 @@ test_lwrp_macos_CUSTOM-REVISION:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  copy upm-ci~/packages/lwrp/packages.json upm-ci~/packages/
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.lightweight
     artifacts:
@@ -1794,6 +1825,7 @@ test_shadergraph_macos_CUSTOM-REVISION:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  copy upm-ci~/packages/shadergraph/packages.json upm-ci~/packages/
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.shadergraph
     artifacts:
@@ -1838,6 +1870,7 @@ test_hdrp_macos_CUSTOM-REVISION:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  copy upm-ci~/packages/hdrp/packages.json upm-ci~/packages/
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.high-definition
     artifacts:
@@ -1883,6 +1916,7 @@ test_universal_macos_CUSTOM-REVISION:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  copy upm-ci~/packages/universal/packages.json upm-ci~/packages/
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.universal
     artifacts:
@@ -1926,6 +1960,7 @@ test_vfx_macos_CUSTOM-REVISION:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  copy upm-ci~/packages/vfx/packages.json upm-ci~/packages/
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.visualeffectgraph
     artifacts:
@@ -1968,6 +2003,7 @@ test_config_macos_CUSTOM-REVISION:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  copy upm-ci~/packages/config/packages.json upm-ci~/packages/
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
