@@ -32,8 +32,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Mask"
         {
             Tags{ "LightMode" = "Universal2D" }
             HLSLPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
+            #pragma vertex MaskRenderingVertex
+            #pragma fragment MaskRenderingFragment
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/SpriteMaskShared.hlsl"
             ENDHLSL
@@ -42,8 +42,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Mask"
         {
             Tags{ "LightMode" = "NormalsRendering" }
             HLSLPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
+            #pragma vertex MaskRenderingVertex
+            #pragma fragment MaskRenderingFragment
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/SpriteMaskShared.hlsl"
             ENDHLSL
@@ -52,8 +52,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Mask"
         {
             Tags{ "LightMode" = "UniversalForward" }
             HLSLPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
+            #pragma vertex MaskRenderingVertex
+            #pragma fragment MaskRenderingFragment
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/SpriteMaskShared.hlsl"
             ENDHLSL

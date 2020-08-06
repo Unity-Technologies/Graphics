@@ -17,20 +17,19 @@ struct Varyings
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-
-Varyings vert(Attributes input)
+Varyings MaskRenderingVertex(Attributes input)
 {
-    v2f_masking OUT;
+    Varyings output;
 
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
 
-    OUT.positionCS = TransformObjectToHClip(attributes.positionOS);
-    OUT.uv = v.texcoord;
+    output.positionCS = TransformObjectToHClip(input.positionOS);
+    output.uv = input.texcoord;
 
-    return OUT;
+    return output;
 }
 
-half4 frag(Varyings input) : SV_Target
+half4 MaskRenderingFragment(Varyings input) : SV_Target
 {
     half4 c = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
     // for masks: discard pixel if alpha falls below MaskingCutoff
