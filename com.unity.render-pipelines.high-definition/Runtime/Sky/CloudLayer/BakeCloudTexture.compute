@@ -24,11 +24,9 @@ SAMPLER(sampler_CloudMapB);
 
 RW_TEXTURE2D_ARRAY(float2, _CloudTextureOutput);
 
-CBUFFER_START(cb0)
 float4 _Params;
 float4 _Params1[NUM_LAYERS];
 float4 _Params2[NUM_LAYERS];
-CBUFFER_END
 
 #define _SunDirection           _Params.xyz
 #define _CloudUpperHemisphere   (_Params.w > 0)

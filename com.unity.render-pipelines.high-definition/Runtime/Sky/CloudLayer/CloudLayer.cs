@@ -61,6 +61,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Controls the tiling of the cloud shadows.")]
         public MinFloatParameter        shadowsTiling       = new MinFloatParameter(500.0f, 0.0f);
 
+        /// <summary>
+        /// Cloud Map Volume Parameters.
+        /// This groups parameters for one cloud map layer.
+        /// </summary>
         [Serializable]
         public class CloudMap
         {
@@ -215,7 +219,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>Layer A.</summary>
         public CloudMap layerA = new CloudMap();
+        /// <summary>Layer B.</summary>
         public CloudMap layerB = new CloudMap();
 
         private float lastTime = 0.0f;
@@ -229,8 +235,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>Sets keywords and parameters on a sky material to render the cloud layer.</summary>
-        /// <param name="layer">The cloud layer to apply.</param>
-        /// <param name="skyMaterial">The sky material to change.</param>
+        /// <param name="builtinParams">The builtin sky parameters.</param>
+        /// <param name="skyMaterial">The sky material.</param>
         public static void Apply(BuiltinSkyParameters builtinParams, Material skyMaterial)
         {
             var layer = builtinParams.cloudLayer;
@@ -281,7 +287,8 @@ namespace UnityEngine.Rendering.HighDefinition
             paramsA.Item1.w = opacity.value;
             paramsB.Item1.w = upperHemisphereOnly.value ? 1 : 0;
 
-            cmd.SetComputeVectorArrayParam(cs, HDShaderIDs._CloudParams1, new Vector4[]{ paramsA.Item1, paramsB.Item1 });
+            vectorArray[0] = paramsA.Item1; vectorArray[1] = paramsB.Item1;
+            cmd.SetComputeVectorArrayParam(cs, HDShaderIDs._CloudParams1, vectorArray);
 
             if (layerA.SetComputeParams(cs, "USE_CLOUD_MAP", "USE_CLOUD_MOTION"))
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CloudFlowmap1, layerA.flowmap.value);
@@ -303,7 +310,6 @@ namespace UnityEngine.Rendering.HighDefinition
             int hash = 17;
             castShadows = false;
             numLayers = 1;
-
 
             unchecked
             {

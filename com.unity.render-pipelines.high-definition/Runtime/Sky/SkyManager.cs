@@ -228,6 +228,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeShader           m_ComputeCloudShadowsCS;
         int                     m_ComputeCloudShadowsKernel;
         readonly int            m_CloudShadowsOutputParam = Shader.PropertyToID("_CloudShadowsOutput");
+        Vector4[]               m_VectorArray = new Vector4[2];
 
         // 2 by default: Static sky + one dynamic. Will grow if needed.
         DynamicArray<CachedCloudContext> m_CachedCloudContexts = new DynamicArray<CachedCloudContext>(2);
@@ -646,8 +647,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     var paramsB = layer.layerB.GetBakingParameters();
 
                     m_BakeCloudTextureCS.EnableKeyword("CLOUD_LAYER_DOUBLE_MODE");
-                    cmd.SetComputeVectorArrayParam(m_BakeCloudTextureCS, HDShaderIDs._Params1, new Vector4[] { paramsA.Item1, paramsB.Item1 });
-                    cmd.SetComputeVectorArrayParam(m_BakeCloudTextureCS, HDShaderIDs._Params2, new Vector4[] { paramsA.Item2, paramsB.Item2 });
+                    m_VectorArray[0] = paramsA.Item1; m_VectorArray[1] = paramsB.Item1;
+                    cmd.SetComputeVectorArrayParam(m_BakeCloudTextureCS, HDShaderIDs._Params1, m_VectorArray);
+                    m_VectorArray[0] = paramsA.Item2; m_VectorArray[1] = paramsB.Item2;
+                    cmd.SetComputeVectorArrayParam(m_BakeCloudTextureCS, HDShaderIDs._Params2, m_VectorArray);
                 }
 
                 const int groupSizeX = 8;
