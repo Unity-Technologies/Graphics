@@ -91,7 +91,7 @@ namespace UnityEditor.ShaderGraph
             if (value == row)
                 return;
             row = value;
-            ValidateNode();
+            owner.ValidateGraph();
             //Debug.Log(value);
             //Dirty(ModificationScope.Node);
             Dirty(ModificationScope.Topological);
@@ -367,15 +367,17 @@ namespace UnityEditor.ShaderGraph
                 IsIndexSizeCorrect(inputIndecies.GetRow(2), concreteRowCount) && IsIndexSizeCorrect(inputIndecies.GetRow(3), concreteRowCount)) )
             {
                 AreIndiciesValid = false;
-                //ValidateNode();
+                ValidateNode();
                 inputIndecies.SetRow(0, new Vector4(0,0,0,0));
                 inputIndecies.SetRow(1, new Vector4(0, 0, 0, 0));
                 inputIndecies.SetRow(2, new Vector4(0, 0, 0, 0));
                 inputIndecies.SetRow(3, new Vector4(0, 0, 0, 0));
+                AreIndiciesValid = true;
+                //ValidateNode();
             }
 
-            
-            //ValidateNode();
+
+
 
 
 
