@@ -33,6 +33,23 @@ publish_core_project:
         packages:
             paths:
               -  "upm-ci~/packages/**/*"
+publish_core_project_dry:
+    name: Publish Core [project context] [dry run]
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package publish --package-path com.unity.render-pipelines.core --dry-run
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
 publish_lwrp_project:
     name: Publish Lightweight [project context]
     agent:
@@ -46,6 +63,23 @@ publish_lwrp_project:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.lightweight
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+publish_lwrp_project_dry:
+    name: Publish Lightweight [project context] [dry run]
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package publish --package-path com.unity.render-pipelines.lightweight --dry-run
     artifacts:
         packages:
             paths:
@@ -67,6 +101,23 @@ publish_shadergraph_project:
         packages:
             paths:
               -  "upm-ci~/packages/**/*"
+publish_shadergraph_project_dry:
+    name: Publish ShaderGraph [project context] [dry run]
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package publish --package-path com.unity.shadergraph --dry-run
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
 publish_hdrp_project:
     name: Publish HDRP [project context]
     agent:
@@ -80,6 +131,23 @@ publish_hdrp_project:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+publish_hdrp_project_dry:
+    name: Publish HDRP [project context] [dry run]
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition --dry-run
     artifacts:
         packages:
             paths:
@@ -101,6 +169,23 @@ publish_universal_project:
         packages:
             paths:
               -  "upm-ci~/packages/**/*"
+publish_universal_project_dry:
+    name: Publish Universal [project context] [dry run]
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package publish --package-path com.unity.render-pipelines.universal --dry-run
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
 publish_vfx_project:
     name: Publish VFX [project context]
     agent:
@@ -118,6 +203,23 @@ publish_vfx_project:
         packages:
             paths:
               -  "upm-ci~/packages/**/*"
+publish_vfx_project_dry:
+    name: Publish VFX [project context] [dry run]
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package publish --package-path com.unity.visualeffectgraph --dry-run
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
 publish_config_project:
     name: Publish Config [project context]
     agent:
@@ -131,6 +233,23 @@ publish_config_project:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition-config
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+publish_config_project_dry:
+    name: Publish Config [project context] [dry run]
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition-config --dry-run
     artifacts:
         packages:
             paths:

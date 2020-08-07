@@ -45,6 +45,9 @@ def projectcontext_job_id_test(platform_os, editor_version):
 def projectcontext_job_id_publish(package_id):
     return f'publish_{package_id}_project'
 
+def projectcontext_job_id_publish_dry(package_id):
+    return f'publish_{package_id}_project_dry'
+
 def projectcontext_job_id_publish_all():
     return f'publish_all_project'
 
