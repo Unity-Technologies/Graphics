@@ -9,27 +9,29 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     internal class LightUnitSliderUIDrawer
     {
-        private class LightUnitLevels
+        private class LightUnitSlider
         {
-            public LightUnitLevels(string cautionTooltip)
+            public LightUnitSlider(LightUnitUILevel[] levels, string cautionTooltip)
             {
                 // Load builtin caution icon.
                 m_CautionContent = EditorGUIUtility.IconContent("console.warnicon.sml");
                 m_CautionContent.tooltip = cautionTooltip;
+
+                foreach (var l in levels)
+                {
+                    AddLevel(l);
+                }
             }
 
-            public void AddLevel(Texture2D icon, string tooltip, Vector2 range)
+            private void AddLevel(LightUnitUILevel level)
             {
-                LightUnitUILevel level;
-                level.content = new GUIContent(icon, tooltip);
-                level.range = range;
                 m_Levels.Add(level);
 
                 // Update the slider ranges.
-                if (range.y > m_RangeMax)
-                    m_RangeMax = range.y;
-                else if (range.x < m_RangeMin)
-                    m_RangeMin = range.x;
+                if (level.range.y > m_RangeMax)
+                    m_RangeMax = level.range.y;
+                else if (level.range.x < m_RangeMin)
+                    m_RangeMin = level.range.x;
             }
 
             private void CurrentLevel(float value, out GUIContent level)
@@ -73,7 +75,7 @@ namespace UnityEditor.Rendering.HighDefinition
             private float m_RangeMax = float.MinValue;
         }
 
-        private static readonly Dictionary<LightUnit, LightUnitLevels> s_LightUnitLevelMap = new Dictionary<LightUnit, LightUnitLevels>();
+        private static readonly Dictionary<LightUnit, LightUnitSlider> s_LightUnitSliderMap = new Dictionary<LightUnit, LightUnitSlider>();
         private static readonly GUIContent s_MarkerContent;
 
         static LightUnitSliderUIDrawer()
@@ -81,20 +83,11 @@ namespace UnityEditor.Rendering.HighDefinition
             // Load light unit icons from editor resources
             var editorTextures = HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures;
 
-            // TODO: Fill a table of light unit presets, containing their icon, tooltip, and range
-            var luxPresets = new LightUnitLevels("Higher than Sunlight");
-            luxPresets.AddLevel(editorTextures.lightUnitVeryBrightSun,   "Very Bright Sun",   new Vector2(80000, 120000));
-            luxPresets.AddLevel(editorTextures.lightUnitOvercastSky,     "Overcast Sky",      new Vector2(10000, 80000));
-            luxPresets.AddLevel(editorTextures.lightUnitSunriseOrSunset, "Sunrise or Sunset", new Vector2(1,     10000));
-            luxPresets.AddLevel(editorTextures.lightUnitMoonLight,       "Moon Light",        new Vector2(0,     1));;
-            s_LightUnitLevelMap.Add(LightUnit.Lux, luxPresets);
+            var luxSlider = new LightUnitSlider(LightUnitValuesTable.k_LuxValueTable, "Higher than Sunlight");
+            s_LightUnitSliderMap.Add(LightUnit.Lux, luxSlider);
 
-            // var lumenPresets = new LightUnitLevels("Very High Intensity Light");
-            // lumenPresets.AddLevel(editorTextures.lightUnitExterior,   "Exterior",   new Vector2(3000, 40000));
-            // lumenPresets.AddLevel(editorTextures.lightUnitInterior,   "Interior",   new Vector2(300,   3000));
-            // lumenPresets.AddLevel(editorTextures.lightUnitDecorative, "Decorative", new Vector2(15,     300));
-            // lumenPresets.AddLevel(editorTextures.lightUnitCandle,     "Candle",     new Vector2(0,      15));
-            // s_LightUnitLevelMap.Add(LightUnit.Lumen, lumenPresets);
+            var lumenSlider = new LightUnitSlider(LightUnitValuesTable.k_LumenValueTable, "Very High Intensity Light");
+            s_LightUnitSliderMap.Add(LightUnit.Lumen, lumenSlider);
 
             s_MarkerContent = new GUIContent(string.Empty);
         }
@@ -106,7 +99,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public void OnGUI(LightUnit unit, SerializedProperty value, Rect rect)
         {
-            if (!s_LightUnitLevelMap.TryGetValue(unit, out var lightUnitLevels))
+            if (!s_LightUnitSliderMap.TryGetValue(unit, out var lightUnitSlider))
                 return;
 
             // Disable indentation (breaks tooltips otherwise).
@@ -114,11 +107,10 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.indentLevel = 0;
 
             // Draw
-            lightUnitLevels.Draw(rect, value);
+            lightUnitSlider.Draw(rect, value);
 
             // Restore indentation
             EditorGUI.indentLevel = prevIndentLevel;
-
         }
 
         private static void GetRects(Rect baseRect, out Rect sliderRect, out Rect iconRect)

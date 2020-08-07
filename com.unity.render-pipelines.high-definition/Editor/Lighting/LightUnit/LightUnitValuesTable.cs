@@ -19,6 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
     static class LightUnitValuesTable
     {
+        //TODO: Caution string
         public static readonly LightUnitUILevel[] k_LuxValueTable =
         {
             new LightUnitUILevel(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures.lightUnitVeryBrightSun,   "Very Bright Sun",   new Vector2(80000, 120000)),
@@ -29,6 +30,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static readonly LightUnitUILevel[] k_LumenValueTable =
         {
+            new LightUnitUILevel(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures.lightUnitExterior,   "Very Bright Sun",   new Vector2(3000, 40000)),
+            new LightUnitUILevel(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures.lightUnitInterior,   "Overcast Sky",      new Vector2(300,   3000)),
+            new LightUnitUILevel(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures.lightUnitDecorative, "Sunrise or Sunset", new Vector2(15,     300)),
+            new LightUnitUILevel(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures.lightUnitCandle,     "Moon Light",        new Vector2(0,       15)),
         };
 
         public static readonly LightUnitUILevel[] k_CandelaValueTable =
