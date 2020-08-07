@@ -130,6 +130,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4              evsmParams;
 
         public bool         shouldUseCachedShadowData = false;
+        public bool         shouldRenderCachedComponent = false;
+
         public HDShadowData cachedShadowData;
 
         public bool         isInCachedAtlas;
@@ -293,8 +295,8 @@ namespace UnityEngine.Rendering.HighDefinition
         int                         m_ShadowResolutionRequestCounter;
 
         Material                    m_ClearShadowMaterial;
-
-        ComputeShader               m_CachedShadowBlitCS;
+        Material                    m_BlitShadowMaterial;
+        MaterialPropertyBlock       m_BlitShadowPropertyBlock = new MaterialPropertyBlock();
 
         private static HDShadowManager s_Instance = new HDShadowManager();
 
@@ -308,14 +310,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public void InitShadowManager(RenderPipelineResources renderPipelineResources, HDShadowInitParameters initParams, Shader clearShader)
         {
             m_ClearShadowMaterial = CoreUtils.CreateEngineMaterial(clearShader);
+            m_BlitShadowMaterial = CoreUtils.CreateEngineMaterial(renderPipelineResources.shaders.shadowBlitPS);
 
             // Prevent the list from resizing their internal container when we add shadow requests
             m_ShadowDatas.Capacity = Math.Max(initParams.maxShadowRequests, m_ShadowDatas.Capacity);
             m_ShadowResolutionRequests = new HDShadowResolutionRequest[initParams.maxShadowRequests];
             m_ShadowRequests = new HDShadowRequest[initParams.maxShadowRequests];
             m_CachedDirectionalShadowData = new HDDirectionalShadowData[1]; // we only support directional light shadow
-
-            m_CachedShadowBlitCS = renderPipelineResources.shaders.cachedShadowBlitCS;
 
             for (int i = 0; i < initParams.maxShadowRequests; i++)
             {
@@ -730,31 +731,20 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitCachedShadowMaps)))
             {
-                // TODO_FCC: Move to RG ready
-                // TODO_FCC: Make area lights too
-                var cs = m_CachedShadowBlitCS;
-                var kernel = cs.FindKernel("CachedShadowBlit");
-
                 foreach (var request in m_Atlas.MixedRequestsPendingBlits)
                 {
-                    cmd.SetComputeVectorParam(cs, HDShaderIDs._DstRect, new Vector4(request.dynamicAtlasViewport.width,
-                                                                                    request.dynamicAtlasViewport.height,
-                                                                                    request.dynamicAtlasViewport.x,
-                                                                                    request.dynamicAtlasViewport.y));
+                                        cmd.SetRenderTarget(m_Atlas.renderTarget);
 
-                    cmd.SetComputeVectorParam(cs, HDShaderIDs._SrcRect, new Vector4(request.cachedAtlasViewport.width,
-                                                                                    request.cachedAtlasViewport.height,
-                                                                                    request.cachedAtlasViewport.x / cachedShadowManager.punctualShadowAtlas.width,
-                                                                                    request.cachedAtlasViewport.y / cachedShadowManager.punctualShadowAtlas.height));
+                    cmd.SetViewport(request.dynamicAtlasViewport);
 
-                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_Atlas.renderTarget);
-                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CachedShadowmapAtlas, cachedShadowManager.punctualShadowAtlas.renderTarget);
+                    Vector4 sourceScaleBias = new Vector4( request.cachedAtlasViewport.width / cachedShadowManager.punctualShadowAtlas.width,
+                        request.cachedAtlasViewport.height / cachedShadowManager.punctualShadowAtlas.height,
+                        request.cachedAtlasViewport.x / cachedShadowManager.punctualShadowAtlas.width,
+                        request.cachedAtlasViewport.y / cachedShadowManager.punctualShadowAtlas.height);
 
-                    // We have one thread in flight per destination texel in the dynamic atlas.
-                    int dispatchX = HDUtils.DivRoundUp((int)request.dynamicAtlasViewport.width, 8);
-                    int dispatchY = HDUtils.DivRoundUp((int)request.dynamicAtlasViewport.height, 8);
-
-                    cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, 1);
+                    m_BlitShadowPropertyBlock.SetTexture(HDShaderIDs._CachedShadowmapAtlas, cachedShadowManager.punctualShadowAtlas.renderTarget.rt);
+                    m_BlitShadowPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, sourceScaleBias);
+                    CoreUtils.DrawFullScreen(cmd, m_BlitShadowMaterial, m_BlitShadowPropertyBlock, 0);
                 }
 
             }

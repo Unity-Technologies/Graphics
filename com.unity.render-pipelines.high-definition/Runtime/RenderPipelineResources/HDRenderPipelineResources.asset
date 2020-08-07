@@ -93,7 +93,7 @@ MonoBehaviour:
     evsmBlurCS: {fileID: 7200000, guid: fb36979473602464fa32deacb9630c08, type: 3}
     debugHDShadowMapPS: {fileID: 4800000, guid: 93d40cc9a6e13994f86f576a624efa18, type: 3}
     momentShadowsCS: {fileID: 7200000, guid: 4dea53e2ff15ed0448817c2aa4246e53, type: 3}
-    cachedShadowBlitCS: {fileID: 7200000, guid: c0766bfc79c3e884992a6665219fd05b, type: 3}
+    shadowBlitPS: {fileID: 4800000, guid: ca059f1af4587a24b9a9eed3b66cff0f, type: 3}
     decalNormalBufferPS: {fileID: 4800000, guid: fd532bf1795188c4daaa66ea798b8b0a, type: 3}
     decalClearPropertyMaskBufferCS: {fileID: 7200000, guid: 1076a08965d4a91479b72599724f7fd6, type: 3}
     GTAOCS: {fileID: 7200000, guid: 6710b06492bd58c4bb8aec0fdc1fced3, type: 3}

@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Atlas != null)
                 m_Atlas.Release();
 
-            m_Atlas = RTHandles.Alloc(width, height, filterMode: m_FilterMode, depthBufferBits: m_DepthBufferBits, isShadowMap: true, enableRandomWrite: true, name: m_Name);
+            m_Atlas = RTHandles.Alloc(width, height, filterMode: m_FilterMode, depthBufferBits: m_DepthBufferBits, isShadowMap: true, name: m_Name);
 
             if (m_BlurAlgorithm == BlurAlgorithm.IM)
             {
@@ -198,12 +198,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             foreach (var shadowRequest in parameters.shadowRequests)
             {
-                if (shadowRequest.shouldUseCachedShadowData)
+                if (!shadowRequest.shouldRenderCachedComponent && renderingOnAShadowCache)
                     continue;
 
+                bool mixedInDynamicAtlas = false;
                 if (shadowRequest.isMixedCached)
                 {
-                    shadowDrawSettings.objectsFilter = renderingOnAShadowCache ? ShadowObjectsFilter.StaticOnly : ShadowObjectsFilter.DynamicOnly;
+                    mixedInDynamicAtlas = !renderingOnAShadowCache;
+                    shadowDrawSettings.objectsFilter = mixedInDynamicAtlas ? ShadowObjectsFilter.DynamicOnly : ShadowObjectsFilter.StaticOnly;
                 }
                 else
                 {
@@ -214,7 +216,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetViewport(renderingOnAShadowCache ? shadowRequest.cachedAtlasViewport : shadowRequest.dynamicAtlasViewport);
 
                 cmd.SetGlobalFloat(HDShaderIDs._ZClip, shadowRequest.zClip ? 1.0f : 0.0f);
-                CoreUtils.DrawFullScreen(cmd, parameters.clearMaterial, null, 0);
+
+                if (!mixedInDynamicAtlas)
+                    CoreUtils.DrawFullScreen(cmd, parameters.clearMaterial, null, 0);
 
                 shadowDrawSettings.lightIndex = shadowRequest.lightIndex;
                 shadowDrawSettings.splitData = shadowRequest.splitData;
@@ -279,7 +283,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 int requestIdx = 0;
                 foreach (var shadowRequest in parameters.shadowRequests)
                 {
-                    if (shadowRequest.shouldUseCachedShadowData)
+                    if (!shadowRequest.shouldRenderCachedComponent && blurOnACache)
                         continue;
 
                     var viewport = blurOnACache ? shadowRequest.cachedAtlasViewport : shadowRequest.dynamicAtlasViewport;

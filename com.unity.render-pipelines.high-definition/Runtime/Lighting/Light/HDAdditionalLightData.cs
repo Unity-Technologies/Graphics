@@ -2112,20 +2112,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     hasUpdatedRequestData = true;
                     shadowRequest.shouldUseCachedShadowData = false;
+                    shadowRequest.shouldRenderCachedComponent = true;
                 }
                 else if(hasCachedComponent)
                 {
                     shadowRequest.cachedShadowData.cacheTranslationDelta = cameraPos - m_CachedViewPos;
                     shadowRequest.shouldUseCachedShadowData = true;
+                    shadowRequest.shouldRenderCachedComponent = false;
                     // If directional we still need to calculate the split data.
                     if (lightType == HDLightType.Directional)
                         UpdateDirectionalShadowRequest(manager, shadowSettings, visibleLight, cullResults, viewportSize, index, lightIndex, cameraPos, shadowRequest, out invViewProjection);
 
                 }
 
-                if(needToUpdateDynamicContent)
+                if(needToUpdateDynamicContent && !hasUpdatedRequestData)
                 {
                     shadowRequest.shouldUseCachedShadowData = false;
+
                     shadowRequest.cachedShadowData.cacheTranslationDelta = new Vector3(0.0f, 0.0f, 0.0f);
                     // Write per light type matrices, splitDatas and culling parameters
                     UpdateShadowRequestData(hdCamera, manager, shadowSettings, visibleLight, cullResults, lightIndex, lightingDebugSettings, filteringQuality, viewportSize, lightType, index, ref shadowRequest);
