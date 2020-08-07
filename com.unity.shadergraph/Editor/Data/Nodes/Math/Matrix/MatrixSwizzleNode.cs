@@ -14,7 +14,6 @@ using UnityEditor.Rendering;
 
 namespace UnityEditor.ShaderGraph
 {
-    // string[] swizzleTypeNames = new string[];
     enum SwizzleOutputSize
     {
         Matrix4,
@@ -92,8 +91,6 @@ namespace UnityEditor.ShaderGraph
                 return;
             row = value;
             owner.ValidateGraph();
-            //Debug.Log(value);
-            //Dirty(ModificationScope.Node);
             Dirty(ModificationScope.Topological);
         }
 
@@ -207,7 +204,6 @@ namespace UnityEditor.ShaderGraph
             
             if (value.Length == 8)
             {
-               // Debug.Log("input value: " + value);
                 char[] value_char = value.ToCharArray();
                 float x0 = (float)Char.GetNumericValue(value_char[0]);
                 float x1 = (float)Char.GetNumericValue(value_char[1]);
@@ -222,7 +218,6 @@ namespace UnityEditor.ShaderGraph
                 float y = y0 + y1 * 0.1f;
                 float z = z0 + z1 * 0.1f;
                 float w = w0 + w1 * 0.1f;
-               // Debug.Log("Vector4(x, y, z, w): " + new Vector4(x, y, z, w));
                 return new Vector4(x, y, z, w);
                 
 
@@ -386,7 +381,6 @@ namespace UnityEditor.ShaderGraph
 
 
                 Vector4 indecies = inputIndecies.GetRow(r);
-                //Debug.Log("row: " + r + "- " + indecies);
                 switch (m_OutputSize)
                         {
 
@@ -628,7 +622,6 @@ namespace UnityEditor.ShaderGraph
 
             }
 
-           // Debug.Log("output: " + real_outputValue + outputRowCount);
             if (IsOutputMatrix(m_OutputSize))
             {
                 sb.AppendLine(string.Format("$precision{2}x{2} {0} = $precision{2}x{2} ({1});", GetVariableNameForSlot(OutputSlotId), real_outputValue, outputRowCount));
@@ -707,7 +700,6 @@ namespace UnityEditor.ShaderGraph
                 // and now dynamic matrices
                 //input matrix type
                 var dynamicMatrixType = ConvertDynamicMatrixInputTypeToConcrete(dynamicMatrixInputSlotsToCompare.Values);
-               // Debug.Log("dynamicMatrixType: " + dynamicMatrixType);
                 foreach (var dynamicKvP in dynamicMatrixInputSlotsToCompare)
                     dynamicKvP.Key.SetConcreteType(dynamicMatrixType);
                 foreach (var skippedSlot in skippedDynamicMatrixSlots)
@@ -745,10 +737,7 @@ namespace UnityEditor.ShaderGraph
                         continue;
                     }
 
-                    //var this_ouputSlot = owner.FindInputSlot<MaterialSlot>(OutputSlotId);
                     var this_outputConcreteType = FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType;
-                    //Debug.Log("this_outputConcreteType: " + this_outputConcreteType);
-                    //var ouputType = ConvertDynamicMatrixInputTypeToConcrete(this_ouputSlot.concreteValueType);
 
                     if (outputSlot is DynamicVectorMaterialSlot)
                     {
@@ -780,7 +769,6 @@ namespace UnityEditor.ShaderGraph
             ListPool<DynamicMatrixMaterialSlot>.Release(skippedDynamicMatrixSlots);
             DictionaryPool<DynamicMatrixMaterialSlot, ConcreteSlotValueType>.Release(dynamicMatrixInputSlotsToCompare);
 
-            //UpdateNodeAfterDeserialization();
         }
 
    
