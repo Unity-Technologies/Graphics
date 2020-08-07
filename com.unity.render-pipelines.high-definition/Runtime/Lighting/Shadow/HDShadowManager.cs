@@ -729,42 +729,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void BlitCacheIntoAtlas(CommandBuffer cmd)
         {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitCachedShadowMaps)))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitPunctualMixedCachedShadowMaps)))
             {
-                foreach (var request in m_Atlas.MixedRequestsPendingBlits)
-                {
-                                        cmd.SetRenderTarget(m_Atlas.renderTarget);
 
-                    cmd.SetViewport(request.dynamicAtlasViewport);
+                HDDynamicShadowAtlas.BlitCachedIntoAtlas(m_Atlas.PrepareShadowBlitParameters(cachedShadowManager.punctualShadowAtlas, m_BlitShadowMaterial, m_BlitShadowPropertyBlock),
+                                                        m_Atlas.renderTarget,
+                                                        cachedShadowManager.punctualShadowAtlas.renderTarget,
+                                                        cmd);
+                m_Atlas.ClearPendingBlitsRequests();
+            }
 
-                    Vector4 sourceScaleBias = new Vector4( request.cachedAtlasViewport.width / cachedShadowManager.punctualShadowAtlas.width,
-                        request.cachedAtlasViewport.height / cachedShadowManager.punctualShadowAtlas.height,
-                        request.cachedAtlasViewport.x / cachedShadowManager.punctualShadowAtlas.width,
-                        request.cachedAtlasViewport.y / cachedShadowManager.punctualShadowAtlas.height);
-
-                    m_BlitShadowPropertyBlock.SetTexture(HDShaderIDs._CachedShadowmapAtlas, cachedShadowManager.punctualShadowAtlas.renderTarget.rt);
-                    m_BlitShadowPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, sourceScaleBias);
-                    CoreUtils.DrawFullScreen(cmd, m_BlitShadowMaterial, m_BlitShadowPropertyBlock, 0);
-                }
-                m_Atlas.MixedRequestsPendingBlits.Clear();
-
-                foreach (var request in m_AreaLightShadowAtlas.MixedRequestsPendingBlits)
-                {
-                    cmd.SetRenderTarget(m_AreaLightShadowAtlas.renderTarget);
-
-                    cmd.SetViewport(request.dynamicAtlasViewport);
-
-                    Vector4 sourceScaleBias = new Vector4(request.cachedAtlasViewport.width / cachedShadowManager.areaShadowAtlas.width,
-                        request.cachedAtlasViewport.height / cachedShadowManager.areaShadowAtlas.height,
-                        request.cachedAtlasViewport.x / cachedShadowManager.areaShadowAtlas.width,
-                        request.cachedAtlasViewport.y / cachedShadowManager.areaShadowAtlas.height);
-
-                    m_BlitShadowPropertyBlock.SetTexture(HDShaderIDs._CachedShadowmapAtlas, cachedShadowManager.areaShadowAtlas.renderTarget.rt);
-                    m_BlitShadowPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, sourceScaleBias);
-                    CoreUtils.DrawFullScreen(cmd, m_BlitShadowMaterial, m_BlitShadowPropertyBlock, 0);
-                }
-                m_AreaLightShadowAtlas.MixedRequestsPendingBlits.Clear();
-
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitAreaMixedCachedShadowMaps)))
+            {
+                HDDynamicShadowAtlas.BlitCachedIntoAtlas(m_AreaLightShadowAtlas.PrepareShadowBlitParameters(cachedShadowManager.areaShadowAtlas, m_BlitShadowMaterial, m_BlitShadowPropertyBlock),
+                                                        m_AreaLightShadowAtlas.renderTarget,
+                                                        cachedShadowManager.areaShadowAtlas.renderTarget,
+                                                        cmd);
+                m_AreaLightShadowAtlas.ClearPendingBlitsRequests();
             }
 
         }

@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     partial class HDDynamicShadowAtlas : HDShadowAtlas
     {
         readonly List<HDShadowResolutionRequest>    m_ShadowResolutionRequests = new List<HDShadowResolutionRequest>();
-        internal List<HDShadowRequest>              MixedRequestsPendingBlits = new List<HDShadowRequest>();
+        readonly List<HDShadowRequest>              m_MixedRequestsPendingBlits = new List<HDShadowRequest>();
 
         float m_RcpScaleFactor = 1;
         HDShadowResolutionRequest[] m_SortedRequestsCache;
@@ -168,14 +168,57 @@ namespace UnityEngine.Rendering.HighDefinition
         public void AddRequestToPendingBlitFromCache(HDShadowRequest request)
         {
             if (request.isMixedCached)
-                MixedRequestsPendingBlits.Add(request);
+                m_MixedRequestsPendingBlits.Add(request);
+        }
+
+        public void ClearPendingBlitsRequests()
+        {
+            m_MixedRequestsPendingBlits.Clear();
+        }
+
+        internal struct ShadowBlitParameters
+        {
+            public List<HDShadowRequest> requestsWaitingBlits;
+            public Material              blitMaterial;
+            public MaterialPropertyBlock blitMaterialPropertyBlock;
+            public Vector2Int            cachedShadowAtlasSize;
+
+        }
+
+        internal ShadowBlitParameters PrepareShadowBlitParameters(HDCachedShadowAtlas cachedAtlas, Material blitMaterial, MaterialPropertyBlock blitMpb)
+        {
+            ShadowBlitParameters parameters = new ShadowBlitParameters();
+            parameters.requestsWaitingBlits = m_MixedRequestsPendingBlits;
+            parameters.blitMaterial = blitMaterial;
+            parameters.blitMaterialPropertyBlock = blitMpb;
+            parameters.cachedShadowAtlasSize = new Vector2Int(cachedAtlas.width, cachedAtlas.height);
+            return parameters;
+        }
+
+        static internal void BlitCachedIntoAtlas(in ShadowBlitParameters parameters, RTHandle dynamicTexture, RTHandle cachedTexture, CommandBuffer cmd)
+        {
+            foreach (var request in parameters.requestsWaitingBlits)
+            {
+                cmd.SetRenderTarget(dynamicTexture);
+
+                cmd.SetViewport(request.dynamicAtlasViewport);
+
+                Vector4 sourceScaleBias = new Vector4(request.cachedAtlasViewport.width / parameters.cachedShadowAtlasSize.x,
+                    request.cachedAtlasViewport.height / parameters.cachedShadowAtlasSize.y,
+                    request.cachedAtlasViewport.x / parameters.cachedShadowAtlasSize.x,
+                    request.cachedAtlasViewport.y / parameters.cachedShadowAtlasSize.y);
+
+                parameters.blitMaterialPropertyBlock.SetTexture(HDShaderIDs._CachedShadowmapAtlas, cachedTexture);
+                parameters.blitMaterialPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, sourceScaleBias);
+                CoreUtils.DrawFullScreen(cmd, parameters.blitMaterial, parameters.blitMaterialPropertyBlock, 0);
+            }
         }
 
         public override void Clear()
         {
             base.Clear();
             m_ShadowResolutionRequests.Clear();
-            MixedRequestsPendingBlits.Clear();
+            m_MixedRequestsPendingBlits.Clear();
         }
     }
 }
