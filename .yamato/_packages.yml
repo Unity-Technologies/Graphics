@@ -80,7 +80,7 @@ pack_shadergraph:
             paths:
               -  "packages_temp/shadergraph/upm-ci~/packages/**/*"
 publish_shadergraph:
-    name: Publish ShaderGraph
+    name: Publish ShaderGraph DRY RUN
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -91,7 +91,7 @@ publish_shadergraph:
       -  .yamato/_packages.yml#test_shadergraph_macos_trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package publish --package-path com.unity.shadergraph
+      -  upm-ci package publish --package-path com.unity.shadergraph --dry-run
     artifacts:
         packages:
             paths:
