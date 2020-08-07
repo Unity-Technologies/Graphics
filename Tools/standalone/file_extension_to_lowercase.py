@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Converts all file extensions from uppercase to lowercase for the folders passed as arguments."""
+
+# Converts all file extensions from uppercase to lowercase for the folders passed as arguments.
 
 import sys, os, subprocess
 
@@ -32,10 +33,10 @@ def convert_extensions_of_folder(folder):
 		convert_extension_of_files(files)
 				
 
-if __name__== "__main__":
+if __name__ == "__main__":
 	targets = sys.argv[1:]
 	if len(targets) == 0:
-		print(f'Usage: ./python {sys.argv[0]} [list of folders containing files to convert]')
+		print(f'Usage: python {sys.argv[0]} [list of folders containing files to convert]')
 		exit(0)
 	for target in targets:
 		convert_extensions_of_folder(target)
