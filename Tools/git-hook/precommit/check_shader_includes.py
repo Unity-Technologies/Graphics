@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Script (part of the pre-commit hook suite) that checks the case sensitivity 
+# Script (part of the pre-commit hook suite) that checks the case sensitivity
 # of shader includes in staged files.
 # Windows is case-insensitive when it comes to path management.
 # This can be problematic on other platforms where we want to ensure the #included path is correct.
@@ -35,7 +35,7 @@ def file_exists(path):
 		except FileNotFoundError:
 			return False
 		return file_exists(head)
-	
+
 
 def find_matches_in_file(file):
 	global_regex = re.compile(r'(.+)?#include\s\".+.[Hh][Ll][Ss][Ll]')
@@ -48,7 +48,7 @@ def find_matches_in_file(file):
 	shader_includes_of_file = []
 	for global_match in global_regex.finditer(file_content, re.MULTILINE):
 		global_match = global_match.group(0)
-		
+
 		# Deal with comments
 		is_comment_match = is_comment_regex.search(global_match)
 		if is_comment_match:
@@ -94,7 +94,7 @@ def find_matches(files):
 
 
 def write_results(nb_shader_not_found, processed_files):
-	if len(processed_files) > 0:
+	if nb_shader_not_found > 0:
 		log_file = os.path.join(srp_root, 'check-shader-includes.log')
 		if os.path.exists(log_file):
 			os.remove(log_file)
@@ -104,11 +104,13 @@ def write_results(nb_shader_not_found, processed_files):
 		print(f'Shader includes check report issued on: {dt_string}.', file=log)
 		print(f'{nb_shader_not_found} shader(s) not found on the filesystem.', file=log)
 
+        # First, process missing shaders
 		for processed_file in processed_files:
 			for shader in processed_file.shader_includes_of_file:
 				if shader.status == ShaderStatus.NOT_FOUND:
 					print(f'[Warning] [{processed_file.path}] Found include for [{shader.filesystem_path}] and it does not match the filesystem (check the case sensitivity).', file=log)
-		
+
+        # Then, log existing shaders in the report
 		print('', file=log)
 		for processed_file in processed_files:
 			if len(processed_file.shader_includes_of_file) > 0:
