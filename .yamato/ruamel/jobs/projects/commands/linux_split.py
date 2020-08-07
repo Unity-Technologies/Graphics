@@ -19,7 +19,10 @@ def cmd_not_standalone(project_folder, platform, api, test_platform_args):
     return base
 
 def cmd_standalone(project_folder, platform, api, test_platform_args):
-    base = _cmd_base(project_folder, platform["components"])
+    base = [
+        f'curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output {TEST_PROJECTS_DIR}/{project_folder}/utr',
+        f'chmod +x {TEST_PROJECTS_DIR}/{project_folder}/utr',
+    ]
     base.extend([
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && DISPLAY=:0.0 utr {test_platform_args}Linux64 --artifacts_path={PATH_TEST_RESULTS} --timeout=1200 --player-load-path=.{PATH_PLAYERS} --player-connection-ip=auto'
       ])
