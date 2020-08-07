@@ -746,10 +746,26 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_BlitShadowPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, sourceScaleBias);
                     CoreUtils.DrawFullScreen(cmd, m_BlitShadowMaterial, m_BlitShadowPropertyBlock, 0);
                 }
+                m_Atlas.MixedRequestsPendingBlits.Clear();
+
+                foreach (var request in m_AreaLightShadowAtlas.MixedRequestsPendingBlits)
+                {
+                    cmd.SetRenderTarget(m_AreaLightShadowAtlas.renderTarget);
+
+                    cmd.SetViewport(request.dynamicAtlasViewport);
+
+                    Vector4 sourceScaleBias = new Vector4(request.cachedAtlasViewport.width / cachedShadowManager.areaShadowAtlas.width,
+                        request.cachedAtlasViewport.height / cachedShadowManager.areaShadowAtlas.height,
+                        request.cachedAtlasViewport.x / cachedShadowManager.areaShadowAtlas.width,
+                        request.cachedAtlasViewport.y / cachedShadowManager.areaShadowAtlas.height);
+
+                    m_BlitShadowPropertyBlock.SetTexture(HDShaderIDs._CachedShadowmapAtlas, cachedShadowManager.areaShadowAtlas.renderTarget.rt);
+                    m_BlitShadowPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, sourceScaleBias);
+                    CoreUtils.DrawFullScreen(cmd, m_BlitShadowMaterial, m_BlitShadowPropertyBlock, 0);
+                }
+                m_AreaLightShadowAtlas.MixedRequestsPendingBlits.Clear();
 
             }
-
-            m_Atlas.MixedRequestsPendingBlits.Clear();
 
         }
 
