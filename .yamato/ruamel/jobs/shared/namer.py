@@ -24,6 +24,9 @@ def package_job_id_pack(package_id):
 def package_job_id_publish(package_id):
     return f'publish_{package_id}'
 
+def package_job_id_publish_dry(package_id):
+    return f'publish_{package_id}_dry'
+
 def package_job_id_publish_all():
     return f'publish_all'
 
@@ -121,6 +124,9 @@ def pb_job_id_publish(package_name):
 
 def pb_job_id_promote(package_name):
     return f'promote_{package_name}'
+
+def pb_job_id_promote_dry(package_name):
+    return f'promote_{package_name}_dry'
 
 def pb_job_id_wait_for_nightly():
     return f'wait_for_nightly'
