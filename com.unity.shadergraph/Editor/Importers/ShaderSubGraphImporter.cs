@@ -14,7 +14,6 @@ using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
-using System.Security.Cryptography;
 
 namespace UnityEditor.ShaderGraph
 {
