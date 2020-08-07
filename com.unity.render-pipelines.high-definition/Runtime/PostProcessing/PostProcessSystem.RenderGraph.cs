@@ -562,7 +562,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 mipsHandles[i] = data.mips[i];
                             }
-                           
+
                             ((ComputeBuffer)data.nearBokehTileList).SetCounterValue(0u);
                             ((ComputeBuffer)data.farBokehTileList).SetCounterValue(0u);
 
@@ -869,7 +869,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.destination = builder.WriteTexture(dest); ;
 
                     passData.casParametersBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(2, sizeof(uint) * 4) { name = "Cas Parameters" });
-                    passData.casParametersBuffer = builder.ReadComputeBuffer(builder.WriteComputeBuffer(passData.casParametersBuffer)); 
+                    passData.casParametersBuffer = builder.ReadComputeBuffer(builder.WriteComputeBuffer(passData.casParametersBuffer));
 
                     builder.SetRenderFunc(
                     (CASData data, RenderGraphContext ctx) =>
@@ -912,6 +912,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             TextureHandle finalRT,
                             bool flipY)
         {
+            renderGraph.BeginProfilingSampler(ProfilingSampler.Get(HDProfileId.PostProcessing));
 
             var source = colorBuffer;
             TextureHandle alphaTexture = DoCopyAlpha(renderGraph, hdCamera, source);
@@ -997,6 +998,8 @@ namespace UnityEngine.Rendering.HighDefinition
             source = ContrastAdaptiveSharpeningPass(renderGraph, hdCamera, source);
 
             FinalPass(renderGraph, hdCamera, afterPostProcessTexture, alphaTexture, finalRT, source, blueNoise, flipY);
+
+            renderGraph.EndProfilingSampler(ProfilingSampler.Get(HDProfileId.PostProcessing));
         }
 
         class FinalPassData
