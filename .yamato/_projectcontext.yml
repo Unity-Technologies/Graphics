@@ -251,18 +251,6 @@ all_package_ci_project_trunk:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
-      -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
-      -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
-      -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
-      -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
-      -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
-      -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
-      -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
-      -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
-      -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
-      -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
-      -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
-      -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
       -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -276,18 +264,6 @@ all_package_ci_project_fast-trunk:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#test_all_project_windows_fast-trunk
-      -  .yamato/_projectcontext.yml#test_all_project_windows_fast-trunk
-      -  .yamato/_projectcontext.yml#test_all_project_windows_fast-trunk
-      -  .yamato/_projectcontext.yml#test_all_project_windows_fast-trunk
-      -  .yamato/_projectcontext.yml#test_all_project_windows_fast-trunk
-      -  .yamato/_projectcontext.yml#test_all_project_windows_fast-trunk
-      -  .yamato/_projectcontext.yml#test_all_project_windows_fast-trunk
-      -  .yamato/_projectcontext.yml#test_all_project_macos_fast-trunk
-      -  .yamato/_projectcontext.yml#test_all_project_macos_fast-trunk
-      -  .yamato/_projectcontext.yml#test_all_project_macos_fast-trunk
-      -  .yamato/_projectcontext.yml#test_all_project_macos_fast-trunk
-      -  .yamato/_projectcontext.yml#test_all_project_macos_fast-trunk
-      -  .yamato/_projectcontext.yml#test_all_project_macos_fast-trunk
       -  .yamato/_projectcontext.yml#test_all_project_macos_fast-trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -303,18 +279,6 @@ all_package_ci_project_CUSTOM-REVISION:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#test_all_project_windows_CUSTOM-REVISION
-      -  .yamato/_projectcontext.yml#test_all_project_windows_CUSTOM-REVISION
-      -  .yamato/_projectcontext.yml#test_all_project_windows_CUSTOM-REVISION
-      -  .yamato/_projectcontext.yml#test_all_project_windows_CUSTOM-REVISION
-      -  .yamato/_projectcontext.yml#test_all_project_windows_CUSTOM-REVISION
-      -  .yamato/_projectcontext.yml#test_all_project_windows_CUSTOM-REVISION
-      -  .yamato/_projectcontext.yml#test_all_project_windows_CUSTOM-REVISION
-      -  .yamato/_projectcontext.yml#test_all_project_macos_CUSTOM-REVISION
-      -  .yamato/_projectcontext.yml#test_all_project_macos_CUSTOM-REVISION
-      -  .yamato/_projectcontext.yml#test_all_project_macos_CUSTOM-REVISION
-      -  .yamato/_projectcontext.yml#test_all_project_macos_CUSTOM-REVISION
-      -  .yamato/_projectcontext.yml#test_all_project_macos_CUSTOM-REVISION
-      -  .yamato/_projectcontext.yml#test_all_project_macos_CUSTOM-REVISION
       -  .yamato/_projectcontext.yml#test_all_project_macos_CUSTOM-REVISION
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm

@@ -16,8 +16,7 @@ class Project_AllPackageCiJob():
         # define dependencies
         dependencies = []
         for platform in platforms:
-            for package in packages:
-                dependencies.append(f'{projectcontext_filepath()}#{projectcontext_job_id_test(platform["os"],editor["version"])}')
+            dependencies.append(f'{projectcontext_filepath()}#{projectcontext_job_id_test(platform["os"],editor["version"])}')
                 #dependencies.append(f'{packages_filepath()}#{package_job_id_test_dependencies(package["id"],platform["os"],editor["version"])}')
         
         # construct job
