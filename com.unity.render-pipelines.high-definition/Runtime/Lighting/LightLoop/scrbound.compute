@@ -11,7 +11,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightCullUtils.hlsl"
 
-#pragma enable_d3d11_debug_symbols
+// #pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
 StructuredBuffer<SFiniteLightBound> g_data : register( t0 );
@@ -22,7 +22,7 @@ StructuredBuffer<SFiniteLightBound> g_data : register( t0 );
 RWStructuredBuffer<float4> g_vBoundsBuffer : register( u0 );
 
 #define Z_BINNING
-// #define DUMB_COMPILER
+#define DUMB_COMPILER
 // #define USE_WAVE_INTRINSICS // We use TGSM and atomic operations if wave intrinsics are not supported
 
 #ifdef Z_BINNING
@@ -75,7 +75,6 @@ float3x3 Invert3x3(float3x3 R)
     float3x3 adj = float3x3(cross(C[1], C[2]),
                             cross(C[2], C[0]),
                             cross(C[0], C[1]));
-
     return rcp(det) * adj;
 }
 
@@ -85,14 +84,13 @@ float4x4 Homogenize3x3(float3x3 R)
                           float4(R[1], 0),
                           float4(R[2], 0),
                           float4(0,0,0,1));
-
     return M;
 }
 
 float4x4 PerspectiveProjection4x4(float a, float g, float n, float f)
 {
-    float b = (f + n) * rcp(f - n);
-    float c = -2 * f * n * rcp(f - n);
+    float b = (f + n) * rcp(f - n);    // z: [-1, 1]
+    float c = -2 * f * n * rcp(f - n); // No Z-reversal
 
     return float4x4(g/a, 0, 0, 0,
                       0, g, 0, 0,
@@ -110,14 +108,14 @@ float4x4 PerspectiveProjection4x4(float a, float g, float n, float f)
 #define NUM_FACES         (6)
 #define NUM_PLANES        (6)
 #define THREADS_PER_GROUP (64)
-#define THREADS_PER_LIGHT (1) // Set to 1 for debugging
+#define THREADS_PER_LIGHT (4) // Set to 1 for debugging
 #define LIGHTS_PER_GROUP  (THREADS_PER_GROUP / THREADS_PER_LIGHT)
 #define VERTS_PER_GROUP   (NUM_VERTS * LIGHTS_PER_GROUP)
 #define VERTS_PER_THREAD  (NUM_VERTS / THREADS_PER_LIGHT)
 #define FACES_PER_THREAD  DIV_ROUND_UP(NUM_FACES, THREADS_PER_LIGHT)
 
 // All planes and faces are always in the standard order (see below).
-// Near and far planes may be swapped for Reverse Z-Buffering, but it does not change the algorithm.
+// Near and far planes are swapped in the case of Z-reversal, but it does not affect the algorithm.
 #define FACE_LEFT   (1 << 0) // x = -1
 #define FACE_RIGHT  (1 << 1) // x = +1
 #define FACE_FRONT  (1 << 2) // y = -1
@@ -476,7 +474,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
         float3 m; // See the comment above
 
         m.x = (countbits(v % 4) == 1) ? 1 : -1;
-        m.y = (v & 2 != 0)            ? 1 : -1;
+        m.y = ((v & 2) != 0)          ? 1 : -1;
         m.z = (v >= 4)                ? 1 : -1;
 
         m.xy *= (v >= 4) ? 1 : scale;
@@ -501,7 +499,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 
         // Consider the vertex to be inside the view volume if:
         // 0 <= x <= w
-        // 0 <= y <= w   <-- include boundary points, to avoid clipping them later
+        // 0 <= y <= w   <-- include boundary points to avoid clipping them later
         // 0 <= z <= w
         // w is always valid
         // For the orthographic projection, (w = 1), so no modifications are necessary.
@@ -556,7 +554,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
         float4x4 invRotateAndScaleInLightSpace = Homogenize3x3(Invert3x3(Rotation3x3(rbpX, rbpY, rbpZ)));
         // TODO: avoid full inversion by using unit vectors and passing magnitudes explicitly.
 
-        // This (orhographic) projection matrix maps a view-space point to a light-space [-1, 1]^3 cube.
+        // This (orthographic) projection matrix maps a view-space point to a light-space [-1, 1]^3 cube.
         float4x4 lightSpaceMatrix = mul(invRotateAndScaleInLightSpace, invTranslateToLightSpace);
 
         if (scale != 1) // Perspective light space?
@@ -590,7 +588,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
             float3 rapVertCS; // See the comment above
 
             rapVertCS.x = (countbits(v % 4) == 1) ? 1 : -1;
-            rapVertCS.y = (v & 2 != 0)            ? 1 : -1;
+            rapVertCS.y = ((v & 2) != 0)          ? 1 : -1;
             rapVertCS.z = (v >= 4)                ? 1 :  0;
 
             float4 hbpVertVS = mul(g_mInvProjection, float4(rapVertCS, 1)); // Clip to view space
@@ -703,10 +701,8 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
         // a set of maxs, and each set is equal to g_iNrVisibLights.
         const ScreenSpaceBoundsIndices boundsIndices = GenerateScreenSpaceBoundsIndices(lgtIndex, g_iNrVisibLights, eyeIndex);
 
-        float minLinearDepth = 0, maxLinearDepth = FLT_MAX; // TODO
-
-        g_vBoundsBuffer[boundsIndices.min] = float4(rapAaBbMinPt, minLinearDepth);
-        g_vBoundsBuffer[boundsIndices.max] = float4(rapAaBbMaxPt, maxLinearDepth);
+        g_vBoundsBuffer[boundsIndices.min] = float4(rapAaBbMinPt, 0);      // TODO: add me - lin depth
+        g_vBoundsBuffer[boundsIndices.max] = float4(rapAaBbMaxPt, 100000); //
     }
 
 #else // !Z_BINNING
