@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Controls whether the volume framework should be updated every frame by
+        /// Controls whether the volume framework should be updated by
         /// this renderer each frame or via scripting
         /// </summary>
         internal ScriptableRenderer.RefreshMode VolumeFrameworkRefreshMode => m_VolumeFrameworkRefreshMode;
