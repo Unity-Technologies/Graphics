@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             static public readonly GUIContent k_RenderSchedule = EditorGUIUtility.TrTextContent("Render Schedule", "A list of layers and sub-layers in the scene. Layers are drawn from top to bottom.");
             static public readonly string k_AlphaWarningPipeline = "The rendering pipeline was not configured to output an alpha channel. You can select a color buffer format that supports alpha in the HDRP quality settings.";
             static public readonly string k_AlphaWarningPost = "The post processing system was not configured to process the alpha channel. You can select a buffer format that supports alpha in the HDRP quality settings.";
-            static public readonly string k_ShaderWarning = "You must specify a composition graph (Unlit ShaderGraph) to see the compositor output.";
+            static public readonly string k_ShaderWarning = "You must specify a composition graph to see an output from the compositor.";
         }
 
         ReorderableList m_layerList;

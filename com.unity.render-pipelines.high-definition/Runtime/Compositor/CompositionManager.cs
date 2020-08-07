@@ -258,6 +258,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             if (m_Shader == null)
             {
+                m_InputLayers.Clear();
+                m_CompositionProfile = null;
                 return false;
             }
 
