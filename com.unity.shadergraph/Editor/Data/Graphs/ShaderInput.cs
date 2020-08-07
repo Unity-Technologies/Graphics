@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal Guid guid => m_Guid.guid;
 
-        internal void OverrideGuid(Guid guid) { m_Guid.guid = guid; }
+        internal void OverrideGuid(string namespaceId, string name) { m_Guid.guid = GenerateNamespaceUUID(namespaceId, name); }
 
         [SerializeField]
         string m_Name;
