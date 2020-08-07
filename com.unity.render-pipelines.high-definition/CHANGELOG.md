@@ -4,6 +4,18 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.1.0] - 2019-08-04
+
+### Added
+- Added an option to have only the metering mask displayed in the debug mode.
+
+### Fixed
+- Fix several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
+- Fixed GPU hang on D3D12 on xbox. 
+
+### Changed
+- Preparation pass for RTSSShadows to be supported by render graph.
+
 ## [10.0.0] - 2019-06-10
 
 ### Added
@@ -752,6 +764,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a compilation error in the IES code.
 - Fixed issue with dynamic resolution handler when no OnResolutionChange callback is specified. 
 - Fixed multiple volumes, planar reflection, and decal projector position when creating them from the menu.
+- Reduced the number of global keyword used in deferredTile.shader
+- Fixed incorrect processing of Ambient occlusion probe (9% error was introduced)
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -927,6 +941,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the DXR wizard to support optional checks.
 - Changed the DXR wizard steps.
 - Preparation pass for RTSSS to be supported by render graph.
+- Changed the color space of EmissiveColorLDR property on all shader. Was linear but should have been sRGB. Auto upgrade script handle the conversion.
 
 ## [7.1.1] - 2019-09-05
 

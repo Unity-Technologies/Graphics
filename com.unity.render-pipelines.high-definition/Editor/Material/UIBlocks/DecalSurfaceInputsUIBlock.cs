@@ -305,7 +305,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     if (useEmissiveIntensity.floatValue == 1.0f)
                     {
-                        emissiveColor.colorValue = emissiveColorLDR.colorValue * emissiveIntensity.floatValue;
+                        materialEditor.serializedObject.ApplyModifiedProperties();
+                        foreach (Material target in materials)
+                        {
+                            target.UpdateEmissiveColorFromIntensityAndEmissiveColorLDR();
+                        }
+                        materialEditor.serializedObject.Update();
                     }
                     else
                     {
