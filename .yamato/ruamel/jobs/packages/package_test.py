@@ -34,6 +34,7 @@ class Package_TestJob():
                 commands.append(f'mkdir upm-ci~ && mkdir upm-ci~/packages')
                 commands.append(f'cp packages_temp/{package["id"]}/upm-ci~/packages/packages.json upm-ci~/packages')
                 commands.append(f'cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages')
+        commands.append(platform["copycmd"])
         commands.append(f'upm-ci package test -u {platform["editorpath"]} --package-path {package["packagename"]} --extra-utr-arg="--compilation-errors-as-warnings"')
 
 
