@@ -111,19 +111,8 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 }
             }
 
-            if (compositor.shader == null)
-            {
-                CompositionUtils.RemoveCompositionProfileAsset(compositor);
-                CompositionUtils.LoadDefaultCompositionGraph(compositor);
-                CompositionUtils.LoadOrCreateCompositionProfileAsset(compositor);
-                compositor.SetupCompositionMaterial();
-                m_RequiresRedraw = true;
-            }
-            else
-            {
-                // keep track of shader graph changes: when the user saves a graph, we should load/reflect any new shader properties
-                GraphData.onSaveGraph += MarkShaderAsDirty;
-            }
+            // keep track of shader graph changes: when the user saves a graph, we should load/reflect any new shader properties
+            GraphData.onSaveGraph += MarkShaderAsDirty;
 
             if (compositor.profile == null)
             {

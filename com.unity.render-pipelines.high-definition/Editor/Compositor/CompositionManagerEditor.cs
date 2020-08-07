@@ -28,6 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             static public readonly GUIContent k_RenderSchedule = EditorGUIUtility.TrTextContent("Render Schedule", "A list of layers and sub-layers in the scene. Layers are drawn from top to bottom.");
             static public readonly string k_AlphaWarningPipeline = "The rendering pipeline was not configured to output an alpha channel. You can select a color buffer format that supports alpha in the HDRP quality settings.";
             static public readonly string k_AlphaWarningPost = "The post processing system was not configured to process the alpha channel. You can select a buffer format that supports alpha in the HDRP quality settings.";
+            static public readonly string k_ShaderWarning = "You must specify a composition graph (Unlit ShaderGraph) to see the compositor output.";
         }
 
         ReorderableList m_layerList;
@@ -154,6 +155,11 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 // Clear the existing shader (the new shader will be loaded in the next Update)
                 m_IsEditorDirty = true;
                 shaderChange = true;
+            }
+            if (m_compositionManager.shader == null)
+            {
+                EditorGUILayout.Space(5);
+                EditorGUILayout.HelpBox(Styles.k_ShaderWarning, MessageType.Error);
             }
 
             EditorGUILayout.PropertyField(m_SerializedProperties.displayNumber);
@@ -290,16 +296,12 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 m_SerializedProperties.ApplyModifiedProperties();
             }
 
-            if (m_compositionManager.shader == null)
-            {
-                CompositionUtils.LoadDefaultCompositionGraph(m_compositionManager);
-                shaderChange = true;
-            }
-
             if (shaderChange)
             {
                 // This needs to run after m_SerializedProperties.ApplyModifiedProperties
                 CompositionUtils.LoadOrCreateCompositionProfileAsset(m_compositionManager);
+                m_compositionManager.SetupCompositionMaterial();
+                CompositionUtils.SetDefaultLayers(m_compositionManager);
             }
 
             if (cameraChange)
