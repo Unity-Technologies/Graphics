@@ -48,7 +48,7 @@ platforms:
       image: package-ci/win10:stable
       flavor: b1.large
     #copycmd: copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-    copycmd: for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
+    copycmd: for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
     editorpath: .\.Editor
   OSX:
     name: OSX

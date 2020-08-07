@@ -48,7 +48,7 @@ test_hdrp_template_windows_trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
+      -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-hd
     artifacts:
         logs:
@@ -72,7 +72,7 @@ test_hdrp_template_windows_trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
+      -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  upm-ci template test -u .\.Editor --type updated-dependencies-tests --project-path com.unity.template-hd
     artifacts:
         logs:
@@ -93,7 +93,7 @@ test_universal_template_windows_trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
+      -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-universal
     artifacts:
         logs:
@@ -115,7 +115,7 @@ test_universal_template_windows_trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
+      -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  upm-ci template test -u .\.Editor --type updated-dependencies-tests --project-path com.unity.template-universal
     artifacts:
         logs:
@@ -228,7 +228,7 @@ test_hdrp_template_windows_fast-trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
+      -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-hd
     artifacts:
         logs:
@@ -252,7 +252,7 @@ test_hdrp_template_windows_fast-trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
+      -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  upm-ci template test -u .\.Editor --type updated-dependencies-tests --project-path com.unity.template-hd
     artifacts:
         logs:
@@ -273,7 +273,7 @@ test_universal_template_windows_fast-trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
+      -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-universal
     artifacts:
         logs:
@@ -295,7 +295,7 @@ test_universal_template_windows_fast-trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
+      -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  upm-ci template test -u .\.Editor --type updated-dependencies-tests --project-path com.unity.template-universal
     artifacts:
         logs:
@@ -408,7 +408,7 @@ test_hdrp_template_windows_CUSTOM-REVISION:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
+      -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-hd
     artifacts:
         logs:
@@ -432,7 +432,7 @@ test_hdrp_template_windows_CUSTOM-REVISION_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
+      -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  upm-ci template test -u .\.Editor --type updated-dependencies-tests --project-path com.unity.template-hd
     artifacts:
         logs:
@@ -453,7 +453,7 @@ test_universal_template_windows_CUSTOM-REVISION:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
+      -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-universal
     artifacts:
         logs:
@@ -475,7 +475,7 @@ test_universal_template_windows_CUSTOM-REVISION_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
+      -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  upm-ci template test -u .\.Editor --type updated-dependencies-tests --project-path com.unity.template-universal
     artifacts:
         logs:
