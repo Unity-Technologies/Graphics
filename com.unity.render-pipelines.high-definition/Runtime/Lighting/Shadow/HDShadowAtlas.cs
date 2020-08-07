@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public RTHandle                             renderTarget { get { return m_Atlas; } }
-        readonly List<HDShadowRequest>              m_ShadowRequests = new List<HDShadowRequest>();
+        protected List<HDShadowRequest>             m_ShadowRequests = new List<HDShadowRequest>();
 
         public int                  width { get; private set; }
         public int                  height  { get; private set; }

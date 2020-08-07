@@ -705,11 +705,27 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_ShadowRequestCount == 0)
                 return ;
 
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderCachedPunctualShadowMaps)))
+            {
+                cachedShadowManager.punctualShadowAtlas.RenderShadows(cullResults, globalCB, hdCamera.frameSettings, renderContext, cmd);
+                cachedShadowManager.punctualShadowAtlas.AddBlitRequestsForUpdatedShadows(m_Atlas);
+            }
+
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderCachedAreaShadowMaps)))
+            {
+                if (ShaderConfig.s_AreaLights == 1)
+                {
+                    cachedShadowManager.areaShadowAtlas.RenderShadows(cullResults, globalCB, hdCamera.frameSettings, renderContext, cmd);
+                    cachedShadowManager.areaShadowAtlas.AddBlitRequestsForUpdatedShadows(m_AreaLightShadowAtlas);
+                }
+            }
+
+            BlitCacheIntoAtlas(cmd);
+
             // Clear atlas render targets and draw shadows
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderPunctualShadowMaps)))
             {
                 m_Atlas.RenderShadows(cullResults, globalCB, hdCamera.frameSettings, renderContext, cmd);
-                cachedShadowManager.punctualShadowAtlas.RenderShadows(cullResults, globalCB, hdCamera.frameSettings, renderContext, cmd);
             }
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderDirectionalShadowMaps)))
@@ -722,7 +738,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (ShaderConfig.s_AreaLights == 1)
                 {
                     m_AreaLightShadowAtlas.RenderShadows(cullResults, globalCB, hdCamera.frameSettings, renderContext, cmd);
-                    cachedShadowManager.areaShadowAtlas.RenderShadows(cullResults, globalCB, hdCamera.frameSettings, renderContext, cmd);
                 }
             }
         }
