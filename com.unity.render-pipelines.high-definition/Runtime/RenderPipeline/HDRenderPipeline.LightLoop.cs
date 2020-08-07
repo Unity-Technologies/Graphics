@@ -395,7 +395,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle colorPyramid;
             public TextureHandle stencilBuffer;
             public TextureHandle hitPointsTexture;
+            public TextureHandle ssrAccumPointTexture;
             public TextureHandle lightingTexture;
+            public TextureHandle prevLightingTexture;
             public TextureHandle clearCoatMask;
             public ComputeBufferHandle coarseStencilBuffer;
             //public TextureHandle debugTexture;
@@ -454,6 +456,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     //passData.hitPointsTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                     //    { colorFormat = GraphicsFormat.ARGBFloat, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Debug_Texture" }));
 
+                    passData.ssrAccumPointTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Accum_Texture" }));
+
+                    var ssrPrevious = renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflection));
+                    passData.prevLightingTexture = builder.ReadTexture(ssrPrevious);
+
                     builder.SetRenderFunc(
                     (RenderSSRPassData data, RenderGraphContext context) =>
                     {
@@ -467,7 +475,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                     data.stencilBuffer,
                                     data.clearCoatMask,
                                     data.colorPyramid,
+                                    data.ssrAccumPointTexture,
                                     data.lightingTexture,
+                                    data.prevLightingTexture,
                                     data.coarseStencilBuffer,
                                     context.cmd, context.renderContext);
                     });

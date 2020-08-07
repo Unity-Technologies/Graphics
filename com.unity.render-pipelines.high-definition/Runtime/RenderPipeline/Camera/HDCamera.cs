@@ -711,6 +711,34 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        #region Private API
+        // Workaround for the Allocator callback so it doesn't allocate memory because of the capture of scaleFactor.
+        struct ScreenSpaceAllocator
+        {
+            float scaleFactor;
+
+            public ScreenSpaceAllocator(float scaleFactor) => this.scaleFactor = scaleFactor;
+
+            public RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
+            {
+                return rtHandleSystem.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: string.Format("{0}_ScreenSpaceReflection history_{1}", id, frameIndex));
+            }
+        }
+        #endregion
+
+        internal void AllocateScreenSpaceHistoryBuffer(float scaleFactor)
+        {
+            if (scaleFactor != m_ScreenSpaceReflectionResolutionScale || GetCurrentFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflection) == null)
+            {
+                ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflection);
+
+                var ssrAlloc = new ScreenSpaceAllocator(scaleFactor);
+                AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflection, ssrAlloc.Allocator, 3);
+
+                m_ScreenSpaceReflectionResolutionScale = scaleFactor;
+            }
+        }
+
         internal void ReleaseHistoryFrameRT(int id)
         {
             m_HistoryRTSystem.ReleaseBuffer(id);
@@ -850,6 +878,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int                     m_NumColorPyramidBuffersAllocated = 0;
         int                     m_NumVolumetricBuffersAllocated   = 0;
         float                   m_AmbientOcclusionResolutionScale = 0.0f; // Factor used to track if history should be reallocated for Ambient Occlusion
+        float                   m_ScreenSpaceReflectionResolutionScale = 0.0f; // Need another factor if AO not used in the same time with SSR
 
         ViewConstants[]         m_XRViewConstants;
 

@@ -5,8 +5,9 @@
 // #pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-#pragma kernel ScreenSpaceReflectionsTracing      SSR_TRACE
-#pragma kernel ScreenSpaceReflectionsReprojection SSR_REPROJECT
+#pragma kernel ScreenSpaceReflectionsTracing            SSR_TRACE
+#pragma kernel ScreenSpaceReflectionsReprojection       SSR_REPROJECT
+#pragma kernel ScreenSpaceReflectionsDenoiseInpainting  SSR_DENOISE_INPAINTING
 
 #pragma multi_compile _ DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
 
@@ -63,10 +64,17 @@ TEXTURE2D_X(_DepthTexture);
 
 #ifdef SSR_TRACE
     TEXTURE2D_X_UINT2(         _StencilTexture);
-    RW_TEXTURE2D_X(float2, _SsrHitPointTexture);
-#else
+    RW_TEXTURE2D_X(float4, _SsrHitPointTexture);
+#elif defined(SSR_REPROJECT)
        TEXTURE2D_X(        _SsrHitPointTexture);
+    //RW_TEXTURE2D_X(float4, _SsrLightingTextureRW); // ShaderVariablesScreenSpaceLighting.hlsl already pulls in a non-RW _SsrLightingTexture
+       TEXTURE2D_X(        _PrevSSRLightingTexture);
+    RW_TEXTURE2D_X(float4, _SSRAccumTexture);
+#else // defined(SSR_DENOISE_INPAINTING)
+       TEXTURE2D_X(        _SsrHitPointTexture);
+       TEXTURE2D_X(        _PrevSSRLightingTexture);
     RW_TEXTURE2D_X(float4, _SsrLightingTextureRW); // ShaderVariablesScreenSpaceLighting.hlsl already pulls in a non-RW _SsrLightingTexture
+       TEXTURE2D_X(        _SSRAccumTexture);
 #endif
 
     TEXTURE2D_X(            _SsrClearCoatMaskTexture);
@@ -350,7 +358,7 @@ void ScreenSpaceReflectionsTracing(uint3 groupId          : SV_GroupID,
     WriteDebugInfo(positionSS, float4(rayPos.xy, iterCount, hit ? 1 : 0));
 }
 
-#else // SSR_REPROJECT
+#elif defined(SSR_REPROJECT)
 
 float PerceptualRoughnessFade(float perceptualRoughness, float fadeRcpLength, float fadeEndTimesRcpLength)
 {
@@ -365,20 +373,39 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     uint2 positionSS = dispatchThreadId.xy;
 
     // TODO: this texture is sparse (mostly black). Can we avoid reading every texel? How about using Hi-S?
-    float2 hitPositionNDC = LOAD_TEXTURE2D_X(_SsrHitPointTexture, positionSS).xy;
+    float4 srcData = LOAD_TEXTURE2D_X(_SsrHitPointTexture, positionSS);
 
-    if (max(hitPositionNDC.x, hitPositionNDC.y) == 0)
-    {
-        // Miss.
-        return;
-    }
+    float2 hitPositionNDC = srcData.xy;
+
+    float3 N;
+    float perceptualRoughness;
+    GetNormalAndPerceptualRoughness(positionSS, N, perceptualRoughness);
+
+    // TODO: filtering is quite awful. Needs to be non-Gaussian, bilateral and anisotropic.
+    float  mipLevel = lerp(0, _SsrColorPyramidMaxMip, perceptualRoughness);
+
+    float tmpCoef = PerceptualRoughnessFade(perceptualRoughness, _SsrRoughnessFadeRcpLength, _SsrRoughnessFadeEndTimesRcpLength);
 
     // TODO: it's important to account for occlusion/disocclusion to avoid artifacts in motion.
     // This would require keeping the depth buffer from the previous frame.
     float2 motionVectorNDC;
     DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(hitPositionNDC, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorNDC);
     float2 prevFrameNDC = hitPositionNDC - motionVectorNDC;
-    float2 prevFrameUV  = prevFrameNDC * _ColorPyramidUvScaleAndLimitPrevFrame.xy;
+    float2 prevFrameUV = prevFrameNDC * _ColorPyramidUvScaleAndLimitPrevFrame.xy;
+
+    float2 curFrameUV0 = hitPositionNDC * _ColorPyramidUvScaleAndLimitPrevFrame.xy;
+    //float3 color0 = SAMPLE_TEXTURE2D_X_LOD(_PrevSSRLightingTexture, s_trilinear_clamp_sampler, curFrameUV0, mipLevel).rgb;
+    //float  opacity0 = EdgeOfScreenFade(prevFrameNDC, _SsrEdgeFadeRcpLength) * tmpCoef;
+    float4 prevData = _PrevSSRLightingTexture[COORD_TEXTURE2D_X(positionSS)];
+    float3 color0   = prevData.rgb;
+    float  opacity0 = prevData.a;
+
+    if (max(hitPositionNDC.x, hitPositionNDC.y) == 0)
+    {
+        // Miss.
+        _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = float4(color0, 1.0f) * opacity0;
+        return;
+    }
 
     // TODO: optimize with max().
     if ((prevFrameUV.x < 0) || (prevFrameUV.x > _ColorPyramidUvScaleAndLimitPrevFrame.z) ||
@@ -388,38 +415,17 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
         return;
     }
 
-#ifdef DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
-    float  deviceDepth0 = LOAD_TEXTURE2D_X(_DepthTexture, positionSS).r;
-    float  deviceDepth1 = LOAD_TEXTURE2D_X(_DepthTexture, hitPositionNDC).r;
-#else
-    float  deviceDepth0 = LOAD_TEXTURE2D_X(_CameraDepthTexture, positionSS).r;
-    float  deviceDepth1 = LOAD_TEXTURE2D_X(_CameraDepthTexture, hitPositionNDC).r;
-#endif
-
-    bool killRay0 = deviceDepth0 == UNITY_RAW_FAR_CLIP_VALUE;
-    bool killRay1 = deviceDepth1 == UNITY_RAW_FAR_CLIP_VALUE;
-
-    float2 positionNDC0 = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw);
-
-    float3 position0WS = ComputeWorldSpacePosition(positionNDC0, deviceDepth0, UNITY_MATRIX_I_VP);
-    float3 position1WS = ComputeWorldSpacePosition(hitPositionNDC, deviceDepth1, UNITY_MATRIX_I_VP);
-
-    float linearZ0 = Linear01Depth(deviceDepth0, _ZBufferParams);
-    float linearZ1 = Linear01Depth(deviceDepth1, _ZBufferParams);
-
-    float allDist = abs(linearZ0 - linearZ1);
-
-    float3 N;
-    float perceptualRoughness;
-    GetNormalAndPerceptualRoughness(positionSS, N, perceptualRoughness);
-
-    // TODO: filtering is quite awful. Needs to be non-Gaussian, bilateral and anisotropic.
-    float  mipLevel = lerp(0, _SsrColorPyramidMaxMip, perceptualRoughness);
-
     // Note that the color pyramid uses it's own viewport scale, since it lives on the camera.
-    float3 color    = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, prevFrameUV, mipLevel).rgb;
-    float  opacity  = EdgeOfScreenFade(prevFrameNDC, _SsrEdgeFadeRcpLength)
-                    * PerceptualRoughnessFade(perceptualRoughness, _SsrRoughnessFadeRcpLength, _SsrRoughnessFadeEndTimesRcpLength);
+
+    float2 curFrameNDC = prevFrameNDC;
+    float2 curFrameUV = curFrameNDC * _ColorPyramidUvScaleAndLimitPrevFrame.xy;
+
+    float3 color   = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, prevFrameUV, mipLevel).rgb;
+    float  opacity = EdgeOfScreenFade(curFrameNDC, _SsrEdgeFadeRcpLength) * tmpCoef;
+
+    //color   = lerp(color, color0, 0.5f);
+    color = (color + color0)*0.5f;
+    opacity = max(opacity, opacity0);
 
     // Disable SSR for negative, infinite and NaN history values.
     uint3 intCol   = asuint(color);
@@ -429,8 +435,52 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     opacity = isPosFin ? opacity : 0;
 
     // Use premultiplied alpha.
-    //allDist
-    _SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = float4(color, 1.0f) * opacity;
+    _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = float4(color, 1.0f) * opacity;
+}
+#elif defined(SSR_DENOISE_INPAINTING)
+float PerceptualRoughnessFade(float perceptualRoughness, float fadeRcpLength, float fadeEndTimesRcpLength)
+{
+    float t = Remap10(perceptualRoughness, fadeRcpLength, fadeEndTimesRcpLength);
+    return Smoothstep01(t);
 }
 
+[numthreads(8, 8, 1)]
+void ScreenSpaceReflectionsDenoiseInpainting(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+    uint2 positionSS = dispatchThreadId.xy;
+
+    float3 N;
+    float perceptualRoughness;
+    GetNormalAndPerceptualRoughness(positionSS, N, perceptualRoughness);
+
+    float2 uv = float2(positionSS) * _RTHandleScale.xy;// _ColorPyramidUvScaleAndLimitPrevFrame.xy;
+
+    float dist = _SsrHitPointTexture[COORD_TEXTURE2D_X(positionSS)].z;
+
+    float4 accum = 0;
+    int r = 5;
+    //float coef = rcp(float((2*r+1)*(2*r+1)));
+    float coef;
+    float sigma = lerp(5.0f, 5.0f, saturate(0.5f*saturate(dist/16.0f) + 0.5f*perceptualRoughness));
+    float totalCoef = 0.0f;
+    for (int i = -r; i <= r; ++i)
+    {
+        for (int j = -r; j <= r; ++j)
+        {
+            coef = rcp(sqrt(2.0f*3.1415926538897932384626f)*sigma)*exp(-(i*i + j*j)/(2.0f*sigma*sigma));
+            totalCoef += coef;
+            accum += coef*_SSRAccumTexture[COORD_TEXTURE2D_X(positionSS + int2(i, j))];
+        }
+    }
+    accum /= totalCoef;
+
+    float4 prev = _PrevSSRLightingTexture[COORD_TEXTURE2D_X(positionSS)];
+
+    accum.rgb = lerp(accum.rgb, (accum.rgb + prev.rgb) * 0.5f, accum > 0.0f ? 0.0f : 1.0f);
+    //accum.rgb = (accum.rgb + prev.rgb) * 0.5f;
+    //accum.rgb = lerp(accum.rgb, (accum.rgb + prev.rgb) * 0.5f, prev.a);
+
+    _SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = accum;
+}
 #endif
