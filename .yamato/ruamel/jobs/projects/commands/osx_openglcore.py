@@ -12,7 +12,7 @@ def _cmd_base(project_folder, components):
 def cmd_not_standalone(project_folder, platform, api, test_platform_args):
     base = _cmd_base(project_folder, platform["components"])
     base.extend([ 
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && ./utr {test_platform_args} --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}'
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && ./utr {test_platform_args} --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}{_get_extra_utr_arg(project_folder)}'
     ])
     return base
 
@@ -33,3 +33,5 @@ def cmd_standalone_build(project_folder, platform, api, test_platform_args):
     raise Exception("OSX_OpenGlCore standalone should not be called")
 
 
+def _get_extra_utr_arg(project_folder):
+    return ' --compilation-errors-as-warnings' if project_folder.lower() in ['universalhybridtest', 'hdrp_hybridtests'] else ''
