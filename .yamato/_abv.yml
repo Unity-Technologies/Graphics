@@ -104,6 +104,12 @@ all_project_ci_nightly_trunk:
          rerun: on-new-revision
       -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_trunk
          rerun: on-new-revision
+      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_Standalone_trunk
+         rerun: on-new-revision
+      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_editmode_trunk
+         rerun: on-new-revision
+      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_trunk
+         rerun: on-new-revision
     triggers:
         recurring:
           -  branch: master

@@ -384,12 +384,7 @@ PrefabInstance:
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: waitFrames
-      value: 30
-      objectReference: {fileID: 0}
-    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: captureFromBackBuffer
-      value: 1
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
@@ -398,12 +393,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
-      propertyPath: waitForFrameCountMultiple
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: xrCompatible
+      propertyPath: renderGraphCompatible
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -450,6 +440,16 @@ PrefabInstance:
       propertyPath: m_ApplyRangeAttenuation
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5229108845396451534, guid: 9345716ac27248541acf0f882313d4be,
+        type: 3}
+      propertyPath: m_AreaSize.x
+      value: 0.11
+      objectReference: {fileID: 0}
+    - target: {fileID: 5229108845396451534, guid: 9345716ac27248541acf0f882313d4be,
+        type: 3}
+      propertyPath: m_AreaSize.y
+      value: 0.8
+      objectReference: {fileID: 0}
     - target: {fileID: 5229108846346827036, guid: 9345716ac27248541acf0f882313d4be,
         type: 3}
       propertyPath: m_Version
@@ -464,6 +464,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_ApplyRangeAttenuation
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5229108846346827037, guid: 9345716ac27248541acf0f882313d4be,
+        type: 3}
+      propertyPath: m_AreaSize.x
+      value: 0.11
+      objectReference: {fileID: 0}
+    - target: {fileID: 5229108846346827037, guid: 9345716ac27248541acf0f882313d4be,
+        type: 3}
+      propertyPath: m_AreaSize.y
+      value: 0.8
       objectReference: {fileID: 0}
     - target: {fileID: 5229108846346827039, guid: 9345716ac27248541acf0f882313d4be,
         type: 3}
