@@ -1326,9 +1326,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_InspectorView.ClampToParentLayout(m_GraphView.layout);
 
-            if (m_MasterPreviewView.expanded)
+            if (m_MasterPreviewView.visible)
             {
-                m_FloatingWindowsLayout.previewLayout.size = m_MasterPreviewView.previewTextureView.layout.size;
+                m_FloatingWindowsLayout.previewLayout.size = m_MasterPreviewView.layout.size;
             }
 
             string serializedWindowLayout = JsonUtility.ToJson(m_FloatingWindowsLayout);
