@@ -1425,7 +1425,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_AlwaysDrawDynamicShadows = false;
 
         /// <summary>
-        /// Get/Set the shadow update mode.
+        /// Whether cached shadows will always draw dynamic shadow casters.
         /// </summary>
         /// <value></value>
         public bool alwaysDrawDynamicShadows
@@ -1433,6 +1433,31 @@ namespace UnityEngine.Rendering.HighDefinition
             get => m_AlwaysDrawDynamicShadows;
             set { m_AlwaysDrawDynamicShadows = value; }
         }
+
+        [SerializeField]
+        bool m_UpdateShadowOnLightMovement = false;
+        /// <summary>
+        /// Whether a cached shadow map will be automatically updated when the light transform changes (more than a given threshold set via TODO_FCC: ADD NAME OF API) 
+        /// </summary>
+        /// <value></value>
+        public bool updateUponLightMovement
+        {
+            get => m_UpdateShadowOnLightMovement;
+            set
+            {
+                if(m_UpdateShadowOnLightMovement != value)
+                {
+                    if (m_UpdateShadowOnLightMovement)
+                        HDShadowManager.cachedShadowManager.RegisterTransformToCache(this);
+                    else
+                        HDShadowManager.cachedShadowManager.RegisterTransformToCache(this);
+
+                    m_UpdateShadowOnLightMovement = value;
+                }
+            }
+        }
+
+
 
         // Only for Rectangle area lights.
         [Range(0.0f, 90.0f)]
@@ -2063,12 +2088,14 @@ namespace UnityEngine.Rendering.HighDefinition
             bool hasCachedComponent = !ShadowIsUpdatedEveryFrame();
             bool isSampledFromCache = (updateType == ShadowMapUpdateType.Cached);
 
+            bool needsRenderingDueToTransformChange = false;
             // Note if we are in cached system, but if a placement has not been found by this point we bail out shadows
             bool shadowHasAtlasPlacement = true;
             if (hasCachedComponent)
             {
                 // If we force evicted the light, it will have lightIdxForCachedShadows == -1
                 shadowHasAtlasPlacement = !HDShadowManager.cachedShadowManager.LightIsPendingPlacement(this, shadowMapType) && (lightIdxForCachedShadows != -1);
+                needsRenderingDueToTransformChange = HDShadowManager.cachedShadowManager.NeedRenderingDueToTransformChange(this, lightType);
             }
 
             for (int index = 0; index < count; index++)
@@ -2090,7 +2117,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (hasCachedComponent && shadowHasAtlasPlacement)
                 {
-                    needToUpdateCachedContent = HDShadowManager.cachedShadowManager.ShadowIsPendingUpdate(cachedShadowID, shadowMapType);
+                    needToUpdateCachedContent = needsRenderingDueToTransformChange || HDShadowManager.cachedShadowManager.ShadowIsPendingUpdate(cachedShadowID, shadowMapType);
                     HDShadowManager.cachedShadowManager.UpdateResolutionRequest(ref resolutionRequest, cachedShadowID, shadowMapType);
                 }
 

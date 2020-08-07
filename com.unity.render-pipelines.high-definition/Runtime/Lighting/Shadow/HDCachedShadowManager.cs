@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Data for cached directional light shadows.
         private const int m_MaxShadowCascades = 4;
         private bool[] m_DirectionalShadowPendingUpdate = new bool[m_MaxShadowCascades];
+        private Vector3 m_CachedDirectionalForward;
 
         // Cached atlas
         internal HDCachedShadowAtlas punctualShadowAtlas;
@@ -206,11 +207,60 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal void RegisterTransformToCache(HDAdditionalLightData lightData)
+        {
+            HDLightType lightType = lightData.type;
+
+            if (lightType == HDLightType.Spot || lightType == HDLightType.Point)
+                punctualShadowAtlas.RegisterTransformCacheSlot(lightData);
+            if (ShaderConfig.s_AreaLights == 1 && lightType == HDLightType.Area)
+                areaShadowAtlas.RegisterTransformCacheSlot(lightData);
+            if (lightType == HDLightType.Directional)
+                m_CachedDirectionalForward = lightData.transform.forward;
+        }
+
+        internal void RemoveTransformFromCache(HDAdditionalLightData lightData)
+        {
+            HDLightType lightType = lightData.type;
+
+            if (lightType == HDLightType.Spot || lightType == HDLightType.Point)
+                punctualShadowAtlas.RemoveTransformFromCache(lightData);
+            if (ShaderConfig.s_AreaLights == 1 && lightType == HDLightType.Area)
+                areaShadowAtlas.RemoveTransformFromCache(lightData);
+        }
+
+
         internal void AssignSlotsInAtlases()
         {
             punctualShadowAtlas.AssignOffsetsInAtlas(m_InitParams);
             if(ShaderConfig.s_AreaLights == 1)
                 areaShadowAtlas.AssignOffsetsInAtlas(m_InitParams);
+        }
+
+        internal bool NeedRenderingDueToTransformChange(HDAdditionalLightData lightData, HDLightType lightType)
+        {
+            if(lightData.updateUponLightMovement)
+            {
+                if (lightType == HDLightType.Directional)
+                {
+                    float diff = 1.0f - Vector3.Dot(m_CachedDirectionalForward, lightData.transform.forward);
+                    if (diff > 1e-4f) // TODO_FCC: Use custom threshold
+                    {
+                        m_CachedDirectionalForward = lightData.transform.forward;
+                        return true;
+                    }
+                }
+                else if (lightType == HDLightType.Area)
+                {
+                    return areaShadowAtlas.NeedRenderingDueToTransformChange(lightData, lightType);
+                }
+                else
+                {
+                    return punctualShadowAtlas.NeedRenderingDueToTransformChange(lightData, lightType);
+                }
+            }
+
+            return false;
         }
 
         internal bool ShadowIsPendingUpdate(int shadowIdx, ShadowMapType shadowMapType)

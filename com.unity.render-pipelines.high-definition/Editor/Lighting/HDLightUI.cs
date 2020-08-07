@@ -976,6 +976,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 if(serialized.shadowUpdateMode.intValue > 0)
                 {
                     EditorGUILayout.PropertyField(serialized.shadowAlwaysDrawDynamic, s_Styles.shadowAlwaysDrawDynamic);
+                    EditorGUILayout.PropertyField(serialized.shadowUpdateUponTransformChange, s_Styles.shadowUpdateOnLightTransformChange);
+
                 }
 
                 HDLightType lightType = serialized.type;

@@ -198,7 +198,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             foreach (var shadowRequest in parameters.shadowRequests)
             {
-                if (!shadowRequest.shouldRenderCachedComponent && renderingOnAShadowCache)
+                bool shouldSkipRequest = shadowRequest.shadowMapType != ShadowMapType.CascadedDirectional ? !shadowRequest.shouldRenderCachedComponent && renderingOnAShadowCache :
+                                                                                                            shadowRequest.shouldUseCachedShadowData;
+
+                if (shouldSkipRequest)
                     continue;
 
                 bool mixedInDynamicAtlas = false;
@@ -283,7 +286,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 int requestIdx = 0;
                 foreach (var shadowRequest in parameters.shadowRequests)
                 {
-                    if (!shadowRequest.shouldRenderCachedComponent && blurOnACache)
+                    bool shouldSkipRequest = shadowRequest.shadowMapType != ShadowMapType.CascadedDirectional ? !shadowRequest.shouldRenderCachedComponent && blurOnACache :
+                                                                                            shadowRequest.shouldUseCachedShadowData;
+
+                    if (shouldSkipRequest)
                         continue;
 
                     var viewport = blurOnACache ? shadowRequest.cachedAtlasViewport : shadowRequest.dynamicAtlasViewport;
