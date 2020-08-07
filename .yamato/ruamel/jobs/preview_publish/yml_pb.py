@@ -1,6 +1,7 @@
 
 from ..shared.namer import pb_filepath
 from .pb_promote import PreviewPublish_PromoteJob
+from .pb_promote_dry import PreviewPublish_PromoteDryJob
 from .pb_auto_version import PreviewPublish_AutoVersionJob
 from .pb_promote_all_preview import PreviewPublish_PromoteAllPreviewJob
 from .pb_wait_for_nightly import PreviewPublish_WaitForNightlyJob
@@ -24,6 +25,9 @@ def create_preview_publish_ymls(metafile):
         if package["publish_source"] == True:
 
             job = PreviewPublish_PromoteJob(metafile["agent_promote"], package,  metafile["platforms"], metafile["target_editor"])
+            yml[job.job_id] = job.yml
+
+            job = PreviewPublish_PromoteDryJob(metafile["agent_promote"], package,  metafile["platforms"], metafile["target_editor"])
             yml[job.job_id] = job.yml
 
     yml_files[pb_filepath()] = yml
