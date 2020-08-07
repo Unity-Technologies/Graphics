@@ -724,7 +724,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 new KeywordEntry() { displayName = "Off", referenceName = "" },
                 new KeywordEntry() { displayName = "No Cascade", referenceName = "MAIN_LIGHT_SHADOWS" },
-                new KeywordEntry() { displayName = "Cascade", referenceName = "MAIN_LIGHT_SHADOWS" },
+                new KeywordEntry() { displayName = "Cascade", referenceName = "MAIN_LIGHT_SHADOWS_CASCADE" },
+                new KeywordEntry() { displayName = "Screen", referenceName = "MAIN_LIGHT_SHADOWS_SCREEN" },
             }
         };
 
