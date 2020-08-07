@@ -275,7 +275,7 @@ test_lwrp_windows_trunk:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\lwrp\upm-ci~\packages\packages.json upm-ci~\packages
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.lightweight
     artifacts:
         logs:
@@ -298,7 +298,7 @@ test_lwrp_windows_trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.lightweight
     artifacts:
         logs:
@@ -320,7 +320,7 @@ test_shadergraph_windows_trunk:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\shadergraph\upm-ci~\packages\packages.json upm-ci~\packages
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --package-path com.unity.shadergraph
     artifacts:
         logs:
@@ -341,7 +341,7 @@ test_shadergraph_windows_trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.shadergraph
     artifacts:
         logs:
@@ -366,7 +366,7 @@ test_hdrp_windows_trunk:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\hdrp\upm-ci~\packages\packages.json upm-ci~\packages
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.high-definition
     artifacts:
         logs:
@@ -390,7 +390,7 @@ test_hdrp_windows_trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.high-definition
     artifacts:
         logs:
@@ -413,7 +413,7 @@ test_universal_windows_trunk:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\universal\upm-ci~\packages\packages.json upm-ci~\packages
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.universal
     artifacts:
         logs:
@@ -435,7 +435,7 @@ test_universal_windows_trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.universal
     artifacts:
         logs:
@@ -458,7 +458,7 @@ test_vfx_windows_trunk:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\vfx\upm-ci~\packages\packages.json upm-ci~\packages
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --package-path com.unity.visualeffectgraph
     artifacts:
         logs:
@@ -480,7 +480,7 @@ test_vfx_windows_trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.visualeffectgraph
     artifacts:
         logs:
@@ -502,7 +502,7 @@ test_config_windows_trunk:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\config\upm-ci~\packages\packages.json upm-ci~\packages
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
         logs:
@@ -523,7 +523,7 @@ test_config_windows_trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
         logs:
@@ -893,7 +893,7 @@ test_lwrp_windows_fast-trunk:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\lwrp\upm-ci~\packages\packages.json upm-ci~\packages
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.lightweight
     artifacts:
         logs:
@@ -916,7 +916,7 @@ test_lwrp_windows_fast-trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.lightweight
     artifacts:
         logs:
@@ -938,7 +938,7 @@ test_shadergraph_windows_fast-trunk:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\shadergraph\upm-ci~\packages\packages.json upm-ci~\packages
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --package-path com.unity.shadergraph
     artifacts:
         logs:
@@ -959,7 +959,7 @@ test_shadergraph_windows_fast-trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.shadergraph
     artifacts:
         logs:
@@ -984,7 +984,7 @@ test_hdrp_windows_fast-trunk:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\hdrp\upm-ci~\packages\packages.json upm-ci~\packages
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.high-definition
     artifacts:
         logs:
@@ -1008,7 +1008,7 @@ test_hdrp_windows_fast-trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.high-definition
     artifacts:
         logs:
@@ -1031,7 +1031,7 @@ test_universal_windows_fast-trunk:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\universal\upm-ci~\packages\packages.json upm-ci~\packages
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.universal
     artifacts:
         logs:
@@ -1053,7 +1053,7 @@ test_universal_windows_fast-trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.universal
     artifacts:
         logs:
@@ -1076,7 +1076,7 @@ test_vfx_windows_fast-trunk:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\vfx\upm-ci~\packages\packages.json upm-ci~\packages
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --package-path com.unity.visualeffectgraph
     artifacts:
         logs:
@@ -1098,7 +1098,7 @@ test_vfx_windows_fast-trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.visualeffectgraph
     artifacts:
         logs:
@@ -1120,7 +1120,7 @@ test_config_windows_fast-trunk:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\config\upm-ci~\packages\packages.json upm-ci~\packages
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
         logs:
@@ -1141,7 +1141,7 @@ test_config_windows_fast-trunk_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
         logs:
@@ -1511,7 +1511,7 @@ test_lwrp_windows_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\lwrp\upm-ci~\packages\packages.json upm-ci~\packages
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.lightweight
     artifacts:
         logs:
@@ -1534,7 +1534,7 @@ test_lwrp_windows_CUSTOM-REVISION_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.lightweight
     artifacts:
         logs:
@@ -1556,7 +1556,7 @@ test_shadergraph_windows_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\shadergraph\upm-ci~\packages\packages.json upm-ci~\packages
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --package-path com.unity.shadergraph
     artifacts:
         logs:
@@ -1577,7 +1577,7 @@ test_shadergraph_windows_CUSTOM-REVISION_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.shadergraph
     artifacts:
         logs:
@@ -1602,7 +1602,7 @@ test_hdrp_windows_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\hdrp\upm-ci~\packages\packages.json upm-ci~\packages
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.high-definition
     artifacts:
         logs:
@@ -1626,7 +1626,7 @@ test_hdrp_windows_CUSTOM-REVISION_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.high-definition
     artifacts:
         logs:
@@ -1649,7 +1649,7 @@ test_universal_windows_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\universal\upm-ci~\packages\packages.json upm-ci~\packages
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.universal
     artifacts:
         logs:
@@ -1671,7 +1671,7 @@ test_universal_windows_CUSTOM-REVISION_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.universal
     artifacts:
         logs:
@@ -1694,7 +1694,7 @@ test_vfx_windows_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\vfx\upm-ci~\packages\packages.json upm-ci~\packages
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --package-path com.unity.visualeffectgraph
     artifacts:
         logs:
@@ -1716,7 +1716,7 @@ test_vfx_windows_CUSTOM-REVISION_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.visualeffectgraph
     artifacts:
         logs:
@@ -1738,7 +1738,7 @@ test_config_windows_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\config\upm-ci~\packages\packages.json upm-ci~\packages
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
         logs:
@@ -1759,7 +1759,7 @@ test_config_windows_CUSTOM-REVISION_dependencies:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  for /r "packages_temp" %x in (*.tgz) do copy "%x" "upm-ci~\packages"
+      -  for /r packages_temp %x in (*.tgz) do copy %x upm-ci~\packages
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
         logs:
