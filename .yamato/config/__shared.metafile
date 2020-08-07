@@ -77,7 +77,8 @@ platforms:
       type: Unity::VM::osx
       image: package-ci/mac:stable
       flavor: m1.mac
-    copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
+    #copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
+    copycmd: cp packages_temp/**/*.tgz upm-ci~/packages
     editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
   Linux:
     name: Linux
