@@ -122,8 +122,6 @@ namespace UnityEditor.ShaderGraph
                 UpdateNodeAfterDeserialization();
                 owner.ValidateGraph();
                 Dirty(ModificationScope.Topological);
-
-
             }
         }
 
@@ -131,7 +129,7 @@ namespace UnityEditor.ShaderGraph
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new DynamicMatrixMaterialSlot(InputSlotId, kInputSlotName, kInputSlotName, SlotType.Input));
-            //AddSlot(new DynamicMatrixMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
+            //add slot needs to add connected edges to update loop in handlegraphchanges
             switch (m_OutputSize)
             {
                 case SwizzleOutputSize.Matrix4:

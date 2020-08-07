@@ -778,6 +778,8 @@ namespace UnityEditor.ShaderGraph
                 return;
 
             slot.CopyValuesFrom(foundSlot);
+
+            //should check if edges need update
             foundSlot.owner = null;
         }
 
