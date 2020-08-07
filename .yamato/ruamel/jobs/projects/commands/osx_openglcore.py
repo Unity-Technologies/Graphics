@@ -4,7 +4,7 @@ def _cmd_base(project_folder, components, editor_revision):
     return [
         f'curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output {TEST_PROJECTS_DIR}/{project_folder}/utr',
         f'chmod +x {TEST_PROJECTS_DIR}/{project_folder}/utr',
-        f'pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade',
+        f'pip install unity-downloader-cli --index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && -u { editor_revision } {"".join([f"-c {c} " for c in components])} --wait --published-only'
     ]
 
@@ -12,7 +12,7 @@ def _cmd_base(project_folder, components, editor_revision):
 def cmd_not_standalone(project_folder, platform, api, test_platform_args, editor_revision):
     base = _cmd_base(project_folder, platform["components"], editor_revision)
     base.extend([ 
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && ./utr {test_platform_args} --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}'
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && ./utr {test_platform_args} --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}{_get_extra_utr_arg(project_folder)}'
     ])
     return base
 
@@ -33,3 +33,5 @@ def cmd_standalone_build(project_folder, platform, api, test_platform_args, edit
     raise Exception("OSX_OpenGlCore standalone should not be called")
 
 
+def _get_extra_utr_arg(project_folder):
+    return ' --compilation-errors-as-warnings' if project_folder.lower() in ['universalhybridtest', 'hdrp_hybridtests'] else ''

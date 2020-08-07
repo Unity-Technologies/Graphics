@@ -335,7 +335,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
         bool isInBounds = Max3(abs(positionCS.x), abs(positionCS.y), abs(z - 0.5 * r) - 0.5 * r + 1) <= light.boxLightSafeExtent;
         if (lightType != GPULIGHTTYPE_PROJECTOR_PYRAMID && lightType != GPULIGHTTYPE_PROJECTOR_BOX)
         {
-            isInBounds = isInBounds & dot(positionCS, positionCS) <= light.iesCut * light.iesCut;
+            isInBounds = isInBounds && (dot(positionCS, positionCS) <= light.iesCut * light.iesCut);
         }
 
         float2 positionNDC = positionCS * 0.5 + 0.5;

@@ -14,8 +14,8 @@ HDRP_Win_DX11_playmode_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 0d4996d84e47ca136a0c046b2990fb8d76cda81d -c editor -c il2cpp  --wait --published-only
+      -  pip install unity-downloader-cli --index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 0d4996d84e47ca136a0c046b2990fb8d76cda81 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
@@ -32,8 +32,8 @@ HDRP_Win_DX11_playmode_XR_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 0d4996d84e47ca136a0c046b2990fb8d76cda81d -c editor -c il2cpp  --wait --published-only
+      -  pip install unity-downloader-cli --index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 0d4996d84e47ca136a0c046b2990fb8d76cda81 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
@@ -50,8 +50,8 @@ HDRP_Win_DX11_playmode_RenderGraph_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 0d4996d84e47ca136a0c046b2990fb8d76cda81d -c editor -c il2cpp  --wait --published-only
+      -  pip install unity-downloader-cli --index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 0d4996d84e47ca136a0c046b2990fb8d76cda81 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && utr --suite=playmode --extra-editor-arg="-rendergraph-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
@@ -67,8 +67,8 @@ HDRP_Win_DX11_editmode_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 0d4996d84e47ca136a0c046b2990fb8d76cda81d -c editor -c il2cpp  --wait --published-only
+      -  pip install unity-downloader-cli --index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 0d4996d84e47ca136a0c046b2990fb8d76cda81 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
@@ -85,8 +85,6 @@ HDRP_Win_DX11_Standalone_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli -u 0d4996d84e47ca136a0c046b2990fb8d76cda81d -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_RuntimeTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -107,8 +105,8 @@ Build_HDRP_Win_DX11_Player_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli -u 0d4996d84e47ca136a0c046b2990fb8d76cda81d -c editor -c il2cpp  --wait --published-only
+      -  pip install unity-downloader-cli --index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli -u 0d4996d84e47ca136a0c046b2990fb8d76cda81 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_RuntimeTests && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
@@ -129,7 +127,7 @@ HDRP_Win_DX11_playmode_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u $CUSTOM_REVISION -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
@@ -148,7 +146,7 @@ HDRP_Win_DX11_playmode_XR_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u $CUSTOM_REVISION -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
@@ -167,7 +165,7 @@ HDRP_Win_DX11_playmode_RenderGraph_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u $CUSTOM_REVISION -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && utr --suite=playmode --extra-editor-arg="-rendergraph-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
@@ -185,7 +183,7 @@ HDRP_Win_DX11_editmode_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u $CUSTOM_REVISION -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
@@ -204,8 +202,6 @@ HDRP_Win_DX11_Standalone_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli -u $CUSTOM_REVISION -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_RuntimeTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -227,7 +223,7 @@ Build_HDRP_Win_DX11_Player_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli -u $CUSTOM_REVISION -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_RuntimeTests && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:

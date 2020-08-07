@@ -13,9 +13,9 @@ HDRP_Hybrid_Win_Vulkan_playmode_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 0d4996d84e47ca136a0c046b2990fb8d76cda81d -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
+      -  pip install unity-downloader-cli --index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 0d4996d84e47ca136a0c046b2990fb8d76cda81 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --compilation-errors-as-warnings --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -30,9 +30,9 @@ HDRP_Hybrid_Win_Vulkan_playmode_XR_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 0d4996d84e47ca136a0c046b2990fb8d76cda81d -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
+      -  pip install unity-downloader-cli --index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 0d4996d84e47ca136a0c046b2990fb8d76cda81 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --compilation-errors-as-warnings --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -47,9 +47,7 @@ HDRP_Hybrid_Win_Vulkan_Standalone_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 0d4996d84e47ca136a0c046b2990fb8d76cda81d -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto --compilation-errors-as-warnings
     artifacts:
         logs:
             paths:
@@ -68,9 +66,9 @@ Build_HDRP_Hybrid_Win_Vulkan_Player_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 0d4996d84e47ca136a0c046b2990fb8d76cda81d -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
+      -  pip install unity-downloader-cli --index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u 0d4996d84e47ca136a0c046b2990fb8d76cda81 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only --compilation-errors-as-warnings
     artifacts:
         logs:
             paths:
@@ -89,9 +87,9 @@ HDRP_Hybrid_Win_Vulkan_playmode_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u $CUSTOM_REVISION -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --compilation-errors-as-warnings --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -107,9 +105,9 @@ HDRP_Hybrid_Win_Vulkan_playmode_XR_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u $CUSTOM_REVISION -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --compilation-errors-as-warnings --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -125,9 +123,7 @@ HDRP_Hybrid_Win_Vulkan_Standalone_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u $CUSTOM_REVISION -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto --compilation-errors-as-warnings
     artifacts:
         logs:
             paths:
@@ -147,9 +143,9 @@ Build_HDRP_Hybrid_Win_Vulkan_Player_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u $CUSTOM_REVISION -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
+      -  cd TestProjects/HDRP_HybridTests && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only --compilation-errors-as-warnings
     artifacts:
         logs:
             paths:

@@ -152,14 +152,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 }
                 passDescriptor.includes = finalIncludes;
 
-                // Add keywords from subshaders:
-                passDescriptor.keywords = passDescriptor.keywords == null ? new KeywordCollection() : new KeywordCollection{ passDescriptor.keywords }; // Duplicate keywords to avoid side effects (static list modification)
-                passDescriptor.defines = passDescriptor.defines == null ? new DefineCollection() : new DefineCollection{ passDescriptor.defines }; // Duplicate defines to avoid side effects (static list modification)
-                // foreach (var l in passDescriptor.keywords)
-                //     if (l.descriptor.referenceName.Contains("DEBUG_DISPLAY"))
-                //         Debug.Log(passDescriptor.lightMode);
-                CollectPassKeywords(ref passDescriptor);
-
                 // Replace valid pixel blocks by automatic thing so we don't have to write them
                 var tmpCtx = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), passDescriptor);
                 GetActiveBlocks(ref tmpCtx);
@@ -167,6 +159,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     passDescriptor.validPixelBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Fragment).ToArray();
                 if (passDescriptor.validVertexBlocks == null)
                     passDescriptor.validVertexBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Vertex).ToArray();
+
+                // Add keywords from subshaders:
+                passDescriptor.keywords = passDescriptor.keywords == null ? new KeywordCollection() : new KeywordCollection{ passDescriptor.keywords }; // Duplicate keywords to avoid side effects (static list modification)
+                passDescriptor.defines = passDescriptor.defines == null ? new DefineCollection() : new DefineCollection{ passDescriptor.defines }; // Duplicate defines to avoid side effects (static list modification)
+                CollectPassKeywords(ref passDescriptor);
 
                 // Set default values for HDRP "surface" passes:
                 if (passDescriptor.structs == null)

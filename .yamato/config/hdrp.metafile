@@ -80,5 +80,6 @@ all:
       test_platforms:
         - playmode
         - playmode_XR
+        - playmode_RenderGraph
     #- project: HDRP_Hybrid
     #  all: true
