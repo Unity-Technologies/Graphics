@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -8,28 +9,6 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     internal class LightUnitSliderUIDrawer
     {
-        private class NoIndentScope : IDisposable
-        {
-            public NoIndentScope()
-            {
-                m_PrevIndentLevel = EditorGUI.indentLevel;
-                EditorGUI.indentLevel = 0;
-            }
-
-            public void Dispose()
-            {
-                EditorGUI.indentLevel = m_PrevIndentLevel;
-            }
-
-            private int m_PrevIndentLevel;
-        }
-
-        private struct LightUnitLevel
-        {
-            public GUIContent content;
-            public Vector2    range;
-        }
-
         private class LightUnitLevels
         {
             public LightUnitLevels(string cautionTooltip)
@@ -41,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public void AddLevel(Texture2D icon, string tooltip, Vector2 range)
             {
-                LightUnitLevel level;
+                LightUnitUILevel level;
                 level.content = new GUIContent(icon, tooltip);
                 level.range = range;
                 m_Levels.Add(level);
@@ -89,7 +68,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             private readonly GUIContent m_CautionContent;
-            private readonly List<LightUnitLevel> m_Levels = new List<LightUnitLevel>();
+            private readonly List<LightUnitUILevel> m_Levels = new List<LightUnitUILevel>();
             private float m_RangeMin = float.MaxValue;
             private float m_RangeMax = float.MinValue;
         }
@@ -110,12 +89,12 @@ namespace UnityEditor.Rendering.HighDefinition
             luxPresets.AddLevel(editorTextures.lightUnitMoonLight,       "Moon Light",        new Vector2(0,     1));;
             s_LightUnitLevelMap.Add(LightUnit.Lux, luxPresets);
 
-            var lumenPresets = new LightUnitLevels("Very High Intensity Light");
-            lumenPresets.AddLevel(editorTextures.lightUnitExterior,   "Exterior",   new Vector2(3000, 40000));
-            lumenPresets.AddLevel(editorTextures.lightUnitInterior,   "Interior",   new Vector2(300,   3000));
-            lumenPresets.AddLevel(editorTextures.lightUnitDecorative, "Decorative", new Vector2(15,     300));
-            lumenPresets.AddLevel(editorTextures.lightUnitCandle,     "Candle",     new Vector2(0,      15));
-            s_LightUnitLevelMap.Add(LightUnit.Lumen, lumenPresets);
+            // var lumenPresets = new LightUnitLevels("Very High Intensity Light");
+            // lumenPresets.AddLevel(editorTextures.lightUnitExterior,   "Exterior",   new Vector2(3000, 40000));
+            // lumenPresets.AddLevel(editorTextures.lightUnitInterior,   "Interior",   new Vector2(300,   3000));
+            // lumenPresets.AddLevel(editorTextures.lightUnitDecorative, "Decorative", new Vector2(15,     300));
+            // lumenPresets.AddLevel(editorTextures.lightUnitCandle,     "Candle",     new Vector2(0,      15));
+            // s_LightUnitLevelMap.Add(LightUnit.Lumen, lumenPresets);
 
             s_MarkerContent = new GUIContent(string.Empty);
         }
@@ -130,12 +109,16 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!s_LightUnitLevelMap.TryGetValue(unit, out var lightUnitLevels))
                 return;
 
-            // TODO: Is a scope really necessary for this? If so, move to HDEditorUtils.cs?
             // Disable indentation (breaks tooltips otherwise).
-            using (new NoIndentScope())
-            {
-                lightUnitLevels.Draw(rect, value);
-            }
+            var prevIndentLevel = EditorGUI.indentLevel;
+            EditorGUI.indentLevel = 0;
+
+            // Draw
+            lightUnitLevels.Draw(rect, value);
+
+            // Restore indentation
+            EditorGUI.indentLevel = prevIndentLevel;
+
         }
 
         private static void GetRects(Rect baseRect, out Rect sliderRect, out Rect iconRect)
@@ -158,7 +141,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         private static void DoSliderMarker(Rect rect, float x, string tooltip)
         {
-            const float width  = 4f;
+            const float width  = 3f;
             const float height = 2f;
 
             var markerRect = rect;
@@ -185,7 +168,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // TODO: Consider enlarging this tooltip rect so that it's easier to discover?
             s_MarkerContent.tooltip = tooltip;
-            EditorGUI.LabelField(markerRect, s_MarkerContent, EditorStyles.inspectorDefaultMargins);
+            EditorGUI.LabelField(markerRect, s_MarkerContent);
         }
 
         private static void DoIcon(Rect rect, GUIContent icon)
