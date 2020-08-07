@@ -57,7 +57,7 @@ namespace UnityEditor.ShaderGraph
 
         
 
-        [TextControl(0, "", " m", "   m", "   m", "   m")]
+        [TextControl(0, "", " a", "   a", "   m", "   m")]
         public string row0
         {
             get { return index_Row0; }
@@ -189,13 +189,13 @@ namespace UnityEditor.ShaderGraph
             switch (n)
             {
                 default:
-                    return "x";
+                    return "r";
                 case 1:
-                    return "y";
+                    return "g";
                 case 2:
-                    return "z";
+                    return "b";
                 case 3:
-                    return "w";
+                    return "a";
             }
         }
 
@@ -258,7 +258,7 @@ namespace UnityEditor.ShaderGraph
         public override void ValidateNode()
         {
             base.ValidateNode();
-            Debug.Log("AreIndiciesValid" + AreIndiciesValid);
+            //Debug.Log("AreIndiciesValid" + AreIndiciesValid);
             if (!AreIndiciesValid)
             {
                 owner.AddValidationError(objectId, "Indices need to be smaller than input size!", ShaderCompilerMessageSeverity.Error);
@@ -381,6 +381,7 @@ namespace UnityEditor.ShaderGraph
 
 
                 Vector4 indecies = inputIndecies.GetRow(r);
+                Debug.Log("indecies: "+indecies);
                 switch (m_OutputSize)
                         {
 
@@ -413,10 +414,12 @@ namespace UnityEditor.ShaderGraph
                                 }
                                 else
                                 {
-                                    outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_x_R, input_x_C);
-                                    outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_y_R, input_y_C);
-                                    outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_z_R, input_z_C);
-                                    outputValue += string.Format("_{0}_m{1}.{2}", inputValue, input_w_R, input_w_C);
+                                   
+                                    outputValue += string.Format("{0}[{1}].{2},", inputValue, input_x_R, input_x_C);
+                                    outputValue += string.Format("{0}[{1}].{2},", inputValue, input_y_R, input_y_C);
+                                    outputValue += string.Format("{0}[{1}].{2},", inputValue, input_z_R, input_z_C);
+                                    outputValue += string.Format("{0}[{1}].{2}", inputValue, input_w_R, input_w_C);
+                           // Debug.Log("outputValue: " + input_x_C+ input_y_C+ input_z_C+ input_w_C);
                                 }
 
 
@@ -451,9 +454,9 @@ namespace UnityEditor.ShaderGraph
                                     }
                                     else
                                     {
-                                        outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_x_R3, input_x_C3);
-                                        outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_y_R3, input_y_C3);
-                                        outputValue += string.Format("_{0}_m{1}.{2}", inputValue, input_z_R3, input_z_C3);
+                                        outputValue += string.Format("{0}[{1}].{2},", inputValue, input_x_R3, input_x_C3);
+                                        outputValue += string.Format("{0}[{1}].{2},", inputValue, input_y_R3, input_y_C3);
+                                        outputValue += string.Format("{0}[{1}].{2}", inputValue, input_z_R3, input_z_C3);
                                     }
 
 
@@ -486,8 +489,10 @@ namespace UnityEditor.ShaderGraph
                                     }
                                     else
                                     {
-                                        outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_x_R3, input_x_C3);
-                                        outputValue += string.Format("_{0}_m{1}.{2}", inputValue, input_y_R3, input_y_C3);
+                                    outputValue += string.Format("{0}[{1}].{2},", inputValue, input_x_R3, input_x_C3);
+                                    outputValue += string.Format("{0}[{1}].{2}", inputValue, input_y_R3, input_y_C3);
+                                //outputValue += string.Format("{0}_m{1}.{2},", inputValue, input_x_R3, input_x_C3);
+                                //outputValue += string.Format("{0}_m{1}.{2}", inputValue, input_y_R3, input_y_C3);
                                     }
 
 
@@ -512,10 +517,12 @@ namespace UnityEditor.ShaderGraph
                                     {
                                         outputValue += Matrix4x4.identity.GetRow(input_x_R3)[getIndex(indecies.x)[1]];
 
-                                    }
+                            }
                                     else
                                     {
-                                        outputValue += string.Format("_{0}_m{1}.{2}", inputValue, input_x_R3, input_x_C3);
+                                //outputValue += Matrix4x4.identity.GetRow(input_x_R3)[getIndex(indecies.x)[1]];
+                                outputValue += string.Format("{0}[{1}].{2}", inputValue, input_x_R3, input_x_C3);
+                                Debug.Log("outputValue: " + string.Format("{0}[{1}].{2}", inputValue, input_x_R3, input_x_C3));
 
                                     }
  
@@ -524,6 +531,7 @@ namespace UnityEditor.ShaderGraph
                                 }
                             case SwizzleOutputSize.Vector2:
                                 outputRowCount = 2;
+                                Debug.Log("outputValue: " + outputValue);
                                 if (r >= 2)
                                 {
 
@@ -541,13 +549,13 @@ namespace UnityEditor.ShaderGraph
                                     if (useIndentity == true)
                                     {
                                         outputValue += Matrix4x4.identity.GetRow(input_x_R3)[getIndex(indecies.x)[1]];
-
-                                    }
+                                Debug.Log("outputValue: " + outputValue);
+                            }
                                     else
                                     {
-                                        outputValue += string.Format("_{0}_m{1}.{2}", inputValue, input_x_R3, input_x_C3);
-
-                                    }
+                                        outputValue += string.Format("{0}[{1}].{2}", inputValue, input_x_R3, input_x_C3);
+                                Debug.Log("outputValue: " + outputValue);
+                            }
                            
 
                             break;
@@ -575,7 +583,7 @@ namespace UnityEditor.ShaderGraph
                                     }
                                     else
                                     {
-                                        outputValue += string.Format("_{0}_m{1}.{2}", inputValue, input_x_R3, input_x_C3);
+                                        outputValue += string.Format("{0}[{1}].{2}", inputValue, input_x_R3, input_x_C3);
 
                                     }
                             
@@ -605,7 +613,7 @@ namespace UnityEditor.ShaderGraph
                                     }
                                     else
                                     {
-                                        outputValue += string.Format("_{0}_m{1}.{2}", inputValue, input_x_R3, input_x_C3);
+                                        outputValue += string.Format("{0}[{1}].{2}", inputValue, input_x_R3, input_x_C3);
                                     }
 
                            
@@ -692,7 +700,7 @@ namespace UnityEditor.ShaderGraph
                     else if (inputSlot is DynamicMatrixMaterialSlot)
                     {
                         dynamicMatrixInputSlotsToCompare.Add((DynamicMatrixMaterialSlot)inputSlot, outputConcreteType);
-                        Debug.Log("inputSlot:" + inputSlot + ", outputConcreteType: "+ outputConcreteType);
+                        //Debug.Log("inputSlot:" + inputSlot + ", outputConcreteType: "+ outputConcreteType);
                         continue;
                     }
                 }
