@@ -28,8 +28,9 @@ publish_core:
       -  .yamato/_packages.yml#test_core_windows_trunk
       -  .yamato/_packages.yml#test_core_macos_trunk
     commands:
+      -  copy packages_temp\core\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package publish --package-path com.unity.render-pipelines.core --artifacts-path packages_temp/core
+      -  upm-ci package publish --package-path com.unity.render-pipelines.core
     artifacts:
         packages:
             paths:
@@ -45,8 +46,9 @@ publish_core_dry:
       -  .yamato/_packages.yml#test_core_windows_trunk
       -  .yamato/_packages.yml#test_core_macos_trunk
     commands:
+      -  copy packages_temp\core\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package publish --package-path com.unity.render-pipelines.core --artifacts-path packages_temp/core --dry-run
+      -  upm-ci package publish --package-path com.unity.render-pipelines.core --dry-run
     artifacts:
         packages:
             paths:
@@ -76,8 +78,9 @@ publish_lwrp:
       -  .yamato/_packages.yml#test_lwrp_windows_trunk
       -  .yamato/_packages.yml#test_lwrp_macos_trunk
     commands:
+      -  copy packages_temp\lwrp\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package publish --package-path com.unity.render-pipelines.lightweight --artifacts-path packages_temp/lwrp
+      -  upm-ci package publish --package-path com.unity.render-pipelines.lightweight
     artifacts:
         packages:
             paths:
@@ -93,8 +96,9 @@ publish_lwrp_dry:
       -  .yamato/_packages.yml#test_lwrp_windows_trunk
       -  .yamato/_packages.yml#test_lwrp_macos_trunk
     commands:
+      -  copy packages_temp\lwrp\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package publish --package-path com.unity.render-pipelines.lightweight --artifacts-path packages_temp/lwrp --dry-run
+      -  upm-ci package publish --package-path com.unity.render-pipelines.lightweight --dry-run
     artifacts:
         packages:
             paths:
@@ -124,8 +128,9 @@ publish_shadergraph:
       -  .yamato/_packages.yml#test_shadergraph_windows_trunk
       -  .yamato/_packages.yml#test_shadergraph_macos_trunk
     commands:
+      -  copy packages_temp\shadergraph\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package publish --package-path com.unity.shadergraph --artifacts-path packages_temp/shadergraph
+      -  upm-ci package publish --package-path com.unity.shadergraph
     artifacts:
         packages:
             paths:
@@ -141,8 +146,9 @@ publish_shadergraph_dry:
       -  .yamato/_packages.yml#test_shadergraph_windows_trunk
       -  .yamato/_packages.yml#test_shadergraph_macos_trunk
     commands:
+      -  copy packages_temp\shadergraph\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package publish --package-path com.unity.shadergraph --artifacts-path packages_temp/shadergraph --dry-run
+      -  upm-ci package publish --package-path com.unity.shadergraph --dry-run
     artifacts:
         packages:
             paths:
@@ -172,8 +178,9 @@ publish_hdrp:
       -  .yamato/_packages.yml#test_hdrp_windows_trunk
       -  .yamato/_packages.yml#test_hdrp_macos_trunk
     commands:
+      -  copy packages_temp\hdrp\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition --artifacts-path packages_temp/hdrp
+      -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition
     artifacts:
         packages:
             paths:
@@ -189,8 +196,9 @@ publish_hdrp_dry:
       -  .yamato/_packages.yml#test_hdrp_windows_trunk
       -  .yamato/_packages.yml#test_hdrp_macos_trunk
     commands:
+      -  copy packages_temp\hdrp\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition --artifacts-path packages_temp/hdrp --dry-run
+      -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition --dry-run
     artifacts:
         packages:
             paths:
@@ -220,8 +228,9 @@ publish_universal:
       -  .yamato/_packages.yml#test_universal_windows_trunk
       -  .yamato/_packages.yml#test_universal_macos_trunk
     commands:
+      -  copy packages_temp\universal\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package publish --package-path com.unity.render-pipelines.universal --artifacts-path packages_temp/universal
+      -  upm-ci package publish --package-path com.unity.render-pipelines.universal
     artifacts:
         packages:
             paths:
@@ -237,8 +246,9 @@ publish_universal_dry:
       -  .yamato/_packages.yml#test_universal_windows_trunk
       -  .yamato/_packages.yml#test_universal_macos_trunk
     commands:
+      -  copy packages_temp\universal\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package publish --package-path com.unity.render-pipelines.universal --artifacts-path packages_temp/universal --dry-run
+      -  upm-ci package publish --package-path com.unity.render-pipelines.universal --dry-run
     artifacts:
         packages:
             paths:
@@ -268,8 +278,9 @@ publish_vfx:
       -  .yamato/_packages.yml#test_vfx_windows_trunk
       -  .yamato/_packages.yml#test_vfx_macos_trunk
     commands:
+      -  copy packages_temp\vfx\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package publish --package-path com.unity.visualeffectgraph --artifacts-path packages_temp/vfx
+      -  upm-ci package publish --package-path com.unity.visualeffectgraph
     artifacts:
         packages:
             paths:
@@ -285,8 +296,9 @@ publish_vfx_dry:
       -  .yamato/_packages.yml#test_vfx_windows_trunk
       -  .yamato/_packages.yml#test_vfx_macos_trunk
     commands:
+      -  copy packages_temp\vfx\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package publish --package-path com.unity.visualeffectgraph --artifacts-path packages_temp/vfx --dry-run
+      -  upm-ci package publish --package-path com.unity.visualeffectgraph --dry-run
     artifacts:
         packages:
             paths:
@@ -316,8 +328,9 @@ publish_config:
       -  .yamato/_packages.yml#test_config_windows_trunk
       -  .yamato/_packages.yml#test_config_macos_trunk
     commands:
+      -  copy packages_temp\config\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition-config --artifacts-path packages_temp/config
+      -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
         packages:
             paths:
@@ -333,8 +346,9 @@ publish_config_dry:
       -  .yamato/_packages.yml#test_config_windows_trunk
       -  .yamato/_packages.yml#test_config_macos_trunk
     commands:
+      -  copy packages_temp\config\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition-config --artifacts-path packages_temp/config --dry-run
+      -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition-config --dry-run
     artifacts:
         packages:
             paths:
