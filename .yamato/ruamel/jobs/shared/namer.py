@@ -57,6 +57,9 @@ def projectcontext_job_id_test_all(editor_version):
 def pb_projectcontext_job_id_promote(package_name):
     return f'promote_{package_name}_project'
 
+def pb_projectcontext_job_id_promote_dry(package_name):
+    return f'promote_{package_name}_project_dry'
+
 def pb_projectcontext_job_id_promote_all_preview():
     return f'promote_all_preview_project'
 

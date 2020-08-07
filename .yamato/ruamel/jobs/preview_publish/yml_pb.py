@@ -7,6 +7,7 @@ from .pb_promote_all_preview import PreviewPublish_PromoteAllPreviewJob
 from .pb_wait_for_nightly import PreviewPublish_WaitForNightlyJob
 from .pb_promote_project import PreviewPublish_ProjectContext_PromoteJob
 from .pb_promote_all_preview_project import PreviewPublish_ProjectContext_PromoteAllPreviewJob
+from .pb_promote_project_dry import PreviewPublish_ProjectContext_PromoteJob_DryRun
 
 def create_preview_publish_ymls(metafile):
     
@@ -33,6 +34,9 @@ def create_preview_publish_ymls(metafile):
             yml[job.job_id] = job.yml
 
             job = PreviewPublish_ProjectContext_PromoteJob(metafile["agent_promote"], package,  metafile["platforms"], metafile["target_editor"])
+            yml[job.job_id] = job.yml
+
+            job = PreviewPublish_ProjectContext_PromoteJob_DryRun(metafile["agent_promote"], package,  metafile["platforms"], metafile["target_editor"])
             yml[job.job_id] = job.yml
 
             job = PreviewPublish_PromoteDryJob(metafile["agent_promote"], package,  metafile["platforms"], metafile["target_editor"])
