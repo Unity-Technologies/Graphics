@@ -50,13 +50,10 @@ After trying the solutions below, you may want to run `npm install` again in the
 
     -   If you attempted to install git lfs (`git lfs install`) _after_ installing the hooks, you may have this error. To resolve, run `git lfs update --force` and then re-do a `npm install` in the Tools folder.
 
--   _Powershell excution policy problem - File cannot be loaded_:
-    -   The full error looks like this: `check-shader-includes.ps1 cannot be loaded because running scripts is disabled on this system.`. Open a powershell console as administrator and run `Set-ExecutionPolicy RemoteSigned`. Note: The shell scripted hooks are progressively being replaced by python ones so this error will disappear definitely in a few weeks.
 
 ### Available git hooks
 
 -   `check-shader-includes` (pre-commit): Compare the case sensitivity of the shader includes in the code files to the actual files in the filesystem. Generate a log if it differs.
--   `renormalize-files` (pre-commit): Ensure all files are normalized with LF line endings. CRLF line endings are not allowed on the remote.
 -   `check-file-name-extension` (pre-commit): Make sure all files pushed have a lowercase extension so that imports are not broken on Linux.
 -   `check-branch-name` (pre-push): Ensure the current branch is following the convention: - All new branches enclosed in a folder (valid name: `folder/my-branch`) - All branches in lowercase, except for the enclosing `HDRP` folder (valid names: `HDRP/my-branch`, `something-else/my-branch`)
 

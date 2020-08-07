@@ -632,6 +632,9 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
                 cameraData.renderer = asset.scriptableRenderer;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                cameraData.xrRendering = false;
+#endif
             }
             else if (additionalCameraData != null)
             {
@@ -654,6 +657,9 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
                 cameraData.renderer = asset.scriptableRenderer;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                cameraData.xrRendering = true;
+#endif
             }
 
             // Disable depth and color copy. We should add it in the renderer instead to avoid performance pitfalls
