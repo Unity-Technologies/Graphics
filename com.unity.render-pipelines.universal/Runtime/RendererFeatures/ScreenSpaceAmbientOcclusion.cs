@@ -1,4 +1,5 @@
 using System;
+using System.Security.Permissions;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -270,6 +271,8 @@ namespace UnityEngine.Rendering.Universal
                     float flipSign = (renderingData.cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
                     Vector4 scaleBias = (flipSign < 0.0f) ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f) : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
                     cmd.SetGlobalVector(s_ScaleBiasID, scaleBias);
+
+                    PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
 
                     // Execute the SSAO
                     Render(cmd, m_SSAOTexture1Target, ShaderPasses.AO);

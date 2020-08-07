@@ -23,6 +23,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
 
         float4 _SourceSize;
         float4 _HalfSourceSize;
+        float4 _DownSampleScaleFactor;
         float4 _CoCParams;
         float4 _BokehKernel[SAMPLE_COUNT];
 
@@ -136,13 +137,13 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             half farCoC = max(min(samp0.a, samp.a), 0.0);
 
             // Compare the CoC to the sample distance & add a small margin to smooth out
-            const half margin = _HalfSourceSize.w * 2.0;
+            const half margin = _SourceSize.w * _DownSampleScaleFactor.w * 2.0;
             half farWeight = saturate((farCoC - dist + margin) / margin);
             half nearWeight = saturate((-samp.a - dist + margin) / margin);
 
             // Cut influence from focused areas because they're darkened by CoC premultiplying. This is only
             // needed for near field
-            nearWeight *= step(_HalfSourceSize.w, -samp.a);
+            nearWeight *= step(_SourceSize.w * _DownSampleScaleFactor.w, -samp.a);
 
             // Accumulation
             farAcc += half4(samp.rgb, 1.0) * farWeight;
@@ -189,7 +190,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
 
             // 9-tap tent filter with 4 bilinear samples
-            float4 duv = _HalfSourceSize.zwzw * float4(0.5, 0.5, -0.5, 0);
+            float4 duv = _SourceSize.zwzw * _DownSampleScaleFactor.zwzw * float4(0.5, 0.5, -0.5, 0);
             half4 acc;
             acc  = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv - duv.xy);
             acc += SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv - duv.zy);
