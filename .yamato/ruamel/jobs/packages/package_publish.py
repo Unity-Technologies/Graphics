@@ -24,7 +24,7 @@ class Package_PublishJob():
         job.add_dependencies(dependencies)
         job.add_commands([
                 f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
-                f'upm-ci package publish --package-path {package["packagename"]}'])
+                f'upm-ci package publish --package-path {package["packagename"]} --artifacts-path packages_temp/{package["id"]}'])
         job.add_artifacts_packages()
         return job
     

@@ -30,7 +30,7 @@ class PreviewPublish_PromoteJob():
         job.add_dependencies(dependencies)
         job.add_commands([
                 f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
-                f'upm-ci {package["type"]} promote --{package["type"]}-path {package["path"]}'])
+                f'upm-ci {package["type"]} promote --{package["type"]}-path {package["path"]} --artifacts-path packages_temp/{package["name"]}'])
         job.add_artifacts_packages()
         return job
     
