@@ -15,7 +15,7 @@ HDRP_Win_DX12_playmode_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 0d4996d84e47ca136a0c046b2990fb8d76cda81 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 2de78afbf55b2a0e21af599ae9a27f5ac63b894d -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
@@ -33,7 +33,7 @@ HDRP_Win_DX12_playmode_XR_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 0d4996d84e47ca136a0c046b2990fb8d76cda81 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 2de78afbf55b2a0e21af599ae9a27f5ac63b894d -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
@@ -51,7 +51,7 @@ HDRP_Win_DX12_playmode_RenderGraph_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 0d4996d84e47ca136a0c046b2990fb8d76cda81 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 2de78afbf55b2a0e21af599ae9a27f5ac63b894d -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && utr --suite=playmode --extra-editor-arg="-rendergraph-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
@@ -68,7 +68,7 @@ HDRP_Win_DX12_editmode_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 0d4996d84e47ca136a0c046b2990fb8d76cda81 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 2de78afbf55b2a0e21af599ae9a27f5ac63b894d -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
@@ -106,7 +106,7 @@ Build_HDRP_Win_DX12_Player_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli -u 0d4996d84e47ca136a0c046b2990fb8d76cda81 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli -u 2de78afbf55b2a0e21af599ae9a27f5ac63b894d -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_RuntimeTests && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:

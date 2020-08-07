@@ -8,12 +8,6 @@
 # {% endfor %}
 
 editor_version_names:
-- 2019.3_latest_internal
-- 2019.3_latest_public
-- 2019.3_staging
-- 2020.1_latest_internal
-- 2020.1_latest_public
-- 2020.1_staging
 - 2020.2_latest_internal
 - 2020.2_latest_public
 - 2020.2_staging
@@ -28,31 +22,8 @@ editor_version_names:
 # {% for editor_version in editor_version_names %}
 #   {{ editor_version }} : {{ editor_versions[editor_version].revision }}
 # {% endfor %}
+
 editor_versions:
-  2019.3_latest_internal:
-    display_name: 2019.3 latest internal
-    revision: 91f465a473a4
-    version: 2019.3.16f1
-  2019.3_latest_public:
-    display_name: 2019.3 latest public
-    revision: 59ff3e03856d
-    version: 2019.3.15f1
-  2019.3_staging:
-    display_name: 2019.3 staging
-    revision: e01cdcb2d076418d932caa2493be5c07c757f408
-    version: ''
-  2020.1_latest_internal:
-    display_name: 2020.1 latest internal
-    revision: 2285c3239188
-    version: 2020.1.1f1
-  2020.1_latest_public:
-    display_name: 2020.1 latest public
-    revision: 2ab9c4179772
-    version: 2020.1.0f1
-  2020.1_staging:
-    display_name: 2020.1 staging
-    revision: a8f5ee08a951081a7273f616bc3f38198da2c52f
-    version: ''
   2020.2_latest_internal:
     display_name: 2020.2 latest internal
     revision: 48a6bb4f7ce1
@@ -63,9 +34,9 @@ editor_versions:
     version: 2020.2.0a19
   2020.2_staging:
     display_name: 2020.2 staging
-    revision: 0d4996d84e47ca136a0c046b2990fb8d76cda81
+    revision: 2de78afbf55b2a0e21af599ae9a27f5ac63b894d
     version: ''
   project_revision:
     display_name: project revision
-    revision: 40d9420e7de8
-    version: 2020.1.0b15
+    revision: 8037ac78137e
+    version: 2020.2.0a19
