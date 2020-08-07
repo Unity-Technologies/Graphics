@@ -23,6 +23,7 @@ class Package_PublishJob():
         job.set_agent(agent)
         job.add_dependencies(dependencies)
         job.add_commands([
+                f'mkdir upm-ci~\\packages',
                 f'copy packages_temp\\{package["id"]}\\upm-ci~\\packages\\* upm-ci~\\packages',
                 f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
                 f'upm-ci package publish --package-path {package["packagename"]}'])
