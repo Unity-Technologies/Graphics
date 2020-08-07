@@ -407,14 +407,26 @@ namespace UnityEditor.ShaderGraph
                                 int input_w_R = getIndex(indecies.w)[0];
                                 string input_w_C = mapComp(getIndex(indecies.w)[1]);
 
+                                
+
                                 if (r != 0)
                                     outputValue += ",";
-
                                 
-                                outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_x_R, input_x_C);
-                                outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_y_R, input_y_C);
-                                outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_z_R, input_z_C);
-                                outputValue += string.Format("_{0}_m{1}.{2}", inputValue, input_w_R, input_w_C);
+                                if (useIndentity == true)
+                                {
+                                    outputValue += Matrix4x4.identity.GetRow(input_x_R)[getIndex(indecies.x)[1]]+",";
+                                    outputValue += Matrix4x4.identity.GetRow(input_y_R)[getIndex(indecies.y)[1]] + ",";
+                                    outputValue += Matrix4x4.identity.GetRow(input_z_R)[getIndex(indecies.z)[1]] + ",";
+                                    outputValue += Matrix4x4.identity.GetRow(input_w_R)[getIndex(indecies.w)[1]];
+                                }
+                                else
+                                {
+                                    outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_x_R, input_x_C);
+                                    outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_y_R, input_y_C);
+                                    outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_z_R, input_z_C);
+                                    outputValue += string.Format("_{0}_m{1}.{2}", inputValue, input_w_R, input_w_C);
+                                }
+
 
 
                                 break;
@@ -438,10 +450,19 @@ namespace UnityEditor.ShaderGraph
                                     if (r != 0)
                                         outputValue += ",";
 
+                                    if (useIndentity == true)
+                                    {
+                                        outputValue += Matrix4x4.identity.GetRow(getIndex(indecies.x)[0])[getIndex(indecies.x)[1]] + ",";
+                                        outputValue += Matrix4x4.identity.GetRow(getIndex(indecies.y)[0])[getIndex(indecies.y)[1]] + ",";
+                                        outputValue += Matrix4x4.identity.GetRow(getIndex(indecies.z)[0])[getIndex(indecies.z)[1]];
 
-                                    outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_x_R3, input_x_C3);
-                                    outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_y_R3, input_y_C3);
-                                    outputValue += string.Format("_{0}_m{1}.{2}", inputValue, input_z_R3, input_z_C3);
+                                    }
+                                    else
+                                    {
+                                        outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_x_R3, input_x_C3);
+                                        outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_y_R3, input_y_C3);
+                                        outputValue += string.Format("_{0}_m{1}.{2}", inputValue, input_z_R3, input_z_C3);
+                                    }
 
 
                                     break;
@@ -464,9 +485,19 @@ namespace UnityEditor.ShaderGraph
 
                                     if (r != 0)
                                         outputValue += ",";
+                                    if (useIndentity == true)
+                                    {
+                                        outputValue += Matrix4x4.identity.GetRow(getIndex(indecies.x)[0])[getIndex(indecies.x)[1]] + ",";
+                                        outputValue += Matrix4x4.identity.GetRow(getIndex(indecies.y)[0])[getIndex(indecies.y)[1]] ;
 
-                                    outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_x_R3, input_x_C3);
-                                    outputValue += string.Format("_{0}_m{1}.{2}", inputValue, input_y_R3, input_y_C3);
+
+                                    }
+                                    else
+                                    {
+                                        outputValue += string.Format("_{0}_m{1}.{2},", inputValue, input_x_R3, input_x_C3);
+                                        outputValue += string.Format("_{0}_m{1}.{2}", inputValue, input_y_R3, input_y_C3);
+                                    }
+
 
                                     break;
                                 }
@@ -485,10 +516,19 @@ namespace UnityEditor.ShaderGraph
                                     if (r != 0)
                                         outputValue += ",";
 
+                                    if (useIndentity == true)
+                                    {
+                                        outputValue += Matrix4x4.identity.GetRow(input_x_R3)[getIndex(indecies.x)[1]];
 
-                                    outputValue += string.Format("_{0}_m{1}.{2}", inputValue, input_x_R3, input_x_C3);
+                                    }
+                                    else
+                                    {
+                                        outputValue += string.Format("_{0}_m{1}.{2}", inputValue, input_x_R3, input_x_C3);
 
-                                    break;
+                                    }
+ 
+
+                            break;
                                 }
                             case SwizzleOutputSize.Vector2:
                                 outputRowCount = 2;
@@ -506,10 +546,19 @@ namespace UnityEditor.ShaderGraph
 
                                     if (r != 0)
                                         outputValue += ",";
+                                    if (useIndentity == true)
+                                    {
+                                        outputValue += Matrix4x4.identity.GetRow(input_x_R3)[getIndex(indecies.x)[1]];
 
-                                    outputValue += string.Format("_{0}_m{1}.{2}", inputValue, input_x_R3, input_x_C3);
+                                    }
+                                    else
+                                    {
+                                        outputValue += string.Format("_{0}_m{1}.{2}", inputValue, input_x_R3, input_x_C3);
 
-                                    break;
+                                    }
+                           
+
+                            break;
                                 }
                             case SwizzleOutputSize.Vector3:
                                 outputRowCount = 3;
@@ -527,8 +576,17 @@ namespace UnityEditor.ShaderGraph
 
                                     if (r != 0)
                                         outputValue += ",";
+                                    if (useIndentity == true)
+                                    {
+                                        outputValue += Matrix4x4.identity.GetRow(input_x_R3)[getIndex(indecies.x)[1]];
 
-                                    outputValue += string.Format("_{0}_m{1}.{2}", inputValue, input_x_R3, input_x_C3);
+                                    }
+                                    else
+                                    {
+                                        outputValue += string.Format("_{0}_m{1}.{2}", inputValue, input_x_R3, input_x_C3);
+
+                                    }
+                            
 
                                     break;
                                 }
@@ -548,8 +606,17 @@ namespace UnityEditor.ShaderGraph
 
                                     if (r != 0)
                                         outputValue += ",";
+                                    if (useIndentity == true)
+                                    {
+                                        outputValue += Matrix4x4.identity.GetRow(input_x_R3)[getIndex(indecies.x)[1]] ;
 
-                                    outputValue += string.Format("_{0}_m{1}.{2}", inputValue, input_x_R3, input_x_C3);
+                                    }
+                                    else
+                                    {
+                                        outputValue += string.Format("_{0}_m{1}.{2}", inputValue, input_x_R3, input_x_C3);
+                                    }
+
+                           
 
                                     break;
                                 }
