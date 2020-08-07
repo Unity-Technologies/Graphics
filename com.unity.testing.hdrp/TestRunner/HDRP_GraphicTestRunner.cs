@@ -42,6 +42,14 @@ public class HDRP_GraphicTestRunner
         // Load the test settings
         var settings = GameObject.FindObjectOfType<HDRP_TestSettings>();
 
+        // Check for the backbuffer toogle and force it to use the HDRP test runner specific one, to avoid issues when capturing the images.
+        // This is a "lazy" fix to avoid rewriting part of the code
+        if (settings.ImageComparisonSettings.UseBackBuffer)
+        {
+            settings.ImageComparisonSettings.UseBackBuffer = false;
+            settings.captureFromBackBuffer = true;
+        }
+
         // Setup the temporary texture to copy from the backbuffer and compare
         // Also set the game view render size
         if (settings.captureFromBackBuffer)
@@ -208,14 +216,12 @@ public class HDRP_GraphicTestRunner
         RenderPipelineManager.endCameraRendering -= PostRenderCallback;
     }
 
-    void PostRenderCallback( ScriptableRenderContext context, Camera cam )
+    void PostRenderCallback( ScriptableRenderContext context,  Camera cam )
     {
         if ( !doCapture)
             return;
 
         if ( camera == null || cam == null || camera != cam) return;
-
-        // Debug.Log("Capture Backbuffer");
 
         backBufferCaptureTexture.ReadPixels(
             new Rect(0, 0, backBufferCaptureTexture.width, backBufferCaptureTexture.height),

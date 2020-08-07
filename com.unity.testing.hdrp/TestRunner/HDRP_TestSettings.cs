@@ -63,4 +63,13 @@ public class HDRP_TestSettings : GraphicsTestSettings
 
         quitDebug.Clear();
     }
+
+    private void OnValidate()
+    {
+        if (ImageComparisonSettings.UseBackBuffer)
+        {
+            ImageComparisonSettings.UseBackBuffer = false;
+            captureFromBackBuffer = true;
+        }
+    }
 }
