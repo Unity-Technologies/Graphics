@@ -58,17 +58,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return returnStats;
         }
 
-        public void SetupCulling(ref ScriptableCullingParameters cullingParameters, ref CameraData cameraData)
+        public void SetupCulling(ref ScriptableCullingParameters cullingParameters, Camera camera)
         {
             Profiler.BeginSample("Cull 2D Lights");
             m_VisibleLights.Clear();
             foreach (var light in Light2DManager.lights)
             {
-                if ((cameraData.camera.cullingMask & (1 << light.gameObject.layer)) == 0)
+                if ((camera.cullingMask & (1 << light.gameObject.layer)) == 0)
                     continue;
 
 #if UNITY_EDITOR
-                if (!UnityEditor.SceneManagement.StageUtility.IsGameObjectRenderedByCamera(light.gameObject, cameraData.camera))
+                if (!UnityEditor.SceneManagement.StageUtility.IsGameObjectRenderedByCamera(light.gameObject, camera))
                     continue;
 #endif
 

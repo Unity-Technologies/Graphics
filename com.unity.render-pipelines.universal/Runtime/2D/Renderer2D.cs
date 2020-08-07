@@ -229,7 +229,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cullingParameters.cullingOptions = CullingOptions.None;
             cullingParameters.isOrthographic = cameraData.camera.orthographic;
             cullingParameters.shadowDistance = 0.0f;
-            m_LightCullResult.SetupCulling(ref cullingParameters, ref cameraData);
+            m_LightCullResult.SetupCulling(ref cullingParameters, cameraData.camera);
         }
 
         public override void FinishRendering(CommandBuffer cmd)
