@@ -115,7 +115,7 @@ float4x4 PerspectiveProjection4x4(float a, float g, float n, float f)
 #define FACES_PER_THREAD  DIV_ROUND_UP(NUM_FACES, THREADS_PER_LIGHT)
 
 // All planes and faces are always in the standard order (see below).
-// Near and far planes are swapped in the case of Z-reversal, but it does not affect the algorithm.
+// Near and far planes are swapped in the case of Z-reversal, but it does not change the algorithm.
 #define FACE_LEFT   (1 << 0) // x = -1
 #define FACE_RIGHT  (1 << 1) // x = +1
 #define FACE_FRONT  (1 << 2) // y = -1
@@ -249,7 +249,7 @@ void ClipPolygonAgainstPlane(uint p, uint srcBegin, uint srcSize,
         // 1. v0 in,  v1 out -> add intersection
         // 2. v0 out, v1 in  -> add intersection, add v1
         // 3. v0 in,  v1 in  -> add v1
-        // (bc >= 0) <-> in, (bc < 0) <-> out. Beware of the signed zero.
+        // (bc >= 0) <-> in, (bc < 0) <-> out. Beware of -0.
 
         if ((tailVert.bc >= 0) != (leadVert.bc >= 0))
         {
@@ -287,11 +287,12 @@ void ClipPolygonAgainstPlane(uint p, uint srcBegin, uint srcSize,
     }
 }
 
-void ClipFaceAgainstViewVolumeAndUpdateAaBb(uint f, uint behindMasksOfVerts[NUM_VERTS], uint firstVertexOffset, float4x4 g_mInvProjection,
-                                            inout float4 ndcAaBbMinPt, inout float4 ndcAaBbMaxPt)
+void ClipFaceAgainstViewVolume(uint f, uint behindMasksOfVerts[NUM_VERTS], uint firstVertexOffset,
+                               out uint srcBegin, out uint srcSize,
+                               out float4 vertRingBuffer[MAX_CLIP_VERTS])
 {
-    float4 vertRingBuffer[MAX_CLIP_VERTS];
-    uint srcBegin = 0, srcSize = 4;
+    srcBegin = 0;
+    srcSize  = 4;
 
     uint clipMaskOfFace = 0; // Initially in front
     uint vertMaskOfFace = s_VertMasksOfFaces[f];
@@ -326,7 +327,12 @@ void ClipFaceAgainstViewVolumeAndUpdateAaBb(uint f, uint behindMasksOfVerts[NUM_
 
         clipMaskOfFace ^= 1 << p; // Clear the bit to continue using firstbitlow()
     }
+}
 
+void UpdateAaBb(uint srcBegin, uint srcSize, float4 vertRingBuffer[MAX_CLIP_VERTS],
+                bool isOrthoProj, float4x4 invProj,
+                inout float4 ndcAaBbMinPt, inout float4 ndcAaBbMaxPt)
+{
 #ifdef DUMB_COMPILER
     uint modSrcIdx = srcBegin % MAX_CLIP_VERTS;
 #endif
@@ -336,17 +342,18 @@ void ClipFaceAgainstViewVolumeAndUpdateAaBb(uint f, uint behindMasksOfVerts[NUM_
     #ifndef DUMB_COMPILER
         uint modSrcIdx = j % MAX_CLIP_VERTS;
     #endif
-
         float4 hapVert    = vertRingBuffer[modSrcIdx];
-        float4 hbpVertVS  = mul(g_mInvProjection, hapVert);         // Just to support orthographic projection
-        float3 rapVertNDC = saturate(hapVert.xyz * rcp(hapVert.w)); // Must not generate negative values
-        float  rbpVertVSz = hbpVertVS.z * rcp(hbpVertVS.w);
+        // Clamp to the bounds in case of numerical errors (may still generate -0).
+        float3 rapVertNDC = saturate(hapVert.xyz * rcp(hapVert.w));
+        float  rbpVertVSz = hapVert.w;
 
-        ndcAaBbMinPt.xyz  = min(ndcAaBbMinPt.xyz, rapVertNDC);
-        ndcAaBbMaxPt.xyz  = max(ndcAaBbMaxPt.xyz, rapVertNDC);
-        ndcAaBbMinPt.w    = min(ndcAaBbMinPt.w,   rbpVertVSz);
-        ndcAaBbMaxPt.w    = max(ndcAaBbMaxPt.w,   rbpVertVSz);
+        if (isOrthoProj) // Must replace (w = 1)
+        {
+            rbpVertVSz = dot(invProj[2], hapVert);
+        }
 
+        ndcAaBbMinPt = min(ndcAaBbMinPt, float4(rapVertNDC, rbpVertVSz));
+        ndcAaBbMaxPt = max(ndcAaBbMaxPt, float4(rapVertNDC, rbpVertVSz));
     #ifdef DUMB_COMPILER
         modSrcIdx++;
         modSrcIdx = (modSrcIdx == MAX_CLIP_VERTS) ? 0 : modSrcIdx;
@@ -496,11 +503,10 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
         // Warning: the W component may be negative.
         // Flipping the -W pyramid by negating all coordinates is incorrect
         // and will break both classification and clipping.
+        // For the orthographic projection, (w = 1).
 
         // Transform the X and Y components: [-w, w] -> [0, w].
         hapVert.xy = 0.5 * hapVert.xy + (0.5 * hapVert.w);
-
-        // TODO: multiply vertex by ViewZ if orthographic for unified processing!
 
         // For each vertex, we must determine whether it is within the bounds.
         // For culling and clipping, we must know, per culling plane, whether the vertex
@@ -512,7 +518,6 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
         // 0 <= y <= w   <-- include boundary points to avoid clipping them later
         // 0 <= z <= w
         // w is always valid
-        // For the orthographic projection, (w = 1), so no modifications are necessary.
         // TODO: epsilon for numerical robustness?
 
         for (uint j = 0; j < (NUM_PLANES / 2); j++)
@@ -525,12 +530,11 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 
         if (behindMask == 0) // Inside?
         {
-            float3 rapVertNDC = saturate(hapVert.xyz * rcp(hapVert.w)); // Must not generate negative values
+            // Clamp to the bounds in case of numerical errors (may still generate -0).
+            float3 rapVertNDC = saturate(hapVert.xyz * rcp(hapVert.w));
 
-            ndcAaBbMinPt.xyz = min(ndcAaBbMinPt.xyz, rapVertNDC);
-            ndcAaBbMaxPt.xyz = max(ndcAaBbMaxPt.xyz, rapVertNDC);
-            ndcAaBbMinPt.w   = min(ndcAaBbMinPt.w,   rbpVertVS.z);
-            ndcAaBbMaxPt.w   = max(ndcAaBbMaxPt.w,   rbpVertVS.z);
+            ndcAaBbMinPt = min(ndcAaBbMinPt, float4(rapVertNDC, rbpVertVS.z));
+            ndcAaBbMaxPt = max(ndcAaBbMaxPt, float4(rapVertNDC, rbpVertVS.z));
         }
         else // Outside
         {
@@ -611,7 +615,6 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
             // -w < y < w   <-- exclude boundary points, as we will not clip using these vertices
             // -w < z < w   <-- assume that Z-precision is not very important here
             // 0  < w
-            // For the orthographic projection, (w = 1), so no modifications are necessary.
             // TODO: epsilon for numerical robustness?
 
             bool inside = Max3(abs(hapVertLS.x), abs(hapVertLS.y), abs(hapVertLS.z)) < hapVertLS.w;
@@ -621,10 +624,8 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
                 float3 rapVertNDC = float3(rapVertCS.xy * 0.5 + 0.5, rapVertCS.z);
                 float  rbpVertVSz = hbpVertVS.z * rcp(hbpVertVS.w);
 
-                ndcAaBbMinPt.xyz = min(ndcAaBbMinPt.xyz, rapVertNDC);
-                ndcAaBbMaxPt.xyz = max(ndcAaBbMaxPt.xyz, rapVertNDC);
-                ndcAaBbMinPt.w   = min(ndcAaBbMinPt.w,   rbpVertVSz);
-                ndcAaBbMaxPt.w   = max(ndcAaBbMaxPt.w,   rbpVertVSz);
+                ndcAaBbMinPt = min(ndcAaBbMinPt, float4(rapVertNDC, rbpVertVSz));
+                ndcAaBbMaxPt = max(ndcAaBbMaxPt, float4(rapVertNDC, rbpVertVSz));
             }
         }
     }
@@ -680,8 +681,12 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
             {
                 uint f = NthBitLow(clipFaceMask, n);
 
-                ClipFaceAgainstViewVolumeAndUpdateAaBb(f, behindMasksOfVerts, firstVertexOffset, g_mInvProjection,
-                                                       ndcAaBbMinPt, ndcAaBbMaxPt);
+                uint   srcBegin, srcSize;
+                float4 vertRingBuffer[MAX_CLIP_VERTS];
+                ClipFaceAgainstViewVolume(f, behindMasksOfVerts, firstVertexOffset,
+                                          srcBegin, srcSize, vertRingBuffer);
+                UpdateAaBb(srcBegin, srcSize, vertRingBuffer, g_isOrthographic != 0, g_mInvProjection,
+                           ndcAaBbMinPt, ndcAaBbMaxPt);
             }
         }
     }
@@ -690,7 +695,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
     // ...
 #else
     // Integer comparison works for floating-point numbers as long as the sign bit is 0.
-    // We must take care of the signed zero ourselves. saturate() does not help here.
+    // We must take care of -0 ourselves. saturate() does not help here.
     InterlockedMin(gs_NdcAaBbMinPtX[groupLocalLightIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMinPt.x)));
     InterlockedMax(gs_NdcAaBbMaxPtX[groupLocalLightIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMaxPt.x)));
     InterlockedMin(gs_NdcAaBbMinPtY[groupLocalLightIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMinPt.y)));
