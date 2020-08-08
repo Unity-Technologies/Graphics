@@ -531,7 +531,6 @@ namespace UnityEditor.ShaderGraph
                                 }
                             case SwizzleOutputSize.Vector2:
                                 outputRowCount = 2;
-                                Debug.Log("outputValue: " + outputValue);
                                 if (r >= 2)
                                 {
 
@@ -549,12 +548,10 @@ namespace UnityEditor.ShaderGraph
                                     if (useIndentity == true)
                                     {
                                         outputValue += Matrix4x4.identity.GetRow(input_x_R3)[getIndex(indecies.x)[1]];
-                                Debug.Log("outputValue: " + outputValue);
                             }
                                     else
                                     {
                                         outputValue += string.Format("{0}[{1}].{2}", inputValue, input_x_R3, input_x_C3);
-                                Debug.Log("outputValue: " + outputValue);
                             }
                            
 

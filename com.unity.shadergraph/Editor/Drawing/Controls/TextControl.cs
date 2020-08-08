@@ -71,7 +71,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             {
                 m_Value = "00000000";
             }
-            SetValue(m_Value);
+            //SetValue(m_Value);
             //Debug.Log("m_value: "+m_Value);
             AddField(0, subLabel1);
             AddField(1, subLabel2);
@@ -196,35 +196,30 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             {
                 field_value = m_Value[2 * index].ToString();
                 field_value += m_Value[2 * index + 1].ToString();
-  
+
             }
- 
-                
-                var field_x = new TextField { userData = index, value = field_value };
-            //char[] value_char = {'0', '0', '0', '0', '0', '0', '0', '0' };
+
+
+        var field_x = new TextField { userData = index, value = field_value };
 
             field_x.RegisterCallback<MouseDownEvent>(Repaint);
             field_x.RegisterCallback<MouseMoveEvent>(Repaint);
             field_x.RegisterValueChangedCallback(evt =>
             {
                 var value = GetValue();
-                
 
+                value_char = value.ToCharArray();
                 //Debug.Log(index + "value_char: " + value_char);
                 value_char[2 * index] = evt.newValue[0];
 
                 if (evt.newValue.Length>=2)
                 value_char[2 * index + 1] = evt.newValue[1];
 
-                //for (int i = 0; i< value_char.Length; i++)
-                //{
-                //    Debug.Log("value_char[" + i + "]: " + value_char[i]);
-                //}
 
 
                 value = new string(value_char);
                 //Debug.Log(index+ " evt.newValue: " + evt.newValue);
-                //Debug.Log(index + "value: " + value);
+                Debug.Log(index + "value: " + value);
                 SetValue(value);
                 m_UndoGroup = -1;
                 this.MarkDirtyRepaint();
@@ -241,7 +236,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 //    newValue = 0f;
                 var value = GetValue();
 
-
+                value_char = value.ToCharArray();
                 value_char[2 * index] = newValue[0];
 
                 if (newValue.Length >= 2)
