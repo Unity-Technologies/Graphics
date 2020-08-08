@@ -767,10 +767,30 @@ namespace UnityEditor.ShaderGraph
 
             // this will remove the old slot and add a new one
             // if an old one was found. This allows updating values
+            slot.owner = this;
+
+            if(owner != null)
+            {
+                foreach (var edge in owner.GetEdges(foundSlot.slotReference))
+                {
+                    var outSlot = edge.outputSlot;
+                    var inSlot = edge.inputSlot;
+                    owner.RemoveEdge(edge);
+                    if (slot.isInputSlot)
+                    {
+                        owner.Connect(slot.slotReference, outSlot);
+                    }
+                    else
+                    {
+                        owner.Connect(inSlot, slot.slotReference);
+                    }
+                }
+            }
+
             m_Slots.RemoveAll(x => x.value.id == slot.id);
 
             m_Slots.Add(slot);
-            slot.owner = this;
+
 
             OnSlotsChanged();
 
@@ -778,6 +798,7 @@ namespace UnityEditor.ShaderGraph
                 return;
 
             slot.CopyValuesFrom(foundSlot);
+
 
             //should check if edges need update
             foundSlot.owner = null;
