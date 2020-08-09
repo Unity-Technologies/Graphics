@@ -124,7 +124,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public float volumeOpacity => m_LightVolumeOpacity;
 
         // Fix this message later...
-        [ObsoleteAttribute("lightCookieSprite is deprecated. Use pointLightCookie or spriteLightCookie instead.", false)]
+        [Obsolete("Please use pointLightCookie or spriteLightCookie instead.")]
         public Sprite lightCookieSprite
         {
             get
