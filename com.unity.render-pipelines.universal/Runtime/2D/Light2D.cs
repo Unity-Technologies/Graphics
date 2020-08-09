@@ -46,11 +46,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] float m_LightVolumeOpacity = 0.0f;
         [SerializeField] int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
 
-        [FormerlySerializedAs("m_LightCookieSprite")]
-        [SerializeField] Sprite m_SpriteLightCookie = null;
+        [SerializeField, FormerlySerializedAs("m_LightCookieSprite")]
+        Sprite m_SpriteLightCookie = null;
 
-        [FormerlySerializedAs("m_LightCookieSprite")]
-        [SerializeField] Sprite m_PointLightCookie = null;
+        [SerializeField, FormerlySerializedAs("m_LightCookieSprite")]
+        Sprite m_PointLightCookie = null;
 
         //[SerializeField] Sprite m_LightCookieSprite = null;  
 
