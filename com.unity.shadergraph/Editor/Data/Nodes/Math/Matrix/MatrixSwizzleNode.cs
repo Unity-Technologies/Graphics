@@ -57,7 +57,7 @@ namespace UnityEditor.ShaderGraph
 
         
 
-        [TextControl(0, "", " a", "   a", "   m", "   m")]
+        [TextControl(0, "", " m", "   m", "   m", "   m")]
         public string row0
         {
             get { return index_Row0; }
@@ -201,10 +201,21 @@ namespace UnityEditor.ShaderGraph
 
         Vector4  StringToVec4 (string value)
         {
-            
+            char[] value_char = value.ToCharArray();
+            //put it here or in TextControl??
+            for (int i = 0; i < value.Length; i++)
+            {
+                if (value[i] < '0' || value[i] > '9')
+                {
+                    value_char[i] = '0';
+                    AreIndiciesValid = false;
+                    ValidateNode();
+                    //throw new ArgumentException("Invalid Input.", "propertyInfo");
+                }
+            }
             if (value.Length == 8)
             {
-                char[] value_char = value.ToCharArray();
+                
                 float x0 = (float)Char.GetNumericValue(value_char[0]);
                 float x1 = (float)Char.GetNumericValue(value_char[1]);
                 float y0 = (float)Char.GetNumericValue(value_char[2]);

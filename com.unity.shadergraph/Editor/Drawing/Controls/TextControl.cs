@@ -200,7 +200,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             }
 
 
-        var field_x = new TextField { userData = index, value = field_value };
+            var field_x = new TextField { userData = index, value = field_value };
 
             field_x.RegisterCallback<MouseDownEvent>(Repaint);
             field_x.RegisterCallback<MouseMoveEvent>(Repaint);
@@ -210,16 +210,32 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
                 value_char = value.ToCharArray();
                 //Debug.Log(index + "value_char: " + value_char);
-                value_char[2 * index] = evt.newValue[0];
+                if (evt.newValue.Length <= 2)
+                {
+                    value_char[2 * index] = evt.newValue[0];
 
-                if (evt.newValue.Length>=2)
-                value_char[2 * index + 1] = evt.newValue[1];
+                    if (evt.newValue.Length == 2)
+                        value_char[2 * index + 1] = evt.newValue[1];
 
+                    //for (int i = 0; i < evt.newValue.Length; i++)
+                    //{
+                    //    char c = evt.newValue[i];
+                    //    if (c < '0' || c > '9')
+                    //    {
+                    //        value_char[2 * index] = '0';
+                    //        value_char[2 * index+1] = '0';
+                    //        throw new ArgumentException("Invalid Input.", "propertyInfo");
+                    //    }
+                    //}
+                }else{
+                    //value_char = { '0', '0', '0', '0', '0', '0', '0', '0' };
+                    throw new ArgumentException("2 digits.", "propertyInfo");
+                }
 
 
                 value = new string(value_char);
                 //Debug.Log(index+ " evt.newValue: " + evt.newValue);
-                Debug.Log(index + "value: " + value);
+                //Debug.Log(index + "value: " + value);
                 SetValue(value);
                 m_UndoGroup = -1;
                 this.MarkDirtyRepaint();
