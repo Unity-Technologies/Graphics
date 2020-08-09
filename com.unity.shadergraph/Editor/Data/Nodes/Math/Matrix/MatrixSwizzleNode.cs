@@ -210,7 +210,6 @@ namespace UnityEditor.ShaderGraph
                     value_char[i] = '0';
                     AreIndiciesValid = false;
                     ValidateNode();
-                    //throw new ArgumentException("Invalid Input.", "propertyInfo");
                 }
             }
             if (value.Length == 8)
@@ -236,49 +235,20 @@ namespace UnityEditor.ShaderGraph
             return new Vector4(0, 0, 0, 0);
         }
 
-        bool IsIndexSizeCorrect(Vector4 vec, int inputSize)
-        {
-            int[] x = getIndex(vec.x);
-            int[] y = getIndex(vec.y);
-            int[] z = getIndex(vec.z);
-            int[] w = getIndex(vec.w);
-            var list = new List<int>();
-            list.AddRange(x);
-            list.AddRange(y);
-            list.AddRange(z);
-            list.AddRange(w);
-
-            inputSize -= 1;
-            
-
-            bool check = true;
-            foreach (int index in list)
-            {
-                if ((inputSize - index)<0 )
-                {
-
-                    check = false;
-                }
-            }
-            return check;
-
-        }
-
-
         private bool AreIndiciesValid = true;
         public override void ValidateNode()
         {
             base.ValidateNode();
-            //Debug.Log("AreIndiciesValid" + AreIndiciesValid);
+
             if (!AreIndiciesValid)
             {
-                owner.AddValidationError(objectId, "Indices need to be smaller than input size!", ShaderCompilerMessageSeverity.Error);
+                owner.AddValidationError(objectId, "Invalid index!", ShaderCompilerMessageSeverity.Error);
             }
    
 
         }
         //1. get input matrix and demension
-        //2. get swizzle output size
+        //2. get swizzle output row count
         //3. get index matrix 
         //4. map output matirx/vec according to index matrix/vec
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
@@ -305,334 +275,142 @@ namespace UnityEditor.ShaderGraph
             }
 
             int concreteRowCount = useIndentity ? 2 : numInputRows;
-            int outputRowCount = 0;
-            Vector4 r0 = StringToVec4(index_Row0);
-            Vector4 r1 = StringToVec4(index_Row1);
-            Vector4 r2 = StringToVec4(index_Row2);
-            Vector4 r3 = StringToVec4(index_Row3);
 
-
-            //INDECIES VALIDATION
-            //TODO: Should give what row/columns the problems are?
-            var inputIndecies = new Matrix4x4();
-
-            //set all indices that won't be used to zero
+            //get output row count
+            int outputRowCount = 4;
             switch (m_OutputSize)
             {
                 default:
-                    inputIndecies.SetRow(0, r0);
-                    inputIndecies.SetRow(1, r1);
-                    inputIndecies.SetRow(2, r2);
-                    inputIndecies.SetRow(3, r3);
+                    outputRowCount = 4;
                     break;
                 case SwizzleOutputSize.Matrix3:
-                    inputIndecies.SetRow(0, new Vector4(r0.x, r0.y, r0.z, 0));
-                    inputIndecies.SetRow(1, new Vector4(r1.x, r1.y, r1.z, 0));
-                    inputIndecies.SetRow(2, new Vector4(r2.x, r2.y, r2.z, 0));
-                    inputIndecies.SetRow(3, new Vector4(0,0,0,0));
+                    outputRowCount = 3;
                     break;
                 case SwizzleOutputSize.Matrix2:
-                    inputIndecies.SetRow(0, new Vector4(r0.x, r0.y, 0, 0));
-                    inputIndecies.SetRow(1, new Vector4(r1.x, r1.y, 0, 0));
-                    inputIndecies.SetRow(2, new Vector4(0, 0, 0, 0));
-                    inputIndecies.SetRow(3, new Vector4(0, 0, 0, 0));
+                    outputRowCount = 2;
                     break;
                 case SwizzleOutputSize.Vector4:
-                    inputIndecies.SetRow(0, new Vector4(r0.x, 0, 0, 0));
-                    inputIndecies.SetRow(1, new Vector4(r1.x, 0 ,0, 0));
-                    inputIndecies.SetRow(2, new Vector4(r2.x, 0, 0, 0));
-                    inputIndecies.SetRow(3, new Vector4(r3.x, 0, 0, 0));
+                    outputRowCount = 4;
                     break;
                 case SwizzleOutputSize.Vector3:
-                    inputIndecies.SetRow(0, new Vector4(r0.x, 0, 0, 0));
-                    inputIndecies.SetRow(1, new Vector4(r1.x, 0, 0, 0));
-                    inputIndecies.SetRow(2, new Vector4(r2.x, 0, 0, 0));
-                    inputIndecies.SetRow(3, new Vector4(0, 0, 0, 0));
+                    outputRowCount = 3;
                     break;
                 case SwizzleOutputSize.Vector2:
-                    inputIndecies.SetRow(0, new Vector4(r0.x, 0, 0, 0));
-                    inputIndecies.SetRow(1, new Vector4(r1.x, 0, 0, 0));
-                    inputIndecies.SetRow(2, new Vector4(0, 0, 0, 0));
-                    inputIndecies.SetRow(3, new Vector4(0, 0, 0, 0));
+                    outputRowCount = 2;
                     break;
                 case SwizzleOutputSize.Vector1:
-                    inputIndecies.SetRow(0, new Vector4(r0.x, 0, 0, 0));
-                    inputIndecies.SetRow(1, new Vector4(0, 0, 0, 0));
-                    inputIndecies.SetRow(2, new Vector4(0, 0, 0, 0));
-                    inputIndecies.SetRow(3, new Vector4(0, 0, 0, 0));
+                    outputRowCount = 1;
                     break;
             }
 
-            //Check indices sizes
-            Debug.Log("chekign in code" );
-            AreIndiciesValid = true;
-            if (!(IsIndexSizeCorrect(inputIndecies.GetRow(0), concreteRowCount)&&
-                IsIndexSizeCorrect(inputIndecies.GetRow(1), concreteRowCount)&&
-                IsIndexSizeCorrect(inputIndecies.GetRow(2), concreteRowCount) && IsIndexSizeCorrect(inputIndecies.GetRow(3), concreteRowCount)) )
+            var inputIndices = new Matrix4x4();
+            //get input indices
+            inputIndices.SetRow(0, StringToVec4(index_Row0));
+            inputIndices.SetRow(1, StringToVec4(index_Row1));
+            inputIndices.SetRow(2, StringToVec4(index_Row2));
+            inputIndices.SetRow(3, StringToVec4(index_Row3));
+
+            //set all unused indices to zero
+            for (int r = 0; r < 4; r++)
             {
-                AreIndiciesValid = false;
-                ValidateNode();
-                inputIndecies.SetRow(0, new Vector4(0,0,0,0));
-                inputIndecies.SetRow(1, new Vector4(0, 0, 0, 0));
-                inputIndecies.SetRow(2, new Vector4(0, 0, 0, 0));
-                inputIndecies.SetRow(3, new Vector4(0, 0, 0, 0));
-                AreIndiciesValid = true;
-                //ValidateNode();
+                Vector4 indecies_row = inputIndices.GetRow(r);
+
+                for (int c = 0; c <4; c++)
+                {
+                    if (IsOutputMatrix(m_OutputSize))
+                    {
+                        if (c >= outputRowCount)
+                        {
+                            indecies_row[c] = 0;
+                        }
+                    }
+                    else
+                    {
+                        if (c > 0)
+                        {
+                            indecies_row[c] = 0;
+                        }
+                    }
+                }
+
+                inputIndices.SetRow(r, indecies_row);
+                if (r >= outputRowCount)
+                {
+                    inputIndices.SetRow(r, new Vector4(0, 0, 0, 0));
+                }
             }
 
-
-
-
-
-
-            string real_outputValue = " ";
-            for (var r = 0; r < 4; r++)
+            AreIndiciesValid = true;
+            //Check indices sizes
+            for (int r = 0; r< 4; r++)
             {
-                string outputValue = " ";
+                Vector4 indices_row = inputIndices.GetRow(r);
+                for(int c = 0; c<4; c++)
+                {
+                    float cell = inputIndices.GetRow(r)[c];
+                    int[] cell_lst = getIndex(cell);
+                    if (cell_lst[0] > concreteRowCount-1 || cell_lst[1] > concreteRowCount - 1)
+                    {
+                        indices_row[c] = 0;
+                        AreIndiciesValid = false;
+                        ValidateNode();
+                    }
 
-
-                Vector4 indecies = inputIndecies.GetRow(r);
-                Debug.Log("indecies: "+indecies);
-                switch (m_OutputSize)
-                        {
-
-                            default:
-                                outputRowCount = 4;
-
-                                //get indices for input matrix at current output matrix position
-                                int input_x_R = getIndex(indecies.x)[0];
-                                string input_x_C = mapComp(getIndex(indecies.x)[1]);
-
-
-                                int input_y_R = getIndex(indecies.y)[0];
-                                string input_y_C = mapComp(getIndex(indecies.y)[1]);
-                                int input_z_R = getIndex(indecies.z)[0];
-                                string input_z_C = mapComp(getIndex(indecies.z)[1]);
-                                int input_w_R = getIndex(indecies.w)[0];
-                                string input_w_C = mapComp(getIndex(indecies.w)[1]);
-
-                                
-
-                                if (r != 0)
-                                    outputValue += ",";
-                                
-                                if (useIndentity == true)
-                                {
-                                    outputValue += Matrix4x4.identity.GetRow(input_x_R)[getIndex(indecies.x)[1]]+",";
-                                    outputValue += Matrix4x4.identity.GetRow(input_y_R)[getIndex(indecies.y)[1]] + ",";
-                                    outputValue += Matrix4x4.identity.GetRow(input_z_R)[getIndex(indecies.z)[1]] + ",";
-                                    outputValue += Matrix4x4.identity.GetRow(input_w_R)[getIndex(indecies.w)[1]];
-                                }
-                                else
-                                {
-                                   
-                                    outputValue += string.Format("{0}[{1}].{2},", inputValue, input_x_R, input_x_C);
-                                    outputValue += string.Format("{0}[{1}].{2},", inputValue, input_y_R, input_y_C);
-                                    outputValue += string.Format("{0}[{1}].{2},", inputValue, input_z_R, input_z_C);
-                                    outputValue += string.Format("{0}[{1}].{2}", inputValue, input_w_R, input_w_C);
-                           // Debug.Log("outputValue: " + input_x_C+ input_y_C+ input_z_C+ input_w_C);
-                                }
-
-
-
-                                break;
-                            case SwizzleOutputSize.Matrix3:
-
-                                outputRowCount = 3;
-                                if (r >= 3)
-                                {
-
-                                    break;
-                                }
-                                else
-                                {
-                                    int input_x_R3 = getIndex(indecies.x)[0];
-                                    string input_x_C3 = mapComp(getIndex(indecies.x)[1]);
-                                    int input_y_R3 = getIndex(indecies.y)[0];
-                                    string input_y_C3 = mapComp(getIndex(indecies.y)[1]);
-                                    int input_z_R3 = getIndex(indecies.z)[0];
-                                    string input_z_C3 = mapComp(getIndex(indecies.z)[1]);
-
-                                    if (r != 0)
-                                        outputValue += ",";
-
-                                    if (useIndentity == true)
-                                    {
-                                        outputValue += Matrix4x4.identity.GetRow(getIndex(indecies.x)[0])[getIndex(indecies.x)[1]] + ",";
-                                        outputValue += Matrix4x4.identity.GetRow(getIndex(indecies.y)[0])[getIndex(indecies.y)[1]] + ",";
-                                        outputValue += Matrix4x4.identity.GetRow(getIndex(indecies.z)[0])[getIndex(indecies.z)[1]];
-
-                                    }
-                                    else
-                                    {
-                                        outputValue += string.Format("{0}[{1}].{2},", inputValue, input_x_R3, input_x_C3);
-                                        outputValue += string.Format("{0}[{1}].{2},", inputValue, input_y_R3, input_y_C3);
-                                        outputValue += string.Format("{0}[{1}].{2}", inputValue, input_z_R3, input_z_C3);
-                                    }
-
-
-                                    break;
-                                }
-
-                            case SwizzleOutputSize.Matrix2:
-                                outputRowCount = 2;
-                                if (r >= 2)
-                                {
-
-                                    break;
-                                }
-                                else
-                                {
-                                    int input_x_R3 = getIndex(indecies.x)[0];
-                                    string input_x_C3 = mapComp(getIndex(indecies.x)[1]);
-
-                                    int input_y_R3 = getIndex(indecies.y)[0];
-                                    string input_y_C3 = mapComp(getIndex(indecies.y)[1]);
-
-                                    if (r != 0)
-                                        outputValue += ",";
-                                    if (useIndentity == true)
-                                    {
-                                        outputValue += Matrix4x4.identity.GetRow(getIndex(indecies.x)[0])[getIndex(indecies.x)[1]] + ",";
-                                        outputValue += Matrix4x4.identity.GetRow(getIndex(indecies.y)[0])[getIndex(indecies.y)[1]] ;
-
-
-                                    }
-                                    else
-                                    {
-                                    outputValue += string.Format("{0}[{1}].{2},", inputValue, input_x_R3, input_x_C3);
-                                    outputValue += string.Format("{0}[{1}].{2}", inputValue, input_y_R3, input_y_C3);
-                                //outputValue += string.Format("{0}_m{1}.{2},", inputValue, input_x_R3, input_x_C3);
-                                //outputValue += string.Format("{0}_m{1}.{2}", inputValue, input_y_R3, input_y_C3);
-                                    }
-
-
-                                    break;
-                                }
-                            case SwizzleOutputSize.Vector1:
-                                outputRowCount = 1;
-                                if (r >= 1)
-                                {
-
-                                    break;
-                                }
-                                else
-                                {
-                                    int input_x_R3 = getIndex(indecies.x)[0];
-                                    string input_x_C3 = mapComp(getIndex(indecies.x)[1]);
-
-                                    if (r != 0)
-                                        outputValue += ",";
-
-                                    if (useIndentity == true)
-                                    {
-                                        outputValue += Matrix4x4.identity.GetRow(input_x_R3)[getIndex(indecies.x)[1]];
-
-                            }
-                                    else
-                                    {
-                                //outputValue += Matrix4x4.identity.GetRow(input_x_R3)[getIndex(indecies.x)[1]];
-                                outputValue += string.Format("{0}[{1}].{2}", inputValue, input_x_R3, input_x_C3);
-                                Debug.Log("outputValue: " + string.Format("{0}[{1}].{2}", inputValue, input_x_R3, input_x_C3));
-
-                                    }
- 
-
-                            break;
-                                }
-                            case SwizzleOutputSize.Vector2:
-                                outputRowCount = 2;
-                                if (r >= 2)
-                                {
-
-
-                                    break;
-                                }
-                                else
-                                {
-                                    int input_x_R3 = getIndex(indecies.x)[0];
-                                    string input_x_C3 = mapComp(getIndex(indecies.x)[1]);
- 
-
-                                    if (r != 0)
-                                        outputValue += ",";
-                                    if (useIndentity == true)
-                                    {
-                                        outputValue += Matrix4x4.identity.GetRow(input_x_R3)[getIndex(indecies.x)[1]];
-                            }
-                                    else
-                                    {
-                                        outputValue += string.Format("{0}[{1}].{2}", inputValue, input_x_R3, input_x_C3);
-                            }
-                           
-
-                            break;
-                                }
-                            case SwizzleOutputSize.Vector3:
-                                outputRowCount = 3;
-                                if (r >= 3)
-                                {
-
-
-                                    break;
-                                }
-                                else
-                                {
-                                    int input_x_R3 = getIndex(indecies.x)[0];
-                                    string input_x_C3 = mapComp(getIndex(indecies.x)[1]);
-
-
-                                    if (r != 0)
-                                        outputValue += ",";
-                                    if (useIndentity == true)
-                                    {
-                                        outputValue += Matrix4x4.identity.GetRow(input_x_R3)[getIndex(indecies.x)[1]];
-
-                                    }
-                                    else
-                                    {
-                                        outputValue += string.Format("{0}[{1}].{2}", inputValue, input_x_R3, input_x_C3);
-
-                                    }
-                            
-
-                                    break;
-                                }
-                            case SwizzleOutputSize.Vector4:
-                                outputRowCount = 4;
-                                if (r >= 4)
-                                {
-
-
-                                    break;
-                                }
-                                else
-                                {
-                                    int input_x_R3 = getIndex(indecies.x)[0];
-                                    string input_x_C3 = mapComp(getIndex(indecies.x)[1]);
-
-
-                                    if (r != 0)
-                                        outputValue += ",";
-                                    if (useIndentity == true)
-                                    {
-                                        outputValue += Matrix4x4.identity.GetRow(input_x_R3)[getIndex(indecies.x)[1]] ;
-
-                                    }
-                                    else
-                                    {
-                                        outputValue += string.Format("{0}[{1}].{2}", inputValue, input_x_R3, input_x_C3);
-                                    }
-
-                           
-
-                                    break;
-                                }
                 }
-                 
 
+                inputIndices.SetRow(r, indices_row);
+                AreIndiciesValid = true;
+            }
 
+            //build shader string
+            string real_outputValue = "";
+            for (var r = 0; r < outputRowCount; r++)
+            {
+                string outputValue = "";
+                Vector4 indecies = inputIndices.GetRow(r);
 
+                if (r != 0)
+                    outputValue += ",";
+
+                //If output is a matrix
+                if (IsOutputMatrix(m_OutputSize))
+                {
+                    for (int c = 0; c < outputRowCount; c++)
+                    {
+                        if (useIndentity == true)
+                        {
+                            if (c != 0)
+                            {
+                                outputValue += ",";
+                            }
+                            outputValue += Matrix4x4.identity.GetRow(getIndex(indecies[c])[0])[getIndex(indecies[c])[1]];
+
+                        }
+                        else
+                        {
+                            if (c != 0)
+                            {
+                                outputValue += ",";
+                            }
+                            outputValue += string.Format("{0}[{1}].{2}", inputValue, getIndex(indecies[c])[0], mapComp(getIndex(indecies[c])[1]));
+                        }
+                    }
+                }
+                else
+                {
+                    //If output is a vector
+                    if (useIndentity == true)
+                    {
+
+                        outputValue += Matrix4x4.identity.GetRow(getIndex(indecies[0])[0])[getIndex(indecies[0])[1]];
+
+                    }
+                    else
+                    {
+
+                        outputValue += string.Format("{0}[{1}].{2}", inputValue, getIndex(indecies[0])[0], mapComp(getIndex(indecies[0])[1]));
+                    }
+                }
 
                 real_outputValue += outputValue;
 
@@ -646,13 +424,9 @@ namespace UnityEditor.ShaderGraph
             {
                 sb.AppendLine(string.Format("$precision{2} {0} = $precision{2} ({1});", GetVariableNameForSlot(OutputSlotId), real_outputValue, outputRowCount));
             }
-           
-            
-
-
-
 
         }
+
         public override void EvaluateDynamicMaterialSlots()
         {
             var dynamicInputSlotsToCompare = DictionaryPool<DynamicVectorMaterialSlot, ConcreteSlotValueType>.Get();

@@ -61,7 +61,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             }
             m_PropertyInfo = propertyInfo;
             m_row = row;
-            //Debug.LogError("size_IsMatrix: " + size_IsMatrix);
+
             label = label ?? ObjectNames.NicifyVariableName(propertyInfo.Name);
             if (!string.IsNullOrEmpty(label))
                 Add(new Label(label));
@@ -71,19 +71,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             {
                 m_Value = "00000000";
             }
-            //SetValue(m_Value);
-            //Debug.Log("m_value: "+m_Value);
+
             AddField(0, subLabel1);
             AddField(1, subLabel2);
             AddField(2, subLabel3);
             AddField(3, subLabel4);
         }
-        //private Tuple<int, bool> size_IsMatrix;
 
         private void Callback(string OutputSize)
         {
-           
-            //Debug.LogError("callback OutputSize: " + OutputSize);
             int size;
             bool IsMatrix;
             switch (OutputSize)
@@ -97,44 +93,36 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 case "Matrix3":
                     size = 3;
                     IsMatrix = true;
-                    //unused row
                     SetVisibility(size, IsMatrix);
                     break;
                 case "Matrix2":
                     size = 2;
                     IsMatrix = true;
-                    //unused row
                     SetVisibility(size, IsMatrix);
                     break;
                 case "Vector4":
                     size = 4;
                     IsMatrix = false;
-                    //unused row
                     SetVisibility(size, IsMatrix);
                     break;
                 case "Vector3":
                     size = 3;
                     IsMatrix = false;
-                    //unused row
                     SetVisibility(size, IsMatrix);
                     break;
                 case "Vector2":
                     size = 2;
                     IsMatrix = false;
-                    //unused row
                     SetVisibility(size, IsMatrix);
                     break;
                 case "Vector1":
                     size = 1;
                     IsMatrix = false;
-                    //unused row
                     SetVisibility(size, IsMatrix);
                     break;
 
 
             }
-            //size_IsMatrix = new Tuple<int, bool>(size, IsMatrix);
-
         }
 
         private void SetVisibility(int size, bool IsMatrix)
@@ -186,10 +174,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         private char[] value_char = { '0', '0', '0', '0', '0', '0', '0', '0' };
         void AddField(int index, string subLabel)
         {
-            //var dummy = new VisualElement { name = "dummy" };
             var label = new Label(subLabel);
             label.style.alignSelf = Align.FlexEnd;
-            //dummy.Add(label);
             Add(label);
             string field_value = m_Value;
             if (m_Value.Length>= 2 * index + 1)
@@ -209,7 +195,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 var value = GetValue();
 
                 value_char = value.ToCharArray();
-                //Debug.Log(index + "value_char: " + value_char);
                 if (evt.newValue.Length <= 2)
                 {
                     value_char[2 * index] = evt.newValue[0];
@@ -217,25 +202,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     if (evt.newValue.Length == 2)
                         value_char[2 * index + 1] = evt.newValue[1];
 
-                    //for (int i = 0; i < evt.newValue.Length; i++)
-                    //{
-                    //    char c = evt.newValue[i];
-                    //    if (c < '0' || c > '9')
-                    //    {
-                    //        value_char[2 * index] = '0';
-                    //        value_char[2 * index+1] = '0';
-                    //        throw new ArgumentException("Invalid Input.", "propertyInfo");
-                    //    }
-                    //}
                 }else{
-                    //value_char = { '0', '0', '0', '0', '0', '0', '0', '0' };
+ 
                     throw new ArgumentException("2 digits.", "propertyInfo");
                 }
 
-
                 value = new string(value_char);
-                //Debug.Log(index+ " evt.newValue: " + evt.newValue);
-                //Debug.Log(index + "value: " + value);
                 SetValue(value);
                 m_UndoGroup = -1;
                 this.MarkDirtyRepaint();
@@ -248,8 +220,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
                 }
                 string newValue = "";
-               // if (!float.TryParse(evt.newData, NumberStyles.Float, CultureInfo.InvariantCulture.NumberFormat, out newValue))
-                //    newValue = 0f;
                 var value = GetValue();
 
                 value_char = value.ToCharArray();
@@ -286,13 +256,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         string GetValue()
         {
             var value = m_PropertyInfo.GetValue(m_Node, null);
-            //Debug.Log("GetValue():" + value);
             return (string)value;
         }
 
         void SetValue(string value)
         {
-            //Debug.Log("SetValue():" + value);
             m_PropertyInfo.SetValue(m_Node, ValueToPropertyType(value), null);
         }
 
