@@ -467,7 +467,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                     break;
                 case Light2D.LightType.Sprite:
                     {
-                        var cookieSprite = light.lightCookieSprite;
+                        var cookieSprite = light.spriteLightCookie;
                         if (cookieSprite != null)
                         {
                             Vector3 min = cookieSprite.bounds.min;
