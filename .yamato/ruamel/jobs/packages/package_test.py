@@ -5,6 +5,7 @@ from ..shared.yml_job import YMLJob
 from ..shared.constants import NPM_UPMCI_INSTALL_URL
 
 
+
 class Package_TestJob():
     
     def __init__(self, package, platform, editor):
