@@ -33,6 +33,7 @@ class PreviewPublish_PromoteJob():
         job.add_var_custom('UPMCI_PROMOTION', 1)
         job.add_dependencies(dependencies)
         job.add_commands([
+                f'copy packages_temp\\{package["name"]}\\upm-ci~\\packages\\packages.json upm-ci~\\packages',
                 f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
                 f'upm-ci {package["type"]} promote --{package["type"]}-path {package["path"]}'])
         job.add_artifacts_packages()
