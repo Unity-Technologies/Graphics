@@ -522,7 +522,8 @@ half3 getIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, h
             + probe.position.w * BoxProjectedCubemapDirection(originalReflectVector, positionWS, probe.position, probe.boxMin, probe.boxMax);
         half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
         // #note to do Sample TextureCubeArray   
-        half4 encodedIrradiance = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_ReflectionProbeTextures, s_trilinear_clamp_sampler, reflectVector, probeIndex, mip);
+        //half4 encodedIrradiance = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_ReflectionProbeTextures, s_trilinear_clamp_sampler, reflectVector, probeIndex, mip);
+        half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
 #if !defined(UNITY_USE_NATIVE_HDR)
         irradiance += weight * DecodeHDREnvironment(encodedIrradiance, probe.hdr);
 #else
