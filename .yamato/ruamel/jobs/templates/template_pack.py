@@ -19,7 +19,7 @@ class Template_PackJob():
         job.add_commands( [
                 f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
                 f'upm-ci template pack --project-path {template["packagename"]}'])
-        job.add_artifacts_packages(pack=True) 
+        job.add_artifacts_packages() 
         job.add_artifacts_templates()
         return job
     

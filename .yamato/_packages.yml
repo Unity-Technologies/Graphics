@@ -35,7 +35,7 @@ publish_core:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 publish_core_dry:
     name: Publish Core [dry run]
     agent:
@@ -54,7 +54,7 @@ publish_core_dry:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 pack_lwrp:
     name: Pack Lightweight
     agent:
@@ -87,7 +87,7 @@ publish_lwrp:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 publish_lwrp_dry:
     name: Publish Lightweight [dry run]
     agent:
@@ -106,7 +106,7 @@ publish_lwrp_dry:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 pack_shadergraph:
     name: Pack ShaderGraph
     agent:
@@ -139,7 +139,7 @@ publish_shadergraph:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 publish_shadergraph_dry:
     name: Publish ShaderGraph [dry run]
     agent:
@@ -158,7 +158,7 @@ publish_shadergraph_dry:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 pack_hdrp:
     name: Pack HDRP
     agent:
@@ -191,7 +191,7 @@ publish_hdrp:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 publish_hdrp_dry:
     name: Publish HDRP [dry run]
     agent:
@@ -210,7 +210,7 @@ publish_hdrp_dry:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 pack_universal:
     name: Pack Universal
     agent:
@@ -243,7 +243,7 @@ publish_universal:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 publish_universal_dry:
     name: Publish Universal [dry run]
     agent:
@@ -262,7 +262,7 @@ publish_universal_dry:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 pack_vfx:
     name: Pack VFX
     agent:
@@ -295,7 +295,7 @@ publish_vfx:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 publish_vfx_dry:
     name: Publish VFX [dry run]
     agent:
@@ -314,7 +314,7 @@ publish_vfx_dry:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 pack_config:
     name: Pack Config
     agent:
@@ -347,7 +347,7 @@ publish_config:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 publish_config_dry:
     name: Publish Config [dry run]
     agent:
@@ -366,7 +366,7 @@ publish_config_dry:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 test_core_windows_trunk:
     name: Test Core Win trunk
     agent:
