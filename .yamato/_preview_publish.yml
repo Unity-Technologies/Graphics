@@ -71,10 +71,8 @@ promote_core:
       -  .yamato/_packages.yml#test_core_windows_trunk
       -  .yamato/_packages.yml#test_core_macos_trunk
     commands:
-      -  mkdir upm-ci~\packages
-      -  copy packages_temp\core\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package promote --package-path com.unity.render-pipelines.core
+      -  upm-ci package promote --package-path com.unity.render-pipelines.core --artifacts-path packages_temp/core
     artifacts:
         packages:
             paths:
@@ -93,10 +91,8 @@ promote_core_dry:
       -  .yamato/_packages.yml#test_core_windows_trunk
       -  .yamato/_packages.yml#test_core_macos_trunk
     commands:
-      -  mkdir upm-ci~\packages
-      -  copy packages_temp\core\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package promote --package-path com.unity.render-pipelines.core --dry-run
+      -  upm-ci package promote --package-path com.unity.render-pipelines.core --artifacts-path packages_temp/core --dry-run
     artifacts:
         packages:
             paths:
@@ -115,10 +111,8 @@ promote_universal:
       -  .yamato/_packages.yml#test_universal_windows_trunk
       -  .yamato/_packages.yml#test_universal_macos_trunk
     commands:
-      -  mkdir upm-ci~\packages
-      -  copy packages_temp\universal\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package promote --package-path com.unity.render-pipelines.universal
+      -  upm-ci package promote --package-path com.unity.render-pipelines.universal --artifacts-path packages_temp/universal
     artifacts:
         packages:
             paths:
@@ -137,10 +131,8 @@ promote_universal_dry:
       -  .yamato/_packages.yml#test_universal_windows_trunk
       -  .yamato/_packages.yml#test_universal_macos_trunk
     commands:
-      -  mkdir upm-ci~\packages
-      -  copy packages_temp\universal\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package promote --package-path com.unity.render-pipelines.universal --dry-run
+      -  upm-ci package promote --package-path com.unity.render-pipelines.universal --artifacts-path packages_temp/universal --dry-run
     artifacts:
         packages:
             paths:
@@ -159,10 +151,8 @@ promote_hdrp:
       -  .yamato/_packages.yml#test_hdrp_windows_trunk
       -  .yamato/_packages.yml#test_hdrp_macos_trunk
     commands:
-      -  mkdir upm-ci~\packages
-      -  copy packages_temp\hdrp\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package promote --package-path com.unity.render-pipelines.high-definition
+      -  upm-ci package promote --package-path com.unity.render-pipelines.high-definition --artifacts-path packages_temp/hdrp
     artifacts:
         packages:
             paths:
@@ -181,10 +171,8 @@ promote_hdrp_dry:
       -  .yamato/_packages.yml#test_hdrp_windows_trunk
       -  .yamato/_packages.yml#test_hdrp_macos_trunk
     commands:
-      -  mkdir upm-ci~\packages
-      -  copy packages_temp\hdrp\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package promote --package-path com.unity.render-pipelines.high-definition --dry-run
+      -  upm-ci package promote --package-path com.unity.render-pipelines.high-definition --artifacts-path packages_temp/hdrp --dry-run
     artifacts:
         packages:
             paths:
@@ -203,10 +191,8 @@ promote_shadergraph:
       -  .yamato/_packages.yml#test_shadergraph_windows_trunk
       -  .yamato/_packages.yml#test_shadergraph_macos_trunk
     commands:
-      -  mkdir upm-ci~\packages
-      -  copy packages_temp\shadergraph\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package promote --package-path com.unity.shadergraph
+      -  upm-ci package promote --package-path com.unity.shadergraph --artifacts-path packages_temp/shadergraph
     artifacts:
         packages:
             paths:
@@ -225,10 +211,8 @@ promote_shadergraph_dry:
       -  .yamato/_packages.yml#test_shadergraph_windows_trunk
       -  .yamato/_packages.yml#test_shadergraph_macos_trunk
     commands:
-      -  mkdir upm-ci~\packages
-      -  copy packages_temp\shadergraph\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package promote --package-path com.unity.shadergraph --dry-run
+      -  upm-ci package promote --package-path com.unity.shadergraph --artifacts-path packages_temp/shadergraph --dry-run
     artifacts:
         packages:
             paths:
@@ -247,10 +231,8 @@ promote_vfx:
       -  .yamato/_packages.yml#test_vfx_windows_trunk
       -  .yamato/_packages.yml#test_vfx_macos_trunk
     commands:
-      -  mkdir upm-ci~\packages
-      -  copy packages_temp\vfx\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package promote --package-path com.unity.visualeffectgraph
+      -  upm-ci package promote --package-path com.unity.visualeffectgraph --artifacts-path packages_temp/vfx
     artifacts:
         packages:
             paths:
@@ -269,10 +251,8 @@ promote_vfx_dry:
       -  .yamato/_packages.yml#test_vfx_windows_trunk
       -  .yamato/_packages.yml#test_vfx_macos_trunk
     commands:
-      -  mkdir upm-ci~\packages
-      -  copy packages_temp\vfx\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package promote --package-path com.unity.visualeffectgraph --dry-run
+      -  upm-ci package promote --package-path com.unity.visualeffectgraph --artifacts-path packages_temp/vfx --dry-run
     artifacts:
         packages:
             paths:
@@ -291,10 +271,8 @@ promote_config:
       -  .yamato/_packages.yml#test_config_windows_trunk
       -  .yamato/_packages.yml#test_config_macos_trunk
     commands:
-      -  mkdir upm-ci~\packages
-      -  copy packages_temp\config\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package promote --package-path com.unity.render-pipelines.high-definition-config
+      -  upm-ci package promote --package-path com.unity.render-pipelines.high-definition-config --artifacts-path packages_temp/config
     artifacts:
         packages:
             paths:
@@ -313,10 +291,8 @@ promote_config_dry:
       -  .yamato/_packages.yml#test_config_windows_trunk
       -  .yamato/_packages.yml#test_config_macos_trunk
     commands:
-      -  mkdir upm-ci~\packages
-      -  copy packages_temp\config\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package promote --package-path com.unity.render-pipelines.high-definition-config --dry-run
+      -  upm-ci package promote --package-path com.unity.render-pipelines.high-definition-config --artifacts-path packages_temp/config --dry-run
     artifacts:
         packages:
             paths:
@@ -335,10 +311,8 @@ promote_lwrp:
       -  .yamato/_packages.yml#test_lwrp_windows_trunk
       -  .yamato/_packages.yml#test_lwrp_macos_trunk
     commands:
-      -  mkdir upm-ci~\packages
-      -  copy packages_temp\lwrp\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package promote --package-path com.unity.render-pipelines.lightweight
+      -  upm-ci package promote --package-path com.unity.render-pipelines.lightweight --artifacts-path packages_temp/lwrp
     artifacts:
         packages:
             paths:
@@ -357,10 +331,8 @@ promote_lwrp_dry:
       -  .yamato/_packages.yml#test_lwrp_windows_trunk
       -  .yamato/_packages.yml#test_lwrp_macos_trunk
     commands:
-      -  mkdir upm-ci~\packages
-      -  copy packages_temp\lwrp\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package promote --package-path com.unity.render-pipelines.lightweight --dry-run
+      -  upm-ci package promote --package-path com.unity.render-pipelines.lightweight --artifacts-path packages_temp/lwrp --dry-run
     artifacts:
         packages:
             paths:
