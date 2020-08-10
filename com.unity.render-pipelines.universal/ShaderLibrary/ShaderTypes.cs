@@ -13,6 +13,15 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [GenerateHLSL(PackingRules.Exact, false)]
+        public struct ReflectionProbeData
+        {
+            public Vector4 position;
+            public Vector4 boxMin;
+            public Vector4 boxMax;
+            public Vector4 hdr;
+        }
+
+        [GenerateHLSL(PackingRules.Exact, false)]
         public struct ShadowData
         {
             public Matrix4x4 worldToShadowMatrix;

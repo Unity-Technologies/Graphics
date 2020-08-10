@@ -825,12 +825,13 @@ namespace UnityEngine.Rendering.Universal
 
         static PerObjectData GetPerObjectLightFlags(int additionalLightsCount)
         {
-            var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightData | PerObjectData.OcclusionProbe;
+            var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightData | PerObjectData.OcclusionProbe | PerObjectData.ReflectionProbeData;
 
             if (additionalLightsCount > 0)
             {
-                configuration |= PerObjectData.LightData;
+                configuration |= PerObjectData.LightData; // #note unnecessary??
 
+                // #note probably need to add more code here to support UBO reflection probes
                 // In this case we also need per-object indices (unity_LightIndices)
                 if (!RenderingUtils.useStructuredBuffer)
                     configuration |= PerObjectData.LightIndices;
