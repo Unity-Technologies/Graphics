@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private const int m_MaxShadowCascades = 4;
         private bool[] m_DirectionalShadowPendingUpdate = new bool[m_MaxShadowCascades];
         private Vector3 m_CachedDirectionalForward;
+        private Vector3 m_CachedDirectionalAngles;
 
         // Cached atlas
         internal HDCachedShadowAtlas punctualShadowAtlas;
@@ -216,7 +217,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (ShaderConfig.s_AreaLights == 1 && lightType == HDLightType.Area)
                 areaShadowAtlas.RegisterTransformCacheSlot(lightData);
             if (lightType == HDLightType.Directional)
-                m_CachedDirectionalForward = lightData.transform.forward;
+                m_CachedDirectionalAngles = lightData.transform.eulerAngles;
         }
 
         internal void RemoveTransformFromCache(HDAdditionalLightData lightData)
@@ -243,12 +244,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (lightType == HDLightType.Directional)
                 {
-                    float diff = 1.0f - Vector3.Dot(m_CachedDirectionalForward, lightData.transform.forward);
-                    if (diff > 1e-4f) // TODO_FCC: Use custom threshold
-                    {
-                        m_CachedDirectionalForward = lightData.transform.forward;
-                        return true;
-                    }
+                    float angleDiffThreshold = lightData.cachedShadowAngleUpdateThreshold;
+                    Vector3 angleDiff = m_CachedDirectionalAngles - lightData.transform.eulerAngles;
+                    return (Mathf.Abs(angleDiff.x) > angleDiffThreshold || Mathf.Abs(angleDiff.y) > angleDiffThreshold || Mathf.Abs(angleDiff.z) > angleDiffThreshold);
                 }
                 else if (lightType == HDLightType.Area)
                 {

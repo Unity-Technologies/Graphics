@@ -566,7 +566,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_TransformCaches.TryGetValue(lightData.lightIdxForCachedShadows, out CachedTransform cachedTransform))
             {
-                float positionThreshold = 1e-2f; // TODO_FCC: EXPOSE VIA API!
+                float positionThreshold = lightData.cachedShadowTranslationUpdateThreshold;
                 Vector3 positionDiffVec = cachedTransform.position - lightData.transform.position;
                 float positionDiff = Vector3.Dot(positionDiffVec, positionDiffVec);
                 if (positionDiff > positionThreshold * positionThreshold)
@@ -575,7 +575,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 if(lightType != HDLightType.Point)
                 {
-                    float angleDiffThreshold = 0.5f;   // TODO_FCC: EXPOSE VIA API!
+                    float angleDiffThreshold = lightData.cachedShadowAngleUpdateThreshold;
                     Vector3 angleDiff = cachedTransform.angles - lightData.transform.eulerAngles;
                     // Any angle difference 
                     if (Mathf.Abs(angleDiff.x) > angleDiffThreshold || Mathf.Abs(angleDiff.y) > angleDiffThreshold || Mathf.Abs(angleDiff.z) > angleDiffThreshold)
