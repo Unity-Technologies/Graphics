@@ -1,7 +1,8 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..shared.namer import *
-from ..shared.constants import PATH_UNITY_REVISION, NPM_UPMCI_INSTALL_URL, UNITY_DOWNLOADER_CLI_URL
+from ..shared.constants import PATH_UNITY_REVISION, NPM_UPMCI_INSTALL_URL, UNITY_DOWNLOADER_CLI_URL,PATH_PACKAGES_temp
 from ..shared.yml_job import YMLJob
+
 
 class Package_TestJob():
     
@@ -23,6 +24,15 @@ class Package_TestJob():
                 f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
                 f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
                 f'unity-downloader-cli --source-file {PATH_UNITY_REVISION} -c editor --wait --published-only']
+        if platform["os"].lower() == 'windows':
+                commands.append(f'mkdir upm-ci~\\packages')
+                commands.append(f'copy {PATH_PACKAGES_temp}\\{package["id"]}\\upm-ci~\\packages\\packages.json upm-ci~\\packages')
+                commands.append(f'for /r {PATH_PACKAGES_temp} %%x in (*.tgz) do copy %%x upm-ci~\packages')
+        elif platform["os"].lower() == 'macos':
+                commands.append(f'mkdir upm-ci~ && mkdir upm-ci~/packages')
+                commands.append(f'cp {PATH_PACKAGES_temp}/{package["id"]}/upm-ci~/packages/packages.json upm-ci~/packages')
+                commands.append(f'cp {PATH_PACKAGES_temp}/**/upm-ci~/packages/*.tgz upm-ci~/packages')
+        
         if package.get('hascodependencies', None) is not None:
             commands.append(platform["copycmd"])
         commands.append(f'upm-ci package test -u {platform["editorpath"]} --package-path {package["packagename"]} --extra-utr-arg="--compilation-errors-as-warnings"')
