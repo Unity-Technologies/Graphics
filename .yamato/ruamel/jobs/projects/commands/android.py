@@ -77,9 +77,9 @@ def cmd_standalone_build_performance(project_folder, platform, api, test_platfor
     base = _cmd_base(project_folder, platform["components"])
     base.extend([  
         f'reg add \"HKCU\\Software\\Unity Technologies\\Unity Editor 5.x\" /v AndroidJVMMaxHeapSize /t REG_DWORD /d 4096 /f',
-        f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME%',
-        f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT%',
-        f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\\NDK %ANDROID_NDK_ROOT%'
+        f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0',
+        f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0',
+        f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\\NDK %ANDROID_NDK_ROOT% || exit 0'
         ])
     
     if api["name"].lower() =='vulkan':
