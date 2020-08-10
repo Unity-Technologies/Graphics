@@ -93,7 +93,7 @@ void RectangularLightApplyBarnDoor(inout LightData lightData, float3 pointPositi
         // Transform the point to light source space. First position then orientation
         float3 lightRelativePointPos = -(lightData.positionRWS - pointPosition);
         float3 pointLS = float3(dot(lightRelativePointPos, lightData.right), dot(lightRelativePointPos, lightData.up), dot(lightRelativePointPos, lightData.forward));
-        
+
         // Compute the depth of the point in the pyramid space
         float pointDepth = min(pointLS.z, lightData.size.z * lightData.size.w);
 
@@ -103,15 +103,15 @@ void RectangularLightApplyBarnDoor(inout LightData lightData, float3 pointPositi
 
         // Compute the barn door projection
         float barnDoorProjection = sinTheta * lightData.size.w * pointDepthRatio;
-        
+
         // Compute the sign of the point when in the local light space
         float2 pointSign = sign(pointLS.xy);
         // Clamp the point to the closest edge
         pointLS.xy = float2(pointSign.x, pointSign.y) * max(abs(pointLS.xy), float2(halfWidth, halfHeight) + barnDoorProjection.xx);
-        
+
         // Compute the closest rect lignt corner, offset by the barn door size
         float3 closestLightCorner = float3(pointSign.x * (halfWidth + barnDoorProjection), pointSign.y * (halfHeight + barnDoorProjection), pointDepth);
-            
+
         // Compute the point projection onto the edge and deduce the size that should be removed from the light dimensions
         float3 pointProjection  = pointLS - closestLightCorner;
         // Phi being the angle between the point projection point and the forward vector of the light source
@@ -127,7 +127,7 @@ void RectangularLightApplyBarnDoor(inout LightData lightData, float3 pointPositi
         bottomLeft += (projectionDistance.y - barnDoorProjection) * float2(max(0, -pointSign.y), -max(0, pointSign.y));
         topRight = clamp(topRight, -halfWidth, halfWidth);
         bottomLeft = clamp(bottomLeft, -halfHeight, halfHeight);
-        
+
         // Compute the offset that needs to be applied to the origin points to match the culling of the barn door
         float2 lightCenterOffset = 0.5f * float2(topRight.x + topRight.y, bottomLeft.x + bottomLeft.y);
 
@@ -201,7 +201,7 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
         // TODO: Not sure it's possible to precompute cam rel pos since variables
         // in the two constant buffers may be set at a different frequency?
         float3 X = GetAbsolutePositionWS(posInput.positionWS);
-        float3 C = _PlanetCenterPosition;
+        float3 C = _PlanetCenterPosition.xyz;
 
         float r        = distance(X, C);
         float cosHoriz = ComputeCosineOfHorizonAngle(r);
