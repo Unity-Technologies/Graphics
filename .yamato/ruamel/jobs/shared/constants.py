@@ -5,12 +5,10 @@ PATH_TEST_RESULTS = 'test-results'
 PATH_TEST_RESULTS_padded = '**/test-results/**'
 PATH_PACKAGES_pack = 'upm-ci~/packages/**/*'
 PATH_PACKAGES = 'upm-ci~/packages/*.tgz'
+PATH_PACKAGES_temp = 'packages_temp' # used in combination with packages_temp\\[packageid] followed by PATH_PACKAGES to have unique artifact paths
 PATH_TEMPLATES = 'upm-ci~/templates/**/*'
 PATH_UNITY_REVISION = 'unity_revision.txt'
 PATH_PLAYERS_padded = 'players/**'
 PATH_PLAYERS = 'players'
 NPM_UPMCI_INSTALL_URL = 'https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm'
 
-
-def PATH_PACKAGES_pack_id(package_id):
-    return f'packages_temp/{package_id}/{PATH_PACKAGES_pack}'

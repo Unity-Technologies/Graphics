@@ -2,7 +2,7 @@ from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..shared.namer import *
 from ..shared.constants import PATH_UNITY_REVISION
 from ..shared.yml_job import YMLJob
-from ..shared.constants import NPM_UPMCI_INSTALL_URL
+from ..shared.constants import NPM_UPMCI_INSTALL_URL, PATH_PACKAGES_temp
 
 class Package_TestJob():
     
@@ -28,12 +28,12 @@ class Package_TestJob():
             
             if platform["os"].lower() == 'windows':
                 commands.append(f'mkdir upm-ci~\\packages')
-                commands.append(f'copy packages_temp\\{package["id"]}\\upm-ci~\\packages\\packages.json upm-ci~\\packages')
-                commands.append(f'for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages')
+                commands.append(f'copy {PATH_PACKAGES_temp}\\{package["id"]}\\upm-ci~\\packages\\packages.json upm-ci~\\packages')
+                commands.append(f'for /r {PATH_PACKAGES_temp} %%x in (*.tgz) do copy %%x upm-ci~\packages')
             elif platform["os"].lower() == 'macos':
                 commands.append(f'mkdir upm-ci~ && mkdir upm-ci~/packages')
-                commands.append(f'cp packages_temp/{package["id"]}/upm-ci~/packages/packages.json upm-ci~/packages')
-                commands.append(f'cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages')
+                commands.append(f'cp {PATH_PACKAGES_temp}/{package["id"]}/upm-ci~/packages/packages.json upm-ci~/packages')
+                commands.append(f'cp {PATH_PACKAGES_temp}/**/upm-ci~/packages/*.tgz upm-ci~/packages')
             commands.append(platform["copycmd"])
         commands.append(f'upm-ci package test -u {platform["editorpath"]} --package-path {package["packagename"]} --extra-utr-arg="--compilation-errors-as-warnings"')
 
