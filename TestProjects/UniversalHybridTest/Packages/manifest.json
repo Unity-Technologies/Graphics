@@ -16,7 +16,7 @@
     "com.unity.render-pipelines.universal": "file:../../../com.unity.render-pipelines.universal",
     "com.unity.rendering.hybrid": "0.7.0-preview.8",
     "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
-    "com.unity.test-framework": "1.1.13",
+    "com.unity.test-framework": "1.1.16",
     "com.unity.test-framework.build": "0.0.1-preview.12",
     "com.unity.test-framework.utp-reporter": "0.2.3-preview",
     "com.unity.testframework.graphics": "7.2.2-preview",
