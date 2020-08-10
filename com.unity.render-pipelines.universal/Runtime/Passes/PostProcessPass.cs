@@ -589,7 +589,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian)
                 DoGaussianDepthOfField(camera, cmd, source, destination, pixelRect);
             else if (m_DepthOfField.mode.value == DepthOfFieldMode.Bokeh)
-                DoBokehDepthOfField(camera, cmd, source, destination, pixelRect);
+                DoBokehDepthOfField(cmd, source, destination, pixelRect);
         }
 
         void DoGaussianDepthOfField(Camera camera, CommandBuffer cmd, int source, int destination, Rect pixelRect)
