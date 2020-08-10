@@ -117,32 +117,35 @@ def get_versions_from_unity_downloader(tracks, trunk_track, unity_downloader_com
     """
     versions = {}
     for track in tracks: # pylint: disable=too-many-nested-blocks
-        for platform in PLATFORMS:
-            for version_type in SUPPORTED_VERSION_TYPES:
+        for version_type in SUPPORTED_VERSION_TYPES:
+
+            key = f'{track}_{version_type}'
+            versions[key] = {
+                        'display_name': key.replace('_', ' '),
+                    }
+
+            for platform in PLATFORMS:
                 try:
                     result = subprocess.run(
                         generate_downloader_cmd(track, version_type, trunk_track, platform,
                                                 unity_downloader_components),
                         cwd='.', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                         check=True, universal_newlines=True)
-                    key = f'{track}_{version_type}'
+                    
                     revision = result.stdout.strip()
-                    versions[key] = {
-                        'display_name': key.replace('_', ' '),
-                        'revision': revision,
-                        'version': '',
-                    }
-
+                    versions[key][f'revision_{platform}'] = revision
+                   
                     # Parse for the version in stderr (only exists for some cases):
+                    versions[key][f'version_{platform}'] = ''
                     for line in result.stderr.strip().splitlines():
                         match = VERSION_PARSER_RE.match(line)
                         version = ''
                         if match:
                             version = match.group(1)
-                            versions[key]['version'] = version
+                            versions[key][f'version_{platform}'] = version
                             break
                     print(f'INFO: [{platform}] Latest revision for track: {track} '
-                                f'type: {version_type} is {revision} (version: {version})')
+                            f'type: {version_type} is {revision} (version: {version})')
 
                 except subprocess.CalledProcessError as err:
                     # Not great error handling but will hold until there's a better way.
