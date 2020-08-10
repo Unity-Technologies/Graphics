@@ -13,10 +13,10 @@ class Package_PublishAllJob():
 
         # construct job
         job = YMLJob()
-        job.set_name(f'Publish all packages [recurrent]')
+        job.set_name(f'Publish all packages [package context]')
         #job.set_agent(agent)
         job.add_dependencies([f'{packages_filepath()}#{package_job_id_publish(package["id"])}' for package in packages])
-        job.add_trigger_recurrent(target_branch, 'daily')
+        #job.add_trigger_recurrent(target_branch, 'daily')
         return job
 
 
