@@ -203,12 +203,14 @@ public class HDRP_GraphicTestRunner
         }
     }
 
+    // Register the capture from backbuffer logic in the endCameraRendering hook point.
     [OneTimeSetUp]
     public void OneTimeSetUpFunc()
     {
         RenderPipelineManager.endCameraRendering += PostRenderCallback;
     }
 
+    // Remove the hook and delete the texture.
     [OneTimeTearDown]
     public void OneTimeTearDownFunc()
     {
