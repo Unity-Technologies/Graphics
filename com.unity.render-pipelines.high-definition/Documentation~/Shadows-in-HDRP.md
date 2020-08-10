@@ -108,9 +108,8 @@ When a Light that caches its shadows renders its shadow map for the first time, 
 If the Light's **Update Mode** is set to **OnDemand**, you can manually request HDRP to update the Light's shadow map. To do this, access the Light's **HDAdditionalLightData** component and call the `RequestShadowMapRendering` function. Also, if the Light has multiple shadows (e.g. multiple cascades of a directional light), you can request the update of a specific sub-shadow. To do this, use the `RequestSubShadowMapRendering(shadowIndex)` function.
 For a Light that does cache its shadows, if you disable it or set its **Update Mode** to **Every Frame**, you can tell HDRP to preserve the Light's shadow map's place in the cached shadow atlas. This means that, if you enable the Light again, HDRP does not need to re-render the shadow map or place it into a shadow atlas. For information on how to make a Light preserve its shadow map's place in the cached shadow atlas, see [Preserving shadow atlas placement](#preserving-shadow-atlas-placement).
 
-As a shortcut for a common case, HDRP offers an option to automatically trigger an update when either the position or rotation of a light changes above a certain threshold. This option can be selected in the Shadow settings section on the Light as **Update on light movement**. 
-The threshold that are used to determine how much a light needs to move or rotate to trigger an update can be customized per light with the properties 
-`cachedShadowTranslationUpdateThreshold` and `cachedShadowAngleUpdateThreshold` on the **HDAdditionalLightData** component. Note that point lights ignore the angle differences when determining if an update is needed with this mode. 
+As a shortcut for a common case, HDRP offers an option to automatically trigger an update when either the position or rotation of a light changes above a certain threshold. To enable this option, select a [Light](https://github.com/Unity-Technologies/Graphics/pull/Light-Component.md) and, in the **Shadow** section of its Inspector, enable **Update on light movement**. 
+You can customize the threshold that HDRP uses to determine how much a light needs to move or rotate to trigger an update. To do this, use the properties: `cachedShadowTranslationUpdateThreshold` and `cachedShadowAngleUpdateThreshold` properties on the Light's **HDAdditionalLightData** component. Note that point lights ignore the angle differences when determining if they need to perform an update in this mode. 
 
 ### Customising shadow caching
 HDRP caches shadow maps for punctual Lights into one atlas, area Lights into another, and directional Lights into the same atlas as non-cached Directional Lights. You can change the resolution of the first two cached shadow atlases independently of one another. To do this: 
@@ -137,13 +136,13 @@ If you plan to only temporarily set a Light's **Update Mode** to **Every Frame**
 
 ### Mixed Cached Shadow Maps
 
-It is possible to cache only a portion of the shadow map. In order to do so, you must check the **Always draw dynamic** option in the shadow settings of the light and then tick the **Static Shadow Caster** checkbox all renderers that will be cached in shadows (in the Renderer component). 
-With such setup, all static shadow casters are rendered in the shadow map only whenever an explicit update is requested (or only on light enable in case of **OnEnable** update mode), while the other casters (dynamic shadow casters) are drawn each frame. 
-This setup is particularly useful if for example your environment is mostly static and the light doesn't move, but there are few dynamic objects that will need shadows to be cast by such lights. In such scenarios, setting the light as having a mixed cached shadow map will greatly improve performance both on CPU and GPU. 
+It is possible to cache only a portion of the shadow map. To do this, enable the **Always draw dynamic** option in the [Light's](https://github.com/Unity-Technologies/Graphics/pull/Light-Component.md) shadow settings and then enable the **Static Shadow Caster** option for all Renderers to cache shadows for.
+With this setup, HDRP only renders static shadow casters into the shadow map when an explicit update is requested (or, if the Light uses the **OnEnable** update mode, only when the Light enables) whereas, for dynamic shadow casters, HDRP renders them into their respective shadow maps each frame.
+This setup is particularly useful if your environment consists of mostly static GameObjects and the lights do not move, but there are few dynamic GameObjects that you want the static lights to cast shadows for. In such scenarios, setting the light to have a mixed cached shadow map greatly improves performance both on the CPU and GPU.
 
-Please note that as part of implementation details, if a shadow is set up as mixed cached, every frame a blit from the cached shadow map to the dynamic atlas is performed. This is important to keep in mind both for the extra runtime cost of the blit in itself, but also to understand that in terms of memory a single shadow map will require space in both atlases. 
+Note that, due to implementation details, if you set up a shadow to be mixed cached, HDRP performs a blit from the cached shadow map to the dynamic atlas. This is important to keep in mind both for the extra runtime cost of the blit in itself, but also to understand that, in terms of memory, a single shadow map requires space in both atlases.
 
-Another important note, is due to implementation details, if a light with mixed cached shadows moves and the cached counterpart is not updated, the result will look wrong. In such cases either select the **Update on light movement** or the update mode to **OnDemand** and make sure an update is triggered when desired. 
+Another important note, also due to implementation details, if a Light with mixed cached shadows moves and you do not update the cached counterpart, the result looks wrong. In such cases either enable the Light's **Update on light movement** option or set the Light's update mode to **OnDemand** and make sure to trigger an update when you move the Light.
 
 ### Notes
 
