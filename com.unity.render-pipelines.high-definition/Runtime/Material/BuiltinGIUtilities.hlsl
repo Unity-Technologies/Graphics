@@ -6,7 +6,7 @@
 
 #ifdef USE_ADAPTIVE_PROBE_VOLUME
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
 
 // Resources required for APV
 StructuredBuffer<int> _APVResIndex;

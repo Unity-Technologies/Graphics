@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using UnityEditor.Rendering;
-using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 using UnityEditorInternal;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.Rendering
 {
     [CanEditMultipleObjects]
     [CustomEditor(typeof(ProbeVolume))]
@@ -29,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 var shapeBox = shapeBoxes[targets[i] as ProbeVolume] = new HierarchicalBox(ProbeVolumeUI.Styles.k_GizmoColorBase, ProbeVolumeUI.Styles.k_BaseHandlesColor);
                 shapeBox.monoHandle = false;
-                blendBoxes[targets[i] as ProbeVolume] = new HierarchicalBox(ProbeVolumeUI.Styles.k_GizmoColorBase, InfluenceVolumeUI.k_HandlesColor, parent: shapeBox);
+                blendBoxes[targets[i] as ProbeVolume] = new HierarchicalBox(ProbeVolumeUI.Styles.k_GizmoColorBase, ProbeVolumeUI.k_HandlesColor, parent: shapeBox);
 
             }
         }

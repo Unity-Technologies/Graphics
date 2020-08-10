@@ -1,4 +1,4 @@
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.Rendering
 {
     class SerializedProbeVolume
     {

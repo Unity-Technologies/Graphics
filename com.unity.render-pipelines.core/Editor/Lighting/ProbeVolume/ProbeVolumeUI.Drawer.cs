@@ -1,10 +1,9 @@
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
-using UnityEditor.Rendering;
+using UnityEngine.Rendering;
 using UnityEditorInternal;
 
 // TODO(Nicholas): deduplicate with DensityVolumeUI.Drawer.cs.
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.Rendering
 {
     using CED = CoreEditorDrawer<SerializedProbeVolume>;
 
@@ -192,7 +191,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (serialized.advancedFade.boolValue)
             {
                 EditorGUI.BeginChangeCheck();
-                CoreEditorUtils.DrawVector6(Styles.s_BlendLabel, serialized.positiveFade, serialized.negativeFade, Vector3.zero, s, InfluenceVolumeUI.k_HandlesColor, serialized.size);
+                CoreEditorUtils.DrawVector6(Styles.s_BlendLabel, serialized.positiveFade, serialized.negativeFade, Vector3.zero, s, ProbeVolumeUI.k_HandlesColor, serialized.size);
                 if (EditorGUI.EndChangeCheck())
                 {
                     //forbid positive/negative box that doesn't intersect in inspector too

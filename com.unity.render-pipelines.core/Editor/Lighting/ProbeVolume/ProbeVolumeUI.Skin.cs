@@ -1,9 +1,19 @@
 using UnityEngine;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.Rendering
 {
     static partial class ProbeVolumeUI
     {
+        internal static readonly Color[] k_HandlesColor = new Color[]
+        {
+            Color.red,
+            Color.green,
+            Color.blue,
+            new Color(.5f, 0f, 0f, 1f),
+            new Color(0f, .5f, 0f, 1f),
+            new Color(0f, 0f, .5f, 1f)
+        };
+
         internal static class Styles
         {
             internal const string k_featureWarning = "Warning: Probe Volumes is a highly experimental feature.\nIt is disabled by default for this reason.\nIt's functionality is subject to breaking changes and whole sale removal.\nIt is not recommended for use outside of for providing feedback.\nIt should not be used in production.";
@@ -11,7 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
             internal const string k_VolumeHeader = "Volume";
             internal const string k_ProbesHeader = "Probes";
             internal const string k_BakingHeader = "Baking";
-
+            
             internal static readonly GUIContent[] s_Toolbar_Contents = new GUIContent[]
             {
                 EditorGUIUtility.IconContent("EditCollider", "|Modify the base shape. (SHIFT+1)"),

@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using UnityEditor;
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEngine.Rendering
 {
     using Brick = ProbeBrickIndex.Brick;
     using Flags = ProbeReferenceVolume.BrickFlags;
-    using Volume = ProbeReferenceVolume.Volume;
+    using PRVolume = ProbeReferenceVolume.Volume;
     using RefTrans = ProbeReferenceVolume.RefVolTransform;
 
     public static class ProbeVolumePositioning
@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!r.enabled || !contributeGI)
                     continue;
 
-                Volume v = new Volume();
+                PRVolume v = new PRVolume();
                 v.Corner = r.bounds.center - r.bounds.size * 0.5f;
                 v.X = new Vector3(r.bounds.size.x, 0, 0);
                 v.Y = new Vector3(0, r.bounds.size.y, 0);
@@ -59,12 +59,12 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // TODO: Take refvol translation and rotation into account
-        public static Volume CalculateBrickVolume(ref RefTrans refTrans, Brick brick)
+        public static PRVolume CalculateBrickVolume(ref RefTrans refTrans, Brick brick)
         {
             float scaledSize = Mathf.Pow(3, brick.size);
             Vector3 scaledPos = refTrans.refSpaceToWS.MultiplyPoint(brick.position);
 
-            Volume bounds;
+            PRVolume bounds;
             bounds.Corner = scaledPos;
             bounds.X = refTrans.refSpaceToWS.GetColumn(0) * scaledSize;
             bounds.Y = refTrans.refSpaceToWS.GetColumn(1) * scaledSize;
@@ -73,13 +73,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return bounds;
         }
 
-        public static bool OBBIntersect(ref RefTrans refTrans, Brick brick, ref Volume volume)
+        public static bool OBBIntersect(ref RefTrans refTrans, Brick brick, ref PRVolume volume)
         {
             var transformed = CalculateBrickVolume(ref refTrans, brick);
             return OBBIntersect(ref transformed, ref volume);
         }
 
-        public static bool OBBIntersect(ref Volume a, ref Volume b)
+        public static bool OBBIntersect(ref PRVolume a, ref PRVolume b)
         {
             m_Axes[0] = a.X.normalized;
             m_Axes[1] = a.Y.normalized;
@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        private static Vector2 ProjectOBB(ref Volume a, Vector3 axis)
+        private static Vector2 ProjectOBB(ref PRVolume a, Vector3 axis)
         {
             float min = Vector3.Dot(axis, a.Corner);
             float max = min;

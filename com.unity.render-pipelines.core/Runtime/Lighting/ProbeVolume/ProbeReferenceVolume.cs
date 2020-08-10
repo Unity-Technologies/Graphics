@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine.Profiling;
-using Chunk = UnityEngine.Rendering.HighDefinition.ProbeBrickPool.BrickChunkAlloc;
-using Brick = UnityEngine.Rendering.HighDefinition.ProbeBrickIndex.Brick;
+using Chunk = UnityEngine.Rendering.ProbeBrickPool.BrickChunkAlloc;
+using Brick = UnityEngine.Rendering.ProbeBrickIndex.Brick;
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEngine.Rendering
 {
     public class ProbeReferenceVolume
     {

@@ -5,7 +5,7 @@ using UnityEditor.Experimental;
 using Unity.Collections;
 using System.Collections.Generic;
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEngine.Rendering
 {
     internal enum ProbeSpacingMode
     {
@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float backfaceTolerance;
         public int dilationIterations;
 
-        public LightLayerEnum lightLayers;
+        //public LightLayerEnum lightLayers;
 
         public Vector3 positiveFade
         {
@@ -124,7 +124,7 @@ namespace UnityEngine.Rendering.HighDefinition
             this.weight = 1;
             this.dilationIterations = 2;
             this.backfaceTolerance = 0.25f;
-            this.lightLayers = LightLayerEnum.LightLayerDefault;
+            //this.lightLayers = LightLayerEnum.LightLayerDefault;
         }
 
         internal void Constrain()

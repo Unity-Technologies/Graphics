@@ -3,10 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine.Profiling;
-using Chunk = UnityEngine.Rendering.HighDefinition.ProbeBrickPool.BrickChunkAlloc;
-using RegId = UnityEngine.Rendering.HighDefinition.ProbeReferenceVolume.RegId;
+using Chunk = UnityEngine.Rendering.ProbeBrickPool.BrickChunkAlloc;
+using RegId = UnityEngine.Rendering.ProbeReferenceVolume.RegId;
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEngine.Rendering
 {
     public class ProbeBrickIndex
     {
