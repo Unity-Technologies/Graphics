@@ -32,6 +32,16 @@ promote_all_preview:
       -  .yamato/_preview_publish.yml#promote_vfx
       -  .yamato/_preview_publish.yml#promote_config
       -  .yamato/_preview_publish.yml#promote_lwrp
+promote_all_preview_project:
+    name: Promote all preview packages - nightly [project context]
+    dependencies:
+      -  .yamato/_preview_publish.yml#promote_core_project
+      -  .yamato/_preview_publish.yml#promote_universal_project
+      -  .yamato/_preview_publish.yml#promote_hdrp_project
+      -  .yamato/_preview_publish.yml#promote_shadergraph_project
+      -  .yamato/_preview_publish.yml#promote_vfx_project
+      -  .yamato/_preview_publish.yml#promote_config_project
+      -  .yamato/_preview_publish.yml#promote_lwrp_project
 wait_for_nightly:
     name: Wait for nightly
     dependencies:
@@ -77,6 +87,46 @@ promote_core:
         packages:
             paths:
               -  "upm-ci~/packages/*.tgz"
+promote_core_project:
+    name: '[core] Preview - Production Promote [project context]'
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    variables:
+        UPMCI_PROMOTION: 1
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#publish_core_project
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package promote --package-path com.unity.render-pipelines.core
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/*.tgz"
+promote_core_project_dry:
+    name: '[core] Preview - Production Promote [project context] [dry run]'
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    variables:
+        UPMCI_PROMOTION: 1
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#publish_core_project_dry
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package promote --package-path com.unity.render-pipelines.core --dry-run
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/*.tgz"
 promote_core_dry:
     name: '[core] Preview - Production Promote [dry run]'
     agent:
@@ -113,6 +163,46 @@ promote_universal:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.universal
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/*.tgz"
+promote_universal_project:
+    name: '[universal] Preview - Production Promote [project context]'
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    variables:
+        UPMCI_PROMOTION: 1
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#publish_universal_project
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package promote --package-path com.unity.render-pipelines.universal
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/*.tgz"
+promote_universal_project_dry:
+    name: '[universal] Preview - Production Promote [project context] [dry run]'
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    variables:
+        UPMCI_PROMOTION: 1
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#publish_universal_project_dry
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package promote --package-path com.unity.render-pipelines.universal --dry-run
     artifacts:
         packages:
             paths:
@@ -157,6 +247,46 @@ promote_hdrp:
         packages:
             paths:
               -  "upm-ci~/packages/*.tgz"
+promote_hdrp_project:
+    name: '[hdrp] Preview - Production Promote [project context]'
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    variables:
+        UPMCI_PROMOTION: 1
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#publish_hdrp_project
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package promote --package-path com.unity.render-pipelines.high-definition
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/*.tgz"
+promote_hdrp_project_dry:
+    name: '[hdrp] Preview - Production Promote [project context] [dry run]'
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    variables:
+        UPMCI_PROMOTION: 1
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#publish_hdrp_project_dry
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package promote --package-path com.unity.render-pipelines.high-definition --dry-run
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/*.tgz"
 promote_hdrp_dry:
     name: '[hdrp] Preview - Production Promote [dry run]'
     agent:
@@ -193,6 +323,46 @@ promote_shadergraph:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.shadergraph
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/*.tgz"
+promote_shadergraph_project:
+    name: '[shadergraph] Preview - Production Promote [project context]'
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    variables:
+        UPMCI_PROMOTION: 1
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#publish_shadergraph_project
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package promote --package-path com.unity.shadergraph
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/*.tgz"
+promote_shadergraph_project_dry:
+    name: '[shadergraph] Preview - Production Promote [project context] [dry run]'
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    variables:
+        UPMCI_PROMOTION: 1
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#publish_shadergraph_project_dry
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package promote --package-path com.unity.shadergraph --dry-run
     artifacts:
         packages:
             paths:
@@ -237,6 +407,46 @@ promote_vfx:
         packages:
             paths:
               -  "upm-ci~/packages/*.tgz"
+promote_vfx_project:
+    name: '[vfx] Preview - Production Promote [project context]'
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    variables:
+        UPMCI_PROMOTION: 1
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#publish_vfx_project
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package promote --package-path com.unity.visualeffectgraph
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/*.tgz"
+promote_vfx_project_dry:
+    name: '[vfx] Preview - Production Promote [project context] [dry run]'
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    variables:
+        UPMCI_PROMOTION: 1
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#publish_vfx_project_dry
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package promote --package-path com.unity.visualeffectgraph --dry-run
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/*.tgz"
 promote_vfx_dry:
     name: '[vfx] Preview - Production Promote [dry run]'
     agent:
@@ -277,6 +487,46 @@ promote_config:
         packages:
             paths:
               -  "upm-ci~/packages/*.tgz"
+promote_config_project:
+    name: '[config] Preview - Production Promote [project context]'
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    variables:
+        UPMCI_PROMOTION: 1
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#publish_config_project
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package promote --package-path com.unity.render-pipelines.high-definition-config
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/*.tgz"
+promote_config_project_dry:
+    name: '[config] Preview - Production Promote [project context] [dry run]'
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    variables:
+        UPMCI_PROMOTION: 1
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#publish_config_project_dry
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package promote --package-path com.unity.render-pipelines.high-definition-config --dry-run
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/*.tgz"
 promote_config_dry:
     name: '[config] Preview - Production Promote [dry run]'
     agent:
@@ -313,6 +563,46 @@ promote_lwrp:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.lightweight
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/*.tgz"
+promote_lwrp_project:
+    name: '[lwrp] Preview - Production Promote [project context]'
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    variables:
+        UPMCI_PROMOTION: 1
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#publish_lwrp_project
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package promote --package-path com.unity.render-pipelines.lightweight
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/*.tgz"
+promote_lwrp_project_dry:
+    name: '[lwrp] Preview - Production Promote [project context] [dry run]'
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    variables:
+        UPMCI_PROMOTION: 1
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_projectcontext.yml#publish_lwrp_project_dry
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci package promote --package-path com.unity.render-pipelines.lightweight --dry-run
     artifacts:
         packages:
             paths:

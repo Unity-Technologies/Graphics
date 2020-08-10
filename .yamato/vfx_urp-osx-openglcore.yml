@@ -14,8 +14,8 @@ VFX_URP_OSX_OpenGLCore_playmode_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
-      -  pip install unity-downloader-cli --index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/VisualEffectGraph_URP && -u 2de78afbf55b2a0e21af599ae9a27f5ac63b894d -c editor -c il2cpp  --wait --published-only
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli -u 2de78afbf55b2a0e21af599ae9a27f5ac63b894d -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/VisualEffectGraph_URP && ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:
@@ -33,8 +33,8 @@ VFX_URP_OSX_OpenGLCore_playmode_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
-      -  pip install unity-downloader-cli --index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/VisualEffectGraph_URP && -u $CUSTOM_REVISION -c editor -c il2cpp  --wait --published-only
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli -u $CUSTOM_REVISION -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/VisualEffectGraph_URP && ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:

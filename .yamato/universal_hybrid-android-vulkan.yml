@@ -39,11 +39,11 @@ Build_Universal_Hybrid_Android_Vulkan_Player_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 2de78afbf55b2a0e21af599ae9a27f5ac63b894d -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME%
-      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT%
-      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT%
+      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
+      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
+      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
       -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalHybridTest --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --scripting-backend=il2cpp --timeout=1800 --build-only --compilation-errors-as-warnings
     artifacts:
         logs:
@@ -90,11 +90,11 @@ Build_Universal_Hybrid_Android_Vulkan_Player_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u $CUSTOM_REVISION -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME%
-      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT%
-      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT%
+      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
+      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
+      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
       -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalHybridTest --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --scripting-backend=il2cpp --timeout=1800 --build-only --compilation-errors-as-warnings
     artifacts:
         logs:

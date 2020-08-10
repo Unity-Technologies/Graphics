@@ -32,7 +32,7 @@ Build_Universal_iPhone_Metal_Player_2020.2:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  pip install unity-downloader-cli --index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u 2de78afbf55b2a0e21af599ae9a27f5ac63b894d -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
@@ -75,7 +75,7 @@ Build_Universal_iPhone_Metal_Player_CUSTOM-REVISION:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
-      -  pip install unity-downloader-cli --index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --upgrade
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u $CUSTOM_REVISION -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
