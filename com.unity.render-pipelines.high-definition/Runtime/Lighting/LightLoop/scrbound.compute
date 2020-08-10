@@ -60,7 +60,8 @@ float4x4 Translation4x4(float3 d)
     return M;
 }
 
-float3x3 Rotation3x3(float3 xAxis, float3 yAxis, float3 zAxis)
+// Scale followed by rotation (scaled axes).
+float3x3 ScaledRotation3x3(float3 xAxis, float3 yAxis, float3 zAxis)
 {
     float3x3 R = float3x3(xAxis, yAxis, zAxis);
     float3x3 C = transpose(R); // Row to column
@@ -89,7 +90,7 @@ float4x4 Homogenize3x3(float3x3 R)
 
 float4x4 PerspectiveProjection4x4(float a, float g, float n, float f)
 {
-    float b = (f + n) * rcp(f - n);    // z: [-1, 1]
+    float b = (f + n) * rcp(f - n);    // Z in [-1, 1]
     float c = -2 * f * n * rcp(f - n); // No Z-reversal
 
     return float4x4(g/a, 0, 0, 0,
@@ -98,7 +99,7 @@ float4x4 PerspectiveProjection4x4(float a, float g, float n, float f)
                       0, 0, 1, 0);
 }
 
-#define CLEAR_SIGN_BIT(X)  (asuint(X) & INT_MAX)
+#define CLEAR_SIGN_BIT(X)  (asint(X) & INT_MAX)
 #define DIV_ROUND_UP(N, D) (((N) + (D) - 1) / (D)) // No division by 0 checks
 
 // Clipping a plane by a cube may produce a hexagon (6-gon).
@@ -116,43 +117,60 @@ float4x4 PerspectiveProjection4x4(float a, float g, float n, float f)
 
 // All planes and faces are always in the standard order (see below).
 // Near and far planes are swapped in the case of Z-reversal, but it does not change the algorithm.
-#define FACE_LEFT   (1 << 0) // x = -1
-#define FACE_RIGHT  (1 << 1) // x = +1
-#define FACE_FRONT  (1 << 2) // y = -1
-#define FACE_BACK   (1 << 3) // y = +1
-#define FACE_TOP    (1 << 4) // z = -1
-#define FACE_BOTTOM (1 << 5) // z = +1
+#define FACE_LEFT   (1 << 0) // -X     z
+#define FACE_RIGHT  (1 << 1) // +X    /
+#define FACE_TOP    (1 << 2) // -Y   0 -- x
+#define FACE_BOTTOM (1 << 3) // +Y   |
+#define FACE_FRONT  (1 << 4) // -Z   y
+#define FACE_BACK   (1 << 5) // +Z
 #define FACE_MASK   ((1 << NUM_FACES) - 1)
 
-// TODO: the compiler generates 'tbuffer_load_format_x' instructions
-// when we access the look-up tables. Can we avoid this?
-
-// TODO: try vert order (0 0 0), (1 0 0), (0 1 0), (1 1 0), (0 0 1), (1 0 1), (0 1 1), (1 1 1)
+// A list of vertices for each face (CCW order w.r.t. its normal, starting from the LSB).
+#define VERT_LIST_LEFT   ((2) << 9 | (6) << 6 | (4) << 3 | (0) << 0)
+#define VERT_LIST_RIGHT  ((5) << 9 | (7) << 6 | (3) << 3 | (1) << 0)
+#define VERT_LIST_TOP    ((1) << 9 | (3) << 6 | (2) << 3 | (0) << 0)
+#define VERT_LIST_BOTTOM ((6) << 9 | (7) << 6 | (5) << 3 | (4) << 0)
+#define VERT_LIST_FRONT  ((4) << 9 | (5) << 6 | (1) << 3 | (0) << 0)
+#define VERT_LIST_BACK   ((3) << 9 | (7) << 6 | (6) << 3 | (2) << 0)
 
 // All vertices are always in the standard order (see below).
-static const uint s_FaceMasksOfVerts[NUM_VERTS] =
+uint GetFaceMaskOfVertex(uint v)
 {
-    FACE_LEFT  | FACE_FRONT | FACE_TOP,    // 0: (-1, -1, -1)
-    FACE_RIGHT | FACE_FRONT | FACE_TOP,    // 1: (+1, -1, -1)
-    FACE_RIGHT | FACE_BACK  | FACE_TOP,    // 2: (+1, +1, -1)
-    FACE_LEFT  | FACE_BACK  | FACE_TOP,    // 3: (-1, +1, -1)
-    FACE_LEFT  | FACE_FRONT | FACE_BOTTOM, // 4: (-1, -1, +1)
-    FACE_RIGHT | FACE_FRONT | FACE_BOTTOM, // 5: (+1, -1, +1)
-    FACE_RIGHT | FACE_BACK  | FACE_BOTTOM, // 6: (+1, +1, +1)
-    FACE_LEFT  | FACE_BACK  | FACE_BOTTOM  // 7: (-1, +1, +1)
+    // 0: (-1, -1, -1) -> { FACE_LEFT  | FACE_TOP    | FACE_FRONT }
+    // 1: (+1, -1, -1) -> { FACE_RIGHT | FACE_TOP    | FACE_FRONT }
+    // 2: (-1, +1, -1) -> { FACE_LEFT  | FACE_BOTTOM | FACE_FRONT }
+    // 3: (+1, +1, -1) -> { FACE_RIGHT | FACE_BOTTOM | FACE_FRONT }
+    // 4: (-1, -1, +1) -> { FACE_LEFT  | FACE_TOP    | FACE_BACK  }
+    // 5: (+1, -1, +1) -> { FACE_RIGHT | FACE_TOP    | FACE_BACK  }
+    // 6: (-1, +1, +1) -> { FACE_LEFT  | FACE_BOTTOM | FACE_BACK  }
+    // 7: (+1, +1, +1) -> { FACE_RIGHT | FACE_BOTTOM | FACE_BACK  }
+    // ((v & 1) == 0) ? 1 : 2) | ((v & 2) == 0) ? 4 : 8) | ((v & 4) == 0) ? 16 : 32)
+    uint f = (FACE_LEFT  << BitFieldExtract(v, 0, 1))
+           | (FACE_TOP   << BitFieldExtract(v, 1, 1))
+           | (FACE_FRONT << BitFieldExtract(v, 2, 1));
+
+    return f;
 };
 
-// CCW order (starting with the LSB) of vertices for each face (w.r.t. its normal),
-// with normals pointing in the interior of the volume.
-static const uint s_VertMasksOfFaces[NUM_FACES] =
+float3 GenerateVertexOfStandardCube(uint v)
 {
-    (3) << 9 | (7) << 6 | (4) << 3 | (0) << 0, // 0: FACE_LEFT
-    (5) << 9 | (6) << 6 | (2) << 3 | (1) << 0, // 1: FACE_RIGHT
-    (4) << 9 | (5) << 6 | (1) << 3 | (0) << 0, // 2: FACE_FRONT
-    (6) << 9 | (7) << 6 | (3) << 3 | (2) << 0, // 3: FACE_BACK
-    (1) << 9 | (2) << 6 | (3) << 3 | (0) << 0, // 4: FACE_TOP
-    (7) << 9 | (6) << 6 | (5) << 3 | (4) << 0  // 5: FACE_BOTTOM
-};
+    float3 p;
+
+    p.x = ((v & 1) == 0) ? -1 : 1;
+    p.y = ((v & 2) == 0) ? -1 : 1;
+    p.z = ((v & 4) == 0) ? -1 : 1;
+
+    return p;
+}
+
+uint GetVertexListOfFace(uint f)
+{
+    static const uint3 allVertLists = uint3((VERT_LIST_RIGHT  << 12) | VERT_LIST_LEFT,
+                                            (VERT_LIST_BOTTOM << 12) | VERT_LIST_TOP,
+                                            (VERT_LIST_BACK   << 12) | VERT_LIST_FRONT);
+
+    return BitFieldExtract(allVertLists[f >> 1], 12 * (f & 1), 12);
+}
 
 // 5 arrays * 128 elements * 4 bytes each = 2560 bytes.
 groupshared float gs_HapVertsX[VERTS_PER_GROUP];
@@ -182,11 +200,11 @@ groupshared uint  gs_NdcAaBbMaxPtW[LIGHTS_PER_GROUP]; // View-space Z coordinate
 bool TryCullFace(uint f, uint behindMasksOfVerts[NUM_VERTS])
 {
     uint cullMaskOfFace = FACE_MASK; // Initially behind
-    uint vertMaskOfFace = s_VertMasksOfFaces[f];
+    uint vertListOfFace = GetVertexListOfFace(f);
 
     for (int j = 0; j < 4; j++)
     {
-        uint v = BitFieldExtract(vertMaskOfFace, 3 * j, 3);
+        uint v = BitFieldExtract(vertListOfFace, 3 * j, 3);
         // Non-zero if ALL the vertices are behind any of the planes.
         cullMaskOfFace &= behindMasksOfVerts[v];
     }
@@ -202,9 +220,9 @@ struct ClipVertex
 
 ClipVertex CreateClipVertex(uint p, float4 v)
 {
-    bool evenPlane = (p % 2) == 0;
+    bool evenPlane = (p & 1) == 0;
 
-    float c = v[p / 2];
+    float c = v[p >> 1];
     float w = v.w;
 
     ClipVertex cv;
@@ -295,7 +313,7 @@ void ClipFaceAgainstViewVolume(uint f, uint behindMasksOfVerts[NUM_VERTS], uint 
     srcSize  = 4;
 
     uint clipMaskOfFace = 0; // Initially in front
-    uint vertMaskOfFace = s_VertMasksOfFaces[f];
+    uint vertListOfFace = GetVertexListOfFace(f);
 
     for (int j = 0; j < 4; j++)
     {
@@ -311,11 +329,9 @@ void ClipFaceAgainstViewVolume(uint f, uint behindMasksOfVerts[NUM_VERTS], uint 
         vertRingBuffer[j].w = gs_HapVertsW[firstVertexOffset + v];
     }
 
-    const uint numPlanesToClipAgainst = countbits(clipMaskOfFace); // [1, 6]
-
     // Sutherland-Hodgeman polygon clipping algorithm.
     // It works by clipping the entire polygon against one clipping plane at a time.
-    for (uint j = 0; j < numPlanesToClipAgainst; j++)
+    while (clipMaskOfFace != 0)
     {
         uint p = firstbitlow(clipMaskOfFace);
 
@@ -336,13 +352,12 @@ void UpdateAaBb(uint srcBegin, uint srcSize, float4 vertRingBuffer[MAX_CLIP_VERT
 #ifdef DUMB_COMPILER
     uint modSrcIdx = srcBegin % MAX_CLIP_VERTS;
 #endif
-
     for (uint j = srcBegin; j < (srcBegin + srcSize); j++)
     {
     #ifndef DUMB_COMPILER
         uint modSrcIdx = j % MAX_CLIP_VERTS;
     #endif
-        float4 hapVert    = vertRingBuffer[modSrcIdx];
+        float4 hapVert = vertRingBuffer[modSrcIdx];
         // Clamp to the bounds in case of numerical errors (may still generate -0).
         float3 rapVertNDC = saturate(hapVert.xyz * rcp(hapVert.w));
         float  rbpVertVSz = hapVert.w;
@@ -477,22 +492,17 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
     {
         uint v = i * THREADS_PER_LIGHT + t % THREADS_PER_LIGHT;
 
-        // rbpVerts[0] = rbpC - rbpX * scale.x - rbpY * scale.y - rbpZ; // (-1, -1, -1)
-        // rbpVerts[1] = rbpC + rbpX * scale.x - rbpY * scale.y - rbpZ; // (+1, -1, -1)
-        // rbpVerts[2] = rbpC + rbpX * scale.x + rbpY * scale.y - rbpZ; // (+1, +1, -1)
-        // rbpVerts[3] = rbpC - rbpX * scale.x + rbpY * scale.y - rbpZ; // (-1, +1, -1)
-        // rbpVerts[4] = rbpC - rbpX           - rbpY           + rbpZ; // (-1, -1, +1)
-        // rbpVerts[5] = rbpC + rbpX           - rbpY           + rbpZ; // (+1, -1, +1)
-        // rbpVerts[6] = rbpC + rbpX           + rbpY           + rbpZ; // (+1, +1, +1)
-        // rbpVerts[7] = rbpC - rbpX           + rbpY           + rbpZ; // (-1, +1, +1)
+        // rbpVerts[0] = rbpC - rbpX * scale - rbpY * scale - rbpZ; (-s, -s, -1)
+        // rbpVerts[1] = rbpC + rbpX * scale - rbpY * scale - rbpZ; (+s, -s, -1)
+        // rbpVerts[2] = rbpC - rbpX * scale + rbpY * scale - rbpZ; (-s, +s, -1)
+        // rbpVerts[3] = rbpC + rbpX * scale + rbpY * scale - rbpZ; (+s, +s, -1)
+        // rbpVerts[4] = rbpC - rbpX         - rbpY         + rbpZ; (-1, -1, +1)
+        // rbpVerts[5] = rbpC + rbpX         - rbpY         + rbpZ; (+1, -1, +1)
+        // rbpVerts[6] = rbpC - rbpX         + rbpY         + rbpZ; (-1, +1, +1)
+        // rbpVerts[7] = rbpC + rbpX         + rbpY         + rbpZ; (+1, +1, +1)
 
-        float3 m; // See the comment above
-
-        m.x = (countbits(v % 4) == 1) ? 1 : -1;
-        m.y = ((v & 2) != 0)          ? 1 : -1;
-        m.z = (v >= 4)                ? 1 : -1;
-
-        m.xy *= (v >= 4) ? 1 : scale;
+        float3 m = GenerateVertexOfStandardCube(v);
+        m.xy *= ((v & 4) == 0) ? scale : 1; // X, Y in [-scale, scale]
 
         float3 rbpVertVS = rbpC + m.x * rbpX + m.y * rbpY + m.z * rbpZ;
         // Avoid generating (w = 0).
@@ -538,7 +548,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
         }
         else // Outside
         {
-            cullClipFaceMask |= s_FaceMasksOfVerts[v];
+            cullClipFaceMask |= GetFaceMaskOfVertex(v);
         }
 
         gs_HapVertsX[firstVertexOffset + v]          = hapVert.x;
@@ -567,7 +577,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
         // The light volume is a special type of cuboid - a right frustum.
         // We can exploit this fact by building a light-space projection matrix.
         float4x4 invTranslateToLightSpace      = Translation4x4(-rbpC);
-        float4x4 invRotateAndScaleInLightSpace = Homogenize3x3(Invert3x3(Rotation3x3(rbpX, rbpY, rbpZ)));
+        float4x4 invRotateAndScaleInLightSpace = Homogenize3x3(Invert3x3(ScaledRotation3x3(rbpX, rbpY, rbpZ)));
         // TODO: avoid full inversion by using unit vectors and passing magnitudes explicitly.
 
         // This (orthographic) projection matrix maps a view-space point to a light-space [-1, 1]^3 cube.
@@ -592,20 +602,8 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
         {
             uint v = i * THREADS_PER_LIGHT + t % THREADS_PER_LIGHT;
 
-            // rapVertsCS[0] = (-1, -1, 0)
-            // rapVertsCS[1] = (+1, -1, 0)
-            // rapVertsCS[2] = (+1, +1, 0)
-            // rapVertsCS[3] = (-1, +1, 0)
-            // rapVertsCS[4] = (-1, -1, 1)
-            // rapVertsCS[5] = (+1, -1, 1)
-            // rapVertsCS[6] = (+1, +1, 1)
-            // rapVertsCS[7] = (-1, +1, 1)
-
-            float3 rapVertCS; // See the comment above
-
-            rapVertCS.x = (countbits(v % 4) == 1) ? 1 : -1;
-            rapVertCS.y = ((v & 2) != 0)          ? 1 : -1;
-            rapVertCS.z = (v >= 4)                ? 1 :  0;
+            float3 rapVertCS = GenerateVertexOfStandardCube(v);
+            rapVertCS.z = rapVertCS.z * 0.5 + 0.5; // View's projection matrix MUST map Z to [0, 1]
 
             float4 hbpVertVS = mul(g_mInvProjection, float4(rapVertCS, 1)); // Clip to view space
             float4 hapVertLS = mul(lightSpaceMatrix, hbpVertVS);            // View to light space
