@@ -90,12 +90,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     IsMatrix = true;
                     SetVisibility(size, IsMatrix);
                     break;
-                case "Matrix3":
+                case "Matrix3x3":
                     size = 3;
                     IsMatrix = true;
                     SetVisibility(size, IsMatrix);
                     break;
-                case "Matrix2":
+                case "Matrix2x2":
                     size = 2;
                     IsMatrix = true;
                     SetVisibility(size, IsMatrix);

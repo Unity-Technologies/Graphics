@@ -16,9 +16,9 @@ namespace UnityEditor.ShaderGraph
 {
     enum SwizzleOutputSize
     {
-        Matrix4,
-        Matrix3,
-        Matrix2,
+        Matrix4x4,
+        Matrix3x3,
+        Matrix2x2,
         Vector4,
         Vector3,
         Vector2,
@@ -129,13 +129,13 @@ namespace UnityEditor.ShaderGraph
             //add slot needs to add connected edges to update loop in handlegraphchanges
             switch (m_OutputSize)
             {
-                case SwizzleOutputSize.Matrix4:
+                case SwizzleOutputSize.Matrix4x4:
                     AddSlot(new Matrix4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
                     break;
-                case SwizzleOutputSize.Matrix3:
+                case SwizzleOutputSize.Matrix3x3:
                     AddSlot(new Matrix3MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
                     break;
-                case SwizzleOutputSize.Matrix2:
+                case SwizzleOutputSize.Matrix2x2:
                     AddSlot(new Matrix2MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
                     break;
                 case SwizzleOutputSize.Vector4:
@@ -283,10 +283,10 @@ namespace UnityEditor.ShaderGraph
                 default:
                     outputRowCount = 4;
                     break;
-                case SwizzleOutputSize.Matrix3:
+                case SwizzleOutputSize.Matrix3x3:
                     outputRowCount = 3;
                     break;
-                case SwizzleOutputSize.Matrix2:
+                case SwizzleOutputSize.Matrix2x2:
                     outputRowCount = 2;
                     break;
                 case SwizzleOutputSize.Vector4:
