@@ -1,5 +1,3 @@
-using UnityEditor.WindowsStandalone;
-
 namespace UnityEngine.Rendering.Universal
 {
     public static class PostProcessUtils

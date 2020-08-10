@@ -592,23 +592,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 DoBokehDepthOfField(camera, cmd, source, destination, pixelRect);
         }
 
-        void SetTextureSize(Camera camera, CommandBuffer cmd, int nameID, int width, int height)
-        {
-            float w;
-            float h;
-            if (camera.allowDynamicResolution)
-            {
-                w = width * ScalableBufferManager.widthScaleFactor;
-                h = height * ScalableBufferManager.heightScaleFactor;
-            }
-            else
-            {
-                w = width;
-                h = height;
-            }
-            cmd.SetGlobalVector(nameID, new Vector4(w, h, 1.0f / w, 1.0f / h));
-        }
-
         void DoGaussianDepthOfField(Camera camera, CommandBuffer cmd, int source, int destination, Rect pixelRect)
         {
             int downSample = 2;
@@ -720,7 +703,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return Mathf.Min(0.05f, kRadiusInPixels / viewportHeight);
         }
 
-        void DoBokehDepthOfField(Camera camera, CommandBuffer cmd, int source, int destination, Rect pixelRect)
+        void DoBokehDepthOfField(CommandBuffer cmd, int source, int destination, Rect pixelRect)
         {
             int downSample = 2;
             var material = m_Materials.bokehDepthOfField;
