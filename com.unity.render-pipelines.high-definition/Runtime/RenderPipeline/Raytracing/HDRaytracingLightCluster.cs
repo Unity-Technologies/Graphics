@@ -694,17 +694,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InvalidateCluster()
         {
-            // Invalidate the cluster's bounds so that we never access the buffer
+            // Invalidate the cluster's bounds so that we never access the buffer (the buffer's access in hlsl is surrounded by position testing)
             minClusterPos.Set(float.MaxValue, float.MaxValue, float.MaxValue);
             maxClusterPos.Set(-float.MaxValue, -float.MaxValue, -float.MaxValue);
             punctualLightCount = 0;
             areaLightCount = 0;
-
-            // Make sure the buffer is at least of size 1
-            if (m_LightCluster.count != 1)
-            {
-                ResizeClusterBuffer(1);
-            }
             return;
         }
 
