@@ -40,6 +40,11 @@
       	* [Collide with Plane](Block-CollideWithPlane.md)
       	* [Collide with Signed Distance Field](Block-CollideWithSignedDistanceField.md)
       	* [Collide with Sphere](Block-CollideWithSphere.md)
+      * Force
+        * [Linear Drag](Block-LinearDrag.md)
+      * GPU Event
+        * [Trigger Event Always](Block-TriggerEventAlways.md)
+        * [Trigger Event On Die](Block-TriggerEventOnDie.md)
       * Position
         * [Set Position (Depth)](Block-SetPosition(Depth).md)
         * [Set Position (Shape : AABox)](Block-SetPosition(AABox).md)
