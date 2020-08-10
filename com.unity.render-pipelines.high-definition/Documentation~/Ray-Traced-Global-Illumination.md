@@ -1,6 +1,6 @@
 # Ray-Traced Global Illumination
 
-Ray-Traced Global Illumination is a ray tracing feature in the High Definition Render Pipeline (HDRP). It is a more accurate alternative to [Screen Space Global Illumination](Override-Screen), Light Probes and lightmaps.
+Ray-Traced Global Illumination is a ray tracing feature in the High Definition Render Pipeline (HDRP). It is a more accurate alternative to [Screen Space Global Illumination](Override-Screen-Space-GI.md), Light Probes and lightmaps.
 
 ![](Images/RayTracedGlobalIllumination1.png)
 
@@ -12,28 +12,28 @@ Ray-Traced Global Illumination is a ray tracing feature in the High Definition R
 
 ## Using Ray-Traced Global Illumination
 
-For information about ray tracing in HDRP, and how to set up your HDRP Project to support ray tracing, see [Getting started with ray tracing](Ray-Tracing-Getting-Started.html). Note that you should also enable **Screen Space Global Illumination** in your [HDRP Asset](HDRP-Asset.html).
+For information about ray tracing in HDRP, and how to set up your HDRP Project to support ray tracing, see [Getting started with ray tracing](Ray-Tracing-Getting-Started.md). Note that you should also enable **Screen Space Global Illumination** in your [HDRP Asset](HDRP-Asset.md).
 
 ### Camera setup
 
-Cameras use [Frame Settings](Frame-Settings.html) to decide how to render the Scene. To enable ray-traced global illumination for your Cameras by default:
+Cameras use [Frame Settings](Frame-Settings.md) to decide how to render the Scene. To enable ray-traced global illumination for your Cameras by default:
 
 1. Open the Project Settings window (menu: **Edit > Project Settings**), then select the HDRP Default Settings tab.
 2. Select Camera from the Default Frame Settings For drop-down.
 3. In the Rendering section, enable Ray Tracing.
 
-All Cameras can now process ray-traced global illumination unless they use custom [Frame Settings](Frame-Settings.html). If they do:
+All Cameras can now process ray-traced global illumination unless they use custom [Frame Settings](Frame-Settings.md). If they do:
 
 1. In the Scene view or Hierarchy, select the Camera's GameObject to open it in the Inspector.
 2. In the Custom Frame Settings, navigate to the Rendering section and enable Ray Tracing.
 
 ## Volume setup
 
-Ray-Traced Global Illumination uses the [Volume](Volumes.html) framework, so to enable this feature and modify its properties, you need to add a Global Illumination override to a [Volume](Volumes.html) in your Scene. To do this:
+Ray-Traced Global Illumination uses the [Volume](Volumes.md) framework, so to enable this feature and modify its properties, you need to add a Global Illumination override to a [Volume](Volumes.md) in your Scene. To do this:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to Add Override > Ray Tracing and click on Global Illumination.
-3. In the Inspector for the Global Illumination Volume Override, enable Ray Tracing. HDRP now uses ray tracing to calculate reflections. If you do not see the Ray Tracing option, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [getting started with ray tracing](Ray-Tracing-Getting-Started.html).
+3. In the Inspector for the Global Illumination Volume Override, enable Ray Tracing. HDRP now uses ray tracing to calculate reflections. If you do not see the Ray Tracing option, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [getting started with ray tracing](Ray-Tracing-Getting-Started.md).
 
 ![](Images/RayTracedGlobalIllumination3.png)
 
