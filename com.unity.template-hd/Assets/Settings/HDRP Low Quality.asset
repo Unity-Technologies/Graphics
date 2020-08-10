@@ -323,18 +323,18 @@ MonoBehaviour:
       occlusionMesh: 1
       cameraJitter: 0
     postProcessQualitySettings:
-      NearBlurSampleCount: 030000000500000008000000
+      NearBlurSampleCount: 030000000400000004000000
       NearBlurMaxRadius:
       - 2
-      - 4
-      - 7
-      FarBlurSampleCount: 04000000070000000e000000
+      - 3
+      - 3
+      FarBlurSampleCount: 040000000500000005000000
       FarBlurMaxRadius:
       - 5
-      - 8
-      - 13
-      DoFResolution: 040000000200000001000000
-      DoFHighQualityFiltering: 000101
+      - 6
+      - 6
+      DoFResolution: 040000000400000002000000
+      DoFHighQualityFiltering: 000100
       DoFPhysicallyBased: 000000
       MotionBlurSampleCount: 04000000080000000c000000
       BloomRes: 040000000200000002000000
@@ -357,11 +357,11 @@ MonoBehaviour:
       m_SchemaId:
         m_Id: With3Levels
     lightingQualitySettings:
-      AOStepCount: 040000000600000010000000
-      AOFullRes: 000001
-      AOMaximumRadiusPixels: 200000002800000050000000
-      AOBilateralUpsample: 000101
-      AODirectionCount: 010000000200000004000000
+      AOStepCount: 030000000400000006000000
+      AOFullRes: 000000
+      AOMaximumRadiusPixels: 180000002000000020000000
+      AOBilateralUpsample: 000000
+      AODirectionCount: 010000000100000002000000
       ContactShadowSampleCount: 060000000a00000010000000
       SSRMaxRaySteps: 100000002000000040000000
       RTAORayLength:
