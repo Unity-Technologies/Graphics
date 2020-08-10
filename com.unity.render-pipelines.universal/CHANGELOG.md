@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.1.0] - 2019-08-04
+
+### Fixed
+- Fixed a case where main light hard shadows would not work if any other light is present with soft shadows.[case 1250829](https://issuetracker.unity3d.com/issues/main-light-shadows-are-ignored-in-favor-of-additional-lights-shadows)
+
 ## [10.0.0] - 2019-06-10
 ### Added
 - Fixed an issue that caused WebGL to render blank screen when Depth texture was enabled [case 1240228](https://issuetracker.unity3d.com/issues/webgl-urp-scene-is-rendered-black-in-webgl-build-when-depth-texture-is-enabled)
@@ -237,6 +242,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed target eye UI for XR rendering is missing from camera inspector. [case 1261612](https://issuetracker.unity3d.com/issues/xr-cameras-target-eye-property-is-missing-when-inspector-is-in-normal-mode)
 - Fixed an issue where terrain and speedtree materials would not get upgraded by upgrade project materials. [case 1204189](https://fogbugz.unity3d.com/f/cases/1204189/)
 - Fixed an issue that caused renderer feature to not render correctly if the pass was injected before rendering opaques and didn't implement `Configure` method. [case 1259750](https://issuetracker.unity3d.com/issues/urp-not-rendering-with-a-renderer-feature-before-rendering-shadows)
+- Fixed an issue where postFX's temp texture is not released properly.
+- Fixed an issue where ArgumentOutOfRangeException errors were thrown after removing Render feature [case 1268147](https://issuetracker.unity3d.com/issues/urp-argumentoutofrangeexception-errors-are-thrown-on-undoing-after-removing-render-feature)
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
