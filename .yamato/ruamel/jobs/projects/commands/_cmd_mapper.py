@@ -12,7 +12,10 @@ cmd_map = {
     'osx_openglcore' :  {
         'not_standalone': osx_openglcore.cmd_not_standalone,
         'standalone' : osx_openglcore.cmd_standalone,
-        'standalone_build' : osx_openglcore.cmd_standalone_build
+        'standalone_build' : osx_openglcore.cmd_standalone_build,
+        'not_standalone_performance': osx_openglcore.cmd_not_standalone_performance,
+        'standalone_performance' : osx_openglcore.cmd_standalone_performance,
+        'standalone_build_performance' : osx_openglcore.cmd_standalone_build_performance
     },
     'osx_metal' :  {
         'not_standalone': osx_metal.cmd_not_standalone,
