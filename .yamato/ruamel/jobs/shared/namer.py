@@ -30,6 +30,9 @@ def package_job_id_publish_dry(package_id):
 def package_job_id_publish_all():
     return f'publish_all'
 
+def package_job_id_publish_all_tag():
+    return f'publish_all_tag'
+
 def package_job_id_test_all(editor_version):
     return f'all_package_ci_{editor_version}'
 
