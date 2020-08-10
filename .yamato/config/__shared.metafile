@@ -53,38 +53,6 @@ platforms:
       flavor: b1.large
     copycmd: copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
     editorpath: .\.Editor
-  Win_perf:
-    name: Win_perf
-    os: windows
-    apis:
-      - name: DX11
-        cmd: -force-d3d11
-      - name: DX12
-        cmd: -force-d3d12
-      - name: Vulkan
-        cmd: -force-vulkan
-    components:
-      - editor
-      - il2cpp
-    agents_project:
-      default:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
-      standalone_build:
-        type: Unity::VM
-        image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
-      editmode:
-        type: Unity::VM
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
-    agent_package: 
-      type: Unity::VM
-      image: package-ci/win10:stable
-      flavor: b1.large
-    copycmd: copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-    editorpath: .\.Editor
   OSX:
     name: OSX
     os: macos
@@ -114,19 +82,6 @@ platforms:
       flavor: m1.mac
     copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
     editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
-  OSX_perf:
-    name: OSX_perf
-    os: macos
-    apis:
-      - name: Metal
-    components:
-      - editor
-      - il2cpp
-    agents_project_Metal:
-      default:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
   Linux:
     name: Linux
     os: linux
@@ -154,33 +109,6 @@ platforms:
         flavor: b1.large
   Android:
     name: Android
-    os: android
-    apis:
-      - name: OpenGLES3
-        exclude_test_platforms:
-          - editmode
-          - playmode
-          - playmode_XR
-      - name: Vulkan
-        exclude_test_platforms:
-          - editmode
-          - playmode
-          - playmode_XR
-    components:
-      - editor
-      - il2cpp
-      - android
-    agents_project:
-      default:
-        type: Unity::mobile::android
-        image: mobile/android-execution-r19:stable
-        flavor: b1.large
-      standalone_build:
-        type: Unity::VM
-        image: mobile/android-execution-r19:stable
-        flavor: b1.large
-  Android_perf:
-    name: Android_perf
     os: android
     apis:
       - name: OpenGLES3
