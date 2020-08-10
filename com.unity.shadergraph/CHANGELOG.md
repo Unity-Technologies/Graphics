@@ -151,6 +151,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed a badly named control on SampleVirtualTextureNode in ShaderGraph
 - Fixed an issue where multiple SampleVirtualTextureNodes created functions with names that may collide in ShaderGraph
 - Adjusted style sheet for Blackboard to prevent ui conflicts.
+- Fixed a bug where the SampleVirtualTexture node would delete slots when changing its LOD mode
 
 ## [7.1.1] - 2019-09-05
 ### Added
