@@ -1865,15 +1865,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return shadowUpdateMode == ShadowUpdateMode.EveryFrame;
         }
 
-        internal bool ShadowIsMixedCached()
-        {
-            return shadowUpdateMode != ShadowUpdateMode.EveryFrame && m_AlwaysDrawDynamicShadows;
-        }
-
         internal ShadowMapUpdateType GetShadowUpdateType()
         {
             if (ShadowIsUpdatedEveryFrame()) return ShadowMapUpdateType.Dynamic;
+#if UNITY_2020_2_OR_NEWER
             if (m_AlwaysDrawDynamicShadows) return ShadowMapUpdateType.Mixed;
+#endif
             return ShadowMapUpdateType.Cached;
         }
 

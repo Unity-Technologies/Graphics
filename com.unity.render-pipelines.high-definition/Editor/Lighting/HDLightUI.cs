@@ -975,7 +975,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if(serialized.shadowUpdateMode.intValue > 0)
                 {
+#if UNITY_2020_2_OR_NEWER
                     EditorGUILayout.PropertyField(serialized.shadowAlwaysDrawDynamic, s_Styles.shadowAlwaysDrawDynamic);
+#endif
                     EditorGUILayout.PropertyField(serialized.shadowUpdateUponTransformChange, s_Styles.shadowUpdateOnLightTransformChange);
 
                 }
