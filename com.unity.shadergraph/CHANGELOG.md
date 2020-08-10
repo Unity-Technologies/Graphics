@@ -152,6 +152,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue where multiple SampleVirtualTextureNodes created functions with names that may collide in ShaderGraph
 - Made sub graph importer deterministic to avoid cascading shader recompiles when no change was present.
 - Adjusted style sheet for Blackboard to prevent ui conflicts.
+- Fixed issue with node layering that could cause bad editor state from adding new nodes.
 
 ## [7.1.1] - 2019-09-05
 ### Added
