@@ -1443,6 +1443,16 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
+        public static void AddReceiveDecalProperty(PropertyCollector collector, bool receiveDecal = false)
+        {
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                overrideReferenceName = kEnableDecals,
+                value = receiveDecal,
+                hidden = true,
+            });
+        }
+
         public static void AddCoatProperties(PropertyCollector collector, float coatMask = 0.0f)
         {
             collector.AddShaderProperty(new Vector1ShaderProperty

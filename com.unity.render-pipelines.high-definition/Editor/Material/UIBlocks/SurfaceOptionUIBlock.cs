@@ -24,7 +24,8 @@ namespace UnityEditor.Rendering.HighDefinition
             DoubleSidedNormalMode       = 1 << 6,
             BackThenFrontRendering      = 1 << 7,
             ReceiveSSR                  = 1 << 8,
-            ShowAfterPostProcessPass    = 1 << 9,
+            ReceiveDecal                = 1 << 9,
+            ShowAfterPostProcessPass    = 1 << 10,
             Unlit                       = Surface | BlendMode | DoubleSided | DoubleSidedNormalMode | AlphaCutoff | AlphaCutoffShadowThreshold | AlphaCutoffThreshold | BackThenFrontRendering | ShowAfterPostProcessPass,
             Lit                         = All,
             All                         = ~0,
@@ -346,7 +347,10 @@ namespace UnityEditor.Rendering.HighDefinition
             tessellationMode = FindProperty(kTessellationMode);
 
             // Decal
-            supportDecals = FindProperty(kSupportDecals);
+            if ((m_Features & Features.ReceiveDecal) != 0)
+            {
+                supportDecals = FindProperty(kSupportDecals);
+            }
 
             // specular AA
             enableGeometricSpecularAA = FindProperty(kEnableGeometricSpecularAA);
@@ -560,6 +564,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var mode = (SurfaceType)surfaceType.floatValue;
             var renderQueueType = HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue);
             bool alphaTest = material.HasProperty(kAlphaCutoffEnabled) && material.GetFloat(kAlphaCutoffEnabled) > 0.0f;
+            bool receiveDecal = material.HasProperty(kSupportDecals) && material.GetFloat(kSupportDecals) > 0.0f;
 
             // Shader graph only property, used to transfer the render queue from the shader graph to the material,
             // because we can't use the renderqueue from the shader as we have to keep the renderqueue on the material side.
@@ -589,7 +594,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     default:
                         throw new ArgumentException("Unknown SurfaceType");
                 }
-                renderQueue = HDRenderQueue.ChangeType(targetQueueType, (int)transparentSortPriority.floatValue, alphaTest);
+                renderQueue = HDRenderQueue.ChangeType(targetQueueType, (int)transparentSortPriority.floatValue, alphaTest, receiveDecal);
             }
             EditorGUI.showMixedValue = false;
 

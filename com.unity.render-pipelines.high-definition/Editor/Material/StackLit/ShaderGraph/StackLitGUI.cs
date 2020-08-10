@@ -16,7 +16,8 @@ namespace UnityEditor.Rendering.HighDefinition
             ^ SurfaceOptionUIBlock.Features.AlphaCutoffThreshold
             ^ SurfaceOptionUIBlock.Features.BackThenFrontRendering
             ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass
-            ^ SurfaceOptionUIBlock.Features.ReceiveSSR;
+            ^ SurfaceOptionUIBlock.Features.ReceiveSSR
+            ^ SurfaceOptionUIBlock.Features.ReceiveDecal;
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
@@ -44,6 +45,10 @@ namespace UnityEditor.Rendering.HighDefinition
             bool subsurfaceScattering = (material.HasProperty(kSubsurfaceScattering))
                                         ? material.GetInt(kSubsurfaceScattering) > 0
                                         : false;
+
+            // Keywords for opt-out of decals and SSR:
+            bool decalsEnabled = material.HasProperty(kEnableDecals) && material.GetFloat(kEnableDecals) > 0.0f;
+            CoreUtils.SetKeyword(material, "_DISABLE_DECALS", !decalsEnabled);
 
             BaseLitGUI.SetupStencil(material, receiveSSR, useSplitLighting || subsurfaceScattering);
             if (material.HasProperty(kAddPrecomputedVelocity))

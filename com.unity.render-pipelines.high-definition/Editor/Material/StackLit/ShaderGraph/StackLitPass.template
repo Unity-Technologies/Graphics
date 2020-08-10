@@ -150,7 +150,7 @@ Pass
 
     // Common shader_features:
 
-    $DisableDecals:                                      #define _DISABLE_DECALS
+    //$DisableDecals:                                      #define _DISABLE_DECALS
     $DisableSSR:                                         #define _DISABLE_SSR
     $AddPrecomputedVelocity:                           #define _ADD_PRECOMPUTED_VELOCITY
 
@@ -186,6 +186,7 @@ Pass
     #pragma shader_feature_local _MATERIAL_FEATURE_IRIDESCENCE
     #pragma shader_feature_local _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
     #pragma shader_feature_local _MATERIAL_FEATURE_TRANSMISSION
+    #pragma shader_feature_local _DISABLE_DECALS
 
     $BaseParametrization.SpecularColor:                  #define _MATERIAL_FEATURE_SPECULAR_COLOR
     $DualSpecularLobeParametrization.HazyGloss:          #define _MATERIAL_FEATURE_HAZY_GLOSS
