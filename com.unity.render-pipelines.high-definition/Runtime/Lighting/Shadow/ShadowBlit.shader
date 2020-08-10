@@ -12,7 +12,7 @@ Shader "Hidden/ScriptableRenderPipeline/ShadowBlit"
     {
         Pass
         {
-            Name "ClearShadow"
+            Name "BlitShadows"
             ZTest Always
             Cull Off
             ZWrite On
