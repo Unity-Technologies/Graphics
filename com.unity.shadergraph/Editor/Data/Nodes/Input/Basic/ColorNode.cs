@@ -22,10 +22,13 @@ namespace UnityEditor.ShaderGraph
         public const int OutputSlotId = 0;
         private const string kOutputSlotName = "Out";
 
+        public override int latestVersion => 1;
+
         public ColorNode()
         {
             name = "Color";
             UpdateNodeAfterDeserialization();
+            version = latestVersion;
         }
 
 
@@ -93,12 +96,38 @@ namespace UnityEditor.ShaderGraph
             if (generationMode.IsPreview())
                 return;
 
-            sb.AppendLine(@"$precision4 {0} = IsGammaSpace() ? $precision4({1}, {2}, {3}, {4}) : $precision4(SRGBToLinear($precision3({1}, {2}, {3})), {4});"
-                , GetVariableNameForNode()
-                , NodeUtils.FloatToShaderValue(color.color.r)
-                , NodeUtils.FloatToShaderValue(color.color.g)
-                , NodeUtils.FloatToShaderValue(color.color.b)
-                , NodeUtils.FloatToShaderValue(color.color.a));
+            switch (version)
+            {
+                case 0:
+                    sb.AppendLine(@"$precision4 {0} = IsGammaSpace() ? $precision4({1}, {2}, {3}, {4}) : $precision4(SRGBToLinear($precision3({1}, {2}, {3})), {4});"
+                        , GetVariableNameForNode()
+                        , NodeUtils.FloatToShaderValue(color.color.r)
+                        , NodeUtils.FloatToShaderValue(color.color.g)
+                        , NodeUtils.FloatToShaderValue(color.color.b)
+                        , NodeUtils.FloatToShaderValue(color.color.a));
+                    break;
+                case 1:
+                    //HDR color picker assumes Linear space, regular color picker assumes SRGB. Handle both cases
+                    if(color.mode == ColorMode.Default)
+                    {
+                        sb.AppendLine(@"$precision4 {0} = IsGammaSpace() ? $precision4({1}, {2}, {3}, {4}) : $precision4(SRGBToLinear($precision3({1}, {2}, {3})), {4});"
+                            , GetVariableNameForNode()
+                            , NodeUtils.FloatToShaderValue(color.color.r)
+                            , NodeUtils.FloatToShaderValue(color.color.g)
+                            , NodeUtils.FloatToShaderValue(color.color.b)
+                            , NodeUtils.FloatToShaderValue(color.color.a));
+                    }
+                    else
+                    {
+                        sb.AppendLine(@"$precision4 {0} = IsGammaSpace() ? LinearToSRGB($precision4({1}, {2}, {3}, {4})) : $precision4({1}, {2}, {3}, {4});"
+                            , GetVariableNameForNode()
+                            , NodeUtils.FloatToShaderValue(color.color.r)
+                            , NodeUtils.FloatToShaderValue(color.color.g)
+                            , NodeUtils.FloatToShaderValue(color.color.b)
+                            , NodeUtils.FloatToShaderValue(color.color.a));
+                    }
+                    break;
+            }
         }
 
         public override string GetVariableNameForSlot(int slotId)

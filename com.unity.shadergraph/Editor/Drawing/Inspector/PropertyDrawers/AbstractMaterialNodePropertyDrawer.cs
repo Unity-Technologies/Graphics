@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
@@ -31,6 +31,11 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             VisualElement nodeSettings = new VisualElement();
             var nameLabel = PropertyDrawerUtils.CreateLabel($"{node.name} Node", 0, FontStyle.Bold);
             nodeSettings.Add(nameLabel);
+            if(node.version < node.latestVersion && !ShaderGraphPreferences.allowDeprecatedBehaviors)
+            {
+                var help = HelpBoxRow.GetDeprecatedHelpBoxRow($"{node.name} Node", () => node.ChangeVersion(node.latestVersion));
+                nodeSettings.Insert(0, help);
+            }
             EnumField precisionField = null;
             if(node.canSetPrecision)
             {

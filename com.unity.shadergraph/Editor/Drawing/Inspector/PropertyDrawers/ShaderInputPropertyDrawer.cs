@@ -215,14 +215,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             if (property.version < property.latestVersion && !ShaderGraphPreferences.allowDeprecatedBehaviors)
             {
                 var typeString = property.propertyType.ToString();
-                HelpBoxRow help;
-                help = new HelpBoxRow(MessageType.Warning);
-                var label = new Label("DEPRECATED: Hover for info")
-                {
-                    tooltip = $"The {typeString} Property has new updates. This version maintains the old behavior. If you update a {typeString} Property, you can use Undo to change it back. See the {typeString} Property documentation for more information."
-                };
-                help.Add(label);
-                help.contentContainer.Add(new Button(() => property.ChangeVersion(property.latestVersion)) { text = "Update" });
+                var help = HelpBoxRow.GetDeprecatedHelpBoxRow($"{typeString} Property", () => property.ChangeVersion(property.latestVersion));
                 propertySheet.Insert(0,help);
             }
 

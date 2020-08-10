@@ -11,15 +11,6 @@ namespace UnityEditor.ShaderGraph.Internal
     {
         public override int latestVersion => 1;
 
-        [SerializeField]
-        private int m_Version = 0;
-
-        public override int version
-        {
-            get => m_Version;
-            protected set => m_Version = value;
-        }
-
         internal ColorShaderProperty()
         {
             displayName = "Color";

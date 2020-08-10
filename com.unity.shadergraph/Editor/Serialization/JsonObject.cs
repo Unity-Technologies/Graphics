@@ -9,7 +9,10 @@ namespace UnityEditor.ShaderGraph.Serialization
 
 
         public virtual int latestVersion { get; } = 0;
-        public virtual int version { get; protected set; } = 0;
+
+        [SerializeField]
+        protected int m_Version = 0;
+        public virtual int version { get => m_Version; protected set => m_Version = value; }
 
         internal protected delegate void VersionChange(int newVersion);
         internal protected VersionChange onBeforeVersionChange;

@@ -23,10 +23,8 @@ namespace UnityEditor.ShaderGraph
     [FormerName("UnityEditor.ShaderGraph.AbstractMaterialGraph")]
     sealed partial class GraphData : JsonObject
     {
-        const int k_CurrentVersion = 2;
 
-        [SerializeField]
-        int m_Version;
+        public override int latestVersion => 2;
 
         public GraphObject owner { get; set; }
 
@@ -1630,7 +1628,7 @@ namespace UnityEditor.ShaderGraph
         public override void OnBeforeSerialize()
         {
             m_Edges.Sort();
-            m_Version = k_CurrentVersion;
+            version = latestVersion;
         }
 
         static T DeserializeLegacy<T>(string typeString, string json) where T : JsonObject
@@ -1667,7 +1665,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void OnAfterDeserialize(string json)
         {
-            if (m_Version == 0)
+            if (version == 0)
             {
                 var graphData0 = JsonUtility.FromJson<GraphData0>(json);
 
@@ -1835,19 +1833,19 @@ namespace UnityEditor.ShaderGraph
             // In V2 we need to defer version set to in OnAfterMultiDeserialize
             // This is because we need access to m_OutputNode to convert it to Targets and Stacks
             // The JsonObject will not be fully deserialized until OnAfterMultiDeserialize
-            bool deferredUpgrades = m_Version < 2;
+            bool deferredUpgrades = version < 2;
             if(!deferredUpgrades)
             {
-                m_Version = k_CurrentVersion;
+                version = latestVersion;
             }
         }
 
         public override void OnAfterMultiDeserialize(string json)
         {
             // Deferred upgrades
-            if(m_Version != k_CurrentVersion)
+            if(version != latestVersion)
             {
-                if(m_Version < 2)
+                if(version < 2)
                 {
                     var addedBlocks = ListPool<BlockFieldDescriptor>.Get();
 
@@ -1964,7 +1962,7 @@ namespace UnityEditor.ShaderGraph
                     m_NodeEdges.Clear();
                 }
 
-                m_Version = k_CurrentVersion;
+                version = latestVersion;
             }
 
             PooledList<(LegacyUnknownTypeNode, AbstractMaterialNode)> updatedNodes = PooledList<(LegacyUnknownTypeNode,AbstractMaterialNode)>.Get();
