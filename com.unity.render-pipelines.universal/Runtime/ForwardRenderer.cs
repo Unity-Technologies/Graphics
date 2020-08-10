@@ -125,6 +125,8 @@ namespace UnityEngine.Rendering.Universal
                 m_DeferredLights.AccurateGbufferNormals = data.accurateGbufferNormals;
                 //m_DeferredLights.TiledDeferredShading = data.tiledDeferredShading;
                 m_DeferredLights.TiledDeferredShading = false;
+                UniversalRenderPipelineAsset urpAsset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+                m_DeferredLights.UseShadowMask = urpAsset.supportsMixedLighting;
 
                 m_GBufferPass = new GBufferPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference, m_DeferredLights);
                 // Forward-only pass only runs if deferred renderer is enabled.
@@ -176,6 +178,10 @@ namespace UnityEngine.Rendering.Universal
                 m_GBufferAttachments[m_DeferredLights.GBufferSpecularMetallicIndex].Init("_GBuffer1");
                 m_GBufferAttachments[m_DeferredLights.GBufferNormalSmoothnessIndex].Init("_GBuffer2");
                 //m_GBufferAttachments[m_DeferredLights.GBufferLightingIndex].Init("_GBuffer3"); // RenderTarget bound as output #3 during the GBuffer pass is the LightingGBuffer m_ActiveCameraColorAttachment, initialized as m_CameraColorTexture above
+                if (m_DeferredLights.GbufferDepthIndex >= 0)
+                    m_GBufferAttachments[m_DeferredLights.GbufferDepthIndex].Init("_GBufferDepthAsColor");
+                if (m_DeferredLights.GBufferShadowMask >= 0)
+                    m_GBufferAttachments[m_DeferredLights.GBufferShadowMask].Init("_GBuffer4");
             }
             m_OpaqueColor.Init("_CameraOpaqueTexture");
             m_AfterPostProcessColor.Init("_AfterPostProcessTexture");

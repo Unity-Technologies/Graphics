@@ -102,6 +102,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 #endif
     }
 
+    internal enum LightFlag
+    {
+        // Keep in sync with kLightFlagSubtractiveMixedLighting.
+        SubtractiveMixedLighting = 4
+    }
+
     // Manages tiled-based deferred lights.
     internal class DeferredLights
     {
@@ -165,7 +171,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static int _LightPosWS = Shader.PropertyToID("_LightPosWS");
             public static int _LightColor = Shader.PropertyToID("_LightColor");
             public static int _LightAttenuation = Shader.PropertyToID("_LightAttenuation");
+            public static int _LightOcclusionProbInfo = Shader.PropertyToID("_LightOcclusionProbInfo");
             public static int _LightDirection = Shader.PropertyToID("_LightDirection");
+            public static int _LightFlags = Shader.PropertyToID("_LightFlags");
             public static int _ShadowLightIndex = Shader.PropertyToID("_ShadowLightIndex");
         }
 
@@ -237,13 +245,16 @@ namespace UnityEngine.Rendering.Universal.Internal
         private static readonly ProfilingSampler m_ProfilingTileDepthInfo = new ProfilingSampler(k_TileDepthInfo);
         private static readonly ProfilingSampler m_ProfilingSetupLightConstants = new ProfilingSampler(k_SetupLightConstants);
 
-        internal int GBufferAlbedoIndex { get { return 0; } }
-        internal int GBufferSpecularMetallicIndex { get { return 1; } }
-        internal int GBufferNormalSmoothnessIndex { get { return 2; } }
-        internal int GBufferLightingIndex { get { return 3; } }
-        //internal int GbufferDepthIndex { get { return useRenderPass ? 4 : -1; } }
-        //internal int GBufferSliceCount { get { return useRenderPass ? 5 : 4; } }
-        internal int GBufferSliceCount { get { return 4; } }
+        internal bool UseShadowMask { get; set; }
+        internal bool UseRenderPass { get; set; }
+
+        internal int GbufferDepthIndex { get { return UseRenderPass ? 0 : -1; } }
+        internal int GBufferAlbedoIndex { get { return GbufferDepthIndex + 1; } }
+        internal int GBufferSpecularMetallicIndex { get { return GBufferAlbedoIndex + 1; } }
+        internal int GBufferNormalSmoothnessIndex { get { return GBufferSpecularMetallicIndex + 1; } }
+        internal int GBufferLightingIndex { get { return GBufferNormalSmoothnessIndex + 1; } }
+        internal int GBufferShadowMask { get { return UseShadowMask ? GBufferLightingIndex + 1 : -1; } }
+        internal int GBufferSliceCount { get { return 4 + (UseRenderPass ? 1 : 0) + (UseShadowMask ? 1 : 0); } }
 
         internal GraphicsFormat GetGBufferFormat(int index)
         {
@@ -254,9 +265,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             else if (index == GBufferNormalSmoothnessIndex)
                 return this.AccurateGbufferNormals ? GraphicsFormat.R8G8B8A8_UNorm : GraphicsFormat.R8G8B8A8_SNorm;
             else if (index == GBufferLightingIndex)
-                return GraphicsFormat.None;             // Emissive+baked: Most likely B10G11R11_UFloatPack32 or R16G16B16A16_SFloat
-//            else if (index == GBufferDepthIndex)
-//                return GraphicsFormat.R32_SFloat;     // Optional: some mobile platforms are faster reading back depth as color instead of real depth.
+                return GraphicsFormat.None;            // Emissive+baked: Most likely B10G11R11_UFloatPack32 or R16G16B16A16_SFloat
+            else if (index == GbufferDepthIndex)
+                return GraphicsFormat.R32_SFloat;      // Render-pass on mobiles: reading back real depth-buffer is either inefficient (Arm Vulkan) or impossible (Metal).
+            else if (index == GBufferShadowMask)
+                return GraphicsFormat.R8G8B8A8_UNorm;  // Optional: shadow mask is outputed in mixed lighting subtractive mode for non-static meshes only
             else
                 return GraphicsFormat.None;
         }
@@ -264,6 +277,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal bool HasDepthPrepass { get; set; }
         internal bool AccurateGbufferNormals { get; set; }
         internal bool TiledDeferredShading { get; set; } // <- true: TileDeferred.shader used for some lights (currently: point/spot lights without shadows) - false: use StencilDeferred.shader for all lights
+        internal MixedLightingSetup MixedLightingSetup { get; set; } // We browsed all visible lights and found the mixed lighting setup.
+
         internal bool UseJobSystem { get; set; }
         //
         internal int RenderWidth { get; set; }
@@ -447,12 +462,17 @@ namespace UnityEngine.Rendering.Universal.Internal
                 renderingData.cameraData.camera.nearClipPlane
             );
 
-            // Shared uniform constants for all lights.
             {
                 CommandBuffer cmd = CommandBufferPool.Get();
                 using (new ProfilingScope(cmd, m_ProfilingSetupLightConstants))
                 {
+                    // Shared uniform constants for all lights.
                     SetupShaderLightConstants(cmd, ref renderingData);
+
+                    // Setup global keywords.
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLight, renderingData.lightData.mainLightIndex >= 0);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._GBUFFER_NORMALS_OCT, this.AccurateGbufferNormals);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, renderingData.lightData.supportsMixedLighting && this.MixedLightingSetup == MixedLightingSetup.Subtractive);
                 }
 
                 context.ExecuteCommandBuffer(cmd);
@@ -633,10 +653,33 @@ namespace UnityEngine.Rendering.Universal.Internal
 #endif
 
             m_HasTileVisLights = this.TiledDeferredShading && CheckHasTileLights(ref renderingData.lightData.visibleLights);
+
+            // Find the mixed lighting mode. This is the same logic as ForwardLights.
+            this.MixedLightingSetup = MixedLightingSetup.None;
+            NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
+            for (int lightIndex = 0; lightIndex < renderingData.lightData.visibleLights.Length; ++lightIndex)
+            {
+                Light light = visibleLights[lightIndex].light;
+
+                // TODO: Add support to shadow mask
+                if (light != null
+                 && light.bakingOutput.mixedLightingMode == MixedLightingMode.Subtractive
+                 && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed
+                 && light.shadows != LightShadows.None)
+                {
+                    this.MixedLightingSetup = MixedLightingSetup.Subtractive;
+                    break;
+                }
+            }
         }
 
         public void OnCameraCleanup(CommandBuffer cmd)
         {
+            // Disable any global keywords setup in SetupLights().
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLight, false);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._GBUFFER_NORMALS_OCT, false);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, false);
+
             for (int tilerIndex = 0; tilerIndex < m_Tilers.Length; ++ tilerIndex)
             {
                 m_TileDataCapacities[tilerIndex] = max(m_TileDataCapacities[tilerIndex], m_Tilers[tilerIndex].TileDataCapacity);
@@ -902,12 +945,21 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingDeferredPass))
             {
+                // This does 2 things:
+                // - baked geometry are skipped (do not receive dynamic lighting)
+                // - non-baked geometry (== non-static geometry) use shadowMask/occlusionProbes to emulate baked shadows influences.
+                if (renderingData.lightData.supportsMixedLighting && this.MixedLightingSetup == MixedLightingSetup.Subtractive)
+                    cmd.EnableShaderKeyword(ShaderKeywordStrings._DEFERRED_SUBTRACTIVE_LIGHTING);
+
                 // This must be set for each eye in XR mode multipass.
                 SetupMatrixConstants(cmd, ref renderingData);
 
                 RenderTileLights(context, cmd, ref renderingData);
 
                 RenderStencilLights(context, cmd, ref renderingData);
+
+                if (renderingData.lightData.supportsMixedLighting && this.MixedLightingSetup == MixedLightingSetup.Subtractive)
+                    cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_SUBTRACTIVE_LIGHTING);
 
                 // Legacy fog (Windows -> Rendering -> Lighting Settings -> Fog)
                 RenderFog(context, cmd, ref renderingData);
@@ -920,8 +972,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         // adapted from ForwardLights.SetupShaderLightConstants
         void SetupShaderLightConstants(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            //m_MixedLightingSetup = MixedLightingSetup.None;
-
             // Main light has an optimized shader path for main light. This will benefit games that only care about a single light.
             // Universal Forward pipeline only supports a single shadow light, if available it will be the main light.
             SetupMainLightConstants(cmd, ref renderingData.lightData);
@@ -1339,8 +1389,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (visLightIndex == mainLightIndex)
                     continue;
 
-                cmd.SetGlobalVector(ShaderConstants._LightColor, vl.finalColor); // VisibleLight.finalColor already returns color in active color space
-                cmd.SetGlobalVector(ShaderConstants._LightDirection, -(Vector3)vl.localToWorldMatrix.GetColumn(2));
+                Vector4 lightDir, lightColor, lightAttenuation, lightSpotDir, lightOcclusionChannel;
+                UniversalRenderPipeline.InitializeLightConstants_Common(visibleLights, visLightIndex, out lightDir, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel);
+
+                int lightFlags = 0;
+                if (vl.light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
+                    lightFlags |= (int)LightFlag.SubtractiveMixedLighting;
+
+                cmd.SetGlobalVector(ShaderConstants._LightColor, lightColor); // VisibleLight.finalColor already returns color in active color space
+                cmd.SetGlobalVector(ShaderConstants._LightDirection, lightDir);
+                cmd.SetGlobalInt(ShaderConstants._LightFlags, lightFlags);
 
                 // Lighting pass.
                 cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 3); // Lit
@@ -1370,12 +1428,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                     new Vector4(posWS.x, posWS.y, posWS.z, 1.0f)
                 );
 
-                Vector4 lightAttenuation;
-                Vector4 lightSpotDir4;
-                UniversalRenderPipeline.GetLightAttenuationAndSpotDirection(
-                    vl.lightType, vl.range /*vl.range*/, vl.localToWorldMatrix,
-                    vl.spotAngle, vl.light?.innerSpotAngle,
-                    out lightAttenuation, out lightSpotDir4);
+                Vector4 lightPos, lightColor, lightAttenuation, lightSpotDir, lightOcclusionChannel;
+                UniversalRenderPipeline.InitializeLightConstants_Common(visibleLights, visLightIndex, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel);
+
+                int lightFlags = 0;
+                if (vl.light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
+                    lightFlags |= (int)LightFlag.SubtractiveMixedLighting;
 
                 int shadowLightIndex = m_AdditionalLightsShadowCasterPass != null ? m_AdditionalLightsShadowCasterPass.GetShadowLightIndexFromLightIndex(visLightIndex) : -1;
                 if (vl.light && vl.light.shadows != LightShadows.None && shadowLightIndex >= 0)
@@ -1383,9 +1441,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 else
                     cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
 
-                cmd.SetGlobalVector(ShaderConstants._LightPosWS, posWS);
-                cmd.SetGlobalVector(ShaderConstants._LightColor, vl.finalColor); // VisibleLight.finalColor already returns color in active color space
+                cmd.SetGlobalVector(ShaderConstants._LightPosWS, lightPos);
+                cmd.SetGlobalVector(ShaderConstants._LightColor, lightColor);
                 cmd.SetGlobalVector(ShaderConstants._LightAttenuation, lightAttenuation);
+                cmd.SetGlobalVector(ShaderConstants._LightOcclusionProbInfo, lightOcclusionChannel);
+                cmd.SetGlobalInt(ShaderConstants._LightFlags, lightFlags);
                 cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
 
                 // Stencil pass.
@@ -1417,12 +1477,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // The tighter the spot shape, the lesser inflation is needed.
                 float guard = Mathf.Lerp(1.0f, kStencilShapeGuard, sinAlpha);
 
-                Vector4 lightAttenuation;
-                Vector4 lightSpotDir4;
-                UniversalRenderPipeline.GetLightAttenuationAndSpotDirection(
-                    vl.lightType, vl.range, vl.localToWorldMatrix,
-                    vl.spotAngle, vl.light?.innerSpotAngle,
-                    out lightAttenuation, out lightSpotDir4);
+                Vector4 lightPos, lightColor, lightAttenuation, lightSpotDir, lightOcclusionChannel;
+                UniversalRenderPipeline.InitializeLightConstants_Common(visibleLights, visLightIndex, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel);
+
+                int lightFlags = 0;
+                if (vl.light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
+                    lightFlags |= (int)LightFlag.SubtractiveMixedLighting;
 
                 int shadowLightIndex = m_AdditionalLightsShadowCasterPass != null ? m_AdditionalLightsShadowCasterPass.GetShadowLightIndexFromLightIndex(visLightIndex) : -1;
                 if (vl.light && vl.light.shadows != LightShadows.None && shadowLightIndex >= 0)
@@ -1433,10 +1493,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalVector(ShaderConstants._SpotLightScale, new Vector4(sinAlpha, sinAlpha, 1.0f - cosAlpha, vl.range));
                 cmd.SetGlobalVector(ShaderConstants._SpotLightBias, new Vector4(0.0f, 0.0f, cosAlpha, 0.0f));
                 cmd.SetGlobalVector(ShaderConstants._SpotLightGuard, new Vector4(guard, guard, guard, cosAlpha * vl.range));
-                cmd.SetGlobalVector(ShaderConstants._LightPosWS, vl.localToWorldMatrix.GetColumn(3));
-                cmd.SetGlobalVector(ShaderConstants._LightColor, vl.finalColor); // VisibleLight.finalColor already returns color in active color space
+                cmd.SetGlobalVector(ShaderConstants._LightPosWS, lightPos);
+                cmd.SetGlobalVector(ShaderConstants._LightColor, lightColor);
                 cmd.SetGlobalVector(ShaderConstants._LightAttenuation, lightAttenuation);
-                cmd.SetGlobalVector(ShaderConstants._LightDirection, new Vector3(lightSpotDir4.x, lightSpotDir4.y, lightSpotDir4.z));
+                cmd.SetGlobalVector(ShaderConstants._LightDirection, new Vector3(lightSpotDir.x, lightSpotDir.y, lightSpotDir.z));
+                cmd.SetGlobalVector(ShaderConstants._LightOcclusionProbInfo, lightOcclusionChannel);
+                cmd.SetGlobalInt(ShaderConstants._LightFlags, lightFlags);
                 cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
 
                 // Stencil pass.
@@ -1481,21 +1543,21 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void StorePunctualLightData(ref NativeArray<uint4> punctualLightBuffer, int storeIndex, ref NativeArray<VisibleLight> visibleLights, int index)
         {
+            int lightFlags = 0;
+            if (visibleLights[index].light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
+                lightFlags |= (int)LightFlag.SubtractiveMixedLighting;
+
             // tile lights do not support shadows, so shadowLightIndex is -1.
-            int shadowLightIndex = -1;
-            Vector3 posWS = visibleLights[index].localToWorldMatrix.GetColumn(3);
+            //int shadowLightIndex = -1;
 
-            Vector4 lightAttenuation;
-            Vector4 lightSpotDir;
-            UniversalRenderPipeline.GetLightAttenuationAndSpotDirection(
-                visibleLights[index].lightType, visibleLights[index].range, visibleLights[index].localToWorldMatrix,
-                visibleLights[index].spotAngle, visibleLights[index].light?.innerSpotAngle,
-                out lightAttenuation, out lightSpotDir);
+            Vector4 lightPos, lightColor, lightAttenuation, lightSpotDir, lightOcclusionChannel;
+            UniversalRenderPipeline.InitializeLightConstants_Common(visibleLights, index, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel);
 
-            punctualLightBuffer[storeIndex * 4 + 0] = new uint4(FloatToUInt(posWS.x), FloatToUInt(posWS.y), FloatToUInt(posWS.z), FloatToUInt(visibleLights[index].range * visibleLights[index].range));
-            punctualLightBuffer[storeIndex * 4 + 1] = new uint4(FloatToUInt(visibleLights[index].finalColor.r), FloatToUInt(visibleLights[index].finalColor.g), FloatToUInt(visibleLights[index].finalColor.b), 0);
-            punctualLightBuffer[storeIndex * 4 + 2] = new uint4(FloatToUInt(lightAttenuation.x), FloatToUInt(lightAttenuation.y), FloatToUInt(lightAttenuation.z), FloatToUInt(lightAttenuation.w));
-            punctualLightBuffer[storeIndex * 4 + 3] = new uint4(FloatToUInt(lightSpotDir.x), FloatToUInt(lightSpotDir.y), FloatToUInt(lightSpotDir.z), (uint)shadowLightIndex);
+            punctualLightBuffer[storeIndex * 5 + 0] = new uint4(FloatToUInt(lightPos.x), FloatToUInt(lightPos.y), FloatToUInt(lightPos.z), FloatToUInt(visibleLights[index].range * visibleLights[index].range));
+            punctualLightBuffer[storeIndex * 5 + 1] = new uint4(FloatToUInt(lightColor.x), FloatToUInt(lightColor.y), FloatToUInt(lightColor.z), 0);
+            punctualLightBuffer[storeIndex * 5 + 2] = new uint4(FloatToUInt(lightAttenuation.x), FloatToUInt(lightAttenuation.y), FloatToUInt(lightAttenuation.z), FloatToUInt(lightAttenuation.w));
+            punctualLightBuffer[storeIndex * 5 + 3] = new uint4(FloatToUInt(lightSpotDir.x), FloatToUInt(lightSpotDir.y), FloatToUInt(lightSpotDir.z), (uint)lightFlags);
+            punctualLightBuffer[storeIndex * 5 + 4] = new uint4(FloatToUInt(lightOcclusionChannel.x), FloatToUInt(lightOcclusionChannel.y), FloatToUInt(lightOcclusionChannel.z), FloatToUInt(lightOcclusionChannel.w));
         }
 
         void StoreTileData(ref NativeArray<uint4> tileList, int storeIndex, uint tileID, uint listBitMask, ushort relLightOffset, ushort lightCount)

@@ -104,13 +104,19 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     TEXTURE2D_X_HALF(_GBuffer0);
     TEXTURE2D_X_HALF(_GBuffer1);
     TEXTURE2D_X_HALF(_GBuffer2);
+    #if _DEFERRED_SUBTRACTIVE_LIGHTING
+    TEXTURE2D_X_HALF(_GBuffer4);
+    #endif
+
     float4x4 _ScreenToWorld[2];
     SamplerState my_point_clamp_sampler;
 
     float3 _LightPosWS;
-    float3 _LightColor;
-    float4 _LightAttenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation *for SpotLights)
-    float3 _LightDirection; // directional/spotLights support
+    half3 _LightColor;
+    half4 _LightAttenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation *for SpotLights)
+    half3 _LightDirection;   // directional/spotLights support
+    half4 _LightOcclusionProbInfo;
+    int _LightFlags;
     int _ShadowLightIndex;
 
     half4 FragWhite(Varyings input) : SV_Target
@@ -131,6 +137,28 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         half4 gbuffer1 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, my_point_clamp_sampler, screen_uv, 0);
         half4 gbuffer2 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer2, my_point_clamp_sampler, screen_uv, 0);
 
+        #if _DEFERRED_SUBTRACTIVE_LIGHTING
+        half4 gbuffer4 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer4, my_point_clamp_sampler, screen_uv, 0);
+        half4 shadowMask = gbuffer4;
+        #else
+        half4 shadowMask = 1.0;
+        #endif
+
+        uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
+        bool materialReceiveShadowsOff = (materialFlags & kMaterialFlagReceiveShadowsOff) != 0;
+        #if SHADER_API_MOBILE || SHADER_API_SWITCH
+        // Specular highlights are still silenced by setting specular to 0.0 during gbuffer pass and GPU timing is still reduced.
+        bool materialSpecularHighlightsOff = false;
+        #else
+        bool materialSpecularHighlightsOff = (materialFlags & kMaterialFlagSpecularHighlightsOff);
+        #endif
+
+        #if defined(_DEFERRED_SUBTRACTIVE_LIGHTING)
+        // If both lights and geometry is static, then no realtime lighting to perform for this combination.
+        [branch] if ((_LightFlags & materialFlags) == kMaterialFlagSubtractiveMixedLighting)
+            return half4(0.0, 0.0, 0.0, 0.0); // Cannot discard because stencil must be updated.
+        #endif
+
         #if defined(USING_STEREO_MATRICES)
         int eyeIndex = unity_StereoEyeIndex;
         #else
@@ -140,14 +168,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         posWS.xyz *= rcp(posWS.w);
 
         InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
-        uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
-        bool materialReceiveShadowsOff = (materialFlags & kMaterialFlagReceiveShadowsOff) != 0;
-        #if SHADER_API_MOBILE || SHADER_API_SWITCH
-        // Specular highlights are still silenced by setting specular to 0.0 during gbuffer pass and GPU timing is still reduced.
-        bool materialSpecularHighlightsOff = false;
-        #else
-        bool materialSpecularHighlightsOff = (materialFlags & kMaterialFlagSpecularHighlightsOff);
-        #endif
 
         Light unityLight;
 
@@ -163,8 +183,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             light.color = float4(_LightColor, 0.0);
             light.attenuation = _LightAttenuation;
             light.spotDirection = _LightDirection;
+            light.occlusionProbeInfo = _LightOcclusionProbInfo;
+            light.flags = _LightFlags;
             light.shadowLightIndex = _ShadowLightIndex;
-            unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, materialReceiveShadowsOff);
+            unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, materialReceiveShadowsOff);
         #endif
 
         half3 color = 0.0.xxx;
@@ -262,6 +284,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+            #pragma multi_compile_fragment _ _DEFERRED_SUBTRACTIVE_LIGHTING
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -299,6 +322,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+            #pragma multi_compile_fragment _ _DEFERRED_SUBTRACTIVE_LIGHTING
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -336,6 +360,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+            #pragma multi_compile_fragment _ _DEFERRED_SUBTRACTIVE_LIGHTING
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -373,6 +398,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+            #pragma multi_compile_fragment _ _DEFERRED_SUBTRACTIVE_LIGHTING
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading

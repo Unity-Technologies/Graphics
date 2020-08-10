@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             RenderTargetHandle[] gbufferAttachments = m_DeferredLights.GbufferAttachments;
 
-                // Create and declare the render targets used in the pass
+            // Create and declare the render targets used in the pass
             for (int i = 0; i < gbufferAttachments.Length; ++i)
             {
                 // Lighting buffer has already been declared with line ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), ...) in DeferredRenderer.Setup
@@ -79,19 +79,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (new ProfilingScope(gbufferCommands, m_ProfilingSampler))
             {
                 context.ExecuteCommandBuffer(gbufferCommands);
-                gbufferCommands.Clear();
-
-                if (renderingData.lightData.mainLightIndex >= 0)
-                    gbufferCommands.EnableShaderKeyword(ShaderKeywordStrings.MainLight);
-                else
-                    gbufferCommands.DisableShaderKeyword(ShaderKeywordStrings.MainLight);
-
-                if (m_DeferredLights.AccurateGbufferNormals)
-                    gbufferCommands.EnableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
-                else
-                    gbufferCommands.DisableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
-
-                context.ExecuteCommandBuffer(gbufferCommands); // send the gbufferCommands to the scriptableRenderContext - this should be done *before* calling scriptableRenderContext.DrawRenderers
                 gbufferCommands.Clear();
 
                 ref CameraData cameraData = ref renderingData.cameraData;
