@@ -75,7 +75,7 @@ all_smoke_tests_2020.1:
 all_project_ci_2020.1:
     name: _ABV for SRP repository - 2020.1
     dependencies:
-      -  path: .yamato/_packages.yml#all_package_ci_2020.1
+      -  path: .yamato/_projectcontext.yml#all_package_ci_project_2020.1
          rerun: on-new-revision
       -  path: .yamato/all-universal.yml#All_Universal_2020.1
          rerun: on-new-revision
@@ -201,7 +201,7 @@ all_smoke_tests_fast-2020.1:
 all_project_ci_fast-2020.1:
     name: _ABV for SRP repository - fast-2020.1
     dependencies:
-      -  path: .yamato/_packages.yml#all_package_ci_fast-2020.1
+      -  path: .yamato/_projectcontext.yml#all_package_ci_project_fast-2020.1
          rerun: on-new-revision
       -  path: .yamato/all-universal.yml#All_Universal_fast-2020.1
          rerun: on-new-revision
@@ -313,7 +313,7 @@ all_smoke_tests_CUSTOM-REVISION:
 all_project_ci_CUSTOM-REVISION:
     name: _ABV for SRP repository - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/_packages.yml#all_package_ci_CUSTOM-REVISION
+      -  path: .yamato/_projectcontext.yml#all_package_ci_project_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-universal.yml#All_Universal_CUSTOM-REVISION
          rerun: always
