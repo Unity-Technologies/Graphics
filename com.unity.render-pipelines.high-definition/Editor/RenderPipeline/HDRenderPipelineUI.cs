@@ -261,6 +261,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.reflectionCacheCompressed, Styles.compressProbeCacheContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.reflectionCubemapSize, Styles.cubemapSizeContent);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.reflectionCubemapFormat, Styles.probeCacheFormat); // TODO_FCC: STABILIZE ON CACHE FORMAT INSTEAD.
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeCacheSize, Styles.probeCacheSizeContent);
             if (EditorGUI.EndChangeCheck())
@@ -282,6 +283,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.HelpBox(message, MessageType.Info);
                 }
             }
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.reflectionCacheCompressed, Styles.cubemapSizeContent);
 
             EditorGUILayout.Space();
 

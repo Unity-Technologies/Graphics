@@ -1873,7 +1873,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             int desiredProbeSize = (int)((HDRenderPipeline)RenderPipelineManager.currentPipeline).currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
                             if (visibleProbe.realtimeTextureRTH == null || visibleProbe.realtimeTextureRTH.rt.width != desiredProbeSize)
                             {
-                                visibleProbe.SetTexture(ProbeSettings.Mode.Realtime, HDRenderUtilities.CreateReflectionProbeRenderTarget(desiredProbeSize));
+                                var desiredProbeFormat = ((HDRenderPipeline)RenderPipelineManager.currentPipeline).currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapFormat;
+                                visibleProbe.SetTexture(ProbeSettings.Mode.Realtime, HDRenderUtilities.CreateReflectionProbeRenderTarget(desiredProbeSize, desiredProbeFormat));
                             }
                             break;
                         case ProbeSettings.ProbeType.PlanarProbe:
@@ -2050,10 +2051,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (size != Vector2.zero)
                     {
+                        var probeFormat = (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapFormat;
                         if (m_TemporaryTargetForCubemaps != null)
                         {
                             if (m_TemporaryTargetForCubemaps.width != size.x
-                                || m_TemporaryTargetForCubemaps.height != size.y)
+                                || m_TemporaryTargetForCubemaps.height != size.y
+                                || m_TemporaryTargetForCubemaps.graphicsFormat != probeFormat)
                             {
                                 m_TemporaryTargetForCubemaps.Release();
                                 m_TemporaryTargetForCubemaps = null;
@@ -2062,7 +2065,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (m_TemporaryTargetForCubemaps == null)
                         {
                             m_TemporaryTargetForCubemaps = new RenderTexture(
-                                size.x, size.y, 1, GraphicsFormat.R16G16B16A16_SFloat
+                                size.x, size.y, 1, probeFormat
                             )
                             {
                                 autoGenerateMips = false,

@@ -17,6 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty reflectionProbeCacheSize;
         public SerializedProperty reflectionCubemapSize;
         public SerializedProperty reflectionCacheCompressed;
+        public SerializedProperty reflectionCubemapFormat;
         public SerializedProperty planarReflectionAtlasSize;
         public SerializedProperty skyReflectionSize;
         public SerializedProperty skyLightingOverrideLayerMask;
@@ -44,6 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
             reflectionProbeCacheSize = root.Find((GlobalLightLoopSettings s) => s.reflectionProbeCacheSize);
             reflectionCubemapSize = root.Find((GlobalLightLoopSettings s) => s.reflectionCubemapSize);
             reflectionCacheCompressed = root.Find((GlobalLightLoopSettings s) => s.reflectionCacheCompressed);
+            reflectionCubemapFormat = root.Find((GlobalLightLoopSettings s) => s.reflectionCubemapFormat);
 
             planarReflectionAtlasSize = root.Find((GlobalLightLoopSettings s) => s.planarReflectionAtlasSize);
 

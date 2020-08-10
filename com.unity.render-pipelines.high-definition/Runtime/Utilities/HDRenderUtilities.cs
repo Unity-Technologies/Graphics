@@ -338,9 +338,27 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="cubemapSize">The cubemap size.</param>
         /// <returns>The texture to use as reflection probe target.</returns>
+        // TODO_FCC: Make obsolete.
         public static RenderTexture CreateReflectionProbeRenderTarget(int cubemapSize)
         {
             return new RenderTexture(cubemapSize, cubemapSize, 1, GraphicsFormat.R16G16B16A16_SFloat)
+            {
+                dimension = TextureDimension.Cube,
+                enableRandomWrite = true,
+                useMipMap = true,
+                autoGenerateMips = false
+            };
+        }
+
+        /// <summary>
+        /// Create the texture used as target for a realtime reflection probe.
+        /// </summary>
+        /// <param name="cubemapSize">The cubemap size.</param>
+        /// <param name="format">The cubemap format.</param>
+        /// <returns>The texture to use as reflection probe target.</returns>
+        public static RenderTexture CreateReflectionProbeRenderTarget(int cubemapSize, CubeReflectionProbeFormat format)
+        {
+            return new RenderTexture(cubemapSize, cubemapSize, 1, (GraphicsFormat)format)
             {
                 dimension = TextureDimension.Cube,
                 enableRandomWrite = true,

@@ -124,6 +124,7 @@ namespace UnityEngine.Rendering.HighDefinition
             planarReflectionAtlasSize = PlanarReflectionAtlasResolution.PlanarReflectionResolution1024,
             reflectionProbeCacheSize = 64,
             reflectionCubemapSize = CubeReflectionResolution.CubeReflectionResolution256,
+            reflectionCubemapFormat = CubeReflectionProbeFormat.R16G16B16A16,
 
             skyReflectionSize = SkyResolution.SkyResolution256,
             skyLightingOverrideLayerMask = 0,
@@ -162,6 +163,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public CubeReflectionResolution reflectionCubemapSize;
         /// <summary>Enable reflection probe cache compression.</summary>
         public bool reflectionCacheCompressed;
+        /// <summary>Reflection probes resolution.</summary>
+        public CubeReflectionProbeFormat reflectionCubemapFormat;
 
         /// <summary>Resolution of the sky reflection cubemap.</summary>
         public SkyResolution skyReflectionSize;

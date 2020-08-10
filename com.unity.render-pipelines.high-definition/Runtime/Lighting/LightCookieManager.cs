@@ -15,6 +15,19 @@ namespace UnityEngine.Rendering.HighDefinition
         R16G16B16A16 = GraphicsFormat.R16G16B16A16_SFloat,
     }
 
+    /// <summary>
+    /// Available graphic formats for the cookie atlas texture.
+    /// </summary>
+    [System.Serializable]
+    public enum CubeReflectionProbeFormat
+    {
+        /// <summary>Faster sampling and rendering but at the cost of precision.</summary>
+        R11G11B10 = GraphicsFormat.B10G11R11_UFloatPack32,
+        /// <summary>Wider range and better precision, but uses twice as much memory compared to R11G11B10.</summary>
+        R16G16B16A16 = GraphicsFormat.R16G16B16A16_SFloat,
+    }
+
+
     class LightCookieManager
     {
         HDRenderPipelineAsset m_RenderPipelineAsset = null;
