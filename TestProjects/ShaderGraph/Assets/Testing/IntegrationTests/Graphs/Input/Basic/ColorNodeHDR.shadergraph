@@ -1359,7 +1359,7 @@
 }
 
 {
-    "m_Version": 0,
+    "m_Version": 1,
     "m_Type": "UnityEditor.ShaderGraph.ColorNode",
     "m_ObjectId": "e9e1ac0424e54cea87d5d48125f2d7f1",
     "m_Group": {
@@ -1371,10 +1371,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -930.9999389648438,
-            "y": 178.99998474121095,
+            "x": -927.9998779296875,
+            "y": 156.0,
             "width": 207.99998474121095,
-            "height": 126.99999237060547
+            "height": 127.20000457763672
         }
     },
     "m_Slots": [

@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             hierarchy.Add(container);
         }
 
-        public static HelpBoxRow GetDeprecatedHelpBoxRow(string deprecatedTypeName, Action upgradeAction)
+        public static HelpBoxRow TryGetDeprecatedHelpBoxRow(string deprecatedTypeName, Action upgradeAction)
         {
             HelpBoxRow help = null;
             if (!ShaderGraphPreferences.allowDeprecatedBehaviors)

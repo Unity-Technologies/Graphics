@@ -212,11 +212,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             if(property == null)
                 return;
 
-            if (property.version < property.latestVersion && !ShaderGraphPreferences.allowDeprecatedBehaviors)
+            if (property.version < property.latestVersion)
             {
                 var typeString = property.propertyType.ToString();
-                var help = HelpBoxRow.GetDeprecatedHelpBoxRow($"{typeString} Property", () => property.ChangeVersion(property.latestVersion));
-                propertySheet.Insert(0,help);
+                var help = HelpBoxRow.TryGetDeprecatedHelpBoxRow($"{typeString} Property", () => property.ChangeVersion(property.latestVersion));
+                if (help != null)
+                {
+                    propertySheet.Insert(0, help);
+                }
             }
 
             switch (property)

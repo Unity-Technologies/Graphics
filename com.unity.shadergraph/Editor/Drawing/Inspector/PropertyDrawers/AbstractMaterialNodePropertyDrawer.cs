@@ -31,10 +31,22 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             VisualElement nodeSettings = new VisualElement();
             var nameLabel = PropertyDrawerUtils.CreateLabel($"{node.name} Node", 0, FontStyle.Bold);
             nodeSettings.Add(nameLabel);
-            if(node.version < node.latestVersion && !ShaderGraphPreferences.allowDeprecatedBehaviors)
+            if (node.version < node.latestVersion)
             {
-                var help = HelpBoxRow.GetDeprecatedHelpBoxRow($"{node.name} Node", () => node.ChangeVersion(node.latestVersion));
-                nodeSettings.Insert(0, help);
+                var help = HelpBoxRow.TryGetDeprecatedHelpBoxRow($"{node.name} Node", () =>
+                {
+                    m_setNodesAsDirtyCallback?.Invoke();
+                    node.owner.owner.RegisterCompleteObjectUndo($"Update {node.name} Node");
+                    node.ChangeVersion(node.latestVersion);
+                    inspectorUpdateDelegate?.Invoke();
+                    m_updateNodeViewsCallback?.Invoke();
+                    node.Dirty(ModificationScope.Graph);
+                });
+            
+                if (help != null)
+                {
+                    nodeSettings.Insert(0, help);
+                }
             }
             EnumField precisionField = null;
             if(node.canSetPrecision)
