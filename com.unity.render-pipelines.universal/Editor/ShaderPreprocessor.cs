@@ -29,10 +29,11 @@ namespace UnityEditor.Rendering.Universal
         public static readonly string kPassNameGBuffer = "GBuffer";
 
         ShaderKeyword m_MainLightShadows = new ShaderKeyword(ShaderKeywordStrings.MainLightShadows);
+        ShaderKeyword m_MainLightShadowsCascades = new ShaderKeyword(ShaderKeywordStrings.MainLightShadowsCascades);
+        ShaderKeyword m_MainLightShadowsScreen = new ShaderKeyword(ShaderKeywordStrings.MainLightShadowsScreen);
         ShaderKeyword m_AdditionalLightsVertex = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
         ShaderKeyword m_AdditionalLightsPixel = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
         ShaderKeyword m_AdditionalLightShadows = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
-        ShaderKeyword m_CascadeShadows = new ShaderKeyword(ShaderKeywordStrings.MainLightShadowsCascades);
         ShaderKeyword m_SoftShadows = new ShaderKeyword(ShaderKeywordStrings.SoftShadows);
         ShaderKeyword m_MixedLightingSubtractive = new ShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
         ShaderKeyword m_Lightmap = new ShaderKeyword("LIGHTMAP_ON");
@@ -81,13 +82,16 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripUnusedFeatures(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
-            // strip main light shadows and cascade variants
+            // strip main light shadows, cascade and screen variants
             if (!CoreUtils.HasFlag(features, ShaderFeatures.MainLightShadows))
             {
                 if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadows))
                     return true;
 
-                if (compilerData.shaderKeywordSet.IsEnabled(m_CascadeShadows))
+                if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsCascades))
+                    return true;
+
+                if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsScreen))
                     return true;
             }
 
@@ -143,7 +147,10 @@ namespace UnityEditor.Rendering.Universal
 
             if (compilerData.shaderCompilerPlatform == ShaderCompilerPlatform.GLES20)
             {
-                if (compilerData.shaderKeywordSet.IsEnabled(m_CascadeShadows))
+                if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsCascades))
+                    return true;
+
+                if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsScreen))
                     return true;
 
                 // GLES2 does not support VertexID that is required for full screen draw procedural pass;
@@ -156,12 +163,13 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripInvalidVariants(ShaderCompilerData compilerData)
         {
-            bool isMainShadow = compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadows);
+            bool isMainShadowNoCascades = compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadows);
+            bool isMainShadowCascades = compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsCascades);
+            bool isMainShadowScreen = compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsScreen);
+
+            bool isMainShadow = isMainShadowNoCascades || isMainShadowCascades || isMainShadowScreen;
             bool isAdditionalShadow = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightShadows);
             bool isShadowVariant = isMainShadow || isAdditionalShadow;
-
-            if (!isMainShadow && compilerData.shaderKeywordSet.IsEnabled(m_CascadeShadows))
-                return true;
 
             if (!isShadowVariant && compilerData.shaderKeywordSet.IsEnabled(m_SoftShadows))
                 return true;
