@@ -108,6 +108,10 @@ When a Light that caches its shadows renders its shadow map for the first time, 
 If the Light's **Update Mode** is set to **OnDemand**, you can manually request HDRP to update the Light's shadow map. To do this, access the Light's **HDAdditionalLightData** component and call the `RequestShadowMapRendering` function. Also, if the Light has multiple shadows (e.g. multiple cascades of a directional light), you can request the update of a specific sub-shadow. To do this, use the `RequestSubShadowMapRendering(shadowIndex)` function.
 For a Light that does cache its shadows, if you disable it or set its **Update Mode** to **Every Frame**, you can tell HDRP to preserve the Light's shadow map's place in the cached shadow atlas. This means that, if you enable the Light again, HDRP does not need to re-render the shadow map or place it into a shadow atlas. For information on how to make a Light preserve its shadow map's place in the cached shadow atlas, see [Preserving shadow atlas placement](#preserving-shadow-atlas-placement).
 
+As a shortcut for a common case, HDRP offers an option to automatically trigger an update when either the position or rotation of a light changes above a certain threshold. This option can be selected in the Shadow settings section on the Light as **Update on light movement**. 
+The threshold that are used to determine how much a light needs to move or rotate to trigger an update can be customized per light with the properties 
+`cachedShadowTranslationUpdateThreshold` and `cachedShadowAngleUpdateThreshold` on the **HDAdditionalLightData** component. Note that point lights ignore the angle differences when determining if an update is needed with this mode. 
+
 ### Customising shadow caching
 HDRP caches shadow maps for punctual Lights into one atlas, area Lights into another, and directional Lights into the same atlas as non-cached Directional Lights. You can change the resolution of the first two cached shadow atlases independently of one another. To do this: 
 
@@ -130,6 +134,16 @@ Note that this causes HDRP to mark all the shadow maps in the atlas as dirty whi
 
 If you disable the Light or change its **Update Mode** to **Every Frame**, the cached shadow manager unreserves the Light's shadow map's space in the cached shadow atlas and HDRP begins to render the Light's shadow map to the normal shadow atlases every frame. If the cached shadow manager needs to allocate space on the atlas for another Light, it can overwrite the space currently taken up by the original Light's shadow map.
 If you plan to only temporarily set a Light's **Update Mode** to **Every Frame** and want to set it back to **On Enable** or **On Demand** later, you can preserve the Light's shadow map placement in its atlas. This is useful, for example, if you want HDRP to cache a far away Light's shadow map, but update it every frame when it gets close to the [Camera](HDRP-Camera.md). To do this, access the Light's **HDAdditionalLightData** component and enable the **preserveCachedShadow** property. If this property is set to `true`, HDRP preserves the Light's shadow map's space in its shadow atlas. Note that even if this property is enabled, if you destroy the Light, it loses its placement in the shadow atlas.
+
+### Mixed Cached Shadow Maps
+
+It is possible to cache only a portion of the shadow map. In order to do so, you must check the **Always draw dynamic** option in the shadow settings of the light and then tick the **Static Shadow Caster** checkbox all renderers that will be cached in shadows (in the Renderer component). 
+With such setup, all static shadow casters are rendered in the shadow map only whenever an explicit update is requested (or only on light enable in case of **OnEnable** update mode), while the other casters (dynamic shadow casters) are drawn each frame. 
+This setup is particularly useful if for example your environment is mostly static and the light doesn't move, but there are few dynamic objects that will need shadows to be cast by such lights. In such scenarios, setting the light as having a mixed cached shadow map will greatly improve performance both on CPU and GPU. 
+
+Please note that as part of implementation details, if a shadow is set up as mixed cached, every frame a blit from the cached shadow map to the dynamic atlas is performed. This is important to keep in mind both for the extra runtime cost of the blit in itself, but also to understand that in terms of memory a single shadow map will require space in both atlases. 
+
+Another important note, is due to implementation details, if a light with mixed cached shadows moves and the cached counterpart is not updated, the result will look wrong. In such cases either select the **Update on light movement** or the update mode to **OnDemand** and make sure an update is triggered when desired. 
 
 ### Notes
 
