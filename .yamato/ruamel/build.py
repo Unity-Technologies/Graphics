@@ -10,8 +10,7 @@ from jobs.abv.yml_abv import create_abv_ymls
 from jobs.preview_publish.yml_pb import create_preview_publish_ymls
 from jobs.templates.yml_template import create_template_ymls
 
-root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
-root_dir = os.getcwd()
+root_dir = os.path.dirname(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 yamato_dir = os.path.join(root_dir,'.yamato')
 config_dir = os.path.join(yamato_dir,'config')
 comment = ''' 
