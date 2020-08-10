@@ -13,7 +13,7 @@ class Package_PublishAllTagJob():
     def get_job_definition(self, packages, target_branch, agent):
         
         job = YMLJob()
-        job.set_name(f'Publish all packages [manual] [tag]')
+        job.set_name(f'Publish all packages [package context][manual][tag]')
         job.set_agent(agent)
         job.add_dependencies([f'{packages_filepath()}#{package_job_id_publish(package["id"])}' for package in packages])
         job.add_commands([
