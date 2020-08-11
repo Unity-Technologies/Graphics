@@ -847,7 +847,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var node = m_Graph.GetNodeFromId(messageData.Key);
 
-                if (!(m_GraphView.GetNodeByGuid(node.objectId) is IShaderNodeView nodeView))
+                if (node == null || !(m_GraphView.GetNodeByGuid(node.objectId) is IShaderNodeView nodeView))
                     continue;
 
                 if (messageData.Value.Count == 0)
