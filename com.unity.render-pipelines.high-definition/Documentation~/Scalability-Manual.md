@@ -75,6 +75,6 @@ It is important that, for a given quality level, all Materials have the same Mat
 
 ### Ray tracing Quality Keyword in Shader Graph
 
-For Shader Graphs that use ray tracing, you can use the [Raytracing Quality Node](SGNode-Raytracing-Quality.md) to provide a fast implementation.
+For Shader Graphs that use ray tracing, you can use the [Raytracing Quality Keyword](SGNode-Raytracing-Quality.md) to provide a fast implementation.
 
 HDRP uses the fast implementation to increase the performance of ray-traced rendering features where accuracy is less important.
