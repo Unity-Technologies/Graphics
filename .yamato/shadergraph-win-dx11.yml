@@ -18,8 +18,6 @@ ShaderGraph_Win_DX11_Standalone_trunk:
          rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraph/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/ShaderGraph && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -104,8 +102,6 @@ ShaderGraph_Win_DX11_Standalone_fast-trunk:
          rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraph/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/ShaderGraph && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -191,8 +187,6 @@ ShaderGraph_Win_DX11_Standalone_CUSTOM-REVISION:
          rerun: always
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraph/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/ShaderGraph && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
