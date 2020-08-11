@@ -426,19 +426,10 @@ namespace UnityEngine.Rendering.Universal
 
         static void UpdateVolumeFramework(Camera camera, UniversalAdditionalCameraData additionalCameraData)
         {
-            bool isSceneCamera = camera.cameraType == CameraType.SceneView;
-            bool isPlaying = Application.isPlaying;
-
-            // We always update scene cameras and game cameras when not in play-mode
-            if (!isSceneCamera && isPlaying)
+            // We skip updating if the asset has volume updates disabled
+            if (!asset.supportsVolumeFrameworkUpdate)
             {
-                // We skip updating if we have a renderer and the refresh mode isn't set to EveryFrame
-                ScriptableRenderer renderer = additionalCameraData?.scriptableRenderer;
-                if (renderer != null
-                    && renderer.volumeFrameworkRefreshMode != ScriptableRenderer.RefreshMode.EveryFrame)
-                {
-                    return;
-                }
+                return;
             }
 
             // Default values when there's no additional camera data available
@@ -452,7 +443,7 @@ namespace UnityEngine.Rendering.Universal
                     ? additionalCameraData.volumeTrigger
                     : trigger;
             }
-            else if (isSceneCamera)
+            else if (camera.cameraType == CameraType.SceneView)
             {
                 // Try to mirror the MainCamera volume layer mask for the scene view - do not mirror the target
                 var mainCamera = Camera.main;

@@ -219,14 +219,6 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public GraphicsDeviceType[] unsupportedGraphicsDeviceTypes { get; set; } = new GraphicsDeviceType[0];
 
-        internal enum RefreshMode
-        {
-            EveryFrame,
-            ViaScripting,
-        }
-
-        internal RefreshMode volumeFrameworkRefreshMode { get; set; } = RefreshMode.EveryFrame;
-
         static class RenderPassBlock
         {
             // Executes render passes that are inputs to the main rendering
@@ -720,7 +712,7 @@ namespace UnityEngine.Rendering.Universal
                     // early return so we don't change current render target setup.
                     if (renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingOpaques)
                         return;
-                    
+
                     // Otherwise default is the pipeline camera target.
                     passColorAttachment = m_CameraColorTarget;
                     passDepthAttachment = m_CameraDepthTarget;

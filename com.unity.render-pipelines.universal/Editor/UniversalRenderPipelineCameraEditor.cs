@@ -46,7 +46,6 @@ namespace UnityEditor.Rendering.Universal
 
             public static GUIContent volumeLayerMask = EditorGUIUtility.TrTextContent("Volume Mask", "This camera will only be affected by volumes in the selected scene-layers.");
             public static GUIContent volumeTrigger = EditorGUIUtility.TrTextContent("Volume Trigger", "A transform that will act as a trigger for volume blending. If none is set, the camera itself will act as a trigger.");
-            public static GUIContent volumeFrameworkRefreshMode = EditorGUIUtility.TrTextContent("Refresh Mode", "Is the volume framework updated every frame or via custom scripts. This setting is controlled in the renderer and is only used in play mode.");
 
             public static GUIContent renderPostProcessing = EditorGUIUtility.TrTextContent("Post Processing", "Enable this to make this camera render post-processing effects.");
             public static GUIContent antialiasing = EditorGUIUtility.TrTextContent("Anti-aliasing", "The anti-aliasing method to use.");
@@ -599,12 +598,6 @@ namespace UnityEditor.Rendering.Universal
             m_VolumesSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_VolumesSettingsFoldout.value, Styles.volumesSettingsText);
             if (m_VolumesSettingsFoldout.value)
             {
-                // Display the Volume Refresh setting from the Renderer
-                int selectedRendererOption = m_AdditionalCameraDataRendererProp.intValue;
-                bool isAValidRenderer = m_UniversalRenderPipeline.ValidateRendererData(selectedRendererOption);
-                string volumeFrameworkRefreshMode = isAValidRenderer ? m_UniversalRenderPipeline.GetRenderer(selectedRendererOption).volumeFrameworkRefreshMode.ToString() : "N/A";
-                EditorGUILayout.LabelField(Styles.volumeFrameworkRefreshMode, EditorGUIUtility.TrTextContent(volumeFrameworkRefreshMode, ""));
-
                 // Display the Volume LayerMask and Trigger
                 LayerMask selectedVolumeLayerMask;
                 Transform selectedVolumeTrigger;

@@ -114,8 +114,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 cameraStacking = true,
             };
-
-            volumeFrameworkRefreshMode = data.VolumeFrameworkRefreshMode;
         }
 
         /// <inheritdoc />
