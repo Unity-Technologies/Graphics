@@ -190,7 +190,11 @@ FragmentOutput ParticlesLitGBufferFragment(VaryingsParticle input)
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
 
+    #ifdef _MAIN_LIGHT
     half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData.albedo, half4(surfaceData.specular, surfaceData.smoothness), surfaceData.smoothness, surfaceData.emission, surfaceData.alpha);
+    #else
+    half4 color = half4(inputData.bakedGI * surfaceData.albedo + surfaceData.emission, surfaceData.alpha);
+    #endif
 
     return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit);
 

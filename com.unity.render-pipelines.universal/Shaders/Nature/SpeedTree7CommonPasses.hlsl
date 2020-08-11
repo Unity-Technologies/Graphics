@@ -171,15 +171,20 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
         diffuseColor.rgb *= _Color.rgb;
     #endif
 
-    half4 color = UniversalFragmentBlinnPhong(inputData, diffuseColor.rgb, half4(0, 0, 0, 0), 0, 0, diffuse.a);
 
     #ifdef GBUFFER
+        #ifdef _MAIN_LIGHT
+        half4 color = UniversalFragmentBlinnPhong(inputData, diffuseColor.rgb, half4(0, 0, 0, 0), 0, 0, diffuse.a);
+        #else
+        half4 color = half4(inputData.bakedGI * diffuseColor.rgb, diffuse.a);
+        #endif
         SurfaceData surfaceData;
         surfaceData.smoothness = 0;
         surfaceData.albedo = diffuseColor.rgb;
         surfaceData.specular = half3(0, 0, 0);
         return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit);
     #else
+        half4 color = UniversalFragmentBlinnPhong(inputData, diffuseColor.rgb, half4(0, 0, 0, 0), 0, 0, diffuse.a);
         color.rgb = MixFog(color.rgb, inputData.fogCoord);
         color.a = OutputAlpha(color.a);
         return color;

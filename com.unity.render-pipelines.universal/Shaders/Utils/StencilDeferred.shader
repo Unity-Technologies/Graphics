@@ -13,11 +13,11 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         _SimpleLitPunctualStencilReadMask ("SimpleLitPunctualStencilReadMask", Int) = 0
         _SimpleLitPunctualStencilWriteMask ("SimpleLitPunctualStencilWriteMask", Int) = 0
 
-        _LitDirStencilRef ("LitStencilDirStencilWriteMask", Int) = 0
-        _LitDirStencilReadMask ("LitStencilDirStencilReadMask", Int) = 0
-        _LitDirStencilWriteMask ("LitStencilDirStencilWriteMask", Int) = 0
+        _LitDirStencilRef ("LitDirStencilRef", Int) = 0
+        _LitDirStencilReadMask ("LitDirStencilReadMask", Int) = 0
+        _LitDirStencilWriteMask ("LitDirStencilWriteMask", Int) = 0
 
-        _SimpleLitDirStencilRef ("SimpleLitDirStencilWriteMask", Int) = 0
+        _SimpleLitDirStencilRef ("SimpleLitDirStencilRef", Int) = 0
         _SimpleLitDirStencilReadMask ("SimpleLitDirStencilReadMask", Int) = 0
         _SimpleLitDirStencilWriteMask ("SimpleLitDirStencilWriteMask", Int) = 0
     }
@@ -36,6 +36,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Deferred.hlsl"
+    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
     struct Attributes
     {
@@ -154,7 +155,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         #endif
 
         #if defined(_DEFERRED_SUBTRACTIVE_LIGHTING)
-        // If both lights and geometry is static, then no realtime lighting to perform for this combination.
+        // If both lights and geometry are static, then no realtime lighting to perform for this combination.
         [branch] if ((_LightFlags & materialFlags) == kMaterialFlagSubtractiveMixedLighting)
             return half4(0.0, 0.0, 0.0, 0.0); // Cannot discard because stencil must be updated.
         #endif
@@ -175,7 +176,19 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             unityLight.direction = _LightDirection;
             unityLight.color = _LightColor.rgb;
             unityLight.distanceAttenuation = 1.0;
-            unityLight.shadowAttenuation = 1.0; // TODO materialFlagReceiveShadows
+            if (materialReceiveShadowsOff)
+                unityLight.shadowAttenuation = 1.0;
+            else
+            {
+                #if defined(_MAIN_LIGHT_SHADOWS)
+                    float4 shadowCoord = TransformWorldToShadowCoord(posWS.xyz);
+                    unityLight.shadowAttenuation = MainLightRealtimeShadow(shadowCoord);
+                #elif defined(_DEFERRED_ADDITIONAL_LIGHT_SHADOWS)
+                    unityLight.shadowAttenuation = AdditionalLightRealtimeShadow(_ShadowLightIndex, posWS.xyz);
+                #else
+                    unityLight.shadowAttenuation = 1.0;
+                #endif
+            }
         #else
             PunctualLightData light;
             light.posWS = _LightPosWS;
@@ -344,8 +357,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             Stencil {
                 Ref [_LitDirStencilRef]
-                ReadMask [_LitDirReadMask]
-                WriteMask [_LitDirWriteMask]
+                ReadMask [_LitDirStencilReadMask]
+                WriteMask [_LitDirStencilWriteMask]
                 Comp Equal
                 Pass Keep
                 Fail Keep
@@ -356,6 +369,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             #pragma multi_compile _DIRECTIONAL
             #pragma multi_compile_fragment _LIT
+            #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
@@ -394,6 +409,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             #pragma multi_compile _DIRECTIONAL
             #pragma multi_compile_fragment _SIMPLELIT
+            #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT

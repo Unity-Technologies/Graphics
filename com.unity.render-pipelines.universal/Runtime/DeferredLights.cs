@@ -245,6 +245,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         private static readonly ProfilingSampler m_ProfilingTileDepthInfo = new ProfilingSampler(k_TileDepthInfo);
         private static readonly ProfilingSampler m_ProfilingSetupLightConstants = new ProfilingSampler(k_SetupLightConstants);
 
+        internal bool CombineMainLightInGBuffer { get; set; }
         internal bool UseShadowMask { get; set; }
         internal bool UseRenderPass { get; set; }
 
@@ -456,7 +457,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 out m_stencilVisLights,
                 out m_stencilVisLightOffsets,
                 ref renderingData.lightData.visibleLights,
-                renderingData.lightData.additionalLightsCount != 0,
+                renderingData.lightData.additionalLightsCount != 0 || (!this.CombineMainLightInGBuffer && renderingData.lightData.mainLightIndex >= 0),
                 renderingData.cameraData.camera.worldToCameraMatrix,
                 renderingData.cameraData.camera.orthographic,
                 renderingData.cameraData.camera.nearClipPlane
@@ -470,7 +471,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     SetupShaderLightConstants(cmd, ref renderingData);
 
                     // Setup global keywords.
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLight, renderingData.lightData.mainLightIndex >= 0);
+                    if (this.CombineMainLightInGBuffer)
+                        CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLight, renderingData.lightData.mainLightIndex >= 0);
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._GBUFFER_NORMALS_OCT, this.AccurateGbufferNormals);
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, renderingData.lightData.supportsMixedLighting && this.MixedLightingSetup == MixedLightingSetup.Subtractive);
                 }
@@ -1386,7 +1388,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     break;
 
                 // Skip directional main light, as it is currently rendered as part of the GBuffer.
-                if (visLightIndex == mainLightIndex)
+                if (this.CombineMainLightInGBuffer && visLightIndex == mainLightIndex)
                     continue;
 
                 Vector4 lightDir, lightColor, lightAttenuation, lightSpotDir, lightOcclusionChannel;
@@ -1395,6 +1397,23 @@ namespace UnityEngine.Rendering.Universal.Internal
                 int lightFlags = 0;
                 if (vl.light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
                     lightFlags |= (int)LightFlag.SubtractiveMixedLighting;
+
+                // Setup shadow paramters:
+                // - for the main light, they have already been setup globally, so nothing to do.
+                // - for other directional lights, it is actually not supported by URP, but the code would look like this.
+                if (visLightIndex == mainLightIndex)
+                    cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
+                else
+                {
+                    int shadowLightIndex = m_AdditionalLightsShadowCasterPass != null ? m_AdditionalLightsShadowCasterPass.GetShadowLightIndexFromLightIndex(visLightIndex) : -1;
+
+                    if (vl.light && vl.light.shadows != LightShadows.None && shadowLightIndex >= 0)
+                        cmd.EnableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
+                    else
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
+
+                    cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
+                }
 
                 cmd.SetGlobalVector(ShaderConstants._LightColor, lightColor); // VisibleLight.finalColor already returns color in active color space
                 cmd.SetGlobalVector(ShaderConstants._LightDirection, lightDir);
@@ -1405,6 +1424,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 4); // SimpleLit
             }
 
+            cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DIRECTIONAL);
         }
 
@@ -1456,6 +1476,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 2); // SimpleLit
             }
 
+            cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._POINT);
         }
 
@@ -1509,6 +1530,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 2); // SimpleLit
             }
 
+            cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._SPOT);
         }
 

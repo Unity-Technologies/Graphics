@@ -211,7 +211,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
         half4 gbuffer1 = LOAD_TEXTURE2D_X(_GBuffer1, input.positionCS.xy);
         half4 gbuffer2 = LOAD_TEXTURE2D_X(_GBuffer2, input.positionCS.xy);
         #if _DEFERRED_SUBTRACTIVE_LIGHTING
-        half4 gbuffer4 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer4, my_point_clamp_sampler, screen_uv, 0);
+        half4 gbuffer4 = LOAD_TEXTURE2D_X(_GBuffer4, input.positionCS.xy);
         half4 shadowMask = gbuffer4;
         #else
         half4 shadowMask = 1.0;
