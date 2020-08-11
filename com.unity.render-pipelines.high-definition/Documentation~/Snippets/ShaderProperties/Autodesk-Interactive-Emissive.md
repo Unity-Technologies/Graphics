@@ -1,0 +1,1 @@
+| **Emissive**| The color of the light the surface emits. If you enable **UseEmissiveMap**, HDRP ignores this property.|

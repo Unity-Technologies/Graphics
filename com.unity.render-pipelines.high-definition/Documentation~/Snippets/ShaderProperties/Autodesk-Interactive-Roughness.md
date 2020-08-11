@@ -1,0 +1,1 @@
+| **Roughness**| The roughness of the surface. If you enable **UseRoughnessMap**, HDRP ignores this property. |
