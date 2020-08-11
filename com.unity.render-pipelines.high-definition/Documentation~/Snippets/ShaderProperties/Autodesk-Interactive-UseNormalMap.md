@@ -1,1 +1,1 @@
-| **UseNormalMap**| Toggles whether the material uses the **NormalMap** property.|
+Toggles whether the material uses the **NormalMap** property.

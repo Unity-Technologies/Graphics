@@ -1,1 +1,1 @@
-| **UseMetallicMap**| Toggles whether the material uses the **MetallicMap** property or the **Metallic** property to specify the metallic value of its surface. Enable this checkbox to use the **MetallicMap** property, disable this checkbox to use the **Metallic** property.|
+Toggles whether the material uses the **MetallicMap** property or the **Metallic** property to specify the metallic value of its surface. Enable this checkbox to use the **MetallicMap** property, disable this checkbox to use the **Metallic** property.

@@ -26,26 +26,26 @@ When Unity imports an FBX with a compatible Autodesk shader, it automatically cr
 
 ### **Properties**
 
-| **Property**                           | **Description**                                              |
+| **Property** | **Description** |
 | -------------------------------------- | ------------------------------------------------------------ |
-[!include[](Snippets/ShaderProperties/Autodesk-Interactive-UseColorMap.md)]
-[!include[](Snippets/ShaderProperties/Autodesk-Interactive-BaseColor.md)]
-[!include[](Snippets/ShaderProperties/Autodesk-Interactive-ColorMap.md)]
-[!include[](Snippets/ShaderProperties/Autodesk-Interactive-UseNormalMap.md)]
-[!include[](Snippets/ShaderProperties/Autodesk-Interactive-NormalMap.md)]
-[!include[](Snippets/ShaderProperties/Autodesk-Interactive-UseMetallicMap.md)]
-[!include[](Snippets/ShaderProperties/Autodesk-Interactive-Metallic.md)]
-[!include[](Snippets/ShaderProperties/Autodesk-Interactive-MetallicMap.md)]
-[!include[](Snippets/ShaderProperties/Autodesk-Interactive-UseRoughnessMap.md)]
-[!include[](Snippets/ShaderProperties/Autodesk-Interactive-Roughness.md)]
-[!include[](Snippets/ShaderProperties/Autodesk-Interactive-RoughnessMap.md)]
-[!include[](Snippets/ShaderProperties/Autodesk-Interactive-UseEmissiveMap.md)]
-[!include[](Snippets/ShaderProperties/Autodesk-Interactive-Emissive.md)]
-[!include[](Snippets/ShaderProperties/Autodesk-Interactive-EmissiveMap.md)]
+|**UseColorMap**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-UseColorMap.md)]|
+|**BaseColor**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-BaseColor.md)]|
+|**ColorMap**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-ColorMap.md)]|
+|**UseNormalMap**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-UseNormalMap.md)]|
+|**NormalMap**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-NormalMap.md)]|
+|**UseMetallicMap**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-UseMetallicMap.md)]|
+|**Metallic**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-Metallic.md)]|
+|**MetallicMap**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-MetallicMap.md)]|
+|**UseRoughnessMap**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-UseRoughnessMap.md)]|
+|**Roughness**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-Roughness.md)]|
+|**RoughnessMap**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-RoughnessMap.md)]|
+|**UseEmissiveMap**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-UseEmissiveMap.md)]|
+|**Emissive**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-Emissive.md)]|
+|**EmissiveMap**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-EmissiveMap.md)]|
 | **UseAoMap**                           | Toggles whether the material uses the **AoMap** property.    |
 | **AoMap**                              | The texture that defines the occlusion map to simulate shadowing of ambient light. |
-[!include[](Snippets/ShaderProperties/Autodesk-Interactive-UVOffset.md)]
-[!include[](Snippets/ShaderProperties/Autodesk-Interactive-UVScale.md)]
+|**UVOffset**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-UVOffset.md)]|
+|**UVScale**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-UVScale.md)]|
 | **Enable GPU Instancing**              | Enable the checkbox to tell HDRP to render Meshes with the same geometry and Material in one batch when possible. This makes rendering faster. HDRP cannot render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you cannot [static-batch](https://docs.unity3d.com/Manual/DrawCallBatching.html) GameObjects that have an animation based on the object pivot, but the GPU can instance them. |
 | **Double Sided Global Illumination**   | When enabled, the lightmapper accounts for both sides of the geometry when calculating Global Illumination. Backfaces are not rendered or added to lightmaps, but get treated as valid when seen from other objects. When using the Porgressive Lightmapper backfaces bounce light using the same emission and albedo as frontfaces. |
 | **Emission**                           | Toggles whether emission affects global illumination.        |

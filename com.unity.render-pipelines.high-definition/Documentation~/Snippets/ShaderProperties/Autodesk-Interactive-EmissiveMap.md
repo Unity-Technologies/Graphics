@@ -1,1 +1,1 @@
-| **EmissiveMap**| The texture that defines the emissive color of the surface. If you disable **UseEmissiveMap**, HDRP ignores this property.|
+The texture that defines the emissive color of the surface. If you disable **UseEmissiveMap**, HDRP ignores this property.
