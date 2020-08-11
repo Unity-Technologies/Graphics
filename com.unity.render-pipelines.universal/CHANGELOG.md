@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed an issue where the package would fail to compile if the Animation module was disabled. [case 1227068](https://issuetracker.unity3d.com/product/unity/issues/guid/1227068/)
+- Fixed issue that caused color grading to not work correctly with camera stacking. [case 1263193](https://issuetracker.unity3d.com/product/unity/issues/guid/1263193/)
 
 ## [8.2.0] - 2020-07-08
 
