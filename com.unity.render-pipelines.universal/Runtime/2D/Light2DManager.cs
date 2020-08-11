@@ -1,5 +1,8 @@
 using System.Collections.Generic;
+
+#if UNITY_EDITOR
 using UnityEditor.Experimental.SceneManagement;
+#endif
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {

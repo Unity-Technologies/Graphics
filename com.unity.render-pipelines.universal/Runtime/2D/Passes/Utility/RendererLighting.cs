@@ -20,43 +20,52 @@ namespace UnityEngine.Experimental.Rendering.Universal
             "USE_SHAPE_LIGHT_TYPE_0", "USE_SHAPE_LIGHT_TYPE_1", "USE_SHAPE_LIGHT_TYPE_2", "USE_SHAPE_LIGHT_TYPE_3"
         };
 
-        private static readonly string[] k_BlendFactorsPropNames =
+        private static readonly int[] k_BlendFactorsPropIDs =
         {
-            "_ShapeLightBlendFactors0", "_ShapeLightBlendFactors1", "_ShapeLightBlendFactors2", "_ShapeLightBlendFactors3"
+            Shader.PropertyToID("_ShapeLightBlendFactors0"),
+            Shader.PropertyToID("_ShapeLightBlendFactors1"),
+            Shader.PropertyToID("_ShapeLightBlendFactors2"),
+            Shader.PropertyToID("_ShapeLightBlendFactors3")
         };
 
-        private static readonly string[] k_MaskFilterPropNames =
+        private static readonly int[] k_MaskFilterPropIDs =
         {
-            "_ShapeLightMaskFilter0", "_ShapeLightMaskFilter1", "_ShapeLightMaskFilter2", "_ShapeLightMaskFilter3"
+            Shader.PropertyToID("_ShapeLightMaskFilter0"),
+            Shader.PropertyToID("_ShapeLightMaskFilter1"),
+            Shader.PropertyToID("_ShapeLightMaskFilter2"),
+            Shader.PropertyToID("_ShapeLightMaskFilter3")
         };
 
-        private static readonly string[] k_InvertedFilterPropNames =
+        private static readonly int[] k_InvertedFilterPropIDs =
         {
-            "_ShapeLightInvertedFilter0", "_ShapeLightInvertedFilter1", "_ShapeLightInvertedFilter2", "_ShapeLightInvertedFilter3"
+            Shader.PropertyToID("_ShapeLightInvertedFilter0"),
+            Shader.PropertyToID("_ShapeLightInvertedFilter1"),
+            Shader.PropertyToID("_ShapeLightInvertedFilter2"),
+            Shader.PropertyToID("_ShapeLightInvertedFilter3")
         };
 
         private static GraphicsFormat s_RenderTextureFormatToUse = GraphicsFormat.R8G8B8A8_UNorm;
         private static bool s_HasSetupRenderTextureFormatToUse;
 
-        private static readonly int SrcBlendID = Shader.PropertyToID("_SrcBlend");
-        private static readonly int DstBlendID = Shader.PropertyToID("_DstBlend");
-        private static readonly int FalloffIntensityID = Shader.PropertyToID("_FalloffIntensity");
-        private static readonly int FalloffDistanceID = Shader.PropertyToID("_FalloffDistance");
-        private static readonly int FalloffOffsetID = Shader.PropertyToID("_FalloffOffset");
-        private static readonly int LightColorID = Shader.PropertyToID("_LightColor");
-        private static readonly int VolumeOpacityID = Shader.PropertyToID("_VolumeOpacity");
-        private static readonly int CookieTexID = Shader.PropertyToID("_CookieTex");
-        private static readonly int FalloffLookupID = Shader.PropertyToID("_FalloffLookup");
-        private static readonly int LightPositionID = Shader.PropertyToID("_LightPosition");
-        private static readonly int LightInvMatrixID = Shader.PropertyToID("_LightInvMatrix");
-        private static readonly int LightNoRotInvMatrixID = Shader.PropertyToID("_LightNoRotInvMatrix");
-        private static readonly int InnerRadiusMultID = Shader.PropertyToID("_InnerRadiusMult");
-        private static readonly int OuterAngleID = Shader.PropertyToID("_OuterAngle");
-        private static readonly int InnerAngleMultID = Shader.PropertyToID("_InnerAngleMult");
-        private static readonly int LightLookupID = Shader.PropertyToID("_LightLookup");
-        private static readonly int IsFullSpotlightID = Shader.PropertyToID("_IsFullSpotlight");
-        private static readonly int LightZDistanceID = Shader.PropertyToID("_LightZDistance");
-        private static readonly int PointLightCookieTexID = Shader.PropertyToID("_PointLightCookieTex");
+        private static readonly int k_SrcBlendID = Shader.PropertyToID("_SrcBlend");
+        private static readonly int k_DstBlendID = Shader.PropertyToID("_DstBlend");
+        private static readonly int k_FalloffIntensityID = Shader.PropertyToID("_FalloffIntensity");
+        private static readonly int k_FalloffDistanceID = Shader.PropertyToID("_FalloffDistance");
+        private static readonly int k_FalloffOffsetID = Shader.PropertyToID("_FalloffOffset");
+        private static readonly int k_LightColorID = Shader.PropertyToID("_LightColor");
+        private static readonly int k_VolumeOpacityID = Shader.PropertyToID("_VolumeOpacity");
+        private static readonly int k_FalloffLookupID = Shader.PropertyToID("_FalloffLookup");
+        private static readonly int k_LightPositionID = Shader.PropertyToID("_LightPosition");
+        private static readonly int k_LightInvMatrixID = Shader.PropertyToID("_LightInvMatrix");
+        private static readonly int k_LightNoRotInvMatrixID = Shader.PropertyToID("_LightNoRotInvMatrix");
+        private static readonly int k_InnerRadiusMultID = Shader.PropertyToID("_InnerRadiusMult");
+        private static readonly int k_OuterAngleID = Shader.PropertyToID("_OuterAngle");
+        private static readonly int k_InnerAngleMultID = Shader.PropertyToID("_InnerAngleMult");
+        private static readonly int k_LightLookupID = Shader.PropertyToID("_LightLookup");
+        private static readonly int k_IsFullSpotlightID = Shader.PropertyToID("_IsFullSpotlight");
+        private static readonly int k_LightZDistanceID = Shader.PropertyToID("_LightZDistance");
+        private static readonly int k_SpriteLightCookieTexID = Shader.PropertyToID("_CookieTex");
+        private static readonly int k_PointLightCookieTexID = Shader.PropertyToID("_PointLightCookieTex");
 
         private static GraphicsFormat GetRenderTextureFormat()
         {
@@ -162,13 +171,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     renderedAnyLight = true;
 
                     if (light.lightType == Light2D.LightType.Sprite && light.spriteLightCookie != null && light.spriteLightCookie.texture != null)
-                        cmd.SetGlobalTexture(CookieTexID, light.spriteLightCookie.texture);
+                        cmd.SetGlobalTexture(k_SpriteLightCookieTexID, light.spriteLightCookie.texture);
 
-                    cmd.SetGlobalFloat(FalloffIntensityID, light.falloffIntensity);
-                    cmd.SetGlobalFloat(FalloffDistanceID, light.shapeLightFalloffSize);
-                    cmd.SetGlobalVector(FalloffOffsetID, light.shapeLightFalloffOffset);
-                    cmd.SetGlobalColor(LightColorID, light.intensity * light.color);
-                    cmd.SetGlobalFloat(VolumeOpacityID, light.volumeOpacity);
+                    cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
+                    cmd.SetGlobalFloat(k_FalloffDistanceID, light.shapeLightFalloffSize);
+                    cmd.SetGlobalVector(k_FalloffOffsetID, light.shapeLightFalloffOffset);
+                    cmd.SetGlobalColor(k_LightColorID, light.intensity * light.color);
+                    cmd.SetGlobalFloat(k_VolumeOpacityID, light.volumeOpacity);
 
                     if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
                         SetPointLightShaderGlobals(cmd, light);
@@ -218,13 +227,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                                     ShadowRendering.RenderShadows(pass, renderingData, cmd, layerToRender, light, light.shadowVolumeIntensity, renderTexture, depthTexture);
 
                                     if (light.lightType == Light2D.LightType.Sprite && light.spriteLightCookie != null && light.spriteLightCookie.texture != null)
-                                        cmd.SetGlobalTexture(CookieTexID, light.spriteLightCookie.texture);
+                                        cmd.SetGlobalTexture(k_SpriteLightCookieTexID, light.spriteLightCookie.texture);
 
-                                    cmd.SetGlobalFloat(FalloffIntensityID, light.falloffIntensity);
-                                    cmd.SetGlobalFloat(FalloffDistanceID, light.shapeLightFalloffSize);
-                                    cmd.SetGlobalVector(FalloffOffsetID, light.shapeLightFalloffOffset);
-                                    cmd.SetGlobalColor(LightColorID, light.intensity * light.color);
-                                    cmd.SetGlobalFloat(VolumeOpacityID, light.volumeOpacity);
+                                    cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
+                                    cmd.SetGlobalFloat(k_FalloffDistanceID, light.shapeLightFalloffSize);
+                                    cmd.SetGlobalVector(k_FalloffOffsetID, light.shapeLightFalloffOffset);
+                                    cmd.SetGlobalColor(k_LightColorID, light.intensity * light.color);
+                                    cmd.SetGlobalFloat(k_VolumeOpacityID, light.volumeOpacity);
 
                                     // Is this needed
                                     if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
@@ -254,15 +263,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
             for (var i = 0; i < pass.rendererData.lightBlendStyles.Length; i++)
             {
                 var blendStyle = pass.rendererData.lightBlendStyles[i];
-                if (i >= k_BlendFactorsPropNames.Length)
+                if (i >= k_BlendFactorsPropIDs.Length)
                     break;
 
-                cmd.SetGlobalVector(k_BlendFactorsPropNames[i], blendStyle.blendFactors);
-                cmd.SetGlobalVector(k_MaskFilterPropNames[i], blendStyle.maskTextureChannelFilter.mask);
-                cmd.SetGlobalVector(k_InvertedFilterPropNames[i], blendStyle.maskTextureChannelFilter.inverted);
+                cmd.SetGlobalVector(k_BlendFactorsPropIDs[i], blendStyle.blendFactors);
+                cmd.SetGlobalVector(k_MaskFilterPropIDs[i], blendStyle.maskTextureChannelFilter.mask);
+                cmd.SetGlobalVector(k_InvertedFilterPropIDs[i], blendStyle.maskTextureChannelFilter.inverted);
             }
 
-            cmd.SetGlobalTexture(FalloffLookupID, Light2DLookupTexture.GetFalloffLookupTexture());
+            cmd.SetGlobalTexture(k_FalloffLookupID, Light2DLookupTexture.GetFalloffLookupTexture());
         }
 
         private static float GetNormalizedInnerRadius(Light2D light)
@@ -299,21 +308,21 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var outerAngle = GetNormalizedAngle(light.pointLightOuterAngle);
             var innerRadiusMult = 1 / (1 - innerRadius);
 
-            cmd.SetGlobalVector(LightPositionID, light.transform.position);
-            cmd.SetGlobalMatrix(LightInvMatrixID, lightInverseMatrix);
-            cmd.SetGlobalMatrix(LightNoRotInvMatrixID, lightNoRotInverseMatrix);
-            cmd.SetGlobalFloat(InnerRadiusMultID, innerRadiusMult);
-            cmd.SetGlobalFloat(OuterAngleID, outerAngle);
-            cmd.SetGlobalFloat(InnerAngleMultID, 1 / (outerAngle - innerAngle));
-            cmd.SetGlobalTexture(LightLookupID, Light2DLookupTexture.GetLightLookupTexture());
-            cmd.SetGlobalTexture(FalloffLookupID, Light2DLookupTexture.GetFalloffLookupTexture());
-            cmd.SetGlobalFloat(FalloffIntensityID, light.falloffIntensity);
-            cmd.SetGlobalFloat(IsFullSpotlightID, innerAngle == 1 ? 1.0f : 0.0f);
+            cmd.SetGlobalVector(k_LightPositionID, light.transform.position);
+            cmd.SetGlobalMatrix(k_LightInvMatrixID, lightInverseMatrix);
+            cmd.SetGlobalMatrix(k_LightNoRotInvMatrixID, lightNoRotInverseMatrix);
+            cmd.SetGlobalFloat(k_InnerRadiusMultID, innerRadiusMult);
+            cmd.SetGlobalFloat(k_OuterAngleID, outerAngle);
+            cmd.SetGlobalFloat(k_InnerAngleMultID, 1 / (outerAngle - innerAngle));
+            cmd.SetGlobalTexture(k_LightLookupID, Light2DLookupTexture.GetLightLookupTexture());
+            cmd.SetGlobalTexture(k_FalloffLookupID, Light2DLookupTexture.GetFalloffLookupTexture());
+            cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
+            cmd.SetGlobalFloat(k_IsFullSpotlightID, innerAngle == 1 ? 1.0f : 0.0f);
 
-            cmd.SetGlobalFloat(LightZDistanceID, light.pointLightDistance);
+            cmd.SetGlobalFloat(k_LightZDistanceID, light.pointLightDistance);
 
             if (light.pointLightCookie != null && light.pointLightCookie.texture != null)
-                cmd.SetGlobalTexture(PointLightCookieTexID, light.pointLightCookie.texture);
+                cmd.SetGlobalTexture(k_PointLightCookieTexID, light.pointLightCookie.texture);
         }
 
         public static void ClearDirtyLighting(this IRenderPass2D pass, CommandBuffer cmd, uint blendStylesUsed)
@@ -413,8 +422,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private static void SetBlendModes(Material material, BlendMode src, BlendMode dst)
         {
-            material.SetFloat(SrcBlendID, (float)src);
-            material.SetFloat(DstBlendID, (float)dst);
+            material.SetFloat(k_SrcBlendID, (float)src);
+            material.SetFloat(k_DstBlendID, (float)dst);
         }
 
         private static uint GetLightMaterialIndex(Light2D light, bool isVolume)

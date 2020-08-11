@@ -97,6 +97,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
             OnEnableInEditor();
 #endif
 
+            for (var i = 0; i < m_LightBlendStyles.Length; ++i)
+            {
+                m_LightBlendStyles[i].renderTargetHandle.Init($"_ShapeLightTexture{i}");
+            }
+
             normalsRenderTarget.Init("_NormalMap");
             shadowsRenderTarget.Init("_ShadowTex");
 

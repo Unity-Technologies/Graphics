@@ -189,7 +189,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     bounds = LightUtility.GenerateParametricMesh(m_Mesh, 1.412135f, 0, 0, 4);
                     break;
             }
-            boundingSphereRadius = isShapeLight ? GetShapeLightBoundingSphere(bounds) : m_PointLightOuterRadius;
+            boundingSphereRadius = isShapeLight ? CalculateBoundingSphereRadius(bounds) : m_PointLightOuterRadius;
         }
 
         internal bool IsLitLayer(int layer)

@@ -31,7 +31,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal bool isShapeLight => m_LightType != LightType.Point;
 
-        float GetShapeLightBoundingSphere(Bounds bounds)
+        float CalculateBoundingSphereRadius(Bounds bounds)
         {
             var maxBound = Vector3.Max(bounds.max, bounds.max + (Vector3)m_ShapeLightFalloffOffset);
             var minBound = Vector3.Min(bounds.min, bounds.min + (Vector3)m_ShapeLightFalloffOffset);
