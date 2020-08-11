@@ -178,7 +178,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // TODO: Do a different case for downsizing, in this case, instead of doing ConvertTexture just use the relevant mipmaps.
                 bool sizeMismatch = renderTexture.width != m_ProbeSize || renderTexture.height != m_ProbeSize;
-                if (sizeMismatch)
+                bool formatMismatch = (renderTexture.graphicsFormat != m_ProbeFormat);
+
+                if (formatMismatch || sizeMismatch)
                 {
                     ConvertTexture(cmd, renderTexture, m_TempRenderTexture);
                     convolutionSourceTexture = m_TempRenderTexture;
