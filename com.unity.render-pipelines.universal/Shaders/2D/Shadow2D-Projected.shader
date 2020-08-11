@@ -8,28 +8,23 @@ Shader "Hidden/2D/Shadow2D-Projected"
     {
         Tags { "RenderType"="Opaque" }
 
-        Cull Off
+        Cull   Off
         ZWrite Off
-        ZTest Always
-        ColorMask 0
-
+        ZTest  Always
 
         // Stencil Bits
         // 0 - Sprite Mask
-        // 1 - Self Shadow
-        // 2 - Shadow
+        // 1 - Shadow
         Pass
         {
-            Tags{ "LightMode" = "DrawShadow" }  // Don't draw if shadowed or self shadowed. Only draw the valid part of the sprite
+            Tags{ "LightMode" = "StencilShadows" }  // Render the shadows into the stencil buffer
 
             Stencil
             {
-                Ref         2           // Self Shadow Bit
-                ReadMask    2           // Self Shadow Bit
-                WriteMask   2           // Self Shadow Bit
+                Ref         2           // Shadow Value
+                ReadMask    2
                 Comp        NotEqual
                 Pass        Replace
-                Fail        Keep
             }
 
             ColorMask 0
@@ -41,24 +36,30 @@ Shader "Hidden/2D/Shadow2D-Projected"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/Shadow2D-Projected-Shared.hlsl"
+
+            half4 frag(Varyings i) : SV_Target
+            {
+                return half4(0,0,0,0);
+            }
 
             ENDHLSL
         }
         Pass
         {
-            Tags{ "LightMode" = "ConvertShadows" }  // Convert self shadow to shadow.
+            Tags{ "LightMode" = "DrawShadow" }  // Render the shadows into the alpha channel and clear the stencil buffer
 
             Stencil
             {
-                Ref         4           // Shadow Bit
-                ReadMask    6           // Self Shadow Bit, Shadow Bit
-                WriteMask   6           // Self Shadow Bit, Shadow Bit
+                Ref         1           // Sprite Value
+                ReadMask    1           // Sprite Value
                 Comp        NotEqual
-                Pass        Replace
-                Fail        Keep
+                Pass        Zero
+                Fail        Zero
             }
 
-            ColorMask 0
+            BlendOp Add
+            Blend One One
+            ColorMask A
 
             HLSLPROGRAM
 
@@ -67,6 +68,11 @@ Shader "Hidden/2D/Shadow2D-Projected"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/Shadow2D-Projected-Shared.hlsl"
+
+            half4 frag(Varyings i) : SV_Target
+            {
+                return half4(0,0,0,_ShadowIntensity);
+            }
 
             ENDHLSL
         }

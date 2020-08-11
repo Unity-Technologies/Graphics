@@ -14,8 +14,9 @@ struct Varyings
     float4 vertex : SV_POSITION;
 };
 
-uniform float3 _LightPos;
-uniform float  _ShadowRadius;
+float3      _LightPos;
+float       _ShadowRadius;
+float       _ShadowIntensity;
 
 Varyings vert(Attributes v)
 {
@@ -53,11 +54,6 @@ Varyings vert(Attributes v)
 
     o.vertex = TransformWorldToHClip(position);
     return o;
-}
-
-half4 frag(Varyings i) : SV_Target
-{
-    return half4(0,0,0,0);
 }
 
 #endif
