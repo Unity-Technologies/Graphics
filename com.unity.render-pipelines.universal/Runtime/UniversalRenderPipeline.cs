@@ -276,7 +276,6 @@ namespace UnityEngine.Rendering.Universal
             List<Camera> cameraStack = (supportsCameraStacking) ? baseCameraAdditionalData?.cameraStack : null;
 
             bool anyPostProcessingEnabled = baseCameraAdditionalData != null && baseCameraAdditionalData.renderPostProcessing;
-            anyPostProcessingEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             // We need to know the last active camera in the stack to be able to resolve
             // rendering to screen when rendering it. The last camera in the stack is not
@@ -317,7 +316,9 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-
+            // Post-processing not supported in GLES2.
+            anyPostProcessingEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
+            
             bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
 
             InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
@@ -338,7 +339,6 @@ namespace UnityEngine.Rendering.Universal
                 if (baseCameraData.xr.enabled)
                 {
                     xrActive = true;
-                    // XRTODO: Revisit URP cameraTargetDescriptor logic. The descriptor here is not for camera target, it is for intermediate render texture.
                     baseCameraData.cameraTargetDescriptor = baseCameraData.xr.renderTargetDesc;
                     if (baseCameraData.isHdrEnabled)
                     {
@@ -615,6 +615,9 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
                 cameraData.renderer = asset.scriptableRenderer;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                cameraData.xrRendering = false;
+#endif
             }
             else if (additionalCameraData != null)
             {
@@ -625,6 +628,9 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresDepthTexture = additionalCameraData.requiresDepthTexture;
                 cameraData.requiresOpaqueTexture = additionalCameraData.requiresColorTexture;
                 cameraData.renderer = additionalCameraData.scriptableRenderer;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                cameraData.xrRendering = additionalCameraData.allowXRRendering;
+#endif
             }
             else
             {
@@ -634,6 +640,9 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
                 cameraData.renderer = asset.scriptableRenderer;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                cameraData.xrRendering = true;
+#endif
             }
 
             // Disable depth and color copy. We should add it in the renderer instead to avoid performance pitfalls

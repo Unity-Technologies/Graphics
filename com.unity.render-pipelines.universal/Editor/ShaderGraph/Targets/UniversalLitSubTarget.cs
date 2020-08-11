@@ -285,6 +285,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public readonly static SubShaderDescriptor LitComputeDOTS = new SubShaderDescriptor()
             {
                 pipelineTag = UniversalTarget.kPipelineTag,
+                customTags = UniversalTarget.kLitMaterialTypeTag,
                 generatesPreview = true,
                 passes = new PassCollection
                 {
@@ -304,6 +305,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public readonly static SubShaderDescriptor ComplexLitComputeDOTS = new SubShaderDescriptor()
             {
                 pipelineTag = UniversalTarget.kPipelineTag,
+                customTags = UniversalTarget.kLitMaterialTypeTag,
                 generatesPreview = true,
                 passes = new PassCollection
                 {
@@ -320,6 +322,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public readonly static SubShaderDescriptor LitGLES = new SubShaderDescriptor()
             {
                 pipelineTag = UniversalTarget.kPipelineTag,
+                customTags = UniversalTarget.kLitMaterialTypeTag,
                 generatesPreview = true,
                 passes = new PassCollection
                 {
@@ -337,6 +340,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public readonly static SubShaderDescriptor LitGLESForwardOnly = new SubShaderDescriptor()
             {
                 pipelineTag = UniversalTarget.kPipelineTag,
+                customTags = UniversalTarget.kLitMaterialTypeTag,
                 generatesPreview = true,
                 passes = new PassCollection
                 {
@@ -432,7 +436,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
-                renderStates = CoreRenderStates.GBufferLit,
+                renderStates = CoreRenderStates.Default,
                 pragmas = CorePragmas.DOTSGBuffer,
                 keywords = LitKeywords.GBuffer,
                 includes = LitIncludes.GBuffer,
