@@ -152,7 +152,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         }
 
         private char[] value_char = { '0', '0', '0', '0', '0', '0', '0', '0' };
-
+ 
         void AddField(int index, string subLabel)
         {
             var label = new Label(subLabel);
@@ -166,19 +166,43 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 field_value += m_Value[2 * index + 1].ToString();
             }
 
-            var field = new TextField { userData = index, value = field_value, maxLength = 2, maskChar ='9' };
+            var field = new TextField { userData = index, value = field_value, maxLength = 2 };
             field.RegisterCallback<MouseDownEvent>(Repaint);
             field.RegisterCallback<MouseMoveEvent>(Repaint);
             field.RegisterValueChangedCallback(evt =>
             {
                 var value = GetValue();
                 value_char = value.ToCharArray();
-                value_char[2 * index] = evt.newValue[0];
+
+                if (evt.newValue.Length != 0)
+                    value_char[2 * index] = evt.newValue[0];
                 if (evt.newValue.Length == 2)
                     value_char[2 * index + 1] = evt.newValue[1];
 
+                for (int i = 0; i < evt.newValue.Length; i++)
+                {
+                    if (evt.newValue[i] < '0' || evt.newValue[i] > '9')
+                    {
+                        EditorApplication.delayCall += () =>
+                        {
+                            field.SetValueWithoutNotify("00");
+                            value = GetValue();
+                            value_char = value.ToCharArray();
+
+                            value_char[2 * index] = '0';
+                            value_char[2 * index+1] = '0';
+                            value = new string(value_char);
+                            SetValue(value);
+                            m_UndoGroup = -1;
+                            this.MarkDirtyRepaint();
+
+                        };
+                    }
+                }
+
                 value = new string(value_char);
                 SetValue(value);
+                field.SetValueWithoutNotify(value_char[2 * index].ToString() + value_char[2 * index + 1].ToString());
                 m_UndoGroup = -1;
                 this.MarkDirtyRepaint();
             });
