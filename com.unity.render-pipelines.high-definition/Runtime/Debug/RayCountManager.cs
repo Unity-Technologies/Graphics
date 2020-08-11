@@ -1,6 +1,7 @@
 using Unity.Collections;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -118,6 +119,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public RTHandle GetRayCountTexture()
         {
             return m_RayCountTexture;
+        }
+
+        public TextureHandle CreateRayCountTexture(RenderGraph renderGraph)
+        {
+            return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+            {
+                colorFormat = GraphicsFormat.R16_UInt,
+                slices = TextureXR.slices * (int)RayCountValues.Count,
+                dimension = TextureDimension.Tex2DArray,
+                enableRandomWrite = true,
+                name = "RayCountTextureDebug"
+            });
         }
 
         public void EvaluateRayCount(CommandBuffer cmd, HDCamera camera)
