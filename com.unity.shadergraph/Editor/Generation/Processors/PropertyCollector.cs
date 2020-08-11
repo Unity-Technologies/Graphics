@@ -139,7 +139,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         var n = prop.referenceName;
                         string type = prop.concreteShaderValueType.ToShaderString(prop.concretePrecision);
-                        builder.AppendLine($"#define {n} UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO({type}, Metadata_{n})");
+                        builder.AppendLine($"#define {n} UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO({type}, Metadata{n})");
                     }
                 }
                 builder.AppendLine("#endif");
