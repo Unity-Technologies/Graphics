@@ -458,14 +458,12 @@ namespace UnityEngine.Rendering
         // Creates bricks at the coarsest level for all areas that are overlapped by the pass in volume
         private void Rasterize(Volume volume, List<Brick> outBricks)
         {
-            Debug.Log("Rasterizing " + volume);
             Profiler.BeginSample("Rasterize");
             // Calculate bounding box for volume in refvol space
             var AABB = volume.CalculateAABB();
 
             // Calculate smallest brick size capable of covering shortest AABB dimension
             float minVolumeSize = Mathf.Min(AABB.size.x, Mathf.Min(AABB.size.y, AABB.size.z));
-            Debug.Log(AABB.size.x);
             int brickSubDivLevel = Mathf.Min(Mathf.CeilToInt(Mathf.Log(minVolumeSize, 3)), m_MaxSubdivision);
             int brickTotalSize = (int)Mathf.Pow(3, brickSubDivLevel);
 
