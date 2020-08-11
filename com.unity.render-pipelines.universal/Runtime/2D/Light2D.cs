@@ -138,7 +138,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-
         public Sprite pointLightCookie => m_PointLightCookie;
         public Sprite spriteLightCookie => m_SpriteLightCookie;
 
@@ -191,6 +190,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
             boundingSphereRadius = isShapeLight ? CalculateBoundingSphereRadius(bounds) : m_PointLightOuterRadius;
         }
+
+        internal bool IsSpriteLightCookieValid()
+        {
+            return spriteLightCookie != null;
+        }
+
+        internal bool IsPointLightCookieValid()
+        {
+            return spriteLightCookie != null;
+        }
+
 
         internal bool IsLitLayer(int layer)
         {
