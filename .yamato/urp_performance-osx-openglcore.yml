@@ -21,7 +21,7 @@ URP_Performance_OSX_OpenGLCore_performance_playmode_counters_trunk:
       -  chmod +x TestProjects/URP_Performance/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && ./utr --suite=playmode --testfilter=Counters --platform=StandaloneOSX  --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-load-path=players --player-connection-ip=auto
+      -  cd TestProjects/URP_Performance && ./utr --suite=playmode --testfilter=Counters --platform=StandaloneOSX  --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:
@@ -42,7 +42,7 @@ Build_URP_Performance_OSX_OpenGLCore_Player_trunk:
       -  chmod +x TestProjects/URP_Performance/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && ./utr --suite=playmode --testfilter=Memory --platform=StandaloneOSX --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=players --build-only
+      -  cd TestProjects/URP_Performance && ./utr --suite=playmode --testfilter=Memory --platform=StandaloneOSX --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
             paths:
@@ -68,7 +68,7 @@ URP_Performance_OSX_OpenGLCore_performance_playmode_memory_trunk:
       -  chmod +x TestProjects/URP_Performance/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && ./utr --suite=playmode --testfilter=Memory --platform=StandaloneOSX  --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-load-path=players --player-connection-ip=auto
+      -  cd TestProjects/URP_Performance && ./utr --suite=playmode --testfilter=Memory --platform=StandaloneOSX  --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:
@@ -112,7 +112,7 @@ URP_Performance_OSX_OpenGLCore_performance_playmode_counters_fast-trunk:
       -  chmod +x TestProjects/URP_Performance/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && ./utr --suite=playmode --testfilter=Counters --platform=StandaloneOSX  --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-load-path=players --player-connection-ip=auto
+      -  cd TestProjects/URP_Performance && ./utr --suite=playmode --testfilter=Counters --platform=StandaloneOSX  --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:
@@ -133,7 +133,7 @@ Build_URP_Performance_OSX_OpenGLCore_Player_fast-trunk:
       -  chmod +x TestProjects/URP_Performance/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && ./utr --suite=playmode --testfilter=Memory --platform=StandaloneOSX --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=players --build-only
+      -  cd TestProjects/URP_Performance && ./utr --suite=playmode --testfilter=Memory --platform=StandaloneOSX --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
             paths:
@@ -159,7 +159,7 @@ URP_Performance_OSX_OpenGLCore_performance_playmode_memory_fast-trunk:
       -  chmod +x TestProjects/URP_Performance/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && ./utr --suite=playmode --testfilter=Memory --platform=StandaloneOSX  --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-load-path=players --player-connection-ip=auto
+      -  cd TestProjects/URP_Performance && ./utr --suite=playmode --testfilter=Memory --platform=StandaloneOSX  --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:
@@ -204,7 +204,7 @@ URP_Performance_OSX_OpenGLCore_performance_playmode_counters_CUSTOM-REVISION:
       -  chmod +x TestProjects/URP_Performance/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && ./utr --suite=playmode --testfilter=Counters --platform=StandaloneOSX  --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-load-path=players --player-connection-ip=auto
+      -  cd TestProjects/URP_Performance && ./utr --suite=playmode --testfilter=Counters --platform=StandaloneOSX  --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:
@@ -226,7 +226,7 @@ Build_URP_Performance_OSX_OpenGLCore_Player_CUSTOM-REVISION:
       -  chmod +x TestProjects/URP_Performance/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && ./utr --suite=playmode --testfilter=Memory --platform=StandaloneOSX --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=players --build-only
+      -  cd TestProjects/URP_Performance && ./utr --suite=playmode --testfilter=Memory --platform=StandaloneOSX --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
             paths:
@@ -253,7 +253,7 @@ URP_Performance_OSX_OpenGLCore_performance_playmode_memory_CUSTOM-REVISION:
       -  chmod +x TestProjects/URP_Performance/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/URP_Performance && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP_Performance && ./utr --suite=playmode --testfilter=Memory --platform=StandaloneOSX  --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-load-path=players --player-connection-ip=auto
+      -  cd TestProjects/URP_Performance && ./utr --suite=playmode --testfilter=Memory --platform=StandaloneOSX  --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:
