@@ -107,7 +107,9 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracingBuildCluster,
         RaytracingCullLights,
         // RTR
-        RaytracingIntegrateReflection,
+        RaytracingReflectionDirectionGeneration,
+        RaytracingReflectionEvaluation,
+        RaytracingReflectionUpscaleGeneration,
         RaytracingFilterReflection,
         // RTAO
         RaytracingAmbientOcclusion,
@@ -122,6 +124,8 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracingDebugOverlay,
         RayTracingRecursiveRendering,
         RayTracingPrepass,
+        // RT Deferred Lighting
+        RaytracingDeferredLighting,
 
         // Profile sampler for prepare light for GPU
         PrepareLightsForGPU,

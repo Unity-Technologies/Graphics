@@ -35,6 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle colorBuffer = CreateColorBuffer(m_RenderGraph, hdCamera, msaa);
             m_NonMSAAColorBuffer = CreateColorBuffer(m_RenderGraph, hdCamera, false);
             TextureHandle currentColorPyramid = m_RenderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain));
+            TextureHandle rayCountTexture = GetRayCountManager().CreateRayCountTexture(m_RenderGraph);
 
             LightingBuffers lightingBuffers = new LightingBuffers();
             lightingBuffers.diffuseLightingBuffer = CreateDiffuseLightingBuffer(m_RenderGraph, msaa);
@@ -78,19 +79,23 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Should probably be inside the AO render function but since it's a separate class it's currently not super clean to do.
                 PushFullScreenDebugTexture(m_RenderGraph, lightingBuffers.ambientOcclusionBuffer, FullScreenDebugMode.ScreenSpaceAmbientOcclusion);
 
-                // Evaluate the clear coat mask texture based on the lit shader mode
-                var clearCoatMask = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? prepassOutput.gbuffer.mrt[2] : m_RenderGraph.defaultResources.blackTextureXR;
-                lightingBuffers.ssrLightingBuffer = RenderSSR(m_RenderGraph,
-                                                              hdCamera,
-                                                              ref prepassOutput,
-                                                              clearCoatMask,
-                                                              transparent: false);
+                
 
                 lightingBuffers.contactShadowsBuffer = RenderContactShadows(m_RenderGraph, hdCamera, msaa ? prepassOutput.depthValuesMSAA : prepassOutput.depthPyramidTexture, gpuLightListOutput, GetDepthBufferMipChainInfo().mipLevelOffsets[1].y);
 
                 var volumetricDensityBuffer = VolumeVoxelizationPass(m_RenderGraph, hdCamera, m_VisibleVolumeBoundsBuffer, m_VisibleVolumeDataBuffer, gpuLightListOutput.bigTileLightList, m_FrameCount);
 
                 shadowResult = RenderShadows(m_RenderGraph, hdCamera, cullingResults);
+
+                // Evaluate the clear coat mask texture based on the lit shader mode
+                var clearCoatMask = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? prepassOutput.gbuffer.mrt[2] : m_RenderGraph.defaultResources.blackTextureXR;
+                lightingBuffers.ssrLightingBuffer = RenderSSR(m_RenderGraph,
+                                                              hdCamera,
+                                                              ref prepassOutput,
+                                                              clearCoatMask,
+                                                              rayCountTexture,
+                                                              m_SkyManager.GetSkyReflection(hdCamera),
+                                                              transparent: false);
 
                 StartXRSinglePass(m_RenderGraph, hdCamera);
 
@@ -179,7 +184,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // No need for old stencil values here since from transparent on different features are tagged
                 ClearStencilBuffer(m_RenderGraph, colorBuffer, prepassOutput.depthBuffer);
 
-                colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, colorBuffer, currentColorPyramid, volumetricLighting, gpuLightListOutput, ref prepassOutput, shadowResult, cullingResults, customPassCullingResults, aovRequest, aovBuffers);
+                colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, colorBuffer, currentColorPyramid, volumetricLighting, rayCountTexture, m_SkyManager.GetSkyReflection(hdCamera), gpuLightListOutput, ref prepassOutput, shadowResult, cullingResults, customPassCullingResults, aovRequest, aovBuffers);
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector))
                 {
@@ -792,6 +797,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                             TextureHandle               colorBuffer,
                                             TextureHandle               currentColorPyramid,
                                             TextureHandle               volumetricLighting,
+                                            TextureHandle               rayCountTexture,
+                                            Texture                     skyTexture,
                                             in BuildGPULightListOutput  lightLists,
                                             ref PrepassOutput           prepassOutput,
                                             ShadowResult                shadowResult,
@@ -802,7 +809,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             RenderTransparentDepthPrepass(renderGraph, hdCamera, prepassOutput, cullingResults);
 
-            var ssrLightingBuffer = RenderSSR(renderGraph, hdCamera, ref prepassOutput, renderGraph.defaultResources.blackTextureXR, transparent: true);
+            var ssrLightingBuffer = RenderSSR(renderGraph, hdCamera, ref prepassOutput, renderGraph.defaultResources.blackTextureXR, rayCountTexture, skyTexture, transparent: true);
 
             //RenderRayTracingPrepass(cullingResults, hdCamera, renderContext, cmd, true);
             //RaytracingRecursiveRender(hdCamera, cmd, renderContext, cullingResults);

@@ -166,6 +166,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added missing API documentation.
 - Added an option to have only the metering mask displayed in the debug mode.
 - Added a new mode to cluster visualization debug where users can see a slice instead of the cluster on opaque objects.
+- Added ray traced reflection support for the render graph version of the pipeline.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
