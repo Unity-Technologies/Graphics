@@ -22,6 +22,14 @@ namespace UnityEngine.Rendering
                 Corner = (Vector3)trs.GetColumn(3) - X * 0.5f - Y * 0.5f - Z * 0.5f;
             }
 
+            public Volume(Volume copy)
+            {
+                X = copy.X;
+                Y = copy.Y;
+                Z = copy.Z;
+                Corner = copy.Corner;
+            }
+
             public Bounds CalculateAABB()
             {
                 Vector3 min = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
@@ -47,6 +55,19 @@ namespace UnityEngine.Rendering
                 }
 
                 return new Bounds((min + max) / 2, max - min);
+            }
+
+            public void Transform(Matrix4x4 trs)
+            {
+                Corner = trs.MultiplyPoint(Corner);
+                X = trs.MultiplyVector(X);
+                Y = trs.MultiplyVector(Y);
+                Z = trs.MultiplyVector(Z);
+            }
+
+            public override string ToString()
+            {
+                return $"Corner: {Corner}, X: {X}, Y: {Y}, Z: {Z}";
             }
         }
 
@@ -106,7 +127,7 @@ namespace UnityEngine.Rendering
             Profiler.BeginSample("Create Reference volume");
             m_Transform.posWS = Vector3.zero;
             m_Transform.rot = Quaternion.identity;
-            m_Transform.scale = 1.0f;
+            m_Transform.scale = 1f;
             m_Transform.refSpaceToWS = Matrix4x4.identity;
 
             m_NormalBias = 0f;
@@ -135,14 +156,15 @@ namespace UnityEngine.Rendering
             return rr;
         }
 
-        public void SetGridDensity(float minBrickSize, int maxSubdivision)
+        public void SetTRS(Vector3 position, Quaternion rotation, float minBrickSize)
         {
-            m_MaxSubdivision = System.Math.Min(maxSubdivision, ProbeBrickIndex.kMaxSubdivisionLevels);
-
+            m_Transform.posWS = position;
+            m_Transform.rot = rotation;
             m_Transform.scale = minBrickSize;
             m_Transform.refSpaceToWS = Matrix4x4.TRS(m_Transform.posWS, m_Transform.rot, Vector3.one * m_Transform.scale);
         }
 
+        public void SetMaxSubdivision(int maxSubdivision) { m_MaxSubdivision = System.Math.Min(maxSubdivision, ProbeBrickIndex.kMaxSubdivisionLevels); }
         public void SetNormalBias(float normalBias) { m_NormalBias = normalBias; }
 
         internal static int cellSize(int subdivisionLevel) { return (int)Mathf.Pow(ProbeBrickPool.kBrickCellCount, subdivisionLevel); }
@@ -150,6 +172,7 @@ namespace UnityEngine.Rendering
         internal float minBrickSize() { return m_Transform.scale; }
         internal float maxBrickSize() { return brickSize(m_MaxSubdivision); }
         public Matrix4x4 GetRefSpaceToWS() { return m_Transform.refSpaceToWS; }
+        public RefVolTransform GetTransform() { return m_Transform; }
 
         public delegate void SubdivisionDel(RefVolTransform refSpaceToWS, List<Brick> inBricks, List<BrickFlags> outControlFlags);
 
@@ -435,12 +458,14 @@ namespace UnityEngine.Rendering
         // Creates bricks at the coarsest level for all areas that are overlapped by the pass in volume
         private void Rasterize(Volume volume, List<Brick> outBricks)
         {
+            Debug.Log("Rasterizing " + volume);
             Profiler.BeginSample("Rasterize");
             // Calculate bounding box for volume in refvol space
             var AABB = volume.CalculateAABB();
 
             // Calculate smallest brick size capable of covering shortest AABB dimension
             float minVolumeSize = Mathf.Min(AABB.size.x, Mathf.Min(AABB.size.y, AABB.size.z));
+            Debug.Log(AABB.size.x);
             int brickSubDivLevel = Mathf.Min(Mathf.CeilToInt(Mathf.Log(minVolumeSize, 3)), m_MaxSubdivision);
             int brickTotalSize = (int)Mathf.Pow(3, brickSubDivLevel);
 
@@ -462,6 +487,7 @@ namespace UnityEngine.Rendering
                     for (int z = 0; z < logicalBrickRes.z; z++)
                     {
                         Vector3Int pos = origin + new Vector3Int(x, y, z) * brickTotalSize;
+                        Debug.Assert(pos.x >= 0 && pos.y >= 0 && pos.z >= 0);
                         outBricks.Add(new Brick(pos, brickSubDivLevel));
                     }
                 }
