@@ -25,7 +25,6 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_PostProcessData;
         SerializedProperty m_Shaders;
         SerializedProperty m_ShadowTransparentReceiveProp;
-        SerializedProperty m_VolumeFrameworkRefreshModeProp;
 
         private void OnEnable()
         {
@@ -35,7 +34,6 @@ namespace UnityEditor.Rendering.Universal
             m_PostProcessData = serializedObject.FindProperty("postProcessData");
             m_Shaders = serializedObject.FindProperty("shaders");
             m_ShadowTransparentReceiveProp = serializedObject.FindProperty("m_ShadowTransparentReceive");
-            m_VolumeFrameworkRefreshModeProp = serializedObject.FindProperty("m_VolumeFrameworkRefreshMode");
         }
 
         public override void OnInspectorGUI()
