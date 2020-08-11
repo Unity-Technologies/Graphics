@@ -126,7 +126,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 else
                 {
-                    PropertyField(m_SpatialBilateralAggressiveness, EditorGUIUtility.TrTextContent("Bilateral Blur Aggressiveness", "Higher this value, the less lenient with depth differences the spatial filter is. Increase if for example noticing white halos where AO should be."));
+                    PropertyField(m_SpatialBilateralAggressiveness, EditorGUIUtility.TrTextContent("Bilateral Aggressiveness", "Higher this value, the less lenient with depth differences the spatial filter is. Increase if for example noticing white halos where AO should be."));
                     PropertyField(m_GhostingAdjustement, EditorGUIUtility.TrTextContent("Ghosting reduction", "Moving this factor closer to 0 will increase the amount of accepted samples during temporal accumulation, increasing the ghosting, but reducing the temporal noise."));
                     if (isInAdvancedMode && !m_FullResolution.value.boolValue)
                     {
