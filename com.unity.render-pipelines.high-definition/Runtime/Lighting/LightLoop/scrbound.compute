@@ -23,7 +23,6 @@ RWStructuredBuffer<float4> g_vBoundsBuffer : register( u0 );
 
 #define Z_BINNING
 #define DUMB_COMPILER
-// #define USE_WAVE_INTRINSICS // We use TGSM and atomic operations if wave intrinsics are not supported
 
 #ifdef Z_BINNING
 
@@ -165,9 +164,10 @@ float3 GenerateVertexOfStandardCube(uint v)
 
 uint GetVertexListOfFace(uint f)
 {
-    static const uint3 allVertLists = uint3((VERT_LIST_RIGHT  << 12) | VERT_LIST_LEFT,
-                                            (VERT_LIST_BOTTOM << 12) | VERT_LIST_TOP,
-                                            (VERT_LIST_BACK   << 12) | VERT_LIST_FRONT);
+    // Warning: don't add 'static' here unless you want really bad code gen.
+    const uint3 allVertLists = uint3((VERT_LIST_RIGHT  << 12) | VERT_LIST_LEFT,
+                                     (VERT_LIST_BOTTOM << 12) | VERT_LIST_TOP,
+                                     (VERT_LIST_BACK   << 12) | VERT_LIST_FRONT);
 
     return BitFieldExtract(allVertLists[f >> 1], 12 * (f & 1), 12);
 }
@@ -179,7 +179,7 @@ groupshared float gs_HapVertsZ[VERTS_PER_GROUP];
 groupshared float gs_HapVertsW[VERTS_PER_GROUP];
 groupshared uint  gs_BehindMasksOfVerts[VERTS_PER_GROUP]; // 6 planes each (HLSL does not support small data types)
 
-#ifndef USE_WAVE_INTRINSICS
+#ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
 // 1 array *  16 elements * 4 bytes each = 64 bytes.
 groupshared uint  gs_CullClipFaceMasks[LIGHTS_PER_GROUP]; // 6 faces  each (HLSL does not support small data types)
 
@@ -194,7 +194,7 @@ groupshared uint  gs_NdcAaBbMinPtZ[LIGHTS_PER_GROUP]; // Note that min-max Z can
 groupshared uint  gs_NdcAaBbMaxPtZ[LIGHTS_PER_GROUP]; // from min-max W if the projection is oblique.
 groupshared uint  gs_NdcAaBbMinPtW[LIGHTS_PER_GROUP]; // View-space Z coordinate
 groupshared uint  gs_NdcAaBbMaxPtW[LIGHTS_PER_GROUP]; // View-space Z coordinate
-#endif // USE_WAVE_INTRINSICS
+#endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
 // Returns 'true' if it manages to cull the face.
 bool TryCullFace(uint f, uint behindMasksOfVerts[NUM_VERTS])
@@ -317,7 +317,7 @@ void ClipFaceAgainstViewVolume(uint f, uint behindMasksOfVerts[NUM_VERTS], uint 
 
     for (int j = 0; j < 4; j++)
     {
-        uint v = BitFieldExtract(vertMaskOfFace, 3 * j, 3);
+        uint v = BitFieldExtract(vertListOfFace, 3 * j, 3);
         // Non-zero if ANY of the vertices are behind any of the planes.
         clipMaskOfFace |= behindMasksOfVerts[v];
 
@@ -462,7 +462,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
     const float3 rbpY  = lgtDat.boxAxisY.xyz; // Pre-scaled
     const float3 rbpZ  = lgtDat.boxAxisZ.xyz; // Pre-scaled
 
-#ifndef USE_WAVE_INTRINSICS
+#ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
     // (0) Initialize the TGSM.
     if (t % THREADS_PER_LIGHT == 0) // Avoid bank conflicts
     {
@@ -476,7 +476,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
         gs_NdcAaBbMinPtW[groupLocalLightIndex]     = asuint(FLT_INF);
         gs_NdcAaBbMaxPtW[groupLocalLightIndex]     = asuint(0.0f);
     }
-#endif // USE_WAVE_INTRINSICS
+#endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
     float4 ndcAaBbMinPt = float4(1, 1, 1, FLT_INF);
     float4 ndcAaBbMaxPt = 0;
@@ -558,8 +558,15 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
         gs_BehindMasksOfVerts[firstVertexOffset + v] = behindMask;
     }
 
-#ifdef USE_WAVE_INTRINSICS
-    // ...
+#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+    for (uint i = 0; i < FastLog2(THREADS_PER_LIGHT); i++)
+    {
+        uint andMask = PLATFORM_LANE_COUNT - 1; // All lanes
+        uint orMask  = 0;                       // Plays no role
+        uint xorMask = 1 << i;                  // Flip bits one by one starting from the LSB
+        // TODO: Francesco - expose the right intrinsic.
+        cullClipFaceMask |= LaneSwizzle(cullClipFaceMask, orMask, 0, xorMask);
+    }
 #else
     InterlockedOr(gs_CullClipFaceMasks[groupLocalLightIndex], cullClipFaceMask);
 
@@ -628,6 +635,10 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
         }
     }
 
+#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+    GroupMemoryBarrierWithGroupSync();
+#endif
+
     uint behindMasksOfVerts[NUM_VERTS];
 
     for (uint i = 0; i < NUM_VERTS; i++)
@@ -656,8 +667,15 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
         }
     }
 
-#ifdef USE_WAVE_INTRINSICS
-    // ...
+#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+    for (uint i = 0; i < FastLog2(THREADS_PER_LIGHT); i++)
+    {
+        uint andMask = PLATFORM_LANE_COUNT - 1; // All lanes
+        uint orMask  = 0;                       // Plays no role
+        uint xorMask = 1 << i;                  // Flip bits one by one starting from the LSB
+        // TODO: Francesco - expose the right intrinsic.
+        cullClipFaceMask &= LaneSwizzle(cullClipFaceMask, orMask, 0, xorMask);
+    }
 #else
     InterlockedAnd(gs_CullClipFaceMasks[groupLocalLightIndex], cullClipFaceMask);
 
@@ -689,11 +707,25 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
         }
     }
 
-#ifdef USE_WAVE_INTRINSICS
-    // ...
+#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+    for (uint i = 0; i < FastLog2(THREADS_PER_LIGHT); i++)
+    {
+        uint andMask = PLATFORM_LANE_COUNT - 1; // All lanes
+        uint orMask  = 0;                       // Plays no role
+        uint xorMask = 1 << i;                  // Flip bits one by one starting from the LSB
+        // TODO: Francesco - expose the right intrinsic.
+        ndcAaBbMinPt.x = min(ndcAaBbMinPt.x, LaneSwizzle(ndcAaBbMinPt.x, orMask, 0, xorMask));
+        ndcAaBbMaxPt.x = max(ndcAaBbMaxPt.x, LaneSwizzle(ndcAaBbMaxPt.x, orMask, 0, xorMask));
+        ndcAaBbMinPt.y = min(ndcAaBbMinPt.y, LaneSwizzle(ndcAaBbMinPt.y, orMask, 0, xorMask));
+        ndcAaBbMaxPt.y = max(ndcAaBbMaxPt.y, LaneSwizzle(ndcAaBbMaxPt.y, orMask, 0, xorMask));
+        ndcAaBbMinPt.z = min(ndcAaBbMinPt.z, LaneSwizzle(ndcAaBbMinPt.z, orMask, 0, xorMask));
+        ndcAaBbMaxPt.z = max(ndcAaBbMaxPt.z, LaneSwizzle(ndcAaBbMaxPt.z, orMask, 0, xorMask));
+        ndcAaBbMinPt.w = min(ndcAaBbMinPt.w, LaneSwizzle(ndcAaBbMinPt.w, orMask, 0, xorMask));
+        ndcAaBbMaxPt.w = max(ndcAaBbMaxPt.w, LaneSwizzle(ndcAaBbMaxPt.w, orMask, 0, xorMask));
+    }
 #else
     // Integer comparison works for floating-point numbers as long as the sign bit is 0.
-    // We must take care of -0 ourselves. saturate() does not help here.
+    // We must take care of -0 ourselves. saturate() does not help.
     InterlockedMin(gs_NdcAaBbMinPtX[groupLocalLightIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMinPt.x)));
     InterlockedMax(gs_NdcAaBbMaxPtX[groupLocalLightIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMaxPt.x)));
     InterlockedMin(gs_NdcAaBbMinPtY[groupLocalLightIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMinPt.y)));
@@ -713,7 +745,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
     ndcAaBbMaxPt.z = asfloat(gs_NdcAaBbMaxPtZ[groupLocalLightIndex]);
     ndcAaBbMinPt.w = asfloat(gs_NdcAaBbMinPtW[groupLocalLightIndex]);
     ndcAaBbMaxPt.w = asfloat(gs_NdcAaBbMaxPtW[groupLocalLightIndex]);
-#endif // USE_WAVE_INTRINSICS
+#endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
     if (t % THREADS_PER_LIGHT == 0) // Avoid bank conflicts
     {
