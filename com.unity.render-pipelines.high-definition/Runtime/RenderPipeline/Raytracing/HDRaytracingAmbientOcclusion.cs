@@ -2,7 +2,7 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    internal class HDRaytracingAmbientOcclusion
+    partial class HDRaytracingAmbientOcclusion
     {
         // External structures
         HDRenderPipelineRayTracingResources m_PipelineRayTracingResources = null;
@@ -62,29 +62,28 @@ namespace UnityEngine.Rendering.HighDefinition
         // The set of parameters that are used to trace the ambient occlusion
         public struct AmbientOcclusionTraceParameters
         {
-            // Generic attributes
-            public float rayLength;
-            public int sampleCount;
-
             // Camera data
             public int actualWidth;
             public int actualHeight;
             public int viewCount;
 
-            // Shaders
-            public RayTracingShader aoShaderRT;
+            // Evaluation parameters
+            public float rayLength;
+            public int sampleCount;
+            public bool denoise;
 
-            // Constant buffer
+            // Other parameters
+            public RayTracingShader aoShaderRT;
             public ShaderVariablesRaytracing raytracingCB;
+            public BlueNoise.DitheredTextureSet ditheredTextureSet;
+            public RayTracingAccelerationStructure rayTracingAccelerationStructure;
         }
 
         public struct AmbientOcclusionTraceResources
         {
             // Input Buffer
-            public RayTracingAccelerationStructure rayTracingAccelerationStructure;
             public RTHandle depthStencilBuffer;
             public RTHandle normalBuffer;
-            public BlueNoise.DitheredTextureSet ditheredTextureSet;
 
             // Debug textures
             public RTHandle rayCountTexture;
@@ -97,81 +96,33 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             AmbientOcclusionTraceParameters rtAOParameters = new AmbientOcclusionTraceParameters();
             var aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
-            rtAOParameters.rayLength = aoSettings.rayLength;
-            rtAOParameters.sampleCount = aoSettings.sampleCount;
+
+            // Camera data
             rtAOParameters.actualWidth = hdCamera.actualWidth;
             rtAOParameters.actualHeight = hdCamera.actualHeight;
             rtAOParameters.viewCount = hdCamera.viewCount;
+
+            // Evaluation parameters
+            rtAOParameters.rayLength = aoSettings.rayLength;
+            rtAOParameters.sampleCount = aoSettings.sampleCount;
+            rtAOParameters.denoise = aoSettings.denoise;
+
+            // Other parameters
             rtAOParameters.raytracingCB = raytracingCB;
             rtAOParameters.aoShaderRT = m_PipelineRayTracingResources.aoRaytracingRT;
+            rtAOParameters.rayTracingAccelerationStructure = m_RenderPipeline.RequestAccelerationStructure();
+            BlueNoise blueNoise = m_RenderPipeline.GetBlueNoiseManager();
+            rtAOParameters.ditheredTextureSet = blueNoise.DitheredTextureSet8SPP();
+
             return rtAOParameters;
         }
 
         AmbientOcclusionTraceResources PrepareAmbientOcclusionTraceResources(HDCamera hdCamera, RTHandle outputTexture)
         {
             AmbientOcclusionTraceResources rtAOResources = new AmbientOcclusionTraceResources();
-            rtAOResources.rayTracingAccelerationStructure = m_RenderPipeline.RequestAccelerationStructure();
             rtAOResources.depthStencilBuffer = m_RenderPipeline.sharedRTManager.GetDepthStencilBuffer();
             rtAOResources.normalBuffer = m_RenderPipeline.sharedRTManager.GetNormalBuffer();
             rtAOResources.rayCountTexture = m_RenderPipeline.GetRayCountManager().GetRayCountTexture();
-            BlueNoise blueNoise = m_RenderPipeline.GetBlueNoiseManager();
-            rtAOResources.ditheredTextureSet = blueNoise.DitheredTextureSet8SPP();
-            rtAOResources.outputTexture = outputTexture;
-            return rtAOResources;
-        }
-
-        // The set of parameters that are used to trace the ambient occlusion
-        public struct AmbientOcclusionDenoiseParameters
-        {
-            // Generic attributes
-            public bool denoise;
-            public float denoiserRadius;
-            public float historyValidity;
-
-            // Camera data
-            public int actualWidth;
-            public int actualHeight;
-            public int viewCount;
-        }
-
-        public struct AmbientOcclusionDenoiseResources
-        {
-            // Temporary buffers
-            public RTHandle intermediateBuffer;
-
-            // Output Buffer
-            public RTHandle ambientOcclusionHistory;
-            public RTHandle inputTexture;
-            public RTHandle outputTexture;
-        }
-
-        AmbientOcclusionDenoiseParameters PrepareAmbientOcclusionDenoiseParameters(HDCamera hdCamera, ShaderVariablesRaytracing raytracingCB)
-        {
-            AmbientOcclusionDenoiseParameters rtAOParameters = new AmbientOcclusionDenoiseParameters();
-            var aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
-            rtAOParameters.denoise = aoSettings.denoise;
-            rtAOParameters.denoiserRadius = aoSettings.denoiserRadius;
-            rtAOParameters.historyValidity = 1.0f;
-#if UNITY_HDRP_DXR_TESTS_DEFINE
-            if (Application.isPlaying)
-                rtAOParameters.historyValidity = 0.0f;
-            else
-#endif
-                // We need to check if something invalidated the history buffers
-                rtAOParameters.historyValidity = HDRenderPipeline.ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
-            rtAOParameters.actualWidth = hdCamera.actualWidth;
-            rtAOParameters.actualHeight = hdCamera.actualHeight;
-            rtAOParameters.viewCount = hdCamera.viewCount;
-            return rtAOParameters;
-        }
-
-        AmbientOcclusionDenoiseResources PrepareAmbientOcclusionDenoiseResources(HDCamera hdCamera, RTHandle inputTexture, RTHandle intermediateTexture, RTHandle outputTexture)
-        {
-            AmbientOcclusionDenoiseResources rtAOResources = new AmbientOcclusionDenoiseResources();
-            rtAOResources.ambientOcclusionHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion)
-                                                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion, AmbientOcclusionHistoryBufferAllocatorFunction, 1);
-            rtAOResources.inputTexture = inputTexture;
-            rtAOResources.intermediateBuffer = intermediateTexture;
             rtAOResources.outputTexture = outputTexture;
             return rtAOResources;
         }
@@ -222,18 +173,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 TraceAO(cmd, aoTraceParameters, aoTraceResources);
             }
 
-            AmbientOcclusionDenoiseParameters aoDenoiseParameters = PrepareAmbientOcclusionDenoiseParameters(hdCamera, globalCB);
-            AmbientOcclusionDenoiseResources aoDenoiserResources = PrepareAmbientOcclusionDenoiseResources(hdCamera, m_AOIntermediateBuffer0, m_AOIntermediateBuffer1, outputTexture);
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingFilterAmbientOcclusion)))
             {
-                DenoiseAO(cmd, hdCamera, aoDenoiseParameters, aoDenoiserResources);
+                DenoiseAO(cmd, hdCamera, outputTexture);
             }
 
             AmbientOcclusionComposeParameters aoComposeParameters = PrepareAmbientOcclusionComposeParameters(hdCamera, globalCB);
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingComposeAmbientOcclusion)))
             {
-                ComposeAO(cmd, hdCamera, aoComposeParameters, outputTexture);
+                ComposeAO(cmd, aoComposeParameters, outputTexture);
             }
+
+            // TODO: All the push-debug stuff should be centralized somewhere
+            (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(hdCamera, cmd, outputTexture, FullScreenDebugMode.ScreenSpaceAmbientOcclusion);
+
         }
 
         static public void TraceAO(CommandBuffer cmd, AmbientOcclusionTraceParameters aoTraceParameters, AmbientOcclusionTraceResources aoTraceResources)
@@ -242,7 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingShaderPass(aoTraceParameters.aoShaderRT, "VisibilityDXR");
 
             // Set the acceleration structure for the pass
-            cmd.SetRayTracingAccelerationStructure(aoTraceParameters.aoShaderRT, HDShaderIDs._RaytracingAccelerationStructureName, aoTraceResources.rayTracingAccelerationStructure);
+            cmd.SetRayTracingAccelerationStructure(aoTraceParameters.aoShaderRT, HDShaderIDs._RaytracingAccelerationStructureName, aoTraceParameters.rayTracingAccelerationStructure);
 
             // Inject the ray generation data (be careful of the global constant buffer limitation)
             aoTraceParameters.raytracingCB._RaytracingRayMaxLength = aoTraceParameters.rayLength;
@@ -254,7 +207,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingTextureParam(aoTraceParameters.aoShaderRT, HDShaderIDs._NormalBufferTexture, aoTraceResources.normalBuffer);
 
             // Inject the ray-tracing sampling data
-            BlueNoise.BindDitheredTextureSet(cmd, aoTraceResources.ditheredTextureSet);
+            BlueNoise.BindDitheredTextureSet(cmd, aoTraceParameters.ditheredTextureSet);
 
             // Set the output textures
             cmd.SetRayTracingTextureParam(aoTraceParameters.aoShaderRT, HDShaderIDs._RayCountTexture, aoTraceResources.rayCountTexture);
@@ -264,31 +217,45 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchRays(aoTraceParameters.aoShaderRT, m_RayGenShaderName, (uint)aoTraceParameters.actualWidth, (uint)aoTraceParameters.actualHeight, (uint)aoTraceParameters.viewCount);
         }
 
-        public void DenoiseAO(CommandBuffer cmd, HDCamera hdCamera, AmbientOcclusionDenoiseParameters aoDenoiseParameters, AmbientOcclusionDenoiseResources aoDenoiseResources)
+        static RTHandle RequestAmbientOcclusionHistoryTexture(HDCamera hdCamera)
         {
-            if (aoDenoiseParameters.denoise)
+            return hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion)
+                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion,
+                AmbientOcclusionHistoryBufferAllocatorFunction, 1);
+        }
+
+        public void DenoiseAO(CommandBuffer cmd, HDCamera hdCamera, RTHandle outputTexture)
+        {
+            var aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
+            if (aoSettings.denoise)
             {
+                // Evaluate the history's validity
+                float historyValidity = historyValidity = HDRenderPipeline.ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
+
+                // Grab the history buffer
+                RTHandle aoHistory = RequestAmbientOcclusionHistoryTexture(hdCamera);
+
                 // Prepare and execute the temporal filter
                 HDTemporalFilter temporalFilter = m_RenderPipeline.GetTemporalFilter();
-                TemporalFilterParameters tfParameters = temporalFilter.PrepareTemporalFilterParameters(hdCamera, true, aoDenoiseParameters.historyValidity);
+                TemporalFilterParameters tfParameters = temporalFilter.PrepareTemporalFilterParameters(hdCamera, true, historyValidity);
                 RTHandle validationBuffer = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.R0);
-                TemporalFilterResources tfResources = temporalFilter.PrepareTemporalFilterResources(hdCamera, validationBuffer, aoDenoiseResources.inputTexture, aoDenoiseResources.ambientOcclusionHistory, aoDenoiseResources.intermediateBuffer);
+                TemporalFilterResources tfResources = temporalFilter.PrepareTemporalFilterResources(hdCamera, validationBuffer, m_AOIntermediateBuffer0, aoHistory, m_AOIntermediateBuffer1);
                 HDTemporalFilter.DenoiseBuffer(cmd, tfParameters, tfResources);
 
                 // Apply the diffuse denoiser
                 HDDiffuseDenoiser diffuseDenoiser = m_RenderPipeline.GetDiffuseDenoiser();
-                DiffuseDenoiserParameters ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, true, aoDenoiseParameters.denoiserRadius, false);
+                DiffuseDenoiserParameters ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, true, aoSettings.denoiserRadius, false);
                 RTHandle intermediateBuffer = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
-                DiffuseDenoiserResources ddResources = diffuseDenoiser.PrepareDiffuseDenoiserResources(aoDenoiseResources.intermediateBuffer, intermediateBuffer, aoDenoiseResources.outputTexture);
+                DiffuseDenoiserResources ddResources = diffuseDenoiser.PrepareDiffuseDenoiserResources(m_AOIntermediateBuffer1, intermediateBuffer, outputTexture);
                 HDDiffuseDenoiser.DenoiseBuffer(cmd, ddParams, ddResources);
             }
             else
             {
-                HDUtils.BlitCameraTexture(cmd, aoDenoiseResources.inputTexture, aoDenoiseResources.outputTexture);
+                HDUtils.BlitCameraTexture(cmd, m_AOIntermediateBuffer0, outputTexture);
             }
         }
 
-        static public void ComposeAO(CommandBuffer cmd, HDCamera hdCamera, AmbientOcclusionComposeParameters aoComposeParameters, RTHandle outputTexture)
+        static public void ComposeAO(CommandBuffer cmd, AmbientOcclusionComposeParameters aoComposeParameters, RTHandle outputTexture)
         {
             cmd.SetComputeFloatParam(aoComposeParameters.aoShaderCS, HDShaderIDs._RaytracingAOIntensity, aoComposeParameters.intensity);
             cmd.SetComputeTextureParam(aoComposeParameters.aoShaderCS, aoComposeParameters.intensityKernel, HDShaderIDs._AmbientOcclusionTextureRW, outputTexture);
@@ -302,8 +269,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Bind the textures and the params
             cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, outputTexture);
 
-            // TODO: All the push-debug stuff should be centralized somewhere
-            (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(hdCamera, cmd, outputTexture, FullScreenDebugMode.ScreenSpaceAmbientOcclusion);
         }
     }
 }
