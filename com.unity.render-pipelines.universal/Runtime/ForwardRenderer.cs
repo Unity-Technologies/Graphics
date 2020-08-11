@@ -194,6 +194,15 @@ namespace UnityEngine.Rendering.Universal
             {
                 cameraStacking = true,
             };
+
+            if (this.renderingMode == RenderingMode.Deferred)
+            {
+                unsupportedGraphicsDeviceTypes = new GraphicsDeviceType[] {
+                    GraphicsDeviceType.OpenGLCore,
+                    GraphicsDeviceType.OpenGLES2,
+                    GraphicsDeviceType.OpenGLES3
+                };
+            }
         }
 
         /// <inheritdoc />
