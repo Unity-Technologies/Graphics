@@ -470,7 +470,7 @@ Shader "Hidden/HDRP/DebugExposure"
         if (all(input.positionCS.xy < topRight))
         {
             float2 scaledUV = uv / pipFraction;
-            float3 pipColor = SAMPLE_TEXTURE2D_X_LOD(_SourceTexture, s_linear_clamp_sampler, scaledUV, 0.0).xyz;
+            float3 pipColor = _ExposureDebugParams.x > 0 ? float3(1.0f, 1.0f, 1.0f) : SAMPLE_TEXTURE2D_X_LOD(_SourceTexture, s_linear_clamp_sampler, scaledUV, 0.0).xyz;
             float  luminance = SampleLuminance(scaledUV);
             float weight = WeightSample(scaledUV.xy * _ScreenSize.xy / _RTHandleScale.xy, _ScreenSize.xy, luminance);
 
