@@ -202,6 +202,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed material editor issue that caused transparents to render incorrectly. [Case 1261366](https://issuetracker.unity3d.com/issues/urp-materials-with-urp-shaders-which-have-surface-type-set-to-transparent-do-not-behave-correctly)
 - Fixed an issue where terrain and speedtree materials would not get upgraded by upgrade project materials. [case 1204189](https://fogbugz.unity3d.com/f/cases/1204189/)
 - Fixed an issue that caused renderer feature to not render correctly if the pass was injected before rendering opaques and didn't implement `Configure` method. [case 1259750](https://issuetracker.unity3d.com/issues/urp-not-rendering-with-a-renderer-feature-before-rendering-shadows)
+- Fixed issue that caused color grading to not work correctly with camera stacking. [case 1263193](https://issuetracker.unity3d.com/product/unity/issues/guid/1263193/)
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
