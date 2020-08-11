@@ -428,9 +428,7 @@ namespace UnityEngine.Rendering.Universal
         {
             // We skip updating if the asset has volume updates disabled
             if (!asset.supportsVolumeFrameworkUpdate)
-            {
                 return;
-            }
 
             // Default values when there's no additional camera data available
             LayerMask layerMask = 1; // "Default"
@@ -450,9 +448,7 @@ namespace UnityEngine.Rendering.Universal
                 UniversalAdditionalCameraData mainAdditionalCameraData = null;
 
                 if (mainCamera != null && mainCamera.TryGetComponent(out mainAdditionalCameraData))
-                {
                     layerMask = mainAdditionalCameraData.volumeLayerMask;
-                }
 
                 trigger = mainAdditionalCameraData != null && mainAdditionalCameraData.volumeTrigger != null ? mainAdditionalCameraData.volumeTrigger : trigger;
             }
