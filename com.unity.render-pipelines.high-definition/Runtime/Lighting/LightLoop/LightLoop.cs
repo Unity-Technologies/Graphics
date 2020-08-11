@@ -696,7 +696,6 @@ namespace UnityEngine.Rendering.HighDefinition
             { "TileLightListGen_NoDepthRT_SrcBigTile", "TileLightListGen_DepthRT_SrcBigTile_Oblique", "TileLightListGen_DepthRT_MSAA_SrcBigTile_Oblique" }
         };
 
-        static int s_GenAABBKernel;
         static int s_GenListPerTileKernel;
         static int[,] s_ClusterKernels = new int[(int)ClusterPrepassSource.Count, (int)ClusterDepthSource.Count];
         static int[,] s_ClusterObliqueKernels = new int[(int)ClusterPrepassSource.Count, (int)ClusterDepthSource.Count];
@@ -878,8 +877,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaxEnvLightsOnScreen = lightLoopSettings.maxEnvLightsOnScreen;
             m_MaxLightsOnScreen = m_MaxDirectionalLightsOnScreen + m_MaxPunctualLightsOnScreen + m_MaxAreaLightsOnScreen + m_MaxEnvLightsOnScreen;
             m_MaxPlanarReflectionOnScreen = lightLoopSettings.maxPlanarReflectionOnScreen;
-
-            s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
 
             // Cluster
             {
@@ -3403,12 +3400,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Screen space AABB
             parameters.screenSpaceAABBShader = buildScreenAABBShader;
-            parameters.screenSpaceAABBShader.shaderKeywords = null;
-            if (isProjectionOblique)
-            {
-                parameters.screenSpaceAABBShader.EnableKeyword("USE_OBLIQUE_MODE");
-            }
-            parameters.screenSpaceAABBKernel = s_GenAABBKernel;
+            parameters.screenSpaceAABBKernel = 0;
 
             // Big tile prepass
             parameters.runBigTilePrepass = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);

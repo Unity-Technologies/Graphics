@@ -1,11 +1,6 @@
 // The implementation is based on the demo on "fine pruned tiled lighting" published in GPU Pro 7.
 // https://github.com/wolfgangfengel/GPU-Pro-7
 
-#pragma kernel ScreenBoundsAABB
-
-#pragma multi_compile _ USE_OBLIQUE_MODE
-
-
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
@@ -13,6 +8,14 @@
 
 // #pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+#pragma kernel GenLightAABB
+
+uniform int g_isOrthographic;
+uniform int g_iNrVisibLights;
+
+uniform float4x4 g_mInvProjectionArr[SHADEROPTIONS_XR_MAX_VIEWS];
+uniform float4x4 g_mProjectionArr[SHADEROPTIONS_XR_MAX_VIEWS];
 
 StructuredBuffer<SFiniteLightBound> g_data : register( t0 );
 
@@ -403,7 +406,7 @@ void CalcBound(out bool2 bIsMinValid, out bool2 bIsMaxValid, out float2 vMin, ou
 #endif // Z_BINNING
 
 [numthreads(NR_THREADS, 1, 1)]
-void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
+void GenLightAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 {
     uint groupID = u3GroupID.x;
     uint eyeIndex = u3GroupID.y; // currently, can only be 0 or 1
