@@ -2,6 +2,7 @@ using UnityEngine.Experimental.GlobalIllumination;
 using Unity.Collections;
 using System;
 using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -23,10 +24,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             public static int _AdditionalLightOcclusionProbeChannel;
 
-            public static int _ReflectionProbesCount;
+            public static int _ReflectionProbesParams;
         }
         const int k_MaxReflectionProbesPerObject = 2;
-        const int k_ReflectionProbesCubeSize = 512;
+        const int k_ReflectionProbesCubeSize = 128;
+        const bool k_useHDR = true; 
 
         int m_AdditionalLightsBufferId;
         int m_AdditionalLightsIndicesId;
@@ -53,7 +55,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             LightConstantBuffer._MainLightPosition = Shader.PropertyToID("_MainLightPosition");
             LightConstantBuffer._MainLightColor = Shader.PropertyToID("_MainLightColor");
             LightConstantBuffer._AdditionalLightsCount = Shader.PropertyToID("_AdditionalLightsCount");
-            LightConstantBuffer._ReflectionProbesCount = Shader.PropertyToID("_ReflectionProbesCount");
+            LightConstantBuffer._ReflectionProbesParams = Shader.PropertyToID("_ReflectionProbesParams");
 
             if (m_UseStructuredBuffer)
             {
@@ -227,7 +229,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void SetupReflectionProbeConstants(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            ReflectionProbe[] reflectionProbes = Resources.FindObjectsOfTypeAll<ReflectionProbe>();
+            ReflectionProbe[] reflectionProbes = GameObject.FindObjectsOfType<ReflectionProbe>();//   Resources.FindObjectsOfTypeAll<ReflectionProbe>();
             if (reflectionProbes.Length > 0)
             {
                 Array.Sort(reflectionProbes, new ReflectionProbeSorter());
@@ -235,56 +237,33 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (m_UseStructuredBuffer)
                 {
                     // #note we need to use the same reflection texture size to use texture 2d or use the largest and upscale the others
-                    var textureArray = new Texture2DArray(k_ReflectionProbesCubeSize, k_ReflectionProbesCubeSize, Math.Min(reflectionProbes.Length, k_MaxReflectionProbesPerObject), TextureFormat.RGB24, false);
+                    var textureArray = new Texture2DArray(k_ReflectionProbesCubeSize, k_ReflectionProbesCubeSize,
+                                                            Math.Min(reflectionProbes.Length, k_MaxReflectionProbesPerObject),
+                                                            k_useHDR ? TextureFormat.RGBAHalf : TextureFormat.RGBA32, false);
+                    cmd.SetGlobalTexture(m_ReflectionProbeTexturesId, textureArray);
+
                     var reflectionProbeData = new NativeArray<ShaderInput.ReflectionProbeData>(reflectionProbes.Length, Allocator.Temp);
                     // #note should we use reflectionProbe.hdr (bool)?
                     for (int i = 0; i < reflectionProbes.Length && i < k_MaxReflectionProbesPerObject; i++)
                     {
-                        ShaderInput.ReflectionProbeData data;
-                        data.position = reflectionProbes[i].transform.position;
-                        data.position.w = reflectionProbes[i].boxProjection ? 1 : 0;
-                        data.boxMin = reflectionProbes[i].bounds.min;
-                        data.boxMin.w = reflectionProbes[i].blendDistance;
-                        data.boxMax = reflectionProbes[i].bounds.max;
-                        data.hdr = reflectionProbes[i].textureHDRDecodeValues;
-                        reflectionProbeData[i] = data;
+                        if (reflectionProbes[i].texture)
+                            Debug.Log(reflectionProbes[i].texture.graphicsFormat);
+                        if (reflectionProbes[i].texture && (k_useHDR && reflectionProbes[i].texture.graphicsFormat == GraphicsFormat.R16G16B16A16_SFloat)
+                                                        || (!k_useHDR && reflectionProbes[i].texture.graphicsFormat == GraphicsFormat.R8G8B8A8_SRGB))
+                        {
+                            ShaderInput.ReflectionProbeData data;
+                            data.position = reflectionProbes[i].transform.position;
+                            data.position.w = reflectionProbes[i].boxProjection ? 1 : 0;
+                            data.boxMin = reflectionProbes[i].bounds.min;
+                            data.boxMin.w = reflectionProbes[i].blendDistance;
+                            data.boxMax = reflectionProbes[i].bounds.max;
+                            data.hdr = reflectionProbes[i].textureHDRDecodeValues;
+                            reflectionProbeData[i] = data;
 
-                        //Texture2D temp_tex2d = new Texture2D(k_ReflectionProbesCubeSize, k_ReflectionProbesCubeSize, TextureFormat.RGBA32, false);
-                        //RenderTexture currentRT = RenderTexture.active;
-                        //RenderTexture renderTexture = RenderTexture.GetTemporary(k_ReflectionProbesCubeSize, k_ReflectionProbesCubeSize, 0);
-                        //Graphics.Blit(reflectionProbes[i].texture, renderTexture);
-                        //RenderTexture.active = renderTexture;
-                        //temp_tex2d.ReadPixels(new Rect(0, 0, k_ReflectionProbesCubeSize, k_ReflectionProbesCubeSize), 0, 0);
-                        //temp_tex2d.Apply();
-                        //
-                        //RenderTexture.active = currentRT;
-                        //RenderTexture.ReleaseTemporary(renderTexture);
+                            Graphics.CopyTexture(reflectionProbes[i].texture, 0, 0, textureArray, i, 0);
+                        }
 
-                        // Create a temporary RenderTexture of the same size as the texture
-                        RenderTexture tmp = RenderTexture.GetTemporary(
-                                            k_ReflectionProbesCubeSize,
-                                            k_ReflectionProbesCubeSize,
-                                            0,
-                                            RenderTextureFormat.Default,
-                                            RenderTextureReadWrite.Linear);
 
-                        // Blit the pixels on texture to the RenderTexture
-                        Graphics.Blit(reflectionProbes[i].texture, tmp);
-                        // Backup the currently set RenderTexture
-                        RenderTexture previous = RenderTexture.active;
-                        // Set the current RenderTexture to the temporary one we created
-                        RenderTexture.active = tmp;
-                        // Create a new readable Texture2D to copy the pixels to it
-                        Texture2D myTexture2D = new Texture2D(k_ReflectionProbesCubeSize, k_ReflectionProbesCubeSize);
-                        // Copy the pixels from the RenderTexture to the new Texture
-                        myTexture2D.ReadPixels(new Rect(0, 0, tmp.width, tmp.height), 0, 0);
-                        myTexture2D.Apply();
-                        // Reset the active RenderTexture
-                        RenderTexture.active = previous;
-                        // Release the temporary RenderTexture
-                        RenderTexture.ReleaseTemporary(tmp);
-
-                        // "myTexture2D" now has the same pixels from "texture" and it's readable.
 
                         //Rendering not happening for the reflection probe textures.
 
@@ -295,15 +274,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                         //    false, false,
                         //    reflectionProbes[i].texture.GetNativeTexturePtr());
                         //Debug.Log(tex.GetPixel(0,0));
-                        Debug.Log(myTexture2D.GetPixel(0, 0));
-                        textureArray.SetPixels(myTexture2D.GetPixels(), i);
-
-                        textureArray.Apply();
+                        //Debug.Log(.GetPixel(0, 0));
+                        //textureArray.SetPixels(.GetPixels(), i);
+                        //
+                        //textureArray.Apply();
 
 
                     }
                     //Debug.Log(textureArray.GetPixels(1)[0]);
-                    cmd.SetGlobalTexture(m_ReflectionProbeTexturesId, textureArray);
 
                     var probeDataBuffer = ShaderData.instance.GetReflectionProbeDataBuffer(reflectionProbes.Length);
                     probeDataBuffer.SetData(reflectionProbeData);
@@ -335,12 +313,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 // #note might need to pack more data into this??
-                cmd.SetGlobalVector(LightConstantBuffer._ReflectionProbesCount, new Vector4(Math.Min(reflectionProbes.Length, k_MaxReflectionProbesPerObject),
+                cmd.SetGlobalVector(LightConstantBuffer._ReflectionProbesParams, new Vector4(Math.Min(reflectionProbes.Length, k_MaxReflectionProbesPerObject),
                     0.0f, 0.0f, 0.0f));
             }
             else
             {
-                cmd.SetGlobalVector(LightConstantBuffer._ReflectionProbesCount, Vector4.zero);
+                cmd.SetGlobalVector(LightConstantBuffer._ReflectionProbesParams, Vector4.zero);
             }
         }
 

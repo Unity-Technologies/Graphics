@@ -622,10 +622,9 @@ float getWeight(half3 positionWS, real4 boxMin, real4 boxMax)
     return saturate(min(weightDir.x, min(weightDir.y, weightDir.z)));
 }
 
-
-
 half3 getIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, half perceptualRoughness)
 {
+    reflectVector.y = reflectVector.y * -1;
     //This is not like for the builtin but the reverse order:
     //Get a sorted list form largest reflection probe to the smallest and the smallest being rendered on top if they all have the same importance.
     //To fade reach out by 1 on each direction (The same for the deferred builtin implementation).
@@ -634,12 +633,10 @@ half3 getIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, h
     float blendFactor = 1.0;
     half3 irradiance = half3(0, 0, 0);
 
-    // #note use GetReflectionProbesCount() to determine how many reflection probes we should loop over
-    //    use 0 to GetReflectionProbesCount() in GetReflectionProbe(i) to get the probes
-
+    
     half3 originalReflectVector = reflectVector;
 
-    for (int probeIndex = 0; probeIndex < _ReflectionProbesCount.x; ++probeIndex)
+    for (int probeIndex = 0; probeIndex < _ReflectionProbesParams.x; ++probeIndex)
     {
         ReflectionProbeData probe = GetReflectionProbe(probeIndex);
         float weight = min(getWeight(positionWS, probe.boxMin, probe.boxMax), blendFactor);
@@ -649,8 +646,7 @@ half3 getIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, h
             + probe.position.w * BoxProjectedCubemapDirection(originalReflectVector, positionWS, probe.position, probe.boxMin, probe.boxMax);
         half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
         // #note to do Sample TextureCubeArray   
-        //half4 encodedIrradiance = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_ReflectionProbeTextures, s_trilinear_clamp_sampler, reflectVector, probeIndex, mip);
-        half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
+        half4 encodedIrradiance = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_ReflectionProbeTextures, s_trilinear_clamp_sampler, reflectVector, probeIndex, mip);
 #if !defined(UNITY_USE_NATIVE_HDR)
         irradiance += weight * DecodeHDREnvironment(encodedIrradiance, probe.hdr);
 #else
@@ -670,6 +666,26 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, half3 positionWS, half pe
 
     return _GlossyEnvironmentColor.rgb * occlusion;
 }
+/*
+
+half3 GlossyEnvironmentReflection(half3 reflectVector, half3 positionWS, half perceptualRoughness, half occlusion)
+{
+#if !defined(_ENVIRONMENTREFLECTIONS_OFF)
+    half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
+    half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
+
+#if !defined(UNITY_USE_NATIVE_HDR)
+    half3 irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
+#else
+    half3 irradiance = encodedIrradiance.rgb;
+#endif
+
+    return irradiance * occlusion;
+#endif // GLOSSY_REFLECTIONS
+
+    return _GlossyEnvironmentColor.rgb * occlusion;
+}
+*/  
 
 half3 SubtractDirectMainLightFromLightmap(Light mainLight, half3 normalWS, half3 bakedGI)
 {

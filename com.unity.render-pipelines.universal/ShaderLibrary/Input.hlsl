@@ -70,13 +70,12 @@ CBUFFER_END
 #endif
 #endif
 
-half4 _ReflectionProbesCount;
+half4 _ReflectionProbesParams; // x: count of refleciton probes.
 TEXTURECUBE_ARRAY_ABSTRACT(_ReflectionProbeTextures);
 SAMPLER(s_trilinear_clamp_sampler); // #note copied from HDRP, not sure if we want to handle Samplers the same way
 
 #if USE_STRUCTURED_BUFFER_FOR_REFLECTION_PROBE_DATA
 StructuredBuffer<ReflectionProbeData> _ReflectionProbesBuffer;
-StructuredBuffer<int> _ReflectionProbeIndices;
 #else
 // #note todo UBO implementation for reflection probes
 #endif
