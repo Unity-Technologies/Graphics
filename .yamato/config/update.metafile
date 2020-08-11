@@ -20,7 +20,7 @@ all:
       test_platforms:
         - editmode
         - playmode
-    - project: URPUpdate_BoatAttack
-      all: true
+#    - project: URPUpdate_BoatAttack
+#      all: true
     - project: URPUpdate_Top_Asset_Store
       all: true  
