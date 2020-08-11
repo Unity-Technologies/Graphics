@@ -66,7 +66,9 @@
     * [Diffusion Profile](Diffusion-Profile)
   * Shader List
     * Autodesk Interactive
-      * [AutodeskInteractive](Autodesk-Interactive-Shader)
+      * [Autodesk Interactive Shader](Autodesk-Interactive-Shader)
+      * [Autodesk Interactive Masked Shader](Autodesk-Interactive-Shader-Masked)
+      * [Autodesk Interactive Transparent Shader](Autodesk-Interactive-Shader-Transparent)
     * [AxF Shader](AxF-Shader)
     * [Decal Shader](Decal-Shader)
     * [Layered Lit Shader](Layered-Lit-Shader)

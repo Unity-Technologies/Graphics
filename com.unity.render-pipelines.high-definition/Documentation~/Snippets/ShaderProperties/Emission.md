@@ -1,0 +1,1 @@
+Toggles whether emission affects global illumination.
