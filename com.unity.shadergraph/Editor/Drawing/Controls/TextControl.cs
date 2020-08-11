@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Text;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
@@ -21,7 +18,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
         public TextControlAttribute(int row, string label = null, string subLabel1 = "X", string subLabel2 = "Y", string subLabel3 = "Z", string subLabel4 = "W")
         {
-
             m_SubLabel1 = subLabel1;
             m_SubLabel2 = subLabel2;
             m_SubLabel3 = subLabel3;
@@ -49,42 +45,36 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
         public TextControlView(int row, string label, string subLabel1, string subLabel2, string subLabel3, string subLabel4, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
-
-            
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/TextControlView"));
             m_Node = node;
             var MatrixSwizzleNode = m_Node as MatrixSwizzleNode;
             if (MatrixSwizzleNode != null)
             {
-
                 MatrixSwizzleNode.OnSizeChange += Callback;
             }
             m_PropertyInfo = propertyInfo;
             m_row = row;
-
             label = label ?? ObjectNames.NicifyVariableName(propertyInfo.Name);
             if (!string.IsNullOrEmpty(label))
                 Add(new Label(label));
             m_Value = GetValue();
-            
             if (m_Value == null)
             {
                 m_Value = "00000000";
             }
-
             AddField(0, subLabel1);
             AddField(1, subLabel2);
             AddField(2, subLabel3);
             AddField(3, subLabel4);
         }
 
+        //Set visibility of indices boxes 
         private void Callback(string OutputSize)
         {
             int size;
             bool IsMatrix;
             switch (OutputSize)
             {
-                
                 default:
                     size = 4;
                     IsMatrix = true;
@@ -120,20 +110,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     IsMatrix = false;
                     SetVisibility(size, IsMatrix);
                     break;
-
-
             }
         }
 
         private void SetVisibility(int size, bool IsMatrix)
         {
-
             var childern = this.Children();
             this.SetEnabled(true);
             if (IsMatrix)
             {
-                
-                //foreach child in childern:
                 for (int i = 0; i< this.childCount; i++)
                 {
                     childern.ElementAt(i).SetEnabled(true);
@@ -141,15 +126,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     {
                         childern.ElementAt(i).SetEnabled(false);
                     }
-                    
                 }
 
                 if (this.m_row >= size)
                 {
                     this.SetEnabled(false);
                 }
-
-
             }
             else
             {
@@ -160,7 +142,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     {
                         childern.ElementAt(i).SetEnabled(false);
                     }
-
                 }
 
                 if (this.m_row >= size)
@@ -168,71 +149,60 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     this.SetEnabled(false);
                 }
             }
- 
         }
 
         private char[] value_char = { '0', '0', '0', '0', '0', '0', '0', '0' };
+
         void AddField(int index, string subLabel)
         {
             var label = new Label(subLabel);
             label.style.alignSelf = Align.FlexEnd;
             Add(label);
             string field_value = m_Value;
+
             if (m_Value.Length>= 2 * index + 1)
             {
                 field_value = m_Value[2 * index].ToString();
                 field_value += m_Value[2 * index + 1].ToString();
-
             }
 
-
-            var field_x = new TextField { userData = index, value = field_value };
-
-            field_x.RegisterCallback<MouseDownEvent>(Repaint);
-            field_x.RegisterCallback<MouseMoveEvent>(Repaint);
-            field_x.RegisterValueChangedCallback(evt =>
+            var field = new TextField { userData = index, value = field_value, maxLength = 2, maskChar ='9' };
+            field.RegisterCallback<MouseDownEvent>(Repaint);
+            field.RegisterCallback<MouseMoveEvent>(Repaint);
+            field.RegisterValueChangedCallback(evt =>
             {
                 var value = GetValue();
-
                 value_char = value.ToCharArray();
-                if (evt.newValue.Length <= 2)
-                {
-                    value_char[2 * index] = evt.newValue[0];
-
-                    if (evt.newValue.Length == 2)
-                        value_char[2 * index + 1] = evt.newValue[1];
-
-                }else{
- 
-                    throw new ArgumentException("2 digits.", "propertyInfo");
-                }
+                value_char[2 * index] = evt.newValue[0];
+                if (evt.newValue.Length == 2)
+                    value_char[2 * index + 1] = evt.newValue[1];
 
                 value = new string(value_char);
                 SetValue(value);
                 m_UndoGroup = -1;
                 this.MarkDirtyRepaint();
             });
-            field_x.Q("unity-text-input").RegisterCallback<InputEvent>(evt =>
+            field.Q("unity-text-input").RegisterCallback<InputEvent>(evt =>
             {
                 if (m_UndoGroup == -1)
                 {
                     m_UndoGroup = Undo.GetCurrentGroup();
                     m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
                 }
+
                 string newValue = "";
                 var value = GetValue();
-
                 value_char = value.ToCharArray();
                 value_char[2 * index] = newValue[0];
 
                 if (newValue.Length >= 2)
                    value_char[2 * index + 1] = newValue[1];
-                value = new string(value_char);
 
+                value = new string(value_char);
                 SetValue(value);
                 this.MarkDirtyRepaint();
             });
-            field_x.Q("unity-text-input").RegisterCallback<KeyDownEvent>(evt =>
+            field.Q("unity-text-input").RegisterCallback<KeyDownEvent>(evt =>
             {
                 if (evt.keyCode == KeyCode.Escape && m_UndoGroup > -1)
                 {
@@ -243,10 +213,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 }
                 this.MarkDirtyRepaint();
             });
-            Add(field_x);
+            Add(field);
         }
-
-
 
         object ValueToPropertyType(string value)
         {

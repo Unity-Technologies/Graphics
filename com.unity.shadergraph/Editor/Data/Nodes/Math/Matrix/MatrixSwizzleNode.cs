@@ -1,15 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
-using UnityEditor.Graphing.Util;
-using JetBrains.Annotations;
-using System.Runtime.InteropServices;
-using NUnit.Framework;
-using UnityEditor.PackageManager.Requests;
-using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.Rendering;
 
 namespace UnityEditor.ShaderGraph
@@ -27,21 +20,13 @@ namespace UnityEditor.ShaderGraph
     [Title("Math", "Matrix", "Matrix Swizzle")]
     class MatrixSwizzleNode : AbstractMaterialNode, IGeneratesBodyCode
     {
-
-
-        public event Action<string> OnSizeChange;
         const string kInputSlotName = "In";
         const string kOutputSlotName = "Out";
-      
-
+     
         public const int InputSlotId = 0;
         public const int OutputSlotId = 1;
 
-        public const int Output4x4SlotId = 2;
-        public const int Output3x3SlotId = 3;
-        public const int Output2x2SlotId = 4;
-
-
+        public event Action<string> OnSizeChange;
 
         [SerializeField]
         string index_Row0;
@@ -54,9 +39,7 @@ namespace UnityEditor.ShaderGraph
 
         [SerializeField]
         string index_Row3;
-
         
-
         [TextControl(0, "", " m", "   m", "   m", "   m")]
         public string row0
         {
@@ -93,7 +76,6 @@ namespace UnityEditor.ShaderGraph
             owner.ValidateGraph();
             Dirty(ModificationScope.Topological);
         }
-
 
         public MatrixSwizzleNode()
         {
@@ -150,9 +132,11 @@ namespace UnityEditor.ShaderGraph
                 case SwizzleOutputSize.Vector1:
                     AddSlot(new Vector1MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, 0));
                     break;
+                default:
+                    AddSlot(new Matrix4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
+                    break;
             }
             RemoveSlotsNameNotMatching(new int[] { InputSlotId, OutputSlotId });
-
         }
 
         int[] getIndex(float input)
@@ -179,9 +163,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             int[] index = { row, col };
-
             return index;
-
         }
 
         string mapComp(int n)
@@ -202,7 +184,6 @@ namespace UnityEditor.ShaderGraph
         Vector4  StringToVec4 (string value)
         {
             char[] value_char = value.ToCharArray();
-            //put it here or in TextControl??
             for (int i = 0; i < value.Length; i++)
             {
                 if (value[i] < '0' || value[i] > '9')
@@ -212,9 +193,9 @@ namespace UnityEditor.ShaderGraph
                     ValidateNode();
                 }
             }
+
             if (value.Length == 8)
             {
-                
                 float x0 = (float)Char.GetNumericValue(value_char[0]);
                 float x1 = (float)Char.GetNumericValue(value_char[1]);
                 float y0 = (float)Char.GetNumericValue(value_char[2]);
@@ -229,8 +210,6 @@ namespace UnityEditor.ShaderGraph
                 float z = z0 + z1 * 0.1f;
                 float w = w0 + w1 * 0.1f;
                 return new Vector4(x, y, z, w);
-                
-
             }
             return new Vector4(0, 0, 0, 0);
         }
@@ -244,8 +223,6 @@ namespace UnityEditor.ShaderGraph
             {
                 owner.AddValidationError(objectId, "Invalid index!", ShaderCompilerMessageSeverity.Error);
             }
-   
-
         }
         //1. get input matrix and demension
         //2. get swizzle output row count
@@ -253,7 +230,6 @@ namespace UnityEditor.ShaderGraph
         //4. map output matirx/vec according to index matrix/vec
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-
             //Get input matrix and its demension
             var inputValue = GetSlotValue(InputSlotId, generationMode);
 
@@ -560,11 +536,7 @@ namespace UnityEditor.ShaderGraph
             DictionaryPool<DynamicMatrixMaterialSlot, ConcreteSlotValueType>.Release(dynamicMatrixInputSlotsToCompare);
 
         }
-
    
-
-    
-
     private bool IsOutputMatrix (SwizzleOutputSize SwizzleSize)
         {
             string str = SwizzleSize.ToString();
