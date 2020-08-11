@@ -17,14 +17,13 @@ RW_TEXTURE2D_X(float, _OcclusionTexture);
 
 #define DEBUG_VISUALIZE_BILATERAL_WEIGHTS 0
 
-#define DEPTH_SCALE 1
 #define BILATERAL_EPSILON 0.01
 
 float BilateralWeight(float sampleDepth, float linearCentralDepth)
 {
     float linearSample = LinearEyeDepth(sampleDepth, _ZBufferParams);
     float delta = abs(linearSample - linearCentralDepth);
-    float w = saturate(1.0f - (DEPTH_SCALE * delta + BILATERAL_EPSILON));
+    float w = saturate(1.0f - (_AOSpatialBilateralAggressiveness * delta + BILATERAL_EPSILON));
 
     return w;
 }
