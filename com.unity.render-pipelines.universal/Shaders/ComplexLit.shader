@@ -59,7 +59,7 @@ Shader "Universal Render Pipeline/Complex Lit"
         // Universal Pipeline tag is required. If Universal render pipeline is not set in the graphics settings
         // this Subshader will fail. One can add a subshader below or fallback to Standard built-in to make this
         // material work with both Universal Render Pipeline and Builtin Unity Pipeline
-        Tags{"RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True" "ShaderModel"="4.5"}
+        Tags{"RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "UniversalMaterialType" = "ComplexLit" "IgnoreProjector" = "True" "ShaderModel"="4.5"}
         LOD 300
 
         // ------------------------------------------------------------------
