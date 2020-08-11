@@ -178,6 +178,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added missing API documentation.
 - Added a new mode to cluster visualization debug where users can see a slice instead of the cluster on opaque objects.
 - Added ray traced reflection support for the render graph version of the pipeline.
+- Added render graph support of RTAO and required denoisers.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
