@@ -36,8 +36,6 @@ class Project_AllJob():
         job.set_name(f'All {project} CI - {editor["version"]}')
         job.add_dependencies(dependencies)
         job.add_var_custom_revision(editor["version"])
-        if project == "URPUpdate" and editor["version"] == "trunk":
-            job.add_trigger_recurrent("automation/update-testing",'0 * * ?')
         return job
     
     
