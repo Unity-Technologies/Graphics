@@ -5,11 +5,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal static class ShadowRendering
     {
-        private static readonly int LightPosID = Shader.PropertyToID("_LightPos");
-        private static readonly int ShadowStencilGroupID = Shader.PropertyToID("_ShadowStencilGroup");
-        private static readonly int ShadowIntensityID = Shader.PropertyToID("_ShadowIntensity");
-        private static readonly int ShadowVolumeIntensityID = Shader.PropertyToID("_ShadowVolumeIntensity");
-        private static readonly int ShadowRadiusID = Shader.PropertyToID("_ShadowRadius");
+        private static readonly int k_LightPosID = Shader.PropertyToID("_LightPos");
+        private static readonly int k_ShadowStencilGroupID = Shader.PropertyToID("_ShadowStencilGroup");
+        private static readonly int k_ShadowIntensityID = Shader.PropertyToID("_ShadowIntensity");
+        private static readonly int k_ShadowVolumeIntensityID = Shader.PropertyToID("_ShadowVolumeIntensity");
+        private static readonly int k_ShadowRadiusID = Shader.PropertyToID("_ShadowRadius");
 
         private static Material GetShadowMaterial(this Renderer2DData rendererData, int index)
         {
@@ -17,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (rendererData.shadowMaterials[shadowMaterialIndex] == null)
             {
                 rendererData.shadowMaterials[shadowMaterialIndex] = CoreUtils.CreateEngineMaterial(rendererData.shadowGroupShader);
-                rendererData.shadowMaterials[shadowMaterialIndex].SetFloat(ShadowStencilGroupID, index);
+                rendererData.shadowMaterials[shadowMaterialIndex].SetFloat(k_ShadowStencilGroupID, index);
             }
 
             return rendererData.shadowMaterials[shadowMaterialIndex];
@@ -29,7 +29,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (rendererData.removeSelfShadowMaterials[shadowMaterialIndex] == null)
             {
                 rendererData.removeSelfShadowMaterials[shadowMaterialIndex] = CoreUtils.CreateEngineMaterial(rendererData.removeSelfShadowShader);
-                rendererData.removeSelfShadowMaterials[shadowMaterialIndex].SetFloat(ShadowStencilGroupID, index);
+                rendererData.removeSelfShadowMaterials[shadowMaterialIndex].SetFloat(k_ShadowStencilGroupID, index);
             }
 
             return rendererData.removeSelfShadowMaterials[shadowMaterialIndex];
@@ -54,8 +54,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static void RenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int layerToRender, Light2D light, float shadowIntensity, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture)
         {
-            cmdBuffer.SetGlobalFloat(ShadowIntensityID, 1 - light.shadowIntensity);
-            cmdBuffer.SetGlobalFloat(ShadowVolumeIntensityID, 1 - light.shadowVolumeIntensity);
+            cmdBuffer.SetGlobalFloat(k_ShadowIntensityID, 1 - light.shadowIntensity);
+            cmdBuffer.SetGlobalFloat(k_ShadowVolumeIntensityID, 1 - light.shadowVolumeIntensity);
 
             if (shadowIntensity > 0)
             {
@@ -66,8 +66,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 var shadowRadius = 1.42f * light.boundingSphereRadius;
 
-                cmdBuffer.SetGlobalVector(LightPosID, light.transform.position);
-                cmdBuffer.SetGlobalFloat(ShadowRadiusID, shadowRadius);
+                cmdBuffer.SetGlobalVector(k_LightPosID, light.transform.position);
+                cmdBuffer.SetGlobalFloat(k_ShadowRadiusID, shadowRadius);
 
                 var shadowMaterial = pass.rendererData.GetShadowMaterial(1);
                 var removeSelfShadowMaterial = pass.rendererData.GetRemoveSelfShadowMaterial(1);
