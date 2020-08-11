@@ -57,7 +57,7 @@ Shader "Hidden/2D/Shadow2D-Projected"
                 Fail        Zero
             }
 
-            BlendOp Add
+            BlendOp Max
             Blend One One
             ColorMask A
 

@@ -13,7 +13,7 @@ Shader "Hidden/2D/Shadow2D-Sprite"
         ZWrite Off
         ZTest  Always
         Blend One One
-        BlendOp Add
+        BlendOp Max
 
         // Stencil Bits
         // 0 - Sprite Mask
