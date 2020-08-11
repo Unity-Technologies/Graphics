@@ -333,12 +333,12 @@ namespace UnityEngine.Rendering.HighDefinition
             Render(cameraSettings, cameraPositionSettings, target, staticFlags);
         }
 
+        [Obsolete("Use CreateReflectionProbeRenderTarget with explicit format instead", true)]
         /// <summary>
         /// Create the texture used as target for a realtime reflection probe.
         /// </summary>
         /// <param name="cubemapSize">The cubemap size.</param>
         /// <returns>The texture to use as reflection probe target.</returns>
-        // TODO_FCC: Make obsolete.
         public static RenderTexture CreateReflectionProbeRenderTarget(int cubemapSize)
         {
             return new RenderTexture(cubemapSize, cubemapSize, 1, GraphicsFormat.R16G16B16A16_SFloat)
@@ -354,7 +354,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Create the texture used as target for a realtime reflection probe.
         /// </summary>
         /// <param name="cubemapSize">The cubemap size.</param>
-        /// <param name="format">The cubemap format.</param>
+        /// <param name="format">The cubemap format. It must match the format set in the asset.</param>
         /// <returns>The texture to use as reflection probe target.</returns>
         public static RenderTexture CreateReflectionProbeRenderTarget(int cubemapSize, CubeReflectionProbeFormat format)
         {
