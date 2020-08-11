@@ -64,16 +64,19 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_SupportsBoxFilterForShadows = Application.isMobilePlatform || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Switch;
 
             // Preallocated a fixed size. CommandBuffer.SetGlobal* does allow this data to grow.
-            int maxLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
-            m_AdditionalLightIndexToVisibleLightIndex = new int[maxLights];
-            m_VisibleLightIndexToAdditionalLightIndex = new int[maxLights];
-            m_AdditionalLightIndexToShadowParams = new Vector4[maxLights];
+            int maxVisibleAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
+            const int maxMainLights = 1;
+            int maxVisibleLights = UniversalRenderPipeline.maxVisibleAdditionalLights + maxMainLights;
+
+            m_AdditionalLightIndexToVisibleLightIndex = new int[maxVisibleAdditionalLights];
+            m_VisibleLightIndexToAdditionalLightIndex = new int[maxVisibleLights];
+            m_AdditionalLightIndexToShadowParams = new Vector4[maxVisibleAdditionalLights];
 
             if (!m_UseStructuredBuffer)
             {
                 // Uniform buffers are faster on some platforms, but they have stricter size limitations
                 const int MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO = 545;  // keep in sync with MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO in Shadows.hlsl
-                int maxShadowSlices = Math.Min(6*maxLights, MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO);
+                int maxShadowSlices = Math.Min(6*maxVisibleAdditionalLights, MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO);
                 m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = new Matrix4x4[maxShadowSlices];
             }
         }
