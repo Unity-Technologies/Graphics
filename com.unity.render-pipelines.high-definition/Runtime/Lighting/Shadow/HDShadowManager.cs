@@ -10,8 +10,17 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     public enum HDShadowFilteringQuality
     {
+        /// <summary>
+        /// Low Shadow Filtering Quality
+        /// </summary>
         Low = 0,
+        /// <summary>
+        /// Medium Shadow Filtering Quality
+        /// </summary>
         Medium = 1,
+        /// <summary>
+        /// High Shadow Filtering Quality
+        /// </summary>
         High = 2,
     }
 

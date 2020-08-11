@@ -35,6 +35,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Surface Type & Blend Mode
             context.AddField(Fields.SurfaceTransparent);
             context.AddField(Fields.BlendAlpha);
+            context.AddField(Fields.DoubleSided);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -78,6 +79,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static SubShaderDescriptor SpriteLit = new SubShaderDescriptor()
             {
                 pipelineTag = UniversalTarget.kPipelineTag,
+                customTags = UniversalTarget.kLitMaterialTypeTag,
                 renderType = $"{RenderType.Transparent}",
                 renderQueue = $"{UnityEditor.ShaderGraph.RenderQueue.Transparent}",
                 generatesPreview = true,

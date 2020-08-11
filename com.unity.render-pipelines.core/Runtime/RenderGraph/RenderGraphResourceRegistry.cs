@@ -145,7 +145,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         }
 
-        internal RenderGraphResourceRegistry(bool supportMSAA, MSAASamples initialSampleCount, RenderGraphDebugParams renderGraphDebug, RenderGraphLogger logger)
+        internal RenderGraphResourceRegistry(RenderGraphDebugParams renderGraphDebug, RenderGraphLogger logger)
         {
             m_RenderGraphDebug = renderGraphDebug;
             m_Logger = logger;

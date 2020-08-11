@@ -45,6 +45,10 @@ namespace UnityEditor.ShaderGraph
                 else
                     builder.AppendLine("// RenderType: <None>");
 
+                // Custom shader tags.
+                if (!string.IsNullOrEmpty(descriptor.customTags))
+                    builder.AppendLine(descriptor.customTags);
+
                 // Render Queue
                 if(!string.IsNullOrEmpty(descriptor.renderQueue))
                     builder.AppendLine($"\"Queue\"=\"{descriptor.renderQueue}\"");
