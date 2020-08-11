@@ -28,6 +28,18 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
+    /// Available graphic formats for the cube reflection probes.
+    /// </summary>
+    [System.Serializable]
+    public enum CubeReflectionProbeFormat
+    {
+        /// <summary>Faster sampling and rendering but at the cost of precision.</summary>
+        R11G11B10 = GraphicsFormat.B10G11R11_UFloatPack32,
+        /// <summary>Wider range and better precision, but uses twice as much memory compared to R11G11B10.</summary>
+        R16G16B16A16 = GraphicsFormat.R16G16B16A16_SFloat,
+    }
+
+    /// <summary>
     /// Possible values for the texture 2D size used for planar reflection probes.
     /// </summary>
     [Serializable]
