@@ -151,7 +151,7 @@
     * [Light Cluster](Ray-Tracing-Light-Cluster)
     * [Path Tracing](Ray-Tracing-Path-Tracing)
     * [Recursive Rendering](Ray-Tracing-Recursive-Rendering)
-  * Shader Graph Nodes
+  * Shader Graph Keywords
     * [Raytracing Quality](SGNode-Raytracing-Quality)
   * Debugging
     * [Debugging Ray-Traced Effects](Ray-Tracing-Debug)
