@@ -1,4 +1,4 @@
-from .constants import VAR_UPM_REGISTRY, PATH_TEST_RESULTS_padded, PATH_PLAYERS_padded, PATH_PACKAGES,PATH_PACKAGES_pack, PATH_UNITY_REVISION, PATH_TEMPLATES
+from .constants import VAR_UPM_REGISTRY, PATH_TEST_RESULTS_padded, PATH_PLAYERS_padded, PATH_PACKAGES, PATH_UNITY_REVISION, PATH_TEMPLATES, PATH_PACKAGES_temp
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from collections import defaultdict
 import pickle
@@ -61,9 +61,9 @@ class YMLJob():
     def add_artifacts_players(self):
         self.yml['artifacts']['players']['paths'].append(dss(PATH_PLAYERS_padded)) 
 
-    def add_artifacts_packages(self, pack=False):
-        if pack: # is package.pack job
-            self.yml['artifacts']['packages']['paths'].append(dss(PATH_PACKAGES_pack)) 
+    def add_artifacts_packages(self,package_id=None):
+        if package_id is not None:
+            self.yml['artifacts']['packages']['paths'].append(dss(f'{PATH_PACKAGES_temp}/{package_id}/{PATH_PACKAGES}')) 
         else:
             self.yml['artifacts']['packages']['paths'].append(dss(PATH_PACKAGES)) 
 
