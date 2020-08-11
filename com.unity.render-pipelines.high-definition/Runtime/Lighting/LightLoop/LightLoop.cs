@@ -3083,7 +3083,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 ConstantBuffer.Push(cmd, parameters.lightListCB, parameters.screenSpaceAABBShader, HDShaderIDs._ShaderVariablesLightList);
 
-                cmd.DispatchCompute(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, (parameters.totalLightCount + 7) / 8, parameters.viewCount, 1);
+                const int threadsPerLight = 4;  // Shader: THREADS_PER_LIGHT (4)
+                const int threadsPerGroup = 64; // Shader: THREADS_PER_GROUP (64)
+
+                int groupCount = HDUtils.DivRoundUp(parameters.totalLightCount * threadsPerLight, threadsPerGroup);
+
+                cmd.DispatchCompute(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, groupCount, parameters.viewCount, 1);
             }
         }
 
