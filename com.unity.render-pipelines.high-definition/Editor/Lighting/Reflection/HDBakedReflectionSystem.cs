@@ -200,7 +200,9 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 // == 4. ==
                 var cubemapSize = (int)hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
-                var cubeRT = HDRenderUtilities.CreateReflectionProbeRenderTarget(cubemapSize);
+                var cubemapFormat = hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapFormat;
+
+                var cubeRT = HDRenderUtilities.CreateReflectionProbeRenderTarget(cubemapSize, cubemapFormat);
 
                 handle.EnterStage(
                     (int)BakingStages.ReflectionProbes,
@@ -379,8 +381,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             var cubemapSize = (int)hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
+            var cubemapFormat = hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapFormat;
 
-            var cubeRT = HDRenderUtilities.CreateReflectionProbeRenderTarget(cubemapSize);
+            var cubeRT = HDRenderUtilities.CreateReflectionProbeRenderTarget(cubemapSize, cubemapFormat);
 
             // Render and write the result to disk
             foreach (var probe in bakedProbes)
