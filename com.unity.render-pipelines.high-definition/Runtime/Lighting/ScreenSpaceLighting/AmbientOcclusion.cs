@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Moving this factor closer to 0 will increase the amount of accepted samples during temporal accumulation, increasing the ghosting, but reducing the temporal noise.
         /// </summary>
-        public ClampedFloatParameter spatialBilateralAggressiveness = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
+        public ClampedFloatParameter spatialBilateralAggressiveness = new ClampedFloatParameter(0.15f, 0.0f, 1.0f);
 
 
         /// <summary>
