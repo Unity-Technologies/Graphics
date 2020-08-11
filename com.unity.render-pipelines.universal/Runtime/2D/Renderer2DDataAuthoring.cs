@@ -19,18 +19,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField, Reload("Runtime/Materials/Sprite-Unlit-Default.mat")]
         Material m_DefaultUnlitMaterial = null;
 
-        internal void OnCreate()
-        {
-            m_LightBlendStyles = new Light2DBlendStyle[4];
-
-            for (int i = 0; i < m_LightBlendStyles.Length; ++i)
-            {
-                m_LightBlendStyles[i].name = "Blend Style " + i;
-                m_LightBlendStyles[i].blendMode = Light2DBlendStyle.BlendMode.Multiply;
-                m_LightBlendStyles[i].renderTextureScale = 0.5f;
-            }
-        }
-
         internal override Shader GetDefaultShader()
         {
             return Shader.Find("Universal Render Pipeline/2D/Sprite-Lit-Default");
@@ -74,6 +62,21 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
             ResourceReloader.TryReloadAllNullIn(m_PostProcessData, UniversalRenderPipelineAsset.packagePath);
+        }
+
+        private void Awake()
+        {
+            if (m_LightBlendStyles != null)
+                return;
+
+            m_LightBlendStyles = new Light2DBlendStyle[4];
+
+            for (int i = 0; i < m_LightBlendStyles.Length; ++i)
+            {
+                m_LightBlendStyles[i].name = "Blend Style " + i;
+                m_LightBlendStyles[i].blendMode = Light2DBlendStyle.BlendMode.Multiply;
+                m_LightBlendStyles[i].renderTextureScale = 0.5f;
+            }
         }
 #endif
     }

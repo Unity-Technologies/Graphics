@@ -59,12 +59,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             m_LightCullResult = new Light2DCullResult();
             m_Renderer2DData.lightCullResult = m_LightCullResult;
-
-            var blendStyles = m_Renderer2DData.lightBlendStyles;
-            for (var i = 0; i < blendStyles.Length; ++i)
-            {
-                blendStyles[i].renderTargetHandle.Init($"_ShapeLightTexture{i}");
-            }
         }
 
         protected override void Dispose(bool disposing)
