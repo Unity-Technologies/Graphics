@@ -1,15 +1,12 @@
-// The implementation is based on the demo on "fine pruned tiled lighting" published in GPU Pro 7.
-// https://github.com/wolfgangfengel/GPU-Pro-7
+// #pragma enable_d3d11_debug_symbols
+#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+#pragma kernel main
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightCullUtils.hlsl"
-
-// #pragma enable_d3d11_debug_symbols
-#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
-
-#pragma kernel main
 
 /* ------------------------------ Inputs ------------------------------------ */
 
