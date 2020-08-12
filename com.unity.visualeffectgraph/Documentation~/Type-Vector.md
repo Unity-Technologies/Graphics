@@ -4,6 +4,6 @@ A world-space or local-space three-component vector. When the Visual Effect Grap
 
 ## Properties
 
-| **Property** | **Description**          |
-| ------------ | ------------------------ |
-| **Vector**   | The value of the vector. |
+| **Property** | **Description**                          |
+| ------------ | ---------------------------------------- |
+| **Vector**   | The value of the three-component vector. |

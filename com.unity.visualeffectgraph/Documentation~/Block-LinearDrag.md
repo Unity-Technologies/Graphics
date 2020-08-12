@@ -22,6 +22,6 @@ This Block is compatible with the following Contexts:
 | -------------------- | -------- | --------------------- |
 | **Drag Coefficient** | float    | The drag coefficient. |
 
-## Notes
+## Remarks
 
 To make this Block affect particle position, enable **Update Position** in the [Update Context](Context-Update.md) Particle.

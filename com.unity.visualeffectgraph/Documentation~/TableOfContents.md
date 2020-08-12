@@ -41,6 +41,8 @@
       	* [Collide with Signed Distance Field](Block-CollideWithSignedDistanceField.md)
       	* [Collide with Sphere](Block-CollideWithSphere.md)
       * Force
+        * [Force](Block-Force.md)
+        * [Gravity](Block-Gravity.md)
         * [Linear Drag](Block-LinearDrag.md)
       * GPU Event
         * [Trigger Event Always](Block-TriggerEventAlways.md)
