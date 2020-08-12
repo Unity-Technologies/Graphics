@@ -134,65 +134,18 @@ namespace UnityEngine.Rendering.Universal
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
-            // Special path for depth only offscreen cameras. Only write opaques + transparents.
-            bool isOffscreenDepthTexture = cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
-            if (isOffscreenDepthTexture)
-            {
-                ConfigureCameraTarget(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
-                AddRenderPasses(ref renderingData);
-                EnqueuePass(m_RenderOpaqueForwardPass);
-                EnqueuePass(m_DrawSkyboxPass);
-                EnqueuePass(m_RenderTransparentForwardPass);
-                return;
-            }
-
-            // Add render passes and gather the input requirements
-            AddRenderPasses(ref renderingData);
-            RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData);
-
-            // Should apply post-processing after rendering this camera?
-            bool applyPostProcessing = cameraData.postProcessEnabled;
-
-            // There's at least a camera in the camera stack that applies post-processing
-            bool anyPostProcessing = renderingData.postProcessingEnabled;
-
-            // TODO: We could cache and generate the LUT before rendering the stack
-            bool generateColorGradingLUT = cameraData.postProcessEnabled;
-            bool isSceneViewCamera = cameraData.isSceneViewCamera;
-            bool isPreviewCamera = cameraData.isPreviewCamera;
-            bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture;
-
-            bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
-            bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
-            bool transparentsNeedSettingsPass = m_TransparentSettingsPass.Setup(ref renderingData);
-
-            // Depth prepass is generated in the following cases:
-            // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
-            // - Scene or preview cameras always require a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
-            // - Render passes require it
-            bool requiresDepthPrepass = requiresDepthTexture && !CanCopyDepth(ref renderingData.cameraData);
-            requiresDepthPrepass |= isSceneViewCamera;
-            requiresDepthPrepass |= isPreviewCamera;
-            requiresDepthPrepass |= renderPassInputs.requiresDepthPrepass;
-            requiresDepthPrepass |= renderPassInputs.requiresNormalsTexture;
-
-            // The copying of depth should normally happen after rendering opaques.
-            // But if we only require it for post processing or the scene camera then we do it after rendering transparent objects
-            m_CopyDepthPass.renderPassEvent = (!requiresDepthTexture && (applyPostProcessing || isSceneViewCamera)) ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingOpaques;
-
-            // XRTODO: CopyDepth pass is disabled in XR due to required work to handle camera matrices in URP and y-flip.
-            // IF this condition is removed make sure the CopyDepthPass.cs is working properly on all XR modes. This requires PureXR SDK integration.
-            if (cameraData.xr.enabled && requiresDepthTexture)
-                requiresDepthPrepass = true;
-
+#region BaseSetup
+            // TODO: Move this logic to ScriptableRenderer.Setup
+            // leaving it here for now so reviewers can see changes made to forward renderer
+            // before refactoring to base renderer
             bool createColorTexture = RequiresIntermediateColorTexture(ref cameraData);
+            // create color texture as conservative approach until we have full dependency tracking
             createColorTexture |= (rendererFeatures.Count != 0);
-            createColorTexture |= renderPassInputs.requiresColorTexture;
-            createColorTexture &= !isPreviewCamera;
+            createColorTexture &= !cameraData.isPreviewCamera;
 
-            // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read later by effect requiring it.
-            bool createDepthTexture = cameraData.requiresDepthTexture && !requiresDepthPrepass;
-            createDepthTexture |= (cameraData.renderType == CameraRenderType.Base && !cameraData.resolveFinalTarget);
+            // TODO: depth texture is created implicitly by setting depth buffer bits. Do we need to create this
+            // for camera stacking?
+            bool createDepthTexture = (cameraData.renderType == CameraRenderType.Base && !cameraData.resolveFinalTarget);
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
@@ -248,13 +201,59 @@ namespace UnityEngine.Rendering.Universal
 
                 ConfigureCameraTarget(activeColorRenderTargetId, activeDepthRenderTargetId);
             }
+#endregion
 
-            int count = activeRenderPassQueue.Count;
-            for (int i = count - 1; i >= 0; i--)
+            // Special path for depth only offscreen cameras. Only write opaques + transparents.
+            bool isOffscreenDepthTexture = cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
+            if (isOffscreenDepthTexture)
             {
-                if(activeRenderPassQueue[i] == null)
-                    activeRenderPassQueue.RemoveAt(i);
+                ConfigureCameraTarget(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
+                AddRenderPasses(ref renderingData);
+                EnqueuePass(m_RenderOpaqueForwardPass);
+                EnqueuePass(m_DrawSkyboxPass);
+                EnqueuePass(m_RenderTransparentForwardPass);
+                return;
             }
+
+            // Add render passes and gather the input requirements
+            AddRenderPasses(ref renderingData);
+            RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData);
+
+            // Should apply post-processing after rendering this camera?
+            bool applyPostProcessing = cameraData.postProcessEnabled;
+
+            // There's at least a camera in the camera stack that applies post-processing
+            bool anyPostProcessing = renderingData.postProcessingEnabled;
+
+            // TODO: We could cache and generate the LUT before rendering the stack
+            bool generateColorGradingLUT = cameraData.postProcessEnabled;
+            bool isSceneViewCamera = cameraData.isSceneViewCamera;
+            bool isPreviewCamera = cameraData.isPreviewCamera;
+            bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture;
+
+            bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
+            bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
+            bool transparentsNeedSettingsPass = m_TransparentSettingsPass.Setup(ref renderingData);
+
+            // Depth prepass is generated in the following cases:
+            // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
+            // - Scene or preview cameras always require a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
+            // - Render passes require it
+            bool requiresDepthPrepass = requiresDepthTexture && !CanCopyDepth(ref renderingData.cameraData);
+            requiresDepthPrepass |= isSceneViewCamera;
+            requiresDepthPrepass |= isPreviewCamera;
+            requiresDepthPrepass |= renderPassInputs.requiresDepthPrepass;
+            requiresDepthPrepass |= renderPassInputs.requiresNormalsTexture;
+
+            // The copying of depth should normally happen after rendering opaques.
+            // But if we only require it for post processing or the scene camera then we do it after rendering transparent objects
+            m_CopyDepthPass.renderPassEvent = (!requiresDepthTexture && (applyPostProcessing || isSceneViewCamera)) ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingOpaques;
+
+            // XRTODO: CopyDepth pass is disabled in XR due to required work to handle camera matrices in URP and y-flip.
+            // IF this condition is removed make sure the CopyDepthPass.cs is working properly on all XR modes. This requires PureXR SDK integration.
+            if (cameraData.xr.enabled && requiresDepthTexture)
+                requiresDepthPrepass = true;
+
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
             if (mainLightShadows)
@@ -451,6 +450,7 @@ namespace UnityEngine.Rendering.Universal
 
         private void AddRenderPasses(ref RenderingData renderingData)
         {
+            // Add render passes from custom renderer features
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {
                 if (!rendererFeatures[i].isActive)
@@ -458,6 +458,14 @@ namespace UnityEngine.Rendering.Universal
                     continue;
                 }
                 rendererFeatures[i].AddRenderPasses(this, ref renderingData);
+            }
+
+            // Remove any null render pass that might have been added by user by mistake
+            int count = activeRenderPassQueue.Count;
+            for (int i = count - 1; i >= 0; i--)
+            {
+                if (activeRenderPassQueue[i] == null)
+                    activeRenderPassQueue.RemoveAt(i);
             }
         }
 
