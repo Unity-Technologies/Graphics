@@ -19,7 +19,6 @@ using UnityEngine.UIElements;
 using UnityEditor.VersionControl;
 
 using Unity.Profiling;
-using System.ComponentModel;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
