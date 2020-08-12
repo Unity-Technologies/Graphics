@@ -43,4 +43,4 @@ To use a Terrain Lit Material, you must assign it to a Terrain:
 
 | **Property**              | **Description**                                              |
 | ------------------------- | ------------------------------------------------------------ |
-| **Enable GPU Instancing** | Enable this checkbox to tell HDRP to render meshes with the same geometry and Material/Shader in one batch when possible. This makes rendering faster. HDRP can not render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. |
+| **Enable GPU Instancing** | [!include[](Snippets/ShaderProperties/Enable-GPU-Instancing.md)] |
