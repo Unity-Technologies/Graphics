@@ -15,9 +15,7 @@ half _Cutoff;
 half _Smoothness;
 half _Metallic;
 half _BumpScale;
-#if defined(_PARALLAXMAP)
 half _Parallax;
-#endif
 half _OcclusionStrength;
 #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
 half _ClearCoatMask;
