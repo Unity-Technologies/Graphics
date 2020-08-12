@@ -13,8 +13,8 @@
 
 /* ------------------------------ Inputs ------------------------------------ */
 
-uniform int g_isOrthographic;
-uniform int g_iNrVisibLights;
+uniform uint g_isOrthographic;
+uniform uint g_iNrVisibLights;
 
 uniform float4x4 g_mInvProjectionArr[SHADEROPTIONS_XR_MAX_VIEWS];
 uniform float4x4 g_mProjectionArr[SHADEROPTIONS_XR_MAX_VIEWS];
@@ -207,7 +207,7 @@ bool TryCullFace(uint f, uint behindMasksOfVerts[NUM_VERTS])
     uint cullMaskOfFace = FACE_MASK; // Initially behind
     uint vertListOfFace = GetVertexListOfFace(f);
 
-    for (int j = 0; j < 4; j++)
+    for (uint j = 0; j < 4; j++)
     {
         uint v = BitFieldExtract(vertListOfFace, 3 * j, 3);
         // Non-zero if ALL the vertices are behind any of the planes.
@@ -310,7 +310,7 @@ void ClipPolygonAgainstPlane(uint p, uint srcBegin, uint srcSize,
     }
 }
 
-void ClipFaceAgainstViewVolume(uint f, uint behindMasksOfVerts[NUM_VERTS], uint firstVertexOffset,
+void ClipFaceAgainstViewVolume(uint f, uint behindMasksOfVerts[NUM_VERTS], uint baseVertexOffset,
                                out uint srcBegin, out uint srcSize,
                                out float4 vertRingBuffer[MAX_CLIP_VERTS])
 {
@@ -320,7 +320,7 @@ void ClipFaceAgainstViewVolume(uint f, uint behindMasksOfVerts[NUM_VERTS], uint 
     uint clipMaskOfFace = 0; // Initially in front
     uint vertListOfFace = GetVertexListOfFace(f);
 
-    for (int j = 0; j < 4; j++)
+    for (uint j = 0; j < 4; j++)
     {
         uint v = BitFieldExtract(vertListOfFace, 3 * j, 3);
         // Non-zero if ANY of the vertices are behind any of the planes.
@@ -328,10 +328,10 @@ void ClipFaceAgainstViewVolume(uint f, uint behindMasksOfVerts[NUM_VERTS], uint 
 
         // Not all edges may require clipping. However, filtering the vertex list
         // is somewhat expensive, so we currently don't do it.
-        vertRingBuffer[j].x = gs_HapVertsX[firstVertexOffset + v];
-        vertRingBuffer[j].y = gs_HapVertsY[firstVertexOffset + v];
-        vertRingBuffer[j].z = gs_HapVertsZ[firstVertexOffset + v];
-        vertRingBuffer[j].w = gs_HapVertsW[firstVertexOffset + v];
+        vertRingBuffer[j].x = gs_HapVertsX[baseVertexOffset + v];
+        vertRingBuffer[j].y = gs_HapVertsY[baseVertexOffset + v];
+        vertRingBuffer[j].z = gs_HapVertsZ[baseVertexOffset + v];
+        vertRingBuffer[j].w = gs_HapVertsW[baseVertexOffset + v];
     }
 
     // Sutherland-Hodgeman polygon clipping algorithm.
@@ -418,10 +418,10 @@ void GenLightAABB(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 
     const uint intraGroupLightIndex = t / THREADS_PER_LIGHT;
     const uint globalLightIndex     = g * LIGHTS_PER_GROUP + intraGroupLightIndex;
-    const uint firstVertexOffset    = intraGroupLightIndex * NUM_VERTS;
+    const uint baseVertexOffset     = intraGroupLightIndex * NUM_VERTS;
 
-    const int eyeAdjustedInputOffset = GenerateLightCullDataIndex(globalLightIndex, g_iNrVisibLights, eyeIndex);
-    const SFiniteLightBound cullData = g_data[eyeAdjustedInputOffset];
+    const uint eyeAdjustedInputOffset = GenerateLightCullDataIndex(globalLightIndex, g_iNrVisibLights, eyeIndex);
+    const SFiniteLightBound  cullData = g_data[eyeAdjustedInputOffset];
 
     const float4x4 projMat    = g_mProjectionArr[eyeIndex];
     const float4x4 invProjMat = g_mInvProjectionArr[eyeIndex];
@@ -521,11 +521,11 @@ void GenLightAABB(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
             cullClipFaceMask |= GetFaceMaskOfVertex(v);
         }
 
-        gs_HapVertsX[firstVertexOffset + v]          = hapVert.x;
-        gs_HapVertsY[firstVertexOffset + v]          = hapVert.y;
-        gs_HapVertsZ[firstVertexOffset + v]          = hapVert.z;
-        gs_HapVertsW[firstVertexOffset + v]          = hapVert.w;
-        gs_BehindMasksOfVerts[firstVertexOffset + v] = behindMask;
+        gs_HapVertsX[baseVertexOffset + v]          = hapVert.x;
+        gs_HapVertsY[baseVertexOffset + v]          = hapVert.y;
+        gs_HapVertsZ[baseVertexOffset + v]          = hapVert.z;
+        gs_HapVertsW[baseVertexOffset + v]          = hapVert.w;
+        gs_BehindMasksOfVerts[baseVertexOffset + v] = behindMask;
     }
 
 #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
@@ -613,7 +613,7 @@ void GenLightAABB(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 
     for (uint i = 0; i < NUM_VERTS; i++)
     {
-        behindMasksOfVerts[i] = gs_BehindMasksOfVerts[firstVertexOffset + i];
+        behindMasksOfVerts[i] = gs_BehindMasksOfVerts[baseVertexOffset + i];
     }
 
     // (3) Cull the faces.
@@ -669,7 +669,7 @@ void GenLightAABB(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 
                 uint   srcBegin, srcSize;
                 float4 vertRingBuffer[MAX_CLIP_VERTS];
-                ClipFaceAgainstViewVolume(f, behindMasksOfVerts, firstVertexOffset,
+                ClipFaceAgainstViewVolume(f, behindMasksOfVerts, baseVertexOffset,
                                           srcBegin, srcSize, vertRingBuffer);
                 UpdateAaBb(srcBegin, srcSize, vertRingBuffer, g_isOrthographic != 0, invProjMat,
                            ndcAaBbMinPt, ndcAaBbMaxPt);
@@ -717,7 +717,7 @@ void GenLightAABB(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     ndcAaBbMaxPt.w = asfloat(gs_NdcAaBbMaxPtW[intraGroupLightIndex]);
 #endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
-    if (t % THREADS_PER_LIGHT == 0) // Avoid bank conflicts
+    if ((globalLightIndex < g_iNrVisibLights) && (t % THREADS_PER_LIGHT == 0)) // Avoid bank conflicts
     {
         // For stereo, we have two sets of lights. Therefore, each eye has a set of mins
         // followed by a set of maxs, and each set is equal to g_iNrVisibLights.
