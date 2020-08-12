@@ -313,60 +313,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3163352547752738580, guid: 045bfee370fc8c84ca955348ca9f3fd9, type: 3}
   m_PrefabInstance: {fileID: 29459326}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &65173002
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 65173003}
-  - component: {fileID: 65173004}
-  m_Layer: 0
-  m_Name: Decal Puddle (16)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &65173003
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 65173002}
-  m_LocalRotation: {x: -0.6272883, y: -0.32635787, z: 0.32635787, w: -0.6272883}
-  m_LocalPosition: {x: 10.33, y: 2.0476046, z: 8.79}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 966118099}
-  m_RootOrder: 7
-  m_LocalEulerAnglesHint: {x: 90, y: -30.173, z: 274.854}
---- !u!114 &65173004
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 65173002}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f19d9143a39eb3b46bc4563e9889cfbd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Version: 2
-  m_Material: {fileID: 2100000, guid: 94d80f3e038421840941e22d06feee02, type: 2}
-  m_DrawDistance: 50
-  m_FadeScale: 0.9
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
-  m_UVBias: {x: 0.5, y: 0}
-  m_AffectsTransparency: 1
-  m_DecalLayerMask: 1
-  m_Offset: {x: 0, y: 0, z: 1.5}
-  m_Size: {x: 6, y: 6, z: 3}
-  m_FadeFactor: 0.7
 --- !u!1 &85206421
 GameObject:
   m_ObjectHideFlags: 3
@@ -1254,60 +1200,6 @@ MonoBehaviour:
   m_Offset: {x: 0, y: 0, z: 1}
   m_Size: {x: 8, y: 8, z: 2}
   m_FadeFactor: 0.18
---- !u!1 &228935668
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 228935669}
-  - component: {fileID: 228935670}
-  m_Layer: 0
-  m_Name: Decal Puddle (19)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &228935669
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 228935668}
-  m_LocalRotation: {x: -0.60289484, y: 0.36948317, z: -0.36948317, w: -0.60289484}
-  m_LocalPosition: {x: 6.4496694, y: 2.14, z: 12.894653}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 966118099}
-  m_RootOrder: 9
-  m_LocalEulerAnglesHint: {x: 90, y: -8.833, z: 414.171}
---- !u!114 &228935670
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 228935668}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f19d9143a39eb3b46bc4563e9889cfbd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Version: 2
-  m_Material: {fileID: 2100000, guid: 94d80f3e038421840941e22d06feee02, type: 2}
-  m_DrawDistance: 50
-  m_FadeScale: 0.9
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
-  m_UVBias: {x: 0, y: 0.5}
-  m_AffectsTransparency: 1
-  m_DecalLayerMask: 1
-  m_Offset: {x: 0, y: 0, z: 0.5}
-  m_Size: {x: 5, y: 5, z: 1}
-  m_FadeFactor: 0.7
 --- !u!1 &248024620
 GameObject:
   m_ObjectHideFlags: 0
@@ -1622,11 +1514,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 278998126}
   m_LocalRotation: {x: -0.625329, y: -0.3300964, z: 0.3300964, w: -0.625329}
-  m_LocalPosition: {x: -9.69, y: 2.1636047, z: -11.39}
+  m_LocalPosition: {x: -15.16, y: 2.1636047, z: 0.02}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 966118099}
-  m_RootOrder: 12
+  m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: 90, y: 109.828, z: 414.171}
 --- !u!114 &278998128
 MonoBehaviour:
@@ -1650,7 +1542,7 @@ MonoBehaviour:
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 1}
   m_Size: {x: 6, y: 6, z: 2}
-  m_FadeFactor: 0.7
+  m_FadeFactor: 1
 --- !u!1 &279271505
 GameObject:
   m_ObjectHideFlags: 0
@@ -4552,7 +4444,7 @@ MonoBehaviour:
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 8, y: 8, z: 0.5}
-  m_FadeFactor: 0.7
+  m_FadeFactor: 1
 --- !u!1 &496687628
 GameObject:
   m_ObjectHideFlags: 0
@@ -4990,7 +4882,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 966118099}
-  m_RootOrder: 15
+  m_RootOrder: 13
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 503.07098}
 --- !u!114 &553408024
 MonoBehaviour:
@@ -5014,7 +4906,7 @@ MonoBehaviour:
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 6, y: 6, z: 0.5}
-  m_FadeFactor: 0.612
+  m_FadeFactor: 1
 --- !u!1001 &553938282
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5168,7 +5060,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 966118099}
-  m_RootOrder: 16
+  m_RootOrder: 14
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 222.982}
 --- !u!114 &569215025
 MonoBehaviour:
@@ -5192,7 +5084,7 @@ MonoBehaviour:
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 0.7423954}
   m_Size: {x: 4, y: 4, z: 1}
-  m_FadeFactor: 0.7
+  m_FadeFactor: 1
 --- !u!1 &571131995
 GameObject:
   m_ObjectHideFlags: 0
@@ -5826,7 +5718,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 966118099}
-  m_RootOrder: 13
+  m_RootOrder: 11
   m_LocalEulerAnglesHint: {x: 90, y: 102.794, z: 414.171}
 --- !u!114 &657911453
 MonoBehaviour:
@@ -5850,7 +5742,7 @@ MonoBehaviour:
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 6, y: 6, z: 0.5}
-  m_FadeFactor: 0.356
+  m_FadeFactor: 1
 --- !u!1 &659887662
 GameObject:
   m_ObjectHideFlags: 0
@@ -5880,7 +5772,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 966118099}
-  m_RootOrder: 17
+  m_RootOrder: 15
   m_LocalEulerAnglesHint: {x: 90, y: 180, z: 526.682}
 --- !u!114 &659887664
 MonoBehaviour:
@@ -5904,7 +5796,7 @@ MonoBehaviour:
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 0.7423954}
   m_Size: {x: 3, y: 3, z: 1}
-  m_FadeFactor: 0.435
+  m_FadeFactor: 1
 --- !u!1 &668396958
 GameObject:
   m_ObjectHideFlags: 0
@@ -9280,9 +9172,7 @@ Transform:
   - {fileID: 1366381907}
   - {fileID: 1137416133}
   - {fileID: 1328092798}
-  - {fileID: 65173003}
   - {fileID: 1173332964}
-  - {fileID: 228935669}
   - {fileID: 1217935328}
   - {fileID: 1262851348}
   - {fileID: 278998127}
@@ -11287,7 +11177,7 @@ MonoBehaviour:
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 8, y: 8, z: 0.5}
-  m_FadeFactor: 0.435
+  m_FadeFactor: 1
 --- !u!1 &1143592343
 GameObject:
   m_ObjectHideFlags: 3
@@ -11508,7 +11398,7 @@ MonoBehaviour:
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 1}
   m_Size: {x: 5, y: 5, z: 2}
-  m_FadeFactor: 0.7
+  m_FadeFactor: 1
 --- !u!1 &1159510704
 GameObject:
   m_ObjectHideFlags: 0
@@ -11582,7 +11472,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 966118099}
-  m_RootOrder: 8
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 89.441, y: 0, z: 0}
 --- !u!114 &1173332965
 MonoBehaviour:
@@ -11606,7 +11496,7 @@ MonoBehaviour:
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 1}
   m_Size: {x: 5, y: 5, z: 2}
-  m_FadeFactor: 0.7
+  m_FadeFactor: 1
 --- !u!1 &1189696389
 GameObject:
   m_ObjectHideFlags: 0
@@ -11660,7 +11550,7 @@ MonoBehaviour:
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 0.5}
   m_Size: {x: 8, y: 8, z: 1}
-  m_FadeFactor: 0.612
+  m_FadeFactor: 1
 --- !u!1 &1202700835
 GameObject:
   m_ObjectHideFlags: 0
@@ -11980,7 +11870,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 966118099}
-  m_RootOrder: 10
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 530.714}
 --- !u!114 &1217935329
 MonoBehaviour:
@@ -12004,7 +11894,7 @@ MonoBehaviour:
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 7, y: 7, z: 0.5}
-  m_FadeFactor: 0.7
+  m_FadeFactor: 1
 --- !u!1001 &1225079265
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12250,7 +12140,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 966118099}
-  m_RootOrder: 11
+  m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: 90, y: -173.799, z: 414.16998}
 --- !u!114 &1262851349
 MonoBehaviour:
@@ -12274,7 +12164,7 @@ MonoBehaviour:
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 5, y: 5, z: 0.5}
-  m_FadeFactor: 0.7
+  m_FadeFactor: 1
 --- !u!1 &1269454252
 GameObject:
   m_ObjectHideFlags: 0
@@ -12904,7 +12794,7 @@ MonoBehaviour:
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 0.5}
   m_Size: {x: 5, y: 5, z: 1}
-  m_FadeFactor: 0.468
+  m_FadeFactor: 1
 --- !u!1001 &1332612040
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13050,7 +12940,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 966118099}
-  m_RootOrder: 14
+  m_RootOrder: 12
   m_LocalEulerAnglesHint: {x: 90, y: -173.799, z: 414.16998}
 --- !u!114 &1336631802
 MonoBehaviour:
@@ -13074,7 +12964,7 @@ MonoBehaviour:
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 1}
   m_Size: {x: 5, y: 5, z: 1}
-  m_FadeFactor: 0.371
+  m_FadeFactor: 1
 --- !u!1 &1338245900
 GameObject:
   m_ObjectHideFlags: 0
@@ -13447,7 +13337,7 @@ MonoBehaviour:
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 0.5}
   m_Size: {x: 3, y: 3, z: 1}
-  m_FadeFactor: 0.435
+  m_FadeFactor: 1
 --- !u!1 &1370110031
 GameObject:
   m_ObjectHideFlags: 0
@@ -14620,7 +14510,7 @@ MonoBehaviour:
     distanceFadeStart: 50
     distanceFadeEnd: 60
     textureIndex: 0
-    textureOffset: {x: -0, y: -0, z: 0}
+    textureOffset: {x: -0, y: -238.66508, z: 0}
 --- !u!1001 &1504255721
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -19871,7 +19761,7 @@ MonoBehaviour:
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 0.1}
   m_Size: {x: 6, y: 6, z: 0.2}
-  m_FadeFactor: 0.481
+  m_FadeFactor: 1
 --- !u!1 &1821451199
 GameObject:
   m_ObjectHideFlags: 0
