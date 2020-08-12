@@ -101,7 +101,7 @@ float4x4 PerspectiveProjection4x4(float a, float g, float n, float f)
 
 /* ------------------------------ Implementation ---------------------------- */
 
-#define DUMB_COMPILER // Improve the quality of generated code
+#define DUMB_COMPILER // Improve the quality of generated code at the expense of readability
 
 #define CLEAR_SIGN_BIT(X)  (asint(X) & INT_MAX)
 #define DIV_ROUND_UP(N, D) (((N) + (D) - 1) / (D)) // No division by 0 checks
@@ -259,10 +259,10 @@ void ClipPolygonAgainstPlane(uint p, uint srcBegin, uint srcSize,
     uint modDstIdx = dstBegin % MAX_CLIP_VERTS;
 #endif
 
-    for (uint k = srcBegin; k < (srcBegin + srcSize); k++)
+    for (uint j = srcBegin; j < (srcBegin + srcSize); j++)
     {
     #ifndef DUMB_COMPILER
-        uint modSrcIdx = k % MAX_CLIP_VERTS;
+        uint modSrcIdx = j % MAX_CLIP_VERTS;
     #endif
         ClipVertex leadVert = CreateClipVertex(p, vertRingBuffer[modSrcIdx]);
 
@@ -457,8 +457,10 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     // any single plane, we can trivially reject (cull) that face.
     uint cullClipFaceMask = 0; // Initially inside
 
+    uint i; // Avoid multiply-declared variable warning
+
     // (1) Compute the vertices of the light volume.
-    for (uint i = 0; i < VERTS_PER_THREAD; i++)
+    for (i = 0; i < VERTS_PER_THREAD; i++)
     {
         uint v = i * THREADS_PER_LIGHT + t % THREADS_PER_LIGHT;
 
@@ -529,7 +531,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     }
 
 #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
-    for (uint i = 0; i < FastLog2(THREADS_PER_LIGHT); i++)
+    for (i = 0; i < FastLog2(THREADS_PER_LIGHT); i++)
     {
         uint andMask = PLATFORM_LANE_COUNT - 1; // All lanes
         uint orMask  = 0;                       // Plays no role
@@ -575,7 +577,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
             lightSpaceMatrix = mul(mul(perspProjMatrix, invTranslateEye), lightSpaceMatrix);
         }
 
-        for (uint i = 0; i < VERTS_PER_THREAD; i++)
+        for (i = 0; i < VERTS_PER_THREAD; i++)
         {
             uint v = i * THREADS_PER_LIGHT + t % THREADS_PER_LIGHT;
 
@@ -611,7 +613,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 
     uint behindMasksOfVerts[NUM_VERTS];
 
-    for (uint i = 0; i < NUM_VERTS; i++)
+    for (i = 0; i < NUM_VERTS; i++)
     {
         behindMasksOfVerts[i] = gs_BehindMasksOfVerts[baseVertexOffset + i];
     }
@@ -621,7 +623,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         const uint cullFaceMask   = cullClipFaceMask;
         const uint numFacesToCull = countbits(cullFaceMask); // [0, 6]
 
-        for (uint i = 0; i < FACES_PER_THREAD; i++)
+        for (i = 0; i < FACES_PER_THREAD; i++)
         {
             uint n = i * THREADS_PER_LIGHT + t % THREADS_PER_LIGHT;
 
@@ -638,7 +640,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     }
 
 #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
-    for (uint i = 0; i < FastLog2(THREADS_PER_LIGHT); i++)
+    for (i = 0; i < FastLog2(THREADS_PER_LIGHT); i++)
     {
         uint andMask = PLATFORM_LANE_COUNT - 1; // All lanes
         uint orMask  = 0;                       // Plays no role
@@ -659,7 +661,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         const uint clipFaceMask   = cullClipFaceMask;
         const uint numFacesToClip = countbits(clipFaceMask); // [0, 6]
 
-        for (uint i = 0; i < FACES_PER_THREAD; i++)
+        for (i = 0; i < FACES_PER_THREAD; i++)
         {
             uint n = i * THREADS_PER_LIGHT + t % THREADS_PER_LIGHT;
 
@@ -678,7 +680,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     }
 
 #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
-    for (uint i = 0; i < FastLog2(THREADS_PER_LIGHT); i++)
+    for (i = 0; i < FastLog2(THREADS_PER_LIGHT); i++)
     {
         uint andMask = PLATFORM_LANE_COUNT - 1; // All lanes
         uint orMask  = 0;                       // Plays no role
