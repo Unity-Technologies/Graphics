@@ -535,7 +535,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         uint orMask  = 0;                       // Plays no role
         uint xorMask = 1 << i;                  // Flip bits one by one starting from the LSB
         // TODO: Francesco - expose the right intrinsic.
-        cullClipFaceMask |= LaneSwizzle(cullClipFaceMask, orMask, 0, xorMask);
+        cullClipFaceMask |= LaneSwizzle(cullClipFaceMask, andMask, orMask, xorMask);
     }
 #else
     InterlockedOr(gs_CullClipFaceMasks[intraGroupLightIndex], cullClipFaceMask);
@@ -644,7 +644,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         uint orMask  = 0;                       // Plays no role
         uint xorMask = 1 << i;                  // Flip bits one by one starting from the LSB
         // TODO: Francesco - expose the right intrinsic.
-        cullClipFaceMask &= LaneSwizzle(cullClipFaceMask, orMask, 0, xorMask);
+        cullClipFaceMask &= LaneSwizzle(cullClipFaceMask, andMask, orMask, xorMask);
     }
 #else
     InterlockedAnd(gs_CullClipFaceMasks[intraGroupLightIndex], cullClipFaceMask);
@@ -684,14 +684,14 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         uint orMask  = 0;                       // Plays no role
         uint xorMask = 1 << i;                  // Flip bits one by one starting from the LSB
         // TODO: Francesco - expose the right intrinsic.
-        ndcAaBbMinPt.x = min(ndcAaBbMinPt.x, LaneSwizzle(ndcAaBbMinPt.x, orMask, 0, xorMask));
-        ndcAaBbMaxPt.x = max(ndcAaBbMaxPt.x, LaneSwizzle(ndcAaBbMaxPt.x, orMask, 0, xorMask));
-        ndcAaBbMinPt.y = min(ndcAaBbMinPt.y, LaneSwizzle(ndcAaBbMinPt.y, orMask, 0, xorMask));
-        ndcAaBbMaxPt.y = max(ndcAaBbMaxPt.y, LaneSwizzle(ndcAaBbMaxPt.y, orMask, 0, xorMask));
-        ndcAaBbMinPt.z = min(ndcAaBbMinPt.z, LaneSwizzle(ndcAaBbMinPt.z, orMask, 0, xorMask));
-        ndcAaBbMaxPt.z = max(ndcAaBbMaxPt.z, LaneSwizzle(ndcAaBbMaxPt.z, orMask, 0, xorMask));
-        ndcAaBbMinPt.w = min(ndcAaBbMinPt.w, LaneSwizzle(ndcAaBbMinPt.w, orMask, 0, xorMask));
-        ndcAaBbMaxPt.w = max(ndcAaBbMaxPt.w, LaneSwizzle(ndcAaBbMaxPt.w, orMask, 0, xorMask));
+        ndcAaBbMinPt.x = min(ndcAaBbMinPt.x, LaneSwizzle(ndcAaBbMinPt.x, andMask, orMask, xorMask));
+        ndcAaBbMaxPt.x = max(ndcAaBbMaxPt.x, LaneSwizzle(ndcAaBbMaxPt.x, andMask, orMask, xorMask));
+        ndcAaBbMinPt.y = min(ndcAaBbMinPt.y, LaneSwizzle(ndcAaBbMinPt.y, andMask, orMask, xorMask));
+        ndcAaBbMaxPt.y = max(ndcAaBbMaxPt.y, LaneSwizzle(ndcAaBbMaxPt.y, andMask, orMask, xorMask));
+        ndcAaBbMinPt.z = min(ndcAaBbMinPt.z, LaneSwizzle(ndcAaBbMinPt.z, andMask, orMask, xorMask));
+        ndcAaBbMaxPt.z = max(ndcAaBbMaxPt.z, LaneSwizzle(ndcAaBbMaxPt.z, andMask, orMask, xorMask));
+        ndcAaBbMinPt.w = min(ndcAaBbMinPt.w, LaneSwizzle(ndcAaBbMinPt.w, andMask, orMask, xorMask));
+        ndcAaBbMaxPt.w = max(ndcAaBbMaxPt.w, LaneSwizzle(ndcAaBbMaxPt.w, andMask, orMask, xorMask));
     }
 #else
     // Integer comparison works for floating-point numbers as long as the sign bit is 0.
