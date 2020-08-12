@@ -19,9 +19,10 @@ namespace UnityEngine.Rendering.Universal
 
         public bool Setup(ref RenderingData renderingData)
         {
-            // Currently we only need to enqueue this pass when the user
-            // doesn't want transparent objects to receive shadows
-            return !m_shouldReceiveShadows;
+            // Previously we only need to enqueue this pass when the user
+            // doesn't want transparent objects to receive shadows,
+            // but we need to enqueue this pass for disabling a keyword of screen space shadow
+            return true;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -33,12 +34,13 @@ namespace UnityEngine.Rendering.Universal
                 ShadowData shadowData = renderingData.shadowData;
                 int cascadesCount = shadowData.mainLightShadowCascadesCount;
 
-                bool shouldReceiveNoCascades = m_shouldReceiveShadows && cascadesCount == 1;
-                bool shouldReceiveCascades = m_shouldReceiveShadows && cascadesCount > 1;
+                bool receiveShadowsNoCascade = m_shouldReceiveShadows && cascadesCount == 1;
+                bool receiveShadowsCascades = m_shouldReceiveShadows && cascadesCount > 1;
 
                 // Toggle light shadows enabled based on the renderer setting set in the constructor
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, shouldReceiveNoCascades);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowsCascades, shouldReceiveCascades);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, receiveShadowsNoCascade);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowsCascades, receiveShadowsCascades);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowsScreen, false);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, m_shouldReceiveShadows);
             }
 

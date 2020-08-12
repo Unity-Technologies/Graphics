@@ -19,8 +19,6 @@ namespace UnityEngine.Rendering.Universal
         // Private Fields
         private Material m_Material;
         private ScreenSpaceShadowsPass m_SSShadowsPass = null;
-        private EnableKeywordPass m_EnableKeywordPass = null;
-        private DisableKeywordPass m_DisableKeywordPass = null;
 
         // Constants
         private const string k_ShaderName = "Hidden/Universal Render Pipeline/ScreenSpaceShadows";
@@ -30,17 +28,10 @@ namespace UnityEngine.Rendering.Universal
         {
             if (m_SSShadowsPass == null)
                 m_SSShadowsPass = new ScreenSpaceShadowsPass();
-            if (m_EnableKeywordPass == null)
-                m_EnableKeywordPass = new EnableKeywordPass();
-            if (m_DisableKeywordPass == null)
-                m_DisableKeywordPass = new DisableKeywordPass();
 
             LoadMaterial();
             m_SSShadowsPass.profilerTag = name;
             m_SSShadowsPass.renderPassEvent = RenderPassEvent.AfterRenderingPrepasses;
-
-            m_EnableKeywordPass.renderPassEvent = RenderPassEvent.BeforeRenderingOpaques;
-            m_DisableKeywordPass.renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
         }
 
         /// <inheritdoc/>
@@ -56,11 +47,7 @@ namespace UnityEngine.Rendering.Universal
 
             bool shouldAdd = m_SSShadowsPass.Setup(m_Settings) && renderingData.shadowData.supportsMainLightShadows;
             if (shouldAdd)
-            {
                 renderer.EnqueuePass(m_SSShadowsPass);
-                renderer.EnqueuePass(m_EnableKeywordPass);
-                renderer.EnqueuePass(m_DisableKeywordPass);
-            }
         }
 
         /// <inheritdoc/>
@@ -160,6 +147,10 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
                     cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, false);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowsCascades, false);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowsScreen, true);
                 }
 
                 context.ExecuteCommandBuffer(cmd);
@@ -175,55 +166,6 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 cmd.ReleaseTemporaryRT(m_RenderTarget.id);
-            }
-        }
-
-        private class EnableKeywordPass : ScriptableRenderPass
-        {
-            private ProfilingSampler m_ProfilingSampler = new ProfilingSampler("SSShadows.EnableKeyword()");
-
-            /// <inheritdoc/>
-            public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-            {
-                CommandBuffer cmd = CommandBufferPool.Get();
-                using (new ProfilingScope(cmd, m_ProfilingSampler))
-                {
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, false);
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowsCascades, false);
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowsScreen, true);
-                }
-
-                context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
-            }
-        }
-
-        private class DisableKeywordPass : ScriptableRenderPass
-        {
-            private bool m_DisallowCascades = true;
-            private bool m_AllowCascades = false;
-            private ProfilingSampler m_ProfilingSampler = new ProfilingSampler("SSShadows.DisableKeyword()");
-
-            /// <inheritdoc/>
-            public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-            {
-                m_DisallowCascades = renderingData.shadowData.mainLightShadowCascadesCount == 1;
-                m_AllowCascades = renderingData.shadowData.mainLightShadowCascadesCount > 1;
-            }
-
-            /// <inheritdoc/>
-            public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-            {
-                CommandBuffer cmd = CommandBufferPool.Get();
-                using (new ProfilingScope(cmd, m_ProfilingSampler))
-                {
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, m_DisallowCascades);
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowsCascades, m_AllowCascades);
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowsScreen, false);
-                }
-
-                context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
             }
         }
     }
