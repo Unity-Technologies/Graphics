@@ -43,6 +43,18 @@ The following additional properties are available to the __Freeform__ Light type
 
 
 
+
+One consideration when creating a __Freeform__ Light is avoiding self intersection. Self intersection may cause unintended lighting results. This may occur through self intersecting outlines, or from overlapping falloff.
+
+| ![Freeform Self Intersection](Images/2D/2D_FreeformOutlineIntersection0.png)| ![Freeform Self Intersection](Images/2D/2D_FreeformOutlineIntersection1.png)|
+| ------------------------------------------ | ------------------------------------------ |
+| Outline Intersection in edit mode          | Resulting Light Effect                     |
+
+| ![Freeform Self Intersection](Images/2D/2D_FreeformFalloffIntersection0.png)| ![Freeform Self Intersection](Images/2D/2D_FreeformFalloffIntersection1.png)|
+| ------------------------------------------ | ------------------------------------------ |
+| Falloff Intersection in edit mode          | Resulting Light Effect                     |
+
+
 ## Sprite
 
 Select the __Sprite__ Light type to create a Light based on a selected Sprite by assigning the selected Sprite to the additional Sprite property.
