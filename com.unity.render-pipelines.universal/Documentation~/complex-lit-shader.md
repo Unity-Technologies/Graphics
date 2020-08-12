@@ -1,6 +1,6 @@
 # Complex Lit Shader
 
-The Complex Lit Shader is similar to the Lit shader, but it adds advanced material features. These features often are considerably more resource intensive and therefore are only supported on relatively new hardware. Complex Lit shader is always rendered using forward rendering and used as a fallback shader in deferred rendering. Complex Lit contains all the features that are incompatible with deferred rendering. This Shader uses the most computationally heavy [shading model](shading-model.md) in the Universal Render Pipeline (URP). 
+The Complex Lit Shader is similar to the Lit shader, but it adds advanced material features. These features often are considerably more resource intensive and therefore are only supported on [Unity Shader Model 4.5](https://docs.unity3d.com/Manual/SL-ShaderCompileTargets.html) hardware. Complex Lit shader is always rendered using forward rendering and used as a fallback shader in deferred rendering. Complex Lit contains all the features that are incompatible with deferred rendering. This Shader uses the most computationally heavy [shading model](shading-model.md) in the Universal Render Pipeline (URP). 
 
 ## Using the Complex Lit Shader in the Editor 
 
