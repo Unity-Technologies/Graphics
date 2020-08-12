@@ -317,7 +317,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #region Passes
     static class CorePasses
     {
-        public static PassDescriptor DepthOnly = new PassDescriptor()
+        public static readonly PassDescriptor DepthOnly = new PassDescriptor()
         {
             // Definition
             displayName = "DepthOnly",
@@ -343,7 +343,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             includes = CoreIncludes.DepthOnly,
         };
 
-        public static PassDescriptor ShadowCaster = new PassDescriptor()
+        public static readonly PassDescriptor ShadowCaster = new PassDescriptor()
         {
             // Definition
             displayName = "ShadowCaster",
@@ -374,20 +374,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #region PortMasks
     class CoreBlockMasks
     {
-        public static BlockFieldDescriptor[] Vertex = new BlockFieldDescriptor[]
+        public static readonly BlockFieldDescriptor[] Vertex = new BlockFieldDescriptor[]
         {
             BlockFields.VertexDescription.Position,
             BlockFields.VertexDescription.Normal,
             BlockFields.VertexDescription.Tangent,
         };
 
-        public static BlockFieldDescriptor[] FragmentAlphaOnly = new BlockFieldDescriptor[]
+        public static readonly BlockFieldDescriptor[] FragmentAlphaOnly = new BlockFieldDescriptor[]
         {
             BlockFields.SurfaceDescription.Alpha,
             BlockFields.SurfaceDescription.AlphaClipThreshold,
         };
 
-        public static BlockFieldDescriptor[] FragmentColorAlpha = new BlockFieldDescriptor[]
+        public static readonly BlockFieldDescriptor[] FragmentColorAlpha = new BlockFieldDescriptor[]
         {
             BlockFields.SurfaceDescription.BaseColor,
             BlockFields.SurfaceDescription.Alpha,
@@ -399,7 +399,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #region StructCollections
     static class CoreStructCollections
     {
-        public static StructCollection Default = new StructCollection
+        public static readonly StructCollection Default = new StructCollection
         {
             { Structs.Attributes },
             { UniversalStructs.Varyings },
@@ -412,7 +412,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #region RequiredFields
     static class CoreRequiredFields
     {
-        public static FieldCollection ShadowCaster = new FieldCollection()
+        public static readonly FieldCollection ShadowCaster = new FieldCollection()
         {
             StructFields.Attributes.normalOS,
         };
@@ -422,7 +422,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #region FieldDependencies
     static class CoreFieldDependencies
     {
-        public static DependencyCollection Default = new DependencyCollection()
+        public static readonly DependencyCollection Default = new DependencyCollection()
         {
             { FieldDependencies.Default },
             new FieldDependency(UniversalStructFields.Varyings.stereoTargetEyeIndexAsRTArrayIdx,    StructFields.Attributes.instanceID ),
@@ -491,7 +491,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #endregion
 
 #region Pragmas
-    // TODO: should tehse be renamed and moved to UniversalPragmas/UniversalPragmas.cs ?
+    // TODO: should these be renamed and moved to UniversalPragmas/UniversalPragmas.cs ?
     // TODO: these aren't "core" as HDRP doesn't use them
     // TODO: and the same for the rest "Core" things
     static class CorePragmas
@@ -587,7 +587,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kShadowCasterPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl";
         const string kTextureStack = "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl";
 
-        public static IncludeCollection CorePregraph = new IncludeCollection
+        public static readonly IncludeCollection CorePregraph = new IncludeCollection
         {
             { kColor, IncludeLocation.Pregraph },
             { kCore, IncludeLocation.Pregraph },
@@ -595,18 +595,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { kTextureStack, IncludeLocation.Pregraph },        // TODO: put this on a conditional
         };
 
-        public static IncludeCollection ShaderGraphPregraph = new IncludeCollection
+        public static readonly IncludeCollection ShaderGraphPregraph = new IncludeCollection
         {
             { kGraphFunctions, IncludeLocation.Pregraph },
         };
 
-        public static IncludeCollection CorePostgraph = new IncludeCollection
+        public static readonly IncludeCollection CorePostgraph = new IncludeCollection
         {
             { kShaderPass, IncludeLocation.Postgraph },
             { kVaryings, IncludeLocation.Postgraph },
         };
 
-        public static IncludeCollection DepthOnly = new IncludeCollection
+        public static readonly IncludeCollection DepthOnly = new IncludeCollection
         {
             // Pre-graph
             { CorePregraph },
@@ -617,7 +617,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { kDepthOnlyPass, IncludeLocation.Postgraph },
         };
 
-        public static IncludeCollection DepthNormalsOnly = new IncludeCollection
+        public static readonly IncludeCollection DepthNormalsOnly = new IncludeCollection
         {
             // Pre-graph
             { CorePregraph },
@@ -628,7 +628,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { kDepthNormalsOnlyPass, IncludeLocation.Postgraph },
         };
 
-        public static IncludeCollection ShadowCaster = new IncludeCollection
+        public static readonly IncludeCollection ShadowCaster = new IncludeCollection
         {
             // Pre-graph
             { CorePregraph },
@@ -644,7 +644,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #region Defines
         static class CoreDefines
         {
-            public static DefineCollection UseLegacySpriteBlocks = new DefineCollection
+            public static readonly DefineCollection UseLegacySpriteBlocks = new DefineCollection
             {
                 { CoreKeywordDescriptors.UseLegacySpriteBlocks, 1, new FieldCondition(CoreFields.UseLegacySpriteBlocks, true) },
             };
@@ -656,7 +656,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     // TODO: these aren't "core" as they aren't used by HDRP
     static class CoreKeywordDescriptors
     {
-        public static KeywordDescriptor Lightmap = new KeywordDescriptor()
+        public static readonly KeywordDescriptor Lightmap = new KeywordDescriptor()
         {
             displayName = "Lightmap",
             referenceName = "LIGHTMAP_ON",
@@ -665,7 +665,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
-        public static KeywordDescriptor DirectionalLightmapCombined = new KeywordDescriptor()
+        public static readonly KeywordDescriptor DirectionalLightmapCombined = new KeywordDescriptor()
         {
             displayName = "Directional Lightmap Combined",
             referenceName = "DIRLIGHTMAP_COMBINED",
@@ -674,7 +674,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
-        public static KeywordDescriptor SampleGI = new KeywordDescriptor()
+        public static readonly KeywordDescriptor SampleGI = new KeywordDescriptor()
         {
             displayName = "Sample GI",
             referenceName = "_SAMPLE_GI",
@@ -683,7 +683,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
-        public static KeywordDescriptor MainLightShadows = new KeywordDescriptor()
+        public static readonly KeywordDescriptor MainLightShadows = new KeywordDescriptor()
         {
             displayName = "Main Light Shadows",
             referenceName = "_MAIN_LIGHT_SHADOWS",
@@ -692,7 +692,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
-        public static KeywordDescriptor MainLightShadowsCascade = new KeywordDescriptor()
+        public static readonly KeywordDescriptor MainLightShadowsCascade = new KeywordDescriptor()
         {
             displayName = "Main Light Shadows Cascade",
             referenceName = "_MAIN_LIGHT_SHADOWS_CASCADE",
@@ -701,7 +701,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
-        public static KeywordDescriptor AdditionalLights = new KeywordDescriptor()
+        public static readonly KeywordDescriptor AdditionalLights = new KeywordDescriptor()
         {
             displayName = "Additional Lights",
             referenceName = "_ADDITIONAL",
@@ -716,7 +716,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
         };
 
-        public static KeywordDescriptor AdditionalLightShadows = new KeywordDescriptor()
+        public static readonly KeywordDescriptor AdditionalLightShadows = new KeywordDescriptor()
         {
             displayName = "Additional Light Shadows",
             referenceName = "_ADDITIONAL_LIGHT_SHADOWS",
@@ -725,7 +725,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
-        public static KeywordDescriptor ShadowsSoft = new KeywordDescriptor()
+        public static readonly KeywordDescriptor ShadowsSoft = new KeywordDescriptor()
         {
             displayName = "Shadows Soft",
             referenceName = "_SHADOWS_SOFT",
@@ -734,7 +734,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
-        public static KeywordDescriptor MixedLightingSubtractive = new KeywordDescriptor()
+        public static readonly KeywordDescriptor MixedLightingSubtractive = new KeywordDescriptor()
         {
             displayName = "Mixed Lighting Subtractive",
             referenceName = "_MIXED_LIGHTING_SUBTRACTIVE",
@@ -743,7 +743,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
-        public static KeywordDescriptor SmoothnessChannel = new KeywordDescriptor()
+        public static readonly KeywordDescriptor SmoothnessChannel = new KeywordDescriptor()
         {
             displayName = "Smoothness Channel",
             referenceName = "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A",
@@ -752,7 +752,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
-        public static KeywordDescriptor ShapeLightType0 = new KeywordDescriptor()
+        public static readonly KeywordDescriptor ShapeLightType0 = new KeywordDescriptor()
         {
             displayName = "Shape Light Type 0",
             referenceName = "USE_SHAPE_LIGHT_TYPE_0",
@@ -761,7 +761,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
-        public static KeywordDescriptor ShapeLightType1 = new KeywordDescriptor()
+        public static readonly KeywordDescriptor ShapeLightType1 = new KeywordDescriptor()
         {
             displayName = "Shape Light Type 1",
             referenceName = "USE_SHAPE_LIGHT_TYPE_1",
@@ -770,7 +770,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
-        public static KeywordDescriptor ShapeLightType2 = new KeywordDescriptor()
+        public static readonly KeywordDescriptor ShapeLightType2 = new KeywordDescriptor()
         {
             displayName = "Shape Light Type 2",
             referenceName = "USE_SHAPE_LIGHT_TYPE_2",
@@ -779,7 +779,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
-        public static KeywordDescriptor ShapeLightType3 = new KeywordDescriptor()
+        public static readonly KeywordDescriptor ShapeLightType3 = new KeywordDescriptor()
         {
             displayName = "Shape Light Type 3",
             referenceName = "USE_SHAPE_LIGHT_TYPE_3",
@@ -788,7 +788,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
-        public static KeywordDescriptor UseLegacySpriteBlocks = new KeywordDescriptor()
+        public static readonly KeywordDescriptor UseLegacySpriteBlocks = new KeywordDescriptor()
         {
             displayName = "UseLegacySpriteBlocks",
             referenceName = "USELEGACYSPRITEBLOCKS",
@@ -800,7 +800,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #region FieldDescriptors
     static class CoreFields
     {
-        public static FieldDescriptor UseLegacySpriteBlocks = new FieldDescriptor("Universal", "UseLegacySpriteBlocks", "UNIVERSAL_USELEGACYSPRITEBLOCKS");
+        public static readonly FieldDescriptor UseLegacySpriteBlocks = new FieldDescriptor("Universal", "UseLegacySpriteBlocks", "UNIVERSAL_USELEGACYSPRITEBLOCKS");
     }
 #endregion
 }

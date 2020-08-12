@@ -469,7 +469,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 includes = LitIncludes.Meta,
             };
 
-            public static PassDescriptor _2D = new PassDescriptor()
+            public static readonly PassDescriptor _2D = new PassDescriptor()
             {
                 // Definition
                 referenceName = "SHADERPASS_2D",
@@ -493,7 +493,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 includes = LitIncludes._2D,
             };
 
-            public static PassDescriptor DepthNormalOnly = new PassDescriptor()
+            public static readonly PassDescriptor DepthNormalOnly = new PassDescriptor()
             {
                 // Definition
                 displayName = "DepthNormals",
@@ -525,7 +525,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #region PortMasks
         static class LitBlockMasks
         {
-            public static BlockFieldDescriptor[] FragmentLit = new BlockFieldDescriptor[]
+            public static readonly BlockFieldDescriptor[] FragmentLit = new BlockFieldDescriptor[]
             {
                 BlockFields.SurfaceDescription.BaseColor,
                 BlockFields.SurfaceDescription.NormalOS,
@@ -540,7 +540,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 BlockFields.SurfaceDescription.AlphaClipThreshold,
             };
 
-            public static BlockFieldDescriptor[] FragmentComplexLit = new BlockFieldDescriptor[]
+            public static readonly BlockFieldDescriptor[] FragmentComplexLit = new BlockFieldDescriptor[]
             {
                 BlockFields.SurfaceDescription.BaseColor,
                 BlockFields.SurfaceDescription.NormalOS,
@@ -557,7 +557,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 BlockFields.SurfaceDescription.CoatSmoothness,
             };
 
-            public static BlockFieldDescriptor[] FragmentMeta = new BlockFieldDescriptor[]
+            public static readonly BlockFieldDescriptor[] FragmentMeta = new BlockFieldDescriptor[]
             {
                 BlockFields.SurfaceDescription.BaseColor,
                 BlockFields.SurfaceDescription.Emission,
@@ -565,7 +565,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 BlockFields.SurfaceDescription.AlphaClipThreshold,
             };
 
-            public static BlockFieldDescriptor[] FragmentDepthNormals = new BlockFieldDescriptor[]
+            public static readonly BlockFieldDescriptor[] FragmentDepthNormals = new BlockFieldDescriptor[]
             {
                 BlockFields.SurfaceDescription.NormalOS,
                 BlockFields.SurfaceDescription.NormalTS,
@@ -580,7 +580,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #region RequiredFields
         static class LitRequiredFields
         {
-            public static FieldCollection Forward = new FieldCollection()
+            public static readonly FieldCollection Forward = new FieldCollection()
             {
                 StructFields.Attributes.uv1,                            // needed for meta vertex position
                 StructFields.Varyings.positionWS,
@@ -593,7 +593,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
             };
 
-            public static FieldCollection GBuffer = new FieldCollection()
+            public static readonly FieldCollection GBuffer = new FieldCollection()
             {
                 StructFields.Attributes.uv1,                            // needed for meta vertex position
                 StructFields.Varyings.positionWS,
@@ -606,14 +606,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
             };
 
-            public static FieldCollection DepthNormals = new FieldCollection()
+            public static readonly FieldCollection DepthNormals = new FieldCollection()
             {
                 StructFields.Attributes.uv1,                            // needed for meta vertex position
                 StructFields.Varyings.normalWS,
                 StructFields.Varyings.tangentWS,                        // needed for vertex lighting
             };
 
-            public static FieldCollection Meta = new FieldCollection()
+            public static readonly FieldCollection Meta = new FieldCollection()
             {
                 StructFields.Attributes.uv1,                            // needed for meta vertex position
                 StructFields.Attributes.uv2,                            //needed for meta vertex position
@@ -624,7 +624,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #region Defines
 static class LitDefines
 {
-    public static KeywordDescriptor ClearCoat = new KeywordDescriptor()
+    public static readonly KeywordDescriptor ClearCoat = new KeywordDescriptor()
     {
         displayName = "Clear Coat",
         referenceName = "_CLEARCOAT 1",
@@ -633,7 +633,7 @@ static class LitDefines
         scope = KeywordScope.Local,
     };
 
-    public readonly static DefineCollection ComplexLit = new DefineCollection()
+    public static readonly DefineCollection ComplexLit = new DefineCollection()
     {
         {ClearCoat, 1},
     };
@@ -643,7 +643,7 @@ static class LitDefines
 #region Keywords
         static class LitKeywords
         {
-            public readonly static KeywordDescriptor GBufferNormalsOct = new KeywordDescriptor()
+            public static readonly KeywordDescriptor GBufferNormalsOct = new KeywordDescriptor()
             {
                 displayName = "GBuffer normal octaedron encoding",
                 referenceName = "_GBUFFER_NORMALS_OCT",
@@ -652,7 +652,7 @@ static class LitDefines
                 scope = KeywordScope.Global,
             };
 
-			public readonly static KeywordDescriptor ScreenSpaceAmbientOcclusion = new KeywordDescriptor()
+			public static readonly KeywordDescriptor ScreenSpaceAmbientOcclusion = new KeywordDescriptor()
             {
                 displayName = "Screen Space Ambient Occlusion",
                 referenceName = "_SCREEN_SPACE_OCCLUSION",
@@ -661,7 +661,7 @@ static class LitDefines
                 scope = KeywordScope.Global,
             };
 
-            public readonly static KeywordCollection Forward = new KeywordCollection
+            public static readonly KeywordCollection Forward = new KeywordCollection
             {
                 { ScreenSpaceAmbientOcclusion },
                 { CoreKeywordDescriptors.Lightmap },
@@ -674,7 +674,7 @@ static class LitDefines
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
             };
 
-            public readonly static KeywordCollection GBuffer = new KeywordCollection
+            public static readonly KeywordCollection GBuffer = new KeywordCollection
             {
                 { CoreKeywordDescriptors.Lightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
@@ -685,7 +685,7 @@ static class LitDefines
                 { GBufferNormalsOct },
             };
 
-            public readonly static KeywordCollection Meta = new KeywordCollection
+            public static readonly KeywordCollection Meta = new KeywordCollection
             {
                 { CoreKeywordDescriptors.SmoothnessChannel },
             };
@@ -703,7 +703,7 @@ static class LitDefines
             const string kLightingMetaPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/LightingMetaPass.hlsl";
             const string k2DPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBR2DPass.hlsl";
 
-            public static IncludeCollection Forward = new IncludeCollection
+            public static readonly IncludeCollection Forward = new IncludeCollection
             {
                 // Pre-graph
                 { CoreIncludes.CorePregraph },
@@ -715,7 +715,7 @@ static class LitDefines
                 { kForwardPass, IncludeLocation.Postgraph },
             };
 
-            public static IncludeCollection GBuffer = new IncludeCollection
+            public static readonly IncludeCollection GBuffer = new IncludeCollection
             {
                 // Pre-graph
                 { CoreIncludes.CorePregraph },
@@ -728,7 +728,7 @@ static class LitDefines
                 { kPBRGBufferPass, IncludeLocation.Postgraph },
             };
 
-            public static IncludeCollection Meta = new IncludeCollection
+            public static readonly IncludeCollection Meta = new IncludeCollection
             {
                 // Pre-graph
                 { CoreIncludes.CorePregraph },
@@ -740,7 +740,7 @@ static class LitDefines
                 { kLightingMetaPass, IncludeLocation.Postgraph },
             };
 
-            public static IncludeCollection _2D = new IncludeCollection
+            public static readonly IncludeCollection _2D = new IncludeCollection
             {
                 // Pre-graph
                 { CoreIncludes.CorePregraph },
