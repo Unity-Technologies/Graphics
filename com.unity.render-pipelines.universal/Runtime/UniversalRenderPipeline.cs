@@ -195,6 +195,7 @@ namespace UnityEngine.Rendering.Universal
                 camera.gameObject.TryGetComponent(out additionalCameraData);
 
             InitializeCameraData(settings, camera, additionalCameraData, out var cameraData);
+            SkyManager.UpdateCurrentSkySettings(ref cameraData);
             SetupPerCameraShaderConstants(cameraData);
 
             ScriptableRenderer renderer = (additionalCameraData != null) ? additionalCameraData.scriptableRenderer : settings.scriptableRenderer;
@@ -343,6 +344,40 @@ namespace UnityEngine.Rendering.Universal
 			bool needsAlphaChannel = camera.targetTexture == null && Graphics.preserveFramebufferAlpha && PlatformNeedsToKillAlpha();
             cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, cameraData.renderScale,
                 cameraData.isStereoEnabled, cameraData.isHdrEnabled, msaaSamples, needsAlphaChannel);
+
+            {
+                // TODO Can this math be simplified?
+                // TODO HDRP uses simpler math for XR
+                Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
+                Matrix4x4 projectionMatrix = camera.projectionMatrix;
+                float width = camera.pixelWidth;
+                float height = camera.pixelHeight;
+                float aspectRatio = -projectionMatrix.m11 / projectionMatrix.m00;
+                float verticalFoV = camera.GetGateFittedFieldOfView(); // Degrees, multiply by Mathf.Deg2Rad
+                Vector2 lensShift = camera.GetGateFittedLensShift();
+
+                if(aspectRatio < 0)
+                    aspectRatio = width / height;
+
+                float tanHalfVertFoV = Mathf.Tan(0.5f * verticalFoV * Mathf.Deg2Rad);
+
+                float m21 = (1.0f - 2.0f * lensShift.y) * tanHalfVertFoV;
+                float m11 = -2.0f / height * tanHalfVertFoV;
+
+                float m20 = (1.0f - 2.0f * lensShift.x) * tanHalfVertFoV * aspectRatio;
+                float m00 = -2.0f / width * tanHalfVertFoV * aspectRatio;
+
+                var viewSpaceRasterTransform = new Matrix4x4(
+                    new Vector4(m00, 0.0f, 0.0f, 0.0f),
+                    new Vector4(0.0f, m11, 0.0f, 0.0f),
+                    new Vector4(m20, m21, -1.0f, 0.0f),
+                    new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+
+                viewMatrix.SetColumn(3, new Vector4(0, 0, 0, 1));
+                viewMatrix.SetRow(2, -viewMatrix.GetRow(2));
+
+                cameraData.pixelCoordToViewDirMatrix = Matrix4x4.Transpose(viewMatrix.transpose * viewSpaceRasterTransform);
+            }
         }
 
         static void InitializeRenderingData(UniversalRenderPipelineAsset settings, ref CameraData cameraData, ref CullingResults cullResults,

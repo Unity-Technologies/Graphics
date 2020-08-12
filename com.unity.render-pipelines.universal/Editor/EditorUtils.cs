@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -69,5 +70,16 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
         }
+
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T GetEnumValue<T>(this SerializedProperty property)
+            where T : Enum
+            => GetEnumValue_Internal<T>(property);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static T GetEnumValue_Internal<T>(SerializedProperty property)
+            // intValue actually is the value underlying beside the enum
+            => (T)(object)property.intValue;
     }
 }

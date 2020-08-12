@@ -69,6 +69,12 @@ namespace UnityEngine.Rendering.Universal
         public bool isDitheringEnabled;
         public AntialiasingMode antialiasing;
         public AntialiasingQuality antialiasingQuality;
+
+        internal SkyAmbientMode skyAmbientMode { get; set; }
+        internal SkyUpdateContext visualSky { get; set; }
+        internal SkyUpdateContext lightingSky { get; set; }
+
+        internal Matrix4x4 pixelCoordToViewDirMatrix;
     }
 
     [MovedFrom("UnityEngine.Rendering.LWRP")] public struct ShadowData
