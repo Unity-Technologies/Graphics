@@ -417,7 +417,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
 
     Light mainLight = GetMainLight(inputData.shadowCoord);                                      // TODO move this to a separate full-screen single gbuffer pass?
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(1, 1, 1, 1), half4(0, 0, 0, 0)); // TODO move this to a separate full-screen single gbuffer pass?
+    MixRealtimeAndBakedGI(mainLight, inputData.positionWS, inputData.normalWS, inputData.bakedGI, half4(1, 1, 1, 1)); // TODO move this to a separate full-screen single gbuffer pass?
 
     half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
 

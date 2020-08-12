@@ -388,7 +388,7 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     InitializeBRDFData(albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, alpha, brdfData);
 
     Light mainLight = GetMainLight(inputData.shadowCoord);                                      // TODO move this to a separate full-screen single gbuffer pass?
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(1, 1, 1, 1), half4(0, 0, 0, 0)); // TODO move this to a separate full-screen single gbuffer pass?
+    MixRealtimeAndBakedGI(mainLight, inputData.positionWS, inputData.normalWS, inputData.bakedGI, half4(1, 1, 1, 1)); // TODO move this to a separate full-screen single gbuffer pass?
 
     half4 color;
     color.rgb = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);

@@ -306,13 +306,14 @@ float3 ApplyShadowBias(float3 positionWS, float3 normalWS, float3 lightDirection
     return positionWS;
 }
 
-float ApplyShadowFade(float shadowAttenuation, float3 positionWS)
+float ApplyShadowFade(float shadowAttenuation, float bakedShadowAttenuation, float3 positionWS)
 {
     float3 camToPixel = positionWS - _WorldSpaceCameraPos;
     float distanceCamToPixel2 = dot(camToPixel, camToPixel);
 
     float fade = saturate(distanceCamToPixel2 * _MainLightShadowParams.z + _MainLightShadowParams.w);
-    return shadowAttenuation + (1 - shadowAttenuation) * fade * fade;
+    //return shadowAttenuation + (1 - shadowAttenuation) * fade * fade;
+    return lerp(shadowAttenuation, bakedShadowAttenuation, fade * fade);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

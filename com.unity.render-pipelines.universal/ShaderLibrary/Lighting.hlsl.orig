@@ -238,14 +238,8 @@ Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
 {
     int perObjectLightIndex = GetPerObjectLightIndex(i);
     Light light = GetAdditionalPerObjectLight(perObjectLightIndex, positionWS);
-
-    half bakedShadowAttenuation = AdditionalLightBakedShadow(perObjectLightIndex, shadowMask);
-#if defined(_SHADOW_MASK_ALWAYS)
-    light.shadowAttenuation = min(ApplyShadowFade(light.shadowAttenuation, 1, positionWS), bakedShadowAttenuation);
-#else
-    light.shadowAttenuation = ApplyShadowFade(light.shadowAttenuation, bakedShadowAttenuation, positionWS);
-#endif
-
+    half bakedshadow = AdditionalLightBakedShadow(perObjectLightIndex, shadowMask);
+    light.shadowAttenuation = min(light.shadowAttenuation, bakedshadow);
     return light;
 }
 
@@ -678,24 +672,18 @@ half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3
     return GlobalIllumination(brdfData, noClearCoat, 0.0, bakedGI, occlusion, normalWS, viewDirectionWS);
 }
 
-void MixRealtimeAndBakedGI(inout Light light, float3 positionWS, half3 normalWS, inout half3 bakedGI, half4 shadowMask)
+void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI, half4 shadowMask, float4 shadowCoord)
 {
-#if defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_ON)
-    light.shadowAttenuation = ApplyShadowFade(light.shadowAttenuation, 1, positionWS);
-    bakedGI = SubtractDirectMainLightFromLightmap(light, normalWS, bakedGI);
-#elif defined(_SHADOW_MASK_DISTANCE) || defined(_SHADOW_MASK_ALWAYS)
     half maskChannel = _MainLightSpotDir.w - 1;
-    half bakedShadowAttenuation = shadowMask[maskChannel];
-    bakedShadowAttenuation = min(1, bakedShadowAttenuation + 1 - saturate(_MainLightSpotDir.w)); // if channel is 0 it means we do not use baked shadow
-
-#if defined(_SHADOW_MASK_ALWAYS)
-    light.shadowAttenuation = min(ApplyShadowFade(light.shadowAttenuation, 1, positionWS), bakedShadowAttenuation);
+#if defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_ON)
+    bakedGI = SubtractDirectMainLightFromLightmap(light, normalWS, bakedGI);
 #elif defined(_SHADOW_MASK_DISTANCE)
-    light.shadowAttenuation = ApplyShadowFade(light.shadowAttenuation, bakedShadowAttenuation, positionWS);
+    half bakedShadow = BEYOND_SHADOW_FAR(shadowCoord) ? shadowMask[maskChannel] : 1.0;
+#elif defined(_SHADOW_MASK_ALWAYS)
+    half bakedShadow = shadowMask[maskChannel];
 #endif
-
-#else
-    light.shadowAttenuation = ApplyShadowFade(light.shadowAttenuation, 1, positionWS);
+#if defined(_SHADOW_MASK_DISTANCE) || defined(_SHADOW_MASK_ALWAYS)
+    light.shadowAttenuation = min(light.shadowAttenuation, bakedShadow + 1 - saturate(_MainLightSpotDir.w));
 #endif
 }
 
@@ -837,6 +825,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 #endif
 
     Light mainLight = GetMainLight(inputData.shadowCoord);
+    mainLight.shadowAttenuation = ApplyShadowFade(mainLight.shadowAttenuation, inputData.positionWS);
 
     #if defined(_SCREEN_SPACE_OCCLUSION)
         AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(inputData.normalizedScreenSpaceUV);
@@ -849,7 +838,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     shadowMask = inputData.bakedAtten;
 #endif
 
-	MixRealtimeAndBakedGI(mainLight, inputData.positionWS, inputData.normalWS, inputData.bakedGI, shadowMask);
+	MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, shadowMask, inputData.shadowCoord);
     half3 color = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
                                      inputData.bakedGI, surfaceData.occlusion,
                                      inputData.normalWS, inputData.viewDirectionWS);
@@ -862,7 +851,12 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     uint pixelLightCount = GetAdditionalLightsCount();
     for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
     {
+<<<<<<< HEAD
         Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowMask);
+=======
+        Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
+        light.shadowAttenuation = ApplyShadowFade(light.shadowAttenuation, inputData.positionWS);
+>>>>>>> origin/universal/shadow-smooth-fade
         #if defined(_SCREEN_SPACE_OCCLUSION)
             light.color *= aoFactor.directAmbientOcclusion;
         #endif
@@ -901,6 +895,7 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
 half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
 {
     Light mainLight = GetMainLight(inputData.shadowCoord);
+    mainLight.shadowAttenuation = ApplyShadowFade(mainLight.shadowAttenuation, inputData.positionWS);
 
     #if defined(_SCREEN_SPACE_OCCLUSION)
         AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(inputData.normalizedScreenSpaceUV);
@@ -913,7 +908,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     shadowMask = inputData.bakedAtten;
 #endif
 
-    MixRealtimeAndBakedGI(mainLight, inputData.positionWS, inputData.normalWS, inputData.bakedGI, shadowMask);
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, shadowMask, inputData.shadowCoord);
 
     half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
     half3 diffuseColor = inputData.bakedGI + LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
@@ -923,7 +918,12 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     uint pixelLightCount = GetAdditionalLightsCount();
     for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
     {
+<<<<<<< HEAD
         Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowMask);
+=======
+        Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
+        light.shadowAttenuation = ApplyShadowFade(light.shadowAttenuation, inputData.positionWS);
+>>>>>>> origin/universal/shadow-smooth-fade
         #if defined(_SCREEN_SPACE_OCCLUSION)
             light.color *= aoFactor.directAmbientOcclusion;
         #endif
