@@ -3074,18 +3074,21 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (parameters.totalLightCount != 0)
             {
-                // With XR single-pass, we have one set of light bounds per view to iterate over (bounds are in view space for each view)
-                cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_data, resources.convexBoundsBuffer);
-                cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_vBoundsBuffer, resources.AABBBoundsBuffer);
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.GenerateLightAABBs)))
+                {
+                    // With XR single-pass, we have one set of light bounds per view to iterate over (bounds are in view space for each view)
+                    cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_data, resources.convexBoundsBuffer);
+                    cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_vBoundsBuffer, resources.AABBBoundsBuffer);
 
-                ConstantBuffer.Push(cmd, parameters.lightListCB, parameters.screenSpaceAABBShader, HDShaderIDs._ShaderVariablesLightList);
+                    ConstantBuffer.Push(cmd, parameters.lightListCB, parameters.screenSpaceAABBShader, HDShaderIDs._ShaderVariablesLightList);
 
-                const int threadsPerLight = 4;  // Shader: THREADS_PER_LIGHT (4)
-                const int threadsPerGroup = 64; // Shader: THREADS_PER_GROUP (64)
+                    const int threadsPerLight = 4;  // Shader: THREADS_PER_LIGHT (4)
+                    const int threadsPerGroup = 64; // Shader: THREADS_PER_GROUP (64)
 
-                int groupCount = HDUtils.DivRoundUp(parameters.totalLightCount * threadsPerLight, threadsPerGroup);
+                    int groupCount = HDUtils.DivRoundUp(parameters.totalLightCount * threadsPerLight, threadsPerGroup);
 
-                cmd.DispatchCompute(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, groupCount, parameters.viewCount, 1);
+                    cmd.DispatchCompute(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, groupCount, parameters.viewCount, 1);
+                }
             }
         }
 

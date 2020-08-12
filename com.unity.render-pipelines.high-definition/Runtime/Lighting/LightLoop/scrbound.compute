@@ -9,7 +9,7 @@
 // #pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-#pragma kernel GenLightAABB
+#pragma kernel main
 
 /* ------------------------------ Inputs ------------------------------------ */
 
@@ -410,7 +410,7 @@ void UpdateAaBb(uint srcBegin, uint srcSize, float4 vertRingBuffer[MAX_CLIP_VERT
 // *********************************************************************************************
 
 [numthreads(THREADS_PER_GROUP, 1, 1)]
-void GenLightAABB(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
+void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 {
     const uint t        = threadID;
     const uint g        = groupID.x;
