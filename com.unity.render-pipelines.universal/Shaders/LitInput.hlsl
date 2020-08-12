@@ -6,6 +6,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl"
 
+// NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
 CBUFFER_START(UnityPerMaterial)
 float4 _BaseMap_ST;
 half4 _BaseColor;
@@ -17,10 +18,8 @@ half _Metallic;
 half _BumpScale;
 half _Parallax;
 half _OcclusionStrength;
-#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
 half _ClearCoatMask;
 //half _ClearCoatSmoothness; // TODO: enable
-#endif
 CBUFFER_END
 
 // NOTE: Do not ifdef the properties for dots instancing, but ifdef the actual usage.
