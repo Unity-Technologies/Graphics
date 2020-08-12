@@ -767,10 +767,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static KeywordDescriptor MixedLightingSubtractive = new KeywordDescriptor()
         {
             displayName = "Mixed Lighting Subtractive",
-            referenceName = "_MIXED_LIGHTING_SUBTRACTIVE",
-            type = KeywordType.Boolean,
+            referenceName = "",
+            type = KeywordType.Enum,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "Empty", referenceName = "" },
+                new KeywordEntry() { displayName = "Mixed Lighting Subtractive", referenceName = "MIXED_LIGHTING_SUBTRACTIVE" },
+                new KeywordEntry() { displayName = "ShadowMask Always", referenceName = "SHADOW_MASK_ALWAYS" },
+                new KeywordEntry() { displayName = "ShadowMask Distance", referenceName = "SHADOW_MASK_DISTANCE" },
+            }
         };
 
         public static KeywordDescriptor SmoothnessChannel = new KeywordDescriptor()
