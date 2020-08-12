@@ -15,6 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
         DenoiseSSAO,
         UpSampleSSAO,
         ScreenSpaceShadows,
+        GenerateLightAABBs,
         BuildLightList,
         ContactShadows,
         BlitToFinalRTDevBuildOnly,
