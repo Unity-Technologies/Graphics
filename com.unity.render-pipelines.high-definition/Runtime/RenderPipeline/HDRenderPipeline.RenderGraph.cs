@@ -97,6 +97,23 @@ namespace UnityEngine.Rendering.HighDefinition
                                                               m_SkyManager.GetSkyReflection(hdCamera),
                                                               transparent: false);
 
+                switch (GetIndirectDiffuseMode(hdCamera))
+                {
+                    /*
+                    case IndirectDiffuseMode.ScreenSpace:
+                        lightingBuffers.ssrLightingBuffer = RenderSSGI(hdCamera, cmd, renderContext, m_FrameCount);
+                        break;
+                    */
+                    case IndirectDiffuseMode.Raytrace:
+                        lightingBuffers.ssgiLightingBuffer = RenderRayTracedIndirectDiffuse(m_RenderGraph, hdCamera,
+                                                                        prepassOutput.depthBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, m_SkyManager.GetSkyReflection(hdCamera), rayCountTexture,
+                                                                        m_FrameCount, m_ShaderVariablesRayTracingCB);
+                        break;
+                    default:
+                        lightingBuffers.ssgiLightingBuffer = m_RenderGraph.defaultResources.blackTextureXR;
+                        break;
+                }
+
                 StartXRSinglePass(m_RenderGraph, hdCamera);
 
                 // TODO RENDERGRAPH

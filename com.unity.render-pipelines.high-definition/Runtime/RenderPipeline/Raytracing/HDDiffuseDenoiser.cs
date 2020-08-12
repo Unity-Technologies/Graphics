@@ -170,7 +170,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.noisyBuffer = builder.ReadTexture(noisyBuffer);
                 passData.intermediateBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "DiffuseDenoiserIntermediate" });
-                passData.outputBuffer = outputBuffer;
+                passData.outputBuffer = builder.WriteTexture(outputBuffer);
 
                 builder.SetRenderFunc(
                 (DiffuseDenoiserPassData data, RenderGraphContext ctx) =>

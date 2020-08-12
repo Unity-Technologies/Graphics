@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.validationBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8_UNorm, enableRandomWrite = true, name = "ValidationTexture" });
                 passData.historyBuffer = builder.ReadTexture(builder.WriteTexture(historyBuffer));
                 passData.outputBuffer = builder.ReadTexture(builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_UNorm, enableRandomWrite = true, name = "RT Ambient Occlusion" })));
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporal Filter Output" })));
 
                 builder.SetRenderFunc(
                 (TemporalFilterPassData data, RenderGraphContext ctx) =>
