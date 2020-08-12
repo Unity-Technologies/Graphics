@@ -96,6 +96,7 @@
       * [Delta Time](Operator-DeltaTime.md)
       * [Frame Index](Operator-FrameIndex.md)
       * [Local to World](Operator-LocalToWorld.md)
+      * [Main Camera](Operator-MainCamera.md)
       * [Total Time](Operator-TotalTime.md)
       * [World to Local](Operator-WorldToLocal.md)
     * Color
@@ -258,6 +259,8 @@
       * [Sample Texture3D](Operator-SampleTexture3D.md)
       * [Sample TextureCube](Operator-SampleTextureCube.md)
       * [Sample TextureCubeArray](Operator-SampleTextureCubeArray.md)
+    * Utility
+      * [Point Cache](Operator-PointCache.md)
   * System
   * Misc
 * Reference
