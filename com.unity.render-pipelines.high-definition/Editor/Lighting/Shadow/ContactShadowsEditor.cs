@@ -53,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_FadeInDistance, EditorGUIUtility.TrTextContent("Fade In Distance", "Sets the distance over which HDRP fades Contact Shadows in when past the Min Distance. Uses meters."));
                 PropertyField(m_FadeDistance, EditorGUIUtility.TrTextContent("Fade Out Distance", "Sets the distance over which HDRP fades Contact Shadows out when at the Max Distance. Uses meters."));
                 PropertyField(m_Opacity, EditorGUIUtility.TrTextContent("Opacity", "Controls the opacity of the Contact Shadow."));
-                PropertyField(m_Bias, EditorGUIUtility.TrTextContent("Bias", "Controls the bias applied to the screen space ray cast to get contact shadows."));
+                PropertyField(m_Bias, EditorGUIUtility.TrTextContent("Bias", "Controls the bias applied to the screen space ray cast to get contact shadows. Increasing this value can help with self-intersection issues, but can lead to detached contact shadows."));
                 PropertyField(m_Thickness, EditorGUIUtility.TrTextContent("Thickness", "Controls the thickness of the objects found along the ray, essentially thickening the contact shadows."));
 
                 base.OnInspectorGUI();
