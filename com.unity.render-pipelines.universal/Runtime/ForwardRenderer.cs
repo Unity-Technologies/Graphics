@@ -130,6 +130,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            base.Setup(context, ref renderingData);
             Camera camera = renderingData.cameraData.camera;
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
@@ -139,15 +140,12 @@ namespace UnityEngine.Rendering.Universal
             if (isOffscreenDepthTexture)
             {
                 ConfigureCameraTarget(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
-                AddRenderPasses(ref renderingData);
                 EnqueuePass(m_RenderOpaqueForwardPass);
                 EnqueuePass(m_DrawSkyboxPass);
                 EnqueuePass(m_RenderTransparentForwardPass);
                 return;
             }
 
-            // Add render passes and gather the input requirements
-            AddRenderPasses(ref renderingData);
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData);
 
             // Should apply post-processing after rendering this camera?
@@ -249,12 +247,6 @@ namespace UnityEngine.Rendering.Universal
                 ConfigureCameraTarget(activeColorRenderTargetId, activeDepthRenderTargetId);
             }
 
-            int count = activeRenderPassQueue.Count;
-            for (int i = count - 1; i >= 0; i--)
-            {
-                if(activeRenderPassQueue[i] == null)
-                    activeRenderPassQueue.RemoveAt(i);
-            }
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
             if (mainLightShadows)
@@ -447,18 +439,6 @@ namespace UnityEngine.Rendering.Universal
             internal bool requiresDepthPrepass;
             internal bool requiresNormalsTexture;
             internal bool requiresColorTexture;
-        }
-
-        private void AddRenderPasses(ref RenderingData renderingData)
-        {
-            for (int i = 0; i < rendererFeatures.Count; ++i)
-            {
-                if (!rendererFeatures[i].isActive)
-                {
-                    continue;
-                }
-                rendererFeatures[i].AddRenderPasses(this, ref renderingData);
-            }
         }
 
         private RenderPassInputSummary GetRenderPassInputs(ref RenderingData renderingData)

@@ -370,7 +370,10 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData">Current render state information.</param>
         /// <seealso cref="ScriptableRenderPass"/>
         /// <seealso cref="ScriptableRendererFeature"/>
-        public abstract void Setup(ScriptableRenderContext context, ref RenderingData renderingData);
+        public virtual void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            AddRenderPasses(ref renderingData);
+        }
 
         /// <summary>
         /// Override this method to implement the lighting setup for the renderer. You can use this to
@@ -837,6 +840,31 @@ namespace UnityEngine.Rendering.Universal
                 cmd.Clear();
             }
 #endif
+        }
+
+        /// <summary>
+        /// Adds render passes for renderer features.
+        /// <seealso cref="ScriptableRendererFeature"/>
+        /// </summary>
+        /// <param name="renderingData"></param>
+        void AddRenderPasses(ref RenderingData renderingData)
+        {
+            for (int i = 0; i < rendererFeatures.Count; ++i)
+            {
+                if (!rendererFeatures[i].isActive)
+                {
+                    continue;
+                }
+                rendererFeatures[i].AddRenderPasses(this, ref renderingData);
+            }
+
+            // Remove any null render pass that might have been added by user by mistake
+            int count = activeRenderPassQueue.Count;
+            for (int i = count - 1; i >= 0; i--)
+            {
+                if (activeRenderPassQueue[i] == null)
+                    activeRenderPassQueue.RemoveAt(i);
+            }
         }
 
         internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)
