@@ -119,8 +119,11 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracingDirectionalLightShadow,
         RaytracingLightShadow,
         // RTGI
-        RaytracingIntegrateIndirectDiffuse,
+        RaytracingIndirectDiffuseDirectionGeneration,
+        RaytracingIndirectDiffuseEvaluation,
+        RaytracingIndirectDiffuseUpscale,
         RaytracingFilterIndirectDiffuse,
+        // Other ray tracing
         RaytracingDebugOverlay,
         RayTracingRecursiveRendering,
         RayTracingPrepass,

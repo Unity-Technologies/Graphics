@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (aoSettings.denoise)
             {
                 // Evaluate the history's validity
-                float historyValidity = historyValidity = HDRenderPipeline.ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
+                float historyValidity = HDRenderPipeline.EvaluateHistoryValidity(hdCamera);
 
                 // Run the temporal denoiser
                 HDTemporalFilter temporalFilter = m_RenderPipeline.GetTemporalFilter();

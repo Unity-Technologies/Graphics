@@ -700,11 +700,6 @@ namespace UnityEngine.Rendering.HighDefinition
             punctualLightCount = 0;
             areaLightCount = 0;
 
-            // Make sure the buffer is at least of size 1
-            if (m_LightCluster.count != 1)
-            {
-                ResizeClusterBuffer(1);
-            }
             return;
         }
 
