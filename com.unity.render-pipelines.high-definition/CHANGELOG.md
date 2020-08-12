@@ -180,6 +180,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added ray traced reflection support for the render graph version of the pipeline.
 - Added render graph support of RTAO and required denoisers.
 - Added render graph support of RTGI.
+- Supporting RTSSS and Recursive Rendering in the render graph mode.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
