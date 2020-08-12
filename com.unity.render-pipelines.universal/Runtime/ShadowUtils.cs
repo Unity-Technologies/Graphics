@@ -190,13 +190,13 @@ namespace UnityEngine.Rendering.Universal
             float depthBias = -shadowData.bias[shadowLightIndex].x * texelSize;
             float normalBias = -shadowData.bias[shadowLightIndex].y * texelSize;
 
-            if (shadowData.supportsSoftShadows)
+            if (shadowData.supportsSoftShadows && shadowLight.light.shadows == LightShadows.Soft)
             {
                 // TODO: depth and normal bias assume sample is no more than 1 texel away from shadowmap
                 // This is not true with PCF. Ideally we need to do either
                 // cone base bias (based on distance to center sample)
                 // or receiver place bias based on derivatives.
-                // For now we scale it by the PCF kernel size (5x5)
+                // For now we scale it by the PCF kernel size of non-mobile platforms (5x5)
                 const float kernelRadius = 2.5f;
                 depthBias *= kernelRadius;
                 normalBias *= kernelRadius;
