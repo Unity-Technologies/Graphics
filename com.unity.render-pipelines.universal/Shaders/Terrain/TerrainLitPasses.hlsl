@@ -412,8 +412,10 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
 
 // Shadow pass
 
-// x: global clip space bias, y: normal world space bias
-float3 _LightDirection;
+// For Directional lights, this variable contains shadow-casting light's direction.
+// For Spot lights and Point lights, this variable contains shadow-casting light's position (direction is different at each vertex of the shadow casting geometry).
+// This variable is set by UnityEngine.Rendering.Universal.ShadowUtils.SetupShadowCasterConstantBuffer in com.unity.render-pipelines.universal/Runtime/ShadowUtils.cs 
+float3 _ShadowCastingLightParameters;
 
 struct AttributesLean
 {
@@ -443,7 +445,14 @@ VaryingsLean ShadowPassVertex(AttributesLean v)
     float3 positionWS = TransformObjectToWorld(v.position.xyz);
     float3 normalWS = TransformObjectToWorldNormal(v.normalOS);
 
-    float4 clipPos = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, _LightDirection));
+#if _CASTING_DIRECTIONAL_LIGHT_SHADOW
+    float3 lightDirectionWS = _ShadowCastingLightParameters;
+#else
+    float3 lightPositionWS = _ShadowCastingLightParameters;
+    float3 lightDirectionWS = normalize(lightPositionWS - positionWS);
+#endif
+
+    float4 clipPos = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDirectionWS));
 
 #if UNITY_REVERSED_Z
     clipPos.z = min(clipPos.z, clipPos.w * UNITY_NEAR_CLIP_VALUE);

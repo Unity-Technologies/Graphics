@@ -108,6 +108,10 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #define DEPTH_ONLY
             #define SHADOW_CASTER
 
+            // -------------------------------------
+            // Universal Pipeline keywords
+            #pragma multi_compile_vertex _ _CASTING_DIRECTIONAL_LIGHT_SHADOW
+
             #include "SpeedTree7Input.hlsl"
             #include "SpeedTree7Passes.hlsl"
             ENDHLSL
