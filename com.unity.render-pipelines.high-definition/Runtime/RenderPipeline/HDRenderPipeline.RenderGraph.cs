@@ -186,7 +186,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightingBuffers.diffuseLightingBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, lightingBuffers.diffuseLightingBuffer);
                 lightingBuffers.sssBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, lightingBuffers.sssBuffer);
 
-                RenderSubsurfaceScattering(m_RenderGraph, hdCamera, colorBuffer, lightingBuffers, ref prepassOutput);
+                // If ray tracing is enabled for the camera, if the volume override is active and if the RAS is built, we want to do ray traced SSS
+                var settings = hdCamera.volumeStack.GetComponent<SubSurfaceScattering>();
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value && GetRayTracingState())
+                {
+                    colorBuffer = RenderSubsurfaceScatteringRT(m_RenderGraph, hdCamera,
+                                    prepassOutput.depthBuffer, prepassOutput.normalBuffer, colorBuffer,
+                                    lightingBuffers.sssBuffer, lightingBuffers.diffuseLightingBuffer, prepassOutput.motionVectorsBuffer, lightingBuffers.ssgiLightingBuffer);
+                }
+                else
+                    RenderSubsurfaceScattering(m_RenderGraph, hdCamera, colorBuffer, lightingBuffers, ref prepassOutput);
 
                 RenderForwardEmissive(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, cullingResults);
 
@@ -808,6 +817,61 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }
         }
+        class RecursiveRenderingPrepassPassData
+        {
+            public RecursiveRendererParameters parameters;
+            public FrameSettings frameSettings;
+            public TextureHandle depthBuffer;
+            public TextureHandle flagMask;
+            public RendererListHandle opaqueRenderList;
+            public RendererListHandle transparentRenderList;
+            public bool clear;
+        }
+
+        void RenderRayTracingPrepass(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, TextureHandle flagMask, TextureHandle depthBuffer, bool clear)
+        {
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
+                return;
+
+            RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
+            if (!recursiveSettings.enable.value)
+                return;
+
+            using (var builder = renderGraph.AddRenderPass<RecursiveRenderingPrepassPassData>("Recursive Rendering Prepass", out var passData, ProfilingSampler.Get(HDProfileId.RayTracingPrepass)))
+            {
+                passData.frameSettings = hdCamera.frameSettings;
+                passData.depthBuffer = clear ? builder.UseDepthBuffer(depthBuffer, DepthAccess.Read) : builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
+                passData.flagMask = builder.WriteTexture(flagMask);
+                passData.clear = clear;
+                if (clear)
+                {
+                    passData.opaqueRenderList = builder.UseRendererList(renderGraph.CreateRendererList(
+                        CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_RayTracingPrepassNames, stateBlock: m_DepthStateNoWrite)));
+                    passData.transparentRenderList = builder.UseRendererList(renderGraph.CreateRendererList(
+                        CreateTransparentRendererListDesc(cull, hdCamera.camera, m_RayTracingPrepassNames, renderQueueRange: HDRenderQueue.k_RenderQueue_AllTransparentWithLowRes, stateBlock: m_DepthStateNoWrite)));
+                }
+                else
+                {
+                    passData.opaqueRenderList = builder.UseRendererList(renderGraph.CreateRendererList(
+                        CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_RayTracingPrepassNames)));
+                    passData.transparentRenderList = builder.UseRendererList(renderGraph.CreateRendererList(
+                        CreateTransparentRendererListDesc(cull, hdCamera.camera, m_RayTracingPrepassNames)));
+                }
+
+                builder.SetRenderFunc(
+                (RecursiveRenderingPrepassPassData data, RenderGraphContext context) =>
+                {
+                    if (passData.clear)
+                        CoreUtils.SetRenderTarget(context.cmd, passData.flagMask, passData.depthBuffer, clearFlag: ClearFlag.Color, Color.black);
+                    else
+                        CoreUtils.SetRenderTarget(context.cmd, passData.flagMask, passData.depthBuffer);
+
+                    DrawOpaqueRendererList(context.renderContext, context.cmd, hdCamera.frameSettings, data.opaqueRenderList);
+                    DrawTransparentRendererList(context.renderContext, context.cmd, hdCamera.frameSettings, data.transparentRenderList);
+                });
+            }
+        }
+
 
         TextureHandle RenderTransparency(   RenderGraph                 renderGraph,
                                             HDCamera                    hdCamera,
@@ -828,8 +892,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var ssrLightingBuffer = RenderSSR(renderGraph, hdCamera, ref prepassOutput, renderGraph.defaultResources.blackTextureXR, rayCountTexture, skyTexture, transparent: true);
 
-            //RenderRayTracingPrepass(cullingResults, hdCamera, renderContext, cmd, true);
-            //RaytracingRecursiveRender(hdCamera, cmd, renderContext, cullingResults);
+            RenderRayTracingPrepass(renderGraph, cullingResults, hdCamera, prepassOutput.flagMaskBuffer, prepassOutput.depthBuffer, true);
+            colorBuffer = RaytracingRecursiveRender(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.flagMaskBuffer, rayCountTexture);
 
             // TODO RENDERGRAPH: Remove this when we properly convert custom passes to full render graph with explicit color buffer reads.
             // To allow users to fetch the current color buffer, we temporarily bind the camera color buffer
