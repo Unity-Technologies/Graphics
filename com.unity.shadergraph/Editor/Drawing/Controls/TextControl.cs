@@ -178,31 +178,32 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     value_char[2 * index] = evt.newValue[0];
                 if (evt.newValue.Length == 2)
                     value_char[2 * index + 1] = evt.newValue[1];
+                if (evt.newValue.Equals(""))
+                {
+                    value = GetValue();
+                    value_char = value.ToCharArray();
 
+                    value_char[2 * index] = 'x';
+                    value_char[2 * index + 1] = 'x';
+                }
                 for (int i = 0; i < evt.newValue.Length; i++)
                 {
-                    if (evt.newValue[i] < '0' || evt.newValue[i] > '9')
+                    if ((evt.newValue[i] < '0' || evt.newValue[i] > '9') && !evt.newValue.Equals(""))
                     {
-                        EditorApplication.delayCall += () =>
-                        {
-                            field.SetValueWithoutNotify("00");
-                            value = GetValue();
-                            value_char = value.ToCharArray();
-
-                            value_char[2 * index] = '0';
-                            value_char[2 * index+1] = '0';
-                            value = new string(value_char);
-                            SetValue(value);
-                            m_UndoGroup = -1;
-                            this.MarkDirtyRepaint();
-
-                        };
+                        field.SetValueWithoutNotify("00");
+                        value = GetValue();
+                        value_char = value.ToCharArray();
+                        value_char[2 * index] = '0';
+                        value_char[2 * index + 1] = '0';
+                        value = new string(value_char);
+                        SetValue(value);
+                        m_UndoGroup = -1;
+                        this.MarkDirtyRepaint();
                     }
                 }
 
                 value = new string(value_char);
                 SetValue(value);
-                field.SetValueWithoutNotify(value_char[2 * index].ToString() + value_char[2 * index + 1].ToString());
                 m_UndoGroup = -1;
                 this.MarkDirtyRepaint();
             });
