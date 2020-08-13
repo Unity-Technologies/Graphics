@@ -165,6 +165,20 @@ namespace UnityEngine.Rendering
         /// <param name="reset">If set to true, the new width and height will override the old values even if they are not bigger.</param>
         public void SetReferenceSize(int width, int height, MSAASamples msaaSamples, bool reset)
         {
+            SetReferenceSize(width, height, msaaSamples, false, m_MaxWidths, m_MaxHeights);
+        }
+
+        /// <summary>
+        /// Sets the reference rendering size for subsequent rendering for the RTHandle System
+        /// </summary>
+        /// <param name="width">Reference rendering width for subsequent rendering.</param>
+        /// <param name="height">Reference rendering height for subsequent rendering.</param>
+        /// <param name="msaaSamples">Number of MSAA samples for multisampled textures for subsequent rendering.</param>
+        /// <param name="reset">If set to true, the new width and height will override the old values even if they are not bigger.</param>
+        /// <param name="finalWidth">Full resolution width for upscaling to final viewport.</param>
+        /// <param name="finalHeight">Full resolution height for upscaling to final viewport.</param>
+        public void SetReferenceSize(int width, int height, MSAASamples msaaSamples, bool reset, int finalWidth, int finalHeight)
+        {
             m_RTHandleProperties.previousViewportSize = m_RTHandleProperties.currentViewportSize;
             m_RTHandleProperties.previousRenderTargetSize = m_RTHandleProperties.currentRenderTargetSize;
             Vector2 lastFrameMaxSize = new Vector2(GetMaxWidth(), GetMaxHeight());
@@ -195,7 +209,9 @@ namespace UnityEngine.Rendering
 
             if (DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
             {
-                m_RTHandleProperties.rtHandleScale = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+                float xScale = (float)finalWidth / GetMaxWidth();
+                float yScale = (float)finalHeight / GetMaxHeight();
+                m_RTHandleProperties.rtHandleScale = new Vector4(xScale, yScale, m_RTHandleProperties.rtHandleScale.x, m_RTHandleProperties.rtHandleScale.y);
             }
             else
             {
@@ -212,10 +228,12 @@ namespace UnityEngine.Rendering
         /// <param name="enableHWDynamicRes">State of hardware dynamic resolution.</param>
         public void SetHardwareDynamicResolutionState(bool enableHWDynamicRes)
         {
-            if(enableHWDynamicRes != m_HardwareDynamicResRequested && m_AutoSizedRTsArray != null)
+            if(enableHWDynamicRes != m_HardwareDynamicResRequested)
             {
                 m_HardwareDynamicResRequested = enableHWDynamicRes;
 
+                Array.Resize(ref m_AutoSizedRTsArray, m_AutoSizedRTs.Count);
+                m_AutoSizedRTs.CopyTo(m_AutoSizedRTsArray);
                 for (int i = 0, c = m_AutoSizedRTsArray.Length; i < c; ++i)
                 {
                     var rth = m_AutoSizedRTsArray[i];
@@ -232,7 +250,6 @@ namespace UnityEngine.Rendering
                         // Create the render texture
                         renderTexture.Create();
                     }
-
                 }
             }
         }
