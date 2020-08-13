@@ -98,6 +98,23 @@ public class UniversalGraphicsTests
             Assert.Fail("Allocated memory when rendering what is on main camera");
     }
 
+    public static void SetRenderersToDeferred()
+    {
+        UniversalRenderPipelineAsset pipelineAsset = (UniversalRenderPipelineAsset) GraphicsSettings.renderPipelineAsset;
+        if(pipelineAsset != null)
+        {
+            var rendererList = pipelineAsset.m_RendererDataList;
+            for(int i=0; i<rendererList.Length; i++)
+            {
+                if(rendererList[i].GetType() == typeof(ForwardRendererData))
+                {
+                    var forwardData = (ForwardRendererData) rendererList[i];
+                    forwardData.renderingMode = RenderingMode.Deferred;
+                }
+            }
+        }
+    }
+
 #if UNITY_EDITOR
     [TearDown]
     public void DumpImagesInEditor()
