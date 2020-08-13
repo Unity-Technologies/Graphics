@@ -39,6 +39,16 @@ public class UniversalGraphicsTests
         var settings = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
 
+        //Ignore these tests for deferred
+        for(int i=0;i<IgnoreTheseTestsForDeferred.Length;i++)
+        {
+            Debug.Log(testCase.ScenePath.ToString());
+            if (testCase.ScenePath.ToString().Contains(IgnoreTheseTestsForDeferred[i]))
+            {
+               Assert.Ignore("This test is ignored for Deferred Rendering Path."); 
+            }
+        }
+
 #if ENABLE_VR
         if (XRGraphicsAutomatedTests.enabled)
         {
@@ -114,6 +124,17 @@ public class UniversalGraphicsTests
             }
         }
     }
+
+    public static string[] IgnoreTheseTestsForDeferred = new string[]
+    {
+        "010_AdditionalLightsSorted", //expectedImage is for Forward
+        "015_CameraMulti_FPSCam", //feature WIP
+        "111_CameraStackMSAA", //feature WIP
+        "123_CameraStackingClear", //feature WIP
+        "142_SSAO_DepthNormal_Projection", //feature WIP
+        "143_SSAO_DepthNormals_Orthographic" //feature WIP
+    };
+
 
 #if UNITY_EDITOR
     [TearDown]
