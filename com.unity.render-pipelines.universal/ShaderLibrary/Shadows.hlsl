@@ -246,23 +246,6 @@ half MainLightRealtimeShadow(float4 shadowCoord)
     return SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, false);
 }
 
-half GetAdditionalLightShadowStrenth(int lightIndex); //declare
-half AdditionalLightBakedShadow(int lightIndex, half4 shadowMask)
-{
-#if defined(SHADOWS_SHADOWMASK)
-    int chanel = _AdditionalLightsSpotDir[lightIndex].w;
-    if (chanel >= 1 && chanel <= 4)
-    {
-        half bakedShadow = shadowMask[chanel-1];
-        //bakedShadow = LerpWhiteTo(bakedShadow, GetAdditionalLightShadowStrenth(lightIndex));
-        return bakedShadow;
-    }
-    else
-        return 1.0f;
-#endif
-    return 1.0f;
-}
-
 half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
 {
 
@@ -288,6 +271,29 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
 
     half4 shadowParams = GetAdditionalLightShadowParams(lightIndex);
     return SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_AdditionalLightsShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, true);
+}
+
+half MainLightBakedShadow(half4 shadowMask)
+{
+#if defined(SHADOWS_SHADOWMASK)
+    half channel = _MainLightSpotDir.w - 1;
+    half bakedShadowAttenuation = shadowMask[channel];
+    bakedShadowAttenuation = min(1, bakedShadowAttenuation + 1 - saturate(_MainLightSpotDir.w)); // if channel is 0 it means we do not use baked shadow
+    return bakedShadowAttenuation;
+#else
+    return 1.0h;
+#endif
+}
+
+half AdditionalLightBakedShadow(int lightIndex, half4 shadowMask)
+{
+#if defined(SHADOWS_SHADOWMASK)
+    half channel = _AdditionalLightsSpotDir[lightIndex].w - 1;
+    half bakedShadowAttenuation = shadowMask[channel];
+    bakedShadowAttenuation = min(1, bakedShadowAttenuation + 1 - saturate(_MainLightSpotDir.w)); // if channel is 0 it means we do not use baked shadow
+    return bakedShadowAttenuation;
+#endif
+    return 1.0h;
 }
 
 float4 GetShadowCoord(VertexPositionInputs vertexInput)

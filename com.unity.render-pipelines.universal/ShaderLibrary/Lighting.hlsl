@@ -680,22 +680,16 @@ half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3
 
 void MixRealtimeAndBakedGI(inout Light light, float3 positionWS, half3 normalWS, inout half3 bakedGI, half4 shadowMask)
 {
-#if defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_ON)
-    light.shadowAttenuation = ApplyShadowFade(light.shadowAttenuation, 1, positionWS);
-    bakedGI = SubtractDirectMainLightFromLightmap(light, normalWS, bakedGI);
-#elif defined(_SHADOW_MASK_DISTANCE) || defined(_SHADOW_MASK_ALWAYS)
-    half maskChannel = _MainLightSpotDir.w - 1;
-    half bakedShadowAttenuation = shadowMask[maskChannel];
-    bakedShadowAttenuation = min(1, bakedShadowAttenuation + 1 - saturate(_MainLightSpotDir.w)); // if channel is 0 it means we do not use baked shadow
-
+    half bakedShadowAttenuation = MainLightBakedShadow(shadowMask);
 #if defined(_SHADOW_MASK_ALWAYS)
     light.shadowAttenuation = min(ApplyShadowFade(light.shadowAttenuation, 1, positionWS), bakedShadowAttenuation);
-#elif defined(_SHADOW_MASK_DISTANCE)
+#else
     light.shadowAttenuation = ApplyShadowFade(light.shadowAttenuation, bakedShadowAttenuation, positionWS);
+
+#if defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_ON)
+    bakedGI = SubtractDirectMainLightFromLightmap(light, normalWS, bakedGI);
 #endif
 
-#else
-    light.shadowAttenuation = ApplyShadowFade(light.shadowAttenuation, 1, positionWS);
 #endif
 }
 
