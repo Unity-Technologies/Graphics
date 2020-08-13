@@ -31,7 +31,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
-            #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+            #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE _SHADOW_MASK_ALWAYS _SHADOW_MASK_DISTANCE
 
             // -------------------------------------
             // Unity defined keywords
@@ -79,7 +79,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX // _ADDITIONAL_LIGHTS
             //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
-            //#pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+            //#pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE _SHADOW_MASK_ALWAYS _SHADOW_MASK_DISTANCE
 
             // -------------------------------------
             // Unity defined keywords

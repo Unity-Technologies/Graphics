@@ -62,6 +62,12 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
 
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = input.clipPos.xy;
+
+#if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
+    input.bakedAtten = SAMPLE_TEXTURE2D(unity_ShadowMask, samplerunity_ShadowMask, input.lightmapUV);
+#elif defined (SHADOWS_SHADOWMASK)
+    input.bakedAtten = unity_ProbesOcclusion;
+#endif
 }
 
 
