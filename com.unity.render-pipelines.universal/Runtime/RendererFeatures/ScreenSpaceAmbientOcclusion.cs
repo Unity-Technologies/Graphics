@@ -1,5 +1,4 @@
 using System;
-using System.Security.Permissions;
 
 namespace UnityEngine.Rendering.Universal
 {
