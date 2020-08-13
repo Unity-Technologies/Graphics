@@ -440,7 +440,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (node is SubGraphNode subGraphNode && subGraphNode.asset != null)
                 title = subGraphNode.asset.name;
             else
-                title = node.name;
+            {
+                if (node.version < node.latestVersion)
+                {
+                    title = node.name + $" (Deprecated V{node.version})";
+                }
+                else
+                {
+                    title = node.name;
+                }
+            }
         }
 
         public void OnModified(ModificationScope scope)
