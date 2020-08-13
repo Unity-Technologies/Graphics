@@ -57,11 +57,40 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override PreviewProperty GetPreviewMaterialProperty()
         {
-            return new PreviewProperty(propertyType)
+            //Color col = Color.black;
+            //if(PlayerSettings.colorSpace == ColorSpace.Gamma)
+            //{
+            //    if(colorMode == ColorMode.Default)
+            //    {
+            //        col = value;
+            //    }
+            //    else
+            //    {
+            //        col = value;
+            //    }
+            //}
+            //else
+            //{
+            //    col = value.gamma;
+            //}
+            //return new PreviewProperty(propertyType)
+            //{
+            //    name = referenceName,
+            //    colorValue = col
+            //};
+            UnityEngine.Color propColor = value;
+            if (colorMode == ColorMode.HDR)
+            {
+                if (PlayerSettings.colorSpace == ColorSpace.Linear)
+                    propColor = propColor.gamma;
+            }
+            // we use Vector4 type to avoid all of the automatic color conversions of PropertyType.Color
+            return new PreviewProperty(PropertyType.Color)
             {
                 name = referenceName,
-                colorValue = value
+                colorValue = propColor
             };
+
         }        
 
         internal override ShaderInput Copy()
