@@ -420,7 +420,3 @@ publish_all_project:
     commands:
       -  git tag v$(cd com.unity.render-pipelines.core && node -e "console.log(require('./package.json').version)")
       -  git push origin --tags
-    triggers:
-        recurring:
-          -  branch: 7.x.x/release
-             frequency: daily
