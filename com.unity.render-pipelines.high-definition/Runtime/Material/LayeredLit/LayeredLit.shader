@@ -415,7 +415,7 @@ Shader "HDRP/LayeredLit"
     // _ENABLESPECULAROCCLUSION keyword is obsolete but keep here for compatibility. Do not used
     // _ENABLESPECULAROCCLUSION and _SPECULAR_OCCLUSION_X can't exist at the same time (the new _SPECULAR_OCCLUSION replace it)
     // When _ENABLESPECULAROCCLUSION is found we define _SPECULAR_OCCLUSION_X so new code to work
-    #pragma shader_feature _ENABLESPECULAROCCLUSION                     // Non-local 
+    #pragma shader_feature _ENABLESPECULAROCCLUSION                     // Non-local
     #pragma shader_feature _ _SPECULAR_OCCLUSION_NONE _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP // Non-local
     #ifdef _ENABLESPECULAROCCLUSION
     #define _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
@@ -532,6 +532,7 @@ Shader "HDRP/LayeredLit"
             #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
@@ -575,6 +576,7 @@ Shader "HDRP/LayeredLit"
             #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
@@ -623,6 +625,7 @@ Shader "HDRP/LayeredLit"
             #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
@@ -667,6 +670,7 @@ Shader "HDRP/LayeredLit"
             #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
@@ -706,9 +710,10 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch    
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
@@ -749,6 +754,7 @@ Shader "HDRP/LayeredLit"
             #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
@@ -801,9 +807,10 @@ Shader "HDRP/LayeredLit"
             #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ LOD_FADE_CROSSFADE
-            
+
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
