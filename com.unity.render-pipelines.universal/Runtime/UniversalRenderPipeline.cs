@@ -339,22 +339,8 @@ namespace UnityEngine.Rendering.Universal
                 if (baseCameraData.xr.enabled)
                 {
                     xrActive = true;
-                    baseCameraData.cameraTargetDescriptor = baseCameraData.xr.renderTargetDesc;
-                    if (baseCameraData.isHdrEnabled)
-                    {
-                        baseCameraData.cameraTargetDescriptor.graphicsFormat = originalTargetDesc.graphicsFormat;
-                    }
-                    baseCameraData.cameraTargetDescriptor.msaaSamples = originalTargetDesc.msaaSamples;
-                    // Update cameraData for XR
-                    Rect cameraRect = baseCamera.rect;
-                    Rect xrViewport = baseCameraData.xr.GetViewport();
-                    baseCameraData.pixelRect = new Rect(cameraRect.x * xrViewport.width + xrViewport.x,
-                                                        cameraRect.y * xrViewport.height + xrViewport.y,
-                                                        cameraRect.width * xrViewport.width,
-                                                        cameraRect.height * xrViewport.height);
-                    baseCameraData.pixelWidth  = (int)(cameraRect.width * xrViewport.width);
-                    baseCameraData.pixelHeight = (int)(cameraRect.height * xrViewport.height);
-                    baseCameraData.aspectRatio = (float)baseCameraData.pixelWidth / (float)baseCameraData.pixelHeight;
+                    // Helper function for updating cameraData with xrPass Data
+                    m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
                 }
 #endif
             BeginCameraRendering(context, baseCamera);
