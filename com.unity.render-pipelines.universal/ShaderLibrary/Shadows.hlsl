@@ -85,7 +85,7 @@ CBUFFER_END
 
 float4 _ShadowBias; // x: depth bias, y: normal bias
 
-#define BEYOND_SHADOW_FAR(shadowCoord) shadowCoord.z <= 0.0 || shadowCoord.z >= 1.0 // || shadowCoord.x <= 0.0 || shadowCoord.x >= 1.0 || shadowCoord.y <= 0.0 || shadowCoord.y >= 1.0
+#define BEYOND_SHADOW_FAR(shadowCoord) shadowCoord.z <= 0.0 || shadowCoord.z >= 1.0
 
 struct ShadowSamplingData
 {
@@ -248,7 +248,6 @@ half MainLightRealtimeShadow(float4 shadowCoord)
 
 half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
 {
-
 #if !defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
     return 1.0h;
 #endif
@@ -318,7 +317,6 @@ float ApplyShadowFade(float shadowAttenuation, float bakedShadowAttenuation, flo
     float distanceCamToPixel2 = dot(camToPixel, camToPixel);
 
     float fade = saturate(distanceCamToPixel2 * _MainLightShadowParams.z + _MainLightShadowParams.w);
-    //return shadowAttenuation + (1 - shadowAttenuation) * fade * fade;
     return lerp(shadowAttenuation, bakedShadowAttenuation, fade * fade);
 }
 
