@@ -281,21 +281,6 @@ float GetInversePreviousExposureMultiplier()
     return rcp(exposure + (exposure == 0.0)); // zero-div guard
 }
 
-// Helper function for Rendering Layers
-#define DEFAULT_LIGHT_LAYERS (RENDERING_LIGHT_LAYERS_MASK >> RENDERING_LIGHT_LAYERS_MASK_SHIFT)
-#define DEFAULT_DECAL_LAYERS (RENDERING_DECAL_LAYERS_MASK >> RENDERING_DECAL_LAYERS_MASK_SHIFT)
-
-// Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active if save in a buffer
-uint GetMeshRenderingLightLayer()
-{
-    return _EnableLightLayers ? (asuint(unity_RenderingLayer.x) & RENDERING_LIGHT_LAYERS_MASK) >> RENDERING_LIGHT_LAYERS_MASK_SHIFT : DEFAULT_LIGHT_LAYERS;
-}
-
-uint GetMeshRenderingDecalLayer()
-{
-    return _EnableDecalLayers ? ((asuint(unity_RenderingLayer.x) & RENDERING_DECAL_LAYERS_MASK) >> RENDERING_DECAL_LAYERS_MASK_SHIFT) : DEFAULT_DECAL_LAYERS;
-}
-
 // Helper function for indirect control volume
 float GetIndirectDiffuseMultiplier(uint renderingLayers)
 {
