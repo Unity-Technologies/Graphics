@@ -703,7 +703,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingCullLights));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionDirectionGeneration));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionEvaluation));
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionUpscaleGeneration));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionUpscale));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingFilterReflection));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingAmbientOcclusion));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingFilterAmbientOcclusion));
