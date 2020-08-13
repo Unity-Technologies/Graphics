@@ -1122,7 +1122,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Add 'materialType', 'receiveSSR', and 'coatMask' properties
             HDSubShaderUtilities.AddMaterialTypeProperties(collector, (int)(m_MaterialType), m_SSSTransmission);
             HDSubShaderUtilities.AddReceiveSSRProperty(collector, m_ReceivesSSR);
-            HDSubShaderUtilities.AddReceiveSSRProperty(collector, m_ReceiveDecals);
+            HDSubShaderUtilities.AddReceiveDecalProperty(collector, m_ReceiveDecals);
 
             var coatMaskSlot = this.FindSlot<Vector1MaterialSlot>(HDLitMasterNode.CoatMaskSlotId);
             HDSubShaderUtilities.AddCoatProperties(collector, coatMaskSlot?.value ?? 0.0f);
