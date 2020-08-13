@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle DirGenRTR(RenderGraph renderGraph, in RTReflectionDirGenParameters parameters, TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle clearCoatTexture)
         {
-            using (var builder = renderGraph.AddRenderPass<DirGenRTRPassData>("Generating the rays for RTR", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseDirectionGeneration)))
+            using (var builder = renderGraph.AddRenderPass<DirGenRTRPassData>("Generating the rays for RTR", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingReflectionDirectionGeneration)))
             {
                 builder.EnableAsyncCompute(false);
 
@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle UpscaleRTR(RenderGraph renderGraph, in RTReflectionUpscaleParameters parameters,
                                 TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle clearCoatTexture, TextureHandle lightingTexture, TextureHandle hitPointTexture)
         {
-            using (var builder = renderGraph.AddRenderPass<UpscaleRTRPassData>("Upscale the RTR result", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseUpscale)))
+            using (var builder = renderGraph.AddRenderPass<UpscaleRTRPassData>("Upscale the RTR result", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingReflectionUpscale)))
             {
                 builder.EnableAsyncCompute(false);
 

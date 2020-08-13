@@ -351,7 +351,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderRaytracingDeferredLighting(cmd, deferredParamters, deferredResources);
             }
 
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingReflectionUpscaleGeneration)))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingReflectionUpscale)))
             {
                 // Prepare the parameters for the upscale pass
                 RTReflectionUpscaleParameters rtrUpscaleParameters = PrepareRTReflectionUpscaleParameters(hdCamera, settings);
