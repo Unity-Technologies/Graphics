@@ -119,6 +119,11 @@ namespace UnityEngine.Rendering.Universal
 
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
+            Render(renderContext, new List<Camera>(cameras));
+        }
+
+        protected override void Render(ScriptableRenderContext renderContext, List<Camera> cameras)
+        {
             BeginFrameRendering(renderContext, cameras);
 
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
@@ -126,7 +131,7 @@ namespace UnityEngine.Rendering.Universal
             SetupPerFrameShaderConstants();
 
             SortCameras(cameras);
-            for (int i = 0; i < cameras.Length; ++i)
+            for (int i = 0; i < cameras.Count; ++i)
             {
                 var camera = cameras[i];
                 if (IsGameCamera(camera))
