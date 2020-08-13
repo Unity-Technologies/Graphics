@@ -29,6 +29,11 @@ void BuildInputData(Varyings input, SurfaceDescription surfaceDescription, out I
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.sh, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = input.positionCS.xy;
+#if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
+    inputData.bakedAtten = SAMPLE_TEXTURE2D(unity_ShadowMask, samplerunity_ShadowMask, input.lightmapUV);
+#elif defined (SHADOWS_SHADOWMASK)
+    inputData.bakedAtten = unity_ProbesOcclusion;
+#endif
 }
 
 PackedVaryings vert(Attributes input)
