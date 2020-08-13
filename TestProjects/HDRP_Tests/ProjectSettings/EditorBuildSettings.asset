@@ -617,4 +617,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4014_PrecomputedVelocityAlembic.unity
     guid: 908719946298a0c4cb31ea9576b14b3c
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8104_Unlit.unity
+    guid: 7529f10e11b78924b9c1ee1727b1405f
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/5x_SkyAndFog/5004_Pbr_Sky_High_Altitude.unity
+    guid: 3ac6122326e687b439415cfacaf7d48e
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1218_Lit_DiffusionProfiles.unity
+    guid: d2d3cc41bae835b4baad808d950d67a9
   m_configObjects: {}
