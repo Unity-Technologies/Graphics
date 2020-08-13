@@ -75,7 +75,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Input Buffers
             public RTHandle depthStencilBuffer;
             public RTHandle normalBuffer;
-            public ComputeBuffer lightData;
 
             // Intermediate buffers
             public RTHandle directionBuffer;
@@ -97,7 +96,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Input Buffers
             ssprtResources.depthStencilBuffer = m_SharedRTManager.GetDepthStencilBuffer();
             ssprtResources.normalBuffer = m_SharedRTManager.GetNormalBuffer();
-            ssprtResources.lightData = m_LightLoopLightData.lightData;
 
             // Intermediate buffers
             ssprtResources.directionBuffer = directionBuffer;
@@ -153,7 +151,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 ConstantBuffer.PushGlobal(cmd, ssprtParams.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                 // Bind the light & sampling data
-                cmd.SetComputeBufferParam(ssprtParams.screenSpaceShadowCS, ssprtParams.shadowKernel, HDShaderIDs._LightDatas, ssprtResources.lightData);
                 cmd.SetComputeIntParam(ssprtParams.screenSpaceShadowCS, HDShaderIDs._RaytracingTargetAreaLight, ssprtParams.lightIndex);
                 cmd.SetComputeFloatParam(ssprtParams.screenSpaceShadowCS, HDShaderIDs._RaytracingLightRadius, ssprtParams.shapeRadius);
 
