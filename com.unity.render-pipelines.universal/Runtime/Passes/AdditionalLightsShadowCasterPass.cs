@@ -266,7 +266,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                                     visibleLightIndex,
                                     out var shadowTransform,
                                     out m_AdditionalLightsShadowSlices[globalShadowSliceIndex].viewMatrix,
-                                    out m_AdditionalLightsShadowSlices[globalShadowSliceIndex].projectionMatrix);
+                                    out m_AdditionalLightsShadowSlices[globalShadowSliceIndex].projectionMatrix,
+                                    out m_AdditionalLightsShadowSlices[globalShadowSliceIndex].splitData);
 
                                 if (success)
                                 {
@@ -295,7 +296,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                                     fovBias,
                                     out var shadowTransform,
                                     out m_AdditionalLightsShadowSlices[globalShadowSliceIndex].viewMatrix,
-                                    out m_AdditionalLightsShadowSlices[globalShadowSliceIndex].projectionMatrix);
+                                    out m_AdditionalLightsShadowSlices[globalShadowSliceIndex].projectionMatrix,
+                                    out m_AdditionalLightsShadowSlices[globalShadowSliceIndex].splitData);
 
                                 if (success)
                                 {
@@ -442,6 +444,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     ShadowSliceData shadowSliceData = m_AdditionalLightsShadowSlices[globalShadowSliceIndex];
 
                     var settings = new ShadowDrawingSettings(cullResults, visibleLightIndex);
+                    settings.splitData = shadowSliceData.splitData;
                     Vector4 shadowBias = ShadowUtils.GetShadowBias(ref shadowLight, visibleLightIndex,
                         ref shadowData, shadowSliceData.projectionMatrix, shadowSliceData.resolution);
                     ShadowUtils.SetupShadowCasterConstantBuffer(cmd, ref shadowLight, shadowBias);
