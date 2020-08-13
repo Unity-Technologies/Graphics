@@ -16,8 +16,8 @@ The output matrix/vector will be composed of the selected elements from the inpu
 * **Vector2** : The output will be a vector2.
 * **Vector1** : The output will be a vector1.
 
-If the indices are bigger than the input matrix dimension, the node will give an error message on the badge. 
-If the indices are not digits, the input will be auto correct to default value(00). 
+If the indices are bigger than the input matrix dimension, the node will give an error message on the node badge. 
+If the indices are not digits, the input will be auto correct to previous input value. 
 The input string length can only be 2. 
 
 
