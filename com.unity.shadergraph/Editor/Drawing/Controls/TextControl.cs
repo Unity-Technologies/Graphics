@@ -62,6 +62,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             {
                 m_Value = "00000000";
             }
+            SetValue(m_Value);
             AddField(0, subLabel1);
             AddField(1, subLabel2);
             AddField(2, subLabel3);
@@ -173,7 +174,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             {
                 var value = GetValue();
                 value_char = value.ToCharArray();
-
                 if (evt.newValue.Length != 0)
                     value_char[2 * index] = evt.newValue[0];
                 if (evt.newValue.Length == 2)
