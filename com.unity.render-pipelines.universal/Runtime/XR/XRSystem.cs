@@ -317,6 +317,7 @@ namespace UnityEngine.Rendering.Universal
         {
             public static readonly int _SourceTexArraySlice = Shader.PropertyToID("_SourceTexArraySlice");
             public static readonly int _SRGBRead            = Shader.PropertyToID("_SRGBRead");
+            public static readonly int _SRGBWrite           = Shader.PropertyToID("_SRGBWrite");
         }
 
         internal void RenderMirrorView(CommandBuffer cmd, Camera camera)
@@ -349,7 +350,10 @@ namespace UnityEngine.Rendering.Universal
                                                         new Vector4(blitParam.srcRect.width, blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.y);
                             Vector4 scaleBiasRt = new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y);
 
+                            // Eye texture is always gamma corrected, use explicit sRGB read in shader if srcTex formats is not sRGB format. sRGB format will have implicit sRGB read so it is already handled.
                             mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBRead, (blitParam.srcTex.sRGB) ? 0 : 1);
+                            // Perform explicit sRGB write in shader if color space is gamma
+                            mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBWrite, (QualitySettings.activeColorSpace == ColorSpace.Linear) ? 0 : 1);
                             mirrorViewMaterialProperty.SetTexture(ShaderPropertyId.sourceTex, blitParam.srcTex);
                             mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBias, scaleBias);
                             mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
@@ -409,6 +413,7 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBRead, (testRenderTexture.sRGB) ? 0 : 1);
+                    mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBWrite, (QualitySettings.activeColorSpace == ColorSpace.Linear) ? 0 : 1);
                     mirrorViewMaterialProperty.SetTexture(ShaderPropertyId.sourceTex, testRenderTexture);
                     mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBias, scaleBias);
                     mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBiasRt, scaleBiasRT);
