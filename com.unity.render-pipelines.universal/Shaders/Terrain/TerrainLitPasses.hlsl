@@ -110,6 +110,12 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
 
     input.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, input.normalWS);
     input.normalizedScreenSpaceUV = IN.clipPos.xy;
+
+#if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
+    input.bakedAtten = SAMPLE_TEXTURE2D(unity_ShadowMask, samplerunity_ShadowMask, IN.uvMainAndLM.zw);
+#elif defined (SHADOWS_SHADOWMASK)
+    input.bakedAtten = unity_ProbesOcclusion;
+#endif
 }
 
 #ifndef TERRAIN_SPLAT_BASEPASS
