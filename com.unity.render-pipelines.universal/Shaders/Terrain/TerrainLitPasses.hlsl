@@ -111,11 +111,7 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
     input.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, input.normalWS);
     input.normalizedScreenSpaceUV = IN.clipPos.xy;
 
-#if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
-    input.bakedAtten = SAMPLE_TEXTURE2D(unity_ShadowMask, samplerunity_ShadowMask, IN.uvMainAndLM.zw);
-#elif defined (SHADOWS_SHADOWMASK)
-    input.bakedAtten = unity_ProbesOcclusion;
-#endif
+    input.bakedAtten = SAMPLE_SHADOWMASK(IN.uvMainAndLM.zw);
 }
 
 #ifndef TERRAIN_SPLAT_BASEPASS
@@ -394,7 +390,7 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     InitializeBRDFData(albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, alpha, brdfData);
 
     Light mainLight = GetMainLight(inputData.shadowCoord);                                      // TODO move this to a separate full-screen single gbuffer pass?
-    MixRealtimeAndBakedGI(mainLight, inputData.positionWS, inputData.normalWS, inputData.bakedGI, half4(1, 1, 1, 1)); // TODO move this to a separate full-screen single gbuffer pass?
+    MixRealtimeAndBakedGI(mainLight, inputData.positionWS, inputData.normalWS, inputData.bakedGI, inputData.bakedAtten); // TODO move this to a separate full-screen single gbuffer pass?
 
     half4 color;
     color.rgb = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);

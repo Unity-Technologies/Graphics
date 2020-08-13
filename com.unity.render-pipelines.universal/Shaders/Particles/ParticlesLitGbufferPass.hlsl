@@ -87,6 +87,7 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
     output.vertexLighting = half3(0.0h, 0.0h, 0.0h);
     output.bakedGI = SampleSHPixel(input.vertexSH, output.normalWS);
     output.normalizedScreenSpaceUV = input.clipPos.xy;
+    output.bakedAtten = half4(1, 1, 1, 1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -172,7 +173,7 @@ FragmentOutput ParticlesGBufferFragment(VaryingsParticle input)
     InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
 
     Light mainLight = GetMainLight(inputData.shadowCoord);                                      // TODO move this to a separate full-screen single gbuffer pass?
-    MixRealtimeAndBakedGI(mainLight, inputData.positionWS, inputData.normalWS, inputData.bakedGI, half4(1, 1, 1, 1)); // TODO move this to a separate full-screen single gbuffer pass?
+    MixRealtimeAndBakedGI(mainLight, inputData.positionWS, inputData.normalWS, inputData.bakedGI, inputData.bakedAtten); // TODO move this to a separate full-screen single gbuffer pass?
 
     half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.normalWS, inputData.viewDirectionWS);
 

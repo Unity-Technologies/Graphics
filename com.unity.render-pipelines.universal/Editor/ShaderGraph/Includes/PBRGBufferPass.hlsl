@@ -29,11 +29,7 @@ void BuildInputData(Varyings input, SurfaceDescription surfaceDescription, out I
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.sh, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = input.positionCS.xy;
-#if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
-    inputData.bakedAtten = SAMPLE_TEXTURE2D(unity_ShadowMask, samplerunity_ShadowMask, input.lightmapUV);
-#elif defined (SHADOWS_SHADOWMASK)
-    inputData.bakedAtten = unity_ProbesOcclusion;
-#endif
+    inputData.bakedAtten = SAMPLE_SHADOWMASK(input.lightmapUV);
 }
 
 PackedVaryings vert(Attributes input)
@@ -80,7 +76,7 @@ FragmentOutput frag(PackedVaryings packedInput)
     InitializeBRDFData(surfaceDescription.BaseColor, metallic, specular, surfaceDescription.Smoothness, alpha, brdfData);
     
     Light mainLight = GetMainLight(inputData.shadowCoord);                                      // TODO move this to a separate full-screen single gbuffer pass?
-    MixRealtimeAndBakedGI(mainLight, inputData.positionWS, inputData.normalWS, inputData.bakedGI, half4(1, 1, 1, 1)); // TODO move this to a separate full-screen single gbuffer pass?
+    MixRealtimeAndBakedGI(mainLight, inputData.positionWS, inputData.normalWS, inputData.bakedGI, inputData.bakedAtten); // TODO move this to a separate full-screen single gbuffer pass?
 
     half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surfaceDescription.Occlusion, inputData.normalWS, inputData.viewDirectionWS);
 
