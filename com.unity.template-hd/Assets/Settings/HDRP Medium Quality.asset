@@ -148,13 +148,10 @@ MonoBehaviour:
       enableFptlForForwardOpaque: 0
       enableBigTilePrepass: 0
       isFptlEnabled: 0
-  m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
-    type: 2}
+  m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7, type: 2}
   m_RenderPipelineRayTracingResources: {fileID: 0}
-  m_DefaultVolumeProfile: {fileID: 11400000, guid: 7f342610b85f4164f808a1f380dcc668,
-    type: 2}
-  m_DefaultLookDevProfile: {fileID: 11400000, guid: 254c4fe87beb7be4fa72e1681edbed02,
-    type: 2}
+  m_DefaultVolumeProfile: {fileID: 11400000, guid: 7f342610b85f4164f808a1f380dcc668, type: 2}
+  m_DefaultLookDevProfile: {fileID: 11400000, guid: 254c4fe87beb7be4fa72e1681edbed02, type: 2}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 140666621394781
@@ -185,7 +182,7 @@ MonoBehaviour:
     materialQuality: 0
   m_RenderingPathDefaultRealtimeReflectionFrameSettings:
     bitDatas:
-      data1: 139991494955789
+      data1: 139716617048837
       data2: 4539628424389459968
     lodBias: 1
     lodBiasMode: 0
@@ -214,7 +211,7 @@ MonoBehaviour:
     lightLayerName1: InteriorOnly
     lightLayerName2: ExteriorOnly
     lightLayerName3: LampsOnly
-    lightLayerName4: Light Layer 4
+    lightLayerName4: ReflectionsOnly
     lightLayerName5: Light Layer 5
     lightLayerName6: Light Layer 6
     lightLayerName7: Light Layer 7
@@ -250,10 +247,9 @@ MonoBehaviour:
     lightLoopSettings:
       cookieAtlasSize: 512
       cookieFormat: 74
-      pointCookieSize: 256
       cookieAtlasLastValidMip: 0
       cookieTexArraySize: 16
-      planarReflectionAtlasSize: 512
+      planarReflectionAtlasSize: 1024
       reflectionProbeCacheSize: 32
       reflectionCubemapSize: 256
       reflectionCacheCompressed: 1
@@ -268,6 +264,7 @@ MonoBehaviour:
       maxEnvLightsOnScreen: 32
       maxDecalsOnScreen: 512
       maxPlanarReflectionOnScreen: 16
+      maxLightsPerClusterCell: 8
     hdShadowInitParams:
       maxShadowRequests: 128
       directionalShadowsDepthBits: 16
@@ -275,13 +272,13 @@ MonoBehaviour:
       punctualLightShadowAtlas:
         shadowAtlasResolution: 4096
         shadowAtlasDepthBits: 16
-        useDynamicViewportRescale: 1
+        useDynamicViewportRescale: 0
       areaLightShadowAtlas:
-        shadowAtlasResolution: 4096
+        shadowAtlasResolution: 2048
         shadowAtlasDepthBits: 16
-        useDynamicViewportRescale: 1
-      cachedPunctualLightShadowAtlas: 4096
-      cachedAreaLightShadowAtlas: 1024
+        useDynamicViewportRescale: 0
+      cachedPunctualLightShadowAtlas: 2048
+      cachedAreaLightShadowAtlas: 2048
       shadowResolutionDirectional:
         m_Values: 00010000000200000004000000080000
         m_SchemaId:
@@ -304,7 +301,7 @@ MonoBehaviour:
       drawDistance: 1000
       atlasWidth: 2048
       atlasHeight: 2048
-      perChannelMask: 0
+      perChannelMask: 1
     postProcessSettings:
       m_LutSize: 32
       lutFormat: 52
@@ -338,6 +335,7 @@ MonoBehaviour:
       - 13
       DoFResolution: 040000000200000001000000
       DoFHighQualityFiltering: 000101
+      DoFPhysicallyBased: 000000
       MotionBlurSampleCount: 04000000080000000c000000
       BloomRes: 040000000200000002000000
       BloomHighQualityFiltering: 000101

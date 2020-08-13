@@ -140,7 +140,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Temporary workaround otherwise the texture is not bound when executing directly with rendergraph
                 using (var builder = m_RenderGraph.AddRenderPass<TempPassData>("TempPass", out var passData))
                 {
-                    builder.AllowPassPruning(false);
+                    builder.AllowPassCulling(false);
                     builder.SetRenderFunc(
                     (TempPassData data, RenderGraphContext context) =>
                     {
@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
                 // TODO RENDERGRAPH
-                //RenderScreenSpaceShadows(hdCamera, cmd);
+                lightingBuffers.screenspaceShadowBuffer = RenderScreenSpaceShadows(m_RenderGraph, hdCamera);
 
                 var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, volumetricDensityBuffer, gpuLightListOutput.bigTileLightList, shadowResult, m_FrameCount);
 
@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderForwardOpaque(m_RenderGraph, hdCamera, colorBuffer, lightingBuffers, gpuLightListOutput, prepassOutput.depthBuffer, shadowResult, prepassOutput.dbuffer, cullingResults);
 
-                // TODO RENDERGRAPH : Move this to the end after we do move semantic and graph pruning to avoid doing the rest of the frame for nothing
+                // TODO RENDERGRAPH : Move this to the end after we do move semantic and graph culling to avoid doing the rest of the frame for nothing
                 aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Normals, hdCamera, prepassOutput.resolvedNormalBuffer, aovBuffers);
 
                 lightingBuffers.diffuseLightingBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, lightingBuffers.diffuseLightingBuffer);
@@ -190,7 +190,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors)
                     PushFullScreenDebugTexture(m_RenderGraph, prepassOutput.motionVectorsBuffer, FullScreenDebugMode.MotionVectors);
 
-                // TODO RENDERGRAPH : Move this to the end after we do move semantic and graph pruning to avoid doing the rest of the frame for nothing
+                // TODO RENDERGRAPH : Move this to the end after we do move semantic and graph culling to avoid doing the rest of the frame for nothing
                 // Transparent objects may write to the depth and motion vectors buffers.
                 aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.DepthStencil, hdCamera, prepassOutput.resolvedDepthBuffer, aovBuffers);
                 if (m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors)
@@ -200,8 +200,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Distortion) || hdCamera.IsSSREnabled())
                     GenerateColorPyramid(m_RenderGraph, hdCamera, colorBuffer, currentColorPyramid, false);
 
-                var distortionBuffer = AccumulateDistortion(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, cullingResults);
-                RenderDistortion(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, currentColorPyramid, distortionBuffer);
+                using (new RenderGraphProfilingScope(m_RenderGraph, ProfilingSampler.Get(HDProfileId.Distortion)))
+                {
+                    var distortionBuffer = AccumulateDistortion(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, cullingResults);
+                    RenderDistortion(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, currentColorPyramid, distortionBuffer);
+                }
 
                 PushFullScreenDebugTexture(m_RenderGraph, colorBuffer, FullScreenDebugMode.NanTracker);
                 PushFullScreenLightingDebugTexture(m_RenderGraph, colorBuffer);
@@ -224,34 +227,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, colorBuffer, backBuffer, cullingResults, hdCamera);
 
-            // TODO RENDERGRAPH
-            //// If requested, compute histogram of the very final image
-            //if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView)
-            //{
-            //    m_PostProcessSystem.GenerateDebugImageHistogram(cmd, hdCamera, m_IntermediateAfterPostProcessBuffer);
-            //}
+            // If requested, compute histogram of the very final image
+            if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView)
+            {
+                GenerateDebugImageHistogram(m_RenderGraph, hdCamera, postProcessDest);
+            }
             //PushFullScreenExposureDebugTexture(cmd, m_IntermediateAfterPostProcessBuffer);
 
             RenderCustomPass(m_RenderGraph, hdCamera, postProcessDest, prepassOutput.depthBuffer, prepassOutput.normalBuffer, customPassCullingResults, CustomPassInjectionPoint.AfterPostProcess, aovRequest, aovBuffers);
 
-            // TODO RENDERGRAPH
-            //// Copy and rescale depth buffer for XR devices
-            //if (hdCamera.xr.enabled && hdCamera.xr.copyDepth)
-            //{
-            //    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.XRDepthCopy)))
-            //    {
-            //        var depthBuffer = m_SharedRTManager.GetDepthStencilBuffer();
-            //        var rtScale = depthBuffer.rtHandleProperties.rtHandleScale / DynamicResolutionHandler.instance.GetCurrentScale();
-
-            //        m_CopyDepthPropertyBlock.SetTexture(HDShaderIDs._InputDepth, depthBuffer);
-            //        m_CopyDepthPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, rtScale);
-            //        m_CopyDepthPropertyBlock.SetInt("_FlipY", 1);
-
-            //        cmd.SetRenderTarget(target.id, 0, CubemapFace.Unknown, -1);
-            //        cmd.SetViewport(hdCamera.finalViewport);
-            //        CoreUtils.DrawFullScreen(cmd, m_CopyDepth, m_CopyDepthPropertyBlock);
-            //    }
-            //}
+            CopyXRDepth(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, backBuffer);
 
             // In developer build, we always render post process in m_AfterPostProcessBuffer at (0,0) in which we will then render debug.
             // Because of this, we need another blit here to the final render target at the right viewport.
@@ -305,13 +290,15 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var renderGraphParams = new RenderGraphExecuteParams()
             {
+                scriptableRenderContext = renderContext,
+                commandBuffer = cmd,
                 renderingWidth = hdCamera.actualWidth,
                 renderingHeight = hdCamera.actualHeight,
                 msaaSamples = msaaSample,
                 currentFrameIndex = frameIndex
             };
 
-            renderGraph.Execute(renderContext, cmd, renderGraphParams);
+            renderGraph.Execute(renderGraphParams);
         }
 
         class FinalBlitPassData
@@ -388,6 +375,44 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                     }
                 });
+            }
+        }
+
+        class CopyXRDepthPassData
+        {
+            public Material         copyDepth;
+            public Rect             viewport;
+            public TextureHandle    depthBuffer;
+            public TextureHandle    output;
+        }
+
+        void CopyXRDepth(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle output)
+        {
+            // Copy and rescale depth buffer for XR devices
+            if (hdCamera.xr.enabled && hdCamera.xr.copyDepth)
+            {
+                using (var builder = renderGraph.AddRenderPass<CopyXRDepthPassData>("Copy XR Depth", out var passData, ProfilingSampler.Get(HDProfileId.XRDepthCopy)))
+                {
+                    passData.copyDepth = m_CopyDepth;
+                    passData.viewport = hdCamera.finalViewport;
+                    passData.depthBuffer = builder.ReadTexture(depthBuffer);
+                    passData.output = builder.WriteTexture(output);
+
+                    builder.SetRenderFunc(
+                    (CopyXRDepthPassData data, RenderGraphContext ctx) =>
+                    {
+                        var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
+                        RTHandle depthRT = data.depthBuffer;
+
+                        mpb.SetTexture(HDShaderIDs._InputDepth, data.depthBuffer);
+                        mpb.SetVector(HDShaderIDs._BlitScaleBias, depthRT.rtHandleProperties.rtHandleScale / DynamicResolutionHandler.instance.GetCurrentScale());
+                        mpb.SetInt("_FlipY", 1);
+
+                        ctx.cmd.SetRenderTarget(data.output, 0, CubemapFace.Unknown, -1);
+                        ctx.cmd.SetViewport(data.viewport);
+                        CoreUtils.DrawFullScreen(ctx.cmd, data.copyDepth, mpb);
+                    });
+                }
             }
         }
 
@@ -708,7 +733,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class UpsampleTransparentPassData
         {
-            public Material                     upsampleMaterial;
+            public Material         upsampleMaterial;
             public TextureHandle    colorBuffer;
             public TextureHandle    lowResTransparentBuffer;
             public TextureHandle    downsampledDepthBuffer;
@@ -743,6 +768,25 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        class SetGlobalColorPassData
+        {
+            public TextureHandle colorBuffer;
+        }
+
+        void SetGlobalColorForCustomPass(RenderGraph renderGraph, TextureHandle colorBuffer)
+        {
+            using (var builder = renderGraph.AddRenderPass<SetGlobalColorPassData>("SetGlobalColorForCustomPass", out var passData))
+            {
+                passData.colorBuffer = builder.ReadTexture(colorBuffer);
+                builder.SetRenderFunc( (SetGlobalColorPassData data, RenderGraphContext context) =>
+                {
+                    RTHandle colorPyramid = data.colorBuffer;
+                    if (colorPyramid != null)
+                        context.cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, data.colorBuffer);
+                });
+            }
+        }
+
         TextureHandle RenderTransparency(   RenderGraph                 renderGraph,
                                             HDCamera                    hdCamera,
                                             TextureHandle               colorBuffer,
@@ -763,9 +807,9 @@ namespace UnityEngine.Rendering.HighDefinition
             //RenderRayTracingPrepass(cullingResults, hdCamera, renderContext, cmd, true);
             //RaytracingRecursiveRender(hdCamera, cmd, renderContext, cullingResults);
 
-            // TODO RENDERGRAPH
-            //// To allow users to fetch the current color buffer, we temporarily bind the camera color buffer
-            //cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, m_CameraColorBuffer);
+            // TODO RENDERGRAPH: Remove this when we properly convert custom passes to full render graph with explicit color buffer reads.
+            // To allow users to fetch the current color buffer, we temporarily bind the camera color buffer
+            SetGlobalColorForCustomPass(renderGraph, currentColorPyramid);
 
             RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.normalBuffer, customPassCullingResults, CustomPassInjectionPoint.BeforePreRefraction, aovRequest, aovBuffers);
 
@@ -825,7 +869,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (RenderForwardEmissivePassData data, RenderGraphContext context) =>
                 {
-                    HDUtils.DrawRendererList(context.renderContext, context.cmd, data.rendererList);
+                    CoreUtils.DrawRendererList(context.renderContext, context.cmd, data.rendererList);
                     if (data.enableDecals)
                         DecalSystem.instance.RenderForwardEmissive(context.cmd);
                 });
@@ -851,7 +895,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (ForwardPassData data, RenderGraphContext context) =>
                     {
-                        HDUtils.DrawRendererList(context.renderContext, context.cmd, data.rendererList);
+                        CoreUtils.DrawRendererList(context.renderContext, context.cmd, data.rendererList);
                     });
             }
         }
@@ -872,7 +916,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<SendGeometryBuffersPassData>("Send Geometry Buffers", out var passData))
             {
-                builder.AllowPassPruning(false);
+                builder.AllowPassCulling(false);
 
                 passData.parameters = parameters;
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
@@ -895,7 +939,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (var builder = renderGraph.AddRenderPass<SendColorGraphicsBufferPassData>("Send Color Buffers", out var passData))
             {
-                builder.AllowPassPruning(false);
+                builder.AllowPassCulling(false);
 
                 passData.hdCamera = hdCamera;
 
@@ -1032,9 +1076,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void GenerateColorPyramid(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputColor, TextureHandle output, bool isPreRefraction)
         {
-            // Here we cannot rely on automatic pass pruning if the result is not read
+            // Here we cannot rely on automatic pass culling if the result is not read
             // because the output texture is imported from outside of render graph (as it is persistent)
-            // and in this case the pass is considered as having side effect and cannot be pruned.
+            // and in this case the pass is considered as having side effect and cannot be culled.
             if (isPreRefraction)
             {
                 if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction))
@@ -1083,7 +1127,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                             TextureHandle   depthStencilBuffer,
                                             CullingResults  cullResults)
         {
-            using (var builder = renderGraph.AddRenderPass<AccumulateDistortionPassData>("Accumulate Distortion", out var passData, ProfilingSampler.Get(HDProfileId.Distortion)))
+            using (var builder = renderGraph.AddRenderPass<AccumulateDistortionPassData>("Accumulate Distortion", out var passData, ProfilingSampler.Get(HDProfileId.AccumulateDistortion)))
             {
                 passData.frameSettings = hdCamera.frameSettings;
                 passData.distortionBuffer = builder.UseColorBuffer(renderGraph.CreateTexture(

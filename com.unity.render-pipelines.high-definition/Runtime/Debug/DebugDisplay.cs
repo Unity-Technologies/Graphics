@@ -99,6 +99,8 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthOfFieldCoc,
         /// <summary>Display Transparency Overdraw.</summary>
         TransparencyOverdraw,
+        /// <summary>Display Requested Virtual Texturing tiles, colored by the mip</summary>
+        RequestedVirtualTextureTiles,
         /// <summary>Maximum Full Screen Rendering debug mode value (used internally).</summary>
         MaxRenderingFullScreenDebug,
 
@@ -409,7 +411,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>True if any material debug display is enabled.</returns>
         public bool IsDebugMaterialDisplayEnabled()
         {
-            return data.materialDebugSettings.IsDebugDisplayEnabled(); 
+            return data.materialDebugSettings.IsDebugDisplayEnabled();
         }
 
         /// <summary>
@@ -964,7 +966,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 };
 
-                if (data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.HistogramView)
+                if (data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.MeteringWeighted)
+                {
+                    exposureFoldout.children.Add(
+                        new DebugUI.BoolField()
+                        {
+                            displayName = "Display Mask Only",
+                            getter = () => data.lightingDebugSettings.displayMaskOnly,
+                            setter = value => data.lightingDebugSettings.displayMaskOnly = value
+                        });
+                }
+                    if (data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.HistogramView)
                 {
                     exposureFoldout.children.Add(
                         new DebugUI.BoolField()
@@ -1550,10 +1562,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }
 
-            widgetList.AddRange(new DebugUI.Widget[]
+            if (HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportMSAA ?? true)
             {
-                new DebugUI.EnumField { displayName = "MSAA Samples", getter = () => (int)data.msaaSamples, setter = value => data.msaaSamples = (MSAASamples)value, enumNames = s_MsaaSamplesDebugStrings, enumValues = s_MsaaSamplesDebugValues, getIndex = () => data.msaaSampleDebugModeEnumIndex, setIndex = value => data.msaaSampleDebugModeEnumIndex = value },
-            });
+                widgetList.AddRange(new DebugUI.Widget[]
+                {
+                    new DebugUI.EnumField { displayName = "MSAA Samples", getter = () => (int)data.msaaSamples, setter = value => data.msaaSamples = (MSAASamples)value, enumNames = s_MsaaSamplesDebugStrings, enumValues = s_MsaaSamplesDebugValues, getIndex = () => data.msaaSampleDebugModeEnumIndex, setIndex = value => data.msaaSampleDebugModeEnumIndex = value },
+                });
+            }
 
             widgetList.AddRange(new DebugUI.Widget[]
             {
