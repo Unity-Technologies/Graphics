@@ -476,7 +476,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Friendly warning that the user is generating a subgraph that would overwrite the one they are currently working on.
             if (AssetDatabase.AssetPathToGUID(path) == selectedGuid)
             {             
-                if (!EditorUtility.DisplayDialog("Overwrite Current Subgraph", "You are currently working on this Subgraph, are you sure you want to overwrite? This operation cannot be undone.", "Yes", "Cancel"))
+                if (!EditorUtility.DisplayDialog("Overwrite Current Subgraph", "Do you want to overwrite this Sub Graph that you are currently working on? You cannot undo this operation.", "Yes", "Cancel"))
                 {
                     path = "";
                 }
