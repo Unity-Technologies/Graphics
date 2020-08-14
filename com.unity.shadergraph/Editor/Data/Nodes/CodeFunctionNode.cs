@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -20,6 +20,7 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireViewDirection
         , IMayRequirePosition
         , IMayRequireVertexColor
+        , IMayRequireVertexID
     {
         [NonSerialized]
         private List<SlotAttribute> m_Slots = new List<SlotAttribute>();
@@ -556,6 +557,22 @@ namespace UnityEditor.ShaderGraph
                 foreach (var slot in tempSlots)
                 {
                     if (slot.RequiresVertexColor())
+                        return true;
+                }
+
+                return false;
+            }
+        }
+
+        
+        public bool RequiresVertexID(ShaderStageCapability stageCapability)
+        {
+            using (var tempSlots = PooledList<MaterialSlot>.Get())
+            {
+                GetInputSlots(tempSlots);
+                foreach (var slot in tempSlots)
+                {
+                    if (slot.RequiresVertexID())
                         return true;
                 }
 
