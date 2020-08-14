@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return maxViews;
         }
 
-        internal List<(Camera, XRPass)> SetupFrame(Camera[] cameras, bool singlePassAllowed, bool singlePassTestModeActive)
+        internal List<(Camera, XRPass)> SetupFrame(List<Camera> cameras, bool singlePassAllowed, bool singlePassTestModeActive)
         {
             bool xrActive = RefreshXrSdk();
 

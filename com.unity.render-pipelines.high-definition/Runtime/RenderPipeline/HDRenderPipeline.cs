@@ -1495,19 +1495,23 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
+        {
+            Render(renderContext, new List<Camera>(cameras));
+        }
         /// <summary>
         /// RenderPipeline Render implementation.
         /// </summary>
         /// <param name="renderContext">Current ScriptableRenderContext.</param>
         /// <param name="cameras">List of cameras to render.</param>
-        protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
+        protected override void Render(ScriptableRenderContext renderContext, List<Camera> cameras)
         {
 #if UNITY_EDITOR
             if (!m_ResourcesInitialized)
                 return;
 #endif
 
-            if (!m_ValidAPI || cameras.Length == 0)
+            if (!m_ValidAPI || cameras.Count == 0)
                 return;
 
             GetOrCreateDefaultVolume();
