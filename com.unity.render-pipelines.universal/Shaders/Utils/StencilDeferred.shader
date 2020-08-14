@@ -20,6 +20,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         _SimpleLitDirStencilRef ("SimpleLitDirStencilRef", Int) = 0
         _SimpleLitDirStencilReadMask ("SimpleLitDirStencilReadMask", Int) = 0
         _SimpleLitDirStencilWriteMask ("SimpleLitDirStencilWriteMask", Int) = 0
+
+        _ClearStencilRef ("ClearStencilRef", Int) = 0
+        _ClearStencilReadMask ("ClearStencilReadMask", Int) = 0
+        _ClearStencilWriteMask ("ClearStencilWriteMask", Int) = 0
     }
 
     HLSLINCLUDE
@@ -84,7 +88,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         }
         #endif
 
-        #if defined(_DIRECTIONAL) || defined(_FOG)
+        #if defined(_DIRECTIONAL) || defined(_FOG) || defined(_CLEAR_STENCIL_PARTIAL)
         output.positionCS = float4(positionOS.xy, UNITY_RAW_FAR_CLIP_VALUE, 1.0); // Force triangle to be on zfar
         #else
         VertexPositionInputs vertexInput = GetVertexPositionInputs(positionOS.xyz);
@@ -105,7 +109,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     TEXTURE2D_X_HALF(_GBuffer0);
     TEXTURE2D_X_HALF(_GBuffer1);
     TEXTURE2D_X_HALF(_GBuffer2);
-    #if _DEFERRED_SUBTRACTIVE_LIGHTING
+    #ifdef _DEFERRED_SUBTRACTIVE_LIGHTING
     TEXTURE2D_X_HALF(_GBuffer4);
     #endif
 
@@ -138,7 +142,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         half4 gbuffer1 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, my_point_clamp_sampler, screen_uv, 0);
         half4 gbuffer2 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer2, my_point_clamp_sampler, screen_uv, 0);
 
-        #if _DEFERRED_SUBTRACTIVE_LIGHTING
+        #ifdef _DEFERRED_SUBTRACTIVE_LIGHTING
         half4 gbuffer4 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer4, my_point_clamp_sampler, screen_uv, 0);
         half4 shadowMask = gbuffer4;
         #else
@@ -443,6 +447,35 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma vertex Vertex
             #pragma fragment FragFog
             //#pragma enable_d3d11_debug_symbols
+
+            ENDHLSL
+        }
+
+        // 6 - Clear stencil partial
+        Pass
+        {
+            Name "ClearStencilPartial"
+
+            ColorMask 0
+            ZTest NotEqual
+            ZWrite Off
+            Cull Off
+
+            Stencil {
+                Ref [_ClearStencilRef]
+                ReadMask [_ClearStencilReadMask]
+                WriteMask [_ClearStencilWriteMask]
+                Comp NotEqual
+                Pass Zero
+                Fail Keep
+                ZFail Keep
+            }
+
+            HLSLPROGRAM
+
+            #pragma multi_compile _CLEAR_STENCIL_PARTIAL
+            #pragma vertex Vertex
+            #pragma fragment FragWhite
 
             ENDHLSL
         }

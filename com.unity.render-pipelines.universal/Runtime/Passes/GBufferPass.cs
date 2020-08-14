@@ -78,6 +78,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer gbufferCommands = CommandBufferPool.Get();
             using (new ProfilingScope(gbufferCommands, m_ProfilingSampler))
             {
+                // User can stack several scriptable renderers during rendering but deferred renderer should only lit pixels added by this gbuffer pass.
+                // If we detect we are in such case (camera isin  overlay mode), we clear the highest bits of stencil we have control of and use them to
+                // mark what pixel to shade during deferred pass. Gbuffer will always mark pixels using their material types.
+                if (m_DeferredLights.IsOverlay)
+                    m_DeferredLights.ClearStencilPartial(gbufferCommands);
+
                 context.ExecuteCommandBuffer(gbufferCommands);
                 gbufferCommands.Clear();
 

@@ -549,9 +549,19 @@ namespace UnityEngine.Rendering.Universal
 
         void EnqueueDeferred(ref RenderingData renderingData, bool hasDepthPrepass, bool applyMainShadow, bool applyAdditionalShadow)
         {
-            m_GBufferAttachments[m_DeferredLights.GBufferLightingIndex] = m_ActiveCameraColorAttachment; // the last slice is the lighting buffer created in DeferredRenderer.cs
+            // the last slice is the lighting buffer created in DeferredRenderer.cs
+            m_GBufferAttachments[m_DeferredLights.GBufferLightingIndex] = m_ActiveCameraColorAttachment;
 
-            m_DeferredLights.Setup(ref renderingData, applyAdditionalShadow ? m_AdditionalLightsShadowCasterPass : null, hasDepthPrepass, m_DepthTexture, m_DepthInfoTexture, m_TileDepthInfoTexture, m_ActiveCameraDepthAttachment, m_GBufferAttachments);
+            m_DeferredLights.Setup(
+                ref renderingData,
+                applyAdditionalShadow ? m_AdditionalLightsShadowCasterPass : null,
+                hasDepthPrepass,
+                renderingData.cameraData.renderType == CameraRenderType.Overlay,
+                m_DepthTexture,
+                m_DepthInfoTexture,
+                m_TileDepthInfoTexture,
+                m_ActiveCameraDepthAttachment, m_GBufferAttachments
+            );
             
             EnqueuePass(m_GBufferPass);
 
