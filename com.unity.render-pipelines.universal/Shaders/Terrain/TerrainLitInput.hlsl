@@ -6,10 +6,10 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
 
 CBUFFER_START(UnityPerMaterial)
-    half _Surface;
     float4 _MainTex_ST;
     half4 _BaseColor;
     half _Cutoff;
+    half _Surface;
 CBUFFER_END
 
 CBUFFER_START(_Terrain)

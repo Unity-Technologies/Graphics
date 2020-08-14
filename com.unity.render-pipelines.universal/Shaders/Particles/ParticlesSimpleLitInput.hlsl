@@ -4,18 +4,18 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 
 CBUFFER_START(UnityPerMaterial)
-    half _Surface;
     float4 _SoftParticleFadeParams;
     float4 _CameraFadeParams;
     float4 _BaseMap_ST;
     half4 _BaseColor;
     half4 _EmissionColor;
     half4 _BaseColorAddSubDiff;
-    half _Cutoff;
     half4 _SpecColor;
+    half _Cutoff;
     half _Smoothness;
     half _DistortionStrengthScaled;
     half _DistortionBlend;
+    half _Surface;
 CBUFFER_END
 
 TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);

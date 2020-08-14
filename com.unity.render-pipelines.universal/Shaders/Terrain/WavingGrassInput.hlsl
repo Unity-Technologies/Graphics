@@ -13,13 +13,13 @@ CBUFFER_START(TerrainGrass)
 CBUFFER_END
 
 CBUFFER_START(UnityPerMaterial)
-    half _Surface;
     float4 _MainTex_ST;
     half4 _BaseColor;
     half4 _SpecColor;
     half4 _EmissionColor;
     half _Cutoff;
     half _Shininess;
+    half _Surface;
 CBUFFER_END
 
 TEXTURE2D(_MainTex);            SAMPLER(sampler_MainTex);
