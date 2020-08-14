@@ -70,7 +70,7 @@ platforms:
     agents_project_OpenGLCore:
       default:
         type: Unity::VM::osx
-        image: slough-ops/macos-10.14-xcode:stable
+        image: cds-ops/mac-1013-buildfarm-base:latest
         flavor: m1.mac
     agent_package: 
       type: Unity::VM::osx
