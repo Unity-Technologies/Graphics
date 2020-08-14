@@ -61,7 +61,7 @@ You can find these options in either:
 
 * The Render Pipeline Wizard window, inside the **Project Migration Quick-links** section.
 
-This process cannot automatically upgrade custom Materials or Shaders to HDRP. You must [convert custom Materials and Shaders manually](#ManualConversion). This process also cannot upgrade particle shaders. Although HDRP does not support particle shaders, it does provide some Shader Graphs that are compatible with the [Built-in Particle System](https://docs.unity3d.com/Manual/Built-inParticleSystem.html). These Shader Graphs work in a similar way to the built-in particle shaders. To use these Shader Graphs, import the **Particle System Shader Samples** sample:
+This process cannot automatically upgrade custom Materials or Shaders to HDRP. You must [convert custom Materials and Shaders manually](#ManualConversion). This process also cannot upgrade particle shaders. Even though HDRP does not support particle shaders, it does provide some Shader Graphs that are compatible with the [Built-in Particle System](https://docs.unity3d.com/Manual/Built-inParticleSystem.html). These Shader Graphs work in a similar way to the built-in particle shaders. To use these Shader Graphs, import the **Particle System Shader Samples** sample:
 
 1. Open the Package Manager window (menu: **Window > Package Manager**).
 2. Find and click the **High Definition RP** entry.
