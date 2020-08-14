@@ -137,47 +137,8 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            //UnityEngine.Color col = UnityEngine.Color.black;
-            //if(PlayerSettings.colorSpace == ColorSpace.Gamma)
-            //{
-            //    if(color.mode == ColorMode.Default)
-            //    {
-            //        col = color.color.gamma;
-            //    }
-            //    else
-            //    {
-            //        switch(version)
-            //        {
-            //            case 0:
-            //                col = color.color;
-            //                break;
-            //            case 1:
-            //                col = color.color.gamma;
-            //                break;
-            //        }
-            //    }
-            //}
-            //else
-            //{
-            //    if(color.mode == ColorMode.Default)
-            //    {
-            //        col = color.color.gamma.gamma.gamma; 
-            //    }
-            //    else
-            //    {
-            //        switch(version)
-            //        {
-            //            case 0:
-            //                col = color.color;
-            //                break;
-            //            case 1:
-            //                col = color.color.gamma;
-            //                break;
-            //        }
-            //    }
-            //}
-
             UnityEngine.Color propColor = color.color;
+            //why doesn't this seem to matter which colorspace the project is in?
             if (color.mode == ColorMode.HDR)
             {
                 switch(version)

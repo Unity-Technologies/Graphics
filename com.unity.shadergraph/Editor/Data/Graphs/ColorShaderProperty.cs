@@ -57,27 +57,6 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override PreviewProperty GetPreviewMaterialProperty()
         {
-            //Color col = Color.black;
-            //if(PlayerSettings.colorSpace == ColorSpace.Gamma)
-            //{
-            //    if(colorMode == ColorMode.Default)
-            //    {
-            //        col = value;
-            //    }
-            //    else
-            //    {
-            //        col = value;
-            //    }
-            //}
-            //else
-            //{
-            //    col = value.gamma;
-            //}
-            //return new PreviewProperty(propertyType)
-            //{
-            //    name = referenceName,
-            //    colorValue = col
-            //};
             UnityEngine.Color propColor = value;
             if (colorMode == ColorMode.HDR)
             {
