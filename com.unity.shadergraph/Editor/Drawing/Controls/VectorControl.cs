@@ -71,9 +71,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         {
             var dummy = new VisualElement { name = "dummy" };
             var label = new Label(subLabel);
-            label.style.alignSelf = Align.FlexEnd;
             dummy.Add(label);
-            Add(label);
+            Add(dummy);
             var field = new FloatField { userData = index, value = m_Value[index] };
             var dragger = new FieldMouseDragger<double>(field);
             dragger.SetDragZone(label);
