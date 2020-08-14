@@ -1,4 +1,4 @@
-namespace UnityEditor.ShaderGraph
+﻿namespace UnityEditor.ShaderGraph
 {
     [GenerationAPI]
     internal static class StructFields
@@ -50,10 +50,7 @@ namespace UnityEditor.ShaderGraph
             public static FieldDescriptor texCoord3 = new FieldDescriptor(Varyings.name, "texCoord3", "VARYINGS_NEED_TEXCOORD3", ShaderValueType.Float4,
                 subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor color = new FieldDescriptor(Varyings.name, "color", "VARYINGS_NEED_COLOR", ShaderValueType.Float4,
-                subscriptOptions : StructFieldOptions.Optional);
-            //Tracy
-            // public static FieldDescriptor vertexID = new FieldDescriptor(Varyings.name, "vertexID", "VARYINGS_NEED_VERTEXID", ShaderValueType.Uint,
-            //     subscriptOptions : StructFieldOptions.Optional);           
+                subscriptOptions : StructFieldOptions.Optional);       
             public static FieldDescriptor viewDirectionWS = new FieldDescriptor(Varyings.name, "viewDirectionWS", "VARYINGS_NEED_VIEWDIRECTION_WS", ShaderValueType.Float3,
                 subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor screenPosition = new FieldDescriptor(Varyings.name, "screenPosition", "VARYINGS_NEED_SCREENPOSITION", ShaderValueType.Float4,
