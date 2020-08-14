@@ -1,1 +1,0 @@
-Toggles whether the material uses the **NormalMap** property.

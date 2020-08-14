@@ -1,1 +1,0 @@
-Determines how metal-like the surface is.<br/>If you enable **UseMetallicMap**, HDRP ignores this property.

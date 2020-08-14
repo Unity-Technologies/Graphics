@@ -18,28 +18,32 @@ When Unity imports an FBX with a compatible Autodesk shader, it automatically cr
 
 ### Properties
 
-| **Property** | **Description** |
-| -------------------------------------- | ------------------------------------------------------------ |
-|**UseColorMap**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-UseColorMap.md)]|
-|**BaseColor**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-BaseColor.md)]|
-|**ColorMap**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-ColorMap.md)]|
-|**UseNormalMap**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-UseNormalMap.md)]|
-|**NormalMap**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-NormalMap.md)]|
-|**UseMetallicMap**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-UseMetallicMap.md)]|
-|**Metallic**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-Metallic.md)]|
-|**MetallicMap**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-MetallicMap.md)]|
-|**UseRoughnessMap**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-UseRoughnessMap.md)]|
-|**Roughness**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-Roughness.md)]|
-|**RoughnessMap**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-RoughnessMap.md)]|
-|**UseEmissiveMap**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-UseEmissiveMap.md)]|
-|**Emissive**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-Emissive.md)]|
-|**EmissiveMap**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-EmissiveMap.md)]|
-| **UseAoMap**                           | Toggles whether the material uses the **AoMap** property.    |
-| **AoMap**                              | The texture that defines the occlusion map to simulate shadowing of ambient light. |
-|**UVOffset**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-UVOffset.md)]|
-|**UVScale**|[!include[](Snippets/ShaderProperties/Autodesk-Interactive-UVScale.md)]|
-| **Enable GPU Instancing**              | [!include[](Snippets/ShaderProperties/Enable-GPU-Instancing.md)] |
-| **Double Sided Global Illumination**   | [!include[](Snippets/ShaderProperties/Double-Sided-Global-Illumination.md)] |
-| **Emission**                           | [!include[](Snippets/ShaderProperties/Emission.md)] |
-| **- Global Illumination**              | [!include[](Snippets/ShaderProperties/Emission--Global-Illumination.md)] |
-| **Motion Vector For Vertex Animation** | [!include[](Snippets/ShaderProperties/Motion-Vector-For-Vertex-Animation.md)] |
+<table>
+<tr>
+<th>Property</th>
+<th>Description</th>
+</tr>
+[!include[](Snippets/shader-properties-uxml/autodesk-interactive/use-color-map.md)]
+[!include[](Snippets/shader-properties-uxml/autodesk-interactive/base-color.md)]
+[!include[](Snippets/shader-properties-uxml/autodesk-interactive/color-map.md)]
+[!include[](Snippets/shader-properties-uxml/autodesk-interactive/use-normal-map.md)]
+[!include[](Snippets/shader-properties-uxml/autodesk-interactive/normal-map.md)]
+[!include[](Snippets/shader-properties-uxml/autodesk-interactive/use-metallic-map.md)]
+[!include[](Snippets/shader-properties-uxml/autodesk-interactive/metallic.md)]
+[!include[](Snippets/shader-properties-uxml/autodesk-interactive/metallic-map.md)]
+[!include[](Snippets/shader-properties-uxml/autodesk-interactive/use-roughness-map.md)]
+[!include[](Snippets/shader-properties-uxml/autodesk-interactive/roughness.md)]
+[!include[](Snippets/shader-properties-uxml/autodesk-interactive/roughness-map.md)]
+[!include[](Snippets/shader-properties-uxml/autodesk-interactive/use-emissive-map.md)]
+[!include[](Snippets/shader-properties-uxml/autodesk-interactive/emissive.md)]
+[!include[](Snippets/shader-properties-uxml/autodesk-interactive/emissive-map.md)]
+[!include[](Snippets/shader-properties-uxml/autodesk-interactive/use-ao-map.md)]
+[!include[](Snippets/shader-properties-uxml/autodesk-interactive/ao-map.md)]
+[!include[](Snippets/shader-properties-uxml/autodesk-interactive/uv-offset.md)]
+[!include[](Snippets/shader-properties-uxml/autodesk-interactive/uv-scale.md)]
+[!include[](Snippets/shader-properties-uxml/general/enable-gpu-instancing.md)]
+[!include[](Snippets/shader-properties-uxml/general/double-sided-global-illumination.md)]
+[!include[](Snippets/shader-properties-uxml/general/emission.md)]
+[!include[](Snippets/shader-properties-uxml/general/emission-global-illumination.md)]
+[!include[](Snippets/shader-properties-uxml/general/motion-vector-for-vertex-animation.md)]
+</table>
