@@ -31,7 +31,7 @@ To create a new Lit Material, navigate to your Project's Asset window, right-cli
 
 | **Property**                           | **Description**                                              |
 | -------------------------------------- | ------------------------------------------------------------ |
-| **Motion Vector For Vertex Animation** | [!include[](Snippets/ShaderProperties/Motion-Vector-For-Vertex-Animation.md)] |
+| **Motion Vector For Vertex Animation** | Enable the checkbox to make HDRP write motion vectors for GameObjects that use vertex animation. This removes the ghosting that vertex animation can cause. |
 
 ### Surface Inputs
 
@@ -83,13 +83,13 @@ Unity exposes this section if you select **Transparent** from the **Surface Type
 | **Emission Intensity**          | Set the overall strength of the emission effect for this Material.<br />Use the drop-down to select one of the following [physical light units](Physical-Light-Units.md) to use for intensity:<br />&#8226; [Nits](Physical-Light-Units.md#Nits)<br />&#8226; [EV<sub>100</sub>](Physical-Light-Units.md#EV) |
 | **Exposure Weight**             | Use the slider to set how much effect the exposure has on the emission power. For example, if you create a neon tube, you would want to apply the emissive glow effect at every exposure. |
 | **Emission Multiply with Base** | Enable the checkbox to make HDRP use the base color of the Material when it calculates the final color of the emission. When enabled, HDRP multiplies the emission color by the base color to calculate the final emission color. |
-| **Emission**                    | [!include[](Snippets/ShaderProperties/Emission.md)] |
-| **- Global Illumination**       | [!include[](Snippets/ShaderProperties/Emission--Global-Illumination.md)] |
+| **Emission**                    | Toggles whether emission affects global illumination. |
+| **- Global Illumination**       | The mode HDRP uses to determine how color emission interacts with global illumination.<br />&#8226; **Realtime**: Select this option to make emission affect the result of real-time global illumination.<br />&#8226; **Baked**: Select this option to make emission only affect global illumination during the baking process.<br />&#8226; **None**: Select this option to make emission not affect global illumination. |
 
 ### Advanced options
 
 | **Property**                 | **Description**                                              |
 | ---------------------------- | ------------------------------------------------------------ |
-| **Enable GPU instancing**    | [!include[](Snippets/ShaderProperties/Enable-GPU-Instancing.md)] |
+| **Enable GPU instancing**    | Enable the checkbox to tell HDRP to render Meshes with the same geometry and Material in one batch when possible. This makes rendering faster. HDRP cannot render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you cannot [static-batch](https://docs.unity3d.com/Manual/DrawCallBatching.html) GameObjects that have an animation based on the object pivot, but the GPU can instance them. |
 | **Specular Occlusion Mode**  | Use the drop-down to select the mode that HDRP uses to calculate specular occlusion. <br/>&#8226; **Off**: Disables specular occlusion.<br/>&#8226; **From Ambient Occlusion**: Calculates specular occlusion from the ambient occlusion map and the Camera's view vector.<br/>&#8226; **From Bent Normal**: Calculates specular occlusion from the bent normal map. |
 | **Add Precomputed Velocity** | Enable the checkbox to use precomputed velocity information stored in an Alembic file. |
