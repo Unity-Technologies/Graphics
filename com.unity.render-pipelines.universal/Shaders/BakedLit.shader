@@ -138,7 +138,7 @@ Shader "Universal Render Pipeline/Baked Lit"
                     color *= SampleAmbientOcclusion(input.vertex);
                 #endif
                 color = MixFog(color, input.uv0AndFogCoord.z);
-                alpha = OutputAlpha(alpha);
+                alpha = OutputAlpha(alpha, _Surface);
 
                 return half4(color, alpha);
             }
@@ -370,7 +370,7 @@ Shader "Universal Render Pipeline/Baked Lit"
                     color *= SampleAmbientOcclusion(input.vertex);
                 #endif
                 color = MixFog(color, input.uv0AndFogCoord.z);
-                alpha = OutputAlpha(alpha);
+                alpha = OutputAlpha(alpha, _Surface);
 
                 return half4(color, alpha);
             }

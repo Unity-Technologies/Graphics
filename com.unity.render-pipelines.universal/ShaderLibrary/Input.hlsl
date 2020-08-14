@@ -40,11 +40,6 @@ float4 _ScaledScreenParams;
 float4 _MainLightPosition;
 half4 _MainLightColor;
 
-// Global object render pass data containing various settings.
-// x,y,z are currently unused
-// w is used for knowing whether the object is opaque(1) or alpha blended(0)
-half4 _DrawObjectPassData;
-
 // xyz are currently unused
 // w directLightStrength
 half4 _AmbientOcclusionParam;
