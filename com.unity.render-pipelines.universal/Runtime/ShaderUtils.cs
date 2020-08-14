@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.ComponentModel;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
@@ -14,10 +15,10 @@ namespace UnityEngine.Rendering.Universal
         ParticlesSimpleLit,
         ParticlesUnlit,
         BakedLit,
+        [EditorBrowsable(EditorBrowsableState.Never)] [Obsolete("This value is obsolete", false)] Count,
         SpeedTree7,
         SpeedTree7Billboard,
         SpeedTree8,
-        Count
     }
 
     [MovedFrom("UnityEngine.Rendering.LWRP")] public static class ShaderUtils
@@ -32,6 +33,7 @@ namespace UnityEngine.Rendering.Universal
             "Universal Render Pipeline/Particles/Simple Lit",
             "Universal Render Pipeline/Particles/Unlit",
             "Universal Render Pipeline/Baked Lit",
+            "",
             "Universal Render Pipeline/Nature/SpeedTree7",
             "Universal Render Pipeline/Nature/SpeedTree7 Billboard",
             "Universal Render Pipeline/Nature/SpeedTree8",
@@ -40,13 +42,12 @@ namespace UnityEngine.Rendering.Universal
         public static string GetShaderPath(ShaderPathID id)
         {
             int index = (int)id;
-            if (index < 0 && index >= (int)ShaderPathID.Count)
-            {
-                Debug.LogError("Trying to access universal shader path out of bounds");
-                return "";
-            }
+            int arrayLength = s_ShaderPaths.Length;
+            if (arrayLength > 0 && index >= 0 && index < arrayLength)
+                return s_ShaderPaths[index];
 
-            return s_ShaderPaths[index];
+            Debug.LogError("Trying to access universal shader path out of bounds: (" + id + ": " + index + ")");
+            return "";
         }
 
         public static ShaderPathID GetEnumFromPath(string path)
@@ -71,6 +72,7 @@ namespace UnityEngine.Rendering.Universal
             "8516d7a69675844a7a0b7095af7c46af",
             "0406db5a14f94604a8c57ccfbc9f3b46",
             "0ca6dca7396eb48e5849247ffd444914",
+            "",
             "0f4122b9a743b744abe2fb6a0a88868b",
             "5ec81c81908db34429b4f6ddecadd3bd",
             "99134b1f0c27d54469a840832a28fadf",
@@ -79,13 +81,12 @@ namespace UnityEngine.Rendering.Universal
         internal static string GetShaderGUID(ShaderPathID id)
         {
             int index = (int)id;
-            if (index < 0 && index >= (int)ShaderPathID.Count)
-            {
-                Debug.LogError("Trying to access universal shader path out of bounds");
-                return "";
-            }
+            int arrayLength = s_ShaderGUIDs.Length;
+            if (arrayLength > 0 && index >= 0 && index < arrayLength)
+                return s_ShaderGUIDs[index];
 
-            return s_ShaderGUIDs[index];
+            Debug.LogError("Trying to access universal shader GUID out of bounds: (" + id + ": " + index + ")");
+            return "";
         }
 #endif
     }

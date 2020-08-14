@@ -13,7 +13,9 @@ def cmd_not_standalone(project_folder, platform, api, test_platform_args):
     raise Exception('android: only standalone available')
 
 def cmd_standalone(project_folder, platform, api, test_platform_args):
-    base = _cmd_base(project_folder, platform["components"])
+    base = [
+        f'curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat'
+    ]
     base.extend([ 
         f'%ANDROID_SDK_ROOT%\platform-tools\\adb.exe connect %BOKKEN_DEVICE_IP%',
         f'powershell %ANDROID_SDK_ROOT%\platform-tools\\adb.exe devices',
@@ -29,9 +31,9 @@ def cmd_standalone(project_folder, platform, api, test_platform_args):
 def cmd_standalone_build(project_folder, platform, api, test_platform_args):
     base = _cmd_base(project_folder, platform["components"])
     base.extend([  
-        f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME%',
-        f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT%',
-        f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\\NDK %ANDROID_NDK_ROOT%'
+        f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0',
+        f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0',
+        f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\\NDK %ANDROID_NDK_ROOT% || exit 0'
         ])
     
     if api["name"].lower() =='vulkan':
