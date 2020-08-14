@@ -12,14 +12,11 @@ CBUFFER_START(UnityPerMaterial)
     half4 _EmissionColor;
     half4 _BaseColorAddSubDiff;
     half _Cutoff;
-
     half _Metallic;
     half _Smoothness;
     half _BumpScale;
-
     half _DistortionStrengthScaled;
     half _DistortionBlend;
-
     #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
     half _ClearCoatMask;
     //half _ClearCoatSmoothness; // TODO: enable
