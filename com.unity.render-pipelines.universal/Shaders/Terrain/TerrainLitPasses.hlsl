@@ -411,6 +411,7 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
 
 // Shadow pass
 
+// Shadow Casting Light geometric parameters.
 // For Directional lights, this variable contains shadow-casting light's direction.
 // For Spot lights and Point lights, this variable contains shadow-casting light's position (direction is different at each vertex of the shadow casting geometry).
 // This variable is set by UnityEngine.Rendering.Universal.ShadowUtils.SetupShadowCasterConstantBuffer in com.unity.render-pipelines.universal/Runtime/ShadowUtils.cs 
@@ -502,5 +503,14 @@ half4 DepthOnlyFragment(VaryingsLean IN) : SV_TARGET
 #endif
     return 0;
 }
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Deprecated                                                                 /
+///////////////////////////////////////////////////////////////////////////////
+
+// _LightDirection was deprecated, use _ShadowCastingLightParameters instead (contains light direction for directional lights, and light position for punctual lights)
+#define _LightDirection _ShadowCastingLightParameters
+
 
 #endif

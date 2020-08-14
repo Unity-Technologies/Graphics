@@ -20,8 +20,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static int _AdditionalShadowmapSize;
         }
 
-        public static int m_AdditionalLightsWorldToShadow_SSBO;
-        public static int m_AdditionalShadowParams_SSBO;
+        [Obsolete("AdditionalLightsShadowCasterPass.m_AdditionalShadowsBufferId was deprecated. Shadow slice matrix is now passed to the GPU using an entry in buffer m_AdditionalLightsWorldToShadow_SSBO", false)]
+        public static int m_AdditionalShadowsBufferId;
+        [Obsolete("AdditionalLightsShadowCasterPass.m_AdditionalShadowsIndicesId was deprecated. Shadow slice index is now passed to the GPU using last member of an entry in buffer m_AdditionalShadowParams_SSBO", false)]
+        public static int m_AdditionalShadowsIndicesId;
+
+        static int m_AdditionalLightsWorldToShadow_SSBO;
+        static int m_AdditionalShadowParams_SSBO;
         bool m_UseStructuredBuffer;
 
         const int k_ShadowmapBufferBits = 16;
