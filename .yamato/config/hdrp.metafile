@@ -75,6 +75,7 @@ all:
       test_platforms:
         - editmode
         - playmode
+        - Standalone
     - project: HDRP_DXR
       platform: Win
       api: DX12
