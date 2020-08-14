@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -19,7 +19,6 @@ namespace UnityEditor.ShaderGraph
                 {
                     bool disallowedByAnyTargets = false;
                     bool disallowedByAllTargets = true;
-                    //Tracy: owner is a graphData
                     IEnumerable<Target> targets = node.owner.activeTargets;
                     if(node.owner.isSubGraph)
                     {
@@ -27,15 +26,11 @@ namespace UnityEditor.ShaderGraph
                     }
                     foreach (var target in targets)
                     {
-                        //Tracy
-                        //node.owner.AddValidationError(node.objectId, $"node type: {t.ToString()}, target: {target.displayName}, IsAllowedByTarget: {target.IsNodeAllowedByTarget(t)}");
                         //if at least one target doesnt allow a node, it is considered invalid
                         if (!target.IsNodeAllowedByTarget(t))
                         {
                             disallowedByAnyTargets = true;
                             node.isValid = false;
-                            //String this_node_type = node.GetType().ToString();
-                            //Tracy
                             node.owner.AddValidationError(node.objectId, $"{node.name} Node is not allowed by {target.displayName} implementation", Rendering.ShaderCompilerMessageSeverity.Warning);
                             node.owner.m_UnsupportedTargets.Add(target);
                         }

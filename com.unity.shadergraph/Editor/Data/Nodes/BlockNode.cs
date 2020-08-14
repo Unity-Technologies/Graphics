@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
@@ -14,7 +14,6 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireViewDirection
         , IMayRequirePosition
         , IMayRequireVertexColor
-        , IMayRequireVertexID
     {
         [SerializeField]
         string m_SerializedDescriptor;
@@ -206,18 +205,6 @@ namespace UnityEditor.ShaderGraph
             
             var requirements = m_Descriptor.control.GetRequirements();
             return requirements.requiresVertexColor;
-        }
-
-        public bool RequiresVertexID(ShaderStageCapability stageCapability)
-        {
-            if(stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
-                return false;
-
-            if(m_Descriptor.control == null)
-                return false;
-            
-            var requirements = m_Descriptor.control.GetRequirements();
-            return requirements.requiresVertexID;
         }
 
         public override void OnBeforeSerialize()
