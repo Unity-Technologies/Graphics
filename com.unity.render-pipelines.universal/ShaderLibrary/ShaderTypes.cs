@@ -13,6 +13,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         //[GenerateHLSL(PackingRules.Exact, false)]
+        // Currently we do not use this struct in the hlsl side, because worldToShadowMatrix and shadowParams must be stored in arrays of different sizes
         public struct ShadowData // ShadowSliceData
         {
             public Matrix4x4 worldToShadowMatrix; // per-shadow-slice

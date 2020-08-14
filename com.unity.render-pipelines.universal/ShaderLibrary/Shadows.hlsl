@@ -340,6 +340,13 @@ float3 ApplyShadowBias(float3 positionWS, float3 normalWS, float3 lightDirection
 // Renamed -> _MainLightShadowParams
 #define _MainLightShadowData _MainLightShadowParams
 
+#if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
+// _AdditionalShadowsIndices was deprecated - To get the first shadow slice index for a light, use GetAdditionalLightShadowParams(lightIndex).w
+#define _AdditionalShadowsIndices _AdditionalShadowParams_SSBO
+// _AdditionalShadowsBuffer was deprecated - To access a shadow slice's matrix, use _AdditionalLightsWorldToShadow_SSBO[shadowSliceIndex] - To access other shadow parameters, use GetAdditionalLightShadowParams(int lightIndex)
+#define _AdditionalShadowsBuffer _AdditionalLightsWorldToShadow_SSBO
+#endif
+
 // Deprecated: Use GetMainLightShadowParams instead.
 half GetMainLightShadowStrength()
 {
