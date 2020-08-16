@@ -31,7 +31,6 @@ Shader "Hidden/Light2D-Shape"
             {
                 float3 positionOS   : POSITION;
                 float4 color        : COLOR;
-
 #ifdef SPRITE_LIGHT
                 float2 uv           : TEXCOORD0;
 #endif
@@ -49,17 +48,12 @@ Shader "Hidden/Light2D-Shape"
 
             half    _InverseHDREmulationScale;
             half4   _LightColor;
-            half    _FalloffDistance;
-            half4   _FalloffOffset;
 
 #ifdef SPRITE_LIGHT
             TEXTURE2D(_CookieTex);			// This can either be a sprite texture uv or a falloff texture
             SAMPLER(sampler_CookieTex);
-#else
-            half    _FalloffIntensity;
-            TEXTURE2D(_FalloffLookup);
-            SAMPLER(sampler_FalloffLookup);
 #endif
+
             NORMALS_LIGHTING_VARIABLES
             SHADOW_VARIABLES
 
@@ -68,17 +62,12 @@ Shader "Hidden/Light2D-Shape"
                 Varyings o = (Varyings)0;
 
                 float3 positionOS = attributes.positionOS;
-                positionOS.x = positionOS.x + _FalloffDistance * attributes.color.r + (1-attributes.color.a) * _FalloffOffset.x;
-                positionOS.y = positionOS.y + _FalloffDistance * attributes.color.g + (1-attributes.color.a) * _FalloffOffset.y;
-
                 o.positionCS = TransformObjectToHClip(positionOS);
                 o.color = _LightColor * _InverseHDREmulationScale;
                 o.color.a = attributes.color.a;
 
 #ifdef SPRITE_LIGHT
                 o.uv = attributes.uv;
-#else
-                o.uv = float2(o.color.a, _FalloffIntensity);
 #endif
 
                 float4 worldSpacePos;
@@ -93,21 +82,22 @@ Shader "Hidden/Light2D-Shape"
             half4 frag(Varyings i) : SV_Target
             {
                 half4 color = i.color;
+                half attenuation = i.color.a * i.color.a * i.color.a;
 #if SPRITE_LIGHT
                 half4 cookie = SAMPLE_TEXTURE2D(_CookieTex, sampler_CookieTex, i.uv);
     #if USE_ADDITIVE_BLENDING
-
                 color *= cookie * cookie.a;
     #else
                 color *= cookie;
     #endif
 #else
     #if USE_ADDITIVE_BLENDING
-                color *= SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
+                color *= attenuation;
     #else
-                color.a = SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
+                color.a = attenuation;
     #endif
 #endif
+
                 APPLY_NORMALS_LIGHTING(i, color);
                 APPLY_SHADOWS(i, color, _ShadowIntensity);
 

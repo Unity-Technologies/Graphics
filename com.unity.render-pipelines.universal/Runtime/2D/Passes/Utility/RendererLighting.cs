@@ -428,19 +428,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private static uint GetLightMaterialIndex(Light2D light, bool isVolume)
         {
-            var isShape = light.isShapeLight;
+            var isPointLight = light.lightType == Light2D.LightType.Point;
             var bitIndex = 0;
             var volumeBit = isVolume ? 1u << bitIndex : 0u;
             bitIndex++;
-            var shapeBit = isShape ? 1u << bitIndex : 0u;
+            var shapeBit = isPointLight ? 0u : 1u << bitIndex;
             bitIndex++;
             var additiveBit = light.alphaBlendOnOverlap ? 0u : 1u << bitIndex;
             bitIndex++;
             var spriteBit = light.lightType == Light2D.LightType.Sprite ? 1u << bitIndex : 0u;
             bitIndex++;
-            var pointCookieBit = (!isShape && light.IsPointLightCookieValid()) ? 1u << bitIndex : 0u;
+            var pointCookieBit = (isPointLight && light.IsPointLightCookieValid()) ? 1u << bitIndex : 0u;
             bitIndex++;
-            var pointFastQualityBit = (!isShape && light.pointLightQuality == Light2D.PointLightQuality.Fast) ? 1u << bitIndex : 0u;
+            var pointFastQualityBit = (isPointLight && light.pointLightQuality == Light2D.PointLightQuality.Fast) ? 1u << bitIndex : 0u;
             bitIndex++;
             var useNormalMap = light.useNormalMap ? 1u << bitIndex : 0u;
 
@@ -449,14 +449,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private static Material CreateLightMaterial(Renderer2DData rendererData, Light2D light, bool isVolume)
         {
-            var isShape = light.isShapeLight;
+            var isPointLight = light.lightType == Light2D.LightType.Point;
             Material material;
 
             if (isVolume)
-                material = CoreUtils.CreateEngineMaterial(isShape ? rendererData.shapeLightVolumeShader : rendererData.pointLightVolumeShader);
+                material = CoreUtils.CreateEngineMaterial(isPointLight ?  rendererData.pointLightVolumeShader : rendererData.shapeLightVolumeShader);
             else
             {
-                material = CoreUtils.CreateEngineMaterial(isShape ? rendererData.shapeLightShader : rendererData.pointLightShader);
+                material = CoreUtils.CreateEngineMaterial(isPointLight ? rendererData.pointLightShader : rendererData.shapeLightShader);
 
                 if (!light.alphaBlendOnOverlap)
                 {
@@ -470,10 +470,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (light.lightType == Light2D.LightType.Sprite)
                 material.EnableKeyword(k_SpriteLightKeyword);
 
-            if (!isShape && light.IsPointLightCookieValid())
+            if (isPointLight && light.IsPointLightCookieValid())
                 material.EnableKeyword(k_UsePointLightCookiesKeyword);
 
-            if (!isShape && light.pointLightQuality == Light2D.PointLightQuality.Fast)
+            if (isPointLight && light.pointLightQuality == Light2D.PointLightQuality.Fast)
                 material.EnableKeyword(k_LightQualityFastKeyword);
 
             if (light.useNormalMap)

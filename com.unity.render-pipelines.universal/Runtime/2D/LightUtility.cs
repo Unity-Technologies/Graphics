@@ -267,6 +267,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 finalVertices[vertexOffset + i * 2] = point;
 
                 point.color = new Color(extrusionDirs[i].x, extrusionDirs[i].y, 0, 0);
+                point.position.x += falloffDistance * extrusionDirs[i].x;
+                point.position.y += falloffDistance * extrusionDirs[i].y;
                 finalVertices[vertexOffset + i * 2 + 1] =  point;
 
                 finalIndices[indexOffset + i*6 + 0] = (ushort)aIndex;

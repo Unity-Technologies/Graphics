@@ -188,7 +188,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     bounds = LightUtility.GenerateParametricMesh(m_Mesh, 1.412135f, 0, 0, 4);
                     break;
             }
-            boundingSphereRadius = isShapeLight ? CalculateBoundingSphereRadius(bounds) : m_PointLightOuterRadius;
+            boundingSphereRadius = lightType == LightType.Point ? m_PointLightOuterRadius : CalculateBoundingSphereRadius(bounds);
         }
 
         internal bool IsSpriteLightCookieValid()
