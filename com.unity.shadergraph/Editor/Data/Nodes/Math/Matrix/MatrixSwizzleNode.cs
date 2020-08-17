@@ -276,7 +276,6 @@ namespace UnityEditor.ShaderGraph
             inputIndices.SetRow(1, StringToVec4(index_Row1));
             inputIndices.SetRow(2, StringToVec4(index_Row2));
             inputIndices.SetRow(3, StringToVec4(index_Row3));
-            Debug.Log(index_Row0);
 
             //set all unused indices to zero
             for (int r = 0; r < 4; r++)
@@ -369,19 +368,14 @@ namespace UnityEditor.ShaderGraph
                     //If output is a vector
                     if (useIndentity == true)
                     {
-
                         outputValue += Matrix4x4.identity.GetRow(getIndex(indecies[0])[0])[getIndex(indecies[0])[1]];
-
                     }
                     else
                     {
-
                         outputValue += string.Format("{0}[{1}].{2}", inputValue, getIndex(indecies[0])[0], mapComp(getIndex(indecies[0])[1]));
                     }
                 }
-
                 real_outputValue += outputValue;
-
             }
 
             if (IsOutputMatrix(m_OutputSize))

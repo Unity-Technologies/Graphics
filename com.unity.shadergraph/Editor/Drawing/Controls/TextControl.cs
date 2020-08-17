@@ -183,7 +183,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                         value_char[2 * index + 1] = evt.newValue[1];
                 }
 
-
                 if (evt.newValue.Equals(""))
                 {
                     value = GetValue();
@@ -219,7 +218,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
                 value = new string(value_char);
                 SetValue(value);
-                //Debug.Log("value: "+value);
                 m_UndoGroup = -1;
                 this.MarkDirtyRepaint();
             });
