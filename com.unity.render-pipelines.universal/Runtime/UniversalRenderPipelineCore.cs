@@ -420,10 +420,12 @@ namespace UnityEngine.Rendering.Universal
 
             if (camera.targetTexture != null)
             {
-                desc.colorFormat = camera.targetTexture.descriptor.colorFormat;
-                desc.depthBufferBits = camera.targetTexture.descriptor.depthBufferBits;
-                desc.msaaSamples = camera.targetTexture.descriptor.msaaSamples;
-                desc.sRGB = camera.targetTexture.descriptor.sRGB;
+                desc = camera.targetTexture.descriptor;
+                // SystemInfo.SupportsRenderTextureFormat(camera.targetTexture.descriptor.colorFormat)
+                // will assert on R8_SINT since it isn't a valid value of RenderTextureFormat.
+                // If this is fixed then we can implement debug statement to the user explaining why some
+                // RenderTextureFormats available resolves in a black render texture when no warning or error
+                // is given.
             }
             else
             {
