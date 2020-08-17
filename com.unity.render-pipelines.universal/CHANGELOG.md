@@ -39,7 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for 3DsMax's 2021 Simplified Physical Material from FBX files in the Model Importer.
 - Added support for DXT5nm-style normal maps on Android, iOS and tvOS
 - Added Parallax Mapping to the Lit shader (Lit.shader).
-- Added Detail Mapping in Lit shader (Lit.shader).
+- Added the Detail Inputs setting group in the Lit shader (Lit.shader).
 - Added a warning message when a renderer is used with an unsupported graphics API, as the deferred renderer does not officially support GL-based platforms.
 - Added option to skip a number of final bloom iterations.
 - Added support for [Screen Space Ambient Occlusion](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@10.0/manual/post-processing-ssao.html) and a new shader variant _SCREEN_SPACE_OCCLUSION.

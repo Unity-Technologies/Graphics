@@ -58,15 +58,17 @@ The __Surface Inputs__ describe the surface itself. For example, you can use the
 
 ### Detail Inputs
 
-The __Detail Inputs__ allows adding additional details to the surface. Not supported on GPUs that target shader model 2.0 or lower.
+Use the __Detail Inputs__ settings to add extra details to the surface.
+
+__Requirement__: GPU supporting shader model 2.5 or higher.
 
 | Property                    | Description                                                  |
 | --------------------------- | ------------------------------------------------------------ |
-| __Mask__                    | Specifies mask where details needs to be blended with base surface. |
-| __Base Map__                | Adds color to the surface detail. To add the map, click the object picker next to it. The normal map picks up ambient lighting in the environment. <br/>Use the slider next to the setting to modulate the albedo of the detail map (red channel) between 0 and 2. This is an overlay effect. |
-| __Normal Map__              | Adds a normal map to the surface detail. To add the map, click the object picker next to it. The normal map picks up ambient lighting in the environment. <br/>Use the slider next to the setting to modulate the intensity of the detail normal map, between 0 and 2. The default value is 1 and has no scale. |
-| __Tiling__                  | A 2D multiplier value that scales the __Base Map__ and __Normal Map__ to fit across a mesh according to the U and V axes. This is good for surfaces like floors and walls. The default value is 1, which means no scaling. Set a higher value to make the Texture repeat across your mesh. Set a lower value to stretch the Texture. Try different values until you reach your desired effect. |
-| __Offset__                  | The 2D offset that positions the __Base Map__ and __Normal Map__ on the mesh.  To adjust the position on your mesh, move the Texture across the U or V axes. |
+| __Mask__                    | Select a texture that defines areas where Unity overlays the Detail maps over the Surface Inputs maps. The mask uses the alpha channel of the selected texture. The __Tiling__ and __Offset__ settings have no effect on the mask. |
+| __Base Map__                | Select the texture containing the surface details. Unity blends this map with the Surface Base Map using the overlay mode. |
+| __Normal Map__              | Select the texture containing the normal vector data. Use a [normal map](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterNormalMap.html?) to add surface details like bumps, scratches and grooves.<br/>Use the slider next to the setting to change the intensity of the effect of the map. The default value is 1. |
+| __Tiling__                  | Use this setting to scale the __Base Map__ and the __Normal Map__ on the mesh along the U and V axes, so that the maps fit the mesh best. The default value is 1. Select a value higher than one to make the maps repeat themselves across the mesh. Set a value lower than 1 to stretch the maps. |
+| __Offset__                  | The offset that moves the __Base Map__ and the __Normal Map__ on the mesh along the U and V axes. |
 
 ### Advanced
 
