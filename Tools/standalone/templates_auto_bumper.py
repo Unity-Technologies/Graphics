@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+# SRP templates auto bumper. 
+# It updates the Packages/manifest.json & Packages/xxx/package.json files of the xxx template.
+
 import sys, os, json, argparse
 
 
@@ -12,21 +15,35 @@ def update_dependencies(project, file_name, target_dependency, target_version):
                     json_content = json.load(f)
                 dependencies = json_content['dependencies']
                 if target_dependency in dependencies:
-                    print(f'{file_name} - {file}')
                     dependencies[target_dependency] = target_version
                     with open(path, "w") as json_file:
                         json.dump(json_content, json_file, indent=2)
+
+
+def get_dependency_last_version(target_dependency):
+    for subdir, dirs, files in os.walk(target_dependency):
+        for file in files:
+            if file == "package.json":
+                path = os.path.join(subdir, file)
+                with open(path, "r") as f:
+                    json_content = json.load(f)
+                last_version = json_content['version']
+                return last_version
+    return None
 
 
 if __name__ == "__main__":
     parser=argparse.ArgumentParser()
     parser.add_argument('--template-name', help='Name of the template to bump dependencies of')
     parser.add_argument('--target-dependency', help='Name of the target dependency')
-    parser.add_argument('--target-version', help='Name of the target version')
     args=parser.parse_args()
-    if not args.template_name or not args.target_dependency or not args.target_version:
+    if not args.template_name or not args.target_dependency:
         parser.print_usage()
         exit(0)
     else:
-        update_dependencies(args.template_name, "manifest.json", args.target_dependency, args.target_version)
-        update_dependencies(args.template_name, "package.json", args.target_dependency, args.target_version)
+        target_version = get_dependency_last_version(args.target_dependency)
+        if target_version == None:
+            print(f'Could not find the last version of {args.target_dependency}. There is likely an error with the templates auto bumper script.', file=sys.stderr)
+            exit(1)
+        update_dependencies(args.template_name, "manifest.json", args.target_dependency, target_version)
+        update_dependencies(args.template_name, "package.json", args.target_dependency, target_version)
