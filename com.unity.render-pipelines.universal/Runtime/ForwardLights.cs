@@ -3,6 +3,7 @@ using Unity.Collections;
 using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
+using UnityEditor;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -236,76 +237,98 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (m_UseStructuredBuffer)
                 {
-                    // #note we need to use the same reflection texture size to use texture 2d or use the largest and upscale the others
-                    var textureArray = new Texture2DArray(k_ReflectionProbesCubeSize, k_ReflectionProbesCubeSize,
-                                                            Math.Min(reflectionProbes.Length, k_MaxReflectionProbesPerObject),
-                                                            k_useHDR ? TextureFormat.RGBAHalf : TextureFormat.RGBA32, false);
-                    cmd.SetGlobalTexture(m_ReflectionProbeTexturesId, textureArray);
-
-                    var reflectionProbeData = new NativeArray<ShaderInput.ReflectionProbeData>(reflectionProbes.Length, Allocator.Temp);
-                    // #note should we use reflectionProbe.hdr (bool)?
-                    for (int i = 0; i < reflectionProbes.Length && i < k_MaxReflectionProbesPerObject; i++)
+                    TextureFormat texFormat = TextureFormat.RGBAHalf;
+                    if (reflectionProbes[0].texture)
                     {
-                        if (reflectionProbes[i].texture)
-                            Debug.Log(reflectionProbes[i].texture.graphicsFormat);
-                        if (reflectionProbes[i].texture && (k_useHDR && reflectionProbes[i].texture.graphicsFormat == GraphicsFormat.R16G16B16A16_SFloat)
-                                                        || (!k_useHDR && reflectionProbes[i].texture.graphicsFormat == GraphicsFormat.R8G8B8A8_SRGB))
+                        switch (reflectionProbes[0].texture.graphicsFormat)
                         {
-                            ShaderInput.ReflectionProbeData data;
-                            data.position = reflectionProbes[i].transform.position;
-                            data.position.w = reflectionProbes[i].boxProjection ? 1 : 0;
-                            data.boxMin = reflectionProbes[i].bounds.min;
-                            data.boxMin.w = reflectionProbes[i].blendDistance;
-                            data.boxMax = reflectionProbes[i].bounds.max;
-                            data.hdr = reflectionProbes[i].textureHDRDecodeValues;
-                            reflectionProbeData[i] = data;
-
-                            Graphics.CopyTexture(reflectionProbes[i].texture, 0, 0, textureArray, i, 0);
+                            case GraphicsFormat.RGB_BC6H_UFloat:
+                                texFormat = TextureFormat.BC6H;
+                                break;
+                            case GraphicsFormat.R16G16B16A16_SFloat:
+                                texFormat = TextureFormat.RGBAHalf;
+                                break;
+                            case GraphicsFormat.RGBA_DXT5_SRGB:
+                                texFormat = TextureFormat.DXT5;
+                                break;
+                            case GraphicsFormat.R8G8B8A8_SRGB:
+                                texFormat = TextureFormat.RGBA32;
+                                break;
+                            default:
+                                Debug.LogError("Unsupported reflection probe texture format.");
+                                break;
                         }
 
+                        // #note we need to use the same reflection texture size to use texture 2d or use the largest and upscale the others
+                        var textureArray = new Texture2DArray(k_ReflectionProbesCubeSize, k_ReflectionProbesCubeSize,
+                                                                Math.Min(reflectionProbes.Length, k_MaxReflectionProbesPerObject),
+                                                                texFormat, false);
+                        cmd.SetGlobalTexture(m_ReflectionProbeTexturesId, textureArray);
+
+                        var reflectionProbeData = new NativeArray<ShaderInput.ReflectionProbeData>(reflectionProbes.Length, Allocator.Temp);
+                        // #note should we use reflectionProbe.hdr (bool)?
+                        for (int i = 0; i < reflectionProbes.Length && i < k_MaxReflectionProbesPerObject; i++)
+                        {
+                            if (reflectionProbes[i].texture)
+                                Debug.Log(reflectionProbes[i].texture.graphicsFormat);
+                            if (reflectionProbes[i].texture)
+                            {
+                                ShaderInput.ReflectionProbeData data;
+                                data.position = reflectionProbes[i].transform.position;
+                                data.position.w = reflectionProbes[i].boxProjection ? 1 : 0;
+                                data.boxMin = reflectionProbes[i].bounds.min;
+                                data.boxMin.w = reflectionProbes[i].blendDistance;
+                                data.boxMax = reflectionProbes[i].bounds.max;
+                                data.hdr = reflectionProbes[i].textureHDRDecodeValues;
+                                reflectionProbeData[i] = data;
+
+                                Graphics.CopyTexture(reflectionProbes[i].texture, 0, 0, textureArray, i, 0);
+                            }
 
 
-                        //Rendering not happening for the reflection probe textures.
 
-                        //Texture2D tex = Texture2D.CreateExternalTexture(
-                        //    k_ReflectionProbesCubeSize,
-                        //    k_ReflectionProbesCubeSize,
-                        //    TextureFormat.BC6H,
-                        //    false, false,
-                        //    reflectionProbes[i].texture.GetNativeTexturePtr());
-                        //Debug.Log(tex.GetPixel(0,0));
-                        //Debug.Log(.GetPixel(0, 0));
-                        //textureArray.SetPixels(.GetPixels(), i);
-                        //
-                        //textureArray.Apply();
+                            //Rendering not happening for the reflection probe textures.
+
+                            //Texture2D tex = Texture2D.CreateExternalTexture(
+                            //    k_ReflectionProbesCubeSize,
+                            //    k_ReflectionProbesCubeSize,
+                            //    TextureFormat.BC6H,
+                            //    false, false,
+                            //    reflectionProbes[i].texture.GetNativeTexturePtr());
+                            //Debug.Log(tex.GetPixel(0,0));
+                            //Debug.Log(.GetPixel(0, 0));
+                            //textureArray.SetPixels(.GetPixels(), i);
+                            //
+                            //textureArray.Apply();
+
+
+                        }
+                        //Debug.Log(textureArray.GetPixels(1)[0]);
+
+                        var probeDataBuffer = ShaderData.instance.GetReflectionProbeDataBuffer(reflectionProbes.Length);
+                        probeDataBuffer.SetData(reflectionProbeData);
+                        cmd.SetGlobalBuffer(m_ReflectionProbesBufferId, probeDataBuffer);
+
+                        reflectionProbeData.Dispose();
+
+                        // #note handle CubeMapTextureArray cache here?? See HDRP (TextureCacheCubeMap.cs & ReflectionProbeCache.cs)
+                        // Notes @mortenm:
+                        //  This is an important one too: TransferToSlice() in those files
+                        //  to convert on the fly from cube map to panorama the array requires an uncompressed format. If on the other hand you know the platform supports cube map arrays then you could use a compressed format such as BC6
+                        //  but initially to get it running you could just always set it to RGBm or 4xfp16 or 11_11_10F
+                        //  also an unrelated subtlety I wanted to mention since it is easy to miss is NewFrame() must be called on each texture cache once per frame
+                        //  also have you been able to find the blit shader used in TransferToPanoCache()? It's in ../com.unity.render-pipelines.high-definition/Runtime/Core/CoreResources It is CubeToPano.shader
+                        var yellowImg = new Color[16 * 16];
+                        for (int i = 0; i < 16 * 16; i++)
+                            yellowImg[i] = Color.green;
+                        var redImg = new Color[16 * 16];
+                        for (int i = 0; i < 16 * 16; i++)
+                            redImg[i] = Color.red;
+                        //textureArray.SetPixels(yellowImg, 0, 0);
+                        //textureArray.SetPixels(redImg, 1, 0);
 
 
                     }
-                    //Debug.Log(textureArray.GetPixels(1)[0]);
-
-                    var probeDataBuffer = ShaderData.instance.GetReflectionProbeDataBuffer(reflectionProbes.Length);
-                    probeDataBuffer.SetData(reflectionProbeData);
-                    cmd.SetGlobalBuffer(m_ReflectionProbesBufferId, probeDataBuffer);
-
-                    reflectionProbeData.Dispose();
-
-                    // #note handle CubeMapTextureArray cache here?? See HDRP (TextureCacheCubeMap.cs & ReflectionProbeCache.cs)
-                    // Notes @mortenm:
-                    //  This is an important one too: TransferToSlice() in those files
-                    //  to convert on the fly from cube map to panorama the array requires an uncompressed format. If on the other hand you know the platform supports cube map arrays then you could use a compressed format such as BC6
-                    //  but initially to get it running you could just always set it to RGBm or 4xfp16 or 11_11_10F
-                    //  also an unrelated subtlety I wanted to mention since it is easy to miss is NewFrame() must be called on each texture cache once per frame
-                    //  also have you been able to find the blit shader used in TransferToPanoCache()? It's in ../com.unity.render-pipelines.high-definition/Runtime/Core/CoreResources It is CubeToPano.shader
-                    var yellowImg = new Color[16 * 16];
-                    for (int i = 0; i < 16 * 16; i++)
-                        yellowImg[i] = Color.green;
-                    var redImg = new Color[16 * 16];
-                    for (int i = 0; i < 16 * 16; i++)
-                        redImg[i] = Color.red;
-                    //textureArray.SetPixels(yellowImg, 0, 0);
-                    //textureArray.SetPixels(redImg, 1, 0);
-
-
                 }
                 else
                 {
