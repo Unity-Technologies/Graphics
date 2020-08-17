@@ -75,7 +75,7 @@ all_smoke_tests_trunk:
 all_project_ci_trunk:
     name: _ABV for SRP repository - trunk
     dependencies:
-      -  path: .yamato/_packages.yml#all_package_ci_trunk
+      -  path: .yamato/_projectcontext.yml#all_package_ci_project_trunk
          rerun: on-new-revision
       -  path: .yamato/all-universal.yml#All_Universal_trunk
          rerun: on-new-revision
@@ -109,6 +109,14 @@ all_project_ci_nightly_trunk:
       -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_editmode_trunk
          rerun: on-new-revision
       -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_trunk
+         rerun: on-new-revision
+      -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_editmode_trunk
+         rerun: on-new-revision
+      -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_playmode_trunk
+         rerun: on-new-revision
+      -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_editmode_trunk
+         rerun: on-new-revision
+      -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_playmode_trunk
          rerun: on-new-revision
     triggers:
         recurring:
@@ -207,7 +215,7 @@ all_smoke_tests_fast-trunk:
 all_project_ci_fast-trunk:
     name: _ABV for SRP repository - fast-trunk
     dependencies:
-      -  path: .yamato/_packages.yml#all_package_ci_fast-trunk
+      -  path: .yamato/_projectcontext.yml#all_package_ci_project_fast-trunk
          rerun: on-new-revision
       -  path: .yamato/all-universal.yml#All_Universal_fast-trunk
          rerun: on-new-revision
@@ -319,7 +327,7 @@ all_smoke_tests_CUSTOM-REVISION:
 all_project_ci_CUSTOM-REVISION:
     name: _ABV for SRP repository - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/_packages.yml#all_package_ci_CUSTOM-REVISION
+      -  path: .yamato/_projectcontext.yml#all_package_ci_project_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-universal.yml#All_Universal_CUSTOM-REVISION
          rerun: always

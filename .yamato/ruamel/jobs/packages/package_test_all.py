@@ -22,7 +22,7 @@ class Package_AllPackageCiJob():
         
         # construct job
         job = YMLJob()
-        job.set_name(f'Pack and test all packages - { editor["version"] }')
+        job.set_name(f'Pack and test all packages - { editor["version"] } [package context]')
         job.set_agent(agent)
         job.add_dependencies(dependencies)
         job.add_commands([
