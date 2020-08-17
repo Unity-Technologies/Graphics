@@ -5,12 +5,18 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
 
+// --------------------------------------------------------
+// Material CBuffer
+// --------------------------------------------------------
 CBUFFER_START(UnityPerMaterial)
     float4 _MainTex_ST;
     half4 _BaseColor;
     half _Cutoff;
-    half _Surface;
 CBUFFER_END
+
+#define _Surface half4(0.0, 0.0, 0.0, 0.0) // Terrain is always opaque
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MaterialInputFunctions.hlsl"
+// --------------------------------------------------------
 
 CBUFFER_START(_Terrain)
     half _NormalScale0, _NormalScale1, _NormalScale2, _NormalScale3;
@@ -37,6 +43,7 @@ CBUFFER_START(_Terrain)
     int _PassValue;
     #endif
 CBUFFER_END
+
 
 TEXTURE2D(_Control);    SAMPLER(sampler_Control);
 TEXTURE2D(_Splat0);     SAMPLER(sampler_Splat0);

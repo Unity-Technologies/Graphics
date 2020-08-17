@@ -58,4 +58,12 @@ float3 _LightDirection;
 #define GEOM_TYPE_LEAF 2
 #define GEOM_TYPE_FACINGLEAF 3
 
+
+// --------------------------------------------------------
+// Material CBuffer
+// --------------------------------------------------------
+#define _Surface half4(0.0, 0.0, 0.0, 0.0) // Speed Trees are always opaque
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MaterialInputFunctions.hlsl"
+// --------------------------------------------------------
+
 #endif

@@ -3,6 +3,9 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 
+// --------------------------------------------------------
+// Material CBuffer
+// --------------------------------------------------------
 CBUFFER_START(UnityPerMaterial)
     float4 _SoftParticleFadeParams;
     float4 _CameraFadeParams;
@@ -15,8 +18,11 @@ CBUFFER_START(UnityPerMaterial)
     half _Smoothness;
     half _DistortionStrengthScaled;
     half _DistortionBlend;
-    half _Surface;
+    half4 _Surface;
 CBUFFER_END
+
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MaterialInputFunctions.hlsl"
+// --------------------------------------------------------
 
 TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);
 

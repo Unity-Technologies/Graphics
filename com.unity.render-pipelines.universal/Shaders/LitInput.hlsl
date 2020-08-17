@@ -5,6 +5,9 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
 
+// --------------------------------------------------------
+// Material CBuffer
+// --------------------------------------------------------
 CBUFFER_START(UnityPerMaterial)
     float4 _BaseMap_ST;
     half4 _BaseColor;
@@ -19,39 +22,43 @@ CBUFFER_START(UnityPerMaterial)
     half _ClearCoatMask;
     //half _ClearCoatSmoothness; // TODO: enable
     #endif
-    half _Surface;
+    half4 _Surface;
 CBUFFER_END
 
 // NOTE: Do not ifdef the properties for dots instancing, but ifdef the actual usage.
 // Otherwise you might break CPU-side as property constant-buffer offsets change per variant.
 // NOTE: Dots instancing is orthogonal to the constant buffer above.
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
-UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
-    UNITY_DOTS_INSTANCED_PROP(float4, _BaseColor)
-    UNITY_DOTS_INSTANCED_PROP(float4, _SpecColor)
-    UNITY_DOTS_INSTANCED_PROP(float4, _EmissionColor)
-    UNITY_DOTS_INSTANCED_PROP(float , _Cutoff)
-    UNITY_DOTS_INSTANCED_PROP(float , _Smoothness)
-    UNITY_DOTS_INSTANCED_PROP(float , _Metallic)
-    UNITY_DOTS_INSTANCED_PROP(float , _BumpScale)
-    UNITY_DOTS_INSTANCED_PROP(float , _OcclusionStrength)
-    UNITY_DOTS_INSTANCED_PROP(float , _ClearCoatMask)
-    //UNITY_DOTS_INSTANCED_PROP(float , _ClearCoatSmoothness) // TODO: enable
-    UNITY_DOTS_INSTANCED_PROP(float , _Surface)
-UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
+    UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
+        UNITY_DOTS_INSTANCED_PROP(float4, _BaseColor)
+        UNITY_DOTS_INSTANCED_PROP(float4, _SpecColor)
+        UNITY_DOTS_INSTANCED_PROP(float4, _EmissionColor)
+        UNITY_DOTS_INSTANCED_PROP(float , _Cutoff)
+        UNITY_DOTS_INSTANCED_PROP(float , _Smoothness)
+        UNITY_DOTS_INSTANCED_PROP(float , _Metallic)
+        UNITY_DOTS_INSTANCED_PROP(float , _BumpScale)
+        UNITY_DOTS_INSTANCED_PROP(float , _OcclusionStrength)
+        UNITY_DOTS_INSTANCED_PROP(float , _ClearCoatMask)
+        //UNITY_DOTS_INSTANCED_PROP(float , _ClearCoatSmoothness) // TODO: enable
+        UNITY_DOTS_INSTANCED_PROP(float4 , _Surface)
+    UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
-#define _BaseColor              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4 , Metadata__BaseColor)
-#define _SpecColor              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4 , Metadata__SpecColor)
-#define _EmissionColor          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4 , Metadata__EmissionColor)
-#define _Cutoff                 UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__Cutoff)
-#define _Smoothness             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__Smoothness)
-#define _Metallic               UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__Metallic)
-#define _BumpScale              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__BumpScale)
-#define _OcclusionStrength      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__OcclusionStrength)
-#define _ClearCoatMask          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__ClearCoatMask)
-//#define _ClearCoatSmoothness    UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__ClearCoatSmoothness)
-#define _Surface                UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Surface)
+    #define _BaseColor              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4 , Metadata__BaseColor)
+    #define _SpecColor              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4 , Metadata__SpecColor)
+    #define _EmissionColor          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4 , Metadata__EmissionColor)
+    #define _Cutoff                 UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__Cutoff)
+    #define _Smoothness             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__Smoothness)
+    #define _Metallic               UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__Metallic)
+    #define _BumpScale              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__BumpScale)
+    #define _OcclusionStrength      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__OcclusionStrength)
+    #define _ClearCoatMask          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__ClearCoatMask)
+    //#define _ClearCoatSmoothness    UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__ClearCoatSmoothness)
+    #define _Surface                UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4 , Metadata__Surface)
 #endif
+
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MaterialInputFunctions.hlsl"
+// --------------------------------------------------------
+
 
 TEXTURE2D(_OcclusionMap);       SAMPLER(sampler_OcclusionMap);
 TEXTURE2D(_MetallicGlossMap);   SAMPLER(sampler_MetallicGlossMap);

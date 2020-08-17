@@ -428,7 +428,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
 #else
     half4 color = UniversalFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
-    color.a = OutputAlpha(color.a, 0.0);
+    color.a = OutputAlpha(color.a, GetSurfaceType());
 
     return color;
 

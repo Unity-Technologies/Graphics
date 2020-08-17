@@ -3,6 +3,9 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 
+// --------------------------------------------------------
+// Material CBuffer
+// --------------------------------------------------------
 CBUFFER_START(UnityPerMaterial)
     float4 _SoftParticleFadeParams;
     float4 _CameraFadeParams;
@@ -13,8 +16,11 @@ CBUFFER_START(UnityPerMaterial)
     half _Cutoff;
     half _DistortionStrengthScaled;
     half _DistortionBlend;
-    half _Surface;
+    half4 _Surface;
 CBUFFER_END
+
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MaterialInputFunctions.hlsl"
+// --------------------------------------------------------
 
 #define SOFT_PARTICLE_NEAR_FADE _SoftParticleFadeParams.x
 #define SOFT_PARTICLE_INV_FADE_DISTANCE _SoftParticleFadeParams.y

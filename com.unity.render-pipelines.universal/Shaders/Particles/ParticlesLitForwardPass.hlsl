@@ -171,7 +171,7 @@ half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
 
     half4 color = UniversalFragmentPBR(inputData, surfaceData);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
-    color.a = OutputAlpha(color.a, _Surface);
+    color.a = OutputAlpha(color.a, GetSurfaceType());
 
     return color;
 }

@@ -22,4 +22,11 @@ float4 unity_BillboardSize; // x: width; y: height; z: bottom
 float4 unity_BillboardImageTexCoords[16];
 CBUFFER_END
 
+
+// --------------------------------------------------------
+// Material CBuffer
+// --------------------------------------------------------
+#define _Surface half4(0.0, 0.0, 0.0, 0.0) // Speed Trees are always opaque
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MaterialInputFunctions.hlsl"
+// --------------------------------------------------------
 #endif
