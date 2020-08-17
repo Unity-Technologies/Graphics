@@ -272,37 +272,30 @@ namespace UnityEngine.Experimental.Rendering.Universal
             inputs[ix++] = inputs[0];
 
             // Subdivide
-            shapePath = Subdivide(shapePath, subdiv);
             var extrusionDirs = GetFalloffShape(shapePath);
+            shapePath = Subdivide(shapePath, subdiv);
             var exPointCount = shapePath.Length;
             for (var i = 0; i < exPointCount; i++)
             {
+                var idx = (int)(math.floor((float) i / (float) subdiv));
                 var p = new Vec3()
                 {
-                    X = shapePath[i].x + (falloffDistance * extrusionDirs[i].x),
-                    Y = shapePath[i].y + (falloffDistance * extrusionDirs[i].y),
+                    X = shapePath[i].x + (falloffDistance * extrusionDirs[idx].x),
+                    Y = shapePath[i].y + (falloffDistance * extrusionDirs[idx].y),
                     Z = 0
                 };
-                var extrudeDir = new float3(extrusionDirs[i].x, extrusionDirs[i].y, 0);
+                var extrudeDir = new float3(extrusionDirs[idx].x, extrusionDirs[idx].y, 0);
                 var position = new float3(p.X, p.Y, p.Z);
                 min = math.min(min, position + extrudeDir * falloffDistance);
                 max = math.max(max, position + extrudeDir * falloffDistance);
-                inputs[ix++] = new ContourVertex() { Position = p, Data = new Color(extrusionDirs[i].x, extrusionDirs[i].y, 0, 0) };
+                inputs[ix++] = new ContourVertex() { Position = p, Data = new Color(extrusionDirs[idx].x, extrusionDirs[idx].y, 0, 0) };
             }
             inputs[ix++] = inputs[pointCount + 1];
             Tessellate(inputs, indices, vertices, ref vcount, ref icount);
 
-            var fvertices = new NativeArray<ParametricLightMeshVertex>(vcount, Allocator.Temp);
-            var findices = new NativeArray<ushort>(icount, Allocator.Temp);
-            unsafe
-            {
-                UnsafeUtility.MemCpy(NativeArrayUnsafeUtility.GetUnsafePtr(fvertices), NativeArrayUnsafeUtility.GetUnsafePtr(vertices), vcount * UnsafeUtility.SizeOf<ParametricLightMeshVertex>());
-                UnsafeUtility.MemCpy(NativeArrayUnsafeUtility.GetUnsafePtr(findices), NativeArrayUnsafeUtility.GetUnsafePtr(indices), icount * UnsafeUtility.SizeOf<ushort>());
-            }
-
             mesh.SetVertexBufferParams(vcount, ParametricLightMeshVertex.VertexLayout);
-            mesh.SetVertexBufferData(fvertices, 0, 0, vcount);
-            mesh.SetIndices(findices, MeshTopology.Triangles, 0, false);
+            mesh.SetVertexBufferData(vertices, 0, 0, vcount);
+            mesh.SetIndices(indices, 0, icount, MeshTopology.Triangles, 0, false);
 
             return new Bounds
             {
