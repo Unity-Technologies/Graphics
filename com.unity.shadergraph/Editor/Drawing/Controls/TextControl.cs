@@ -177,9 +177,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 var value = GetValue();
                 value_char = value.ToCharArray();
                 if (evt.newValue.Length != 0)
+                {
                     value_char[2 * index] = evt.newValue[0];
-                if (evt.newValue.Length == 2)
-                    value_char[2 * index + 1] = evt.newValue[1];
+                    if (evt.newValue.Length == 2)
+                        value_char[2 * index + 1] = evt.newValue[1];
+                }
+
 
                 if (evt.newValue.Equals(""))
                 {
@@ -196,7 +199,17 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     {
                         value = GetValue();
                         value_char = value.ToCharArray();
-                        field.SetValueWithoutNotify(value_char[2 * index].ToString()+ value_char[2 * index + 1].ToString());
+                        if (value.Contains('x'))
+                        {
+                            field.SetValueWithoutNotify("00");
+                            value_char[2 * index] = '0';
+                            value_char[2 * index + 1] = '0';
+                        }
+                        else
+                        {
+                            field.SetValueWithoutNotify(value_char[2 * index].ToString() + value_char[2 * index + 1].ToString());
+                        }
+                        
                         value = new string(value_char);
                         SetValue(value);
                         m_UndoGroup = -1;

@@ -143,26 +143,9 @@ namespace UnityEditor.ShaderGraph
         {
             var row = (int)input;
             float temp_col = (float)(input - Math.Truncate(input)) * 10;
-            int col = 0;
 
-            if (temp_col > 2.5)
-            {
-                col = 3;
-            }
-            else if (temp_col > 1.5 && temp_col < 2.5)
-            {
-                col = 2;
-            }
-            else if (temp_col > 0.5 && temp_col < 1.5)
-            {
-                col = 1;
-            }
-            else
-            {
-                col = 0;
-            }
-
-            int[] index = { row, col };
+            int[] index = { row, (int)temp_col };
+            //Debug.Log("row:"+index[0]+ ", col:"+ temp_col);
             return index;
         }
 
@@ -181,21 +164,24 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+
         Vector4  StringToVec4 (string value)
         {
             char[] value_char = value.ToCharArray();
-            for (int i = 0; i < value.Length; i++)
-            {
-                if (value[i] < '0' || value[i] > '9')
-                {
-                    value_char[i] = '0';
-                    AreIndiciesValid = false;
-                    ValidateNode();
-                }
-            }
+
 
             if (value.Length == 8)
             {
+                for (int i = 0; i < value.Length; i++)
+                {
+                    if (value[i] < '0' || value[i] > '3')
+                    {
+                        value_char[i] = '0';
+                        AreIndiciesValid = false;
+                        ValidateNode();
+                    }
+                }
+
                 float x0 = (float)Char.GetNumericValue(value_char[0]);
                 float x1 = (float)Char.GetNumericValue(value_char[1]);
                 float y0 = (float)Char.GetNumericValue(value_char[2]);
@@ -210,6 +196,11 @@ namespace UnityEditor.ShaderGraph
                 float z = z0 + z1 * 0.1f;
                 float w = w0 + w1 * 0.1f;
                 return new Vector4(x, y, z, w);
+            }
+            else
+            {
+                AreIndiciesValid = false;
+                ValidateNode();
             }
             return new Vector4(0, 0, 0, 0);
         }
@@ -285,6 +276,7 @@ namespace UnityEditor.ShaderGraph
             inputIndices.SetRow(1, StringToVec4(index_Row1));
             inputIndices.SetRow(2, StringToVec4(index_Row2));
             inputIndices.SetRow(3, StringToVec4(index_Row3));
+            Debug.Log(index_Row0);
 
             //set all unused indices to zero
             for (int r = 0; r < 4; r++)
