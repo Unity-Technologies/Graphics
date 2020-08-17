@@ -1,6 +1,6 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..shared.namer import *
-from ..shared.constants import PATH_UNITY_REVISION, NPM_UPMCI_INSTALL_URL, UNITY_DOWNLOADER_CLI_URL
+from ..shared.constants import PATH_UNITY_REVISION, NPM_UPMCI_INSTALL_URL, UNITY_DOWNLOADER_CLI_URL, get_editor_revision
 from ..shared.yml_job import YMLJob
 
 class Package_TestDependenciesJob():
@@ -20,14 +20,11 @@ class Package_TestDependenciesJob():
         dependencies.extend([f'{packages_filepath()}#{package_job_id_pack(dep)}' for dep in package["dependencies"]])
         
         
-        revision = editor.get('default_revision', None)
-        if not revision:
-            revision = editor["revisions"][f"{editor['track']}_latest_internal"]["windows"]["revision"]
         # define commands
         commands =  [
                 f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
                 f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
-                f'unity-downloader-cli -u {revision} -c editor --wait --published-only']
+                f'unity-downloader-cli -u { get_editor_revision(editor, platform["os"]) } -c editor --wait --published-only']
         if package.get('hascodependencies', None) is not None:
             commands.append(platform["copycmd"])
         commands.append(f'upm-ci package test -u {platform["editorpath"]} --type updated-dependencies-tests --package-path {package["packagename"]}')

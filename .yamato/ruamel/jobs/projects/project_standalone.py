@@ -1,5 +1,6 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..shared.namer import project_filepath_specific, project_job_id_build, project_job_id_test
+from ..shared.constants import get_editor_revision
 from .commands._cmd_mapper import get_cmd
 from ._project_base import _job
 from .project_standalone_build import Project_StandaloneBuildJob
@@ -23,12 +24,22 @@ class Project_StandaloneJob():
     
     def get_job_definition(self, project, editor, platform, api, test_platform, build_job):
 
-        revision = editor.get('default_revision', None)
-        if not revision:
-            revision = editor["revisions"][f"{editor['track']}_latest_internal"]["windows"]["revision"]
         project_folder = project.get("folder_standalone", project["folder"])
         cmd = get_cmd(platform["name"], api, 'standalone') 
-        job = _job(project["name"], test_platform["name"], editor, platform, api, cmd(project_folder, platform, api, test_platform["args"], revision))
+        job = _job(
+            project["name"], 
+            test_platform["name"], 
+            editor, 
+            platform, 
+            api, 
+            cmd(
+                project_folder, 
+                platform, 
+                api, 
+                test_platform["args"], 
+                get_editor_revision(
+                    editor, 
+                    platform["os"])))
 
         if build_job is not None:
 

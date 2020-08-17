@@ -1,6 +1,6 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..shared.namer import *
-from ..shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, UTR_INSTALL_URL, UNITY_DOWNLOADER_CLI_URL
+from ..shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, UTR_INSTALL_URL, UNITY_DOWNLOADER_CLI_URL, get_editor_revision
 from ..shared.yml_job import YMLJob
 
 class ABV_SmokeTestJob():
@@ -14,15 +14,12 @@ class ABV_SmokeTestJob():
         agent = dict(smoke_test["agent"])
         agent_gpu = dict(smoke_test["agent_gpu"])
 
-        revision = editor.get('default_revision', None)
-        if not revision:
-            revision = editor["revisions"][f"{editor['track']}_latest_internal"]["windows"]["revision"]
-
+        
         # define commands
         commands = [
                 f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}/{smoke_test["folder"]}/utr.bat',
                 f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
-                f'cd {TEST_PROJECTS_DIR}/{smoke_test["folder"]} && unity-downloader-cli -u { revision } -c editor --wait --published-only' ]
+                f'cd {TEST_PROJECTS_DIR}/{smoke_test["folder"]} && unity-downloader-cli -u { get_editor_revision(editor, "windows") } -c editor --wait --published-only' ]
         if test_platform['name'].lower() == 'standalone':
             commands.append(f'cd {TEST_PROJECTS_DIR}/{smoke_test["folder"]} && utr {test_platform["args"]}Windows64 --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS} --timeout=1200')
         else:

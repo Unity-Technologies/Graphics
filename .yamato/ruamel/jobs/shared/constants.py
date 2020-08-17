@@ -12,3 +12,7 @@ PATH_PLAYERS = 'players'
 NPM_UPMCI_INSTALL_URL = 'https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm'
 UTR_INSTALL_URL = 'https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr'
 UNITY_DOWNLOADER_CLI_URL = 'https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple'
+
+
+def get_editor_revision(editor, platform_os):
+    return '$CUSTOM_REVISION' if str(editor['track']).lower()=='custom-revision' else editor["revisions"][f"{editor['track']}_latest_internal"][platform_os]["revision"]

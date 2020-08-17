@@ -16,7 +16,7 @@ from util.subprocess_helpers import run_cmd, git_cmd
 # These should not be changed unless also updated in Yamato YAML.
 SUPPORTED_VERSION_TYPES = ('latest_internal', 'latest_public', 'staging')
 PROJECT_VERSION_NAME = 'project_revision'
-PLATFORMS = ('windows', 'macos')
+PLATFORMS = ('windows', 'macos', 'linux', 'android', 'ios')
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 # DEFAULT_CONFIG_FILE = os.path.join(SCRIPT_DIR, 'config.yml')

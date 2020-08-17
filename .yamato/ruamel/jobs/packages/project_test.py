@@ -1,8 +1,7 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..shared.namer import *
-from ..shared.constants import PATH_UNITY_REVISION
+from ..shared.constants import PATH_UNITY_REVISION, get_editor_revision, NPM_UPMCI_INSTALL_URL
 from ..shared.yml_job import YMLJob
-from ..shared.constants import NPM_UPMCI_INSTALL_URL
 
 class Project_TestJob():
     
@@ -16,15 +15,12 @@ class Project_TestJob():
         # define dependencies
         dependencies = []#[f'{editor_filepath()}#{editor_job_id(editor["track"], platform["os"]) }']
         dependencies.extend([f'{projectcontext_filepath()}#{projectcontext_job_id_pack()}'])
-        
-        revision = editor.get('default_revision', None)
-        if not revision:
-            revision = editor["revisions"][f"{editor['track']}_latest_internal"]["windows"]["revision"]
+                
         # define commands
         commands = [
                 f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
                 f'pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade',
-                f'unity-downloader-cli -u {revision} -c editor --wait --published-only']
+                f'unity-downloader-cli -u {get_editor_revision(editor, platform["os"])} -c editor --wait --published-only']
         commands.append(f'upm-ci project test -u {platform["editorpath"]} --project-path TestProjects/SRP_SmokeTest --type vetting-tests')
 
 

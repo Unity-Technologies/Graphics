@@ -1,5 +1,6 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..shared.namer import project_job_id_build
+from ..shared.constants import get_editor_revision
 from .commands._cmd_mapper import get_cmd
 from ._project_base import _job
 
@@ -13,12 +14,22 @@ class Project_StandaloneBuildJob():
     
     def get_job_definition(self, project, editor, platform, api, test_platform):
 
-        revision = editor.get('default_revision', None)
-        if not revision:
-            revision = editor["revisions"][f"{editor['track']}_latest_internal"]["windows"]["revision"]
         project_folder = project.get("folder_standalone", project["folder"])
         cmd = get_cmd(platform["name"], api, 'standalone_build')
-        job = _job(project["name"], 'standalone_build', editor, platform, api, cmd(project_folder, platform, api, test_platform["args"], revision))
+        job = _job(
+            project["name"], 
+            'standalone_build', 
+            editor, 
+            platform, 
+            api, 
+            cmd(
+                project_folder, 
+                platform, 
+                api, 
+                test_platform["args"], 
+                get_editor_revision(
+                    editor, 
+                    platform["os"])))
         
         job.add_artifacts_players()
         return job
