@@ -25,27 +25,32 @@ namespace UnityEditor.ShaderGraph
             m_Items = new List<Item>();
         }
 
-        public void Add(PassCollection passes)
+        public PassCollection Add(PassCollection passes)
         {
             foreach(PassCollection.Item item in passes)
             {
                 m_Items.Add(item);
             }
+
+            return this;
         }
 
-        public void Add(PassDescriptor descriptor)
+        public PassCollection Add(PassDescriptor descriptor)
         {
             m_Items.Add(new Item(descriptor, null));
+            return this;
         }
 
-        public void Add(PassDescriptor descriptor, FieldCondition fieldCondition)
+        public PassCollection Add(PassDescriptor descriptor, FieldCondition fieldCondition)
         {
             m_Items.Add(new Item(descriptor, new FieldCondition[]{ fieldCondition }));
+            return this;
         }
 
-        public void Add(PassDescriptor descriptor, FieldCondition[] fieldConditions)
+        public PassCollection Add(PassDescriptor descriptor, FieldCondition[] fieldConditions)
         {
             m_Items.Add(new Item(descriptor, fieldConditions));
+            return this;
         }
 
         public IEnumerator<Item> GetEnumerator()

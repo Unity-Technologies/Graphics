@@ -30,6 +30,9 @@ def package_job_id_publish_dry(package_id):
 def package_job_id_publish_all():
     return f'publish_all'
 
+def package_job_id_publish_all_tag():
+    return f'publish_all_tag'
+
 def package_job_id_test_all(editor_version):
     return f'all_package_ci_{editor_version}'
 
@@ -50,6 +53,9 @@ def projectcontext_job_id_publish_dry(package_id):
 
 def projectcontext_job_id_publish_all():
     return f'publish_all_project'
+
+def projectcontext_job_id_publish_all_tag():
+    return f'publish_all_project_tag'
 
 def projectcontext_job_id_test_all(editor_version):
     return f'all_package_ci_project_{editor_version}'
