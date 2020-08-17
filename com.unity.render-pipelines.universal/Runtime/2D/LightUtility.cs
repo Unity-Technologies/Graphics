@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using UnityEngine.Experimental.Rendering.Universal.LibTessDotNet;
 using UnityEngine.Rendering;
@@ -208,85 +209,85 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return extrusionDir;
         }
 
+        static void Tessellate(ContourVertex[] inputs, NativeArray<ushort> indices,
+            NativeArray<ParametricLightMeshVertex> vertices, ref int vcount, ref int icount, Color icolor, Color ecolor)
+        {
+            var tess = new Tess();
+            tess.AddContour(inputs, ContourOrientation.Original);
+            tess.Tessellate(WindingRule.EvenOdd, ElementType.Polygons, 3);
+
+            var iout = tess.Elements.Select(i => i);
+            var vout = tess.Vertices.Select(v => new float3(v.Position.X, v.Position.Y, 0));
+
+            foreach(var v in vout)
+            {
+                vertices[vcount++] = new ParametricLightMeshVertex
+                {
+                    position = v,
+                    color = v.z > 0 ? icolor : ecolor
+                };
+            }
+
+            foreach (var i in iout)
+            {
+                indices[icount++] = (ushort)i;
+            }
+        }
+
         public static Bounds GenerateShapeMesh(Mesh mesh, Vector3[] shapePath, float falloffDistance)
         {
-            var meshInteriorColor = new Color(0,0,0,1);
+            var meshInteriorColor = new Color(1.0f,0,0,1.0f);
+            var meshExteriorColor = new Color(1.0f,0,0,1.0f);
             var min = new float3(float.MaxValue, float.MaxValue, 0);
             var max = new float3(float.MinValue, float.MinValue, 0);
 
-            // Create interior geometry
+            var vcount = 0;
+            var icount = 0;
+            var ocount = 0;
+            var vertices = new NativeArray<ParametricLightMeshVertex>(shapePath.Length * 16, Allocator.Temp);
+            var indices = new NativeArray<ushort>(shapePath.Length * 16, Allocator.Temp);
             var pointCount = shapePath.Length;
+
+            // Create interior geometry
             var inputs = new ContourVertex[pointCount];
             for (var i = 0; i < pointCount; ++i)
-                inputs[i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y }};
-
-            var tessI = new Tess();
-            tessI.AddContour(inputs, ContourOrientation.Original);
-            tessI.Tessellate(WindingRule.EvenOdd, ElementType.Polygons, 3);
-
-            var indicesI = tessI.Elements.Select(i => i);
-            var verticesI = tessI.Vertices.Select(v => new float3(v.Position.X, v.Position.Y, 0));
-
-            var finalVertices = new NativeArray<ParametricLightMeshVertex>(verticesI.Count() + 2 * shapePath.Length, Allocator.Temp);
-            var finalIndices = new NativeArray<ushort>(indicesI.Count() + 6 * shapePath.Length, Allocator.Temp);
-
-            var vertexOffset = 0;
-            foreach(var v in verticesI)
-            {
-                finalVertices[vertexOffset++] = new ParametricLightMeshVertex
-                {
-                    position = v,
-                    color = meshInteriorColor
-                };
-            }
-
-            var indexOffset = 0;
-            foreach (var v in indicesI)
-            {
-                finalIndices[indexOffset++] = (ushort)v;
-            }
+                inputs[i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y, Z = 1.0f }};
+            Tessellate(inputs, indices, vertices, ref vcount, ref icount, meshInteriorColor, meshExteriorColor);
+            ocount = icount;
 
             // Create falloff geometry
+            inputs = new ContourVertex[(pointCount * 2) + 2];
+            for (var i = 0; i < pointCount; ++i)
+                inputs[i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y, Z = 0 }};
+            inputs[pointCount] = inputs[0];
             var extrusionDirs = GetFalloffShape(shapePath);
-            var falloffPointCount = 2 * shapePath.Length;
-            for (var i = 0; i < shapePath.Length; i++)
+            for (var i = 0; i < pointCount; i++)
             {
-                // Making triangles ABD and DCA
-                var triangleIndex = 2 * i;
-                var aIndex = vertexOffset + triangleIndex;
-                var bIndex = vertexOffset + triangleIndex + 1;
-                var cIndex = vertexOffset + (triangleIndex + 2) % falloffPointCount;
-                var dIndex = vertexOffset + (triangleIndex + 3) % falloffPointCount;
-
-                // We are making degenerate triangles which will be extruded by the shader
-                var point = new ParametricLightMeshVertex
+                var p = new Vec3()
                 {
-                    position = shapePath[i],
-                    color = new Color(0, 0, 0, 1)
+                    X = shapePath[i].x + (falloffDistance * extrusionDirs[i].x),
+                    Y = shapePath[i].y + (falloffDistance * extrusionDirs[i].y),
+                    Z = 0
                 };
-                finalVertices[vertexOffset + i * 2] = point;
-
-                point.color = new Color(extrusionDirs[i].x, extrusionDirs[i].y, 0, 0);
-                point.position.x += falloffDistance * extrusionDirs[i].x;
-                point.position.y += falloffDistance * extrusionDirs[i].y;
-                finalVertices[vertexOffset + i * 2 + 1] =  point;
-
-                finalIndices[indexOffset + i*6 + 0] = (ushort)aIndex;
-                finalIndices[indexOffset + i*6 + 1] = (ushort)bIndex;
-                finalIndices[indexOffset + i*6 + 2] = (ushort)dIndex;
-
-                finalIndices[indexOffset + i*6 + 3] = (ushort)dIndex;
-                finalIndices[indexOffset + i*6 + 4] = (ushort)cIndex;
-                finalIndices[indexOffset + i*6 + 5] = (ushort)aIndex;
-
-                var extrudeDir = new float3(extrusionDirs[i].x, extrusionDirs[i].y, 0);
-                min = math.min(min, point.position + extrudeDir * falloffDistance);
-                max = math.max(max, point.position + extrudeDir * falloffDistance);
+                inputs[1 + pointCount + i] = new ContourVertex() { Position = p };
             }
+            inputs[(pointCount * 2) + 1] = inputs[pointCount + 1];
+            Tessellate(inputs, indices, vertices, ref vcount, ref icount, meshInteriorColor, meshExteriorColor);
 
-            mesh.SetVertexBufferParams(finalVertices.Length, ParametricLightMeshVertex.VertexLayout);
-            mesh.SetVertexBufferData(finalVertices, 0, 0, finalVertices.Length);
-            mesh.SetIndices(finalIndices, MeshTopology.Triangles, 0, false);
+            var fvertices = new NativeArray<ParametricLightMeshVertex>(vcount, Allocator.Temp);
+            var findices = new NativeArray<ushort>(icount, Allocator.Temp);
+            unsafe
+            {
+                UnsafeUtility.MemCpy(NativeArrayUnsafeUtility.GetUnsafePtr(fvertices), NativeArrayUnsafeUtility.GetUnsafePtr(vertices), vcount * UnsafeUtility.SizeOf<ParametricLightMeshVertex>());
+            }
+            for (int i = 0; i < ocount; ++i)
+                findices[i] = indices[i];
+            for (int i = ocount; i < icount; ++i)
+                findices[i] = (ushort)(indices[i] + (ushort)pointCount);
+
+            mesh.SetVertexBufferParams(vcount, ParametricLightMeshVertex.VertexLayout);
+            mesh.SetVertexBufferData(fvertices, 0, 0, vcount);
+            mesh.SetIndices(findices, MeshTopology.Triangles, 0, false);
 
             return new Bounds
             {
