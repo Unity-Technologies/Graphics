@@ -11,10 +11,6 @@ editor_pin_agent: package_ci_ubuntu_small
 target_branch_editor_ci: yamato/editor-pin-ci
 target_branch: yamato/editor-pin # replace with __shared target branch
 
-# OLD PROJECT VERSION FILE
-project_version:
-  m_EditorVersion: 2020.2.0a19
-  m_EditorVersionWithRevision: 2020.2.0a19 (8037ac78137e)
 
 # OLD CONFIG.YML FILE
 # Configuration. This decides what goes into the output file.

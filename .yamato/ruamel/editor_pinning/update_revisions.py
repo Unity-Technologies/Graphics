@@ -26,31 +26,6 @@ EXPECTATIONS_PATH = os.path.join('.yamato', 'expectations')
 INVALID_VERSION_ERROR = 'Are you sure this is actually a valid unity version?'
 VERSION_PARSER_RE = re.compile(r'Grabbing unity release ([0-9\.a-z]+) which is revision')
 
-def parse_projectversion_file(projectversion_filename):
-    """Parse ProjectSettings.txt and return the version and revision as a tuple. THIS IS DEPRECATED FOR GRAPHIS REPO (orginally taken from dots)"""
-    REVISION_KEY = 'm_EditorVersionWithRevision'
-    with open(projectversion_filename) as projectversion_file:
-        for line in projectversion_file.readlines():
-            line = line.strip()
-            if REVISION_KEY in line:
-                index = line.find('(')
-                version = line[len(REVISION_KEY) + 2: index - 1]
-                revision = line[index + 1: -1]
-                return (version, revision)
-    return None
-
-
-def parse_projectversion_dict(projectversion_dict):
-    """Parse ProjectSettings.txt and return the version and revision as a tuple."""
-    REVISION_KEY = 'm_EditorVersionWithRevision'
-    REVISION_VALUE = projectversion_dict[REVISION_KEY]
-
-    index = REVISION_VALUE.find('(')
-    version = REVISION_VALUE[: index - 1]
-    revision = REVISION_VALUE[index + 1: -1]
-    print(f'Project version: {version}', f'Revision: {revision}')
-    return (version, revision)
-
 
 def generate_downloader_cmd(track, version, trunk_track, platform, unity_downloader_components):
     """Generate a list of commmand arguments for the invovation of the unity-downloader-cli."""
@@ -71,21 +46,6 @@ def generate_downloader_cmd(track, version, trunk_track, platform, unity_downloa
     components = ' '.join('-c ' + c for c in unity_downloader_components[platform])
     return (f'unity-downloader-cli -o {platform} {components} -s {target_str} '
             '--wait --skip-download').split()
-
-
-def get_all_versions(tracks, trunk_track, unity_downloader_components, projectversion_dict):
-    """Gets all versions from unity-downloader-cli and the ProjectVersion.txt"""
-    versions = get_versions_from_unity_downloader(tracks, trunk_track, unity_downloader_components)
-
-    # Add ProjectVersion.txt version and revision.
-    #version, revision = parse_projectversion_file(projectversion_filename)
-    version, revision = parse_projectversion_dict(projectversion_dict)
-    versions[PROJECT_VERSION_NAME] = {
-        'display_name': PROJECT_VERSION_NAME.replace('_', ' '),
-        'revision': revision,
-        'version': version,
-    }
-    return versions
 
 
 def get_versions_from_unity_downloader(tracks, trunk_track, unity_downloader_components):
@@ -133,16 +93,17 @@ def get_versions_from_unity_downloader(tracks, trunk_track, unity_downloader_com
                         check=True, universal_newlines=True)
                     
                     revision = result.stdout.strip()
-                    versions[key][f'revision_{platform}'] = revision
+                    versions[key][platform] = {}
+                    versions[key][platform]['revision'] = revision
                    
                     # Parse for the version in stderr (only exists for some cases):
-                    versions[key][f'version_{platform}'] = ''
+                    versions[key][platform]['version'] = ''
                     for line in result.stderr.strip().splitlines():
                         match = VERSION_PARSER_RE.match(line)
                         version = ''
                         if match:
                             version = match.group(1)
-                            versions[key][f'version_{platform}'] = version
+                            versions[key][platform]['version'] = version
                             break
                     print(f'INFO: [{platform}] Latest revision for track: {track} '
                             f'type: {version_type} is {revision} (version: {version})')
@@ -278,9 +239,7 @@ def main(argv):
     # assert os.path.isfile(projectversion_filename), f'Cannot find {projectversion_filename}'
 
     try:
-        versions = get_all_versions(config['editor_tracks'], config['trunk_track'],
-                                    config['unity_downloader_components'],
-                                    config['project_version'])
+        versions = get_versions_from_unity_downloader(config['editor_tracks'], config['trunk_track'], config['unity_downloader_components'])
         editor_versions_file = config['editor_versions_file']
         print(f'INFO: Saving {editor_versions_file}.')
         write_versions_file(os.path.join(ROOT, editor_versions_file),
