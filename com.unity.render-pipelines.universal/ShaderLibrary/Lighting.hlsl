@@ -35,6 +35,19 @@
     #define OUTPUT_SH(normalWS, OUT) OUT.xyz = SampleSHVertex(normalWS)
 #endif
 
+// WebGL1 (GLSL 1.0) cannot have variable for loop conditions. Use a constant
+// for loop with a break condition to get around this limitation.
+#define MAX_LIGHTS 8
+#if defined(SHADER_API_GLES) && !defined(SHADER_API_GLES3)
+    #define BEGIN_LIGHT_LOOP(lightCount) \
+        for (int lightIndex = 0; lightIndex < MAX_LIGHTS; ++lightIndex) { \
+            if (lightIndex >= (int)lightCount) break;
+#else
+    #define BEGIN_LIGHT_LOOP(lightCount) \
+        for (uint lightIndex = 0u; lightIndex < lightCount; ++lightIndex) {
+#endif
+
+#define END_LIGHT_LOOP }
 
 ///////////////////////////////////////////////////////////////////////////////
 //                          Light Helpers                                    //
@@ -771,12 +784,11 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
 
 #ifdef _ADDITIONAL_LIGHTS_VERTEX
     uint lightsCount = GetAdditionalLightsCount();
-    for (uint lightIndex = 0u; lightIndex < lightsCount; ++lightIndex)
-    {
+    BEGIN_LIGHT_LOOP(lightsCount)
         Light light = GetAdditionalLight(lightIndex, positionWS);
         half3 lightColor = light.color * light.distanceAttenuation;
         vertexLightColor += LightingLambert(lightColor, light.direction, normalWS);
-    }
+    END_LIGHT_LOOP
 #endif
 
     return vertexLightColor;
@@ -824,8 +836,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 
 #ifdef _ADDITIONAL_LIGHTS
     uint pixelLightCount = GetAdditionalLightsCount();
-    for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
-    {
+    BEGIN_LIGHT_LOOP(pixelLightCount)
         Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
         #if defined(_SCREEN_SPACE_OCCLUSION)
             light.color *= aoFactor.directAmbientOcclusion;
@@ -834,7 +845,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
                                          light,
                                          inputData.normalWS, inputData.viewDirectionWS,
                                          surfaceData.clearCoatMask, specularHighlightsOff);
-    }
+    END_LIGHT_LOOP
 #endif
 
 #ifdef _ADDITIONAL_LIGHTS_VERTEX
@@ -880,8 +891,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
 
 #ifdef _ADDITIONAL_LIGHTS
     uint pixelLightCount = GetAdditionalLightsCount();
-    for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
-    {
+    BEGIN_LIGHT_LOOP(pixelLightCount)
         Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
         #if defined(_SCREEN_SPACE_OCCLUSION)
             light.color *= aoFactor.directAmbientOcclusion;
@@ -889,7 +899,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
         half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
         diffuseColor += LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
         specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, smoothness);
-    }
+    END_LIGHT_LOOP
 #endif
 
 #ifdef _ADDITIONAL_LIGHTS_VERTEX
