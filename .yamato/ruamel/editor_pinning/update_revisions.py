@@ -44,6 +44,12 @@ def generate_downloader_cmd(track, version, trunk_track, platform, unity_downloa
     else:
         raise ValueError(f'Could not parse track: {track} version: {version}.')
     components = ' '.join('-c ' + c for c in unity_downloader_components[platform])
+    
+    if platform.lower() == 'android':
+        platform = 'windows'
+    elif platform.lower() == 'ios':
+        platform = 'macos'
+    
     return (f'unity-downloader-cli -o {platform} {components} -s {target_str} '
             '--wait --skip-download').split()
 
@@ -75,6 +81,7 @@ def get_versions_from_unity_downloader(tracks, trunk_track, unity_downloader_com
             }
         }
     """
+    
     versions = {}
     for track in tracks: # pylint: disable=too-many-nested-blocks
         for version_type in SUPPORTED_VERSION_TYPES:
@@ -181,9 +188,6 @@ def load_config(filename):
         assert 'editor_versions_file' in config
         assert isinstance(config['editor_versions_file'], str)
 
-        assert 'project_version_file' in config
-        assert isinstance(config['project_version_file'], str)
-
         assert 'unity_downloader_components' in config
         components = config['unity_downloader_components']
         assert isinstance(components, dict)
@@ -192,8 +196,6 @@ def load_config(filename):
 
         assert 'versions_file_header' in config
         assert isinstance(config['versions_file_header'], str)
-        assert 'versions_dict_comment' in config
-        assert isinstance(config['versions_dict_comment'], str)
         return config
     except AssertionError:
         print('ERROR: Your configuration file {filename} has an error:')

@@ -6,12 +6,14 @@
 # {% for editor_version in editor_version_names %}
 #   editor_version: {{ editor_version }}
 # {% endfor %}
-
+
+
 editor_version_names:
 - 2020.2_latest_internal
 - 2020.2_latest_public
 - 2020.2_staging
-
+
+
 # Dict to allow lookup of revisions using the version key.
 # Example of single lookup:
 # {% assign supported_version = 2020.1_latest_internal %}
@@ -21,7 +23,8 @@ editor_version_names:
 # {% for editor_version in editor_version_names %}
 #   {{ editor_version }} : {{ editor_versions[editor_version].revision }}
 # {% endfor %}
-
+
+
 editor_versions:
   2020.2_latest_internal:
     display_name: 2020.2 latest internal
@@ -29,6 +32,15 @@ editor_versions:
       revision: 3e0d5f775006
       version: 2020.2.0a21
     windows:
+      revision: 3e0d5f775006
+      version: 2020.2.0a21
+    linux:
+      revision: 3e0d5f775006
+      version: 2020.2.0a21
+    android:
+      revision: 3e0d5f775006
+      version: 2020.2.0a21
+    ios:
       revision: 3e0d5f775006
       version: 2020.2.0a21
   2020.2_latest_public:
