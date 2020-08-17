@@ -13,6 +13,12 @@ Shader "Hidden/Universal Render Pipeline/SkyPrerender"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Runtime/Sky/SkyUtils.hlsl"
 
+        float4 _GradientBottom;
+        float4 _GradientMiddle;
+        float4 _GradientTop;
+        float _GradientDiffusion;
+        float _SkyIntensity;
+
         struct Attributes
         {
             uint vertexID : SV_VertexID;
@@ -40,34 +46,17 @@ Shader "Hidden/Universal Render Pipeline/SkyPrerender"
             return output;
         }
 
-        float FragPrerender(Varyings input) : SV_Depth
-        {
-            UNITY_SETUP_INSTANCE_ID(input); // TODO What is this?
-
-            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input); // TODO What is this?
-
-            // TODO Implement
-            // TODO Actually, remove this, prerender isn't needed by this sky type
-
-            return 1;
-        }
-
         float4 RenderSky(Varyings input)
         {
-            float4 _GradientBottom = float4(1, 0, 0, 1);
-            float4 _GradientMiddle = float4(0, 1, 0, 1);
-            float4 _GradientTop = float4(0, 0, 1, 1);
-
             float3 viewDirWS = GetSkyViewDirWS(input.positionCS.xy);
 
-            float verticalGradient = viewDirWS.y; // TODO Gradient diffusion
+            float verticalGradient = viewDirWS.y * _GradientDiffusion;
             float topLerpFactor = saturate(-verticalGradient);
             float bottomLerpFactor = saturate(verticalGradient);
 
             float3 color = lerp(lerp(_GradientMiddle.xyz, _GradientBottom.xyz, bottomLerpFactor), _GradientTop.xyz, topLerpFactor);
-            // TODO Sky intensity and exposure
 
-            return float4(color, 1);
+            return float4(color * _SkyIntensity, 1);
         }
 
         float4 FragRender(Varyings input) : SV_Target
@@ -76,24 +65,10 @@ Shader "Hidden/Universal Render Pipeline/SkyPrerender"
 
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input); // TODO What is this?
 
-            return RenderSky(input);
+            return RenderSky(input); // TODO CurentExposureMultiplier
         }
 
         ENDHLSL
-
-        Pass
-        {
-            Name "SkyPrerender"
-            Cull Off
-            ZTest Always // TODO Change to greater
-            ZWrite On
-            ColorMask 0
-
-            HLSLPROGRAM
-                #pragma vertex Vert
-                #pragma fragment FragPrerender
-            ENDHLSL
-        }
 
         Pass
         {

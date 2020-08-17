@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.Universal
     public sealed class VisualEnvironment : VolumeComponent
     {
         public IntParameter skyType = new IntParameter(0);
-        public SkyAmbientModeParameter skyAmbientMode = new SkyAmbientModeParameter(SkyAmbientMode.Static);
+        public SkyAmbientModeParameter skyAmbientMode = new SkyAmbientModeParameter(SkyAmbientMode.Static); // TODO Unused
     }
 
     public enum SkyAmbientMode

@@ -63,6 +63,7 @@ namespace UnityEngine.Rendering.Universal
 
     public static class SkyShaderConstants
     {
+        public static readonly int _SkyIntensity = Shader.PropertyToID("_SkyIntensity");
         public static readonly int _PixelCoordToViewDirWS = Shader.PropertyToID("_PixelCoordToViewDirWS");
     }
 }
