@@ -1,5 +1,7 @@
 {
   "dependencies": {
+	"com.unity.test-framework": "1.1.11",
+	"com.unity.test-framework.performance": "2.0.9-preview",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.2d.tilemap": "1.0.0",
     "com.unity.cinemachine": "2.6.0",
