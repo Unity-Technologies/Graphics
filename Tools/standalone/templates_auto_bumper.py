@@ -18,6 +18,11 @@ def update_dependencies(project, file_name, target_dependency, target_version):
                     dependencies[target_dependency] = target_version
                     with open(path, "w") as json_file:
                         json.dump(json_content, json_file, indent=2)
+                        print(f'Bumped {target_dependency} of {project} - {file_name} to {target_version}.')
+                else:
+                    print(f'Did not find {target_dependency} for {project} - {file_name}. Could no bump this dependency.', file=sys.stderr)
+            else:
+                print(f'Did not find {file_name} for {project}. Could no bump dependencies of this project.', file=sys.stderr)
 
 
 def get_dependency_last_version(target_dependency):
@@ -28,6 +33,7 @@ def get_dependency_last_version(target_dependency):
                 with open(path, "r") as f:
                     json_content = json.load(f)
                 last_version = json_content['version']
+                print(f'Last version of {target_dependency} is {last_version}.')
                 return last_version
     return None
 

@@ -27,7 +27,7 @@ class PreviewPublish_AutoVersionJob():
                 f'python3 ./Tools/standalone/templates_auto_bumper.py --template-name ./com.unity.template-universal --target-dependency com.unity.render-pipelines.universal',
                 f'git config --global user.name "noreply@unity3d.com"',
                 f'git config --global user.email "noreply@unity3d.com"',
-                f'git add ./com.unity.template.*',
+                f'git add ./com.unity.template-*',
                 f'git commit -m "[Automation] Auto-bump template dependencies"',
                 f'git push'])
         job.set_trigger_on_expression(f'push.branch eq "{target_branch}" AND NOT push.changes.all match ["*template*/**/*.json"]')
