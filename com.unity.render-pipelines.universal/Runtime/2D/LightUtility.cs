@@ -283,6 +283,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     Y = shapePath[i].y + (falloffDistance * extrusionDirs[i].y),
                     Z = 0
                 };
+                var extrudeDir = new float3(extrusionDirs[i].x, extrusionDirs[i].y, 0);
+                var position = new float3(p.X, p.Y, p.Z);
+                min = math.min(min, position + extrudeDir * falloffDistance);
+                max = math.max(max, position + extrudeDir * falloffDistance);
                 inputs[ix++] = new ContourVertex() { Position = p, Data = new Color(extrusionDirs[i].x, extrusionDirs[i].y, 0, 0) };
             }
             inputs[ix++] = inputs[pointCount + 1];
@@ -293,9 +297,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             unsafe
             {
                 UnsafeUtility.MemCpy(NativeArrayUnsafeUtility.GetUnsafePtr(fvertices), NativeArrayUnsafeUtility.GetUnsafePtr(vertices), vcount * UnsafeUtility.SizeOf<ParametricLightMeshVertex>());
+                UnsafeUtility.MemCpy(NativeArrayUnsafeUtility.GetUnsafePtr(findices), NativeArrayUnsafeUtility.GetUnsafePtr(indices), icount * UnsafeUtility.SizeOf<ushort>());
             }
-            for (int i = 0; i < icount; ++i)
-                findices[i] = indices[i];
 
             mesh.SetVertexBufferParams(vcount, ParametricLightMeshVertex.VertexLayout);
             mesh.SetVertexBufferData(fvertices, 0, 0, vcount);
