@@ -234,6 +234,22 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
+        static Vector3[] Subdivide(Vector3[] shapePath, int subdivision)
+        {
+            if (subdivision <= 1)
+                return shapePath;
+            int sdsCount = 0;
+            int sdcount = shapePath.Length * subdivision;
+            var sdShapePath = new Vector3[sdcount];
+            for (int i = 0; i < shapePath.Length; ++i)
+            {
+                Vector3 dst = (i == shapePath.Length - 1) ? shapePath[0] : shapePath[i + 1];
+                for (int j = 0; j < subdivision; ++j)
+                    sdShapePath[sdsCount++] = Vector3.Lerp(shapePath[i], dst, j / (float)subdivision);
+            }
+            return sdShapePath;
+        }
+
         public static Bounds GenerateShapeMesh(Mesh mesh, Vector3[] shapePath, float falloffDistance)
         {
             var meshInteriorColor = new Color(1.0f,0,0,1.0f);
@@ -244,8 +260,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var vcount = 0;
             var icount = 0;
             var ocount = 0;
-            var vertices = new NativeArray<ParametricLightMeshVertex>(shapePath.Length * 16, Allocator.Temp);
-            var indices = new NativeArray<ushort>(shapePath.Length * 16, Allocator.Temp);
+            var vertices = new NativeArray<ParametricLightMeshVertex>(shapePath.Length * 64, Allocator.Temp);
+            var indices = new NativeArray<ushort>(shapePath.Length * 64, Allocator.Temp);
             var pointCount = shapePath.Length;
 
             // Create interior geometry
@@ -256,22 +272,28 @@ namespace UnityEngine.Experimental.Rendering.Universal
             ocount = icount;
 
             // Create falloff geometry
-            inputs = new ContourVertex[(pointCount * 2) + 2];
+            var subdiv = 8;
+            inputs = new ContourVertex[(pointCount * (subdiv + 1)) + 2];
             for (var i = 0; i < pointCount; ++i)
                 inputs[i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y, Z = 0 }};
             inputs[pointCount] = inputs[0];
+
+            // Subdivide
             var extrusionDirs = GetFalloffShape(shapePath);
-            for (var i = 0; i < pointCount; i++)
+            shapePath = Subdivide(shapePath, subdiv);
+            var exPointCount = shapePath.Length;
+            for (var i = 0; i < exPointCount; i++)
             {
+                var idx = (int)(math.floor((float) i / (float) subdiv));
                 var p = new Vec3()
                 {
-                    X = shapePath[i].x + (falloffDistance * extrusionDirs[i].x),
-                    Y = shapePath[i].y + (falloffDistance * extrusionDirs[i].y),
+                    X = shapePath[i].x + (falloffDistance * extrusionDirs[idx].x),
+                    Y = shapePath[i].y + (falloffDistance * extrusionDirs[idx].y),
                     Z = 0
                 };
                 inputs[1 + pointCount + i] = new ContourVertex() { Position = p };
             }
-            inputs[(pointCount * 2) + 1] = inputs[pointCount + 1];
+            inputs[inputs.Length - 1] = inputs[pointCount + 1];
             Tessellate(inputs, indices, vertices, ref vcount, ref icount, meshInteriorColor, meshExteriorColor);
 
             var fvertices = new NativeArray<ParametricLightMeshVertex>(vcount, Allocator.Temp);
