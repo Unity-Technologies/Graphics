@@ -21,8 +21,6 @@ def update_dependencies(project, file_name, target_dependency, target_version):
                         print(f'Bumped {target_dependency} of {project} - {file_name} to {target_version}.')
                 else:
                     print(f'Did not find {target_dependency} for {project} - {file_name}. Could no bump this dependency.', file=sys.stderr)
-            else:
-                print(f'Did not find {file_name} for {project}. Could no bump dependencies of this project.', file=sys.stderr)
 
 
 def get_dependency_last_version(target_dependency):

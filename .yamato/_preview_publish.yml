@@ -19,7 +19,7 @@ auto-version:
       -  git config --global user.email "noreply@unity3d.com"
       -  git add ./com.unity.template-*
       -  git commit -m "[Automation] Auto-bump template dependencies"
-      -  git push
+      -  git push --set-upstream origin automation/auto-bump-templates
     triggers:
         expression: push.branch eq "master" AND NOT push.changes.all match ["*template*/**/*.json"]
     artifacts:
