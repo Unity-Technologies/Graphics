@@ -240,7 +240,7 @@ Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
 
     half bakedShadowAttenuation = AdditionalLightBakedShadow(perObjectLightIndex, shadowMask);
 #if defined(_SHADOW_MASK_ALWAYS)
-    light.shadowAttenuation = min(ApplyShadowFade(light.shadowAttenuation, 1, positionWS), bakedShadowAttenuation);
+    light.shadowAttenuation = min(ApplyShadowFade(light.shadowAttenuation, positionWS), bakedShadowAttenuation);
 #else
     light.shadowAttenuation = ApplyShadowFade(light.shadowAttenuation, bakedShadowAttenuation, positionWS);
 #endif
@@ -681,7 +681,7 @@ void MixRealtimeAndBakedGI(inout Light light, float3 positionWS, half3 normalWS,
 {
     half bakedShadowAttenuation = MainLightBakedShadow(shadowMask);
 #if defined(_SHADOW_MASK_ALWAYS)
-    light.shadowAttenuation = min(ApplyShadowFade(light.shadowAttenuation, 1, positionWS), bakedShadowAttenuation);
+    light.shadowAttenuation = min(ApplyShadowFade(light.shadowAttenuation, positionWS), bakedShadowAttenuation);
 #else
     light.shadowAttenuation = ApplyShadowFade(light.shadowAttenuation, bakedShadowAttenuation, positionWS);
 
@@ -690,6 +690,12 @@ void MixRealtimeAndBakedGI(inout Light light, float3 positionWS, half3 normalWS,
 #endif
 
 #endif
+}
+
+// Backwards compatiblity
+void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI, half4 shadowMask)
+{
+    MixRealtimeAndBakedGI(light, float3(0, 0, 0), normalWS, bakedGI, shadowMask);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

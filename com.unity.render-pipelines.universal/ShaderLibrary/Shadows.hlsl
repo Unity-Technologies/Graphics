@@ -332,6 +332,11 @@ float ApplyShadowFade(float shadowAttenuation, float bakedShadowAttenuation, flo
     return lerp(shadowAttenuation, bakedShadowAttenuation, fade * fade);
 }
 
+float ApplyShadowFade(float shadowAttenuation, float3 positionWS)
+{
+    return ApplyShadowFade(shadowAttenuation, 1, positionWS);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Deprecated                                                                 /
 ///////////////////////////////////////////////////////////////////////////////
