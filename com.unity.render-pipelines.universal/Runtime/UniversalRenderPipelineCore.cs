@@ -412,23 +412,8 @@ namespace UnityEngine.Rendering.Universal
                 desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
                 desc.width = (int)((float)desc.width * renderScale);
                 desc.height = (int)((float)desc.height * renderScale);
-            }
-            else
-            {
-                desc = camera.targetTexture.descriptor;
-            }
 
-            if (camera.targetTexture != null)
-            {
-                desc = camera.targetTexture.descriptor;
-                // SystemInfo.SupportsRenderTextureFormat(camera.targetTexture.descriptor.colorFormat)
-                // will assert on R8_SINT since it isn't a valid value of RenderTextureFormat.
-                // If this is fixed then we can implement debug statement to the user explaining why some
-                // RenderTextureFormats available resolves in a black render texture when no warning or error
-                // is given.
-            }
-            else
-            {
+
                 GraphicsFormat hdrFormat;
                 if (!needsAlpha && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
                     hdrFormat = GraphicsFormat.B10G11R11_UFloatPack32;
@@ -441,6 +426,15 @@ namespace UnityEngine.Rendering.Universal
                 desc.depthBufferBits = 32;
                 desc.msaaSamples = msaaSamples;
                 desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+            }
+            else
+            {
+                desc = camera.targetTexture.descriptor;
+                // SystemInfo.SupportsRenderTextureFormat(camera.targetTexture.descriptor.colorFormat)
+                // will assert on R8_SINT since it isn't a valid value of RenderTextureFormat.
+                // If this is fixed then we can implement debug statement to the user explaining why some
+                // RenderTextureFormats available resolves in a black render texture when no warning or error
+                // is given.
             }
 
             desc.enableRandomWrite = false;
