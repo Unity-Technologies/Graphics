@@ -29,7 +29,7 @@ class PreviewPublish_AutoVersionJob():
                 f'git config --global user.email "noreply@unity3d.com"',
                 f'git add ./com.unity.template-*',
                 f'git commit -m "[Automation] Auto-bump template dependencies"',
-                f'git push --set-upstream origin automation/auto-bump-templates'])
+                f'git push origin automation/auto-bump-templates'])
         job.set_trigger_on_expression(f'push.branch eq "{target_branch}" AND NOT push.changes.all match ["*template*/**/*.json"]')
         job.add_artifacts_packages()
         # if auto_version is True:
