@@ -260,4 +260,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/130_UnityMatrixIVP.unity
     guid: 716466bc92f8e4eeeb3c138524b04021
+  - enabled: 1
+    path: Assets/Scenes/145_ManyAdditionalLightShadowTypes.unity
+    guid: 625fae218da02c440b56ea72ea59d986
   m_configObjects: {}
