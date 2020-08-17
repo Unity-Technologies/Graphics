@@ -70,7 +70,7 @@ platforms:
     agents_project_OpenGLCore:
       default:
         type: Unity::VM::osx
-        image: cds-ops/macos-10.14-perf:latest
+        image: package-ci/mac:stable
         flavor: m1.mac
     agent_package: 
       type: Unity::VM::osx
