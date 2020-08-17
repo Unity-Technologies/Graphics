@@ -1,4 +1,5 @@
 from copy import deepcopy
+import json
 
 def format_metafile(metafile, shared, latest_editor_versions, unfold_agents_root_keys=[], unfold_test_platforms_root_keys=[]):
     '''Formats the metafile by retrieving all missing information from the shared metafile. This includes unfolding platform details, agent aliases etc.'''
@@ -13,17 +14,18 @@ def format_metafile(metafile, shared, latest_editor_versions, unfold_agents_root
 
 def _get_editors(metafile, shared, latest_editor_versions):
     '''Retrieves the editors from shared metafile, if not overriden by 'override_editors' in metafile.'''
-    override_editors = metafile.get("override_editors", None)
-    editors = override_editors if override_editors is not None else shared['editors']
+    editors = shared['editors']
     for editor in editors:
-        if str(editor['version']).lower() == 'CUSTOM-REVISION'.lower():
-            editor['revision_staging'] = '$CUSTOM_REVISION'
-        else:
-            editor['revision_staging'] = latest_editor_versions["editor_versions"][f'{editor["version"]}_staging']["revision"]
+        if str(editor['track']).lower() != 'CUSTOM-REVISION'.lower():
+            editor['revisions'] = {}
+            revisions = [{k:v} for k,v in latest_editor_versions['editor_versions'].items() if str(editor['track']) in k] # get all revisions for this track
+            for rev in revisions:
+                for k,v in rev.items(): # TODO loops over the single dict value, see if there is a better way
+                    editor['revisions'][k] = v
+            
+    #print(json.dumps(editors, indent=2))
     return editors
 
-def _get_target_editor_revision(target_editor, latest_editor_versions):
-    return latest_editor_versions["editor_versions"][f'{target_editor}_staging']["revision"]
 
 
 def _unfold_individual_agents(metafile, shared, root_keys=[]):

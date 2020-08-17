@@ -7,7 +7,7 @@ class Package_TestDependenciesJob():
     
     def __init__(self, package, platform, editor):
         self.package_id = package["id"]
-        self.job_id = package_job_id_test_dependencies(package["id"],platform["os"],editor["version"])
+        self.job_id = package_job_id_test_dependencies(package["id"],platform["os"],editor["track"])
         self.yml = self.get_job_definition(package,platform, editor).get_yml()
 
 
@@ -15,16 +15,19 @@ class Package_TestDependenciesJob():
     
         # define dependencies
         dependencies = [
-                f'{editor_filepath()}#{editor_job_id(editor["version"], platform["os"]) }',
-                f'{packages_filepath()}#{package_job_id_test(package["id"],platform["os"],editor["version"])}']
+               # f'{editor_filepath()}#{editor_job_id(editor["track"], platform["os"]) }',
+                f'{packages_filepath()}#{package_job_id_test(package["id"],platform["os"],editor["track"])}']
         dependencies.extend([f'{packages_filepath()}#{package_job_id_pack(dep)}' for dep in package["dependencies"]])
         
         
+        revision = editor.get('default_revision', None)
+        if not revision:
+            revision = editor["revisions"][f"{editor['track']}_latest_internal"]["windows"]["revision"]
         # define commands
         commands =  [
                 f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
                 f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
-                f'unity-downloader-cli --source-file {PATH_UNITY_REVISION} -c editor --wait --published-only']
+                f'unity-downloader-cli -u {revision} -c editor --wait --published-only']
         if package.get('hascodependencies', None) is not None:
             commands.append(platform["copycmd"])
         commands.append(f'upm-ci package test -u {platform["editorpath"]} --type updated-dependencies-tests --package-path {package["packagename"]}')
@@ -32,7 +35,7 @@ class Package_TestDependenciesJob():
 
         # construct job
         job = YMLJob()
-        job.set_name(f'Test { package["name"] } {platform["name"]} {editor["version"]} - dependencies')
+        job.set_name(f'Test { package["name"] } {platform["name"]} {editor["track"]} - dependencies')
         job.set_agent(platform['agent_package'])
         job.add_dependencies(dependencies)
         job.add_commands(commands)

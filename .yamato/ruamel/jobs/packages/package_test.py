@@ -7,22 +7,24 @@ class Package_TestJob():
     
     def __init__(self, package, platform, editor):
         self.package_id = package["id"]
-        self.job_id = package_job_id_test(package["id"],platform["os"],editor["version"])
+        self.job_id = package_job_id_test(package["id"],platform["os"],editor["track"])
         self.yml = self.get_job_definition(package,platform, editor).get_yml()
 
     
     def get_job_definition(self, package, platform, editor):
 
         # define dependencies
-        dependencies = [f'{editor_filepath()}#{editor_job_id(editor["version"], platform["os"]) }']
+        dependencies = [] # [f'{editor_filepath()}#{editor_job_id(editor["track"], platform["os"]) }']
         dependencies.extend([f'{packages_filepath()}#{package_job_id_pack(dep)}' for dep in package["dependencies"]])
         
-
+        revision = editor.get('default_revision', None)
+        if not revision:
+            revision = editor["revisions"][f"{editor['track']}_latest_internal"]["windows"]["revision"]
         # define commands
         commands = [
                 f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
                 f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
-                f'unity-downloader-cli --source-file {PATH_UNITY_REVISION} -c editor --wait --published-only']
+                f'unity-downloader-cli -u {revision} -c editor --wait --published-only']
         if package.get('hascodependencies', None) is not None:
             commands.append(platform["copycmd"])
         commands.append(f'upm-ci package test -u {platform["editorpath"]} --package-path {package["packagename"]} --extra-utr-arg="--compilation-errors-as-warnings"')
@@ -30,7 +32,7 @@ class Package_TestJob():
 
         # construct job
         job = YMLJob()
-        job.set_name(f'Test { package["name"] } {platform["name"]} {editor["version"]}')
+        job.set_name(f'Test { package["name"] } {platform["name"]} {editor["track"]}')
         job.set_agent(platform['agent_package'])
         job.add_dependencies(dependencies)
         job.add_commands(commands)

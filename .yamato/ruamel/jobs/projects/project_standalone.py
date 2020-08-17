@@ -10,7 +10,7 @@ class Project_StandaloneJob():
         self.build_job = self.get_StandaloneBuildJob(project, editor, platform, api, test_platform)
 
         self.project_name = project["name"]
-        self.job_id = project_job_id_test(project["name"],platform["name"],api["name"],test_platform["name"],editor["version"])
+        self.job_id = project_job_id_test(project["name"],platform["name"],api["name"],test_platform["name"],editor["track"])
         self.yml = self.get_job_definition(project, editor, platform, api, test_platform, self.build_job).get_yml()
 
     
@@ -23,9 +23,12 @@ class Project_StandaloneJob():
     
     def get_job_definition(self, project, editor, platform, api, test_platform, build_job):
 
+        revision = editor.get('default_revision', None)
+        if not revision:
+            revision = editor["revisions"][f"{editor['track']}_latest_internal"]["windows"]["revision"]
         project_folder = project.get("folder_standalone", project["folder"])
         cmd = get_cmd(platform["name"], api, 'standalone') 
-        job = _job(project["name"], test_platform["name"], editor, platform, api, cmd(project_folder, platform, api, test_platform["args"], editor["revision_staging"]))
+        job = _job(project["name"], test_platform["name"], editor, platform, api, cmd(project_folder, platform, api, test_platform["args"], revision))
 
         if build_job is not None:
 

@@ -6,7 +6,7 @@ from ..shared.yml_job import YMLJob
 class Editor_PrimingJob():
     
     def __init__(self, platform, editor, agent):
-        self.job_id = editor_job_id(editor["version"], platform["os"])
+        self.job_id = editor_job_id(editor["track"], platform["os"])
         self.yml = self.get_job_definition(platform, editor, agent).get_yml()
 
 
@@ -23,16 +23,17 @@ class Editor_PrimingJob():
         
         # construct job
         job = YMLJob()
-        job.set_name(f'[{editor["version"]},{platform["os"]}] Editor priming')
+        job.set_name(f'[{editor["track"]},{platform["os"]}] Editor priming')
         job.set_agent(agent)
         job.set_skip_checkout(True)
         job.add_var_custom('PATH', '/home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin')
         job.add_var_custom('DISPLAY', dss(":0"))
         job.add_var_upm_registry()
-        job.add_var_custom_revision(editor["version"])
+        job.add_var_custom_revision(editor["track"])
+        print(editor["revisions"])
         job.add_commands([
                 f'pip install unity-downloader-cli --user --upgrade --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
-                f'unity-downloader-cli -u {editor["revision_staging"]} -o {platform_os} --wait --skip-download {"".join([f"-c {c} " for c in components])} > {PATH_UNITY_REVISION}'])
+                f'unity-downloader-cli -u {editor["revisions"]["2020.2_latest_internal"][platform_os]["revision"]} -o {platform_os} --wait --skip-download {"".join([f"-c {c} " for c in components])} > {PATH_UNITY_REVISION}'])
         job.add_artifacts_unity_revision()
         return job
     

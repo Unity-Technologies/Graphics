@@ -2,12 +2,12 @@ target_branch: master # specifies the branch on which recurrent or pr triggers a
 target_branch_editor_ci: yamato/editor-pin-ci # specifies the branch on which editor pinning is done
 target_editor: 2020.2 # specifies the target editor used for some package/preview publish jobs
 editors: # applied for all yml files. Override this by specifying override_editors (in the same format) in a specific metafile
-  - version: 2020.2
+  - track: 2020.2
     rerun_strategy: on-new-revision
-    revision: 
-  - version: CUSTOM-REVISION
+  - track: CUSTOM-REVISION
     rerun_strategy: always
-    revision: $CUSTOM_REVISION
+    default_revision: $CUSTOM_REVISION
+
 test_platforms:
   Standalone: --suite=playmode --platform=Standalone
   playmode: --suite=playmode

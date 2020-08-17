@@ -7,15 +7,18 @@ class Project_StandaloneBuildJob():
     
     def __init__(self, project, editor, platform, api, test_platform):
         self.project_name = project["name"]
-        self.job_id = project_job_id_build(project["name"],platform["name"],api["name"],editor["version"])
+        self.job_id = project_job_id_build(project["name"],platform["name"],api["name"],editor["track"])
         self.yml = self.get_job_definition(project, editor, platform, api, test_platform).get_yml()
 
     
     def get_job_definition(self, project, editor, platform, api, test_platform):
 
+        revision = editor.get('default_revision', None)
+        if not revision:
+            revision = editor["revisions"][f"{editor['track']}_latest_internal"]["windows"]["revision"]
         project_folder = project.get("folder_standalone", project["folder"])
         cmd = get_cmd(platform["name"], api, 'standalone_build')
-        job = _job(project["name"], 'standalone_build', editor, platform, api, cmd(project_folder, platform, api, test_platform["args"], editor["revision_staging"]))
+        job = _job(project["name"], 'standalone_build', editor, platform, api, cmd(project_folder, platform, api, test_platform["args"], revision))
         
         job.add_artifacts_players()
         return job
