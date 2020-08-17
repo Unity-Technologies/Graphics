@@ -47,6 +47,9 @@
       * GPU Event
         * [Trigger Event Always](Block-TriggerEventAlways.md)
         * [Trigger Event On Die](Block-TriggerEventOnDie.md)
+      * Kill
+        * [Kill (AABox)](Block-Kill(AABox).md)
+        * [Kill (Sphere)](Block-Kill(Sphere).md)
       * Position
         * [Set Position (Depth)](Block-SetPosition(Depth).md)
         * [Set Position (Shape : AABox)](Block-SetPosition(AABox).md)
@@ -56,6 +59,12 @@
         * [Set Position (Shape : Sphere)](Block-SetPosition(Sphere).md)
         * [Set Position (Sequential)](Block-SetPosition(Sequential).md)
         * [Tile/Warp Positions](Block-TileWarpPositions.md)
+      * Velocity
+        * [Velocity from Direction & Speed (Change Speed)](Block-VelocityFromDirection&Speed(ChangeSpeed).md)
+        * [Velocity from Direction & Speed (New Direction)](Block-VelocityFromDirection&Speed(NewDirection).md)
+        * [Velocity from Direction & Speed (Random Direction)](Block-VelocityFromDirection&Speed(RandomDirection).md)
+        * [Velocity from Direction & Speed (Spherical)](Block-VelocityFromDirection&Speed(Spherical).md)
+        * [Velocity from Direction & Speed (Tangent)](Block-VelocityFromDirection&Speed(Tangent).md)
   * Operator
     * Attribute
       * [Age Over Lifetime](Operator-AgeOverLifetime.md)
