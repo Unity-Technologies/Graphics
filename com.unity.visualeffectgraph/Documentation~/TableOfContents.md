@@ -164,7 +164,7 @@
         * [Modulo](Operator-Modulo.md)
         * [Multiply](Operator-Multiply.md)
         * [Negate](Operator-Negate.md)
-        * [One Minus](Operator-OneMinus)
+        * [One Minus](Operator-OneMinus.md)
         * [Power](Operator-Power.md)
         * [Reciprocal](Operator-Reciprocal.md)
         * [Sign](Operator-Sign.md)
