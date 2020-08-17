@@ -13,8 +13,8 @@ auto-version:
         PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
         DISPLAY: ":0"
     commands:
-      -  python ./Tools/standalone/templates_auto_bumper.py --template-name ./com.unity.template-hd --target-dependency com.unity.render-pipelines.high-definition
-      -  python ./Tools/standalone/templates_auto_bumper.py --template-name ./com.unity.template-universal --target-dependency com.unity.render-pipelines.universal
+      -  python3 ./Tools/standalone/templates_auto_bumper.py --template-name ./com.unity.template-hd --target-dependency com.unity.render-pipelines.high-definition
+      -  python3 ./Tools/standalone/templates_auto_bumper.py --template-name ./com.unity.template-universal --target-dependency com.unity.render-pipelines.universal
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
       -  git add ./com.unity.template.*
