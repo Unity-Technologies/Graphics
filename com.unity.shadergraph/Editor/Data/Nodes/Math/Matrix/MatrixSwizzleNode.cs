@@ -40,28 +40,28 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         string index_Row3;
         
-        [TextControl(0, "", " m", "   m", "   m", "   m")]
+        [TextControl("00010203", 0, "", " m", "   m", "   m", "   m")]
         public string row0
         {
             get { return index_Row0; }
             set { SetRow(ref index_Row0, value);  }
         }
 
-        [TextControl(1, "", " m", "   m", "   m", "   m")]
+        [TextControl("10111213", 1, "", " m", "   m", "   m", "   m")]
         public string row1
         {
             get { return index_Row1; }
             set { SetRow(ref index_Row1, value);  }
         }
 
-        [TextControl(2, "", " m", "   m", "   m", "   m")]
+        [TextControl("20212223", 2, "", " m", "   m", "   m", "   m")]
         public string row2
         {
             get { return index_Row2; }
             set { SetRow(ref index_Row2, value);  }
         }
 
-        [TextControl(3, "", " m", "   m", "   m", "   m")]
+        [TextControl("30313233", 3, "", " m", "   m", "   m", "   m")]
         public string row3
         {
             get { return index_Row3; }

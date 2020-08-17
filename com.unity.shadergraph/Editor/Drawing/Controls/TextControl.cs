@@ -15,8 +15,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         string m_SubLabel3;
         string m_SubLabel4;
         int m_row;
+        string m_defaultValue;
 
-        public TextControlAttribute(int row, string label = null, string subLabel1 = "X", string subLabel2 = "Y", string subLabel3 = "Z", string subLabel4 = "W")
+        public TextControlAttribute(string defaultValue, int row, string label = null, string subLabel1 = "X", string subLabel2 = "Y", string subLabel3 = "Z", string subLabel4 = "W")
         {
             m_SubLabel1 = subLabel1;
             m_SubLabel2 = subLabel2;
@@ -24,13 +25,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             m_SubLabel4 = subLabel4;
             m_Label = label;
             m_row = row;
+            m_defaultValue = defaultValue;
         }
 
         public VisualElement InstantiateControl(AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
             if (!TextControlView.validTypes.Contains(propertyInfo.PropertyType))
                 return null;
-            return new TextControlView(m_row, m_Label, m_SubLabel1, m_SubLabel2, m_SubLabel3, m_SubLabel4, node, propertyInfo);
+            return new TextControlView(m_defaultValue, m_row, m_Label, m_SubLabel1, m_SubLabel2, m_SubLabel3, m_SubLabel4, node, propertyInfo);
         }
     }
 
@@ -43,7 +45,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         int m_row;
         int m_UndoGroup = -1;
 
-        public TextControlView(int row, string label, string subLabel1, string subLabel2, string subLabel3, string subLabel4, AbstractMaterialNode node, PropertyInfo propertyInfo)
+        public TextControlView(string defaultValue, int row, string label, string subLabel1, string subLabel2, string subLabel3, string subLabel4, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/TextControlView"));
             m_Node = node;
@@ -60,7 +62,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             m_Value = GetValue();
             if (m_Value == null)
             {
-                m_Value = "00000000";
+                m_Value = defaultValue;
             }
             SetValue(m_Value);
             AddField(0, subLabel1);
@@ -204,6 +206,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
                 value = new string(value_char);
                 SetValue(value);
+                //Debug.Log("value: "+value);
                 m_UndoGroup = -1;
                 this.MarkDirtyRepaint();
             });
