@@ -20,15 +20,15 @@ editor-pinning-update:
       -  sudo apt-get install yamato-parser -y
       -  |5-
 
-                     if [[ "$GIT_BRANCH" != "yamato/editor-pin" ]]; then
-                         echo "Should run on 'yamato/editor-pin' but is running on '$GIT_BRANCH'"
+                     if [[ "$GIT_BRANCH" != "yamato/editor-pin-3" ]]; then
+                         echo "Should run on 'yamato/editor-pin-3' but is running on '$GIT_BRANCH'"
                          exit 1
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/ruamel/editor_pinning/update_revisions.py --target-branch yamato/editor-pin-ci --force-push
+      -  pipenv run python3 .yamato/ruamel/editor_pinning/update_revisions.py --target-branch yamato/editor-pin-3-ci --force-push
 editor-pinning-merge-to-target:
-    name: Merge editor revisions to yamato/editor-pin
+    name: Merge editor revisions to yamato/editor-pin-3
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -44,17 +44,17 @@ editor-pinning-merge-to-target:
       -  sudo apt-get install yamato-parser -y
       -  |5-
 
-                     if [[ "$GIT_BRANCH" != "yamato/editor-pin-ci" ]]; then
-                         echo "Should run on 'yamato/editor-pin-ci' but is running on '$GIT_BRANCH'"
+                     if [[ "$GIT_BRANCH" != "yamato/editor-pin-3-ci" ]]; then
+                         echo "Should run on 'yamato/editor-pin-3-ci' but is running on '$GIT_BRANCH'"
                          exit 1
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/editor-pin
+      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/editor-pin-3
     triggers:
-        expression: push.branch eq "yamato/editor-pin-ci" AND push.changes.any match "**/_latest_editor_versions.metafile"
+        expression: push.branch eq "yamato/editor-pin-3-ci" AND push.changes.any match "**/_latest_editor_versions.metafile"
 editor-pinning-merge-from-target:
-    name: Merge yamato/editor-pin to yamato/editor-pin-ci
+    name: Merge yamato/editor-pin-3 to yamato/editor-pin-3-ci
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -65,14 +65,14 @@ editor-pinning-merge-from-target:
       -  echo $GIT_BRANCH
       -  |5-
 
-                     if [[ "$GIT_BRANCH" != "yamato/editor-pin" ]]; then
-                         echo "Should run on 'yamato/editor-pin' but is running on '$GIT_BRANCH'"
+                     if [[ "$GIT_BRANCH" != "yamato/editor-pin-3" ]]; then
+                         echo "Should run on 'yamato/editor-pin-3' but is running on '$GIT_BRANCH'"
                          exit 1
                      fi
       -  git fetch
-      -  git checkout yamato/editor-pin
-      -  git checkout yamato/editor-pin-ci
+      -  git checkout yamato/editor-pin-3
+      -  git checkout yamato/editor-pin-3-ci
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  git merge yamato/editor-pin --ff
+      -  git merge yamato/editor-pin-3 --ff
       -  git push

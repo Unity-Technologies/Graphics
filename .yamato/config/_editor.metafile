@@ -1,9 +1,9 @@
 ### Configuration required only by ruamel build.py
 editor_pin_agent: package_ci_ubuntu_small
 
-### Configuration required both by ruamel build.py and update_revisions.py
-target_branch_editor_ci: yamato/editor-pin-ci
-target_branch: yamato/editor-pin # replace with __shared target branch
+# remove the following once editor pinning is done. these values will be picked up from __shared
+target_branch_editor_ci: yamato/editor-pin-3-ci
+target_branch: yamato/editor-pin-3
 
 
 ### Configuration required by update_revisions.py
