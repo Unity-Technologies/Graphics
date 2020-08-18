@@ -21,7 +21,7 @@ The Visual Effect Graph executes this Context every frame, according to the cull
 
 | **Port**   | **Description**                                              |
 | ---------- | ------------------------------------------------------------ |
-| **Input**  | Connection from an [Initialize](Context-Initialize.md) Context |
+| **Input**  | Connection from an [Initialize](Context-Initialize.md) Context. |
 | **Output** | Connection to an Update (Single) or Output (Single/Multiple) Context. |
 
 ## Details
