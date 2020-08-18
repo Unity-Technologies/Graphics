@@ -249,7 +249,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         private static readonly ProfilingSampler m_ProfilingTileDepthInfo = new ProfilingSampler(k_TileDepthInfo);
         private static readonly ProfilingSampler m_ProfilingSetupLightConstants = new ProfilingSampler(k_SetupLightConstants);
 
-        internal bool CombineMainLightInGBuffer { get; set; }
         internal bool UseShadowMask { get; set; }
         internal bool UseRenderPass { get; set; }
 
@@ -466,7 +465,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 out m_stencilVisLights,
                 out m_stencilVisLightOffsets,
                 ref renderingData.lightData.visibleLights,
-                renderingData.lightData.additionalLightsCount != 0 || (!this.CombineMainLightInGBuffer && renderingData.lightData.mainLightIndex >= 0),
+                renderingData.lightData.additionalLightsCount != 0 || renderingData.lightData.mainLightIndex >= 0,
                 renderingData.cameraData.camera.worldToCameraMatrix,
                 renderingData.cameraData.camera.orthographic,
                 renderingData.cameraData.camera.nearClipPlane
@@ -480,8 +479,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     SetupShaderLightConstants(cmd, ref renderingData);
 
                     // Setup global keywords.
-                    if (this.CombineMainLightInGBuffer)
-                        CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLight, renderingData.lightData.mainLightIndex >= 0);
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._GBUFFER_NORMALS_OCT, this.AccurateGbufferNormals);
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, renderingData.lightData.supportsMixedLighting && this.MixedLightingSetup == MixedLightingSetup.Subtractive);
                 }
@@ -689,7 +686,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void OnCameraCleanup(CommandBuffer cmd)
         {
             // Disable any global keywords setup in SetupLights().
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLight, false);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._GBUFFER_NORMALS_OCT, false);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, false);
 
@@ -1408,10 +1404,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 VisibleLight vl = visibleLights[visLightIndex];
                 if (vl.lightType != LightType.Directional)
                     break;
-
-                // Skip directional main light, as it is currently rendered as part of the GBuffer.
-                if (this.CombineMainLightInGBuffer && visLightIndex == mainLightIndex)
-                    continue;
 
                 Vector4 lightDir, lightColor, lightAttenuation, lightSpotDir, lightOcclusionChannel;
                 UniversalRenderPipeline.InitializeLightConstants_Common(visibleLights, visLightIndex, out lightDir, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel);

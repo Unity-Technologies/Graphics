@@ -416,15 +416,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     BRDFData brdfData;
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
 
-    half3 color = 0.0;
-
-    #ifdef _MAIN_LIGHT
-    Light mainLight = GetMainLight(inputData.shadowCoord);
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
-    color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS, false);
-    #endif
-
-    color += GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
+    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
 
     return BRDFDataToGbuffer(brdfData, inputData, smoothness, emission + color);
 

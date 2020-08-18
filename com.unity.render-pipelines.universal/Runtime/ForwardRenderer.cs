@@ -122,7 +122,6 @@ namespace UnityEngine.Rendering.Universal
             if (this.renderingMode == RenderingMode.Deferred)
             {
                 m_DeferredLights = new DeferredLights(m_TileDepthInfoMaterial, m_TileDeferredMaterial, m_StencilDeferredMaterial);
-                m_DeferredLights.CombineMainLightInGBuffer = false;
                 m_DeferredLights.AccurateGbufferNormals = data.accurateGbufferNormals;
                 //m_DeferredLights.TiledDeferredShading = data.tiledDeferredShading;
                 m_DeferredLights.TiledDeferredShading = false;
