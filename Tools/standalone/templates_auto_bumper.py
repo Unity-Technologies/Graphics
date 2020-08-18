@@ -15,6 +15,9 @@ def update_dependencies(project, file_name, target_dependency, target_version):
                     json_content = json.load(f)
                 dependencies = json_content['dependencies']
                 if target_dependency in dependencies:
+                    if dependencies[target_dependency] == target_version:
+                        print(f'{target_version} is already the latest version for {target_dependency}.')
+                        return
                     dependencies[target_dependency] = target_version
                     with open(path, "w") as json_file:
                         json.dump(json_content, json_file, indent=2)

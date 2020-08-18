@@ -18,12 +18,16 @@ auto-version:
       -  upm-ci utils auto-version commit --push
       -  python3 ./Tools/standalone/templates_auto_bumper.py --template-name ./com.unity.template-hd --target-dependency com.unity.render-pipelines.high-definition
       -  python3 ./Tools/standalone/templates_auto_bumper.py --template-name ./com.unity.template-universal --target-dependency com.unity.render-pipelines.universal
-      -  git config --global user.name "noreply@unity3d.com"
-      -  git config --global user.email "noreply@unity3d.com"
-      -  git checkout master
-      -  git add ./com.unity.template-*
-      -  git commit -m "[Automation] Auto-bump template dependencies"
-      -  git push origin master
+      -  |5-
+
+                             if [[ $(git diff-index --quiet HEAD) != 0 ]]; then
+                                 git config --global user.name "noreply@unity3d.com"
+                                 git config --global user.email "noreply@unity3d.com"
+                                 git checkout master
+                                 git add ./com.unity.template-*
+                                 git commit -m "[Automation] Auto-bump template dependencies"
+                                 git push origin master
+                             fi
     triggers:
         expression: push.branch eq "master" AND NOT push.changes.all match ["*template*/**/*.json"]
     artifacts:
