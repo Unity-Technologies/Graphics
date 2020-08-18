@@ -1,26 +1,15 @@
-platforms:
-  # Exhaustive list of operating systems and editor components used by all jobs so the preparation jobs
-  # can make sure all editors are cached on cheap vms before starting the heavy duty machines for running tests
-  - name: OSX
-  - name: Android
-  - name: Win
-  - name: Linux
-  - name: iPhone
-editor_priming_agent: cds_ops_ubuntu_small
+### Configuration required only by ruamel build.py
 editor_pin_agent: package_ci_ubuntu_small
+
+### Configuration required both by ruamel build.py and update_revisions.py
 target_branch_editor_ci: yamato/editor-pin-ci
 target_branch: yamato/editor-pin # replace with __shared target branch
 
 
-# OLD CONFIG.YML FILE
-# Configuration. This decides what goes into the output file.
-# When new editor tracks are being added, this is where changes are made.
-editor_tracks:
-#- '2019.3'
-#- '2020.1'
-- '2020.2'
-
-trunk_track: '2020.2'
+### Configuration required by update_revisions.py
+trunk_track: '2020.2' # track running on trunk: this must match across all release branches
+editor_tracks: # specifies tracks which go in _latest_editor_versions: this must differ per release branches
+- trunk
 
 # Paths relative to the root. Use forward slashes as directory separators.
 editor_versions_file: .yamato/config/_latest_editor_versions.metafile

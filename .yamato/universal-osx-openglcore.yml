@@ -3,8 +3,8 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-Universal_OSX_OpenGLCore_playmode_2020.2:
-    name: Universal on OSX_OpenGLCore_playmode on version 2020.2
+Universal_OSX_OpenGLCore_playmode_trunk:
+    name: Universal on OSX_OpenGLCore_playmode on version trunk
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -15,14 +15,14 @@ Universal_OSX_OpenGLCore_playmode_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u 3e0d5f775006 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u 3e0d5f77500609e558a691291eb824a4d926c1b8 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-Universal_OSX_OpenGLCore_editmode_2020.2:
-    name: Universal on OSX_OpenGLCore_editmode on version 2020.2
+Universal_OSX_OpenGLCore_editmode_trunk:
+    name: Universal on OSX_OpenGLCore_editmode on version trunk
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -33,14 +33,14 @@ Universal_OSX_OpenGLCore_editmode_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u 3e0d5f775006 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u 3e0d5f77500609e558a691291eb824a4d926c1b8 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-Universal_OSX_OpenGLCore_playmode_XR_2020.2:
-    name: Universal on OSX_OpenGLCore_playmode_XR on version 2020.2
+Universal_OSX_OpenGLCore_playmode_XR_trunk:
+    name: Universal on OSX_OpenGLCore_playmode_XR on version trunk
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -51,7 +51,7 @@ Universal_OSX_OpenGLCore_playmode_XR_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u 3e0d5f775006 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u 3e0d5f77500609e558a691291eb824a4d926c1b8 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:

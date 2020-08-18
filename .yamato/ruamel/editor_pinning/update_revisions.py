@@ -32,7 +32,7 @@ def generate_downloader_cmd(track, version, trunk_track, platform, unity_downloa
     if version == 'staging':
         # --fast avoids problems with ongoing builds. If we hit such it will
         # return an older build instead, which is fine for us for this tool.
-        if track == trunk_track:
+        if track == trunk_track or track == 'trunk':
             target_str = '-u trunk --fast'
         else:
             target_str = f'-u {track}/staging --fast'
@@ -82,17 +82,25 @@ def get_versions_from_unity_downloader(tracks, trunk_track, unity_downloader_com
         }
     """
     
-
+    # load existing latest_editor_versions
     versions = editor_versions_file.get("editor_versions", {})
+
+    # drop all the keys that don't correspond to specified tracks (useful when different tracks are used between branches)
+    false_keys = [key for key in versions if key.split('_')[0] not in tracks] 
+    for key in false_keys: del versions[key] 
+
     for track in tracks: # pylint: disable=too-many-nested-blocks
         for version_type in SUPPORTED_VERSION_TYPES:
 
             key = f'{track}_{version_type}'
 
+            if not versions.get(key):
+                versions[key] = {}
+
             for platform in PLATFORMS:
                 try:
                     
-                    timeout = 15
+                    timeout = 120
                     result = subprocess.check_output(generate_downloader_cmd(track, version_type, trunk_track, platform,
                                                 unity_downloader_components), stderr=subprocess.STDOUT, universal_newlines=True, timeout=timeout, cwd='.')
                     

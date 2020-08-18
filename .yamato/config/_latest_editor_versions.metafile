@@ -2,56 +2,56 @@
 # To add new Unity Editor tracks, the script needs to be updated.
 
 editor_version_names:
-- 2020.2_latest_internal
-- 2020.2_latest_public
-- 2020.2_staging
+- trunk_latest_internal
+- trunk_latest_public
+- trunk_staging
 
 editor_versions:
-  2020.2_latest_internal:
-    android:
-      revision: 3e0d5f775006
-      version: 2020.2.0a21
-    ios:
-      revision: 3e0d5f775006
-      version: 2020.2.0a21
-    linux:
-      revision: 3e0d5f775006
-      version: 2020.2.0a21
-    macos:
-      revision: 3e0d5f775006
-      version: 2020.2.0a21
-    windows:
-      revision: 3e0d5f775006
-      version: 2020.2.0a21
-  2020.2_latest_public:
-    android:
-      revision: 8037ac78137e
-      version: 2020.2.0a19
-    ios:
-      revision: 8037ac78137e
-      version: 2020.2.0a19
-    linux:
-      revision: 8037ac78137e
-      version: 2020.2.0a19
-    macos:
-      revision: 8037ac78137e
-      version: 2020.2.0a19
-    windows:
-      revision: 8037ac78137e
-      version: 2020.2.0a19
-  2020.2_staging:
+  trunk_latest_internal:
     android:
       revision: 3e0d5f77500609e558a691291eb824a4d926c1b8
       version: ''
     ios:
-      revision: 1234567
+      revision: 3e0d5f77500609e558a691291eb824a4d926c1b8
       version: ''
     linux:
       revision: 3e0d5f77500609e558a691291eb824a4d926c1b8
       version: ''
     macos:
-      revision: 1243546576
+      revision: 3e0d5f77500609e558a691291eb824a4d926c1b8
       version: ''
     windows:
-      revision: 12365
+      revision: 3e0d5f77500609e558a691291eb824a4d926c1b8
+      version: ''
+  trunk_latest_public:
+    android:
+      revision: 3e0d5f77500609e558a691291eb824a4d926c1b8
+      version: ''
+    ios:
+      revision: 3e0d5f77500609e558a691291eb824a4d926c1b8
+      version: ''
+    linux:
+      revision: 3e0d5f77500609e558a691291eb824a4d926c1b8
+      version: ''
+    macos:
+      revision: 3e0d5f77500609e558a691291eb824a4d926c1b8
+      version: ''
+    windows:
+      revision: 3e0d5f77500609e558a691291eb824a4d926c1b8
+      version: ''
+  trunk_staging:
+    android:
+      revision: 3e0d5f77500609e558a691291eb824a4d926c1b8
+      version: ''
+    ios:
+      revision: 3e0d5f77500609e558a691291eb824a4d926c1b8
+      version: ''
+    linux:
+      revision: 3e0d5f77500609e558a691291eb824a4d926c1b8
+      version: ''
+    macos:
+      revision: 3e0d5f77500609e558a691291eb824a4d926c1b8
+      version: ''
+    windows:
+      revision: 3e0d5f77500609e558a691291eb824a4d926c1b8
       version: ''

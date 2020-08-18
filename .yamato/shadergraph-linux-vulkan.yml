@@ -3,8 +3,8 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-ShaderGraph_Linux_Vulkan_Standalone_2020.2:
-    name: ShaderGraph on Linux_Vulkan_Standalone on version 2020.2
+ShaderGraph_Linux_Vulkan_Standalone_trunk:
+    name: ShaderGraph on Linux_Vulkan_Standalone on version trunk
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -16,14 +16,14 @@ ShaderGraph_Linux_Vulkan_Standalone_2020.2:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
-      -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli -u 3e0d5f775006 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli -u 3e0d5f77500609e558a691291eb824a4d926c1b8 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-ShaderGraph_Linux_Vulkan_playmode_2020.2:
-    name: ShaderGraph on Linux_Vulkan_playmode on version 2020.2
+ShaderGraph_Linux_Vulkan_playmode_trunk:
+    name: ShaderGraph on Linux_Vulkan_playmode on version trunk
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -35,14 +35,14 @@ ShaderGraph_Linux_Vulkan_playmode_2020.2:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
-      -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli -u 3e0d5f775006 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli -u 3e0d5f77500609e558a691291eb824a4d926c1b8 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-ShaderGraph_Linux_Vulkan_editmode_2020.2:
-    name: ShaderGraph on Linux_Vulkan_editmode on version 2020.2
+ShaderGraph_Linux_Vulkan_editmode_trunk:
+    name: ShaderGraph on Linux_Vulkan_editmode on version trunk
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
@@ -54,7 +54,7 @@ ShaderGraph_Linux_Vulkan_editmode_2020.2:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
-      -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli -u 3e0d5f775006 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli -u 3e0d5f77500609e558a691291eb824a4d926c1b8 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:

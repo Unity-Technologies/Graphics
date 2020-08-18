@@ -3,8 +3,8 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-ShaderGraph_Win_DX11_Standalone_2020.2:
-    name: ShaderGraph on Win_DX11_Standalone on version 2020.2
+ShaderGraph_Win_DX11_Standalone_trunk:
+    name: ShaderGraph on Win_DX11_Standalone on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -19,11 +19,11 @@ ShaderGraph_Win_DX11_Standalone_2020.2:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  path: .yamato/shadergraph-win-dx11.yml#Build_ShaderGraph_Win_DX11_Player_2020.2
+      -  path: .yamato/shadergraph-win-dx11.yml#Build_ShaderGraph_Win_DX11_Player_trunk
          rerun: on-new-revision
     skip_checkout: true
-Build_ShaderGraph_Win_DX11_Player_2020.2:
-    name: Build ShaderGraph on Win_DX11_Player on version 2020.2
+Build_ShaderGraph_Win_DX11_Player_trunk:
+    name: Build ShaderGraph on Win_DX11_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -33,7 +33,7 @@ Build_ShaderGraph_Win_DX11_Player_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraph/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/ShaderGraph && unity-downloader-cli -u 3e0d5f775006 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/ShaderGraph && unity-downloader-cli -u 3e0d5f77500609e558a691291eb824a4d926c1b8 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
@@ -42,8 +42,8 @@ Build_ShaderGraph_Win_DX11_Player_2020.2:
         players:
             paths:
               -  "players/**"
-ShaderGraph_Win_DX11_playmode_2020.2:
-    name: ShaderGraph on Win_DX11_playmode on version 2020.2
+ShaderGraph_Win_DX11_playmode_trunk:
+    name: ShaderGraph on Win_DX11_playmode on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -53,14 +53,14 @@ ShaderGraph_Win_DX11_playmode_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraph/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/ShaderGraph && unity-downloader-cli -u 3e0d5f775006 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/ShaderGraph && unity-downloader-cli -u 3e0d5f77500609e558a691291eb824a4d926c1b8 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-ShaderGraph_Win_DX11_editmode_2020.2:
-    name: ShaderGraph on Win_DX11_editmode on version 2020.2
+ShaderGraph_Win_DX11_editmode_trunk:
+    name: ShaderGraph on Win_DX11_editmode on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -70,7 +70,7 @@ ShaderGraph_Win_DX11_editmode_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraph/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/ShaderGraph && unity-downloader-cli -u 3e0d5f775006 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/ShaderGraph && unity-downloader-cli -u 3e0d5f77500609e558a691291eb824a4d926c1b8 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
