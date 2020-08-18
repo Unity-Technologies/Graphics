@@ -48,5 +48,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public float pointLightDistance => m_PointLightDistance;
         public PointLightQuality pointLightQuality => m_PointLightQuality;
+
+        internal bool isPointLight => m_LightType == LightType.Point;
     }
 }

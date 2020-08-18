@@ -165,7 +165,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private void UpdateBoundingSphere()
         {
-            if (!isShapeLight)
+            if (isPointLight)
             {
                 boundingSphere = new BoundingSphere(transform.position, m_PointLightOuterRadius);
                 return;
