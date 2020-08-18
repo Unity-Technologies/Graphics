@@ -104,10 +104,6 @@ namespace UnityEditor.Rendering.Universal
             bool isAdditionalLightPerPixel = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel);
             bool isAdditionalLightPerVertex = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsVertex);
 
-            // No additional lights
-            if (!isFeaturePerPixelLightingEnabled && !isFeaturePerVertexLightingEnabled)
-                return true;
-
             // Only Per-vertex is selected in every URP asset
             if (!isFeaturePerPixelLightingEnabled && (isAdditionalLightPerPixel || isAdditionalLightShadow))
                 return true;
