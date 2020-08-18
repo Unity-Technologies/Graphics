@@ -16,12 +16,20 @@ auto-version:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci utils auto-version bump --package-path com.unity.render-pipelines.core --package-path com.unity.render-pipelines.universal --package-path com.unity.render-pipelines.high-definition --package-path com.unity.shadergraph --package-path com.unity.visualeffectgraph --package-path com.unity.render-pipelines.high-definition-config --package-path com.unity.render-pipelines.lightweight
       -  upm-ci utils auto-version commit --push
+      -  python3 ./Tools/standalone/templates_auto_bumper.py --template-name ./com.unity.template-hd --target-dependency com.unity.render-pipelines.high-definition
+      -  python3 ./Tools/standalone/templates_auto_bumper.py --template-name ./com.unity.template-universal --target-dependency com.unity.render-pipelines.universal
+      -  git config --global user.name "noreply@unity3d.com"
+      -  git config --global user.email "noreply@unity3d.com"
+      -  git checkout master
+      -  git add ./com.unity.template-*
+      -  git commit -m "[Automation] Auto-bump template dependencies"
+      -  git push origin master
     triggers:
         expression: push.branch eq "master" AND NOT push.changes.all match ["*template*/**/*.json"]
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_all_preview:
     name: Promote all preview packages - nightly
     dependencies:
@@ -81,12 +89,13 @@ promote_core:
       -  .yamato/_packages.yml#test_core_windows_trunk
       -  .yamato/_packages.yml#test_core_macos_trunk
     commands:
+      -  copy packages_temp\core\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.core
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_core_project:
     name: '[core] Preview - Production Promote [project context]'
     agent:
@@ -106,7 +115,7 @@ promote_core_project:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_core_project_dry:
     name: '[core] Preview - Production Promote [project context] [dry run]'
     agent:
@@ -126,7 +135,7 @@ promote_core_project_dry:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_core_dry:
     name: '[core] Preview - Production Promote [dry run]'
     agent:
@@ -141,12 +150,13 @@ promote_core_dry:
       -  .yamato/_packages.yml#test_core_windows_trunk
       -  .yamato/_packages.yml#test_core_macos_trunk
     commands:
+      -  copy packages_temp\core\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.core --dry-run
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_universal:
     name: '[universal] Preview - Production Promote'
     agent:
@@ -161,12 +171,13 @@ promote_universal:
       -  .yamato/_packages.yml#test_universal_windows_trunk
       -  .yamato/_packages.yml#test_universal_macos_trunk
     commands:
+      -  copy packages_temp\universal\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.universal
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_universal_project:
     name: '[universal] Preview - Production Promote [project context]'
     agent:
@@ -186,7 +197,7 @@ promote_universal_project:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_universal_project_dry:
     name: '[universal] Preview - Production Promote [project context] [dry run]'
     agent:
@@ -206,7 +217,7 @@ promote_universal_project_dry:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_universal_dry:
     name: '[universal] Preview - Production Promote [dry run]'
     agent:
@@ -221,12 +232,13 @@ promote_universal_dry:
       -  .yamato/_packages.yml#test_universal_windows_trunk
       -  .yamato/_packages.yml#test_universal_macos_trunk
     commands:
+      -  copy packages_temp\universal\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.universal --dry-run
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_hdrp:
     name: '[hdrp] Preview - Production Promote'
     agent:
@@ -241,12 +253,13 @@ promote_hdrp:
       -  .yamato/_packages.yml#test_hdrp_windows_trunk
       -  .yamato/_packages.yml#test_hdrp_macos_trunk
     commands:
+      -  copy packages_temp\hdrp\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.high-definition
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_hdrp_project:
     name: '[hdrp] Preview - Production Promote [project context]'
     agent:
@@ -266,7 +279,7 @@ promote_hdrp_project:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_hdrp_project_dry:
     name: '[hdrp] Preview - Production Promote [project context] [dry run]'
     agent:
@@ -286,7 +299,7 @@ promote_hdrp_project_dry:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_hdrp_dry:
     name: '[hdrp] Preview - Production Promote [dry run]'
     agent:
@@ -301,12 +314,13 @@ promote_hdrp_dry:
       -  .yamato/_packages.yml#test_hdrp_windows_trunk
       -  .yamato/_packages.yml#test_hdrp_macos_trunk
     commands:
+      -  copy packages_temp\hdrp\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.high-definition --dry-run
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_shadergraph:
     name: '[shadergraph] Preview - Production Promote'
     agent:
@@ -321,12 +335,13 @@ promote_shadergraph:
       -  .yamato/_packages.yml#test_shadergraph_windows_trunk
       -  .yamato/_packages.yml#test_shadergraph_macos_trunk
     commands:
+      -  copy packages_temp\shadergraph\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.shadergraph
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_shadergraph_project:
     name: '[shadergraph] Preview - Production Promote [project context]'
     agent:
@@ -346,7 +361,7 @@ promote_shadergraph_project:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_shadergraph_project_dry:
     name: '[shadergraph] Preview - Production Promote [project context] [dry run]'
     agent:
@@ -366,7 +381,7 @@ promote_shadergraph_project_dry:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_shadergraph_dry:
     name: '[shadergraph] Preview - Production Promote [dry run]'
     agent:
@@ -381,12 +396,13 @@ promote_shadergraph_dry:
       -  .yamato/_packages.yml#test_shadergraph_windows_trunk
       -  .yamato/_packages.yml#test_shadergraph_macos_trunk
     commands:
+      -  copy packages_temp\shadergraph\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.shadergraph --dry-run
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_vfx:
     name: '[vfx] Preview - Production Promote'
     agent:
@@ -401,12 +417,13 @@ promote_vfx:
       -  .yamato/_packages.yml#test_vfx_windows_trunk
       -  .yamato/_packages.yml#test_vfx_macos_trunk
     commands:
+      -  copy packages_temp\vfx\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.visualeffectgraph
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_vfx_project:
     name: '[vfx] Preview - Production Promote [project context]'
     agent:
@@ -426,7 +443,7 @@ promote_vfx_project:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_vfx_project_dry:
     name: '[vfx] Preview - Production Promote [project context] [dry run]'
     agent:
@@ -446,7 +463,7 @@ promote_vfx_project_dry:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_vfx_dry:
     name: '[vfx] Preview - Production Promote [dry run]'
     agent:
@@ -461,12 +478,13 @@ promote_vfx_dry:
       -  .yamato/_packages.yml#test_vfx_windows_trunk
       -  .yamato/_packages.yml#test_vfx_macos_trunk
     commands:
+      -  copy packages_temp\vfx\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.visualeffectgraph --dry-run
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_config:
     name: '[config] Preview - Production Promote'
     agent:
@@ -481,12 +499,13 @@ promote_config:
       -  .yamato/_packages.yml#test_config_windows_trunk
       -  .yamato/_packages.yml#test_config_macos_trunk
     commands:
+      -  copy packages_temp\config\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_config_project:
     name: '[config] Preview - Production Promote [project context]'
     agent:
@@ -506,7 +525,7 @@ promote_config_project:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_config_project_dry:
     name: '[config] Preview - Production Promote [project context] [dry run]'
     agent:
@@ -526,7 +545,7 @@ promote_config_project_dry:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_config_dry:
     name: '[config] Preview - Production Promote [dry run]'
     agent:
@@ -541,12 +560,13 @@ promote_config_dry:
       -  .yamato/_packages.yml#test_config_windows_trunk
       -  .yamato/_packages.yml#test_config_macos_trunk
     commands:
+      -  copy packages_temp\config\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.high-definition-config --dry-run
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_lwrp:
     name: '[lwrp] Preview - Production Promote'
     agent:
@@ -561,12 +581,13 @@ promote_lwrp:
       -  .yamato/_packages.yml#test_lwrp_windows_trunk
       -  .yamato/_packages.yml#test_lwrp_macos_trunk
     commands:
+      -  copy packages_temp\lwrp\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.lightweight
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_lwrp_project:
     name: '[lwrp] Preview - Production Promote [project context]'
     agent:
@@ -586,7 +607,7 @@ promote_lwrp_project:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_lwrp_project_dry:
     name: '[lwrp] Preview - Production Promote [project context] [dry run]'
     agent:
@@ -606,7 +627,7 @@ promote_lwrp_project_dry:
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"
 promote_lwrp_dry:
     name: '[lwrp] Preview - Production Promote [dry run]'
     agent:
@@ -621,9 +642,10 @@ promote_lwrp_dry:
       -  .yamato/_packages.yml#test_lwrp_windows_trunk
       -  .yamato/_packages.yml#test_lwrp_macos_trunk
     commands:
+      -  copy packages_temp\lwrp\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.lightweight --dry-run
     artifacts:
         packages:
             paths:
-              -  "upm-ci~/packages/*.tgz"
+              -  "upm-ci~/packages/**/*"

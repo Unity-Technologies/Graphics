@@ -13,12 +13,9 @@ class Package_PublishAllJob():
 
         # construct job
         job = YMLJob()
-        job.set_name(f'Publish all packages')
-        job.set_agent(agent)
+        job.set_name(f'Publish all packages [package context][manual]')
+        #job.set_agent(agent)
         job.add_dependencies([f'{packages_filepath()}#{package_job_id_publish(package["id"])}' for package in packages])
-        job.add_commands([
-                f'git tag v$(cd com.unity.render-pipelines.core && node -e "console.log(require(\'./package.json\').version)")',
-                f'git push origin --tags'])
         #job.add_trigger_recurrent(target_branch, 'daily')
         return job
 
