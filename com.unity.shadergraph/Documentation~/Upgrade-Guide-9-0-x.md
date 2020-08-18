@@ -1,8 +1,8 @@
-# Upgrade to version 10.0.x of Shader Graph
+# Upgrade to version 9.0.x of Shader Graph
 
 ## Master Stack graph output
 
-Shader Graph has removed the Master Nodes and introduced a more flexible [Master Stack](Master-Stack.md) solution for defining graph output in 10.0. You can still open all graphs created in previous versions, because Shader Graph automatically upgrades them. This page describes the expected behavior and explains when you might need to perform manual upgrade steps.
+Shader Graph has removed the Master Nodes and introduced a more flexible [Master Stack](Master-Stack.md) solution for defining graph output in 9.0. You can still open all graphs created in previous versions, because Shader Graph automatically upgrades them. This page describes the expected behavior and explains when you might need to perform manual upgrade steps.
 <a name="AutomaticUpgrade"></a>
 
 ## Automatic upgrade from Master Nodes
@@ -35,13 +35,13 @@ In HDRP, settings from the PBR and Unlit Master Nodes are not the same as the HD
 
 ### "View Generated Shader" has moved 
 
-Previously, you could right-click the Master Node to bring up a context menu, and select **View Generated Shader** to preview the generated shader. In 10.0, you must now use the Unity Inspector, and click the **View Generated Shader** button on the Shader Graph asset.
+Previously, you could right-click the Master Node to bring up a context menu, and select **View Generated Shader** to preview the generated shader. In 9.0, you must now use the Unity Inspector, and click the **View Generated Shader** button on the Shader Graph asset.
 
 ![image](images/GeneratedShaderButton.png)
 
 ## Settings in Graph Inspector 
 
-Shader Graph introduced an internal [Graph Inspector](Internal-Inspector.md) in version 10.0. The Graph Inspector is a floating window that displays settings related to objects you select in the graph. 
+Shader Graph introduced an internal [Graph Inspector](Internal-Inspector.md) in version 9.0. The Graph Inspector is a floating window that displays settings related to objects you select in the graph. 
 
 ### Graph settings
 
