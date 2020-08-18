@@ -30,8 +30,8 @@ class PreviewPublish_AutoVersionJob():
                     if [[ $(git diff-index --quiet HEAD) != 0 ]]; then
                         git config --global user.name "noreply@unity3d.com"
                         git config --global user.email "noreply@unity3d.com"
-                        git checkout {target_branch}
                         git add ./com.unity.template-*
+                        git checkout {target_branch}
                         git commit -m "[Automation] Auto-bump template dependencies"
                         git push origin {target_branch}
                     fi''')
