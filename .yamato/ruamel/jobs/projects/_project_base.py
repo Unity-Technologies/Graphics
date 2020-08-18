@@ -27,6 +27,6 @@ def _job(project_name, test_platform_name, editor, platform, api, cmd):
     job.add_artifacts_test_results()
 
     if editor['track'].lower() == 'custom-revision':
-        job.add_dependencies([f'{editor_filepath()}#{editor_job_id(editor["track"], platform["os"]) }'])
+        job.add_dependencies([f'{editor_priming_filepath()}#{editor_job_id(editor["track"], platform["os"]) }'])
 
     return job

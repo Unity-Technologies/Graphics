@@ -116,7 +116,7 @@ HDRP_DXR_Win_DX12_Standalone_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
       -  path: .yamato/hdrp_dxr-win-dx12.yml#Build_HDRP_DXR_Win_DX12_Player_CUSTOM-REVISION
          rerun: always
     skip_checkout: true
@@ -143,7 +143,7 @@ Build_HDRP_DXR_Win_DX12_Player_CUSTOM-REVISION:
             paths:
               -  "players/**"
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
 HDRP_DXR_Win_DX12_playmode_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode on version CUSTOM-REVISION
     agent:
@@ -164,7 +164,7 @@ HDRP_DXR_Win_DX12_playmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
 HDRP_DXR_Win_DX12_playmode_XR_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode_XR on version CUSTOM-REVISION
     agent:
@@ -185,7 +185,7 @@ HDRP_DXR_Win_DX12_playmode_XR_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
 HDRP_DXR_Win_DX12_playmode_RenderGraph_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode_RenderGraph on version CUSTOM-REVISION
     agent:
@@ -206,4 +206,4 @@ HDRP_DXR_Win_DX12_playmode_RenderGraph_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows

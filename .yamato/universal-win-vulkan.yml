@@ -111,7 +111,7 @@ Universal_Win_Vulkan_Standalone_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
       -  path: .yamato/universal-win-vulkan.yml#Build_Universal_Win_Vulkan_Player_CUSTOM-REVISION
          rerun: always
 Build_Universal_Win_Vulkan_Player_CUSTOM-REVISION:
@@ -136,7 +136,7 @@ Build_Universal_Win_Vulkan_Player_CUSTOM-REVISION:
             paths:
               -  "players/**"
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
 Universal_Win_Vulkan_playmode_CUSTOM-REVISION:
     name: Universal on Win_Vulkan_playmode on version CUSTOM-REVISION
     agent:
@@ -156,7 +156,7 @@ Universal_Win_Vulkan_playmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
 Universal_Win_Vulkan_editmode_CUSTOM-REVISION:
     name: Universal on Win_Vulkan_editmode on version CUSTOM-REVISION
     agent:
@@ -176,7 +176,7 @@ Universal_Win_Vulkan_editmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
 Universal_Win_Vulkan_playmode_XR_CUSTOM-REVISION:
     name: Universal on Win_Vulkan_playmode_XR on version CUSTOM-REVISION
     agent:
@@ -196,4 +196,4 @@ Universal_Win_Vulkan_playmode_XR_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows

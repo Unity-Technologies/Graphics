@@ -135,7 +135,7 @@ HDRP_OSX_Metal_playmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
 HDRP_OSX_Metal_playmode_XR_CUSTOM-REVISION:
     name: HDRP on OSX_Metal_playmode_XR on version CUSTOM-REVISION
     agent:
@@ -164,7 +164,7 @@ HDRP_OSX_Metal_playmode_XR_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
 HDRP_OSX_Metal_playmode_RenderGraph_CUSTOM-REVISION:
     name: HDRP on OSX_Metal_playmode_RenderGraph on version CUSTOM-REVISION
     agent:
@@ -193,7 +193,7 @@ HDRP_OSX_Metal_playmode_RenderGraph_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
 HDRP_OSX_Metal_Standalone_CUSTOM-REVISION:
     name: HDRP on OSX_Metal_Standalone on version CUSTOM-REVISION
     agent:
@@ -222,4 +222,4 @@ HDRP_OSX_Metal_Standalone_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos

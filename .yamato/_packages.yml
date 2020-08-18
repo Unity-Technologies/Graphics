@@ -906,7 +906,7 @@ test_core_windows_CUSTOM-REVISION:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_core
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -925,6 +925,7 @@ test_core_windows_CUSTOM-REVISION_dependencies:
     dependencies:
       -  .yamato/_packages.yml#test_core_windows_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -945,7 +946,7 @@ test_lwrp_windows_CUSTOM-REVISION:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_packages.yml#pack_lwrp
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -968,6 +969,7 @@ test_lwrp_windows_CUSTOM-REVISION_dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_packages.yml#pack_lwrp
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -987,7 +989,7 @@ test_shadergraph_windows_CUSTOM-REVISION:
     dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -1008,6 +1010,7 @@ test_shadergraph_windows_CUSTOM-REVISION_dependencies:
       -  .yamato/_packages.yml#test_shadergraph_windows_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -1030,7 +1033,7 @@ test_hdrp_windows_CUSTOM-REVISION:
       -  .yamato/_packages.yml#pack_vfx
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#pack_hdrp
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -1054,6 +1057,7 @@ test_hdrp_windows_CUSTOM-REVISION_dependencies:
       -  .yamato/_packages.yml#pack_vfx
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#pack_hdrp
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -1074,7 +1078,7 @@ test_universal_windows_CUSTOM-REVISION:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -1096,6 +1100,7 @@ test_universal_windows_CUSTOM-REVISION_dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -1116,7 +1121,7 @@ test_vfx_windows_CUSTOM-REVISION:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -1138,6 +1143,7 @@ test_vfx_windows_CUSTOM-REVISION_dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -1157,7 +1163,7 @@ test_config_windows_CUSTOM-REVISION:
     dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -1178,6 +1184,7 @@ test_config_windows_CUSTOM-REVISION_dependencies:
       -  .yamato/_packages.yml#test_config_windows_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -1196,7 +1203,7 @@ test_core_macos_CUSTOM-REVISION:
         flavor: m1.mac
     dependencies:
       -  .yamato/_packages.yml#pack_core
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -1215,6 +1222,7 @@ test_core_macos_CUSTOM-REVISION_dependencies:
     dependencies:
       -  .yamato/_packages.yml#test_core_macos_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -1235,7 +1243,7 @@ test_lwrp_macos_CUSTOM-REVISION:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_packages.yml#pack_lwrp
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -1258,6 +1266,7 @@ test_lwrp_macos_CUSTOM-REVISION_dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_packages.yml#pack_lwrp
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -1277,7 +1286,7 @@ test_shadergraph_macos_CUSTOM-REVISION:
     dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -1298,6 +1307,7 @@ test_shadergraph_macos_CUSTOM-REVISION_dependencies:
       -  .yamato/_packages.yml#test_shadergraph_macos_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -1320,7 +1330,7 @@ test_hdrp_macos_CUSTOM-REVISION:
       -  .yamato/_packages.yml#pack_vfx
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#pack_hdrp
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -1344,6 +1354,7 @@ test_hdrp_macos_CUSTOM-REVISION_dependencies:
       -  .yamato/_packages.yml#pack_vfx
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#pack_hdrp
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -1364,7 +1375,7 @@ test_universal_macos_CUSTOM-REVISION:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -1386,6 +1397,7 @@ test_universal_macos_CUSTOM-REVISION_dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -1406,7 +1418,7 @@ test_vfx_macos_CUSTOM-REVISION:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -1428,6 +1440,7 @@ test_vfx_macos_CUSTOM-REVISION_dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -1447,7 +1460,7 @@ test_config_macos_CUSTOM-REVISION:
     dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -1468,6 +1481,7 @@ test_config_macos_CUSTOM-REVISION_dependencies:
       -  .yamato/_packages.yml#test_config_macos_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade

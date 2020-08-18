@@ -147,7 +147,7 @@ smoke_test_Standalone_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
 smoke_test_playmode_CUSTOM-REVISION:
     name: SRP Smoke Test - playmode_CUSTOM-REVISION
     agent:
@@ -167,7 +167,7 @@ smoke_test_playmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
 smoke_test_editmode_CUSTOM-REVISION:
     name: SRP Smoke Test - editmode_CUSTOM-REVISION
     agent:
@@ -187,7 +187,7 @@ smoke_test_editmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
 all_smoke_tests_CUSTOM-REVISION:
     name: All Smoke Tests - CUSTOM-REVISION
     dependencies:

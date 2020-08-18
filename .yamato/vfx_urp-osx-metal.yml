@@ -83,7 +83,7 @@ VFX_URP_OSX_Metal_Standalone_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
 VFX_URP_OSX_Metal_playmode_CUSTOM-REVISION:
     name: VFX_URP on OSX_Metal_playmode on version CUSTOM-REVISION
     agent:
@@ -112,4 +112,4 @@ VFX_URP_OSX_Metal_playmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos

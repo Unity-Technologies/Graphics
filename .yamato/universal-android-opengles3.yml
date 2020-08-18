@@ -76,7 +76,7 @@ Universal_Android_OpenGLES3_Standalone_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:android
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
       -  path: .yamato/universal-android-opengles3.yml#Build_Universal_Android_OpenGLES3_Player_CUSTOM-REVISION
          rerun: always
     skip_checkout: true
@@ -105,4 +105,4 @@ Build_Universal_Android_OpenGLES3_Player_CUSTOM-REVISION:
             paths:
               -  "players/**"
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:android
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android

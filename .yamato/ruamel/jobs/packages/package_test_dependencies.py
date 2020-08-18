@@ -14,11 +14,10 @@ class Package_TestDependenciesJob():
     def get_job_definition(yml, package, platform, editor):
     
         # define dependencies
-        dependencies = [
-               # f'{editor_filepath()}#{editor_job_id(editor["track"], platform["os"]) }',
-                f'{packages_filepath()}#{package_job_id_test(package["id"],platform["os"],editor["track"])}']
+        dependencies = [f'{packages_filepath()}#{package_job_id_test(package["id"],platform["os"],editor["track"])}']
         dependencies.extend([f'{packages_filepath()}#{package_job_id_pack(dep)}' for dep in package["dependencies"]])
-        
+        if editor['track'].lower() == 'custom-revision':
+            dependencies.extend([f'{editor_priming_filepath()}#{editor_job_id(editor["track"], platform["os"]) }'])
         
         # define commands
         commands =  [

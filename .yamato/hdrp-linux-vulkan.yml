@@ -100,7 +100,7 @@ HDRP_Linux_Vulkan_playmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:linux
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
 HDRP_Linux_Vulkan_playmode_RenderGraph_CUSTOM-REVISION:
     name: HDRP on Linux_Vulkan_playmode_RenderGraph on version CUSTOM-REVISION
     agent:
@@ -122,7 +122,7 @@ HDRP_Linux_Vulkan_playmode_RenderGraph_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:linux
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
 HDRP_Linux_Vulkan_editmode_CUSTOM-REVISION:
     name: HDRP on Linux_Vulkan_editmode on version CUSTOM-REVISION
     agent:
@@ -144,7 +144,7 @@ HDRP_Linux_Vulkan_editmode_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:linux
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
 HDRP_Linux_Vulkan_Standalone_CUSTOM-REVISION:
     name: HDRP on Linux_Vulkan_Standalone on version CUSTOM-REVISION
     agent:
@@ -166,4 +166,4 @@ HDRP_Linux_Vulkan_Standalone_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:linux
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux

@@ -3,7 +3,7 @@ from .editor_priming import Editor_PrimingJob
 from .editor_pinning_merge_to_target import Editor_PinningMergeToTargetJob
 from .editor_pinning_merge_from_target import Editor_PinningMergeFromTargetJob
 from .editor_pinning_update import Editor_PinningUpdateJob
-from ..shared.namer import editor_filepath, editor_pinning_filepath
+from ..shared.namer import editor_priming_filepath, editor_pinning_filepath
 
 def create_editor_yml(metafile):
 
@@ -16,7 +16,7 @@ def create_editor_yml(metafile):
             job = Editor_PrimingJob(platform, editor, metafile["editor_priming_agent"])
             yml[job.job_id] = job.yml
 
-    yml_files[editor_filepath()] = yml
+    yml_files[editor_priming_filepath()] = yml
 
 
     # editor pinning jobs
