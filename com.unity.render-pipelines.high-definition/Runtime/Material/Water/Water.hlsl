@@ -78,6 +78,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.normalWS = surfaceData.normalWS;
     bsdfData.lowFrequencyNormalWS = surfaceData.lowFrequencyNormalWS;
     bsdfData.diffuseColor = surfaceData.baseColor;
+    bsdfData.foamColor = surfaceData.foamColor;
     bsdfData.diffuseWrapAmount = surfaceData.diffuseWrapAmount;
     bsdfData.phaseNormalWS = surfaceData.phaseNormalWS;
 
@@ -296,12 +297,15 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
                                         BuiltinData builtinData)
 {
     DirectLighting dl = ShadeSurface_Directional( lightLoopContext, posInput, builtinData, preLightData, lightData, bsdfData, V);
+    float3 diffuseWater = dl.diffuse * bsdfData.diffuseColor;
+    float3 diffuseFoam = dl.diffuse * bsdfData.foamColor.rgb;
 
     float3 lightDirOS = TransformWorldToObjectDir(-lightData.forward);
 
     float phaseTerm = GetPhaseTerm(lightDirOS, V, bsdfData);
+    diffuseWater += (diffuseWater * phaseTerm);
 
-    dl.diffuse += (dl.diffuse * phaseTerm);
+    dl.diffuse = diffuseWater + diffuseFoam;
 
     return dl; 
 }
@@ -323,9 +327,13 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     float4 distances; // {d, d^2, 1/d, d_proj}
     GetPunctualLightVectors(posInput.positionWS, lightData, L, distances);
 
-    float phaseTerm = GetPhaseTerm(L, V, bsdfData);
+    float3 diffuseWater = dl.diffuse * bsdfData.diffuseColor;
+    float3 diffuseFoam = dl.diffuse * bsdfData.foamColor.rgb;
 
-    dl.diffuse += (dl.diffuse * phaseTerm);
+    float phaseTerm = GetPhaseTerm(L, V, bsdfData);
+    diffuseWater += (diffuseWater * phaseTerm);
+
+    dl.diffuse = diffuseWater + diffuseFoam;
 
     return dl;
 }
@@ -500,6 +508,11 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 
     }
 
+    float3 diffuseWater = lighting.diffuse * bsdfData.diffuseColor;
+    float3 diffuseFoam = lighting.diffuse * bsdfData.foamColor.rgb;
+
+    lighting.diffuse = diffuseWater + diffuseFoam;
+
      return lighting;
 }
 
@@ -627,7 +640,8 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
     // Apply the albedo to the direct diffuse lighting (only once). The indirect (baked)
     // diffuse lighting has already multiply the albedo in ModifyBakedDiffuseLighting().
-    lightLoopOutput.diffuseLighting = bsdfData.diffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting + refraction;
+    // TODO: I wonder if there's a better way to slit the lighting between the foam surface and the volume. Must ask the HDRP folks
+    lightLoopOutput.diffuseLighting = /*bsdfData.diffuseColor * */ lighting.direct.diffuse + builtinData.bakeDiffuseLighting + refraction;
     lightLoopOutput.specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
 
 #ifdef DEBUG_DISPLAY

@@ -35,7 +35,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Albedo)]
             [SurfaceDataAttributes("", false, true)]
-            public Vector3 diffuseColor;
+            public Vector3 baseColor;
+            public Vector4 foamColor;
             public float diffuseWrapAmount;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Smoothness)]
@@ -72,6 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             [SurfaceDataAttributes("", false, true)]
             public Vector3 diffuseColor;
+            public Vector4 foamColor;
             public float diffuseWrapAmount;
 
             public float roughness;

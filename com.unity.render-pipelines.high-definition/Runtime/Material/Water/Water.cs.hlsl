@@ -21,14 +21,15 @@
 #define DEBUGVIEW_WATER_SURFACEDATA_GEOMETRIC_NORMAL_WS (1505)
 #define DEBUGVIEW_WATER_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1506)
 #define DEBUGVIEW_WATER_SURFACEDATA_BASE_COLOR (1507)
-#define DEBUGVIEW_WATER_SURFACEDATA_DIFFUSE_WRAP_AMOUNT (1508)
-#define DEBUGVIEW_WATER_SURFACEDATA_SMOOTHNESS (1509)
-#define DEBUGVIEW_WATER_SURFACEDATA_SPECULAR_SELF_OCCLUSION (1510)
-#define DEBUGVIEW_WATER_SURFACEDATA_ANISOTROPY (1511)
-#define DEBUGVIEW_WATER_SURFACEDATA_ANISOTROPY_IOR (1512)
-#define DEBUGVIEW_WATER_SURFACEDATA_ANISOTROPY_OFFSET (1513)
-#define DEBUGVIEW_WATER_SURFACEDATA_ANISOTROPY_WEIGHT (1514)
-#define DEBUGVIEW_WATER_SURFACEDATA_CUSTOM_REFRACTION_COLOR (1515)
+#define DEBUGVIEW_WATER_SURFACEDATA_FOAM_COLOR (1508)
+#define DEBUGVIEW_WATER_SURFACEDATA_DIFFUSE_WRAP_AMOUNT (1509)
+#define DEBUGVIEW_WATER_SURFACEDATA_SMOOTHNESS (1510)
+#define DEBUGVIEW_WATER_SURFACEDATA_SPECULAR_SELF_OCCLUSION (1511)
+#define DEBUGVIEW_WATER_SURFACEDATA_ANISOTROPY (1512)
+#define DEBUGVIEW_WATER_SURFACEDATA_ANISOTROPY_IOR (1513)
+#define DEBUGVIEW_WATER_SURFACEDATA_SCATTERING_LAMBERT_LIGHTING (1514)
+#define DEBUGVIEW_WATER_SURFACEDATA_ANISOTROPY_WEIGHT (1515)
+#define DEBUGVIEW_WATER_SURFACEDATA_CUSTOM_REFRACTION_COLOR (1516)
 
 //
 // UnityEngine.Rendering.HighDefinition.Water+BSDFData:  static fields
@@ -41,16 +42,17 @@
 #define DEBUGVIEW_WATER_BSDFDATA_GEOMETRIC_NORMAL_WS (1555)
 #define DEBUGVIEW_WATER_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1556)
 #define DEBUGVIEW_WATER_BSDFDATA_DIFFUSE_COLOR (1557)
-#define DEBUGVIEW_WATER_BSDFDATA_DIFFUSE_WRAP_AMOUNT (1558)
-#define DEBUGVIEW_WATER_BSDFDATA_ROUGHNESS (1559)
-#define DEBUGVIEW_WATER_BSDFDATA_PERCEPTUAL_ROUGHNESS (1560)
-#define DEBUGVIEW_WATER_BSDFDATA_FRESNEL0 (1561)
-#define DEBUGVIEW_WATER_BSDFDATA_SPECULAR_SELF_OCCLUSION (1562)
-#define DEBUGVIEW_WATER_BSDFDATA_ANISOTROPY (1563)
-#define DEBUGVIEW_WATER_BSDFDATA_ANISOTROPY_IOR (1564)
-#define DEBUGVIEW_WATER_BSDFDATA_ANISOTROPY_OFFSET (1565)
-#define DEBUGVIEW_WATER_BSDFDATA_ANISOTROPY_WEIGHT (1566)
-#define DEBUGVIEW_WATER_BSDFDATA_CUSTOM_REFRACTION_COLOR (1567)
+#define DEBUGVIEW_WATER_BSDFDATA_FOAM_COLOR (1558)
+#define DEBUGVIEW_WATER_BSDFDATA_DIFFUSE_WRAP_AMOUNT (1559)
+#define DEBUGVIEW_WATER_BSDFDATA_ROUGHNESS (1560)
+#define DEBUGVIEW_WATER_BSDFDATA_PERCEPTUAL_ROUGHNESS (1561)
+#define DEBUGVIEW_WATER_BSDFDATA_FRESNEL0 (1562)
+#define DEBUGVIEW_WATER_BSDFDATA_SPECULAR_SELF_OCCLUSION (1563)
+#define DEBUGVIEW_WATER_BSDFDATA_ANISOTROPY (1564)
+#define DEBUGVIEW_WATER_BSDFDATA_ANISOTROPY_IOR (1565)
+#define DEBUGVIEW_WATER_BSDFDATA_SCATTERING_LAMBERT_LIGHTING (1566)
+#define DEBUGVIEW_WATER_BSDFDATA_ANISOTROPY_WEIGHT (1567)
+#define DEBUGVIEW_WATER_BSDFDATA_CUSTOM_REFRACTION_COLOR (1568)
 
 // Generated from UnityEngine.Rendering.HighDefinition.Water+SurfaceData
 // PackingRules = Exact
@@ -61,6 +63,7 @@ struct SurfaceData
     float3 lowFrequencyNormalWS;
     float3 phaseNormalWS;
     float3 baseColor;
+    float4 foamColor;
     float diffuseWrapAmount;
     float perceptualSmoothness;
     float specularSelfOcclusion;
@@ -80,6 +83,7 @@ struct BSDFData
     float3 lowFrequencyNormalWS;
     float3 phaseNormalWS;
     float3 diffuseColor;
+    float4 foamColor;
     float diffuseWrapAmount;
     float roughness;
     float perceptualRoughness;
@@ -99,55 +103,58 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
 {
     switch (paramId)
     {
-    case DEBUGVIEW_WATER_SURFACEDATA_MATERIAL_FEATURES:
-        result = GetIndexColor(surfacedata.materialFeatures);
-        break;
-    case DEBUGVIEW_WATER_SURFACEDATA_NORMAL_WS:
-        result = surfacedata.normalWS * 0.5 + 0.5;
-        break;
-    case DEBUGVIEW_WATER_SURFACEDATA_NORMAL_VIEW_SPACE:
-        result = surfacedata.normalWS * 0.5 + 0.5;
-        break;
-    case DEBUGVIEW_WATER_SURFACEDATA_LOW_FREQUENCY_NORMAL_WS:
-        result = surfacedata.lowFrequencyNormalWS * 0.5 + 0.5;
-        break;
-    case DEBUGVIEW_WATER_SURFACEDATA_LOW_FREQUENCY_NORMAL_VIEW_SPACE:
-        result = surfacedata.lowFrequencyNormalWS * 0.5 + 0.5;
-        break;
-    case DEBUGVIEW_WATER_SURFACEDATA_GEOMETRIC_NORMAL_WS:
-        result = surfacedata.phaseNormalWS * 0.5 + 0.5;
-        break;
-    case DEBUGVIEW_WATER_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
-        result = surfacedata.phaseNormalWS * 0.5 + 0.5;
-        break;
-    case DEBUGVIEW_WATER_SURFACEDATA_BASE_COLOR:
-        result = surfacedata.baseColor;
-        needLinearToSRGB = true;
-        break;
-    case DEBUGVIEW_WATER_SURFACEDATA_DIFFUSE_WRAP_AMOUNT:
-        result = surfacedata.diffuseWrapAmount.xxx;
-        break;
-    case DEBUGVIEW_WATER_SURFACEDATA_SMOOTHNESS:
-        result = surfacedata.perceptualSmoothness.xxx;
-        break;
-    case DEBUGVIEW_WATER_SURFACEDATA_SPECULAR_SELF_OCCLUSION:
-        result = surfacedata.specularSelfOcclusion.xxx;
-        break;
-    case DEBUGVIEW_WATER_SURFACEDATA_ANISOTROPY:
-        result = surfacedata.anisotropy.xxx;
-        break;
-    case DEBUGVIEW_WATER_SURFACEDATA_ANISOTROPY_IOR:
-        result = surfacedata.anisotropyIOR.xxx;
-        break;
-    case DEBUGVIEW_WATER_SURFACEDATA_ANISOTROPY_OFFSET:
-        result = surfacedata.scatteringLambertLighting.xxx;
-        break;
-    case DEBUGVIEW_WATER_SURFACEDATA_ANISOTROPY_WEIGHT:
-        result = surfacedata.anisotropyWeight.xxx;
-        break;
-    case DEBUGVIEW_WATER_SURFACEDATA_CUSTOM_REFRACTION_COLOR:
-        result = surfacedata.customRefractionColor;
-        break;
+        case DEBUGVIEW_WATER_SURFACEDATA_MATERIAL_FEATURES:
+            result = GetIndexColor(surfacedata.materialFeatures);
+            break;
+        case DEBUGVIEW_WATER_SURFACEDATA_NORMAL_WS:
+            result = surfacedata.normalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_WATER_SURFACEDATA_NORMAL_VIEW_SPACE:
+            result = surfacedata.normalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_WATER_SURFACEDATA_LOW_FREQUENCY_NORMAL_WS:
+            result = surfacedata.lowFrequencyNormalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_WATER_SURFACEDATA_LOW_FREQUENCY_NORMAL_VIEW_SPACE:
+            result = surfacedata.lowFrequencyNormalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_WATER_SURFACEDATA_GEOMETRIC_NORMAL_WS:
+            result = surfacedata.phaseNormalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_WATER_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
+            result = surfacedata.phaseNormalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_WATER_SURFACEDATA_BASE_COLOR:
+            result = surfacedata.baseColor;
+            needLinearToSRGB = true;
+            break;
+        case DEBUGVIEW_WATER_SURFACEDATA_FOAM_COLOR:
+            result = surfacedata.foamColor.xyz;
+            break;
+        case DEBUGVIEW_WATER_SURFACEDATA_DIFFUSE_WRAP_AMOUNT:
+            result = surfacedata.diffuseWrapAmount.xxx;
+            break;
+        case DEBUGVIEW_WATER_SURFACEDATA_SMOOTHNESS:
+            result = surfacedata.perceptualSmoothness.xxx;
+            break;
+        case DEBUGVIEW_WATER_SURFACEDATA_SPECULAR_SELF_OCCLUSION:
+            result = surfacedata.specularSelfOcclusion.xxx;
+            break;
+        case DEBUGVIEW_WATER_SURFACEDATA_ANISOTROPY:
+            result = surfacedata.anisotropy.xxx;
+            break;
+        case DEBUGVIEW_WATER_SURFACEDATA_ANISOTROPY_IOR:
+            result = surfacedata.anisotropyIOR.xxx;
+            break;
+        case DEBUGVIEW_WATER_SURFACEDATA_SCATTERING_LAMBERT_LIGHTING:
+            result = surfacedata.scatteringLambertLighting.xxx;
+            break;
+        case DEBUGVIEW_WATER_SURFACEDATA_ANISOTROPY_WEIGHT:
+            result = surfacedata.anisotropyWeight.xxx;
+            break;
+        case DEBUGVIEW_WATER_SURFACEDATA_CUSTOM_REFRACTION_COLOR:
+            result = surfacedata.customRefractionColor;
+            break;
     }
 }
 
@@ -158,61 +165,64 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
 {
     switch (paramId)
     {
-    case DEBUGVIEW_WATER_BSDFDATA_MATERIAL_FEATURES:
-        result = GetIndexColor(bsdfdata.materialFeatures);
-        break;
-    case DEBUGVIEW_WATER_BSDFDATA_NORMAL_WS:
-        result = bsdfdata.normalWS * 0.5 + 0.5;
-        break;
-    case DEBUGVIEW_WATER_BSDFDATA_NORMAL_VIEW_SPACE:
-        result = bsdfdata.normalWS * 0.5 + 0.5;
-        break;
-    case DEBUGVIEW_WATER_BSDFDATA_LOW_FREQUENCY_NORMAL_WS:
-        result = bsdfdata.lowFrequencyNormalWS * 0.5 + 0.5;
-        break;
-    case DEBUGVIEW_WATER_BSDFDATA_LOW_FREQUENCY_NORMAL_VIEW_SPACE:
-        result = bsdfdata.lowFrequencyNormalWS * 0.5 + 0.5;
-        break;
-    case DEBUGVIEW_WATER_BSDFDATA_GEOMETRIC_NORMAL_WS:
-        result = bsdfdata.phaseNormalWS * 0.5 + 0.5;
-        break;
-    case DEBUGVIEW_WATER_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
-        result = bsdfdata.phaseNormalWS * 0.5 + 0.5;
-        break;
-    case DEBUGVIEW_WATER_BSDFDATA_DIFFUSE_COLOR:
-        result = bsdfdata.diffuseColor;
-        needLinearToSRGB = true;
-        break;
-    case DEBUGVIEW_WATER_BSDFDATA_DIFFUSE_WRAP_AMOUNT:
-        result = bsdfdata.diffuseWrapAmount.xxx;
-        break;
-    case DEBUGVIEW_WATER_BSDFDATA_ROUGHNESS:
-        result = bsdfdata.roughness.xxx;
-        break;
-    case DEBUGVIEW_WATER_BSDFDATA_PERCEPTUAL_ROUGHNESS:
-        result = bsdfdata.perceptualRoughness.xxx;
-        break;
-    case DEBUGVIEW_WATER_BSDFDATA_FRESNEL0:
-        result = bsdfdata.fresnel0;
-        break;
-    case DEBUGVIEW_WATER_BSDFDATA_SPECULAR_SELF_OCCLUSION:
-        result = bsdfdata.specularSelfOcclusion.xxx;
-        break;
-    case DEBUGVIEW_WATER_BSDFDATA_ANISOTROPY:
-        result = bsdfdata.anisotropy.xxx;
-        break;
-    case DEBUGVIEW_WATER_BSDFDATA_ANISOTROPY_IOR:
-        result = bsdfdata.anisotropyIOR.xxx;
-        break;
-    case DEBUGVIEW_WATER_BSDFDATA_ANISOTROPY_OFFSET:
-        result = bsdfdata.scatteringLambertLighting.xxx;
-        break;
-    case DEBUGVIEW_WATER_BSDFDATA_ANISOTROPY_WEIGHT:
-        result = bsdfdata.anisotropyWeight.xxx;
-        break;
-    case DEBUGVIEW_WATER_BSDFDATA_CUSTOM_REFRACTION_COLOR:
-        result = bsdfdata.customRefractionColor;
-        break;
+        case DEBUGVIEW_WATER_BSDFDATA_MATERIAL_FEATURES:
+            result = GetIndexColor(bsdfdata.materialFeatures);
+            break;
+        case DEBUGVIEW_WATER_BSDFDATA_NORMAL_WS:
+            result = bsdfdata.normalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_WATER_BSDFDATA_NORMAL_VIEW_SPACE:
+            result = bsdfdata.normalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_WATER_BSDFDATA_LOW_FREQUENCY_NORMAL_WS:
+            result = bsdfdata.lowFrequencyNormalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_WATER_BSDFDATA_LOW_FREQUENCY_NORMAL_VIEW_SPACE:
+            result = bsdfdata.lowFrequencyNormalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_WATER_BSDFDATA_GEOMETRIC_NORMAL_WS:
+            result = bsdfdata.phaseNormalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_WATER_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
+            result = bsdfdata.phaseNormalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_WATER_BSDFDATA_DIFFUSE_COLOR:
+            result = bsdfdata.diffuseColor;
+            needLinearToSRGB = true;
+            break;
+        case DEBUGVIEW_WATER_BSDFDATA_FOAM_COLOR:
+            result = bsdfdata.foamColor.xyz;
+            break;
+        case DEBUGVIEW_WATER_BSDFDATA_DIFFUSE_WRAP_AMOUNT:
+            result = bsdfdata.diffuseWrapAmount.xxx;
+            break;
+        case DEBUGVIEW_WATER_BSDFDATA_ROUGHNESS:
+            result = bsdfdata.roughness.xxx;
+            break;
+        case DEBUGVIEW_WATER_BSDFDATA_PERCEPTUAL_ROUGHNESS:
+            result = bsdfdata.perceptualRoughness.xxx;
+            break;
+        case DEBUGVIEW_WATER_BSDFDATA_FRESNEL0:
+            result = bsdfdata.fresnel0;
+            break;
+        case DEBUGVIEW_WATER_BSDFDATA_SPECULAR_SELF_OCCLUSION:
+            result = bsdfdata.specularSelfOcclusion.xxx;
+            break;
+        case DEBUGVIEW_WATER_BSDFDATA_ANISOTROPY:
+            result = bsdfdata.anisotropy.xxx;
+            break;
+        case DEBUGVIEW_WATER_BSDFDATA_ANISOTROPY_IOR:
+            result = bsdfdata.anisotropyIOR.xxx;
+            break;
+        case DEBUGVIEW_WATER_BSDFDATA_SCATTERING_LAMBERT_LIGHTING:
+            result = bsdfdata.scatteringLambertLighting.xxx;
+            break;
+        case DEBUGVIEW_WATER_BSDFDATA_ANISOTROPY_WEIGHT:
+            result = bsdfdata.anisotropyWeight.xxx;
+            break;
+        case DEBUGVIEW_WATER_BSDFDATA_CUSTOM_REFRACTION_COLOR:
+            result = bsdfdata.customRefractionColor;
+            break;
     }
 }
 
