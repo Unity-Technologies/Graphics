@@ -28,6 +28,7 @@ class PreviewPublish_AutoVersionJob():
                 f'python3 ./Tools/standalone/templates_auto_bumper.py --template-name ./com.unity.template-universal --target-dependency com.unity.render-pipelines.universal',
                 pss(f'''
                     if [[ $(git diff-index --quiet HEAD) != 0 ]]; then
+                        git diff-index HEAD
                         git config --global user.name "noreply@unity3d.com"
                         git config --global user.email "noreply@unity3d.com"
                         git add ./com.unity.template-*

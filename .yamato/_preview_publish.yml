@@ -21,12 +21,15 @@ auto-version:
       -  |5-
 
                              if [[ $(git diff-index --quiet HEAD) != 0 ]]; then
+                                 git diff-index HEAD
                                  git config --global user.name "noreply@unity3d.com"
                                  git config --global user.email "noreply@unity3d.com"
                                  git add ./com.unity.template-*
                                  git checkout master
                                  git commit -m "[Automation] Auto-bump template dependencies"
                                  git push origin master
+                             else
+                                 echo "Did not find any dependency to bump. Will not commit and push anything."
                              fi
     triggers:
         expression: push.branch eq "master" AND NOT push.changes.all match ["*template*/**/*.json"]
