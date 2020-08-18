@@ -74,7 +74,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private int spriteLightCookieInstanceID => m_SpriteLightCookie?.GetInstanceID() ?? 0;
         private int pointLightCookieInstanceID => m_PointLightCookie?.GetInstanceID() ?? 0;
 
-        internal float boundingSphereRadius { get; private set; }
+        private Bounds m_LocalBounds;
+        internal BoundingSphere boundingSphere { get; private set; }
+
         internal Mesh lightMesh => m_Mesh;
 
         /// <summary>
@@ -172,23 +174,37 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal void UpdateMesh()
         {
-            var bounds = default(Bounds);
             switch (m_LightType)
             {
                 case LightType.Freeform:
-                    bounds = LightUtility.GenerateShapeMesh(m_Mesh, m_ShapePath, m_ShapeLightFalloffSize);
+                    m_LocalBounds = LightUtility.GenerateShapeMesh(m_Mesh, m_ShapePath, m_ShapeLightFalloffSize);
                     break;
                 case LightType.Parametric:
-                    bounds = LightUtility.GenerateParametricMesh(m_Mesh, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
+                    m_LocalBounds = LightUtility.GenerateParametricMesh(m_Mesh, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
                     break;
                 case LightType.Sprite:
-                    bounds = LightUtility.GenerateSpriteMesh(m_Mesh, spriteLightCookie);
+                    m_LocalBounds = LightUtility.GenerateSpriteMesh(m_Mesh, spriteLightCookie);
                     break;
                 case LightType.Point:
-                    bounds = LightUtility.GenerateParametricMesh(m_Mesh, 1.412135f, 0, 0, 4);
+                    m_LocalBounds = LightUtility.GenerateParametricMesh(m_Mesh, 1.412135f, 0, 0, 4);
                     break;
             }
-            boundingSphereRadius = isShapeLight ? CalculateBoundingSphereRadius(bounds) : m_PointLightOuterRadius;
+        }
+
+        private void UpdateBoundingSphere()
+        {
+            if (!isShapeLight)
+            {
+                boundingSphere = new BoundingSphere(transform.position, m_PointLightOuterRadius);
+                return;
+            }
+
+            var maxBound = transform.TransformPoint(Vector3.Max(m_LocalBounds.max, m_LocalBounds.max + (Vector3)m_ShapeLightFalloffOffset));
+            var minBound = transform.TransformPoint(Vector3.Min(m_LocalBounds.min, m_LocalBounds.min + (Vector3)m_ShapeLightFalloffOffset));
+            var center = 0.5f * (maxBound + minBound);
+            var radius = Vector3.Magnitude(maxBound - center);
+
+            boundingSphere = new BoundingSphere(center, radius);
         }
 
         internal bool IsSpriteLightCookieValid()
@@ -240,6 +256,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 UpdateMesh();
             }
+
+            UpdateBoundingSphere();
         }
     }
 }

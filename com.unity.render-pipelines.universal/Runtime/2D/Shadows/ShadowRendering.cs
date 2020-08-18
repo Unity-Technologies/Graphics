@@ -64,7 +64,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmdBuffer.SetRenderTarget(pass.rendererData.shadowsRenderTarget.Identifier(), RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                 cmdBuffer.ClearRenderTarget(true, true, Color.black);
 
-                var shadowRadius = 1.42f * light.boundingSphereRadius;
+                var shadowRadius = 1.42f * light.boundingSphere.radius;
 
                 cmdBuffer.SetGlobalVector(k_LightPosID, light.transform.position);
                 cmdBuffer.SetGlobalFloat(k_ShadowRadiusID, shadowRadius);

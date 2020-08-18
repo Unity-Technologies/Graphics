@@ -53,8 +53,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if (light.volumeOpacity > 0)
                     returnStats.totalVolumetricUsage++;
 
-                returnStats.blendStylesUsed |= (uint)(1 << light.blendStyleIndex);;
+                returnStats.blendStylesUsed |= (uint)(1 << light.blendStyleIndex);
             }
+
             return returnStats;
         }
 
@@ -72,15 +73,21 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     continue;
 #endif
 
+                if (light.lightType == Light2D.LightType.Global)
+                {
+                    m_VisibleLights.Add(light);
+                    continue;
+                }
+
                 Profiler.BeginSample("Test Planes");
-                var position = light.transform.position;
+                var position = light.boundingSphere.position;
                 var culled = false;
                 for (var i = 0; i < cullingParameters.cullingPlaneCount; ++i)
                 {
                     var plane = cullingParameters.GetCullingPlane(i);
                     // most of the time is spent getting world position
                     var distance = math.dot(position, plane.normal) + plane.distance;
-                    if (distance < -light.boundingSphereRadius)
+                    if (distance < -light.boundingSphere.radius)
                     {
                         culled = true;
                         break;

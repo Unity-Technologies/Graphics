@@ -2,9 +2,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 {
     public sealed partial class Light2D
     {
-        //------------------------------------------------------------------------------------------
-        //                                Variables/Properties
-        //------------------------------------------------------------------------------------------
         [SerializeField] int                m_ShapeLightParametricSides         = 5;
         [SerializeField] float              m_ShapeLightParametricAngleOffset   = 0.0f;
         [SerializeField] float              m_ShapeLightParametricRadius        = 1.0f;
@@ -25,17 +22,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public Vector2          shapeLightFalloffOffset         => m_ShapeLightFalloffOffset;
         public Vector3[]        shapePath                       => m_ShapePath;
 
-        //==========================================================================================
-        //                              Functions
-        //==========================================================================================
-
         internal bool isShapeLight => m_LightType != LightType.Point;
-
-        float CalculateBoundingSphereRadius(Bounds bounds)
-        {
-            var maxBound = Vector3.Max(bounds.max, bounds.max + (Vector3)m_ShapeLightFalloffOffset);
-            var minBound = Vector3.Min(bounds.min, bounds.min + (Vector3)m_ShapeLightFalloffOffset);
-            return Vector3.Magnitude(maxBound - minBound) * 0.5f;
-        }
     }
 }
