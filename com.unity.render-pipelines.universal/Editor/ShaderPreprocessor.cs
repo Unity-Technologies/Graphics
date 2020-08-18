@@ -99,25 +99,22 @@ namespace UnityEditor.Rendering.Universal
 
 
             // Additional light are shaded per-vertex or per-pixel.
+            bool isFeaturePerPixelLightingEnabled = IsFeatureEnabled(features, ShaderFeatures.AdditionalLights);
+            bool isFeaturePerVertexLightingEnabled = IsFeatureEnabled(features, ShaderFeatures.VertexLighting);
             bool isAdditionalLightPerPixel = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel);
             bool isAdditionalLightPerVertex = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsVertex);
-            if (isAdditionalLightPerPixel || isAdditionalLightShadow)
-            {
-                bool isPerPixelLightingFeatureEnabled = IsFeatureEnabled(features, ShaderFeatures.AdditionalLights);
-                bool isPerVertexLightingFeatureEnabled = IsFeatureEnabled(features, ShaderFeatures.VertexLighting);
 
-                // No additional lights
-                if (!isPerPixelLightingFeatureEnabled && !isPerVertexLightingFeatureEnabled)
-                    return true;
+            // No additional lights
+            if (!isFeaturePerPixelLightingEnabled && !isFeaturePerVertexLightingEnabled)
+                return true;
 
-                // Only Per-pixel is selected in every URP asset
-                if (!isPerVertexLightingFeatureEnabled && isAdditionalLightPerVertex)
-                    return true;
+            // Only Per-vertex is selected in every URP asset
+            if (!isFeaturePerPixelLightingEnabled && (isAdditionalLightPerPixel || isAdditionalLightShadow))
+                return true;
 
-                // Only Per-vertex is selected in every URP asset
-                if (!isPerPixelLightingFeatureEnabled && isAdditionalLightPerPixel)
-                    return true;
-            }
+            // Only Per-pixel is selected in every URP asset
+            if (!isFeaturePerVertexLightingEnabled && isAdditionalLightPerVertex)
+                return true;
 
             // Screen Space Occlusion
             if (!IsFeatureEnabled(features, ShaderFeatures.ScreenSpaceOcclusion) &&
