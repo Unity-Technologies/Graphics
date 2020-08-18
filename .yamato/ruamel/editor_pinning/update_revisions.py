@@ -7,7 +7,6 @@ import os
 import re
 import subprocess
 import sys
-
 import yaml
 
 from util.subprocess_helpers import run_cmd, git_cmd
@@ -54,7 +53,7 @@ def generate_downloader_cmd(track, version, trunk_track, platform, unity_downloa
             '--wait --skip-download').split()
 
 
-def get_versions_from_unity_downloader(tracks, trunk_track, unity_downloader_components):
+def get_versions_from_unity_downloader(tracks, trunk_track, unity_downloader_components, editor_versions_file):
     """Gets the latest versions for each supported editor track using unity-downloader-cli.
     Args:
         tracks: Tuple of editor tracks, i.e. 2020.1, 2020.2
@@ -62,58 +61,57 @@ def get_versions_from_unity_downloader(tracks, trunk_track, unity_downloader_com
         unity_downloader_components: Dict containing keys for plaforms mapping to list of
             components.
     Returns: A dict of version keys where each points to a dict containing three
-        key-value pairs, e.g.
+        key-value pairs (one per version_type) containing versions and revisions per each platform, e.g
         {
-            "2020.1_latest_internal": {
-                "display_name": "2020.1 latest internal",
-                "version": "2020.1.0b8",
-                "revision": "3f2ec5b3ee51"
-            },
-            "2020.1_latest_public": {
-                "display_name": "2020.1 latest public",
-                "version": "2020.1.0b7",
-                "revision": "b3ee513f2ec5"
-            },
-            "2020.1_staging": {
-                "display_name": "2020.1 staging",
-                "version": "",
-                "revision": "e513f2ec5b3e"
-            }
+            2020.2_latest_internal:
+                android:
+                    revision: 3e0d5f775006
+                    version: 2020.2.0a21
+                ios:
+                    revision: 3e0d5f775006
+                    version: 2020.2.0a21
+                linux:
+                    revision: 3e0d5f775006
+                    version: 2020.2.0a21
+                macos:
+                    revision: 3e0d5f775006
+                    version: 2020.2.0a21
+                windows:
+                    revision: 3e0d5f775006
+                    version: 2020.2.0a21
         }
     """
     
-    versions = {}
+
+    versions = editor_versions_file.get("editor_versions", {})
     for track in tracks: # pylint: disable=too-many-nested-blocks
         for version_type in SUPPORTED_VERSION_TYPES:
 
             key = f'{track}_{version_type}'
-            versions[key] = {
-                        'display_name': key.replace('_', ' '),
-                    }
 
             for platform in PLATFORMS:
                 try:
-                    result = subprocess.run(
-                        generate_downloader_cmd(track, version_type, trunk_track, platform,
-                                                unity_downloader_components),
-                        cwd='.', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                        check=True, universal_newlines=True)
                     
-                    revision = result.stdout.strip()
+                    timeout = 15
+                    result = subprocess.check_output(generate_downloader_cmd(track, version_type, trunk_track, platform,
+                                                unity_downloader_components), stderr=subprocess.STDOUT, universal_newlines=True, timeout=timeout, cwd='.')
+                    
+                    revision = result.strip().splitlines()[-1]
                     versions[key][platform] = {}
                     versions[key][platform]['revision'] = revision
                    
                     # Parse for the version in stderr (only exists for some cases):
                     versions[key][platform]['version'] = ''
-                    for line in result.stderr.strip().splitlines():
+                    for line in result.strip().splitlines():
                         match = VERSION_PARSER_RE.match(line)
                         version = ''
                         if match:
                             version = match.group(1)
                             versions[key][platform]['version'] = version
                             break
-                    print(f'INFO: [{platform}] Latest revision for track: {track} '
-                            f'type: {version_type} is {revision} (version: {version})')
+                    print(f'INFO: Latest revision for {key} [{platform}]: {revision} (version: {version})')
+                except subprocess.TimeoutExpired as err:
+                    print(f'WARNING: Timout {timeout}s exceeded for {key} [{platform}]')
 
                 except subprocess.CalledProcessError as err:
                     # Not great error handling but will hold until there's a better way.
@@ -161,7 +159,7 @@ def versions_file_is_unchanged(file_path, root):
     return len(diff) == 0
 
 
-def write_versions_file(file_path, header, dict_comment, versions):
+def write_versions_file(file_path, header, versions):
     with open(file_path, 'w') as output_file:
         output_file.write(header + os.linesep)
 
@@ -171,10 +169,14 @@ def write_versions_file(file_path, header, dict_comment, versions):
         output_file.write(os.linesep)
 
         # Write editor_versions dict:
-        output_file.write(dict_comment + os.linesep)
+        # output_file.write(dict_comment + os.linesep)
         editor_version = {'editor_versions': versions}
         yaml.dump(editor_version, output_file, indent=2)
 
+def load_latest_versions_metafile(filename):
+    with open(filename) as yaml_file:
+        return yaml.safe_load(yaml_file)
+    
 
 def load_config(filename):
     with open(filename) as yaml_file:
@@ -241,13 +243,14 @@ def main(argv):
     # assert os.path.isfile(projectversion_filename), f'Cannot find {projectversion_filename}'
 
     try:
-        versions = get_versions_from_unity_downloader(config['editor_tracks'], config['trunk_track'], config['unity_downloader_components'])
-        editor_versions_file = config['editor_versions_file']
-        print(f'INFO: Saving {editor_versions_file}.')
-        write_versions_file(os.path.join(ROOT, editor_versions_file),
-                            config['versions_file_header'], config['versions_dict_comment'],
+        editor_versions_filename = config['editor_versions_file']
+        editor_versions_file = load_latest_versions_metafile(editor_versions_filename)
+        versions = get_versions_from_unity_downloader(config['editor_tracks'], config['trunk_track'], config['unity_downloader_components'], editor_versions_file)
+        print(f'INFO: Saving {editor_versions_filename}.')
+        write_versions_file(os.path.join(ROOT, editor_versions_filename),
+                            config['versions_file_header'], 
                             versions)
-        if versions_file_is_unchanged(editor_versions_file, ROOT):
+        if versions_file_is_unchanged(editor_versions_filename, ROOT):
             print(f'INFO: No changes in the versions file, exiting')
         else:
             subprocess.call(['python', config['ruamel_build_file']])
@@ -255,7 +258,7 @@ def main(argv):
                 print(f'INFO: Running {args.yamato_parser} to generate unfolded Yamato YAML...')
                 run_cmd(args.yamato_parser, cwd=ROOT)
             if not args.local:
-                checkout_and_push(editor_versions_file, config['yml_files_path'], args.target_branch, ROOT, args.force_push,
+                checkout_and_push(editor_versions_filename, config['yml_files_path'], args.target_branch, ROOT, args.force_push,
                                   'Updating pinned editor revisions')
         print(f'INFO: Done updating editor versions.')
         return 0
