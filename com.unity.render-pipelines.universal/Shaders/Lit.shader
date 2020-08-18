@@ -195,7 +195,8 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature_local_fragment _OCCLUSIONMAP
-            // SM2.0: NOT SUPPORTED shader_feature_local _DETAIL_MULX2
+            #pragma shader_feature_local _PARALLAXMAP
+            #pragma shader_feature_local _DETAIL_MULX2
 
             #pragma shader_feature_local_fragment _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature_local_fragment _ENVIRONMENTREFLECTIONS_OFF
