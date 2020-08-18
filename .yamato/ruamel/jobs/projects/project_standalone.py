@@ -25,9 +25,10 @@ class Project_StandaloneJob():
 
         project_folder = project.get("folder_standalone", project["folder"])
         if 'performance' in test_platform['name']:
-            cmd = get_cmd(platform["name"], api, 'standalone_performance')
+            cmd = get_cmd(platform["name"], api, 'standalone_performance', "")
         else:
-            cmd = get_cmd(platform["name"], api, 'standalone')
+            cmd = get_cmd(platform["name"], api, 'standalone', "")
+         
         job = _job(project["name"], test_platform["name"], editor, platform, api, cmd(project_folder, platform, api, test_platform["args"]))
 
         if build_job is not None:
@@ -41,9 +42,3 @@ class Project_StandaloneJob():
                 job.set_skip_checkout(True)
             
         return job
-
-
-
-    
-    
-    

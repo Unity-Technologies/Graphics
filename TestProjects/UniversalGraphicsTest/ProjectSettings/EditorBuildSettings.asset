@@ -264,9 +264,14 @@ EditorBuildSettings:
     path: Assets/Scenes/130_UnityMatrixIVP.unity
     guid: 716466bc92f8e4eeeb3c138524b04021
   - enabled: 1
+    path: Assets/Scenes/131_ParallaxMapping.unity
+    guid: ac4701d765fa26b4f83d2fb9ed6b3c08
+  - enabled: 1
     path: Assets/Scenes/142_SSAO_DepthNormal_Projection.unity
     guid: c207f769f3e194ebc8cbd51e788ac65d
   - enabled: 1
     path: Assets/Scenes/143_SSAO_DepthNormals_Orthographic.unity
     guid: 44c3bddf1a7da4af28d764901f2e9507
-  m_configObjects: {}
+  m_configObjects:
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 13858d33c7f214305af3f1b67ea8f9da,
+      type: 2}

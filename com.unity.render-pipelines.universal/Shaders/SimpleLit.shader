@@ -45,7 +45,7 @@ Shader "Universal Render Pipeline/Simple Lit"
 
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True" "ShaderModel"="4.5"}
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "UniversalMaterialType" = "SimpleLit" "IgnoreProjector" = "True" "ShaderModel"="4.5"}
         LOD 300
 
         Pass
@@ -142,20 +142,9 @@ Shader "Universal Render Pipeline/Simple Lit"
             ZTest LEqual
             Cull[_Cull]
 
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
-            // This is a SimpleLit material.
-            Stencil {
-                Ref 64       // 0b01000000
-                WriteMask 96 // 0b01100000
-                Comp Always
-                Pass Replace
-                Fail Keep
-                ZFail Keep
-            }
-
             HLSLPROGRAM
             #pragma exclude_renderers d3d11_9x gles
-            #pragma target 2.0
+            #pragma target 4.5
 
             // -------------------------------------
             // Material Keywords
@@ -304,7 +293,7 @@ Shader "Universal Render Pipeline/Simple Lit"
 
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True" "ShaderModel"="2.0"}
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "UniversalMaterialType" = "SimpleLit" "IgnoreProjector" = "True" "ShaderModel"="2.0"}
         LOD 300
 
         Pass

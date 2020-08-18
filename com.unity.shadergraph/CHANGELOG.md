@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+### Changed
+- Added method chaining support to shadergraph collection API.
+
 ## [10.0.0] - 2019-06-10
 ### Added
 - Added the Internal Inspector which allows the user to view data contained in selected nodes and properties in a new floating graph sub-window. Also added support for custom property drawers to let you visualize any data type you like and expose it to the inspector.  
@@ -34,6 +37,8 @@ The version number for this package has increased due to a version update of a r
 - Added `Compute Deformation` Node to read deformed vertex data from Dots Deformations.
 - Added new graph nodes that allow sampling Virtual Textures
 - Shader Graph now uses a new file format that is much friendlier towards version control systems and humans. Existing Shader Graphs and will use the new format next time they are saved.
+- Added parallax mapping node and parallax occlusion mapping node.
+- Added the possibility to have multiple POM node in a single graph.
 
 ### Changed
 - Changed the `Branch` node so that it uses a ternary operator (`Out = bool ? a : B`) instead of a linear interpolate function.
@@ -150,7 +155,9 @@ The version number for this package has increased due to a version update of a r
 - Added missing SampleVirtualTextureNode address mode control in ShaderGraph
 - Fixed a badly named control on SampleVirtualTextureNode in ShaderGraph
 - Fixed an issue where multiple SampleVirtualTextureNodes created functions with names that may collide in ShaderGraph
+- Made sub graph importer deterministic to avoid cascading shader recompiles when no change was present.
 - Adjusted style sheet for Blackboard to prevent ui conflicts.
+- Fixed a bug where the SampleVirtualTexture node would delete slots when changing its LOD mode
 
 ## [7.1.1] - 2019-09-05
 ### Added
