@@ -62,6 +62,7 @@ Universal_iPhone_Metal_Standalone_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
+      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:ios
       -  path: .yamato/universal-iphone-metal.yml#Build_Universal_iPhone_Metal_Player_CUSTOM-REVISION
          rerun: always
     skip_checkout: true
@@ -87,3 +88,5 @@ Build_Universal_iPhone_Metal_Player_CUSTOM-REVISION:
         players:
             paths:
               -  "players/**"
+    dependencies:
+      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:ios

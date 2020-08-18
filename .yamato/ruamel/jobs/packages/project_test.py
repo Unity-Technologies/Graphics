@@ -13,8 +13,9 @@ class Project_TestJob():
     def get_job_definition(self, platform, editor):
 
         # define dependencies
-        dependencies = []#[f'{editor_filepath()}#{editor_job_id(editor["track"], platform["os"]) }']
-        dependencies.extend([f'{projectcontext_filepath()}#{projectcontext_job_id_pack()}'])
+        dependencies = [f'{projectcontext_filepath()}#{projectcontext_job_id_pack()}']
+        if editor['track'].lower() == 'custom-revision':
+            dependencies.extend([f'{editor_filepath()}#{editor_job_id(editor["track"], platform["os"]) }'])
                 
         # define commands
         commands = [

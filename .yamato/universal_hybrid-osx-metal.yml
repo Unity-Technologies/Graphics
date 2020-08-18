@@ -82,6 +82,8 @@ Universal_Hybrid_OSX_Metal_Standalone_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
 Universal_Hybrid_OSX_Metal_playmode_CUSTOM-REVISION:
     name: Universal_Hybrid on OSX_Metal_playmode on version CUSTOM-REVISION
     agent:
@@ -109,3 +111,5 @@ Universal_Hybrid_OSX_Metal_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos

@@ -61,6 +61,8 @@ Universal_Hybrid_Linux_Vulkan_Standalone_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:linux
 Universal_Hybrid_Linux_Vulkan_playmode_CUSTOM-REVISION:
     name: Universal_Hybrid on Linux_Vulkan_playmode on version CUSTOM-REVISION
     agent:
@@ -81,3 +83,5 @@ Universal_Hybrid_Linux_Vulkan_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:linux

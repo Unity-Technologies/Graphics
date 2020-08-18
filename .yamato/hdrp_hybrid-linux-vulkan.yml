@@ -61,6 +61,8 @@ HDRP_Hybrid_Linux_Vulkan_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:linux
 HDRP_Hybrid_Linux_Vulkan_Standalone_CUSTOM-REVISION:
     name: HDRP_Hybrid on Linux_Vulkan_Standalone on version CUSTOM-REVISION
     agent:
@@ -81,3 +83,5 @@ HDRP_Hybrid_Linux_Vulkan_Standalone_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:linux

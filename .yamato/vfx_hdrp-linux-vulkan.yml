@@ -80,6 +80,8 @@ VFX_HDRP_Linux_Vulkan_Standalone_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:linux
 VFX_HDRP_Linux_Vulkan_playmode_CUSTOM-REVISION:
     name: VFX_HDRP on Linux_Vulkan_playmode on version CUSTOM-REVISION
     agent:
@@ -100,6 +102,8 @@ VFX_HDRP_Linux_Vulkan_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:linux
 VFX_HDRP_Linux_Vulkan_editmode_CUSTOM-REVISION:
     name: VFX_HDRP on Linux_Vulkan_editmode on version CUSTOM-REVISION
     agent:
@@ -120,3 +124,5 @@ VFX_HDRP_Linux_Vulkan_editmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:linux

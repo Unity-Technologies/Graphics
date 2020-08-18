@@ -13,10 +13,10 @@ class Template_TestDependenciesJob():
     def get_job_definition(yml, template, platform, editor):
     
         # define dependencies
-        dependencies = [
-                #f'{editor_filepath()}#{editor_job_id(editor["track"], platform["os"]) }',
-                f'{templates_filepath()}#{template_job_id_test(template["id"],platform["os"],editor["track"])}']
+        dependencies = [f'{templates_filepath()}#{template_job_id_test(template["id"],platform["os"],editor["track"])}']
         dependencies.extend([f'{packages_filepath()}#{package_job_id_pack(dep)}' for dep in template["dependencies"]])
+        if editor['track'].lower() == 'custom-revision':
+            dependencies.extend([f'{editor_filepath()}#{editor_job_id(editor["track"], platform["os"]) }'])
         
         # define commands
         commands =  [

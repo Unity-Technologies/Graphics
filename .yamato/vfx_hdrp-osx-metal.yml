@@ -108,6 +108,8 @@ VFX_HDRP_OSX_Metal_Standalone_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
 VFX_HDRP_OSX_Metal_playmode_CUSTOM-REVISION:
     name: VFX_HDRP on OSX_Metal_playmode on version CUSTOM-REVISION
     agent:
@@ -135,6 +137,8 @@ VFX_HDRP_OSX_Metal_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
 VFX_HDRP_OSX_Metal_playmode_XR_CUSTOM-REVISION:
     name: VFX_HDRP on OSX_Metal_playmode_XR on version CUSTOM-REVISION
     agent:
@@ -162,3 +166,5 @@ VFX_HDRP_OSX_Metal_playmode_XR_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos

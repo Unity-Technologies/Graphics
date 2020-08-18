@@ -93,6 +93,7 @@ ShaderGraph_Win_DX11_Standalone_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
+      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
       -  path: .yamato/shadergraph-win-dx11.yml#Build_ShaderGraph_Win_DX11_Player_CUSTOM-REVISION
          rerun: always
     skip_checkout: true
@@ -117,6 +118,8 @@ Build_ShaderGraph_Win_DX11_Player_CUSTOM-REVISION:
         players:
             paths:
               -  "players/**"
+    dependencies:
+      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
 ShaderGraph_Win_DX11_playmode_CUSTOM-REVISION:
     name: ShaderGraph on Win_DX11_playmode on version CUSTOM-REVISION
     agent:
@@ -135,6 +138,8 @@ ShaderGraph_Win_DX11_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
 ShaderGraph_Win_DX11_editmode_CUSTOM-REVISION:
     name: ShaderGraph on Win_DX11_editmode on version CUSTOM-REVISION
     agent:
@@ -153,3 +158,5 @@ ShaderGraph_Win_DX11_editmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows

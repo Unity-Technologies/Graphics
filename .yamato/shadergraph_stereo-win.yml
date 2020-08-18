@@ -76,6 +76,7 @@ ShaderGraph_Stereo_Win_Standalone_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
     dependencies:
+      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
       -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Player_CUSTOM-REVISION
          rerun: always
     skip_checkout: true
@@ -100,6 +101,8 @@ Build_ShaderGraph_Stereo_Win_Player_CUSTOM-REVISION:
         players:
             paths:
               -  "players/**"
+    dependencies:
+      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
 ShaderGraph_Stereo_Win_editmode_CUSTOM-REVISION:
     name: ShaderGraph_Stereo on Win__editmode on version CUSTOM-REVISION
     agent:
@@ -118,3 +121,5 @@ ShaderGraph_Stereo_Win_editmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
