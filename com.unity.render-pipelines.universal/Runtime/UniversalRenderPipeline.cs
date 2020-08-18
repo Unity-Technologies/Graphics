@@ -246,6 +246,9 @@ namespace UnityEngine.Rendering.Universal
                 renderer.Clear();
                 renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
 
+                var srp = RenderPipelineManager.currentPipeline as UniversalRenderPipeline;
+                srp.BindAPVRuntimeResources(cmd);
+
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 

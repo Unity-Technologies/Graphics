@@ -397,10 +397,39 @@ half3 SampleSHVertex(half3 normalWS)
     return half3(0.0, 0.0, 0.0);
 }
 
+#define USE_ADAPTIVE_PROBE_VOLUME
+
+#ifdef USE_ADAPTIVE_PROBE_VOLUME
+
+// Resources required for APV
+StructuredBuffer<int> _APVResIndex;
+TEXTURE3D(_APVResL0);
+SAMPLER(sampler_APVResL0);
+TEXTURE3D(_APVResL1_R);
+TEXTURE3D(_APVResL1_G);
+TEXTURE3D(_APVResL1_B);
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
+
+#endif // USE_ADAPTIVE_PROBE_VOLUME
+
 // SH Pixel Evaluation. Depending on target SH sampling might be done
 // mixed or fully in pixel. See SampleSHVertex
-half3 SampleSHPixel(half3 L2Term, half3 normalWS)
+half3 SampleSHPixel(half3 L2Term, half3 positionWS, half3 normalWS)
 {
+#ifdef USE_ADAPTIVE_PROBE_VOLUME
+    //-----------------------------------------------------------------------------------------------------
+    // Adaptive Probe Volume code
+    APVResources apvRes;
+    apvRes.index = _APVResIndex;
+    apvRes.L0 = _APVResL0;
+    apvRes.L1_R = _APVResL1_R;
+    apvRes.L1_G = _APVResL1_G;
+    apvRes.L1_B = _APVResL1_B;
+    return EvaluateAdaptiveProbeVolume(positionWS, normalWS, apvRes);
+    //-----------------------------------------------------------------------------------------------------
+#endif
+
 #if defined(EVALUATE_SH_VERTEX)
     return L2Term;
 #elif defined(EVALUATE_SH_MIXED)
@@ -457,11 +486,11 @@ half3 HackSampleSH(half3 normalWS)
     SHCoefficients[6] = float4(0.07564, 0.10311, 0.11301, 1.00);
     return max(half3(0, 0, 0), SampleSH9(SHCoefficients, normalWS));
 }
-#define SAMPLE_GI(lmName, shName, normalWSName) HackSampleSH(normalWSName);
+#define SAMPLE_GI(lmName, shName, positionWSName, normalWSName) HackSampleSH(normalWSName);
 #elif defined(LIGHTMAP_ON)
-#define SAMPLE_GI(lmName, shName, normalWSName) SampleLightmap(lmName, normalWSName)
+#define SAMPLE_GI(lmName, shName, positionWSName, normalWSName) SampleLightmap(lmName, normalWSName)
 #else
-#define SAMPLE_GI(lmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
+#define SAMPLE_GI(lmName, shName, positionWSName, normalWSName) SampleSHPixel(shName, positionWSName, normalWSName)
 #endif
 
 half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness, half occlusion)
