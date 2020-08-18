@@ -18,6 +18,9 @@ platforms:
     apis: 
       - Vulkan
       - OpenGLES3
+  - name: iPhone
+    apis: 
+      - Metal
 all:
   dependencies:
     - platform: Win

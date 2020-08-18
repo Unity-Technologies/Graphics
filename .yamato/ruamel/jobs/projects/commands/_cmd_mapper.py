@@ -41,7 +41,10 @@ cmd_map = {
     'iphone' : {
         'not_standalone': iphone.cmd_not_standalone,
         'standalone' : iphone.cmd_standalone,
-        'standalone_build' : iphone.cmd_standalone_build
+        'standalone_build' : iphone.cmd_standalone_build,
+        'not_standalone_performance': iphone.cmd_not_standalone_performance,
+        'standalone_performance' : iphone.cmd_standalone_performance,
+        'standalone_build_performance' : iphone.cmd_standalone_build_performance
     },
     'internal' : {
         'not_standalone': internal.cmd_not_standalone,
