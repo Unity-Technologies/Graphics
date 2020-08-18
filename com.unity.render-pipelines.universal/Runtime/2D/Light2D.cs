@@ -198,7 +198,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal bool IsPointLightCookieValid()
         {
-            return spriteLightCookie != null;
+            return pointLightCookie != null;
         }
 
 
