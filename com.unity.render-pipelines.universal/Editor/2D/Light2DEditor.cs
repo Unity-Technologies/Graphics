@@ -185,7 +185,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_PointOuterAngle = serializedObject.FindProperty("m_PointLightOuterAngle");
             m_PointInnerRadius = serializedObject.FindProperty("m_PointLightInnerRadius");
             m_PointOuterRadius = serializedObject.FindProperty("m_PointLightOuterRadius");
-            m_PointLightCookie = serializedObject.FindProperty("m_PointLightCookie");
+            m_PointLightCookie = serializedObject.FindProperty("m_LightCookieSprite");
             m_PointLightQuality = serializedObject.FindProperty("m_PointLightQuality");
 
             // Shape Light
@@ -194,7 +194,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_ShapeLightParametricSides = serializedObject.FindProperty("m_ShapeLightParametricSides");
             m_ShapeLightParametricAngleOffset = serializedObject.FindProperty("m_ShapeLightParametricAngleOffset");
             m_ShapeLightFalloffOffset = serializedObject.FindProperty("m_ShapeLightFalloffOffset");
-            m_ShapeLightSprite = serializedObject.FindProperty("m_SpriteLightCookie");
+            m_ShapeLightSprite = serializedObject.FindProperty("m_LightCookieSprite");
 
             m_AnyBlendStyleEnabled = false;
             var blendStyleIndices = new List<int>();
@@ -467,7 +467,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                     break;
                 case Light2D.LightType.Sprite:
                     {
-                        var cookieSprite = light.spriteLightCookie;
+                        var cookieSprite = light.lightCookieSprite;
                         if (cookieSprite != null)
                         {
                             Vector3 min = cookieSprite.bounds.min;
