@@ -105,7 +105,7 @@ Light GetMainLight()
     light.direction = _MainLightPosition.xyz;
     // unity_LightData.z is 1 when not culled by the culling mask, otherwise 0.
     light.distanceAttenuation = unity_LightData.z;
-#if defined(LIGHTMAP_ON) || defined(_MIXED_LIGHTING_SUBTRACTIVE)
+#if defined(LIGHTMAP_ON) || defined(LIGHTMAP_SHADOW_MIXING)
     // unity_ProbesOcclusion.x is the mixed light probe occlusion data
     light.distanceAttenuation *= unity_ProbesOcclusion.x;
 #endif
@@ -155,7 +155,7 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
     light.color = color;
 
     // In case we're using light probes, we can sample the attenuation from the `unity_ProbesOcclusion`
-#if defined(LIGHTMAP_ON) || defined(_MIXED_LIGHTING_SUBTRACTIVE)
+#if defined(LIGHTMAP_ON) || defined(LIGHTMAP_SHADOW_MIXING)
     // First find the probe channel from the light.
     // Then sample `unity_ProbesOcclusion` for the baked occlusion.
     // If the light is not baked, the channel is -1, and we need to apply no occlusion.
@@ -239,7 +239,7 @@ Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
     Light light = GetAdditionalPerObjectLight(perObjectLightIndex, positionWS);
 
     half bakedShadowAttenuation = AdditionalLightBakedShadow(perObjectLightIndex, shadowMask);
-#if defined(_SHADOW_MASK_ALWAYS)
+#if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK)
     light.shadowAttenuation = min(ApplyShadowFade(light.shadowAttenuation, positionWS), bakedShadowAttenuation);
 #else
     light.shadowAttenuation = ApplyShadowFade(light.shadowAttenuation, bakedShadowAttenuation, positionWS);
@@ -680,12 +680,12 @@ half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3
 void MixRealtimeAndBakedGI(inout Light light, float3 positionWS, half3 normalWS, inout half3 bakedGI, half4 shadowMask)
 {
     half bakedShadowAttenuation = MainLightBakedShadow(shadowMask);
-#if defined(_SHADOW_MASK_ALWAYS)
+#if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK)
     light.shadowAttenuation = min(ApplyShadowFade(light.shadowAttenuation, positionWS), bakedShadowAttenuation);
 #else
     light.shadowAttenuation = ApplyShadowFade(light.shadowAttenuation, bakedShadowAttenuation, positionWS);
 
-#if defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_ON)
+#if defined(LIGHTMAP_ON) && defined(LIGHTMAP_SHADOW_MIXING)
     bakedGI = SubtractDirectMainLightFromLightmap(light, normalWS, bakedGI);
 #endif
 

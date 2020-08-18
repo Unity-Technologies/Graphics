@@ -82,19 +82,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                     additionalLightsCount > 0 && additionalLightsPerVertex);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsPixel,
                     additionalLightsCount > 0 && !additionalLightsPerVertex);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive,
-                    renderingData.lightData.supportsMixedLighting &&
-                    m_MixedLightingSetup == MixedLightingSetup.Subtractive);
 
-            	CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ShadowMaskAlways,
-                	renderingData.lightData.supportsMixedLighting &&
-                	m_MixedLightingSetup == MixedLightingSetup.ShadowMask &&
-                	QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask);
-
-            	CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ShadowMaskDistance,
-                	renderingData.lightData.supportsMixedLighting &&
-                	m_MixedLightingSetup == MixedLightingSetup.ShadowMask &&
-                	QualitySettings.shadowmaskMode == ShadowmaskMode.DistanceShadowmask);
+                bool isShadowMask = renderingData.lightData.supportsMixedLighting && m_MixedLightingSetup == MixedLightingSetup.ShadowMask;
+                bool isShadowMaskAlways = isShadowMask && QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask;
+                bool isSubtractive = renderingData.lightData.supportsMixedLighting && m_MixedLightingSetup == MixedLightingSetup.Subtractive;
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightmapShadowMixing, isSubtractive || isShadowMaskAlways);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ShadowMask, isShadowMask);
+                // We enable this keyword for backward compitability
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, isSubtractive);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

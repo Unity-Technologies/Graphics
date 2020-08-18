@@ -26,10 +26,6 @@
     #define REQUIRES_WORLD_SPACE_POS_INTERPOLATOR
 #endif
 
-#if defined(_SHADOW_MASK_DISTANCE) || defined(_SHADOW_MASK_ALWAYS)
-    #define SHADOWS_SHADOWMASK
-#endif
-
 #if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
     #define SAMPLE_SHADOWMASK(uv) SAMPLE_TEXTURE2D(unity_ShadowMask, samplerunity_ShadowMask, uv);
 #elif defined (SHADOWS_SHADOWMASK)
@@ -37,6 +33,9 @@
 #else
     #define SAMPLE_SHADOWMASK(uv) half4(1, 1, 1, 1);
 #endif
+
+// Renamed -> LIGHTMAP_SHADOW_MIXING
+#define _MIXED_LIGHTING_SUBTRACTIVE LIGHTMAP_SHADOW_MIXING
 
 SCREENSPACE_TEXTURE(_ScreenSpaceShadowmapTexture);
 SAMPLER(sampler_ScreenSpaceShadowmapTexture);
