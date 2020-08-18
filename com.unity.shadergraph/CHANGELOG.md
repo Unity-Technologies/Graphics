@@ -37,6 +37,8 @@ The version number for this package has increased due to a version update of a r
 - Added `Compute Deformation` Node to read deformed vertex data from Dots Deformations.
 - Added new graph nodes that allow sampling Virtual Textures
 - Shader Graph now uses a new file format that is much friendlier towards version control systems and humans. Existing Shader Graphs and will use the new format next time they are saved.
+- Added parallax mapping node and parallax occlusion mapping node.
+- Added the possibility to have multiple POM node in a single graph.
 
 ### Changed
 - Changed the `Branch` node so that it uses a ternary operator (`Out = bool ? a : B`) instead of a linear interpolate function.
