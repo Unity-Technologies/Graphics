@@ -34,6 +34,8 @@ class PreviewPublish_AutoVersionJob():
                         git checkout {target_branch}
                         git commit -m "[Automation] Auto-bump template dependencies"
                         git push origin {target_branch}
+                    else
+                        echo "Did not find any dependency to bump. Will not commit and push anything."
                     fi''')
                 ])
         job.set_trigger_on_expression(f'push.branch eq "{target_branch}" AND NOT push.changes.all match ["*template*/**/*.json"]')
