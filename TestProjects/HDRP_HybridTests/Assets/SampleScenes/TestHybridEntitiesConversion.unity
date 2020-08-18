@@ -209,7 +209,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   volumeAnchorOverride: {fileID: 0}
-  antialiasing: 2
+  antialiasing: 0
   SMAAQuality: 2
   dithering: 1
   stopNaNs: 0
@@ -314,13 +314,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1603182550}
-  m_LocalRotation: {x: 0.5017368, y: -0, z: -0, w: 0.8650204}
-  m_LocalPosition: {x: 0, y: 5.87, z: 0.21000004}
+  m_LocalRotation: {x: 0.26075724, y: 0, z: 0, w: 0.96540445}
+  m_LocalPosition: {x: 0, y: 3.87, z: -3.04}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 60.23, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 30.23, y: 0, z: 0}
 --- !u!114 &1603182555
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -337,7 +337,7 @@ MonoBehaviour:
     TargetWidth: 1024
     TargetHeight: 576
     PerPixelCorrectnessThreshold: 0.001
-    AverageCorrectnessThreshold: 0.0005
+    AverageCorrectnessThreshold: 0.001
     UseHDR: 0
     UseBackBuffer: 0
     ImageResolution: 0
