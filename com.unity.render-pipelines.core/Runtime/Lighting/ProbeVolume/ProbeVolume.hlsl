@@ -135,10 +135,10 @@ float3 EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in APVRe
 
 
     // sample the pool textures to get the SH coefficients
-    float3 l0   = SAMPLE_TEXTURE3D_LOD(apvRes.L0  , s_linear_clamp_sampler, pool_uvw, 0).rgb;
-    float3 l1_R = SAMPLE_TEXTURE3D_LOD(apvRes.L1_R, s_linear_clamp_sampler, pool_uvw, 0).rgb;
-    float3 l1_G = SAMPLE_TEXTURE3D_LOD(apvRes.L1_G, s_linear_clamp_sampler, pool_uvw, 0).rgb;
-    float3 l1_B = SAMPLE_TEXTURE3D_LOD(apvRes.L1_B, s_linear_clamp_sampler, pool_uvw, 0).rgb;
+    float3 l0   = SAMPLE_TEXTURE3D_LOD(apvRes.L0  , sampler_APVResL0, pool_uvw, 0).rgb;
+    float3 l1_R = SAMPLE_TEXTURE3D_LOD(apvRes.L1_R, sampler_APVResL0, pool_uvw, 0).rgb;
+    float3 l1_G = SAMPLE_TEXTURE3D_LOD(apvRes.L1_G, sampler_APVResL0, pool_uvw, 0).rgb;
+    float3 l1_B = SAMPLE_TEXTURE3D_LOD(apvRes.L1_B, sampler_APVResL0, pool_uvw, 0).rgb;
 
     // decode the L1 coefficients
     l1_R = DecodeSH(l0.r, l1_R);

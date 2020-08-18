@@ -6,14 +6,15 @@
 
 #ifdef USE_ADAPTIVE_PROBE_VOLUME
 
-#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
-
 // Resources required for APV
 StructuredBuffer<int> _APVResIndex;
 TEXTURE3D(_APVResL0);
+SAMPLER(sampler_APVResL0);
 TEXTURE3D(_APVResL1_R);
 TEXTURE3D(_APVResL1_G);
 TEXTURE3D(_APVResL1_B);
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
 
 #endif // USE_ADAPTIVE_PROBE_VOLUME
 
