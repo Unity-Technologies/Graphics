@@ -170,7 +170,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             mesh.SetVertexBufferParams(vertices.Length, SpriteLightMeshVertex.VertexLayout);
             mesh.SetVertexBufferData(vertices, 0, 0, vertices.Length);
             mesh.SetIndices(srcIndices, MeshTopology.Triangles, 0, true);
-            mesh.RecalculateBounds();
             return mesh.bounds;
         }
 
