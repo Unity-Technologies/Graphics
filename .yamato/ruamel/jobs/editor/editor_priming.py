@@ -1,6 +1,6 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..shared.namer import editor_job_id
-from ..shared.constants import VAR_UPM_REGISTRY, PATH_UNITY_REVISION, UNITY_DOWNLOADER_CLI_URL
+from ..shared.constants import VAR_UPM_REGISTRY, PATH_UNITY_REVISION, UNITY_DOWNLOADER_CLI_URL, VAR_CUSTOM_REVISION
 from ..shared.yml_job import YMLJob
 
 class Editor_PrimingJob():
@@ -30,10 +30,9 @@ class Editor_PrimingJob():
         job.add_var_custom('DISPLAY', dss(":0"))
         job.add_var_upm_registry()
         job.add_var_custom_revision(editor["track"])
-        print(editor["revisions"])
         job.add_commands([
                 f'pip install unity-downloader-cli --user --upgrade --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
-                f'unity-downloader-cli -u {editor["revisions"]["2020.2_latest_internal"][platform_os]["revision"]} -o {platform_os} --wait --skip-download {"".join([f"-c {c} " for c in components])} > {PATH_UNITY_REVISION}'])
+                f'unity-downloader-cli -u {VAR_CUSTOM_REVISION} -o {platform_os} --wait --skip-download {"".join([f"-c {c} " for c in components])} > {PATH_UNITY_REVISION}'])
         job.add_artifacts_unity_revision()
         return job
     
