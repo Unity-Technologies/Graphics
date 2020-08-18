@@ -54,6 +54,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static readonly int k_FalloffOffsetID = Shader.PropertyToID("_FalloffOffset");
         private static readonly int k_LightColorID = Shader.PropertyToID("_LightColor");
         private static readonly int k_VolumeOpacityID = Shader.PropertyToID("_VolumeOpacity");
+        private static readonly int k_CookieTexID = Shader.PropertyToID("_CookieTex");
         private static readonly int k_FalloffLookupID = Shader.PropertyToID("_FalloffLookup");
         private static readonly int k_LightPositionID = Shader.PropertyToID("_LightPosition");
         private static readonly int k_LightInvMatrixID = Shader.PropertyToID("_LightInvMatrix");
@@ -64,7 +65,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static readonly int k_LightLookupID = Shader.PropertyToID("_LightLookup");
         private static readonly int k_IsFullSpotlightID = Shader.PropertyToID("_IsFullSpotlight");
         private static readonly int k_LightZDistanceID = Shader.PropertyToID("_LightZDistance");
-        private static readonly int k_SpriteLightCookieTexID = Shader.PropertyToID("_CookieTex");
         private static readonly int k_PointLightCookieTexID = Shader.PropertyToID("_PointLightCookieTex");
 
         private static GraphicsFormat GetRenderTextureFormat()
@@ -170,8 +170,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                     renderedAnyLight = true;
 
-                    if (light.lightType == Light2D.LightType.Sprite && light.IsSpriteLightCookieValid())
-                        cmd.SetGlobalTexture(k_SpriteLightCookieTexID, light.spriteLightCookie.texture);
+                    if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
+                        cmd.SetGlobalTexture(k_CookieTexID, light.lightCookieSprite.texture);
 
                     cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
                     cmd.SetGlobalFloat(k_FalloffDistanceID, light.shapeLightFalloffSize);
@@ -226,8 +226,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                                 {
                                     ShadowRendering.RenderShadows(pass, renderingData, cmd, layerToRender, light, light.shadowVolumeIntensity, renderTexture, depthTexture);
 
-                                    if (light.lightType == Light2D.LightType.Sprite && light.IsSpriteLightCookieValid())
-                                        cmd.SetGlobalTexture(k_SpriteLightCookieTexID, light.spriteLightCookie.texture);
+                                    if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
+                                        cmd.SetGlobalTexture(k_CookieTexID, light.lightCookieSprite.texture);
 
                                     cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
                                     cmd.SetGlobalFloat(k_FalloffDistanceID, light.shapeLightFalloffSize);
@@ -321,8 +321,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             cmd.SetGlobalFloat(k_LightZDistanceID, light.pointLightDistance);
 
-            if (light.IsPointLightCookieValid())
-                cmd.SetGlobalTexture(k_PointLightCookieTexID, light.pointLightCookie.texture);
+            if (light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
+                cmd.SetGlobalTexture(k_PointLightCookieTexID, light.lightCookieSprite.texture);
         }
 
         public static void ClearDirtyLighting(this IRenderPass2D pass, CommandBuffer cmd, uint blendStylesUsed)
@@ -438,7 +438,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bitIndex++;
             var spriteBit = light.lightType == Light2D.LightType.Sprite ? 1u << bitIndex : 0u;
             bitIndex++;
-            var pointCookieBit = (!isShape && light.IsPointLightCookieValid()) ? 1u << bitIndex : 0u;
+            var pointCookieBit = (!isShape && light.lightCookieSprite != null && light.lightCookieSprite.texture != null) ? 1u << bitIndex : 0u;
             bitIndex++;
             var pointFastQualityBit = (!isShape && light.pointLightQuality == Light2D.PointLightQuality.Fast) ? 1u << bitIndex : 0u;
             bitIndex++;
@@ -470,7 +470,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (light.lightType == Light2D.LightType.Sprite)
                 material.EnableKeyword(k_SpriteLightKeyword);
 
-            if (!isShape && light.IsPointLightCookieValid())
+            if (!isShape && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                 material.EnableKeyword(k_UsePointLightCookiesKeyword);
 
             if (!isShape && light.pointLightQuality == Light2D.PointLightQuality.Fast)

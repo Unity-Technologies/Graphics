@@ -45,15 +45,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         [SerializeField] float m_LightVolumeOpacity = 0.0f;
         [SerializeField] int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
-
-        [SerializeField, FormerlySerializedAs("m_LightCookieSprite")]
-        Sprite m_SpriteLightCookie = null;
-
-        [SerializeField, FormerlySerializedAs("m_LightCookieSprite")]
-        Sprite m_PointLightCookie = null;
-
-        //[SerializeField] Sprite m_LightCookieSprite = null;  
-
+        [SerializeField] Sprite m_LightCookieSprite = null;
         [SerializeField] bool m_UseNormalMap = false;
 
         [SerializeField] int m_LightOrder = 0;
@@ -65,15 +57,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] float m_ShadowVolumeIntensity = 0.0f;
 
         // Transients
-        int m_PreviousSpriteLightCookie;
-        int m_PreviousPointLightCookie;
+        int m_PreviousLightCookieSprite;
         Mesh m_Mesh;
 
         internal int[] affectedSortingLayers => m_ApplyToSortingLayers;
 
-        private int spriteLightCookieInstanceID => m_SpriteLightCookie?.GetInstanceID() ?? 0;
-        private int pointLightCookieInstanceID => m_PointLightCookie?.GetInstanceID() ?? 0;
-
+        private int lightCookieSpriteInstanceID => m_LightCookieSprite?.GetInstanceID() ?? 0;
+		
         private Bounds m_LocalBounds;
         internal BoundingSphere boundingSphere { get; private set; }
 
@@ -124,25 +114,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         /// The lights current intensity
         /// </summary>
         public float volumeOpacity => m_LightVolumeOpacity;
-
-        // Fix this message later...
-        [Obsolete("Please use pointLightCookie or spriteLightCookie instead.")]
-        public Sprite lightCookieSprite
-        {
-            get
-            {
-                if (lightType == LightType.Sprite)
-                    return spriteLightCookie;
-                else if (lightType == LightType.Point)
-                    return pointLightCookie;
-                else
-                    return null;
-            }
-        }
-
-        public Sprite pointLightCookie => m_PointLightCookie;
-        public Sprite spriteLightCookie => m_SpriteLightCookie;
-
+        public Sprite lightCookieSprite => m_LightCookieSprite;
         public float falloffIntensity => m_FalloffIntensity;
         public bool useNormalMap => m_UseNormalMap;
         public bool alphaBlendOnOverlap => m_AlphaBlendOnOverlap;
@@ -183,7 +155,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     m_LocalBounds = LightUtility.GenerateParametricMesh(m_Mesh, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
                     break;
                 case LightType.Sprite:
-                    m_LocalBounds = LightUtility.GenerateSpriteMesh(m_Mesh, spriteLightCookie);
+                    m_LocalBounds = LightUtility.GenerateSpriteMesh(m_Mesh, m_LightCookieSprite);
                     break;
                 case LightType.Point:
                     m_LocalBounds = LightUtility.GenerateParametricMesh(m_Mesh, 1.412135f, 0, 0, 4);
@@ -207,17 +179,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             boundingSphere = new BoundingSphere(center, radius);
         }
 
-        internal bool IsSpriteLightCookieValid()
-        {
-            return spriteLightCookie != null;
-        }
-
-        internal bool IsPointLightCookieValid()
-        {
-            return pointLightCookie != null;
-        }
-
-
         internal bool IsLitLayer(int layer)
         {
             return m_ApplyToSortingLayers != null ? Array.IndexOf(m_ApplyToSortingLayers, layer) >= 0 : false;
@@ -231,8 +192,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         void OnEnable()
         {
-            m_PreviousSpriteLightCookie = spriteLightCookieInstanceID;
-            m_PreviousPointLightCookie = pointLightCookieInstanceID;
+            m_PreviousLightCookieSprite = lightCookieSpriteInstanceID;
             Light2DManager.RegisterLight(this);
         }
 
@@ -251,8 +211,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 LightUtility.CheckForChange(m_ShapeLightParametricRadius, ref m_PreviousShapeLightParametricRadius) ||
                 LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides) ||
                 LightUtility.CheckForChange(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset) ||
-                LightUtility.CheckForChange(spriteLightCookieInstanceID, ref m_PreviousSpriteLightCookie) ||
-                LightUtility.CheckForChange(pointLightCookieInstanceID, ref m_PreviousPointLightCookie))
+                LightUtility.CheckForChange(lightCookieSpriteInstanceID, ref m_PreviousLightCookieSprite))
             {
                 UpdateMesh();
             }
