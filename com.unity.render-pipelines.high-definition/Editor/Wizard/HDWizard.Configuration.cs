@@ -179,6 +179,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         new Entry(InclusiveScope.DXROptional, Style.dxrReflections, IsDXRReflectionsCorrect, null, forceDisplayCheck: true, skipErrorIcon: true),
                         new Entry(InclusiveScope.DXROptional, Style.dxrTransparentReflections, IsDXRTransparentReflectionsCorrect, null, forceDisplayCheck: true, skipErrorIcon: true),
                         new Entry(InclusiveScope.DXROptional, Style.dxrGI, IsDXRGICorrect, null, forceDisplayCheck: true, skipErrorIcon: true),
+                        new Entry(InclusiveScope.DXROptional, Style.dxr64bits, IsArchitecture64Bits, null, forceDisplayCheck: true, skipErrorIcon: true),
 
                     };
                 return m_Entries;
@@ -656,6 +657,9 @@ namespace UnityEditor.Rendering.HighDefinition
         bool IsDXRGICorrect()
             => HDRenderPipeline.currentAsset != null
             && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportSSGI;
+			
+		bool IsArchitecture64Bits()
+            => EditorUserBuildSettings.activeBuildTarget == BuildTarget.StandaloneWindows64;
 
 
         bool IsDXRStaticBatchingCorrect()
