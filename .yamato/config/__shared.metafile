@@ -6,7 +6,6 @@ editors: # applied for all yml files
     rerun_strategy: on-new-revision
   - track: CUSTOM-REVISION
     rerun_strategy: always
-    default_revision: $CUSTOM_REVISION
 
 test_platforms:
   Standalone: --suite=playmode --platform=Standalone
