@@ -9,7 +9,7 @@ editor_version_names:
 editor_versions:
   trunk_latest_internal:
     android:
-      revision: 12345
+      revision: 3e0d5f77500609e558a691291eb824a4d926c1b8
       version: ''
     ios:
       revision: 3e0d5f77500609e558a691291eb824a4d926c1b8
