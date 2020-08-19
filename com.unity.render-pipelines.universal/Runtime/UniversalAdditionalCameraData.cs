@@ -452,7 +452,7 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
-    [Obsolete("Use UniversalCameraExtension instead.")] //[TODO: fix com.unity.xr.legacyinputhelpers that reference it, it creates warning that become error in test project] 
+    //[Obsolete("Use UniversalCameraExtension instead.")] //[TODO: fix com.unity.xr.legacyinputhelpers that reference it, it creates warning that become error in test project] 
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Camera))]
     [ImageEffectAllowedInSceneView]
