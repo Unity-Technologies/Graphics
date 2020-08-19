@@ -190,6 +190,14 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(rtrDirGenParams.directionGenCS, rtrDirGenParams.dirGenKernel, numTilesXHR, numTilesYHR, rtrDirGenParams.viewCount);
         }
 
+        RTHandle RequestReflectionHistoryBuffer(CommandBuffer cmd, HDCamera hdCamera)
+        {
+            RTHandle reflectionHistoryBuffer = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection);
+            if (reflectionHistoryBuffer == null)
+                reflectionHistoryBuffer = hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection, ReflectionHistoryBufferAllocatorFunction, 1);
+            return reflectionHistoryBuffer;
+        }
+
         DeferredLightingRTParameters PrepareReflectionDeferredLightingRTParameters(HDCamera hdCamera)
         {
             DeferredLightingRTParameters deferredParameters = new DeferredLightingRTParameters();
@@ -361,8 +369,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingFilterReflection)))
                 {
                     // Grab the history buffer
-                    RTHandle reflectionHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection)
-                        ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection, ReflectionHistoryBufferAllocatorFunction, 1);
+                    RTHandle reflectionHistory = RequestReflectionHistoryBuffer(cmd, hdCamera);
 
                     // Prepare the parameters and the resources
                     HDReflectionDenoiser reflectionDenoiser = GetReflectionDenoiser();
@@ -544,8 +551,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (settings.denoise && !transparent)
                 {
                     // Grab the history buffer
-                    RTHandle reflectionHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection)
-                        ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection, ReflectionHistoryBufferAllocatorFunction, 1);
+                    RTHandle reflectionHistory = RequestReflectionHistoryBuffer(cmd, hdCamera);
 
                     // Prepare the parameters and the resources
                     HDReflectionDenoiser reflectionDenoiser = GetReflectionDenoiser();

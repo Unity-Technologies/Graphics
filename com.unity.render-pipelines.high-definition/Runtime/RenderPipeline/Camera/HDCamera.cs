@@ -222,6 +222,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // XR multipass and instanced views are supported (see XRSystem)
         internal XRPass xr { get; private set; }
 
+        // Flag to track if a history buffer clear was requested
+        private bool m_ClearHistoryRequest;
+
         // Non oblique projection matrix (RHS)
         // TODO: this code is never used and not compatible with XR
         internal Matrix4x4 nonObliqueProjMatrix
@@ -364,6 +367,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             volumeStack = VolumeManager.instance.CreateStack();
 
+            // Initially, we don't want to clear any history buffer
+            m_ClearHistoryRequest = false;
+
             Reset();
         }
 
@@ -385,6 +391,16 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var ssgi = volumeStack.GetComponent<GlobalIllumination>();
             return frameSettings.IsEnabled(FrameSettingsField.SSGI) && ssgi.enable.value;
+        }
+
+        internal void RequestClearHistoryBuffers()
+        {
+            m_ClearHistoryRequest = true;
+        }
+
+        internal void ClearHistoryBuffer(CommandBuffer cmd)
+        {
+            m_HistoryRTSystem.ClearBuffers(cmd);
         }
 
         internal bool IsVolumetricReprojectionEnabled()
@@ -532,6 +548,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // The reason is that RTHandle will hold data necessary to setup RenderTargets and viewports properly.
         internal void BeginRender(CommandBuffer cmd)
         {
+            // If a history buffer was requested, clear all the previously existing buffers and reset the flag
+            if (m_ClearHistoryRequest)
+            {
+                ClearHistoryBuffer(cmd);
+                m_ClearHistoryRequest = false;
+            }
+
             SetReferenceSize();
 
             m_RecorderCaptureActions = CameraCaptureBridge.GetCaptureActions(camera);

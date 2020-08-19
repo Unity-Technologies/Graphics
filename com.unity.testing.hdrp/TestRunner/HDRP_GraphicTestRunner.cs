@@ -59,12 +59,19 @@ public class HDRP_GraphicTestRunner
         for (int i = 0; i < 5; ++i)
             yield return null;
 
+        // Grab the HDCamera
+        HDCamera hdCamera = HDCamera.GetOrCreate(camera);
+
         if (settings.waitForFrameCountMultiple)
         {
             // Get HDRP instance
             var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-            while (hdrp.GetFrameCount() % settings.frameCountMultiple != 0) yield return null;
+            // Wait until we are back to frame 0 in the loop
+            while (hdCamera.cameraFrameCount % settings.frameCountMultiple != 0) yield return null;
         }
+
+        // Force clear all the history buffers
+        hdCamera.RequestClearHistoryBuffers();
 
         Time.captureFramerate = settings.captureFramerate;
 
@@ -108,7 +115,7 @@ public class HDRP_GraphicTestRunner
         }
 
         // Reset temporal effects on hdCamera
-        HDCamera.GetOrCreate(camera).Reset();
+        hdCamera.Reset();
 
         for (int i=0 ; i<settings.waitFrames ; ++i)
             yield return null;

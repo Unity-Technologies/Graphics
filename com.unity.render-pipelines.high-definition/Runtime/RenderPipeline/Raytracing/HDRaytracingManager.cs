@@ -560,7 +560,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal int RayTracingFrameIndex(HDCamera hdCamera)
         {
-            return hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 8;
+            return (int)hdCamera.cameraFrameCount % 8;
         }
 
         internal bool RayTracingLightClusterRequired(HDCamera hdCamera)
