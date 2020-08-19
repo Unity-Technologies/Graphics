@@ -87,9 +87,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool isShadowMaskAlways = isShadowMask && QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask;
                 bool isSubtractive = renderingData.lightData.supportsMixedLighting && m_MixedLightingSetup == MixedLightingSetup.Subtractive;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightmapShadowMixing, isSubtractive || isShadowMaskAlways);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ShadowMask, isShadowMask);
-                // We enable this keyword for backward compitability
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, isSubtractive);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ShadowsShadowMask, isShadowMask);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, isSubtractive); // Backward compatibility
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

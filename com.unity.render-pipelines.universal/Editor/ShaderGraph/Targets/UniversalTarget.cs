@@ -764,20 +764,22 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
-        public static KeywordDescriptor MixedLightingSubtractive = new KeywordDescriptor()
+        public static KeywordDescriptor LightmapShadowMixing = new KeywordDescriptor()
         {
-            displayName = "Mixed Lighting Subtractive",
-            referenceName = "",
-            type = KeywordType.Enum,
+            displayName = "Lightmap Shadow Mixing",
+            referenceName = "LIGHTMAP_SHADOW_MIXING",
+            type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-            entries = new KeywordEntry[]
-            {
-                new KeywordEntry() { displayName = "Empty", referenceName = "" },
-                new KeywordEntry() { displayName = "Mixed Lighting Subtractive", referenceName = "MIXED_LIGHTING_SUBTRACTIVE" },
-                new KeywordEntry() { displayName = "ShadowMask Always", referenceName = "SHADOW_MASK_ALWAYS" },
-                new KeywordEntry() { displayName = "ShadowMask Distance", referenceName = "SHADOW_MASK_DISTANCE" },
-            }
+        };
+
+        public static KeywordDescriptor ShadowsShadowmask = new KeywordDescriptor()
+        {
+            displayName = "Shadows Shadowmask",
+            referenceName = "SHADOWS_SHADOWMASK",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
         };
 
         public static KeywordDescriptor SmoothnessChannel = new KeywordDescriptor()
