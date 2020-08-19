@@ -20,6 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Currently not supported in real time (just use for reference)
         Disc,
         // Sphere,
+        Count
     };
 
     static class GPULightTypeExtension

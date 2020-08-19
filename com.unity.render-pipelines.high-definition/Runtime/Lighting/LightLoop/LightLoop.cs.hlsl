@@ -107,7 +107,7 @@ float3 GetCenter(SFiniteLightBound value)
 {
     return value.center;
 }
-float2 GetScaleXY(SFiniteLightBound value)
+float GetScaleXY(SFiniteLightBound value)
 {
     return value.scaleXY;
 }

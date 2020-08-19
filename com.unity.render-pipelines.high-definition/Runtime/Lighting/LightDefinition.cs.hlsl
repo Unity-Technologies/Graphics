@@ -15,6 +15,7 @@
 #define GPULIGHTTYPE_TUBE (5)
 #define GPULIGHTTYPE_RECTANGLE (6)
 #define GPULIGHTTYPE_DISC (7)
+#define GPULIGHTTYPE_COUNT (8)
 
 //
 // UnityEngine.Rendering.HighDefinition.GPUImageBasedLightingType:  static fields

@@ -2096,6 +2096,61 @@ namespace UnityEngine.Rendering.HighDefinition
             processedData.isBakedShadowMask = IsBakedShadowMaskLight(lightComponent);
         }
 
+        static int CeilLog2Int(int i)
+        {
+            return Mathf.CeilToInt(Mathf.Log(i, 2)); // No integer log in our math library...
+        }
+
+        struct LightSortingKeyLayout
+        {
+            public int lightIndexBitCount;
+            public int lightVolumeTypeBitCount;
+            public int gpuLightTypeBitCount;
+            public int lightCategoryBitCount;
+            public int totalBitCount;
+
+            // LSB -> MSB.
+            public int lightIndexOffset;
+            public int lightVolumeTypeOffset;
+            public int gpuLightTypeOffset;
+            public int lightCategoryOffset;
+        }
+
+        static LightSortingKeyLayout GetLightSortingKeyLayout()
+        {
+            LightSortingKeyLayout layout;
+
+            layout.lightIndexBitCount      = 16;
+            layout.lightVolumeTypeBitCount = CeilLog2Int((int)LightVolumeType.Count);
+            layout.gpuLightTypeBitCount    = CeilLog2Int((int)GPULightType.Count);
+            layout.lightCategoryBitCount   = CeilLog2Int((int)LightCategory.Count);
+            layout.totalBitCount           = layout.lightIndexBitCount
+                                           + layout.lightVolumeTypeBitCount
+                                           + layout.gpuLightTypeBitCount
+                                           + layout.lightCategoryBitCount;
+
+            layout.lightIndexOffset      = 0;
+            layout.lightVolumeTypeOffset = layout.lightIndexBitCount      + layout.lightIndexOffset;
+            layout.gpuLightTypeOffset    = layout.lightVolumeTypeBitCount + layout.lightVolumeTypeOffset;
+            layout.lightCategoryOffset   = layout.gpuLightTypeBitCount    + layout.gpuLightTypeOffset;
+
+            return layout;
+        }
+
+        static uint GenerateLightSortingKey(ref ProcessedLightData data, int lightIndex)
+        {
+            LightSortingKeyLayout layout = GetLightSortingKeyLayout();
+
+            Debug.Assert(layout.totalBitCount <= 8 * sizeof(uint));
+
+            uint key = ((uint)data.lightCategory   << layout.lightCategoryOffset)
+                     | ((uint)data.gpuLightType    << layout.gpuLightTypeOffset)
+                     | ((uint)data.lightVolumeType << layout.lightVolumeTypeOffset)
+                     | ((uint)lightIndex           << layout.lightIndexOffset);
+
+            return key;
+        }
+
         // This will go through the list of all visible light and do two main things:
         // - Precompute data that will be reused through the light loop
         // - Discard all lights considered unnecessary (too far away, explicitly discarded by type, ...)
@@ -2180,8 +2235,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     && !debugLightFilter.IsEnabledFor(processedData.gpuLightType, additionalData.spotLightShape))
                     continue;
 
-                // 5 bit (0x1F) light category, 5 bit (0x1F) GPULightType, 5 bit (0x1F) lightVolume, 1 bit for shadow casting, 16 bit index
-                m_SortKeys[sortCount++] = (uint)processedData.lightCategory << 27 | (uint)processedData.gpuLightType << 22 | (uint)processedData.lightVolumeType << 17 | (uint)lightIndex;
+                m_SortKeys[sortCount++] = GenerateLightSortingKey(ref processedData, lightIndex);
+
             }
 
             CoreUnsafeUtils.QuickSort(m_SortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).
@@ -2227,12 +2282,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             for (int sortIndex = 0; sortIndex < processedLightCount; ++sortIndex)
             {
+                LightSortingKeyLayout layout = GetLightSortingKeyLayout();
+
                 // In 1. we have already classify and sorted the light, we need to use this sorted order here
                 uint sortKey = m_SortKeys[sortIndex];
-                LightCategory lightCategory = (LightCategory)((sortKey >> 27) & 0x1F);
-                GPULightType gpuLightType = (GPULightType)((sortKey >> 22) & 0x1F);
-                LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 17) & 0x1F);
-                int lightIndex = (int)(sortKey & 0xFFFF);
+
+                LightCategory   lightCategory   = (LightCategory)  ((sortKey >> layout.lightCategoryOffset)   & ((1 << layout.lightCategoryBitCount)   - 1));
+                GPULightType    gpuLightType    = (GPULightType)   ((sortKey >> layout.gpuLightTypeOffset)    & ((1 << layout.gpuLightTypeBitCount)    - 1));
+                LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> layout.lightVolumeTypeOffset) & ((1 << layout.lightVolumeTypeBitCount) - 1));
+                int             lightIndex      = (int)            ((sortKey >> layout.lightIndexOffset)      & ((1 << layout.lightIndexBitCount)      - 1));
 
                 var light = cullResults.visibleLights[lightIndex];
                 var lightComponent = light.light;

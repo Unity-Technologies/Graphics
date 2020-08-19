@@ -487,6 +487,7 @@ real FastATan(real x)
 }
 
 #if (SHADER_TARGET >= 45)
+// If 'x' is not a power-of-2, the result will be truncated (e.g. log2i(3) = 1).
 uint FastLog2(uint x)
 {
     return firstbithigh(x);
@@ -515,7 +516,7 @@ TEMPLATE_2_REAL(PositivePow, base, power, return pow(abs(base), power))
 // -As a replacement for pow(0,y) where y >= 1, the result of SafePositivePow(x,y) should be close enough to 0.
 // -For cases where we substitute for pow(0,y) where 0 < y < 1, SafePositivePow(x,y) will quickly reach 1 as y -> 0, while
 // normally pow(0,y) would give 0 instead of 1 for all 0 < y.
-// eg: if we #define FLT_EPS  5.960464478e-8 (for fp32), 
+// eg: if we #define FLT_EPS  5.960464478e-8 (for fp32),
 // SafePositivePow(0, 0.1)   = 0.1894646
 // SafePositivePow(0, 0.01)  = 0.8467453
 // SafePositivePow(0, 0.001) = 0.9835021
@@ -1165,11 +1166,11 @@ void LODDitheringTransition(uint2 fadeMaskSeed, float ditherFactor)
 // while on other APIs is in the red channel. Note that on some platform, always using the green channel might work, but is not guaranteed.
 uint GetStencilValue(uint2 stencilBufferVal)
 {
-#if defined(SHADER_API_D3D11) || defined(SHADER_API_XBOXONE)  
+#if defined(SHADER_API_D3D11) || defined(SHADER_API_XBOXONE)
     return stencilBufferVal.y;
 #else
     return stencilBufferVal.x;
 #endif
-} 
+}
 
 #endif // UNITY_COMMON_INCLUDED
