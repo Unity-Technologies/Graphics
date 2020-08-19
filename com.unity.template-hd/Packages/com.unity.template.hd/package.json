@@ -1,12 +1,12 @@
 {
-	"name": "com.unity.template.hd",
-	"displayName":"High Definition RP",
-	"version": "10.1.0",
-	"type": "template",
-	"host": "hub",
-	"unity": "2020.2",
-	"description": "This template utilizes the High Definition Render Pipeline. Making it a good starting point for people focused on high-end graphics that want to develop games for platforms that support Shader Model 5.0 (DX11 and above). \n\nBeyond being tuned for High End visuals this project includes\n\u25AA Shadergraph \n\u25AA Visual Effect Graph  \n\u25AA Presets \n\u25AA Example content",
-	"dependencies": {
-		"com.unity.render-pipelines.high-definition": "10.1.0-preview.1"
-	}
+  "name": "com.unity.template.hd",
+  "displayName": "High Definition RP",
+  "version": "10.1.0",
+  "type": "template",
+  "host": "hub",
+  "unity": "2020.2",
+  "description": "This template utilizes the High Definition Render Pipeline. Making it a good starting point for people focused on high-end graphics that want to develop games for platforms that support Shader Model 5.0 (DX11 and above). \n\nBeyond being tuned for High End visuals this project includes\n\u25aa Shadergraph \n\u25aa Visual Effect Graph  \n\u25aa Presets \n\u25aa Example content",
+  "dependencies": {
+    "com.unity.render-pipelines.high-definition": "10.1.0-preview.9"
+  }
 }

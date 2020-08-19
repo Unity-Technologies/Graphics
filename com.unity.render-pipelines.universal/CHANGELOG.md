@@ -6,9 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.1.0] - 2019-08-04
 
+### Added
+- Support for Clear coat and ComplexLit forward only shader in shader graph.
+
 ### Fixed
 - Fixed a case where main light hard shadows would not work if any other light is present with soft shadows.[case 1250829](https://issuetracker.unity3d.com/issues/main-light-shadows-are-ignored-in-favor-of-additional-lights-shadows)
 - Fixed issue that caused color grading to not work correctly with camera stacking. [case 1263193](https://issuetracker.unity3d.com/product/unity/issues/guid/1263193/)
+- Fixed an issue that caused an infinite asset database reimport when running Unity in command line with -testResults argument.
 
 ## [10.0.0] - 2019-06-10
 ### Added
@@ -39,6 +43,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an option to enable/disable Adaptive Performance when the Adaptive Performance package is available in the project.
 - Added support for 3DsMax's 2021 Simplified Physical Material from FBX files in the Model Importer.
 - Added support for DXT5nm-style normal maps on Android, iOS and tvOS
+- Added Parallax Mapping to the Lit shader (Lit.shader).
 - Added stencil override support for deferred renderer.
 - Added a warning message when a renderer is used with an unsupported graphics API, as the deferred renderer does not officially support GL-based platforms.
 - Added option to skip a number of final bloom iterations.
