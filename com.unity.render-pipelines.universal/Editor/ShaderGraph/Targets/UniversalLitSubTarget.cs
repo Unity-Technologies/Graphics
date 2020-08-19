@@ -123,8 +123,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.Metallic,           workflowMode == WorkflowMode.Metallic);
             context.AddBlock(BlockFields.SurfaceDescription.Alpha,              target.surfaceType == SurfaceType.Transparent || target.alphaClip);
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, target.alphaClip);
-            context.AddBlock(BlockFields.SurfaceDescription.CoatMask,           clearCoat );
-            context.AddBlock(BlockFields.SurfaceDescription.CoatSmoothness,     clearCoat );
+            context.AddBlock(UniversalBlockFields.SurfaceDescription.CoatMask,           clearCoat );
+            context.AddBlock(UniversalBlockFields.SurfaceDescription.CoatSmoothness,     clearCoat );
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -553,8 +553,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 BlockFields.SurfaceDescription.Occlusion,
                 BlockFields.SurfaceDescription.Alpha,
                 BlockFields.SurfaceDescription.AlphaClipThreshold,
-                BlockFields.SurfaceDescription.CoatMask,
-                BlockFields.SurfaceDescription.CoatSmoothness,
+                UniversalBlockFields.SurfaceDescription.CoatMask,
+                UniversalBlockFields.SurfaceDescription.CoatSmoothness,
             };
 
             public static readonly BlockFieldDescriptor[] FragmentMeta = new BlockFieldDescriptor[]
