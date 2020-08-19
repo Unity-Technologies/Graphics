@@ -105,7 +105,7 @@ URP_Performance_Android_Vulkan_performance_editmode_build_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --editor-location=WindowsEditor --suite=Editor --testfilter=Build -report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200
+                 utr --suite=playmode --platform=Android --editor-location=WindowsEditor --suite=Editor --testfilter=Build -report-performance-data --performance-project-id=URP_Performance --testproject=TestProjects/URP_Performance --artifacts_path=test-results --scripting-backend=il2cpp --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -213,7 +213,7 @@ URP_Performance_Android_Vulkan_performance_editmode_build_fast-trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --editor-location=WindowsEditor --suite=Editor --testfilter=Build -report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200
+                 utr --suite=playmode --platform=Android --editor-location=WindowsEditor --suite=Editor --testfilter=Build -report-performance-data --performance-project-id=URP_Performance --testproject=TestProjects/URP_Performance --artifacts_path=test-results --scripting-backend=il2cpp --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -325,7 +325,7 @@ URP_Performance_Android_Vulkan_performance_editmode_build_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --editor-location=WindowsEditor --suite=Editor --testfilter=Build -report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200
+                 utr --suite=playmode --platform=Android --editor-location=WindowsEditor --suite=Editor --testfilter=Build -report-performance-data --performance-project-id=URP_Performance --testproject=TestProjects/URP_Performance --artifacts_path=test-results --scripting-backend=il2cpp --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
