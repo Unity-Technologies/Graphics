@@ -40,3 +40,10 @@ all:
       test_platforms:
         - performance_playmode_counters
         - performance_playmode_memory
+        - performance_editmode_build
+    - platform: iPhone
+      api: Metal
+      test_platforms:
+        - performance_playmode_counters
+        - performance_playmode_memory
+        - performance_editmode_build
