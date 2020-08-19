@@ -28,7 +28,6 @@ namespace UnityEditor.ShaderGraph
         {
             name = "Color";
             UpdateNodeAfterDeserialization();
-            version = latestVersion;
         }
 
 
@@ -138,22 +137,29 @@ namespace UnityEditor.ShaderGraph
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
             UnityEngine.Color propColor = color.color;
-            //why doesn't this seem to matter which colorspace the project is in?
+            if (color.mode == ColorMode.Default)
+            {
+                if (PlayerSettings.colorSpace == ColorSpace.Linear)
+                    propColor = propColor.linear;
+            }
             if (color.mode == ColorMode.HDR)
             {
-                switch(version)
+                switch (version)
                 {
                     case 0:
                         break;
                     case 1:
-                        propColor = propColor.gamma;
+                        if (PlayerSettings.colorSpace == ColorSpace.Gamma)
+                            propColor = propColor.gamma;
                         break;
                 }
             }
-            properties.Add(new PreviewProperty(PropertyType.Color)
+
+            // we use Vector4 type to avoid all of the automatic color conversions of PropertyType.Color
+            properties.Add(new PreviewProperty(PropertyType.Vector4)
             {
                 name = GetVariableNameForNode(),
-                colorValue = propColor
+                vector4Value = propColor
             });
         }
 

@@ -14,7 +14,6 @@ namespace UnityEditor.ShaderGraph.Internal
         internal ColorShaderProperty()
         {
             displayName = "Color";
-            version = latestVersion;
         }
 
         internal ColorShaderProperty(int version) : this()
@@ -58,16 +57,21 @@ namespace UnityEditor.ShaderGraph.Internal
         internal override PreviewProperty GetPreviewMaterialProperty()
         {
             UnityEngine.Color propColor = value;
-            if (colorMode == ColorMode.HDR)
+            if (colorMode == ColorMode.Default)
             {
                 if (PlayerSettings.colorSpace == ColorSpace.Linear)
-                    propColor = propColor.gamma;
+                    propColor = propColor.linear;
             }
+            else if (colorMode == ColorMode.HDR)
+            {
+                // conversion from linear to active color space is handled in the shader code (see PropertyNode.cs)
+            }
+
             // we use Vector4 type to avoid all of the automatic color conversions of PropertyType.Color
-            return new PreviewProperty(PropertyType.Color)
+            return new PreviewProperty(PropertyType.Vector4)
             {
                 name = referenceName,
-                colorValue = propColor
+                vector4Value = propColor
             };
 
         }        

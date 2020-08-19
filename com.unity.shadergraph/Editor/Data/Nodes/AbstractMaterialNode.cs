@@ -306,8 +306,6 @@ namespace UnityEditor.ShaderGraph
         protected AbstractMaterialNode()
         {
             m_DrawState.expanded = true;
-            version = latestVersion;
-            localVersion = 0;
         }
 
         public void GetInputSlots<T>(List<T> foundSlots) where T : MaterialSlot
@@ -672,10 +670,6 @@ namespace UnityEditor.ShaderGraph
             owner?.ClearErrorsForNode(this);
             EvaluateConcretePrecision();
             EvaluateDynamicMaterialSlots();
-            if(!hasError)
-            {
-                ++localVersion;
-            }
         }
 
         public virtual void ValidateNode()
@@ -683,7 +677,6 @@ namespace UnityEditor.ShaderGraph
 
         }
 
-        public int localVersion { get; set; }
         public virtual bool canCutNode => true;
         public virtual bool canCopyNode => true;
 

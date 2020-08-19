@@ -65,8 +65,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         ShaderGraphVersion IVersionable<ShaderGraphVersion>.version
         {
-            get => systemData.version;
-            set => systemData.version = value;
+            get => systemData.localVersion;
+            set => systemData.localVersion = value;
         }
 
         // Generate migration description steps to migrate HD shader targets

@@ -1628,7 +1628,7 @@ namespace UnityEditor.ShaderGraph
         public override void OnBeforeSerialize()
         {
             m_Edges.Sort();
-            version = latestVersion;
+            ChangeVersion(latestVersion);
         }
 
         static T DeserializeLegacy<T>(string typeString, string json) where T : JsonObject
@@ -1836,7 +1836,7 @@ namespace UnityEditor.ShaderGraph
             bool deferredUpgrades = version < 2;
             if(!deferredUpgrades)
             {
-                version = latestVersion;
+                ChangeVersion(latestVersion);
             }
         }
 
@@ -1962,7 +1962,7 @@ namespace UnityEditor.ShaderGraph
                     m_NodeEdges.Clear();
                 }
 
-                version = latestVersion;
+                ChangeVersion(latestVersion);
             }
 
             PooledList<(LegacyUnknownTypeNode, AbstractMaterialNode)> updatedNodes = PooledList<(LegacyUnknownTypeNode,AbstractMaterialNode)>.Get();
