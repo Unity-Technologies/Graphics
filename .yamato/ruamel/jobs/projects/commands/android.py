@@ -43,9 +43,7 @@ def cmd_standalone_build(project_folder, platform, api, test_platform_args):
     return base
 
 def cmd_not_standalone_performance(project_folder, platform, api, test_platform_args):
-    base = [
-        f'curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat'
-    ]
+    base = _cmd_base(project_folder, platform["components"])
     base.extend([ 
         f'%ANDROID_SDK_ROOT%\platform-tools\\adb.exe connect %BOKKEN_DEVICE_IP%',
         f'powershell %ANDROID_SDK_ROOT%\platform-tools\\adb.exe devices',
