@@ -158,6 +158,7 @@ The version number for this package has increased due to a version update of a r
 - Made sub graph importer deterministic to avoid cascading shader recompiles when no change was present.
 - Adjusted style sheet for Blackboard to prevent ui conflicts.
 - Fixed a bug where the SampleVirtualTexture node would delete slots when changing its LOD mode
+- Fixed a bug where non-word characters in an enum keyword reference name would break the graph. [1270168](https://issuetracker.unity3d.com/product/unity/issues/guid/1270168)
 
 ## [7.1.1] - 2019-09-05
 ### Added
