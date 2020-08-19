@@ -13,6 +13,7 @@ auto-version:
         PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
         DISPLAY: ":0"
     commands:
+      -  git checkout yamato/fix-templates-auto-bump-2
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci utils auto-version bump --package-path com.unity.render-pipelines.core --package-path com.unity.render-pipelines.universal --package-path com.unity.render-pipelines.high-definition --package-path com.unity.shadergraph --package-path com.unity.visualeffectgraph --package-path com.unity.render-pipelines.high-definition-config --package-path com.unity.render-pipelines.lightweight
       -  upm-ci utils auto-version commit --push
@@ -25,9 +26,9 @@ auto-version:
                                  git config --global user.name "noreply@unity3d.com"
                                  git config --global user.email "noreply@unity3d.com"
                                  git add ./com.unity.template-*
-                                 git checkout master
+                                 git checkout yamato/fix-templates-auto-bump-2
                                  git commit -m "[Automation] Auto-bump template dependencies"
-                                 git push origin master
+                                 git push origin yamato/fix-templates-auto-bump-2
                              else
                                  echo "Did not find any dependency to bump. Will not commit and push anything."
                              fi
