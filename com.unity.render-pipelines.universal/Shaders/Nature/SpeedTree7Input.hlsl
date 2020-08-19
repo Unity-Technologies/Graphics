@@ -24,12 +24,6 @@
     sampler2D _DetailTex;
 #endif
 
-
-// --------------------------------------------------------
-// Material CBuffer
-// --------------------------------------------------------
-#define _Surface half4(0.0, 0.0, 0.0, 0.0) // Speed Trees are always opaque
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MaterialInputFunctions.hlsl"
-// --------------------------------------------------------
+#define _Surface 0.0 // Speed Trees are always opaque
 
 #endif

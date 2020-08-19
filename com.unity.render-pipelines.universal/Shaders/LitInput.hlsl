@@ -5,9 +5,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
 
-// --------------------------------------------------------
-// Material CBuffer
-// --------------------------------------------------------
 CBUFFER_START(UnityPerMaterial)
     float4 _BaseMap_ST;
     half4 _BaseColor;
@@ -22,7 +19,7 @@ CBUFFER_START(UnityPerMaterial)
     half _ClearCoatMask;
     //half _ClearCoatSmoothness; // TODO: enable
     #endif
-    half4 _Surface;
+    half _Surface;
 CBUFFER_END
 
 // NOTE: Do not ifdef the properties for dots instancing, but ifdef the actual usage.
@@ -40,7 +37,7 @@ CBUFFER_END
         UNITY_DOTS_INSTANCED_PROP(float , _OcclusionStrength)
         UNITY_DOTS_INSTANCED_PROP(float , _ClearCoatMask)
         //UNITY_DOTS_INSTANCED_PROP(float , _ClearCoatSmoothness) // TODO: enable
-        UNITY_DOTS_INSTANCED_PROP(float4 , _Surface)
+        UNITY_DOTS_INSTANCED_PROP(float , _Surface)
     UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
     #define _BaseColor              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4 , Metadata__BaseColor)
@@ -53,12 +50,8 @@ CBUFFER_END
     #define _OcclusionStrength      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__OcclusionStrength)
     #define _ClearCoatMask          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__ClearCoatMask)
     //#define _ClearCoatSmoothness    UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__ClearCoatSmoothness)
-    #define _Surface                UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4 , Metadata__Surface)
+    #define _Surface                UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__Surface)
 #endif
-
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MaterialInputFunctions.hlsl"
-// --------------------------------------------------------
-
 
 TEXTURE2D(_OcclusionMap);       SAMPLER(sampler_OcclusionMap);
 TEXTURE2D(_MetallicGlossMap);   SAMPLER(sampler_MetallicGlossMap);

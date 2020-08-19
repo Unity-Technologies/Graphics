@@ -4,10 +4,6 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
 
-// --------------------------------------------------------
-// Material CBuffer
-// --------------------------------------------------------
-
 CBUFFER_START(UnityPerMaterial)
     float4 _MainTex_ST;
     half4 _BaseColor;
@@ -17,9 +13,7 @@ CBUFFER_START(UnityPerMaterial)
     half _Shininess;
 CBUFFER_END
 
-#define _Surface half4(0.0, 0.0, 0.0, 0.0) // Grass is always opaque
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MaterialInputFunctions.hlsl"
-// --------------------------------------------------------
+#define _Surface 0.0 // Grass is always opaque
 
 // Terrain engine shader helpers
 CBUFFER_START(TerrainGrass)
