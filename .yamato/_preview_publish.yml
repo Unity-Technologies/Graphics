@@ -3,6 +3,23 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
+tmp-test-trigger:
+    name: Tmp test trigger
+    agent:
+        type: Unity::VM
+        image: package-ci/ubuntu:stable
+        flavor: b1.large
+    variables:
+        PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
+        DISPLAY: ":0"
+    commands:
+      -  echo "The job was triggered."
+    triggers:
+        expression: push.branch eq "yamato/fix-auto-version-duplicate-trigger"
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
 auto-version:
     name: Auto version
     agent:
