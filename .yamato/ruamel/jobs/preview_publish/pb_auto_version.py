@@ -32,9 +32,9 @@ class PreviewPublish_AutoVersionJob():
                         git config --global user.name "noreply@unity3d.com"
                         git config --global user.email "noreply@unity3d.com"
                         git add ./com.unity.template-*
-                        git checkout {target_branch}
+                        git checkout yamato/fix-templates-auto-bump
                         git commit -m "[Automation] Auto-bump template dependencies"
-                        git push origin {target_branch}
+                        git push origin yamato/fix-templates-auto-bump
                     else
                         echo "Did not find any dependency to bump. Will not commit and push anything."
                     fi''')
