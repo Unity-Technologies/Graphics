@@ -162,6 +162,39 @@ half3 ScaleDetailAlbedo(half3 detailAlbedo, half scale)
     return 2.0h * detailAlbedo * scale - scale + 1.0h;
 }
 
+half3 ApplyDetailAlbedo(float2 detailUv, half3 albedo, half detailMask)
+{
+#if defined(_DETAIL)
+    half3 detailAlbedo = SAMPLE_TEXTURE2D(_DetailAlbedoMap, sampler_DetailAlbedoMap, detailUv).rgb;
+
+    // In order to have same performance as builtin, we do scaling only if scale is not 1.0 (Scaled version has 6 additional instructions)
+#if defined(_DETAIL_SCALED)
+    detailAlbedo = ScaleDetailAlbedo(detailAlbedo, _DetailAlbedoMapScale);
+#else
+    detailAlbedo = 2.0h * detailAlbedo;
+#endif
+
+    return albedo * LerpWhiteTo(detailAlbedo, detailMask);
+#endif
+}
+
+half3 ApplyDetailNormal(float2 detailUv, half3 normalTS, half detailMask)
+{
+#if defined(_DETAIL)
+#if BUMP_SCALE_NOT_SUPPORTED
+    half3 detailNormalTS = UnpackNormal(SAMPLE_TEXTURE2D(_DetailNormalMap, sampler_DetailNormalMap, detailUv));
+#else
+    half3 detailNormalTS = UnpackNormalScale(SAMPLE_TEXTURE2D(_DetailNormalMap, sampler_DetailNormalMap, detailUv), _DetailNormalMapScale);
+#endif
+
+    // With UNITY_NO_DXT5nm unpacked vector is not normalized for BlendNormalRNM
+    // For visual consistancy we going to do in all cases
+    detailNormalTS = normalize(detailNormalTS);
+
+    return lerp(normalTS, BlendNormalRNM(normalTS, detailNormalTS), detailMask); // todo: detailMask should lerp the angle of the quaternion rotation, not the normals
+#endif
+}
+
 inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfaceData)
 {
     half4 albedoAlpha = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap));
@@ -194,27 +227,10 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
 #endif
 
 #if defined(_DETAIL)
-#if (SHADER_TARGET < 30)
-    // SM20: instruction count limitation
-    // SM20: no detail mask
-    half detailMask = 1.0h;
-#else
     half detailMask = SAMPLE_TEXTURE2D(_DetailMask, sampler_DetailMask, uv).a;
-#endif
-
     float2 detailUv = uv * _DetailAlbedoMap_ST.xy + _DetailAlbedoMap_ST.zw;
-
-    half3 detailAlbedo = SAMPLE_TEXTURE2D(_DetailAlbedoMap, sampler_DetailAlbedoMap, detailUv).rgb;
-    // In order to have same performance as builtin, we do scaling only if scale is not 1.0 (Scaled version has 6 additional instructions)
-#if defined(_DETAIL_SCALED)
-    detailAlbedo = ScaleDetailAlbedo(detailAlbedo, _DetailAlbedoMapScale);
-#else
-    detailAlbedo = 2.0h * detailAlbedo;
-#endif
-    outSurfaceData.albedo *= LerpWhiteTo(detailAlbedo, detailMask);
-
-    half3 detailNormalTS = UnpackNormalScale(SAMPLE_TEXTURE2D(_DetailNormalMap, sampler_DetailNormalMap, detailUv), _DetailNormalMapScale);
-    outSurfaceData.normalTS = lerp(outSurfaceData.normalTS, BlendNormalRNM(outSurfaceData.normalTS, detailNormalTS), detailMask); // todo: detailMask should lerp the angle of the quaternion rotation, not the normals
+    outSurfaceData.albedo = ApplyDetailAlbedo(detailUv, outSurfaceData.albedo, detailMask);
+    outSurfaceData.normalTS = ApplyDetailNormal(detailUv, outSurfaceData.normalTS, detailMask);
 
 #endif
 }
