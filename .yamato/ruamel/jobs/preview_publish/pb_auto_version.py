@@ -21,7 +21,6 @@ class PreviewPublish_AutoVersionJob():
         job.add_var_custom('PATH', '/home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin')
         job.add_var_custom('DISPLAY', dss(":0"))
         job.add_commands([
-                f'git checkout yamato/fix-templates-auto-bump-2',
                 f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
                 f'upm-ci utils auto-version bump {bump_packages_args}',
                 f'upm-ci utils auto-version commit --push',
@@ -33,9 +32,9 @@ class PreviewPublish_AutoVersionJob():
                         git config --global user.name "noreply@unity3d.com"
                         git config --global user.email "noreply@unity3d.com"
                         git add ./com.unity.template-*
-                        git checkout yamato/fix-templates-auto-bump-2
+                        git checkout {target_branch}
                         git commit -m "[Automation] Auto-bump template dependencies"
-                        git push origin yamato/fix-templates-auto-bump-2
+                        git push origin {target_branch}
                     else
                         echo "Did not find any dependency to bump. Will not commit and push anything."
                     fi'''
