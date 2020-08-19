@@ -349,8 +349,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (viewCount <= TextureXR.slices)
                     {
-                        // XRTODO: check gfxDevice multiview extension support here
-                        if (Application.platform == RuntimePlatform.Android)
+                        if (SystemInfo.supportsMultiview)
                         {
                             cmd.EnableShaderKeyword("STEREO_MULTIVIEW_ON");
                             cmd.SetGlobalVectorArray("unity_StereoEyeIndices", stereoEyeIndices);
@@ -375,7 +374,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (singlePassEnabled)
                 {
-                    if (Application.platform == RuntimePlatform.Android)
+                    if (SystemInfo.supportsMultiview)
                     {
                         cmd.DisableShaderKeyword("STEREO_MULTIVIEW_ON");
                     }
