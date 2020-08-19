@@ -1,6 +1,6 @@
 # Reflection Proxy Volume
 
-The Reflection Proxy Volume is the reprojection volume that objects use when they apply a reflection from a Reflection Probe or a Planar Probe. For more information about reprojection and the theory behind reflection, see the documentation on [Reflection in HDRP](Reflection-in-HDRP.html).
+The Reflection Proxy Volume is the reprojection volume that objects use when they apply a reflection from a Reflection Probe or a Planar Probe. For more information about reprojection and the theory behind reflection, see the documentation on [Reflection in HDRP](Reflection-in-HDRP.md).
 
 You can assign a Reflection Proxy Volume to each Probe in your Scene, as long as they have compatible **Shapes**, and even reuse the same Reflection Proxy Volume with multiple Reflection Probes. For a Reflection Proxy Volume and a Probe to be compatible, they must either both use the same **Shape**, or one use **Infinite**. For example: 
 
