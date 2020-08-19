@@ -24,6 +24,11 @@ namespace UnityEngine.Rendering.Universal
 
             // TODO Lighting override
             cameraData.lightingSky = cameraData.visualSky;
+
+            if (cameraData.lightingSky.IsValid())
+            {
+                SetupAmbientProbe(ref cameraData);
+            }
         }
 
         private static SkySettings GetSkySettings(VolumeStack stack)
@@ -58,6 +63,20 @@ namespace UnityEngine.Rendering.Universal
                 // TODO
                 skyContext.skyRenderer.RenderSky(ref cameraData, cmd);
             }
+        }
+
+        internal static void SetupAmbientProbe(ref CameraData cameraData)
+        {
+            // Working around GI current system
+            // When using baked lighting, setting up the ambient probe should be sufficient => We only need to update RenderSettings.ambientProbe with either the static or visual sky ambient probe
+            // When using real time GI. Enlighten will pull sky information from Skybox material. So in order for dynamic GI to work, we update the skybox material texture and then set the ambient mode to SkyBox
+            // Problem: We can't check at runtime if realtime GI is enabled so we need to take extra care (see useRealtimeGI usage below)
+
+            // Order is important!
+            RenderSettings.ambientMode = AmbientMode.Custom; // Needed to specify ourselves the ambient probe (this will update internal ambient probe data passed to shaders)
+            RenderSettings.ambientProbe = cameraData.lightingSky.skyRenderer.GetAmbientProbe(ref cameraData);
+
+            // TODO: Skybox material for realtime GI
         }
     }
 

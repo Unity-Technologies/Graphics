@@ -9,6 +9,8 @@ namespace UnityEngine.Rendering.Universal
 
         public abstract void RenderSky(ref CameraData cameraData, CommandBuffer cmd);
 
+        public abstract SphericalHarmonicsL2 GetAmbientProbe(ref CameraData cameraData);
+
         protected static float GetSkyIntensity(SkySettings skySettings)
         {
             float skyIntensity = 1.0f;
