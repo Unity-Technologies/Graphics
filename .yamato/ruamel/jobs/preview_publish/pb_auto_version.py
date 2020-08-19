@@ -21,9 +21,10 @@ class PreviewPublish_AutoVersionJob():
         job.add_var_custom('PATH', '/home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin')
         job.add_var_custom('DISPLAY', dss(":0"))
         job.add_commands([
-                # f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
-                # f'upm-ci utils auto-version bump {bump_packages_args}',
-                # f'upm-ci utils auto-version commit --push',
+                f'git checkout yamato/fix-templates-auto-bump',
+                f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
+                f'upm-ci utils auto-version bump {bump_packages_args}',
+                f'upm-ci utils auto-version commit --push',
                 f'python3 ./Tools/standalone/templates_auto_bumper.py --template-name ./com.unity.template-hd --target-dependency com.unity.render-pipelines.high-definition',
                 f'python3 ./Tools/standalone/templates_auto_bumper.py --template-name ./com.unity.template-universal --target-dependency com.unity.render-pipelines.universal',
                 pss(f'''
