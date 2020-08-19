@@ -52,6 +52,10 @@ Shader "Hidden/Light2D-Shape"
 #ifdef SPRITE_LIGHT
             TEXTURE2D(_CookieTex);			// This can either be a sprite texture uv or a falloff texture
             SAMPLER(sampler_CookieTex);
+#else
+            half    _FalloffIntensity;
+            TEXTURE2D(_FalloffLookup);
+            SAMPLER(sampler_FalloffLookup);
 #endif
 
             NORMALS_LIGHTING_VARIABLES
@@ -68,6 +72,8 @@ Shader "Hidden/Light2D-Shape"
 
 #ifdef SPRITE_LIGHT
                 o.uv = attributes.uv;
+#else
+                o.uv = float2(o.color.a, _FalloffIntensity);
 #endif
 
                 float4 worldSpacePos;
@@ -82,22 +88,21 @@ Shader "Hidden/Light2D-Shape"
             half4 frag(Varyings i) : SV_Target
             {
                 half4 color = i.color;
-                half attenuation = i.color.a * i.color.a * i.color.a;
 #if SPRITE_LIGHT
                 half4 cookie = SAMPLE_TEXTURE2D(_CookieTex, sampler_CookieTex, i.uv);
     #if USE_ADDITIVE_BLENDING
+
                 color *= cookie * cookie.a;
     #else
                 color *= cookie;
     #endif
 #else
     #if USE_ADDITIVE_BLENDING
-                color *= attenuation;
+                color *= SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
     #else
-                color.a = attenuation;
+                color.a = SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
     #endif
 #endif
-
                 APPLY_NORMALS_LIGHTING(i, color);
                 APPLY_SHADOWS(i, color, _ShadowIntensity);
 

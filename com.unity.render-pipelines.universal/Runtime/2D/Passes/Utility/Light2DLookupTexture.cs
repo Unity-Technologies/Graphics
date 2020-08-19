@@ -1,3 +1,4 @@
+using Unity.Mathematics;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEngine.Experimental.Rendering.Universal
@@ -77,27 +78,54 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static Texture2D CreateFalloffLookupTexture()
         {
             const int WIDTH = 2048;
-            const int HEIGHT = 192;
+            const int HEIGHT = 128;
 
-            const GraphicsFormat textureFormat = GraphicsFormat.R8G8B8A8_SRGB;
-            var texture = new Texture2D(WIDTH, HEIGHT-64, textureFormat, TextureCreationFlags.None);
+            const GraphicsFormat textureFormat = GraphicsFormat.R32_SFloat;
+            var texture = new Texture2D(WIDTH, HEIGHT, textureFormat, TextureCreationFlags.None);
             texture.filterMode = FilterMode.Bilinear;
             texture.wrapMode = TextureWrapMode.Clamp;
-            for(var y = 0; y < HEIGHT; y++)
+
+            for (var y = 0; y < 64; y++)
             {
-                var baseValue = (float)(y+32) /(HEIGHT+64);
-                var lineValue = -baseValue + 1;
-                var exponent = Mathf.Log(lineValue) / Mathf.Log(baseValue);
+                // 0.3 -> 1.0 curve
+                var exponent = math.lerp(0.3f, 1.0f, (float) y / 64);
 
                 for (var x = 0; x < WIDTH; x++)
                 {
                     var t = (float)x / WIDTH;
-                    var red = Mathf.Pow(t, exponent);
-                    var color = new Color(red, 0, 0, 1);
-                    if(y >= 32 && y < 160)
-                        texture.SetPixel(x, y-32, color);
+                    var color = new Color(math.pow(t,exponent), 0, 0, 1);
+                    texture.SetPixel(x, y, color);
                 }
             }
+
+            for (var y = 64; y < HEIGHT; y++)
+            {
+                // 1 -> 15 curve
+                var exponent = math.lerp(1.0f, 10.0f, (float) (y-64) / 64);
+                for (var x = 0; x < WIDTH; x++)
+                {
+                    var t = (float)x / WIDTH;
+                    var color = new Color(math.pow(t,exponent), 0, 0, 1);
+                    texture.SetPixel(x, y, color);
+                }
+            }
+
+            // for(var y = 0; y < HEIGHT; y++)
+            // {
+            //     var baseValue = (float)(y+32) /(HEIGHT+64);
+            //     var lineValue = -baseValue + 1;
+            //     var exponent = Mathf.Log(lineValue) / Mathf.Log(baseValue);
+            //
+            //     for (var x = 0; x < WIDTH; x++)
+            //     {
+            //         var t = (float)x / WIDTH;
+            //         var red = Mathf.Pow(t, exponent);
+            //         var color = new Color(red, 0, 0, 1);
+            //         if(y >= 32 && y < 160)
+            //             texture.SetPixel(x, y-32, color);
+            //     }
+            // }
+
             texture.Apply();
             return texture;
         }

@@ -175,7 +175,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                     cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
                     cmd.SetGlobalFloat(k_FalloffDistanceID, light.shapeLightFalloffSize);
-                    cmd.SetGlobalVector(k_FalloffOffsetID, light.shapeLightFalloffOffset);
                     cmd.SetGlobalColor(k_LightColorID, light.intensity * light.color);
                     cmd.SetGlobalFloat(k_VolumeOpacityID, light.volumeOpacity);
 
@@ -183,7 +182,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         SetPointLightShaderGlobals(cmd, light);
 
                     // Light code could be combined...
-                    if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
+                    if (light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
                     {
                         cmd.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightMaterial);
                     }
@@ -230,8 +229,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                                         cmd.SetGlobalTexture(k_SpriteLightCookieTexID, light.spriteLightCookie.texture);
 
                                     cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
-                                    cmd.SetGlobalFloat(k_FalloffDistanceID, light.shapeLightFalloffSize);
-                                    cmd.SetGlobalVector(k_FalloffOffsetID, light.shapeLightFalloffOffset);
                                     cmd.SetGlobalColor(k_LightColorID, light.intensity * light.color);
                                     cmd.SetGlobalFloat(k_VolumeOpacityID, light.volumeOpacity);
 
@@ -240,7 +237,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                                         SetPointLightShaderGlobals(cmd, light);
 
                                     // Could be combined...
-                                    if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
+                                    if (light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
                                     {
                                         cmd.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightVolumeMaterial);
                                     }
@@ -315,8 +312,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cmd.SetGlobalFloat(k_OuterAngleID, outerAngle);
             cmd.SetGlobalFloat(k_InnerAngleMultID, 1 / (outerAngle - innerAngle));
             cmd.SetGlobalTexture(k_LightLookupID, Light2DLookupTexture.GetLightLookupTexture());
-            cmd.SetGlobalTexture(k_FalloffLookupID, Light2DLookupTexture.GetFalloffLookupTexture());
-            cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
             cmd.SetGlobalFloat(k_IsFullSpotlightID, innerAngle == 1 ? 1.0f : 0.0f);
 
             cmd.SetGlobalFloat(k_LightZDistanceID, light.pointLightDistance);
@@ -365,7 +360,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if ((blendStylesUsed & (uint)(1 << i)) == 0)
                     continue;
 
-                var sampleName = blendStyles[i].name;
+                var sampleName = blendStyles[i].name + ": Lights";
                 cmd.BeginSample(sampleName);
 
                 var rtID = pass.rendererData.lightBlendStyles[i].renderTargetHandle.Identifier();
@@ -403,7 +398,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if ((blendStylesUsed & (uint)(1 << i)) == 0)
                     continue;
 
-                string sampleName = blendStyles[i].name;
+                string sampleName = blendStyles[i].name + ": Volumes";
                 cmd.BeginSample(sampleName);
 
                 RenderLightVolumeSet(

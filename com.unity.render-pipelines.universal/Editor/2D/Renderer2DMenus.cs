@@ -122,11 +122,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             return CreateLightValidation();
         }
 
-        [MenuItem("GameObject/Light/2D/Parametric Light 2D (Experimental)", false, -100)]
-        static void CreateParametricLight2D(MenuCommand menuCommand)
-        {
-            CreateLight(menuCommand, "Parametric Light 2D", Light2D.LightType.Parametric);
-        }
         [MenuItem("GameObject/Light/2D/Parametric Light 2D (Experimental)", true, -100)]
         static bool CreateParametricLight2DValidation()
         {

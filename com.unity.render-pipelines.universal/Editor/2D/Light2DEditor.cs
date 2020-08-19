@@ -90,10 +90,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
 
             public static GUIContent shapeLightSprite = EditorGUIUtility.TrTextContent("Sprite", "Specify the sprite");
-            public static GUIContent shapeLightParametricRadius = EditorGUIUtility.TrTextContent("Radius", "Adjust the size of the object");
-            public static GUIContent shapeLightParametricSides = EditorGUIUtility.TrTextContent("Sides", "Adjust the shapes number of sides");
-            public static GUIContent shapeLightFalloffOffset = EditorGUIUtility.TrTextContent("Falloff Offset", "Specify the shape's falloff offset");
-            public static GUIContent shapeLightAngleOffset = EditorGUIUtility.TrTextContent("Angle Offset", "Adjust the rotation of the object");
 
             public static GUIContent renderPipelineUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("Universal scriptable renderpipeline asset must be assigned in Graphics Settings or Quality Settings.", MessageType.Warning);
             public static GUIContent asset2DUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("2D renderer data must be assigned to your universal render pipeline asset or camera.", MessageType.Warning);
@@ -129,11 +125,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SerializedProperty m_PointLightQuality;
 
         // Shape Light Properties
-        SerializedProperty m_ShapeLightParametricRadius;
         SerializedProperty m_ShapeLightFalloffSize;
-        SerializedProperty m_ShapeLightParametricSides;
-        SerializedProperty m_ShapeLightParametricAngleOffset;
-        SerializedProperty m_ShapeLightFalloffOffset;
         SerializedProperty m_ShapeLightSprite;
 
         int[]           m_BlendStyleIndices;
@@ -189,11 +181,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_PointLightQuality = serializedObject.FindProperty("m_PointLightQuality");
 
             // Shape Light
-            m_ShapeLightParametricRadius = serializedObject.FindProperty("m_ShapeLightParametricRadius");
             m_ShapeLightFalloffSize = serializedObject.FindProperty("m_ShapeLightFalloffSize");
-            m_ShapeLightParametricSides = serializedObject.FindProperty("m_ShapeLightParametricSides");
-            m_ShapeLightParametricAngleOffset = serializedObject.FindProperty("m_ShapeLightParametricAngleOffset");
-            m_ShapeLightFalloffOffset = serializedObject.FindProperty("m_ShapeLightFalloffOffset");
             m_ShapeLightSprite = serializedObject.FindProperty("m_SpriteLightCookie");
 
             m_AnyBlendStyleEnabled = false;
@@ -280,31 +268,13 @@ namespace UnityEditor.Experimental.Rendering.Universal
             {
                 EditorGUILayout.PropertyField(m_ShapeLightSprite, Styles.shapeLightSprite);
             }
-            else if (lightType == Light2D.LightType.Parametric || lightType == Light2D.LightType.Freeform)
+            else if (lightType == Light2D.LightType.Freeform)
             {
-                if (lightType == Light2D.LightType.Parametric)
-                {
-                    EditorGUILayout.PropertyField(m_ShapeLightParametricRadius, Styles.shapeLightParametricRadius);
-                    if (m_ShapeLightParametricRadius.floatValue < 0)
-                        m_ShapeLightParametricRadius.floatValue = 0;
-
-                    EditorGUILayout.IntSlider(m_ShapeLightParametricSides, 3, 48, Styles.shapeLightParametricSides);
-                    EditorGUILayout.Slider(m_ShapeLightParametricAngleOffset, 0, 359, Styles.shapeLightAngleOffset);
-                }
-
                 EditorGUILayout.PropertyField(m_ShapeLightFalloffSize, Styles.generalFalloffSize);
                 if (m_ShapeLightFalloffSize.floatValue < 0)
                     m_ShapeLightFalloffSize.floatValue = 0;
 
                 EditorGUILayout.Slider(m_FalloffIntensity, 0, 1, Styles.generalFalloffIntensity);
-
-                if (lightType == Light2D.LightType.Parametric || lightType == Light2D.LightType.Freeform)
-                {
-                    bool oldWideMode = EditorGUIUtility.wideMode;
-                    EditorGUIUtility.wideMode = true;
-                    EditorGUILayout.PropertyField(m_ShapeLightFalloffOffset, Styles.shapeLightFalloffOffset);
-                    EditorGUIUtility.wideMode = oldWideMode;
-                }
             }
         }
 
@@ -485,40 +455,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
                         }
                     }
                     break;
-                case Light2D.LightType.Parametric:
-                    {
-                        float radius = light.shapeLightParametricRadius;
-                        float sides = light.shapeLightParametricSides;
-                        float angleOffset = Mathf.PI / 2.0f + Mathf.Deg2Rad * light.shapeLightParametricAngleOffset;
-
-                        if (sides < 3)
-                            sides = 3;
-
-                        if (sides == 4)
-                            angleOffset = Mathf.PI / 4.0f + Mathf.Deg2Rad * light.shapeLightParametricAngleOffset;
-
-                        Vector3 direction = new Vector3(Mathf.Cos(angleOffset), Mathf.Sin(angleOffset), 0);
-                        Vector3 startPoint = radius * direction;
-                        Vector3 featherStartPoint = startPoint + light.shapeLightFalloffSize * direction;
-                        float radiansPerSide = 2 * Mathf.PI / sides;
-                        Vector3 falloffOffset = light.shapeLightFalloffOffset;
-
-                        for (int i = 0; i < sides; ++i)
-                        {
-                            float endAngle = (i + 1) * radiansPerSide;
-
-                            direction = new Vector3(Mathf.Cos(endAngle + angleOffset), Mathf.Sin(endAngle + angleOffset), 0);
-                            Vector3 endPoint = radius * direction;
-                            Vector3 featherEndPoint = endPoint + light.shapeLightFalloffSize * direction;
-
-                            Handles.DrawLine(t.TransformPoint(startPoint), t.TransformPoint(endPoint));
-                            Handles.DrawLine(t.TransformPoint(featherStartPoint + falloffOffset), t.TransformPoint(featherEndPoint + falloffOffset));
-
-                            startPoint = endPoint;
-                            featherStartPoint = featherEndPoint;
-                        }
-                    }
-                    break;
                 case Light2D.LightType.Freeform:
                     {
                         // Draw the falloff shape's outline
@@ -526,15 +462,13 @@ namespace UnityEditor.Experimental.Rendering.Universal
                         Handles.color = Color.white;
 
 
-                        Vector3 falloffOffset = m_ShapeLightFalloffOffset.vector2Value;
-
                         for (int i = 0; i < falloffShape.Count - 1; ++i)
                         {
-                            Handles.DrawLine(t.TransformPoint(falloffShape[i]) + falloffOffset, t.TransformPoint(falloffShape[i + 1]) + falloffOffset);
+                            Handles.DrawLine(t.TransformPoint(falloffShape[i]), t.TransformPoint(falloffShape[i + 1]));
                             Handles.DrawLine(t.TransformPoint(light.shapePath[i]), t.TransformPoint(light.shapePath[i + 1]));
                         }
 
-                        Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]) + falloffOffset, t.TransformPoint(falloffShape[0]) + falloffOffset);
+                        Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]), t.TransformPoint(falloffShape[0]));
                         Handles.DrawLine(t.TransformPoint(light.shapePath[falloffShape.Count - 1]), t.TransformPoint(light.shapePath[0]));
                     }
                     break;
@@ -582,7 +516,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
                         OnPointLight(serializedObject);
                     }
                     break;
-                case (int)Light2D.LightType.Parametric:
                 case (int)Light2D.LightType.Freeform:
                 case (int)Light2D.LightType.Sprite:
                     {

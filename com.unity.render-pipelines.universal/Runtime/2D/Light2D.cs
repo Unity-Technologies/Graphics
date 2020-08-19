@@ -1,11 +1,5 @@
 using System;
-using System.Collections.Generic;
-using UnityEngine.PlayerLoop;
 using UnityEngine.Serialization;
-using UnityEngine.Rendering;
-#if UNITY_EDITOR
-using UnityEditor.Experimental.SceneManagement;
-#endif
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
@@ -23,6 +17,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         /// </summary>
         public enum LightType
         {
+            [Obsolete]
             Parametric = 0,
             Freeform = 1,
             Sprite = 2,
@@ -33,7 +28,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 #if USING_ANIMATION_MODULE
         [UnityEngine.Animations.NotKeyable]
 #endif
-        [SerializeField] LightType m_LightType = LightType.Parametric;
+        [SerializeField] LightType m_LightType = LightType.Point;
         [SerializeField, FormerlySerializedAs("m_LightOperationIndex")]
         int m_BlendStyleIndex = 0;
 
@@ -52,7 +47,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField, FormerlySerializedAs("m_LightCookieSprite")]
         Sprite m_PointLightCookie = null;
 
-        //[SerializeField] Sprite m_LightCookieSprite = null;  
+        //[SerializeField] Sprite m_LightCookieSprite = null;
 
         [SerializeField] bool m_UseNormalMap = false;
 
@@ -178,9 +173,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 case LightType.Freeform:
                     bounds = LightUtility.GenerateShapeMesh(m_Mesh, m_ShapePath, m_ShapeLightFalloffSize);
                     break;
-                case LightType.Parametric:
-                    bounds = LightUtility.GenerateParametricMesh(m_Mesh, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
-                    break;
                 case LightType.Sprite:
                     bounds = LightUtility.GenerateSpriteMesh(m_Mesh, spriteLightCookie);
                     break;
@@ -209,6 +201,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private void Awake()
         {
+            UpgradeFromParametricLight();
+
             m_Mesh = new Mesh();
             UpdateMesh();
         }
@@ -232,9 +226,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             // Mesh Rebuilding
             if (LightUtility.CheckForChange(m_ShapeLightFalloffSize, ref m_PreviousShapeLightFalloffSize) ||
-                LightUtility.CheckForChange(m_ShapeLightParametricRadius, ref m_PreviousShapeLightParametricRadius) ||
-                LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides) ||
-                LightUtility.CheckForChange(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset) ||
                 LightUtility.CheckForChange(spriteLightCookieInstanceID, ref m_PreviousSpriteLightCookie) ||
                 LightUtility.CheckForChange(pointLightCookieInstanceID, ref m_PreviousPointLightCookie))
             {

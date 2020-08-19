@@ -41,8 +41,6 @@ Shader "Hidden/Light2D-Shape-Volumetric"
             };
 
             half4 _LightColor;
-            half  _FalloffDistance;
-            half4 _FalloffOffset;
             half  _VolumeOpacity;
             half  _InverseHDREmulationScale;
 
@@ -62,9 +60,6 @@ Shader "Hidden/Light2D-Shape-Volumetric"
                 Varyings o = (Varyings)0;
 
                 float3 positionOS = attributes.positionOS;
-                positionOS.x = positionOS.x + _FalloffDistance * attributes.color.r + (1 - attributes.color.a) * _FalloffOffset.x;
-                positionOS.y = positionOS.y + _FalloffDistance * attributes.color.g + (1 - attributes.color.a) * _FalloffOffset.y;
-
 
                 o.positionCS = TransformObjectToHClip(positionOS);
                 o.color = _LightColor * _InverseHDREmulationScale;
