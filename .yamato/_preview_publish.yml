@@ -13,9 +13,6 @@ auto-version:
         PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
         DISPLAY: ":0"
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci utils auto-version bump --package-path com.unity.render-pipelines.core --package-path com.unity.render-pipelines.universal --package-path com.unity.render-pipelines.high-definition --package-path com.unity.shadergraph --package-path com.unity.visualeffectgraph --package-path com.unity.render-pipelines.high-definition-config --package-path com.unity.render-pipelines.lightweight
-      -  upm-ci utils auto-version commit --push
       -  python3 ./Tools/standalone/templates_auto_bumper.py --template-name ./com.unity.template-hd --target-dependency com.unity.render-pipelines.high-definition
       -  python3 ./Tools/standalone/templates_auto_bumper.py --template-name ./com.unity.template-universal --target-dependency com.unity.render-pipelines.universal
       -  |5-
