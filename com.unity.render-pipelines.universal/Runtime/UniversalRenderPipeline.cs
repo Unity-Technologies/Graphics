@@ -8,6 +8,7 @@ using UnityEditor.Rendering.Universal;
 using UnityEngine.Scripting.APIUpdating;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Profiling;
 
 namespace UnityEngine.Rendering.LWRP
 {
@@ -22,13 +23,36 @@ namespace UnityEngine.Rendering.LWRP
 
 namespace UnityEngine.Rendering.Universal
 {
+    internal sealed class UniversalProfilingCache
+    {
+        private Dictionary<string, ProfilingSampler> m_SamplerCache;
+        internal UniversalProfilingCache()
+        {
+
+        }
+
+        ProfilingSampler TryGetOrInsert(string samplerName)
+        {
+            ProfilingSampler ps = null;
+            bool exists = m_SamplerCache.TryGetValue(samplerName, out ps);
+            if (!exists)
+            {
+                ps = new ProfilingSampler(samplerName);
+                m_SamplerCache.Add(samplerName, ps);
+            }
+
+            return ps;
+        }
+
+        internal static readonly ProfilingSampler renderCamera = new ProfilingSampler("Render Camera");
+        internal static readonly ProfilingSampler XRMirrorView = new ProfilingSampler("XR Mirror View");
+    }
+
     public sealed partial class UniversalRenderPipeline : RenderPipeline
     {
         public const string k_ShaderTagName = "UniversalPipeline";
 
-        const string k_RenderCameraTag = "Render Camera";
-        static ProfilingSampler _CameraProfilingSampler = new ProfilingSampler(k_RenderCameraTag);
-        private static readonly ProfilingSampler m_ProfilingXRMirrorView = new ProfilingSampler("XR Mirror View");
+        private UniversalProfilingCache m_ProfilingCache = new UniversalProfilingCache();
 
 #if ENABLE_VR && ENABLE_XR_MODULE
         internal static XRSystem m_XRSystem = new XRSystem();
@@ -119,7 +143,13 @@ namespace UnityEngine.Rendering.Universal
 
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
-            BeginFrameRendering(renderContext, cameras);
+            using var profScope = new ProfilingScope(null, new ProfilingSampler("UniversalRenderPipeline.Render"));
+
+            // TODO: would be better to add Profiling name hooks into RenderPipeline.cs
+            using(new ProfilingScope(null, new ProfilingSampler("BeginFrameRendering")))
+            {
+                BeginFrameRendering(renderContext, cameras);
+            }
 
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
@@ -135,19 +165,29 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    BeginCameraRendering(renderContext, camera);
+                    using (new ProfilingScope(null, new ProfilingSampler("BeginCameraRendering")))
+                    {
+                        BeginCameraRendering(renderContext, camera);
+                    }
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
-                    //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
-                    VFX.VFXManager.PrepareCamera(camera);
+                //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
+                VFX.VFXManager.PrepareCamera(camera);
 #endif
                     UpdateVolumeFramework(camera, null);
 
                     RenderSingleCamera(renderContext, camera);
-                    EndCameraRendering(renderContext, camera);
+
+                    using (new ProfilingScope(null, new ProfilingSampler("EndCameraRendering")))
+                    {
+                        EndCameraRendering(renderContext, camera);
+                    }
                 }
             }
 
-            EndFrameRendering(renderContext, cameras);
+            using (new ProfilingScope(null, new ProfilingSampler("EndFrameRendering")))
+            {
+                EndFrameRendering(renderContext, cameras);
+            }
         }
 
         /// <summary>
@@ -219,7 +259,8 @@ namespace UnityEngine.Rendering.Universal
             // Resulting in following pattern:
             // exec(cmd.start, scope.start, cmd.end) and exec(cmd.start, scope.end, cmd.end)
             CommandBuffer cmd = CommandBufferPool.Get();
-            ProfilingSampler sampler = (asset.debugLevel >= PipelineDebugLevel.Profiling) ? new ProfilingSampler(camera.name) : _CameraProfilingSampler;
+            //ProfilingSampler sampler = (asset.debugLevel >= PipelineDebugLevel.Profiling) ? new ProfilingSampler(camera.name) : _CameraProfilingSampler;
+            ProfilingSampler sampler = new ProfilingSampler("RenderSingleCamera: " + camera.name);
             using (new ProfilingScope(cmd, sampler)) // Enqueues a "BeginSample" command into the CommandBuffer cmd
             {
                 renderer.Clear(cameraData.renderType);
@@ -264,6 +305,8 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="camera">Camera to render.</param>
         static void RenderCameraStack(ScriptableRenderContext context, Camera baseCamera)
         {
+            using var profScope = new ProfilingScope(null, new ProfilingSampler("RenderCameraStack"));
+
             baseCamera.TryGetComponent<UniversalAdditionalCameraData>(out var baseCameraAdditionalData);
 
             // Overlay cameras will be rendered stacked while rendering base cameras
@@ -318,7 +361,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Post-processing not supported in GLES2.
             anyPostProcessingEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
-            
+
             bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
 
             InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
@@ -357,7 +400,10 @@ namespace UnityEngine.Rendering.Universal
                     baseCameraData.aspectRatio = (float)baseCameraData.pixelWidth / (float)baseCameraData.pixelHeight;
                 }
 #endif
-            BeginCameraRendering(context, baseCamera);
+                using(new ProfilingScope(null, new ProfilingSampler("BeginCameraRendering")))
+                {
+                    BeginCameraRendering(context, baseCamera);
+                }
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
                 //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
                 VFX.VFXManager.PrepareCamera(baseCamera);
@@ -368,7 +414,10 @@ namespace UnityEngine.Rendering.Universal
                     ApplyAdaptivePerformance(ref baseCameraData);
 #endif
                 RenderSingleCamera(context, baseCameraData, anyPostProcessingEnabled);
-                EndCameraRendering(context, baseCamera);
+                using (new ProfilingScope(null, new ProfilingSampler("EndCameraRendering")))
+                {
+                    EndCameraRendering(context, baseCamera);
+                }
 
                 if (isStackedRendering)
                 {
@@ -385,7 +434,11 @@ namespace UnityEngine.Rendering.Universal
                             // Copy base settings from base camera data and initialize initialize remaining specific settings for this camera type.
                             CameraData overlayCameraData = baseCameraData;
                             bool lastCamera = i == lastActiveOverlayCameraIndex;
-                            BeginCameraRendering(context, currCamera);
+
+                            using (new ProfilingScope(null, new ProfilingSampler("BeginCameraRendering")))
+                            {
+                                BeginCameraRendering(context, currCamera);
+                            }
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
                             //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
                             VFX.VFXManager.PrepareCamera(currCamera);
@@ -397,7 +450,11 @@ namespace UnityEngine.Rendering.Universal
                                 m_XRSystem.UpdateFromCamera(ref overlayCameraData.xr, overlayCameraData);
 #endif
                             RenderSingleCamera(context, overlayCameraData, anyPostProcessingEnabled);
-                            EndCameraRendering(context, currCamera);
+
+                            using (new ProfilingScope(null, new ProfilingSampler("EndCameraRendering")))
+                            {
+                                EndCameraRendering(context, currCamera);
+                            }
                         }
                     }
                 }
@@ -410,7 +467,7 @@ namespace UnityEngine.Rendering.Universal
             if (xrActive)
             {
                 CommandBuffer cmd = CommandBufferPool.Get();
-                using (new ProfilingScope(cmd, m_ProfilingXRMirrorView))
+                using (new ProfilingScope(cmd, UniversalProfilingCache.XRMirrorView))
                 {
                     m_XRSystem.RenderMirrorView(cmd, baseCamera);
                 }
