@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
@@ -6,6 +7,7 @@ using Unity.Mathematics;
 using UnityEngine.Experimental.Rendering.Universal.LibTessDotNet;
 using UnityEngine.Rendering;
 using UnityEngine.U2D;
+using UnityEngine.UIElements;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
@@ -206,49 +208,171 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     extrusionDir.Add(dir);
                 }
             }
+
             return extrusionDir;
         }
+        
+        static void CalculateTangents(Vector3 point, Vector3 prevPoint, Vector3 nextPoint, Vector3 forward, float scale, out Vector3 rightTangent, out Vector3 leftTangent)
+        {
+            Vector3 v1 = (prevPoint - point).normalized;
+            Vector3 v2 = (nextPoint - point).normalized;
+            Vector3 v3 = v1 + v2;
+            Vector3 cross = forward;
 
-        static void Tessellate(ContourVertex[] inputs, NativeArray<ushort> indices,
+            if (prevPoint != nextPoint)
+            {
+                bool colinear = Mathf.Abs(v1.x * v2.y - v1.y * v2.x + v1.x * v2.z - v1.z * v2.x + v1.y * v2.z - v1.z * v2.y) < 0.01f;
+
+                if (colinear)
+                {
+                    rightTangent = v2 * scale;
+                    leftTangent = v1 * scale;
+                    return;
+                }
+
+                cross = Vector3.Cross(v1, v2);
+            }
+
+            rightTangent = Vector3.Cross(cross, v3).normalized * scale;
+            leftTangent = -rightTangent;
+        }
+        
+        static Vector3 BezierPoint(Vector3 startPosition, Vector3 startTangent, Vector3 endTangent, Vector3 endPosition, float t)
+        {
+            float s = 1.0f - t;
+            return s * s * s * startPosition + 3.0f * s * s * t * startTangent + 3.0f * s * t * t * endTangent + t * t * t * endPosition;
+        }          
+
+        static List<ContourVertex> GetFalloff(Vector3[] shapePath, float fallOff, Color meshInterior, ref List<Vec3> bevelInputs)
+        {
+            List<ContourVertex> vertices = new List<ContourVertex>();
+            var extrusionDir = new List<Vector2>();
+            var shapePathLength = shapePath.Length;
+            
+            for (var i = 0; i < shapePathLength; ++i)
+            {
+                var j = (i + 1) % shapePath.Length;
+                
+                var cp = shapePath[i];
+                var np = shapePath[j];
+                
+                var npd = np - cp;
+                if (npd.magnitude < 0.001f)
+                    continue;
+                
+                var vr = npd.normalized;
+                vr = new Vector2(-vr.y, vr.x);
+
+                var va = -vr.normalized;
+                var dir = new Vector2(va.x, va.y);
+                extrusionDir.Add(dir);
+            }
+            
+            for (var i = 0; i < shapePathLength; i++)
+            {
+                var a = new Vec3()
+                {
+                    X = shapePath[i].x, Y = shapePath[i].y, Z = 0
+                };
+                vertices.Add( new ContourVertex() { Position = a, Data = meshInterior } );
+                var b = new Vec3() 
+                {
+                    X = shapePath[i].x + (fallOff * extrusionDir[i].x),
+                    Y = shapePath[i].y + (fallOff * extrusionDir[i].y),
+                    Z = 0 
+                };
+                vertices.Add( new ContourVertex() { Position = b, Data = new Color(extrusionDir[i].x, extrusionDir[i].y, 0, 1) } );
+                var j = (i == shapePath.Length - 1) ? 0 : (i + 1);
+                var c = new Vec3() 
+                {
+                    X = shapePath[j].x + (fallOff * extrusionDir[i].x),
+                    Y = shapePath[j].y + (fallOff * extrusionDir[i].y),
+                    Z = 0 
+                };
+                vertices.Add( new ContourVertex() { Position = c, Data = new Color(extrusionDir[i].x, extrusionDir[i].y, 0, 1) } );
+                var d = new Vec3()
+                {
+                    X = shapePath[j].x, Y = shapePath[j].y, Z = 0
+                };
+                vertices.Add( new ContourVertex() { Position = d, Data = meshInterior } );
+                
+                // For Bevels.
+                if (i != 0)
+                    bevelInputs.Add(b);                
+                bevelInputs.Add(c);
+                bevelInputs.Add(d);
+            }
+            bevelInputs.Add(vertices[1].Position);
+            return vertices;
+        }
+
+        static void GenerateBevels(List<Vec3> bevelInputs, float fallOff, Color meshInteriorColor, NativeArray<ushort> indices,
             NativeArray<ParametricLightMeshVertex> vertices, ref int vcount, ref int icount)
         {
-            var tess = new Tess();
-            tess.AddContour(inputs, ContourOrientation.CounterClockwise);
+            var vertexCount = bevelInputs.Count;
+            var bezierQuality = 4;
+
+            for (var i = 0; i < vertexCount; i = i + 3)
+            {
+                // Pivot Pos
+                List<ContourVertex> bevel = new List<ContourVertex>();
+                Vector3 sp = new Vector3(bevelInputs[i + 0].X, bevelInputs[i + 0].Y, 0);
+                Vector3 ip = new Vector3(bevelInputs[i + 1].X, bevelInputs[i + 1].Y, 0);
+                Vector3 ep = new Vector3(bevelInputs[i + 2].X, bevelInputs[i + 2].Y, 0);
+                
+                float scale = Mathf.Min((ep - ip).magnitude, (sp - ip).magnitude) * 0.33f;
+                Vector3 lT = (sp - ip).normalized * scale;
+                Vector3 rT = (ep - ip).normalized * scale;
+
+                Vector3 isn = (sp - ip).normalized;
+                Vector3 ien = (ep - ip).normalized;
+                Vector3 sen = (isn + ien).normalized;
+
+                var np = ip + (sen * fallOff * 2.0f);
+                CalculateTangents(np, sp, ep, Vector3.forward, scale, out rT, out lT);
+                rT = rT + sp;
+                lT = lT + ep;
+
+                var pivotPoint = new ParametricLightMeshVertex() {position = ip, color = meshInteriorColor};
+                var startPoint = new ParametricLightMeshVertex() {position = sp, color = new Color(isn.x, isn.y, 0, 1)};
+                
+                float detail = bezierQuality - 1;
+                for (float n = 0; n < bezierQuality; ++n)
+                {
+                    float t = n / detail;
+                    Vector3 r = BezierPoint(sp, rT, lT, ep, t);
+                    Vector3 d = (np - r).normalized;
+
+                    indices[icount++] = (ushort)vcount;
+                    indices[icount++] = (ushort)(vcount + 1);
+                    indices[icount++] = (ushort)(vcount + 2); 
+                    vertices[vcount++] = pivotPoint;
+                    vertices[vcount++] = startPoint;
+                    startPoint = new ParametricLightMeshVertex() { position = r, color = new Color(d.x, d.y, 0, 1) };
+                    vertices[vcount++] = startPoint;
+                }
+            }
+        }
+
+        static void Tessellate(Tess tess, NativeArray<ushort> indices,
+            NativeArray<ParametricLightMeshVertex> vertices, ref int vcount, ref int icount)
+        {
             tess.Tessellate(WindingRule.NonZero, ElementType.Polygons, 3);
 
             var iout = tess.Elements.Select(i => i);
-            var vout = tess.Vertices.Select(v => new ParametricLightMeshVertex()
-                { position = new float3(v.Position.X, v.Position.Y, 0), color = v.Data != null ? (Color)v.Data : Color.white });
+            var vout = tess.Vertices.Select(v => 
+                new ParametricLightMeshVertex() { position = 
+                    new float3(v.Position.X, v.Position.Y, 0), color = v.Data != null ? (Color)v.Data : Color.white });
 
             foreach(var v in vout)
             {
-                vertices[vcount++] = new ParametricLightMeshVertex
-                {
-                    position = v.position,
-                    color = v.color
-                };
+                vertices[vcount++] = new ParametricLightMeshVertex { position = v.position, color = v.color };
             }
 
             foreach (var i in iout)
             {
                 indices[icount++] = (ushort)i;
             }
-        }
-
-        static Vector3[] Subdivide(Vector3[] shapePath, int subdivision)
-        {
-            if (subdivision <= 1)
-                return shapePath;
-            int sdsCount = 0;
-            int sdcount = shapePath.Length * subdivision;
-            var sdShapePath = new Vector3[sdcount];
-            for (int i = 0; i < shapePath.Length; ++i)
-            {
-                Vector3 dst = (i == shapePath.Length - 1) ? shapePath[0] : shapePath[i + 1];
-                for (int j = 0; j < subdivision; ++j)
-                    sdShapePath[sdsCount++] = Vector3.Lerp(shapePath[i], dst, j / (float)subdivision);
-            }
-            return sdShapePath;
         }
 
         public static Bounds GenerateShapeMesh(Mesh mesh, Vector3[] shapePath, float falloffDistance)
@@ -262,37 +386,24 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var ix = 0;
             var vertices = new NativeArray<ParametricLightMeshVertex>(shapePath.Length * 64, Allocator.Temp);
             var indices = new NativeArray<ushort>(shapePath.Length * 64, Allocator.Temp);
-            var pointCount = shapePath.Length;
+            var tess = new Tess();
+            
+            // Create shape geometry
+            var innerShapeVertexCount = shapePath.Length;
+            var inner = new ContourVertex[innerShapeVertexCount + 1];
+            for (var i = 0; i < innerShapeVertexCount; ++i)
+                inner[ix++] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y, Z = 0 }, Data = meshInteriorColor };
+            inner[ix++] = inner[0];
+            tess.AddContour(inner, ContourOrientation.CounterClockwise);
 
             // Create falloff geometry
-            var subdiv = 2;
-            var inputs = new ContourVertex[(pointCount * (subdiv + 1)) + 2];
-            for (var i = 0; i < pointCount; ++i)
-                inputs[ix++] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y, Z = 0 }, Data = meshInteriorColor };
-            inputs[ix++] = inputs[0];
+            List<Vec3> bevelInputs = new List<Vec3>(); 
+            var outer = GetFalloff(shapePath, falloffDistance, meshInteriorColor, ref bevelInputs);
+            tess.AddContour(outer.ToArray(), ContourOrientation.CounterClockwise);
+            Tessellate(tess, indices, vertices, ref vcount, ref icount);
 
-            // Subdivide
-            var extrusionDirs = GetFalloffShape(shapePath);
-            shapePath = Subdivide(shapePath, subdiv);
-            var exPointCount = shapePath.Length;
-            for (var i = 0; i < exPointCount; i++)
-            {
-                var idx = (int)(math.floor((float) i / (float) subdiv));
-                var p = new Vec3()
-                {
-                    X = shapePath[i].x + (falloffDistance * extrusionDirs[idx].x),
-                    Y = shapePath[i].y + (falloffDistance * extrusionDirs[idx].y),
-                    Z = 0
-                };
-                var extrudeDir = new float3(extrusionDirs[idx].x, extrusionDirs[idx].y, 0);
-                var position = new float3(p.X, p.Y, p.Z);
-                min = math.min(min, position + extrudeDir * falloffDistance);
-                max = math.max(max, position + extrudeDir * falloffDistance);
-                inputs[ix++] = new ContourVertex() { Position = p, Data = new Color(extrusionDirs[idx].x, extrusionDirs[idx].y, 0, 0) };
-            }
-            inputs[ix++] = inputs[pointCount + 1];
-            Tessellate(inputs, indices, vertices, ref vcount, ref icount);
-
+            // Generate Bevels.
+            GenerateBevels(bevelInputs, falloffDistance, meshInteriorColor, indices, vertices, ref vcount, ref icount);
             mesh.SetVertexBufferParams(vcount, ParametricLightMeshVertex.VertexLayout);
             mesh.SetVertexBufferData(vertices, 0, 0, vcount);
             mesh.SetIndices(indices, 0, icount, MeshTopology.Triangles, 0, false);
