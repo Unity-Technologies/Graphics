@@ -4,9 +4,9 @@ All notable changes to this project template will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.5.0] - 2020-06-08
+## [7.5.1] - 2020-06-08
 ### changed
-- Update version to Universal RP version 7.5.0
+- Update version to Universal RP version 7.5.1
 
 ## [7.4.0] - 2020-03-23
 ### changed
