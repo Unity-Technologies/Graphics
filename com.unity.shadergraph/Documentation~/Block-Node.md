@@ -2,33 +2,30 @@
 
 ## Description
 
-A Block is a specific type of Node for the Master Stack. A block represents a single piece of the fragment (or vertex) description data used in the final shader output. Some Block nodes are always available, while some may only be available with certain pipelines.  
+A Block is a specific type of node for the Master Stack. A Block represents a single piece of the surface (or vertex) description data that Shader Graph uses in the final shader output. [Built In Block nodes](Built-In-Blocks.md) are always available, but nodes that are specific to a certain render pipeline are only available for that pipeline. For example, Universal Block nodes are only available for the Universal Render Pipeline (URP), and High Definition Block nodes are only available for the High Definition Render Pipeline (HDRP).
 
-Certain blocks are only compatible with specific Graph Settings. Blocks may become Active or Inactive based on the graph settings. 
+Some blocks are only compatible with specific [Graph Settings](Graph-Settings-Menu.md), and might become active or inactive based on the graph settings you select. You can't cut, copy, or paste Blocks.
 
-Blocks cannot be cut, copied, or pasted. 
+## Add and Remove Block Nodes
 
-## Adding and Removing Block Nodes
+To add a new Block node to a Context in the Master Stack, place the cursor over an empty area in the Context, then press the Spacebar or right-click and select **Create Node**.
 
-New Block nodes can be added to a Context in the Master Stack by hovering over empty space in the Context and pressing space bar or right clicking and selecting “Create Node”. This will bring up the Create Node menu. 
+This brings up the Create Node menu, which displays only Block nodes that are valid for the Context. For example, Vertex Blocks don't appear in the Create Node menu of a Fragment Context. 
 
-This menu will contain only Block nodes valid for that context. Vertex blocks will not appear in the Create Node menu of the Fragment context. 
-
-Selecting a block node from this menu will add it to the context. 
-
-Selecting a block node entry in the context and pressing “Delete” or right clicking and selecting “Delete” will remove the block from the context. 
+Select a Block node from the menu to add it to the Context. To remove a Block from the Context, select the Block node in the Context, then press the Delete key or right-click and select **Delete**.
 
 ### Automatically Add or Remove Blocks
 
-Blocks can also be added or removed from a context automatically based on the user’s Shader Graph Preferences. If `Automatically Add or Remove Blocks` is enabled, the required Block nodes for a certain Target or Material type will be added automatically. Any incompatible block nodes that have no connections and default values will be removed from the context automatically. 
+You can also enable or disable an option in the Shader Graph Preferences to automatically add and remove Blocks from a Context. 
 
-If `Automatically Add or Remove Blocks` is disabled, no block nodes will ever be automatically added or removed. All required Block nodes must be added manually by the user based on the selected target and material settings. 
+If you enable **Automatically Add or Remove Blocks**, Shader Graph automatically adds the required Block nodes for that particular asset's Target or material type. It automatically removes any incompatible Block nodes that have no connections and default values.
+
+If you disable **Automatically Add or Remove Blocks**, Shader Graph doesn't automatically add and remove Block nodes. You must manually add and remove all Block nodes.
 
 ## Active and Inactive Blocks
 
-Active block nodes are blocks that are being generated and contributing to the final shader. 
-Inactive block nodes are blocks that are present in the shader graph, but are not being generated or contributing to the final shader. 
+Active Block nodes are Blocks that contribute to the final shader. Inactive Block nodes are Blocks that are present in the Shader Graph, but don't contribute to the final shader.
 
 ![image](images/Active-Inactive-Blocks.png)
 
-Certain configurations of the graph settings may cause blocks to become active or inactive. This state will be displayed by greying-out the block nodes that are inactive, as well as any node stream that is _only_ connected to the inactive block node. 
+When you change the graph settings, certain Blocks might become active or inactive. Inactive Block nodes and any node streams that are connected only to Inactive Block nodes appear grayed out.
