@@ -1023,7 +1023,7 @@ test_core_windows_CUSTOM-REVISION:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u $CUSTOM_REVISION -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\core\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
@@ -1066,7 +1066,7 @@ test_lwrp_windows_CUSTOM-REVISION:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u $CUSTOM_REVISION -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\lwrp\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
@@ -1115,7 +1115,7 @@ test_shadergraph_windows_CUSTOM-REVISION:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u $CUSTOM_REVISION -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\shadergraph\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
@@ -1165,7 +1165,7 @@ test_hdrp_windows_CUSTOM-REVISION:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u $CUSTOM_REVISION -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\hdrp\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
@@ -1216,7 +1216,7 @@ test_universal_windows_CUSTOM-REVISION:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u $CUSTOM_REVISION -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\universal\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
@@ -1265,7 +1265,7 @@ test_vfx_windows_CUSTOM-REVISION:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u $CUSTOM_REVISION -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\vfx\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
@@ -1313,7 +1313,7 @@ test_config_windows_CUSTOM-REVISION:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u $CUSTOM_REVISION -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\config\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
@@ -1359,7 +1359,7 @@ test_core_macos_CUSTOM-REVISION:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u $CUSTOM_REVISION -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~ && mkdir upm-ci~/packages
       -  cp packages_temp/core/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
@@ -1402,7 +1402,7 @@ test_lwrp_macos_CUSTOM-REVISION:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u $CUSTOM_REVISION -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~ && mkdir upm-ci~/packages
       -  cp packages_temp/lwrp/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
@@ -1451,7 +1451,7 @@ test_shadergraph_macos_CUSTOM-REVISION:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u $CUSTOM_REVISION -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~ && mkdir upm-ci~/packages
       -  cp packages_temp/shadergraph/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
@@ -1501,7 +1501,7 @@ test_hdrp_macos_CUSTOM-REVISION:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u $CUSTOM_REVISION -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~ && mkdir upm-ci~/packages
       -  cp packages_temp/hdrp/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
@@ -1552,7 +1552,7 @@ test_universal_macos_CUSTOM-REVISION:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u $CUSTOM_REVISION -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~ && mkdir upm-ci~/packages
       -  cp packages_temp/universal/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
@@ -1601,7 +1601,7 @@ test_vfx_macos_CUSTOM-REVISION:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u $CUSTOM_REVISION -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~ && mkdir upm-ci~/packages
       -  cp packages_temp/vfx/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
@@ -1649,7 +1649,7 @@ test_config_macos_CUSTOM-REVISION:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u $CUSTOM_REVISION -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  mkdir upm-ci~ && mkdir upm-ci~/packages
       -  cp packages_temp/config/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
