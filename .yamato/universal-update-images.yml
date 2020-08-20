@@ -44,6 +44,9 @@ Universal_Win_DX11_playmode_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
+        actual_images:
+            paths:
+              -  "*/ActualImages/**"
 
 Universal_Win_DX11_Standalone_fast-trunk:
     name: Universal on Win_DX11_Standalone on version fast-trunk
@@ -67,6 +70,9 @@ Universal_Win_DX11_Standalone_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
+        actual_images:
+            paths:
+              -  "*/ActualImages/**"
 
 Build_Universal_Win_DX12_Player_fast-trunk:
     name: Build Universal on Win_DX12_Player on version fast-trunk
@@ -114,6 +120,9 @@ Universal_Win_DX12_playmode_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
+        actual_images:
+            paths:
+              -  "*/ActualImages/**"
 
 Universal_Win_DX12_Standalone_fast-trunk:
     name: Universal on Win_DX12_Standalone on version fast-trunk
@@ -137,15 +146,15 @@ Universal_Win_DX12_Standalone_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
+        actual_images:
+            paths:
+              -  "*/ActualImages/**"
 
 Universal_Update_Images:
     name: Universal Update Images
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
     variables:
         TEST_FILTER: test_filter_not_set
+    allow_failure: true
     dependencies:
         -  path: .yamato/universal-update-images.yml#Universal_Win_DX11_playmode_fast-trunk
            rerun: on-new-revision
@@ -155,7 +164,3 @@ Universal_Update_Images:
            rerun: on-new-revision
         -  path: .yamato/universal-update-images.yml#Universal_Win_DX12_Standalone_fast-trunk
            rerun: on-new-revision
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
