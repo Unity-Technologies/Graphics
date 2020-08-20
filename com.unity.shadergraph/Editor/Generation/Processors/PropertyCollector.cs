@@ -176,6 +176,12 @@ namespace UnityEditor.ShaderGraph
             if (dotsInstancingProperties.Any())
             {
                 builder.AppendLine("#if defined(UNITY_HYBRID_V1_INSTANCING_ENABLED)");
+
+                // Need to include UnityInstancing.hlsl here to ensure UNITY_DEFINE_INSTANCED_PROP is defined before it is invoked below.
+                // Normally, this is included inside of ShaderVariables.hlsl, however ShaderVariables.hlsl is not included until
+                // after Dots Instancing code is defined.
+                builder.AppendLine("#include \"Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl\"");
+                
                 builder.Append("#define HYBRID_V1_CUSTOM_ADDITIONAL_MATERIAL_VARS\t");
 
                 int count = 0;
