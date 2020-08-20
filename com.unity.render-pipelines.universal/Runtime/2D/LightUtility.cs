@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
@@ -305,6 +306,41 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bevelInputs.Add(vertices[1].Position);
             return vertices;
         }
+        
+        static float SlopeAngle(Vector3 dirNormalized)
+        {
+            Vector3 dvup = new Vector3(0, 1f);
+            Vector3 dvrt = new Vector3(1f, 0);
+
+            float dr = math.dot(dirNormalized, dvrt);
+            float du = math.dot(dirNormalized, dvup);
+            float cu = math.acos(du);
+            float sn = dr >= 0 ? 1.0f : -1.0f;
+            float an = cu * Mathf.Rad2Deg * sn;
+
+            // Adjust angles when direction is parallel to Up Axis.
+            an = (du != 1f) ? an : 0;
+            an = (du != -1f) ? an : -180f;
+            return an;
+        }
+        
+        static List<Vector3> GetArc(Vector3 from, Vector3 to, Vector3 center, float radius, float detail)
+        {
+            var arc = new List<Vector3>();
+            var fq = SlopeAngle(from.normalized);
+            var tq = SlopeAngle(to.normalized);
+            
+            var arcLength = tq - fq;
+            for (int i = 0; i <= detail; i++)
+            {
+                var x = Mathf.Sin(Mathf.Deg2Rad * fq) * radius;
+                var y = Mathf.Cos(Mathf.Deg2Rad * fq) * radius;
+                var pt = new Vector3(x, y, 0);
+                arc.Add((pt.normalized * radius) + center);
+                fq += (arcLength / detail);
+            }
+            return arc;
+        }
 
         static void GenerateBevels(List<Vec3> bevelInputs, float fallOff, Color meshInteriorColor, NativeArray<ushort> indices,
             NativeArray<ParametricLightMeshVertex> vertices, ref int vcount, ref int icount)
@@ -316,31 +352,26 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 // Pivot Pos
                 List<ContourVertex> bevel = new List<ContourVertex>();
-                Vector3 sp = new Vector3(bevelInputs[i + 0].X, bevelInputs[i + 0].Y, 0);
-                Vector3 ip = new Vector3(bevelInputs[i + 1].X, bevelInputs[i + 1].Y, 0);
-                Vector3 ep = new Vector3(bevelInputs[i + 2].X, bevelInputs[i + 2].Y, 0);
+                var sp = new Vector3(bevelInputs[i + 0].X, bevelInputs[i + 0].Y, 0);
+                var ip = new Vector3(bevelInputs[i + 1].X, bevelInputs[i + 1].Y, 0);
+                var ep = new Vector3(bevelInputs[i + 2].X, bevelInputs[i + 2].Y, 0);
                 
-                float scale = Mathf.Min((ep - ip).magnitude, (sp - ip).magnitude) * 0.33f;
-                Vector3 lT = (sp - ip).normalized * scale;
-                Vector3 rT = (ep - ip).normalized * scale;
+                var scale = Mathf.Min((ep - ip).magnitude, (sp - ip).magnitude) * 0.33f;
+                var lT = (sp - ip).normalized * scale;
+                var rT = (ep - ip).normalized * scale;
 
-                Vector3 isn = (sp - ip).normalized;
-                Vector3 ien = (ep - ip).normalized;
-                Vector3 sen = (isn + ien).normalized;
-
+                var isn = (sp - ip).normalized;
+                var ien = (ep - ip).normalized;
+                var sen = (isn + ien).normalized;
                 var np = ip + (sen * fallOff);
-                CalculateTangents(np, sp, ep, Vector3.forward, scale, out rT, out lT);
-                rT = rT + sp;
-                lT = lT + ep;
 
                 var pivotPoint = new ParametricLightMeshVertex() {position = ip, color = meshInteriorColor};
                 var startPoint = new ParametricLightMeshVertex() {position = sp, color = new Color(isn.x, isn.y, 0, 1)};
+                var arc = GetArc(isn, ien, ip, fallOff, bezierQuality);
                 
-                float detail = bezierQuality - 1;
-                for (float n = 1; n < bezierQuality; ++n)
+                for (int n = 0; n <= bezierQuality; ++n)
                 {
-                    float t = n / detail;
-                    Vector3 r = BezierPoint(sp, rT, lT, ep, t);
+                    Vector3 r = arc[n];
                     Vector3 d = (np - r).normalized;
 
                     indices[icount++] = (ushort)vcount;
@@ -397,7 +428,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             tess.AddContour(inner, ContourOrientation.CounterClockwise);
 
             // Create falloff geometry
-            List<Vec3> bevelInputs = new List<Vec3>(); 
+            var bevelInputs = new List<Vec3>(); 
             var outer = GetFalloff(shapePath, falloffDistance, meshInteriorColor, ref bevelInputs);
             tess.AddContour(outer.ToArray(), ContourOrientation.CounterClockwise);
             Tessellate(tess, indices, vertices, ref vcount, ref icount);
