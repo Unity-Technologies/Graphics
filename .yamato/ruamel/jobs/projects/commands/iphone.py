@@ -34,7 +34,7 @@ def cmd_not_standalone_performance(project_folder, platform, api, test_platform_
         f'unity-downloader-cli --source-file $YAMATO_SOURCE_DIR/{PATH_UNITY_REVISION} {"".join([f"-c {c} " for c in components])}  --wait --published-only',
         f'curl -s {UTR_INSTALL_URL} --output utr',
         f'chmod +x ./utr',
-        f'./utr {test_platform_args} -report-performance-data --performance-project-id=URP_Performance --platform=iOS --editor-location=.Editor --testproject={TEST_PROJECTS_DIR}/{project_folder} --artifacts_path={PATH_TEST_RESULTS}'
+        f'./utr {test_platform_args} -report-performance-data --performance-project-id=URP_Performance --platform=iOS --extra-editor-arg="-buildTarget" --extra-editor-arg="iOS" --editor-location=.Editor --testproject={TEST_PROJECTS_DIR}/{project_folder} --artifacts_path={PATH_TEST_RESULTS}'
      ]
 
 def cmd_standalone_performance(project_folder, platform, api, test_platform_args):
