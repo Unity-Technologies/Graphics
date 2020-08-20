@@ -26,6 +26,9 @@ Shader "Universal Render Pipeline/Lit"
         _BumpScale("Scale", Float) = 1.0
         _BumpMap("Normal Map", 2D) = "bump" {}
 
+        _Parallax("Scale", Range(0.005, 0.08)) = 0.005
+        _ParallaxMap("Height Map", 2D) = "black" {}
+
         _OcclusionStrength("Strength", Range(0.0, 1.0)) = 1.0
         _OcclusionMap("Occlusion", 2D) = "white" {}
 
@@ -92,6 +95,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature_local_fragment _OCCLUSIONMAP
+            #pragma shader_feature_local _PARALLAXMAP
 
             #pragma shader_feature_local_fragment _ _CLEARCOAT _CLEARCOATMAP
 
@@ -173,7 +177,7 @@ Shader "Universal Render Pipeline/Lit"
 
             HLSLPROGRAM
             #pragma exclude_renderers d3d11_9x gles
-            #pragma target 2.0
+            #pragma target 4.5
 
             // -------------------------------------
             // Material Keywords
@@ -184,6 +188,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature_local_fragment _OCCLUSIONMAP
+            #pragma shader_feature_local _PARALLAXMAP
 
             #pragma shader_feature_local_fragment _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature_local_fragment _ENVIRONMENTREFLECTIONS_OFF
@@ -192,7 +197,6 @@ Shader "Universal Render Pipeline/Lit"
 
             // -------------------------------------
             // Universal Pipeline keywords
-            #pragma multi_compile _ _MAIN_LIGHT
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
             //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
@@ -358,6 +362,7 @@ Shader "Universal Render Pipeline/Lit"
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore
             #pragma target 2.0
+
 
             //--------------------------------------
             // GPU Instancing

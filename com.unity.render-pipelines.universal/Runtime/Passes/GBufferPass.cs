@@ -68,9 +68,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             ConfigureTarget(m_DeferredLights.GbufferAttachmentIdentifiers, m_DeferredLights.DepthAttachmentIdentifier);
-
-            // Only need to clear depth.
-            ConfigureClear(ClearFlag.Depth, Color.black);
+            // We must explicitely specify we don't want any clear to avoid unwanted side-effects.
+            // ScriptableRenderer may still implicitely force a clear the first time the camera color/depth targets are bound.
+            ConfigureClear(ClearFlag.None, Color.black);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -78,6 +78,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer gbufferCommands = CommandBufferPool.Get();
             using (new ProfilingScope(gbufferCommands, m_ProfilingSampler))
             {
+                // User can stack several scriptable renderers during rendering but deferred renderer should only lit pixels added by this gbuffer pass.
+                // If we detect we are in such case (camera isin  overlay mode), we clear the highest bits of stencil we have control of and use them to
+                // mark what pixel to shade during deferred pass. Gbuffer will always mark pixels using their material types.
+                if (m_DeferredLights.IsOverlay)
+                    m_DeferredLights.ClearStencilPartial(gbufferCommands);
+
                 context.ExecuteCommandBuffer(gbufferCommands);
                 gbufferCommands.Clear();
 

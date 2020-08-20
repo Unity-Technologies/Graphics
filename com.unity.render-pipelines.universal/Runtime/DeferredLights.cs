@@ -134,6 +134,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _SimpleLitDirStencilRef = Shader.PropertyToID("_SimpleLitDirStencilRef");
             public static readonly int _SimpleLitDirStencilReadMask = Shader.PropertyToID("_SimpleLitDirStencilReadMask");
             public static readonly int _SimpleLitDirStencilWriteMask = Shader.PropertyToID("_SimpleLitDirStencilWriteMask");
+            public static readonly int _ClearStencilRef = Shader.PropertyToID("_ClearStencilRef");
+            public static readonly int _ClearStencilReadMask = Shader.PropertyToID("_ClearStencilReadMask");
+            public static readonly int _ClearStencilWriteMask = Shader.PropertyToID("_ClearStencilWriteMask");
 
             public static readonly int UDepthRanges = Shader.PropertyToID("UDepthRanges");
             public static readonly int _DepthRanges = Shader.PropertyToID("_DepthRanges");
@@ -238,6 +241,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         static readonly string k_DeferredTiledPass = "Deferred Shading (Tile-Based)";
         static readonly string k_DeferredStencilPass = "Deferred Shading (Stencil)";
         static readonly string k_DeferredFogPass = "Deferred Fog";
+        static readonly string k_ClearStencilPartial = "Clear Stencil Partial";
         static readonly string k_SetupLightConstants = "Setup Light Constants";
         static readonly float kStencilShapeGuard = 1.06067f; // stencil geometric shapes must be inflated to fit the analytic shapes.
         private static readonly ProfilingSampler m_ProfilingSetupLights = new ProfilingSampler(k_SetupLights);
@@ -245,7 +249,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         private static readonly ProfilingSampler m_ProfilingTileDepthInfo = new ProfilingSampler(k_TileDepthInfo);
         private static readonly ProfilingSampler m_ProfilingSetupLightConstants = new ProfilingSampler(k_SetupLightConstants);
 
-        internal bool CombineMainLightInGBuffer { get; set; }
         internal bool UseShadowMask { get; set; }
         internal bool UseRenderPass { get; set; }
 
@@ -260,11 +263,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal GraphicsFormat GetGBufferFormat(int index)
         {
             if (index == GBufferAlbedoIndex)
-                return GraphicsFormat.R8G8B8A8_SRGB;    // albedo          albedo          albedo          occlusion       (sRGB rendertarget)
+                return GraphicsFormat.R8G8B8A8_SRGB;    // albedo          albedo          albedo          materialFlags       (sRGB rendertarget)
             else if (index == GBufferSpecularMetallicIndex)
-                return GraphicsFormat.R8G8B8A8_SRGB;    // specular        specular        specular        metallic        (sRGB rendertarget)
+                return GraphicsFormat.R8G8B8A8_SRGB;    // specular        specular        specular        [unused]        (sRGB rendertarget)
             else if (index == GBufferNormalSmoothnessIndex)
-                return this.AccurateGbufferNormals ? GraphicsFormat.R8G8B8A8_UNorm : GraphicsFormat.R8G8B8A8_SNorm;
+                return this.AccurateGbufferNormals ? GraphicsFormat.R8G8B8A8_UNorm : GraphicsFormat.R8G8B8A8_SNorm; // normal normal normal packedSmoothness
             else if (index == GBufferLightingIndex)
                 return GraphicsFormat.None;            // Emissive+baked: Most likely B10G11R11_UFloatPack32 or R16G16B16A16_SFloat
             else if (index == GbufferDepthIndex)
@@ -276,6 +279,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         internal bool HasDepthPrepass { get; set; }
+        internal bool IsOverlay { get; set; }
         internal bool AccurateGbufferNormals { get; set; }
         internal bool TiledDeferredShading { get; set; } // <- true: TileDeferred.shader used for some lights (currently: point/spot lights without shadows) - false: use StencilDeferred.shader for all lights
         internal MixedLightingSetup MixedLightingSetup { get; set; } // We browsed all visible lights and found the mixed lighting setup.
@@ -349,6 +353,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         ProfilingSampler m_ProfilingSamplerDeferredTiledPass = new ProfilingSampler(k_DeferredTiledPass);
         ProfilingSampler m_ProfilingSamplerDeferredStencilPass = new ProfilingSampler(k_DeferredStencilPass);
         ProfilingSampler m_ProfilingSamplerDeferredFogPass = new ProfilingSampler(k_DeferredFogPass);
+        ProfilingSampler m_ProfilingSamplerClearStencilPartialPass = new ProfilingSampler(k_ClearStencilPartial);
 
 
         internal DeferredLights(Material tileDepthInfoMaterial, Material tileDeferredMaterial, Material stencilDeferredMaterial)
@@ -379,6 +384,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_StencilDeferredMaterial.SetInt(ShaderConstants._SimpleLitDirStencilRef, (int)StencilUsage.MaterialSimpleLit);
             m_StencilDeferredMaterial.SetInt(ShaderConstants._SimpleLitDirStencilReadMask, (int)StencilUsage.MaterialMask);
             m_StencilDeferredMaterial.SetInt(ShaderConstants._SimpleLitDirStencilWriteMask, 0);
+            m_StencilDeferredMaterial.SetInt(ShaderConstants._ClearStencilRef, 0);
+            m_StencilDeferredMaterial.SetInt(ShaderConstants._ClearStencilReadMask, (int)StencilUsage.MaterialMask);
+            m_StencilDeferredMaterial.SetInt(ShaderConstants._ClearStencilWriteMask, (int)StencilUsage.MaterialMask);
 
             // Compute some platform limits.
             m_MaxDepthRangePerBatch = (DeferredConfig.UseCBufferForDepthRange ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / sizeof(uint);
@@ -457,7 +465,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 out m_stencilVisLights,
                 out m_stencilVisLightOffsets,
                 ref renderingData.lightData.visibleLights,
-                renderingData.lightData.additionalLightsCount != 0 || (!this.CombineMainLightInGBuffer && renderingData.lightData.mainLightIndex >= 0),
+                renderingData.lightData.additionalLightsCount != 0 || renderingData.lightData.mainLightIndex >= 0,
                 renderingData.cameraData.camera.worldToCameraMatrix,
                 renderingData.cameraData.camera.orthographic,
                 renderingData.cameraData.camera.nearClipPlane
@@ -471,8 +479,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     SetupShaderLightConstants(cmd, ref renderingData);
 
                     // Setup global keywords.
-                    if (this.CombineMainLightInGBuffer)
-                        CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLight, renderingData.lightData.mainLightIndex >= 0);
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._GBUFFER_NORMALS_OCT, this.AccurateGbufferNormals);
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, renderingData.lightData.supportsMixedLighting && this.MixedLightingSetup == MixedLightingSetup.Subtractive);
                 }
@@ -614,6 +620,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void Setup(ref RenderingData renderingData,
             AdditionalLightsShadowCasterPass additionalLightsShadowCasterPass,
             bool hasDepthPrepass,
+            bool isOverlay,
             RenderTargetHandle depthCopyTexture,
             RenderTargetHandle depthInfoTexture,
             RenderTargetHandle tileDepthInfoTexture,
@@ -622,6 +629,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             m_AdditionalLightsShadowCasterPass = additionalLightsShadowCasterPass;
             this.HasDepthPrepass = hasDepthPrepass;
+            this.IsOverlay = isOverlay;
             this.DepthCopyTexture = depthCopyTexture;
             this.DepthInfoTexture = depthInfoTexture;
             this.TileDepthInfoTexture = tileDepthInfoTexture;
@@ -678,7 +686,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void OnCameraCleanup(CommandBuffer cmd)
         {
             // Disable any global keywords setup in SetupLights().
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLight, false);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._GBUFFER_NORMALS_OCT, false);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, false);
 
@@ -700,7 +707,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 return new StencilState(
                     true,
-                    0, 0,
+                    0, (byte)stencilWriteMask,
                     CompareFunction.Always, StencilOp.Replace, StencilOp.Keep, StencilOp.Keep,
                     CompareFunction.Always, StencilOp.Replace, StencilOp.Keep, StencilOp.Keep
                 );
@@ -940,6 +947,17 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+        }
+
+        internal void ClearStencilPartial(CommandBuffer cmd)
+        {
+            if (m_FullscreenMesh == null)
+                m_FullscreenMesh = CreateFullscreenMesh();
+
+            using (new ProfilingScope(cmd, m_ProfilingSamplerClearStencilPartialPass))
+            {
+                cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 6);
+            }
         }
 
         internal void ExecuteDeferredPass(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -1386,10 +1404,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 VisibleLight vl = visibleLights[visLightIndex];
                 if (vl.lightType != LightType.Directional)
                     break;
-
-                // Skip directional main light, as it is currently rendered as part of the GBuffer.
-                if (this.CombineMainLightInGBuffer && visLightIndex == mainLightIndex)
-                    continue;
 
                 Vector4 lightDir, lightColor, lightAttenuation, lightSpotDir, lightOcclusionChannel;
                 UniversalRenderPipeline.InitializeLightConstants_Common(visibleLights, visLightIndex, out lightDir, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel);
