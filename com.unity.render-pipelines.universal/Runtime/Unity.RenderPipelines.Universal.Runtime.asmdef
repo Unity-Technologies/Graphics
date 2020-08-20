@@ -27,6 +27,11 @@
             "define": "ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER"
         },
         {
+            "name": "com.unity.adaptiveperformance",
+            "expression": "2.1.0",
+            "define": "ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER"
+        },
+        {
             "name": "com.unity.modules.vr",
             "expression": "1.0.0",
             "define": "ENABLE_VR_MODULE"
