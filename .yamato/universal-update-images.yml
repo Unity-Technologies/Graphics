@@ -140,6 +140,10 @@ Universal_Win_DX12_Standalone_fast-trunk:
 
 Universal_Update_Images:
     name: Universal Update Images
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
     variables:
         TEST_FILTER: test_filter_not_set
     dependencies:
