@@ -174,12 +174,13 @@ namespace UnityEditor.Rendering.HighDefinition
                         new Entry(InclusiveScope.DXR, Style.dxrStaticBatching, IsDXRStaticBatchingCorrect, FixDXRStaticBatching),
                         new Entry(InclusiveScope.DXR, Style.dxrActivated, IsDXRActivationCorrect, FixDXRActivation),
                         new Entry(InclusiveScope.DXR, Style.dxrResources, IsDXRAssetCorrect, FixDXRAsset),
+                        new Entry(InclusiveScope.DXR, Style.dxr64bits, IsArchitecture64Bits, FixArchitecture64Bits),
+						
                         // Optional checks
                         new Entry(InclusiveScope.DXROptional, Style.dxrScreenSpaceShadow, IsDXRScreenSpaceShadowCorrect, null, forceDisplayCheck: true, skipErrorIcon: true),
                         new Entry(InclusiveScope.DXROptional, Style.dxrReflections, IsDXRReflectionsCorrect, null, forceDisplayCheck: true, skipErrorIcon: true),
                         new Entry(InclusiveScope.DXROptional, Style.dxrTransparentReflections, IsDXRTransparentReflectionsCorrect, null, forceDisplayCheck: true, skipErrorIcon: true),
                         new Entry(InclusiveScope.DXROptional, Style.dxrGI, IsDXRGICorrect, null, forceDisplayCheck: true, skipErrorIcon: true),
-                        new Entry(InclusiveScope.DXROptional, Style.dxr64bits, IsArchitecture64Bits, null, forceDisplayCheck: true, skipErrorIcon: true),
 
                     };
                 return m_Entries;
@@ -660,7 +661,10 @@ namespace UnityEditor.Rendering.HighDefinition
 			
 		bool IsArchitecture64Bits()
             => EditorUserBuildSettings.activeBuildTarget == BuildTarget.StandaloneWindows64;
-
+		void FixArchitecture64Bits(bool fromAsyncUnused)
+		{
+			EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTarget.StandaloneWindows64);
+		}
 
         bool IsDXRStaticBatchingCorrect()
             => !GetStaticBatching(CalculateSelectedBuildTarget());
