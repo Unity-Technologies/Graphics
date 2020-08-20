@@ -132,7 +132,7 @@ def get_versions_from_unity_downloader(tracks, trunk_track, unity_downloader_com
                     else:
                         print(
                             f'ERROR: {key} [{platform}] Revision will not be updated (keeping the previously existing one):\n'
-                            f'Failed to run '{err.cmd}'\nStdout:\n{err.stdout}\nStderr:\n{err.stderr} ')
+                            f'Failed to run {err.cmd} \nStdout:\n{err.stdout}\nStderr:\n{err.stderr} ')
     return versions
 
 
