@@ -81,6 +81,15 @@
       },
       "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
     },
+    "com.unity.ide.rider": {
+      "version": "1.2.1",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.test-framework": "1.1.1"
+      },
+      "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
+    },
     "com.unity.ide.visualstudio": {
       "version": "2.0.1",
       "depth": 0,
@@ -212,8 +221,9 @@
       "source": "local",
       "dependencies": {
         "com.unity.mathematics": "1.1.0",
-        "com.unity.render-pipelines.core": "10.1.0-preview.10",
-        "com.unity.shadergraph": "10.1.0-preview.10"
+        "com.unity.burst": "1.2.3",
+        "com.unity.render-pipelines.core": "9.0.0-preview.61",
+        "com.unity.shadergraph": "9.0.0-preview.56"
       }
     },
     "com.unity.rendering.hybrid": {
@@ -233,7 +243,7 @@
       "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
     },
     "com.unity.searcher": {
-      "version": "4.3.1",
+      "version": "4.2.0",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
@@ -257,8 +267,8 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.render-pipelines.core": "10.1.0-preview.10",
-        "com.unity.searcher": "4.3.1"
+        "com.unity.render-pipelines.core": "9.0.0-preview.61",
+        "com.unity.searcher": "4.2.0"
       }
     },
     "com.unity.subsystemregistration": {
@@ -269,7 +279,7 @@
       "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
     },
     "com.unity.test-framework": {
-      "version": "1.1.16",
+      "version": "1.1.13",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -349,7 +359,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.shadergraph": "10.1.0-preview.10"
+        "com.unity.shadergraph": "9.0.0-preview.56"
       }
     },
     "com.unity.xr.legacyinputhelpers": {
@@ -360,7 +370,7 @@
       "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
     },
     "com.unity.xr.management": {
-      "version": "3.2.10",
+      "version": "3.2.13",
       "depth": 1,
       "source": "registry",
       "dependencies": {
