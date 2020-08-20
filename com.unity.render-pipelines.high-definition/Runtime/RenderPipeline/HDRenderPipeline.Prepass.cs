@@ -319,8 +319,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 // The solution that we went for is writing the depth in an additional color buffer (10x cheaper to solve on ps4)
                 if (msaa)
                 {
+                    GraphicsFormat depthAsColorMSAAFormat = GraphicsFormat.R32_SFloat;
+                    if (!SystemInfo.IsFormatSupported(depthAsColorMSAAFormat, m_MSAASamples.AsFormatUsage()))
+                        depthAsColorMSAAFormat = GraphicsFormat.R16_SFloat;
                     passData.depthAsColorBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                        { colorFormat = GraphicsFormat.R32_SFloat, clearBuffer = true, clearColor = Color.black, bindTextureMS = true, enableMSAA = true, name = "DepthAsColorMSAA" }));
+                        { colorFormat = depthAsColorMSAAFormat, clearBuffer = true, clearColor = Color.black, bindTextureMS = true, enableMSAA = true, name = "DepthAsColorMSAA" }));
                 }
 
                 if (passData.hasDepthDeferredPass)

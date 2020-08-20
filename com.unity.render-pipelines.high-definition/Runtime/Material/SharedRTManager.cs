@@ -96,7 +96,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Let's create the MSAA textures
                 m_CameraDepthStencilMSAABuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, DepthBits.Depth24, dimension: TextureXR.dimension, bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "CameraDepthStencilMSAA");
                 m_CameraDepthValuesBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, dimension: TextureXR.dimension, useDynamicScale: true, name: "DepthValuesBuffer");
-                m_DepthAsColorMSAART = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32_SFloat, dimension: TextureXR.dimension, bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "DepthAsColorMSAA");
+                GraphicsFormat depthAsColorMSAAFormat = GraphicsFormat.R32_SFloat;
+                if (!SystemInfo.IsFormatSupported(depthAsColorMSAAFormat, m_MSAASamples.AsFormatUsage()))
+                    depthAsColorMSAAFormat = GraphicsFormat.R16_SFloat;
+                m_DepthAsColorMSAART = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: depthAsColorMSAAFormat, dimension: TextureXR.dimension, bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "DepthAsColorMSAA");
                 m_StencilBufferResolved = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8G8_UInt, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, name: "StencilBufferResolved");
 
                 // We need to allocate this texture as long as msaa is supported because on both mode, one of the cameras can be forward only using the framesettings
