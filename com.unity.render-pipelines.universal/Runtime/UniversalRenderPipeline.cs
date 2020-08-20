@@ -195,6 +195,10 @@ namespace UnityEngine.Rendering.Universal
                 camera.gameObject.TryGetComponent(out additionalCameraData);
 
             InitializeCameraData(settings, camera, additionalCameraData, out var cameraData);
+
+            // Required by VolumeSystem / PostProcessing.
+            VolumeManager.instance.Update(cameraData.volumeTrigger, cameraData.volumeLayerMask);
+
             SkyManager.UpdateCurrentSkySettings(ref cameraData);
             SetupPerCameraShaderConstants(cameraData);
 
