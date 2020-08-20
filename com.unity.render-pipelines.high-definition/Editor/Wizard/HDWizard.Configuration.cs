@@ -663,7 +663,7 @@ namespace UnityEditor.Rendering.HighDefinition
             => EditorUserBuildSettings.activeBuildTarget == BuildTarget.StandaloneWindows64;
 		void FixArchitecture64Bits(bool fromAsyncUnused)
 		{
-			EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTarget.StandaloneWindows64);
+			EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
 		}
 
         bool IsDXRStaticBatchingCorrect()
