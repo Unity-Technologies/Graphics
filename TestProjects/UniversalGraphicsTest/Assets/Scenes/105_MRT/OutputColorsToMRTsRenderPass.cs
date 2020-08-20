@@ -34,7 +34,7 @@ internal class OutputColorsToMRTsRenderPass : ScriptableRenderPass
         destDescriptor.height = renderingData.cameraData.cameraTargetDescriptor.height;
     }
 
-    public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescripor)
+    public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
     {
         // Create and declare the render targets used in the pass
 

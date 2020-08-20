@@ -56,7 +56,7 @@ MonoBehaviour:
   m_AdvancedMode: 0
   mode:
     m_OverrideState: 0
-    m_Value: 1
+    m_Value: 4
   meteringMode:
     m_OverrideState: 0
     m_Value: 2

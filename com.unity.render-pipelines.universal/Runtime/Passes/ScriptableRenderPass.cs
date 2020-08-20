@@ -82,6 +82,8 @@ namespace UnityEngine.Rendering.Universal
             get => m_ClearColor;
         }
 
+        internal bool overrideCameraTarget { get; set; }
+        
         RenderTargetIdentifier[] m_ColorAttachments;
         RenderTargetIdentifier m_DepthAttachment;
         ScriptableRenderPassInput m_Input = ScriptableRenderPassInput.None;
@@ -96,6 +98,7 @@ namespace UnityEngine.Rendering.Universal
             m_DepthAttachment = none;
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
+            overrideCameraTarget = false;
         }
 
         /// <summary>
@@ -131,6 +134,8 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment)
         {
+            overrideCameraTarget = true;
+            
             uint nonNullColorBuffers = RenderingUtils.GetValidColorBufferCount(colorAttachments);
             if( nonNullColorBuffers > SystemInfo.supportedRenderTargetCount)
                 Debug.LogError("Trying to set " + nonNullColorBuffers + " renderTargets, which is more than the maximum supported:" + SystemInfo.supportedRenderTargetCount);
@@ -147,6 +152,8 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment)
         {
+            overrideCameraTarget = true;
+            
             m_ColorAttachments[0] = colorAttachment;
             for (int i = 1; i < m_ColorAttachments.Length; ++i)
                 m_ColorAttachments[i] = 0;

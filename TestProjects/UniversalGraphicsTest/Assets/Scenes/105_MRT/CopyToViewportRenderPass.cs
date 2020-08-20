@@ -29,8 +29,9 @@ internal class CopyToViewportRenderPass : ScriptableRenderPass
         m_Viewport = viewport;
     }
 
-    public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+    public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
     {
+        var cameraTextureDescriptor = renderingData.cameraData.cameraTargetDescriptor;
         cmd.GetTemporaryRT(m_Destination.id, cameraTextureDescriptor, FilterMode.Point);
     }
 
