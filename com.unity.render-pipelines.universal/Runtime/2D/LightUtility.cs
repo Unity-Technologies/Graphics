@@ -328,7 +328,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 Vector3 ien = (ep - ip).normalized;
                 Vector3 sen = (isn + ien).normalized;
 
-                var np = ip + (sen * fallOff * 2.0f);
+                var np = ip + (sen * fallOff);
                 CalculateTangents(np, sp, ep, Vector3.forward, scale, out rT, out lT);
                 rT = rT + sp;
                 lT = lT + ep;
@@ -337,7 +337,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 var startPoint = new ParametricLightMeshVertex() {position = sp, color = new Color(isn.x, isn.y, 0, 1)};
                 
                 float detail = bezierQuality - 1;
-                for (float n = 0; n < bezierQuality; ++n)
+                for (float n = 1; n < bezierQuality; ++n)
                 {
                     float t = n / detail;
                     Vector3 r = BezierPoint(sp, rT, lT, ep, t);
