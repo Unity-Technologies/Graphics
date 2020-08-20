@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 1481.7754, g: 1835.8867, b: 2430.4492, a: 1}
+  m_IndirectSpecularColor: {r: 1481.7451, g: 1835.5391, b: 2429.8105, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1538,7 +1538,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 0.4824584, y: 0.4724715}
   m_UVBias: {x: 0.5, y: 0}
-  m_AffectsTransparency: 1
+  m_AffectsTransparency: 0
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 1}
   m_Size: {x: 6, y: 6, z: 2}
@@ -4440,7 +4440,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 0.4824584, y: 0.4724715}
   m_UVBias: {x: 0.5, y: 0.5}
-  m_AffectsTransparency: 1
+  m_AffectsTransparency: 0
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 8, y: 8, z: 0.5}
@@ -4902,7 +4902,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 0.4824584, y: 0.4724715}
   m_UVBias: {x: 0.5, y: 0.5}
-  m_AffectsTransparency: 1
+  m_AffectsTransparency: 0
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 6, y: 6, z: 0.5}
@@ -5080,7 +5080,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 0.4824584, y: 0.4724715}
   m_UVBias: {x: 0.5, y: 0.5}
-  m_AffectsTransparency: 1
+  m_AffectsTransparency: 0
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 0.7423954}
   m_Size: {x: 4, y: 4, z: 1}
@@ -5738,7 +5738,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 0.4824584, y: 0.4724715}
   m_UVBias: {x: 0.5, y: 0}
-  m_AffectsTransparency: 1
+  m_AffectsTransparency: 0
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 6, y: 6, z: 0.5}
@@ -5792,7 +5792,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 0.4824584, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5}
-  m_AffectsTransparency: 1
+  m_AffectsTransparency: 0
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 0.7423954}
   m_Size: {x: 3, y: 3, z: 1}
@@ -11173,7 +11173,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 0.4824584, y: 0.4724715}
   m_UVBias: {x: 0, y: 0}
-  m_AffectsTransparency: 1
+  m_AffectsTransparency: 0
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 8, y: 8, z: 0.5}
@@ -11370,7 +11370,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1159360139}
   m_LocalRotation: {x: -0.52039474, y: -0.47873724, z: 0.47873724, w: -0.52039474}
-  m_LocalPosition: {x: -9.014697, y: 3.41, z: 3.15}
+  m_LocalPosition: {x: -9.014697, y: 3.3274367, z: 3.15}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 966118099}
@@ -11394,10 +11394,10 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 0.4824584, y: 0.4724715}
   m_UVBias: {x: 0.5, y: 0}
-  m_AffectsTransparency: 1
+  m_AffectsTransparency: 0
   m_DecalLayerMask: 1
-  m_Offset: {x: 0, y: 0, z: 1}
-  m_Size: {x: 5, y: 5, z: 2}
+  m_Offset: {x: 0, y: 0, z: 0.50243664}
+  m_Size: {x: 5, y: 5, z: 1.0048733}
   m_FadeFactor: 1
 --- !u!1 &1159510704
 GameObject:
@@ -11492,7 +11492,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 0.4824584, y: 0.4724715}
   m_UVBias: {x: 0.5, y: 0}
-  m_AffectsTransparency: 1
+  m_AffectsTransparency: 0
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 1}
   m_Size: {x: 5, y: 5, z: 2}
@@ -11546,7 +11546,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 0.4824584, y: 0.4724715}
   m_UVBias: {x: 0.5, y: 0.5}
-  m_AffectsTransparency: 1
+  m_AffectsTransparency: 0
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 0.5}
   m_Size: {x: 8, y: 8, z: 1}
@@ -11890,7 +11890,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 0.4824584, y: 0.4724715}
   m_UVBias: {x: 0.5, y: 0}
-  m_AffectsTransparency: 1
+  m_AffectsTransparency: 0
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 7, y: 7, z: 0.5}
@@ -12160,7 +12160,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 0.4824584, y: 0.4724715}
   m_UVBias: {x: 0.5, y: 0}
-  m_AffectsTransparency: 1
+  m_AffectsTransparency: 0
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 0.25}
   m_Size: {x: 5, y: 5, z: 0.5}
@@ -12790,7 +12790,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 0.4824584, y: 0.4724715}
   m_UVBias: {x: 0, y: 0}
-  m_AffectsTransparency: 1
+  m_AffectsTransparency: 0
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 0.5}
   m_Size: {x: 5, y: 5, z: 1}
@@ -12960,7 +12960,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 0.4824584, y: 0.4724715}
   m_UVBias: {x: 0.5, y: 0.5}
-  m_AffectsTransparency: 1
+  m_AffectsTransparency: 0
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 1}
   m_Size: {x: 5, y: 5, z: 1}
@@ -13333,7 +13333,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 0.4824584, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5}
-  m_AffectsTransparency: 1
+  m_AffectsTransparency: 0
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 0.5}
   m_Size: {x: 3, y: 3, z: 1}
@@ -14510,7 +14510,7 @@ MonoBehaviour:
     distanceFadeStart: 50
     distanceFadeEnd: 60
     textureIndex: 0
-    textureOffset: {x: -0, y: -74.54629, z: 0}
+    textureOffset: {x: -0, y: -413.1031, z: 0}
 --- !u!1001 &1504255721
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -19757,7 +19757,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 0.4824584, y: 0.4724715}
   m_UVBias: {x: 0.5, y: 0}
-  m_AffectsTransparency: 1
+  m_AffectsTransparency: 0
   m_DecalLayerMask: 1
   m_Offset: {x: 0, y: 0, z: 0.1}
   m_Size: {x: 6, y: 6, z: 0.2}
@@ -24900,15 +24900,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5779762625305321348, guid: 657f1dce72cdc7c49b027d8b47c4d7df, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 63.184326
+      value: 63.19024
       objectReference: {fileID: 0}
     - target: {fileID: 5779762625305321348, guid: 657f1dce72cdc7c49b027d8b47c4d7df, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 2.393
+      value: 2.4045057
       objectReference: {fileID: 0}
     - target: {fileID: 5779762625305321348, guid: 657f1dce72cdc7c49b027d8b47c4d7df, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.22537327
+      value: 0.2310716
       objectReference: {fileID: 0}
     - target: {fileID: 5779762625305321348, guid: 657f1dce72cdc7c49b027d8b47c4d7df, type: 3}
       propertyPath: m_LocalRotation.x

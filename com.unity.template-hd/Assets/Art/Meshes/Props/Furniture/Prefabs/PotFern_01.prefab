@@ -43,18 +43,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Fern_01
       objectReference: {fileID: 0}
-    - target: {fileID: 2281485730647756846, guid: 0a1b602fab799994198f1ac6c6a0d2de, type: 3}
-      propertyPath: m_RenderingLayerMask
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2281485730647756846, guid: 0a1b602fab799994198f1ac6c6a0d2de, type: 3}
-      propertyPath: m_ReceiveGI
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 3426004662031675394, guid: 0a1b602fab799994198f1ac6c6a0d2de, type: 3}
-      propertyPath: m_RenderingLayerMask
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 3642373378616862844, guid: 0a1b602fab799994198f1ac6c6a0d2de, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
