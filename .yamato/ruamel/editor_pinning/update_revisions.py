@@ -119,17 +119,20 @@ def get_versions_from_unity_downloader(tracks, trunk_track, unity_downloader_com
                             break
                     print(f'INFO: Latest revision for {key} [{platform}]: {revision} (version: {version})')
                 except subprocess.TimeoutExpired as err:
-                    print(f'WARNING: Timout {timeout}s exceeded for {key} [{platform}]')
+                    print(f'WARNING: {key} [{platform}]: Timout {timeout}s exceeded')
 
                 except subprocess.CalledProcessError as err:
                     # Not great error handling but will hold until there's a better way.
                     if err.stderr and INVALID_VERSION_ERROR in err.stderr:
                         print(
-                            f'WARNING: '
+                            f'WARNING: {key} [{platform}]: '
                             f'unity-downloader-cli did not find a version for track: {track} '
                             f'and version: {version}. This is expected in some cases, e.g. alphas '
                             'that are not public yet.')
-                    raise err
+                    else:
+                        print(
+                            f'ERROR: {key} [{platform}] Revision will not be updated (keeping the previously existing one):\n'
+                            f'Failed to run '{err.cmd}'\nStdout:\n{err.stdout}\nStderr:\n{err.stderr} ')
     return versions
 
 
