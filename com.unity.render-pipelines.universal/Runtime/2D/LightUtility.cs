@@ -1,14 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using UnityEngine.Experimental.Rendering.Universal.LibTessDotNet;
 using UnityEngine.Rendering;
 using UnityEngine.U2D;
-using UnityEngine.UIElements;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
@@ -321,15 +318,23 @@ namespace UnityEngine.Experimental.Rendering.Universal
             // Adjust angles when direction is parallel to Up Axis.
             an = (du != 1f) ? an : 0;
             an = (du != -1f) ? an : -180f;
-            return an;
+            return (360.0f + an) % 360.0f;
         }
         
-        static List<Vector3> GetArc(Vector3 from, Vector3 to, Vector3 center, float radius, float detail)
+        static List<Vector3> GetArc(Vector3 from, Vector3 to, Vector3 pivot, Vector3 center, float radius, float detail)
         {
             var arc = new List<Vector3>();
             var fq = SlopeAngle(from.normalized);
             var tq = SlopeAngle(to.normalized);
+            var sq = SlopeAngle(pivot.normalized);
+
+            var fd = Math.Abs(sq - fq);
+            var td = Math.Abs(tq - sq);
+            var df = Math.Abs(fd - td);
             
+            if (df > 1.0f)
+                fq = (fd > td) ? (sq + td) : (fq + 360);
+
             var arcLength = tq - fq;
             for (int i = 0; i <= detail; i++)
             {
@@ -367,7 +372,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 var pivotPoint = new ParametricLightMeshVertex() {position = ip, color = meshInteriorColor};
                 var startPoint = new ParametricLightMeshVertex() {position = sp, color = new Color(isn.x, isn.y, 0, 1)};
-                var arc = GetArc(isn, ien, ip, fallOff, bezierQuality);
+                var arc = GetArc(isn, ien, sen, ip, fallOff, bezierQuality);
                 
                 for (int n = 0; n <= bezierQuality; ++n)
                 {
