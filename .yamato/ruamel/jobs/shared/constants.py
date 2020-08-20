@@ -24,6 +24,6 @@ def get_unity_downloader_cli_cmd(editor, platform_os, cd=False):
         if cd:
             return f'--source-file ../../{PATH_UNITY_REVISION}'
         else:
-            return PATH_UNITY_REVISION
+            return f'--source-file {PATH_UNITY_REVISION}'
     else:
         return f'-u {get_editor_revision(editor, platform_os)}'
