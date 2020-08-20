@@ -158,9 +158,13 @@ Universal_Update_Images:
     dependencies:
         -  path: .yamato/universal-update-images.yml#Universal_Win_DX11_playmode_fast-trunk
            rerun: on-new-revision
+           allow_failure: true
         -  path: .yamato/universal-update-images.yml#Universal_Win_DX11_Standalone_fast-trunk
            rerun: on-new-revision
+           allow_failure: true
         -  path: .yamato/universal-update-images.yml#Universal_Win_DX12_playmode_fast-trunk
            rerun: on-new-revision
+           allow_failure: true
         -  path: .yamato/universal-update-images.yml#Universal_Win_DX12_Standalone_fast-trunk
            rerun: on-new-revision
+           allow_failure: true
