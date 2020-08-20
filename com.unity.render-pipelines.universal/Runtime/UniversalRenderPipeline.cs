@@ -209,6 +209,7 @@ namespace UnityEngine.Rendering.Universal
             if (!TryGetCullingParameters(cameraData, out var cullingParameters))
                 return;
 
+            ScriptableRenderer.current = renderer;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
             // NOTE: Do NOT mix ProfilingScope with named CommandBuffers i.e. CommandBufferPool.Get("name").
@@ -251,6 +252,8 @@ namespace UnityEngine.Rendering.Universal
             context.ExecuteCommandBuffer(cmd); // Sends to ScriptableRenderContext all the commands enqueued since cmd.Clear, i.e the "EndSample" command
             CommandBufferPool.Release(cmd);
             context.Submit(); // Actually execute the commands that we previously sent to the ScriptableRenderContext context
+
+            ScriptableRenderer.current = null;
         }
 
         /// <summary>

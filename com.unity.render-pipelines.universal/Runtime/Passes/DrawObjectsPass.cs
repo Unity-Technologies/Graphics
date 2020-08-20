@@ -62,10 +62,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            var renderer = renderingData.cameraData.renderer;
-            var colorBuffer = renderer.GetRenderTexture(UniversalRenderTextureType.ColorBuffer);
-            var depthBuffer = renderer.GetRenderTexture(UniversalRenderTextureType.DepthBuffer);
-            ConfigureTarget(colorBuffer, depthBuffer);
+            ConfigureTarget(UniversalRenderTextureType.CameraTarget, UniversalRenderTextureType.CameraTarget);
         }
 
         /// <inheritdoc/>

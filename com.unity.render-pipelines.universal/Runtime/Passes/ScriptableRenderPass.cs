@@ -95,7 +95,7 @@ namespace UnityEngine.Rendering.Universal
             var none = BuiltinRenderTextureType.None;
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
             m_ColorAttachments = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget, none, none, none, none, none, none, none};
-            m_DepthAttachment = none;
+            m_DepthAttachment = BuiltinRenderTextureType.Depth;
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
@@ -158,7 +158,10 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 1; i < m_ColorAttachments.Length; ++i)
                 m_ColorAttachments[i] = 0;
 
-            m_DepthAttachment = BuiltinRenderTextureType.None;
+            if (colorAttachment == BuiltinRenderTextureType.CurrentActive)
+                m_DepthAttachment = BuiltinRenderTextureType.CurrentActive;
+            else
+                m_DepthAttachment = BuiltinRenderTextureType.Depth;
         }
 
         /// <summary>
@@ -169,7 +172,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments)
         {
-            ConfigureTarget(colorAttachments, BuiltinRenderTextureType.None);
+            ConfigureTarget(colorAttachments, BuiltinRenderTextureType.Depth);
         }
 
         /// <summary>
@@ -196,10 +199,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="ConfigureClear"/>
         public virtual void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            var renderer = renderingData.cameraData.renderer;
-            var colorBuffer = renderer.GetRenderTexture(UniversalRenderTextureType.ColorBuffer);
-            var depthBuffer = renderer.GetRenderTexture(UniversalRenderTextureType.DepthBuffer);
-            ConfigureTarget(colorBuffer, depthBuffer);
+            ConfigureTarget(UniversalRenderTextureType.CameraTarget, UniversalRenderTextureType.CameraTarget);
             ConfigureClear(clearFlag, clearColor);
         }
 

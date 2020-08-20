@@ -13,11 +13,7 @@ public class #SCRIPTNAME# : ScriptableRendererFeature
         // The render pipeline will ensure target setup and clearing happens in a performant manner.
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            var renderer = renderingData.cameraData.renderer;
-            var colorBuffer = renderer.GetRenderTexture(UniversalRenderTextureType.ColorBuffer);
-            var depthBuffer = renderer.GetRenderTexture(UniversalRenderTextureType.DepthBuffer);
-            ConfigureTarget(colorBuffer, depthBuffer);
-            ConfigureClear(clearFlag, clearColor);
+            ConfigureTarget(UniversalRenderTextureType.CameraTarget, UniversalRenderTextureType.CameraTarget);
         }
 
         // Here you can implement the rendering logic.

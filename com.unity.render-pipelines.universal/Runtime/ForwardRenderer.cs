@@ -502,12 +502,15 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
-                int msaaSamples = descriptor.msaaSamples;
                 if (createColor)
                 {
-                    bool useDepthRenderBuffer = m_ActiveCameraDepthAttachment == RenderTargetHandle.CameraTarget;
                     var colorDescriptor = descriptor;
-                    colorDescriptor.depthBufferBits = (useDepthRenderBuffer) ? k_DepthStencilBufferBits : 0;
+
+                    // When m_ActiveCameraDepthAttachment is configured to CameraTarget, we create a color texture with
+                    // depth buffer bits. In that case, Unity will use either native depth
+                    // buffer or create an implicit depth texture when calling GetTemporaryRT
+                    bool useImplicitDepthTexture = m_ActiveCameraDepthAttachment == RenderTargetHandle.CameraTarget;
+                    colorDescriptor.depthBufferBits = (useImplicitDepthTexture) ? k_DepthStencilBufferBits : 0;
                     cmd.GetTemporaryRT(m_ActiveCameraColorAttachment.id, colorDescriptor, FilterMode.Bilinear);
                 }
 
