@@ -78,10 +78,9 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
     - Gets the editor in a separate job to save on the compute resources, stores the editor version in a .txt file which is then picked up by the parent job which calls unity-downloader-cli
     - Still used for custom-revision jobs, because we don't want to hold on to expensive compute resources the job itself requires, while waiting for the editor 
 - Editor pinning:
-    - Updates editor revisions (`config/_latest_editor_versions.metafile`) on a nightly basis, on the condition that ABV passes, and all our jobs (ABV, nightly) use these obtained revisions (`[track]_latest_internal`). This way, if e.g. trunk breaks, it is discovered by the nightly update job (and revisions for this platform won't be updated), and we continue using the latest working revision, until a new working one is available.
+    - Updates editor revisions (`config/_latest_editor_versions.metafile`) on a nightly basis, on the condition that ABV passes. All our jobs (ABV, nightly etc) use revisions from this file (specifically `[track]_latest_internal`). This way, if e.g. trunk breaks, it is discovered by the nightly update job (and revisions for this platform won't be updated), and we continue using the latest working revision, until a new working one becomes available.
     
-    ![Editor pinning flow](/editor_pinning.png)
-    Format: ![Alt Text](url)
+    - ![Editor pinning flow](editor_pinning.png)
 
 
 # FAQ
