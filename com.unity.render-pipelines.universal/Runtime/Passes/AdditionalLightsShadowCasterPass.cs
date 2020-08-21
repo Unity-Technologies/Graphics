@@ -290,9 +290,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                             else if (lightType == LightType.Point)
                             {
                                 float fovBias = GetPointLightShadowFrustumFovBiasInDegrees(sliceResolution, (shadowLight.light.shadows==LightShadows.Soft));
-
-                                // store fovBias in spotAngle because it is used to compute ShadowUtils.GetShadowBias
-                                shadowLight.spotAngle = 90 + fovBias;
+                                // Note: the same fovBias will also be used to compute ShadowUtils.GetShadowBias
 
                                 bool success = ShadowUtils.ExtractPointLightMatrix(ref renderingData.cullResults,
                                     ref renderingData.shadowData,
