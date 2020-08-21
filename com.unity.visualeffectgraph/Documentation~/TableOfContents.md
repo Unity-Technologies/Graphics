@@ -55,6 +55,8 @@
       * Kill
         * [Kill (AABox)](Block-Kill(AABox).md)
         * [Kill (Sphere)](Block-Kill(Sphere).md)
+      * Orientation
+        * [Connect Target](Block-ConnectTarget.md)
       * Position
         * [Set Position (Depth)](Block-SetPosition(Depth).md)
         * [Set Position (Shape : AABox)](Block-SetPosition(AABox).md)
