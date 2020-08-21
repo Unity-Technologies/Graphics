@@ -60,6 +60,11 @@
         * [Set Position (Shape : Sphere)](Block-SetPosition(Sphere).md)
         * [Set Position (Sequential)](Block-SetPosition(Sequential).md)
         * [Tile/Warp Positions](Block-TileWarpPositions.md)
+      * Spawn
+        * [Constant Spawn Rate](Block-Constant-Rate.md)
+        * [Periodic Burst](Block-Burst.md)
+        * [Single  Burst](Block-Burst.md)
+        * [Variable Spawn Rate](Block-Variable-Rate.md)
       * Velocity
         * [Velocity from Direction & Speed (Change Speed)](Block-VelocityFromDirection&Speed(ChangeSpeed).md)
         * [Velocity from Direction & Speed (New Direction)](Block-VelocityFromDirection&Speed(NewDirection).md)
