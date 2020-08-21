@@ -154,7 +154,9 @@ Shader "Universal Render Pipeline/Lit"
 
             // -------------------------------------
             // Universal Pipeline keywords
-            #pragma multi_compile_vertex _ _CASTING_DIRECTIONAL_LIGHT_SHADOW
+
+            // This is used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias
+            #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
 
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
@@ -429,7 +431,9 @@ Shader "Universal Render Pipeline/Lit"
 
             // -------------------------------------
             // Universal Pipeline keywords
-            #pragma multi_compile_vertex _ _CASTING_DIRECTIONAL_LIGHT_SHADOW
+
+            // This is used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias
+            #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
 
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment

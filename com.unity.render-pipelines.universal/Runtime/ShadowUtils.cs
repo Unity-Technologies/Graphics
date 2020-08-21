@@ -208,17 +208,12 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector("_ShadowBias", shadowBias);
 
             // Light direction is currently used in shadow caster pass to apply shadow normal offset (normal bias).
-            if(shadowLight.lightType == LightType.Directional)
-            {
-                Vector3 lightDirection = -shadowLight.localToWorldMatrix.GetColumn(2);
-                cmd.SetGlobalVector("_ShadowCastingLightParameters", new Vector4(lightDirection.x, lightDirection.y, lightDirection.z, 0.0f));
-            }
-            else
-            {
-                // For punctual lights, computing light direction at each vertex position provides more consistent results (shadow shape does not change when "rotating the point light" for example)
-                Vector3 lightPosition = shadowLight.localToWorldMatrix.GetColumn(3);
-                cmd.SetGlobalVector("_ShadowCastingLightParameters", new Vector4(lightPosition.x, lightPosition.y, lightPosition.z, 0.0f));
-            }            
+            Vector3 lightDirection = -shadowLight.localToWorldMatrix.GetColumn(2);
+            cmd.SetGlobalVector("_LightDirection", new Vector4(lightDirection.x, lightDirection.y, lightDirection.z, 0.0f));
+
+            // For punctual lights, computing light direction at each vertex position provides more consistent results (shadow shape does not change when "rotating the point light" for example)
+            Vector3 lightPosition = shadowLight.localToWorldMatrix.GetColumn(3);
+            cmd.SetGlobalVector("_LightPosition", new Vector4(lightPosition.x, lightPosition.y, lightPosition.z, 1.0f));
         }
 
         public static RenderTexture GetTemporaryShadowTexture(int width, int height, int bits)

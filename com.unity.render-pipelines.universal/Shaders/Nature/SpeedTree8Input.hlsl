@@ -51,24 +51,15 @@ SAMPLER(sampler_MainTex);
     half _SubsurfaceIndirect;
 #endif
 
-// Shadow Casting Light geometric parameters.
-// For Directional lights, this variable contains shadow-casting light's direction.
-// For Spot lights and Point lights, this variable contains shadow-casting light's position (direction is different at each vertex of the shadow casting geometry).
-// This variable is set by UnityEngine.Rendering.Universal.ShadowUtils.SetupShadowCasterConstantBuffer in com.unity.render-pipelines.universal/Runtime/ShadowUtils.cs 
-float3 _ShadowCastingLightParameters;
+// Shadow Casting Light geometric parameters. These variables are used when applying the shadow Normal Bias and are set by UnityEngine.Rendering.Universal.ShadowUtils.SetupShadowCasterConstantBuffer in com.unity.render-pipelines.universal/Runtime/ShadowUtils.cs 
+// For Directional lights, _LightDirection is used when applying shadow Normal Bias.
+// For Spot lights and Point lights, _LightPosition is used to compute the actual light direction because it is different at each shadow caster geometry vertex.
+float3 _LightDirection;
+float3 _LightPosition;
 
 #define GEOM_TYPE_BRANCH 0
 #define GEOM_TYPE_FROND 1
 #define GEOM_TYPE_LEAF 2
 #define GEOM_TYPE_FACINGLEAF 3
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Deprecated                                                                 /
-///////////////////////////////////////////////////////////////////////////////
-
-// _LightDirection was deprecated, use _ShadowCastingLightParameters instead (contains light direction for directional lights, and light position for punctual lights)
-#define _LightDirection _ShadowCastingLightParameters
-
 
 #endif
