@@ -38,7 +38,7 @@ def cmd_standalone(project_folder, platform, api, test_platform_args, editor):
     return base
 
 def cmd_standalone_build(project_folder, platform, api, test_platform_args, editor):
-    raise Exception('osx_metal: standalone_split set to true but build commands not specified')
+    raise NotImplementedError('osx_metal: standalone_split set to true but build commands not specified')
 
 
 def _get_extra_utr_arg(project_folder):

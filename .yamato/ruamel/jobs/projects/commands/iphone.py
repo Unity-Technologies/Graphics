@@ -6,7 +6,7 @@ def _cmd_base(project_folder, platform, editor):
 
 
 def cmd_not_standalone(project_folder, platform, api, test_platform_args, editor):
-    raise Exception('iPhone: only standalone available')
+    raise NotImplementedError('iPhone: only standalone available')
 
 def cmd_standalone(project_folder, platform, api, test_platform_args, editor):
     return [
