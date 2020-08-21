@@ -987,7 +987,7 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             Includes = new List<string>()
             {
-                "#include \"Packages/com.unity.sensor/Runtime/Sensors/Components/Resources/SensorShaderPassPathTracing.hlsl\"",
+                "#include \"Packages/com.unity.sensorsdk/Runtime/Sensors/Components/Resources/SensorShaderPassPathTracing.hlsl\"",
             },
             PixelShaderSlots = new List<int>()
             {

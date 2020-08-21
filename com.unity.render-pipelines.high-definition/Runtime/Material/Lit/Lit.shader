@@ -1101,7 +1101,7 @@ Shader "HDRP/Lit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
-            #include "Packages/com.unity.sensor/Runtime/Sensors/Components/Resources/SensorShaderPassPathTracing.hlsl"
+            #include "Packages/com.unity.sensorsdk/Runtime/Sensors/Components/Resources/SensorShaderPassPathTracing.hlsl"
 
             ENDHLSL
         }
