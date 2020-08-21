@@ -2,7 +2,7 @@
 
 Menu Path : **Spawn > Variable Rate**
 
-The Variable Rate Block uses a more advanced approach than the [Constant Rate Block](Block-Constant-Rate.md). The spawn rate this Block applies is linearly interpolated between two rates within an interval defined by the period.
+The Variable Rate Block uses a more advanced approach than the [Constant Rate Block](Block-ConstantRate.md). The spawn rate this Block applies is linearly interpolated between two rates within an interval defined by the period.
 
 ## Block compatibility
 

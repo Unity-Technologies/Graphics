@@ -48,6 +48,7 @@
       * GPU Event
         * [Trigger Event Always](Block-TriggerEventAlways.md)
         * [Trigger Event On Die](Block-TriggerEventOnDie.md)
+        * [Trigger Event Rate](Block-TriggerEventRate.md)
       * Kill
         * [Kill (AABox)](Block-Kill(AABox).md)
         * [Kill (Sphere)](Block-Kill(Sphere).md)
@@ -61,10 +62,10 @@
         * [Set Position (Sequential)](Block-SetPosition(Sequential).md)
         * [Tile/Warp Positions](Block-TileWarpPositions.md)
       * Spawn
-        * [Constant Spawn Rate](Block-Constant-Rate.md)
+        * [Constant Spawn Rate](Block-ConstantRate.md)
         * [Periodic Burst](Block-Burst.md)
         * [Single  Burst](Block-Burst.md)
-        * [Variable Spawn Rate](Block-Variable-Rate.md)
+        * [Variable Spawn Rate](Block-VariableRate.md)
       * Velocity
         * [Velocity from Direction & Speed (Change Speed)](Block-VelocityFromDirection&Speed(ChangeSpeed).md)
         * [Velocity from Direction & Speed (New Direction)](Block-VelocityFromDirection&Speed(NewDirection).md)

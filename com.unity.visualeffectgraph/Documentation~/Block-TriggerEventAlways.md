@@ -21,3 +21,7 @@ This Block is compatible with the following Contexts:
 | **Input** | **Type** | **Description**                                         |
 | --------- | -------- | ------------------------------------------------------- |
 | **Count** | Uint     | The number of GPU Event particles to spawn every frame. |
+
+| **Output** | **Type**                         | **Description**           |
+| ---------- | -------------------------------- | ------------------------- |
+| **Evt**    | [GPU Event](Context-GPUEvent.md) | The GPU Event to trigger. |
