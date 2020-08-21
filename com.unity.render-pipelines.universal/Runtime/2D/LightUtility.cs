@@ -279,7 +279,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     Y = shapePath[i].y + (fallOff * extrusionDir[i].y),
                     Z = 0 
                 };
-                vertices.Add( new ContourVertex() { Position = b, Data = new Color(extrusionDir[i].x, extrusionDir[i].y, 0, 1) } );
+                vertices.Add( new ContourVertex() { Position = b, Data = new Color(extrusionDir[i].x, extrusionDir[i].y, 0, 0) } );
                 var j = (i == shapePath.Length - 1) ? 0 : (i + 1);
                 var c = new Vec3() 
                 {
@@ -287,7 +287,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     Y = shapePath[j].y + (fallOff * extrusionDir[i].y),
                     Z = 0 
                 };
-                vertices.Add( new ContourVertex() { Position = c, Data = new Color(extrusionDir[i].x, extrusionDir[i].y, 0, 1) } );
+                vertices.Add( new ContourVertex() { Position = c, Data = new Color(extrusionDir[i].x, extrusionDir[i].y, 0, 0) } );
                 var d = new Vec3()
                 {
                     X = shapePath[j].x, Y = shapePath[j].y, Z = 0
@@ -371,7 +371,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 var np = ip + (sen * fallOff);
 
                 var pivotPoint = new ParametricLightMeshVertex() {position = ip, color = meshInteriorColor};
-                var startPoint = new ParametricLightMeshVertex() {position = sp, color = new Color(isn.x, isn.y, 0, 1)};
+                var startPoint = new ParametricLightMeshVertex() {position = sp, color = new Color(isn.x, isn.y, 0, 0)};
                 var arc = GetArc(isn, ien, sen, ip, fallOff, bezierQuality);
                 
                 for (int n = 0; n <= bezierQuality; ++n)
@@ -384,7 +384,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     indices[icount++] = (ushort)(vcount + 2); 
                     vertices[vcount++] = pivotPoint;
                     vertices[vcount++] = startPoint;
-                    startPoint = new ParametricLightMeshVertex() { position = r, color = new Color(d.x, d.y, 0, 1) };
+                    startPoint = new ParametricLightMeshVertex() { position = r, color = new Color(d.x, d.y, 0, 0) };
                     vertices[vcount++] = startPoint;
                 }
             }
