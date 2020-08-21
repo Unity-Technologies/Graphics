@@ -78,6 +78,38 @@ namespace UnityEngine.Rendering.Universal
 
             // TODO: Skybox material for realtime GI
         }
+        private int ComputeSkyHash(SkyUpdateContext skyContext, Light sunLight, SkyAmbientMode ambientMode)
+        {
+            int sunHash = 0;
+            if (sunLight != null)
+                sunHash = GetSunLightHashCode(sunLight);
+
+            int skyHash = sunHash * 23 + skyContext.skySettings.GetHashCode();
+            skyHash = skyHash * 23 + (ambientMode == SkyAmbientMode.Static ? 1 : 0);
+
+            return skyHash;
+        }
+
+        // We do our own hash here because Unity does not provide correct hash for builtin types
+        // Moreover, we don't want to test every single parameters of the light so we filter them here in this specific function.
+        private int GetSunLightHashCode(Light light)
+        {
+            int hash = 13;
+
+            unchecked
+            {
+                // Sun could influence the sky (like for procedural sky). We need to handle this possibility. If sun property change, then we need to update the sky
+                hash = hash * 23 + light.transform.position.GetHashCode();
+                hash = hash * 23 + light.transform.rotation.GetHashCode();
+                hash = hash * 23 + light.color.GetHashCode();
+                hash = hash * 23 + light.colorTemperature.GetHashCode();
+                hash = hash * 23 + light.intensity.GetHashCode();
+
+                // TODO Extra per-RP light parameters
+            }
+
+            return hash;
+        }
     }
 
     public static class SkyShaderConstants

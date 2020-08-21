@@ -36,7 +36,22 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Sets the period, in seconds, at which HDRP updates the environment ligting (0 means HDRP updates it every frame).")]
         public MinFloatParameter updatePeriod = new MinFloatParameter(0.0f, 0.0f); // TODO Unused
 
-        // TODO Hash
+        public override int GetHashCode()
+        {
+            int hash = 13;
+
+            unchecked
+            {
+                hash = hash * 23 + skyIntensityMode.GetHashCode();
+                hash = hash * 23 + exposure.GetHashCode();
+                hash = hash * 23 + multiplier.GetHashCode();
+                hash = hash * 23 + desiredLuxValue.GetHashCode();
+                // UpdateMode and period should not be part of the hash as they do not influence rendering itself.
+                // TODO Other parameters
+            }
+
+            return hash;
+        }
 
         public abstract Type GetSkyRendererType();
     }
