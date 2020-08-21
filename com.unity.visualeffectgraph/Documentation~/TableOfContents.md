@@ -49,6 +49,9 @@
         * [Trigger Event Always](Block-TriggerEventAlways.md)
         * [Trigger Event On Die](Block-TriggerEventOnDie.md)
         * [Trigger Event Rate](Block-TriggerEventRate.md)
+      * Implicit
+        * [Integration : Update Position](Block-UpdatePosition.md)
+        * [Integration : Update Rotation](Block-UpdateRotation.md)
       * Kill
         * [Kill (AABox)](Block-Kill(AABox).md)
         * [Kill (Sphere)](Block-Kill(Sphere).md)
