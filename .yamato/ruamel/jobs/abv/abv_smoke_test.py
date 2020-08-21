@@ -34,6 +34,6 @@ class ABV_SmokeTestJob():
         job.add_commands(commands)
         job.add_artifacts_test_results()
 
-        if editor['track'].lower() == 'custom-revision':
+        if str(editor['track']).lower() == 'custom-revision':
             job.add_dependencies([f'{editor_priming_filepath()}#{editor_job_id(editor["track"], "windows") }'])
         return job

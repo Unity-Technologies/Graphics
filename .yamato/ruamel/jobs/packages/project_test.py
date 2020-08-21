@@ -14,7 +14,7 @@ class Project_TestJob():
 
         # define dependencies
         dependencies = [f'{projectcontext_filepath()}#{projectcontext_job_id_pack()}']
-        if editor['track'].lower() == 'custom-revision':
+        if str(editor['track']).lower() == 'custom-revision':
             dependencies.extend([f'{editor_priming_filepath()}#{editor_job_id(editor["track"], platform["os"]) }'])
                 
         # define commands

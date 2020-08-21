@@ -20,7 +20,7 @@ def get_editor_revision(editor, platform_os):
     return VAR_CUSTOM_REVISION if str(editor['track']).lower()=='custom-revision' else editor["revisions"][f"{editor['track']}_latest_internal"][platform_os]["revision"]
 
 def get_unity_downloader_cli_cmd(editor, platform_os, cd=False):
-    if editor["track"].lower() == 'custom-revision':
+    if str(editor["track"]).lower() == 'custom-revision':
         if cd:
             return f'--source-file ../../{PATH_UNITY_REVISION}'
         else:
