@@ -170,7 +170,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             mesh.SetVertexBufferParams(vertices.Length, SpriteLightMeshVertex.VertexLayout);
             mesh.SetVertexBufferData(vertices, 0, 0, vertices.Length);
             mesh.SetIndices(srcIndices, MeshTopology.Triangles, 0, true);
-            return mesh.bounds;
+            return mesh.GetSubMesh(0).bounds;
         }
 
         public static List<Vector2> GetFalloffShape(Vector3[] shapePath)
