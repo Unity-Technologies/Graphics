@@ -29,6 +29,10 @@ editor-pinning-update:
       -  pipenv run python3 .yamato/ruamel/editor_pinning/update_revisions.py --target-branch yamato/editor-pin-ci --force-push
     dependencies:
       -  .yamato/_editor_pinning.yml#editor-pinning-merge-from-target
+    triggers:
+        recurring:
+          -  branch: yamato/editor-pin
+             frequency: 0 * * ?
 editor-pinning-merge-to-target:
     name: Merge editor revisions to yamato/editor-pin
     agent:

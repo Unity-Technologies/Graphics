@@ -38,5 +38,5 @@ class Editor_PinningUpdateJob():
         job.add_var_custom('CI', True)
         job.add_commands(commands)
         job.add_dependencies([f'{editor_pinning_filepath()}#{editor_job_id_merge_from_target()}']) #TODO toggle
-        # job.add_trigger_recurrent(target_branch, '1 * * ?') TODO uncomment
+        job.add_trigger_recurrent(target_branch, '0 * * ?') # TODO uncomment
         return job
