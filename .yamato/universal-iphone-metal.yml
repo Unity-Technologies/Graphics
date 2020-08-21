@@ -33,7 +33,7 @@ Build_Universal_iPhone_Metal_Player_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u eb03bc43ebc21a77097bd92e31d39fefff50c136 -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u 268f33c02e9104d153034d8740c9d38d596f8faa -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  ./utr --suite=playmode --platform=iOS --editor-location=.Editor --testproject=TestProjects/UniversalGraphicsTest --player-save-path=players --artifacts_path=test-results --build-only
