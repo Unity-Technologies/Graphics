@@ -610,7 +610,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Build the color grading lut
                         using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ColorGradingLUTBuilder)))
                         {
-                            DoColorGrading(cmd, cs, kernel);
+//SensorSDK - Begin - Tonemapping support
+                            DoColorGrading(cmd, cs, kernel, camera);
+//SensorSDK - End - Tonemapping support
                         }
 
                         // Setup the rest of the effects
@@ -2135,7 +2137,9 @@ namespace UnityEngine.Rendering.HighDefinition
         #region Color Grading
 
         // TODO: User lut support
-        void DoColorGrading(CommandBuffer cmd, ComputeShader cs, int kernel)
+//SensorSDK - Begin - Tonemapping support
+        void DoColorGrading(CommandBuffer cmd, ComputeShader cs, int kernel, HDCamera camera)
+//SensorSDK - End - Tonemapping support
         {
             // Prepare data
             var lmsColorBalance = GetColorBalanceCoeffs(m_WhiteBalance.temperature.value, m_WhiteBalance.tint.value);
@@ -2247,6 +2251,11 @@ namespace UnityEngine.Rendering.HighDefinition
             var logLutSettings = new Vector4(1f / m_LutSize, m_LutSize - 1f, postExposureLinear, 0f);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._LogLut3D, m_InternalLogLut);
             cmd.SetComputeVectorParam(cs, HDShaderIDs._LogLut3D_Params, logLutSettings);
+
+//SensorSDK - Begin - Tonemapping support
+            camera.internalLogLut = m_InternalLogLut; // ARGBHalf
+            camera.logLutSettings = logLutSettings;
+//SensorSDK - End - Tonemapping support
         }
 
         // Returns color balance coefficients in the LMS space

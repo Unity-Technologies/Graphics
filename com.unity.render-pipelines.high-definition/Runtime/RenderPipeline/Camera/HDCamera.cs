@@ -173,6 +173,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public GPULightType lightType;
         }
 
+//SensorSDK - Begin - Tonemapping support
+        public RTHandle internalLogLut; // ARGBHalf
+        public Vector4 logLutSettings;
+//SensorSDK - End - Tonemapping support
+
         internal Vector4[]              frustumPlaneEquations;
         internal int                    taaFrameIndex;
         internal float                  taaSharpenStrength;
