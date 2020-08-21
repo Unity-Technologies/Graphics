@@ -29,7 +29,7 @@ Shader "Universal Render Pipeline/Lit"
         _OcclusionStrength("Strength", Range(0.0, 1.0)) = 1.0
         _OcclusionMap("Occlusion", 2D) = "white" {}
 
-        _EmissionColor("Color", Color) = (0,0,0)
+        [HDR] _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
 
         _ClearCoat("Clear Coat", Float) = 0.0
@@ -183,7 +183,7 @@ Shader "Universal Render Pipeline/Lit"
             }
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x
+            #pragma exclude_renderers d3d11_9x gles
             #pragma target 2.0
 
             // -------------------------------------

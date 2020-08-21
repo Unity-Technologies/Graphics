@@ -50,10 +50,17 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
+<<<<<<< HEAD
         "com.unity.render-pipelines.core": "10.0.0-preview.24",
         "com.unity.shadergraph": "10.0.0-preview.21",
         "com.unity.visualeffectgraph": "10.0.0-preview.21",
         "com.unity.render-pipelines.high-definition-config": "10.0.0-preview.21"
+=======
+        "com.unity.render-pipelines.core": "10.0.0-preview.25",
+        "com.unity.shadergraph": "10.0.0-preview.22",
+        "com.unity.visualeffectgraph": "10.0.0-preview.22",
+        "com.unity.render-pipelines.high-definition-config": "10.0.0-preview.22"
+>>>>>>> HDRP/staging
       }
     },
     "com.unity.render-pipelines.high-definition-config": {
@@ -61,7 +68,11 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
+<<<<<<< HEAD
         "com.unity.render-pipelines.core": "10.0.0-preview.24"
+=======
+        "com.unity.render-pipelines.core": "10.0.0-preview.25"
+>>>>>>> HDRP/staging
       }
     },
     "com.unity.searcher": {
@@ -76,7 +87,11 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
+<<<<<<< HEAD
         "com.unity.render-pipelines.core": "10.0.0-preview.24",
+=======
+        "com.unity.render-pipelines.core": "10.0.0-preview.25",
+>>>>>>> HDRP/staging
         "com.unity.searcher": "4.3.1"
       }
     },
@@ -132,7 +147,11 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
+<<<<<<< HEAD
         "com.unity.shadergraph": "10.0.0-preview.21"
+=======
+        "com.unity.shadergraph": "10.0.0-preview.22"
+>>>>>>> HDRP/staging
       }
     },
     "com.unity.xr.legacyinputhelpers": {

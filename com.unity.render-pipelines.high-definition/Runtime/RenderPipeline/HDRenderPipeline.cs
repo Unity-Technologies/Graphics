@@ -1,5 +1,3 @@
-//#define HAVE_DEFAULT_RENDERING_LAYER_MASK
-
 using System.Collections.Generic;
 using UnityEngine.VFX;
 using System;
@@ -121,7 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_PreviousLightsUseColorTemperature;
         bool m_PreviousSRPBatcher;
 
-#if HAVE_DEFAULT_RENDERING_LAYER_MASK
+#if UNITY_2020_2_OR_NEWER
         uint m_PreviousDefaultRenderingLayerMask;
 #endif
         ShadowmaskMode m_PreviousShadowMaskMode;
@@ -236,11 +234,9 @@ namespace UnityEngine.Rendering.HighDefinition
         ShaderTagId[] m_TransparentDepthPostpassNames = { HDShaderPassNames.s_TransparentDepthPostpassName };
         ShaderTagId[] m_RayTracingPrepassNames = { HDShaderPassNames.s_RayTracingPrepassName };
         ShaderTagId[] m_ForwardErrorPassNames = { HDShaderPassNames.s_AlwaysName, HDShaderPassNames.s_ForwardBaseName, HDShaderPassNames.s_DeferredName, HDShaderPassNames.s_PrepassBaseName, HDShaderPassNames.s_VertexName, HDShaderPassNames.s_VertexLMRGBMName, HDShaderPassNames.s_VertexLMName };
-        ShaderTagId[] m_DecalsEmissivePassNames = { HDShaderPassNames.s_MeshDecalsForwardEmissiveName, HDShaderPassNames.s_ShaderGraphMeshDecalsForwardEmissiveName };
+        ShaderTagId[] m_DecalsEmissivePassNames = { HDShaderPassNames.s_DecalMeshForwardEmissiveName };
         ShaderTagId[] m_SinglePassName = new ShaderTagId[1];
-        ShaderTagId[] m_Decals4RTPassNames = { HDShaderPassNames.s_MeshDecalsMName , HDShaderPassNames.s_MeshDecalsAOName , HDShaderPassNames.s_MeshDecalsMAOName, HDShaderPassNames.s_MeshDecalsSName ,
-                                                HDShaderPassNames.s_MeshDecalsMSName, HDShaderPassNames.s_MeshDecalsAOSName, HDShaderPassNames.s_MeshDecalsMAOSName, HDShaderPassNames.s_ShaderGraphMeshDecalsName4RT};
-        ShaderTagId[] m_Decals3RTPassNames = { HDShaderPassNames.s_MeshDecals3RTName , HDShaderPassNames.s_ShaderGraphMeshDecalsName3RT };
+        ShaderTagId[] m_MeshDecalsPassNames = { HDShaderPassNames.s_DBufferMeshName };
 
         RenderStateBlock m_DepthStateOpaque;
         RenderStateBlock m_DepthStateNoWrite;
@@ -818,7 +814,7 @@ namespace UnityEngine.Rendering.HighDefinition
             GraphicsSettings.lightsUseColorTemperature = true;
             m_PreviousSRPBatcher = GraphicsSettings.useScriptableRenderPipelineBatching;
             GraphicsSettings.useScriptableRenderPipelineBatching = m_Asset.enableSRPBatcher;
-#if  HAVE_DEFAULT_RENDERING_LAYER_MASK
+#if  UNITY_2020_2_OR_NEWER
             m_PreviousDefaultRenderingLayerMask = GraphicsSettings.defaultRenderingLayerMask;
             GraphicsSettings.defaultRenderingLayerMask = ShaderVariablesGlobal.DefaultRenderingLayerMask;
 #endif
@@ -946,7 +942,7 @@ namespace UnityEngine.Rendering.HighDefinition
             GraphicsSettings.lightsUseLinearIntensity = m_PreviousLightsUseLinearIntensity;
             GraphicsSettings.lightsUseColorTemperature = m_PreviousLightsUseColorTemperature;
             GraphicsSettings.useScriptableRenderPipelineBatching = m_PreviousSRPBatcher;
-#if HAVE_DEFAULT_RENDERING_LAYER_MASK
+#if UNITY_2020_2_OR_NEWER
             GraphicsSettings.defaultRenderingLayerMask = m_PreviousDefaultRenderingLayerMask;
 #endif
             QualitySettings.shadowmaskMode = m_PreviousShadowMaskMode;
@@ -1741,15 +1737,18 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (!probe.requiresRealtimeUpdate)
                             return;
 
+                        float visibility = ComputeVisibility(visibleInIndex, probe);
+
                         // Notify that we render the probe at this frame
                         // NOTE: If the probe was rendered on the very first frame, we could have some data that was used and it wasn't in a fully initialized state, which is fine on PC, but on console
                         // might lead to NaNs due to lack of complete initialization. To circumvent this, we force the probe to render again only if it was rendered on the first frame. Note that the problem
                         // doesn't apply if probe is enable any frame other than the very first. Also note that we are likely to be re-rendering the probe anyway due to the issue on sky ambient probe
                         // (see m_SkyManager.HasSetValidAmbientProbe in this function).
-                        if (m_FrameCount > 1)
+                        // Also, we need to set the probe as rendered only if we'll actually render it and this won't happen if visibility is not > 0.
+                        if (m_FrameCount > 1 && visibility > 0.0f)
                             probe.SetIsRendered(m_FrameCount);
 
-                        float visibility = ComputeVisibility(visibleInIndex, probe);
+
 
                         if (!renderRequestIndicesWhereTheProbeIsVisible.TryGetValue(probe, out var visibleInIndices))
                         {
@@ -2633,7 +2632,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     var depthTexture = m_SharedRTManager.GetDepthTexture();
                     var normalBuffer = m_SharedRTManager.GetNormalBuffer();
-                    var motionVectors = m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors ? m_SharedRTManager.GetMotionVectorsBuffer() : TextureXR.GetBlackTextureArray();
+                    var motionVectors = m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors ? m_SharedRTManager.GetMotionVectorsBuffer() : TextureXR.GetBlackTexture();
 
                     SSAOTask.Start(cmd, asyncParams, AsyncSSAODispatch, !haveAsyncTaskWithShadows);
                     haveAsyncTaskWithShadows = true;
@@ -2704,7 +2703,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (!hdCamera.frameSettings.SSAORunsAsync())
                 {
-                    var motionVectors = m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors ? m_SharedRTManager.GetMotionVectorsBuffer() : TextureXR.GetBlackTextureArray();
+                    var motionVectors = m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors ? m_SharedRTManager.GetMotionVectorsBuffer() : TextureXR.GetBlackTexture();
                     m_AmbientOcclusionSystem.Render(cmd, hdCamera, renderContext, m_SharedRTManager.GetDepthTexture(), m_SharedRTManager.GetNormalBuffer(), motionVectors, m_ShaderVariablesRayTracingCB, m_FrameCount);
                 }
 
@@ -2884,7 +2883,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // If requested, compute histogram of the very final image
             if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView)
             {
-                m_PostProcessSystem.GenerateDebugImageHistogram(cmd, hdCamera, m_IntermediateAfterPostProcessBuffer);
+                var debugImageHistogramParam = m_PostProcessSystem.PrepareDebugImageHistogramParameters(hdCamera);
+                PostProcessSystem.GenerateDebugImageHistogram(debugImageHistogramParam, cmd, m_IntermediateAfterPostProcessBuffer);
             }
 
             PushFullScreenExposureDebugTexture(cmd, m_IntermediateAfterPostProcessBuffer);
@@ -3821,7 +3821,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         RendererListDesc PrepareMeshDecalsRendererList(CullingResults cullingResults, HDCamera hdCamera, bool use4RTs)
         {
-            var desc = new RendererListDesc(use4RTs ? m_Decals4RTPassNames : m_Decals3RTPassNames, cullingResults, hdCamera.camera)
+            var desc = new RendererListDesc(m_MeshDecalsPassNames, cullingResults, hdCamera.camera)
             {
                 sortingCriteria = SortingCriteria.CommonOpaque,
                 rendererConfiguration = PerObjectData.None,
@@ -4687,7 +4687,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 RTHandle clearCoatMask = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? m_GbufferManager.GetBuffer(2) : TextureXR.GetBlackTexture();
 
                 var parameters = PrepareSSRParameters(hdCamera, m_SharedRTManager.GetDepthBufferMipChainInfo(), false);
-                RenderSSR(parameters, m_SharedRTManager.GetDepthStencilBuffer(), m_SharedRTManager.GetDepthTexture(), m_SharedRTManager.GetNormalBuffer(), m_SharedRTManager.GetMotionVectorsBuffer(), m_SsrHitPointTexture,
+                var motionVectors = m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors ? m_SharedRTManager.GetMotionVectorsBuffer() : TextureXR.GetBlackTexture();
+                RenderSSR(parameters, m_SharedRTManager.GetDepthStencilBuffer(), m_SharedRTManager.GetDepthTexture(), m_SharedRTManager.GetNormalBuffer(), motionVectors, m_SsrHitPointTexture,
                           m_SharedRTManager.GetStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)), clearCoatMask, previousColorPyramid,
                           m_SsrLightingTexture, m_SharedRTManager.GetCoarseStencilBuffer(), cmd, renderContext);
 
@@ -4729,7 +4730,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Evaluate the screen space reflection for the transparent pixels
                 var previousColorPyramid = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
                 var parameters = PrepareSSRParameters(hdCamera, m_SharedRTManager.GetDepthBufferMipChainInfo(), true);
-                RenderSSR(parameters, m_SharedRTManager.GetDepthStencilBuffer(), m_SharedRTManager.GetDepthTexture(), m_SharedRTManager.GetNormalBuffer(), m_SharedRTManager.GetMotionVectorsBuffer(),
+                var motionVectors = m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors ? m_SharedRTManager.GetMotionVectorsBuffer() : TextureXR.GetBlackTexture();
+                RenderSSR(parameters, m_SharedRTManager.GetDepthStencilBuffer(), m_SharedRTManager.GetDepthTexture(), m_SharedRTManager.GetNormalBuffer(), motionVectors,
                     m_SsrHitPointTexture, m_SharedRTManager.GetStencilBuffer(), TextureXR.GetBlackTexture(), previousColorPyramid, m_SsrLightingTexture, m_SharedRTManager.GetCoarseStencilBuffer(), cmd, renderContext);
 
                 // If color pyramid was not valid, we bind a black texture
@@ -5154,7 +5156,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int passIndex = 0;
             if (parameters.debugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.MeteringWeighted)
+            {
                 passIndex = 1;
+                parameters.debugExposureMaterial.SetVector(HDShaderIDs._ExposureDebugParams, new Vector4(parameters.debugDisplaySettings.data.lightingDebugSettings.displayMaskOnly ? 1 : 0, 0, 0, 0));
+            }
             if (parameters.debugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.HistogramView)
             {
                 parameters.debugExposureMaterial.SetTexture(HDShaderIDs._ExposureDebugTexture, debugExposureData);
@@ -5492,7 +5497,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
 
             // Post-processes output straight to the backbuffer
-            var motionVectors = m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors ? m_SharedRTManager.GetMotionVectorsBuffer() : TextureXR.GetBlackTextureArray();
+            var motionVectors = m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors ? m_SharedRTManager.GetMotionVectorsBuffer() : TextureXR.GetBlackTexture();
             m_PostProcessSystem.Render(
                 cmd: cmd,
                 camera: hdCamera,
