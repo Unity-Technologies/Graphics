@@ -590,7 +590,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 //   than a threshold to the box influence extents.
                 // So we use an arbitrary threshold here (k_BoxCullingExtentOffset)
                 m_LightVolumes[m_DecalDatasCount].lightCategory = (uint)LightCategory.Decal;
-                m_LightVolumes[m_DecalDatasCount].lightVolume = (uint)LightVolumeType.Box;
                 m_LightVolumes[m_DecalDatasCount].featureFlags = (uint)LightFeatureFlags.Env;
                 m_LightVolumes[m_DecalDatasCount].lightPos = influencePositionVS;
                 m_LightVolumes[m_DecalDatasCount].lightAxisX = influenceRightVS;

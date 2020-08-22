@@ -1696,7 +1696,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // For area light shadows, we only support them  when in deferred mode
                     validShadow = true;
                 }
-                else if (processedLight.gpuLightType == GPULightType.Point || (processedLight.gpuLightType == GPULightType.Spot && processedLight.lightVolumeType == LightVolumeType.Cone))
+                else if (processedLight.gpuLightType == GPULightType.Point || processedLight.gpuLightType == GPULightType.Spot)
                 {
                     validShadow = true;
                 }

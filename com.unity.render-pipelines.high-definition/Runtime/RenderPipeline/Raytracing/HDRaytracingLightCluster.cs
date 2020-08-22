@@ -508,9 +508,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.lightLayers = additionalLightData.GetLightLayers();
                 LightCategory lightCategory = LightCategory.Count;
                 GPULightType gpuLightType = GPULightType.Point;
-                LightVolumeType lightVolumeType = LightVolumeType.Count;
                 HDLightType lightType = additionalLightData.type;
-                HDRenderPipeline.EvaluateGPULightType(lightType, additionalLightData.spotLightShape, additionalLightData.areaLightShape, ref lightCategory, ref gpuLightType, ref lightVolumeType);
+                HDRenderPipeline.EvaluateGPULightType(lightType, additionalLightData.spotLightShape, additionalLightData.areaLightShape, ref lightCategory, ref gpuLightType);
 
                 lightData.lightType = gpuLightType;
 

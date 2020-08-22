@@ -51,16 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
     //-----------------------------------------------------------------------------
 
     [GenerateHLSL]
-    internal enum LightVolumeType
-    {
-        Cone,
-        Sphere,
-        Box,
-        Count
-    }
-
-    [GenerateHLSL]
-    internal enum LightCategory
+    internal enum LightCategory // -> "BoundedEntityCategory"
     {
         Punctual,
         Area,
@@ -122,7 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [GenerateHLSL]
-    struct SFiniteLightBound
+    struct SFiniteLightBound // Why "S"?..
     {
         public Vector3 boxAxisX; // Scaled by the extents (half-size)
         public Vector3 boxAxisY; // Scaled by the extents (half-size)
@@ -136,7 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
     struct LightVolumeData
     {
         public Vector3 lightPos;     // Of light's "origin"
-        public uint lightVolume;     // Type index
+        public float __unused__;
 
         public Vector3 lightAxisX;   // Normalized
         public uint lightCategory;   // Category index
@@ -211,7 +202,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public HDLightType              lightType;
         public LightCategory            lightCategory;
         public GPULightType             gpuLightType;
-        public LightVolumeType          lightVolumeType;
+        public int                      fixedPointLogDepth;
         public float                    distanceToCamera;
         public float                    lightDistanceFade;
         public bool                     isBakedShadowMask;
@@ -457,7 +448,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static internal readonly bool s_UseCascadeBorders = true;
 
         // Keep sorting array around to avoid garbage
-        uint[] m_SortKeys = null;
+        ulong[] m_SortKeys = null;
         DynamicArray<ProcessedLightData> m_ProcessedLightData = new DynamicArray<ProcessedLightData>();
         DynamicArray<ProcessedProbeData> m_ProcessedReflectionProbeData = new DynamicArray<ProcessedProbeData>();
         DynamicArray<ProcessedProbeData> m_ProcessedPlanarProbeData = new DynamicArray<ProcessedProbeData>();
@@ -466,11 +457,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_SortKeys == null ||count > m_SortKeys.Length)
             {
-                m_SortKeys = new uint[count];
+                m_SortKeys = new ulong[count];
             }
         }
-
-
 
         static readonly Matrix4x4 s_FlipMatrixLHSRHS = Matrix4x4.Scale(new Vector3(1, 1, -1));
 
@@ -1555,7 +1544,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // TODO: we should be able to do this calculation only with LightData without VisibleLight light, but for now pass both
-        void GetLightVolumeDataAndBound(LightCategory lightCategory, GPULightType gpuLightType, LightVolumeType lightVolumeType,
+        void GetLightVolumeDataAndBound(LightCategory lightCategory, GPULightType gpuLightType,
             VisibleLight light, LightData lightData, Vector3 lightDimensions, Matrix4x4 worldToView, int viewIndex)
         {
             // Then Culling side
@@ -1573,7 +1562,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var lightVolumeData = new LightVolumeData();
 
             lightVolumeData.lightCategory = (uint)lightCategory;
-            lightVolumeData.lightVolume = (uint)lightVolumeType;
 
             if (gpuLightType == GPULightType.Spot || gpuLightType == GPULightType.ProjectorPyramid)
             {
@@ -1855,7 +1843,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        void GetEnvLightVolumeDataAndBound(HDProbe probe, LightVolumeType lightVolumeType, Matrix4x4 worldToView, int viewIndex)
+        void GetEnvLightVolumeDataAndBound(HDProbe probe, GPULightType lightType, Matrix4x4 worldToView, int viewIndex)
         {
             var bound = new SFiniteLightBound();
             var lightVolumeData = new LightVolumeData();
@@ -1872,12 +1860,11 @@ namespace UnityEngine.Rendering.HighDefinition
             var influencePositionVS = worldToView.MultiplyPoint(influenceToWorld.GetColumn(3));
 
             lightVolumeData.lightCategory = (uint)LightCategory.Env;
-            lightVolumeData.lightVolume = (uint)lightVolumeType;
             lightVolumeData.featureFlags = (uint)LightFeatureFlags.Env;
 
-            switch (lightVolumeType)
+            switch (lightType)
             {
-                case LightVolumeType.Sphere:
+                case GPULightType.ReflectionSphere:
                 {
                     lightVolumeData.lightPos = influencePositionVS;
                     lightVolumeData.radiusSq = influenceExtents.x * influenceExtents.x;
@@ -1893,7 +1880,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     bound.radius   = influenceExtents.x;
                     break;
                 }
-                case LightVolumeType.Box:
+                case GPULightType.ReflectionBox:
                 {
                     bound.center = influencePositionVS;
                     bound.boxAxisX = influenceExtents.x * influenceRightVS;
@@ -1911,6 +1898,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightVolumeData.lightAxisZ = influenceForwardVS;
                     lightVolumeData.boxInnerDist = influenceExtents - k_BoxCullingExtentThreshold;
                     lightVolumeData.boxInvRange.Set(1.0f / k_BoxCullingExtentThreshold.x, 1.0f / k_BoxCullingExtentThreshold.y, 1.0f / k_BoxCullingExtentThreshold.z);
+                    break;
+                }
+                case GPULightType.ReflectionPlanar:
+                {
+                    // Why are we adding planar reflection to the light list???
+                    // Makes no sense. Crash.
+                    Debug.Assert(false);
+                    break;
+                }
+                default:
+                {
+                    Debug.Assert(false, "Encountered an unhandled case of a switch statement.");
                     break;
                 }
             }
@@ -1931,7 +1930,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var forwardVS  = Vector3.Cross(upVS, rightVS);
             var extents    = new Vector3(obb.extentX, obb.extentY, obb.extentZ);
 
-            volumeData.lightVolume   = (uint)LightVolumeType.Box;
             volumeData.lightCategory = (uint)category;
             volumeData.featureFlags  = (uint)featureFlags;
 
@@ -1982,11 +1980,10 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal static void EvaluateGPULightType(HDLightType lightType, SpotLightShape spotLightShape, AreaLightShape areaLightShape,
-            ref LightCategory lightCategory, ref GPULightType gpuLightType, ref LightVolumeType lightVolumeType)
+            ref LightCategory lightCategory, ref GPULightType gpuLightType)
         {
             lightCategory = LightCategory.Count;
             gpuLightType = GPULightType.Point;
-            lightVolumeType = LightVolumeType.Count;
 
             switch (lightType)
             {
@@ -1997,15 +1994,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         case SpotLightShape.Cone:
                             gpuLightType = GPULightType.Spot;
-                            lightVolumeType = LightVolumeType.Cone;
                             break;
                         case SpotLightShape.Pyramid:
                             gpuLightType = GPULightType.ProjectorPyramid;
-                            lightVolumeType = LightVolumeType.Cone;
                             break;
                         case SpotLightShape.Box:
                             gpuLightType = GPULightType.ProjectorBox;
-                            lightVolumeType = LightVolumeType.Box;
                             break;
                         default:
                             Debug.Assert(false, "Encountered an unknown SpotLightShape.");
@@ -2016,14 +2010,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 case HDLightType.Directional:
                     lightCategory = LightCategory.Punctual;
                     gpuLightType = GPULightType.Directional;
-                    // No need to add volume, always visible
-                    lightVolumeType = LightVolumeType.Count; // Count is none
                     break;
 
                 case HDLightType.Point:
                     lightCategory = LightCategory.Punctual;
                     gpuLightType = GPULightType.Point;
-                    lightVolumeType = LightVolumeType.Sphere;
                     break;
 
                 case HDLightType.Area:
@@ -2033,18 +2024,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         case AreaLightShape.Rectangle:
                             gpuLightType = GPULightType.Rectangle;
-                            lightVolumeType = LightVolumeType.Box;
                             break;
 
                         case AreaLightShape.Tube:
                             gpuLightType = GPULightType.Tube;
-                            lightVolumeType = LightVolumeType.Box;
                             break;
 
                         case AreaLightShape.Disc:
                             //not used in real-time at the moment anyway
                             gpuLightType = GPULightType.Disc;
-                            lightVolumeType = LightVolumeType.Sphere;
                             break;
 
                         default:
@@ -2075,6 +2063,81 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
+        static float Log2f(float f)
+        {
+            return Mathf.Log(f, 2);
+        }
+
+        static int CeilLog2i(int i)
+        {
+            return Mathf.CeilToInt(Log2f(i)); // No integer log in our math library
+        }
+
+        static void AssertUnitLength(Vector3 vec)
+        {
+            const float FLT_EPS = 5.960464478e-8f;
+
+            float sqMag = Vector3.SqrMagnitude(vec);
+            Debug.Assert(Mathf.Abs(1 - sqMag) < 32 * FLT_EPS);
+        }
+
+        static Vector3 ComputeWorldSpacePositionOfCentroidOfBoundedLight(Light light)
+        {
+            // Most lights are "centered" by nature.
+            Vector3 centroidWS = light.transform.position;
+
+            HDAdditionalLightData lightData = GetHDAdditionalLightData(light);
+
+            HDLightType  lightType  = lightData.ComputeLightType(light);
+            Debug.Assert(lightType != HDLightType.Directional);
+
+            if (lightType == HDLightType.Spot)
+            {
+                AssertUnitLength(light.transform.forward);
+
+                Vector3 dirWS = light.transform.forward;
+                float   range = lightData.range;
+
+                centroidWS += (0.5f * range) * dirWS;
+            }
+
+            return centroidWS;
+        }
+
+        static Vector3 ComputeWorldSpacePositionOfCentroidOfBoundedLight(HDProbe probe)
+        {
+            Vector3 centroidWS = (Vector3)probe.influenceToWorld.GetColumn(3);
+
+            return centroidWS;
+        }
+
+        static float ComputeLinearDepth(Vector3 positionWS, Camera camera)
+        {
+            Vector3 positionRWS = positionWS - camera.transform.position;
+
+            AssertUnitLength(camera.transform.forward);
+
+            return Vector3.Dot(camera.transform.forward, positionRWS);
+        }
+
+        // 'w' is the linear depth (Z coordinate of the view-space position).
+        // 'f' is the distance to the far plane.
+        // We consider the distance to the near plane n ≈ 0, since that plane may be oblique.
+        static int ComputeFixedPointLogDepth(float w, float f, int numBits = 16)
+        {
+            const float FLT_EPS = 5.960464478e-8f;
+
+            // z = Log[w/n] / Log[f/n]
+            // Undefined for (w < n, so we must clamp). This should not affect the efficiency of Z-binning.
+            // Still need the distance to the near plane in order for the math to work.
+            const float n = FLT_EPS;
+
+            float x = Mathf.Max(1, w * (1/n));
+            float z = Log2f(x) / Log2f(f * (1/n));
+
+            return Mathf.RoundToInt(z * ((1 << numBits) - 1));
+        }
+
         // Compute data that will be used during the light loop for a particular light.
         void PreprocessLightData(ref ProcessedLightData processedData, VisibleLight light, HDCamera hdCamera)
         {
@@ -2088,65 +2151,65 @@ namespace UnityEngine.Rendering.HighDefinition
             // Evaluate the types that define the current light
             processedData.lightCategory = LightCategory.Count;
             processedData.gpuLightType = GPULightType.Point;
-            processedData.lightVolumeType = LightVolumeType.Count;
-            HDRenderPipeline.EvaluateGPULightType(processedData.lightType, processedData.additionalLightData.spotLightShape, processedData.additionalLightData.areaLightShape,
-                                                    ref processedData.lightCategory, ref processedData.gpuLightType, ref processedData.lightVolumeType);
+            EvaluateGPULightType(processedData.lightType, processedData.additionalLightData.spotLightShape, processedData.additionalLightData.areaLightShape,
+                                 ref processedData.lightCategory, ref processedData.gpuLightType);
+
+            if (processedData.gpuLightType != GPULightType.Directional) // Directional lights are unbounded
+            {
+                float w = ComputeLinearDepth(ComputeWorldSpacePositionOfCentroidOfBoundedLight(lightComponent), hdCamera.camera);
+                processedData.fixedPointLogDepth = ComputeFixedPointLogDepth(w, hdCamera.camera.farClipPlane);
+            }
 
             processedData.lightDistanceFade = processedData.gpuLightType == GPULightType.Directional ? 1.0f : HDUtils.ComputeLinearDistanceFade(processedData.distanceToCamera, additionalLightData.fadeDistance);
             processedData.isBakedShadowMask = IsBakedShadowMaskLight(lightComponent);
         }
 
-        static int CeilLog2Int(int i)
+        struct BoundedEntitySortingKeyLayout
         {
-            return Mathf.CeilToInt(Mathf.Log(i, 2)); // No integer log in our math library...
-        }
-
-        struct LightSortingKeyLayout
-        {
-            public int lightIndexBitCount;
-            public int lightVolumeTypeBitCount;
-            public int gpuLightTypeBitCount;
-            public int lightCategoryBitCount;
+            public int categoryBitCount;
+            public int fixedPointLogDepthBitCount;
+            public int lightTypeBitCount;
+            public int indexBitCount;
             public int totalBitCount;
 
-            // LSB -> MSB.
-            public int lightIndexOffset;
-            public int lightVolumeTypeOffset;
-            public int gpuLightTypeOffset;
-            public int lightCategoryOffset;
+            public int categoryOffset;
+            public int fixedPointLogDepthOffset;
+            public int lightTypeOffset;
+            public int indexOffset;
         }
 
-        static LightSortingKeyLayout GetLightSortingKeyLayout()
+        static BoundedEntitySortingKeyLayout GeBoundedEntitySortingKeyLayoutLayout()
         {
-            LightSortingKeyLayout layout;
+            BoundedEntitySortingKeyLayout layout;
 
-            layout.lightIndexBitCount      = 16;
-            layout.lightVolumeTypeBitCount = CeilLog2Int((int)LightVolumeType.Count);
-            layout.gpuLightTypeBitCount    = CeilLog2Int((int)GPULightType.Count);
-            layout.lightCategoryBitCount   = CeilLog2Int((int)LightCategory.Count);
-            layout.totalBitCount           = layout.lightIndexBitCount
-                                           + layout.lightVolumeTypeBitCount
-                                           + layout.gpuLightTypeBitCount
-                                           + layout.lightCategoryBitCount;
-
-            layout.lightIndexOffset      = 0;
-            layout.lightVolumeTypeOffset = layout.lightIndexBitCount      + layout.lightIndexOffset;
-            layout.gpuLightTypeOffset    = layout.lightVolumeTypeBitCount + layout.lightVolumeTypeOffset;
-            layout.lightCategoryOffset   = layout.gpuLightTypeBitCount    + layout.gpuLightTypeOffset;
+            layout.categoryBitCount           = CeilLog2i((int)LightCategory.Count);
+            layout.fixedPointLogDepthBitCount = 16;
+            layout.lightTypeBitCount          = CeilLog2i((int)GPULightType.Count);
+            layout.indexBitCount              = 16;
+            layout.totalBitCount              = layout.categoryBitCount
+                                              + layout.fixedPointLogDepthBitCount
+                                              + layout.lightTypeBitCount
+                                              + layout.indexBitCount;
+            // LSB -> MSB.
+            layout.indexOffset              = 0;
+            layout.lightTypeOffset          = layout.indexBitCount              + layout.indexOffset;
+            layout.fixedPointLogDepthOffset = layout.lightTypeBitCount          + layout.lightTypeOffset;
+            layout.categoryOffset           = layout.fixedPointLogDepthBitCount + layout.fixedPointLogDepthOffset;
 
             return layout;
         }
 
-        static uint GenerateLightSortingKey(ref ProcessedLightData data, int lightIndex)
+        // 'lightType' is optional in case the entity is not a light.
+        static ulong GenerateBoundedEntitySortingKey(int index, LightCategory category, int fixedPointLogDepth, int lightType = 0)
         {
-            LightSortingKeyLayout layout = GetLightSortingKeyLayout();
+            BoundedEntitySortingKeyLayout layout = GeBoundedEntitySortingKeyLayoutLayout();
 
-            Debug.Assert(layout.totalBitCount <= 8 * sizeof(uint));
+            Debug.Assert(layout.totalBitCount <= 8 * sizeof(ulong));
 
-            uint key = ((uint)data.lightCategory   << layout.lightCategoryOffset)
-                     | ((uint)data.gpuLightType    << layout.gpuLightTypeOffset)
-                     | ((uint)data.lightVolumeType << layout.lightVolumeTypeOffset)
-                     | ((uint)lightIndex           << layout.lightIndexOffset);
+            ulong key = ((ulong)category           << layout.categoryOffset)
+                      | ((ulong)fixedPointLogDepth << layout.fixedPointLogDepthOffset)
+                      | ((ulong)lightType          << layout.lightTypeOffset)
+                      | ((ulong)index              << layout.indexOffset);
 
             return key;
         }
@@ -2235,7 +2298,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     && !debugLightFilter.IsEnabledFor(processedData.gpuLightType, additionalData.spotLightShape))
                     continue;
 
-                m_SortKeys[sortCount++] = GenerateLightSortingKey(ref processedData, lightIndex);
+                m_SortKeys[sortCount++] = GenerateBoundedEntitySortingKey(lightIndex, processedData.lightCategory, processedData.fixedPointLogDepth, (int)processedData.gpuLightType);
 
             }
 
@@ -2282,15 +2345,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             for (int sortIndex = 0; sortIndex < processedLightCount; ++sortIndex)
             {
-                LightSortingKeyLayout layout = GetLightSortingKeyLayout();
+                BoundedEntitySortingKeyLayout layout = GeBoundedEntitySortingKeyLayoutLayout();
 
                 // In 1. we have already classify and sorted the light, we need to use this sorted order here
-                uint sortKey = m_SortKeys[sortIndex];
+                ulong sortKey = m_SortKeys[sortIndex];
 
-                LightCategory   lightCategory   = (LightCategory)  ((sortKey >> layout.lightCategoryOffset)   & ((1 << layout.lightCategoryBitCount)   - 1));
-                GPULightType    gpuLightType    = (GPULightType)   ((sortKey >> layout.gpuLightTypeOffset)    & ((1 << layout.gpuLightTypeBitCount)    - 1));
-                LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> layout.lightVolumeTypeOffset) & ((1 << layout.lightVolumeTypeBitCount) - 1));
-                int             lightIndex      = (int)            ((sortKey >> layout.lightIndexOffset)      & ((1 << layout.lightIndexBitCount)      - 1));
+                LightCategory lightCategory = (LightCategory)((sortKey >> layout.categoryOffset)  & ((1ul << layout.categoryBitCount)  - 1));
+                GPULightType  gpuLightType  = (GPULightType) ((sortKey >> layout.lightTypeOffset) & ((1ul << layout.lightTypeBitCount) - 1));
+                int           lightIndex    = (int)          ((sortKey >> layout.indexOffset)     & ((1ul << layout.indexBitCount)     - 1));
 
                 var light = cullResults.visibleLights[lightIndex];
                 var lightComponent = light.light;
@@ -2361,7 +2423,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Then culling side. Must be call in this order as we pass the created Light data to the function
                     for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                     {
-                        GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, m_WorldToViewMatrices[viewIndex], viewIndex);
+                        GetLightVolumeDataAndBound(lightCategory, gpuLightType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, m_WorldToViewMatrices[viewIndex], viewIndex);
                     }
 
                     // We make the light position camera-relative as late as possible in order
@@ -2484,16 +2546,20 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (envLightCount >= maxProbeCount)
                         continue;
 
-                    LightVolumeType lightVolumeType = LightVolumeType.Box;
-                    if (processedData.hdProbe != null && processedData.hdProbe.influenceVolume.shape == InfluenceShape.Sphere)
-                        lightVolumeType = LightVolumeType.Sphere;
+                    GPULightType lightType = (processedData.hdProbe.influenceVolume.shape == InfluenceShape.Box) ? GPULightType.ReflectionBox
+                                                                                                                 : GPULightType.ReflectionSphere;
+                    // Sorting by volume is no longer possible
+                    // var logVolume = CalculateProbeLogVolume(probe.bounds);
 
-                    var logVolume = CalculateProbeLogVolume(probe.bounds);
+                    float w = ComputeLinearDepth(ComputeWorldSpacePositionOfCentroidOfBoundedLight(processedData.hdProbe), hdCamera.camera);
+                    int fixedPointLogDepth = ComputeFixedPointLogDepth(w, hdCamera.camera.farClipPlane);
 
-                    m_SortKeys[envLightCount++] = PackProbeKey(logVolume, lightVolumeType, 0u, probeIndex); // Sort by volume
+                    m_SortKeys[envLightCount++] = GenerateBoundedEntitySortingKey(probeIndex, LightCategory.Env, fixedPointLogDepth, (int)lightType);
                 }
             }
 
+            // TODO: why are we sorting these?
+            // They aren't supposed to go into the light list...
             if (enablePlanarProbes)
             {
                 for (int planarProbeIndex = 0; planarProbeIndex < hdProbeCullingResults.visibleProbes.Count; planarProbeIndex++)
@@ -2510,13 +2576,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (envLightCount >= maxProbeCount)
                         continue;
 
-                    var lightVolumeType = LightVolumeType.Box;
-                    if (probe.influenceVolume.shape == InfluenceShape.Sphere)
-                        lightVolumeType = LightVolumeType.Sphere;
+                    //var lightVolumeType = LightVolumeType.Box;
+                    //if (probe.influenceVolume.shape == InfluenceShape.Sphere)
+                    //    lightVolumeType = LightVolumeType.Sphere;
+                    // WTF? Makes no sense for planar reflection...
+                    GPULightType lightType = GPULightType.ReflectionPlanar;
 
-                    var logVolume = CalculateProbeLogVolume(probe.bounds);
+                    // Sorting by volume is no longer possible
+                    // var logVolume = CalculateProbeLogVolume(probe.bounds);
 
-                    m_SortKeys[envLightCount++] = PackProbeKey(logVolume, lightVolumeType, 1u, planarProbeIndex); // Sort by volume
+                    int fixedPointLogDepth = 0; // Only necessary for tiled lighting
+
+                    m_SortKeys[envLightCount++] = GenerateBoundedEntitySortingKey(planarProbeIndex, LightCategory.Env, fixedPointLogDepth, (int)lightType);
                 }
             }
 
@@ -2531,15 +2602,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             for (int sortIndex = 0; sortIndex < processedLightCount; ++sortIndex)
             {
+                BoundedEntitySortingKeyLayout layout = GeBoundedEntitySortingKeyLayoutLayout();
+
                 // In 1. we have already classify and sorted the light, we need to use this sorted order here
-                uint sortKey = m_SortKeys[sortIndex];
-                LightVolumeType lightVolumeType;
-                int probeIndex;
-                int listType;
-                UnpackProbeSortKey(sortKey, out lightVolumeType, out probeIndex, out listType);
+                ulong sortKey = m_SortKeys[sortIndex];
 
-                ProcessedProbeData processedProbe = (listType == 0) ? m_ProcessedReflectionProbeData[probeIndex] : m_ProcessedPlanarProbeData[probeIndex];
+                GPULightType gpuLightType = (GPULightType)((sortKey >> layout.lightTypeOffset) & ((1ul << layout.lightTypeBitCount) - 1));
+                int          probeIndex   = (int)         ((sortKey >> layout.indexOffset)     & ((1ul << layout.indexBitCount)     - 1));
 
+                ProcessedProbeData processedProbe = (gpuLightType == GPULightType.ReflectionPlanar) ? m_ProcessedPlanarProbeData[probeIndex]
+                                                                                                    : m_ProcessedReflectionProbeData[probeIndex];
                 EnvLightData envLightData = new EnvLightData();
 
                 if (GetEnvLightData(cmd, hdCamera, processedProbe, ref envLightData))
@@ -2550,7 +2622,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                     {
                         var worldToView = GetWorldToViewMatrix(hdCamera, viewIndex);
-                        GetEnvLightVolumeDataAndBound(processedProbe.hdProbe, lightVolumeType, worldToView, viewIndex);
+                        GetEnvLightVolumeDataAndBound(processedProbe.hdProbe, gpuLightType, worldToView, viewIndex);
                     }
 
                     // We make the light position camera-relative as late as possible in order
@@ -2734,19 +2806,6 @@ namespace UnityEngine.Rendering.HighDefinition
             float boxVolume = 8f* bounds.extents.x * bounds.extents.y * bounds.extents.z;
             float logVolume = Mathf.Clamp(Mathf.Log(1 + boxVolume, 1.05f)*1000, 0, 1048575);
             return logVolume;
-        }
-
-        static void UnpackProbeSortKey(uint sortKey, out LightVolumeType lightVolumeType, out int probeIndex, out int listType)
-        {
-            lightVolumeType = (LightVolumeType)((sortKey >> 9) & 0x3);
-            probeIndex = (int)(sortKey & 0xFF);
-            listType = (int)((sortKey >> 8) & 1);
-        }
-
-        static uint PackProbeKey(float logVolume, LightVolumeType lightVolumeType, uint listType, int probeIndex)
-        {
-            // 20 bit volume, 3 bit LightVolumeType, 1 bit list type, 8 bit index
-            return (uint)logVolume << 12 | (uint)lightVolumeType << 9 | listType << 8 | ((uint)probeIndex & 0xFF);
         }
 
         struct BuildGPULightListParameters
@@ -3262,7 +3321,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TileAndClusterData.lightVolumeDataBuffer.SetData(m_lightList.lightsPerView[0].lightVolumes);
         }
 
-        HDAdditionalLightData GetHDAdditionalLightData(Light light)
+        static HDAdditionalLightData GetHDAdditionalLightData(Light light)
         {
             HDAdditionalLightData add = null;
 

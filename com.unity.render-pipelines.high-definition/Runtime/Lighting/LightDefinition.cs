@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
     // Caution: Order is important and is use for optimization in light loop
     [GenerateHLSL]
-    enum GPULightType
+    enum GPULightType  // -> "LightType"
     {
         Directional,
         Point,
@@ -20,6 +20,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Currently not supported in real time (just use for reference)
         Disc,
         // Sphere,
+        ReflectionSphere,
+        ReflectionBox,
+        ReflectionPlanar,
         Count
     };
 
