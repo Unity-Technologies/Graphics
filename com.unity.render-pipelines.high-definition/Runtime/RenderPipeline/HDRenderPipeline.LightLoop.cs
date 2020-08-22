@@ -493,6 +493,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             PushFullScreenDebugTexture(renderGraph, result, transparent ? FullScreenDebugMode.TransparentScreenSpaceReflections : FullScreenDebugMode.ScreenSpaceReflections);
+            //PushFullScreenDebugTexture(renderGraph, result, FullScreenDebugMode.ScreenSpaceReflectionsAccum);
             return result;
         }
 

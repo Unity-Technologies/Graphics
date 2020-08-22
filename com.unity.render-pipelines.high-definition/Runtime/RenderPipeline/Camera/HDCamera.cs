@@ -733,7 +733,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflection);
 
                 var ssrAlloc = new ScreenSpaceAllocator(scaleFactor);
-                AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflection, ssrAlloc.Allocator, 3);
+                AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflection, ssrAlloc.Allocator, 2);
 
                 m_ScreenSpaceReflectionResolutionScale = scaleFactor;
             }

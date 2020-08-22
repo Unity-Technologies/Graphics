@@ -67,14 +67,14 @@ TEXTURE2D_X(_DepthTexture);
     RW_TEXTURE2D_X(float4, _SsrHitPointTexture);
 #elif defined(SSR_REPROJECT)
        TEXTURE2D_X(        _SsrHitPointTexture);
-    //RW_TEXTURE2D_X(float4, _SsrLightingTextureRW); // ShaderVariablesScreenSpaceLighting.hlsl already pulls in a non-RW _SsrLightingTexture
+    RW_TEXTURE2D_X(float4, _SsrLightingTextureRW); // ShaderVariablesScreenSpaceLighting.hlsl already pulls in a non-RW _SsrLightingTexture
        TEXTURE2D_X(        _PrevSSRLightingTexture);
     RW_TEXTURE2D_X(float4, _SSRAccumTexture);
 #else // defined(SSR_DENOISE_INPAINTING)
        TEXTURE2D_X(        _SsrHitPointTexture);
        TEXTURE2D_X(        _PrevSSRLightingTexture);
     RW_TEXTURE2D_X(float4, _SsrLightingTextureRW); // ShaderVariablesScreenSpaceLighting.hlsl already pulls in a non-RW _SsrLightingTexture
-       TEXTURE2D_X(        _SSRAccumTexture);
+    RW_TEXTURE2D_X(float4, _SSRAccumTexture);
 #endif
 
     TEXTURE2D_X(            _SsrClearCoatMaskTexture);
@@ -187,7 +187,9 @@ void ScreenSpaceReflectionsTracing(uint3 groupId          : SV_GroupID,
     float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
 
     // Generate the new sample (follwing values of the sequence)
-    int globalSampleIndex = _RaytracingFrameIndex;
+    int globalSampleIndex = _FrameCount;
+        //round(_Time*1024.0f);
+        //_RaytracingFrameIndex;
     float2 Xi;
     Xi.x = GetBNDSequenceSample(positionSS, globalSampleIndex, 0);
     Xi.y = GetBNDSequenceSample(positionSS, globalSampleIndex, 1);
@@ -196,6 +198,21 @@ void ScreenSpaceReflectionsTracing(uint3 groupId          : SV_GroupID,
     float3 R = float3(0.0, 0.0, 0.0);
     float NdotL, NdotH, VdotH;
     SampleGGXDir(Xi, V, localToWorld, roughness, R, NdotL, NdotH, VdotH);
+
+    if (NdotL < 0.001f)
+    {
+        WriteDebugInfo(positionSS, -1);
+        return;
+    }
+
+    float D = D_GGX(NdotH, roughness);
+    float pdf = D * NdotH / (4.0 * VdotH);
+
+    if (pdf < 0.001f)
+    {
+        WriteDebugInfo(positionSS, -1);
+        return;
+    }
 #endif
 
     float3 reflPosWS  = positionWS + R;
@@ -351,8 +368,12 @@ void ScreenSpaceReflectionsTracing(uint3 groupId          : SV_GroupID,
         // recompute it using the last value of 't', which would result in an overshoot.
         // It also needs to be precisely at the center of the pixel to avoid artifacts.
         float2 hitPositionNDC = floor(rayPos.xy) * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
-        _SsrHitPointTexture[COORD_TEXTURE2D_X(positionSS)] = float4(hitPositionNDC, t, iterCount);
+        _SsrHitPointTexture[COORD_TEXTURE2D_X(positionSS)] = float4(hitPositionNDC, roughness*t, pdf);
     }
+    //else
+    //{
+    //    _SsrHitPointTexture[COORD_TEXTURE2D_X(positionSS)] = float4(-1, -1 , 32767.0f, -1);
+    //}
 
     // If we do not hit anything, 'rayPos.xy' provides an indication where we stopped the search.
     WriteDebugInfo(positionSS, float4(rayPos.xy, iterCount, hit ? 1 : 0));
@@ -382,7 +403,7 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     GetNormalAndPerceptualRoughness(positionSS, N, perceptualRoughness);
 
     // TODO: filtering is quite awful. Needs to be non-Gaussian, bilateral and anisotropic.
-    float  mipLevel = lerp(0, _SsrColorPyramidMaxMip, perceptualRoughness);
+    float mipLevel = lerp(0, _SsrColorPyramidMaxMip, perceptualRoughness);
 
     float tmpCoef = PerceptualRoughnessFade(perceptualRoughness, _SsrRoughnessFadeRcpLength, _SsrRoughnessFadeEndTimesRcpLength);
 
@@ -403,7 +424,8 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     if (max(hitPositionNDC.x, hitPositionNDC.y) == 0)
     {
         // Miss.
-        _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = float4(color0, 1.0f) * opacity0;
+        //_SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = float4(color0, 0.0f) * opacity0;
+        //_SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = 0.0f;
         return;
     }
 
@@ -412,6 +434,7 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
         (prevFrameUV.y < 0) || (prevFrameUV.y > _ColorPyramidUvScaleAndLimitPrevFrame.w))
     {
         // Off-screen.
+        //_SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = 0.0f;
         return;
     }
 
@@ -424,8 +447,9 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     float  opacity = EdgeOfScreenFade(curFrameNDC, _SsrEdgeFadeRcpLength) * tmpCoef;
 
     //color   = lerp(color, color0, 0.5f);
-    color = (color + color0)*0.5f;
-    opacity = max(opacity, opacity0);
+    //color = color0;
+    //color = (color + color0)*0.5f;
+    //opacity = max(opacity, opacity0);
 
     // Disable SSR for negative, infinite and NaN history values.
     uint3 intCol   = asuint(color);
@@ -435,13 +459,46 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     opacity = isPosFin ? opacity : 0;
 
     // Use premultiplied alpha.
-    _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = float4(color, 1.0f) * opacity;
+    //if (_SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)].a <= 0.5f)
+    //_SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = float4(color, 1.0f);
+    if (opacity > 0.0f)
+        _SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = float4(color, 1.0f);// *opacity;
 }
 #elif defined(SSR_DENOISE_INPAINTING)
 float PerceptualRoughnessFade(float perceptualRoughness, float fadeRcpLength, float fadeEndTimesRcpLength)
 {
     float t = Remap10(perceptualRoughness, fadeRcpLength, fadeEndTimesRcpLength);
     return Smoothstep01(t);
+}
+
+float3 UpdateWMS(float weight, float x, float3 wms)
+{
+    float wsum = wms.x + weight;
+    float mean = wms.y;
+    float var  = wms.z;
+
+    wsum += weight;
+
+    return float3(
+        wsum,
+        mean + (weight / wsum)*(x - mean),
+        var + weight * (x - mean) * (x - mean)
+        );
+}
+
+float ExpAvg(float x0, float x1, float alpha)
+{
+    return alpha * x1 + (1.0f - alpha) * x0;
+}
+
+float3 ExpAvg(float3 x0, float3 x1, float alpha)
+{
+    return alpha * x1 + (1.0f - alpha) * x0;
+}
+
+float4 ExpAvg(float4 x0, float4 x1, float alpha)
+{
+    return alpha * x1 + (1.0f - alpha) * x0;
 }
 
 [numthreads(8, 8, 1)]
@@ -454,33 +511,323 @@ void ScreenSpaceReflectionsDenoiseInpainting(uint3 dispatchThreadId : SV_Dispatc
     float perceptualRoughness;
     GetNormalAndPerceptualRoughness(positionSS, N, perceptualRoughness);
 
+    // TODO: this texture is sparse (mostly black). Can we avoid reading every texel? How about using Hi-S?
+    float4 srcData = LOAD_TEXTURE2D_X(_SsrHitPointTexture, positionSS);
+    float2 hitPositionNDC = srcData.xy;
+    float2 motionVectorNDC;
+    DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(hitPositionNDC, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorNDC);
+    float2 prevFrameNDC = hitPositionNDC - motionVectorNDC;
+    float2 prevFrameUV = prevFrameNDC * _ColorPyramidUvScaleAndLimitPrevFrame.xy;
+
+    float2 curFrameUV0 = hitPositionNDC * _ColorPyramidUvScaleAndLimitPrevFrame.xy;
+
+    float2 RTSize = 1.0f/_RTHandleScale.xy;
+
     float2 uv = float2(positionSS) * _RTHandleScale.xy;// _ColorPyramidUvScaleAndLimitPrevFrame.xy;
 
-    float dist = _SsrHitPointTexture[COORD_TEXTURE2D_X(positionSS)].z;
+    float4 hitData = _SsrHitPointTexture[COORD_TEXTURE2D_X(positionSS)];
 
-    float4 accum = 0;
-    int r = 5;
-    //float coef = rcp(float((2*r+1)*(2*r+1)));
-    float coef;
-    float sigma = lerp(5.0f, 5.0f, saturate(0.5f*saturate(dist/16.0f) + 0.5f*perceptualRoughness));
-    float totalCoef = 0.0f;
+    float distCoef = hitData.z;
+    float pdf = hitData.w;
+
+    float2 hitUV = hitData.xy * _ColorPyramidUvScaleAndLimitPrevFrame.xy;
+    if ((hitUV.x < 0) || (hitUV.x > _ColorPyramidUvScaleAndLimitPrevFrame.z) ||
+        (hitUV.y < 0) || (hitUV.y > _ColorPyramidUvScaleAndLimitPrevFrame.w))
+    {
+        // Off-screen.
+
+        //_SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = 0;
+        return;
+    }
+
+    const int r = 1;
+    bool hasNeighbour = false;
     for (int i = -r; i <= r; ++i)
     {
         for (int j = -r; j <= r; ++j)
         {
-            coef = rcp(sqrt(2.0f*3.1415926538897932384626f)*sigma)*exp(-(i*i + j*j)/(2.0f*sigma*sigma));
-            totalCoef += coef;
-            accum += coef*_SSRAccumTexture[COORD_TEXTURE2D_X(positionSS + int2(i, j))];
+            if (i != 0 && j != 0)
+            {
+                float sidePDF = _SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS + int2(i, j))].w;
+                if (sidePDF > 0.0f)
+                {
+                    hasNeighbour = true;
+                    break;
+                }
+            }
+        }
+        if (hasNeighbour)
+            break;
+    }
+
+    float dx = abs(_SSRAccumTexture[COORD_TEXTURE2D_X(positionSS + int2(-1,  0))] - _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS + int2(+1,  0))]) * 0.5f;
+    float dy = abs(_SSRAccumTexture[COORD_TEXTURE2D_X(positionSS + int2( 0, -1))] - _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS + int2( 0, +1))]) * 0.5f;
+
+    float lap = saturate((dx + dy) * 0.5f);
+
+    float4 center = _SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)];
+    float4 centerAccum = _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)];
+
+    const float secur = 0.01f;
+    bool inBound =
+        //positionSS.x > secur * RTSize.x && positionSS.x < (1.0f - secur) * RTSize.x && positionSS.y > secur * RTSize.y && positionSS.y < (1.0f - secur) * RTSize.y;
+        //uv.x < 1.0f - secur && uv.x > secur && uv.y < 1.0f - secur && uv.y > secur;
+        //uv.x < 1.0f - secur && uv.x > secur && uv.y < 1.0f - secur && uv.y > secur;
+        true;
+    //bool isNewHit = pdf > 0.1f && uv.x < 0.75f && uv.x > 0.25f && uv.y < 0.75f && uv.y > 0.25f;
+    //bool isNewHit = pdf > 0.001f;//&& inBound;
+    //bool isNewHit = pdf > 0.00125f;//&& inBound;
+    bool isNewHit = pdf > 0.0f;
+
+    //centerAccum = ExpAvg(centerAccum, float4(0.0f, 0.0f, 0.0f, 0.0f), 0.0125f);
+
+    const float vanish    = 0.75f;
+    const float safeAccum = 0.00f;
+    const float expAvgCol = 0.05f;
+
+#if 0
+    if (isNewHit && centerAccum.w < 0.25f)
+    {
+        _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = float4(center.rgb, 1.0f);
+        lap *= 0.0f;
+    }
+    else if (isNewHit && centerAccum.w >= 0.25f)
+    {
+        _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] =
+            float4(
+                //ExpAvg(centerAccum.rgb, center.rgb, 0.25f),
+                lerp(centerAccum.rgb, center.rgb, 0.25f),
+                1.0f);
+            //float4(
+            //    ExpAvg(centerAccum.rgb, center.rgb, 0.95f),
+            //    1.0f);
+        lap *= 0.0f;
+    }
+    //else if (centerAccum.w > 0.1f)
+    //{
+    //    _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] =
+    //        float4(
+    //            ExpAvg(centerAccum.rgb, float3(0.0f, 0.0f, 0.0f), expAvgCol),
+    //            ExpAvg(centerAccum.w, 0.0f, expAvgCol));
+    //}
+    else //if (centerAccum.w <= 0.1f)
+        //if (!isNewHit && hasNeighbour && centerAccum.w <= safeAccum)
+    {
+        float4 accum = 0.0f;
+        int smplCount = 0;
+        float wsum = 0.0f;
+        for (int i = -r; i <= r; ++i)
+        {
+            for (int j = -r; j <= r; ++j)
+            {
+                float4 data = _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS + int2(i, j))];
+                //if (i != 0 && j != 0)
+                if (data.w > 0.0f && i != 0 && j != 0)
+                {
+                    float coef = 1.0f/sqrt(dot(float2(i, j), float2(i, j)));
+                    wsum += coef;
+                    accum += coef*data;
+                    ++smplCount;
+                }
+            }
+        }
+        //if (accum.w > 0.0f)
+        if (/*smplCount */wsum > 0)
+        {
+            //accum /= accum.w;
+            accum /= wsum;
+                //float(smplCount);
+            //_SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = accum * 0.95f;
+                //float4(accum.rgb * 0.75f, accum.w * 0.95f);
+            _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = float4(accum.rgb, 1.0f);
+        }
+            //float4(accum.rgb, centerAccum.w);
+            //float4(accum.rgb * 0.75f, centerAccum.w * 0.75f);
+            //float4(
+            //    ExpAvg(centerAccum.rgb * 0.5f, accum.rgb * 0.5f, 0.75f),
+            //    ExpAvg(centerAccum.w * 0.5f, accum.w * 0.5f, 0.75f));
+    }
+    //else
+    //{
+    //    lap *= 0.0f;
+    //}
+#endif
+
+#if 0
+    if (isNewHit && centerAccum.w <= 0.0125f)
+        _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = float4(center.rgb, 1.0f);
+    else if (isNewHit && centerAccum.w > 0.0125f)
+        //_SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = float4(center.rgb * (1.0f - centerAccum.w) + centerAccum.w * centerAccum.rgb, 1.0f);
+        _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] =
+            float4(
+                    ExpAvg(center.rgb, centerAccum.rgb, 0.25f),
+                    //ExpAvg(centerAccum.w, 0.0f, 0.25f)
+                    ExpAvg(1.0f, centerAccum.w, 0.25f)
+                );
+        //_SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = float4(center.rgb * (1.0f - centerAccum.w) + (centerAccum.w) * centerAccum.rgb, centerAccum.w * vanish);
+    else if (!isNewHit && centerAccum.w < 0.25f)
+    {
+        _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] =
+            float4(
+                    ExpAvg(center.rgb, centerAccum.rgb, 0.25f),
+                    //ExpAvg(centerAccum.w, 0.0f, 0.25f)
+                    ExpAvg(centerAccum.w, 0.0f, 0.45f)
+                );
+    }
+    else if (hasNeighbour && inBound)
+    {
+        float3 accum = 0.0f;
+        float wsum = 0.0f;
+        int samplesCount = 0;
+        for (int i = -r; i <= r; ++i)
+        {
+            for (int j = -r; j <= r; ++j)
+            {
+                if (i == 0 && j == 0)
+                    continue;
+
+                float4 data = _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS + int2(i, j))];
+                if (data.w > 0.0f && dot(data.rgb, float3(1.0f, 1.0f, 1.0f)) > 0.1f)
+                {
+                    wsum += data.w;
+                    accum += data.rgb;
+                    ++samplesCount;
+                }
+            }
+        }
+        if (wsum > 0.0f && dot(accum.rgb, float3(1.0f, 1.0f, 1.0f)) > 0.1f)
+        {
+            accum /= wsum;
+            //_SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = float4(accum.rgb * (1.0f - centerAccum.w) + (centerAccum.w) * centerAccum.rgb, 1.0f);
+            //_SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = float4(ExpAvg(centerAccum.rgb, accum.rgb, 0.25f), ExpAvg(centerAccum.w, float(wsum)/((2.0f * r + 1.0f) * (2.0f * r + 1.0f)), 0.75f));
+            //_SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = float4(ExpAvg(centerAccum.rgb, accum.rgb, 0.75f), 0.95f*float(wsum) / float(samplesCount));
+            //_SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = float4(ExpAvg(centerAccum.rgb, accum.rgb, 0.75f), 0.95f * float(wsum) / float(((2.0f * r + 1.0f) * (2.0f * r + 1.0f))));
+            _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] =
+                float4(
+                        ExpAvg(centerAccum.rgb, accum.rgb, 0.75f),
+                        ExpAvg(centerAccum.w, 0.0f, 0.75f)
+                    );
         }
     }
-    accum /= totalCoef;
+    //else
+    //{
+    //    _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = 0.0f;
+    //        //float4(ExpAvg(centerAccum.rgb, float3(0.0f, 0.0f, 0.0f), 0.95f), 1.0f);
+    //}
+#endif
 
-    float4 prev = _PrevSSRLightingTexture[COORD_TEXTURE2D_X(positionSS)];
+    if (true || isNewHit)
+    {
+        //float weight = pdf;// *distCoef;
+        //weight /= 4096.0f;
+        //weight = min(weight, 4096.0f);
+        //weight /= 4096.0f;
+        //pdf /= 4096.0f;
+        //if (pdf == 0.0f)
+        //{
+        //    weight = 1.0f;
+        //}
+        //pdf = min(pdf, 16.0f);
+        //float wsum = centerAccum.w + weight;
+        //if (wsum > 0.0f)
+       // _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] =
+       //     float4(centerAccum.rgb + (weight / wsum)*(center.rgb - centerAccum.rgb), wsum);
+        _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = float4(
+            lerp(centerAccum.rgb, center.rgb, 0.00125f),
+            /*lerp(centerAccum.w, pdf, 0.0125f)*/1.0f);
+            //centerAccum * 0.75f + 0.25f * center;
+            //lerp(centerAccum, center, 0.0175f);
+            //lerp(centerAccum, center, 0.0125f);
+            //ExpAvg(centerAccum, center, 1.0f - 0.0000125f);
+            //float4(center.rgb, 1.0f);
+            //float4(lerp(centerAccum.rgb, center.rgb, 0.0125f), 1.0f);
+            //float4(
+            //    ExpAvg(centerAccum.rgb, center.rgb, 0.000125f),
+            //    ExpAvg(centerAccum.w, pdf, 0.000125f));
+    }
+    //_SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = 0.0f;
+    /*else */if (false && centerAccum.w < 0.00125f)
+    {
+        const int r = 1;
+        float4 accum = 0.0f;
+        float wsum = 0.0f;
+        for (int i = -r; i <= r; ++i)
+        {
+            for (int j = -r; j <= r; ++j)
+            {
+                float4 val0 = _SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS + int2(i, j))];
+                float4 val1 = _SSRAccumTexture     [COORD_TEXTURE2D_X(positionSS + int2(i, j))];
+                //float4 val  = val0 * 0.5f + 0.5f * val1;
+                float4 val = val1;
+                //if (i != 0 && j != 0 && dot(val.rgb, float3(1, 1, 1)) > 0.1f)
+                if (i != 0 && j != 0)
+                if (val.w > 0.0f)
+                {
+                    wsum += 1.0f;
+                        //Luminance(val.rgb);
+                        //val.w;
+                    //accum += val.w*val;
+                    accum += val;
+                }
+            }
+        }
+        if (wsum > 0.0f)
+        {
+            accum /= wsum;
+            _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] =
+                //float4(ExpAvg(centerAccum.rgb, accum.rgb, 0.125f), centerAccum.w);
+                lerp(centerAccum, accum, 0.75f);
+                //accum;
+                //float4(accum.rgb, 1.0f);
+        }
+        //_SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = float4(accum.rgb, 1.0f);
+        //_SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = float4(ExpAvg(centerAccum.rgb, accum.rgb, 0.125f), 1.0f);
+    }
+    //else //if (false)
+    //if (false)
+    {
+        //_SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = lerp(_SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)], float4(0.0f, 0.0f, 0.0f, 0.0f), 0.05f);
+        _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] =
+            //lerp(_SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)], float4(0.0f, 0.0f, 0.0f, 0.0f), saturate(10000000000000.0f*length(motionVectorNDC)));
+            lerp(_SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)], float4(0.0f, 0.0f, 0.0f, 0.0f), 0.1f);
+      //_SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] =
+      //    //float4(ExpAvg(centerAccum.rgb, float3(0.0f, 0.0f, 0.0f), 0.25f), 1.0f);
+      //    ExpAvg(centerAccum, float4(0.0f, 0.0f, 0.0f, 0.0f), 0.125f);
+    }
+    //_SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = 0.0f;
 
-    accum.rgb = lerp(accum.rgb, (accum.rgb + prev.rgb) * 0.5f, accum > 0.0f ? 0.0f : 1.0f);
-    //accum.rgb = (accum.rgb + prev.rgb) * 0.5f;
-    //accum.rgb = lerp(accum.rgb, (accum.rgb + prev.rgb) * 0.5f, prev.a);
+    float3 output = 0.0f;
+    int rad = 32;
+    float tot = 0.0f;
+    for (int x = -rad; x <= rad; ++x)
+    {
+        for (int y = -rad; y <= rad; ++y)
+        {
+            float4 data = _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS + int2(x, y))];
+            //if (data.w > 0.0f)
+            //if (x != 0 && y != 0)
+            {
+                //float sigma = lerp(0.125f, 16.0f, saturate(data.w/128.f));
+                float sigma = lerp(0.125f, 128.0f, saturate(distCoef));
+                float sigma2 = sigma * sigma;
+                float coef = rcp(sigma2 * 2.0f * 3.1415926535897932354626f) * exp2(-(float(x * x + y * y) / (2.0f * sigma2)));
+                tot += coef;
+                output += coef * data;
+            }
+        }
+    }
+    output = output / tot;
 
-    _SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = accum;
+    //_SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = 0.0f;
+    //_SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = float4(sqrt(_SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)].x).xxx, 1.0f);
+    //_SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = float4(_SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)].www, 1.0f);
+    //_SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = float4(distCoef.xxx, 1.0f);
+    //_SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = float4(motionVectorNDC.rg, 0.0f, 1.0f);
+    _SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = float4(output.xyz, 1.0f);
+    //_SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = float4(_SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)].www, 1.0f);
+    //_SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)];
+
+    //_SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = 0*float4(1.0f, 1.0f, 1.0f, 1.0f);
 }
+
 #endif
