@@ -12,7 +12,7 @@ editor_versions:
       revision: 3e0d5f77500609e558a691291eb824a4d926c1b8
       version: ''
     ios:
-      revision: 268f33c02e9104d153034d8740c9d38d596f8faa
+      revision: bdcc685ec636642d9b8acadfe102a1157577225e
       version: ''
     linux:
       revision: bdcc685ec636642d9b8acadfe102a1157577225e
@@ -28,7 +28,7 @@ editor_versions:
       revision: 3e0d5f77500609e558a691291eb824a4d926c1b8
       version: ''
     ios:
-      revision: 268f33c02e9104d153034d8740c9d38d596f8faa
+      revision: bdcc685ec636642d9b8acadfe102a1157577225e
       version: ''
     linux:
       revision: bdcc685ec636642d9b8acadfe102a1157577225e
