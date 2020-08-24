@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Support for Clear coat and ComplexLit forward only shader in shader graph.
+- Added Parallax Mapping to the Lit shader (Lit.shader).
+- Added the Detail Inputs setting group in the Lit shader (Lit.shader).
 
 ### Fixed
 - Fixed a case where main light hard shadows would not work if any other light is present with soft shadows.[case 1250829](https://issuetracker.unity3d.com/issues/main-light-shadows-are-ignored-in-favor-of-additional-lights-shadows)
@@ -55,6 +57,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for GPU instanced mesh particles on supported platforms.
 - Added API to check if a Camera or Light is compatible with Universal Render Pipeline.
 - Fixed an issue that impacted MSAA performance on iOS/Metal [case 1219054](https://issuetracker.unity3d.com/issues/urp-ios-msaa-has-a-bigger-negative-impact-on-performance-when-using-urp-compared-to-built-in-rp)
+- Fixed an issue that caused a warning to be thrown about temporary render texture not found when user calls ConfigureTarget(0). [case 1220871](https://issuetracker.unity3d.com/issues/urp-scriptable-render-passes-which-dont-require-a-bound-render-target-triggers-render-target-warning)
 - Added Smooth shadow fading.
 
 ### Changed
