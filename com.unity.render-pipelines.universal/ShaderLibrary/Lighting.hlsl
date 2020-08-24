@@ -660,19 +660,18 @@ void MixRealtimeAndBakedShadows(inout Light light, float3 positionWS, half4 shad
 #endif
 }
 
-void MixRealtimeAndBakedGI(inout Light light, float3 positionWS, half3 normalWS, inout half3 bakedGI, half4 shadowMask)
+// Backwards compatiblity
+void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI, half4 shadowMask)
 {
-    MixRealtimeAndBakedShadows(light, positionWS, shadowMask);
-
 #if defined(LIGHTMAP_ON) && defined(_MIXED_LIGHTING_SUBTRACTIVE)
     bakedGI = SubtractDirectMainLightFromLightmap(light, normalWS, bakedGI);
 #endif
 }
 
-// Backwards compatiblity
-void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI, half4 shadowMask)
+void MixRealtimeAndBakedGI(inout Light light, float3 positionWS, half3 normalWS, inout half3 bakedGI, half4 shadowMask)
 {
-    MixRealtimeAndBakedGI(light, float3(0, 0, 0), normalWS, bakedGI, shadowMask);
+    MixRealtimeAndBakedShadows(light, positionWS, shadowMask);
+    MixRealtimeAndBakedGI(light, normalWS, bakedGI, shadowMask);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
