@@ -22,7 +22,6 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector3 n0 = p0.normal;
             Vector3 n1 = p1.normal;
             Vector3 n2 = p2.normal;
-            int test = 42;
 
             float det = Vector3.Dot(Vector3.Cross(n0, n1), n2);
             return (Vector3.Cross(n2, n1) * p0.distance + Vector3.Cross(n0, n2) * p1.distance - Vector3.Cross(n0, n1) * p2.distance) * (1.0f / det);
