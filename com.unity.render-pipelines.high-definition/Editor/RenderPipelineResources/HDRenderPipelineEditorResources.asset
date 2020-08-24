@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &11400000
+--- !u!114 &1
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -28,6 +28,16 @@ MonoBehaviour:
     defaultParticleMat: {fileID: 2100000, guid: b739a3f02ff77bf48b7636e64c3e3b4c, type: 2}
     defaultTerrainMat: {fileID: 2100000, guid: 22ff8771d87ef27429e670136399094b, type: 2}
     GUITextureBlit2SRGB: {fileID: 2100000, guid: 6e95c04e4e686554e8bed96ee69f690c, type: 2}
+  textures:
+    lightUnitVeryBrightSun: {fileID: 2800000, guid: 4f86f0d463cd6b548ac8617ced10ad97, type: 3}
+    lightUnitOvercastSky: {fileID: 2800000, guid: 9139f8ddbeceb49488e844176896253e, type: 3}
+    lightUnitSunriseOrSunset: {fileID: 2800000, guid: 79587eab3ea9f074486961f2ef82a234, type: 3}
+    lightUnitMoonLight: {fileID: 2800000, guid: 23c227aae501d964185d172393a00df9, type: 3}
+    lightUnitExterior: {fileID: 2800000, guid: ebd0bd92a8b812548b6eb9e9f4e48894, type: 3}
+    lightUnitInterior: {fileID: 2800000, guid: c4edc86cf15152d4a905d604688a32b0, type: 3}
+    lightUnitDecorative: {fileID: 2800000, guid: 57d5b8c41faabe64c92767bdc4ac0cc1, type: 3}
+    lightUnitCandle: {fileID: 2800000, guid: af0a18587f6704e4ebdb2c93347b8c8f, type: 3}
+    lightUnitCautionValue: {fileID: 2800000, guid: 6672f91fbf4a1284cb79938d7d7deda6, type: 3}
   shaderGraphs:
     autodeskInteractive: {fileID: 4800000, guid: 7252379db4c18b641b517f2c91bb57e1, type: 3}
     autodeskInteractiveMasked: {fileID: 4800000, guid: 29c4adff654862b40a2e9fb2015a42c3, type: 3}

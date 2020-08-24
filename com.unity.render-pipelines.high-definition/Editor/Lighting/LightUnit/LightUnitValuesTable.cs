@@ -22,18 +22,18 @@ namespace UnityEditor.Rendering.HighDefinition
         //TODO: Caution string
         public static readonly LightUnitUILevel[] k_LuxValueTable =
         {
-            new LightUnitUILevel(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures.lightUnitVeryBrightSun,   "Very Bright Sun",   new Vector2(80000, 120000)),
-            new LightUnitUILevel(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures.lightUnitOvercastSky,     "Overcast Sky",      new Vector2(10000, 80000)),
-            new LightUnitUILevel(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures.lightUnitSunriseOrSunset, "Sunrise or Sunset", new Vector2(1,     10000)),
-            new LightUnitUILevel(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures.lightUnitMoonLight,       "Moon Light",        new Vector2(0,     1)),
+            new LightUnitUILevel(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures.iconBrightSky,     "Very Bright Sun",   new Vector2(80000, 120000)),
+            new LightUnitUILevel(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures.iconOvercastSky,   "Overcast Sky",      new Vector2(10000, 80000)),
+            new LightUnitUILevel(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures.iconSunriseSunset, "Sunrise or Sunset", new Vector2(1,     10000)),
+            new LightUnitUILevel(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures.iconMoonlitSky,    "Moon Light",        new Vector2(0,     1)),
         };
 
         public static readonly LightUnitUILevel[] k_LumenValueTable =
         {
-            new LightUnitUILevel(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures.lightUnitExterior,   "Very Bright Sun",   new Vector2(3000, 40000)),
-            new LightUnitUILevel(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures.lightUnitInterior,   "Overcast Sky",      new Vector2(300,   3000)),
-            new LightUnitUILevel(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures.lightUnitDecorative, "Sunrise or Sunset", new Vector2(15,     300)),
-            new LightUnitUILevel(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures.lightUnitCandle,     "Moon Light",        new Vector2(0,       15)),
+            new LightUnitUILevel(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures.iconExterior,   "Exterior",   new Vector2(3000, 40000)),
+            new LightUnitUILevel(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures.iconInterior,   "Interior",   new Vector2(300,  3000)),
+            new LightUnitUILevel(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures.iconDecorative, "Decorative", new Vector2(15,   300)),
+            new LightUnitUILevel(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures.iconCandle,     "Candle",     new Vector2(0,    15)),
         };
 
         public static readonly LightUnitUILevel[] k_CandelaValueTable =
