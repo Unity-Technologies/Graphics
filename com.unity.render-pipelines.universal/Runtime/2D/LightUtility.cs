@@ -241,11 +241,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return s * s * s * startPosition + 3.0f * s * s * t * startTangent + 3.0f * s * t * t * endTangent + t * t * t * endPosition;
         }          
 
-        static List<ContourVertex> GetFalloff(Vector3[] shapePath, float fallOff, Color meshInterior, ref List<Vec3> bevelInputs)
+        static NativeArray<Vector3> GetFalloff(Vector3[] shapePath, float fallOff, Color meshInterior, ref List<ContourVertex> vertices)
         {
-            List<ContourVertex> vertices = new List<ContourVertex>();
-            var extrusionDir = new List<Vector2>();
             var shapePathLength = shapePath.Length;
+            var extrusionDir = new NativeArray<Vector2>(shapePathLength, Allocator.Temp);
+            var bevelInputs = new NativeArray<Vector3>(shapePathLength * 3, Allocator.Temp);
+            var bi = 0;
             
             for (var i = 0; i < shapePathLength; ++i)
             {
@@ -263,7 +264,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 var va = -vr.normalized;
                 var dir = new Vector2(va.x, va.y);
-                extrusionDir.Add(dir);
+                extrusionDir[i] = dir;
             }
             
             for (var i = 0; i < shapePathLength; i++)
@@ -296,12 +297,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 
                 // For Bevels.
                 if (i != 0)
-                    bevelInputs.Add(b);                
-                bevelInputs.Add(c);
-                bevelInputs.Add(d);
+                    bevelInputs[bi++] = new Vector3(b.X, b.Y, b.Z );                
+                bevelInputs[bi++] = new Vector3(c.X, c.Y, c.Z);
+                bevelInputs[bi++] = new Vector3(d.X, d.Y, d.Z);
             }
-            bevelInputs.Add(vertices[1].Position);
-            return vertices;
+            bevelInputs[bi++] = new Vector3(vertices[1].Position.X, vertices[1].Position.Y, vertices[2].Position.Z);
+            return bevelInputs;
         }
         
         static float SlopeAngle(Vector3 dirNormalized)
@@ -321,9 +322,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return (360.0f + an) % 360.0f;
         }
         
-        static List<Vector3> GetArc(Vector3 from, Vector3 to, Vector3 pivot, Vector3 center, float radius, float detail)
+        static void GetArc(NativeArray<Vector3> arcPoints, Vector3 from, Vector3 to, Vector3 pivot, Vector3 center, float radius, float detail)
         {
-            var arc = new List<Vector3>();
             var fq = SlopeAngle(from.normalized);
             var tq = SlopeAngle(to.normalized);
             var sq = SlopeAngle(pivot.normalized);
@@ -336,30 +336,29 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 fq = (fd > td) ? (sq + td) : (fq + 360);
 
             var arcLength = tq - fq;
+            var ix = 0;
             for (int i = 0; i <= detail; i++)
             {
                 var x = Mathf.Sin(Mathf.Deg2Rad * fq) * radius;
                 var y = Mathf.Cos(Mathf.Deg2Rad * fq) * radius;
                 var pt = new Vector3(x, y, 0);
-                arc.Add((pt.normalized * radius) + center);
+                arcPoints[ix++] = (pt.normalized * radius) + center;
                 fq += (arcLength / detail);
             }
-            return arc;
         }
 
-        static void GenerateBevels(List<Vec3> bevelInputs, float fallOff, Color meshInteriorColor, NativeArray<ushort> indices,
+        static void GenerateBevels(NativeArray<Vector3> bevelInputs, float fallOff, Color meshInteriorColor, NativeArray<ushort> indices,
             NativeArray<ParametricLightMeshVertex> vertices, ref int vcount, ref int icount)
         {
-            var vertexCount = bevelInputs.Count;
-            var bezierQuality = 4;
-
+            var vertexCount = bevelInputs.Length;
+            var quality = 4;
+            var arcPoints = new NativeArray<Vector3>(quality + 1, Allocator.Temp);
             for (var i = 0; i < vertexCount; i = i + 3)
             {
                 // Pivot Pos
-                List<ContourVertex> bevel = new List<ContourVertex>();
-                var sp = new Vector3(bevelInputs[i + 0].X, bevelInputs[i + 0].Y, 0);
-                var ip = new Vector3(bevelInputs[i + 1].X, bevelInputs[i + 1].Y, 0);
-                var ep = new Vector3(bevelInputs[i + 2].X, bevelInputs[i + 2].Y, 0);
+                var sp = bevelInputs[i + 0]; // new Vector3(.X, bevelInputs[i + 0].Y, 0);
+                var ip = bevelInputs[i + 1]; // new Vector3(bevelInputs[i + 1].X, bevelInputs[i + 1].Y, 0);
+                var ep = bevelInputs[i + 2]; // new Vector3(bevelInputs[i + 2].X, bevelInputs[i + 2].Y, 0);
                 
                 var scale = Mathf.Min((ep - ip).magnitude, (sp - ip).magnitude) * 0.33f;
                 var lT = (sp - ip).normalized * scale;
@@ -372,11 +371,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 var pivotPoint = new ParametricLightMeshVertex() {position = ip, color = meshInteriorColor};
                 var startPoint = new ParametricLightMeshVertex() {position = sp, color = new Color(isn.x, isn.y, 0, 0)};
-                var arc = GetArc(isn, ien, sen, ip, fallOff, bezierQuality);
+                GetArc(arcPoints, isn, ien, sen, ip, fallOff, quality);
                 
-                for (int n = 0; n <= bezierQuality; ++n)
+                for (int n = 0; n <= quality; ++n)
                 {
-                    Vector3 r = arc[n];
+                    Vector3 r = arcPoints[n];
                     Vector3 d = (np - r).normalized;
 
                     indices[icount++] = (ushort)vcount;
@@ -390,7 +389,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        static void Tessellate(Tess tess, NativeArray<ushort> indices,
+        static Bounds Tessellate(Tess tess, NativeArray<ushort> indices,
             NativeArray<ParametricLightMeshVertex> vertices, ref int vcount, ref int icount)
         {
             tess.Tessellate(WindingRule.NonZero, ElementType.Polygons, 3);
@@ -400,8 +399,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 new ParametricLightMeshVertex() { position = 
                     new float3(v.Position.X, v.Position.Y, 0), color = v.Data != null ? (Color)v.Data : Color.white });
 
+            var min = new float3(float.MaxValue, float.MaxValue, 0);
+            var max = new float3(float.MinValue, float.MinValue, 0);
+            var bounds = new Bounds {min = min, max = max};
+
             foreach(var v in vout)
             {
+                min = math.min(min, v.position);
+                max = math.max(max, v.position);
                 vertices[vcount++] = new ParametricLightMeshVertex { position = v.position, color = v.color };
             }
 
@@ -409,14 +414,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 indices[icount++] = (ushort)i;
             }
+
+            return new Bounds {min = min, max = max};
         }
 
         public static Bounds GenerateShapeMesh(Mesh mesh, Vector3[] shapePath, float falloffDistance)
         {
             var meshInteriorColor = new Color(1.0f,0,0,1.0f);
-            var min = new float3(float.MaxValue, float.MaxValue, 0);
-            var max = new float3(float.MinValue, float.MinValue, 0);
-
             var vcount = 0;
             var icount = 0;
             var ix = 0;
@@ -433,22 +437,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
             tess.AddContour(inner, ContourOrientation.CounterClockwise);
 
             // Create falloff geometry
-            var bevelInputs = new List<Vec3>(); 
-            var outer = GetFalloff(shapePath, falloffDistance, meshInteriorColor, ref bevelInputs);
+            var outer = new List<ContourVertex>(); 
+            var bevel = GetFalloff(shapePath, falloffDistance, meshInteriorColor, ref outer);
             tess.AddContour(outer.ToArray(), ContourOrientation.CounterClockwise);
-            Tessellate(tess, indices, vertices, ref vcount, ref icount);
+            var bounds = Tessellate(tess, indices, vertices, ref vcount, ref icount);
 
             // Generate Bevels.
-            GenerateBevels(bevelInputs, falloffDistance, meshInteriorColor, indices, vertices, ref vcount, ref icount);
+            GenerateBevels(bevel, falloffDistance, meshInteriorColor, indices, vertices, ref vcount, ref icount);
             mesh.SetVertexBufferParams(vcount, ParametricLightMeshVertex.VertexLayout);
             mesh.SetVertexBufferData(vertices, 0, 0, vcount);
             mesh.SetIndices(indices, 0, icount, MeshTopology.Triangles, 0, false);
 
-            return new Bounds
-            {
-                min = min,
-                max = max
-            };
+            return bounds;
         }
 
 #if UNITY_EDITOR
