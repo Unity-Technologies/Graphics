@@ -179,7 +179,7 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderHdr"
             return colorLinear;
         }
 
-        float4 Frag(FullscreenVaryings input) : SV_Target
+        float4 Frag(Varyings input) : SV_Target
         {
             // Lut space
             // We use Alexa LogC (El 1000) to store the LUT as it provides a good enough range

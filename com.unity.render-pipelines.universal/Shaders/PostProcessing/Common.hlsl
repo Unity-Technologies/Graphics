@@ -15,9 +15,9 @@ float4 TransformFullscreenMesh(half3 positionOS)
     return mul(_FullscreenProjMat, half4(positionOS, 1));
 }
 
-FullscreenVaryings VertFullscreenMesh(FullscreenAttributes input)
+Varyings VertFullscreenMesh(Attributes input)
 {
-    FullscreenVaryings output;
+    Varyings output;
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
