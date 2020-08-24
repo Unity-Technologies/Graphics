@@ -744,6 +744,9 @@ namespace UnityEngine.Rendering.Universal
             shadowData.bias = m_ShadowBiasData;
             shadowData.supportsMainLightShadows = SystemInfo.supportsShadows && settings.supportsMainLightShadows && mainLightCastShadows;
 
+            // We no longer use screen space shadows in URP. this is obsolete.
+            shadowData.requiresScreenSpaceShadowResolve = false;
+
             int shadowCascadesCount;
             switch (settings.shadowCascadeOption)
             {
