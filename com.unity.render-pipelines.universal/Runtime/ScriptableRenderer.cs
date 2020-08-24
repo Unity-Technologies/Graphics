@@ -584,7 +584,20 @@ namespace UnityEngine.Rendering.Universal
             {
                 renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
 
-                ClearFlag cameraClearFlag = GetCameraClearFlag(ref cameraData);
+            renderPass.Execute(context, ref renderingData);
+        }
+
+        void SetRenderPassAttachments(CommandBuffer cmd, ScriptableRenderPass renderPass, ref CameraData cameraData)
+        {
+            Camera camera = cameraData.camera;
+            ClearFlag cameraClearFlag = GetCameraClearFlag(ref cameraData);
+            
+            // Invalid configuration - use current attachment setup
+            // Note: we only check color buffers. This is only technically correct because for shadowmaps and depth only passes
+            // we bind depth as color and Unity handles it underneath. so we never have a situation that all color buffers are null and depth is bound.
+            uint validColorBuffersCount = RenderingUtils.GetValidColorBufferCount(renderPass.colorAttachments);
+            if (validColorBuffersCount == 0)
+                return;
 
                 // We use a different code path for MRT since it calls a different version of API SetRenderTarget
                 if (RenderingUtils.IsMRT(renderPass.colorAttachments))
