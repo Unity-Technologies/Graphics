@@ -1,12 +1,12 @@
 # Shadows
 
-The **Shadows** [Volume component override](Volume-Components.html) controls the maximum distance at which HDRP renders shadow cascades and shadows from [punctual lights](Glossary.html#PunctualLight). It uses cascade splits to control the quality of shadows cast by Directional Lights over distance from the Camera.
+The **Shadows** [Volume component override](Volume-Components.md) controls the maximum distance at which HDRP renders shadow cascades and shadows from [punctual lights](Glossary.md#PunctualLight). It uses cascade splits to control the quality of shadows cast by Directional Lights over distance from the Camera.
 
 ## Using Shadows
 
-**Shadows** uses the [Volume](Volumes.html) framework, so to enable and modify **Shadows** properties, you must add a **Shadows** override to a [Volume](Volumes.html) in your Scene.
+**Shadows** uses the [Volume](Volumes.md) framework, so to enable and modify **Shadows** properties, you must add a **Shadows** override to a [Volume](Volumes.md) in your Scene.
 
-The **Shadows** override comes as default when you create a **Scene Settings** GameObject (Menu: **GameObject > Rendering > Scene Settings**). You can also manually add a **Shadows** override to any [Volume](Volumes.html). To add **Shadows** to a Volume:
+The **Shadows** override comes as default when you create a **Scene Settings** GameObject (Menu: **GameObject > Rendering > Scene Settings**). You can also manually add a **Shadows** override to any [Volume](Volumes.md). To add **Shadows** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Shadowing** and click on **Shadows**. You can now use the **Shadows** override to alter shadow settings for this Volume.
@@ -14,6 +14,8 @@ The **Shadows** override comes as default when you create a **Scene Settings** G
 ## Properties
 
 ![](Images/Override-Shadows1.png)
+
+[!include[](Snippets/Volume-Override-Enable-Properties.md)]
 
 | **Property**     | **Description**                                              |
 | ---------------- | ------------------------------------------------------------ |

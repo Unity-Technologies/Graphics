@@ -82,7 +82,7 @@ namespace UnityEditor.Experimental.VFX.Utility
             while (!found_end_header);
         }
 
-        public override void OnImportAsset(UnityEditor.AssetImporters.AssetImportContext ctx)
+        public override void OnImportAsset(AssetImportContext ctx)
         {
             try
             {

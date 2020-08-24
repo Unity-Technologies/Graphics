@@ -192,6 +192,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_RealtimeTexture != null)
                     m_RealtimeTexture.Release();
                 m_RealtimeTexture = RTHandles.Alloc(value);
+                m_RealtimeTexture.rt.name = $"ProbeRealTimeTexture_{name}";
             }
         }
 
@@ -209,14 +210,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_RealtimeDepthBuffer != null)
                     m_RealtimeDepthBuffer.Release();
                 m_RealtimeDepthBuffer = RTHandles.Alloc(value);
+                m_RealtimeDepthBuffer.rt.name = $"ProbeRealTimeDepthTexture_{name}";
             }
         }
 
+        /// <summary>
+        /// Returns an RThandle reference to the realtime texture where the color result of the probe is stored.
+        /// </summary>
         public RTHandle realtimeTextureRTH
         {
             get => m_RealtimeTexture;
         }
-
+        /// <summary>
+        /// Returns an RThandle reference to the realtime texture where the depth result of the probe is stored.
+        /// </summary>
         public RTHandle realtimeDepthTextureRTH
         {
             get => m_RealtimeDepthBuffer;
