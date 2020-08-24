@@ -109,6 +109,7 @@ Shader "Universal Render Pipeline/Unlit"
         }
         Pass
         {
+            Name "DepthOnly"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
@@ -172,7 +173,7 @@ Shader "Universal Render Pipeline/Unlit"
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore
             #pragma target 2.0
-            
+
             #pragma vertex vert
             #pragma fragment frag
             #pragma shader_feature_local_fragment _ALPHATEST_ON
@@ -242,6 +243,7 @@ Shader "Universal Render Pipeline/Unlit"
         }
         Pass
         {
+            Name "DepthOnly"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
@@ -253,11 +255,11 @@ Shader "Universal Render Pipeline/Unlit"
 
             #pragma vertex DepthOnlyVertex
             #pragma fragment DepthOnlyFragment
-            
+
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local_fragment _ALPHATEST_ON
-                        
+
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
