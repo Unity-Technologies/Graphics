@@ -98,6 +98,7 @@ int VirtualTexturingLookup(
         if ( input.sampleQuality == VtSampleQuality_Low && input.levelMode == VtLevel_Bias)
         {
             mipLevel += input.lodOrOffset;
+            mipLevel = clamp(mipLevel, 0.0f, gra_NumLevels);
         }
 
         mipLevel = floor(mipLevel + 0.5f); //round nearest
