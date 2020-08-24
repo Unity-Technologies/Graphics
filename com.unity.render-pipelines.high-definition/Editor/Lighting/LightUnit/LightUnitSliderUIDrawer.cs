@@ -34,19 +34,21 @@ namespace UnityEditor.Rendering.HighDefinition
                     m_RangeMin = level.range.x;
             }
 
-            private void CurrentLevel(float value, out GUIContent level)
+            private void CurrentLevelIcon(float value, out GUIContent level, out Vector2 range)
             {
                 foreach (var l in m_Levels)
                 {
                     if (value >= l.range.x && value <= l.range.y)
                     {
                         level = l.content;
+                        range = l.range;
                         return;
                     }
                 }
 
                 // If value out of range, indicate caution. (For now assume caution feedback is last)
                 level = m_CautionContent;
+                range = Vector2.positiveInfinity;
             }
 
             public void Draw(Rect rect, SerializedProperty value)
@@ -60,16 +62,113 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Markers
                 foreach (var l in m_Levels)
                 {
-                    var markerValue = l.range.y / m_RangeMax;
-                    DoSliderMarker(sliderRect, markerValue, l.content.tooltip);
+                    DoSliderMarker(sliderRect, l, m_RangeMax);
                 }
 
                 // Icon
-                CurrentLevel(value.floatValue, out var level);
-                DoIcon(iconRect, level);
+                CurrentLevelIcon(value.floatValue, out var iconContent, out var range);
+                DoIcon(iconRect, iconContent, range.y);
 
                 // Place tooltip on slider thumb.
-                DoThumbTooltip(sliderRect, value.floatValue / m_RangeMax, level.tooltip);
+                DoThumbTooltip(sliderRect, value.floatValue, value.floatValue / m_RangeMax, iconContent.tooltip);
+            }
+
+            private static void GetRects(Rect baseRect, out Rect sliderRect, out Rect iconRect)
+            {
+                const int k_IconSeparator = 6;
+
+                sliderRect = baseRect;
+                sliderRect.width -= EditorGUIUtility.singleLineHeight + k_IconSeparator;
+
+                iconRect = baseRect;
+                iconRect.x += sliderRect.width + k_IconSeparator;
+                iconRect.width = EditorGUIUtility.singleLineHeight;
+            }
+
+            private static void DoSlider(Rect rect, SerializedProperty value, float leftValue, float rightValue)
+            {
+                // TODO: Look into compiling a lambda to access internal slider function for logarithmic sliding.
+                value.floatValue = GUI.HorizontalSlider(rect, value.floatValue, leftValue, rightValue, GUI.skin.horizontalSlider, GUI.skin.horizontalSliderThumb);
+            }
+
+            private static void DoSliderMarker(Rect rect, LightUnitUILevel level, float rangeMax)
+            {
+                const float width  = 3f;
+                const float height = 2f;
+
+                float x = level.range.y / rangeMax;
+
+                var markerRect = rect;
+                markerRect.width  = width;
+                markerRect.height = height;
+
+                // Vertically align with slider.
+                markerRect.y += (EditorGUIUtility.singleLineHeight / 2f) - 1;
+
+                // Horizontally place on slider.
+                markerRect.x = rect.x + rect.width * x;
+
+                // Clamp to the slider edges.
+                const float halfWidth = width * 0.5f;
+                float min = rect.x + halfWidth;
+                float max = (rect.x + rect.width) - halfWidth;
+                markerRect.x = Mathf.Clamp(markerRect.x, min, max);
+
+                // Center the marker on value.
+                markerRect.x -= halfWidth;
+
+                // Draw marker by manually drawing the rect, and an empty label with the tooltip.
+                EditorGUI.DrawRect(markerRect, Color.white);
+
+                // Consider enlarging this tooltip rect so that it's easier to discover?
+                s_MarkerContent.tooltip = FormatTooltip(level.content.tooltip, level.range.y);
+                EditorGUI.LabelField(markerRect, s_MarkerContent);
+            }
+
+            private static void DoThumbTooltip(Rect rect, float value, float normalizedValue, string tooltip)
+            {
+                const float size = 10f;
+                const float halfSize = size * 0.5f;
+
+                var thumbMarkerRect = rect;
+                thumbMarkerRect.width  = size;
+                thumbMarkerRect.height = size;
+
+                // Vertically align with slider
+                thumbMarkerRect.y += halfSize - 1f;
+
+                // Horizontally place tooltip on the wheel,
+                thumbMarkerRect.x  = rect.x + (rect.width - size) * normalizedValue;
+
+                s_MarkerContent.tooltip = FormatTooltip(tooltip, value);
+                EditorGUI.LabelField(thumbMarkerRect, s_MarkerContent);
+            }
+
+            private static void DoIcon(Rect rect, GUIContent icon, float range)
+            {
+                var oldColor = GUI.color;
+                GUI.color = Color.clear;
+                EditorGUI.DrawTextureTransparent(rect, icon.image);
+                GUI.color = oldColor;
+
+                EditorGUI.LabelField(rect, new GUIContent(string.Empty, FormatTooltip(icon.tooltip, range)));
+            }
+
+            private static string FormatTooltip(string baseTooltip, float value)
+            {
+                string formatValue;
+
+                // Massage the value for readability (with respect to the UX request).
+                if (value >= Single.PositiveInfinity)
+                    formatValue = "###K";
+                else if (value >= 100000)
+                    formatValue = (value / 1000).ToString("#,0K");
+                else if (value >= 10000)
+                    formatValue = (value / 1000).ToString("0.#") + "K";
+                else
+                    formatValue = value.ToString("#.0");
+
+                return baseTooltip + " " + formatValue + " Units";
             }
 
             private readonly GUIContent m_CautionContent;
@@ -116,83 +215,5 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.indentLevel = prevIndentLevel;
         }
 
-        private static void GetRects(Rect baseRect, out Rect sliderRect, out Rect iconRect)
-        {
-            const int k_IconSeparator = 6;
-
-            sliderRect = baseRect;
-            sliderRect.width -= EditorGUIUtility.singleLineHeight + k_IconSeparator;
-
-            iconRect = baseRect;
-            iconRect.x += sliderRect.width + k_IconSeparator;
-            iconRect.width = EditorGUIUtility.singleLineHeight;
-        }
-
-        private static void DoSlider(Rect rect, SerializedProperty value, float leftValue, float rightValue)
-        {
-            // TODO: Look into compiling a lambda to access internal slider function for logarithmic sliding.
-            value.floatValue = GUI.HorizontalSlider(rect, value.floatValue, leftValue, rightValue, GUI.skin.horizontalSlider, GUI.skin.horizontalSliderThumb);
-        }
-
-        private static void DoSliderMarker(Rect rect, float x, string tooltip)
-        {
-            const float width  = 3f;
-            const float height = 2f;
-
-            var markerRect = rect;
-            markerRect.width  = width;
-            markerRect.height = height;
-
-            // Vertically align with slider.
-            markerRect.y += (EditorGUIUtility.singleLineHeight / 2f) - 1;
-
-            // Horizontally place on slider.
-            markerRect.x = rect.x + rect.width * x;
-
-            // Clamp to the slider edges.
-            float halfWidth = width * 0.5f;
-            float min = rect.x + halfWidth;
-            float max = (rect.x + rect.width) - halfWidth;
-            markerRect.x = Mathf.Clamp(markerRect.x, min, max);
-
-            // Center the marker on value.
-            markerRect.x -= halfWidth;
-
-            // Draw marker by manually drawing the rect, and an empty label with the tooltip.
-            EditorGUI.DrawRect(markerRect, Color.white);
-
-            // Consider enlarging this tooltip rect so that it's easier to discover?
-            s_MarkerContent.tooltip = tooltip;
-            EditorGUI.LabelField(markerRect, s_MarkerContent);
-        }
-
-        private static void DoThumbTooltip(Rect rect, float x, string tooltip)
-        {
-            const float size = 10f;
-            const float halfSize = size * 0.5f;
-
-            var thumbMarkerRect = rect;
-            thumbMarkerRect.width  = size;
-            thumbMarkerRect.height = size;
-
-            // Vertically align with slider
-            thumbMarkerRect.y += halfSize - 1f;
-
-            // Horizontally place tooltip on the wheel,
-            thumbMarkerRect.x  = rect.x + (rect.width - size) * x;
-
-            s_MarkerContent.tooltip = tooltip;
-            EditorGUI.LabelField(thumbMarkerRect, s_MarkerContent);
-        }
-
-        private static void DoIcon(Rect rect, GUIContent icon)
-        {
-            var oldColor = GUI.color;
-            GUI.color = Color.clear;
-            EditorGUI.DrawTextureTransparent(rect, icon.image);
-            GUI.color = oldColor;
-
-            EditorGUI.LabelField(rect, new GUIContent(string.Empty, icon.tooltip));
-        }
     }
 }
