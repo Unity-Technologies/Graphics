@@ -110,7 +110,7 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = half3(0, 0, 0); // No GI currently.
     inputData.normalizedScreenSpaceUV = input.clipPos.xy;
-    inputData.bakedAtten = half4(1, 1, 1, 1); // No GI currently.
+    inputData.shadowMask = half4(1, 1, 1, 1); // No GI currently.
 }
 
 #ifdef GBUFFER

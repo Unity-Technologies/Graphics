@@ -610,7 +610,17 @@ namespace UnityEngine.Rendering.Universal
 
             Light light = lightData.light;
 
-            // Set the occlusion probe channel.
+            lightOcclusionProbeChannel = Vector4.zero;
+            if (light != null && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
+            {
+                lightOcclusionProbeChannel[light.bakingOutput.occlusionMaskChannel] = 1.0f;
+            }
+            else
+            {
+                lightOcclusionProbeChannel.x = -1.0f; // Use -1 to say we have no mask
+            }
+
+            /*// Set the occlusion probe channel.
             int occlusionProbeChannel = light != null ? light.bakingOutput.occlusionMaskChannel : -1;
 
             // If we have baked the light, the occlusion channel is the index we need to sample in 'unity_ProbesOcclusion'
@@ -618,7 +628,7 @@ namespace UnityEngine.Rendering.Universal
             // In case there is no occlusion channel is -1, we set it to zero, and then set the second value in the
             // input to one. We then, in the shader max with the second value for non-occluded lights.
             lightOcclusionProbeChannel.x = occlusionProbeChannel == -1 ? 0f : occlusionProbeChannel;
-            lightOcclusionProbeChannel.y = occlusionProbeChannel == -1 ? 1f : 0f;
+            lightOcclusionProbeChannel.y = occlusionProbeChannel == -1 ? 1f : 0f;*/
         }
     }
 

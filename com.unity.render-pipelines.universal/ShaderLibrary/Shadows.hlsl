@@ -28,14 +28,11 @@
 
 #if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
     #define SAMPLE_SHADOWMASK(uv) SAMPLE_TEXTURE2D(unity_ShadowMask, samplerunity_ShadowMask, uv);
-#elif defined (SHADOWS_SHADOWMASK)
+#elif !defined (LIGHTMAP_ON)
     #define SAMPLE_SHADOWMASK(uv) unity_ProbesOcclusion;
 #else
     #define SAMPLE_SHADOWMASK(uv) half4(1, 1, 1, 1);
 #endif
-
-// Renamed -> LIGHTMAP_SHADOW_MIXING
-#define _MIXED_LIGHTING_SUBTRACTIVE LIGHTMAP_SHADOW_MIXING
 
 SCREENSPACE_TEXTURE(_ScreenSpaceShadowmapTexture);
 SAMPLER(sampler_ScreenSpaceShadowmapTexture);
@@ -281,29 +278,6 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
 
     half4 shadowParams = GetAdditionalLightShadowParams(lightIndex);
     return SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_AdditionalLightsShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, true);
-}
-
-half MainLightBakedShadow(half4 shadowMask)
-{
-#if defined(SHADOWS_SHADOWMASK)
-    half channel = _MainLightSpotDir.w - 1;
-    half bakedShadowAttenuation = shadowMask[channel];
-    bakedShadowAttenuation = min(1, bakedShadowAttenuation + 1 - saturate(_MainLightSpotDir.w)); // if channel is 0 it means we do not use baked shadow
-    return bakedShadowAttenuation;
-#else
-    return 1.0h;
-#endif
-}
-
-half AdditionalLightBakedShadow(int lightIndex, half4 shadowMask)
-{
-#if defined(SHADOWS_SHADOWMASK)
-    half channel = _AdditionalLightsSpotDir[lightIndex].w - 1;
-    half bakedShadowAttenuation = shadowMask[channel];
-    bakedShadowAttenuation = min(1, bakedShadowAttenuation + 1 - saturate(_MainLightSpotDir.w)); // if channel is 0 it means we do not use baked shadow
-    return bakedShadowAttenuation;
-#endif
-    return 1.0h;
 }
 
 float4 GetShadowCoord(VertexPositionInputs vertexInput)

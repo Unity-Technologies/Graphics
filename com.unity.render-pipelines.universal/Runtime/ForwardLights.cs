@@ -12,14 +12,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             public static int _MainLightPosition;   // DeferredLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
             public static int _MainLightColor;      // DeferredLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
-            public static int _MainLightSpotDir;    // Deferred?
+            public static int _MainLightOcclusionProbesChannel;    // Deferred?
 
             public static int _AdditionalLightsCount;
             public static int _AdditionalLightsPosition;
             public static int _AdditionalLightsColor;
             public static int _AdditionalLightsAttenuation;
             public static int _AdditionalLightsSpotDir;
-
             public static int _AdditionalLightOcclusionProbeChannel;
         }
 
@@ -44,7 +43,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             LightConstantBuffer._MainLightPosition = Shader.PropertyToID("_MainLightPosition");
             LightConstantBuffer._MainLightColor = Shader.PropertyToID("_MainLightColor");
-            LightConstantBuffer._MainLightSpotDir = Shader.PropertyToID("_MainLightSpotDir");
+            LightConstantBuffer._MainLightOcclusionProbesChannel = Shader.PropertyToID("_MainLightOcclusionProbes");
             LightConstantBuffer._AdditionalLightsCount = Shader.PropertyToID("_AdditionalLightsCount");
 
             if (m_UseStructuredBuffer)
@@ -106,35 +105,22 @@ namespace UnityEngine.Rendering.Universal.Internal
             VisibleLight lightData = lights[lightIndex];
             Light light = lightData.light;
 
-            // Set the occlusion probe channel.
-            int occlusionProbeChannel = light != null ? light.bakingOutput.occlusionMaskChannel : -1;
+            if (light == null)
+                return;
 
-            // If we have baked the light, the occlusion channel is the index we need to sample in 'unity_ProbesOcclusion'
-            // If we have not baked the light, the occlusion channel is -1.
-            // In case there is no occlusion channel is -1, we set it to zero, and then set the second value in the
-            // input to one. We then, in the shader max with the second value for non-occluded lights.
-            lightOcclusionProbeChannel.x = occlusionProbeChannel == -1 ? 0f : occlusionProbeChannel;
-            lightOcclusionProbeChannel.y = occlusionProbeChannel == -1 ? 1f : 0f;
-            
-            if (light != null && light.bakingOutput.mixedLightingMode == MixedLightingMode.Subtractive && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
+            if (light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed &&
+                lightData.light.shadows != LightShadows.None &&
+                m_MixedLightingSetup == MixedLightingSetup.None)
             {
-                if (m_MixedLightingSetup == MixedLightingSetup.None && lightData.light.shadows != LightShadows.None)
+                switch (light.bakingOutput.mixedLightingMode)
                 {
-                    m_MixedLightingSetup = MixedLightingSetup.Subtractive;
+                    case MixedLightingMode.Subtractive:
+                        m_MixedLightingSetup = MixedLightingSetup.Subtractive;
+                        break;
+                    case MixedLightingMode.Shadowmask:
+                        m_MixedLightingSetup = MixedLightingSetup.ShadowMask;
+                        break;
                 }
-            }
-            if (light.bakingOutput.mixedLightingMode == MixedLightingMode.Shadowmask && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
-            {
-                if (lightData.light.shadows != LightShadows.None)
-                {
-                    m_MixedLightingSetup = MixedLightingSetup.ShadowMask;
-                }
-                int channel = light.bakingOutput.occlusionMaskChannel;
-                //light index is baked in the alpha channel of the light's direction
-                lightSpotDir.w = channel + 1;
-            } else
-            {
-                lightSpotDir.w = 0;//If mask should not be used, light index is 0
             }
         }
 
@@ -155,7 +141,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             cmd.SetGlobalVector(LightConstantBuffer._MainLightPosition, lightPos);
             cmd.SetGlobalVector(LightConstantBuffer._MainLightColor, lightColor);
-            cmd.SetGlobalVector(LightConstantBuffer._MainLightSpotDir, lightSpotDir);
+            cmd.SetGlobalVector(LightConstantBuffer._MainLightOcclusionProbesChannel, lightOcclusionChannel);
         }
 
         void SetupAdditionalLightConstants(CommandBuffer cmd, ref RenderingData renderingData)

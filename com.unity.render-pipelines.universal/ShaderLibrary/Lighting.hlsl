@@ -35,6 +35,11 @@
     #define OUTPUT_SH(normalWS, OUT) OUT.xyz = SampleSHVertex(normalWS)
 #endif
 
+// Renamed -> LIGHTMAP_SHADOW_MIXING
+#if !defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK)
+    #define _MIXED_LIGHTING_SUBTRACTIVE
+#endif
+
 
 ///////////////////////////////////////////////////////////////////////////////
 //                          Light Helpers                                    //
@@ -47,6 +52,7 @@ struct Light
     half3   color;
     half    distanceAttenuation;
     half    shadowAttenuation;
+    half4   occlusionProbeChannels;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -103,14 +109,10 @@ Light GetMainLight()
 {
     Light light;
     light.direction = _MainLightPosition.xyz;
-    // unity_LightData.z is 1 when not culled by the culling mask, otherwise 0.
-    light.distanceAttenuation = unity_LightData.z;
-#if defined(LIGHTMAP_ON) || defined(LIGHTMAP_SHADOW_MIXING)
-    // unity_ProbesOcclusion.x is the mixed light probe occlusion data
-    light.distanceAttenuation *= unity_ProbesOcclusion.x;
-#endif
+    light.distanceAttenuation = unity_LightData.z; // unity_LightData.z is 1 when not culled by the culling mask, otherwise 0.
     light.shadowAttenuation = 1.0;
     light.color = _MainLightColor.rgb;
+    light.occlusionProbeChannels = _MainLightOcclusionProbes;
 
     return light;
 }
@@ -131,13 +133,13 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
     half3 color = _AdditionalLightsBuffer[perObjectLightIndex].color.rgb;
     half4 distanceAndSpotAttenuation = _AdditionalLightsBuffer[perObjectLightIndex].attenuation;
     half4 spotDirection = _AdditionalLightsBuffer[perObjectLightIndex].spotDirection;
-    half4 lightOcclusionProbeInfo = _AdditionalLightsBuffer[perObjectLightIndex].occlusionProbeChannels;
+    half4 occlusionProbeChannels = _AdditionalLightsBuffer[perObjectLightIndex].occlusionProbeChannels;
 #else
     float4 lightPositionWS = _AdditionalLightsPosition[perObjectLightIndex];
     half3 color = _AdditionalLightsColor[perObjectLightIndex].rgb;
     half4 distanceAndSpotAttenuation = _AdditionalLightsAttenuation[perObjectLightIndex];
     half4 spotDirection = _AdditionalLightsSpotDir[perObjectLightIndex];
-    half4 lightOcclusionProbeInfo = _AdditionalLightsOcclusionProbes[perObjectLightIndex];
+    half4 occlusionProbeChannels = _AdditionalLightsOcclusionProbes[perObjectLightIndex];
 #endif
 
     // Directional lights store direction in lightPosition.xyz and have .w set to 0.0.
@@ -153,22 +155,7 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
     light.distanceAttenuation = attenuation;
     light.shadowAttenuation = AdditionalLightRealtimeShadow(perObjectLightIndex, positionWS);
     light.color = color;
-
-    // In case we're using light probes, we can sample the attenuation from the `unity_ProbesOcclusion`
-#if defined(LIGHTMAP_ON) || defined(LIGHTMAP_SHADOW_MIXING)
-    // First find the probe channel from the light.
-    // Then sample `unity_ProbesOcclusion` for the baked occlusion.
-    // If the light is not baked, the channel is -1, and we need to apply no occlusion.
-
-    // probeChannel is the index in 'unity_ProbesOcclusion' that holds the proper occlusion value.
-    int probeChannel = lightOcclusionProbeInfo.x;
-
-    // lightProbeContribution is set to 0 if we are indeed using a probe, otherwise set to 1.
-    half lightProbeContribution = lightOcclusionProbeInfo.y;
-
-    half probeOcclusionValue = unity_ProbesOcclusion[probeChannel];
-    light.distanceAttenuation *= max(probeOcclusionValue, lightProbeContribution);
-#endif
+    light.occlusionProbeChannels = occlusionProbeChannels;
 
     return light;
 }
@@ -231,21 +218,6 @@ Light GetAdditionalLight(uint i, float3 positionWS)
 {
     int perObjectLightIndex = GetPerObjectLightIndex(i);
     return GetAdditionalPerObjectLight(perObjectLightIndex, positionWS);
-}
-
-Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
-{
-    int perObjectLightIndex = GetPerObjectLightIndex(i);
-    Light light = GetAdditionalPerObjectLight(perObjectLightIndex, positionWS);
-
-    half bakedShadowAttenuation = AdditionalLightBakedShadow(perObjectLightIndex, shadowMask);
-#if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK)
-    light.shadowAttenuation = min(ApplyShadowFade(light.shadowAttenuation, positionWS), bakedShadowAttenuation);
-#else
-    light.shadowAttenuation = ApplyShadowFade(light.shadowAttenuation, bakedShadowAttenuation, positionWS);
-#endif
-
-    return light;
 }
 
 int GetAdditionalLightsCount()
@@ -677,18 +649,33 @@ half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3
     return GlobalIllumination(brdfData, noClearCoat, 0.0, bakedGI, occlusion, normalWS, viewDirectionWS);
 }
 
-void MixRealtimeAndBakedGI(inout Light light, float3 positionWS, half3 normalWS, inout half3 bakedGI, half4 shadowMask)
+void MixRealtimeAndBakedShadows(inout Light light, float3 positionWS, half4 shadowMask)
 {
-    half bakedShadowAttenuation = MainLightBakedShadow(shadowMask);
-#if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK)
+    /*// Shadowmask and light occlusion probes re-uses same data
+    half4 lightOcclusionProbeInfo = light.occlusionProbeChannels;
+
+    int channel = lightOcclusionProbeInfo.x;
+    half probeOcclusionValue = shadowMask[channel];
+
+    // lightProbeContribution is set to 0 if we are indeed using a probe, otherwise set to 1.
+    half lightProbeContribution = lightOcclusionProbeInfo.y;
+    half bakedShadowAttenuation = max(probeOcclusionValue, lightProbeContribution);*/
+
+    half bakedShadowAttenuation = light.occlusionProbeChannels.x >= 0 ? dot(shadowMask, light.occlusionProbeChannels) : 1.0h;
+
+#if defined(LIGHTMAP_SHADOW_MIXING)
     light.shadowAttenuation = min(ApplyShadowFade(light.shadowAttenuation, positionWS), bakedShadowAttenuation);
 #else
     light.shadowAttenuation = ApplyShadowFade(light.shadowAttenuation, bakedShadowAttenuation, positionWS);
-
-#if defined(LIGHTMAP_ON) && defined(LIGHTMAP_SHADOW_MIXING)
-    bakedGI = SubtractDirectMainLightFromLightmap(light, normalWS, bakedGI);
 #endif
+}
 
+void MixRealtimeAndBakedGI(inout Light light, float3 positionWS, half3 normalWS, inout half3 bakedGI, half4 shadowMask)
+{
+    MixRealtimeAndBakedShadows(light, positionWS, shadowMask);
+
+#if defined(LIGHTMAP_ON) && defined(_MIXED_LIGHTING_SUBTRACTIVE)
+    bakedGI = SubtractDirectMainLightFromLightmap(light, normalWS, bakedGI);
 #endif
 }
 
@@ -842,7 +829,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
         surfaceData.occlusion = min(surfaceData.occlusion, aoFactor.indirectAmbientOcclusion);
     #endif
 
-    MixRealtimeAndBakedGI(mainLight, inputData.positionWS, inputData.normalWS, inputData.bakedGI, inputData.bakedAtten);
+    MixRealtimeAndBakedGI(mainLight, inputData.positionWS, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
     half3 color = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
                                      inputData.bakedGI, surfaceData.occlusion,
                                      inputData.normalWS, inputData.viewDirectionWS);
@@ -855,7 +842,8 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     uint pixelLightCount = GetAdditionalLightsCount();
     for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
     {
-        Light light = GetAdditionalLight(lightIndex, inputData.positionWS, inputData.bakedAtten);
+        Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
+        MixRealtimeAndBakedShadows(light, inputData.positionWS, inputData.shadowMask);
         #if defined(_SCREEN_SPACE_OCCLUSION)
             light.color *= aoFactor.directAmbientOcclusion;
         #endif
@@ -901,7 +889,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
         inputData.bakedGI *= aoFactor.indirectAmbientOcclusion;
     #endif
 
-    MixRealtimeAndBakedGI(mainLight, inputData.positionWS, inputData.normalWS, inputData.bakedGI, inputData.bakedAtten);
+    MixRealtimeAndBakedGI(mainLight, inputData.positionWS, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
 
     half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
     half3 diffuseColor = inputData.bakedGI + LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
@@ -911,7 +899,8 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     uint pixelLightCount = GetAdditionalLightsCount();
     for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
     {
-        Light light = GetAdditionalLight(lightIndex, inputData.positionWS, inputData.bakedAtten);
+        Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
+        MixRealtimeAndBakedShadows(light, inputData.positionWS, inputData.shadowMask);
         #if defined(_SCREEN_SPACE_OCCLUSION)
             light.color *= aoFactor.directAmbientOcclusion;
         #endif

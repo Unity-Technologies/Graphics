@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal
             public Vector4 color;
             public Vector4 attenuation;
             public Vector4 spotDirection;
-            public Vector4 occlusionProbeChannels;
+            public Vector4 occlusionProbeChannels; // TODO: Rename
         }
 
         [GenerateHLSL(PackingRules.Exact, false)]
