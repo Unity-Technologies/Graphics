@@ -163,7 +163,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        private void UpdateBoundingSphere()
+        internal void UpdateBoundingSphere()
         {
             if (isPointLight)
             {
