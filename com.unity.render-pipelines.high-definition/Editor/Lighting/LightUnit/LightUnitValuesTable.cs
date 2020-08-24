@@ -38,14 +38,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static readonly LightUnitUILevel[] k_CandelaValueTable =
         {
+            // TODO
         };
 
         public static readonly LightUnitUILevel[] k_EV100ValueTable =
         {
+            // TODO
         };
 
         public static readonly LightUnitUILevel[] k_KelvinValueTable =
         {
+            // TODO
         };
     }
 

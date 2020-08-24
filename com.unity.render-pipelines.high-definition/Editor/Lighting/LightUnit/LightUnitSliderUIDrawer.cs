@@ -67,6 +67,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Icon
                 CurrentLevel(value.floatValue, out var level);
                 DoIcon(iconRect, level);
+
+                // Place tooltip on slider thumb.
+                DoThumbTooltip(sliderRect, value.floatValue / m_RangeMax, level.tooltip);
             }
 
             private readonly GUIContent m_CautionContent;
@@ -158,9 +161,28 @@ namespace UnityEditor.Rendering.HighDefinition
             // Draw marker by manually drawing the rect, and an empty label with the tooltip.
             EditorGUI.DrawRect(markerRect, Color.white);
 
-            // TODO: Consider enlarging this tooltip rect so that it's easier to discover?
+            // Consider enlarging this tooltip rect so that it's easier to discover?
             s_MarkerContent.tooltip = tooltip;
             EditorGUI.LabelField(markerRect, s_MarkerContent);
+        }
+
+        private static void DoThumbTooltip(Rect rect, float x, string tooltip)
+        {
+            const float size = 10f;
+            const float halfSize = size * 0.5f;
+
+            var thumbMarkerRect = rect;
+            thumbMarkerRect.width  = size;
+            thumbMarkerRect.height = size;
+
+            // Vertically align with slider
+            thumbMarkerRect.y += halfSize - 1f;
+
+            // Horizontally place tooltip on the wheel,
+            thumbMarkerRect.x  = rect.x + (rect.width - size) * x;
+
+            s_MarkerContent.tooltip = tooltip;
+            EditorGUI.LabelField(thumbMarkerRect, s_MarkerContent);
         }
 
         private static void DoIcon(Rect rect, GUIContent icon)
