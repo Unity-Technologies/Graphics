@@ -4,7 +4,12 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [10.1.0] - 2019-08-04
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [10.0.0] - 2019-06-10
 ### Added
 - Tooltips for Attributes
 - Custom Inspector for Spawn context, delay settings are more user friendly.
@@ -130,7 +135,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Make VisualEffect created from the GameObject menu have unique names [Case 1262989](https://issuetracker.unity3d.com/product/unity/issues/guid/1262989/)
 - Missing System Seed in new dynamic built-in operator.
 - Prefab highlight missing for initial event name toggle [Case 1263012](https://issuetracker.unity3d.com/product/unity/issues/guid/1263012/)
+- fixes the user created vfx default resources that were ignored unless loaded
 - fix crash when creating a loop in subgraph operators [Case 1251523](https://issuetracker.unity3d.com/product/unity/issues/guid/1251523/)
+- Normals with non uniform scales are correctly computed [Case 1246989](https://issuetracker.unity3d.com/product/unity/issues/guid/1246989/)
+- Fix exposed Texture2DArray and Cubemap types from shader graph not being taken into account in Output Mesh [Case 1265221](https://issuetracker.unity3d.com/product/unity/issues/guid/1265221/)
 - Allow world position usage in shaderGraph plugged into an alpha/opacity output [Case 1259511](https://issuetracker.unity3d.com/product/unity/issues/guid/1259511/)
 
 ## [7.1.1] - 2019-09-05

@@ -52,6 +52,11 @@ namespace UnityEngine.Rendering.Universal
             return new RenderTargetIdentifier(id);
         }
 
+        public bool HasInternalRenderTargetId()
+        {
+            return id == -2;
+        }
+
         public bool Equals(RenderTargetHandle other)
         {
             if (id == -2 || other.id == -2)

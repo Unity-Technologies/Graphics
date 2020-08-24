@@ -1,16 +1,16 @@
 # Authoring lookup textures with Adobe Photoshop
 
-The following process uses Photoshop, but you can apply it for other digital content creation tools such as [DaVinci Resolve](LUT-Authoring-Resolve.html) or Nuke.
+The following process uses Photoshop, but you can apply it for other digital content creation tools such as [DaVinci Resolve](LUT-Authoring-Resolve.md) or Nuke.
 
 ## Step 1: Set up the HDRP Asset
 
-Decide on the lookup texture (LUT) size to use for the Project, and set it in your Project's [HDRP Asset](HDRP-Asset.html). To set the LUT size, use the HDRP Asset’s **Grading LUT Size** property.
+Decide on the lookup texture (LUT) size to use for the Project, and set it in your Project's [HDRP Asset](HDRP-Asset.md). To set the LUT size, use the HDRP Asset’s **Grading LUT Size** property.
 
 This is a fixed size; if you change it later, you need to rebake all of your LUTs. A size of **32** provides enough precision for real-time use. 
 
 ## Step 2: Render the Camera view to an EXR file
 
-Export the current [Camera](HDRP-Camera.html)'s view to a log-encoded EXR file. To do this:
+Export the current [Camera](HDRP-Camera.md)'s view to a log-encoded EXR file. To do this:
 
 1. In the Scene view or Hierarchy, select a GameObject that contains a Camera component.
 2. Select **Edit** > **Render Pipeline** > **Render Selected Camera to Log EXR** **(**or press **Ctrl+Shift+Alt+E)**.
@@ -47,7 +47,7 @@ You can now start grading your image. Make sure you only do global color operati
 
 ## Step 5: Export your work as a CUBE file
 
-When you finish grading, export your work as a CUBE file. To do this in Photoshop, select **File > Export > Color Lookup Tables** (if you’re using another digital content creation program, see its documentation to learn how to do this). Set the **Grid Point** property to the same value as the **Grading LUT Size** in your Project's [HDRP Asset](HDRP-Asset.html).
+When you finish grading, export your work as a CUBE file. To do this in Photoshop, select **File > Export > Color Lookup Tables** (if you’re using another digital content creation program, see its documentation to learn how to do this). Set the **Grid Point** property to the same value as the **Grading LUT Size** in your Project's [HDRP Asset](HDRP-Asset.md).
 
 Save the CUBE file in your Unity Project's *Assets* folder.
 

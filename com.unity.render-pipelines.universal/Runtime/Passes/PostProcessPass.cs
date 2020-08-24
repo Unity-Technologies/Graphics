@@ -148,18 +148,32 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_EnableSRGBConversionIfNeeded = true;
         }
 
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        /// <inheritdoc/>
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             if (m_Destination == RenderTargetHandle.CameraTarget)
                 return;
 
-            // If RenderTargetHandle already has valid render target identifier, we shouldn't create a temp
-            if (m_Destination.id == -2)
+            // If RenderTargetHandle already has a valid internal render target identifier, we shouldn't request a temp
+            if (m_Destination.HasInternalRenderTargetId())
                 return;
 
             var desc = GetCompatibleDescriptor();
             desc.depthBufferBits = 0;
             cmd.GetTemporaryRT(m_Destination.id, desc, FilterMode.Point);
+        }
+
+        /// <inheritdoc/>
+        public override void OnCameraCleanup(CommandBuffer cmd)
+        {
+            if (m_Destination == RenderTargetHandle.CameraTarget)
+                return;
+
+            // Logic here matches the if check in OnCameraSetup
+            if (m_Destination.HasInternalRenderTargetId())
+                return;
+
+            cmd.ReleaseTemporaryRT(m_Destination.id);
         }
 
         public void ResetHistory()
@@ -198,9 +212,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 using (new ProfilingScope(cmd, m_ProfilingRenderFinalPostProcessing))
                 {
                     RenderFinalPass(cmd, ref renderingData);
-                    context.ExecuteCommandBuffer(cmd);
                 }
-
+                
+                context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }
             else if (CanRunOnTile())
@@ -426,6 +440,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                          colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
 
                     bool isRenderToBackBufferTarget = cameraTarget == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;
+                    if (isRenderToBackBufferTarget)
+                        cmd.SetViewport(cameraData.pixelRect);
                     // We y-flip if
                     // 1) we are bliting from render texture to back buffer and
                     // 2) renderTexture starts UV at top
@@ -1156,6 +1172,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 cmd.SetRenderTarget(new RenderTargetIdentifier(cameraTarget, 0, CubemapFace.Unknown, -1),
                     colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                cmd.SetViewport(cameraData.pixelRect);
                 cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
                 cmd.DrawProcedural(Matrix4x4.identity, material, 0, MeshTopology.Quads, 4, 1, null);
             }

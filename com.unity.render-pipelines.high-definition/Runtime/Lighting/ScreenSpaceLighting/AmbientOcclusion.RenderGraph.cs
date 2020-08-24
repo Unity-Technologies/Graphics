@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // So we can't rely on automatic pass stripping. This is why we have to be explicit here.
             if (IsActive(hdCamera, settings))
             {
+                using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.AmbientOcclusion)))
                 {
                     EnsureRTSize(settings, hdCamera);
 
