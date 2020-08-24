@@ -13,24 +13,28 @@ namespace UnityEngine.Rendering.Universal
     public static class UniversalRenderTextureType
     {
         /// <summary>
-        /// Special render target identifier to signal the pipeline to not bind any surface.
-        /// Can be used to tell the pipeline to not bind any render texture as attachment, f.ex, compute render passes.
+        /// Special render target identifier to signal the pipeline to not bind any surface to a specified attachment.
+        /// This can be used to bind color only information, f.ex, post-processing or to bind to additional color targets as None to disable MRT.
+        /// Binding None as color attachment 0 has the same effect as binding CurrentActive.
         /// </summary>
         public static readonly RenderTargetIdentifier None = BuiltinRenderTextureType.None;
 
         /// <summary>
-        /// Special render target identifier to signal the pipeline to use the current attachment setup as render textures.
+        /// Special render target identifier to signal the pipeline to use the current attachment setup.
         /// </summary>
         public static readonly RenderTargetIdentifier CurrentActive = BuiltinRenderTextureType.CurrentActive;
 
         /// <summary>
-        /// Target color texture of currently rendering camera.
-        /// It can be either the intermediate color buffer, the camera render texture (offscreen camera) or the backbuffer
+        /// If bound as color texture:
+        ///  - camera render texture if this is an offscreen camera.
+        ///  - otherwise either backbuffer or intermediate render texture / xr eye texture
+        /// If bound as depth:
+        ///  - Native depth buffer or implicit depth texture creating when requesting color texture with depth buffer bits other than 0.
         /// </summary>
         public static readonly RenderTargetIdentifier CameraTarget = BuiltinRenderTextureType.CameraTarget;
 
         /// <summary>
-        /// Camera depth texture, can either be native depth buffer or depth texture.
+        /// Native depth buffer or intermediate camera depth texture.
         /// </summary>
         public static readonly RenderTargetIdentifier Depth = BuiltinRenderTextureType.Depth;
     }
@@ -632,8 +636,7 @@ namespace UnityEngine.Rendering.Universal
             using (new ProfilingScope(cmd, m_ProfilingSetRenderTarget))
             {
                 ref CameraData cameraData = ref renderingData.cameraData;
-#pragma warning disable 618
-                renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
+                renderPass.OnCameraSetup(cmd, ref renderingData);
                 SetRenderPassAttachments(cmd, renderPass, ref cameraData);
             }
 
@@ -778,10 +781,6 @@ namespace UnityEngine.Rendering.Universal
                     // early return so we don't change current render target setup.
                     if (renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingOpaques)
                         return;
-                    
-                    // Otherwise default is the pipeline camera target.
-                    passColorAttachment = m_CameraColorTarget;
-                    passDepthAttachment = m_CameraDepthTarget;
                 }
 
                 ClearFlag finalClearFlag = ClearFlag.None;
@@ -894,12 +893,19 @@ namespace UnityEngine.Rendering.Universal
         {
             m_ActiveColorAttachments[0] = colorAttachment;
             for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
-                m_ActiveColorAttachments[i] = 0;
+                m_ActiveColorAttachments[i] = UniversalRenderTextureType.None;
 
-            m_ActiveDepthAttachment = BuiltinRenderTextureType.None;
+            m_ActiveDepthAttachment = UniversalRenderTextureType.CameraTarget;
 
             // Map from BuiltinRenderTextureType to Universal Render textureType
             var colorTargetBuffer = current.GetRenderTexture(colorAttachment);
+
+            // depth target set as CameraTarget means that we create an intermediate texture color
+            // and requested depth bits. In that case Unity will either use native depth buffer or create a depth texture
+            // and handle it internally (stored as secondary texture ID and handled when calling CommandBuffer.SetRenderTarget)
+            // In that case, for us to make sure we use the implicit depth that depends on what texture we are binding
+            // as color we need to call the version of SetRenderTarget that doesn't pass depth as argument.
+            // Internally this is mapped to kRenderCommand_SetRT.
             CoreUtils.SetRenderTarget(cmd, colorTargetBuffer, colorLoadAction, colorStoreAction, clearFlags, clearColor);
         }
 
@@ -914,6 +920,11 @@ namespace UnityEngine.Rendering.Universal
             ClearFlag clearFlags,
             Color clearColor)
         {
+            if (depthAttachment == UniversalRenderTextureType.CameraTarget)
+            {
+                SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
+                return;
+            }
             m_ActiveColorAttachments[0] = colorAttachment;
             for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
                 m_ActiveColorAttachments[i] = 0;
@@ -924,22 +935,10 @@ namespace UnityEngine.Rendering.Universal
             var colorTargetBuffer = current.GetRenderTexture(colorAttachment);
             var depthTargetBuffer = current.GetRenderTexture(depthAttachment);
 
-            // depth target set as CameraTarget means that we create an intermediate texture color
-            // and requested depth bits. In that case Unity will either use native depth buffer or create a depth texture
-            // and handle it internally (stored as secondary texture ID and handled when calling CommandBuffer.SetRenderTarget)
-            // In that case, for us to make sure we use the implicit depth we need to call the version of SetRenderTarget
-            // that doesn't pass depth as argument.
-            // Internally this is mapped to kRenderCommand_SetRT. 
-            if (colorTargetBuffer == current.cameraDepth || depthTargetBuffer == BuiltinRenderTextureType.Depth)
-            {
-                CoreUtils.SetRenderTarget(cmd, colorTargetBuffer, colorLoadAction, colorStoreAction, clearFlags, clearColor);
-            }
+            // When CameraTarget is bound on depth, that means it depends on  
             // Internally this is mapped to kRenderCommand_SetRTBuffers
-            else
-            {
-                CoreUtils.SetRenderTarget(cmd, colorTargetBuffer, colorLoadAction, colorStoreAction,
+            CoreUtils.SetRenderTarget(cmd, colorTargetBuffer, colorLoadAction, colorStoreAction,
                     depthTargetBuffer, depthLoadAction, depthStoreAction, clearFlags, clearColor);
-            }
         }
 
         void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)

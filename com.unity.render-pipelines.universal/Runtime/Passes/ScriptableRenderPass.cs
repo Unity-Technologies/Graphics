@@ -95,7 +95,11 @@ namespace UnityEngine.Rendering.Universal
             var none = BuiltinRenderTextureType.None;
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
             m_ColorAttachments = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget, none, none, none, none, none, none, none};
-            m_DepthAttachment = BuiltinRenderTextureType.Depth;
+
+            // Default value for depth attachment depends on what is the camera target. It could be nothing, native
+            // depth buffer or an implicit texture unity creates when the color render texture is created with depth buffer
+            // bit != 0.
+            m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
@@ -158,10 +162,7 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 1; i < m_ColorAttachments.Length; ++i)
                 m_ColorAttachments[i] = 0;
 
-            if (colorAttachment == BuiltinRenderTextureType.CurrentActive)
-                m_DepthAttachment = BuiltinRenderTextureType.CurrentActive;
-            else
-                m_DepthAttachment = BuiltinRenderTextureType.Depth;
+            m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
         }
 
         /// <summary>
@@ -172,7 +173,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments)
         {
-            ConfigureTarget(colorAttachments, BuiltinRenderTextureType.Depth);
+            ConfigureTarget(colorAttachments, BuiltinRenderTextureType.CameraTarget);
         }
 
         /// <summary>
@@ -199,6 +200,10 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="ConfigureClear"/>
         public virtual void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
+#pragma warning disable 618
+            Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
+#pragma warning restore 618
+            
             ConfigureTarget(UniversalRenderTextureType.CameraTarget, UniversalRenderTextureType.CameraTarget);
             ConfigureClear(clearFlag, clearColor);
         }

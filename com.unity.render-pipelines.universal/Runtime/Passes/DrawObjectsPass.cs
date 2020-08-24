@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            ConfigureTarget(UniversalRenderTextureType.CameraTarget, UniversalRenderTextureType.CameraTarget);
+            ConfigureTarget(UniversalRenderTextureType.CameraTarget, UniversalRenderTextureType.Depth);
         }
 
         /// <inheritdoc/>
