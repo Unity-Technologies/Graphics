@@ -16,7 +16,7 @@ For information on how to use a Texture to specify ambient occlusion caused by d
 
 ![](Images/OverrideAmbientOcclusion1.png)
 
-[!include[](Snippets/Volume-Override-Enable-Properties.md)]
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 | **Property**                 | **Description**                                              |
 | ---------------------------- | ------------------------------------------------------------ |
