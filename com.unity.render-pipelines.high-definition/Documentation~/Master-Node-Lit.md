@@ -61,7 +61,7 @@ The following table describes the input ports on a Lit master node, including th
 
 ### Master node settings menu
 
-To view these properties, click the cog icon in the top right of the master node.
+To view these properties, click the gear icon in the top right of the master node.
 
 | **Property**                         | **Description**                                              |
 | ------------------------------------ | ------------------------------------------------------------ |

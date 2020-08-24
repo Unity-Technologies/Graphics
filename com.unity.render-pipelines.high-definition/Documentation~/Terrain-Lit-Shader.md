@@ -17,7 +17,7 @@ To create a new Terrain Lit Shader Material:
 
 To use a Terrain Lit Material, you must assign it to a Terrain:
 
-1. View the Terrain in the Inspector and click on the cog button to go to the **Terrain Settings** section.
+1. View the Terrain in the Inspector and click on the gear button to go to the **Terrain Settings** section.
 2. Either drag and drop or use the radio button to assign your Terrain Lit Material to the **Material** property.
 
 ![](Images/TerrainLitShader1.png)
