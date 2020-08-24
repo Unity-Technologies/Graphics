@@ -19,13 +19,14 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npx lint-staged && sh ./git-hook/pre-commit",
-      "pre-push": "python -m git-hook.prepush.check-branch-name"
+      "pre-commit": "npx lint-staged",
+      "pre-push": "python -m git-hook.prepush.check_branch_name"
     }
   },
   "lint-staged": {
     "../**/*": [
-      "python -m git-hook.precommit.check-file-name-extension"
+      "python -m git-hook.precommit.file_extension_to_lowercase",
+      "python -m git-hook.precommit.check_shader_includes"
     ]
   }
 }

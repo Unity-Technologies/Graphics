@@ -23,17 +23,20 @@ namespace UnityEditor.ShaderGraph
             m_Items = new List<FieldCollection.Item>();
         }
 
-        public void Add(FieldCollection fields)
+        public FieldCollection Add(FieldCollection fields)
         {
             foreach(FieldCollection.Item item in fields)
             {
                 m_Items.Add(item);
             }
+
+            return this;
         }
 
-        public void Add(FieldDescriptor field)
+        public FieldCollection Add(FieldDescriptor field)
         {
             m_Items.Add(new Item(field));
+            return this;
         }
 
         public IEnumerator<FieldCollection.Item> GetEnumerator()
