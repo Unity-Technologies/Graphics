@@ -12,13 +12,10 @@ HDRP_Win_Vulkan_playmode_trunk:
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 3e0d5f77500609e558a691291eb824a4d926c1b8 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
@@ -33,13 +30,10 @@ HDRP_Win_Vulkan_playmode_XR_trunk:
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 3e0d5f77500609e558a691291eb824a4d926c1b8 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
@@ -54,13 +48,10 @@ HDRP_Win_Vulkan_playmode_RenderGraph_trunk:
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 3e0d5f77500609e558a691291eb824a4d926c1b8 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && utr --suite=playmode --extra-editor-arg="-rendergraph-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
@@ -74,13 +65,10 @@ HDRP_Win_Vulkan_editmode_trunk:
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u 3e0d5f77500609e558a691291eb824a4d926c1b8 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
@@ -95,11 +83,6 @@ HDRP_Win_Vulkan_Standalone_trunk:
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-win-vulkan.yml#Build_HDRP_Win_Vulkan_Player_trunk
-         rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
       -  cd TestProjects/HDRP_RuntimeTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
@@ -107,6 +90,9 @@ HDRP_Win_Vulkan_Standalone_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  path: .yamato/hdrp-win-vulkan.yml#Build_HDRP_Win_Vulkan_Player_trunk
+         rerun: on-new-revision
     skip_checkout: true
 Build_HDRP_Win_Vulkan_Player_trunk:
     name: Build HDRP on Win_Vulkan_Player on version trunk
@@ -117,142 +103,10 @@ Build_HDRP_Win_Vulkan_Player_trunk:
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_RuntimeTests && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-        players:
-            paths:
-              -  "players/**"
-HDRP_Win_Vulkan_playmode_fast-trunk:
-    name: HDRP on Win_Vulkan_playmode on version fast-trunk
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: on-new-revision
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-HDRP_Win_Vulkan_playmode_XR_fast-trunk:
-    name: HDRP on Win_Vulkan_playmode_XR on version fast-trunk
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: on-new-revision
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-HDRP_Win_Vulkan_playmode_RenderGraph_fast-trunk:
-    name: HDRP on Win_Vulkan_playmode_RenderGraph on version fast-trunk
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: on-new-revision
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=playmode --extra-editor-arg="-rendergraph-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-HDRP_Win_Vulkan_editmode_fast-trunk:
-    name: HDRP on Win_Vulkan_editmode on version fast-trunk
-    agent:
-        type: Unity::VM
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: on-new-revision
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-HDRP_Win_Vulkan_Standalone_fast-trunk:
-    name: HDRP on Win_Vulkan_Standalone on version fast-trunk
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-win-vulkan.yml#Build_HDRP_Win_Vulkan_Player_fast-trunk
-         rerun: on-new-revision
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
-      -  cd TestProjects/HDRP_RuntimeTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    skip_checkout: true
-Build_HDRP_Win_Vulkan_Player_fast-trunk:
-    name: Build HDRP on Win_Vulkan_Player on version fast-trunk
-    agent:
-        type: Unity::VM
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: on-new-revision
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli -u 3e0d5f77500609e558a691291eb824a4d926c1b8 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_RuntimeTests && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
@@ -271,9 +125,6 @@ HDRP_Win_Vulkan_playmode_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -283,6 +134,8 @@ HDRP_Win_Vulkan_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
 HDRP_Win_Vulkan_playmode_XR_CUSTOM-REVISION:
     name: HDRP on Win_Vulkan_playmode_XR on version CUSTOM-REVISION
     agent:
@@ -293,9 +146,6 @@ HDRP_Win_Vulkan_playmode_XR_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -305,6 +155,8 @@ HDRP_Win_Vulkan_playmode_XR_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
 HDRP_Win_Vulkan_playmode_RenderGraph_CUSTOM-REVISION:
     name: HDRP on Win_Vulkan_playmode_RenderGraph on version CUSTOM-REVISION
     agent:
@@ -315,9 +167,6 @@ HDRP_Win_Vulkan_playmode_RenderGraph_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -327,6 +176,8 @@ HDRP_Win_Vulkan_playmode_RenderGraph_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
 HDRP_Win_Vulkan_editmode_CUSTOM-REVISION:
     name: HDRP on Win_Vulkan_editmode on version CUSTOM-REVISION
     agent:
@@ -336,9 +187,6 @@ HDRP_Win_Vulkan_editmode_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -348,6 +196,8 @@ HDRP_Win_Vulkan_editmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
 HDRP_Win_Vulkan_Standalone_CUSTOM-REVISION:
     name: HDRP on Win_Vulkan_Standalone on version CUSTOM-REVISION
     agent:
@@ -358,11 +208,6 @@ HDRP_Win_Vulkan_Standalone_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
-      -  path: .yamato/hdrp-win-vulkan.yml#Build_HDRP_Win_Vulkan_Player_CUSTOM-REVISION
-         rerun: always
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
       -  cd TestProjects/HDRP_RuntimeTests && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
@@ -370,6 +215,10 @@ HDRP_Win_Vulkan_Standalone_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+      -  path: .yamato/hdrp-win-vulkan.yml#Build_HDRP_Win_Vulkan_Player_CUSTOM-REVISION
+         rerun: always
     skip_checkout: true
 Build_HDRP_Win_Vulkan_Player_CUSTOM-REVISION:
     name: Build HDRP on Win_Vulkan_Player on version CUSTOM-REVISION
@@ -381,9 +230,6 @@ Build_HDRP_Win_Vulkan_Player_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -396,3 +242,5 @@ Build_HDRP_Win_Vulkan_Player_CUSTOM-REVISION:
         players:
             paths:
               -  "players/**"
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows

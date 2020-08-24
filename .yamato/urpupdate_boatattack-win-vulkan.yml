@@ -11,9 +11,6 @@ URPUpdate_BoatAttack_Win_Vulkan_playmode_trunk:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: on-new-revision
     commands:
       -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-testing
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP-Update-testing/BoatAttack-19-4/utr.bat
@@ -21,7 +18,7 @@ URPUpdate_BoatAttack_Win_Vulkan_playmode_trunk:
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.shadergraph" /Y
-      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli --source-file ../../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli -u 3e0d5f77500609e558a691291eb824a4d926c1b8 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
@@ -35,9 +32,6 @@ URPUpdate_BoatAttack_Win_Vulkan_editmode_trunk:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: on-new-revision
     commands:
       -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-testing
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP-Update-testing/BoatAttack-19-4/utr.bat
@@ -45,55 +39,7 @@ URPUpdate_BoatAttack_Win_Vulkan_editmode_trunk:
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.shadergraph" /Y
-      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli --source-file ../../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-URPUpdate_BoatAttack_Win_Vulkan_playmode_fast-trunk:
-    name: URPUpdate_BoatAttack on Win_Vulkan_playmode on version fast-trunk
-    agent:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: on-new-revision
-    commands:
-      -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-testing
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP-Update-testing/BoatAttack-19-4/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.core" /Y
-      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.universal" /Y
-      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.shadergraph" /Y
-      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli --source-file ../../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-URPUpdate_BoatAttack_Win_Vulkan_editmode_fast-trunk:
-    name: URPUpdate_BoatAttack on Win_Vulkan_editmode on version fast-trunk
-    agent:
-        type: Unity::VM
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: on-new-revision
-    commands:
-      -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-testing
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP-Update-testing/BoatAttack-19-4/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.core" /Y
-      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.universal" /Y
-      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.shadergraph" /Y
-      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli --source-file ../../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli -u 3e0d5f77500609e558a691291eb824a4d926c1b8 -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
@@ -108,9 +54,6 @@ URPUpdate_BoatAttack_Win_Vulkan_playmode_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
     commands:
       -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-testing
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP-Update-testing/BoatAttack-19-4/utr.bat
@@ -118,12 +61,14 @@ URPUpdate_BoatAttack_Win_Vulkan_playmode_CUSTOM-REVISION:
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.shadergraph" /Y
-      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli --source-file ../../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
 URPUpdate_BoatAttack_Win_Vulkan_editmode_CUSTOM-REVISION:
     name: URPUpdate_BoatAttack on Win_Vulkan_editmode on version CUSTOM-REVISION
     agent:
@@ -133,9 +78,6 @@ URPUpdate_BoatAttack_Win_Vulkan_editmode_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
     commands:
       -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-testing
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP-Update-testing/BoatAttack-19-4/utr.bat
@@ -143,9 +85,11 @@ URPUpdate_BoatAttack_Win_Vulkan_editmode_CUSTOM-REVISION:
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.shadergraph" /Y
-      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli --source-file ../../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows

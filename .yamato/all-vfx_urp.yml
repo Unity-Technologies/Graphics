@@ -10,13 +10,6 @@ All_VFX_URP_trunk:
          rerun: on-new-revision
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_trunk
          rerun: on-new-revision
-All_VFX_URP_fast-trunk:
-    name: All VFX_URP CI - fast-trunk
-    dependencies:
-      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_Standalone_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_fast-trunk
-         rerun: on-new-revision
 All_VFX_URP_CUSTOM-REVISION:
     name: All VFX_URP CI - CUSTOM-REVISION
     dependencies:

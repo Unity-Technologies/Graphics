@@ -26,29 +26,6 @@ All_Universal_trunk:
          rerun: on-new-revision
       -  path: .yamato/all-universal_hybrid.yml#All_Universal_Hybrid_trunk
          rerun: on-new-revision
-All_Universal_fast-trunk:
-    name: All Universal CI - fast-trunk
-    dependencies:
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_Standalone_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_XR_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_Standalone_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_playmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_playmode_XR_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/universal-osx-openglcore.yml#Universal_OSX_OpenGLCore_editmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/all-universal_stereo.yml#All_Universal_Stereo_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/all-universal_hybrid.yml#All_Universal_Hybrid_fast-trunk
-         rerun: on-new-revision
 All_Universal_CUSTOM-REVISION:
     name: All Universal CI - CUSTOM-REVISION
     dependencies:

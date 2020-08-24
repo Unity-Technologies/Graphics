@@ -41,12 +41,18 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
 ### Changes when branching out
 - When branching out (e.g. moving from *master* to *9.x.x/release* branch), the following steps must be done:
   - In *__shared.metafile* :
-    - Change `editors` section to contain the correct editor versions
-    - Change `target_editor` to the target editor version for this branch (this is used e.g. for dependencies of *packages#publish_*, *preview_publish#publish_*  and *preview_publish#wait_for_nightly*) (e.g. for 9.x.x this would correspond to `2020.1`)
+    - Change `editors` section to contain the correct editors
+    - Change `target_editor` to the target editor track for this branch (this is used e.g. for dependencies of *packages#publish_*, *preview_publish#publish_*  and *preview_publish#wait_for_nightly*) (e.g. for 9.x.x this would correspond to `2020.1`)
     - Change `target_branch` to the current branch (this is used for ci triggers, such as ABV  (*all_project_ci*) jobs) (e.g. for 9.x.x this would correspond to `9.x.x/release`)
+    - Change `target_branch_editor_ci` to the correct ci branch (editor pinning branch)
   - In *__abv.metafile* :
     - Change `abv.trigger_editors` to the editor against which to trigger the ABV (*all_project_ci*) job (typically `fast-*` editor)  (e.g. for 9.x.x this would correspond to `fast-2020.1`)
     - Change `nightly.allowed_editors` to contain the editors for which to run nightly (*all_project_ci_nightly*) jobs (e.g. for 9.x.x this would correspond to `2020.1`)
+  - In *__editor.metafile*:
+    - Change `editor_tracks` to correct track (trunk, 2020.1, etc)
+
+### If trunk track changes:
+  - Change `trunk_track` in `_editor.metafile`
 
 ### Other changes to metafiles
 - All files follow a similar structure and changes can be done according to the metafile descriptions given below. 
@@ -66,6 +72,16 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
     - Each of these files has commands specific to its platform. If commands differ also per api, like for OSX, then {platform}_{api}.py format is used. 
     - Each of these files contains functions for 3 commandsets (for standalone, standalone_build, not_standalone), which are then used according to which job is being created. 
     - The mapping of which commands to use for which platform is done under _cmd_mapper.py. This also makes it easy to switch the set of commands for a specific platform, such as to switch to new split built/test, without completely losing the old solution.
+
+## Editor priming vs editor pinning
+- Editor priming:
+    - Gets the editor in a separate job to save on the compute resources, stores the editor version in a .txt file which is then picked up by the parent job which calls unity-downloader-cli
+    - Still used for custom-revision jobs, because we don't want to hold on to expensive compute resources the job itself requires, while waiting for the editor 
+- Editor pinning:
+    - Updates editor revisions (`config/_latest_editor_versions.metafile`) on a nightly basis, on the condition that ABV passes. All our jobs (ABV, nightly etc) use revisions from this file (specifically `[track]_latest_internal`). This way, if e.g. trunk breaks, it is discovered by the nightly update job (and revisions for this platform won't be updated), and we continue using the latest working revision, until a new working one becomes available.
+    
+    - ![Editor pinning flow](editor_pinning.png)
+
 
 # FAQ
 

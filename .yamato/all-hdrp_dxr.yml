@@ -14,17 +14,6 @@ All_HDRP_DXR_trunk:
          rerun: on-new-revision
       -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_RenderGraph_trunk
          rerun: on-new-revision
-All_HDRP_DXR_fast-trunk:
-    name: All HDRP_DXR CI - fast-trunk
-    dependencies:
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_Standalone_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_RenderGraph_fast-trunk
-         rerun: on-new-revision
 All_HDRP_DXR_CUSTOM-REVISION:
     name: All HDRP_DXR CI - CUSTOM-REVISION
     dependencies:

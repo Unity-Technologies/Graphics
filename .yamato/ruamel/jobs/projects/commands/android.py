@@ -1,18 +1,18 @@
-from ...shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, PATH_PLAYERS, UTR_INSTALL_URL, UNITY_DOWNLOADER_CLI_URL
+from ...shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, PATH_PLAYERS, UTR_INSTALL_URL, UNITY_DOWNLOADER_CLI_URL, get_unity_downloader_cli_cmd
 from ruamel.yaml.scalarstring import PreservedScalarString as pss
 
-def _cmd_base(project_folder, components):
+def _cmd_base(project_folder, platform,  editor):
     return [
         f'curl -s {UTR_INSTALL_URL}.bat --output utr.bat',
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
-        f'unity-downloader-cli --source-file %YAMATO_SOURCE_DIR%/{PATH_UNITY_REVISION} -p WindowsEditor {"".join([f"-c {c} " for c in components])} --wait --published-only'
+        f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } -p WindowsEditor {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only'
     ]
 
 
-def cmd_not_standalone(project_folder, platform, api, test_platform_args):
-    raise Exception('android: only standalone available')
+def cmd_not_standalone(project_folder, platform, api, test_platform_args, editor):
+    raise NotImplementedError('android: only standalone available')
 
-def cmd_standalone(project_folder, platform, api, test_platform_args):
+def cmd_standalone(project_folder, platform, api, test_platform_args, editor):
     base = [
         f'curl -s {UTR_INSTALL_URL}.bat --output utr.bat'
     ]
@@ -28,8 +28,8 @@ def cmd_standalone(project_folder, platform, api, test_platform_args):
     return base
 
         
-def cmd_standalone_build(project_folder, platform, api, test_platform_args):
-    base = _cmd_base(project_folder, platform["components"])
+def cmd_standalone_build(project_folder, platform, api, test_platform_args, editor):
+    base = _cmd_base(project_folder, platform, editor)
     base.extend([  
         f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0',
         f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0',

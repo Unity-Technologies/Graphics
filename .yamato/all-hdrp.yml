@@ -46,49 +46,6 @@ All_HDRP_trunk:
          rerun: on-new-revision
       -  path: .yamato/all-hdrp_hybrid.yml#All_HDRP_Hybrid_trunk
          rerun: on-new-revision
-All_HDRP_fast-trunk:
-    name: All HDRP CI - fast-trunk
-    dependencies:
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_XR_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_RenderGraph_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_XR_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_Standalone_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_Standalone_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_playmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_editmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_playmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_Standalone_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_RenderGraph_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/all-hdrp_hybrid.yml#All_HDRP_Hybrid_fast-trunk
-         rerun: on-new-revision
 All_HDRP_CUSTOM-REVISION:
     name: All HDRP CI - CUSTOM-REVISION
     dependencies:

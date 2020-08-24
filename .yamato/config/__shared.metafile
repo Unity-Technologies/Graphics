@@ -1,15 +1,12 @@
 target_branch: master # specifies the branch on which recurrent or pr triggers are created, etc
+target_branch_editor_ci: ci/editor-pin-ci # specifies the branch on which editor pinning is done
 target_editor: trunk # specifies the target editor used for some package/preview publish jobs
-editors: # applied for all yml files. Override this by specifying override_editors (in the same format) in a specific metafile
-  - version: trunk
+editors: # applied for all yml files
+  - track: trunk
     rerun_strategy: on-new-revision
-    cmd: -u trunk
-  - version: fast-trunk
-    rerun_strategy: on-new-revision
-    cmd: -u trunk --fast
-  - version: CUSTOM-REVISION
+  - track: CUSTOM-REVISION
     rerun_strategy: always
-    cmd: -u $CUSTOM_REVISION
+
 test_platforms:
   Standalone: --suite=playmode --platform=Standalone
   playmode: --suite=playmode
@@ -160,6 +157,10 @@ non_project_agents:
     type: Unity::VM
     image: package-ci/ubuntu:stable
     flavor: b1.large
+  package_ci_ubuntu_small:
+    type: Unity::VM
+    image: package-ci/ubuntu:stable
+    flavor: b1.small
   package_ci_win_large:
     type: Unity::VM
     image: package-ci/win10:stable
