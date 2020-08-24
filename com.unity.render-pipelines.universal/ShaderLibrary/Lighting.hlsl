@@ -651,16 +651,6 @@ half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3
 
 void MixRealtimeAndBakedShadows(inout Light light, float3 positionWS, half4 shadowMask)
 {
-    /*// Shadowmask and light occlusion probes re-uses same data
-    half4 lightOcclusionProbeInfo = light.occlusionProbeChannels;
-
-    int channel = lightOcclusionProbeInfo.x;
-    half probeOcclusionValue = shadowMask[channel];
-
-    // lightProbeContribution is set to 0 if we are indeed using a probe, otherwise set to 1.
-    half lightProbeContribution = lightOcclusionProbeInfo.y;
-    half bakedShadowAttenuation = max(probeOcclusionValue, lightProbeContribution);*/
-
     half bakedShadowAttenuation = light.occlusionProbeChannels.x >= 0 ? dot(shadowMask, light.occlusionProbeChannels) : 1.0h;
 
 #if defined(LIGHTMAP_SHADOW_MIXING)
