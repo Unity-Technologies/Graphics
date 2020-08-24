@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.Universal
         const int k_DepthStencilBufferBits = 32;
         const string k_CreateCameraTextures = "Create Camera Texture";
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_CreateCameraTextures);
+        private readonly ProfilingSampler m_ProfilingSetup;
 
         ColorGradingLutPass m_ColorGradingLutPass;
         DepthOnlyPass m_DepthPrepass;
@@ -56,6 +57,8 @@ namespace UnityEngine.Rendering.Universal
 
         public ForwardRenderer(ForwardRendererData data) : base(data)
         {
+            m_ProfilingSetup = new ProfilingSampler("ForwardRenderer.Setup: " + profilingName);
+
 #if ENABLE_VR && ENABLE_XR_MODULE
             UniversalRenderPipeline.m_XRSystem.InitializeXRSystemData(data.xrSystemData);
 #endif
@@ -135,6 +138,8 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            using var profScope = new ProfilingScope(null, m_ProfilingSetup);
+
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             bool needTransparencyPass = !UniversalRenderPipeline.asset.useAdaptivePerformance || !AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects;
 #endif
@@ -413,6 +418,8 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            using var profScope = UniversalProfilingCache.GetCPUScope("ForwardRenderer.SetupLights");
+
             m_ForwardLights.Setup(context, ref renderingData);
         }
 
@@ -420,6 +427,8 @@ namespace UnityEngine.Rendering.Universal
         public override void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters,
             ref CameraData cameraData)
         {
+            using var profScope = UniversalProfilingCache.GetCPUScope("ForwardRenderer.SetupCullingParameters");
+
             // TODO: PerObjectCulling also affect reflection probes. Enabling it for now.
             // if (asset.additionalLightsRenderingMode == LightRenderingMode.Disabled ||
             //     asset.maxAdditionalLightsCount == 0)
@@ -500,7 +509,7 @@ namespace UnityEngine.Rendering.Universal
         void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor, bool createColor, bool createDepth)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            using (UniversalProfilingCache.GetGPUScope(cmd, "ForwardRenderer.CreateCameraRenderTarget"))
             {
                 int msaaSamples = descriptor.msaaSamples;
                 if (createColor)

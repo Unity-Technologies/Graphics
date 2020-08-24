@@ -37,8 +37,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         ShadowSliceData[] m_CascadeSlices;
         Vector4[] m_CascadeSplitDistances;
 
-        const string m_ProfilerTag = "Render Main Shadowmap";
-        ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
+        ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Render Main Shadowmap");
+        ProfilingSampler m_ProfilingSetupSampler = new ProfilingSampler("Setup Main Shadowmap");
 
         public MainLightShadowCasterPass(RenderPassEvent evt)
         {
@@ -67,6 +67,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public bool Setup(ref RenderingData renderingData)
         {
+            using var profScope = new ProfilingScope(null, m_ProfilingSetupSampler);
+            
             if (!renderingData.shadowData.supportsMainLightShadows)
                 return false;
 

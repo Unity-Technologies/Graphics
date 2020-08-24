@@ -23,32 +23,102 @@ namespace UnityEngine.Rendering.LWRP
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal sealed class UniversalProfilingCache
+    internal static class UniversalProfilingCache
     {
-        private Dictionary<string, ProfilingSampler> m_SamplerCache = new Dictionary<string, ProfilingSampler>();
-        private Dictionary<int, ProfilingSampler> m_CameraSamplerCache = new Dictionary<int, ProfilingSampler>();
-        public UniversalProfilingCache()
+        private static Dictionary<string, ProfilingSampler> m_StringSamplerCache = new Dictionary<string, ProfilingSampler>();
+        private static Dictionary<int, ProfilingSampler>    m_IntSamplerCache    = new Dictionary<int, ProfilingSampler>();
+        private static Dictionary<int, ProfilingSampler>    m_CameraSamplerCache = new Dictionary<int, ProfilingSampler>();
+
+        // A fast static profiling sampler name for fallback cases.
+        public static readonly ProfilingSampler m_UnknownSampler = new ProfilingSampler("Unknown");
+
+        static UniversalProfilingCache()
         {
             // TODO: with Net 5.0 support
             // m_SamplerCache.EnsureCapacity(64);
-
-            m_SamplerCache.Add("UniversalProfilingCacheTest", new ProfilingSampler("Test"));
         }
 
-        public ProfilingSampler TryGetOrAdd(string samplerName)
+        // Creates a ProfilingScope for immediate CPU profiling only.
+        // "Inl_" CPU time outside of any command buffers.
+        public static ProfilingScope GetCPUScope(string scopeName)
         {
-            ProfilingSampler ps = null;
-            bool exists = m_SamplerCache.TryGetValue(samplerName, out ps);
-            if (!exists)
-            {
-                ps = new ProfilingSampler(samplerName);
-                m_SamplerCache.Add(samplerName, ps);
-            }
-
-            return ps;
+            return new ProfilingScope(null, TryGetOrAddSampler(scopeName));
         }
 
-        public ProfilingSampler TryGetOrAddCameraSampler(Camera camera)
+        // Creates a ProfilingScope for GPU and CPU profiling into a command buffer.
+        // Shows as the GPU and CPU time for executing the command buffer.
+        // "Inl_" CPU time creating the command buffer. (time outside of the command buffer)
+        public static ProfilingScope GetGPUScope(CommandBuffer cmd, string scopeName)
+        {
+            return new ProfilingScope(cmd, TryGetOrAddSampler(scopeName));
+        }
+
+        public static ProfilingScope GetCPUScopeKey(int hashKey, string baseName, string dynamicName)
+        {
+            return new ProfilingScope(null, TryGetOrAddSampler(hashKey, baseName, dynamicName));
+        }
+
+        // Creates a ProfilingScope for GPU and CPU profiling into a command buffer.
+        // Shows as the GPU and CPU time for executing the command buffer.
+        // "Inl_" CPU time creating the command buffer. (time outside of the command buffer)
+        public static ProfilingScope GetGPUScopeKey(CommandBuffer cmd, int hashKey, string baseName, string dynamicName)
+        {
+            return new ProfilingScope(cmd, TryGetOrAddSampler(hashKey, baseName, dynamicName));
+        }
+
+        // Get a cached ProfilingSampler or add into the cache if not found.
+        // NOTE:
+        // Caching has a tiny overhead (hashing).
+        // Typically no allocations, but might allocate once on a cache miss for Add operation.
+        public static ProfilingSampler TryGetOrAddSampler(string samplerName)
+        {
+            // TODO: do profiling levels
+            //#define UNIVERSAL_PROFILING_MINIMAL
+            #if UNIVERSAL_PROFILING_MINIMAL
+                // Disable caching and return a static sampler for all scopes.
+                return m_UnknownSampler;
+            #else
+                ProfilingSampler ps = null;
+                bool exists = m_StringSamplerCache.TryGetValue(samplerName, out ps);
+                if (!exists)
+                {
+                    ps = new ProfilingSampler(samplerName);
+                    m_StringSamplerCache.Add(samplerName, ps);
+                }
+
+                return ps;
+            #endif
+        }
+
+        // Get a cached ProfilingSampler, or add into the cache if not found, using a hash value for any object.
+        // Adds a sampler with a name of form `categoryName + dynamicName` using a generic key value.
+        // NOTE:
+        // Caching has some overhead (hashing (twice)).
+        // Typically no allocations, but might allocate once on a cache miss for Add operation.
+        //
+        // <param name"hashKey"> Generic integer used as the cache key. Typically a hashed value.
+        // <param name"categoryName"> Shared part of the dynamic name in "CategoryName" + "DynamicName".
+        // <param name"dynamicName"> Unique detail part of the dynamic name in "CategoryName" + "Dynamicname".
+        public static ProfilingSampler TryGetOrAddSampler(int hashKey, string categoryName, string detailName)
+        {
+            #if UNIVERSAL_PROFILING_MINIMAL
+                // Disable caching and return a static sampler for all scopes.
+                return m_UnknownSampler;
+            #else
+                ProfilingSampler ps = null;
+                bool exists = m_IntSamplerCache.TryGetValue(hashKey, out ps);
+                if (!exists)
+                {
+                    ps = new ProfilingSampler( categoryName + detailName);
+                    m_IntSamplerCache.Add(hashKey, ps);
+                }
+
+                return ps;
+            #endif
+        }
+
+        // Specialization for camera loop to avoid allocations.
+        public static ProfilingSampler TryGetOrAddCameraSampler(Camera camera)
         {
             ProfilingSampler ps = null;
             int cameraId = camera.GetHashCode();
@@ -63,16 +133,16 @@ namespace UnityEngine.Rendering.Universal
             return ps;
         }
 
+        // Static samplers for absolute control & speed. No allocations, no overhead.
+        // Suitable for loops or repeatedly called functions with a static name.
         public static readonly ProfilingSampler universalRenderPipelineRender = new ProfilingSampler("UniversalRenderPipeline.Render");
-        public static readonly ProfilingSampler beginFrameRendering = new ProfilingSampler("BeginFrameRendering");
-        public static readonly ProfilingSampler endFrameRendering = new ProfilingSampler("BeginFrameRendering");
-        public static readonly ProfilingSampler beginCameraRendering = new ProfilingSampler("BeginCameraRendering");
-        public static readonly ProfilingSampler endCameraRendering = new ProfilingSampler("EndCameraRendering");
+        public static readonly ProfilingSampler beginFrameRendering           = new ProfilingSampler("BeginFrameRendering");
+        public static readonly ProfilingSampler endFrameRendering             = new ProfilingSampler("EndFrameRendering");
+        public static readonly ProfilingSampler beginCameraRendering          = new ProfilingSampler("BeginCameraRendering");
+        public static readonly ProfilingSampler endCameraRendering            = new ProfilingSampler("EndCameraRendering");
 
-        public static readonly ProfilingSampler renderCamera = new ProfilingSampler("Render Camera");
-        public static readonly ProfilingSampler renderCameraStack = new ProfilingSampler("RenderCameraStack");
+        public static readonly ProfilingSampler renderCameraStack     = new ProfilingSampler("RenderCameraStack");
         public static readonly ProfilingSampler updateVolumeFramework = new ProfilingSampler("UpdateVolumeFramework");
-        public static readonly ProfilingSampler initializeCameraData = new ProfilingSampler("InitializeCameraData");
 
         public static readonly ProfilingSampler XRMirrorView = new ProfilingSampler("XR Mirror View");
     }
@@ -80,8 +150,6 @@ namespace UnityEngine.Rendering.Universal
     public sealed partial class UniversalRenderPipeline : RenderPipeline
     {
         public const string k_ShaderTagName = "UniversalPipeline";
-
-        internal static UniversalProfilingCache m_ProfilingCache = new UniversalProfilingCache();
 
 #if ENABLE_VR && ENABLE_XR_MODULE
         internal static XRSystem m_XRSystem = new XRSystem();
@@ -172,6 +240,7 @@ namespace UnityEngine.Rendering.Universal
 
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
+            // TODO: would be better to add Profiling name hooks into RenderPipelineManager
             using var profScope = new ProfilingScope(null, UniversalProfilingCache.universalRenderPipelineRender);
 
             // TODO: would be better to add Profiling name hooks into RenderPipeline.cs
@@ -289,11 +358,15 @@ namespace UnityEngine.Rendering.Universal
             // exec(cmd.start, scope.start, cmd.end) and exec(cmd.start, scope.end, cmd.end)
             CommandBuffer cmd = CommandBufferPool.Get();
             //ProfilingSampler sampler = (asset.debugLevel >= PipelineDebugLevel.Profiling) ? new ProfilingSampler(camera.name) : _CameraProfilingSampler;
-            ProfilingSampler sampler = m_ProfilingCache.TryGetOrAddCameraSampler(camera);
+            ProfilingSampler sampler = UniversalProfilingCache.TryGetOrAddCameraSampler(camera);
             using (new ProfilingScope(cmd, sampler)) // Enqueues a "BeginSample" command into the CommandBuffer cmd
             {
                 renderer.Clear(cameraData.renderType);
-                renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
+
+                using (UniversalProfilingCache.GetGPUScope( cmd,"ScriptableRenderer.SetupCullingParameters"))
+                {
+                    renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
+                }
 
                 context.ExecuteCommandBuffer(cmd); // Send all the commands enqueued so far in the CommandBuffer cmd, to the ScriptableRenderContext context
                 cmd.Clear();
@@ -314,14 +387,27 @@ namespace UnityEngine.Rendering.Universal
                     ApplyAdaptivePerformance(ref renderingData);
 #endif
 
-                renderer.Setup(context, ref renderingData);
-                renderer.Execute(context, ref renderingData);
+                using (UniversalProfilingCache.GetGPUScope( cmd,"ScriptableRenderer.Setup"))
+                {
+                    renderer.Setup(context, ref renderingData);
+                }
+
+                // NOTE: handled inside ScriptableRenderer.Execute to get the cmdbuf timing correct.
+                //using (UniversalProfilingCache.GetGPUScope( cmd, "ScriptableRenderer.Execute"))
+                {
+                    renderer.Execute(context, ref renderingData);
+                }
+
             } // When ProfilingSample goes out of scope, an "EndSample" command is enqueued into CommandBuffer cmd
 
             cameraData.xr.EndCamera(cmd, cameraData);
             context.ExecuteCommandBuffer(cmd); // Sends to ScriptableRenderContext all the commands enqueued since cmd.Clear, i.e the "EndSample" command
             CommandBufferPool.Release(cmd);
-            context.Submit(); // Actually execute the commands that we previously sent to the ScriptableRenderContext context
+
+            using (UniversalProfilingCache.GetCPUScope("ScriptableRenderContext.Submit"))
+            {
+                context.Submit(); // Actually execute the commands that we previously sent to the ScriptableRenderContext context
+            }
 
             ScriptableRenderer.current = null;
         }
@@ -581,7 +667,9 @@ namespace UnityEngine.Rendering.Universal
 
         static void InitializeCameraData(Camera camera, UniversalAdditionalCameraData additionalCameraData, bool resolveFinalTarget, out CameraData cameraData)
         {
-            using var profScope = new ProfilingScope(null, UniversalProfilingCache.initializeCameraData);
+            using var profScope = UniversalProfilingCache.GetCPUScope("InitializeCameraData");
+
+
             cameraData = new CameraData();
             InitializeStackedCameraData(camera, additionalCameraData, ref cameraData);
             InitializeAdditionalCameraData(camera, additionalCameraData, resolveFinalTarget, ref cameraData);
@@ -596,6 +684,8 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraData">Camera data to initialize setttings.</param>
         static void InitializeStackedCameraData(Camera baseCamera, UniversalAdditionalCameraData baseAdditionalCameraData, ref CameraData cameraData)
         {
+            using var profScope = UniversalProfilingCache.GetCPUScope("InitializeStackedCameraData");
+
             var settings = asset;
             cameraData.targetTexture = baseCamera.targetTexture;
             cameraData.cameraType = baseCamera.cameraType;
@@ -688,6 +778,8 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraData">Settings to be initilized.</param>
         static void InitializeAdditionalCameraData(Camera camera, UniversalAdditionalCameraData additionalCameraData, bool resolveFinalTarget, ref CameraData cameraData)
         {
+            using var profScope = UniversalProfilingCache.GetCPUScope("InitializeAdditionalCameraData");
+
             var settings = asset;
             cameraData.camera = camera;
 
@@ -770,6 +862,8 @@ namespace UnityEngine.Rendering.Universal
         static void InitializeRenderingData(UniversalRenderPipelineAsset settings, ref CameraData cameraData, ref CullingResults cullResults,
             bool anyPostProcessingEnabled, out RenderingData renderingData)
         {
+            using var profScope = UniversalProfilingCache.GetCPUScope("InitializeRenderingData");
+
             var visibleLights = cullResults.visibleLights;
 
             int mainLightIndex = GetMainLightIndex(settings, visibleLights);
@@ -813,6 +907,8 @@ namespace UnityEngine.Rendering.Universal
 
         static void InitializeShadowData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, bool mainLightCastShadows, bool additionalLightsCastShadows, out ShadowData shadowData)
         {
+            using var profScope = UniversalProfilingCache.GetCPUScope("InitializeShadowData");
+
             m_ShadowBiasData.Clear();
 
             for (int i = 0; i < visibleLights.Length; ++i)
@@ -889,6 +985,8 @@ namespace UnityEngine.Rendering.Universal
 
         static void InitializeLightData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, int mainLightIndex, out LightData lightData)
         {
+            using var profScope = UniversalProfilingCache.GetCPUScope("InitializeLightData");
+
             int maxPerObjectAdditionalLights = UniversalRenderPipeline.maxPerObjectLights;
             int maxVisibleAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
 
@@ -966,6 +1064,8 @@ namespace UnityEngine.Rendering.Universal
 
         static void SetupPerFrameShaderConstants()
         {
+            using var profScope = UniversalProfilingCache.GetCPUScope("SetupPerFrameShaderConstants");
+
             // When glossy reflections are OFF in the shader we set a constant color to use as indirect specular
             SphericalHarmonicsL2 ambientSH = RenderSettings.ambientProbe;
             Color linearGlossyEnvColor = new Color(ambientSH[0, 0], ambientSH[1, 0], ambientSH[2, 0]) * RenderSettings.reflectionIntensity;

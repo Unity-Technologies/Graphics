@@ -281,8 +281,15 @@ namespace UnityEngine.Rendering.Universal
             m_ActiveDepthAttachment = depthAttachment;
         }
 
+        internal protected virtual string profilingName { get; }
+
+        private readonly ProfilingSampler m_ProfilingExecute;
+
         public ScriptableRenderer(ScriptableRendererData data)
         {
+            profilingName = data.name;
+            m_ProfilingExecute = new ProfilingSampler("ScriptableRenderer.Execute: " + profilingName);
+
             foreach (var feature in data.rendererFeatures)
             {
                 if (feature == null)
@@ -371,7 +378,7 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = cameraData.camera;
 
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, m_ProfilingSetCameraRenderState))
+            using (new ProfilingScope(cmd, m_ProfilingExecute))
             {
                 InternalStartRendering(context, ref renderingData);
 
@@ -394,15 +401,18 @@ namespace UnityEngine.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                // Sort the render pass queue
-                SortStable(m_ActiveRenderPassQueue);
+                using (UniversalProfilingCache.GetGPUScope(cmd, "Sort Render Passes"))
+                {
+                    // Sort the render pass queue
+                    SortStable(m_ActiveRenderPassQueue);
+                }
 
                 // Upper limits for each block. Each block will contains render passes with events below the limit.
                 NativeArray<RenderPassEvent> blockEventLimits = new NativeArray<RenderPassEvent>(k_RenderPassBlockCount, Allocator.Temp);
                 blockEventLimits[RenderPassBlock.BeforeRendering] = RenderPassEvent.BeforeRenderingPrepasses;
                 blockEventLimits[RenderPassBlock.MainRenderingOpaque] = RenderPassEvent.AfterRenderingOpaques;
                 blockEventLimits[RenderPassBlock.MainRenderingTransparent] = RenderPassEvent.AfterRenderingPostProcessing;
-                blockEventLimits[RenderPassBlock.AfterRendering] = (RenderPassEvent)Int32.MaxValue;
+                blockEventLimits[RenderPassBlock.AfterRendering] = (RenderPassEvent) Int32.MaxValue;
 
                 NativeArray<int> blockRanges = new NativeArray<int>(blockEventLimits.Length + 1, Allocator.Temp);
 
@@ -412,12 +422,18 @@ namespace UnityEngine.Rendering.Universal
                 FillBlockRanges(blockEventLimits, blockRanges);
                 blockEventLimits.Dispose();
 
-                SetupLights(context, ref renderingData);
+                using (UniversalProfilingCache.GetGPUScope(cmd, "SetupLights"))
+                {
+                    SetupLights(context, ref renderingData);
+                }
 
-                // Before Render Block. This render blocks always execute in mono rendering.
-                // Camera is not setup. Lights are not setup.
-                // Used to render input textures like shadowmaps.
-                ExecuteBlock(RenderPassBlock.BeforeRendering, blockRanges, context, ref renderingData);
+                using (UniversalProfilingCache.GetGPUScope(cmd, "ExecuteBlock: Before"))
+                {
+                    // Before Render Block. This render blocks always execute in mono rendering.
+                    // Camera is not setup. Lights are not setup.
+                    // Used to render input textures like shadowmaps.
+                    ExecuteBlock(RenderPassBlock.BeforeRendering, blockRanges, context, ref renderingData);
+                }
 
                 // This is still required because of the following reasons:
                 // - Camera billboard properties.
@@ -445,17 +461,26 @@ namespace UnityEngine.Rendering.Universal
 
                 // In the opaque and transparent blocks the main rendering executes.
 
-                // Opaque blocks...
-                ExecuteBlock(RenderPassBlock.MainRenderingOpaque, blockRanges, context, ref renderingData);
+                using (UniversalProfilingCache.GetGPUScope(cmd, "ExecuteBlock: Opaque"))
+                {
+                    // Opaque blocks...
+                    ExecuteBlock(RenderPassBlock.MainRenderingOpaque, blockRanges, context, ref renderingData);
+                }
 
-                // Transparent blocks...
-                ExecuteBlock(RenderPassBlock.MainRenderingTransparent, blockRanges, context, ref renderingData);
+                using (UniversalProfilingCache.GetGPUScope(cmd, "ExecuteBlock: Transparent"))
+                {
+                    // Transparent blocks...
+                    ExecuteBlock(RenderPassBlock.MainRenderingTransparent, blockRanges, context, ref renderingData);
+                }
 
                 // Draw Gizmos...
                 DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
 
-                // In this block after rendering drawing happens, e.g, post processing, video player capture.
-                ExecuteBlock(RenderPassBlock.AfterRendering, blockRanges, context, ref renderingData);
+                using (UniversalProfilingCache.GetGPUScope(cmd, "ExecuteBlock: After"))
+                {
+                    // In this block after rendering drawing happens, e.g, post processing, video player capture.
+                    ExecuteBlock(RenderPassBlock.AfterRendering, blockRanges, context, ref renderingData);
+                }
 
                 EndXRRendering(cmd, context, ref renderingData.cameraData);
 
@@ -576,10 +601,11 @@ namespace UnityEngine.Rendering.Universal
 
         void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, ref RenderingData renderingData)
         {
+            using var profScope = new ProfilingScope(null, renderPass.profilingSampler);
             ref CameraData cameraData = ref renderingData.cameraData;
 
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, m_ProfilingSetRenderTarget))
+            //using (new ProfilingScope(cmd, m_ProfilingSetRenderTarget))
             {
                 renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
                 SetRenderPassAttachments(cmd, renderPass, ref cameraData);
@@ -713,7 +739,7 @@ namespace UnityEngine.Rendering.Universal
                     // early return so we don't change current render target setup.
                     if (renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingOpaques)
                         return;
-                    
+
                     // Otherwise default is the pipeline camera target.
                     passColorAttachment = m_CameraColorTarget;
                     passDepthAttachment = m_CameraDepthTarget;
@@ -900,7 +926,7 @@ namespace UnityEngine.Rendering.Universal
         void InternalStartRendering(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, m_ProfilingReleaseResources))
+            using (UniversalProfilingCache.GetGPUScope(cmd,"InternalStartRendering"))
             {
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                 {
@@ -915,7 +941,7 @@ namespace UnityEngine.Rendering.Universal
         void InternalFinishRendering(ScriptableRenderContext context, bool resolveFinalTarget)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, m_ProfilingReleaseResources))
+            using (UniversalProfilingCache.GetGPUScope(cmd,"InternalFinishRendering"))
             {
 
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
