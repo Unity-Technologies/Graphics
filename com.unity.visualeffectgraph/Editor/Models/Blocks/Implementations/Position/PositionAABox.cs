@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
@@ -61,11 +62,6 @@ namespace UnityEditor.VFX.Block
                     yield return new VFXNamedExpression(cumulativeVolumes, "cumulativeVolumes");
 
                 }
-                else
-                {
-                    VFXExpression absBoxSize = new VFXExpressionAbs(boxSize);
-                    yield return new VFXNamedExpression(absBoxSize, "absBoxSize");
-                }
             }
         }
 
@@ -87,82 +83,95 @@ namespace UnityEditor.VFX.Block
                 // Compute Position (unit box)
                 if (positionMode == PositionMode.Volume)
                 {
-                    outSource = "float3 nPos = (RAND3 - 0.5f);\n";
+                    outSource = @"
+float3 localRand3 = RAND3 - (float3)0.5f;
+float3 outPos =  Box_size * localRand3;
+";
+                    outSource += @"
+float3 outPosSizeGreaterThanZero = max(Box_size, VFX_EPSILON) * localRand3;
+float3 planeBound = 0.5f * Box_size;
+float top    = planeBound.z - outPosSizeGreaterThanZero.z;
+float bottom = planeBound.z + outPosSizeGreaterThanZero.z;
+float front  = planeBound.y - outPosSizeGreaterThanZero.y;
+float back   = planeBound.y + outPosSizeGreaterThanZero.y;
+float right  = planeBound.x - outPosSizeGreaterThanZero.x;
+float left   = planeBound.x + outPosSizeGreaterThanZero.x;
+
+float3 outDir = float3(0,0,1);
+float min = top;
+if (bottom < min) { outDir = float3(0, 0,-1);  min = bottom; }
+if (front  < min) { outDir = float3(0, 1, 0);  min = front;  }
+if (back   < min) { outDir = float3(0,-1, 0);  min = back;   }
+if (right  < min) { outDir = float3(1, 0, 0);  min = right;  }
+if (left   < min) { outDir = float3(-1,0, 0);  min = left;   }
+";
                 }
                 else if (positionMode == PositionMode.Surface)
                 {
                     outSource = @"
-Box_size = absBoxSize;
 float areaXY = max(Box_size.x * Box_size.y, VFX_EPSILON);
 float areaXZ = max(Box_size.x * Box_size.z, VFX_EPSILON);
 float areaYZ = max(Box_size.y * Box_size.z, VFX_EPSILON);
 
 float face = RAND * (areaXY + areaXZ + areaYZ);
-float flip = (RAND >= 0.5f) ? 0.5f : -0.5f;
-float3 cube = float3(RAND2 - 0.5f, flip);
+float flip = (RAND >= 0.5f) ? 1.0f : -1.0f;
+float3 cube = float3(RAND2 - 0.5f, flip * 0.5f);
 
+float3 outDir;
 if (face < areaXY)
+{
     cube = cube.xyz;
+    outDir = float3(0, 0, flip);
+}
 else if(face < areaXY + areaXZ)
+{
     cube = cube.xzy;
+    outDir = float3(0, flip, 0);
+}
 else
+{
     cube = cube.zxy;
-
-float3 nPos = cube;
+    outDir = float3(flip, 0, 0);
+}
+float3 outPos = cube * Box_size;
 ";
-
                 }
-                else
+                else if (positionMode == PositionMode.ThicknessAbsolute || positionMode == PositionMode.ThicknessRelative)
                 {
                     outSource = @"
-Box_size = abs(Box_size);
 float face = RAND * cumulativeVolumes.z;
 float flip = (RAND >= 0.5f) ? 1.0f : -1.0f;
 float3 cube = float3(RAND2 * 2.0f - 1.0f, -RAND);
 
+float3 outDir;
 if (face < cumulativeVolumes.x)
 {
     cube = (cube * volumeXY).xyz + float3(0.0f, 0.0f, Box_size.z);
     cube.z *= flip;
+    outDir = float3(0, 0, flip);
 }
 else if(face < cumulativeVolumes.y)
 {
     cube = (cube * volumeXZ).xzy + float3(0.0f, Box_size.y, 0.0f);
     cube.y *= flip;
+    outDir = float3(0, flip, 0);
 }
 else
 {
     cube = (cube * volumeYZ).zxy + float3(Box_size.x, 0.0f, 0.0f);
     cube.x *= flip;
+    outDir = float3(flip, 0, 0);
 }
-
-
-float3 nPos = (cube / max(Box_size, VFX_EPSILON)) * 0.5;
+float3 outPos = cube * 0.5f;
 ";
-                    
+                }
+                else
+                {
+                    throw new NotImplementedException();
                 }
 
-
-                // Compute Direction from Unit Box
-                outSource += @"
-float3 aDir = abs(nPos);
-aDir.x = (Box_size.x == 0.0) ? 1 : aDir.x;
-aDir.y = (Box_size.y == 0.0) ? 1 : aDir.y;
-aDir.z = (Box_size.z == 0.0) ? 1 : aDir.z;
-
-float3 outDir;
-if (aDir.x > aDir.y && aDir.x > aDir.z)
-	outDir = float3(1,0,0);
-else
-	outDir = (aDir.y > aDir.z) ? float3(0,1,0) : float3(0,0,1);
-
-outDir *= sign(nPos);
-";
-                
                 outSource += string.Format(composeDirectionFormatString, "outDir");
-                outSource += string.Format(composePositionFormatString, "nPos * Box_size + Box_center");
-
-
+                outSource += string.Format(composePositionFormatString, "outPos + Box_center");
 
                 return outSource;
             }
