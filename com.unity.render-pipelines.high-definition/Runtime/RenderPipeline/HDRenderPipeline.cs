@@ -756,15 +756,15 @@ namespace UnityEngine.Rendering.HighDefinition
             //TODO : Clean this with the RenderGraph system
             if (Debug.isDebugBuild && m_DebugColorPickerBuffer == null && m_DebugFullScreenTempBuffer == null)
             {
-                m_DebugColorPickerBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, useDynamicScale: true, name: "DebugColorPicker");
-                m_DebugFullScreenTempBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, useDynamicScale: true, name: "DebugFullScreen");
+                m_DebugColorPickerBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, useDynamicScale: true, name: "DebugColorPicker");
+                m_DebugFullScreenTempBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, useDynamicScale: true, name: "DebugFullScreen");
             }
 
             if (m_IntermediateAfterPostProcessBuffer == null)
             {
                 // We always need this target because there could be a custom pass in after post process mode.
                 // In that case, we need to do the flip y after this pass.
-                m_IntermediateAfterPostProcessBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), useDynamicScale: true, name: "AfterPostProcess"); // Needs to be FP16 because output target might be HDR
+                m_IntermediateAfterPostProcessBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, useDynamicScale: true, name: "AfterPostProcess"); // Needs to be FP16 because output target might be HDR
             }
         }
 
@@ -2524,7 +2524,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_IsDepthBufferCopyValid = false;
 
             // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
-            GenerateDepthPyramid(hdCamera, cmd, FullScreenDebugMode.DepthPyramid);
+            GenerateDepthPyramid(hdCamera, cmd);
 
             // Depth texture is now ready, bind it (Depth buffer could have been bind before if DBuffer is enable)
             cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, m_SharedRTManager.GetDepthTexture());
@@ -3029,6 +3029,53 @@ namespace UnityEngine.Rendering.HighDefinition
             propertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, 0);
             propertyBlock.SetInt(HDShaderIDs._BlitTexArraySlice, parameters.srcTexArraySlice);
             HDUtils.DrawFullScreen(cmd, parameters.viewport, parameters.blitMaterial, destination, propertyBlock, 0, parameters.dstTexArraySlice);
+        }
+
+        static RTHandle _DebugBufferID;
+        protected override void ProcessRenderRequests(ScriptableRenderContext renderContext, Camera camera, List<Camera.RenderRequest> renderRequests)
+        {
+            var previousRT = RenderTexture.active;
+            RenderTexture.active = null;
+
+
+            //@TODO: We probably need some kind of context to do proper caching of RT
+
+            var requests = new AOVRequestBuilder();
+            RTHandle bufferID = null;
+            foreach (var request in renderRequests)
+            {
+                var aovRequest = AOVRequest.NewDefault(request.mode);
+                var aovBuffers = AOVBuffers.Color;
+                if (request.mode == Camera.RenderRequestMode.Depth || request.mode == Camera.RenderRequestMode.WorldPositionRGB)
+                    aovBuffers = AOVBuffers.Output;
+
+                //@TODO: _DebugBufferID handling seems dodgy what if the different buffers have different resolutions...
+                requests.Add(
+                    aovRequest,
+                    bufferId => _DebugBufferID ?? (_DebugBufferID = RTHandles.Alloc(request.result.width, request.result.height, 1, DepthBits.None, request.result.graphicsFormat)),
+                    null,
+                    new[] {aovBuffers},
+                    (cmd, textures, properties) =>
+                    {
+                        if (request.result != null)
+                            cmd.Blit(textures[0], request.result);
+                    });
+            }
+
+            if (_DebugBufferID != null)
+            {
+                _DebugBufferID.Release();
+                _DebugBufferID = null;
+            }
+
+            var additionaCameraData = camera.GetComponent<HDAdditionalCameraData>();
+            additionaCameraData.SetAOVRequests(requests.Build());
+
+            Render(renderContext, new[] {camera});
+
+            additionaCameraData.SetAOVRequests(null);
+
+            RenderTexture.active = previousRT;
         }
 
         void SetupCameraProperties(HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
@@ -3587,7 +3634,7 @@ namespace UnityEngine.Rendering.HighDefinition
             switch (hdCamera.frameSettings.litShaderMode)
             {
                 case LitShaderMode.Forward:
-                    result.passName = "Full Depth Prepass (Forward)";     
+                    result.passName = "Full Depth Prepass (Forward)";
 
                     RenderStateBlock? stateBlock = null;
                     if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.AlphaToMask))
@@ -4757,7 +4804,7 @@ namespace UnityEngine.Rendering.HighDefinition
             PushFullScreenDebugTextureMip(hdCamera, cmd, currentColorPyramid, lodCount, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
         }
 
-        void GenerateDepthPyramid(HDCamera hdCamera, CommandBuffer cmd, FullScreenDebugMode debugMode)
+        void GenerateDepthPyramid(HDCamera hdCamera, CommandBuffer cmd)
         {
             CopyDepthBufferIfNeeded(hdCamera, cmd);
             m_SharedRTManager.GetDepthBufferMipChainInfo().ComputePackedMipChainInfo(new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight));
@@ -4769,7 +4816,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, m_SharedRTManager.GetDepthTexture());
-            PushFullScreenDebugTextureMip(hdCamera, cmd, m_SharedRTManager.GetDepthTexture(), mipCount, debugMode);
+            PushFullScreenDebugTextureMip(hdCamera, cmd, m_SharedRTManager.GetDepthTexture(), mipCount, FullScreenDebugMode.DepthPyramid);
+            PushFullScreenDebugTextureMip(hdCamera, cmd, m_SharedRTManager.GetDepthTexture(), mipCount, FullScreenDebugMode.WorldSpacePosition);
         }
 
         void DownsampleDepthForLowResTransparency(HDCamera hdCamera, CommandBuffer cmd)

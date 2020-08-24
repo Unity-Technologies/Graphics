@@ -69,7 +69,7 @@ float4 OutputExtraction(ExtractionInputs inputs)
     if (UNITY_DataExtraction_Mode == RENDER_DEPTH)
         return 0;
     if (UNITY_DataExtraction_Mode == RENDER_WORLD_NORMALS_FACE_RGB)
-        return float4(inputs.vertexNormalWS, 1.0f);
+        return float4(PackNormalRGB(inputs.vertexNormalWS), 1.0f);
     if (UNITY_DataExtraction_Mode == RENDER_WORLD_POSITION_RGB)
         return float4(inputs.positionWS, 1.0);
     //@TODO
@@ -84,7 +84,7 @@ float4 OutputExtraction(ExtractionInputs inputs)
     if (UNITY_DataExtraction_Mode == RENDER_EMISSION_RGB)
         return float4(inputs.emission, 1.0);
     if (UNITY_DataExtraction_Mode == RENDER_WORLD_NORMALS_PIXEL_RGB)
-        return float4(inputs.pixelNormalWS, 1.0f);
+        return float4(PackNormalRGB(inputs.pixelNormalWS), 1.0f);
     if (UNITY_DataExtraction_Mode == RENDER_SMOOTHNESS_R)
         return float4(inputs.smoothness, 0.0, 0.0, 1.0);
     if (UNITY_DataExtraction_Mode == RENDER_OCCLUSION_R)

@@ -71,6 +71,7 @@ namespace UnityEngine.Rendering.HighDefinition
         PreRefractionColorPyramid,
         /// <summary>Display the Depth Pyramid.</summary>
         DepthPyramid,
+        WorldSpacePosition,
         /// <summary>Display the final color pyramid for the frame.</summary>
         FinalColorPyramid,
 
@@ -110,7 +111,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Display specular Color validation mode.</summary>
         ValidateSpecularColor,
         /// <summary>Maximum Full Screen Material debug mode value (used internally).</summary>
-        MaxMaterialFullScreenDebug
+        MaxMaterialFullScreenDebug,
     }
 
     /// <summary>
@@ -409,7 +410,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>True if any material debug display is enabled.</returns>
         public bool IsDebugMaterialDisplayEnabled()
         {
-            return data.materialDebugSettings.IsDebugDisplayEnabled(); 
+            return data.materialDebugSettings.IsDebugDisplayEnabled();
         }
 
         /// <summary>
