@@ -42,12 +42,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             // Surface Type & Blend Mode
             // These must be set per SubTarget as Sprite SubTargets override them
-            context.AddField(Fields.SurfaceOpaque,       target.surfaceType == SurfaceType.Opaque);
-            context.AddField(Fields.SurfaceTransparent,  target.surfaceType != SurfaceType.Opaque);
-            context.AddField(Fields.BlendAdd,            target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Additive);
-            context.AddField(Fields.BlendAlpha,          target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Alpha);
-            context.AddField(Fields.BlendMultiply,       target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Multiply);
-            context.AddField(Fields.BlendPremultiply,    target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Premultiply);
+            context.AddField(UniversalFields.SurfaceOpaque,       target.surfaceType == SurfaceType.Opaque);
+            context.AddField(UniversalFields.SurfaceTransparent,  target.surfaceType != SurfaceType.Opaque);
+            context.AddField(UniversalFields.BlendAdd,            target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Additive);
+            context.AddField(Fields.BlendAlpha,                   target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Alpha);
+            context.AddField(UniversalFields.BlendMultiply,       target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Multiply);
+            context.AddField(UniversalFields.BlendPremultiply,    target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Premultiply);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -62,7 +62,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 if (Equals(target.surfaceType, evt.newValue))
                     return;
-                
+
                 registerUndo("Change Surface");
                 target.surfaceType = (SurfaceType)evt.newValue;
                 onChange();
@@ -82,7 +82,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 if (Equals(target.alphaClip, evt.newValue))
                     return;
-                
+
                 registerUndo("Change Alpha Clip");
                 target.alphaClip = evt.newValue;
                 onChange();
@@ -92,7 +92,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 if (Equals(target.twoSided, evt.newValue))
                     return;
-                
+
                 registerUndo("Change Two Sided");
                 target.twoSided = evt.newValue;
                 onChange();
@@ -125,6 +125,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static SubShaderDescriptor Unlit = new SubShaderDescriptor()
             {
                 pipelineTag = UniversalTarget.kPipelineTag,
+                customTags = UniversalTarget.kUnlitMaterialTypeTag,
                 generatesPreview = true,
                 passes = new PassCollection
                 {
@@ -145,10 +146,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     unlit.pragmas = CorePragmas.DOTSForward;
                     shadowCaster.pragmas = CorePragmas.DOTSInstanced;
                     depthOnly.pragmas = CorePragmas.DOTSInstanced;
-                    
+
                     return new SubShaderDescriptor()
                     {
                         pipelineTag = UniversalTarget.kPipelineTag,
+                        customTags = UniversalTarget.kUnlitMaterialTypeTag,
                         generatesPreview = true,
                         passes = new PassCollection
                         {

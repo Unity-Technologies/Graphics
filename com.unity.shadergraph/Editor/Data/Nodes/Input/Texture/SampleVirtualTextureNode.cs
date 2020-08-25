@@ -190,7 +190,12 @@ namespace UnityEditor.ShaderGraph
                     layerCount = vtProperty?.value?.layers?.Count ?? kMaxLayers;
                 }
                 if (outputLayerSlotCount == layerCount)
+                {
+                    if (usedSlots != null)
+                        for (int i = 0; i < layerCount; i++)
+                            usedSlots.Add(OutputSlotIds[i]);
                     return;
+                }
             }
 
             for (int i = 0; i < kMaxLayers; i++)
