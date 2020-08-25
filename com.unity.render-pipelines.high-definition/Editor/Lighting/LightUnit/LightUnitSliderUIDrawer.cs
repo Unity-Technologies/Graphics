@@ -11,8 +11,10 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         private class LightUnitSlider
         {
-            public LightUnitSlider(LightUnitUILevel[] levels, string cautionTooltip)
+            public LightUnitSlider(LightUnit unit, LightUnitUILevel[] levels, string cautionTooltip)
             {
+                m_Unit = unit;
+
                 // Load builtin caution icon.
                 m_CautionContent = EditorGUIUtility.IconContent("console.warnicon.sml");
                 m_CautionContent.tooltip = cautionTooltip;
@@ -21,6 +23,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     AddLevel(l);
                 }
+
+                s_MarkerContent = new GUIContent(string.Empty);
             }
 
             private void AddLevel(LightUnitUILevel level)
@@ -73,25 +77,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 DoThumbTooltip(sliderRect, value.floatValue, value.floatValue / m_RangeMax, iconContent.tooltip);
             }
 
-            private static void GetRects(Rect baseRect, out Rect sliderRect, out Rect iconRect)
-            {
-                const int k_IconSeparator = 6;
-
-                sliderRect = baseRect;
-                sliderRect.width -= EditorGUIUtility.singleLineHeight + k_IconSeparator;
-
-                iconRect = baseRect;
-                iconRect.x += sliderRect.width + k_IconSeparator;
-                iconRect.width = EditorGUIUtility.singleLineHeight;
-            }
-
-            private static void DoSlider(Rect rect, SerializedProperty value, float leftValue, float rightValue)
-            {
-                // TODO: Look into compiling a lambda to access internal slider function for logarithmic sliding.
-                value.floatValue = GUI.HorizontalSlider(rect, value.floatValue, leftValue, rightValue, GUI.skin.horizontalSlider, GUI.skin.horizontalSliderThumb);
-            }
-
-            private static void DoSliderMarker(Rect rect, LightUnitUILevel level, float rangeMax)
+            private void DoSliderMarker(Rect rect, LightUnitUILevel level, float rangeMax)
             {
                 const float width  = 3f;
                 const float height = 2f;
@@ -121,11 +107,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.DrawRect(markerRect, Color.white);
 
                 // Consider enlarging this tooltip rect so that it's easier to discover?
-                s_MarkerContent.tooltip = FormatTooltip(level.content.tooltip, level.range.y);
+                s_MarkerContent.tooltip = FormatTooltip(m_Unit, level.content.tooltip, level.range.y);
                 EditorGUI.LabelField(markerRect, s_MarkerContent);
             }
 
-            private static void DoThumbTooltip(Rect rect, float value, float normalizedValue, string tooltip)
+            private void DoThumbTooltip(Rect rect, float value, float normalizedValue, string tooltip)
             {
                 const float size = 10f;
                 const float halfSize = size * 0.5f;
@@ -140,58 +126,37 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Horizontally place tooltip on the wheel,
                 thumbMarkerRect.x  = rect.x + (rect.width - size) * normalizedValue;
 
-                s_MarkerContent.tooltip = FormatTooltip(tooltip, value);
+                s_MarkerContent.tooltip = FormatTooltip(m_Unit, tooltip, value);
                 EditorGUI.LabelField(thumbMarkerRect, s_MarkerContent);
             }
 
-            private static void DoIcon(Rect rect, GUIContent icon, float range)
+            private void DoIcon(Rect rect, GUIContent icon, float range)
             {
                 var oldColor = GUI.color;
                 GUI.color = Color.clear;
                 EditorGUI.DrawTextureTransparent(rect, icon.image);
                 GUI.color = oldColor;
 
-                EditorGUI.LabelField(rect, new GUIContent(string.Empty, FormatTooltip(icon.tooltip, range)));
+                EditorGUI.LabelField(rect, new GUIContent(string.Empty, FormatTooltip(m_Unit, icon.tooltip, range)));
             }
 
-            private static string FormatTooltip(string baseTooltip, float value)
-            {
-                string formatValue;
-
-                // Massage the value for readability (with respect to the UX request).
-                if (value >= Single.PositiveInfinity)
-                    formatValue = "###K";
-                else if (value >= 100000)
-                    formatValue = (value / 1000).ToString("#,0K");
-                else if (value >= 10000)
-                    formatValue = (value / 1000).ToString("0.#") + "K";
-                else
-                    formatValue = value.ToString("#.0");
-
-                return baseTooltip + " " + formatValue + " Units";
-            }
-
-            private readonly GUIContent m_CautionContent;
-            private readonly List<LightUnitUILevel> m_Levels = new List<LightUnitUILevel>();
+            private LightUnit m_Unit;
+            private GUIContent s_MarkerContent;
+            private GUIContent m_CautionContent;
             private float m_RangeMin = float.MaxValue;
             private float m_RangeMax = float.MinValue;
+            private List<LightUnitUILevel> m_Levels = new List<LightUnitUILevel>();
         }
 
         private static readonly Dictionary<LightUnit, LightUnitSlider> s_LightUnitSliderMap = new Dictionary<LightUnit, LightUnitSlider>();
-        private static readonly GUIContent s_MarkerContent;
 
         static LightUnitSliderUIDrawer()
         {
-            // Load light unit icons from editor resources
-            var editorTextures = HDRenderPipeline.defaultAsset.renderPipelineEditorResources.textures;
-
-            var luxSlider = new LightUnitSlider(LightUnitValuesTable.k_LuxValueTable, "Higher than Sunlight");
+            var luxSlider = new LightUnitSlider(LightUnit.Lux, LightUnitValuesTable.k_LuxValueTable, "Higher than Sunlight");
             s_LightUnitSliderMap.Add(LightUnit.Lux, luxSlider);
 
-            var lumenSlider = new LightUnitSlider(LightUnitValuesTable.k_LumenValueTable, "Very High Intensity Light");
+            var lumenSlider = new LightUnitSlider(LightUnit.Lumen, LightUnitValuesTable.k_LumenValueTable, "Very High Intensity Light");
             s_LightUnitSliderMap.Add(LightUnit.Lumen, lumenSlider);
-
-            s_MarkerContent = new GUIContent(string.Empty);
         }
 
         public void OnGUI(LightUnit unit, SerializedProperty value)
@@ -215,5 +180,39 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.indentLevel = prevIndentLevel;
         }
 
+        private static void GetRects(Rect baseRect, out Rect sliderRect, out Rect iconRect)
+        {
+            const int k_IconSeparator = 6;
+
+            sliderRect = baseRect;
+            sliderRect.width -= EditorGUIUtility.singleLineHeight + k_IconSeparator;
+
+            iconRect = baseRect;
+            iconRect.x += sliderRect.width + k_IconSeparator;
+            iconRect.width = EditorGUIUtility.singleLineHeight;
+        }
+
+        private static void DoSlider(Rect rect, SerializedProperty value, float leftValue, float rightValue)
+        {
+            // TODO: Look into compiling a lambda to access internal slider function for logarithmic sliding.
+            value.floatValue = GUI.HorizontalSlider(rect, value.floatValue, leftValue, rightValue, GUI.skin.horizontalSlider, GUI.skin.horizontalSliderThumb);
+        }
+
+        private static string FormatTooltip(LightUnit unit, string baseTooltip, float value)
+        {
+            string formatValue;
+
+            // Massage the value for readability (with respect to the UX request).
+            if (value >= Single.PositiveInfinity)
+                formatValue = "###K";
+            else if (value >= 100000)
+                formatValue = (value / 1000).ToString("#,0K");
+            else if (value >= 10000)
+                formatValue = (value / 1000).ToString("0.#") + "K";
+            else
+                formatValue = value.ToString("#.0");
+
+            return baseTooltip + " " + formatValue + " " + unit;
+        }
     }
 }
