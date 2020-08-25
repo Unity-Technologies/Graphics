@@ -52,7 +52,7 @@ struct Light
     half3   color;
     half    distanceAttenuation;
     half    shadowAttenuation;
-    half4   shadowMaskSelector;
+    half4   occlusionProbeChannels;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -112,7 +112,7 @@ Light GetMainLight()
     light.distanceAttenuation = unity_LightData.z; // unity_LightData.z is 1 when not culled by the culling mask, otherwise 0.
     light.shadowAttenuation = 1.0;
     light.color = _MainLightColor.rgb;
-    light.shadowMaskSelector = _MainLightShadowMaskSelector;
+    light.occlusionProbeChannels = _MainLightOcclusionProbes;
 
     return light;
 }
@@ -133,13 +133,13 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
     half3 color = _AdditionalLightsBuffer[perObjectLightIndex].color.rgb;
     half4 distanceAndSpotAttenuation = _AdditionalLightsBuffer[perObjectLightIndex].attenuation;
     half4 spotDirection = _AdditionalLightsBuffer[perObjectLightIndex].spotDirection;
-    half4 shadowMaskSelector = _AdditionalLightsBuffer[perObjectLightIndex].shadowMaskSelector;
+    half4 occlusionProbeChannels = _AdditionalLightsBuffer[perObjectLightIndex].occlusionProbeChannels;
 #else
     float4 lightPositionWS = _AdditionalLightsPosition[perObjectLightIndex];
     half3 color = _AdditionalLightsColor[perObjectLightIndex].rgb;
     half4 distanceAndSpotAttenuation = _AdditionalLightsAttenuation[perObjectLightIndex];
     half4 spotDirection = _AdditionalLightsSpotDir[perObjectLightIndex];
-    half4 shadowMaskSelector = _AdditionalLightsShadowMaskSelector[perObjectLightIndex];
+    half4 occlusionProbeChannels = _AdditionalLightsOcclusionProbes[perObjectLightIndex];
 #endif
 
     // Directional lights store direction in lightPosition.xyz and have .w set to 0.0.
@@ -155,7 +155,7 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
     light.distanceAttenuation = attenuation;
     light.shadowAttenuation = AdditionalLightRealtimeShadow(perObjectLightIndex, positionWS);
     light.color = color;
-    light.shadowMaskSelector = shadowMaskSelector;
+    light.occlusionProbeChannels = occlusionProbeChannels;
 
     return light;
 }
@@ -651,7 +651,7 @@ half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3
 
 void MixRealtimeAndBakedShadows(inout Light light, float3 positionWS, half4 shadowMask)
 {
-    half bakedShadowAttenuation = light.shadowMaskSelector.x >= 0 ? dot(shadowMask, light.shadowMaskSelector) : 1.0h;
+    half bakedShadowAttenuation = light.occlusionProbeChannels.x >= 0 ? dot(shadowMask, light.occlusionProbeChannels) : 1.0h;
 
 #if defined(LIGHTMAP_SHADOW_MIXING)
     light.shadowAttenuation = min(ApplyShadowFade(light.shadowAttenuation, positionWS), bakedShadowAttenuation);

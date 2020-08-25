@@ -342,7 +342,7 @@ namespace UnityEngine.Rendering.Universal
         // directional lights to return 1.0 for both distance and angle attenuation
         static Vector4 k_DefaultLightAttenuation = new Vector4(0.0f, 1.0f, 0.0f, 1.0f);
         static Vector4 k_DefaultLightSpotDirection = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
-        static Vector4 k_DefaultShadowMaskSelector = new Vector4(-1.0f, 0.0f, 0.0f, 0.0f);
+        static Vector4 k_DefaultLightsProbeChannel = new Vector4(-1.0f, 1.0f, -1.0f, -1.0f);
 
         static List<Vector4> m_ShadowBiasData = new List<Vector4>();
 
@@ -575,11 +575,11 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public static void InitializeLightConstants_Common(NativeArray<VisibleLight> lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightAttenuation, out Vector4 lightSpotDir, out Vector4 lightShadowMaskSelector)
+        public static void InitializeLightConstants_Common(NativeArray<VisibleLight> lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightAttenuation, out Vector4 lightSpotDir, out Vector4 lightOcclusionProbeChannel)
         {
             lightPos = k_DefaultLightPosition;
             lightColor = k_DefaultLightColor;
-            lightShadowMaskSelector = k_DefaultShadowMaskSelector;
+            lightOcclusionProbeChannel = k_DefaultLightsProbeChannel;
             lightAttenuation = k_DefaultLightAttenuation;
             lightSpotDir = k_DefaultLightSpotDirection;
 
@@ -610,14 +610,14 @@ namespace UnityEngine.Rendering.Universal
 
             Light light = lightData.light;
 
-            lightShadowMaskSelector = Vector4.zero;
+            lightOcclusionProbeChannel = Vector4.zero;
             if (light != null && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
             {
-                lightShadowMaskSelector[light.bakingOutput.occlusionMaskChannel] = 1.0f;
+                lightOcclusionProbeChannel[light.bakingOutput.occlusionMaskChannel] = 1.0f;
             }
             else
             {
-                lightShadowMaskSelector.x = -1.0f; // Use -1 to say we have no mask
+                lightOcclusionProbeChannel.x = -1.0f; // Use -1 to say we have no mask
             }
         }
     }

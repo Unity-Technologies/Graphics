@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal
             public Vector4 color;
             public Vector4 attenuation;
             public Vector4 spotDirection;
-            public Vector4 shadowMaskSelector;
+            public Vector4 occlusionProbeChannels;
         }
 
         [GenerateHLSL(PackingRules.Exact, false)]

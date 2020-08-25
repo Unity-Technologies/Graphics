@@ -12,7 +12,7 @@ struct LightData
     float4 color;
     float4 attenuation;
     float4 spotDirection;
-    float4 shadowMaskSelector;
+    float4 occlusionProbeChannels;
 };
 
 // Generated from UnityEngine.Rendering.Universal.ShaderInput+ShadowData
