@@ -1,0 +1,22 @@
+project:
+  name: URPUpdate_Top_Asset_Store
+  folder: Top-URP-Assets
+test_platforms:
+  - playmode
+  - editmode
+platforms:
+  - name: Win
+    apis:
+      - DX11
+      - Vulkan
+#  - name: OSX
+#    apis:
+#      - OpenGLCore
+#      - Metal
+all:
+  dependencies:
+    - platform: Win
+      api: DX11
+      test_platforms:
+        - editmode
+        - playmode

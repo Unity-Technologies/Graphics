@@ -26,27 +26,32 @@ namespace UnityEditor.ShaderGraph
             m_Items = new List<Item>();
         }
 
-        public void Add(PragmaCollection pragmas)
+        public PragmaCollection Add(PragmaCollection pragmas)
         {
             foreach(PragmaCollection.Item item in pragmas)
             {
                 m_Items.Add(item);
             }
+
+            return this;
         }
 
-        public void Add(PragmaDescriptor descriptor)
+        public PragmaCollection Add(PragmaDescriptor descriptor)
         {
             m_Items.Add(new Item(descriptor, null));
+            return this;
         }
 
-        public void Add(PragmaDescriptor descriptor, FieldCondition fieldCondition)
+        public PragmaCollection Add(PragmaDescriptor descriptor, FieldCondition fieldCondition)
         {
             m_Items.Add(new Item(descriptor, new FieldCondition[]{ fieldCondition }));
+            return this;
         }
 
-        public void Add(PragmaDescriptor descriptor, FieldCondition[] fieldConditions)
+        public PragmaCollection Add(PragmaDescriptor descriptor, FieldCondition[] fieldConditions)
         {
             m_Items.Add(new Item(descriptor, fieldConditions));
+            return this;
         }
 
         public IEnumerator<Item> GetEnumerator()

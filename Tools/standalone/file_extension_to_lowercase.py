@@ -21,6 +21,7 @@ def convert_extension_of_file(filename, file_extension):
 		git_move_file(current_meta_filename, correct_meta_filename)
 
 
+# When executed from the git hooks this is the entry point
 def convert_extension_of_files(files):
 	for file in files:
 		filename, file_extension = os.path.splitext(file)
@@ -31,7 +32,7 @@ def convert_extension_of_files(files):
 def convert_extensions_of_folder(folder):
 	for root, directories, files in os.walk(folder):
 		convert_extension_of_files(files)
-				
+
 
 if __name__ == "__main__":
 	targets = sys.argv[1:]
