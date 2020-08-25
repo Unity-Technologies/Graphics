@@ -8,7 +8,6 @@ using UnityEditorInternal;
 #endif
 using System.ComponentModel;
 using System.Linq;
-using Unity.Mathematics;
 
 namespace UnityEngine.Rendering.LWRP
 {
@@ -21,13 +20,6 @@ namespace UnityEngine.Rendering.LWRP
 
 namespace UnityEngine.Rendering.Universal
 {
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShadowCascadesOption
-    {
-        NoCascades,
-        TwoCascades,
-        FourCascades,
-    }
-
     [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShadowQuality
     {
         Disabled,
@@ -103,7 +95,7 @@ namespace UnityEngine.Rendering.Universal
     }
 
     [ExcludeFromPreset]
-    public class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
+    public partial class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         Shader m_DefaultShader;
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
@@ -146,10 +138,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Shadows Settings
         [SerializeField] float m_ShadowDistance = 50.0f;
-        [SerializeField] ShadowCascadesOption m_ShadowCascades = ShadowCascadesOption.NoCascades;
-        [SerializeField] int m_CascadeShadowSplitCount = 4;
-        int m_CascadeShadowMinCount = 1;
-        int m_CascadeShadowMaxCount = 4;
+        [SerializeField] int m_ShadowCascadeCount = 4;
         [SerializeField] float m_Cascade2Split = 0.25f;
         [SerializeField] Vector2 m_Cascade3Split = new Vector2(0.1f, 0.3f);
         [SerializeField] Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
@@ -184,6 +173,9 @@ namespace UnityEngine.Rendering.Universal
         // 1D shaper lut but for now we'll keep it simple.
         public const int k_MinLutSize = 16;
         public const int k_MaxLutSize = 65;
+
+        internal const int k_ShadowCascadeMinCount = 1;
+        internal const int k_ShadowCascadeMaxCount = 4;
 
 #if UNITY_EDITOR
         [NonSerialized]
@@ -560,39 +552,21 @@ namespace UnityEngine.Rendering.Universal
             set { m_ShadowDistance = Mathf.Max(0.0f, value); }
         }
 
-        // MTT this is obsolete. What todo?
-        public ShadowCascadesOption shadowCascadeOption
+        /// <summary>
+        /// Returns the number of shadow cascades.
+        /// </summary>
+        public int shadowCascadeCount
         {
-            get { return m_ShadowCascades; }
-            set { m_ShadowCascades = value; }
-        }
-
-        public int cascadeShadowSplitCount
-        {
-            get { return m_CascadeShadowSplitCount; }
+            get { return m_ShadowCascadeCount; }
             set
             {
-                if (value < m_CascadeShadowMinCount)
+                if (value < k_ShadowCascadeMinCount || value > k_ShadowCascadeMaxCount)
                 {
-                    throw new ArgumentException($"Value ({value}) needs to be higher than {nameof(cascadeShadowMinCount)} ({m_CascadeShadowMinCount})");
+                    throw new ArgumentException($"Value ({value}) needs to be between {k_ShadowCascadeMinCount} and {k_ShadowCascadeMaxCount}.");
                 }
-                if (value > m_CascadeShadowMaxCount)
-                {
-                    throw new ArgumentException($"Value ({value}) needs to be lower than {nameof(cascadeShadowMaxCount)} ({m_CascadeShadowMaxCount})");
-                }
-                m_CascadeShadowSplitCount = value;
+                m_ShadowCascadeCount = value;
             }
         }
-
-        /// <summary>
-        /// Returns the min shadow cascade count.
-        /// </summary>
-        public int cascadeShadowMinCount { get => m_CascadeShadowMinCount; }
-
-        /// <summary>
-        /// Returns the max shadow cascade count.
-        /// </summary>
-        public int cascadeShadowMaxCount { get => m_CascadeShadowMaxCount; }
 
         /// <summary>
         /// Returns the split value.
@@ -845,16 +819,20 @@ namespace UnityEngine.Rendering.Universal
 
             if (k_AssetVersion < 6)
             {
+#pragma warning disable 618 // Obsolete warning
+                // Adding an upgrade here so that if it was previously set to 2 it meant 4 cascades.
+                // So adding a 3rd cascade shifted this value up 1.
                 int value = (int)m_ShadowCascades;
                 if (value == 2)
                 {
-                    m_CascadeShadowSplitCount = 4;
+                    m_ShadowCascadeCount = 4;
                 }
                 else
                 {
-                    m_CascadeShadowSplitCount = value + 1;
+                    m_ShadowCascadeCount = value + 1;
                 }
                 k_AssetVersion = 6;
+#pragma warning restore 618 // Obsolete warning
             }
 
 

@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.Universal.Internal
 
 namespace UnityEditor.Rendering.Universal
 {
-    static class EditorUtils
+    static partial class EditorUtils
     {
         // Each group is separate in the menu by a menu bar
         public const int lwrpAssetCreateMenuPriorityGroup1 = CoreUtils.assetCreateMenuPriority1;
@@ -39,6 +39,10 @@ namespace UnityEditor.Rendering.Universal
             if (cascadeCount <= 0)
             {
                 throw new ArgumentException($"Cascade value ({cascadeCount}) needs to be positive.");
+            }
+            if (cascadeCount > 4)
+            {
+                throw new ArgumentException($"Cascade value ({cascadeCount}) needs to be less than 4.");
             }
 
             int splitCount = cascadeCount - 1;
@@ -83,8 +87,9 @@ namespace UnityEditor.Rendering.Universal
                     }
                     else if (unit == Unit.Percent)
                     {
-                        var posPerc = Mathf.Clamp(value, 0.01f, distance);
-                        unitValue = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {1}", ""), (float)Math.Round(posPerc, 2), 0f, 1, null);
+                        var posPerc = Mathf.Clamp(value, 0.01f, distance) * 100f;
+                        var percValue = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {1}", ""), (float)Math.Round(posPerc, 2), 0f, 100, null);
+                        unitValue = percValue / 100f;
                     }
 
                     if (EditorGUI.EndChangeCheck())
@@ -104,7 +109,7 @@ namespace UnityEditor.Rendering.Universal
                 }
                 else if (type == typeof(Vector2))
                 {
-                    for (int i = 0; i < cascadePartitionSizes.Length; ++i)
+                    for (int i = 0; i < splitCount; ++i)
                     {
                         var vec2value = shadowCascadeSplit.vector2Value;
                         var threshold = 0.1f / distance;
@@ -117,8 +122,9 @@ namespace UnityEditor.Rendering.Universal
                         }
                         else if (unit == Unit.Percent)
                         {
-                            var posPerc = Mathf.Clamp(vec2value[i], 0.01f, distance);
-                            unitValue = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {i + 1}", ""), (float)Math.Round(posPerc, 2), 0f, 1, null);
+                            var posPerc = Mathf.Clamp(vec2value[i], 0.01f, distance) * 100f;
+                            var percValue = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {i + 1}", ""), (float)Math.Round(posPerc, 2), 0f, 100, null);
+                            unitValue = percValue / 100f;
                         }
 
                         if (EditorGUI.EndChangeCheck())
@@ -134,7 +140,7 @@ namespace UnityEditor.Rendering.Universal
                                 percValue = unitValue;
                             }
 
-                            if (i < cascadePartitionSizes.Length - 1)
+                            if (i < splitCount - 1)
                             {
                                 percValue = Math.Min((percValue), (vec2value[i + 1] - threshold));
                             }
@@ -151,7 +157,7 @@ namespace UnityEditor.Rendering.Universal
                 }
                 else
                 {
-                    for (int i = 0; i < cascadePartitionSizes.Length; ++i)
+                    for (int i = 0; i < splitCount; ++i)
                     {
                         var vec3value = shadowCascadeSplit.vector3Value;
                         var threshold = 0.1f / distance;
@@ -180,7 +186,7 @@ namespace UnityEditor.Rendering.Universal
                             {
                                 percValue = unitValue;
                             }
-                            if (i < cascadePartitionSizes.Length - 1)
+                            if (i < splitCount - 1)
                             {
                                 percValue = Math.Min((percValue), (vec3value[i + 1] - threshold));
                             }

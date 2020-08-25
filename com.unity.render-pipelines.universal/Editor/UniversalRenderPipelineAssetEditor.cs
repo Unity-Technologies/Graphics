@@ -1,4 +1,3 @@
-using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
@@ -121,8 +120,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_AdditionalLightShadowmapResolutionProp;
 
         SerializedProperty m_ShadowDistanceProp;
-        SerializedProperty m_ShadowCascadesProp;
-        SerializedProperty m_CascadeShadowSplitCountProp;
+        SerializedProperty m_ShadowCascadeCountProp;
         SerializedProperty m_ShadowCascade2SplitProp;
         SerializedProperty m_ShadowCascade3SplitProp;
         SerializedProperty m_ShadowCascade4SplitProp;
@@ -197,8 +195,8 @@ namespace UnityEditor.Rendering.Universal
             m_AdditionalLightShadowmapResolutionProp = serializedObject.FindProperty("m_AdditionalLightsShadowmapResolution");
 
             m_ShadowDistanceProp = serializedObject.FindProperty("m_ShadowDistance");
-            m_ShadowCascadesProp = serializedObject.FindProperty("m_ShadowCascades");
-            m_CascadeShadowSplitCountProp = serializedObject.FindProperty("m_CascadeShadowSplitCount");
+
+            m_ShadowCascadeCountProp = serializedObject.FindProperty("m_ShadowCascadeCount");
             m_ShadowCascade2SplitProp = serializedObject.FindProperty("m_Cascade2Split");
             m_ShadowCascade3SplitProp = serializedObject.FindProperty("m_Cascade3Split");
             m_ShadowCascade4SplitProp = serializedObject.FindProperty("m_Cascade4Split");
@@ -343,7 +341,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.indentLevel++;
                 m_ShadowDistanceProp.floatValue = Mathf.Max(0.0f, EditorGUILayout.FloatField(Styles.shadowDistanceText, m_ShadowDistanceProp.floatValue));
                 EditorUtils.Unit unit = EditorUtils.Unit.Metric;
-                if (m_CascadeShadowSplitCountProp.intValue != 0)
+                if (m_ShadowCascadeCountProp.intValue != 0)
                 {
                     EditorGUI.BeginChangeCheck();
                     unit = (EditorUtils.Unit)EditorGUILayout.EnumPopup(EditorGUIUtility.TrTextContent("Working Unit", "Except Max Distance which will be still in meter"), m_State.value);
@@ -354,9 +352,9 @@ namespace UnityEditor.Rendering.Universal
                 }
 
                 UniversalRenderPipelineAsset asset = target as UniversalRenderPipelineAsset;
-                EditorGUILayout.IntSlider(m_CascadeShadowSplitCountProp, asset.cascadeShadowMinCount, asset.cascadeShadowMaxCount, Styles.shadowCascadesText);
+                EditorGUILayout.IntSlider(m_ShadowCascadeCountProp, UniversalRenderPipelineAsset.k_ShadowCascadeMinCount, UniversalRenderPipelineAsset.k_ShadowCascadeMaxCount, Styles.shadowCascadesText);
 
-                int cascadeCount = m_CascadeShadowSplitCountProp.intValue;
+                int cascadeCount = m_ShadowCascadeCountProp.intValue;
                 if (cascadeCount == 4)
                     EditorUtils.DrawCascadeSplitGUI<Vector3>(ref m_ShadowCascade4SplitProp, m_ShadowDistanceProp.floatValue, cascadeCount, unit);
                 else if (cascadeCount == 3)

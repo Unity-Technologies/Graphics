@@ -748,7 +748,7 @@ namespace UnityEngine.Rendering.Universal
             // This change allows us to have particles & transparent objects receive shadows.
             shadowData.requiresScreenSpaceShadowResolve = false;
 
-            shadowData.mainLightShadowCascadesCount = settings.cascadeShadowSplitCount;
+            shadowData.mainLightShadowCascadesCount = settings.shadowCascadeCount;
             shadowData.mainLightShadowmapWidth = settings.mainLightShadowmapResolution;
             shadowData.mainLightShadowmapHeight = settings.mainLightShadowmapResolution;
 

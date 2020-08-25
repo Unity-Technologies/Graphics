@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering.Universal
 {
-    static class ShadowCascadeSplitGUI
+    static partial class ShadowCascadeSplitGUI
     {
         private const int kSliderbarTopMargin = 2;
         private const int kSliderbarHeight = 29;
@@ -113,12 +113,12 @@ namespace UnityEditor.Rendering.Universal
                 string cascadeText = "";
                 if (unit == EditorUtils.Unit.Percent)
                 {
-                    cascadeText = $"{i}\n{currentPartition * 100.0f:F1}%";
+                    cascadeText = $"{i+1}\n{currentPartition * 100.0f:F1}%";
                 }
                 else
                 {
                     var m = currentPartition* distance;
-                    cascadeText = $"{i}\n{m:F1}m";
+                    cascadeText = $"{i+1}\n{m:F1}m";
                 }
 
                 GUI.Label(textRect, cascadeText, s_TextCenteredStyle);
