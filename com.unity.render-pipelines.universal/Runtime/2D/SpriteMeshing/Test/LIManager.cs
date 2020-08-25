@@ -102,7 +102,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 DestroyChildren();
                 m_ShapeLibrary.SetRegion(region);
-                GenerateMeshes.MakeShapes(m_ShapeLibrary, m_Input, m_AlphaCutoff, m_MinimumArea);
+                GenerateMeshes.MakeShapes(m_ShapeLibrary, null, m_Input, m_AlphaCutoff, m_MinimumArea);
             }
 
 

@@ -34,7 +34,25 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return nativeArray;
         }
 
-        void CreateSplitSpriteMesh(Sprite sprite, Vector2 pivot, List<Vector2[]> outline, float pixelsPerUnit)
+
+        List<Vector2[]> TransformOutline(List<Vector2[]> customOutline, Vector2 offset, float scale)
+        {
+            List<Vector2[]> retOutline = new List<Vector2[]>();
+
+            foreach (Vector2[] outline in customOutline)
+            {
+                Vector2[] transformedOutline = new Vector2[outline.Length];
+
+                for (int i = 0; i < outline.Length; i++)
+                    transformedOutline[i] = scale * outline[i] + offset;
+
+                retOutline.Add(transformedOutline);
+            }
+
+            return retOutline;
+       }
+
+        void CreateSplitSpriteMesh(Sprite sprite, Vector2 pivot, List<Vector2[]> customOutline, float pixelsPerUnit)
         {
             ShapeLibrary shapeLibrary = new ShapeLibrary();
             Texture2D texture = sprite.texture;
@@ -42,7 +60,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             RectInt rect = new RectInt(new Vector2Int((int)sprite.rect.position.x, (int)sprite.rect.position.y), new Vector2Int((int)sprite.rect.size.x, (int)sprite.rect.size.y));
             shapeLibrary.SetRegion(rect);
 
-            GenerateMeshes.MakeShapes(shapeLibrary, texture, 1, 4096); // 2048 will give us a pretty good balance of verts to area. 4096 is the same or better area as previously and less than half the vertices.
+            List<Vector2[]> transformedOutline = null;
+            if (customOutline != null && customOutline.Count > 0)
+                 transformedOutline = TransformOutline(customOutline, sprite.rect.center, pixelsPerUnit);
+            GenerateMeshes.MakeShapes(shapeLibrary, transformedOutline, texture, 1, 4096); // 2048 will give us a pretty good balance of verts to area. 4096 is the same or better area as previously and less than half the vertices.
 
             Debug.Log("Shapes generated: " + shapeLibrary.m_Shapes.Count);
 
@@ -50,6 +71,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             List<ushort> colorTriangles = new List<ushort>();
             List<ushort> depthTriangles = new List<ushort>();
 
+            // Tesselate shapes made with MakeShapes
             GenerateMeshes.TesselateShapes(shapeLibrary, (vertices, triangles, uvs, isOpaque) =>
             {
                 int startingIndex = allVertices.Count;
@@ -68,6 +90,22 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     allVertices.Add(vertices[i] / pixelsPerUnit - v3Pivot);
             });
 
+            if (customOutline != null && customOutline.Count > 0)
+            {
+                GenerateMeshes.TesselateShapes(transformedOutline, rect, (vertices, triangles, uvs, isOpaque) =>
+                {
+                    int startingIndex = allVertices.Count;
+                    for (int i = 0; i < triangles.Length; i++)
+                    {
+                        ushort index = (ushort)(triangles[i] + startingIndex);
+                        depthTriangles.Add(index);
+                    }
+
+                    Vector3 v3Pivot = new Vector3(pivot.x, pivot.y);
+                    for (int i = 0; i < vertices.Length; i++)
+                        allVertices.Add(vertices[i] / pixelsPerUnit - v3Pivot);
+                });
+            }
 
             NativeArray<Vector3> nativeVertices = ListToNativeArray<Vector3>(allVertices);
             NativeArray<ushort> nativeIndices = ListsToNativeArray<ushort>(colorTriangles, depthTriangles);

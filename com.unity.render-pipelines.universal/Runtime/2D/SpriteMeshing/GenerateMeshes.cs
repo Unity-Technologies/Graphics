@@ -90,6 +90,48 @@ namespace UnityEngine.Experimental.Rendering.Universal
             startContour += shapeLib.m_ContourData.Count;
         }
 
+        public static void TesselateShapes(List<Vector2[]> customOutline, RectInt region, Action<Vector3[], int[], Vector2[], bool> shapeTesselatedHandler)
+        {
+            Tess tessI = new Tess();
+
+            // Add Custom Outline if one exists
+            if (customOutline != null && customOutline.Count > 0)
+            {
+                foreach (Vector2[] shapePath in customOutline)
+                {
+                    if (shapePath.Length > 0)
+                    {
+                        int pointCount = shapePath.Length;
+                        var inputs = new ContourVertex[pointCount];
+                        for (int i = 0; i < pointCount; ++i)
+                        {
+                            float u = (float)(shapePath[i].x - region.x) / (float)region.width;
+                            float v = (float)(shapePath[i].y - region.y) / (float)region.height;
+                            inputs[i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y }, Data = new Vector2(u, v) };
+                        }
+
+                        tessI.AddContour(inputs, ContourOrientation.Original);
+                    }
+                }
+
+                tessI.Tessellate(WindingRule.EvenOdd, ElementType.Polygons, 3, InterpCustomVertexData);
+
+                var indicesI = tessI.Elements.Select(i => i).ToArray();
+                var verticesI = tessI.Vertices.Select(v => new Vector3(v.Position.X, v.Position.Y, 0)).ToArray();
+                var uvsI = tessI.Vertices.Select(v => new Vector2(((Vector2)v.Data).x, ((Vector2)v.Data).y)).ToArray();
+
+                List<Vector3> finalVertices = new List<Vector3>();
+                List<int> finalIndices = new List<int>();
+                List<Vector2> finalUVs = new List<Vector2>();
+
+                finalVertices.AddRange(verticesI);
+                finalIndices.AddRange(indicesI);
+                finalUVs.AddRange(uvsI);
+
+                shapeTesselatedHandler(finalVertices.ToArray(), finalIndices.ToArray(), finalUVs.ToArray(), false);
+            }
+        }
+
         public static void TesselateShapes(ShapeLibrary shapeLib, Action<Vector3[], int[], Vector2[], bool> shapeTesselatedHandler)
         {
             foreach (Shape shape in shapeLib.m_Shapes)
@@ -215,22 +257,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             shapeLib.m_LineIntersectionManager.AddLine(corner0, corner3);
         }
 
-        static void AddImageBounds(ShapeLibrary shapeLib, List<Vector2[]> outlines)
-        {
-            for (int outlineIndex = 0; outlineIndex < outlines.Count; outlineIndex++)
-            {
-                Vector2[] outline = outlines[outlineIndex];
-
-                Vector2 preVertex = outline[outline.Length - 1];
-                for (int outlineElement = 0; outlineElement < outline.Length; outlineElement++)
-                {
-                    Vector2 curVertex = outline[outlineElement];
-                    shapeLib.m_LineIntersectionManager.AddLine(preVertex, curVertex);
-                    preVertex = curVertex;
-                }
-            }
-        }
-
 
         static void DebugBoundsImage(ImageAlpha imageAlpha)
         {
@@ -253,7 +279,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
 
-        public static void MakeShapes(ShapeLibrary shapeLib, Texture2D texture, short minAlphaCutoff, float minimumArea)
+        public static void MakeShapes(ShapeLibrary shapeLib, List<Vector2[]> customOutline, Texture2D texture, short minAlphaCutoff, float minimumArea)
         {
             List<Shape> outlines = new List<Shape>();
 
@@ -268,64 +294,30 @@ namespace UnityEngine.Experimental.Rendering.Universal
             ImageAlpha unprocessedImageAlpha = new ImageAlpha(rect.z, rect.w);
             unprocessedImageAlpha.Copy(texture, rect);
 
-
-            //float size = 2000;
-            List<Vector2[]> boundsOutlines = new List<Vector2[]>();
-            //Vector2[] boundsOutline0 = new Vector2[4]
-            //{
-            //    new Vector2(0,0),
-            //    new Vector2(texture.width-1, 0),
-            //    new Vector2(texture.width-1, 750),
-            //    new Vector2(0, 750)
-            //};
-
-            //Vector2[] boundsOutline1 = new Vector2[3]
-            //{
-            //    new Vector2(0,1000),
-            //    new Vector2(0.5f * texture.width, texture.height-1),
-            //    new Vector2(texture.width-1, 1000)
-            //};
-
-
-            //boundsOutlines.Add(boundsOutline0);
-            //boundsOutlines.Add(boundsOutline1);
-
-            //foreach (Vector2[] boundsOutline in boundsOutlines)
-            //{
-            //    int prevIndex = boundsOutline.Length - 1;
-            //    for (int i = 0; i < boundsOutline.Length; i++)
-            //    {
-            //        Debug.DrawLine(boundsOutline[prevIndex], boundsOutline[i], Color.yellow, 20);
-            //        prevIndex = i;
-            //    }
-            //}
-
-
-            CreateBoundsJob createBoundsJob = new CreateBoundsJob(unprocessedImageAlpha, boundsOutlines);
-#if USING_JOBS
-        createBoundsJob.Run();
-#else
-            createBoundsJob.Execute();
-#endif
-            createBoundsJob.Dispose();
-
-
-            //DebugBoundsImage(unprocessedImageAlpha);
-            //return;
+            bool hasCustomOutline = customOutline != null && customOutline.Count > 0;
+            if (hasCustomOutline)
+            { 
+                CreateBoundsJob createBoundsJob = new CreateBoundsJob(unprocessedImageAlpha, customOutline);
+                #if USING_JOBS
+                    createBoundsJob.Run();
+                #else
+                    createBoundsJob.Execute();
+                #endif
+                createBoundsJob.Dispose();
+            }
 
             ImageProcessorJob imageProcessorJob = new ImageProcessorJob(minAlphaCutoff, unprocessedImageAlpha, processedImageAlpha);
-#if USING_JOBS
-        imageProcessorJob.Run();
-#else
-            imageProcessorJob.Execute();
-#endif
+            #if USING_JOBS
+                imageProcessorJob.Run();
+            #else
+                imageProcessorJob.Execute();
+            #endif
             imageProcessorJob.Dispose();
 
-            GenerateMeshes.MakeShapes(ref startingShape, ref startingContour, shapeLib, processedImageAlpha, minAlphaCutoff, false);
-            GenerateMeshes.MakeShapes(ref startingShape, ref startingContour, shapeLib, processedImageAlpha, minAlphaCutoff, true);
+            if(!hasCustomOutline)
+                MakeShapes(ref startingShape, ref startingContour, shapeLib, processedImageAlpha, minAlphaCutoff, false);   // Create tranparent geometry
+            MakeShapes(ref startingShape, ref startingContour, shapeLib, processedImageAlpha, minAlphaCutoff, true);        // Create opaque geometry
 
-
-            //AddImageBounds(shapeLib, boundsOutlines);
             AddImageBounds(shapeLib);
             ReduceVertices(shapeLib, minimumArea);
 

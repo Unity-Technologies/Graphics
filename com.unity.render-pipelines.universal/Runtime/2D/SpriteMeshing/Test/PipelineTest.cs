@@ -171,7 +171,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
                 m_ShapeLibrary.SetRegion(region);
-                GenerateMeshes.MakeShapes(m_ShapeLibrary, m_Input, m_AlphaCutoff, m_MinimumArea);
+                GenerateMeshes.MakeShapes(m_ShapeLibrary, null, m_Input, m_AlphaCutoff, m_MinimumArea);
 
                 m_OpaqueMaterial = new Material(m_OpaqueMaterial);
                 m_TransparentMaterial = new Material(m_TransparentMaterial);
