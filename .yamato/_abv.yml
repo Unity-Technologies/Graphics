@@ -75,7 +75,7 @@ all_smoke_tests_trunk:
 all_project_ci_trunk:
     name: _ABV for SRP repository - trunk
     dependencies:
-      -  path: .yamato/_packages.yml#all_package_ci_trunk
+      -  path: .yamato/_projectcontext.yml#all_package_ci_project_trunk
          rerun: on-new-revision
       -  path: .yamato/all-universal.yml#All_Universal_trunk
          rerun: on-new-revision
@@ -87,33 +87,6 @@ all_project_ci_trunk:
          rerun: on-new-revision
       -  path: .yamato/all-vfx_urp.yml#All_VFX_URP_trunk
          rerun: on-new-revision
-all_project_ci_nightly_trunk:
-    name: _Nightly ABV against trunk
-    dependencies:
-      -  path: .yamato/_abv.yml#all_project_ci_trunk
-         rerun: on-new-revision
-      -  path: .yamato/_abv.yml#smoke_test_Standalone_trunk
-         rerun: on-new-revision
-      -  path: .yamato/_abv.yml#smoke_test_playmode_trunk
-         rerun: on-new-revision
-      -  path: .yamato/_abv.yml#smoke_test_editmode_trunk
-         rerun: on-new-revision
-      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_trunk
-         rerun: on-new-revision
-      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_trunk
-         rerun: on-new-revision
-      -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_trunk
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_Standalone_trunk
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_editmode_trunk
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_trunk
-         rerun: on-new-revision
-    triggers:
-        recurring:
-          -  branch: master
-             frequency: 0 * * ?
 trunk_verification_trunk:
     name: Trunk verification - trunk
     dependencies:
@@ -207,7 +180,7 @@ all_smoke_tests_fast-trunk:
 all_project_ci_fast-trunk:
     name: _ABV for SRP repository - fast-trunk
     dependencies:
-      -  path: .yamato/_packages.yml#all_package_ci_fast-trunk
+      -  path: .yamato/_projectcontext.yml#all_package_ci_project_fast-trunk
          rerun: on-new-revision
       -  path: .yamato/all-universal.yml#All_Universal_fast-trunk
          rerun: on-new-revision
@@ -221,6 +194,41 @@ all_project_ci_fast-trunk:
          rerun: on-new-revision
     triggers:
         expression: pull_request.target eq "master" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*", ".github/**/*", "Tools/**/*"]
+all_project_ci_nightly_fast-trunk:
+    name: _Nightly ABV against fast-trunk
+    dependencies:
+      -  path: .yamato/_abv.yml#all_project_ci_fast-trunk
+         rerun: on-new-revision
+      -  path: .yamato/_abv.yml#smoke_test_Standalone_fast-trunk
+         rerun: on-new-revision
+      -  path: .yamato/_abv.yml#smoke_test_playmode_fast-trunk
+         rerun: on-new-revision
+      -  path: .yamato/_abv.yml#smoke_test_editmode_fast-trunk
+         rerun: on-new-revision
+      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_fast-trunk
+         rerun: on-new-revision
+      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_fast-trunk
+         rerun: on-new-revision
+      -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_fast-trunk
+         rerun: on-new-revision
+      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_Standalone_fast-trunk
+         rerun: on-new-revision
+      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_editmode_fast-trunk
+         rerun: on-new-revision
+      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_fast-trunk
+         rerun: on-new-revision
+      -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_editmode_fast-trunk
+         rerun: on-new-revision
+      -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_playmode_fast-trunk
+         rerun: on-new-revision
+      -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_editmode_fast-trunk
+         rerun: on-new-revision
+      -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_playmode_fast-trunk
+         rerun: on-new-revision
+    triggers:
+        recurring:
+          -  branch: master
+             frequency: 0 * * ?
 trunk_verification_fast-trunk:
     name: Trunk verification - fast-trunk
     dependencies:
@@ -319,7 +327,7 @@ all_smoke_tests_CUSTOM-REVISION:
 all_project_ci_CUSTOM-REVISION:
     name: _ABV for SRP repository - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/_packages.yml#all_package_ci_CUSTOM-REVISION
+      -  path: .yamato/_projectcontext.yml#all_package_ci_project_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-universal.yml#All_Universal_CUSTOM-REVISION
          rerun: always

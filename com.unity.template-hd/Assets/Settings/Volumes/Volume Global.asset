@@ -687,7 +687,7 @@ MonoBehaviour:
     m_Value: {fileID: 0}
   histogramPercentages:
     m_OverrideState: 1
-    m_Value: {x: 8, y: 90}
+    m_Value: {x: 10, y: 90}
     min: 0
     max: 100
   histogramUseCurveRemapping:
