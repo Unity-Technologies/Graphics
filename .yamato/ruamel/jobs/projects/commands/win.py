@@ -2,7 +2,7 @@ from ...shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TES
 
 def _cmd_base(project_folder, components):
     return [
-        f'git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects', #placeholder for now
+        f'git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects/{project_folder}', #placeholder for now
         f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}/{project_folder}/utr.bat',
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-downloader-cli --source-file ../../{PATH_UNITY_REVISION} {"".join([f"-c {c} " for c in components])} --wait --published-only'
