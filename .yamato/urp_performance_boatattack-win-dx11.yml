@@ -18,7 +18,6 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_trunk:
          rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -36,10 +35,10 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_trunk:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
          rerun: on-new-revision
     commands:
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects
       -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
@@ -63,7 +62,6 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_trunk:
          rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -81,10 +79,10 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_trunk:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
          rerun: on-new-revision
     commands:
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects
       -  cd TestProjects/BoatAttack && utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
@@ -105,7 +103,6 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_fast-trunk:
          rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -123,10 +120,10 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_fast-trunk:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
          rerun: on-new-revision
     commands:
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects
       -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
@@ -150,7 +147,6 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_fast-trunk:
          rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -168,10 +164,10 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_fast-trunk:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
          rerun: on-new-revision
     commands:
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects
       -  cd TestProjects/BoatAttack && utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
@@ -193,7 +189,6 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_counters_CUSTOM-REVISIO
          rerun: always
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Counters --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -212,10 +207,10 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_CUSTOM-REVISION:
       -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
     commands:
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects
       -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
@@ -240,7 +235,6 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_memory_CUSTOM-REVISION:
          rerun: always
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects
       -  cd TestProjects/BoatAttack && utr --suite=playmode --testfilter=Memory --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
@@ -259,10 +253,10 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_CUSTOM-REVISION:
       -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
     commands:
+      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects
       -  cd TestProjects/BoatAttack && utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
