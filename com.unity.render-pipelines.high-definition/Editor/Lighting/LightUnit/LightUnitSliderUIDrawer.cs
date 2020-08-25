@@ -70,7 +70,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 // If value out of range, indicate caution. (For now assume caution feedback is last)
-                return LightUnitUILevel.CautionLevel(m_CautionTooltip);
+                return LightUnitUILevel.CautionLevel(m_CautionTooltip, value);
             }
 
             void DoSliderMarker(Rect rect, LightUnitUILevel level, float rangeMax)
@@ -102,9 +102,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Draw marker by manually drawing the rect, and an empty label with the tooltip.
                 EditorGUI.DrawRect(markerRect, Color.white);
 
-                // Consider enlarging this tooltip rect so that it's easier to discover?
                 s_MarkerContent.tooltip = FormatTooltip(m_Unit, level.content.tooltip, level.range.y);
-                EditorGUI.LabelField(markerRect, s_MarkerContent);
+
+                // Scale the marker tooltip for easier discovery
+                const float markerTooltipRectScale = 4f;
+                var markerTooltipRect = markerRect;
+                markerTooltipRect.width  *= markerTooltipRectScale;
+                markerTooltipRect.height *= markerTooltipRectScale;
+                markerTooltipRect.x      -= (markerTooltipRect.width  * 0.5f) - 1;
+                markerTooltipRect.y      -= (markerTooltipRect.height * 0.5f) - 1;
+                EditorGUI.LabelField(markerTooltipRect, s_MarkerContent);
             }
 
             void DoThumbTooltip(Rect rect, float value, float normalizedValue, string tooltip)

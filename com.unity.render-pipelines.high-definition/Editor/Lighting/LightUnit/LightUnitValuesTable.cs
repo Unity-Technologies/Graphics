@@ -13,10 +13,11 @@ namespace UnityEditor.Rendering.HighDefinition
             this.range = range;
         }
 
-        public static LightUnitUILevel CautionLevel(string tooltip) => new LightUnitUILevel
+        public static LightUnitUILevel CautionLevel(string tooltip, float value) => new LightUnitUILevel
         {
             // Load the buildin caution icon with provided tooltip.
             content = new GUIContent( EditorGUIUtility.IconContent("console.warnicon.sml").image, tooltip),
+            range = new Vector2(-1, value)
         };
 
         public GUIContent content;
