@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                          velocityBuffer,
                                          shadowHistoryValidityArray,
                                          dirShadowIndex / 4, m_ShadowChannelMask0, m_ShadowChannelMask1,
-                                         !m_CurrentSunLightAdditionalLightData.colorShadow, historyValidity);
+                                         true, !m_CurrentSunLightAdditionalLightData.colorShadow, historyValidity);
 
             // Apply the spatial denoiser
             HDDiffuseShadowDenoiser shadowDenoiser = GetDiffuseShadowDenoiser();
@@ -148,7 +148,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         builder.SetRenderFunc(
                         (SSSDirectionalTracePassData data, RenderGraphContext context) =>
                         {
-                            ExecuteSSShadowDirectional(context.cmd, data.parameters, data.normalBuffer, data.screenSpaceShadowArray);
+                            ExecuteSSShadowDirectional(context.cmd, data.parameters, context.renderGraphPool.GetTempMaterialPropertyBlock(), data.normalBuffer, data.screenSpaceShadowArray);
                         });
                     }
                 }

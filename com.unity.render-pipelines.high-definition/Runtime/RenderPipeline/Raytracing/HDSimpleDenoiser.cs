@@ -159,9 +159,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             TextureHandle noisyBuffer,
                             int kernelSize, bool singleChannel)
         {
-            // Request the intermediate buffer we need
-            RTHandle intermediateBuffer = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.RGBA3);
-
             using (var builder = renderGraph.AddRenderPass<SimpleDenoiserPassData>("DiffuseDenoiser", out var passData, ProfilingSampler.Get(HDProfileId.DiffuseFilter)))
             {
                 // Cannot run in async

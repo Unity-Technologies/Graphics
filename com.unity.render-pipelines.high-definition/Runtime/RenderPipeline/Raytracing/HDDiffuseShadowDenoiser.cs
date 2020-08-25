@@ -185,9 +185,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             TextureHandle noisyBuffer, TextureHandle distanceBuffer,
                             int kernelSize, float angularDiameter, bool singleChannel = true)
         {
-            // Request the intermediate buffer we need
-            RTHandle intermediateBuffer = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.RGBA3);
-
             using (var builder = renderGraph.AddRenderPass<DiffuseShadowDenoiserDirectionalPassData>("TemporalDenoiser", out var passData, ProfilingSampler.Get(HDProfileId.DiffuseFilter)))
             {
                 // Cannot run in async
@@ -369,9 +366,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             TextureHandle noisyBuffer, TextureHandle distanceBuffer,
                             int kernelSize, Vector3 lightPosition, float lightRadius)
         {
-            // Request the intermediate buffer we need
-            RTHandle intermediateBuffer = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.RGBA3);
-
             using (var builder = renderGraph.AddRenderPass<DiffuseShadowDenoiserSpherePassData>("DiffuseDenoiser", out var passData, ProfilingSampler.Get(HDProfileId.DiffuseFilter)))
             {
                 // Cannot run in async

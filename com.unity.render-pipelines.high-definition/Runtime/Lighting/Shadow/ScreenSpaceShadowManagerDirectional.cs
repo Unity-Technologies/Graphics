@@ -5,6 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
+        MaterialPropertyBlock directionalShadowPB = new MaterialPropertyBlock();
         struct RTShadowDirectionalTraceParameters
         {
             // Camera parameters
@@ -215,7 +216,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                                         intermediateBuffer,
                                                         dirShadowIndex / 4, m_ShadowChannelMask0,
                                                         distanceBuffer, shadowHistoryDistanceArray, intermediateDistanceBuffer, m_ShadowChannelMask1,
-                                                        singleChannel: !m_CurrentSunLightAdditionalLightData.colorShadow, historyValidity: historyValidity);
+                                                        true, singleChannel: !m_CurrentSunLightAdditionalLightData.colorShadow, historyValidity: historyValidity);
 
             // Apply the spatial denoiser
             HDDiffuseShadowDenoiser shadowDenoiser = GetDiffuseShadowDenoiser();
@@ -263,13 +264,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return sssdParams;
         }
 
-        static void ExecuteSSShadowDirectional(CommandBuffer cmd, SSShadowDirectionalParameters sssdParams, RTHandle normalBuffer, RTHandle textureArray)
+        static void ExecuteSSShadowDirectional(CommandBuffer cmd, SSShadowDirectionalParameters sssdParams, MaterialPropertyBlock mpb, RTHandle normalBuffer, RTHandle textureArray)
         {
             // If it is screen space but not ray traced, then we can rely on the shadow map
             // WARNING: This pattern only works because we can only have one directional and the directional shadow is evaluated first.
             CoreUtils.SetRenderTarget(cmd, textureArray, depthSlice: sssdParams.depthSlice);
-            cmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, normalBuffer);
-            HDUtils.DrawFullScreen(cmd, s_ScreenSpaceShadowsMat, textureArray);
+            mpb.SetTexture(HDShaderIDs._NormalBufferTexture, normalBuffer);
+            HDUtils.DrawFullScreen(cmd, s_ScreenSpaceShadowsMat, textureArray, mpb);
         }
 
         void RenderDirectionalLightScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera)
@@ -289,7 +290,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                     {
                         SSShadowDirectionalParameters sssdParams = PrepareSSShadowDirectionalParameters();
-                        ExecuteSSShadowDirectional(cmd, sssdParams, m_SharedRTManager.GetNormalBuffer(), m_ScreenSpaceShadowTextureArray);
+                        ExecuteSSShadowDirectional(cmd, sssdParams, directionalShadowPB, m_SharedRTManager.GetNormalBuffer(), m_ScreenSpaceShadowTextureArray);
                     }
                 }
             }

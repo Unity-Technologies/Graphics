@@ -423,17 +423,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.motionVectorsBuffer = builder.ReadTexture(motionVectorsBuffer);
                 if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred)
                 {
-                    passData.gbuffer0 = prepassOutput.gbuffer.mrt[0];
-                    passData.gbuffer1 = prepassOutput.gbuffer.mrt[1];
-                    passData.gbuffer2 = prepassOutput.gbuffer.mrt[2];
-                    passData.gbuffer3 = prepassOutput.gbuffer.mrt[3];
+                    passData.gbuffer0 = builder.ReadTexture(prepassOutput.gbuffer.mrt[0]);
+                    passData.gbuffer1 = builder.ReadTexture(prepassOutput.gbuffer.mrt[1]);
+                    passData.gbuffer2 = builder.ReadTexture(prepassOutput.gbuffer.mrt[2]);
+                    passData.gbuffer3 = builder.ReadTexture(prepassOutput.gbuffer.mrt[3]);
                 }
                 else
                 {
-                    passData.gbuffer0 = renderGraph.defaultResources.blackTextureXR;
-                    passData.gbuffer1 = renderGraph.defaultResources.blackTextureXR;
-                    passData.gbuffer2 = renderGraph.defaultResources.blackTextureXR;
-                    passData.gbuffer3 = renderGraph.defaultResources.blackTextureXR;
+                    passData.gbuffer0 = builder.ReadTexture(renderGraph.defaultResources.blackTextureXR);
+                    passData.gbuffer1 = builder.ReadTexture(renderGraph.defaultResources.blackTextureXR);
+                    passData.gbuffer2 = builder.ReadTexture(renderGraph.defaultResources.blackTextureXR);
+                    passData.gbuffer3 = builder.ReadTexture(renderGraph.defaultResources.blackTextureXR);
                 }
 
                 passData.shadowHistoryArray = builder.ReadTexture(builder.WriteTexture(renderGraph.ImportTexture(shadowHistoryArray)));

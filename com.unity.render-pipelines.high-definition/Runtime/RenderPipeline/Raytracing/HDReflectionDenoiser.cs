@@ -182,7 +182,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "IntermediateTexture0" });
                 passData.intermediateBuffer1 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
                 { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "IntermediateTexture1" });
-                passData.historySignal = renderGraph.ImportTexture(historyBuffer);
+                passData.historySignal = builder.ReadTexture(builder.WriteTexture(renderGraph.ImportTexture(historyBuffer)));
                 passData.noisyToOutputSignal = builder.ReadTexture(builder.WriteTexture(lightingTexture));
 
                 builder.SetRenderFunc(

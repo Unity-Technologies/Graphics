@@ -30,15 +30,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Fetch all the resources
                 passData.parameters = tfParameters;
+                // Input Buffers
                 passData.depthStencilBuffer = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.motionVectorBuffer = builder.ReadTexture(motionVectorBuffer);
                 passData.velocityBuffer = renderGraph.defaultResources.blackTextureXR;
-                passData.historyDepthTexture = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth));
-                passData.historyNormalTexture = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Normal));
                 passData.noisyBuffer = builder.ReadTexture(noisyBuffer);
+
+                // Temporary buffers
                 passData.validationBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8_UNorm, enableRandomWrite = true, name = "ValidationTexture" });
+
+                // History buffers
+                passData.historyDepthTexture = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth)));
+                passData.historyNormalTexture = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Normal)));
                 passData.historyBuffer = builder.ReadTexture(builder.WriteTexture(historyBuffer));
+
+                // Output buffers
                 passData.outputBuffer = builder.ReadTexture(builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                 { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporal Filter Output" })));
 
@@ -100,7 +107,8 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle distanceBuffer, RTHandle distanceHistorySignal,
             TextureHandle velocityBuffer,
             RTHandle validationHistoryBuffer,
-            int sliceIndex, Vector4 channelMask, Vector4 distanceChannelMask, bool singleChannel, float historyValidity)
+            int sliceIndex, Vector4 channelMask, Vector4 distanceChannelMask,
+            bool distanceBased, bool singleChannel, float historyValidity)
         {
             TemporalDenoiserArrayOutputData resultData = new TemporalDenoiserArrayOutputData();
             using (var builder = renderGraph.AddRenderPass<TemporalFilterArrayPassData>("TemporalDenoiser", out var passData, ProfilingSampler.Get(HDProfileId.TemporalFilter)))
@@ -109,7 +117,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.EnableAsyncCompute(false);
 
                 // Fetch all the resources
-                passData.parameters = PrepareTemporalFilterArrayParameters(hdCamera, singleChannel, historyValidity, sliceIndex, channelMask, distanceChannelMask);
+                passData.parameters = PrepareTemporalFilterArrayParameters(hdCamera, distanceBased, singleChannel, historyValidity, sliceIndex, channelMask, distanceChannelMask);
 
                 // Input buffers
                 passData.depthStencilBuffer = builder.ReadTexture(depthBuffer);
@@ -117,23 +125,23 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.motionVectorBuffer = builder.ReadTexture(motionVectorBuffer);
                 passData.velocityBuffer = builder.ReadTexture(velocityBuffer);
                 passData.noisyBuffer = builder.ReadTexture(noisyBuffer);
-                passData.distanceBuffer = builder.ReadTexture(distanceBuffer);
+                passData.distanceBuffer = distanceBased ? builder.ReadTexture(distanceBuffer) : renderGraph.defaultResources.blackTextureXR;
 
                 // Intermediate buffers
                 passData.validationBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8_UNorm, enableRandomWrite = true, name = "ValidationTexture" });
 
                 // History buffers
-                passData.historyDepthTexture = builder.ReadTexture(builder.WriteTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth))));
-                passData.historyNormalTexture = builder.ReadTexture(builder.WriteTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Normal))));
+                passData.historyDepthTexture = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth)));
+                passData.historyNormalTexture = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Normal)));
                 passData.historyBuffer = builder.ReadTexture(builder.WriteTexture(renderGraph.ImportTexture(historyBuffer)));
                 passData.validationHistoryBuffer = builder.ReadTexture(builder.WriteTexture(renderGraph.ImportTexture(validationHistoryBuffer)));
-                passData.distanceHistorySignal = builder.ReadTexture(builder.WriteTexture(renderGraph.ImportTexture(distanceHistorySignal)));
+                passData.distanceHistorySignal = distanceBased ? builder.ReadTexture(builder.WriteTexture(renderGraph.ImportTexture(distanceHistorySignal))) : renderGraph.defaultResources.blackTextureXR;
 
                 // Output textures
                 passData.outputBuffer = builder.ReadTexture(builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                 { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporal Filter Output" })));
-                passData.outputDistanceSignal = builder.ReadTexture(builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporal Filter Distance output" })));
+                passData.outputDistanceSignal = distanceBased ? builder.ReadTexture(builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporal Filter Distance output" }))) : new TextureHandle();
 
                 builder.SetRenderFunc(
                 (TemporalFilterArrayPassData data, RenderGraphContext ctx) =>

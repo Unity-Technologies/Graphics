@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle DenoisePunctualScreenSpaceShadow(RenderGraph renderGraph, HDCamera hdCamera,
                                                     HDAdditionalLightData additionalLightData, in LightData lightData,
                                                     TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVetorsBuffer,
-                                                    TextureHandle noisyBuffer, TextureHandle velocityBuffer, TextureHandle distanceBuffer)
+                                                    TextureHandle noisyBuffer, TextureHandle velocityBuffer, TextureHandle distanceBufferI)
         {
             // Is the history still valid?
             float historyValidity = EvaluateHistoryValidityPointShadow(hdCamera, lightData, additionalLightData);
@@ -20,38 +20,30 @@ namespace UnityEngine.Rendering.HighDefinition
             // Apply the temporal denoiser
             HDTemporalFilter temporalFilter = GetTemporalFilter();
             HDTemporalFilter.TemporalDenoiserArrayOutputData temporalFilterResult;
+
+
+            // Only set the distance based denoising buffers if required.
+            RTHandle shadowHistoryDistanceArray = null;
+            TextureHandle distanceBuffer = new TextureHandle();
             if (additionalLightData.distanceBasedFiltering)
             {
+                distanceBuffer = distanceBufferI;
                 // Request the distance history buffer
-                RTHandle shadowHistoryDistanceArray = RequestShadowHistoryDistanceBuffer(hdCamera);
-                // Grab the history buffers for shadows
-                RTHandle shadowHistoryArray = RequestShadowHistoryBuffer(hdCamera);
-                RTHandle shadowHistoryValidityArray = RequestShadowHistoryValidityBuffer(hdCamera);
-
-                temporalFilterResult = temporalFilter.DenoiseBuffer(renderGraph, hdCamera,
-                             depthBuffer, normalBuffer, motionVetorsBuffer,
-                             noisyBuffer, shadowHistoryArray,
-                             distanceBuffer, shadowHistoryDistanceArray,
-                             velocityBuffer,
-                             shadowHistoryValidityArray,
-                             lightData.screenSpaceShadowIndex / 4, m_ShadowChannelMask0, m_ShadowChannelMask0,
-                             true, historyValidity);
+                shadowHistoryDistanceArray = RequestShadowHistoryDistanceBuffer(hdCamera);
             }
-            else
-            {
-                // Grab the history buffers for shadows
-                RTHandle shadowHistoryArray = RequestShadowHistoryBuffer(hdCamera);
-                RTHandle shadowHistoryValidityArray = RequestShadowHistoryValidityBuffer(hdCamera);
 
-                temporalFilterResult = temporalFilter.DenoiseBuffer(renderGraph, hdCamera,
-                                     depthBuffer, normalBuffer, motionVetorsBuffer,
-                                     noisyBuffer, shadowHistoryArray,
-                                     distanceBuffer, new TextureHandle(),
-                                     velocityBuffer,
-                                     shadowHistoryValidityArray,
-                                     lightData.screenSpaceShadowIndex / 4, m_ShadowChannelMask0, m_ShadowChannelMask0,
-                                     true, historyValidity);
-            }
+            // Grab the history buffers for shadows
+            RTHandle shadowHistoryArray = RequestShadowHistoryBuffer(hdCamera);
+            RTHandle shadowHistoryValidityArray = RequestShadowHistoryValidityBuffer(hdCamera);
+
+            temporalFilterResult = temporalFilter.DenoiseBuffer(renderGraph, hdCamera,
+                            depthBuffer, normalBuffer, motionVetorsBuffer,
+                            noisyBuffer, shadowHistoryArray,
+                            distanceBuffer, shadowHistoryDistanceArray,
+                            velocityBuffer,
+                            shadowHistoryValidityArray,
+                            lightData.screenSpaceShadowIndex / 4, m_ShadowChannelMask0, m_ShadowChannelMask0,
+                            additionalLightData.distanceBasedFiltering, true, historyValidity);
 
             TextureHandle denoisedBuffer;
             if (additionalLightData.distanceBasedFiltering)

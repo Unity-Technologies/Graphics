@@ -17,9 +17,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 dimension = TextureDimension.Tex2DArray,
                 filterMode = FilterMode.Point,
                 enableRandomWrite = true,
-                useDynamicScale = true,
                 useMipMap = false,
-                name = "AreaShadowArrayBuffer"
+                name = "ScreenSpaceShadowArrayBuffer"
             });
         }
 
