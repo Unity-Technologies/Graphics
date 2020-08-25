@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [8.3.1] - 2020-07-23
 
+### Added
+- Compare operator can take int and uint as inputs
+
 ### Fixed
 - Fix for node window staying when clicking elsewhere
 - Prefab highlight missing for initial event name toggle [Case 1263012](https://issuetracker.unity3d.com/product/unity/issues/guid/1263012/)

@@ -114,12 +114,12 @@ namespace UnityEditor.VFX.Test
             var f0Exp = VFXValue.Constant(f0);
             var f1Exp = VFXValue.Constant(f1);
 
-            var equalExp = new VFXExpressionCondition(VFXCondition.Equal, f0Exp, f1Exp);
-            var notEqualExp = new VFXExpressionCondition(VFXCondition.NotEqual, f0Exp, f1Exp);
-            var lessExp = new VFXExpressionCondition(VFXCondition.Less, f0Exp, f1Exp);
-            var lessOrEqualExp = new VFXExpressionCondition(VFXCondition.LessOrEqual, f0Exp, f1Exp);
-            var greater = new VFXExpressionCondition(VFXCondition.Greater, f0Exp, f1Exp);
-            var greaterOrEqual = new VFXExpressionCondition(VFXCondition.GreaterOrEqual, f0Exp, f1Exp);
+            var equalExp = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Equal, f0Exp, f1Exp);
+            var notEqualExp = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.NotEqual, f0Exp, f1Exp);
+            var lessExp = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Less, f0Exp, f1Exp);
+            var lessOrEqualExp = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.LessOrEqual, f0Exp, f1Exp);
+            var greater = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Greater, f0Exp, f1Exp);
+            var greaterOrEqual = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.GreaterOrEqual, f0Exp, f1Exp);
 
             var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             var resultA = context.Compile(equalExp);
