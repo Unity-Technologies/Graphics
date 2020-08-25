@@ -244,13 +244,6 @@ namespace UnityEngine.Rendering.Universal
         bool m_FirstTimeCameraColorTargetIsBound = true; // flag used to track when m_CameraColorTarget should be cleared (if necessary), as well as other special actions only performed the first time m_CameraColorTarget is bound as a render target
         bool m_FirstTimeCameraDepthTargetIsBound = true; // flag used to track when m_CameraDepthTarget should be cleared (if necessary), the first time m_CameraDepthTarget is bound as a render target
 
-        const string k_SetCameraRenderStateTag = "Set Camera Data";
-        const string k_SetRenderTarget = "Set RenderTarget";
-        const string k_ReleaseResourcesTag = "Release Resources";
-        private static readonly ProfilingSampler m_ProfilingSetCameraRenderState = new ProfilingSampler(k_SetCameraRenderStateTag);
-        private static readonly ProfilingSampler m_ProfilingSetRenderTarget = new ProfilingSampler(k_SetRenderTarget);
-        private static readonly ProfilingSampler m_ProfilingReleaseResources = new ProfilingSampler(k_ReleaseResourcesTag);
-
         static RenderTargetIdentifier[] m_ActiveColorAttachments = new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0, 0 };
         static RenderTargetIdentifier m_ActiveDepthAttachment;
 
@@ -281,7 +274,8 @@ namespace UnityEngine.Rendering.Universal
             m_ActiveDepthAttachment = depthAttachment;
         }
 
-        internal protected virtual string profilingName { get; }
+        // Override to provide a custom profiling name
+        protected internal virtual string profilingName { get; }
 
         private readonly ProfilingSampler m_ProfilingExecute;
 
@@ -601,11 +595,16 @@ namespace UnityEngine.Rendering.Universal
 
         void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, ref RenderingData renderingData)
         {
+            // TODO: pass cmd here?
+
             using var profScope = new ProfilingScope(null, renderPass.profilingSampler);
             ref CameraData cameraData = ref renderingData.cameraData;
 
             CommandBuffer cmd = CommandBufferPool.Get();
+
+            // Track CPU only as GPU markers for this scope was "too noisy".
             //using (new ProfilingScope(cmd, m_ProfilingSetRenderTarget))
+            using (UniversalProfilingCache.GetCPUScope(UniversalProfilingCache.RenderPass.Configure))
             {
                 renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
                 SetRenderPassAttachments(cmd, renderPass, ref cameraData);

@@ -23,13 +23,22 @@ namespace UnityEngine.Rendering.LWRP
 
 namespace UnityEngine.Rendering.Universal
 {
+    // A collection of profiling samplers, cache, helpers and convenience functions for Universal profiling.
+    // Keeps most of the profiling related things organized in one place for editability.
+    // Static global state, mostly read/sometimes write, non-thread safe (like most things in Universal).
+    //
+    // Example:
+    // // Cached CPU
+    // using var profScope = UniversalProfilingCache.GetCPUScope("example name");
+    // // Static GPU
+    // using( UniversalProfilingCache.GetGPUScope( cmd, UniversalProfilingScope.Pipeline.ExampleStaticSampler ) ) {}
     internal static class UniversalProfilingCache
     {
         private static Dictionary<string, ProfilingSampler> m_StringSamplerCache = new Dictionary<string, ProfilingSampler>();
         private static Dictionary<int, ProfilingSampler>    m_IntSamplerCache    = new Dictionary<int, ProfilingSampler>();
         private static Dictionary<int, ProfilingSampler>    m_CameraSamplerCache = new Dictionary<int, ProfilingSampler>();
 
-        // A fast static profiling sampler name for fallback cases.
+        // A static (fast) fallback profiling name.
         public static readonly ProfilingSampler m_UnknownSampler = new ProfilingSampler("Unknown");
 
         static UniversalProfilingCache()
@@ -53,17 +62,28 @@ namespace UnityEngine.Rendering.Universal
             return new ProfilingScope(cmd, TryGetOrAddSampler(scopeName));
         }
 
-        public static ProfilingScope GetCPUScopeKey(int hashKey, string baseName, string dynamicName)
+        // CPU "immediate" scope using a separate key (any object hash) and two-part dynamic name of form "categoryName + detailName".
+        public static ProfilingScope GetCPUScope(int hashKey, string categoryName, string detailName)
         {
-            return new ProfilingScope(null, TryGetOrAddSampler(hashKey, baseName, dynamicName));
+            return new ProfilingScope(null, TryGetOrAddSampler(hashKey, categoryName, detailName));
         }
 
-        // Creates a ProfilingScope for GPU and CPU profiling into a command buffer.
-        // Shows as the GPU and CPU time for executing the command buffer.
-        // "Inl_" CPU time creating the command buffer. (time outside of the command buffer)
-        public static ProfilingScope GetGPUScopeKey(CommandBuffer cmd, int hashKey, string baseName, string dynamicName)
+        // GPU + CPU command-buffer scope using a separate key (any object hash) and two-part dynamic name of form "categoryName + detailName".
+        public static ProfilingScope GetGPUScope(CommandBuffer cmd, int hashKey, string categoryName, string detailName)
         {
-            return new ProfilingScope(cmd, TryGetOrAddSampler(hashKey, baseName, dynamicName));
+            return new ProfilingScope(cmd, TryGetOrAddSampler(hashKey, categoryName, detailName));
+        }
+
+        // Convenience overload for switching between cached and static sampler
+        public static ProfilingScope GetCPUScope(ProfilingSampler scopeSampler)
+        {
+            return new ProfilingScope(null, scopeSampler);
+        }
+
+        // Convenience overload for switching between cached and static sampler
+        public static ProfilingScope GetGPUScope(CommandBuffer cmd, ProfilingSampler scopeSampler)
+        {
+            return new ProfilingScope(cmd, scopeSampler);
         }
 
         // Get a cached ProfilingSampler or add into the cache if not found.
@@ -135,16 +155,43 @@ namespace UnityEngine.Rendering.Universal
 
         // Static samplers for absolute control & speed. No allocations, no overhead.
         // Suitable for loops or repeatedly called functions with a static name.
-        public static readonly ProfilingSampler universalRenderPipelineRender = new ProfilingSampler("UniversalRenderPipeline.Render");
-        public static readonly ProfilingSampler beginFrameRendering           = new ProfilingSampler("BeginFrameRendering");
-        public static readonly ProfilingSampler endFrameRendering             = new ProfilingSampler("EndFrameRendering");
-        public static readonly ProfilingSampler beginCameraRendering          = new ProfilingSampler("BeginCameraRendering");
-        public static readonly ProfilingSampler endCameraRendering            = new ProfilingSampler("EndCameraRendering");
+        // Roughly categorized using structs.
+        public struct Pipeline
+        {
+            public static readonly ProfilingSampler universalRenderPipelineRender = new ProfilingSampler("UniversalRenderPipeline.Render");
+            public static readonly ProfilingSampler beginFrameRendering           = new ProfilingSampler("BeginFrameRendering");
+            public static readonly ProfilingSampler endFrameRendering             = new ProfilingSampler("EndFrameRendering");
+            public static readonly ProfilingSampler beginCameraRendering          = new ProfilingSampler("BeginCameraRendering");
+            public static readonly ProfilingSampler endCameraRendering            = new ProfilingSampler("EndCameraRendering");
 
-        public static readonly ProfilingSampler renderCameraStack     = new ProfilingSampler("RenderCameraStack");
-        public static readonly ProfilingSampler updateVolumeFramework = new ProfilingSampler("UpdateVolumeFramework");
+            public static readonly ProfilingSampler renderCameraStack     = new ProfilingSampler("RenderCameraStack");
+            public static readonly ProfilingSampler updateVolumeFramework = new ProfilingSampler("UpdateVolumeFramework");
+        };
 
-        public static readonly ProfilingSampler XRMirrorView = new ProfilingSampler("XR Mirror View");
+        public struct Renderer
+        {
+            // From pipeline
+            public static readonly ProfilingSampler SetupCullingParameters = new ProfilingSampler("ScriptableRenderer.SetupCullingParameters");
+            public static readonly ProfilingSampler Setup = new ProfilingSampler("ScriptableRenderer.Setup");
+            public static readonly ProfilingSampler Execute = new ProfilingSampler("ScriptableRenderer.Execute");
+        };
+
+        public struct Context
+        {
+            // From pipeline
+            public static readonly ProfilingSampler Submit = new ProfilingSampler("ScriptableRenderContext.Submit");
+        };
+
+        public struct XR
+        {
+            public static readonly ProfilingSampler MirrorView = new ProfilingSampler("XR Mirror View");
+        };
+
+        public struct RenderPass
+        {
+            // From ScriptableRenderer
+            public static readonly ProfilingSampler Configure = new ProfilingSampler("Configure");
+        }
     }
 
     public sealed partial class UniversalRenderPipeline : RenderPipeline
@@ -240,11 +287,13 @@ namespace UnityEngine.Rendering.Universal
 
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
-            // TODO: would be better to add Profiling name hooks into RenderPipelineManager
-            using var profScope = new ProfilingScope(null, UniversalProfilingCache.universalRenderPipelineRender);
+            // TODO: Would be better to add Profiling name hooks into RenderPipelineManager.
+            // TODO: This is a C# 8.0 feature, supported in Unity 2020.2, but are much cleaner. Perhaps ifdef these out from previous versions,
+            // TODO: all the previous and some of the new scopes would still be present.
+            using var profScope = new ProfilingScope(null, UniversalProfilingCache.Pipeline.universalRenderPipelineRender);
 
-            // TODO: would be better to add Profiling name hooks into RenderPipeline.cs
-            using(new ProfilingScope(null, UniversalProfilingCache.beginFrameRendering))
+            // TODO: Would be better to add Profiling name hooks into RenderPipeline.cs
+            using(new ProfilingScope(null, UniversalProfilingCache.Pipeline.beginFrameRendering))
             {
                 BeginFrameRendering(renderContext, cameras);
             }
@@ -263,7 +312,7 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    using (new ProfilingScope(null, UniversalProfilingCache.beginCameraRendering))
+                    using (new ProfilingScope(null, UniversalProfilingCache.Pipeline.beginCameraRendering))
                     {
                         BeginCameraRendering(renderContext, camera);
                     }
@@ -275,14 +324,14 @@ namespace UnityEngine.Rendering.Universal
 
                     RenderSingleCamera(renderContext, camera);
 
-                    using (new ProfilingScope(null, UniversalProfilingCache.endCameraRendering))
+                    using (new ProfilingScope(null, UniversalProfilingCache.Pipeline.endCameraRendering))
                     {
                         EndCameraRendering(renderContext, camera);
                     }
                 }
             }
 
-            using (new ProfilingScope(null, UniversalProfilingCache.endFrameRendering))
+            using (new ProfilingScope(null, UniversalProfilingCache.Pipeline.endFrameRendering))
             {
                 EndFrameRendering(renderContext, cameras);
             }
@@ -363,7 +412,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 renderer.Clear(cameraData.renderType);
 
-                using (UniversalProfilingCache.GetGPUScope( cmd,"ScriptableRenderer.SetupCullingParameters"))
+                using (UniversalProfilingCache.GetGPUScope( cmd, UniversalProfilingCache.Renderer.SetupCullingParameters))
                 {
                     renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
                 }
@@ -387,7 +436,7 @@ namespace UnityEngine.Rendering.Universal
                     ApplyAdaptivePerformance(ref renderingData);
 #endif
 
-                using (UniversalProfilingCache.GetGPUScope( cmd,"ScriptableRenderer.Setup"))
+                using (UniversalProfilingCache.GetGPUScope(cmd, UniversalProfilingCache.Renderer.Setup))
                 {
                     renderer.Setup(context, ref renderingData);
                 }
@@ -404,7 +453,7 @@ namespace UnityEngine.Rendering.Universal
             context.ExecuteCommandBuffer(cmd); // Sends to ScriptableRenderContext all the commands enqueued since cmd.Clear, i.e the "EndSample" command
             CommandBufferPool.Release(cmd);
 
-            using (UniversalProfilingCache.GetCPUScope("ScriptableRenderContext.Submit"))
+            using (UniversalProfilingCache.GetCPUScope(UniversalProfilingCache.Context.Submit))
             {
                 context.Submit(); // Actually execute the commands that we previously sent to the ScriptableRenderContext context
             }
@@ -420,7 +469,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="camera">Camera to render.</param>
         static void RenderCameraStack(ScriptableRenderContext context, Camera baseCamera)
         {
-            using var profScope = new ProfilingScope(null, UniversalProfilingCache.renderCameraStack);
+            using var profScope = new ProfilingScope(null, UniversalProfilingCache.Pipeline.renderCameraStack);
 
             baseCamera.TryGetComponent<UniversalAdditionalCameraData>(out var baseCameraAdditionalData);
 
@@ -515,7 +564,7 @@ namespace UnityEngine.Rendering.Universal
                     baseCameraData.aspectRatio = (float)baseCameraData.pixelWidth / (float)baseCameraData.pixelHeight;
                 }
 #endif
-                using(new ProfilingScope(null, UniversalProfilingCache.beginCameraRendering))
+                using(new ProfilingScope(null, UniversalProfilingCache.Pipeline.beginCameraRendering))
                 {
                     BeginCameraRendering(context, baseCamera);
                 }
@@ -529,7 +578,7 @@ namespace UnityEngine.Rendering.Universal
                     ApplyAdaptivePerformance(ref baseCameraData);
 #endif
                 RenderSingleCamera(context, baseCameraData, anyPostProcessingEnabled);
-                using (new ProfilingScope(null, UniversalProfilingCache.endCameraRendering))
+                using (new ProfilingScope(null, UniversalProfilingCache.Pipeline.endCameraRendering))
                 {
                     EndCameraRendering(context, baseCamera);
                 }
@@ -550,7 +599,7 @@ namespace UnityEngine.Rendering.Universal
                             CameraData overlayCameraData = baseCameraData;
                             bool lastCamera = i == lastActiveOverlayCameraIndex;
 
-                            using (new ProfilingScope(null, UniversalProfilingCache.beginCameraRendering))
+                            using (new ProfilingScope(null, UniversalProfilingCache.Pipeline.beginCameraRendering))
                             {
                                 BeginCameraRendering(context, currCamera);
                             }
@@ -566,7 +615,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
                             RenderSingleCamera(context, overlayCameraData, anyPostProcessingEnabled);
 
-                            using (new ProfilingScope(null, UniversalProfilingCache.endCameraRendering))
+                            using (new ProfilingScope(null, UniversalProfilingCache.Pipeline.endCameraRendering))
                             {
                                 EndCameraRendering(context, currCamera);
                             }
@@ -582,7 +631,7 @@ namespace UnityEngine.Rendering.Universal
             if (xrActive)
             {
                 CommandBuffer cmd = CommandBufferPool.Get();
-                using (new ProfilingScope(cmd, UniversalProfilingCache.XRMirrorView))
+                using (new ProfilingScope(cmd, UniversalProfilingCache.XR.MirrorView))
                 {
                     m_XRSystem.RenderMirrorView(cmd, baseCamera);
                 }
@@ -598,7 +647,7 @@ namespace UnityEngine.Rendering.Universal
 
         static void UpdateVolumeFramework(Camera camera, UniversalAdditionalCameraData additionalCameraData)
         {
-            using var profScope = new ProfilingScope(null, UniversalProfilingCache.updateVolumeFramework);
+            using var profScope = new ProfilingScope(null, UniversalProfilingCache.Pipeline.updateVolumeFramework);
 
             // Default values when there's no additional camera data available
             LayerMask layerMask = 1; // "Default"

@@ -82,9 +82,9 @@ namespace UnityEngine.Rendering.Universal
             get => m_ClearColor;
         }
 
-        internal protected virtual ProfilingSampler profilingSampler { get; }
-
-        internal protected string profilingName { get; set; }
+        // Override to provide a custom name
+        protected internal virtual string profilingName { get => GetType().Name; }
+        internal ProfilingSampler profilingSampler { get; }
 
         internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
@@ -104,7 +104,6 @@ namespace UnityEngine.Rendering.Universal
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
             isBlitRenderPass = false;
-            profilingName = this.GetType().Name;
             profilingSampler = new ProfilingSampler( "ScriptableRenderPass: " + profilingName);
         }
 
