@@ -3260,7 +3260,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (camera.cameraType == CameraType.Reflection)
             {
+#if UNITY_2020_2_OR_NEWER
                 ScriptableRenderContext.EmitGeometryForCamera(camera);
+#endif
             }
 #if UNITY_EDITOR
             // emit scene view UI
