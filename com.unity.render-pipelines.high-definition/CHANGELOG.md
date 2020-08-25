@@ -782,6 +782,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where world space UI was not emitted for reflection cameras in HDRP
 - Fixed an issue with cookie texture atlas that would cause realtime textures to always update in the atlas even when the content did not change.
 - Fixed an issue where only one of the two lookdev views would update when changing the default lookdev volume profile.
+- Fixed a bug related to light cluster invalidation.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
