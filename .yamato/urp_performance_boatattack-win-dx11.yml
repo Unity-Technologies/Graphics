@@ -38,6 +38,9 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_trunk:
       -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects/BoatAttack
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
+      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
+      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
@@ -82,6 +85,9 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_trunk:
       -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects/BoatAttack
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
+      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
+      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/BoatAttack && utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
@@ -123,6 +129,9 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_fast-trunk:
       -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects/BoatAttack
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
+      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
+      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
@@ -167,6 +176,9 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_fast-trunk:
       -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects/BoatAttack
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
+      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
+      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/BoatAttack && utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
@@ -210,6 +222,9 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_CUSTOM-REVISION:
       -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects/BoatAttack
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
+      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
+      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/BoatAttack && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
@@ -256,6 +271,9 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_CUSTOM-REVISION:
       -  git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects/BoatAttack
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/BoatAttack/Packages/com.unity.render-pipelines.core" /Y
+      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack/Packages/com.unity.render-pipelines.universal" /Y
+      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack/Packages/com.unity.shadergraph" /Y
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/BoatAttack && utr --suite=Editor --testfilter=Build --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d11"
     artifacts:
