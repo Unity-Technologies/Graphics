@@ -22,9 +22,7 @@
     #endif
 #endif
 
-#if defined(_ADDITIONAL_LIGHTS) || defined(_MAIN_LIGHT_SHADOWS_CASCADE)
-    #define REQUIRES_WORLD_SPACE_POS_INTERPOLATOR
-#endif
+#define REQUIRES_WORLD_SPACE_POS_INTERPOLATOR
 
 #if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
     #define SAMPLE_SHADOWMASK(uv) SAMPLE_TEXTURE2D(unity_ShadowMask, samplerunity_ShadowMask, uv);
