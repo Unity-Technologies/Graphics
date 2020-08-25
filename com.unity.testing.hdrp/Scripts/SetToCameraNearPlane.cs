@@ -5,9 +5,14 @@ using UnityEngine;
 
 public class SetToCameraNearPlane : MonoBehaviour
 {
+#if UNITY_EDITOR
     new public MeshRenderer renderer;
     new public Camera camera;
     //public GraphicsTestSettings testSettings;
+#else
+    public MeshRenderer renderer;
+    public Camera camera;
+#endif
 
     [Range(0, 1)]
     public float screenSize = 0.8f;
