@@ -26,7 +26,15 @@ namespace UnityEditor.Rendering.Universal
         DeferredWithoutAccurateGbufferNormals = (1 << 10),
         ScreenSpaceOcclusion = (1 << 11)
     }
-    internal class ShaderPreprocessor : IPreprocessShaders
+
+    public interface IShaderPreprocessorPublicAPI
+    {
+        int TotalVariantsInputCount();
+        int TotalVariantsOutputCount();
+        int TotalVariantsStripCount();
+    };
+
+    internal class ShaderPreprocessor : IPreprocessShaders, IShaderPreprocessorPublicAPI
     {
         public static readonly string kPassNameGBuffer = "GBuffer";
         public static readonly string kTerrainShaderName = "Universal Render Pipeline/Terrain/Lit";
@@ -50,6 +58,21 @@ namespace UnityEditor.Rendering.Universal
 
         int m_TotalVariantsInputCount;
         int m_TotalVariantsOutputCount;
+
+        public int TotalVariantsInputCount()
+        {
+            return m_TotalVariantsInputCount;
+        }
+
+        public int TotalVariantsOutputCount()
+        {
+            return m_TotalVariantsOutputCount;
+        }
+
+        public int TotalVariantsStripCount()
+        {
+            return m_TotalVariantsOutputCount < m_TotalVariantsInputCount ? m_TotalVariantsInputCount - m_TotalVariantsOutputCount : 0;
+        }
 
         // Multiple callback may be implemented.
         // The first one executed is the one where callbackOrder is returning the smallest number.
