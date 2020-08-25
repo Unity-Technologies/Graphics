@@ -687,7 +687,7 @@ MonoBehaviour:
     UseHDR: 0
     UseBackBuffer: 0
     ImageResolution: 0
-  WaitFrames: 0
+  WaitFrames: 30
   XRCompatible: 1
 --- !u!1 &516620772
 GameObject:
