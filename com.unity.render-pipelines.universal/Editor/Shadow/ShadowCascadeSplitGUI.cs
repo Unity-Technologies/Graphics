@@ -85,7 +85,7 @@ namespace UnityEditor.Rendering.Universal
             System.Array.Copy(normalizedCascadePartitions, adjustedCascadePartitions, normalizedCascadePartitions.Length);
             adjustedCascadePartitions[adjustedCascadePartitions.Length - 1] = 1.0f - normalizedCascadePartitions.Sum();
 
-
+            string cascadeText = "";
             // check for user input on any of the partition handles
             // this mechanism gets the current event in the queue... make sure that the mouse is over our control before consuming the event
             int sliderControlId = GUIUtility.GetControlID(s_CascadeSliderId, FocusType.Passive);
@@ -110,7 +110,6 @@ namespace UnityEditor.Rendering.Universal
                 GUI.color = Color.white;
                 Rect textRect = partitionRect;
 
-                string cascadeText = "";
                 if (unit == EditorUtils.Unit.Percent)
                 {
                     cascadeText = $"{i+1}\n{currentPartition * 100.0f:F1}%";
