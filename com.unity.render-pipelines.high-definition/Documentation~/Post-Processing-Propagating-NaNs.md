@@ -38,9 +38,14 @@ If you are unable to fix the source of the NaN/Inf values, [HDRP Cameras](HDRP-C
 
 ### Finding NaNs and Infs
 
-To find the root cause of a NaN/Inf, you can use frame debugging tools such as [RenderDoc](https://renderdoc.org/). For information on how to use RenderDoc to capture frames in Unity, see [RenderDoc integration](https://docs.unity3d.com/Manual/RenderDocIntegration.html).
+To find the root cause of a NaN/Inf, HDRP includes a debug mode which displays pixels that contain NaNs/Infs in a recognizable color. To use this debug mode:
 
+1. Open the Render Pipelines Debug window (menu: **Window > Render Pipeline > Render Pipeline Debug**).
+2. Go to **Rendering** and set **Fullscreen Debug Mode** to **NanTracker**.
 
+This helps you to see if there are actually NaNs/Infs on screen and which material causes them. However, if you need more information, such as which particular draw call causes the issue, you can use frame debugging tools such as [RenderDoc](https://renderdoc.org/). For information on how to use RenderDoc to capture frames in Unity, see [RenderDoc integration](https://docs.unity3d.com/Manual/RenderDocIntegration.html).
+
+#### RenderDoc
 
 After you capture a frame, RenderDoc can display pixels with a NaN/Inf value as pure red, which helps you to find NaN/Inf values because it is much easier to see than the standard white/black pixels that HDRP renders for invalid values. To do this, in the Texture Viewer, open the **Overlay** drop-down and click the **NaN/Inf/-ve Display** option.
 
