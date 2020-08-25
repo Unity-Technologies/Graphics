@@ -357,6 +357,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4013_TransparentMotionVector.unity
     guid: ed84243e5c418844f87509bf80fdd919
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4014_PrecomputedVelocityAlembic.unity
+    guid: 908719946298a0c4cb31ea9576b14b3c
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4020_ChromaticAberration.unity
     guid: 50a8dc518aa0c5e4fa5ae2ab2052bef4
   - enabled: 1
