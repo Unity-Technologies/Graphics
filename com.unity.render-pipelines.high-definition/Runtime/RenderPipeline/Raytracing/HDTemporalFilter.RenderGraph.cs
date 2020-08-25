@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     tfResources.validationBuffer = data.validationBuffer;
                     tfResources.historyBuffer = data.historyBuffer;
                     tfResources.outputBuffer = data.outputBuffer;
-                    DenoiseBuffer(ctx.cmd, tfParameters, tfResources);
+                    DenoiseBuffer(ctx.cmd, data.parameters, tfResources);
                 });
                 return passData.outputBuffer;
             }

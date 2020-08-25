@@ -859,13 +859,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (RecursiveRenderingPrepassPassData data, RenderGraphContext context) =>
                 {
-                    if (passData.clear)
-                        CoreUtils.SetRenderTarget(context.cmd, passData.flagMask, passData.depthBuffer, clearFlag: ClearFlag.Color, Color.black);
+                    if (data.clear)
+                        CoreUtils.SetRenderTarget(context.cmd, data.flagMask, data.depthBuffer, clearFlag: ClearFlag.Color, Color.black);
                     else
-                        CoreUtils.SetRenderTarget(context.cmd, passData.flagMask, passData.depthBuffer);
+                        CoreUtils.SetRenderTarget(context.cmd, data.flagMask, data.depthBuffer);
 
-                    DrawOpaqueRendererList(context.renderContext, context.cmd, hdCamera.frameSettings, data.opaqueRenderList);
-                    DrawTransparentRendererList(context.renderContext, context.cmd, hdCamera.frameSettings, data.transparentRenderList);
+                    DrawOpaqueRendererList(context.renderContext, context.cmd, data.frameSettings, data.opaqueRenderList);
+                    DrawTransparentRendererList(context.renderContext, context.cmd, data.frameSettings, data.transparentRenderList);
                 });
             }
         }

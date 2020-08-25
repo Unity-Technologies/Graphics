@@ -181,7 +181,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     ddResources.noisyBuffer = data.noisyBuffer;
                     ddResources.intermediateBuffer = data.intermediateBuffer;
                     ddResources.outputBuffer = data.outputBuffer;
-                    DenoiseBuffer(ctx.cmd, tfParameters, ddResources);
+                    DenoiseBuffer(ctx.cmd, data.parameters, ddResources);
                 });
                 return passData.outputBuffer;
             }
