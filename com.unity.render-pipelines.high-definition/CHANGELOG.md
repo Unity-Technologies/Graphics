@@ -780,6 +780,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix issue causing the editor field not updating the disc area light radius.
 - Fixed issues that lead to cookie atlas to be updated every frame even if cached data was valid.
 - Fixed an issue where world space UI was not emitted for reflection cameras in HDRP
+- Fixed an issue with cookie texture atlas that would cause realtime textures to always update in the atlas even when the content did not change.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
