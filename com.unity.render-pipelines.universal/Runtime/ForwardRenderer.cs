@@ -10,8 +10,6 @@ namespace UnityEngine.Rendering.Universal
     public sealed class ForwardRenderer : ScriptableRenderer
     {
         const int k_DepthStencilBufferBits = 32;
-        const string k_CreateCameraTextures = "Create Camera Texture";
-        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_CreateCameraTextures);
         private readonly ProfilingSampler m_ProfilingSetup;
 
         ColorGradingLutPass m_ColorGradingLutPass;
