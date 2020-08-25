@@ -779,6 +779,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed flickering layers in graphics compositor (case 1264552)
 - Fix issue causing the editor field not updating the disc area light radius.
 - Fixed issues that lead to cookie atlas to be updated every frame even if cached data was valid.
+- Fixed an issue with TAA history management on pssl.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
