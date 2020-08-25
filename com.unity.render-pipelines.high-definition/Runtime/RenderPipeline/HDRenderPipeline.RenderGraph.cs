@@ -817,7 +817,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         class RecursiveRenderingPrepassPassData
         {
-            public RecursiveRendererParameters parameters;
             public FrameSettings frameSettings;
             public TextureHandle depthBuffer;
             public TextureHandle flagMask;
