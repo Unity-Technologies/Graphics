@@ -749,36 +749,41 @@ namespace UnityEditor.ShaderGraph
             return defaultVariableName;
         }
 
-        public void AddSlot(MaterialSlot slot, bool findPrevInstance = true)
+        public MaterialSlot AddSlot(MaterialSlot slot, bool findPrevInstance = true)
         {
             if(slot == null)
             {
                 throw new ArgumentException($"Trying to add null slot to node {this}");
             }
-            var foundSlot = FindSlot<MaterialSlot>(slot.id);
+            MaterialSlot foundSlot = FindSlot<MaterialSlot>(slot.id);
+
+            if (slot == foundSlot)
+                return foundSlot;
 
             // Try to keep the existing instance to avoid unnecessary changes to file
-            if (foundSlot != null && slot.GetType() == foundSlot.GetType() && findPrevInstance)
+            if (findPrevInstance && foundSlot != null && slot.GetType() == foundSlot.GetType())
             {
                 foundSlot.displayName = slot.RawDisplayName();
                 foundSlot.CopyDefaultValue(slot);
-                return;
+                return foundSlot;
             }
 
-            // this will remove the old slot and add a new one
-            // if an old one was found. This allows updating values
+            // this will remove any old slots and then add the new one
             m_Slots.RemoveAll(x => x.value.id == slot.id);
-
             m_Slots.Add(slot);
             slot.owner = this;
 
             OnSlotsChanged();
 
-            if (foundSlot == null || foundSlot == slot)
-                return;
+            if (foundSlot == null)
+                return slot;
 
+            // foundSlot is of a different type; try to copy values
+            // I think this is to support casting if implemented in CopyValuesFrom ?
             slot.CopyValuesFrom(foundSlot);
             foundSlot.owner = null;
+
+            return slot;
         }
 
         public void RemoveSlot(int slotId)
