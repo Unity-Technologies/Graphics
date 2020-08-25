@@ -44,6 +44,7 @@ The version number for this package has increased due to a version update of a r
 - Compute culling of particle which have their alive attribute set to false in output
 - Mesh and lit mesh outputs can now have up to 4 differents meshes that can be set per Particle (Experimental)
 - Screen space per particle LOD on mesh and lit mesh outputs (Experimental)
+- Compare operator can take int and uint as inputs
 
 ### Fixed
 - Moved VFX Event Tester Window visibility to Component Play Controls SceneView Window
