@@ -253,5 +253,5 @@ In your [HDRP Asset](HDRP-Asset.md), select **High** from the **Filtering Qualit
 
 #### Real-time light cookies:
 
-Users can set **RenderTexture** that they update themselves as light cookies. However for performance reasons, the cookie atlas is not updated every frame for every light cookie. For this reasons, users need to explicitly call **IncrementUpdateCount()** on the **RenderTexture** to notify the system that the content has changed and needs to be uploaded to the atlas otherwise the cookie will not be updated over time.
+HDRP allows you to use a RenderTexture as a light cookie. However, for the sake of performance, if you make any changes to the RenderTexture, HDRP does not automatically update the cookie atlas. To notify the system that the RenderTexture content has changed and thus make the system upload the change to the cookie atlas, call `IncrementUpdateCount()` on the RenderTexture. If you do not do this, the system does not update the cookie.
 
