@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with sun icon being clipped in the look dev window. 
 - Fixed lookdev toggling renderers that are set to non editable or are hidden in the inspector.
 - Fixed issue causing the editor field not updating the disc area light radius.
+- Fixed an issue where only one of the two lookdev views would update when changing the default lookdev volume profile.
 
 ### Changed
 - Remove MSAA debug mode when renderpipeline asset has no MSAA
