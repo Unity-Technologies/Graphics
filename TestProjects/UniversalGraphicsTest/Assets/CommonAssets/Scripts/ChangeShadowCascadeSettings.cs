@@ -5,19 +5,19 @@ using UnityEngine.Rendering.Universal;
 
 public class ChangeShadowCascadeSettings : MonoBehaviour
 {
-    public int cascadeShadowSplitCount;
-    int prevCascadeShadowSplitCount;
+    public int shadowCascadeCount;
+    int prevShadowCascadeCount;
 
     void Awake()
     {
         UniversalRenderPipelineAsset asset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
-        prevCascadeShadowSplitCount = asset.cascadeShadowSplitCount;
-        asset.cascadeShadowSplitCount = cascadeShadowSplitCount;
+        prevShadowCascadeCount = asset.shadowCascadeCount;
+        asset.shadowCascadeCount = shadowCascadeCount;
     }
 
     void OnDestroy()
     {
         UniversalRenderPipelineAsset asset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
-        asset.cascadeShadowSplitCount = prevCascadeShadowSplitCount;
+        asset.shadowCascadeCount = prevShadowCascadeCount;
     }
 }
