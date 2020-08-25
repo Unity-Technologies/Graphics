@@ -90,45 +90,48 @@ namespace UnityEngine.Experimental.Rendering.Universal
             startContour += shapeLib.m_ContourData.Count;
         }
 
+        private static void AddTesselatorContour(Tess tess, RectInt region, Vector2[] contourPath)
+        {
+            if (contourPath.Length > 0)
+            {
+                int pointCount = contourPath.Length;
+                var inputs = new ContourVertex[pointCount];
+                for (int i = 0; i < pointCount; ++i)
+                {
+                    float u = (float)(contourPath[i].x - region.x) / (float)region.width;
+                    float v = (float)(contourPath[i].y - region.y) / (float)region.height;
+                    inputs[i] = new ContourVertex() { Position = new Vec3() { X = contourPath[i].x, Y = contourPath[i].y }, Data = new Vector2(u, v) };
+                }
+
+                tess.AddContour(inputs, ContourOrientation.CounterClockwise);
+            }
+        }
+
+        private static void TesselateShape(Tess tess, bool isOpaque, Action<Vector3[], int[], Vector2[], bool> shapeTesselatedHandler)
+        {
+            tess.Tessellate(WindingRule.EvenOdd, ElementType.Polygons, 3, InterpCustomVertexData);
+
+            var indices = tess.Elements.Select(i => i).ToArray();
+            var vertices = tess.Vertices.Select(v => new Vector3(v.Position.X, v.Position.Y, 0)).ToArray();
+            var uvs = tess.Vertices.Select(v => new Vector2(((Vector2)v.Data).x, ((Vector2)v.Data).y)).ToArray();
+
+            shapeTesselatedHandler(vertices, indices, uvs, isOpaque);
+        }
+
         public static void TesselateShapes(List<Vector2[]> customOutline, RectInt region, Action<Vector3[], int[], Vector2[], bool> shapeTesselatedHandler)
         {
-            Tess tessI = new Tess();
+            Tess tess = new Tess();
 
             // Add Custom Outline if one exists
             if (customOutline != null && customOutline.Count > 0)
             {
-                foreach (Vector2[] shapePath in customOutline)
+                foreach (Vector2[] contourPath in customOutline)
                 {
-                    if (shapePath.Length > 0)
-                    {
-                        int pointCount = shapePath.Length;
-                        var inputs = new ContourVertex[pointCount];
-                        for (int i = 0; i < pointCount; ++i)
-                        {
-                            float u = (float)(shapePath[i].x - region.x) / (float)region.width;
-                            float v = (float)(shapePath[i].y - region.y) / (float)region.height;
-                            inputs[i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y }, Data = new Vector2(u, v) };
-                        }
-
-                        tessI.AddContour(inputs, ContourOrientation.Original);
-                    }
+                    if (contourPath.Length > 0)
+                        AddTesselatorContour(tess, region, contourPath);
                 }
 
-                tessI.Tessellate(WindingRule.EvenOdd, ElementType.Polygons, 3, InterpCustomVertexData);
-
-                var indicesI = tessI.Elements.Select(i => i).ToArray();
-                var verticesI = tessI.Vertices.Select(v => new Vector3(v.Position.X, v.Position.Y, 0)).ToArray();
-                var uvsI = tessI.Vertices.Select(v => new Vector2(((Vector2)v.Data).x, ((Vector2)v.Data).y)).ToArray();
-
-                List<Vector3> finalVertices = new List<Vector3>();
-                List<int> finalIndices = new List<int>();
-                List<Vector2> finalUVs = new List<Vector2>();
-
-                finalVertices.AddRange(verticesI);
-                finalIndices.AddRange(indicesI);
-                finalUVs.AddRange(uvsI);
-
-                shapeTesselatedHandler(finalVertices.ToArray(), finalIndices.ToArray(), finalUVs.ToArray(), false);
+                TesselateShape(tess, false, shapeTesselatedHandler);
             }
         }
 
@@ -138,48 +141,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 if (shape.m_Contours.Count > 0)
                 {
-                    RectInt region = shapeLib.m_Region;
-
-                    Tess tessI = new Tess();
+                    Tess tess = new Tess();
 
                     // Add Contours
                     foreach (Contour contour in shape.m_Contours)
                     {
-                        List<Vector2> shapePath = contour.m_ContourData.m_Vertices;
-                        if (shapePath.Count > 0)
-                        {
-                            int pointCount = shapePath.Count;
-                            var inputs = new ContourVertex[pointCount];
-                            for (int i = 0; i < pointCount; ++i)
-                            {
-                                float u = (float)(shapePath[i].x - region.x) / (float)region.width;
-                                float v = (float)(shapePath[i].y - region.y) / (float)region.height;
-                                inputs[i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y }, Data = new Vector2(u, v) };
-                            }
-
-                            tessI.AddContour(inputs, ContourOrientation.CounterClockwise);
-                        }
+                        Vector2[] contourPath = contour.m_ContourData.m_Vertices.ToArray();
+                        AddTesselatorContour(tess, shapeLib.m_Region, contourPath);
                     }
 
-                    tessI.Tessellate(WindingRule.EvenOdd, ElementType.Polygons, 3, InterpCustomVertexData);
-
-                    var indicesI = tessI.Elements.Select(i => i).ToArray();
-                    var verticesI = tessI.Vertices.Select(v => new Vector3(v.Position.X, v.Position.Y, 0)).ToArray();
-                    var uvsI = tessI.Vertices.Select(v => new Vector2(((Vector2)v.Data).x, ((Vector2)v.Data).y)).ToArray();
-
-                    List<Vector3> finalVertices = new List<Vector3>();
-                    List<int> finalIndices = new List<int>();
-                    List<Vector2> finalUVs = new List<Vector2>();
-
-                    finalVertices.AddRange(verticesI);
-                    finalIndices.AddRange(indicesI);
-                    finalUVs.AddRange(uvsI);
-
-                    shapeTesselatedHandler(finalVertices.ToArray(), finalIndices.ToArray(), finalUVs.ToArray(), shape.m_IsOpaque);
+                    TesselateShape(tess, shape.m_IsOpaque, shapeTesselatedHandler);
                 }
             }
         }
-
 
         static public void ReduceVertices(ShapeLibrary shapeLibrary, float minimumArea)
         {
