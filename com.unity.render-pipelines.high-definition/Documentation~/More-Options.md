@@ -4,10 +4,10 @@ The High Definition Render Pipeline (HDRP) components expose standard properties
 
 ## Exposing more options
 
-Not every component includes more options. If one does, it has a cog icon to the right of each property section header that includes more options. Click this cog icon to expose more options for that property section. For example, the [Light component’s](Light-Component.md) **General** section includes more options:
+Not every component includes more options. If one does, it has a gear icon to the right of each property section header that includes more options. Click this gear icon to expose more options for that property section. For example, the [Light component’s](Light-Component.md) **General** section includes more options:
 
 ![](Images/MoreOptions1.png)
 
-When you click the cog icon, Unity exposes more options for the **General** section. In this example,  the **Light Layer** property appears:
+When you click the gear icon, Unity exposes more options for the **General** section. In this example,  the **Light Layer** property appears:
 
 ![](Images/MoreOptions2.png)
