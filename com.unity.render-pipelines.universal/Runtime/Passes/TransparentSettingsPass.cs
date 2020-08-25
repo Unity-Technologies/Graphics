@@ -37,10 +37,12 @@ namespace UnityEngine.Rendering.Universal
                 bool receiveShadowsNoCascade = m_shouldReceiveShadows && cascadesCount == 1;
                 bool receiveShadowsCascades = m_shouldReceiveShadows && cascadesCount > 1;
 
+                // Before transparent object pass, force screen space shadow for main light to disable
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowsScreen, false);
+
                 // Toggle light shadows enabled based on the renderer setting set in the constructor
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, receiveShadowsNoCascade);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowsCascades, receiveShadowsCascades);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowsScreen, false);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, m_shouldReceiveShadows);
             }
 

@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.Universal
 
             LoadMaterial();
             m_SSShadowsPass.profilerTag = name;
-            m_SSShadowsPass.renderPassEvent = RenderPassEvent.AfterRenderingPrepasses;
+            m_SSShadowsPass.renderPassEvent = RenderPassEvent.AfterRenderingPrePasses;
         }
 
         /// <inheritdoc/>
