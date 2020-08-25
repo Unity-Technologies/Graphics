@@ -39,6 +39,10 @@ def cmd_standalone_build(project_folder, platform, api, test_platform_args):
 
 def cmd_not_standalone_performance(project_folder, platform, api, test_platform_args):
     base = _cmd_base(project_folder, platform["components"])
+
+    if "BoatAttack" in project_folder:
+        base.append('git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects') #placeholder for now
+
     base.extend([
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {test_platform_args} --platform=StandaloneWindows64 --report-performance-data --performance-project-id=URP_Performance --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}'
     ])
@@ -50,6 +54,9 @@ def cmd_standalone_performance(project_folder, platform, api, test_platform_args
         f'curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output {TEST_PROJECTS_DIR}/{project_folder}/utr.bat'
     ]
 
+    if "BoatAttack" in project_folder:
+        base.append('git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects') #placeholder for now
+
     if project_folder.lower() == 'UniversalGraphicsTest'.lower():
         base.append('cd Tools && powershell -command ". .\\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"')
 
@@ -60,6 +67,10 @@ def cmd_standalone_performance(project_folder, platform, api, test_platform_args
 
 def cmd_standalone_build_performance(project_folder, platform, api, test_platform_args):
     base = _cmd_base(project_folder, platform["components"])
+
+    if "BoatAttack" in project_folder:
+        base.append('git clone https://github.com/seanstolberg-unity/BoatAttack.git -b seans/add-perf-tests TestProjects') #placeholder for now
+
     base.extend([
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindows{api["name"]}Linear" --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS} --timeout=1200 --player-save-path=../../{PATH_PLAYERS} --build-only'
     ])
