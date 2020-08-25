@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -9,50 +10,27 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     internal class LightUnitSliderUIDrawer
     {
-        private class LightUnitSlider
+        class LightUnitSlider
         {
+            LightUnit m_Unit;
+            LightUnitUILevel[] m_Levels;
+            string m_CautionTooltip;
+            Vector2 m_SliderValueRange;
+            GUIContent s_MarkerContent;
+
             public LightUnitSlider(LightUnit unit, LightUnitUILevel[] levels, string cautionTooltip)
             {
                 m_Unit = unit;
+                m_Levels = levels;
+                m_CautionTooltip = cautionTooltip;
 
-                // Load builtin caution icon.
-                m_CautionContent = EditorGUIUtility.IconContent("console.warnicon.sml");
-                m_CautionContent.tooltip = cautionTooltip;
-
-                foreach (var l in levels)
-                {
-                    AddLevel(l);
-                }
+                // Set slider range
+                m_SliderValueRange = new Vector2(
+                    m_Levels.Min(x => x.range.x),
+                    m_Levels.Max(x => x.range.y)
+                );
 
                 s_MarkerContent = new GUIContent(string.Empty);
-            }
-
-            private void AddLevel(LightUnitUILevel level)
-            {
-                m_Levels.Add(level);
-
-                // Update the slider ranges.
-                if (level.range.y > m_RangeMax)
-                    m_RangeMax = level.range.y;
-                else if (level.range.x < m_RangeMin)
-                    m_RangeMin = level.range.x;
-            }
-
-            private void CurrentLevelIcon(float value, out GUIContent level, out Vector2 range)
-            {
-                foreach (var l in m_Levels)
-                {
-                    if (value >= l.range.x && value <= l.range.y)
-                    {
-                        level = l.content;
-                        range = l.range;
-                        return;
-                    }
-                }
-
-                // If value out of range, indicate caution. (For now assume caution feedback is last)
-                level = m_CautionContent;
-                range = Vector2.positiveInfinity;
             }
 
             public void Draw(Rect rect, SerializedProperty value)
@@ -61,23 +39,41 @@ namespace UnityEditor.Rendering.HighDefinition
                 GetRects(rect, out var sliderRect, out var iconRect);
 
                 // Slider
-                DoSlider(sliderRect, value, m_RangeMin, m_RangeMax);
+                DoSlider(sliderRect, value, m_SliderValueRange);
 
                 // Markers
                 foreach (var l in m_Levels)
                 {
-                    DoSliderMarker(sliderRect, l, m_RangeMax);
+                    DoSliderMarker(sliderRect, l, m_SliderValueRange.y);
                 }
 
+                // Fetch the current level
+                var level = CurrentLevel(value.floatValue);
+                var levelIconContent = level.content;
+                var levelRange = level.range;
+
                 // Icon
-                CurrentLevelIcon(value.floatValue, out var iconContent, out var range);
-                DoIcon(iconRect, iconContent, range.y);
+                DoIcon(iconRect, levelIconContent, levelRange.y);
 
                 // Place tooltip on slider thumb.
-                DoThumbTooltip(sliderRect, value.floatValue, value.floatValue / m_RangeMax, iconContent.tooltip);
+                DoThumbTooltip(sliderRect, value.floatValue, value.floatValue / m_SliderValueRange.y, levelIconContent.tooltip);
             }
 
-            private void DoSliderMarker(Rect rect, LightUnitUILevel level, float rangeMax)
+            LightUnitUILevel CurrentLevel(float value)
+            {
+                foreach (var l in m_Levels)
+                {
+                    if (value >= l.range.x && value <= l.range.y)
+                    {
+                        return l;
+                    }
+                }
+
+                // If value out of range, indicate caution. (For now assume caution feedback is last)
+                return LightUnitUILevel.CautionLevel(m_CautionTooltip);
+            }
+
+            void DoSliderMarker(Rect rect, LightUnitUILevel level, float rangeMax)
             {
                 const float width  = 3f;
                 const float height = 2f;
@@ -111,7 +107,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.LabelField(markerRect, s_MarkerContent);
             }
 
-            private void DoThumbTooltip(Rect rect, float value, float normalizedValue, string tooltip)
+            void DoThumbTooltip(Rect rect, float value, float normalizedValue, string tooltip)
             {
                 const float size = 10f;
                 const float halfSize = size * 0.5f;
@@ -130,7 +126,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.LabelField(thumbMarkerRect, s_MarkerContent);
             }
 
-            private void DoIcon(Rect rect, GUIContent icon, float range)
+            void DoIcon(Rect rect, GUIContent icon, float range)
             {
                 var oldColor = GUI.color;
                 GUI.color = Color.clear;
@@ -139,16 +135,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 EditorGUI.LabelField(rect, new GUIContent(string.Empty, FormatTooltip(m_Unit, icon.tooltip, range)));
             }
-
-            private LightUnit m_Unit;
-            private GUIContent s_MarkerContent;
-            private GUIContent m_CautionContent;
-            private float m_RangeMin = float.MaxValue;
-            private float m_RangeMax = float.MinValue;
-            private List<LightUnitUILevel> m_Levels = new List<LightUnitUILevel>();
         }
 
-        private static readonly Dictionary<LightUnit, LightUnitSlider> s_LightUnitSliderMap = new Dictionary<LightUnit, LightUnitSlider>();
+        static readonly Dictionary<LightUnit, LightUnitSlider> s_LightUnitSliderMap = new Dictionary<LightUnit, LightUnitSlider>();
 
         static LightUnitSliderUIDrawer()
         {
@@ -180,7 +169,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.indentLevel = prevIndentLevel;
         }
 
-        private static void GetRects(Rect baseRect, out Rect sliderRect, out Rect iconRect)
+        static void GetRects(Rect baseRect, out Rect sliderRect, out Rect iconRect)
         {
             const int k_IconSeparator = 6;
 
@@ -192,13 +181,13 @@ namespace UnityEditor.Rendering.HighDefinition
             iconRect.width = EditorGUIUtility.singleLineHeight;
         }
 
-        private static void DoSlider(Rect rect, SerializedProperty value, float leftValue, float rightValue)
+        static void DoSlider(Rect rect, SerializedProperty value, Vector2 range)
         {
             // TODO: Look into compiling a lambda to access internal slider function for logarithmic sliding.
-            value.floatValue = GUI.HorizontalSlider(rect, value.floatValue, leftValue, rightValue, GUI.skin.horizontalSlider, GUI.skin.horizontalSliderThumb);
+            value.floatValue = GUI.HorizontalSlider(rect, value.floatValue, range.x, range.y, GUI.skin.horizontalSlider, GUI.skin.horizontalSliderThumb);
         }
 
-        private static string FormatTooltip(LightUnit unit, string baseTooltip, float value)
+        static string FormatTooltip(LightUnit unit, string baseTooltip, float value)
         {
             string formatValue;
 
@@ -212,7 +201,7 @@ namespace UnityEditor.Rendering.HighDefinition
             else
                 formatValue = value.ToString("#.0");
 
-            return baseTooltip + " " + formatValue + " " + unit;
+            return baseTooltip + " - " + formatValue + " " + unit;
         }
     }
 }
