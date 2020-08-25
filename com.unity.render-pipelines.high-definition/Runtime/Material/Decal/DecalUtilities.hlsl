@@ -1,4 +1,5 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
 
 #ifndef SCALARIZE_LIGHT_LOOP
 #define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
@@ -6,114 +7,10 @@
 
 DECLARE_DBUFFER_TEXTURE(_DBufferTexture);
 
-// Caution: We can't compute LOD inside a dynamic loop. The gradient are not accessible.
-// we need to find a way to calculate mips. For now just fetch first mip of the decals
-void ApplyBlendNormal(inout float4 dst, inout uint matMask, float2 texCoords, uint mapMask, float3x3 decalToWorld, float blend, float lod)
-{
-    float4 src;
-    src.xyz = mul(decalToWorld, UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, texCoords, lod))) * 0.5 + 0.5;
-    src.w = blend;
-    dst.xyz = src.xyz * src.w + dst.xyz * (1.0 - src.w);
-    dst.w = dst.w * (1.0 - src.w);
-    matMask |= mapMask;
-}
-
-void ApplyBlendDiffuse(inout float4 dst, inout uint matMask, float2 texCoords, float4 src, uint mapMask, inout float blend, float lod, int diffuseTextureBound)
-{
-    if (diffuseTextureBound)
-    {
-        src *= SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, texCoords, lod);
-    }
-    src.w *= blend;
-    blend = src.w;  // diffuse texture alpha affects all other channels
-    dst.xyz = src.xyz * src.w + dst.xyz * (1.0 - src.w);
-    dst.w = dst.w * (1.0 - src.w);
-    matMask |= mapMask;
-}
-
-
-
-// albedoBlend is overall decal blend combined with distance fade and albedo alpha
-// decalBlend is decal blend with distance fade to be able to construct normal and mask blend if they come from mask map blue channel
-// normalBlend is calculated in this function and used later to blend the normal
-// blendParams are material settings to determing blend source and mode for normal and mask map
-void ApplyBlendMask(inout float4 dbuffer2, inout float2 dbuffer3, inout uint matMask, float2 texCoords, uint mapMask, float albedoBlend, float lod, float decalBlend, inout float normalBlend, float3 blendParams, float4 scalingMAB, float4 remappingAOS) // too many blends!!!
-{
-    float4 src = SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, texCoords, lod);
-    src.x = scalingMAB.x * src.x;
-    src.y = lerp(remappingAOS.x, remappingAOS.y, src.y);
-    src.z = scalingMAB.z * src.z;
-    src.w = lerp(remappingAOS.z, remappingAOS.w, src.w);
-    float maskBlend;
-    if (blendParams.x == 1.0)	// normal blend source is mask blue channel
-        normalBlend = src.z * decalBlend;
-    else
-        normalBlend = albedoBlend; // normal blend source is albedo alpha
-
-    if (blendParams.y == 1.0)	// mask blend source is mask blue channel
-        maskBlend = src.z * decalBlend;
-    else
-        maskBlend = albedoBlend; // mask blend siurce is albedo alpha
-
-    src.z = src.w;	// remap so smoothness goes to blue and mask blend goes to alpha
-    src.w = maskBlend;
-
-    float4 dbuffer2Mask;
-    float2 dbuffer3Mask;
-
-    if (blendParams.z == 0)
-    {
-        dbuffer2Mask = float4(1, 1, 1, 1);	// M, AO, S, S alpha
-        dbuffer3Mask = float2(1, 1); // M alpha, AO alpha
-    }
-    else if (blendParams.z == 1)
-    {
-        dbuffer2Mask = float4(1, 0, 0, 0);	// M, _, _, _
-        dbuffer3Mask = float2(1, 0); // M alpha, _
-    }
-    else if (blendParams.z == 2)
-    {
-        dbuffer2Mask = float4(0, 1, 0, 0);	// _, AO, _, _
-        dbuffer3Mask = float2(0, 1); // _, AO alpha
-    }
-    else if (blendParams.z == 3)
-    {
-        dbuffer2Mask = float4(1, 1, 0, 0);	// M, AO, _, _
-        dbuffer3Mask = float2(1, 1); // M Alpha, AO alpha
-    }
-    else if (blendParams.z == 4)
-    {
-        dbuffer2Mask = float4(0, 0, 1, 1);	// _, _, S, S alpha
-        dbuffer3Mask = float2(0, 0); // _, _
-    }
-    else if (blendParams.z == 5)
-    {
-        dbuffer2Mask = float4(1, 0, 1, 1);	// M, _, S, S alpha
-        dbuffer3Mask = float2(1, 0); // M alpha, _
-    }
-    else if (blendParams.z == 6)
-    {
-        dbuffer2Mask = float4(0, 1, 1, 1);	// _, AO, S, S alpha
-        dbuffer3Mask = float2(0, 1); // _, AO alpha
-    }
-    else if (blendParams.z == 7)
-    {
-        dbuffer2Mask = float4(1, 1, 1, 1);	// M, AO, S, S alpha
-        dbuffer3Mask = float2(1, 1); // M alpha, AO alpha
-    }
-
-    dbuffer2.xyz = (dbuffer2Mask.xyz == 1) ? src.xyz * src.w + dbuffer2.xyz * (1.0 - src.w) : dbuffer2.xyz;
-    dbuffer2.w = (dbuffer2Mask.w == 1) ? dbuffer2.w * (1.0 - src.w) : dbuffer2.w;
-
-    dbuffer3.xy = (dbuffer3Mask.xy == 1) ? dbuffer3.xy * (1.0 - src.w) : dbuffer3.xy;
-
-    matMask |= mapMask;
-}
-
 // In order that the lod for with transpartent decal better match the lod for opaque decal
 // We use ComputeTextureLOD with bias == 0.5
-void EvalDecalMask(PositionInputs posInput, float3 positionRWSDdx, float3 positionRWSDdy, DecalData decalData,
-    inout float4 DBuffer0, inout float4 DBuffer1, inout float4 DBuffer2, inout float2 DBuffer3, inout uint mask, inout float alpha)
+void EvalDecalMask( PositionInputs posInput, float3 positionRWSDdx, float3 positionRWSDdy, DecalData decalData,
+                    inout float4 DBuffer0, inout float4 DBuffer1, inout float4 DBuffer2, inout float2 DBuffer3, inout uint HTileMask, inout float alpha)
 {
     // Get the relative world camera to decal matrix
     float4x4 worldToDecal = ApplyCameraTranslationToInverseMatrix(decalData.worldToDecal);
@@ -129,57 +26,157 @@ void EvalDecalMask(PositionInputs posInput, float3 positionRWSDdx, float3 positi
         // clamp by half a texel to avoid sampling neighboring textures in the atlas
         float2 clampAmount = float2(0.5 / _DecalAtlasResolution.x, 0.5 / _DecalAtlasResolution.y);
 
-        float2 diffuseMin = decalData.diffuseScaleBias.zw + clampAmount;                                    // offset into atlas is in .zw
-        float2 diffuseMax = decalData.diffuseScaleBias.zw + decalData.diffuseScaleBias.xy - clampAmount;    // scale relative to full atlas size is in .xy so total texture extent in atlas is (1,1) * scale
-
-        float2 normalMin = decalData.normalScaleBias.zw + clampAmount;
-        float2 normalMax = decalData.normalScaleBias.zw + decalData.normalScaleBias.xy - clampAmount;
-
-        float2 maskMin = decalData.maskScaleBias.zw + clampAmount;
-        float2 maskMax = decalData.maskScaleBias.zw + decalData.maskScaleBias.xy - clampAmount;
-
-        float2 sampleDiffuse = clamp(positionDS.xz * decalData.diffuseScaleBias.xy + decalData.diffuseScaleBias.zw, diffuseMin, diffuseMax);
-        float2 sampleNormal = clamp(positionDS.xz * decalData.normalScaleBias.xy + decalData.normalScaleBias.zw, normalMin, normalMax);
-        float2 sampleMask = clamp(positionDS.xz * decalData.maskScaleBias.xy + decalData.maskScaleBias.zw, maskMin, maskMax);
-
         // need to compute the mipmap LOD manually because we are sampling inside a loop
         float3 positionDSDdx = mul(worldToDecal, float4(positionRWSDdx, 0.0)).xyz; // transform the derivatives to decal space, any translation is irrelevant
         float3 positionDSDdy = mul(worldToDecal, float4(positionRWSDdy, 0.0)).xyz;
 
-        float2 sampleDiffuseDdx = positionDSDdx.xz * decalData.diffuseScaleBias.xy; // factor in the atlas scale
-        float2 sampleDiffuseDdy = positionDSDdy.xz * decalData.diffuseScaleBias.xy;
-        float  lodDiffuse       = ComputeTextureLOD(sampleDiffuseDdx, sampleDiffuseDdy, _DecalAtlasResolution, 0.5);
+        // Following code match the code in DecalData.hlsl used for DBuffer. It have the same kind of condition and similar code structure
+        uint affectFlags = (int)(decalData.blendParams.z + 0.5f); // 1 albedo, 2 normal, 4 metal, 8 AO, 16 smoothness
+        float fadeFactor = decalData.normalToWorld[0][3];
+        float albedoMapBlend = fadeFactor;
+        float maskMapBlend = fadeFactor;
 
-        float2 sampleNormalDdx  = positionDSDdx.xz * decalData.normalScaleBias.xy;
-        float2 sampleNormalDdy  = positionDSDdy.xz * decalData.normalScaleBias.xy;
-        float  lodNormal        = ComputeTextureLOD(sampleNormalDdx, sampleNormalDdy, _DecalAtlasResolution, 0.5);
-
-        float2 sampleMaskDdx    = positionDSDdx.xz * decalData.maskScaleBias.xy;
-        float2 sampleMaskDdy    = positionDSDdy.xz * decalData.maskScaleBias.xy;
-        float  lodMask          = ComputeTextureLOD(sampleMaskDdx, sampleMaskDdy, _DecalAtlasResolution, 0.5);
-
-        float albedoBlend = decalData.normalToWorld[0][3];
-        float4 src = decalData.baseColor;
-        int diffuseTextureBound = (decalData.diffuseScaleBias.x > 0) && (decalData.diffuseScaleBias.y > 0);
-
-        ApplyBlendDiffuse(DBuffer0, mask, sampleDiffuse, src, DBUFFERHTILEBIT_DIFFUSE, albedoBlend, lodDiffuse, diffuseTextureBound);
-        alpha = alpha < albedoBlend ? albedoBlend : alpha;    // use decal alpha if it is higher than transparent alpha
-
-        float albedoContribution = decalData.normalToWorld[1][3];
-        if (albedoContribution == 0.0)
+        // Albedo
+        // We must always sample diffuse texture due to opacity that can affect everything)
         {
-            mask = 0;	// diffuse will not get modified
+            float4 src = decalData.baseColor;
+
+            // We use scaleBias value to now if we have init a texture. 0 mean a texture is bound
+            bool diffuseTextureBound = (decalData.diffuseScaleBias.x > 0) && (decalData.diffuseScaleBias.y > 0);
+            if (diffuseTextureBound)
+            {
+                // Caution: We can't compute LOD inside a dynamic loop. The gradient are not accessible.
+                float2 diffuseMin = decalData.diffuseScaleBias.zw + clampAmount;                                    // offset into atlas is in .zw
+                float2 diffuseMax = decalData.diffuseScaleBias.zw + decalData.diffuseScaleBias.xy - clampAmount;    // scale relative to full atlas size is in .xy so total texture extent in atlas is (1,1) * scale
+
+                float2 sampleDiffuse = clamp(positionDS.xz * decalData.diffuseScaleBias.xy + decalData.diffuseScaleBias.zw, diffuseMin, diffuseMax);
+                float2 sampleDiffuseDdx = positionDSDdx.xz * decalData.diffuseScaleBias.xy; // factor in the atlas scale
+                float2 sampleDiffuseDdy = positionDSDdy.xz * decalData.diffuseScaleBias.xy;
+                float  lodDiffuse = ComputeTextureLOD(sampleDiffuseDdx, sampleDiffuseDdy, _DecalAtlasResolution, 0.5);
+               
+                src *= SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, sampleDiffuse, lodDiffuse);
+            }
+
+            src.w *= fadeFactor;
+            albedoMapBlend = src.w;  // diffuse texture alpha affects all other channels
+
+            if (affectFlags & 1) // Albedo
+            {
+                if (src.w > 0.0)
+                {
+                    HTileMask |= DBUFFERHTILEBIT_DIFFUSE;
+                }
+            }
+            else
+            {
+                src.w = 0.0;
+            }
+
+            // Accumulate in dbuffer (mimic what ROP are doing)
+            DBuffer0.xyz = src.xyz * src.w + DBuffer0.xyz * (1.0 - src.w);
+            DBuffer0.w = DBuffer0.w * (1.0 - src.w);
+
+            // Specific to transparent and requested by the artist: use decal alpha if it is higher than transparent alpha
+            alpha = max(alpha, albedoMapBlend);
         }
 
-        float normalBlend = albedoBlend;
-        if ((decalData.maskScaleBias.x > 0) && (decalData.maskScaleBias.y > 0))
+        // Metal/ao/smoothness - 28 -> 1C
+        #ifdef DECALS_4RT
+        if (affectFlags & 0x1C)
+        #else // only smoothness in 3RT mode
+        if (affectFlags & 0x10)
+        #endif
         {
-            ApplyBlendMask(DBuffer2, DBuffer3, mask, sampleMask, DBUFFERHTILEBIT_MASK, albedoBlend, lodMask, decalData.normalToWorld[0][3], normalBlend, decalData.blendParams, decalData.scalingMAB, decalData.remappingAOS);
+            float4 src;
+
+            // We use scaleBias value to now if we have init a texture. 0 mean a texture is bound
+            bool maskTextureBound = (decalData.maskScaleBias.x > 0) && (decalData.maskScaleBias.y > 0);
+            if (maskTextureBound)
+            {
+                // Caution: We can't compute LOD inside a dynamic loop. The gradient are not accessible.
+                float2 maskMin = decalData.maskScaleBias.zw + clampAmount;
+                float2 maskMax = decalData.maskScaleBias.zw + decalData.maskScaleBias.xy - clampAmount;
+
+                float2 sampleMask = clamp(positionDS.xz * decalData.maskScaleBias.xy + decalData.maskScaleBias.zw, maskMin, maskMax);
+
+                float2 sampleMaskDdx = positionDSDdx.xz * decalData.maskScaleBias.xy;
+                float2 sampleMaskDdy = positionDSDdy.xz * decalData.maskScaleBias.xy;
+                float  lodMask = ComputeTextureLOD(sampleMaskDdx, sampleMaskDdy, _DecalAtlasResolution, 0.5);
+
+                src = SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, sampleMask, lodMask);
+                src.z *= decalData.scalingMAB.z; // Blue channel (opacity)
+                maskMapBlend *= src.z; // store before overwriting with smoothness
+                #ifdef DECALS_4RT
+                src.x *= decalData.scalingMAB.x; // Metal
+                src.y = lerp(decalData.remappingAOS.x, decalData.remappingAOS.y, src.y); // Remap AO
+                #endif
+                src.z = lerp(decalData.remappingAOS.z, decalData.remappingAOS.w, src.w); // Remap Smoothness
+            }
+            else
+            {
+                src.z = decalData.scalingMAB.z; // Blue channel (opacity)
+                maskMapBlend *= src.z; // store before overwriting with smoothness
+                #ifdef DECALS_4RT
+                src.x = decalData.scalingMAB.x; // Metal
+                src.y = decalData.remappingAOS.x; // AO
+                #endif
+                src.z = decalData.remappingAOS.z; // Smoothness
+            }
+
+            src.w = (decalData.blendParams.y == 1.0) ? maskMapBlend : albedoMapBlend;
+
+            if (src.w > 0.0)
+            {
+                HTileMask |= DBUFFERHTILEBIT_MASK;
+            }
+
+            // Accumulate in dbuffer (mimic what ROP are doing)
+            #ifdef DECALS_4RT
+            DBuffer2.x = (affectFlags & 4) ? src.x * src.w + DBuffer2.x * (1.0 - src.w) : DBuffer2.x; // Metal
+            DBuffer3.x = (affectFlags & 4) ? DBuffer3.x * (1.0 - src.w) : DBuffer3.x; // Metal alpha
+
+            DBuffer2.y = (affectFlags & 8) ? src.y * src.w + DBuffer2.y * (1.0 - src.w) : DBuffer2.y; // AO
+            DBuffer3.y = (affectFlags & 8) ? DBuffer3.y * (1.0 - src.w) : DBuffer3.y; // AO alpha
+            #endif
+            DBuffer2.z = (affectFlags & 16) ? src.z * src.w + DBuffer2.z * (1.0 - src.w) : DBuffer2.z; // Smoothness
+            DBuffer2.w = (affectFlags & 16) ? DBuffer2.w * (1.0 - src.w) : DBuffer2.w; // Smoothness alpha
         }
 
-        if ((decalData.normalScaleBias.x > 0) && (decalData.normalScaleBias.y > 0))
+        // Normal
+        if (affectFlags & 2)
         {
-            ApplyBlendNormal(DBuffer1, mask, sampleNormal, DBUFFERHTILEBIT_NORMAL, (float3x3)decalData.normalToWorld, normalBlend, lodNormal);
+            float3 normalTS;
+
+            // We use scaleBias value to now if we have init a texture. 0 mean a texture is bound
+            bool normalTextureBound = (decalData.normalScaleBias.x > 0) && (decalData.normalScaleBias.y > 0);
+            if (normalTextureBound)
+            {
+                // Caution: We can't compute LOD inside a dynamic loop. The gradient are not accessible.
+                float2 normalMin = decalData.normalScaleBias.zw + clampAmount;
+                float2 normalMax = decalData.normalScaleBias.zw + decalData.normalScaleBias.xy - clampAmount;
+                float2 sampleNormal = clamp(positionDS.xz * decalData.normalScaleBias.xy + decalData.normalScaleBias.zw, normalMin, normalMax);
+                float2 sampleNormalDdx = positionDSDdx.xz * decalData.normalScaleBias.xy;
+                float2 sampleNormalDdy = positionDSDdy.xz * decalData.normalScaleBias.xy;
+                float  lodNormal = ComputeTextureLOD(sampleNormalDdx, sampleNormalDdy, _DecalAtlasResolution, 0.5);
+                normalTS = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, sampleNormal, lodNormal));
+            }
+            else
+            {
+                normalTS = float3(0.0, 0.0, 1.0);
+            }
+
+            float4 src;
+            src.xyz = mul((float3x3)decalData.normalToWorld, normalTS) * 0.5 + 0.5; // The " * 0.5 + 0.5" mimic what is happening when calling EncodeIntoDBuffer()
+            src.w = (decalData.blendParams.x == 1.0) ? maskMapBlend : albedoMapBlend;
+
+            if (src.w > 0.0)
+            {
+                HTileMask |= DBUFFERHTILEBIT_NORMAL;
+            }
+
+            // Accumulate in dbuffer (mimic what ROP are doing)
+            DBuffer1.xyz = src.xyz * src.w + DBuffer1.xyz * (1.0 - src.w);
+            DBuffer1.w = DBuffer1.w * (1.0 - src.w);
         }
     }
 }
@@ -203,7 +200,7 @@ DecalData FetchDecal(uint index)
 
 DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
 {
-    uint mask = 0;
+    uint HTileMask = 0;
     // the code in the macros, gets moved inside the conditionals by the compiler
     FETCH_DBUFFER(DBuffer, _DBufferTexture, int2(posInput.positionSS.xy));
 
@@ -237,6 +234,8 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
     // get world space ddx/ddy for adjacent pixels to be used later in mipmap lod calculation
     float3 positionRWSDdx = ddx(positionRWS);
     float3 positionRWSDdy = ddy(positionRWS);
+
+    uint decalLayerMask = GetMeshRenderingDecalLayer();
 
     // Scalarized loop. All decals that are in a tile/cluster touched by any pixel in the wave are loaded (scalar load), only the ones relevant to current thread/pixel are processed.
     // For clarity, the following code will follow the convention: variables starting with s_ are wave uniform (meant for scalar register),
@@ -275,6 +274,7 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
 #endif // SCALARIZE_LIGHT_LOOP
 
         DecalData s_decalData = FetchDecal(s_decalIdx);
+        bool isRejected = (s_decalData.decalLayerMask & decalLayerMask) == 0;
 
         // If current scalar and vector decal index match, we process the decal. The v_decalListOffset for current thread is increased.
         // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
@@ -282,7 +282,8 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
         if (s_decalIdx >= v_decalIdx)
         {
             v_decalListOffset++;
-            EvalDecalMask(posInput, positionRWSDdx, positionRWSDdy, s_decalData, DBuffer0, DBuffer1, DBuffer2, DBuffer3, mask, alpha);
+            if (!isRejected)
+                EvalDecalMask(posInput, positionRWSDdx, positionRWSDdy, s_decalData, DBuffer0, DBuffer1, DBuffer2, DBuffer3, HTileMask, alpha);
         }
 
     }
@@ -290,14 +291,14 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
     #ifdef PLATFORM_SUPPORTS_BUFFER_ATOMICS_IN_PIXEL_SHADER
     int stride = (_ScreenSize.x + 7) / 8;
     int2 maskIndex = posInput.positionSS / 8;
-    mask = _DecalPropertyMaskBufferSRV[stride * maskIndex.y + maskIndex.x];
+    HTileMask = _DecalPropertyMaskBufferSRV[stride * maskIndex.y + maskIndex.x];
     #else
-    mask = DBUFFERHTILEBIT_DIFFUSE | DBUFFERHTILEBIT_NORMAL | DBUFFERHTILEBIT_MASK;
+    HTileMask = DBUFFERHTILEBIT_DIFFUSE | DBUFFERHTILEBIT_NORMAL | DBUFFERHTILEBIT_MASK;
     #endif
 #endif
     DecalSurfaceData decalSurfaceData;
     DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
-    decalSurfaceData.HTileMask = mask;
+    decalSurfaceData.HTileMask = HTileMask;
 
     return decalSurfaceData;
 }

@@ -98,6 +98,11 @@ VFXContextUI.outputTypespawnevent  > #node-border,VFXContextUI.outputTypeevent  
     --end-color: #17AB6A;
 }
 
+VFXContextUI.outputTypeoutputevent  > #node-border,VFXContextUI.outputTypeevent  > #node-border
+{
+    --end-color: #9ee556;
+}
+
 VFXFlowAnchor.port.EdgeConnector.typespawnevent, VFXFlowAnchor.port.EdgeConnector.typeevent
 {
     --port-color: #00ff8f;
@@ -194,7 +199,7 @@ VFXContextUI #header-space.spaceWorld
 
 VFXContextUI #footer #icon
 {
-    --unity-image:resource("VFX/Execution");
+    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor Default Resources/VFX/Execution.png");
 }
 
 VFXContextUI #block-container {

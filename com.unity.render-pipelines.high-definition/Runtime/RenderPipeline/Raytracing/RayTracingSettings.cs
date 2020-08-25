@@ -28,7 +28,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Enables the override of the camera culling. This increases the validity area of animated skinned mesh that are outside of the frustum.")]
         public BoolParameter extendCameraCulling = new BoolParameter(false);
 
-        RayTracingSettings()
+        /// <summary>
+        /// Default constructor for the ray tracing settings volume component.
+        /// </summary>
+        public RayTracingSettings()
         {
             displayName = "Ray Tracing Settings (Preview)";
         }

@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
         HTileForSSS,
         RenderSSAO,
         ResolveStencilBuffer,
+        AmbientOcclusion,
         HorizonSSAO,
         DenoiseSSAO,
         UpSampleSSAO,
@@ -19,11 +20,9 @@ namespace UnityEngine.Rendering.HighDefinition
         ContactShadows,
         BlitToFinalRTDevBuildOnly,
         Distortion,
+        AccumulateDistortion,
         ApplyDistortion,
-        DepthPrepassForward,
-        DepthPrepassDeferredForDecals,
-        DepthPrepassDeferred,
-        DepthPrepassDeferredIncomplete,
+        DepthPrepass,
         TransparentDepthPrepass,
         GBuffer,
         GBufferDebug,
@@ -63,6 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ClearSSSFilteringTarget,
         ClearAndCopyStencilTexture,
         ClearHDRTarget,
+        ClearDecalBuffer,
         ClearGBuffer,
         ClearSsrBuffers,
         HDRenderPipelineRenderCamera,
@@ -103,14 +103,20 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumetricLightingFiltering,
         PrepareVisibleDensityVolumeList,
 
+        // RT Cluster
         RaytracingBuildCluster,
         RaytracingCullLights,
+        // RTR
         RaytracingIntegrateReflection,
         RaytracingFilterReflection,
+        // RTAO
         RaytracingAmbientOcclusion,
         RaytracingFilterAmbientOcclusion,
+        RaytracingComposeAmbientOcclusion,
+        // RT Shadows
         RaytracingDirectionalLightShadow,
         RaytracingLightShadow,
+        // RTGI
         RaytracingIntegrateIndirectDiffuse,
         RaytracingFilterIndirectDiffuse,
         RaytracingDebugOverlay,
@@ -156,10 +162,12 @@ namespace UnityEngine.Rendering.HighDefinition
         UpsampleLowResTransparent,
 
         // Post-processing
+        GuardBandClear,
         AlphaCopy,
         StopNaNs,
         FixedExposure,
         DynamicExposure,
+        ApplyExposure,
         TemporalAntialiasing,
         DepthOfField,
         DepthOfFieldKernel,
@@ -185,6 +193,7 @@ namespace UnityEngine.Rendering.HighDefinition
         FXAA,
         SMAA,
         FinalPost,
+        FinalImageHistogram,
         CustomPostProcessBeforeTAA,
         CustomPostProcessBeforePP,
         CustomPostProcessAfterPP,

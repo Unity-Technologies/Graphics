@@ -30,6 +30,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_LightingData = value;
         }
 
+        protected override string renderQueue
+        {
+            get => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(systemData.renderingPass, systemData.sortPriority, systemData.alphaTest, lightingData.receiveDecals));
+        }
+
         protected override string renderType => HDRenderTypeTags.HDLitShader.ToString();
 
         public override void Setup(ref TargetSetupContext context)
@@ -73,9 +78,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var descs = context.blocks.Select(x => x.descriptor);
 
             // Misc
-            context.AddField(SpecularAA,                           lightingData.specularAA &&
-                                                                                context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold) &&
-                                                                                context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance));
             context.AddField(LightingGI,                           descs.Contains(HDBlockFields.SurfaceDescription.BakedGI) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedGI));
             context.AddField(BackLightingGI,                       descs.Contains(HDBlockFields.SurfaceDescription.BakedBackGI) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedBackGI));
             context.AddField(BentNormal,                           descs.Contains(HDBlockFields.SurfaceDescription.BentNormal) && context.connectedBlocks.Contains(HDBlockFields.SurfaceDescription.BentNormal) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BentNormal));
@@ -89,6 +91,46 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Double Sided
             context.AddField(DoubleSidedFlip,                      systemData.doubleSidedMode == DoubleSidedMode.FlippedNormals && context.pass.referenceName != "SHADERPASS_MOTION_VECTORS");
             context.AddField(DoubleSidedMirror,                    systemData.doubleSidedMode == DoubleSidedMode.MirroredNormals && context.pass.referenceName != "SHADERPASS_MOTION_VECTORS");
+        }
+
+        protected override void CollectPassKeywords(ref PassDescriptor pass)
+        {
+            base.CollectPassKeywords(ref pass);
+
+            pass.keywords.Add(CoreKeywordDescriptors.DisableDecals);
+            pass.keywords.Add(CoreKeywordDescriptors.DisableSSR);
+            pass.keywords.Add(CoreKeywordDescriptors.DisableSSRTransparent);
+            pass.keywords.Add(CoreKeywordDescriptors.BlendModePreserveSpecularLighting);
+            // pass.keywords.Add(CoreKeywordDescriptors.EnableGeometricSpecularAA);
+
+            if (pass.IsDepthOrMV())
+            {
+                pass.keywords.Add(CoreKeywordDescriptors.WriteDecalBuffer);
+            }
+
+            if (pass.IsLightingOrMaterial())
+            {
+                pass.keywords.Add(CoreKeywordDescriptors.Lightmap);
+                pass.keywords.Add(CoreKeywordDescriptors.DirectionalLightmapCombined);
+
+                if (!pass.IsDXR())
+                {
+                    pass.keywords.Add(CoreKeywordDescriptors.DynamicLightmap);
+                    pass.keywords.Add(CoreKeywordDescriptors.ShadowsShadowmask);
+                    pass.keywords.Add(CoreKeywordDescriptors.Decals);
+                }
+            }
+
+            if (pass.IsForward())
+            {
+                pass.keywords.Add(CoreKeywordDescriptors.Shadow);
+                pass.keywords.Add(CoreKeywordDescriptors.ScreenSpaceShadow);
+
+                if (pass.lightMode == HDShaderPassNames.s_TransparentBackfaceStr)
+                    pass.defines.Add(CoreKeywordDescriptors.LightList, 1);
+                else
+                    pass.keywords.Add(CoreKeywordDescriptors.LightList);
+            }
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)

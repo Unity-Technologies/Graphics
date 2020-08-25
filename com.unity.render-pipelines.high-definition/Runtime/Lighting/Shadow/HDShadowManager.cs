@@ -10,8 +10,17 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     public enum HDShadowFilteringQuality
     {
+        /// <summary>
+        /// Low Shadow Filtering Quality
+        /// </summary>
         Low = 0,
+        /// <summary>
+        /// Medium Shadow Filtering Quality
+        /// </summary>
         Medium = 1,
+        /// <summary>
+        /// High Shadow Filtering Quality
+        /// </summary>
         High = 2,
     }
 
@@ -323,16 +332,24 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_Atlas.AllocateRenderTexture();
             m_CascadeAtlas.AllocateRenderTexture();
+            cachedShadowManager.punctualShadowAtlas.AllocateRenderTexture();
             if (ShaderConfig.s_AreaLights == 1)
+            {
                 m_AreaLightShadowAtlas.AllocateRenderTexture();
+                cachedShadowManager.areaShadowAtlas.AllocateRenderTexture();
+            }
         }
 
         public void CleanupNonRenderGraphResources()
         {
             m_Atlas.Release();
             m_CascadeAtlas.Release();
+            cachedShadowManager.punctualShadowAtlas.Release();
             if (ShaderConfig.s_AreaLights == 1)
+            {
                 m_AreaLightShadowAtlas.Release();
+                cachedShadowManager.areaShadowAtlas.Release();
+            }
         }
 
         // Keep in sync with both HDShadowSampling.hlsl
