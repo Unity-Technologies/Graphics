@@ -30,24 +30,25 @@ def apply_target_revision_changes(editor_versions_file, yml_files_path, commit, 
     """Apply the changes for the .metafile only (since expectations might have conflicts)
         Returns: True if any changes were applied, False otherwise.
     """
-    diff = git_cmd(f'diff HEAD..{commit} -- {editor_versions_file}')
-    if len(diff.strip()) > 0:
-        diff_filename = 'diff.patch'
-        with open(diff_filename, 'w') as diff_file:
-            diff_file.write(diff)
-        git_cmd(f'apply {diff_filename}')
-        os.remove(diff_filename)
-        git_cmd(f'add {editor_versions_file}', working_dir)
-        
-        
-        diff_yml = git_cmd(f'diff HEAD..{commit} -- {yml_files_path}')
-        with open(diff_filename, 'w') as diff_file:
-            diff_file.write(diff_yml)
-        git_cmd(f'apply {diff_filename}')
-        os.remove(diff_filename)
-        git_cmd(f'add {yml_files_path}', working_dir)
-        return True
-    return False
+
+    def apply_changes(path):
+        print(f'RUNNING: git diff HEAD..{commit} -- {path}')
+        diff = git_cmd(f'diff HEAD..{commit} -- {path}')
+        if len(diff.strip()) > 0:
+            print('RUNNING: git apply diff.patch')
+            diff_filename = 'diff.patch'
+            with open(diff_filename, 'w') as f:
+                f.write(diff)
+            git_cmd(f'apply {diff_filename}')
+            os.remove(diff_filename)
+            git_cmd(f'add {path}', working_dir)
+            return True
+        return False
+    
+    changed_editor = apply_changes(editor_versions_file)
+    changed_yml = apply_changes(yml_files_path)
+    
+    return (changed_editor or changed_yml)
 
 def regenerate_expectations(yamato_parser, working_dir):
     logging.info(f'Running {yamato_parser} to generate unfolded Yamato YAML...')
@@ -60,8 +61,8 @@ def get_commit_message(git_hash):
 
 
 def commit_and_push(commit_msg, working_dir, development_mode=False):
-    git_cmd(['commit', '-m', commit_msg], working_dir)
     if not development_mode:
+        git_cmd(['commit', '-m', commit_msg], working_dir)
         git_cmd('pull --ff-only', working_dir)
         git_cmd('push', working_dir)
 
