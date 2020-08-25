@@ -267,6 +267,9 @@ EditorBuildSettings:
     path: Assets/Scenes/131_ParallaxMapping.unity
     guid: ac4701d765fa26b4f83d2fb9ed6b3c08
   - enabled: 1
+    path: Assets/Scenes/132_DetailMapping.unity
+    guid: 0ad4d46f32f2cc942b4592c2f4368b83
+  - enabled: 1
     path: Assets/Scenes/142_SSAO_DepthNormal_Projection.unity
     guid: c207f769f3e194ebc8cbd51e788ac65d
   - enabled: 1

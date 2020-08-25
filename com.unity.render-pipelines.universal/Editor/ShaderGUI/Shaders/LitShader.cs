@@ -1,20 +1,37 @@
 using System;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEditor.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
     internal class LitShader : BaseShaderGUI
     {
-        // Properties
         private LitGUI.LitProperties litProperties;
+        private LitDetailGUI.LitProperties litDetailProperties;
+        private SavedBool m_DetailInputsFoldout;
+
+        public override void OnOpenGUI(Material material, MaterialEditor materialEditor)
+        {
+            base.OnOpenGUI(material, materialEditor);
+            m_DetailInputsFoldout = new SavedBool($"{headerStateKey}.DetailInputsFoldout", true);
+        }
+
+        public override void DrawAdditionalFoldouts(Material material)
+        {
+            m_DetailInputsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_DetailInputsFoldout.value, LitDetailGUI.Styles.detailInputs);
+            if (m_DetailInputsFoldout.value)
+            {
+                LitDetailGUI.DoDetailArea(litDetailProperties, materialEditor);
+                EditorGUILayout.Space();
+            }
+            EditorGUILayout.EndFoldoutHeaderGroup();
+        }
 
         // collect properties from the material properties
         public override void FindProperties(MaterialProperty[] properties)
         {
             base.FindProperties(properties);
             litProperties = new LitGUI.LitProperties(properties);
+            litDetailProperties = new LitDetailGUI.LitProperties(properties);
         }
 
         // material changed check
@@ -23,7 +40,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             if (material == null)
                 throw new ArgumentNullException("material");
 
-            SetMaterialKeywords(material, LitGUI.SetMaterialKeywords);
+            SetMaterialKeywords(material, LitGUI.SetMaterialKeywords, LitDetailGUI.SetMaterialKeywords);
         }
 
         // material main surface options
