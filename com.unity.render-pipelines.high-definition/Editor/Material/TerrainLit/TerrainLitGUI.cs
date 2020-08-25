@@ -67,8 +67,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent ao = new GUIContent("G: AO");
             public readonly GUIContent height = new GUIContent("B: Height");
             public readonly GUIContent heightParametrization = new GUIContent("Parametrization");
-            public readonly GUIContent heightAmplitude = new GUIContent("Amplitude (cm)");
-            public readonly GUIContent heightBase = new GUIContent("Base (cm)");
+            public readonly GUIContent heightAmplitude = new GUIContent("Amplitude (cm)", "Range in world units (\"cm\") of remapped values");
+            public readonly GUIContent heightBase = new GUIContent("Base", "Normalized center of remapped Amplitude");
             public readonly GUIContent heightMin = new GUIContent("Min (cm)");
             public readonly GUIContent heightMax = new GUIContent("Max (cm)");
             public readonly GUIContent heightCm = new GUIContent("B: Height (cm)");
@@ -309,8 +309,8 @@ namespace UnityEditor.Rendering.HighDefinition
                             float amplitude = Mathf.Max(maskMapRemapMax.z - maskMapRemapMin.z, Mathf.Epsilon); // to avoid divide by zero
                             float heightBase = -maskMapRemapMin.z / amplitude;
                             amplitude = EditorGUILayout.FloatField(styles.heightAmplitude, amplitude * 100) / 100;
-                            heightBase = EditorGUILayout.FloatField(styles.heightBase, heightBase * 100) / 100;
-                            maskMapRemapMin.z = heightBase * amplitude;
+                            heightBase = EditorGUILayout.Slider(styles.heightBase, heightBase, 0.0f, 1.0f);
+                            maskMapRemapMin.z = -heightBase * amplitude;
                             maskMapRemapMax.z = (1 - heightBase) * amplitude;
                         }
                         else
