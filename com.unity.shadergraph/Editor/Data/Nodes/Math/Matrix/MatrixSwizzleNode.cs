@@ -26,6 +26,8 @@ namespace UnityEditor.ShaderGraph
         public const int InputSlotId = 0;
         public const int OutputSlotId = 1;
 
+        private bool AreIndicesValid = true;
+
         public event Action<string> OnSizeChange;
 
         [SerializeField]
@@ -144,8 +146,8 @@ namespace UnityEditor.ShaderGraph
             var row = (int)input;
             float temp_col = (float)(input - Math.Truncate(input)) * 10;
 
-            int[] index = { row, (int)temp_col };
-            //Debug.Log("row:"+index[0]+ ", col:"+ temp_col);
+            int[] index = { row, (int)Math.Round(temp_col) };
+            //Debug.Log(input+", row:" + index[0] + ", col:"+ (int)Math.Round(temp_col));
             return index;
         }
 
@@ -177,7 +179,7 @@ namespace UnityEditor.ShaderGraph
                     if (value[i] < '0' || value[i] > '3')
                     {
                         value_char[i] = '0';
-                        AreIndiciesValid = false;
+                        AreIndicesValid = false;
                         ValidateNode();
                     }
                 }
@@ -199,18 +201,17 @@ namespace UnityEditor.ShaderGraph
             }
             else
             {
-                AreIndiciesValid = false;
+                AreIndicesValid = false;
                 ValidateNode();
             }
             return new Vector4(0, 0, 0, 0);
         }
 
-        private bool AreIndiciesValid = true;
         public override void ValidateNode()
         {
             base.ValidateNode();
 
-            if (!AreIndiciesValid)
+            if (!AreIndicesValid)
             {
                 owner.AddValidationError(objectId, "Invalid index!", ShaderCompilerMessageSeverity.Error);
             }
@@ -241,7 +242,8 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            int concreteRowCount = useIndentity ? 2 : numInputRows;
+            //TODO: Change UI(2x2) to (4x4)
+            int concreteRowCount = useIndentity ? 4 : numInputRows;
 
             //get output row count
             int outputRowCount = 4;
@@ -280,7 +282,7 @@ namespace UnityEditor.ShaderGraph
             //set all unused indices to zero
             for (int r = 0; r < 4; r++)
             {
-                Vector4 indecies_row = inputIndices.GetRow(r);
+                Vector4 indices_row = inputIndices.GetRow(r);
 
                 for (int c = 0; c <4; c++)
                 {
@@ -288,26 +290,26 @@ namespace UnityEditor.ShaderGraph
                     {
                         if (c >= outputRowCount)
                         {
-                            indecies_row[c] = 0;
+                            indices_row[c] = 0;
                         }
                     }
                     else
                     {
                         if (c > 0)
                         {
-                            indecies_row[c] = 0;
+                            indices_row[c] = 0;
                         }
                     }
                 }
 
-                inputIndices.SetRow(r, indecies_row);
+                inputIndices.SetRow(r, indices_row);
                 if (r >= outputRowCount)
                 {
                     inputIndices.SetRow(r, new Vector4(0, 0, 0, 0));
                 }
             }
 
-            AreIndiciesValid = true;
+            AreIndicesValid = true;
             //Check indices sizes
             for (int r = 0; r< 4; r++)
             {
@@ -319,14 +321,14 @@ namespace UnityEditor.ShaderGraph
                     if (cell_lst[0] > concreteRowCount-1 || cell_lst[1] > concreteRowCount - 1)
                     {
                         indices_row[c] = 0;
-                        AreIndiciesValid = false;
+                        AreIndicesValid = false;
                         ValidateNode();
                     }
 
                 }
 
                 inputIndices.SetRow(r, indices_row);
-                AreIndiciesValid = true;
+                AreIndicesValid = true;
             }
 
             //build shader string
@@ -334,7 +336,7 @@ namespace UnityEditor.ShaderGraph
             for (var r = 0; r < outputRowCount; r++)
             {
                 string outputValue = "";
-                Vector4 indecies = inputIndices.GetRow(r);
+                Vector4 indices = inputIndices.GetRow(r);
 
                 if (r != 0)
                     outputValue += ",";
@@ -350,7 +352,7 @@ namespace UnityEditor.ShaderGraph
                             {
                                 outputValue += ",";
                             }
-                            outputValue += Matrix4x4.identity.GetRow(getIndex(indecies[c])[0])[getIndex(indecies[c])[1]];
+                            outputValue += Matrix4x4.identity.GetRow(getIndex(indices[c])[0])[getIndex(indices[c])[1]];
 
                         }
                         else
@@ -359,7 +361,7 @@ namespace UnityEditor.ShaderGraph
                             {
                                 outputValue += ",";
                             }
-                            outputValue += string.Format("{0}[{1}].{2}", inputValue, getIndex(indecies[c])[0], mapComp(getIndex(indecies[c])[1]));
+                            outputValue += string.Format("{0}[{1}].{2}", inputValue, getIndex(indices[c])[0], mapComp(getIndex(indices[c])[1]));
                         }
                     }
                 }
@@ -368,11 +370,11 @@ namespace UnityEditor.ShaderGraph
                     //If output is a vector
                     if (useIndentity == true)
                     {
-                        outputValue += Matrix4x4.identity.GetRow(getIndex(indecies[0])[0])[getIndex(indecies[0])[1]];
+                        outputValue += Matrix4x4.identity.GetRow(getIndex(indices[0])[0])[getIndex(indices[0])[1]];
                     }
                     else
                     {
-                        outputValue += string.Format("{0}[{1}].{2}", inputValue, getIndex(indecies[0])[0], mapComp(getIndex(indecies[0])[1]));
+                        outputValue += string.Format("{0}[{1}].{2}", inputValue, getIndex(indices[0])[0], mapComp(getIndex(indices[0])[1]));
                     }
                 }
                 real_outputValue += outputValue;
