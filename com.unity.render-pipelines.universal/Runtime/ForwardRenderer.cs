@@ -680,6 +680,15 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.renderType == CameraRenderType.Base && !cameraData.resolveFinalTarget)
                 return true;
 
+            // Always force rendering into intermediate color texture if deferred rendering mode is selected.
+            // Reason: without intermediate color texture, the target camera texture is y-flipped.
+            // However, the target camera texture is bound during gbuffer pass and deferred pass.
+            // Gbuffer pass will not be y-flipped because it is MRT (see ScriptableRenderContext implementation),
+            // while deferred pass will be y-flipped, which breaks rendering.
+            // This incurs an extra blit into at the end of rendering.
+            if (this.renderingMode == RenderingMode.Deferred)
+                return true;
+
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
             var cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
             int msaaSamples = cameraTargetDescriptor.msaaSamples;
