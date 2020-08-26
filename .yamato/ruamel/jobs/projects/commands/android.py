@@ -1,10 +1,10 @@
-from ...shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, PATH_PLAYERS
+from ...shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, PATH_PLAYERS, UTR_INSTALL_URL, UNITY_DOWNLOADER_CLI_URL
 from ruamel.yaml.scalarstring import PreservedScalarString as pss
 
 def _cmd_base(project_folder, components):
     return [
-        f'curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat',
-        f'pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade',
+        f'curl -s {UTR_INSTALL_URL}.bat --output utr.bat',
+        f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
         f'unity-downloader-cli --source-file %YAMATO_SOURCE_DIR%/{PATH_UNITY_REVISION} -p WindowsEditor {"".join([f"-c {c} " for c in components])} --wait --published-only'
     ]
 
@@ -14,7 +14,7 @@ def cmd_not_standalone(project_folder, platform, api, test_platform_args):
 
 def cmd_standalone(project_folder, platform, api, test_platform_args):
     base = [
-        f'curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat'
+        f'curl -s {UTR_INSTALL_URL}.bat --output utr.bat'
     ]
     base.extend([ 
         f'%ANDROID_SDK_ROOT%\platform-tools\\adb.exe connect %BOKKEN_DEVICE_IP%',
@@ -31,9 +31,9 @@ def cmd_standalone(project_folder, platform, api, test_platform_args):
 def cmd_standalone_build(project_folder, platform, api, test_platform_args):
     base = _cmd_base(project_folder, platform["components"])
     base.extend([  
-        f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME%',
-        f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT%',
-        f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\\NDK %ANDROID_NDK_ROOT%'
+        f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0',
+        f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0',
+        f'mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\\NDK %ANDROID_NDK_ROOT% || exit 0'
         ])
     
     if api["name"].lower() =='vulkan':
