@@ -29,6 +29,8 @@ namespace UnityEngine.Rendering.Universal
         BeforeRenderingShadows = 50,
         AfterRenderingShadows = 100,
         BeforeRenderingPrePasses = 150,
+        [Obsolete("Obsolete, to match the capital from 'Prepass' to 'PrePass'")]
+        BeforeRenderingPrepasses = 151,
         AfterRenderingPrePasses = 200,
         BeforeRenderingOpaques = 250,
         AfterRenderingOpaques = 300,

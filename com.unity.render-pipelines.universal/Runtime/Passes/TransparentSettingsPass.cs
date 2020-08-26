@@ -34,8 +34,9 @@ namespace UnityEngine.Rendering.Universal
                 ShadowData shadowData = renderingData.shadowData;
                 int cascadesCount = shadowData.mainLightShadowCascadesCount;
 
-                bool receiveShadowsNoCascade = m_shouldReceiveShadows && cascadesCount == 1;
-                bool receiveShadowsCascades = m_shouldReceiveShadows && cascadesCount > 1;
+                bool mainLightShadows = m_shouldReceiveShadows && renderingData.shadowData.supportsMainLightShadows;
+                bool receiveShadowsNoCascade = mainLightShadows && cascadesCount == 1;
+                bool receiveShadowsCascades = mainLightShadows && cascadesCount > 1;
 
                 // Before transparent object pass, force screen space shadow for main light to disable
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowsScreen, false);
