@@ -15,11 +15,11 @@
         #if !defined(_MAIN_LIGHT_SHADOWS_CASCADE)
             #define REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR
         #endif
-    #endif
+    #endif 
 
     #if defined(_ADDITIONAL_LIGHT_SHADOWS)
         #define ADDITIONAL_LIGHT_CALCULATE_SHADOWS
-    #endif
+    #endif 
 #endif
 
 #if defined(_ADDITIONAL_LIGHTS) || defined(_MAIN_LIGHT_SHADOWS_CASCADE)
@@ -161,7 +161,7 @@ half4 GetMainLightShadowParams()
 // ShadowParams
 // x: ShadowStrength
 // y: 1.0 if shadow is soft, 0.0 otherwise
-// z: 0.0 if cast by a point light (6 shadow slices), 0.0 if cast by a spot light (1 shadow slice)
+// z: 1.0 if cast by a point light (6 shadow slices), 0.0 if cast by a spot light (1 shadow slice)
 // w: first shadow slice index for this light, there can be 6 in case of point lights. (-1 for non-shadow-casting-lights)
 half4 GetAdditionalLightShadowParams(int lightIndex)
 {
@@ -301,7 +301,8 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 ligh
     if (shadowSliceIndex < 0)
         return 1.0;
 
-    if (shadowParams.z)
+    half isPointLight = shadowParams.z;
+    if (isPointLight)
     {
         // This is a point light, we have to find out which shadow slice to sample from
         float cubemapFaceId = CubeMapFaceID(-lightDirection);
@@ -332,7 +333,7 @@ float3 ApplyShadowBias(float3 positionWS, float3 normalWS, float3 lightDirection
     positionWS = normalWS * scale.xxx + positionWS;
     return positionWS;
 }
-
+ 
 ///////////////////////////////////////////////////////////////////////////////
 // Deprecated                                                                 /
 ///////////////////////////////////////////////////////////////////////////////
