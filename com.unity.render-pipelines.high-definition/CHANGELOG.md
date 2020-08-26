@@ -629,6 +629,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed exposure debug shader with XR single-pass rendering.
 - Fixed issues with scene view and transparent motion vectors.
 - Fix supported Mac platform detection to handle new major version (11.0) properly
+- Fixed RenderTexture.Create failed error when using the custom depth buffer.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
