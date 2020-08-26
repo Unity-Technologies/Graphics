@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static int log2NumClusters; // / MSB of optimalThreadGroupSize, NumClusters is 1<<g_iLog2NumClusters
         public static string kernelVariantSuffix;
         public static bool preferComputeKernels;
+        public static bool requiresExplicitMSAAResolve;
 
         static DeviceInfo()
         {
@@ -25,6 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
             log2NumClusters = 6;
             kernelVariantSuffix = "";
             preferComputeKernels = true;
+            requiresExplicitMSAAResolve = true;
 
             bool threadExecutionWidth32 = IsMobileBuildTarget;
 
@@ -32,6 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // TODO: Could conditionally enable threadExecutionWidth32/disable preferComputeKernels based on GPU
                 // SystemInfo.hasHiddenSurfaceRemovalOnGPU == true on Apple GPUs
+                requiresExplicitMSAAResolve = false;
             }
             else if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Switch)
             {
