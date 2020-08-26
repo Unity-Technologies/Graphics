@@ -446,7 +446,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         void UpdateShaderPortsForSlots(bool inputSlots, List<MaterialSlot> allSlots, ShaderPort[] slotShaderPorts)
         {
             VisualElement portContainer = inputSlots ? inputContainer : outputContainer;
-            var existingPorts = portContainer.Query<ShaderPort>().ToList();       // outputContainer.Children().OfType<ShaderPort>().ToList();
+            var existingPorts = portContainer.Query<ShaderPort>().ToList();
             foreach (ShaderPort shaderPort in existingPorts)
             {
                 var currentSlotId = shaderPort.slot.id;
