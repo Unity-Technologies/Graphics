@@ -28,7 +28,7 @@ Universal_Hybrid_Linux_Vulkan_Standalone_trunk:
 Build_Universal_Hybrid_Linux_Vulkan_Player_trunk:
     name: Build Universal_Hybrid on Linux_Vulkan_Player on version trunk
     agent:
-        type: Unity::VM::GPU
+        type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
         flavor: b1.large
     variables:
@@ -97,7 +97,7 @@ Universal_Hybrid_Linux_Vulkan_Standalone_fast-trunk:
 Build_Universal_Hybrid_Linux_Vulkan_Player_fast-trunk:
     name: Build Universal_Hybrid on Linux_Vulkan_Player on version fast-trunk
     agent:
-        type: Unity::VM::GPU
+        type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
         flavor: b1.large
     variables:
@@ -167,7 +167,7 @@ Universal_Hybrid_Linux_Vulkan_Standalone_CUSTOM-REVISION:
 Build_Universal_Hybrid_Linux_Vulkan_Player_CUSTOM-REVISION:
     name: Build Universal_Hybrid on Linux_Vulkan_Player on version CUSTOM-REVISION
     agent:
-        type: Unity::VM::GPU
+        type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
         flavor: b1.large
     variables:
