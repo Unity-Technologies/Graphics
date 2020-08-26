@@ -1,11 +1,11 @@
 # Graph Target
 
-A Target determines the end point compatibility of the generated shader from a Shader Graph. Targets are selected for each Shader Graph asset. Targets can be changed via the [Graph Settings Menu](Graph-Settings-Menu). 
+A Target determines the end point compatibility of a shader you generate using Shader Graph. You can select Targets for each Shader Graph Asset, and use the [Graph Settings Menu](Graph-Settings-Menu.md) to change the Targets.
 
 ![image](images/GraphSettings_Menu.png)
 
-The Target holds information regarding the required generation format and variables for compatibility with different render pipelines or integration features like Visual Effects Graph. You can select as many or as few active targets as desired for each Shader Graph asset. Some targets or nodes on the graph may not be compatible with other selected targets, in which case an error with an explanation will display. 
+Targets hold information such as the required generation format, and variables that allow compatibility with different render pipelines or integration features like [Visual Effect Graph](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest). You can select any number of Targets for each Shader Graph Asset. If a Target you select isn't compatible with other Targets you've already selected, an error message that explains the problem appears.
 
-Target Settings are specified by the selected target. Universal Target Settings and High Definition Target Settings may change. 
+Target Settings are specific to each Target, and can vary between assets depending on which Targets you've selected. Be aware that Universal Render Pipeline (URP) Target Settings and High Definition Render Pipeline (HDRP) Target Settings might change in future versions. 
 
-Typically, each target selected will generate a valid subshader from the graph. For example, a Shader Graph with both Universal and High Definition render pipelines selected will generate two subshaders. 
+Typically, each Target you select generates a valid subshader from the graph. For example, a Shader Graph Asset with both URP and HDRP Targets will generate two subshaders.
