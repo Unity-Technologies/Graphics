@@ -24,7 +24,7 @@ half _BumpScale;
 half _Parallax;
 half _OcclusionStrength;
 half _ClearCoatMask;
-//half _ClearCoatSmoothness; // TODO: enable
+half _ClearCoatSmoothness;
 half _DetailAlbedoMapScale;
 half _DetailNormalMapScale;
 CBUFFER_END
@@ -44,9 +44,9 @@ UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float , _Parallax)
     UNITY_DOTS_INSTANCED_PROP(float , _OcclusionStrength)
     UNITY_DOTS_INSTANCED_PROP(float , _ClearCoatMask)
+    UNITY_DOTS_INSTANCED_PROP(float , _ClearCoatSmoothness)
     UNITY_DOTS_INSTANCED_PROP(float , _DetailAlbedoMapScale)
     UNITY_DOTS_INSTANCED_PROP(float , _DetailNormalMapScale)
-    //UNITY_DOTS_INSTANCED_PROP(float , _ClearCoatSmoothness) // TODO: enable
 UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
 #define _BaseColor              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4 , Metadata__BaseColor)
@@ -59,9 +59,9 @@ UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 #define _Parallax               UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__Parallax)
 #define _OcclusionStrength      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__OcclusionStrength)
 #define _ClearCoatMask          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__ClearCoatMask)
+#define _ClearCoatSmoothness    UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__ClearCoatSmoothness)
 #define _DetailAlbedoMapScale   UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__DetailAlbedoMapScale)
 #define _DetailNormalMapScale   UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__DetailNormalMapScale)
-//#define _ClearCoatSmoothness    UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__ClearCoatSmoothness)
 #endif
 
 TEXTURE2D(_ParallaxMap);        SAMPLER(sampler_ParallaxMap);
@@ -129,7 +129,7 @@ half SampleOcclusion(float2 uv)
 half2 SampleClearCoat(float2 uv)
 {
 #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
-    half2 clearCoatMaskSmoothness = half2(_ClearCoatMask, 1.0 /*_ClearCoatSmoothness*/);
+    half2 clearCoatMaskSmoothness = half2(_ClearCoatMask, _ClearCoatSmoothness);
 
 #if defined(_CLEARCOATMAP)
     clearCoatMaskSmoothness *= SAMPLE_TEXTURE2D(_ClearCoatMap, sampler_ClearCoatMap, uv).rg;
@@ -219,8 +219,7 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
 #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
     half2 clearCoat = SampleClearCoat(uv);
     outSurfaceData.clearCoatMask       = clearCoat.r;
-    //outSurfaceData.clearCoatSmoothness = clearCoat.g; // TODO: enable
-    outSurfaceData.clearCoatSmoothness = 1;
+    outSurfaceData.clearCoatSmoothness = clearCoat.g;
 #else
     outSurfaceData.clearCoatMask       = 0.0h;
     outSurfaceData.clearCoatSmoothness = 0.0h;
