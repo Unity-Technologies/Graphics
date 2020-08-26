@@ -687,7 +687,7 @@ namespace UnityEditor.VFX.Test
                             if (current == 0u)
                             {
                                 increment = true;
-                                current = 1u;
+                                current = count == 1u ? 0u : 1u;
                             }
                             else
                             {
