@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [10.1.0] - 2019-08-04
+### Added
+- Added ComplexLit shader for advanced material features such as clear coat.
 
 ### Added
 - Support for Clear coat and ComplexLit forward only shader in shader graph.
@@ -16,6 +18,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue that caused color grading to not work correctly with camera stacking. [case 1263193](https://issuetracker.unity3d.com/product/unity/issues/guid/1263193/)
 - Fixed an issue that caused an infinite asset database reimport when running Unity in command line with -testResults argument.
 - Fixed issue where blur would sometimes flicker [case 1224915](https://issuetracker.unity3d.com/issues/urp-bloom-effect-flickers-when-using-integrated-post-processing-feature-set)
+- Fixed depth of field to work with dynamic resolution. [case 1225467](https://issuetracker.unity3d.com/issues/dynamic-resolution-rendering-error-when-using-depth-of-field-in-urp)
+- Fixed FXAA, SSAO, Motion Blur to work with dynamic resolution.
 
 ## [10.0.0] - 2019-06-10
 ### Added
@@ -96,6 +100,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changing the default value of Skip Iterations to 1 in Bloom effect editor
 - Use SystemInfo to check if multiview is supported instead of being platform hardcoded
 - Default attachment setup behaviour for ScriptableRenderPasses that execute before rendering opaques is now set use current the active render target setup. This improves performance in some situations.
+- Combine XR occlusion meshes into one when using single-pass (multiview or instancing) to reduce draw calls and state changes.
 
 ### Fixed
 - Fixed a performance problem with ShaderPreprocessor with large amount of active shader variants in the project 

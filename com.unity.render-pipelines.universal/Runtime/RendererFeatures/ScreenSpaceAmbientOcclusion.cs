@@ -271,6 +271,8 @@ namespace UnityEngine.Rendering.Universal
                     Vector4 scaleBias = (flipSign < 0.0f) ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f) : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
                     cmd.SetGlobalVector(s_ScaleBiasID, scaleBias);
 
+                    PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
+
                     // Execute the SSAO
                     Render(cmd, m_SSAOTexture1Target, ShaderPasses.AO);
 
