@@ -177,6 +177,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added path tracing test scene for normal mapping.
 - Added missing API documentation.
 - Added a new mode to cluster visualization debug where users can see a slice instead of the cluster on opaque objects.
+- Added ray traced reflection support for the render graph version of the pipeline.
+- Added render graph support of RTAO and required denoisers.
+- Added render graph support of RTGI.
+- Supporting RTSSS and Recursive Rendering in the render graph mode.
+- Supporting directional RT and screen space shadow for render graph.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
