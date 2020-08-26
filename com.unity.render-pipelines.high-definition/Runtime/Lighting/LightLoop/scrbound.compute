@@ -92,7 +92,19 @@ float4x4 PerspectiveProjection4x4(float a, float g, float n, float f)
 
 /* ------------------------------ Implementation ---------------------------- */
 
-#define OBTUSE_COMPILER // Improve the quality of generated code at the expense of readability
+// Improve the quality of generated code at the expense of readability.
+// Remove when the shader compiler is clever enough to perform this optimization for us.
+#define OBTUSE_COMPILER
+
+#ifdef SHADER_API_XBOXONE
+// The Xbox shader compiler expects the lane swizzle mask to be a compile-time constant.
+// In our case, the mask is a compile-time constant, but it is defined inside a loop
+// that is unrolled at the compile time, and the constants are generated during the
+// constant propagation pass of the optimizer. This works fine on PlayStation, but does not work
+// on Xbox. In order to avoid writing hideous code specifically for Xbox, we disable the support
+// of wave intrinsics on Xbox until the Xbox compiler is fixed.
+#undef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+#endif
 
 #define CLEAR_SIGN_BIT(X)  (asint(X) & INT_MAX)
 #define DIV_ROUND_UP(N, D) (((N) + (D) - 1) / (D)) // No division by 0 checks
@@ -527,7 +539,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         uint andMask = PLATFORM_LANE_COUNT - 1; // All lanes
         uint orMask  = 0;                       // Plays no role
         uint xorMask = 1 << i;                  // Flip bits one by one starting from the LSB
-        // TODO: Francesco - expose the right intrinsic.
+
         cullClipFaceMask |= LaneSwizzle(cullClipFaceMask, andMask, orMask, xorMask);
     }
 #else
@@ -636,7 +648,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         uint andMask = PLATFORM_LANE_COUNT - 1; // All lanes
         uint orMask  = 0;                       // Plays no role
         uint xorMask = 1 << i;                  // Flip bits one by one starting from the LSB
-        // TODO: Francesco - expose the right intrinsic.
+
         cullClipFaceMask &= LaneSwizzle(cullClipFaceMask, andMask, orMask, xorMask);
     }
 #else
@@ -676,7 +688,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         uint andMask = PLATFORM_LANE_COUNT - 1; // All lanes
         uint orMask  = 0;                       // Plays no role
         uint xorMask = 1 << i;                  // Flip bits one by one starting from the LSB
-        // TODO: Francesco - expose the right intrinsic.
+
         ndcAaBbMinPt.x = min(ndcAaBbMinPt.x, LaneSwizzle(ndcAaBbMinPt.x, andMask, orMask, xorMask));
         ndcAaBbMaxPt.x = max(ndcAaBbMaxPt.x, LaneSwizzle(ndcAaBbMaxPt.x, andMask, orMask, xorMask));
         ndcAaBbMinPt.y = min(ndcAaBbMinPt.y, LaneSwizzle(ndcAaBbMinPt.y, andMask, orMask, xorMask));
