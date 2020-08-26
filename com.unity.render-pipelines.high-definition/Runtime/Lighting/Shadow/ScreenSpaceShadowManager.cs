@@ -90,6 +90,24 @@ namespace UnityEngine.Rendering.HighDefinition
                         enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: string.Format("{0}_ShadowHistoryDistanceBuffer{1}", viewName, frameIndex));
         }
 
+        RTHandle RequestShadowHistoryBuffer(HDCamera hdCamera)
+        {
+            return hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistory)
+                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistory, ShadowHistoryBufferAllocatorFunction, 1);
+        }
+
+        RTHandle RequestShadowHistoryValidityBuffer(HDCamera hdCamera)
+        {
+            return hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistoryValidity)
+                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistoryValidity, ShadowHistoryValidityBufferAllocatorFunction, 1);
+        }
+
+        RTHandle RequestShadowHistoryDistanceBuffer(HDCamera hdCamera)
+        {
+            return hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowDistanceValidity)
+                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowDistanceValidity, ShadowHistoryDistanceBufferAllocatorFunction, 1);
+        }
+
         // The three types of shadows that we currently support
         enum ScreenSpaceShadowType
         {
@@ -266,11 +284,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Bind the right texture
                 cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceShadowsTexture, m_ScreenSpaceShadowTextureArray);
             }
-        }
-
-        TextureHandle RenderScreenSpaceShadows(RenderGraph renderGraph, HDCamera hdCamera)
-        {
-            return renderGraph.defaultResources.blackTextureArrayXR;
         }
 
         

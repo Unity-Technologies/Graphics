@@ -83,6 +83,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public TextureHandle        stencilBuffer;
             public ComputeBufferHandle  coarseStencilBuffer;
+
+            public TextureHandle        flagMaskBuffer;
         }
 
         TextureHandle CreateDepthBuffer(RenderGraph renderGraph, bool msaa)
@@ -167,6 +169,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: See how to clean this. Some buffers are created outside, some inside functions...
             result.motionVectorsBuffer = CreateMotionVectorBuffer(renderGraph, msaa, clearMotionVectors);
             result.depthBuffer = CreateDepthBuffer(renderGraph, msaa);
+            result.flagMaskBuffer = CreateFlagMaskTexture(renderGraph);
 
             RenderXROcclusionMeshes(renderGraph, hdCamera, colorBuffer, result.depthBuffer);
 
@@ -177,7 +180,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderCustomPass(renderGraph, hdCamera, colorBuffer, result.depthBuffer, result.normalBuffer, customPassCullingResults, CustomPassInjectionPoint.BeforeRendering, aovRequest, aovBuffers);
 
-                //RenderRayTracingPrepass(cullingResults, hdCamera, renderContext, cmd, false);
+                RenderRayTracingPrepass(renderGraph, cullingResults, hdCamera, result.flagMaskBuffer, result.depthBuffer, false);
 
                 // When evaluating probe volumes in material pass, we build a custom probe volume light list.
                 // When evaluating probe volumes in light loop, probe volumes are folded into the standard light loop data.
@@ -328,8 +331,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (data.decalLayersEnabled)
                             forwardMrt[1] = data.decalBuffer;
                     }
-
-                    bool useRayTracing = data.frameSettings.IsEnabled(FrameSettingsField.RayTracing);
 
                     RenderDepthPrepass(context.renderContext, context.cmd, data.frameSettings
                                     , deferredMrt
