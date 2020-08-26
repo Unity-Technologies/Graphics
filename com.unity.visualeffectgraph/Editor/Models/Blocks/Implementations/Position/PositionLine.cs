@@ -29,6 +29,26 @@ namespace UnityEditor.VFX.Block
             }
         }
 
+        public override IEnumerable<VFXNamedExpression> parameters
+        {
+            get
+            {
+                VFXExpression line_start = null;
+                VFXExpression line_end = null;
+                foreach (var param in base.parameters)
+                {
+                    if (param.name == "line_start")
+                        line_start = param.exp;
+                    if (param.name == "line_end")
+                        line_end = param.exp;
+
+                    yield return param;
+                }
+                var line_direction = VFXOperatorUtility.SafeNormalize(line_end - line_start);
+                yield return new VFXNamedExpression(line_direction, "line_direction");
+            }
+        }
+
         protected override bool needDirectionWrite => true;
 
         public override string source
@@ -41,7 +61,7 @@ namespace UnityEditor.VFX.Block
                 else
                     outSource = string.Format(composePositionFormatString, "lerp(line_start, line_end, RAND)");
                 outSource += "\n";
-                outSource += string.Format(composeDirectionFormatString, "normalize(line_end - line_start)");
+                outSource += string.Format(composeDirectionFormatString, "line_direction");
                 return outSource;
             }
         }

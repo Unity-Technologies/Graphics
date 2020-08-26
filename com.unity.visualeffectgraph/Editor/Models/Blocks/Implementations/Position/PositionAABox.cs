@@ -80,7 +80,6 @@ namespace UnityEditor.VFX.Block
             {
                 string outSource;
 
-                // Compute Position (unit box)
                 if (positionMode == PositionMode.Volume)
                 {
                     outSource = @"
