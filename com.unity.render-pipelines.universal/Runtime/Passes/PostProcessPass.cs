@@ -608,9 +608,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void DoGaussianDepthOfField(Camera camera, CommandBuffer cmd, int source, int destination, Rect pixelRect)
         {
+            int downSample = 2;
             var material = m_Materials.gaussianDepthOfField;
-            int wh = m_Descriptor.width / 2;
-            int hh = m_Descriptor.height / 2;
+            int wh = m_Descriptor.width / downSample;
+            int hh = m_Descriptor.height / downSample;
             float farStart = m_DepthOfField.gaussianStart.value;
             float farEnd = Mathf.Max(farStart, m_DepthOfField.gaussianEnd.value);
 
@@ -629,6 +630,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.GetTemporaryRT(ShaderConstants._PingTexture, GetCompatibleDescriptor(wh, hh, m_DefaultHDRFormat), FilterMode.Bilinear);
             cmd.GetTemporaryRT(ShaderConstants._PongTexture, GetCompatibleDescriptor(wh, hh, m_DefaultHDRFormat), FilterMode.Bilinear);
             // Note: fresh temporary RTs don't require explicit RenderBufferLoadAction.DontCare, only when they are reused (such as PingTexture)
+
+            PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
+            cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(1.0f / downSample, 1.0f / downSample, downSample, downSample));
 
             // Compute CoC
             Blit(cmd, source, ShaderConstants._FullCoCTexture, material, 0);
@@ -715,9 +719,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void DoBokehDepthOfField(CommandBuffer cmd, int source, int destination, Rect pixelRect)
         {
+            int downSample = 2;
             var material = m_Materials.bokehDepthOfField;
-            int wh = m_Descriptor.width / 2;
-            int hh = m_Descriptor.height / 2;
+            int wh = m_Descriptor.width / downSample;
+            int hh = m_Descriptor.height / downSample;
 
             // "A Lens and Aperture Camera Model for Synthetic Image Generation" [Potmesil81]
             float F = m_DepthOfField.focalLength.value / 1000f;
@@ -743,6 +748,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.GetTemporaryRT(ShaderConstants._FullCoCTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8_UNorm), FilterMode.Bilinear);
             cmd.GetTemporaryRT(ShaderConstants._PingTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear);
             cmd.GetTemporaryRT(ShaderConstants._PongTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear);
+
+            PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
+            cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(1.0f / downSample, 1.0f / downSample, downSample, downSample));
 
             // Compute CoC
             Blit(cmd, source, ShaderConstants._FullCoCTexture, material, 0);
@@ -791,6 +799,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             material.SetFloat("_Intensity", m_MotionBlur.intensity.value);
             material.SetFloat("_Clamp", m_MotionBlur.clamp.value);
+
+            PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
 
             Blit(cmd, source, BlitDstDiscardContent(cmd, destination), material, (int)m_MotionBlur.quality.value);
             m_PrevViewProjM = viewProj;
@@ -1144,6 +1154,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing)
                 material.EnableKeyword(ShaderKeywordStrings.Fxaa);
 
+            PostProcessUtils.SetSourceSize(cmd, cameraData.cameraTargetDescriptor);
+
             SetupGrain(cameraData, material);
             SetupDithering(cameraData, material);
 
@@ -1290,6 +1302,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _UserLut_Params     = Shader.PropertyToID("_UserLut_Params");
             public static readonly int _InternalLut        = Shader.PropertyToID("_InternalLut");
             public static readonly int _UserLut            = Shader.PropertyToID("_UserLut");
+            public static readonly int _DownSampleScaleFactor = Shader.PropertyToID("_DownSampleScaleFactor");
 
             public static readonly int _FullscreenProjMat  = Shader.PropertyToID("_FullscreenProjMat");
 

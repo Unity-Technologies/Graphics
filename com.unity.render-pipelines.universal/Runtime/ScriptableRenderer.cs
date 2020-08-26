@@ -117,6 +117,12 @@ namespace UnityEngine.Rendering.Universal
                 cameraHeight = (float)cameraData.cameraTargetDescriptor.height;
             }
 
+            if (camera.allowDynamicResolution)
+            {
+                scaledCameraWidth *= ScalableBufferManager.widthScaleFactor;
+                scaledCameraHeight *= ScalableBufferManager.heightScaleFactor;
+            }
+
             float near = camera.nearClipPlane;
             float far = camera.farClipPlane;
             float invNear = Mathf.Approximately(near, 0.0f) ? 0.0f : 1.0f / near;
@@ -596,6 +602,13 @@ namespace UnityEngine.Rendering.Universal
         {
             Camera camera = cameraData.camera;
             ClearFlag cameraClearFlag = GetCameraClearFlag(ref cameraData);
+            
+            // Invalid configuration - use current attachment setup
+            // Note: we only check color buffers. This is only technically correct because for shadowmaps and depth only passes
+            // we bind depth as color and Unity handles it underneath. so we never have a situation that all color buffers are null and depth is bound.
+            uint validColorBuffersCount = RenderingUtils.GetValidColorBufferCount(renderPass.colorAttachments);
+            if (validColorBuffersCount == 0)
+                return;
 
             // We use a different code path for MRT since it calls a different version of API SetRenderTarget
             if (RenderingUtils.IsMRT(renderPass.colorAttachments))
