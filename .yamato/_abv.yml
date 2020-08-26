@@ -4,6 +4,9 @@
 # Read more under .yamato/docs/readme.md 
 
 smoke_test_Standalone_trunk:
+    dependencies:
+      -  path: .yamato/_abv.yml#Build_smoke_test_Standalone_trunk
+         rerun: on-new-revision
     name: SRP Smoke Test - Standalone_trunk
     agent:
         type: Unity::VM::GPU
@@ -12,10 +15,24 @@ smoke_test_Standalone_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
+      -  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-load-path=../../players
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+Build_smoke_test_Standalone_trunk:
+    name: Build SRP Smoke Test - Standalone_trunk
+    agent:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor --wait --published-only
-      -  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200
+      -  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --timeout=1200 --build-only
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
          rerun: on-new-revision
@@ -144,6 +161,9 @@ trunk_verification_trunk:
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_trunk
          rerun: on-new-revision
 smoke_test_Standalone_fast-trunk:
+    dependencies:
+      -  path: .yamato/_abv.yml#Build_smoke_test_Standalone_fast-trunk
+         rerun: on-new-revision
     name: SRP Smoke Test - Standalone_fast-trunk
     agent:
         type: Unity::VM::GPU
@@ -152,10 +172,24 @@ smoke_test_Standalone_fast-trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
+      -  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-load-path=../../players
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+Build_smoke_test_Standalone_fast-trunk:
+    name: Build SRP Smoke Test - Standalone_fast-trunk
+    agent:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor --wait --published-only
-      -  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200
+      -  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --timeout=1200 --build-only
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
          rerun: on-new-revision
@@ -251,6 +285,9 @@ trunk_verification_fast-trunk:
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_fast-trunk
          rerun: on-new-revision
 smoke_test_Standalone_CUSTOM-REVISION:
+    dependencies:
+      -  path: .yamato/_abv.yml#Build_smoke_test_Standalone_CUSTOM-REVISION
+         rerun: always
     name: SRP Smoke Test - Standalone_CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
@@ -260,10 +297,25 @@ smoke_test_Standalone_CUSTOM-REVISION:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
+      -  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-load-path=../../players
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+Build_smoke_test_Standalone_CUSTOM-REVISION:
+    name: Build SRP Smoke Test - Standalone_CUSTOM-REVISION
+    agent:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: custom_revision_not_set
+    commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor --wait --published-only
-      -  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200
+      -  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --timeout=1200 --build-only
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always

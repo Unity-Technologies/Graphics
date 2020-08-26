@@ -117,6 +117,9 @@ def abv_job_id_all_project_ci_nightly(editor_version):
 def abv_job_id_smoke_test(editor_version, test_platform_name):
     return f'smoke_test_{test_platform_name}_{editor_version}'
 
+def abv_job_id_smoke_test_build(editor_version, test_platform_name):
+    return f'Build_smoke_test_{test_platform_name}_{editor_version}'
+
 def abv_job_id_all_smoke_tests(editor_version):
     return f'all_smoke_tests_{editor_version}'
 

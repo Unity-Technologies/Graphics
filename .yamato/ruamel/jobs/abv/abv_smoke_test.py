@@ -9,6 +9,38 @@ class ABV_SmokeTestJob():
         self.job_id = abv_job_id_smoke_test(editor["version"], test_platform["name"])
         self.yml = self.get_job_definition(editor, test_platform, smoke_test).get_yml()
 
+    def _cmd_base(self, editor, test_platform, smoke_test):
+        dependencies = [{
+                    'path':f'{editor_filepath()}#{editor_job_id(editor["version"], "windows")}',
+                    'rerun': editor["rerun_strategy"]}]
+        commands = [
+            f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}/{smoke_test["folder"]}/utr.bat',
+            f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
+            f'cd {TEST_PROJECTS_DIR}/{smoke_test["folder"]} && unity-downloader-cli --source-file ../../{PATH_UNITY_REVISION} -c editor --wait --published-only'
+        ]
+
+
+    def cmd_not_standalone(self, test_platform, smoke_test):
+        commands = _cmd_base()
+        commands.extend([
+            f'cd {TEST_PROJECTS_DIR}/{smoke_test["folder"]} && utr {test_platform["args"]} --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}'
+        ])
+        return commands
+
+
+    def cmd_standalone(self, test_platform, smoke_test):
+        commands = [
+            f'cd {TEST_PROJECTS_DIR}/{smoke_test["folder"]} && utr {test_platform["args"]}Windows64 --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS} --timeout=1200 --player-load-path=../../{PATH_PLAYERS}'
+        ]
+        return commands
+
+    def cmd_standalone_build(self, test_platform, smoke_test):
+        commands = _cmd_base()
+        commands.extend([
+            f'cd {TEST_PROJECTS_DIR}/{smoke_test["folder"]} && utr {test_platform["args"]}Windows64 --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS} --player-save-path=../../{PATH_PLAYERS} --timeout=1200 --build-only'
+        ])
+        return commands
+
 
     def get_job_definition(self, editor, test_platform, smoke_test): 
         agent = dict(smoke_test["agent"])
