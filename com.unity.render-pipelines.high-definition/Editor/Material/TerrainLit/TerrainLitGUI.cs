@@ -65,12 +65,12 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent defaultValues = new GUIContent("Channel Default Values");
             public readonly GUIContent metallic = new GUIContent("R: Metallic");
             public readonly GUIContent ao = new GUIContent("G: AO");
-            public readonly GUIContent height = new GUIContent("B: Height");
-            public readonly GUIContent heightParametrization = new GUIContent("Parametrization");
-            public readonly GUIContent heightAmplitude = new GUIContent("Amplitude (cm)", "Range in world units (\"cm\") of remapped values");
-            public readonly GUIContent heightBase = new GUIContent("Base", "Normalized center of remapped Amplitude");
-            public readonly GUIContent heightMin = new GUIContent("Min (cm)");
-            public readonly GUIContent heightMax = new GUIContent("Max (cm)");
+            public readonly GUIContent height = new GUIContent("B: Height", "Specifies the Height Map for this Material.");
+            public readonly GUIContent heightParametrization = new GUIContent("Parametrization", "Specifies the parametrization method for the Height Map.");
+            public readonly GUIContent heightAmplitude = new GUIContent("Amplitude", "Sets the amplitude of the Height Map (in centimeters).");
+            public readonly GUIContent heightBase = new GUIContent("Base", "Controls the base of the Height Map (between 0 and 1).");
+            public readonly GUIContent heightMin = new GUIContent("Min", "Sets the minimum value in the Height Map (in centimeters).");
+            public readonly GUIContent heightMax = new GUIContent("Max", "Sets the maximum value in the Height Map (in centimeters).");
             public readonly GUIContent heightCm = new GUIContent("B: Height (cm)");
             public readonly GUIContent smoothness = new GUIContent("A: Smoothness");
         }
