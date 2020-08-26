@@ -11784,7 +11784,7 @@ PlayableDirector:
     value: {fileID: 1922889286}
   - key: {fileID: -1729864149966584170, guid: 5a54d61bc58f43341aa47f398b54ed14, type: 2}
     value: {fileID: 1594496557}
-  - key: {fileID: -6517008417706252185, guid: 5a54d61bc58f43341aa47f398b54ed14, type: 2}
+  - key: {fileID: 0}
     value: {fileID: 0}
   m_ExposedReferences:
     m_References:
@@ -16234,7 +16234,7 @@ MonoBehaviour:
     distanceFadeStart: 50
     distanceFadeEnd: 60
     textureIndex: 0
-    textureOffset: {x: -0, y: -39.96285, z: 0}
+    textureOffset: {x: -0, y: -6.351661, z: 0}
 --- !u!1001 &1504255721
 PrefabInstance:
   m_ObjectHideFlags: 0
