@@ -570,19 +570,25 @@ namespace UnityEditor.VFX
         static public VFXExpression ApplyAddressingMode(VFXExpression index, VFXExpression count, SequentialAddressingMode mode)
         {
             VFXExpression r = null;
+
             if (mode == SequentialAddressingMode.Wrap)
             {
-                r = VFXOperatorUtility.Modulo(index, count);
+                r = Modulo(index, count);
             }
             else if (mode == SequentialAddressingMode.Clamp)
             {
-                r = VFXOperatorUtility.Clamp(index, ZeroExpression[VFXValueType.Uint32], count, false);
+                var countMinusOne = count - OneExpression[VFXValueType.Uint32];
+                r = new VFXExpressionMin(index, countMinusOne);
             }
             else if (mode == SequentialAddressingMode.Mirror)
             {
-                var direction = VFXOperatorUtility.Modulo(index / count, VFXOperatorUtility.TwoExpression[VFXValueType.Uint32]);
-                var modulo = VFXOperatorUtility.Modulo(index, count);
-                r = VFXOperatorUtility.Lerp(modulo, count - modulo, direction);
+                var two = TwoExpression[VFXValueType.Uint32];
+                var cycle = count * two - two;
+                cycle = new VFXExpressionMax(cycle, OneExpression[VFXValueType.Uint32]);
+                var modulo = Modulo(index, cycle);
+                //TODO: Remove float casting for 10.x.x
+                var compare = new VFXExpressionCondition(VFXCondition.Less, new VFXExpressionCastUintToFloat(modulo), new VFXExpressionCastUintToFloat(count));
+                r = new VFXExpressionBranch(compare, modulo, cycle - modulo);
             }
             return r;
         }
