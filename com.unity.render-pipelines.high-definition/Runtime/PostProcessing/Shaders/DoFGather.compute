@@ -76,6 +76,28 @@ int GetCoCBucket(float cocSize)
         return 2;
     }
 }
+float GetBucketWeight(float sampleCoC, float noise, int bucket)
+{
+    // Note: we could potentially get higher quality by allowing artists to fine-tune the bucket/cascade transitions,
+    // but DoF is not as sensitive as shadows, so for now it's better to not expose many settings.
+    const float bucketLimit[NUM_BUCKETS - 1] = { 5.0f, 0.0f };
+    const float bucketTransition[NUM_BUCKETS - 1] = { 7.0f, 1.0f };
+
+    float w0 = saturate((sampleCoC - bucketLimit[0] - bucketTransition[0] * noise) / bucketTransition[0]);
+    float w1 = saturate((bucketTransition[1] * noise - sampleCoC) / bucketTransition[1]);
+    if (bucket == 0)
+    {
+        return w0;
+    }
+    else if (bucket == 2)
+    {
+        return w1;
+    }
+    else
+    {
+        return 1.0 - w0 - w1;
+    }
+}
 
 float GetCoCRadius(int2 positionSS, out int bucketIndex)
 {
@@ -129,17 +151,18 @@ float2 PointInCircle(float angle)
 float GetNumSamples(float radius, float maxRadius)
 {
     float dR = maxRadius / NumRings;
-    float rings = floor(radius / dR);
+    float rings = (dR == 0) ? 0 : floor(radius / dR);
     float seriesSum = 0.5 * rings * (rings + 1);
     return 1.0 + seriesSum * RING_DENSITY;
 }
 
 float GetRingWeight(int index, float dR)
 {
+    if (index == 0) return 1;
     float ringRadius = index * dR;
     float ringArea = PI * ringRadius * ringRadius;
 
-    float prevRingRadius = max(0, index - 1) * dR;
+    float prevRingRadius = (index - 1) * dR;
     float prevRingArea = PI * prevRingRadius * prevRingRadius;
 
     ringArea = ringArea - prevRingArea;
@@ -186,21 +209,24 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     float noise = InterleavedGradientNoise(posInputs.positionSS.xy, sampleOffset);
     float noise2 = InterleavedGradientNoise(posInputs.positionSS.xy, 8 + sampleOffset);
 
+    // Note: For zero radius we still go through the loop (for one iteration). We can avoid the cost of computing weigths if we early exit (at the cost of extra code complexity).
+    float totalRings = maxRadius > 0 ? NumRings : 0;
+
     // Iterate over the octaweb pattern and gather the DoF samples
-    for (float ring = NumRings; ring >= 0; ring -= 1.0)
+    for (float ring = totalRings; ring >= 0; ring -= 1.0)
     {
         float numSamples = max(ring * RING_DENSITY, 1);
         float dAng = 2.0f * PI / numSamples;
 
 #ifndef GRADIENT_NOISE
-        float radius = ring * dR + stratum * dR;
+        float radius = max((ring - 1) * dR + stratum * dR, 0);
         float ringOffset = 0.5 * fmod(ring, 2.0f) * dAng;
 #else
-        float radius = (ring - 1) * dR + noise2 * dR;
+        float radius = max((ring - 1) * dR + noise2 * dR, 0);
         float ringOffset = noise * dAng;
 #endif
 
-        float ringWeight = GetRingWeight(max(1, ring), dR);
+        float ringWeight = GetRingWeight(max(0, ring), dR);
 
 #ifdef OCTAWEB_SORTING
         float4 ringColor[NUM_BUCKETS];
@@ -232,25 +258,30 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
             if (abs(sampleCoC) >= radius)
             {
-                float weight = ringWeight * GetSampleWeight(abs(sampleCoC));
-                RING_COLOR[sampleBucket] += float4(sampleColor.xyz * weight, weight);
-                RING_MAXCOC[sampleBucket] = max(RING_MAXCOC[sampleBucket], abs(sampleCoC));
+                for (int j = 0; j < NUM_BUCKETS; ++j)
+                {
+                    float weight = ringWeight * GetSampleWeight(abs(sampleCoC));
+                    float bucketWeight = GetBucketWeight(sampleCoC, noise, j);
+                    weight *= bucketWeight;
+                    RING_COLOR[j] += float4(sampleColor.xyz * weight, weight);
+                    RING_MAXCOC[j] = max(RING_MAXCOC[j] * bucketWeight, abs(sampleCoC));
 #ifdef OCTAWEB_SORTING
-                ringHits[sampleBucket] += 1.0;
+                    ringHits[j] += bucketWeight;
 #endif
 #ifdef ENABLE_ALPHA
-                RING_ALPHA[sampleBucket] = sampleColor.w * weight;
+                    RING_ALPHA[j] = sampleColor.w * weight;
 #endif
+                }
             }
         }
 
 #ifdef OCTAWEB_SORTING
         for (int j = 0; j < NUM_BUCKETS; ++j)
         {
-            float currentAvg = RING_COLOR[j].w * rcp(ring * RING_DENSITY);
+            float currentAvg = RING_COLOR[j].w * numSamples;
             float prevAvg = (ring < numRings) ? prevRingWeight[j] : currentAvg;
             float occlusion = saturate(prevAvg - currentAvg);
-            float alpha = ringHits[j] * rcp(ring * RING_DENSITY);
+            float alpha = ringHits[j] * numSamples;
 
             float blendFactor = 1.0 - alpha * occlusion;
             totalColor[j] = blendFactor * totalColor[j] + RING_COLOR[j];
@@ -270,7 +301,10 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     // back to front alpha blending of the near, far and in-focus buckets
     for (int j = 0; j < NUM_BUCKETS; ++j)
     {
-        float alpha = saturate(totalColor[j].w * rcp(GetNumSamples(maxCoC[j], maxRadius)) * rcp(GetSampleWeight(maxCoC[j])));
+        // Reference: "Next Generation Post-Processing in Call of Duty Advanced Warfare", Advances in real-time rendering, Siggraph 2014
+        // See slide 102 for the normalization factor for the alpha. The 2x factor (see slide 103) also helps with the far layers for 
+        // large amounts of defocus blur, but this might need more investigation.
+        float alpha = saturate(totalColor[j].w * 2 * rcp(GetNumSamples(maxCoC[j], maxRadius))* rcp(GetSampleWeight(maxCoC[j])));
         outColor = (1.0 - alpha) * outColor + alpha * totalColor[j];
 #ifdef ENABLE_ALPHA
         outAlpha = (1.0 - alpha) * outAlpha + alpha * totalAlpha[j];

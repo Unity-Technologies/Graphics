@@ -76,10 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void CreateSceneSettingsGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;
-            var settings = CoreEditorUtils.CreateGameObject(parent, "Sky and Fog Volume");
-            GameObjectUtility.SetParentAndAlign(settings, menuCommand.context as GameObject);
-            Undo.RegisterCreatedObjectUndo(settings, "Create " + settings.name);
-            Selection.activeObject = settings;
+            var settings = CoreEditorUtils.CreateGameObject("Sky and Fog Volume", parent);
 
             var profile = VolumeProfileFactory.CreateVolumeProfile(settings.scene, "Sky and Fog Settings");
             var visualEnv = VolumeProfileFactory.CreateVolumeComponent<VisualEnvironment>(profile, true, false);
