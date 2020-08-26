@@ -121,7 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_RayCountTexture;
         }
 
-        public TextureHandle CreateRayCountTexture(RenderGraph renderGraph)
+        static public TextureHandle CreateRayCountTexture(RenderGraph renderGraph)
         {
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
             {

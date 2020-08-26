@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle colorBuffer = CreateColorBuffer(m_RenderGraph, hdCamera, msaa);
             m_NonMSAAColorBuffer = CreateColorBuffer(m_RenderGraph, hdCamera, false);
             TextureHandle currentColorPyramid = m_RenderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain));
-            TextureHandle rayCountTexture = GetRayCountManager().CreateRayCountTexture(m_RenderGraph);
+            TextureHandle rayCountTexture = RayCountManager.CreateRayCountTexture(m_RenderGraph);
 
             LightingBuffers lightingBuffers = new LightingBuffers();
             lightingBuffers.diffuseLightingBuffer = CreateDiffuseLightingBuffer(m_RenderGraph, msaa);
