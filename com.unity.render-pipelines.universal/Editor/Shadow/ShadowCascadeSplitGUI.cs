@@ -58,6 +58,7 @@ namespace UnityEditor.Rendering.Universal
             */
         public static void HandleCascadeSliderGUI(ref float[] normalizedCascadePartitions, float distance, EditorUtils.Unit unit)
         {
+            EditorGUI.indentLevel--;
             EditorGUILayout.BeginHorizontal();
             GUILayout.Space(EditorGUI.indentLevel * 15f);
             // get the inspector width since we need it while drawing the partition rects.
