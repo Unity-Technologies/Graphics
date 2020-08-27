@@ -22,7 +22,7 @@ public class SetQualityLevelOnAwake : MonoBehaviour
         int nextIndex = qualityLevelIndex;
         string cur = qualityLevelNames[prevQualityLevelIndex];
         string next = qualityLevelNames[qualityLevelIndex];
-        Debug.Log("SetQualityLevelOnAwake.Awake():\nSwitching from " + cur + "(" + curIndex + ") to " + next + "(" + nextIndex + ")");
+        //Debug.Log("SetQualityLevelOnAwake.Awake():\nSwitching from " + cur + "(" + curIndex + ") to " + next + "(" + nextIndex + ")");
         QualitySettings.SetQualityLevel(qualityLevelIndex, true);
     }
 
@@ -37,7 +37,7 @@ public class SetQualityLevelOnAwake : MonoBehaviour
         int nextIndex = prevQualityLevelIndex;
         string cur = qualityLevelNames[curIndex];
         string next = qualityLevelNames[nextIndex];
-        Debug.Log("SetQualityLevelOnAwake.OnDisable():\nSwitching from " + cur + "(" + curIndex + ") to " + next + "(" + nextIndex + ")");
+        //Debug.Log("SetQualityLevelOnAwake.OnDisable():\nSwitching from " + cur + "(" + curIndex + ") to " + next + "(" + nextIndex + ")");
         QualitySettings.SetQualityLevel(prevQualityLevelIndex, true);
     }
 }
