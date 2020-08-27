@@ -48,6 +48,16 @@ namespace UnityEngine.Rendering.Universal
 
             [Reload("Shaders/Utils/FallbackError.shader")]
             public Shader fallbackErrorPS;
+
+            // Sky
+            [Reload("Runtime/Sky/HDRISky/HDRISky.shader")]
+            public Shader skyHdriSkyPS;
+
+            [Reload("Runtime/Sky/GradientSky/GradientSky.shader")]
+            public Shader skyGradientSkyPS;
+
+            // TODO Physically based sky
+            // TODO Ambient probes
         }
 
         [Reload("Runtime/Data/PostProcessData.asset")]

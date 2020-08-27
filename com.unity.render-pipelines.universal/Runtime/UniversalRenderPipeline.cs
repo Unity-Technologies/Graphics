@@ -170,6 +170,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             InitializeCameraData(camera, additionalCameraData, true, out var cameraData);
+            SkyManager.UpdateCurrentSkySettings(ref cameraData);
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             if (asset.useAdaptivePerformance)
                 ApplyAdaptivePerformance(ref cameraData);
@@ -322,6 +323,7 @@ namespace UnityEngine.Rendering.Universal
             bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
 
             InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
+            SkyManager.UpdateCurrentSkySettings(ref baseCameraData);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             var originalTargetDesc = baseCameraData.cameraTargetDescriptor;
@@ -588,6 +590,40 @@ namespace UnityEngine.Rendering.Universal
             bool needsAlphaChannel = Graphics.preserveFramebufferAlpha;
             cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(baseCamera, cameraData.renderScale,
                 cameraData.isHdrEnabled, msaaSamples, needsAlphaChannel);
+
+            {
+                // TODO Can this math be simplified?
+                // TODO HDRP uses simpler math for XR
+                Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
+                Matrix4x4 projectionMatrix = camera.projectionMatrix;
+                float width = camera.pixelWidth;
+                float height = camera.pixelHeight;
+                float aspectRatio = -projectionMatrix.m11 / projectionMatrix.m00;
+                float verticalFoV = camera.GetGateFittedFieldOfView(); // Degrees, multiply by Mathf.Deg2Rad
+                Vector2 lensShift = camera.GetGateFittedLensShift();
+
+                if (aspectRatio < 0)
+                    aspectRatio = width / height;
+
+                float tanHalfVertFoV = Mathf.Tan(0.5f * verticalFoV * Mathf.Deg2Rad);
+
+                float m21 = (1.0f - 2.0f * lensShift.y) * tanHalfVertFoV;
+                float m11 = -2.0f / height * tanHalfVertFoV;
+
+                float m20 = (1.0f - 2.0f * lensShift.x) * tanHalfVertFoV * aspectRatio;
+                float m00 = -2.0f / width * tanHalfVertFoV * aspectRatio;
+
+                var viewSpaceRasterTransform = new Matrix4x4(
+                    new Vector4(m00, 0.0f, 0.0f, 0.0f),
+                    new Vector4(0.0f, m11, 0.0f, 0.0f),
+                    new Vector4(m20, m21, -1.0f, 0.0f),
+                    new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+
+                viewMatrix.SetColumn(3, new Vector4(0, 0, 0, 1));
+                viewMatrix.SetRow(2, -viewMatrix.GetRow(2));
+
+                cameraData.pixelCoordToViewDirMatrix = Matrix4x4.Transpose(viewMatrix.transpose * viewSpaceRasterTransform);
+            }
         }
 
         /// <summary>

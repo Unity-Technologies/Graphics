@@ -18,7 +18,9 @@ namespace UnityEngine.Rendering.Universal
         DepthNormalOnlyPass m_DepthNormalPrepass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
+        SkyPrerenderPass m_SkyPrerenderPass;
         DrawObjectsPass m_RenderOpaqueForwardPass;
+        SkyRenderPass m_SkyRenderPass;
         DrawSkyboxPass m_DrawSkyboxPass;
         CopyDepthPass m_CopyDepthPass;
         CopyColorPass m_CopyColorPass;
@@ -82,9 +84,11 @@ namespace UnityEngine.Rendering.Universal
 #endif
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
+            m_SkyPrerenderPass = new SkyPrerenderPass(RenderPassEvent.BeforeRenderingPrepasses);
             m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrepasses, data.postProcessData);
             m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
+            m_SkyRenderPass = new SkyRenderPass(RenderPassEvent.BeforeRenderingSkybox);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
@@ -149,7 +153,7 @@ namespace UnityEngine.Rendering.Universal
                 ConfigureCameraTarget(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
                 AddRenderPasses(ref renderingData);
                 EnqueuePass(m_RenderOpaqueForwardPass);
-                EnqueuePass(m_DrawSkyboxPass);
+                EnqueuePass(m_DrawSkyboxPass); // TODO Use Sky system here too?
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
                 if (!needTransparencyPass)
                     return;
@@ -289,6 +293,14 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
+            bool hasVisualSky = cameraData.visualSky != null && cameraData.visualSky.IsValid();
+            if (requiresDepthPrepass && hasVisualSky && camera.clearFlags == CameraClearFlags.Skybox)
+            {
+                m_SkyPrerenderPass.Setup(cameraTargetDescriptor, m_DepthTexture);
+                EnqueuePass(m_SkyPrerenderPass);
+            }
+            
+
             if (generateColorGradingLUT)
             {
                 m_ColorGradingLutPass.Setup(m_ColorGradingLut);
@@ -303,8 +315,17 @@ namespace UnityEngine.Rendering.Universal
             EnqueuePass(m_RenderOpaqueForwardPass);
 
             bool isOverlayCamera = cameraData.renderType == CameraRenderType.Overlay;
-            if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null && !isOverlayCamera)
-                EnqueuePass(m_DrawSkyboxPass);
+            if (camera.clearFlags == CameraClearFlags.Skybox && !isOverlayCamera)
+            {
+                if (hasVisualSky)
+                {
+                    EnqueuePass(m_SkyRenderPass);
+                }
+                else if (RenderSettings.skybox != null)
+                {
+                    EnqueuePass(m_DrawSkyboxPass);
+                }
+            }
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
             if (!requiresDepthPrepass && renderingData.cameraData.requiresDepthTexture && createDepthTexture)
