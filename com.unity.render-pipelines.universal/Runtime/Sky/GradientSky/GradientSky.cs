@@ -15,7 +15,20 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Sets the size of the horizon (Middle color).")]
         public FloatParameter gradientDiffusion = new FloatParameter(1);
 
-        // TODO Hash
+        public override int GetHashCode()
+        {
+            int hash = base.GetHashCode();
+
+            unchecked
+            {
+                hash = hash * 23 + top.GetHashCode();
+                hash = hash * 23 + middle.GetHashCode();
+                hash = hash * 23 + bottom.GetHashCode();
+                hash = hash * 23 + gradientDiffusion.GetHashCode();
+            }
+
+            return hash;
+        }
 
         public override Type GetSkyRendererType() { return typeof(GradientSkyRenderer); }
     }
