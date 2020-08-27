@@ -39,13 +39,10 @@ public class UniversalGraphicsTests
         var settings = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
 
-        //Include these tests for deferred
-        for(int i=0;i<IncludeTheseTestsForDeferred.Length;i++)
+        //Ignore this test if test scene is NOT in the deferred test scene list
+        if ( !System.Array.Exists(IncludeTheseTestsForDeferred, x => testCase.ScenePath.ToString().Contains(x)) )
         {
-            if ( !testCase.ScenePath.ToString().Contains(IncludeTheseTestsForDeferred[i]) )
-            {
-               Assert.Ignore("This test is ignored for Deferred Rendering Path."); 
-            }
+            Assert.Ignore("This test is ignored for Deferred Rendering Path."); 
         }
 
 #if ENABLE_VR
@@ -151,6 +148,9 @@ public class UniversalGraphicsTests
         //Camera stacking (Enable these 2 tests when deferred camera stacking is implemented)
         //"111_CameraStackMSAA",
         //"123_CameraStackingClear",
+
+        //Deferred-only test scenes
+        "010_AdditionalLightsSorted_Deferred"
     };
 
 
