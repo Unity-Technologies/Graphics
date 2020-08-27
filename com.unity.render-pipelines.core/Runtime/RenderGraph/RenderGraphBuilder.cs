@@ -211,7 +211,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 return;
 
             m_RenderGraph.OnPassAdded(m_RenderPass);
-
             m_Disposed = true;
         }
 
@@ -221,6 +220,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (res.IsValid())
             {
                 int transientIndex = m_Resources.GetResourceTransientIndex(res);
+                if (transientIndex == m_RenderPass.index)
+                {
+                    Debug.LogError($"Trying to read or write a transient resource at pass {m_RenderPass.name}.Transient resource are always assumed to be both read and written.");
+                }
+
                 if (transientIndex != -1 && transientIndex != m_RenderPass.index)
                 {
                     throw new ArgumentException($"Trying to use a transient texture (pass index {transientIndex}) in a different pass (pass index {m_RenderPass.index}.");

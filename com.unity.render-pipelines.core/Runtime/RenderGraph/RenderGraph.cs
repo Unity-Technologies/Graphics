@@ -52,7 +52,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public bool clearRenderTargetsAtCreation;
         public bool clearRenderTargetsAtRelease;
         public bool disablePassCulling;
-        public bool immediateMode;
+        public bool immediateMode = true;
         public bool logFrameInformation;
         public bool logResources;
 
@@ -143,7 +143,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             public bool             needGraphicsFence;
             public GraphicsFence    fence;
 
-            public bool             enableAsyncCompute { get { return pass.enableAsyncCompute; } }
+            public bool             enableAsyncCompute;
             public bool             allowPassCulling { get { return pass.allowPassCulling; } }
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
@@ -155,6 +155,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             public void Reset(RenderGraphPass pass)
             {
                 this.pass = pass;
+                enableAsyncCompute = pass.enableAsyncCompute;
 
                 if (resourceCreateList == null)
                 {
@@ -212,6 +213,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         bool                                    m_ExecutionExceptionWasRaised;
         RenderGraphContext                      m_RenderGraphContext = new RenderGraphContext();
         CommandBuffer                           m_PreviousCommandBuffer;
+        int                                     m_CurrentImmediatePassIndex;
+        List<int>[]                             m_ImmediateModeResourceList = new List<int>[(int)RenderGraphResourceType.Count];
 
         // Compiled Render Graph info.
         DynamicArray<CompiledResourceInfo>[]    m_CompiledResourcesInfos = new DynamicArray<CompiledResourceInfo>[(int)RenderGraphResourceType.Count];
@@ -417,6 +420,25 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_RenderGraphContext.renderContext = parameters.scriptableRenderContext;
             m_RenderGraphContext.renderGraphPool = m_RenderGraphPool;
             m_RenderGraphContext.defaultResources = m_DefaultResources;
+
+            if (m_DebugParameters.immediateMode)
+            {
+                LogFrameInformation();
+
+                // Prepare the list of compiled pass info for immediate mode.
+                // Conservative resize because we don't know how many passes there will be.
+                // We might still need to grow the array later on anyway if it's not enough.
+                m_CompiledPassInfos.Resize(m_CompiledPassInfos.capacity);
+                m_CurrentImmediatePassIndex = 0;
+
+                for(int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
+                {
+                    if (m_ImmediateModeResourceList[i] == null)
+                        m_ImmediateModeResourceList[i] = new List<int>();
+
+                    m_ImmediateModeResourceList[i].Clear();
+                }
+            }
         }
 
         /// <summary>
@@ -448,6 +470,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
             finally
             {
+                if (m_DebugParameters.immediateMode)
+                    ReleaseImmediateModeResources();
+
                 ClearCompiledGraph();
 
                 if (m_DebugParameters.logFrameInformation || m_DebugParameters.logResources)
@@ -900,12 +925,72 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             LogRendererListsCreation();
         }
 
-        void ExecutePassImmediatly(RenderGraphPass pass)
+        ref CompiledPassInfo CompilePassImmediatly(RenderGraphPass pass)
         {
+            // If we don't have enough pre allocated elements we double the size.
+            // It's pretty aggressive but the immediate mode is only for debug purpose so it should be fine.
+            if (m_CurrentImmediatePassIndex >= m_CompiledPassInfos.size)
+                m_CompiledPassInfos.Resize(m_CompiledPassInfos.size * 2);
 
+            ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[m_CurrentImmediatePassIndex++];
+            passInfo.Reset(pass);
+            // In immediate mode we don't have proper information to generate synchronization so we disable async compute.
+            passInfo.enableAsyncCompute = false;
+
+            // In immediate mode, we don't have any resource usage information so we'll just create resources whenever they are written to if not already alive.
+            // We will release all resources at the end of the render graph execution.
+            for (int iType = 0; iType < (int)RenderGraphResourceType.Count; ++iType)
+            {
+                foreach (var res in pass.resourceWriteLists[iType])
+                {
+                    if (!m_Resources.IsResourceCreated(res))
+                    {
+                        passInfo.resourceCreateList[iType].Add(res);
+                        m_ImmediateModeResourceList[iType].Add(res);
+                    }
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                    passInfo.debugResourceWrites[iType].Add(m_Resources.GetResourceName(res));
+#endif
+                }
+
+                foreach (var res in pass.transientResourceList[iType])
+                {
+                    passInfo.resourceCreateList[iType].Add(res);
+                    passInfo.resourceReleaseList[iType].Add(res);
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                    passInfo.debugResourceWrites[iType].Add(m_Resources.GetResourceName(res));
+                    passInfo.debugResourceReads[iType].Add(m_Resources.GetResourceName(res));
+#endif
+                }
+
+                foreach (var res in pass.resourceReadLists[iType])
+                {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                    passInfo.debugResourceReads[iType].Add(m_Resources.GetResourceName(res));
+#endif
+                }
+            }
+
+            // Create the necessary renderer lists
+            foreach(var rl in pass.usedRendererListList)
+            {
+                if (!m_Resources.IsRendererListCreated(rl))
+                    m_RendererLists.Add(rl);
+            }
+            m_Resources.CreateRendererLists(m_RendererLists);
+            m_RendererLists.Clear();
+
+            return ref passInfo;
         }
 
-        void ExecuteCompiledPass(ref CompiledPassInfo passInfo)
+        void ExecutePassImmediatly(RenderGraphPass pass)
+        {
+            ExecuteCompiledPass(ref CompilePassImmediatly(pass), m_CurrentImmediatePassIndex - 1);
+        }
+
+        void ExecuteCompiledPass(ref CompiledPassInfo passInfo, int passIndex)
         {
             if (passInfo.culled)
                 return;
@@ -931,7 +1016,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             catch (Exception e)
             {
                 m_ExecutionExceptionWasRaised = true;
-                Debug.LogError($"Render Graph Execution error at pass {passInfo.pass.name}");
+                Debug.LogError($"Render Graph Execution error at pass {passInfo.pass.name} ({passIndex})");
                 Debug.LogException(e);
                 throw;
             }
@@ -942,7 +1027,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             for (int passIndex = 0; passIndex < m_CompiledPassInfos.size; ++passIndex)
             {
-                ExecuteCompiledPass(ref m_CompiledPassInfos[passIndex]);
+                ExecuteCompiledPass(ref m_CompiledPassInfos[passIndex], passIndex);
             }
         }
 
@@ -1010,7 +1095,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             rgContext.renderContext.ExecuteCommandBuffer(rgContext.cmd);
             rgContext.cmd.Clear();
 
-            if (pass.enableAsyncCompute)
+            if (passInfo.enableAsyncCompute)
             {
                 CommandBuffer asyncCmd = CommandBufferPool.Get(pass.name);
                 asyncCmd.SetExecutionFlags(CommandBufferExecutionFlags.AsyncCompute);
@@ -1031,7 +1116,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (passInfo.needGraphicsFence)
                 passInfo.fence = rgContext.cmd.CreateAsyncGraphicsFence();
 
-            if (pass.enableAsyncCompute)
+            if (passInfo.enableAsyncCompute)
             {
                 // The command buffer has been filled. We can kick the async task.
                 rgContext.renderContext.ExecuteCommandBufferAsync(rgContext.cmd, ComputeQueueType.Background);
@@ -1054,12 +1139,22 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_RenderPasses.Clear();
         }
 
+        void ReleaseImmediateModeResources()
+        {
+            foreach (var texture in m_ImmediateModeResourceList[(int)RenderGraphResourceType.Texture])
+                m_Resources.ReleaseTexture(m_RenderGraphContext, texture);
+            foreach (var buffer in m_ImmediateModeResourceList[(int)RenderGraphResourceType.ComputeBuffer])
+                m_Resources.ReleaseComputeBuffer(m_RenderGraphContext, buffer);
+        }
+
         void LogFrameInformation()
         {
             if (m_DebugParameters.logFrameInformation)
             {
                 m_Logger.LogLine("==== Staring render graph frame ====");
-                m_Logger.LogLine("Number of passes declared: {0}\n", m_RenderPasses.Count);
+
+                if (!m_DebugParameters.immediateMode)
+                    m_Logger.LogLine("Number of passes declared: {0}\n", m_RenderPasses.Count);
             }
         }
 

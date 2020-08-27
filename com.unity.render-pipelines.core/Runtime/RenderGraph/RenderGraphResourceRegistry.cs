@@ -48,6 +48,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 return "";
             }
+
+            public virtual bool IsCreated()
+            {
+                return false;
+            }
         }
 
         #region Resources
@@ -69,6 +74,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 base.Reset();
                 resource = null;
+            }
+
+            public override bool IsCreated()
+            {
+                return resource != null;
             }
         }
 
@@ -198,6 +208,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             CheckHandleValidity(res);
             return m_Resources[res.iType][res.index].imported;
+        }
+
+        internal bool IsResourceCreated(in ResourceHandle res)
+        {
+            CheckHandleValidity(res);
+            return m_Resources[res.iType][res.index].IsCreated();
+        }
+
+        internal bool IsRendererListCreated(in RendererListHandle res)
+        {
+            return m_RendererListResources[res].rendererList.isValid;
         }
 
         internal int GetResourceTransientIndex(in ResourceHandle res)
