@@ -19,7 +19,7 @@ After you add a **Procedural Sky** override, you must set the Volume to use **Pr
 
 ## Properties
 
-[!include[](Snippets/Volume-Override-Enable-Properties.md)]
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 | Property                  | Description                                                  |
 | ------------------------- | ------------------------------------------------------------ |
