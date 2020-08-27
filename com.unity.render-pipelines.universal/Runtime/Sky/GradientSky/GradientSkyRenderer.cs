@@ -45,5 +45,20 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
         }
 
+        public override SphericalHarmonicsL2 GetAmbientProbe(ref CameraData cameraData)
+        {
+            var gradientSky = (cameraData.visualSky.skySettings as GradientSky);
+
+            // TODO: Figure out a proper way to calculate the SH. Support gradientDiffusion and sky intensity.
+            var ambientProbe = new SphericalHarmonicsL2();
+            var middleColor = gradientSky.middle.value;
+            ambientProbe.AddAmbientLight(middleColor);
+            ambientProbe.AddDirectionalLight(Vector3.up, middleColor, -1f);
+            ambientProbe.AddDirectionalLight(Vector3.down, middleColor, -1f);
+            ambientProbe.AddDirectionalLight(Vector3.up, gradientSky.top.value, 1f);
+            ambientProbe.AddDirectionalLight(Vector3.down, gradientSky.bottom.value, 1f);
+
+            return ambientProbe;
+        }
     }
 }
