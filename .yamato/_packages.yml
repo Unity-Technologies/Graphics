@@ -1032,6 +1032,8 @@ test_core_windows_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
 test_core_windows_CUSTOM-REVISION_dependencies:
     name: Test Core Win CUSTOM-REVISION - dependencies
     agent:
@@ -1076,6 +1078,8 @@ test_lwrp_windows_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
 test_lwrp_windows_CUSTOM-REVISION_dependencies:
     name: Test Lightweight Win CUSTOM-REVISION - dependencies
     agent:
@@ -1125,6 +1129,8 @@ test_shadergraph_windows_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
 test_shadergraph_windows_CUSTOM-REVISION_dependencies:
     name: Test ShaderGraph Win CUSTOM-REVISION - dependencies
     agent:
@@ -1175,6 +1181,8 @@ test_hdrp_windows_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
 test_hdrp_windows_CUSTOM-REVISION_dependencies:
     name: Test HDRP Win CUSTOM-REVISION - dependencies
     agent:
@@ -1226,6 +1234,8 @@ test_universal_windows_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
 test_universal_windows_CUSTOM-REVISION_dependencies:
     name: Test Universal Win CUSTOM-REVISION - dependencies
     agent:
@@ -1275,6 +1285,8 @@ test_vfx_windows_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
 test_vfx_windows_CUSTOM-REVISION_dependencies:
     name: Test VFX Win CUSTOM-REVISION - dependencies
     agent:
@@ -1323,6 +1335,8 @@ test_config_windows_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
 test_config_windows_CUSTOM-REVISION_dependencies:
     name: Test Config Win CUSTOM-REVISION - dependencies
     agent:
@@ -1368,6 +1382,8 @@ test_core_macos_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
 test_core_macos_CUSTOM-REVISION_dependencies:
     name: Test Core OSX CUSTOM-REVISION - dependencies
     agent:
@@ -1412,6 +1428,8 @@ test_lwrp_macos_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
 test_lwrp_macos_CUSTOM-REVISION_dependencies:
     name: Test Lightweight OSX CUSTOM-REVISION - dependencies
     agent:
@@ -1461,6 +1479,8 @@ test_shadergraph_macos_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
 test_shadergraph_macos_CUSTOM-REVISION_dependencies:
     name: Test ShaderGraph OSX CUSTOM-REVISION - dependencies
     agent:
@@ -1511,6 +1531,8 @@ test_hdrp_macos_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
 test_hdrp_macos_CUSTOM-REVISION_dependencies:
     name: Test HDRP OSX CUSTOM-REVISION - dependencies
     agent:
@@ -1562,6 +1584,8 @@ test_universal_macos_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
 test_universal_macos_CUSTOM-REVISION_dependencies:
     name: Test Universal OSX CUSTOM-REVISION - dependencies
     agent:
@@ -1611,6 +1635,8 @@ test_vfx_macos_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
 test_vfx_macos_CUSTOM-REVISION_dependencies:
     name: Test VFX OSX CUSTOM-REVISION - dependencies
     agent:
@@ -1659,6 +1685,8 @@ test_config_macos_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
 test_config_macos_CUSTOM-REVISION_dependencies:
     name: Test Config OSX CUSTOM-REVISION - dependencies
     agent:
@@ -1729,6 +1757,8 @@ all_package_ci_CUSTOM-REVISION:
       -  .yamato/_packages.yml#test_universal_macos_CUSTOM-REVISION
       -  .yamato/_packages.yml#test_vfx_macos_CUSTOM-REVISION
       -  .yamato/_packages.yml#test_config_macos_CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t

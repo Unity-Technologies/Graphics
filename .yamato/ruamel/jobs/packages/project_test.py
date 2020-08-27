@@ -32,6 +32,7 @@ class Project_TestJob():
         job.add_dependencies(dependencies)
         job.add_commands(commands)
         job.add_artifacts_test_results()
+        job.add_var_custom_revision(editor["track"])
         return job
 
 
