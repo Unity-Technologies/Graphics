@@ -11,6 +11,8 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     class Vector3MaterialSlot : MaterialSlot, IMaterialSlotHasValue<Vector3>
     {
+        static readonly string[] k_LabelDefaults = { "X", "Y", "Z" };
+
         [SerializeField]
         private Vector3 m_Value;
 
@@ -18,7 +20,7 @@ namespace UnityEditor.ShaderGraph
         private Vector3 m_DefaultValue = Vector3.zero;
 
         [SerializeField]
-        string[] m_Labels;
+        string[] m_Labels; // this can be null, which means fallback to k_LabelDefaults
 
         public Vector3MaterialSlot()
         {
@@ -31,14 +33,22 @@ namespace UnityEditor.ShaderGraph
             SlotType slotType,
             Vector3 value,
             ShaderStageCapability stageCapability = ShaderStageCapability.All,
-            string label1 = "X",
-            string label2 = "Y",
-            string label3 = "Z",
+            string label1 = null,
+            string label2 = null,
+            string label3 = null,
             bool hidden = false)
             : base(slotId, displayName, shaderOutputName, slotType, stageCapability, hidden)
         {
             m_Value = value;
-            m_Labels = new[] { label1, label2, label3 };
+            if ((label1 != null) || (label2 != null) || (label3 != null))
+            {
+                m_Labels = new[]
+                {
+                    label1 ?? k_LabelDefaults[0],
+                    label2 ?? k_LabelDefaults[1],
+                    label3 ?? k_LabelDefaults[2]
+                };
+            }
         }
 
         public Vector3 defaultValue { get { return m_DefaultValue; } }
@@ -53,7 +63,7 @@ namespace UnityEditor.ShaderGraph
 
         public override VisualElement InstantiateControl()
         {
-            return new MultiFloatSlotControlView(owner, m_Labels, () => value, (newValue) => value = newValue);
+            return new MultiFloatSlotControlView(owner, m_Labels ?? k_LabelDefaults, () => value, (newValue) => value = newValue);
         }
 
         protected override string ConcreteSlotValueAsVariable()
