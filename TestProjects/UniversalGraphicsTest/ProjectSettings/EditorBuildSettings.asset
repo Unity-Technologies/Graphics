@@ -257,12 +257,18 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/127_DynamicScaling_DOF.unity
     guid: 069f595c511c463418479db2f730eec1
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/130_ClearCoat.unity
     guid: 2242f9ac270754ebea6016ff9370de29
   - enabled: 1
     path: Assets/Scenes/130_UnityMatrixIVP.unity
     guid: 716466bc92f8e4eeeb3c138524b04021
+  - enabled: 1
+    path: Assets/Scenes/131_ParallaxMapping.unity
+    guid: ac4701d765fa26b4f83d2fb9ed6b3c08
+  - enabled: 1
+    path: Assets/Scenes/132_DetailMapping.unity
+    guid: 0ad4d46f32f2cc942b4592c2f4368b83
   - enabled: 1
     path: Assets/Scenes/142_SSAO_DepthNormal_Projection.unity
     guid: c207f769f3e194ebc8cbd51e788ac65d

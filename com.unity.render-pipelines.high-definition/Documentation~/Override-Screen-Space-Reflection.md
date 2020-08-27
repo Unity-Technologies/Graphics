@@ -4,7 +4,7 @@ The **Screen Space Reflection** (SSR) override is a High Definition Render Pipel
 
 ## Enabling Screen Space Reflection
 
-[!include[](Snippets/Volume-Override-Enable.md)]
+[!include[](snippets/Volume-Override-Enable.md)]
 
 For this feature:
 The property to enable in your HDRP Asset is: **Lighting > Reflections > Screen Space Reflection**.
@@ -22,7 +22,7 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSR, so to enable and 
 
 ![](Images/Override-ScreenSpaceReflection1.png)
 
-[!include[](Snippets/Volume-Override-Enable-Properties.md)]
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 | **Property**                  | **Description**                                              |
 | ----------------------------- | ------------------------------------------------------------ |
