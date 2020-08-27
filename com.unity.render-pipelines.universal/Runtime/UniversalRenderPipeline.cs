@@ -596,13 +596,13 @@ namespace UnityEngine.Rendering.Universal
             {
                 // TODO Can this math be simplified?
                 // TODO HDRP uses simpler math for XR
-                Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
-                Matrix4x4 projectionMatrix = camera.projectionMatrix;
-                float width = camera.pixelWidth;
-                float height = camera.pixelHeight;
+                Matrix4x4 viewMatrix = baseCamera.worldToCameraMatrix;
+                Matrix4x4 projectionMatrix = baseCamera.projectionMatrix;
+                float width = baseCamera.pixelWidth;
+                float height = baseCamera.pixelHeight;
                 float aspectRatio = -projectionMatrix.m11 / projectionMatrix.m00;
-                float verticalFoV = camera.GetGateFittedFieldOfView(); // Degrees, multiply by Mathf.Deg2Rad
-                Vector2 lensShift = camera.GetGateFittedLensShift();
+                float verticalFoV = baseCamera.GetGateFittedFieldOfView(); // Degrees, multiply by Mathf.Deg2Rad
+                Vector2 lensShift = baseCamera.GetGateFittedLensShift();
 
                 if (aspectRatio < 0)
                     aspectRatio = width / height;
@@ -930,7 +930,7 @@ namespace UnityEngine.Rendering.Universal
             SphericalHarmonicsL2 ambientSH = RenderSettings.ambientProbe;
             Color linearGlossyEnvColor = new Color(ambientSH[0, 0], ambientSH[1, 0], ambientSH[2, 0]) * RenderSettings.reflectionIntensity;
             Color glossyEnvColor = CoreUtils.ConvertLinearToActiveColorSpace(linearGlossyEnvColor);
-            Shader.SetGlobalVector(PerFrameBuffer._GlossyEnvironmentColor, glossyEnvColor);
+            Shader.SetGlobalVector(ShaderPropertyId.glossyEnvironmentColor, glossyEnvColor);
             // TODO Should we move this to ScriptableRenderer.SetPerCameraShaderVariables ?
         }
 
