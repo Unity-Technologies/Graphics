@@ -96,7 +96,7 @@ Build_HDRP_Linux_Vulkan_Player_trunk:
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
-        flavor: b1.large
+        flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
@@ -209,7 +209,7 @@ Build_HDRP_Linux_Vulkan_Player_fast-trunk:
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
-        flavor: b1.large
+        flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
@@ -326,7 +326,7 @@ Build_HDRP_Linux_Vulkan_Player_CUSTOM-REVISION:
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
-        flavor: b1.large
+        flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set

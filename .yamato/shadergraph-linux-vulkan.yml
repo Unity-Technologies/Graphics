@@ -28,9 +28,9 @@ ShaderGraph_Linux_Vulkan_Standalone_trunk:
 Build_ShaderGraph_Linux_Vulkan_Player_trunk:
     name: Build ShaderGraph on Linux_Vulkan_Player on version trunk
     agent:
-        type: Unity::VM::GPU
+        type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
-        flavor: b1.large
+        flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
@@ -119,9 +119,9 @@ ShaderGraph_Linux_Vulkan_Standalone_fast-trunk:
 Build_ShaderGraph_Linux_Vulkan_Player_fast-trunk:
     name: Build ShaderGraph on Linux_Vulkan_Player on version fast-trunk
     agent:
-        type: Unity::VM::GPU
+        type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
-        flavor: b1.large
+        flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
@@ -211,9 +211,9 @@ ShaderGraph_Linux_Vulkan_Standalone_CUSTOM-REVISION:
 Build_ShaderGraph_Linux_Vulkan_Player_CUSTOM-REVISION:
     name: Build ShaderGraph on Linux_Vulkan_Player on version CUSTOM-REVISION
     agent:
-        type: Unity::VM::GPU
+        type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
-        flavor: b1.large
+        flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set

@@ -11,25 +11,6 @@ platforms:
       - DX11
 #      - DX12
       - Vulkan
-    overrides:
-      agents_project:
-        # default: package_ci_mac
-        default:
-          type: Unity::VM::GPU
-          image: sdet/gamecode_win10:stable
-          flavor: b1.large
-        editmode:
-          type: Unity::VM
-          image: sdet/gamecode_win10:stable
-          flavor: b1.large
-        standalone:
-          type: Unity::VM::GPU
-          image: sdet/gamecode_win10:stable
-          flavor: b1.large
-        standalone_build:
-          type: Unity::VM
-          image: sdet/gamecode_win10:stable
-          flavor: b1.xlarge
   - name: OSX 
     apis:
       - Metal
@@ -38,24 +19,6 @@ platforms:
     apis: 
       - Vulkan
       - OpenGLCore
-    overrides:
-      agents_project:
-        default:
-          type: Unity::VM::GPU
-          image: cds-ops/ubuntu-18.04-base:stable
-          flavor: b1.large
-        editmode:
-          type: Unity::VM
-          image: cds-ops/ubuntu-18.04-base:stable
-          flavor: b1.large
-        standalone:
-          type: Unity::VM::GPU
-          image: cds-ops/ubuntu-18.04-base:stable
-          flavor: b1.large
-        standalone_build:
-          type: Unity::VM
-          image: cds-ops/ubuntu-18.04-base:stable
-          flavor: b1.large
 #  - name: Android
 #    apis: 
 #      - Vulkan
