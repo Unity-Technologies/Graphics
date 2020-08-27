@@ -129,7 +129,7 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 1934281440}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &317366833
+--- !u!114 &317366834
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -138,13 +138,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 317366831}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 14d7896b83927c247821fa13f452106f, type: 3}
+  m_Script: {fileID: 11500000, guid: d29a2d820d8afeb4a88421fa92f66c71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  localSpace: 0
-  angles: {x: -45, y: 0, z: 0}
-  frequency: 1
-  fps: 60
+  anglesToAdd: {x: 45, y: 0, z: 0}
+  waitFrames: 3
 --- !u!1001 &466758464
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -231,6 +229,11 @@ PrefabInstance:
       propertyPath: waitFrames
       value: 10
       objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: renderGraphCompatible
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
 --- !u!1 &596496632 stripped
@@ -239,7 +242,7 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 1934281440}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &596496634
+--- !u!114 &596496635
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -248,13 +251,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 596496632}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 14d7896b83927c247821fa13f452106f, type: 3}
+  m_Script: {fileID: 11500000, guid: d29a2d820d8afeb4a88421fa92f66c71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  localSpace: 0
-  angles: {x: 0, y: 45, z: 20}
-  frequency: 0.5
-  fps: 60
+  anglesToAdd: {x: 0, y: 45, z: 20}
+  waitFrames: 3
 --- !u!1 &891046727
 GameObject:
   m_ObjectHideFlags: 0
@@ -567,7 +568,7 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 1934281440}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1888081535
+--- !u!114 &1888081536
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -576,13 +577,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1888081533}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 14d7896b83927c247821fa13f452106f, type: 3}
+  m_Script: {fileID: 11500000, guid: d29a2d820d8afeb4a88421fa92f66c71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  localSpace: 0
-  angles: {x: 45, y: 0, z: 0}
-  frequency: 1
-  fps: 60
+  anglesToAdd: {x: 45, y: 0, z: 0}
+  waitFrames: 3
 --- !u!1001 &1934281440
 PrefabInstance:
   m_ObjectHideFlags: 0

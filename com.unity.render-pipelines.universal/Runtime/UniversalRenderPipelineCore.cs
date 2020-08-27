@@ -108,7 +108,9 @@ namespace UnityEngine.Rendering.Universal
         public bool isHdrEnabled;
         public bool requiresDepthTexture;
         public bool requiresOpaqueTexture;
-
+#if ENABLE_VR && ENABLE_XR_MODULE
+        public bool xrRendering;
+#endif
         internal bool requireSrgbConversion
         {
             get
@@ -255,8 +257,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int viewAndProjectionMatrix = Shader.PropertyToID("unity_MatrixVP");
 
         public static readonly int inverseViewMatrix = Shader.PropertyToID("unity_MatrixInvV");
-        // Undefined:
-        // public static readonly int inverseProjectionMatrix = Shader.PropertyToID("unity_MatrixInvP");
+        public static readonly int inverseProjectionMatrix = Shader.PropertyToID("unity_MatrixInvP");
         public static readonly int inverseViewAndProjectionMatrix = Shader.PropertyToID("unity_MatrixInvVP");
 
         public static readonly int cameraProjectionMatrix = Shader.PropertyToID("unity_CameraProjection");
@@ -310,6 +311,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string FilmGrain = "_FILM_GRAIN";
         public static readonly string Fxaa = "_FXAA";
         public static readonly string Dithering = "_DITHERING";
+        public static readonly string ScreenSpaceOcclusion = "_SCREEN_SPACE_OCCLUSION";
 
         public static readonly string HighQualitySampling = "_HIGH_QUALITY_SAMPLING";
 
@@ -324,7 +326,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
 
         // XR
-        public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";    }
+        public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";
+    }
 
     public sealed partial class UniversalRenderPipeline
     {

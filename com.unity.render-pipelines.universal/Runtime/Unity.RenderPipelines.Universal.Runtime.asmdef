@@ -1,5 +1,6 @@
 {
     "name": "Unity.RenderPipelines.Universal.Runtime",
+    "rootNamespace": "",
     "references": [
         "GUID:df380645f10b7bc4b97d4f5eb6303d95",
         "GUID:ab67fb10353d84448ac887a7367cbda8",
@@ -34,6 +35,16 @@
             "name": "com.unity.modules.xr",
             "expression": "1.0.0",
             "define": "ENABLE_XR_MODULE"
+        },
+        {
+            "name": "com.unity.modules.animation",
+            "expression": "1.0.0",
+            "define": "USING_ANIMATION_MODULE"
+        },
+        {
+            "name": "com.unity.modules.physics2d",
+            "expression": "1.0.0",
+            "define": "USING_PHYSICS2D_MODULE"
         }
     ],
     "noEngineReferences": false

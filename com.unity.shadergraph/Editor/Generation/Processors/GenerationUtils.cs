@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
-using Data.Util;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -45,6 +44,10 @@ namespace UnityEditor.ShaderGraph
                     builder.AppendLine($"\"RenderType\"=\"{descriptor.renderType}\"");
                 else
                     builder.AppendLine("// RenderType: <None>");
+
+                // Custom shader tags.
+                if (!string.IsNullOrEmpty(descriptor.customTags))
+                    builder.AppendLine(descriptor.customTags);
 
                 // Render Queue
                 if(!string.IsNullOrEmpty(descriptor.renderQueue))

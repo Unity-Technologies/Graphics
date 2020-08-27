@@ -4,7 +4,7 @@ The High Definition Render Pipeline (HDRP) implements a multi-layered fog compos
 
 ## Using Fog
 
-The **Fog** uses the [Volume](Volumes.html) framework, so to enable and modify **Fog** properties, you must add  **Fog** override to a [Volume](Volumes.html) in your Scene. To add **Fog** to a Volume:
+The **Fog** uses the [Volume](Volumes.md) framework, so to enable and modify **Fog** properties, you must add  **Fog** override to a [Volume](Volumes.md) in your Scene. To add **Fog** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Fog** and click on **Fog**.
@@ -35,6 +35,8 @@ The **Fog** override of the active Volume controls the appearance of the global 
 
 ![](Images/Override-VolumetricFog1.png)
 
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
+
 | Property                 | Function                                                     |
 | :----------------------- | :----------------------------------------------------------- |
 | **Enable** | Enables the fog. |
@@ -59,8 +61,8 @@ The **Fog** override of the active Volume controls the appearance of the global 
 
 ## Light-specific Properties
 
-The [Light component](Light-Component.html) has several properties that are useful for volumetric lighting:
+The [Light component](Light-Component.md) has several properties that are useful for volumetric lighting:
 
-- **Emission Radius** is useful to simulate fill lighting. It acts by virtually "pushing" the light away from the Scene. As a result, it softens the core of [punctual lights](Glossary.html#PunctualLight). Always use a non-zero value to reduce ghosting artifacts resulting from reprojection.
+- **Emission Radius** is useful to simulate fill lighting. It acts by virtually "pushing" the light away from the Scene. As a result, it softens the core of [punctual lights](Glossary.md#PunctualLight). Always use a non-zero value to reduce ghosting artifacts resulting from reprojection.
 - **Volumetric Multiplier** only affects the fog and replaces the Light Multiplier that HDRP uses for surfaces.
 - **Shadow Dimmer** only affects the fog and replaces the Shadow Dimmer that HDRP uses for surfaces.

@@ -1,5 +1,25 @@
 Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 {
+    Properties {
+        _StencilReadWriteMask ("StencilReadWriteMask", Int) = 0
+
+        _LitPunctualStencilRef ("LitPunctualStencilWriteMask", Int) = 0
+        _LitPunctualStencilReadMask ("LitPunctualStencilReadMask", Int) = 0
+        _LitPunctualStencilWriteMask ("LitPunctualStencilWriteMask", Int) = 0
+
+        _SimpleLitPunctualStencilRef ("SimpleLitPunctualStencilWriteMask", Int) = 0
+        _SimpleLitPunctualStencilReadMask ("SimpleLitPunctualStencilReadMask", Int) = 0
+        _SimpleLitPunctualStencilWriteMask ("SimpleLitPunctualStencilWriteMask", Int) = 0
+
+        _LitDirStencilRef ("LitStencilDirStencilWriteMask", Int) = 0
+        _LitDirStencilReadMask ("LitStencilDirStencilReadMask", Int) = 0
+        _LitDirStencilWriteMask ("LitStencilDirStencilWriteMask", Int) = 0
+
+        _SimpleLitDirStencilRef ("SimpleLitDirStencilWriteMask", Int) = 0
+        _SimpleLitDirStencilReadMask ("SimpleLitDirStencilReadMask", Int) = 0
+        _SimpleLitDirStencilWriteMask ("SimpleLitDirStencilWriteMask", Int) = 0
+    }
+
     HLSLINCLUDE
 
     // _ADDITIONAL_LIGHT_SHADOWS is shader keyword globally enabled for a range of render-passes.
@@ -15,9 +35,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Deferred.hlsl"
 
-    // XR not supported in 2020.1 preview
-    #define XR_MODE 0 // defined(USING_STEREO_MATRICES) && (defined(_POINT) || defined(_SPOT) || defined(_DIRECTIONAL))
-
     struct Attributes
     {
         float4 positionOS : POSITION;
@@ -28,9 +45,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     struct Varyings
     {
         float4 positionCS : SV_POSITION;
-        #if XR_MODE
-        float4 posCS : TEXCOORD0;
-        #endif
         float3 screenUV : TEXCOORD1;
         UNITY_VERTEX_INPUT_INSTANCE_ID
         UNITY_VERTEX_OUTPUT_STEREO
@@ -81,10 +95,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         output.screenUV.xy = output.screenUV.xy * 0.5 + 0.5 * output.screenUV.z;
         #endif
 
-        #if XR_MODE
-        output.posCS = output.positionCS;
-        #endif
-
         return output;
     }
 
@@ -92,7 +102,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     TEXTURE2D_X_HALF(_GBuffer0);
     TEXTURE2D_X_HALF(_GBuffer1);
     TEXTURE2D_X_HALF(_GBuffer2);
-    float4x4 _ScreenToWorld;
+    float4x4 _ScreenToWorld[2];
     SamplerState my_point_clamp_sampler;
 
     float3 _LightPosWS;
@@ -119,21 +129,13 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         half4 gbuffer1 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, my_point_clamp_sampler, screen_uv, 0);
         half4 gbuffer2 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer2, my_point_clamp_sampler, screen_uv, 0);
 
-        #if XR_MODE
-            #if UNITY_REVERSED_Z
-            d = 1.0 - d;
-            #endif
-            d = d * 2.0 - 1.0;
-            float4 posCS = float4(input.posCS.xy, d * input.posCS.w, input.posCS.w);
-            #if UNITY_UV_STARTS_AT_TOP
-            posCS.y = -posCS.y;
-            #endif
-            float3 posWS = ComputeWorldSpacePosition(posCS, UNITY_MATRIX_I_VP);
+        #if defined(USING_STEREO_MATRICES)
+        int eyeIndex = unity_StereoEyeIndex;
         #else
-            // We can fold all this into 1 neat matrix transform, unless in XR Single Pass mode at the moment.
-            float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
-            posWS.xyz *= rcp(posWS.w);
+        int eyeIndex = 0;
         #endif
+        float4 posWS = mul(_ScreenToWorld[eyeIndex], float4(input.positionCS.xy, d, 1.0));
+        posWS.xyz *= rcp(posWS.w);
 
         InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
         uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
@@ -206,10 +208,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             Cull Off
             ColorMask 0
 
-            // Bit 4 is used for the stencil volume.
             Stencil {
-                WriteMask 16
-                ReadMask 16
+                WriteMask [_StencilReadWriteMask]
+                ReadMask [_StencilReadWriteMask]
                 CompFront Always
                 PassFront Keep
                 ZFailFront Invert
@@ -220,7 +221,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             HLSLPROGRAM
 
-            #pragma multi_compile _ _SPOT
+            #pragma multi_compile_vertex _ _SPOT
 
             #pragma vertex Vertex
             #pragma fragment FragWhite
@@ -240,12 +241,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             Blend One One, Zero One
             BlendOp Add, Add
 
-            // [Stencil] Bit 4 is used for the stencil volume.
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
-                Ref 48       // 0b00110000
-                WriteMask 16 // 0b00010000
-                ReadMask 112 // 0b01110000
+                Ref [_LitPunctualStencilRef]
+                ReadMask [_LitPunctualStencilReadMask]
+                WriteMask [_LitPunctualStencilWriteMask]
                 Comp Equal
                 Pass Zero
                 Fail Keep
@@ -279,12 +278,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             Blend One One, Zero One
             BlendOp Add, Add
 
-            // [Stencil] Bit 4 is used for the stencil volume.
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
-                Ref 80       // 0b01010000
-                WriteMask 16 // 0b00010000
-                ReadMask 112 // 0b01110000
+                Ref [_SimpleLitPunctualStencilRef]
+                ReadMask [_SimpleLitPunctualStencilReadMask]
+                WriteMask [_SimpleLitPunctualStencilWriteMask]
                 CompBack Equal
                 PassBack Zero
                 FailBack Keep
@@ -318,12 +315,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             Blend One One, Zero One
             BlendOp Add, Add
 
-            // [Stencil] Bit 4 is used for the stencil volume.
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
-                Ref 32      // 0b00100000
-                WriteMask 0 // 0b00000000
-                ReadMask 96 // 0b01100000
+                Ref [_LitDirStencilRef]
+                ReadMask [_LitDirReadMask]
+                WriteMask [_LitDirWriteMask]
                 Comp Equal
                 Pass Keep
                 Fail Keep
@@ -357,12 +352,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             Blend One One, Zero One
             BlendOp Add, Add
 
-            // [Stencil] Bit 4 is used for the stencil volume.
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
-                Ref 64      // 0b01000000
-                WriteMask 0 // 0b00000000
-                ReadMask 96 // 0b01100000
+                Ref [_SimpleLitDirStencilRef]
+                ReadMask [_SimpleLitDirStencilReadMask]
+                WriteMask [_SimpleLitDirStencilWriteMask]
                 Comp Equal
                 Pass Keep
                 Fail Keep

@@ -1,0 +1,36 @@
+fileFormatVersion: 2
+guid: f98e2085fb2ebfb449b8a6fe95b756c4
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: f53f5fc499d31e44b9deee84d28a9ee8, type: 3}
+  rootGameObjectId: SuzanneAlembic
+  rootGameObjectName: 
+  streamSettings:
+    normals: 1
+    tangents: 1
+    cameraAspectRatio: 2
+    importVisibility: 1
+    scaleFactor: 1
+    swapHandedness: 1
+    flipFaces: 0
+    interpolateSamples: 1
+    importPointPolygon: 1
+    importLinePolygon: 1
+    importTrianglePolygon: 1
+    importXform: 1
+    importCameras: 1
+    importMeshes: 1
+    importPoints: 0
+  abcStartTime: 0.041666666666666664
+  abcEndTime: 1.2916666666666667
+  startTime: 0.041666666666666664
+  endTime: 1.2916666666666667
+  importWarning: 
+  varyingTopologyMeshNames: []
+  splittingMeshNames: []
+  firstImport: 0
