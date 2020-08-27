@@ -764,6 +764,9 @@ namespace UnityEditor.VFX
             GUI.enabled = true;
         }
 
+
+        Dictionary<string, Dictionary<string, SerializedProperty>> m_PropertyToProp = new Dictionary<string, Dictionary<string, SerializedProperty>>();
+
         protected virtual void DrawParameters(VisualEffectResource resource)
         {
             var component = (VisualEffect)target;
@@ -784,6 +787,25 @@ namespace UnityEditor.VFX
                 {
                     graph.BuildParameterInfo();
                 }
+
+
+                m_PropertyToProp.Clear();
+
+                foreach (var sheetType in graph.m_ParameterInfo.Select(t => t.sheetType).Where(t=>!string.IsNullOrEmpty(t)).Distinct())
+                {
+                    var nameToIndices = new Dictionary<string, SerializedProperty>();
+
+                    var sourceVfxField = m_VFXPropertySheet.FindPropertyRelative(sheetType + ".m_Array");
+                    for (int i = 0; i < sourceVfxField.arraySize; ++i)
+                    {
+                        SerializedProperty sourceProperty = sourceVfxField.GetArrayElementAtIndex(i);
+                        var nameProperty = sourceProperty.FindPropertyRelative("m_Name").stringValue;
+
+                        nameToIndices[nameProperty] = sourceProperty;
+                    }
+                    m_PropertyToProp[sheetType] = nameToIndices;
+                }
+
 
                 if (graph.m_ParameterInfo != null)
                 {
@@ -857,20 +879,10 @@ namespace UnityEditor.VFX
                                 }
                             }
                             else if (!ignoreUntilNextCat)
-                            {
-                                //< Try find source property
-                                var sourceVfxField = m_VFXPropertySheet.FindPropertyRelative(parameter.sheetType + ".m_Array");
+                            {   
                                 SerializedProperty sourceProperty = null;
-                                for (int i = 0; i < sourceVfxField.arraySize; ++i)
-                                {
-                                    sourceProperty = sourceVfxField.GetArrayElementAtIndex(i);
-                                    var nameProperty = sourceProperty.FindPropertyRelative("m_Name").stringValue;
-                                    if (nameProperty == parameter.path)
-                                    {
-                                        break;
-                                    }
-                                    sourceProperty = null;
-                                }
+
+                                m_PropertyToProp[parameter.sheetType].TryGetValue(parameter.path, out sourceProperty);
 
                                 //< Prepare potential indirection
                                 bool wasNewProperty = false;
@@ -1013,6 +1025,7 @@ namespace UnityEditor.VFX
                                     }
                                     if (wasNewProperty)
                                     {
+                                        var sourceVfxField = m_VFXPropertySheet.FindPropertyRelative(parameter.sheetType + ".m_Array");
                                         //We start editing a new exposed value which wasn't stored in this Visual Effect Component
                                         sourceVfxField.InsertArrayElementAtIndex(sourceVfxField.arraySize);
                                         var newEntry = sourceVfxField.GetArrayElementAtIndex(sourceVfxField.arraySize - 1);
