@@ -1,9 +1,15 @@
-﻿Shader "Hidden/HDRP/MaterialError"
+﻿Shader "Hidden/Universal Render Pipeline/MaterialError"
 {
     SubShader
     {
         Pass
         {
+            // Hybrid Renderer compatible error shader, which is used by Hybrid Renderer
+            // instead of the incompatible built-in error shader.
+
+            // TODO: Ideally this would be combined with FallbackError.shader, but it seems
+            // problematic because FallbackError needs to support SM2.0 and seems to use
+            // built-in shader headers, whereas Hybrid support needs SM4.5 and SRP shader headers.
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -12,7 +18,7 @@
             #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
 
             struct appdata_t {
                 float4 vertex : POSITION;
