@@ -311,10 +311,10 @@ float FixedRand(uint seed)
 #define WORKAROUND_GPU_HANG if (channelOffset == -1) offset = 0u;
 #define WORKAROUND_GPU_HANG_BIS if (channelFormatAndDimension == -1) offset = 0u;
 
-float   FetchBuffer(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load(offset << 2)); }
-float2  FetchBuffer2(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load2(offset << 2)); }
-float3  FetchBuffer3(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load3(offset << 2)); }
-float4  FetchBuffer4(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load4(offset << 2)); }
+uint   FetchBuffer(ByteAddressBuffer buffer, int offset) { return buffer.Load(offset << 2); }
+uint2  FetchBuffer2(ByteAddressBuffer buffer, int offset) { return buffer.Load2(offset << 2); }
+uint3  FetchBuffer3(ByteAddressBuffer buffer, int offset) { return buffer.Load3(offset << 2); }
+uint4  FetchBuffer4(ByteAddressBuffer buffer, int offset) { return buffer.Load4(offset << 2); }
 
 float4 SampleMeshReadFloat(ByteAddressBuffer vertices, uint offset, uint channelFormatAndDimension, uint maxRead)
 {
@@ -327,7 +327,7 @@ float4 SampleMeshReadFloat(ByteAddressBuffer vertices, uint offset, uint channel
 
         if (format == VERTEXATTRIBUTEFORMAT_FLOAT32)
         {
-			//TODOPAUL : Double if this code cannot be simplified.
+			//TODOPAUL : Double check if this code cannot be simplified.
 			
             //for (uint i = 0u; i < maxRead && i < dimension; ++i)
             //    r[i] = vertices[offset + i];
