@@ -333,20 +333,13 @@ float3 ApplyShadowBias(float3 positionWS, float3 normalWS, float3 lightDirection
     positionWS = normalWS * scale.xxx + positionWS;
     return positionWS;
 }
- 
+
 ///////////////////////////////////////////////////////////////////////////////
 // Deprecated                                                                 /
 ///////////////////////////////////////////////////////////////////////////////
 
 // Renamed -> _MainLightShadowParams
 #define _MainLightShadowData _MainLightShadowParams
-
-#if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-// _AdditionalShadowsIndices was deprecated - To get the first shadow slice index for a light, use GetAdditionalLightShadowParams(lightIndex).w
-#define _AdditionalShadowsIndices _AdditionalShadowParams_SSBO
-// _AdditionalShadowsBuffer was deprecated - To access a shadow slice's matrix, use _AdditionalLightsWorldToShadow_SSBO[shadowSliceIndex] - To access other shadow parameters, use GetAdditionalLightShadowParams(int lightIndex)
-#define _AdditionalShadowsBuffer _AdditionalLightsWorldToShadow_SSBO
-#endif
 
 // Deprecated: Use GetMainLightShadowParams instead.
 half GetMainLightShadowStrength()
@@ -369,6 +362,12 @@ real SampleShadowmap(float4 shadowCoord, TEXTURE2D_SHADOW_PARAM(ShadowMap, sampl
 {
     half4 shadowParams = half4(shadowStrength, 1.0, 0.0, 0.0);
     return SampleShadowmap(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData, shadowParams, isPerspectiveProjection);
+}
+
+// Deprecated: Use AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection) in Shadows.hlsl instead, as it supports Point Light shadows
+half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
+{
+    return AdditionalLightRealtimeShadow(lightIndex, positionWS, half3(1, 0, 0));
 }
 
 #endif
