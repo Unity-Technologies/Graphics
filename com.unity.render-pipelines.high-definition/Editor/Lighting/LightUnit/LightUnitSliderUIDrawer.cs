@@ -75,10 +75,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             void DoSliderMarker(Rect rect, LightUnitUILevel level, float rangeMax)
             {
-                const float width  = 3f;
+                const float width  = 4f;
                 const float height = 2f;
 
-                float x = level.range.y / rangeMax;
+                float normalizedValue = level.range.y / rangeMax;
 
                 var markerRect = rect;
                 markerRect.width  = width;
@@ -88,16 +88,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 markerRect.y += (EditorGUIUtility.singleLineHeight / 2f) - 1;
 
                 // Horizontally place on slider.
-                markerRect.x = rect.x + rect.width * x;
-
-                // Clamp to the slider edges.
                 const float halfWidth = width * 0.5f;
-                float min = rect.x + halfWidth;
-                float max = (rect.x + rect.width) - halfWidth;
-                markerRect.x = Mathf.Clamp(markerRect.x, min, max);
+                markerRect.x = rect.x + rect.width * normalizedValue;
 
                 // Center the marker on value.
                 markerRect.x -= halfWidth;
+
+                // Clamp to the slider edges.
+                float min = rect.x;
+                float max = (rect.x + rect.width) - width;
+                markerRect.x = Mathf.Clamp(markerRect.x, min, max);
 
                 // Draw marker by manually drawing the rect, and an empty label with the tooltip.
                 EditorGUI.DrawRect(markerRect, Color.white);
