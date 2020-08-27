@@ -27,7 +27,7 @@ float IntersectSphereProxy(EnvLightData lightData, float3 dirPS, float3 position
 {
     float sphereOuterDistance = lightData.proxyExtents.x;
     float projectionDistance = IntersectRaySphereSimple(positionPS, dirPS, sphereOuterDistance);
-    projectionDistance = max(isNaN(projectionDistance) ? 0 : projectionDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
+    projectionDistance = max(IsNaN(projectionDistance) ? 0 : projectionDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
 
     return projectionDistance;
 }
