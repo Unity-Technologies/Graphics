@@ -606,7 +606,13 @@ namespace UnityEditor.VFX
 
         static public VFXExpression SequentialCircle(VFXExpression center, VFXExpression radius, VFXExpression normal, VFXExpression up, VFXExpression index, VFXExpression count, SequentialAddressingMode mode)
         {
-            VFXExpression dt = ApplyAddressingMode(index, count, mode);
+            VFXExpression countForAddressing = count;
+            if (mode == SequentialAddressingMode.Clamp || mode == SequentialAddressingMode.Mirror)
+            {
+                //Explicitly close the circle loop, if `index` equals to `count`, adds an extra step.
+                countForAddressing = count + OneExpression[VFXValueType.Uint32];
+            }
+            VFXExpression dt = ApplyAddressingMode(index, countForAddressing, mode);
             dt = new VFXExpressionCastUintToFloat(dt);
             dt = dt / new VFXExpressionCastUintToFloat(count);
 
