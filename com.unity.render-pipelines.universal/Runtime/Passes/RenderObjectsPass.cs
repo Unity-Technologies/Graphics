@@ -70,6 +70,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         }
 
+        internal RenderObjectsPass(URPProfileId profileId, RenderPassEvent renderPassEvent, string[] shaderTags, RenderQueueType renderQueueType, int layerMask, RenderObjects.CustomCameraSettings cameraSettings)
+        : this(profileId.GetType().Name, renderPassEvent, shaderTags, renderQueueType, layerMask, cameraSettings)
+        {
+            m_ProfilingSampler = ProfilingSampler.Get(profileId);
+        }
+
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             SortingCriteria sortingCriteria = (renderQueueType == RenderQueueType.Transparent)

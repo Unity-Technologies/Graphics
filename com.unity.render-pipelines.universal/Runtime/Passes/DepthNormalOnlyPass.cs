@@ -9,13 +9,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         private RenderTargetHandle depthHandle { get; set; }
         private RenderTargetHandle normalHandle { get; set; }
-        private ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_ProfilerTag);
         private ShaderTagId m_ShaderTagId = new ShaderTagId("DepthNormals");
         private FilteringSettings m_FilteringSettings;
 
         // Constants
         private const int k_DepthBufferBits = 32;
-        private const string k_ProfilerTag = "Depth & Normal Prepass";
 
         /// <summary>
         /// Create the DepthNormalOnlyPass
@@ -62,7 +60,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // NOTE: Do NOT mix ProfilingScope with named CommandBuffers i.e. CommandBufferPool.Get("name").
             // Currently there's an issue which results in mismatched markers.
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.DepthNormalPrepass)))
             {
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();

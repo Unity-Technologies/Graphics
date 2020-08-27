@@ -46,8 +46,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         List<int> m_ShadowCastingLightIndicesMap = new List<int>();
 
         bool m_SupportsBoxFilterForShadows;
-        const string m_ProfilerTag = "Render Additional Shadows";
-        ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
 
         public AdditionalLightsShadowCasterPass(RenderPassEvent evt)
         {
@@ -278,7 +276,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // NOTE: Do NOT mix ProfilingScope with named CommandBuffers i.e. CommandBufferPool.Get("name").
             // Currently there's an issue which results in mismatched markers.
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.AdditionalLightsShadow)))
             {
                 bool anyShadowSliceRenderer = false;
                 int shadowSlicesCount = m_AdditionalShadowCastingLightIndices.Count;
