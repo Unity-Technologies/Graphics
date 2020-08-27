@@ -325,7 +325,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 stateBlock = overrideRenderState,
             };
 
-            HDUtils.DrawRendererList(ctx.renderContext, ctx.cmd, RendererList.Create(result));
+            CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, RendererList.Create(result));
         }
 
         /// <summary>

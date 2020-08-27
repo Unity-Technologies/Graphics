@@ -1,16 +1,16 @@
 # Authoring lookup textures with DaVinci Resolve
 
-The following process uses DaVinci Resolve, but you can apply it for other digital content creation tools such as [Photoshop](LUT-Authoring-Photoshop.html) or Nuke.
+The following process uses DaVinci Resolve, but you can apply it for other digital content creation tools such as [Photoshop](LUT-Authoring-Photoshop.md) or Nuke.
 
 ## Step 1: Set up the HDRP Asset
 
-Decide on the lookup texture (LUT) size to use for the Project, and set it in your Project's [HDRP Asset](HDRP-Asset.html). To set the LUT size, use the HDRP Asset’s **Grading LUT Size** property.
+Decide on the lookup texture (LUT) size to use for the Project, and set it in your Project's [HDRP Asset](HDRP-Asset.md). To set the LUT size, use the HDRP Asset’s **Grading LUT Size** property.
 
 Resolve only exports LUTs of size 33 so set **Grading LUT Size** to **33** for it to work correctly. 
 
 ## Step 2: Render the Camera view to an EXR file
 
-Export the current [Camera](HDRP-Camera.html)'s view to a log-encoded EXR file. To do this:
+Export the current [Camera](HDRP-Camera.md)'s view to a log-encoded EXR file. To do this:
 
 1. In the Scene view or Hierarchy, select a GameObject that contains a Camera component.
 2. Select **Edit** > **Render Pipeline** > **Render Selected Camera to Log EXR** **(**or press **Ctrl+Shift+Alt+E)**.

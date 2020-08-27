@@ -225,7 +225,9 @@ namespace UnityEditor.VFX.UI
             {
                 string path = d.modelDescriptor as string;
 
-                if (!path.StartsWith(VisualEffectAssetEditorUtility.templatePath))
+                if(path.StartsWith(VisualEffectAssetEditorUtility.templatePath) || ((VFXResources.defaultResources.userTemplateDirectory.Length > 0) && path.StartsWith(VFXResources.defaultResources.userTemplateDirectory)) )
+                    CreateTemplateSystem(path, mPos, groupNode);
+                else
                 {
                     if (Path.GetExtension(path) == VisualEffectSubgraphOperator.Extension)
                     {
@@ -243,8 +245,6 @@ namespace UnityEditor.VFX.UI
                         }
                     }
                 }
-                else
-                    CreateTemplateSystem(path, mPos, groupNode);
             }
             else if (d.modelDescriptor is GroupNodeAdder)
             {
@@ -749,6 +749,8 @@ namespace UnityEditor.VFX.UI
 
         void FrameAfterAWhile()
         {
+
+
             var rectToFit = contentViewContainer.layout;
             var frameTranslation = Vector3.zero;
             var frameScaling = Vector3.one;
@@ -760,7 +762,16 @@ namespace UnityEditor.VFX.UI
                 return;
             }
 
-            CalculateFrameTransform(rectToFit, layout, 30, out frameTranslation, out frameScaling);
+            Rect rectAvailable = layout;
+
+            float validateFloat = rectAvailable.x + rectAvailable.y + rectAvailable.width + rectAvailable.height;
+            if (float.IsInfinity(validateFloat) || float.IsNaN(validateFloat))
+            {
+                schedule.Execute(FrameAfterAWhile);
+                return;
+            }
+
+            CalculateFrameTransform(rectToFit, rectAvailable, 30, out frameTranslation, out frameScaling);
 
             Matrix4x4.TRS(frameTranslation, Quaternion.identity, frameScaling);
 
@@ -1153,7 +1164,6 @@ namespace UnityEditor.VFX.UI
                 VFXGraph.explicitCompile = false;
             }
         }
-
 
         void OnSave()
         {
