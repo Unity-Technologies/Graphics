@@ -5159,7 +5159,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int passIndex = 0;
             if (parameters.debugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.MeteringWeighted)
+            {
                 passIndex = 1;
+                parameters.debugExposureMaterial.SetVector(HDShaderIDs._ExposureDebugParams, new Vector4(parameters.debugDisplaySettings.data.lightingDebugSettings.displayMaskOnly ? 1 : 0, 0, 0, 0));
+            }
             if (parameters.debugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.HistogramView)
             {
                 parameters.debugExposureMaterial.SetTexture(HDShaderIDs._ExposureDebugTexture, debugExposureData);

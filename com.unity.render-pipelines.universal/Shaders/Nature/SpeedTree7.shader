@@ -21,6 +21,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             "RenderType" = "Opaque"
             "DisableBatching" = "LODFading"
             "RenderPipeline" = "UniversalPipeline"
+            "UniversalMaterialType" = "SimpleLit"
         }
         LOD 400
         Cull [_Cull]
@@ -116,17 +117,6 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
         {
             Name "GBuffer"
             Tags{"LightMode" = "UniversalGBuffer"}
-
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
-            // This is a SimpleLit material.
-            Stencil {
-                Ref 64       // 0b01000000
-                WriteMask 96 // 0b01100000
-                Comp Always
-                Pass Replace
-                Fail Keep
-                ZFail Keep
-            }
 
             HLSLPROGRAM
 

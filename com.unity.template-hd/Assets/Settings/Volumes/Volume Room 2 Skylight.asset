@@ -16,7 +16,7 @@ MonoBehaviour:
   m_AdvancedMode: 0
   mode:
     m_OverrideState: 0
-    m_Value: 1
+    m_Value: 4
   meteringMode:
     m_OverrideState: 0
     m_Value: 2
@@ -25,16 +25,16 @@ MonoBehaviour:
     m_Value: 1
   fixedExposure:
     m_OverrideState: 1
-    m_Value: 6
+    m_Value: 13.91
   compensation:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 0
   limitMin:
     m_OverrideState: 1
-    m_Value: 7
+    m_Value: 8
   limitMax:
     m_OverrideState: 1
-    m_Value: 10
+    m_Value: 12
   curveMap:
     m_OverrideState: 0
     m_Value:
@@ -67,20 +67,20 @@ MonoBehaviour:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: -10
-        value: -12
-        inSlope: 0
+        time: 4
+        value: 4
+        inSlope: 1
         outSlope: 1
-        tangentMode: 0
+        tangentMode: 69
         weightedMode: 0
         inWeight: 0
         outWeight: 0
       - serializedVersion: 3
-        time: 20
-        value: 18
+        time: 8
+        value: 8
         inSlope: 1
-        outSlope: 0
-        tangentMode: 0
+        outSlope: 1
+        tangentMode: 69
         weightedMode: 0
         inWeight: 0
         outWeight: 0
@@ -93,20 +93,20 @@ MonoBehaviour:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: -10
-        value: -8
-        inSlope: 0
-        outSlope: 1
-        tangentMode: 0
+        time: 10.019684
+        value: 12.733127
+        inSlope: 0.59999925
+        outSlope: 0.004355253
+        tangentMode: 69
         weightedMode: 0
-        inWeight: 0
-        outWeight: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
       - serializedVersion: 3
-        time: 20
-        value: 22
-        inSlope: 1
-        outSlope: 0
-        tangentMode: 0
+        time: 20.019653
+        value: 12.776679
+        inSlope: 0.004355253
+        outSlope: 1
+        tangentMode: 69
         weightedMode: 0
         inWeight: 0
         outWeight: 0
@@ -114,22 +114,22 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   adaptationMode:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 1
   adaptationSpeedDarkToLight:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 3
     min: 0.001
   adaptationSpeedLightToDark:
-    m_OverrideState: 0
-    m_Value: 1
+    m_OverrideState: 1
+    m_Value: 3
     min: 0.001
   weightTextureMask:
     m_OverrideState: 0
     m_Value: {fileID: 0}
   histogramPercentages:
-    m_OverrideState: 0
-    m_Value: {x: 40, y: 90}
+    m_OverrideState: 1
+    m_Value: {x: 0, y: 33}
     min: 0
     max: 100
   histogramUseCurveRemapping:
