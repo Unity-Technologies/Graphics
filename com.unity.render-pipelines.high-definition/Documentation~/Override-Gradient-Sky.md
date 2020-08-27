@@ -6,16 +6,18 @@ You can alter these values at runtime. This component also exposes options that 
 
 ##  Using Gradient Sky
 
-**Gradient Sky** uses the [Volume](Volumes.html) framework, so to enable and modify **Gradient Sky** properties, you must add a **Gradient Sky** override to a [Volume](Volumes.html) in your Scene. To add **Gradient  Sky** to a Volume:
+**Gradient Sky** uses the [Volume](Volumes.md) framework, so to enable and modify **Gradient Sky** properties, you must add a **Gradient Sky** override to a [Volume](Volumes.md) in your Scene. To add **Gradient  Sky** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Sky** and click on **Gradient Sky**.
 
-After you add a **Gradient Sky** override, you must set the Volume to use **Gradient Sky**. The [Visual Environment](Override-Visual-Environment.html) override controls which type of sky the Volume uses. In the **Visual Environment** override, navigate to the **Sky** section and set the **Type** to **Gradient Sky**. HDRP now renders a **Gradient Sky** for any Camera this Volume affects.
+After you add a **Gradient Sky** override, you must set the Volume to use **Gradient Sky**. The [Visual Environment](Override-Visual-Environment.md) override controls which type of sky the Volume uses. In the **Visual Environment** override, navigate to the **Sky** section and set the **Type** to **Gradient Sky**. HDRP now renders a **Gradient Sky** for any Camera this Volume affects.
 
 ## Properties
 
 ![](Images/Override-GradientSky1.png)
+
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 | Property               | Description                                                  |
 | ---------------------- | ------------------------------------------------------------ |

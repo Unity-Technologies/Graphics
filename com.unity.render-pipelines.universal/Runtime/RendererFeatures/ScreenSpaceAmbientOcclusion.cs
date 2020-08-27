@@ -257,6 +257,7 @@ namespace UnityEngine.Rendering.Universal
                 using (new ProfilingScope(cmd, m_ProfilingSampler))
                 {
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, true);
+                    PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
 
                     // Execute the SSAO
                     Render(cmd, m_SSAOTexture1Target, ShaderPasses.AO);
