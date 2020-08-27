@@ -2,31 +2,37 @@ project:
   name: Universal
   folder: UniversalGraphicsTest
 test_platforms:
-  - Standalone
-  - playmode
-  - editmode
-  - playmode_XR
+  - type: Standalone
+    extra_utr_flags:
+      - flag1
+      - flag2
+  - type: playmode
+  - type: editmode
+  - type: playmode
+    name: playmode_XR
+    extra_utr_flags:
+      - --extra-editor-arg="-xr-tests" 
 platforms:
   - name: Win
     apis:
       - DX11
       - DX12
       - Vulkan
-  - name: OSX 
-    apis:
-      - Metal
-      - OpenGLCore
-  - name: Linux
-    apis: 
-      - Vulkan
-      - OpenGLCore
-  - name: Android
-    apis: 
-      - Vulkan
-      - OpenGLES3
-  - name: iPhone
-    apis: 
-      - Metal
+#  - name: OSX 
+#    apis:
+#      - Metal
+#      - OpenGLCore
+#  - name: Linux
+#    apis: 
+#      - Vulkan
+#      - OpenGLCore
+#  - name: Android
+#    apis: 
+#      - Vulkan
+#      - OpenGLES3
+#  - name: iPhone
+#    apis: 
+#      - Metal
 all:
   dependencies:
     - platform: Win

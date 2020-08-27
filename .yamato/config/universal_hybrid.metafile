@@ -2,27 +2,34 @@ project:
   name: Universal_Hybrid
   folder: UniversalHybridTest
 test_platforms:
-  - Standalone
-  - playmode
-#  - editmode
+  - type: Standalone
+    name: Standalone
+    extra_utr_flags:
+      - --compilation-errors-as-warnings
+  - type: playmode
+    extra_utr_flags:
+      - --compilation-errors-as-warnings
+#  - type: editmode
+#    extra_utr_flags:
+#      - --compilation-errors-as-warnings
 platforms:
   - name: Win
     apis:
       - DX11
 #      - DX12
-      - Vulkan
-  - name: OSX 
-    apis:
-      - Metal
+#      - Vulkan
+#  - name: OSX 
+#    apis:
+#      - Metal
 #      - OpenGLCore
-  - name: Linux
-    apis: 
-      - Vulkan
-      - OpenGLCore
-  - name: Android
-    apis:
-      - OpenGLES3
-      - Vulkan
+#  - name: Linux
+#    apis: 
+#      - Vulkan
+#      - OpenGLCore
+#  - name: Android
+#    apis:
+#      - OpenGLES3
+#      - Vulkan
 all:
   dependencies:
     - platform: Win

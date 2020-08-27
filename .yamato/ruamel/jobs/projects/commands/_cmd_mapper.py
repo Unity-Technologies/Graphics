@@ -2,7 +2,8 @@ from . import win, osx_openglcore, osx_metal, linux, android, osx_metal_split, l
 
 cmd_map = {
     'win' : {
-        'not_standalone': win.cmd_not_standalone,
+        'editmode': win.cmd_editmode,
+        'playmode': win.cmd_playmode,
         'standalone' : win.cmd_standalone,
         'standalone_build' : win.cmd_standalone_build
     },

@@ -2,9 +2,11 @@ project:
   name: Universal_Stereo
   folder: UniversalGfxTestStereo
 test_platforms:
-  - Standalone
-#  - playmode
-  - editmode
+  - type: Standalone
+    rename: StandaloneC
+    extra_utr_flags:
+      - compilation-errors-as-warnings
+  - type: editmode
 platforms:
   - name: Win
     apis: 

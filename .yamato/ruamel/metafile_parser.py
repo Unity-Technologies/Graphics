@@ -78,6 +78,16 @@ def _unfold_platforms(metafile, shared):
 def _unfold_test_platforms(metafile, shared, root_keys=[]):
     '''Retrieves test platform details from shared metafile, corresponding to the specific metafile. 
     Returns the new 'test_platforms' section.'''
+    for tp in metafile["test_platforms"]:
+        tp["type"] = tp["type"].lower()
+
+        if not tp.get("name", None):
+            tp["name"]=tp["type"].lower() if not tp.get("name", None) else tp["name"].lower()
+        
+        if not tp.get("extra_utr_flags", None):
+            tp["extra_utr_flags"]=[]
+    return metafile
+    
     def replace_test_platforms(target_dict):
         test_platforms = []
         for test_platform_name in target_dict.get('test_platforms',[]):
