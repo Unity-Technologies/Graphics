@@ -86,8 +86,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent pointLightInnerRadius = EditorGUIUtility.TrTextContent("Inner Radius", "Specify the inner radius of the light");
             public static GUIContent pointLightOuterRadius = EditorGUIUtility.TrTextContent("Outer Radius", "Specify the outer radius of the light");
             public static GUIContent pointLightZDistance = EditorGUIUtility.TrTextContent("Distance", "Specify the Z Distance of the light");
-            public static GUIContent pointLightCookie = EditorGUIUtility.TrTextContent("Cookie", "Specify a sprite as the cookie for the light");
-
 
             public static GUIContent shapeLightSprite = EditorGUIUtility.TrTextContent("Sprite", "Specify the sprite");
             public static GUIContent shapeLightParametricRadius = EditorGUIUtility.TrTextContent("Radius", "Adjust the size of the object");
@@ -125,7 +123,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SerializedProperty m_PointOuterAngle;
         SerializedProperty m_PointInnerRadius;
         SerializedProperty m_PointOuterRadius;
-        SerializedProperty m_PointLightCookie;
         SerializedProperty m_PointLightQuality;
 
         // Shape Light Properties
@@ -185,7 +182,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_PointOuterAngle = serializedObject.FindProperty("m_PointLightOuterAngle");
             m_PointInnerRadius = serializedObject.FindProperty("m_PointLightInnerRadius");
             m_PointOuterRadius = serializedObject.FindProperty("m_PointLightOuterRadius");
-            m_PointLightCookie = serializedObject.FindProperty("m_LightCookieSprite");
             m_PointLightQuality = serializedObject.FindProperty("m_PointLightQuality");
 
             // Shape Light
@@ -271,7 +267,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 m_PointOuterRadius.floatValue = Mathf.Max(m_PointInnerRadius.floatValue, m_PointOuterRadius.floatValue);
 
             EditorGUILayout.Slider(m_FalloffIntensity, 0, 1, Styles.generalFalloffIntensity);
-            EditorGUILayout.PropertyField(m_PointLightCookie, Styles.pointLightCookie);
         }
 
         void OnShapeLight(Light2D.LightType lightType, SerializedObject serializedObject)

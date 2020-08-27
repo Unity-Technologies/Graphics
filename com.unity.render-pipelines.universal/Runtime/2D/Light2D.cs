@@ -188,6 +188,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             m_Mesh = new Mesh();
             UpdateMesh();
+
+            #if UNITY_EDITOR
+            if(lightType == LightType.Point && lightCookieSprite != null)
+                Debug.LogWarning("Cookies for sprite lights have been deprecated");
+            #endif
         }
 
         void OnEnable()
