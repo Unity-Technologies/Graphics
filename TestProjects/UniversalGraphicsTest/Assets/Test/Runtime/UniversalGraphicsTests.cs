@@ -39,11 +39,10 @@ public class UniversalGraphicsTests
         var settings = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
 
-        //Ignore these tests for deferred
-        for(int i=0;i<IgnoreTheseTestsForDeferred.Length;i++)
+        //Include these tests for deferred
+        for(int i=0;i<IncludeTheseTestsForDeferred.Length;i++)
         {
-            Debug.Log(testCase.ScenePath.ToString());
-            if (testCase.ScenePath.ToString().Contains(IgnoreTheseTestsForDeferred[i]))
+            if ( !testCase.ScenePath.ToString().Contains(IncludeTheseTestsForDeferred[i]) )
             {
                Assert.Ignore("This test is ignored for Deferred Rendering Path."); 
             }
@@ -125,14 +124,33 @@ public class UniversalGraphicsTests
         }
     }
 
-    public static string[] IgnoreTheseTestsForDeferred = new string[]
+    public static string[] IncludeTheseTestsForDeferred = new string[]
     {
-        "010_AdditionalLightsSorted", //expectedImage is for Forward
-        "015_CameraMulti_FPSCam", //feature WIP
-        "111_CameraStackMSAA", //feature WIP
-        "123_CameraStackingClear", //feature WIP
-        "142_SSAO_DepthNormal_Projection", //feature WIP
-        "143_SSAO_DepthNormals_Orthographic" //feature WIP
+        //Simple Lit or Unlit
+        "001_SimpleCube",
+        "053_UnlitShader",
+
+        //Material types
+        "007_LitShaderMaps",
+        "012_PBS_EnvironmentBRDF_Spheres",
+        "026_Shader_PBRscene",
+        "035_Shader_TerrainShaders",
+
+        //Particles
+        "029_Particles",
+        "037_Particles_Standard",
+
+        //Shadergraph
+        "050_Shader_Graphs",
+
+        //Lighting modes
+        "023_Lighting_Mixed_Indirect",
+        "043_Lighting_Mixed_ShadowMask",
+        "049_Lighting_Mixed_Subtractive",
+
+        //Camera stacking (Enable these 2 tests when deferred camera stacking is implemented)
+        //"111_CameraStackMSAA",
+        //"123_CameraStackingClear",
     };
 
 
