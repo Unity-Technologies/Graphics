@@ -1,5 +1,5 @@
 {
-    "name": "Runtime",
+    "name": "Unity.GraphicTests.Performance.Universal.Runtime",
     "rootNamespace": "",
     "references": [
         "UnityEngine.TestRunner",

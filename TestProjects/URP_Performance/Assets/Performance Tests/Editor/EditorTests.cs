@@ -38,7 +38,7 @@ public class EditorTests : EditorPerformanceTests
     [Timeout(k_BuildTimeout), Version("1"), UnityTest, Performance]
     public IEnumerator Build([ValueSource(nameof(GetBuildTests))] BuildTestDescription testDescription)
     {
-        //ShaderPreprocessor.shaderPreprocessed += ReportShaderStrippingData;
+        ShaderPreprocessor.shaderPreprocessed += ReportShaderStrippingData;
 
         using (new EditorLogWatcher(OnEditorLogWritten))
         {
@@ -48,7 +48,7 @@ public class EditorTests : EditorPerformanceTests
             EditorPerformanceTests.ReportShaderSize(buildReport, k_ShaderNameFilter);
         }
 
-        //ShaderPreprocessor.shaderPreprocessed -= ReportShaderStrippingData;
+        ShaderPreprocessor.shaderPreprocessed -= ReportShaderStrippingData;
 
         yield return null;
     }

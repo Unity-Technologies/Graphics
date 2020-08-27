@@ -1,5 +1,5 @@
 {
-    "name": "Perf_Editor",
+    "name": "Unity.GraphicTests.Performance.Universal.Editor",
     "rootNamespace": "",
     "references": [
         "Unity.RenderPipelines.Core.Runtime",
@@ -7,7 +7,9 @@
         "UnityEngine.TestRunner",
         "Unity.GraphicTests.Performance.Editor",
         "Unity.RenderPipelines.Universal.Editor",
-        "Unity.PerformanceTesting"
+        "Unity.PerformanceTesting",
+        "Unity.RenderPipelines.Universal.Editor.Tests",
+        "Unity.RenderPipelines.Universal.Runtime.Tests"
     ],
     "includePlatforms": [
         "Editor"
