@@ -24,7 +24,12 @@ namespace UnityEngine.Rendering.Universal
         static readonly string k_CreateCameraTextures = "Create Camera Texture";
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_CreateCameraTextures);
 
+        // Rendering mode can be switched at runtime, preventing some resource optimisations.
+        internal bool mutableRenderingMode { get; set; }
+        // Rendering mode setup from UI.
         internal RenderingMode renderingMode { get; set; }
+        // Actual rendering mode, which may be different (ex: wireframe rendering).
+        internal RenderingMode actualRenderingMode { get { return GL.wireframe ? RenderingMode.Forward : this.renderingMode; } }
         internal bool accurateGbufferNormals { get { return m_DeferredLights != null ? m_DeferredLights.AccurateGbufferNormals : false; } set { if (m_DeferredLights != null) m_DeferredLights.AccurateGbufferNormals = value; } }
 
         ColorGradingLutPass m_ColorGradingLutPass;
@@ -106,6 +111,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_ForwardLights = new ForwardLights();
             //m_DeferredLights.LightCulling = data.lightCulling;
+            this.mutableRenderingMode = data.mutableRenderingMode;
             this.renderingMode = data.renderingMode;
 
             // Note: Since all custom render passes inject first and we have stable sort,
@@ -119,7 +125,7 @@ namespace UnityEngine.Rendering.Universal
             m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrepasses, data.postProcessData);
 
-            if (this.renderingMode == RenderingMode.Deferred)
+            if (this.mutableRenderingMode || this.renderingMode == RenderingMode.Deferred)
             {
                 m_DeferredLights = new DeferredLights(m_TileDepthInfoMaterial, m_TileDeferredMaterial, m_StencilDeferredMaterial);
                 m_DeferredLights.AccurateGbufferNormals = data.accurateGbufferNormals;
@@ -146,8 +152,9 @@ namespace UnityEngine.Rendering.Universal
                 m_TileDepthRangeExtraPass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingOpaques + 4, m_DeferredLights, 1);
                 m_DeferredPass = new DeferredPass(RenderPassEvent.BeforeRenderingOpaques + 5, m_DeferredLights);
             }
-            else
-                m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
+
+            // Always create this pass even in deferred because we use it for wireframe rendering in the Editor or offscreen depth texture rendering.
+            m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
 
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
 
@@ -171,7 +178,7 @@ namespace UnityEngine.Rendering.Universal
             m_CameraDepthAttachment.Init("_CameraDepthAttachment");
             m_DepthTexture.Init("_CameraDepthTexture");
             m_NormalsTexture.Init("_CameraNormalsTexture");
-            if (this.renderingMode == RenderingMode.Deferred)
+            if (this.mutableRenderingMode || this.renderingMode == RenderingMode.Deferred)
             {
                 m_GBufferAttachments = new RenderTargetHandle[m_DeferredLights.GBufferSliceCount];
                 m_GBufferAttachments[m_DeferredLights.GBufferAlbedoIndex].Init("_GBuffer0");
@@ -194,7 +201,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraStacking = true,
             };
 
-            if (this.renderingMode == RenderingMode.Deferred)
+            if (this.mutableRenderingMode || this.renderingMode == RenderingMode.Deferred)
             {
                 unsupportedGraphicsDeviceTypes = new GraphicsDeviceType[] {
                     GraphicsDeviceType.OpenGLCore,
@@ -252,7 +259,7 @@ namespace UnityEngine.Rendering.Universal
             bool generateColorGradingLUT = cameraData.postProcessEnabled;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
             bool isPreviewCamera = cameraData.isPreviewCamera;
-            bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || this.renderingMode == RenderingMode.Deferred;
+            bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || this.actualRenderingMode == RenderingMode.Deferred;
 
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
             bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
@@ -287,8 +294,10 @@ namespace UnityEngine.Rendering.Universal
             // around a bug where during gbuffer pass (MRT pass), the camera depth attachment is correctly bound, but during
             // deferred pass ("camera color" + "camera depth"), the implicit depth surface of "camera color" is used instead of "camera depth",
             // because BuiltinRenderTextureType.CameraTarget for depth means there is no explicit depth attachment...
-            bool createDepthTexture = cameraData.requiresDepthTexture && !requiresDepthPrepass || this.renderingMode == RenderingMode.Deferred;
+            bool createDepthTexture = cameraData.requiresDepthTexture && !requiresDepthPrepass;
             createDepthTexture |= (cameraData.renderType == CameraRenderType.Base && !cameraData.resolveFinalTarget);
+            // Deferred renderer always need to access depth buffer.
+            createDepthTexture |= this.actualRenderingMode == RenderingMode.Deferred;
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
@@ -383,7 +392,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_ColorGradingLutPass);
             }
 
-            if (this.renderingMode == RenderingMode.Deferred)
+            if (this.actualRenderingMode == RenderingMode.Deferred)
                 EnqueueDeferred(ref renderingData, requiresDepthPrepass, mainLightShadows, additionalLightShadows);
             else
                 EnqueuePass(m_RenderOpaqueForwardPass);
@@ -392,8 +401,9 @@ namespace UnityEngine.Rendering.Universal
             if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null && !isOverlayCamera)
                 EnqueuePass(m_DrawSkyboxPass);
 
-            // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
-            if (!requiresDepthPrepass && renderingData.cameraData.requiresDepthTexture && createDepthTexture && this.renderingMode != RenderingMode.Deferred)
+            // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer.
+            // If deferred rendering path was selected, it has already made a copy.
+            if (!requiresDepthPrepass && renderingData.cameraData.requiresDepthTexture && createDepthTexture && this.actualRenderingMode != RenderingMode.Deferred)
             {
                 m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
                 EnqueuePass(m_CopyDepthPass);
@@ -496,7 +506,7 @@ namespace UnityEngine.Rendering.Universal
             m_ForwardLights.Setup(context, ref renderingData);
 
             // Perform per-tile light culling on CPU
-            if (this.renderingMode == RenderingMode.Deferred)
+            if (this.actualRenderingMode == RenderingMode.Deferred)
                 m_DeferredLights.SetupLights(context, ref renderingData);
         }
 
@@ -520,7 +530,7 @@ namespace UnityEngine.Rendering.Universal
                 cullingParameters.cullingOptions &= ~CullingOptions.ShadowCasters;
             }
 
-            if (this.renderingMode == RenderingMode.Deferred)
+            if (this.actualRenderingMode == RenderingMode.Deferred)
                 cullingParameters.maximumVisibleLights = 0xFFFF;
             else
             {
@@ -678,6 +688,15 @@ namespace UnityEngine.Rendering.Universal
             // When rendering a camera stack we always create an intermediate render texture to composite camera results.
             // We create it upon rendering the Base camera.
             if (cameraData.renderType == CameraRenderType.Base && !cameraData.resolveFinalTarget)
+                return true;
+
+            // Always force rendering into intermediate color texture if deferred rendering mode is selected.
+            // Reason: without intermediate color texture, the target camera texture is y-flipped.
+            // However, the target camera texture is bound during gbuffer pass and deferred pass.
+            // Gbuffer pass will not be y-flipped because it is MRT (see ScriptableRenderContext implementation),
+            // while deferred pass will be y-flipped, which breaks rendering.
+            // This incurs an extra blit into at the end of rendering.
+            if (this.actualRenderingMode == RenderingMode.Deferred)
                 return true;
 
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
