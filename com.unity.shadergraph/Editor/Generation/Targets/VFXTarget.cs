@@ -1,3 +1,4 @@
+#if VFX_GRAPH_10_0_0_OR_NEWER
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -134,3 +135,4 @@ namespace UnityEditor.ShaderGraph
         }
     }
 }
+#endif
