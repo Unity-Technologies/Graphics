@@ -306,6 +306,7 @@ float FixedRand(uint seed)
 ///////////////////
 // Mesh sampling //
 ///////////////////
+<<<<<<< HEAD
 #define VFX_GENERIC_BUFFER_TYPE_AS_STRUCTURE_BUFFER_FLOAT 1
 
 #if VFX_GENERIC_BUFFER_TYPE_AS_STRUCTURE_BUFFER_FLOAT
@@ -414,34 +415,65 @@ float4 SampleMeshColor(VFX_GENERIC_BUFFER vertices, uint offset, uint channelFor
 
 //Deprecated function for compatibility 2020.1, can be removed with 2021.1
 float4 SampleMeshFloat4(VFX_GENERIC_BUFFER vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
+=======
+
+float   FetchBuffer(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load(offset << 2)); }
+float2  FetchBuffer2(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load2(offset << 2)); }
+float3  FetchBuffer3(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load3(offset << 2)); }
+float4  FetchBuffer4(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load4(offset << 2)); }
+
+float4 SampleMeshFloat4(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
+>>>>>>> 6fb9f1a73ec... Simpler update to use now available ByteAddressBuffer
 {
     if (channelOffset == -1)
         return float4(0.0f, 0.0f, 0.0f, 0.0f);
     uint offset = vertexIndex * vertexStride + channelOffset;
+<<<<<<< HEAD
     return SampleMeshFloat4(vertices, offset, VERTEXATTRIBUTEFORMAT_FLOAT32 | (4 << 8));
 }
 
 float3 SampleMeshFloat3(VFX_GENERIC_BUFFER vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
+=======
+    return FetchBuffer4(vertices, offset);
+}
+
+float3 SampleMeshFloat3(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
+>>>>>>> 6fb9f1a73ec... Simpler update to use now available ByteAddressBuffer
 {
     if (channelOffset == -1)
         return float3(0.0f, 0.0f, 0.0f);
     uint offset = vertexIndex * vertexStride + channelOffset;
+<<<<<<< HEAD
     return SampleMeshFloat3(vertices, offset, VERTEXATTRIBUTEFORMAT_FLOAT32 | (3 << 8));
 }
 
 float2 SampleMeshFloat2(VFX_GENERIC_BUFFER vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
+=======
+    return FetchBuffer3(vertices, offset);
+}
+
+float2 SampleMeshFloat2(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
+>>>>>>> 6fb9f1a73ec... Simpler update to use now available ByteAddressBuffer
 {
     if (channelOffset == -1)
         return float2(0.0f, 0.0f);
     uint offset = vertexIndex * vertexStride + channelOffset;
+<<<<<<< HEAD
     return SampleMeshFloat2(vertices, offset, VERTEXATTRIBUTEFORMAT_FLOAT32 | (2 << 8));
 }
 
 float SampleMeshFloat(VFX_GENERIC_BUFFER vertices, int vertexIndex, int channelOffset, int vertexStride)
+=======
+    return FetchBuffer2(vertices, offset);
+}
+
+float SampleMeshFloat(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
+>>>>>>> 6fb9f1a73ec... Simpler update to use now available ByteAddressBuffer
 {
     if (channelOffset == -1)
         return 0.0f;
     uint offset = vertexIndex * vertexStride + channelOffset;
+<<<<<<< HEAD
     return SampleMeshFloat(vertices, offset, VERTEXATTRIBUTEFORMAT_FLOAT32 | (1 << 8));
 }
 
@@ -449,6 +481,20 @@ float4 SampleMeshColor(VFX_GENERIC_BUFFER vertices, int vertexIndex, int channel
 {
     if (channelOffset == -1)
         return float4(0.0f, 0.0f, 0.0f, 0.0f);
+=======
+    return FetchBuffer(vertices, offset);
+}
+
+float4 SampleMeshColor(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
+{
+    if (channelOffset == -1)
+        return float4(0.0f, 0.0f, 0.0f, 0.0f);
+    uint offset = vertexIndex * vertexStride + channelOffset;
+    uint colorByte = asuint(FetchBuffer(vertices, offset));
+    float4 colorSRGB = float4(uint4(colorByte, colorByte >> 8, colorByte >> 16, colorByte >> 24) & 255) / 255.0f;
+    return float4(pow(abs(colorSRGB.rgb), 2.2f), colorSRGB.a); //Approximative SRGBToLinear
+}
+>>>>>>> 6fb9f1a73ec... Simpler update to use now available ByteAddressBuffer
 
     uint offset = vertexIndex * vertexStride + channelOffset;
     return SampleMeshColor(vertices, offset, VERTEXATTRIBUTEFORMAT_UNORM8 | (4 << 8));
