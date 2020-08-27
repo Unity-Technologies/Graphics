@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
@@ -170,127 +171,250 @@ namespace UnityEngine.Experimental.Rendering.Universal
             mesh.SetVertexBufferParams(vertices.Length, SpriteLightMeshVertex.VertexLayout);
             mesh.SetVertexBufferData(vertices, 0, 0, vertices.Length);
             mesh.SetIndices(srcIndices, MeshTopology.Triangles, 0, true);
-            return mesh.GetSubMesh(0).bounds;
+            return mesh.bounds;
         }
 
-        public static List<Vector2> GetFalloffShape(Vector3[] shapePath)
+        static bool LineIntersection(float epsilon, float2 p1, float2 p2, float2 p3, float2 p4, ref float2 result)
         {
-            var extrusionDir = new List<Vector2>();
-            for (var i = 0; i < shapePath.Length; ++i)
+            float bx = p2.x - p1.x;
+            float by = p2.y - p1.y;
+            float dx = p4.x - p3.x;
+            float dy = p4.y - p3.y;
+            float bDotDPerp = bx * dy - by * dx;
+            if (math.abs(bDotDPerp) < epsilon)
             {
-                var h = (i == 0) ? (shapePath.Length - 1) : (i - 1);
+                return false;
+            }
+            float cx = p3.x - p1.x;
+            float cy = p3.y - p1.y;
+            float t = (cx * dy - cy * dx) / bDotDPerp;
+            if ((t >= -epsilon) && (t <= 1.0f + epsilon))
+            {
+                result.x = p1.x + t * bx;
+                result.y = p1.y + t * by;
+                return true;
+            }
+            return false;
+        }        
+        
+        static NativeArray<float4> GetFalloff(Vector3[] shapePath, float fallOff, Color meshInterior, ref List<ContourVertex> vertices)
+        {
+            var shapePathLength = shapePath.Length;
+            var extrusionDir = new NativeArray<float2>(shapePathLength, Allocator.Temp);
+            var smoothInputs = new NativeArray<float4>(shapePathLength * 3, Allocator.Temp);
+            var bi = 0;
+            
+            for (var i = 0; i < shapePathLength; ++i)
+            {
                 var j = (i + 1) % shapePath.Length;
-
-                var pp = shapePath[h];
+                
                 var cp = shapePath[i];
                 var np = shapePath[j];
-
-                var cpd = cp - pp;
-                var npd = np - cp;
-                if (cpd.magnitude < 0.001f || npd.magnitude < 0.001f)
+                
+                float3 npd = np - cp;
+                if (math.length(npd) < 0.001f)
                     continue;
+                
+                var vr = math.normalize(npd);
+                var vn = new float2(-vr.y, vr.x);
 
-                var vl = cpd.normalized;
-                var vr = npd.normalized;
+                var va = -math.normalize(vn);
+                var dir = new float2(va.x, va.y);
+                extrusionDir[i] = dir;
+            }
+            
+            for (var i = 0; i < shapePathLength; i++)
+            {
+                var j = (i == shapePath.Length - 1) ? 0 : (i + 1);
+                var sPI = shapePath[i];
+                var sPJ = shapePath[j];
+                var eDI = extrusionDir[i];
+                var eDJ = extrusionDir[i];
 
-                vl = new Vector2(-vl.y, vl.x);
-                vr = new Vector2(-vr.y, vr.x);
+                // LibTess Inputs.
+                var a = new Vec3() { X = sPI.x, Y = sPI.y, Z = 0 };
+                var b = new Vec3() { X = sPI.x + (fallOff * eDI.x), Y = sPI.y + (fallOff * eDI.y), Z = 0 };
+                var c = new Vec3() { X = sPJ.x + (fallOff * eDJ.x), Y = sPJ.y + (fallOff * eDJ.y), Z = 0 };
+                var d = new Vec3() { X = sPJ.x, Y = sPJ.y, Z = 0 };
 
-                var va = vl.normalized + vr.normalized;
-                var vn = -va.normalized;
-
-                if (va.magnitude > 0 && vn.magnitude > 0)
+                // For Bevels. Check if they overlap in which generating offset polygon will result in Artifacts.
+                var intersects = false;
+                if (i != 0)
                 {
-                    var dir = new Vector2(vn.x, vn.y);
-                    extrusionDir.Add(dir);
+                    var verticesCount = vertices.Count;
+                    var pIL = verticesCount - 3;
+                    var pIR = verticesCount - 2;
+                    var pVL = new float2(vertices[pIL].Position.X, vertices[pIL].Position.Y);
+                    var pVR = new float2(vertices[pIR].Position.X, vertices[pIR].Position.Y);
+                    var cVL = new float2(b.X, b.Y);
+                    var cVR = new float2(c.X, c.Y);
+                    var iNP = new float2();
+                    
+                    intersects = LineIntersection(Mathf.Epsilon, pVL, pVR, cVR, cVL, ref iNP);
+                    if (intersects)
+                    {
+                        b = new Vec3() {X = iNP.x, Y = iNP.y, Z = 0};
+                        smoothInputs[bi - 1] = new float4(smoothInputs[bi - 1].x, smoothInputs[bi - 1].y, smoothInputs[bi - 1].z, 1.0f);
+                        vertices[pIR] = new ContourVertex() { Position = new Vec3(){ X = iNP.x, Y = iNP.y, Z = 0}, Data = vertices[pIR].Data };
+                    }
+                    smoothInputs[bi++] = new float4(b.X, b.Y, b.Z, 0);
+                }
+                
+                vertices.Add( new ContourVertex() { Position = a, Data = meshInterior } );
+                vertices.Add( new ContourVertex() { Position = b, Data = new Color(eDI.x, eDI.y, 0, 0) } );
+                vertices.Add( new ContourVertex() { Position = c, Data = new Color(eDJ.x, eDI.y, 0, 0) } );
+                vertices.Add( new ContourVertex() { Position = d, Data = meshInterior } );                
+                
+                smoothInputs[bi++] = new float4(c.X, c.Y, c.Z, 0);
+                smoothInputs[bi++] = new float4(d.X, d.Y, d.Z, 0);
+            }
+            smoothInputs[bi++] = new float4(vertices[1].Position.X, vertices[1].Position.Y, vertices[2].Position.Z, 0);
+            return smoothInputs;
+        }
+        
+        static float SlopeAngle(float3 dirNormalized)
+        {
+            float3 dvup = new float3(0, 1f, 0);
+            float3 dvrt = new float3(1f, 0, 0);
+
+            float dr = math.dot(dirNormalized, dvrt);
+            float du = math.dot(dirNormalized, dvup);
+            float cu = math.acos(du);
+            float sn = dr >= 0 ? 1.0f : -1.0f;
+            float an = cu * Mathf.Rad2Deg * sn;
+
+            // Adjust angles when direction is parallel to Up Axis.
+            an = (du != 1f) ? an : 0;
+            an = (du != -1f) ? an : -180f;
+            return (360.0f + an) % 360.0f;
+        }
+        
+        static void GetArc(NativeArray<float3> arcPoints, float3 from, float3 to, float3 pivot, float3 center, float radius, float detail)
+        {
+            var fq = SlopeAngle(math.normalize(from));
+            var tq = SlopeAngle(math.normalize(to));
+            var sq = SlopeAngle(math.normalize(pivot));
+
+            var fd = math.abs(sq - fq);
+            var td = math.abs(tq - sq);
+            var df = math.abs(fd - td);
+            
+            if (df > 1.0f)
+                fq = (fd > td) ? (sq + td) : (fq + 360);
+
+            var arcLength = tq - fq;
+            var ix = 0;
+            for (int i = 0; i <= detail; i++)
+            {
+                var x = Mathf.Sin(Mathf.Deg2Rad * fq) * radius;
+                var y = Mathf.Cos(Mathf.Deg2Rad * fq) * radius;
+                var pt = new float3(x, y, 0);
+                arcPoints[ix++] = (math.normalize(pt) * radius) + center;
+                fq += (arcLength / detail);
+            }
+        }
+
+        static void GenerateBevels(NativeArray<float4> bevel, float fallOff, Color meshInteriorColor, NativeArray<ushort> indices,
+            NativeArray<ParametricLightMeshVertex> vertices, ref int vcount, ref int icount)
+        {
+            var vertexCount = bevel.Length;
+            var quality = 4;
+            var arcPoints = new NativeArray<float3>(quality + 1, Allocator.Temp);
+            for (var i = 0; i < vertexCount; i = i + 3)
+            {
+                if ( 0 != bevel[i + 1].w )
+                    continue;
+                
+                // Gnerate Pivot Position
+                var sp = new float3(bevel[i + 0].x, bevel[i + 0].y, bevel[i + 0].z);
+                var ip = new float3(bevel[i + 1].x, bevel[i + 1].y, bevel[i + 1].z);
+                var ep = new float3(bevel[i + 2].x, bevel[i + 2].y, bevel[i + 2].z);
+                
+                var isn = math.normalize(sp - ip);
+                var ien = math.normalize(ep - ip);                
+                var sen = math.normalize(isn + ien);
+                var ptp = ip + (sen * fallOff);
+
+                var pivotPoint = new ParametricLightMeshVertex() {position = ip, color = meshInteriorColor};
+                var startPoint = new ParametricLightMeshVertex() {position = sp, color = new Color(isn.x, isn.y, 0, 0)};
+                GetArc(arcPoints, isn, ien, sen, ip, fallOff, quality);
+                
+                for (int n = 0; n <= quality; ++n)
+                {
+                    float3 r = arcPoints[n];
+                    float3 d = math.normalize(ptp - r);
+
+                    indices[icount++] = (ushort)vcount;
+                    indices[icount++] = (ushort)(vcount + 1);
+                    indices[icount++] = (ushort)(vcount + 2); 
+                    vertices[vcount++] = pivotPoint;
+                    vertices[vcount++] = startPoint;
+                    startPoint = new ParametricLightMeshVertex() { position = r, color = new Color(d.x, d.y, 0, 0) };
+                    vertices[vcount++] = startPoint;
                 }
             }
-            return extrusionDir;
+        }
+
+        static Bounds Tessellate(Tess tess, NativeArray<ushort> indices,
+            NativeArray<ParametricLightMeshVertex> vertices, ref int vcount, ref int icount)
+        {
+            tess.Tessellate(WindingRule.NonZero, ElementType.Polygons, 3);
+
+            var iout = tess.Elements.Select(i => i);
+            var vout = tess.Vertices.Select(v => 
+                new ParametricLightMeshVertex() { position = 
+                    new float3(v.Position.X, v.Position.Y, 0), color = v.Data != null ? (Color)v.Data : Color.white });
+
+            var min = new float3(float.MaxValue, float.MaxValue, 0);
+            var max = new float3(float.MinValue, float.MinValue, 0);
+            var bounds = new Bounds {min = min, max = max};
+
+            foreach(var v in vout)
+            {
+                min = math.min(min, v.position);
+                max = math.max(max, v.position);
+                vertices[vcount++] = new ParametricLightMeshVertex { position = v.position, color = v.color };
+            }
+
+            foreach (var i in iout)
+            {
+                indices[icount++] = (ushort)i;
+            }
+
+            return new Bounds {min = min, max = max};
         }
 
         public static Bounds GenerateShapeMesh(Mesh mesh, Vector3[] shapePath, float falloffDistance)
         {
-            var meshInteriorColor = new Color(0,0,0,1);
-            var min = new float3(float.MaxValue, float.MaxValue, 0);
-            var max = new float3(float.MinValue, float.MinValue, 0);
-
-            // Create interior geometry
-            var pointCount = shapePath.Length;
-            var inputs = new ContourVertex[pointCount];
-            for (var i = 0; i < pointCount; ++i)
-                inputs[i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y }};
-
-            var tessI = new Tess();
-            tessI.AddContour(inputs, ContourOrientation.Original);
-            tessI.Tessellate(WindingRule.EvenOdd, ElementType.Polygons, 3);
-
-            var indicesI = tessI.Elements.Select(i => i);
-            var verticesI = tessI.Vertices.Select(v => new float3(v.Position.X, v.Position.Y, 0));
-
-            var finalVertices = new NativeArray<ParametricLightMeshVertex>(verticesI.Count() + 2 * shapePath.Length, Allocator.Temp);
-            var finalIndices = new NativeArray<ushort>(indicesI.Count() + 6 * shapePath.Length, Allocator.Temp);
-
-            var vertexOffset = 0;
-            foreach(var v in verticesI)
-            {
-                finalVertices[vertexOffset++] = new ParametricLightMeshVertex
-                {
-                    position = v,
-                    color = meshInteriorColor
-                };
-            }
-
-            var indexOffset = 0;
-            foreach (var v in indicesI)
-            {
-                finalIndices[indexOffset++] = (ushort)v;
-            }
+            var meshInteriorColor = new Color(1.0f,0,0,1.0f);
+            var vcount = 0;
+            var icount = 0;
+            var ix = 0;
+            var vertices = new NativeArray<ParametricLightMeshVertex>(shapePath.Length * 64, Allocator.Temp);
+            var indices = new NativeArray<ushort>(shapePath.Length * 64, Allocator.Temp);
+            var tess = new Tess();
+            
+            // Create shape geometry
+            var innerShapeVertexCount = shapePath.Length;
+            var inner = new ContourVertex[innerShapeVertexCount + 1];
+            for (var i = 0; i < innerShapeVertexCount; ++i)
+                inner[ix++] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y, Z = 0 }, Data = meshInteriorColor };
+            inner[ix++] = inner[0];
+            tess.AddContour(inner, ContourOrientation.CounterClockwise);
 
             // Create falloff geometry
-            var extrusionDirs = GetFalloffShape(shapePath);
-            var falloffPointCount = 2 * shapePath.Length;
-            for (var i = 0; i < shapePath.Length; i++)
-            {
-                // Making triangles ABD and DCA
-                var triangleIndex = 2 * i;
-                var aIndex = vertexOffset + triangleIndex;
-                var bIndex = vertexOffset + triangleIndex + 1;
-                var cIndex = vertexOffset + (triangleIndex + 2) % falloffPointCount;
-                var dIndex = vertexOffset + (triangleIndex + 3) % falloffPointCount;
+            var outer = new List<ContourVertex>(); 
+            var bevel = GetFalloff(shapePath, falloffDistance, meshInteriorColor, ref outer);
+            tess.AddContour(outer.ToArray(), ContourOrientation.CounterClockwise);
+            var bounds = Tessellate(tess, indices, vertices, ref vcount, ref icount);
 
-                // We are making degenerate triangles which will be extruded by the shader
-                var point = new ParametricLightMeshVertex
-                {
-                    position = shapePath[i],
-                    color = new Color(0, 0, 0, 1)
-                };
-                finalVertices[vertexOffset + i * 2] = point;
+            // Generate Bevels.
+            GenerateBevels(bevel, falloffDistance, meshInteriorColor, indices, vertices, ref vcount, ref icount);
+            mesh.SetVertexBufferParams(vcount, ParametricLightMeshVertex.VertexLayout);
+            mesh.SetVertexBufferData(vertices, 0, 0, vcount);
+            mesh.SetIndices(indices, 0, icount, MeshTopology.Triangles, 0, false);
 
-                point.color = new Color(extrusionDirs[i].x, extrusionDirs[i].y, 0, 0);
-                finalVertices[vertexOffset + i * 2 + 1] =  point;
-
-                finalIndices[indexOffset + i*6 + 0] = (ushort)aIndex;
-                finalIndices[indexOffset + i*6 + 1] = (ushort)bIndex;
-                finalIndices[indexOffset + i*6 + 2] = (ushort)dIndex;
-
-                finalIndices[indexOffset + i*6 + 3] = (ushort)dIndex;
-                finalIndices[indexOffset + i*6 + 4] = (ushort)cIndex;
-                finalIndices[indexOffset + i*6 + 5] = (ushort)aIndex;
-
-                var extrudeDir = new float3(extrusionDirs[i].x, extrusionDirs[i].y, 0);
-                min = math.min(min, point.position + extrudeDir * falloffDistance);
-                max = math.max(max, point.position + extrudeDir * falloffDistance);
-            }
-
-            mesh.SetVertexBufferParams(finalVertices.Length, ParametricLightMeshVertex.VertexLayout);
-            mesh.SetVertexBufferData(finalVertices, 0, 0, finalVertices.Length);
-            mesh.SetIndices(finalIndices, MeshTopology.Triangles, 0, false);
-
-            return new Bounds
-            {
-                min = min,
-                max = max
-            };
+            return bounds;
         }
 
 #if UNITY_EDITOR
