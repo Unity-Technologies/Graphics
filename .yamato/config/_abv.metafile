@@ -2,6 +2,7 @@ abv: # specify the editor versions for which to create the expression trigger fo
   trigger_editors:
     - fast-trunk
   projects:
+    - name: Smoke_Test
     - name: Universal
     - name: ShaderGraph
     - name: HDRP
@@ -46,14 +47,6 @@ nightly:
       test_platforms:
         - editmode
         - playmode
-smoke_test: # specifications for smoke tests
-  folder: SRP_SmokeTest
-  agent: sdet_win_large # used for editmode
-  agent_gpu: sdet_win_large_gpu  # used for non-editmode
-  test_platforms:
-    - Standalone
-    - playmode
-    - editmode
 trunk_verification: # jobs to include in trunk verification job
   dependencies:
     - project: Universal
