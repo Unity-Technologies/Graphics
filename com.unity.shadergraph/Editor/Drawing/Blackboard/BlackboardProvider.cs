@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
+using UnityEditor.ShaderGraph.Drawing.Inspector;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -246,7 +247,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void EditTextRequested(Blackboard blackboard, VisualElement visualElement, string newText)
         {
-            var field = (BlackboardField)visualElement;
+            var field = (BlackboardFieldView)visualElement;
             var input = (ShaderInput)field.userData;
             if (!string.IsNullOrEmpty(newText) && newText != input.displayName)
             {
@@ -254,7 +255,23 @@ namespace UnityEditor.ShaderGraph.Drawing
                 input.displayName = newText;
                 m_Graph.SanitizeGraphInputName(input);
                 field.text = input.displayName;
+                // need to trigger the inspector update to match
+                field.InspectorUpdateTrigger();
                 DirtyNodes();
+            }
+        }
+
+        void UpdateBlackboardView()
+        {
+            foreach (var item in blackboard.selection)
+            {
+                if (item is BlackboardFieldView blackboardFieldView)
+                {
+                    //update property pill
+                    blackboardFieldView.text = blackboardFieldView.shaderInput.displayName;
+                    // for some reason doesn't work from the inspector calls so need it here 
+                    DirtyNodes();
+                }
             }
         }
 
@@ -330,7 +347,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case AbstractShaderProperty property:
                 {
                     var icon = (m_Graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? exposedIcon : null;
-                    field = new BlackboardFieldView(m_Graph, property, icon, property.displayName, property.propertyType.ToString()) { userData = property };
+                    field = new BlackboardFieldView(m_Graph, property, UpdateBlackboardView, icon, property.displayName, property.propertyType.ToString()) { userData = property };
                     field.RegisterCallback<AttachToPanelEvent>(UpdateSelectionAfterUndoRedo);
                     row = new BlackboardRow(field, null);
 
@@ -351,7 +368,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     string typeText = keyword.keywordType.ToString()  + " Keyword";
                     typeText = keyword.isBuiltIn ? "Built-in " + typeText : typeText;
 
-                    field = new BlackboardFieldView(m_Graph, keyword, icon, keyword.displayName, typeText) { userData = keyword };
+                    field = new BlackboardFieldView(m_Graph, keyword, UpdateBlackboardView, icon, keyword.displayName, typeText) { userData = keyword };
                     field.RegisterCallback<AttachToPanelEvent>(UpdateSelectionAfterUndoRedo);
                     row = new BlackboardRow(field, null);
 
