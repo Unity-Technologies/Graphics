@@ -325,7 +325,6 @@ namespace UnityEngine.Rendering.Universal
             bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
 
             InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
-            SkyManager.UpdateCurrentSkySettings(ref baseCameraData);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             var originalTargetDesc = baseCameraData.cameraTargetDescriptor;
@@ -367,6 +366,7 @@ namespace UnityEngine.Rendering.Universal
                 VFX.VFXManager.PrepareCamera(baseCamera);
 #endif
                 UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
+                SkyManager.UpdateCurrentSkySettings(ref baseCameraData);
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
                 if (asset.useAdaptivePerformance)
                     ApplyAdaptivePerformance(ref baseCameraData);
@@ -931,6 +931,7 @@ namespace UnityEngine.Rendering.Universal
             Color linearGlossyEnvColor = new Color(ambientSH[0, 0], ambientSH[1, 0], ambientSH[2, 0]) * RenderSettings.reflectionIntensity;
             Color glossyEnvColor = CoreUtils.ConvertLinearToActiveColorSpace(linearGlossyEnvColor);
             Shader.SetGlobalVector(PerFrameBuffer._GlossyEnvironmentColor, glossyEnvColor);
+            // TODO Should we move this to ScriptableRenderer.SetPerCameraShaderVariables ?
         }
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
