@@ -52,7 +52,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public bool clearRenderTargetsAtCreation;
         public bool clearRenderTargetsAtRelease;
         public bool disablePassCulling;
-        public bool immediateMode = true;
+        public bool immediateMode;
         public bool logFrameInformation;
         public bool logResources;
 
