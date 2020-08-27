@@ -749,6 +749,8 @@ namespace UnityEditor.VFX.UI
 
         void FrameAfterAWhile()
         {
+
+
             var rectToFit = contentViewContainer.layout;
             var frameTranslation = Vector3.zero;
             var frameScaling = Vector3.one;
@@ -760,7 +762,16 @@ namespace UnityEditor.VFX.UI
                 return;
             }
 
-            CalculateFrameTransform(rectToFit, layout, 30, out frameTranslation, out frameScaling);
+            Rect rectAvailable = layout;
+
+            float validateFloat = rectAvailable.x + rectAvailable.y + rectAvailable.width + rectAvailable.height;
+            if (float.IsInfinity(validateFloat) || float.IsNaN(validateFloat))
+            {
+                schedule.Execute(FrameAfterAWhile);
+                return;
+            }
+
+            CalculateFrameTransform(rectToFit, rectAvailable, 30, out frameTranslation, out frameScaling);
 
             Matrix4x4.TRS(frameTranslation, Quaternion.identity, frameScaling);
 

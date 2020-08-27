@@ -136,6 +136,7 @@ The version number for this package has increased due to a version update of a r
 - Make VisualEffect created from the GameObject menu have unique names [Case 1262989](https://issuetracker.unity3d.com/product/unity/issues/guid/1262989/)
 - Missing System Seed in new dynamic built-in operator.
 - Prefab highlight missing for initial event name toggle [Case 1263012](https://issuetracker.unity3d.com/product/unity/issues/guid/1263012/)
+- Correctly frame the whole graph, when opening the Visual Effect Editor
 - Optimize display of inspector when there is a lot of exposed VFX properties.
 - fixes the user created vfx default resources that were ignored unless loaded
 - fix crash when creating a loop in subgraph operators [Case 1251523](https://issuetracker.unity3d.com/product/unity/issues/guid/1251523/)
