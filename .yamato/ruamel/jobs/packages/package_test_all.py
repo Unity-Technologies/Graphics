@@ -25,6 +25,7 @@ class Package_AllPackageCiJob():
         job.set_name(f'Pack and test all packages - { editor["track"] } [package context]')
         job.set_agent(agent)
         job.add_dependencies(dependencies)
+        job.add_var_custom_revision(editor["track"])
         job.add_commands([
                 f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
                 f'upm-ci package izon -t',

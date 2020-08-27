@@ -306,6 +306,8 @@ test_all_project_windows_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
 test_all_project_macos_CUSTOM-REVISION:
     name: Test all packages [project context] OSX CUSTOM-REVISION
     agent:
@@ -324,6 +326,8 @@ test_all_project_macos_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
 all_package_ci_project_trunk:
     name: Pack and test all packages - trunk [project context]
     agent:
@@ -346,6 +350,8 @@ all_package_ci_project_CUSTOM-REVISION:
     dependencies:
       -  .yamato/_projectcontext.yml#test_all_project_windows_CUSTOM-REVISION
       -  .yamato/_projectcontext.yml#test_all_project_macos_CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
