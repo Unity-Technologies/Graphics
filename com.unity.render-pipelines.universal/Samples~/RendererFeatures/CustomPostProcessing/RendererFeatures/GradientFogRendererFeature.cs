@@ -1,13 +1,26 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 public class GradientFogRendererFeature : ScriptableRendererFeature
 {
+    [Serializable]
+    public class GradientFogSettings
+    {
+        public float startDistance;
+        public float endDistance;
+        public Color nearColor;
+        public Color midColor;
+        public Color farColor;
+    }
+    
     class GradientFogPass : ScriptableRenderPass
     {
+        
         private Material fogMaterial;
-        public GradientFogVolume volume;
+        //public GradientFogVolume volume;
+        public GradientFogSettings settings;
 
         private RenderTargetIdentifier source { get; set; }
         private RenderTargetHandle m_TempTex;
@@ -22,11 +35,20 @@ public class GradientFogRendererFeature : ScriptableRendererFeature
         {
             source = cameraColorTarget;
             //GradientFogVolume volume = VolumeManager.instance.stack.GetComponent<GradientFogVolume>();
+            /*
             fogMaterial.SetFloat("_StartDist", volume.nearDistance.value);
             fogMaterial.SetFloat("_EndDist", volume.farDistance.value);
             fogMaterial.SetColor("_NearCol", volume.nearColor.value);
             fogMaterial.SetColor("_MidCol", volume.midColor.value);
             fogMaterial.SetColor("_FarCol", volume.farColor.value);
+            */
+            
+            fogMaterial.SetFloat("_StartDist", settings.startDistance);
+            fogMaterial.SetFloat("_EndDist", settings.endDistance);
+            fogMaterial.SetColor("_NearCol", settings.nearColor);
+            fogMaterial.SetColor("_MidCol", settings.midColor);
+            fogMaterial.SetColor("_FarCol", settings.farColor);
+
         }
         
         // This method is called before executing the render pass.
@@ -54,7 +76,7 @@ public class GradientFogRendererFeature : ScriptableRendererFeature
             
             
             Blit(cmd, source, m_TempTex.Identifier(), fogMaterial);
-            Blit(cmd, m_TempTex.Identifier(), source);
+            Blit(cmd, m_TempTex.Identifier(), "_CameraColorTexture");
             
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -68,12 +90,13 @@ public class GradientFogRendererFeature : ScriptableRendererFeature
     }
 
     GradientFogPass m_GradientFogPass;
-    
+    public GradientFogSettings settings = new GradientFogSettings();
 
     public override void Create()
     {
         m_GradientFogPass = new GradientFogPass();
-        m_GradientFogPass.volume = VolumeManager.instance.stack.GetComponent<GradientFogVolume>();;
+        //m_GradientFogPass.volume = VolumeManager.instance.stack.GetComponent<GradientFogVolume>();;
+        m_GradientFogPass.settings = settings;
 
         // Configures where the render pass should be injected.
         m_GradientFogPass.renderPassEvent = RenderPassEvent.BeforeRenderingTransparents;

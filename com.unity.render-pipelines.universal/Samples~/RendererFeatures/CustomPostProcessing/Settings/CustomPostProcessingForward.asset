@@ -21,7 +21,7 @@ MonoBehaviour:
   m_DefaultRendererIndex: 0
   m_RequireDepthTexture: 1
   m_RequireOpaqueTexture: 1
-  m_OpaqueDownsampling: 1
+  m_OpaqueDownsampling: 0
   m_SupportsTerrainHoles: 1
   m_SupportsHDR: 1
   m_MSAA: 1
@@ -44,7 +44,7 @@ MonoBehaviour:
   m_SupportsDynamicBatching: 0
   m_MixedLightingSupported: 1
   m_DebugLevel: 0
-  m_PostProcessingFeatureSet: 0
+  m_UseAdaptivePerformance: 1
   m_ColorGradingMode: 1
   m_ColorGradingLutSize: 32
   m_ShadowType: 1
