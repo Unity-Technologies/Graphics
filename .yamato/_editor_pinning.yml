@@ -26,7 +26,7 @@ editor-pinning-update:
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/ruamel/editor_pinning/update_revisions.py --target-branch ci/editor-pin-ci --force-push
+      -  pipenv run python3 .yamato/ruamel/editor_pinning/update_revisions.py --target-branch ci/editor-pinning --force-push
     dependencies:
       -  .yamato/_editor_pinning.yml#editor-pinning-merge-from-target
     triggers:
@@ -50,17 +50,19 @@ editor-pinning-merge-to-target:
       -  sudo apt-get install yamato-parser -y
       -  |5-
 
-                     if [[ "$GIT_BRANCH" != "ci/editor-pin-ci" ]]; then
-                         echo "Should run on 'ci/editor-pin-ci' but is running on '$GIT_BRANCH'"
+                     if [[ "$GIT_BRANCH" != "ci/editor-pinning" ]]; then
+                         echo "Should run on 'ci/editor-pinning' but is running on '$GIT_BRANCH'"
                          exit 1
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
       -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch master
+    dependencies:
+      -  .yamato/_abv.yml#all_project_ci_trunk
     triggers:
-        expression: push.branch eq "ci/editor-pin-ci" AND push.changes.any match "**/_latest_editor_versions.metafile"
+        expression: push.branch eq "ci/editor-pinning" AND push.changes.any match "**/_latest_editor_versions.metafile"
 editor-pinning-merge-from-target:
-    name: Merge master to ci/editor-pin-ci
+    name: Merge master to ci/editor-pinning
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -77,7 +79,7 @@ editor-pinning-merge-from-target:
                      fi
       -  git fetch
       -  git checkout master
-      -  git checkout ci/editor-pin-ci
+      -  git checkout ci/editor-pinning
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
       -  git merge master --ff
