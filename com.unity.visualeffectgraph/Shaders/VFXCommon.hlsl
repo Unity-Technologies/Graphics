@@ -306,46 +306,36 @@ float FixedRand(uint seed)
 ///////////////////
 // Mesh sampling //
 ///////////////////
-#define VFX_GENERIC_BUFFER_TYPE_AS_STRUCTURE_BUFFER_FLOAT 1
 
-#if VFX_GENERIC_BUFFER_TYPE_AS_STRUCTURE_BUFFER_FLOAT
-#define VFX_GENERIC_BUFFER StructuredBuffer<float>
-#else
-#define VFX_GENERIC_BUFFER ByteAddressBuffer
-#endif
+//TODOPAUL : Remove this workaround
+#define WORKAROUND_GPU_HANG if (channelOffset == -1) offset = 0u;
+#define WORKAROUND_GPU_HANG_BIS if (channelFormatAndDimension == -1) offset = 0u;
 
-#if VFX_GENERIC_BUFFER_TYPE_AS_STRUCTURE_BUFFER_FLOAT
-uint SampleBuffer(VFX_GENERIC_BUFFER buffer, uint offset)
-{
-    return asuint(buffer.Load(offset));
-}
-#else
-uint SampleBuffer(VFX_GENERIC_BUFFER buffer, uint offset)
-{
-    uint dwordAlignedOffset = offset & ~0x3;
-    uint subOffset = offset & 0x3;
-    return buffer.Load4(dwordAlignedOffset << 2)[subOffset];
-}
-#endif
+float   FetchBuffer(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load(offset << 2)); }
+float2  FetchBuffer2(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load2(offset << 2)); }
+float3  FetchBuffer3(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load3(offset << 2)); }
+float4  FetchBuffer4(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load4(offset << 2)); }
 
-
-float4 SampleMeshReadFloat(VFX_GENERIC_BUFFER vertices, uint offset, uint channelFormatAndDimension, uint maxRead)
+float4 SampleMeshReadFloat(ByteAddressBuffer vertices, uint offset, uint channelFormatAndDimension, uint maxRead)
 {
     float4 r = (float4)0.0f;
     if (channelFormatAndDimension != -1)
     {
+		WORKAROUND_GPU_HANG_BIS
         uint format = channelFormatAndDimension & 0xff;
         uint dimension = (channelFormatAndDimension >> 8) & 0xff;
 
         if (format == VERTEXATTRIBUTEFORMAT_FLOAT32)
         {
+			//TODOPAUL : Double if this code cannot be simplified.
+			
             //for (uint i = 0u; i < maxRead && i < dimension; ++i)
             //    r[i] = vertices[offset + i];
             //^ Equivalent be less branch in generated IL (maxRead evaluation are constand folded)
-            r.x = asfloat(SampleBuffer(vertices, offset + 0u));
-            if (maxRead > 1u) r.y = dimension > 1 ? asfloat(SampleBuffer(vertices, offset + 1u)) : 0.0f;
-            if (maxRead > 2u) r.z = dimension > 2 ? asfloat(SampleBuffer(vertices, offset + 2u)) : 0.0f;
-            if (maxRead > 3u) r.w = dimension > 3 ? asfloat(SampleBuffer(vertices, offset + 3u)) : 0.0f;
+            r.x = asfloat(FetchBuffer(vertices, offset + 0u));
+            if (maxRead > 1u) r.y = dimension > 1 ? asfloat(FetchBuffer(vertices, offset + 1u)) : 0.0f;
+            if (maxRead > 2u) r.z = dimension > 2 ? asfloat(FetchBuffer(vertices, offset + 2u)) : 0.0f;
+            if (maxRead > 3u) r.w = dimension > 3 ? asfloat(FetchBuffer(vertices, offset + 3u)) : 0.0f;
         }
         else
         {
@@ -355,54 +345,56 @@ float4 SampleMeshReadFloat(VFX_GENERIC_BUFFER vertices, uint offset, uint channe
     return r;
 }
 
-uint SampleMeshIndex(VFX_GENERIC_BUFFER indices, uint index, uint indexFormat)
+uint SampleMeshIndex(ByteAddressBuffer indices, uint index, uint indexFormat)
 {
     if (indexFormat == INDEXFORMAT_FORMAT32)
     {
-        return SampleBuffer(indices, index);
+        return FetchBuffer(indices, index);
     }
     else //if(indexFormat == INDEXFORMAT_FORMAT16)
     {
         uint entryIndex = index >> 1u;
         uint entryOffset = index & 1u;
 
-        uint read = SampleBuffer(indices, entryIndex);
+        uint read = FetchBuffer(indices, entryIndex);
         return entryOffset == 1u ? ((read >> 16) & 0xffff) : read & 0xffff;
     }
     return 0u;
 }
 
-float4 SampleMeshFloat4(VFX_GENERIC_BUFFER vertices, uint offset, uint channelFormatAndDimension)
+float4 SampleMeshFloat4(ByteAddressBuffer vertices, uint offset, uint channelFormatAndDimension)
 {
     return SampleMeshReadFloat(vertices, offset, channelFormatAndDimension, 4u);
 }
 
-float3 SampleMeshFloat3(VFX_GENERIC_BUFFER vertices, uint offset, uint channelFormatAndDimension)
+float3 SampleMeshFloat3(ByteAddressBuffer vertices, uint offset, uint channelFormatAndDimension)
 {
     return SampleMeshReadFloat(vertices, offset, channelFormatAndDimension, 3u).xyz;
 }
 
-float2 SampleMeshFloat2(VFX_GENERIC_BUFFER vertices, uint offset, uint channelFormatAndDimension)
+float2 SampleMeshFloat2(ByteAddressBuffer vertices, uint offset, uint channelFormatAndDimension)
 {
     return SampleMeshReadFloat(vertices, offset, channelFormatAndDimension, 2u).xy;
 }
 
-float SampleMeshFloat(VFX_GENERIC_BUFFER vertices, uint offset, uint channelFormatAndDimension)
+float SampleMeshFloat(ByteAddressBuffer vertices, uint offset, uint channelFormatAndDimension)
 {
     return SampleMeshReadFloat(vertices, offset, channelFormatAndDimension, 1u).x;
 }
 
 //Only SampleMeshColor support VERTEXATTRIBUTEFORMAT_UNORM8
-float4 SampleMeshColor(VFX_GENERIC_BUFFER vertices, uint offset, uint channelFormatAndDimension)
+float4 SampleMeshColor(ByteAddressBuffer vertices, uint offset, uint channelFormatAndDimension)
 {
     if (channelFormatAndDimension == -1)
         return float4(0.0f, 0.0f, 0.0f, 0.0f);
+	
+	WORKAROUND_GPU_HANG_BIS
 
     float4 colorSRGB = (float4)0.0f;
     uint format = channelFormatAndDimension & 0xff;
     if (format == VERTEXATTRIBUTEFORMAT_UNORM8)
     {
-        uint colorByte = SampleBuffer(vertices, offset);
+        uint colorByte = FetchBuffer(vertices, offset);
         colorSRGB = float4(uint4(colorByte, colorByte >> 8, colorByte >> 16, colorByte >> 24) & 255) / 255.0f;
     }
     else
@@ -413,48 +405,51 @@ float4 SampleMeshColor(VFX_GENERIC_BUFFER vertices, uint offset, uint channelFor
 }
 
 //Deprecated function for compatibility 2020.1, can be removed with 2021.1
-float4 SampleMeshFloat4(VFX_GENERIC_BUFFER vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
+float4 SampleMeshFloat4(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
 {
     if (channelOffset == -1)
         return float4(0.0f, 0.0f, 0.0f, 0.0f);
     uint offset = vertexIndex * vertexStride + channelOffset;
+	WORKAROUND_GPU_HANG
     return SampleMeshFloat4(vertices, offset, VERTEXATTRIBUTEFORMAT_FLOAT32 | (4 << 8));
 }
 
-float3 SampleMeshFloat3(VFX_GENERIC_BUFFER vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
+float3 SampleMeshFloat3(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
 {
     if (channelOffset == -1)
         return float3(0.0f, 0.0f, 0.0f);
     uint offset = vertexIndex * vertexStride + channelOffset;
+	WORKAROUND_GPU_HANG
     return SampleMeshFloat3(vertices, offset, VERTEXATTRIBUTEFORMAT_FLOAT32 | (3 << 8));
 }
 
-float2 SampleMeshFloat2(VFX_GENERIC_BUFFER vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
+float2 SampleMeshFloat2(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
 {
     if (channelOffset == -1)
         return float2(0.0f, 0.0f);
     uint offset = vertexIndex * vertexStride + channelOffset;
+	WORKAROUND_GPU_HANG
     return SampleMeshFloat2(vertices, offset, VERTEXATTRIBUTEFORMAT_FLOAT32 | (2 << 8));
 }
 
-float SampleMeshFloat(VFX_GENERIC_BUFFER vertices, int vertexIndex, int channelOffset, int vertexStride)
+float SampleMeshFloat(ByteAddressBuffer vertices, int vertexIndex, int channelOffset, int vertexStride)
 {
     if (channelOffset == -1)
         return 0.0f;
     uint offset = vertexIndex * vertexStride + channelOffset;
+	WORKAROUND_GPU_HANG
     return SampleMeshFloat(vertices, offset, VERTEXATTRIBUTEFORMAT_FLOAT32 | (1 << 8));
 }
 
-float4 SampleMeshColor(VFX_GENERIC_BUFFER vertices, int vertexIndex, int channelOffset, int vertexStride)
+float4 SampleMeshColor(ByteAddressBuffer vertices, int vertexIndex, int channelOffset, int vertexStride)
 {
     if (channelOffset == -1)
         return float4(0.0f, 0.0f, 0.0f, 0.0f);
 
     uint offset = vertexIndex * vertexStride + channelOffset;
+	WORKAROUND_GPU_HANG
     return SampleMeshColor(vertices, offset, VERTEXATTRIBUTEFORMAT_UNORM8 | (4 << 8));
 }
-#undef VFX_GENERIC_BUFFER
-#undef VFX_GENERIC_BUFFER_TYPE_AS_STRUCTURE_BUFFER_FLOAT
 //End of deprecated function for 2020.1 compatibility
 ///////////////////////////
 // Color transformations //

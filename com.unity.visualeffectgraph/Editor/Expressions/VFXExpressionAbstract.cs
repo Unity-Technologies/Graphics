@@ -132,14 +132,14 @@ namespace UnityEditor.VFX
                 case VFXValueType.TextureCube: return "TextureCube";
                 case VFXValueType.TextureCubeArray: return "TextureCubeArray";
                 case VFXValueType.Matrix4x4: return "float4x4";
-                case VFXValueType.Mesh: return "ByteAddressBuffer";
+                case VFXValueType.Buffer: return "ByteAddressBuffer";
                 case VFXValueType.Boolean: return "bool";
             }
 
             //TODOPAUL : Remove this and handle correctly Mesh exposed but not used within the graph
             if (type == VFXValueType.Mesh)
             {
-                return "StructuredBuffer<float>";
+                return "ByteAddressBuffer";
             }
 
             throw new NotImplementedException(type.ToString());
