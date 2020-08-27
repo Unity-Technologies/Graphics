@@ -58,6 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 afterPostProcessBuffer,
                 prepassOutput.resolvedDepthBuffer,
                 prepassOutput.depthPyramidTexture,
+                prepassOutput.resolvedNormalBuffer,
                 prepassOutput.resolvedMotionVectorsBuffer,
                 dest,
                 parameters.flipYInPostProcess

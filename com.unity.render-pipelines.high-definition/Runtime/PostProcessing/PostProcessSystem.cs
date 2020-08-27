@@ -1787,7 +1787,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
 
             public ComputeShader dofKernelCS;
-            public int dofKernelKernel; 
+            public int dofKernelKernel;
             public ComputeShader dofCoCCS;
             public int dofCoCKernel;
             public ComputeShader dofCoCReprojectCS;
@@ -4008,7 +4008,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (needsBlitToColorBuffer)
                 {
-                    Rect backBufferRect = camera.finalViewport;
                     HDUtils.BlitCameraTexture(cmd, source, colorBuffer);
                 }
             }
