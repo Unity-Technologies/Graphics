@@ -275,6 +275,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/010_AdditionalLightsSorted_Deferred.unity
     guid: 2e5d76c16dda43d46b8d263c396b5d1a
+  - enabled: 1
+    path: Assets/Scenes/018_LightLayers.unity
+    guid: 6c8e8d2f4b654f4428a503becaec7a5c
   m_configObjects:
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 13858d33c7f214305af3f1b67ea8f9da,
       type: 2}

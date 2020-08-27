@@ -145,7 +145,10 @@ public class UniversalGraphicsTests
         "043_Lighting_Mixed_ShadowMask",
         "049_Lighting_Mixed_Subtractive",
 
-        //Camera stacking (Enable these 2 tests when deferred camera stacking is implemented)
+        //Light layers (Enable when feature is done)
+        //"018_LightLayers",
+
+        //Camera stacking (Enable when feature is done)
         //"111_CameraStackMSAA",
         //"123_CameraStackingClear",
 
