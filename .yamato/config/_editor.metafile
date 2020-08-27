@@ -10,10 +10,9 @@ platforms:
 editor_pin_agent: package_ci_ubuntu_small
 editor_priming_agent: cds_ops_ubuntu_small
 
-# Specify editor pinning branches here, if you don't want to use the ones marked in shared metafile (essentially overriding the values)
-# If not specified in this _editor.metafile, the ones from shared metafile are used
-# target_branch_editor_ci: yamato/editor-pin-ci
-# target_branch: yamato/editor-pin
+# remove the following once editor pinning is done. these values will be picked up from __shared
+target_branch_editor_ci: yamato/editor-pin-ci
+target_branch: yamato/editor-pin
 
 
 ### Configuration required by update_revisions.py
