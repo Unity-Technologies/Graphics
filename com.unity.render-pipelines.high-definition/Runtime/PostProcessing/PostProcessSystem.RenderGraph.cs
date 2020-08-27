@@ -135,6 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public DepthOfFieldParameters parameters;
             public TextureHandle source;
             public TextureHandle destination;
+            public TextureHandle depthBuffer;
             public TextureHandle motionVecTexture;
             public TextureHandle pingNearRGB;
             public TextureHandle pongNearRGB;
@@ -469,6 +470,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (var builder = renderGraph.AddRenderPass<DepthofFieldData>("Depth of Field", out var passData, ProfilingSampler.Get(HDProfileId.DepthOfField)))
                 {
                     passData.source = builder.ReadTexture(source);
+                    passData.depthBuffer = builder.ReadTexture(depthBuffer);
                     passData.parameters = dofParameters;
                     passData.prevCoC = builder.ReadTexture(prevCoCHandle);
                     passData.nextCoC = builder.WriteTexture(builder.ReadTexture(nextCoCHandle));
@@ -579,7 +581,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             ((ComputeBuffer)data.nearBokehTileList).SetCounterValue(0u);
                             ((ComputeBuffer)data.farBokehTileList).SetCounterValue(0u);
 
-                            DoDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.pingNearRGB, data.pongNearRGB, data.nearCoC, data.nearAlpha,
+                            DoDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.depthBuffer, data.pingNearRGB, data.pongNearRGB, data.nearCoC, data.nearAlpha,
                                            data.dilatedNearCoC, data.pingFarRGB, data.pongFarRGB, data.farCoC, data.fullresCoC, mipsHandles, data.dilationPingPongRT, data.prevCoC, data.nextCoC, data.motionVecTexture,
                                            data.bokehNearKernel, data.bokehFarKernel, data.bokehIndirectCmd, data.nearBokehTileList, data.farBokehTileList, data.taaEnabled);
                         });
