@@ -306,11 +306,6 @@ float FixedRand(uint seed)
 ///////////////////
 // Mesh sampling //
 ///////////////////
-
-//TODOPAUL : Remove this workaround
-#define WORKAROUND_GPU_HANG if (channelOffset == -1) offset = 0u;
-#define WORKAROUND_GPU_HANG_BIS if (channelFormatAndDimension == -1) offset = 0u;
-
 uint   FetchBuffer(ByteAddressBuffer buffer, int offset) { return buffer.Load(offset << 2); }
 uint2  FetchBuffer2(ByteAddressBuffer buffer, int offset) { return buffer.Load2(offset << 2); }
 uint3  FetchBuffer3(ByteAddressBuffer buffer, int offset) { return buffer.Load3(offset << 2); }
@@ -319,9 +314,9 @@ uint4  FetchBuffer4(ByteAddressBuffer buffer, int offset) { return buffer.Load4(
 float4 SampleMeshReadFloat(ByteAddressBuffer vertices, uint offset, uint channelFormatAndDimension, uint maxRead)
 {
     float4 r = (float4)0.0f;
+    [branch]
     if (channelFormatAndDimension != -1)
     {
-		WORKAROUND_GPU_HANG_BIS
         uint format = channelFormatAndDimension & 0xff;
         uint dimension = (channelFormatAndDimension >> 8) & 0xff;
 
@@ -347,19 +342,21 @@ float4 SampleMeshReadFloat(ByteAddressBuffer vertices, uint offset, uint channel
 
 uint SampleMeshIndex(ByteAddressBuffer indices, uint index, uint indexFormat)
 {
+    uint r = 0u;
+    [branch]
     if (indexFormat == INDEXFORMAT_FORMAT32)
     {
-        return FetchBuffer(indices, index);
+        r = FetchBuffer(indices, index);
     }
-    else //if(indexFormat == INDEXFORMAT_FORMAT16)
+    else if(indexFormat == INDEXFORMAT_FORMAT16)
     {
         uint entryIndex = index >> 1u;
         uint entryOffset = index & 1u;
 
         uint read = FetchBuffer(indices, entryIndex);
-        return entryOffset == 1u ? ((read >> 16) & 0xffff) : read & 0xffff;
+        r = entryOffset == 1u ? ((read >> 16) & 0xffff) : read & 0xffff;
     }
-    return 0u;
+    return r;
 }
 
 float4 SampleMeshFloat4(ByteAddressBuffer vertices, uint offset, uint channelFormatAndDimension)
@@ -385,70 +382,85 @@ float SampleMeshFloat(ByteAddressBuffer vertices, uint offset, uint channelForma
 //Only SampleMeshColor support VERTEXATTRIBUTEFORMAT_UNORM8
 float4 SampleMeshColor(ByteAddressBuffer vertices, uint offset, uint channelFormatAndDimension)
 {
-    if (channelFormatAndDimension == -1)
-        return float4(0.0f, 0.0f, 0.0f, 0.0f);
-	
-	WORKAROUND_GPU_HANG_BIS
-
-    float4 colorSRGB = (float4)0.0f;
-    uint format = channelFormatAndDimension & 0xff;
-    if (format == VERTEXATTRIBUTEFORMAT_UNORM8)
+    float4 r = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    [branch]
+    if (channelFormatAndDimension != -1)
     {
-        uint colorByte = FetchBuffer(vertices, offset);
-        colorSRGB = float4(uint4(colorByte, colorByte >> 8, colorByte >> 16, colorByte >> 24) & 255) / 255.0f;
+        float4 colorSRGB = (float4)0.0f;
+        uint format = channelFormatAndDimension & 0xff;
+        if (format == VERTEXATTRIBUTEFORMAT_UNORM8)
+        {
+            uint colorByte = FetchBuffer(vertices, offset);
+            colorSRGB = float4(uint4(colorByte, colorByte >> 8, colorByte >> 16, colorByte >> 24) & 255) / 255.0f;
+        }
+        else
+        {
+            colorSRGB = SampleMeshFloat4(vertices, offset, channelFormatAndDimension);
+        }
+        r = float4(pow(abs(colorSRGB.rgb), 2.2f), colorSRGB.a); //Approximative SRGBToLinear
     }
-    else
-    {
-        colorSRGB = SampleMeshFloat4(vertices, offset, channelFormatAndDimension);
-    }
-    return float4(pow(abs(colorSRGB.rgb), 2.2f), colorSRGB.a); //Approximative SRGBToLinear
+    return r;
 }
 
 //Deprecated function for compatibility 2020.1, can be removed with 2021.1
 float4 SampleMeshFloat4(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
 {
-    if (channelOffset == -1)
-        return float4(0.0f, 0.0f, 0.0f, 0.0f);
-    uint offset = vertexIndex * vertexStride + channelOffset;
-	WORKAROUND_GPU_HANG
-    return SampleMeshFloat4(vertices, offset, VERTEXATTRIBUTEFORMAT_FLOAT32 | (4 << 8));
+    float4 r = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    [branch]
+    if (channelOffset != -1)
+    {
+        uint offset = vertexIndex * vertexStride + channelOffset;
+        r = SampleMeshFloat4(vertices, offset, VERTEXATTRIBUTEFORMAT_FLOAT32 | (4 << 8));
+    }
+    return r;
 }
 
 float3 SampleMeshFloat3(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
 {
-    if (channelOffset == -1)
-        return float3(0.0f, 0.0f, 0.0f);
-    uint offset = vertexIndex * vertexStride + channelOffset;
-	WORKAROUND_GPU_HANG
-    return SampleMeshFloat3(vertices, offset, VERTEXATTRIBUTEFORMAT_FLOAT32 | (3 << 8));
+    float3 r = float3(0.0f, 0.0f, 0.0f);
+    [branch]
+    if (channelOffset != -1)
+    {
+        uint offset = vertexIndex * vertexStride + channelOffset;
+        r = SampleMeshFloat3(vertices, offset, VERTEXATTRIBUTEFORMAT_FLOAT32 | (3 << 8));
+    }
+    return r;
 }
 
 float2 SampleMeshFloat2(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
 {
-    if (channelOffset == -1)
-        return float2(0.0f, 0.0f);
-    uint offset = vertexIndex * vertexStride + channelOffset;
-	WORKAROUND_GPU_HANG
-    return SampleMeshFloat2(vertices, offset, VERTEXATTRIBUTEFORMAT_FLOAT32 | (2 << 8));
+    float2 r = float2(0.0f, 0.0f);
+    [branch]
+    if (channelOffset != -1)
+    {
+        uint offset = vertexIndex * vertexStride + channelOffset;
+        r = SampleMeshFloat2(vertices, offset, VERTEXATTRIBUTEFORMAT_FLOAT32 | (2 << 8));
+    }
+    return r;
 }
 
 float SampleMeshFloat(ByteAddressBuffer vertices, int vertexIndex, int channelOffset, int vertexStride)
 {
-    if (channelOffset == -1)
-        return 0.0f;
-    uint offset = vertexIndex * vertexStride + channelOffset;
-	WORKAROUND_GPU_HANG
-    return SampleMeshFloat(vertices, offset, VERTEXATTRIBUTEFORMAT_FLOAT32 | (1 << 8));
+    float r = 0.0f;
+    [branch]
+    if (channelOffset != -1)
+    {
+        uint offset = vertexIndex * vertexStride + channelOffset;
+        r = SampleMeshFloat(vertices, offset, VERTEXATTRIBUTEFORMAT_FLOAT32 | (1 << 8));
+    }
+    return r;
 }
 
 float4 SampleMeshColor(ByteAddressBuffer vertices, int vertexIndex, int channelOffset, int vertexStride)
 {
-    if (channelOffset == -1)
-        return float4(0.0f, 0.0f, 0.0f, 0.0f);
-
-    uint offset = vertexIndex * vertexStride + channelOffset;
-	WORKAROUND_GPU_HANG
-    return SampleMeshColor(vertices, offset, VERTEXATTRIBUTEFORMAT_UNORM8 | (4 << 8));
+    float4 r = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    [branch]
+    if (channelOffset != -1)
+    {
+        uint offset = vertexIndex * vertexStride + channelOffset;
+        r = SampleMeshColor(vertices, offset, VERTEXATTRIBUTEFORMAT_UNORM8 | (4 << 8));
+    }
+    return r;
 }
 //End of deprecated function for 2020.1 compatibility
 ///////////////////////////
