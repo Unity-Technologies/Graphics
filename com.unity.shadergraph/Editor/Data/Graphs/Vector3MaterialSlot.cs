@@ -11,8 +11,6 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     class Vector3MaterialSlot : MaterialSlot, IMaterialSlotHasValue<Vector3>
     {
-        static readonly string[] k_LabelDefaults = { "X", "Y", "Z" };
-
         [SerializeField]
         private Vector3 m_Value;
 
@@ -21,6 +19,17 @@ namespace UnityEditor.ShaderGraph
 
         [SerializeField]
         string[] m_Labels; // this can be null, which means fallback to k_LabelDefaults
+
+        static readonly string[] k_LabelDefaults = { "X", "Y", "Z" };
+        string[] labels
+        {
+            get
+            {
+                if ((m_Labels == null) || (m_Labels.Length <= 0))
+                    return k_LabelDefaults;
+                return m_Labels;
+            }
+        }
 
         public Vector3MaterialSlot()
         {
@@ -63,7 +72,7 @@ namespace UnityEditor.ShaderGraph
 
         public override VisualElement InstantiateControl()
         {
-            return new MultiFloatSlotControlView(owner, m_Labels ?? k_LabelDefaults, () => value, (newValue) => value = newValue);
+            return new MultiFloatSlotControlView(owner, labels, () => value, (newValue) => value = newValue);
         }
 
         protected override string ConcreteSlotValueAsVariable()
