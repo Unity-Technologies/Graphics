@@ -8,7 +8,8 @@ class Editor_PinningMergeToTargetJob():
     
     def __init__(self, editor, agent, target_branch, target_branch_editor_ci):
         self.job_id = editor_job_id_merge_to_target()
-        self.yml = self.get_job_definition(editor, agent, target_branch, target_branch_editor_ci).get_yml()
+        self.yml_job = self.get_job_definition(editor, agent, target_branch, target_branch_editor_ci)
+        self.yml = self.yml_job.get_yml()
 
 
     def get_job_definition(self, editor, agent, target_branch, target_branch_editor_ci):
@@ -37,7 +38,6 @@ class Editor_PinningMergeToTargetJob():
         job.set_agent(agent)
         job.add_var_custom('CI', True)
         job.add_commands(commands)
-        job.add_dependencies([f'{abv_filepath()}#{abv_job_id_all_project_ci(editor)}']) # TODO uncomment
-        job.set_trigger_on_expression(f'push.branch eq "{target_branch_editor_ci}" AND push.changes.any match "**/_latest_editor_versions.metafile"')
-        #job.add_trigger_integration_branch(target_branch_editor_ci)
+        #job.add_dependencies([f'{abv_filepath()}#{abv_job_id_all_project_ci(editor)}'])
+        #job.set_trigger_on_expression(f'push.branch eq "{target_branch_editor_ci}" AND push.changes.any match "**/_latest_editor_versions.metafile"')
         return job

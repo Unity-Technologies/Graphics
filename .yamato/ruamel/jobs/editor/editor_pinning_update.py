@@ -9,7 +9,8 @@ class Editor_PinningUpdateJob():
     
     def __init__(self, agent, target_branch, target_branch_editor_ci):
         self.job_id = editor_job_id_update()
-        self.yml = self.get_job_definition(agent, target_branch, target_branch_editor_ci).get_yml()
+        self.yml_job = self.get_job_definition(agent, target_branch, target_branch_editor_ci)
+        self.yml = self.yml_job.get_yml()
 
 
     def get_job_definition(self, agent, target_branch, target_branch_editor_ci):
@@ -38,5 +39,5 @@ class Editor_PinningUpdateJob():
         job.add_var_custom('CI', True)
         job.add_commands(commands)
         job.add_dependencies([f'{editor_pinning_filepath()}#{editor_job_id_merge_from_target()}']) #TODO toggle
-        job.add_trigger_recurrent(target_branch, '0 * * ?') # TODO uncomment
+        #job.add_trigger_recurrent(target_branch, '0 * * ?') # TODO uncomment
         return job
