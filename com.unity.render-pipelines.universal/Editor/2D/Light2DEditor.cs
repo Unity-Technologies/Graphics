@@ -94,7 +94,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent shapeLightSprite = EditorGUIUtility.TrTextContent("Sprite", "Specify the sprite");
             public static GUIContent shapeLightParametricRadius = EditorGUIUtility.TrTextContent("Radius", "Adjust the size of the object");
             public static GUIContent shapeLightParametricSides = EditorGUIUtility.TrTextContent("Sides", "Adjust the shapes number of sides");
-            public static GUIContent shapeLightFalloffOffset = EditorGUIUtility.TrTextContent("Falloff Offset", "Specify the shape's falloff offset");
             public static GUIContent shapeLightAngleOffset = EditorGUIUtility.TrTextContent("Angle Offset", "Adjust the rotation of the object");
 
             public static GUIContent renderPipelineUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("Universal scriptable renderpipeline asset must be assigned in Graphics Settings or Quality Settings.", MessageType.Warning);
@@ -134,7 +133,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SerializedProperty m_ShapeLightFalloffSize;
         SerializedProperty m_ShapeLightParametricSides;
         SerializedProperty m_ShapeLightParametricAngleOffset;
-        SerializedProperty m_ShapeLightFalloffOffset;
         SerializedProperty m_ShapeLightSprite;
 
         int[]           m_BlendStyleIndices;
@@ -194,7 +192,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_ShapeLightFalloffSize = serializedObject.FindProperty("m_ShapeLightFalloffSize");
             m_ShapeLightParametricSides = serializedObject.FindProperty("m_ShapeLightParametricSides");
             m_ShapeLightParametricAngleOffset = serializedObject.FindProperty("m_ShapeLightParametricAngleOffset");
-            m_ShapeLightFalloffOffset = serializedObject.FindProperty("m_ShapeLightFalloffOffset");
             m_ShapeLightSprite = serializedObject.FindProperty("m_LightCookieSprite");
 
             m_AnyBlendStyleEnabled = false;
@@ -337,14 +334,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
                     m_ShapeLightFalloffSize.floatValue = 0;
 
                 EditorGUILayout.Slider(m_FalloffIntensity, 0, 1, Styles.generalFalloffIntensity);
-
-                if (lightType == Light2D.LightType.Freeform)
-                {
-                    bool oldWideMode = EditorGUIUtility.wideMode;
-                    EditorGUIUtility.wideMode = true;
-                    EditorGUILayout.PropertyField(m_ShapeLightFalloffOffset, Styles.shapeLightFalloffOffset);
-                    EditorGUIUtility.wideMode = oldWideMode;
-                }
             }
         }
 
@@ -533,15 +522,13 @@ namespace UnityEditor.Experimental.Rendering.Universal
                         Handles.color = Color.white;
 
 
-                        Vector3 falloffOffset = m_ShapeLightFalloffOffset.vector2Value;
-
                         for (int i = 0; i < falloffShape.Count - 1; ++i)
                         {
-                            Handles.DrawLine(t.TransformPoint(falloffShape[i]) + falloffOffset, t.TransformPoint(falloffShape[i + 1]) + falloffOffset);
+                            Handles.DrawLine(t.TransformPoint(falloffShape[i]), t.TransformPoint(falloffShape[i + 1]));
                             Handles.DrawLine(t.TransformPoint(light.shapePath[i]), t.TransformPoint(light.shapePath[i + 1]));
                         }
 
-                        Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]) + falloffOffset, t.TransformPoint(falloffShape[0]) + falloffOffset);
+                        Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]), t.TransformPoint(falloffShape[0]));
                         Handles.DrawLine(t.TransformPoint(light.shapePath[falloffShape.Count - 1]), t.TransformPoint(light.shapePath[0]));
                     }
                     break;
