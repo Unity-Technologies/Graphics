@@ -77,7 +77,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent generalUseNormalMap = EditorGUIUtility.TrTextContent("Use Normal Map", "Specify whether the light considers normal maps");
             public static GUIContent generalVolumeIntensity = EditorGUIUtility.TrTextContent("Volume Intensity", "Specify the light's volumetric light volume intensity");
             public static GUIContent generalBlendStyle = EditorGUIUtility.TrTextContent("Blend Style", "Specify the blend style");
-            public static GUIContent generalLightOverlapMode = EditorGUIUtility.TrTextContent("Alpha Blend on Overlap", "Use alpha blending instead of additive blending when this light overlaps others");
+            public static GUIContent generalLightOverlapOperation = EditorGUIUtility.TrTextContent("Overlap Operation", "blending used when this light overlaps others");
             public static GUIContent generalLightOrder = EditorGUIUtility.TrTextContent("Light Order", "The relative order in which lights of the same blend style get rendered.");
             public static GUIContent generalShadowIntensity = EditorGUIUtility.TrTextContent("Shadow Intensity", "Controls the shadow's darkness.");
             public static GUIContent generalShadowVolumeIntensity = EditorGUIUtility.TrTextContent("Shadow Volume Intensity", "Controls the shadow volume's darkness.");
@@ -94,7 +94,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent shapeLightSprite = EditorGUIUtility.TrTextContent("Sprite", "Specify the sprite");
             public static GUIContent shapeLightParametricRadius = EditorGUIUtility.TrTextContent("Radius", "Adjust the size of the object");
             public static GUIContent shapeLightParametricSides = EditorGUIUtility.TrTextContent("Sides", "Adjust the shapes number of sides");
-            public static GUIContent shapeLightAngleOffset = EditorGUIUtility.TrTextContent("Angle Offset", "Adjust the rotation of the object");
 
             public static GUIContent renderPipelineUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("Universal scriptable renderpipeline asset must be assigned in Graphics Settings or Quality Settings.", MessageType.Warning);
             public static GUIContent asset2DUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("2D renderer data must be assigned to your universal render pipeline asset or camera.", MessageType.Warning);
@@ -120,7 +119,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SerializedProperty m_NormalMapZDistance;
         SerializedProperty m_NormalMapQuality;
         SerializedProperty m_LightOrder;
-        SerializedProperty m_AlphaBlendOnOverlap;
+        SerializedProperty m_OverlapOperation;
 
         // Point Light Properties
         SerializedProperty m_PointInnerAngle;
@@ -132,7 +131,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SerializedProperty m_ShapeLightParametricRadius;
         SerializedProperty m_ShapeLightFalloffSize;
         SerializedProperty m_ShapeLightParametricSides;
-        SerializedProperty m_ShapeLightParametricAngleOffset;
         SerializedProperty m_ShapeLightSprite;
 
         int[]           m_BlendStyleIndices;
@@ -178,7 +176,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_NormalMapZDistance = serializedObject.FindProperty("m_NormalMapDistance");
             m_NormalMapQuality = serializedObject.FindProperty("m_NormalMapQuality");
             m_LightOrder = serializedObject.FindProperty("m_LightOrder");
-            m_AlphaBlendOnOverlap = serializedObject.FindProperty("m_AlphaBlendOnOverlap");
+            m_OverlapOperation = serializedObject.FindProperty("m_OverlapOperation");
 
             // Point Light
             m_PointInnerAngle = serializedObject.FindProperty("m_PointLightInnerAngle");
@@ -191,7 +189,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_ShapeLightParametricRadius = serializedObject.FindProperty("m_ShapeLightParametricRadius");
             m_ShapeLightFalloffSize = serializedObject.FindProperty("m_ShapeLightFalloffSize");
             m_ShapeLightParametricSides = serializedObject.FindProperty("m_ShapeLightParametricSides");
-            m_ShapeLightParametricAngleOffset = serializedObject.FindProperty("m_ShapeLightParametricAngleOffset");
             m_ShapeLightSprite = serializedObject.FindProperty("m_LightCookieSprite");
 
             m_AnyBlendStyleEnabled = false;
@@ -585,7 +582,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             }
 
             if(m_LightType.intValue != (int)Light2D.LightType.Global)
-                EditorGUILayout.PropertyField(m_AlphaBlendOnOverlap, Styles.generalLightOverlapMode);
+                EditorGUILayout.PropertyField(m_OverlapOperation, Styles.generalLightOverlapOperation);
 
             EditorGUILayout.PropertyField(m_LightOrder, Styles.generalLightOrder);
 

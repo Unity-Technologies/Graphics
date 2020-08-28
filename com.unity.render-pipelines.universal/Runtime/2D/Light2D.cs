@@ -43,6 +43,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Accurate = 1
         }
 
+        public enum OverlapOperation
+        {
+            Additive,
+            AlphaBlend
+        }
+
 #if USING_ANIMATION_MODULE
         [UnityEngine.Animations.NotKeyable]
 #endif
@@ -65,7 +71,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] bool m_UseNormalMap = false;
 
         [SerializeField] int m_LightOrder = 0;
+
         [SerializeField] bool m_AlphaBlendOnOverlap = false;
+
+        [SerializeField] OverlapOperation m_OverlapOperation = OverlapOperation.Additive;
 
         [FormerlySerializedAs("m_PointLightDistance")]
         [SerializeField] float m_NormalMapDistance = 3.0f;
@@ -76,9 +85,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [FormerlySerializedAs("m_PointLightQuality")]
         [SerializeField] NormalMapQuality m_NormalMapQuality = NormalMapQuality.Disabled;
 
-        [Range(0,1)]
-        [SerializeField] float m_ShadowIntensity    = 0.0f;
-        [Range(0,1)]
+        [Range(0, 1)]
+        [SerializeField] float m_ShadowIntensity = 0.0f;
+        [Range(0, 1)]
         [SerializeField] float m_ShadowVolumeIntensity = 0.0f;
 
         // Transients
@@ -88,7 +97,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal int[] affectedSortingLayers => m_ApplyToSortingLayers;
 
         private int lightCookieSpriteInstanceID => m_LightCookieSprite?.GetInstanceID() ?? 0;
-		
+
         private Bounds m_LocalBounds;
         internal BoundingSphere boundingSphere { get; private set; }
 
@@ -102,7 +111,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             get => m_LightType;
             set
             {
-                if(m_LightType != value)
+                if (m_LightType != value)
                     UpdateMesh();
 
                 m_LightType = value;
@@ -145,7 +154,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public Sprite lightCookieSprite => m_LightCookieSprite;
         public float falloffIntensity => m_FalloffIntensity;
         public bool useNormalMap => m_UseNormalMap;
-        public bool alphaBlendOnOverlap => m_AlphaBlendOnOverlap;
+
+        [Obsolete]
+        public bool alphaBlendOnOverlap { get { return m_OverlapOperation == OverlapOperation.AlphaBlend; }}
+        public OverlapOperation overlapOperation => m_OverlapOperation;
+
         public int lightOrder { get => m_LightOrder; set => m_LightOrder = value; }
 
         public float normalMapDistance => m_NormalMapDistance;
@@ -225,6 +238,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
             #if UNITY_EDITOR
             if(lightType == LightType.Point && lightCookieSprite != null)
                 Debug.LogWarning("Cookies for sprite lights have been deprecated");
+
+            // Convert from alpha blend on overlap to overlap operation
+            if(m_AlphaBlendOnOverlap)
+            {
+                m_OverlapOperation = OverlapOperation.AlphaBlend;
+                m_AlphaBlendOnOverlap = false;
+            }
             #endif
         }
 
