@@ -671,7 +671,8 @@ static class LitDefines
                 { CoreKeywordDescriptors.AdditionalLights },
                 { CoreKeywordDescriptors.AdditionalLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },
-                { CoreKeywordDescriptors.MixedLightingSubtractive },
+                { CoreKeywordDescriptors.LightmapShadowMixing },
+                { CoreKeywordDescriptors.ShadowsShadowmask },
             };
 
             public static readonly KeywordCollection GBuffer = new KeywordCollection
@@ -681,7 +682,8 @@ static class LitDefines
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.MainLightShadowsCascade },
                 { CoreKeywordDescriptors.ShadowsSoft },
-                { CoreKeywordDescriptors.MixedLightingSubtractive },
+                { CoreKeywordDescriptors.LightmapShadowMixing },
+                { CoreKeywordDescriptors.ShadowsShadowmask },
                 { GBufferNormalsOct },
             };
 

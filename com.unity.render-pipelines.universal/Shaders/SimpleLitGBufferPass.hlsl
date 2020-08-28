@@ -73,6 +73,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.vertexLighting = input.vertexLighting.xyz;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = input.positionCS.xy;
+    inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
