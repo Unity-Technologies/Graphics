@@ -208,7 +208,7 @@ Shader ""Hidden/GraphErrorShader2""
             var graph = masterNode.owner;
 
             asset.lit = masterNode.lit.isOn;
-            asset.alphaClipping = target.alphaTest;
+            asset.alphaClipping = masterNode.alphaTest.isOn;
 
             var assetGuid = masterNode.owner.assetGuid;
             var assetPath = AssetDatabase.GUIDToAssetPath(assetGuid);
@@ -219,16 +219,6 @@ Shader ""Hidden/GraphErrorShader2""
 
             var nodes = new List<AbstractMaterialNode>();
             NodeUtils.DepthFirstCollectNodesFromNode(nodes, masterNode);
-
-            //Remove inactive blocks from generation
-            {
-                var tmpCtx = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), null);
-                target.GetActiveBlocks(ref tmpCtx);
-                ports.RemoveAll(materialSlot =>
-                {
-                    return !tmpCtx.activeBlocks.Any(o => materialSlot.RawDisplayName() == o.displayName);
-                });
-            }
 
             var bodySb = new ShaderStringBuilder(1);
             var registry = new FunctionRegistry(new ShaderStringBuilder(), true);
@@ -563,7 +553,7 @@ Shader ""Hidden/GraphErrorShader2""
             var outputMetadatas = new OutputMetadata[ports.Count];
             for (int portIndex = 0; portIndex < outputMetadatas.Length; portIndex++)
             {
-                outputMetadatas[portIndex] = new OutputMetadata(portIndex, ports[portIndex].shaderOutputName, originialPortIds[portIndex]);
+                outputMetadatas[portIndex] = new OutputMetadata(portIndex, ports[portIndex].shaderOutputName, ports[portIndex].id);
             }
 
             asset.SetOutputs(outputMetadatas);
