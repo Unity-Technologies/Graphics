@@ -394,7 +394,9 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_ColorGradingLutPass.Setup(m_ColorGradingLut);
                 EnqueuePass(m_ColorGradingLutPass);
-            }??#if ENABLE_VR && ENABLE_XR_MODULE
+            }
+
+#if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.hasValidOcclusionMesh)
                 EnqueuePass(m_XROcclusionMeshPass);
 #endif
