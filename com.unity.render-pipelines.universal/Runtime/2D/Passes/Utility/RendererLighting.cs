@@ -183,7 +183,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         SetPointLightShaderGlobals(cmd, light);
 
                     // Light code could be combined...
-                    if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
+                    if (light.lightType == (Light2D.LightType)Light2D.DeprecatedLightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
                     {
                         cmd.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightMaterial);
                     }
@@ -240,7 +240,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                                         SetPointLightShaderGlobals(cmd, light);
 
                                     // Could be combined...
-                                    if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
+                                    if (light.lightType == (Light2D.LightType)Light2D.DeprecatedLightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
                                     {
                                         cmd.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightVolumeMaterial);
                                     }
@@ -319,7 +319,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
             cmd.SetGlobalFloat(k_IsFullSpotlightID, innerAngle == 1 ? 1.0f : 0.0f);
 
-            cmd.SetGlobalFloat(k_LightZDistanceID, light.pointLightDistance);
+            cmd.SetGlobalFloat(k_LightZDistanceID, light.normalMapDistance);
 
             if (light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                 cmd.SetGlobalTexture(k_PointLightCookieTexID, light.lightCookieSprite.texture);
@@ -440,7 +440,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bitIndex++;
             var pointCookieBit = (isPoint && light.lightCookieSprite != null && light.lightCookieSprite.texture != null) ? 1u << bitIndex : 0u;
             bitIndex++;
-            var pointFastQualityBit = (isPoint && light.pointLightQuality == Light2D.PointLightQuality.Fast) ? 1u << bitIndex : 0u;
+            var pointFastQualityBit = (isPoint && light.normalMapQuality == Light2D.NormalMapQuality.Fast) ? 1u << bitIndex : 0u;
             bitIndex++;
             var useNormalMap = light.useNormalMap ? 1u << bitIndex : 0u;
 
@@ -473,7 +473,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (isPoint && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                 material.EnableKeyword(k_UsePointLightCookiesKeyword);
 
-            if (isPoint && light.pointLightQuality == Light2D.PointLightQuality.Fast)
+            if (isPoint && light.normalMapQuality == Light2D.NormalMapQuality.Fast)
                 material.EnableKeyword(k_LightQualityFastKeyword);
 
             if (light.useNormalMap)

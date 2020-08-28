@@ -18,22 +18,35 @@ namespace UnityEngine.Experimental.Rendering.Universal
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DLightProperties.html")]
     public sealed partial class Light2D : MonoBehaviour
     {
+
+        public enum DeprecatedLightType
+        {
+            Parametric = 0,
+        }
+
         /// <summary>
         /// an enumeration of the types of light
         /// </summary>
         public enum LightType
         {
-            Parametric = 0,
+            //Parametric = 0,
             Freeform = 1,
             Sprite = 2,
             Point = 3,
             Global = 4
         }
 
+        public enum NormalMapQuality
+        {
+            Disabled = 2,
+            Fast = 0,
+            Accurate = 1
+        }
+
 #if USING_ANIMATION_MODULE
         [UnityEngine.Animations.NotKeyable]
 #endif
-        [SerializeField] LightType m_LightType = LightType.Parametric;
+        [SerializeField] LightType m_LightType = LightType.Point;
         [SerializeField, FormerlySerializedAs("m_LightOperationIndex")]
         int m_BlendStyleIndex = 0;
 
@@ -45,11 +58,21 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         [SerializeField] float m_LightVolumeOpacity = 0.0f;
         [SerializeField] int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
+
         [SerializeField] Sprite m_LightCookieSprite = null;
         [SerializeField] bool m_UseNormalMap = false;
 
         [SerializeField] int m_LightOrder = 0;
         [SerializeField] bool m_AlphaBlendOnOverlap = false;
+
+        [FormerlySerializedAs("m_PointLightDistance")]
+        [SerializeField] float m_NormalMapDistance = 3.0f;
+
+#if USING_ANIMATION_MODULE        
+        [UnityEngine.Animations.NotKeyable]
+#endif
+        [FormerlySerializedAs("m_PointLightQuality")]
+        [SerializeField] NormalMapQuality m_NormalMapQuality = NormalMapQuality.Disabled;
 
         [Range(0,1)]
         [SerializeField] float m_ShadowIntensity    = 0.0f;
@@ -120,6 +143,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public bool alphaBlendOnOverlap => m_AlphaBlendOnOverlap;
         public int lightOrder { get => m_LightOrder; set => m_LightOrder = value; }
 
+        public float normalMapDistance => m_NormalMapDistance;
+        public NormalMapQuality normalMapQuality => m_NormalMapQuality;
+
+
+
         internal int GetTopMostLitLayer()
         {
             var largestIndex = -1;
@@ -151,7 +179,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 case LightType.Freeform:
                     m_LocalBounds = LightUtility.GenerateShapeMesh(m_Mesh, m_ShapePath, m_ShapeLightFalloffSize);
                     break;
-                case LightType.Parametric:
+                case (LightType)DeprecatedLightType.Parametric:
                     m_LocalBounds = LightUtility.GenerateParametricMesh(m_Mesh, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
                     break;
                 case LightType.Sprite:

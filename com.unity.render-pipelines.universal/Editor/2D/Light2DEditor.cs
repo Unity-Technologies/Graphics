@@ -5,6 +5,8 @@ using UnityEditor.Experimental.Rendering.Universal.Path2D;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.Rendering.Universal;
+using UnityEditor.AnimatedValues;
+
 
 namespace UnityEditor.Experimental.Rendering.Universal
 {
@@ -51,6 +53,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         private static class Styles
         {
+            public static readonly GUIContent InnerOuterSpotAngle = EditorGUIUtility.TrTextContent("Inner / Outer Spot Angle", "Controls the inner and outer angle in degrees, at the base of a Spot light's cone.");
+            public static readonly GUIContent SpotAngle = EditorGUIUtility.TrTextContent("Spot Angle", "Controls the angle in degrees at the base of a Spot light's cone.");
+
             public static Texture lightCapTopRight = Resources.Load<Texture>("LightCapTopRight");
             public static Texture lightCapTopLeft = Resources.Load<Texture>("LightCapTopLeft");
             public static Texture lightCapBottomLeft = Resources.Load<Texture>("LightCapBottomLeft");
@@ -58,12 +63,11 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static Texture lightCapUp = Resources.Load<Texture>("LightCapUp");
             public static Texture lightCapDown = Resources.Load<Texture>("LightCapDown");
 
-            public static GUIContent lightTypeParametric = new GUIContent("Parametric", Resources.Load("InspectorIcons/ParametricLight") as Texture);
             public static GUIContent lightTypeFreeform = new GUIContent("Freeform", Resources.Load("InspectorIcons/FreeformLight") as Texture);
             public static GUIContent lightTypeSprite = new GUIContent("Sprite", Resources.Load("InspectorIcons/SpriteLight") as Texture);
             public static GUIContent lightTypePoint = new GUIContent("Point", Resources.Load("InspectorIcons/PointLight") as Texture);
             public static GUIContent lightTypeGlobal = new GUIContent("Global", Resources.Load("InspectorIcons/GlobalLight") as Texture);
-            public static GUIContent[] lightTypeOptions = new GUIContent[] { lightTypeParametric, lightTypeFreeform, lightTypeSprite, lightTypePoint, lightTypeGlobal };
+            public static GUIContent[] lightTypeOptions = new GUIContent[] { lightTypeFreeform, lightTypeSprite, lightTypePoint, lightTypeGlobal };
 
             public static GUIContent generalLightType = EditorGUIUtility.TrTextContent("Light Type", "Specify the light type");
             public static GUIContent generalFalloffSize = EditorGUIUtility.TrTextContent("Falloff", "Specify the falloff of the light");
@@ -71,7 +75,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent generalLightColor = EditorGUIUtility.TrTextContent("Color", "Specify the light color");
             public static GUIContent generalLightIntensity = EditorGUIUtility.TrTextContent("Intensity", "Specify the light color's intensity");
             public static GUIContent generalUseNormalMap = EditorGUIUtility.TrTextContent("Use Normal Map", "Specify whether the light considers normal maps");
-            public static GUIContent generalVolumeOpacity = EditorGUIUtility.TrTextContent("Volume Opacity", "Specify the light's volumetric light volume opacity");
+            public static GUIContent generalVolumeIntensity = EditorGUIUtility.TrTextContent("Volume Intensity", "Specify the light's volumetric light volume intensity");
             public static GUIContent generalBlendStyle = EditorGUIUtility.TrTextContent("Blend Style", "Specify the blend style");
             public static GUIContent generalLightOverlapMode = EditorGUIUtility.TrTextContent("Alpha Blend on Overlap", "Use alpha blending instead of additive blending when this light overlaps others");
             public static GUIContent generalLightOrder = EditorGUIUtility.TrTextContent("Light Order", "The relative order in which lights of the same blend style get rendered.");
@@ -79,13 +83,13 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent generalShadowVolumeIntensity = EditorGUIUtility.TrTextContent("Shadow Volume Intensity", "Controls the shadow volume's darkness.");
             public static GUIContent generalSortingLayerPrefixLabel = EditorGUIUtility.TrTextContent("Target Sorting Layers", "Apply this light to the specified sorting layers.");
             public static GUIContent generalLightNoLightEnabled = EditorGUIUtility.TrTextContentWithIcon("No valid blend styles are enabled.", MessageType.Error);
+            public static GUIContent generalNormalMapZDistance = EditorGUIUtility.TrTextContent("Normal Map Distance", "Specify the Z Distance of the light");
+            public static GUIContent generalNormalMapLightQuality = EditorGUIUtility.TrTextContent("Normal Map Quality", "Use accurate if there are noticeable visual issues");
 
-            public static GUIContent pointLightQuality = EditorGUIUtility.TrTextContent("Quality", "Use accurate if there are noticeable visual issues");
             public static GUIContent pointLightInnerAngle =  EditorGUIUtility.TrTextContent("Inner Angle", "Specify the inner angle of the light");
             public static GUIContent pointLightOuterAngle = EditorGUIUtility.TrTextContent("Outer Angle", "Specify the outer angle of the light");
             public static GUIContent pointLightInnerRadius = EditorGUIUtility.TrTextContent("Inner Radius", "Specify the inner radius of the light");
             public static GUIContent pointLightOuterRadius = EditorGUIUtility.TrTextContent("Outer Radius", "Specify the outer radius of the light");
-            public static GUIContent pointLightZDistance = EditorGUIUtility.TrTextContent("Distance", "Specify the Z Distance of the light");
 
             public static GUIContent shapeLightSprite = EditorGUIUtility.TrTextContent("Sprite", "Specify the sprite");
             public static GUIContent shapeLightParametricRadius = EditorGUIUtility.TrTextContent("Radius", "Adjust the size of the object");
@@ -114,7 +118,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SerializedProperty m_VolumetricAlpha;
         SerializedProperty m_BlendStyleIndex;
         SerializedProperty m_FalloffIntensity;
-        SerializedProperty m_PointZDistance;
+        SerializedProperty m_NormalMapZDistance;
+        SerializedProperty m_NormalMapQuality;
         SerializedProperty m_LightOrder;
         SerializedProperty m_AlphaBlendOnOverlap;
 
@@ -123,7 +128,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SerializedProperty m_PointOuterAngle;
         SerializedProperty m_PointInnerRadius;
         SerializedProperty m_PointOuterRadius;
-        SerializedProperty m_PointLightQuality;
 
         // Shape Light Properties
         SerializedProperty m_ShapeLightParametricRadius;
@@ -173,7 +177,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_VolumetricAlpha = serializedObject.FindProperty("m_LightVolumeOpacity");
             m_BlendStyleIndex = serializedObject.FindProperty("m_BlendStyleIndex");
             m_FalloffIntensity = serializedObject.FindProperty("m_FalloffIntensity");
-            m_PointZDistance = serializedObject.FindProperty("m_PointLightDistance");
+            m_NormalMapZDistance = serializedObject.FindProperty("m_NormalMapDistance");
+            m_NormalMapQuality = serializedObject.FindProperty("m_NormalMapQuality");
             m_LightOrder = serializedObject.FindProperty("m_LightOrder");
             m_AlphaBlendOnOverlap = serializedObject.FindProperty("m_AlphaBlendOnOverlap");
 
@@ -182,7 +187,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_PointOuterAngle = serializedObject.FindProperty("m_PointLightOuterAngle");
             m_PointInnerRadius = serializedObject.FindProperty("m_PointLightInnerRadius");
             m_PointOuterRadius = serializedObject.FindProperty("m_PointLightOuterRadius");
-            m_PointLightQuality = serializedObject.FindProperty("m_PointLightQuality");
+            
 
             // Shape Light
             m_ShapeLightParametricRadius = serializedObject.FindProperty("m_ShapeLightParametricRadius");
@@ -247,16 +252,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
         void OnPointLight(SerializedObject serializedObject)
         {
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.Slider(m_PointInnerAngle, 0, 360, Styles.pointLightInnerAngle);
-            if (EditorGUI.EndChangeCheck())
-                m_PointInnerAngle.floatValue = Mathf.Min(m_PointInnerAngle.floatValue, m_PointOuterAngle.floatValue);
-
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.Slider(m_PointOuterAngle, 0, 360, Styles.pointLightOuterAngle);
-            if (EditorGUI.EndChangeCheck())
-                m_PointOuterAngle.floatValue = Mathf.Max(m_PointInnerAngle.floatValue, m_PointOuterAngle.floatValue);
-
-            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_PointInnerRadius, Styles.pointLightInnerRadius);
             if (EditorGUI.EndChangeCheck())
                 m_PointInnerRadius.floatValue = Mathf.Max(0.0f, Mathf.Min(m_PointInnerRadius.floatValue, m_PointOuterRadius.floatValue));
@@ -266,7 +261,57 @@ namespace UnityEditor.Experimental.Rendering.Universal
             if (EditorGUI.EndChangeCheck())
                 m_PointOuterRadius.floatValue = Mathf.Max(m_PointInnerRadius.floatValue, m_PointOuterRadius.floatValue);
 
+            DrawInnerAndOuterSpotAngle(m_PointInnerAngle, m_PointOuterAngle, Styles.InnerOuterSpotAngle);
+
             EditorGUILayout.Slider(m_FalloffIntensity, 0, 1, Styles.generalFalloffIntensity);
+
+            
+        }
+
+
+        public void DrawInnerAndOuterSpotAngle(SerializedProperty minProperty, SerializedProperty maxProperty, GUIContent label)
+        {
+            float textFieldWidth = 45f;
+
+            float min = minProperty.floatValue;
+            float max = maxProperty.floatValue;
+
+            var rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight);
+            // This widget is a little bit of a special case.
+            // The right hand side of the min max slider will control the reset of the max value
+            // The left hand side of the min max slider will control the reset of the min value
+            // The label itself will not have a right click and reset value.
+
+            rect = EditorGUI.PrefixLabel(rect, label);
+            EditorGUI.BeginProperty(new Rect(rect) { width = rect.width * 0.5f }, label, minProperty);
+            EditorGUI.BeginProperty(new Rect(rect) { xMin = rect.x + rect.width * 0.5f }, GUIContent.none, maxProperty);
+
+            var minRect = new Rect(rect) { width = textFieldWidth };
+            var maxRect = new Rect(rect) { xMin = rect.xMax - textFieldWidth };
+            var sliderRect = new Rect(rect) { xMin = minRect.xMax + 4, xMax = maxRect.xMin - 4 };
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.DelayedFloatField(minRect, minProperty, GUIContent.none);
+            if(EditorGUI.EndChangeCheck() && minProperty.floatValue > maxProperty.floatValue)
+                minProperty.floatValue = maxProperty.floatValue;
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.MinMaxSlider(sliderRect, ref min, ref max, 0f, 360f);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                minProperty.floatValue = min;
+                maxProperty.floatValue = max;
+            }
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.DelayedFloatField(maxRect, m_PointOuterAngle, GUIContent.none);
+            if (EditorGUI.EndChangeCheck() && minProperty.floatValue > maxProperty.floatValue)
+                maxProperty.floatValue = minProperty.floatValue;
+
+
+            EditorGUI.EndProperty();
+            EditorGUI.EndProperty();
         }
 
         void OnShapeLight(Light2D.LightType lightType, SerializedObject serializedObject)
@@ -275,25 +320,15 @@ namespace UnityEditor.Experimental.Rendering.Universal
             {
                 EditorGUILayout.PropertyField(m_ShapeLightSprite, Styles.shapeLightSprite);
             }
-            else if (lightType == Light2D.LightType.Parametric || lightType == Light2D.LightType.Freeform)
+            else if (lightType == Light2D.LightType.Freeform)
             {
-                if (lightType == Light2D.LightType.Parametric)
-                {
-                    EditorGUILayout.PropertyField(m_ShapeLightParametricRadius, Styles.shapeLightParametricRadius);
-                    if (m_ShapeLightParametricRadius.floatValue < 0)
-                        m_ShapeLightParametricRadius.floatValue = 0;
-
-                    EditorGUILayout.IntSlider(m_ShapeLightParametricSides, 3, 48, Styles.shapeLightParametricSides);
-                    EditorGUILayout.Slider(m_ShapeLightParametricAngleOffset, 0, 359, Styles.shapeLightAngleOffset);
-                }
-
                 EditorGUILayout.PropertyField(m_ShapeLightFalloffSize, Styles.generalFalloffSize);
                 if (m_ShapeLightFalloffSize.floatValue < 0)
                     m_ShapeLightFalloffSize.floatValue = 0;
 
                 EditorGUILayout.Slider(m_FalloffIntensity, 0, 1, Styles.generalFalloffIntensity);
 
-                if (lightType == Light2D.LightType.Parametric || lightType == Light2D.LightType.Freeform)
+                if (lightType == Light2D.LightType.Freeform)
                 {
                     bool oldWideMode = EditorGUIUtility.wideMode;
                     EditorGUIUtility.wideMode = true;
@@ -302,6 +337,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 }
             }
         }
+
 
         Vector3 DrawAngleSlider2D(Transform transform, Quaternion rotation, float radius, float offset, Handles.CapFunction capFunc, float capSize, bool leftAngle, bool drawLine, bool useCapOffset, ref float angle)
         {
@@ -480,40 +516,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
                         }
                     }
                     break;
-                case Light2D.LightType.Parametric:
-                    {
-                        float radius = light.shapeLightParametricRadius;
-                        float sides = light.shapeLightParametricSides;
-                        float angleOffset = Mathf.PI / 2.0f + Mathf.Deg2Rad * light.shapeLightParametricAngleOffset;
-
-                        if (sides < 3)
-                            sides = 3;
-
-                        if (sides == 4)
-                            angleOffset = Mathf.PI / 4.0f + Mathf.Deg2Rad * light.shapeLightParametricAngleOffset;
-
-                        Vector3 direction = new Vector3(Mathf.Cos(angleOffset), Mathf.Sin(angleOffset), 0);
-                        Vector3 startPoint = radius * direction;
-                        Vector3 featherStartPoint = startPoint + light.shapeLightFalloffSize * direction;
-                        float radiansPerSide = 2 * Mathf.PI / sides;
-                        Vector3 falloffOffset = light.shapeLightFalloffOffset;
-
-                        for (int i = 0; i < sides; ++i)
-                        {
-                            float endAngle = (i + 1) * radiansPerSide;
-
-                            direction = new Vector3(Mathf.Cos(endAngle + angleOffset), Mathf.Sin(endAngle + angleOffset), 0);
-                            Vector3 endPoint = radius * direction;
-                            Vector3 featherEndPoint = endPoint + light.shapeLightFalloffSize * direction;
-
-                            Handles.DrawLine(t.TransformPoint(startPoint), t.TransformPoint(endPoint));
-                            Handles.DrawLine(t.TransformPoint(featherStartPoint + falloffOffset), t.TransformPoint(featherEndPoint + falloffOffset));
-
-                            startPoint = endPoint;
-                            featherStartPoint = featherEndPoint;
-                        }
-                    }
-                    break;
                 case Light2D.LightType.Freeform:
                     {
                         // Draw the falloff shape's outline
@@ -562,10 +564,10 @@ namespace UnityEditor.Experimental.Rendering.Universal
             Rect lightTypeRect = EditorGUILayout.GetControlRect();
             EditorGUI.BeginProperty(lightTypeRect, GUIContent.none, m_LightType);
             EditorGUI.BeginChangeCheck();
-            int newLightType = EditorGUI.Popup(lightTypeRect, Styles.generalLightType, m_LightType.intValue, Styles.lightTypeOptions);
+            int newLightType = EditorGUI.Popup(lightTypeRect, Styles.generalLightType, m_LightType.intValue - 1, Styles.lightTypeOptions);  // -1 is a bit hacky its to support compatibiltiy. We need something better.
             if (EditorGUI.EndChangeCheck())
             {
-                m_LightType.intValue = newLightType;
+                m_LightType.intValue = newLightType + 1; // -1 is a bit hacky its to support compatibiltiy. We need something better.
                 meshChanged = true;
             }
             EditorGUI.EndProperty();
@@ -577,7 +579,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
                         OnPointLight(serializedObject);
                     }
                     break;
-                case (int)Light2D.LightType.Parametric:
                 case (int)Light2D.LightType.Freeform:
                 case (int)Light2D.LightType.Sprite:
                     {
@@ -605,23 +606,23 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             if (m_LightType.intValue != (int)Light2D.LightType.Global)
             {
-
-                EditorGUILayout.PropertyField(m_UseNormalMap, Styles.generalUseNormalMap);
-
-                if (m_UseNormalMap.boolValue)
-                {
-                    EditorGUI.BeginChangeCheck();
-                    EditorGUILayout.PropertyField(m_PointZDistance, Styles.pointLightZDistance);
-                    if (EditorGUI.EndChangeCheck())
-                        m_PointZDistance.floatValue = Mathf.Max(0.0f, m_PointZDistance.floatValue);
-                    EditorGUILayout.PropertyField(m_PointLightQuality, Styles.pointLightQuality);
-                }
-
-                EditorGUILayout.Slider(m_VolumetricAlpha, 0, 1, Styles.generalVolumeOpacity);
-
                 EditorGUILayout.Slider(m_ShadowIntensity, 0, 1, Styles.generalShadowIntensity);
-                if(m_VolumetricAlpha.floatValue > 0)
-                    EditorGUILayout.Slider(m_ShadowVolumeIntensity, 0, 1, Styles.generalShadowVolumeIntensity);
+                EditorGUILayout.Slider(m_VolumetricAlpha, 0, 1, Styles.generalVolumeIntensity);
+                
+                EditorGUI.BeginDisabledGroup(m_VolumetricAlpha.floatValue <= 0);
+                EditorGUILayout.Slider(m_ShadowVolumeIntensity, 0, 1, Styles.generalShadowVolumeIntensity);
+                EditorGUI.EndDisabledGroup();
+
+                
+                EditorGUILayout.PropertyField(m_NormalMapQuality, Styles.generalNormalMapLightQuality);
+
+                EditorGUI.BeginDisabledGroup(m_NormalMapQuality.intValue == (int)Light2D.NormalMapQuality.Disabled);
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(m_NormalMapZDistance, Styles.generalNormalMapZDistance);
+                if (EditorGUI.EndChangeCheck())
+                    m_NormalMapZDistance.floatValue = Mathf.Max(0.0f, m_NormalMapZDistance.floatValue);
+
+                EditorGUI.EndDisabledGroup();
             }
 
             m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.generalSortingLayerPrefixLabel, AnalyticsTrackChanges);
