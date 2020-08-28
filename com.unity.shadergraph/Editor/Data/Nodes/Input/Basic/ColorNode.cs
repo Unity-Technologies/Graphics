@@ -147,6 +147,8 @@ namespace UnityEditor.ShaderGraph
                 switch (sgVersion)
                 {
                     case 0:
+                        if(PlayerSettings.colorSpace == ColorSpace.Linear)
+                            propColor = propColor.linear;
                         break;
                     case 1:
                         if (PlayerSettings.colorSpace == ColorSpace.Gamma)
