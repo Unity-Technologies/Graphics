@@ -154,10 +154,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 s_ProbeVolumeAtlasOctahedralDepthConvolveCS = asset.renderPipelineResources.shaders.probeVolumeAtlasOctahedralDepthConvolveCS;
                 s_ProbeVolumeAtlasOctahedralDepthConvolveKernel = s_ProbeVolumeAtlasOctahedralDepthConvolveCS.FindKernel("ProbeVolumeAtlasOctahedralDepthConvolveKernel");
             }
-            else
-            {
-                CreateProbeVolumeBuffersDefault();
-            }
+
+            // Need Default / Fallback buffers for binding in case when ShaderConfig has activated probe volume code,
+            // and probe volumes has been enabled in the HDRenderPipelineAsset,
+            // but probe volumes is disabled in the current camera's frame settings.
+            // This can go away if we add a global keyword for using / completely stripping probe volume code per camera.
+            CreateProbeVolumeBuffersDefault();
 
         #if UNITY_EDITOR
             UnityEditor.Lightmapping.lightingDataCleared += OnLightingDataCleared;
@@ -411,14 +413,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PushProbeVolumesGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
         {
-            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
-                return;
-
-            if (!m_SupportProbeVolume)
-            {
-                PushProbeVolumesGlobalParamsDefault(hdCamera, cmd);
-                return;
-            }
+            Debug.Assert(ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled);
+            Debug.Assert(m_SupportProbeVolume);
 
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeBounds, s_VisibleProbeVolumeBoundsBuffer);
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeDatas, s_VisibleProbeVolumeDataBuffer);
@@ -432,6 +428,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void PushProbeVolumesGlobalParamsDefault(HDCamera hdCamera, CommandBuffer cmd)
         {
+            Debug.Assert(ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled);
+            Debug.Assert(hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) == false);
+
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeBounds, s_VisibleProbeVolumeBoundsBufferDefault);
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeDatas, s_VisibleProbeVolumeDataBufferDefault);
             cmd.SetGlobalTexture(HDShaderIDs._ProbeVolumeAtlasSH, TextureXR.GetBlackTexture3D());
@@ -712,8 +711,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 return probeVolumes;
 
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
-                return probeVolumes;
+            {
+                PushProbeVolumesGlobalParamsDefault(hdCamera, cmd);
+            }
+            else
+            {
+                PrepareVisibleProbeVolumeListBuffers(renderContext, hdCamera, cmd, ref probeVolumes);
+                PushProbeVolumesGlobalParams(hdCamera, cmd);
+            }
 
+            return probeVolumes;
+        }
+
+        void PrepareVisibleProbeVolumeListBuffers(ScriptableRenderContext renderContext, HDCamera hdCamera, CommandBuffer cmd, ref ProbeVolumeList probeVolumes)
+        {
             var settings = hdCamera.volumeStack.GetComponent<ProbeVolumeController>();
             bool octahedralDepthOcclusionFilterIsEnabled =
                 ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth
@@ -860,9 +871,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                PushProbeVolumesGlobalParams(hdCamera, cmd);
-
-                return probeVolumes;
+                return;
             }
         }
 

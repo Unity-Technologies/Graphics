@@ -48,6 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO RENDERGRAPH
             // Not really good to bind things globally here (makes lifecycle of the textures fuzzy)
             // Probably better to bind it explicitly where needed (deferred lighting and forward/debug passes)
+            // We can probably remove this when we have only one code path and can clean things up a bit.
             BindShadowGlobalResources(renderGraph, result);
 
             return result;
@@ -72,7 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<BindShadowGlobalResourcesPassData>("BindShadowGlobalResources", out var passData))
             {
                 passData.shadowResult = ReadShadowResult(shadowResult, builder);
-                builder.AllowPassPruning(false);
+                builder.AllowPassCulling(false);
                 builder.SetRenderFunc(
                 (BindShadowGlobalResourcesPassData data, RenderGraphContext ctx) =>
                 {
@@ -108,7 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal TextureHandle RenderShadows(RenderGraph renderGraph, CullingResults cullResults, in ShaderVariablesGlobal globalCB, FrameSettings frameSettings, string shadowPassName)
         {
-            TextureHandle result = new TextureHandle();
+            TextureHandle result = TextureHandle.nullHandle;
 
             if (m_ShadowRequests.Count == 0)
                 return result;

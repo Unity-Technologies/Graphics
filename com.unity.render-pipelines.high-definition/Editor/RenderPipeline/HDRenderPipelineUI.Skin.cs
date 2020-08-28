@@ -170,6 +170,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent maxAreaContent = EditorGUIUtility.TrTextContent("Maximum Area on Screen", "Sets the maximum number of area Lights HDRP can handle on screen at once.");
             public static readonly GUIContent maxEnvContent = EditorGUIUtility.TrTextContent("Maximum Reflection Probes on Screen", "Sets the maximum number of Planar and Reflection Probes HDRP can handle on screen at once.");
             public static readonly GUIContent maxDecalContent = EditorGUIUtility.TrTextContent("Maximum Clustered Decals on Screen", "Sets the maximum number of decals that can affect transparent GameObjects on screen.");
+            public static readonly GUIContent maxLightPerCellContent = EditorGUIUtility.TrTextContent("Maximum Lights per Cell (Ray Tracing)", "Sets the maximum number of lights HDRP can handle in each cell of the ray tracing light cluster.");
 
             public static readonly GUIContent resolutionContent = EditorGUIUtility.TrTextContent("Resolution", "Specifies the resolution of the shadow Atlas.");
             public static readonly GUIContent cachedShadowAtlasResolution = EditorGUIUtility.TrTextContent("Cached Shadow Atlas Resolution", "Specifies the resolution of the shadow Atlas that contains the cached shadow maps.");
@@ -186,7 +187,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent useContactShadows = EditorGUIUtility.TrTextContent("Use Contact Shadows", "Use contact shadows for lights.");
             public static readonly GUIContent supportScreenSpaceShadows = EditorGUIUtility.TrTextContent("Screen Space Shadows", "Enables the support of screen space shadows in HDRP.");
             public static readonly GUIContent maxScreenSpaceShadowSlots = EditorGUIUtility.TrTextContent("Maximum", "Sets the maximum number of screen space shadows slots HDRP can handle on screen at once. Opaque shadows requires one slot, color shadow requires three.");
-            public static readonly GUIContent screenSpaceShadowFormat = EditorGUIUtility.TrTextContent("Buffer Format", "Defines the format of the buffer used for screen space buffer format R8G8B8A8 or R16G16B16A16.");
+            public static readonly GUIContent screenSpaceShadowFormat = EditorGUIUtility.TrTextContent("Buffer Format", "Defines the format of the buffer used for screen space shadows. The buffer format can be R8G8B8A8 or R16G16B16A16.");
             public static readonly GUIContent maxShadowResolution = EditorGUIUtility.TrTextContent("Max shadow resolution", "Specifies the maximum resolution for any single shadow map.");
 
             public static readonly GUIContent drawDistanceContent = EditorGUIUtility.TrTextContent("Draw Distance", "Sets the maximum distance from the Camera at which HDRP draws Decals.");

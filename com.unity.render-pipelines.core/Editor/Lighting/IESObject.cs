@@ -1,6 +1,5 @@
 using System.IO;
 using UnityEditor;
-using UnityEditor.Experimental.AssetImporters;
 using UnityEngine;
 
 namespace UnityEditor.Rendering
@@ -101,8 +100,9 @@ namespace UnityEditor.Rendering
         /// </summary>
         [Range(1f, 179f)]
         public float SpotAngle = 120f;
+
         /// <summary>
-        /// IES Size of the texture used (same parameter for Point & Spot)
+        /// IES Size of the texture used (same parameter for Point and Spot)
         /// </summary>
         public IESResolution iesSize = IESResolution.IESResolution128;
 

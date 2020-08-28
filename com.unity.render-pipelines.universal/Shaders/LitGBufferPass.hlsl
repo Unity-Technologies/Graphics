@@ -4,6 +4,18 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
 
+// TODO: Currently we support viewDirTS caclulated in vertex shader and in fragments shader.
+// As both solutions have their advantages and disadvantages (etc. shader target 2.0 has only 8 interpolators).
+// We need to find out if we can stick to one solution, which we needs testing.
+// So keeping this until I get manaul QA pass.
+#if defined(_PARALLAXMAP) && (SHADER_TARGET >= 30)
+#define REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR
+#endif
+
+#if (defined(_NORMALMAP) || (defined(_PARALLAXMAP) && !defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)))
+#define REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR
+#endif
+
 // keep this file in sync with LitForwardPass.hlsl
 
 struct Attributes
@@ -26,7 +38,7 @@ struct Varyings
 #endif
 
     float3 normalWS                 : TEXCOORD3;
-#ifdef _NORMALMAP
+#if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
     float4 tangentWS                : TEXCOORD4;    // xyz: tangent, w: sign
 #endif
     float3 viewDirWS                : TEXCOORD5;
@@ -35,6 +47,10 @@ struct Varyings
 
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     float4 shadowCoord              : TEXCOORD7;
+#endif
+
+#if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
+    float3 viewDirTS                : TEXCOORD8;
 #endif
 
     float4 positionCS               : SV_POSITION;
@@ -104,9 +120,17 @@ Varyings LitGBufferPassVertex(Attributes input)
     // already normalized from normal transform to WS.
     output.normalWS = normalInput.normalWS;
     output.viewDirWS = viewDirWS;
-#ifdef _NORMALMAP
+#if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR) || defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
     real sign = input.tangentOS.w * GetOddNegativeScale();
-    output.tangentWS = half4(normalInput.tangentWS.xyz, sign);
+    half4 tangentWS = half4(normalInput.tangentWS.xyz, sign);
+#endif
+#if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
+    output.tangentWS = tangentWS;
+#endif
+
+#if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
+    half3 viewDirTS = GetViewDirectionTangentSpace(tangentWS, output.normalWS, viewDirWS);
+    output.viewDirTS = viewDirTS;
 #endif
 
     OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
@@ -127,13 +151,20 @@ Varyings LitGBufferPassVertex(Attributes input)
     return output;
 }
 
-
-
 // Used in Standard (Physically Based) shader
 FragmentOutput LitGBufferPassFragment(Varyings input)
 {
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+#if defined(_PARALLAXMAP)
+#if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
+    half3 viewDirTS = input.viewDirTS;
+#else
+    half3 viewDirTS = GetViewDirectionTangentSpace(input.tangentWS, input.normalWS, input.viewDirWS);
+#endif
+    ApplyPerPixelDisplacement(viewDirTS, input.uv);
+#endif
 
     SurfaceData surfaceData;
     InitializeStandardLitSurfaceData(input.uv, surfaceData);

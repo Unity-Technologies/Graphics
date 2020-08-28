@@ -114,8 +114,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(motionVectorDesc);
         }
 
-        // TODO RENDERGRAPH: in someplaces we auto bind and in others we have to generate MRT because of discrepancy with non render graph path.
-        // Clean this once we only have one path.
         void BindPrepassColorBuffers(in RenderGraphBuilder builder, in PrepassOutput prepassOutput, HDCamera hdCamera)
         {
             int index = 0;
@@ -677,7 +675,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle            depthStencilBuffer;
             public TextureHandle            depthTexture;
             public ComputeBufferHandle      propertyMaskBuffer;
-            public TextureHandle            decalBuffer;            
+            public TextureHandle            decalBuffer;
         }
 
         struct DBufferOutput
@@ -786,7 +784,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     data.meshDecalsRendererList,
                                     data.propertyMaskBuffer,
                                     data.decalBuffer,
-                                    context.renderContext,                                    
+                                    context.renderContext,
                                     context.cmd);
                 });
             }

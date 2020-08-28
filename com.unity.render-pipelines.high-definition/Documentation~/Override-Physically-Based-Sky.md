@@ -17,19 +17,21 @@ You can use Physically Based Sky to simulate the sky during both daytime and nig
 
 ## Using Physically Based Sky
 
-Physically Based Sky uses the [Volume](Volumes.html) framework. To enable and modify **Physically Based Sky** properties, add a **Physically Based Sky** override to a [Volume](Volumes.html) in your Scene. To add **Physically Based Sky** to a Volume:
+Physically Based Sky uses the [Volume](Volumes.md) framework. To enable and modify **Physically Based Sky** properties, add a **Physically Based Sky** override to a [Volume](Volumes.md) in your Scene. To add **Physically Based Sky** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 
 2. In the Inspector, go to **Add Override > Sky** and select **Physically Based Sky**.
 
-Next, set the Volume to use **Physically Based Sky**. The [Visual Environment](Override-Visual-Environment.html) override controls which type of sky the Volume uses. In the **Visual Environment** override, navigate to the **Sky** section and set the **Type** to **Physically Based Sky**. HDRP now renders a **Physically Based Sky** for any Camera this Volume affects.
+Next, set the Volume to use **Physically Based Sky**. The [Visual Environment](Override-Visual-Environment.md) override controls which type of sky the Volume uses. In the **Visual Environment** override, navigate to the **Sky** section and set the **Type** to **Physically Based Sky**. HDRP now renders a **Physically Based Sky** for any Camera this Volume affects.
 
 To change how much the atmosphere attenuates light, you can change the density of both air and aerosol molecules (participating media) in the atmosphere. You can also use aerosols to simulate real-world pollution or fog.
 
 ![](Images/Override-PhysicallyBasedSky4.png)
 
 ## Properties
+
+[!include[](Snippets/Volume-Override-Enable-Properties.md)]
 
 ### Planet
 
@@ -96,7 +98,7 @@ To make this section visible, disable **Earth Preset**.
 | **- Multiplier**          | The multiplier for HDRP to apply to the Scene as environmental light. HDRP multiplies the environment light in your Scene by this value. To make this property visible, set **Intensity Mode** to **Multiplier**. |
 | **Update Mode**           | The rate at which HDRP updates the sky environment (using Ambient and Reflection Probes):<br/>&#8226; **On Changed**: HDRP updates the sky environment when one of the sky properties changes.<br/>&#8226; **On Demand**: HDRP waits until you manually call for a sky environment update from a script.<br/>&#8226; **Realtime**: HDRP updates the sky environment at regular intervals defined by the **Update Period**. |
 | **- Update Period**       | The period (in seconds) for HDRP to update the sky environment. Set the value to 0 if you want HDRP to update the sky environment every frame. This property only appears when you set the **Update Mode** to **Realtime**. |
-| **Include Sun In Baking** | Indicates whether the light and reflection probes generated for the sky contain the sun disk. For details on why this is useful, see [Environment Lighting](Environment-Lighting.html#DecoupleVisualEnvironment). |
+| **Include Sun In Baking** | Indicates whether the light and reflection probes generated for the sky contain the sun disk. For details on why this is useful, see [Environment Lighting](Environment-Lighting.md#DecoupleVisualEnvironment). |
 
 <a name="ImplementationDetails"></a>
 

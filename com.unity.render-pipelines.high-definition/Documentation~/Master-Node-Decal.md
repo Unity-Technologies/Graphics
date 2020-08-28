@@ -1,10 +1,10 @@
 # Decal Master Node
 
-Decals are Materials that use the [HDRP Decal Shader](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@7.1/manual/Decal-Shader.html). You can use the Decal Shader Graph to author Decals that you can [project](Decal-Projector.html) or place into your Scene. The Decal Master Node is similar to the standard Decal Shader, except that you cannot use this version to author transparent decals. 
+Decals are Materials that use the [HDRP Decal Shader](Decal-Shader.md). You can use the Decal Shader Graph to author Decals that you can [project](Decal-Projector.md) or place into your Scene. The Decal Master Node is similar to the standard Decal Shader, except that you cannot use this version to author decals projected on transparent material.
 
 ## Creating and editing a Decal Material
 
-When you select a Shader Graph Master Node in the Project view, you cannot edit any properties in the Inspector. Decal Materials use a Shader Graph Master Node, so you need to use a specific process to create and edit a Material that uses it. For information on how to do this, see [Creating and Editing HDRP Shader Graphs](Customizing-HDRP-materials-with-Shader-Graph.html). 
+When you select a Shader Graph Master Node in the Project view, you cannot edit any properties in the Inspector. Decal Materials use a Shader Graph Master Node, so you need to use a specific process to create and edit a Material that uses it. For information on how to do this, see [Creating and Editing HDRP Shader Graphs](Customizing-HDRP-materials-with-Shader-Graph.md). 
 
 When you apply the node to a Material, the **Surface Options** and **Exposed Properties** become available to edit in the Material’s Inspector.
 
@@ -49,7 +49,7 @@ To view these properties, click the **Cog** in the top right of the Master Node.
 | Property                      | Description                                                  |
 | ----------------------------- | ------------------------------------------------------------ |
 | **Precision**                 | Select the precision of the calculations that the Shader processes. Lower precision calculations are faster but can cause issues, such as incorrect intensity for specular highlights.<br/>&#8226; **Inherit**: Uses global precision settings. This is the highest precision setting, so using it does not result in any precision issues, but Shader calculations are slower than other values.<br/>&#8226; **Float**: Uses single-precision floating-point instructions. This makes each calculation less resource-intensive, which speeds up calculations.<br/>&#8226; **Half**: Uses half-precision floating-point instructions. This is the fastest precision level, which means that calculations that use it are the least resource-intensive to process. This precision setting is the most likely one to result in issues, such as quantization (banding) artifacts and intensity clipping. **Half** precision is currently experimental for the Decal Shader. |
-| **Affects Albedo**            | Enable or disable the effect of the **BaseColor** property.  |
+| **Affects BaseColor**         | Enable or disable the effect of the **BaseColor** property.  |
 | **Affects Normal**            | Enable or disable the effect of the **Normal** property.     |
 | **Affects Metal**             | Enable or disable the effect of the **Metal** property.      |
 | **Affects Ambient Occlusion** | Enable or disable the effect of the **Ambient Occlusion** property. |
@@ -62,9 +62,26 @@ To view these properties, click the **Cog** in the top right of the Master Node.
 
 ### Material Properties
 
-These properties are in the **Exposed Properties** section of the Inspector, alongside the properties that you exposed in the Shader Graph's Blackboard. If you set **Override ShaderGUI** to `true`, the Material Properties section does not appear, and instead, the ShaderGUI you specified appears.
+When creating a Decal Material from the Decal master node, the following properties are available alongside the properties that you exposed in the Shader Graph's Blackboard.
 
-| Property                  | Description                                                  |
+#### Surface Options
+
+These properties allow you to set the affected attributes of the Material the decal is project onto when HDRP renders it into the Scene.
+
+| **Property**                    | **Description**                                              |
+| ------------------------------- | ------------------------------------------------------------ |
+| **Affect BaseColor**            | Enable the checkbox to make this decal use the **baseColor** properties. Otherwise the decal has no baseColor effect. Regardless of whether you enable or disable this property, HDRP still uses the alpha channel of the base color as an opacity for the other properties. |
+| **Affect Normal**               | Enable the checkbox to make the decal use the **normal** property. Otherwise, the decal does not modify the normals of the receiving Material. |
+| **Affect Metal**                | Enable the checkbox to make the decal use the metallic property of its **Mask Map**. Otherwise the decal has no metallic effect. Uses the red channel of the **Mask Map**.<br />This property only appears when you enable the **Metal and Ambient Occlusion properties** checkbox in your [HDRP Asset](HDRP-Asset.md#Decals). |
+| **Affect Ambient Occlusion**    | Enable the checkbox to make the decal use the ambient occlusion property of its **Mask Map**. Otherwise the decal has no ambient occlusion effect. Uses the green channel of the **Mask Map**.<br />This property only appears when you enable the **Metal and Ambient Occlusion properties** checkbox in your [HDRP Asset](HDRP-Asset.md#Decals). |
+| **Affect Smoothness**           | Enable the checkbox to make the decal use the smoothness property of its **Mask Map**. Otherwise the decal has no smoothness effect. Uses the alpha channel of the **Mask Map**.<br /> |
+| **Affect Emissive**             | Enable the checkbox to make this decal emissive. When enabled, this Material appears self-illuminated and acts as a visible source of light. This property does not work with transparent receiving Materials. |
+
+#### Sorting Inputs
+
+These properties allow you to change the rendering behavior of the decal.
+
+| **Property**              | **Description**                                              |
 | ------------------------- | ------------------------------------------------------------ |
-| **Draw order**            | Set the order in which HDRP draws decals in the Scene. HDRP draws decals with lower values first, and draws decals with a higher draw order value on top of those with lower values. This feature works for decals projected on opaque and transparent surfaces. |
-| **Mesh Decal Depth Bias** | Set a depth bias that HDRP applies to the decal’s Mesh to stop it from overlapping with other Meshes. A negative value draws the Decal in front of any overlapping Mesh, while a positive value offsets the Decal and draws it behind. This property only affects Decal Materials directly attached to GameObjects with a Mesh Renderer, so Decal Projectors do not use this property. |
+| **Draw Order**            | Controls the order in which HDRP draws decals in the Scene. HDRP draws decals with lower values first, so it draws decals with a higher draw order value on top of those with lower values. This feature works for decals projected on opaque and transparent surfaces.<br />**Note**: This property only applies to decals the [Decal Projector](Decal-Projector.md) creates and has no effect on Mesh decals. Additionally, if you have multiple Decal Materials with the same **Draw Order**, the order HDRP renders them in depends on the order you create the Materials. HDRP renders Decal Materials you create first before those you create later with the same **Draw Order**. |
+| **Mesh Decal Depth Bias** | A depth bias that HDRP applies to the decal’s Mesh to stop it from overlapping with other Meshes. A negative value draws the decal in front of any overlapping Mesh, while a positive value offsets the decal and draw it behind. This property only affects decal Materials directly attached to GameObjects with a Mesh Renderer, so Decal Projectors do not use this property. |

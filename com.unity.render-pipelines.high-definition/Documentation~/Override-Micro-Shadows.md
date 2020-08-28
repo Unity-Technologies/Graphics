@@ -10,7 +10,7 @@ Micro shadows are shadows that the High Definition Render Pipeline (HDRP) simula
 
 ## Using Micro Shadows
 
-HDRP uses the [Volume](Volumes.html) framework to generate **Micro Shadows**, so to enable and modify **Micro Shadow** properties, you must add a **Micro Shadows** override to a [Volume](Volumes.html) in your Scene. To add **Micro Shadows** to a Volume:
+HDRP uses the [Volume](Volumes.md) framework to generate **Micro Shadows**, so to enable and modify **Micro Shadow** properties, you must add a **Micro Shadows** override to a [Volume](Volumes.md) in your Scene. To add **Micro Shadows** to a Volume:
 
 1. Select the Volume component in the Scene or Hierarchy to view it in the Inspector
 2. In the Inspector, navigate to **Add Override > Shadowing** and click on **Micro Shadows**. 
@@ -21,6 +21,8 @@ Micro shadowing only works with directional [Lights](Light-Component.md). If you
 ## Properties
 
 ![](Images/OverrideMicroShadows2.png)
+
+[!include[](Snippets/Volume-Override-Enable-Properties.md)]
 
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |

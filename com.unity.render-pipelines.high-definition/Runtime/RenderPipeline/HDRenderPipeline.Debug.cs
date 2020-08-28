@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() && m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.TransparencyOverdraw)
             {
-                TextureHandle transparencyOverdrawOutput = new TextureHandle();
+                TextureHandle transparencyOverdrawOutput = TextureHandle.nullHandle;
                 using (var builder = renderGraph.AddRenderPass<TransparencyOverdrawPassData>("Transparency Overdraw", out var passData))
                 {
                     passData.parameters = PrepareTransparencyOverdrawParameters(hdCamera, cull);
@@ -208,6 +208,27 @@ namespace UnityEngine.Rendering.HighDefinition
                                                             data.depthBuffer,
                                                             data.destination,
                                                             ctx.renderGraphPool.GetTempMaterialPropertyBlock());
+                });
+            }
+        }
+
+
+        class DebugImageHistogramData
+        {
+            public PostProcessSystem.DebugImageHistogramParameters parameters;
+            public TextureHandle source;
+        }
+
+        void GenerateDebugImageHistogram(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
+        {
+            using (var builder = renderGraph.AddRenderPass<DebugImageHistogramData>("Generate Debug Image Histogram", out var passData, ProfilingSampler.Get(HDProfileId.FinalImageHistogram)))
+            {
+                passData.source = builder.ReadTexture(source);
+                passData.parameters = m_PostProcessSystem.PrepareDebugImageHistogramParameters(hdCamera);
+                builder.SetRenderFunc(
+                (DebugImageHistogramData data, RenderGraphContext ctx) =>
+                {
+                    PostProcessSystem.GenerateDebugImageHistogram(data.parameters, ctx.cmd, data.source);
                 });
             }
         }

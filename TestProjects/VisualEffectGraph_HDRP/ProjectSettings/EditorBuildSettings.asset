@@ -194,4 +194,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/25_PerParticleLOD.unity
     guid: 1110c31d91331ec40bf5774016d2a4d8
+  - enabled: 0
+    path: Assets/AllTests/VFXTests/GraphicsTests/26_NonUnifomScale.unity
+    guid: 945ba51853c8f874cb631b7664a6160a
   m_configObjects: {}

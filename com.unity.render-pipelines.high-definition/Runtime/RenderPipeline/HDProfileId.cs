@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
         HTileForSSS,
         RenderSSAO,
         ResolveStencilBuffer,
+        AmbientOcclusion,
         HorizonSSAO,
         DenoiseSSAO,
         UpSampleSSAO,
@@ -19,6 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ContactShadows,
         BlitToFinalRTDevBuildOnly,
         Distortion,
+        AccumulateDistortion,
         ApplyDistortion,
         DepthPrepass,
         TransparentDepthPrepass,
@@ -101,14 +103,20 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumetricLightingFiltering,
         PrepareVisibleDensityVolumeList,
 
+        // RT Cluster
         RaytracingBuildCluster,
         RaytracingCullLights,
+        // RTR
         RaytracingIntegrateReflection,
         RaytracingFilterReflection,
+        // RTAO
         RaytracingAmbientOcclusion,
         RaytracingFilterAmbientOcclusion,
+        RaytracingComposeAmbientOcclusion,
+        // RT Shadows
         RaytracingDirectionalLightShadow,
         RaytracingLightShadow,
+        // RTGI
         RaytracingIntegrateIndirectDiffuse,
         RaytracingFilterIndirectDiffuse,
         RaytracingDebugOverlay,
@@ -185,6 +193,7 @@ namespace UnityEngine.Rendering.HighDefinition
         FXAA,
         SMAA,
         FinalPost,
+        FinalImageHistogram,
         CustomPostProcessBeforeTAA,
         CustomPostProcessBeforePP,
         CustomPostProcessAfterPP,

@@ -363,25 +363,24 @@ namespace UnityEditor.ShaderGraph
         void GetBlockFieldDescriptors()
         {
             m_BlockFieldDescriptors = new List<BlockFieldDescriptor>();
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+
+            var asmTypes = TypeCache.GetTypesWithAttribute<GenerateBlocksAttribute>();
+            foreach (var type in asmTypes)
             {
-                foreach (var nestedType in assembly.GetTypes().SelectMany(t => t.GetNestedTypes()))
+                var attrs = type.GetCustomAttributes(typeof(GenerateBlocksAttribute), false);
+                if (attrs == null || attrs.Length <= 0)
+                    continue;
+
+                var attribute = attrs[0] as GenerateBlocksAttribute;
+
+                // Get all fields that are BlockFieldDescriptor
+                // If field and context stages match add to list
+                foreach (var fieldInfo in type.GetFields())
                 {
-                    var attrs = nestedType.GetCustomAttributes(typeof(GenerateBlocksAttribute), false);
-                    if (attrs == null || attrs.Length <= 0)
-                        continue;
-
-                    var attribute = attrs[0] as GenerateBlocksAttribute;
-
-                    // Get all fields that are BlockFieldDescriptor
-                    // If field and context stages match add to list
-                    foreach (var fieldInfo in nestedType.GetFields())
+                    if (fieldInfo.GetValue(type) is BlockFieldDescriptor blockFieldDescriptor)
                     {
-                        if(fieldInfo.GetValue(nestedType) is BlockFieldDescriptor blockFieldDescriptor)
-                        {
-                            blockFieldDescriptor.path = attribute.path;
-                            m_BlockFieldDescriptors.Add(blockFieldDescriptor);
-                        }
+                        blockFieldDescriptor.path = attribute.path;
+                        m_BlockFieldDescriptors.Add(blockFieldDescriptor);
                     }
                 }
             }
