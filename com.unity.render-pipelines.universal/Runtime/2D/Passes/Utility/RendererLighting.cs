@@ -53,7 +53,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static readonly int k_FalloffDistanceID = Shader.PropertyToID("_FalloffDistance");
         private static readonly int k_FalloffOffsetID = Shader.PropertyToID("_FalloffOffset");
         private static readonly int k_LightColorID = Shader.PropertyToID("_LightColor");
-        private static readonly int k_VolumeOpacityID = Shader.PropertyToID("_VolumeOpacity");
+        private static readonly int k_VolumeIntensityID = Shader.PropertyToID("_VolumeIntensity");
         private static readonly int k_CookieTexID = Shader.PropertyToID("_CookieTex");
         private static readonly int k_FalloffLookupID = Shader.PropertyToID("_FalloffLookup");
         private static readonly int k_LightPositionID = Shader.PropertyToID("_LightPosition");
@@ -177,7 +177,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     cmd.SetGlobalFloat(k_FalloffDistanceID, light.shapeLightFalloffSize);
                     cmd.SetGlobalVector(k_FalloffOffsetID, light.shapeLightFalloffOffset);
                     cmd.SetGlobalColor(k_LightColorID, light.intensity * light.color);
-                    cmd.SetGlobalFloat(k_VolumeOpacityID, light.volumeOpacity);
+                    cmd.SetGlobalFloat(k_VolumeIntensityID, light.volumeIntensity);
 
                     if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
                         SetPointLightShaderGlobals(cmd, light);
@@ -216,7 +216,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     var topMostLayer = light.GetTopMostLitLayer();
                     if (layerToRender == topMostLayer)
                     {
-                        if (light != null && light.lightType != Light2D.LightType.Global && light.volumeOpacity > 0.0f && light.blendStyleIndex == blendStyleIndex && light.IsLitLayer(layerToRender))
+                        if (light != null && light.lightType != Light2D.LightType.Global && light.volumeIntensity > 0.0f && light.blendStyleIndex == blendStyleIndex && light.IsLitLayer(layerToRender))
                         {
                             var lightVolumeMaterial = pass.rendererData.GetLightMaterial(light, true);
                             if (lightVolumeMaterial != null)
@@ -233,7 +233,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                                     cmd.SetGlobalFloat(k_FalloffDistanceID, light.shapeLightFalloffSize);
                                     cmd.SetGlobalVector(k_FalloffOffsetID, light.shapeLightFalloffOffset);
                                     cmd.SetGlobalColor(k_LightColorID, light.intensity * light.color);
-                                    cmd.SetGlobalFloat(k_VolumeOpacityID, light.volumeOpacity);
+                                    cmd.SetGlobalFloat(k_VolumeIntensityID, light.volumeIntensity);
 
                                     // Is this needed
                                     if (light.useNormalMap || light.lightType == Light2D.LightType.Point)

@@ -59,7 +59,7 @@ Shader "Hidden/Light2d-Point-Volumetric"
             SAMPLER(sampler_NormalMap);
 
             half4   _LightColor;
-            half    _VolumeOpacity;
+            half    _VolumeIntensity;
             float4   _LightPosition;
             float4x4 _LightInvMatrix;
             float4x4 _LightNoRotInvMatrix;
@@ -132,7 +132,7 @@ Shader "Hidden/Light2d-Point-Volumetric"
 
                 APPLY_SHADOWS(input, lightColor, _ShadowVolumeIntensity);
 
-                return _VolumeOpacity * lightColor * _InverseHDREmulationScale;
+                return _VolumeIntensity * lightColor * _InverseHDREmulationScale;
             }
             ENDHLSL
         }

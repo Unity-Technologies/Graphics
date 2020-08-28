@@ -43,7 +43,7 @@ Shader "Hidden/Light2D-Shape-Volumetric"
             half4 _LightColor;
             half  _FalloffDistance;
             half4 _FalloffOffset;
-            half  _VolumeOpacity;
+            half  _VolumeIntensity;
             half  _InverseHDREmulationScale;
 
 #ifdef SPRITE_LIGHT
@@ -68,7 +68,7 @@ Shader "Hidden/Light2D-Shape-Volumetric"
 
                 o.positionCS = TransformObjectToHClip(positionOS);
                 o.color = _LightColor * _InverseHDREmulationScale;
-                o.color.a = _VolumeOpacity;
+                o.color.a = _VolumeIntensity;
 
 #ifdef SPRITE_LIGHT
                 o.uv = attributes.uv;

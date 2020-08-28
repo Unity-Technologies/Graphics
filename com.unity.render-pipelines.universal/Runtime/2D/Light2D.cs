@@ -56,7 +56,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] Color m_Color = Color.white;
         [SerializeField] float m_Intensity = 1;
 
-        [SerializeField] float m_LightVolumeOpacity = 0.0f;
+
+        [FormerlySerializedAs("m_LightVolumeOpacity")]
+        [SerializeField] float m_LightVolumeIntensity = 0.0f;
         [SerializeField] int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
 
         [SerializeField] Sprite m_LightCookieSprite = null;
@@ -136,7 +138,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
         /// <summary>
         /// The lights current intensity
         /// </summary>
-        public float volumeOpacity => m_LightVolumeOpacity;
+        ///
+        [Obsolete]
+        public float volumeOpacity => m_LightVolumeIntensity;
+        public float volumeIntensity => m_LightVolumeIntensity;
         public Sprite lightCookieSprite => m_LightCookieSprite;
         public float falloffIntensity => m_FalloffIntensity;
         public bool useNormalMap => m_UseNormalMap;

@@ -115,7 +115,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SerializedProperty m_ShadowIntensity;
         SerializedProperty m_ShadowVolumeIntensity;
         SerializedProperty m_ApplyToSortingLayers;
-        SerializedProperty m_VolumetricAlpha;
+        SerializedProperty m_VolumetricIntensity;
         SerializedProperty m_BlendStyleIndex;
         SerializedProperty m_FalloffIntensity;
         SerializedProperty m_NormalMapZDistance;
@@ -174,7 +174,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_ShadowIntensity = serializedObject.FindProperty("m_ShadowIntensity");
             m_ShadowVolumeIntensity = serializedObject.FindProperty("m_ShadowVolumeIntensity");
             m_ApplyToSortingLayers = serializedObject.FindProperty("m_ApplyToSortingLayers");
-            m_VolumetricAlpha = serializedObject.FindProperty("m_LightVolumeOpacity");
+            m_VolumetricIntensity = serializedObject.FindProperty("m_LightVolumeIntensity");
             m_BlendStyleIndex = serializedObject.FindProperty("m_BlendStyleIndex");
             m_FalloffIntensity = serializedObject.FindProperty("m_FalloffIntensity");
             m_NormalMapZDistance = serializedObject.FindProperty("m_NormalMapDistance");
@@ -607,9 +607,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
             if (m_LightType.intValue != (int)Light2D.LightType.Global)
             {
                 EditorGUILayout.Slider(m_ShadowIntensity, 0, 1, Styles.generalShadowIntensity);
-                EditorGUILayout.Slider(m_VolumetricAlpha, 0, 1, Styles.generalVolumeIntensity);
+                EditorGUILayout.Slider(m_VolumetricIntensity, 0, 1, Styles.generalVolumeIntensity);
                 
-                EditorGUI.BeginDisabledGroup(m_VolumetricAlpha.floatValue <= 0);
+                EditorGUI.BeginDisabledGroup(m_VolumetricIntensity.floatValue <= 0);
                 EditorGUILayout.Slider(m_ShadowVolumeIntensity, 0, 1, Styles.generalShadowVolumeIntensity);
                 EditorGUI.EndDisabledGroup();
 
