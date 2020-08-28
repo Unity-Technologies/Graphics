@@ -43,6 +43,11 @@ namespace UnityEditor.ShaderGraph.Serialization
             onAfterVersionChange?.Invoke();
         }
 
+        public JsonObject()
+        {
+            sgVersion = latestVersion;
+        }
+
         public static readonly string emptyObjectId = Guid.Empty.ToString("N");
 
         [SerializeField]
