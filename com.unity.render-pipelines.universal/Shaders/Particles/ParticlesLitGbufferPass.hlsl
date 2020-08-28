@@ -126,14 +126,14 @@ VaryingsParticle ParticlesGBufferVertex(AttributesParticle input)
     output.clipPos = vertexInput.positionCS;
     output.color = input.color;
 
-    output.texcoord = input.texcoords.xy;
-#ifdef _FLIPBOOKBLENDING_ON
-    output.texcoord2AndBlend.xy = input.texcoords.zw;
-    output.texcoord2AndBlend.z = input.texcoordBlend;
+#if defined(_FLIPBOOKBLENDING_ON)
+#if defined(UNITY_PARTICLE_INSTANCING_ENABLED)
+    GetParticleTexcoords(output.texcoord, output.texcoord2AndBlend, input.texcoords.xyxy, 0.0);
+#else
+    GetParticleTexcoords(output.texcoord, output.texcoord2AndBlend, input.texcoords, input.texcoordBlend);
 #endif
-
-#if defined(_SOFTPARTICLES_ON) || defined(_FADING_ON) || defined(_DISTORTION_ON)
-    output.projectedPosition = vertexInput.positionNDC;
+#else
+    GetParticleTexcoords(output.texcoord, input.texcoords.xy);
 #endif
 
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)

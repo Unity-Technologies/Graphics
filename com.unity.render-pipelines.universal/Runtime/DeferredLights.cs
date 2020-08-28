@@ -249,8 +249,17 @@ namespace UnityEngine.Rendering.Universal.Internal
         private static readonly ProfilingSampler m_ProfilingTileDepthInfo = new ProfilingSampler(k_TileDepthInfo);
         private static readonly ProfilingSampler m_ProfilingSetupLightConstants = new ProfilingSampler(k_SetupLightConstants);
 
-        internal bool UseShadowMask { get; set; }
-        internal bool UseRenderPass { get; set; }
+        // Used to initialize all RenderTargetHandles.
+        internal enum GBufferHandles
+        {
+            DepthAsColor = 0,
+            Albedo = 1,
+            SpecularMetallic = 2,
+            NormalSmoothness = 3,
+            Lighting = 4,
+            ShadowMask = 5,
+            Count = 6
+        }
 
         internal int GbufferDepthIndex { get { return UseRenderPass ? 0 : -1; } }
         internal int GBufferAlbedoIndex { get { return GbufferDepthIndex + 1; } }
@@ -269,21 +278,30 @@ namespace UnityEngine.Rendering.Universal.Internal
             else if (index == GBufferNormalSmoothnessIndex)
                 return this.AccurateGbufferNormals ? GraphicsFormat.R8G8B8A8_UNorm : GraphicsFormat.R8G8B8A8_SNorm; // normal normal normal packedSmoothness
             else if (index == GBufferLightingIndex)
-                return GraphicsFormat.None;            // Emissive+baked: Most likely B10G11R11_UFloatPack32 or R16G16B16A16_SFloat
+                return GraphicsFormat.None;             // Emissive+baked: Most likely B10G11R11_UFloatPack32 or R16G16B16A16_SFloat
             else if (index == GbufferDepthIndex)
-                return GraphicsFormat.R32_SFloat;      // Render-pass on mobiles: reading back real depth-buffer is either inefficient (Arm Vulkan) or impossible (Metal).
+                return GraphicsFormat.R32_SFloat;       // Render-pass on mobiles: reading back real depth-buffer is either inefficient (Arm Vulkan) or impossible (Metal).
             else if (index == GBufferShadowMask)
-                return GraphicsFormat.R8G8B8A8_UNorm;  // Optional: shadow mask is outputed in mixed lighting subtractive mode for non-static meshes only
+                return GraphicsFormat.R8G8B8A8_UNorm;   // Optional: shadow mask is outputed in mixed lighting subtractive mode for non-static meshes only
             else
                 return GraphicsFormat.None;
         }
 
+        // This may return different values depending on what lights are rendered for a given frame.
+        internal bool UseShadowMask { get { return this.MixedLightingSetup == MixedLightingSetup.Subtractive; } }
+        //
+        internal bool UseRenderPass { get; set; }
+        //
         internal bool HasDepthPrepass { get; set; }
+        // This is an overlay camera being rendered.
         internal bool IsOverlay { get; set; }
+        //
         internal bool AccurateGbufferNormals { get; set; }
-        internal bool TiledDeferredShading { get; set; } // <- true: TileDeferred.shader used for some lights (currently: point/spot lights without shadows) - false: use StencilDeferred.shader for all lights
-        internal MixedLightingSetup MixedLightingSetup { get; set; } // We browsed all visible lights and found the mixed lighting setup.
-
+        // true: TileDeferred.shader used for some lights (currently: point/spot lights without shadows) - false: use StencilDeferred.shader for all lights
+        internal bool TiledDeferredShading { get; set; }
+        // We browse all visible lights and found the mixed lighting setup every frame.
+        internal MixedLightingSetup MixedLightingSetup { get; set; }
+        //
         internal bool UseJobSystem { get; set; }
         //
         internal int RenderWidth { get; set; }
@@ -617,6 +635,40 @@ namespace UnityEngine.Rendering.Universal.Internal
             Profiler.EndSample();
         }
 
+        public void ResolveMixedLightingMode(ref RenderingData renderingData)
+        {
+            // Find the mixed lighting mode. This is the same logic as ForwardLights.
+            this.MixedLightingSetup = MixedLightingSetup.None;
+
+            if (!renderingData.lightData.supportsMixedLighting)
+                return;
+
+            NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
+            for (int lightIndex = 0; lightIndex < renderingData.lightData.visibleLights.Length; ++lightIndex)
+            {
+                Light light = visibleLights[lightIndex].light;
+
+                // TODO: Add support to shadow mask
+                if (light != null
+                 && light.bakingOutput.mixedLightingMode == MixedLightingMode.Subtractive
+                 && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed
+                 && light.shadows != LightShadows.None)
+                {
+                    this.MixedLightingSetup = MixedLightingSetup.Subtractive;
+                    break;
+                }
+            }
+            // Once the mixed lighting mode has been discovered, we know how  many MRTs we need for the gbuffer.
+            // Subtractive mixed lighting requires shadowMask output, which is actually used to store unity_ProbesOcclusion values.
+        }
+
+        public bool IsRuntimeSupportedThisFrame()
+        {
+            // GBuffer slice count can change depending actual geometry/light being rendered.
+            // For instance, we only bind shadowMask RT if the scene supports mix lighting and at least one visible light has subtractive mixed ligting mode.
+            return this.GBufferSliceCount <= SystemInfo.supportedRenderTargetCount;
+        }
+
         public void Setup(ref RenderingData renderingData,
             AdditionalLightsShadowCasterPass additionalLightsShadowCasterPass,
             bool hasDepthPrepass,
@@ -625,25 +677,36 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderTargetHandle depthInfoTexture,
             RenderTargetHandle tileDepthInfoTexture,
             RenderTargetHandle depthAttachment,
-            RenderTargetHandle[] gbufferAttachments)
+            RenderTargetHandle[] gbufferHandles)
         {
             m_AdditionalLightsShadowCasterPass = additionalLightsShadowCasterPass;
             this.HasDepthPrepass = hasDepthPrepass;
             this.IsOverlay = isOverlay;
+
             this.DepthCopyTexture = depthCopyTexture;
             this.DepthInfoTexture = depthInfoTexture;
             this.TileDepthInfoTexture = tileDepthInfoTexture;
-            this.GbufferAttachments = gbufferAttachments;
+            // Depending on the scene rendered, adjust gbuffer MRT count.
+            // For instance, we do not need shadowMask output if no visible lights have mixed lighting subtractive mode.
+            if (this.GbufferAttachments == null || this.GbufferAttachments.Length != this.GBufferSliceCount)
+                this.GbufferAttachments = new RenderTargetHandle[this.GBufferSliceCount];
+            this.GbufferAttachments[this.GBufferAlbedoIndex] = gbufferHandles[(int)GBufferHandles.Albedo];
+            this.GbufferAttachments[this.GBufferSpecularMetallicIndex] = gbufferHandles[(int)GBufferHandles.SpecularMetallic];
+            this.GbufferAttachments[this.GBufferNormalSmoothnessIndex] = gbufferHandles[(int)GBufferHandles.NormalSmoothness];
+            this.GbufferAttachments[this.GBufferLightingIndex] = gbufferHandles[(int)GBufferHandles.Lighting];
+            if (this.GbufferDepthIndex >= 0)
+                this.GbufferAttachments[this.GbufferDepthIndex] = gbufferHandles[(int)GBufferHandles.DepthAsColor];
+            if (this.GBufferShadowMask >= 0)
+                this.GbufferAttachments[this.GBufferShadowMask] = gbufferHandles[(int)GBufferHandles.ShadowMask];
             this.DepthAttachment = depthAttachment;
 
             this.DepthCopyTextureIdentifier = this.DepthCopyTexture.Identifier();
             this.DepthInfoTextureIdentifier = this.DepthInfoTexture.Identifier();
             this.TileDepthInfoTextureIdentifier = this.TileDepthInfoTexture.Identifier();
-
-            if (this.GbufferAttachmentIdentifiers == null || this.GbufferAttachmentIdentifiers.Length != gbufferAttachments.Length)
-                this.GbufferAttachmentIdentifiers = new RenderTargetIdentifier[gbufferAttachments.Length];
-            for (int i = 0; i < gbufferAttachments.Length; ++i)
-                this.GbufferAttachmentIdentifiers[i] = gbufferAttachments[i].Identifier();
+            if (this.GbufferAttachmentIdentifiers == null || this.GbufferAttachmentIdentifiers.Length != this.GbufferAttachments.Length)
+                this.GbufferAttachmentIdentifiers = new RenderTargetIdentifier[this.GbufferAttachments.Length];
+            for (int i = 0; i < this.GbufferAttachments.Length; ++i)
+                this.GbufferAttachmentIdentifiers[i] = this.GbufferAttachments[i].Identifier();
             this.DepthAttachmentIdentifier = depthAttachment.Identifier();
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -663,24 +726,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 #endif
 
             m_HasTileVisLights = this.TiledDeferredShading && CheckHasTileLights(ref renderingData.lightData.visibleLights);
-
-            // Find the mixed lighting mode. This is the same logic as ForwardLights.
-            this.MixedLightingSetup = MixedLightingSetup.None;
-            NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
-            for (int lightIndex = 0; lightIndex < renderingData.lightData.visibleLights.Length; ++lightIndex)
-            {
-                Light light = visibleLights[lightIndex].light;
-
-                // TODO: Add support to shadow mask
-                if (light != null
-                 && light.bakingOutput.mixedLightingMode == MixedLightingMode.Subtractive
-                 && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed
-                 && light.shadows != LightShadows.None)
-                {
-                    this.MixedLightingSetup = MixedLightingSetup.Subtractive;
-                    break;
-                }
-            }
         }
 
         public void OnCameraCleanup(CommandBuffer cmd)
