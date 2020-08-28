@@ -34,7 +34,7 @@ class Editor_PinningMergeRevisionsJob():
         
         # construct job
         job = YMLJob()
-        job.set_name(f'Merge editor revisions to {target_branch}')
+        job.set_name(f'Merge editor revisions to {target_branch} [manual]')
         job.set_agent(agent)
         job.add_var_custom('CI', True)
         job.add_commands(commands)

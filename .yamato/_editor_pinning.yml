@@ -27,7 +27,7 @@ editor-pinning-target-to-ci:
       -  git merge yamato/editor-pin --ff
       -  git push
 editor-pinning-update:
-    name: Update pinned editor versions
+    name: Update pinned editor versions [manual]
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -53,7 +53,7 @@ editor-pinning-update:
     dependencies:
       -  .yamato/_editor_pinning.yml#editor-pinning-target-to-ci
 editor-pinning-merge-revisions:
-    name: Merge editor revisions to yamato/editor-pin
+    name: Merge editor revisions to yamato/editor-pin [manual]
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -77,7 +77,7 @@ editor-pinning-merge-revisions:
       -  git config --global user.email "noreply@unity3d.com"
       -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/editor-pin
 editor-pinning-update-abv:
-    name: Update pinned editor versions ABV
+    name: Update pinned editor versions [ABV]
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -107,7 +107,7 @@ editor-pinning-update-abv:
           -  branch: yamato/editor-pin
              frequency: 0 * * ?
 editor-pinning-merge-revisions-abv:
-    name: Merge editor revisions to yamato/editor-pin ABV
+    name: Merge editor revisions to yamato/editor-pin [ABV]
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable

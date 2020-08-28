@@ -34,7 +34,7 @@ class Editor_PinningUpdateJob():
         
         # construct job
         job = YMLJob()
-        job.set_name(f'Update pinned editor versions')
+        job.set_name(f'Update pinned editor versions [manual]')
         job.set_agent(agent)
         job.add_var_custom('CI', True)
         job.add_commands(commands)
