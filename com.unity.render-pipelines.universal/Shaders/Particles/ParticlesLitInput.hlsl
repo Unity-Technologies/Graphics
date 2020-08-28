@@ -3,6 +3,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 
+// NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
 CBUFFER_START(UnityPerMaterial)
 float4 _SoftParticleFadeParams;
 float4 _CameraFadeParams;
@@ -19,10 +20,8 @@ half _BumpScale;
 half _DistortionStrengthScaled;
 half _DistortionBlend;
 
-#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
 half _ClearCoatMask;
 //half _ClearCoatSmoothness; // TODO: enable
-#endif
 CBUFFER_END
 
 TEXTURE2D(_MetallicGlossMap);   SAMPLER(sampler_MetallicGlossMap);

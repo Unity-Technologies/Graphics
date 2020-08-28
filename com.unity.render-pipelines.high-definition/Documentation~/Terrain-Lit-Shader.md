@@ -17,7 +17,7 @@ To create a new Terrain Lit Shader Material:
 
 To use a Terrain Lit Material, you must assign it to a Terrain:
 
-1. View the Terrain in the Inspector and click on the cog button to go to the **Terrain Settings** section.
+1. View the Terrain in the Inspector and click on the gear button to go to the **Terrain Settings** section.
 2. Either drag and drop or use the radio button to assign your Terrain Lit Material to the **Material** property.
 
 ![](Images/TerrainLitShader1.png)
@@ -43,4 +43,4 @@ To use a Terrain Lit Material, you must assign it to a Terrain:
 
 | **Property**              | **Description**                                              |
 | ------------------------- | ------------------------------------------------------------ |
-| **Enable GPU Instancing** | Enable this checkbox to tell HDRP to render meshes with the same geometry and Material/Shader in one batch when possible. This makes rendering faster. HDRP can not render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. |
+| **Enable GPU Instancing** | Enable the checkbox to tell HDRP to render Meshes with the same geometry and Material in one batch when possible. This makes rendering faster. HDRP cannot render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you cannot [static-batch](https://docs.unity3d.com/Manual/DrawCallBatching.html) GameObjects that have an animation based on the object pivot, but the GPU can instance them. |

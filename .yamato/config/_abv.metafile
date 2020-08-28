@@ -9,7 +9,7 @@ abv: # specify the editor versions for which to create the expression trigger fo
     - name: VFX_URP
 nightly:
   allowed_editors: # specify the editor versions for which to create nightly jobs
-    - trunk
+    - fast-trunk
   extra_dependencies: # additional project jobs to run nightly (in addition to ABV and smoke tests)
     - project: Universal
       platform: Android
@@ -34,6 +34,18 @@ nightly:
         - editmode
         - playmode
         # - playmode_XR # uncomment once bug fixed on XR side 
+    - project: URPUpdate
+      platform: Win
+      api: DX11
+      test_platforms:
+        - editmode
+        - playmode
+    - project: URPUpdate_Top_Asset_Store
+      platform: Win
+      api: DX11
+      test_platforms:
+        - editmode
+        - playmode
 smoke_test: # specifications for smoke tests
   folder: SRP_SmokeTest
   agent: sdet_win_large # used for editmode

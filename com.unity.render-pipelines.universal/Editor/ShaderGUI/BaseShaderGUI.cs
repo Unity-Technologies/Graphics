@@ -121,6 +121,8 @@ namespace UnityEditor
 
         private string m_HeaderStateKey = null;
 
+        protected string headerStateKey { get { return m_HeaderStateKey; } }
+
         // Header foldout states
 
         SavedBool m_SurfaceOptionsFoldout;
@@ -208,6 +210,8 @@ namespace UnityEditor
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
 
+            DrawAdditionalFoldouts(material);
+
             m_AdvancedFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_AdvancedFoldout.value, Styles.AdvancedLabel);
             if (m_AdvancedFoldout.value)
             {
@@ -215,8 +219,6 @@ namespace UnityEditor
                 EditorGUILayout.Space();
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
-
-            DrawAdditionalFoldouts(material);
 
             if (EditorGUI.EndChangeCheck())
             {
