@@ -60,10 +60,8 @@ Shader "Hidden/HDRP/ApplyDistortion"
             bool distortionIsSourceValid;
             DecodeDistortion(encodedDistortion, distortion, distortionBlur, distortionIsSourceValid);
 
-            // Reject the pixel if it is not in the distortion mask
             if (!distortionIsSourceValid)
             {
-                discard;
                 return 0;
             }
 
