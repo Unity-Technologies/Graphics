@@ -1,6 +1,8 @@
 from ...shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, PATH_PLAYERS, GITHUB_CDS_URL, UNITY_DOWNLOADER_CLI_URL, UTR_INSTALL_URL
+from ...shared.utr_utils import utr_editmode_flags, utr_playmode_flags, utr_standalone_split_flags,utr_standalone_not_split_flags, utr_standalone_build_flags
 
-def _cmd_base(project_folder, components):
+
+def _cmd_base(project_folder, components, utr_flags):
     return [
         f'git clone {GITHUB_CDS_URL}/sophia/URP-Update-testing.git TestProjects/URP-Update-testing',
         f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}/URP-Update-testing/{project_folder}/utr.bat',
@@ -8,33 +10,42 @@ def _cmd_base(project_folder, components):
         f'Xcopy /E /I \"com.unity.render-pipelines.core\" \"{TEST_PROJECTS_DIR}/URP-Update-testing/{project_folder}/Packages/com.unity.render-pipelines.core\" /Y',
         f'Xcopy /E /I \"com.unity.render-pipelines.universal\" \"{TEST_PROJECTS_DIR}/URP-Update-testing/{project_folder}/Packages/com.unity.render-pipelines.universal\" /Y',
         f'Xcopy /E /I \"com.unity.shadergraph\" \"{TEST_PROJECTS_DIR}/URP-Update-testing/{project_folder}/Packages/com.unity.shadergraph\" /Y',
-        f'cd {TEST_PROJECTS_DIR}/URP-Update-testing/{project_folder} && unity-downloader-cli --source-file ../../../{PATH_UNITY_REVISION} {"".join([f"-c {c} " for c in components])} --wait --published-only'
+        f'cd {TEST_PROJECTS_DIR}/URP-Update-testing/{project_folder} && unity-downloader-cli --source-file ../../../{PATH_UNITY_REVISION} {"".join([f"-c {c} " for c in components])} --wait --published-only',
+        f'cd {TEST_PROJECTS_DIR}/URP-Update-testing/{project_folder} && utr {" ".join(utr_flags)}'
     ]
 
+def cmd_editmode(project_folder, platform, api, test_platform_args):
+    utr_args = utr_editmode_flags()
+    utr_args.extend(test_platform_args)
+    if api["name"] != "":
+        utr_args.append(f'--extra-editor-arg="{api["cmd"]}"')
 
-def cmd_not_standalone(project_folder, platform, api, test_platform_args):
-    base = _cmd_base(project_folder, platform["components"])
-    base.extend([
-        f'cd {TEST_PROJECTS_DIR}/URP-Update-testing/{project_folder} && utr {test_platform_args} --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}'
-    ])
-    base[-1] += f' --extra-editor-arg="{api["cmd"]}"' if api["name"] != ""  else ''
-    return base
+    return  _cmd_base(project_folder, platform["components"], utr_args)
+
+
+def cmd_playmode(project_folder, platform, api, test_platform_args):
+    utr_args = utr_playmode_flags()
+    utr_args.extend(test_platform_args)
+    if api["name"] != "":
+        utr_args.append(f'--extra-editor-arg="{api["cmd"]}"')
+
+    return  _cmd_base(project_folder, platform["components"], utr_args)
 
 def cmd_standalone(project_folder, platform, api, test_platform_args):
-    base = _cmd_base(project_folder, platform["components"])
+    utr_args = utr_standalone_split_flags("Windows64")
+    utr_args.extend(test_platform_args)
 
-    if project_folder.lower() == 'URP-Update-Testing'.lower():
-        base.append('git clone {GITHUB_CDS_URL}/sophia/URP-Update-testing.git TestProjects')
-
-    base.extend([
-        f'cd {TEST_PROJECTS_DIR}/URP-Update-testing/{project_folder} && utr {test_platform_args}Windows64 --artifacts_path={PATH_TEST_RESULTS} --timeout=1200 --player-load-path=../../{PATH_PLAYERS} --player-connection-ip=auto'
-    ])
+    base = [f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}/{project_folder}/utr.bat']
+    if project_folder.lower() == 'UniversalGraphicsTest'.lower():
+        base.append('cd Tools && powershell -command ". .\\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"')
+    base.append(f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}')
+    
     return base
 
 
 def cmd_standalone_build(project_folder, platform, api, test_platform_args):
-    base = _cmd_base(project_folder, platform["components"])
-    base.extend([
-        f'cd {TEST_PROJECTS_DIR}/URP-Update-testing/{project_folder} && utr {test_platform_args}Windows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindows{api}Linear" --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS} --timeout=1200 --player-save-path=../../{PATH_PLAYERS} --build-only'
-    ])
-    return base
+    utr_args = utr_standalone_build_flags("Windows64")
+    utr_args.extend(test_platform_args)
+    utr_args.extend(['--extra-editor-arg="-executemethod"', f'--extra-editor-arg="CustomBuild.BuildWindows{api["name"]}Linear"'])
+    
+    return _cmd_base(project_folder, platform["components"], utr_args)
