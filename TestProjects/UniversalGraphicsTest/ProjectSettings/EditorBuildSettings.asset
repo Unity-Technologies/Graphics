@@ -278,6 +278,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/018_LightLayers.unity
     guid: 6c8e8d2f4b654f4428a503becaec7a5c
+  - enabled: 1
+    path: Assets/Scenes/050_Shader_Graphs.unity
+    guid: 6e7a83866a1e446b3becf7972371c5d0
   m_configObjects:
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 13858d33c7f214305af3f1b67ea8f9da,
       type: 2}
