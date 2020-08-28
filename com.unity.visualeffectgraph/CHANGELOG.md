@@ -93,6 +93,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - fix colorfield height.
 - fix for capacity change for locked asset.
 - fix null value not beeing assignable to slot.
+- Handle correctly disabled alphaTreshold material slot in shaderGraph.
 
 ## [7.1.1] - 2019-09-05
 ### Added
