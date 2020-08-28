@@ -64,6 +64,7 @@ test_hdrp_template_windows_trunk_dependencies:
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:trunk:windows
+      -  .yamato/_templates.yml#pack_hdrp_template
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -111,6 +112,7 @@ test_universal_template_windows_trunk_dependencies:
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:trunk:windows
+      -  .yamato/_templates.yml#pack_universal_template
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -158,6 +160,7 @@ test_hdrp_template_macos_trunk_dependencies:
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:trunk:macos
+      -  .yamato/_templates.yml#pack_hdrp_template
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -205,6 +208,7 @@ test_universal_template_macos_trunk_dependencies:
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:trunk:macos
+      -  .yamato/_templates.yml#pack_universal_template
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -252,6 +256,7 @@ test_hdrp_template_windows_fast-trunk_dependencies:
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:fast-trunk:windows
+      -  .yamato/_templates.yml#pack_hdrp_template
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -299,6 +304,7 @@ test_universal_template_windows_fast-trunk_dependencies:
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:fast-trunk:windows
+      -  .yamato/_templates.yml#pack_universal_template
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -346,6 +352,7 @@ test_hdrp_template_macos_fast-trunk_dependencies:
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:fast-trunk:macos
+      -  .yamato/_templates.yml#pack_hdrp_template
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -393,6 +400,7 @@ test_universal_template_macos_fast-trunk_dependencies:
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:fast-trunk:macos
+      -  .yamato/_templates.yml#pack_universal_template
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -440,6 +448,7 @@ test_hdrp_template_windows_CUSTOM-REVISION_dependencies:
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+      -  .yamato/_templates.yml#pack_hdrp_template
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -487,6 +496,7 @@ test_universal_template_windows_CUSTOM-REVISION_dependencies:
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+      -  .yamato/_templates.yml#pack_universal_template
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -534,6 +544,7 @@ test_hdrp_template_macos_CUSTOM-REVISION_dependencies:
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
+      -  .yamato/_templates.yml#pack_hdrp_template
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -581,6 +592,7 @@ test_universal_template_macos_CUSTOM-REVISION_dependencies:
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
+      -  .yamato/_templates.yml#pack_universal_template
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
