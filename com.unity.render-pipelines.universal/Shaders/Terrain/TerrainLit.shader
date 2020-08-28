@@ -119,6 +119,7 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             Tags{"LightMode" = "UniversalGBuffer"}
 
             HLSLPROGRAM
+            #pragma exclude_renderers gles
             #pragma target 3.0
             #pragma vertex SplatmapVert
             #pragma fragment SplatmapFragment

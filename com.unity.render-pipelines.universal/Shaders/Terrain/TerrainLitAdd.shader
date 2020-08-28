@@ -95,6 +95,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
             Blend One One
 
             HLSLPROGRAM
+            #pragma exclude_renderers gles
             #pragma target 3.0
             #pragma vertex SplatmapVert
             #pragma fragment SplatmapFragment
