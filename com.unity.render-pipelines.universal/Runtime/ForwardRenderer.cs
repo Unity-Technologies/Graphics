@@ -28,10 +28,9 @@ namespace UnityEngine.Rendering.Universal
         internal bool mutableRenderingMode { get; set; }
         // Rendering mode setup from UI.
         internal RenderingMode renderingMode { get; set; }
-        // Actual rendering mode, which may be different (ex: wireframe rendering).
-        internal RenderingMode actualRenderingMode { get { return GL.wireframe ? RenderingMode.Forward : this.renderingMode; } }
+        // Actual rendering mode, which may be different (ex: wireframe rendering, harware not capable of deferred rendering).
+        internal RenderingMode actualRenderingMode { get { return GL.wireframe || m_DeferredLights == null || !m_DeferredLights.IsRuntimeSupportedThisFrame()  ? RenderingMode.Forward : this.renderingMode; } }
         internal bool accurateGbufferNormals { get { return m_DeferredLights != null ? m_DeferredLights.AccurateGbufferNormals : false; } set { if (m_DeferredLights != null) m_DeferredLights.AccurateGbufferNormals = value; } }
-
         ColorGradingLutPass m_ColorGradingLutPass;
         DepthOnlyPass m_DepthPrepass;
         DepthNormalOnlyPass m_DepthNormalPrepass;
@@ -67,7 +66,7 @@ namespace UnityEngine.Rendering.Universal
         RenderTargetHandle m_CameraDepthAttachment;
         RenderTargetHandle m_DepthTexture;
         RenderTargetHandle m_NormalsTexture;
-        RenderTargetHandle[] m_GBufferAttachments;
+        RenderTargetHandle[] m_GBufferHandles;
         RenderTargetHandle m_OpaqueColor;
         RenderTargetHandle m_AfterPostProcessColor;
         RenderTargetHandle m_ColorGradingLut;
@@ -132,7 +131,6 @@ namespace UnityEngine.Rendering.Universal
                 //m_DeferredLights.TiledDeferredShading = data.tiledDeferredShading;
                 m_DeferredLights.TiledDeferredShading = false;
                 UniversalRenderPipelineAsset urpAsset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
-                m_DeferredLights.UseShadowMask = urpAsset.supportsMixedLighting;
 
                 m_GBufferPass = new GBufferPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference, m_DeferredLights);
                 // Forward-only pass only runs if deferred renderer is enabled.
@@ -180,15 +178,13 @@ namespace UnityEngine.Rendering.Universal
             m_NormalsTexture.Init("_CameraNormalsTexture");
             if (this.mutableRenderingMode || this.renderingMode == RenderingMode.Deferred)
             {
-                m_GBufferAttachments = new RenderTargetHandle[m_DeferredLights.GBufferSliceCount];
-                m_GBufferAttachments[m_DeferredLights.GBufferAlbedoIndex].Init("_GBuffer0");
-                m_GBufferAttachments[m_DeferredLights.GBufferSpecularMetallicIndex].Init("_GBuffer1");
-                m_GBufferAttachments[m_DeferredLights.GBufferNormalSmoothnessIndex].Init("_GBuffer2");
-                //m_GBufferAttachments[m_DeferredLights.GBufferLightingIndex].Init("_GBuffer3"); // RenderTarget bound as output #3 during the GBuffer pass is the LightingGBuffer m_ActiveCameraColorAttachment, initialized as m_CameraColorTexture above
-                if (m_DeferredLights.GbufferDepthIndex >= 0)
-                    m_GBufferAttachments[m_DeferredLights.GbufferDepthIndex].Init("_GBufferDepthAsColor");
-                if (m_DeferredLights.GBufferShadowMask >= 0)
-                    m_GBufferAttachments[m_DeferredLights.GBufferShadowMask].Init("_GBuffer4");
+                m_GBufferHandles = new RenderTargetHandle[(int)DeferredLights.GBufferHandles.Count];
+                m_GBufferHandles[(int)DeferredLights.GBufferHandles.DepthAsColor].Init("_GBufferDepthAsColor");
+                m_GBufferHandles[(int)DeferredLights.GBufferHandles.Albedo].Init("_GBuffer0");
+                m_GBufferHandles[(int)DeferredLights.GBufferHandles.SpecularMetallic].Init("_GBuffer1");
+                m_GBufferHandles[(int)DeferredLights.GBufferHandles.NormalSmoothness].Init("_GBuffer2");
+                m_GBufferHandles[(int)DeferredLights.GBufferHandles.Lighting] = new RenderTargetHandle();
+                m_GBufferHandles[(int)DeferredLights.GBufferHandles.ShadowMask].Init("_GBuffer4");
             }
             m_OpaqueColor.Init("_CameraOpaqueTexture");
             m_AfterPostProcessColor.Init("_AfterPostProcessTexture");
@@ -244,6 +240,9 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_RenderTransparentForwardPass);
                 return;
             }
+
+            if (m_DeferredLights != null)
+                m_DeferredLights.ResolveMixedLightingMode(ref renderingData);
 
             // Add render passes and gather the input requirements
             AddRenderPasses(ref renderingData);
@@ -559,7 +558,7 @@ namespace UnityEngine.Rendering.Universal
         void EnqueueDeferred(ref RenderingData renderingData, bool hasDepthPrepass, bool applyMainShadow, bool applyAdditionalShadow)
         {
             // the last slice is the lighting buffer created in DeferredRenderer.cs
-            m_GBufferAttachments[m_DeferredLights.GBufferLightingIndex] = m_ActiveCameraColorAttachment;
+            m_GBufferHandles[(int)DeferredLights.GBufferHandles.Lighting] = m_ActiveCameraColorAttachment;
 
             m_DeferredLights.Setup(
                 ref renderingData,
@@ -569,7 +568,7 @@ namespace UnityEngine.Rendering.Universal
                 m_DepthTexture,
                 m_DepthInfoTexture,
                 m_TileDepthInfoTexture,
-                m_ActiveCameraDepthAttachment, m_GBufferAttachments
+                m_ActiveCameraDepthAttachment, m_GBufferHandles
             );
             
             EnqueuePass(m_GBufferPass);
