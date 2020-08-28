@@ -308,15 +308,6 @@ float ApplyShadowFade(float shadowAttenuation, float3 positionWS)
     return ApplyShadowFade(shadowAttenuation, 1, positionWS);
 }
 
-float ApplyShadowFade(float shadowAttenuation, float3 positionWS)
-{
-    float3 camToPixel = positionWS - _WorldSpaceCameraPos;
-    float distanceCamToPixel2 = dot(camToPixel, camToPixel);
-
-    float fade = saturate(distanceCamToPixel2 * _MainLightShadowParams.z + _MainLightShadowParams.w);
-    return shadowAttenuation + (1 - shadowAttenuation) * fade * fade;
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 // Deprecated                                                                 /
 ///////////////////////////////////////////////////////////////////////////////
