@@ -549,6 +549,9 @@ real3 NeutralCurve(real3 x, real a, real b, real c, real d, real e, real f)
 
 real3 NeutralTonemap(real3 x)
 {
+#if defined(SHADER_API_MOBILE) //Extremely high values cause NaN output when using fp16, we clamp to avoid the performace hit of switching to fp32
+    x = min(x, 435.2);
+#endif
     // Tonemap
     const real a = 0.2;
     const real b = 0.29;
