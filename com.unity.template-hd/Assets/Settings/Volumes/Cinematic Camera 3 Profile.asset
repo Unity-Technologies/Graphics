@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-8720560973810103098
+--- !u!114 &-8235463109552413909
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -18,27 +18,27 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 1
   focusMode:
-    m_OverrideState: 1
-    m_Value: 2
+    m_OverrideState: 0
+    m_Value: 1
   focusDistance:
     m_OverrideState: 1
     m_Value: 16
     min: 0.1
   nearFocusStart:
-    m_OverrideState: 1
-    m_Value: 2
+    m_OverrideState: 0
+    m_Value: 0
     min: 0
   nearFocusEnd:
-    m_OverrideState: 1
-    m_Value: 10
+    m_OverrideState: 0
+    m_Value: 4
     min: 0
   farFocusStart:
-    m_OverrideState: 1
-    m_Value: 30
+    m_OverrideState: 0
+    m_Value: 10
     min: 0
   farFocusEnd:
-    m_OverrideState: 1
-    m_Value: 200
+    m_OverrideState: 0
+    m_Value: 20
     min: 0
   m_NearSampleCount:
     m_OverrideState: 0
@@ -66,6 +66,9 @@ MonoBehaviour:
   m_Resolution:
     m_OverrideState: 0
     m_Value: 2
+  m_PhysicallyBased:
+    m_OverrideState: 0
+    m_Value: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -79,4 +82,4 @@ MonoBehaviour:
   m_Name: Cinematic Camera 3 Profile
   m_EditorClassIdentifier: 
   components:
-  - {fileID: -8720560973810103098}
+  - {fileID: -8235463109552413909}

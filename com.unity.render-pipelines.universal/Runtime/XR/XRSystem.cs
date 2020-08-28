@@ -137,7 +137,8 @@ namespace UnityEngine.Rendering.Universal
 
             // Enable XR layout only for game camera
             bool isGameCamera = (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR);
-            bool xrSupported = isGameCamera && camera.targetTexture == null;
+            bool xrSupported = isGameCamera && camera.targetTexture == null && cameraData.xrRendering;
+
             if (XRGraphicsAutomatedTests.enabled && XRGraphicsAutomatedTests.running && isGameCamera && LayoutSinglePassTestMode(cameraData, new XRLayout() { camera = camera, xrSystem = this }))
             {
                 // test layout in used
@@ -151,7 +152,6 @@ namespace UnityEngine.Rendering.Universal
                 else
                     QualitySettings.vSyncCount = 0;
 
-                // XRTODO: handle camera.stereoTargetEye here ? or just add xrRendering on the camera ?
                 CreateLayoutFromXrSdk(camera, singlePassAllowed: true);
             }
             else
@@ -310,6 +310,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal void AddPassToFrame(XRPass xrPass)
         {
+            xrPass.UpdateOcclusionMesh();
             framePasses.Add(xrPass);
         }
 

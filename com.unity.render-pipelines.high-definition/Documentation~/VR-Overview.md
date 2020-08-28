@@ -1,6 +1,6 @@
 # Virtual Reality in the High Definition Render Pipeline
 
-To use Virtual Reality (VR) in the High Definition Render Pipeline (HDRP), you must enable VR in your Unity Project. To do this, see the [VR tab](Render-Pipeline-Wizard.html#VRTab) in the Render Pipeline Wizard.
+To use Virtual Reality (VR) in the High Definition Render Pipeline (HDRP), you must enable VR in your Unity Project. To do this, see the [VR tab](Render-Pipeline-Wizard.md#VRTab) in the Render Pipeline Wizard.
 
 Please refer to [Unity XR](https://docs.unity3d.com/Manual/XR.html) documentation for more information about XR developement with Unity.
 
@@ -8,7 +8,7 @@ Please refer to [Unity XR](https://docs.unity3d.com/Manual/XR.html) documentatio
 
 HDRP has been designed to fully support Single-Pass Instanced mode. This mode gives you the best performance on all platforms.
 HDRP also supports multi-pass but this is slower on the CPU and some features, like Auto-Exposure, can cause issues.
-If you encounter a problem with a specific feature, you can disable it in your Project’s [HDRP Asset](HDRP-Asset.html).
+If you encounter a problem with a specific feature, you can disable it in your Project’s [HDRP Asset](HDRP-Asset.md).
 
 You can also watch the presentation from Unite Copenhagen (October 2019) to learn more tips: [Maximizing visual fidelity in VR: HDRP support](https://youtu.be/_WkSAn55EBM)
 

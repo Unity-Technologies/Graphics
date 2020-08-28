@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else
 #endif
                 // We need to check if something invalidated the history buffers
-                rtAOParameters.historyValidity = m_RenderPipeline.ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
+                rtAOParameters.historyValidity = HDRenderPipeline.ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
             rtAOParameters.actualWidth = hdCamera.actualWidth;
             rtAOParameters.actualHeight = hdCamera.actualHeight;
             rtAOParameters.viewCount = hdCamera.viewCount;
@@ -268,13 +268,19 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (aoDenoiseParameters.denoise)
             {
-                // Apply the temporal denoiser
+                // Prepare and execute the temporal filter
                 HDTemporalFilter temporalFilter = m_RenderPipeline.GetTemporalFilter();
-                temporalFilter.DenoiseBuffer(cmd, hdCamera, aoDenoiseResources.inputTexture, aoDenoiseResources.ambientOcclusionHistory, aoDenoiseResources.intermediateBuffer, historyValidity: aoDenoiseParameters.historyValidity);
+                TemporalFilterParameters tfParameters = temporalFilter.PrepareTemporalFilterParameters(hdCamera, true, aoDenoiseParameters.historyValidity);
+                RTHandle validationBuffer = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.R0);
+                TemporalFilterResources tfResources = temporalFilter.PrepareTemporalFilterResources(hdCamera, validationBuffer, aoDenoiseResources.inputTexture, aoDenoiseResources.ambientOcclusionHistory, aoDenoiseResources.intermediateBuffer);
+                HDTemporalFilter.DenoiseBuffer(cmd, tfParameters, tfResources);
 
                 // Apply the diffuse denoiser
                 HDDiffuseDenoiser diffuseDenoiser = m_RenderPipeline.GetDiffuseDenoiser();
-                diffuseDenoiser.DenoiseBuffer(cmd, hdCamera, aoDenoiseResources.intermediateBuffer, aoDenoiseResources.outputTexture, aoDenoiseParameters.denoiserRadius);
+                DiffuseDenoiserParameters ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, true, aoDenoiseParameters.denoiserRadius, false);
+                RTHandle intermediateBuffer = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
+                DiffuseDenoiserResources ddResources = diffuseDenoiser.PrepareDiffuseDenoiserResources(aoDenoiseResources.intermediateBuffer, intermediateBuffer, aoDenoiseResources.outputTexture);
+                HDDiffuseDenoiser.DenoiseBuffer(cmd, ddParams, ddResources);
             }
             else
             {

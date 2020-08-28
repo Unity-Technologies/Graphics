@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Scripting.APIUpdating;
@@ -14,7 +15,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     [Serializable, ReloadGroup, ExcludeFromPreset]
     [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")]
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DRendererData_overview.html")]
-    public class Renderer2DData : ScriptableRendererData
+    public partial class Renderer2DData : ScriptableRendererData
     {
         public enum Renderer2DDefaultMaterialType
         {
@@ -37,20 +38,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         [SerializeField]
         bool m_UseDepthStencilBuffer = true;
-
-#if UNITY_EDITOR
-        [SerializeField]
-        Renderer2DDefaultMaterialType m_DefaultMaterialType = Renderer2DDefaultMaterialType.Lit;
-
-        [SerializeField, Reload("Runtime/Materials/Sprite-Lit-Default.mat")]
-        Material m_DefaultCustomMaterial = null;
-
-        [SerializeField, Reload("Runtime/Materials/Sprite-Lit-Default.mat")]
-        Material m_DefaultLitMaterial = null;
-
-        [SerializeField, Reload("Runtime/Materials/Sprite-Unlit-Default.mat")]
-        Material m_DefaultUnlitMaterial = null;
-#endif
 
         [SerializeField, Reload("Shaders/2D/Light2D-Shape.shader")]
         Shader m_ShapeLightShader = null;
@@ -103,92 +90,37 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return new Renderer2D(this);
         }
 
-#if UNITY_EDITOR
-        internal static void Create2DRendererData(Action<Renderer2DData> onCreatedCallback)
-        {
-            var instance = CreateInstance<Create2DRendererDataAsset>();
-            instance.onCreated += onCreatedCallback;
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, instance, "New 2D Renderer Data.asset", null, null);
-        }
-
-        class Create2DRendererDataAsset : EndNameEditAction
-        {
-            public event Action<Renderer2DData> onCreated;
-
-            public override void Action(int instanceId, string pathName, string resourceFile)
-            {
-                var instance = CreateInstance<Renderer2DData>();
-                instance.OnCreate();
-                AssetDatabase.CreateAsset(instance, pathName);
-                Selection.activeObject = instance;
-
-                onCreated(instance);
-            }
-        }
-
-        void OnCreate()
-        {
-            m_LightBlendStyles = new Light2DBlendStyle[4];
-
-            m_LightBlendStyles[0].name = "Default";
-            m_LightBlendStyles[0].blendMode = Light2DBlendStyle.BlendMode.Multiply;
-            m_LightBlendStyles[0].renderTextureScale = 1.0f;
-
-            for (int i = 1; i < m_LightBlendStyles.Length; ++i)
-            {
-                m_LightBlendStyles[i].name = "Blend Style " + i;
-                m_LightBlendStyles[i].blendMode = Light2DBlendStyle.BlendMode.Multiply;
-                m_LightBlendStyles[i].renderTextureScale = 1.0f;
-            }
-        }
-
         protected override void OnEnable()
         {
             base.OnEnable();
-
-            // Provide a list of suggested texture property names to Sprite Editor via EditorPrefs.
-            const string suggestedNamesKey = "SecondarySpriteTexturePropertyNames";
-            const string maskTex = "_MaskTex";
-            const string normalMap = "_NormalMap";
-            string suggestedNamesPrefs = EditorPrefs.GetString(suggestedNamesKey);
-
-            if (string.IsNullOrEmpty(suggestedNamesPrefs))
-                EditorPrefs.SetString(suggestedNamesKey, maskTex + "," + normalMap);
-            else
-            {
-                if (!suggestedNamesPrefs.Contains(maskTex))
-                    suggestedNamesPrefs += ("," + maskTex);
-
-                if (!suggestedNamesPrefs.Contains(normalMap))
-                    suggestedNamesPrefs += ("," + normalMap);
-
-                EditorPrefs.SetString(suggestedNamesKey, suggestedNamesPrefs);
-            }
-
-            ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-            ResourceReloader.TryReloadAllNullIn(m_PostProcessData, UniversalRenderPipelineAsset.packagePath);
-        }
-
-        internal override Material GetDefaultMaterial(DefaultMaterialType materialType)
-        {
-            if (materialType == DefaultMaterialType.Sprite || materialType == DefaultMaterialType.Particle)
-            {
-                if (m_DefaultMaterialType == Renderer2DDefaultMaterialType.Lit)
-                    return m_DefaultLitMaterial;
-                else if (m_DefaultMaterialType == Renderer2DDefaultMaterialType.Unlit)
-                    return m_DefaultUnlitMaterial;
-                else
-                    return m_DefaultCustomMaterial;
-            }
-
-            return null;
-        }
-
-
-        internal override Shader GetDefaultShader()
-        {
-            return Shader.Find("Universal Render Pipeline/2D/Sprite-Lit-Default");
-        }
+#if UNITY_EDITOR
+            OnEnableInEditor();
 #endif
+
+            for (var i = 0; i < m_LightBlendStyles.Length; ++i)
+            {
+                m_LightBlendStyles[i].renderTargetHandle.Init($"_ShapeLightTexture{i}");
+            }
+
+            normalsRenderTarget.Init("_NormalMap");
+            shadowsRenderTarget.Init("_ShadowTex");
+
+            const int totalMaterials = 256;
+            if(shadowMaterials == null || shadowMaterials.Length == 0)
+                shadowMaterials = new Material[totalMaterials];
+            if(removeSelfShadowMaterials == null || removeSelfShadowMaterials.Length == 0)
+                removeSelfShadowMaterials = new Material[totalMaterials];
+        }
+
+        // transient data
+        internal Dictionary<uint, Material> lightMaterials { get; } = new Dictionary<uint, Material>();
+        internal Material[] shadowMaterials { get; private set; }
+        internal Material[] removeSelfShadowMaterials { get; private set; }
+
+        internal RenderTargetHandle normalsRenderTarget;
+        internal RenderTargetHandle shadowsRenderTarget;
+
+        // this shouldn've been in RenderingData along with other cull results
+        internal ILight2DCullResult lightCullResult { get; set; }
     }
 }
