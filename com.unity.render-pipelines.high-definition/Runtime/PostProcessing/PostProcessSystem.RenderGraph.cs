@@ -375,7 +375,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.motionVecTexture = builder.ReadTexture(motionVectors);
                 passData.depthMipChain = builder.ReadTexture(depthBufferMipChain);
                 passData.prevHistory = builder.ReadTexture(renderGraph.ImportTexture(prevHistory));
-                if (passData.parameters.camera.resetPostProcessingHistory)
+                if (passData.parameters.resetPostProcessingHistory)
                 {
                     passData.prevHistory = builder.WriteTexture(passData.prevHistory);
                 }
@@ -622,7 +622,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.motionVecTexture = builder.ReadTexture(motionVectors);
                     passData.depthMipChain = builder.ReadTexture(depthBufferMipChain);
                     passData.prevHistory = builder.ReadTexture(renderGraph.ImportTexture(prevHistory));
-                    if (passData.parameters.camera.resetPostProcessingHistory)
+                    if (passData.parameters.resetPostProcessingHistory)
                     {
                         passData.prevHistory = builder.WriteTexture(passData.prevHistory);
                     }

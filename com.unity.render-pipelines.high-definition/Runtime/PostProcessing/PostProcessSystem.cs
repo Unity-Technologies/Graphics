@@ -1594,8 +1594,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material temporalAAMaterial;
             public MaterialPropertyBlock taaHistoryPropertyBlock;
             public MaterialPropertyBlock taaPropertyBlock;
-
-            public HDCamera camera;
+            public bool resetPostProcessingHistory;
 
             public Vector4 taaParameters;
             public Vector4 taaFilterWeights;
@@ -1605,7 +1604,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             TemporalAntiAliasingParameters parameters = new TemporalAntiAliasingParameters();
 
-            parameters.camera = camera;
+            parameters.resetPostProcessingHistory = camera.resetPostProcessingHistory;
 
             float minAntiflicker = 0.0f;
             float maxAntiflicker = 3.5f;
@@ -1694,7 +1693,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         RTHandle prevMVLen,
                                         RTHandle nextMVLen)
         {
-            if (taaParams.camera.resetPostProcessingHistory)
+            if (taaParams.resetPostProcessingHistory)
             {
                 taaParams.taaHistoryPropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
                 var rtScaleSource = source.rtHandleProperties.rtHandleScale;
