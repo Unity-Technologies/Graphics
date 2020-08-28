@@ -60,7 +60,7 @@ namespace UnityEditor.ShaderGraph.Internal
         internal string hideTagString => hidden ? "[HideInInspector]" : "";
 
         [SerializeField]
-        List<string> m_SupportedRenderPipelines = new List<string>{SupportedRenderPipelinesDecorator.All};
+        List<string> m_SupportedRenderPipelines = new List<string>{SupportedRenderPipelineUtils.All};
 
         internal virtual List<string> supportedRenderPipelines
         {
@@ -72,10 +72,10 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             get
             {
-                if (supportedRenderPipelines.Contains(SupportedRenderPipelinesDecorator.All))
+                if (supportedRenderPipelines.Contains(SupportedRenderPipelineUtils.All))
                     return string.Empty;
                 else
-                    return $"[SupportedRenderPipelines({String.Join(",", supportedRenderPipelines)})]";
+                    return $"[ConditionalHideInInspector(UnityEditor.Rendering.Utilities.MaterialPropertySupportedRenderPipelines, {String.Join(", ", supportedRenderPipelines)})]";
             }
         }
 

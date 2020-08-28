@@ -83,7 +83,7 @@ namespace UnityEditor.Rendering.HighDefinition
         internal override bool isRenamable => true;
         internal override bool isGpuInstanceable => true;
 
-        internal override List<string> supportedRenderPipelines => new List<string>{SupportedRenderPipelinesDecorator.GetRenderPipelineName(typeof(HDRenderPipeline))};
+        internal override List<string> supportedRenderPipelines => new List<string>{SupportedRenderPipelineUtils.GetRenderPipelineName(typeof(HDRenderPipelineAsset))};
 
         internal override bool showPrecisionField => false;
         internal override bool showSupportedRenderPipelinesField => false;
@@ -106,9 +106,8 @@ namespace UnityEditor.Rendering.HighDefinition
             /// <summary>Float to string convertion function without any loss of precision</summary>
             string f2s(float f) => System.Convert.ToDouble(f).ToString("0." + new string('#', 339));
 
-            // TODO: render pipeline visibility attribute
             return
-$@"{supportedRenderPipelinesTagString}[DiffusionProfile]{hideTagString}{referenceName}(""{displayName}"", Float) = {f2s(HDShadowUtils.Asfloat(hash))}
+$@"{supportedRenderPipelinesTagString}[DiffusionProfile]{referenceName}(""{displayName}"", Float) = {f2s(HDShadowUtils.Asfloat(hash))}
 [HideInInspector]{assetReferenceName}(""{displayName}"", Vector) = ({f2s(asset.x)}, {f2s(asset.y)}, {f2s(asset.z)}, {f2s(asset.w)})";
         }
 

@@ -243,7 +243,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         void BuildSupportedRenderPipelinesField(PropertySheet propertySheet, AbstractShaderProperty property)
         {
             var options = new List<string>();
-            var rpTypes = TypeCache.GetTypesDerivedFrom<RenderPipeline>().Where(t => !t.IsAbstract).ToList();
+            var rpTypes = TypeCache.GetTypesDerivedFrom<RenderPipelineAsset>().Where(t => !t.IsAbstract).ToList();
 
             foreach (var rpType in rpTypes)
                 options.Add(ObjectNames.NicifyVariableName(rpType.Name));
@@ -252,7 +252,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             // Hopefully, we'll never have more than 32 SRPs.
             int mask = 0;
 
-            if (property.supportedRenderPipelines.Contains(SupportedRenderPipelinesDecorator.All))
+            if (property.supportedRenderPipelines.Contains(SupportedRenderPipelineUtils.All))
                 mask = -1;
             else
             {
@@ -270,15 +270,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             srpMask.RegisterValueChangedCallback(e => {
                 this._preChangeValueCallback("Change Supported Render Pipelines");
                 if (e.newValue == -1)
-                    property.supportedRenderPipelines = new List<string>{SupportedRenderPipelinesDecorator.All};
+                    property.supportedRenderPipelines = new List<string>{SupportedRenderPipelineUtils.All};
                 else if (e.newValue == 0)
-                    property.supportedRenderPipelines = new List<string>{SupportedRenderPipelinesDecorator.None};
+                    property.supportedRenderPipelines = new List<string>{SupportedRenderPipelineUtils.None};
                 else
                 {
                     property.supportedRenderPipelines.Clear();
                     for (int i = 0; i < rpTypes.Count; i++)
                         if ((e.newValue & (1 << i)) != 0)
-                            property.supportedRenderPipelines.Add(SupportedRenderPipelinesDecorator.GetRenderPipelineName(rpTypes[i]));
+                            property.supportedRenderPipelines.Add(SupportedRenderPipelineUtils.GetRenderPipelineName(rpTypes[i]));
                 }
                 this._postChangeValueCallback();
             });

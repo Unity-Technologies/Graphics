@@ -88,7 +88,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("c09e6e9062cbd5a48900c48a0c2ed1c2")); // HDSubTarget.cs
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(subTargetAssetGuid));
-            context.SetDefaultShaderGUI(customInspector);
+            context.AddRenderPipelineCustomEditor(customInspector, typeof(HDRenderPipelineAsset).ToString());
 
             if (migrationSteps.Migrate(this))
                 OnBeforeSerialize();

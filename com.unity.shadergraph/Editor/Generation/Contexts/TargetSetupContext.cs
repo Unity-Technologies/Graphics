@@ -7,12 +7,14 @@ namespace UnityEditor.ShaderGraph
     {
         public List<SubShaderDescriptor> subShaders { get; private set; }
         public List<string> assetDependencyPaths { get; private set; }
+        public List<(string shaderGUI, string renderPipelineType)> customEditorForRenderPipelines { get; private set; }
         public string defaultShaderGUI { get; private set; }
 
         public TargetSetupContext()
         {
             subShaders = new List<SubShaderDescriptor>();
             assetDependencyPaths = new List<string>();
+            customEditorForRenderPipelines = new List<(string shaderGUI, string renderPipelineType)>();
         }
 
         public void AddSubShader(SubShaderDescriptor subShader)
@@ -28,6 +30,11 @@ namespace UnityEditor.ShaderGraph
         public void SetDefaultShaderGUI(string defaultShaderGUI)
         {
             this.defaultShaderGUI = defaultShaderGUI;
+        }
+
+        public void AddRenderPipelineCustomEditor(string shaderGUI, string renderPipelineType)
+        {
+            this.customEditorForRenderPipelines.Add((shaderGUI, renderPipelineType));
         }
     }
 }

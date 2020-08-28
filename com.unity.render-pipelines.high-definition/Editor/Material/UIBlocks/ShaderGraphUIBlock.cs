@@ -111,7 +111,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             for (var i = 0; i < properties.Length; i++)
             {
-                if ((properties[i].flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) != 0)
+                if (!materialEditor.IsPropertyVisible(properties[i]))
                     continue;
 
                 float h = materialEditor.GetPropertyHeight(properties[i], properties[i].displayName);

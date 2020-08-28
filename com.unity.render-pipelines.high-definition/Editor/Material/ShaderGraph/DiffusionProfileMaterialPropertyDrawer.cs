@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // Find properties
             var assetProperty = MaterialEditor.GetMaterialProperty(editor.targets, prop.name + "_Asset");
-            DiffusionProfileMaterialUI.OnGUI(editor, assetProperty, prop, 0);
+            DiffusionProfileMaterialUI.OnGUI(editor, assetProperty, prop, 0, prop.displayName);
         }
     }
 }
