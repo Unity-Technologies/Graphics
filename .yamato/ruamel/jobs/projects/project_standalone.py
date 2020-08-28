@@ -18,7 +18,7 @@ class Project_StandaloneJob():
         try:
             return Project_StandaloneBuildJob(project, editor, platform, api, test_platform)
         except:
-            raise
+            return None
     
     
     def get_job_definition(self, project, editor, platform, api, test_platform, build_job):

@@ -1,5 +1,5 @@
 from ...shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, PATH_PLAYERS, UNITY_DOWNLOADER_CLI_URL, UTR_INSTALL_URL
-from ...shared.utr_utils import utr_editmode_flags, utr_playmode_flags, utr_standalone_flags, utr_standalone_build_flags
+from ...shared.utr_utils import utr_editmode_flags, utr_playmode_flags, utr_standalone_split_flags, utr_standalone_build_flags
 
 def _cmd_base(project_folder, components, utr_flags):
     return [
@@ -7,7 +7,7 @@ def _cmd_base(project_folder, components, utr_flags):
         f'chmod +x {TEST_PROJECTS_DIR}/{project_folder}/utr',
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-downloader-cli --source-file ../../{PATH_UNITY_REVISION} {"".join([f"-c {c} " for c in components])} --wait --published-only',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && ./utr {utr_flags}'
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && ./utr {" ".join(utr_flags)}'
     ]
 
 

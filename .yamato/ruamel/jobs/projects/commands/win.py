@@ -1,5 +1,5 @@
 from ...shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, PATH_PLAYERS, UNITY_DOWNLOADER_CLI_URL, UTR_INSTALL_URL
-from ...shared.utr_utils import utr_editmode_flags, utr_playmode_flags, utr_standalone_flags, utr_standalone_build_flags
+from ...shared.utr_utils import utr_editmode_flags, utr_playmode_flags, utr_standalone_split_flags, utr_standalone_build_flags
 
 def _cmd_base(project_folder, components, utr_flags):
     return [
@@ -28,7 +28,7 @@ def cmd_playmode(project_folder, platform, api, test_platform_args):
     return  _cmd_base(project_folder, platform["components"], utr_args)
 
 def cmd_standalone(project_folder, platform, api, test_platform_args):
-    utr_args = utr_standalone_flags("Windows64")
+    utr_args = utr_standalone_split_flags("Windows64")
     utr_args.extend(test_platform_args)
 
     base = [f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}/{project_folder}/utr.bat']

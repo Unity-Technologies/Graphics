@@ -21,7 +21,22 @@ def utr_editmode_flags(suite='editor', platform='editmode', testproject='.', edi
     flags.extend(extra_utr_flags)
     return flags
 
-def utr_standalone_flags(platform_spec, suite='playmode', platform='Standalone', testproject='.', editor_location='.Editor', artifacts_path=PATH_TEST_RESULTS, timeout=1200, player_load_path='../../players', player_conn_ip='auto', extra_utr_flags=[]):
+def utr_standalone_not_split_flags(platform_spec, suite='playmode', platform='Standalone', testproject='.', editor_location='.Editor', artifacts_path=PATH_TEST_RESULTS, timeout=1200, player_load_path='../../players', player_conn_ip='auto', extra_utr_flags=[]):
+    flags = [
+        f'--suite={suite}',
+        f'--platform={platform}{platform_spec}',
+        f'--artifacts_path={artifacts_path}',
+        f'--testproject={testproject}',
+        f'--editor-location={editor_location}'
+
+#--extra-editor-arg="-executemethod" 
+#--extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear" 
+]
+
+    flags.extend(extra_utr_flags)
+    return flags
+
+def utr_standalone_split_flags(platform_spec, suite='playmode', platform='Standalone', testproject='.', editor_location='.Editor', artifacts_path=PATH_TEST_RESULTS, timeout=1200, player_load_path='../../players', player_conn_ip='auto', extra_utr_flags=[]):
     flags = [
         f'--suite={suite}',
         f'--platform={platform}{platform_spec}',

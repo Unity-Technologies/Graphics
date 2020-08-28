@@ -22,10 +22,10 @@ platforms:
     apis:
 #      - Metal
       - OpenGLCore
-#  - name: Linux
-#    apis: 
-#      - Vulkan
-#      - OpenGLCore
+  - name: Linux
+    apis: 
+      - Vulkan
+      - OpenGLCore
 #  - name: Android
 #    apis: 
 #      - Vulkan
