@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
         {
             get
             {
-                if ((m_Labels == null) || (m_Labels.Length <= 0))
+                if ((m_Labels == null) || (m_Labels.Length != k_LabelDefaults.Length))
                     return k_LabelDefaults;
                 return m_Labels;
             }
