@@ -3,6 +3,29 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
+editor-pinning-merge-from-target:
+    name: Merge yamato/editor-pin to yamato/editor-pin-ci
+    agent:
+        type: Unity::VM
+        image: package-ci/ubuntu:stable
+        flavor: b1.small
+    variables:
+        CI: true
+    commands:
+      -  echo $GIT_BRANCH
+      -  |5-
+
+                     if [[ "$GIT_BRANCH" != "yamato/editor-pin" ]]; then
+                         echo "Should run on 'yamato/editor-pin' but is running on '$GIT_BRANCH'"
+                         exit 1
+                     fi
+      -  git fetch
+      -  git checkout yamato/editor-pin
+      -  git checkout yamato/editor-pin-ci
+      -  git config --global user.name "noreply@unity3d.com"
+      -  git config --global user.email "noreply@unity3d.com"
+      -  git merge yamato/editor-pin --ff
+      -  git push
 editor-pinning-update:
     name: Update pinned editor versions
     agent:
@@ -53,29 +76,6 @@ editor-pinning-merge-to-target:
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
       -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/editor-pin
-editor-pinning-merge-from-target:
-    name: Merge yamato/editor-pin to yamato/editor-pin-ci
-    agent:
-        type: Unity::VM
-        image: package-ci/ubuntu:stable
-        flavor: b1.small
-    variables:
-        CI: true
-    commands:
-      -  echo $GIT_BRANCH
-      -  |5-
-
-                     if [[ "$GIT_BRANCH" != "yamato/editor-pin" ]]; then
-                         echo "Should run on 'yamato/editor-pin' but is running on '$GIT_BRANCH'"
-                         exit 1
-                     fi
-      -  git fetch
-      -  git checkout yamato/editor-pin
-      -  git checkout yamato/editor-pin-ci
-      -  git config --global user.name "noreply@unity3d.com"
-      -  git config --global user.email "noreply@unity3d.com"
-      -  git merge yamato/editor-pin --ff
-      -  git push
 editor-pinning-update-abv:
     name: Update pinned editor versions ABV
     agent:
