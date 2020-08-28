@@ -792,7 +792,7 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUI.showMixedValue = m_AdditionalCameraDataRendererProp.hasMultipleDifferentValues;
             int selectedRenderer = EditorGUI.IntPopup(controlRect, Styles.rendererType, selectedRendererOption, rpAsset.rendererDisplayList, UniversalRenderPipeline.asset.rendererIndexList);
-
+            EditorGUI.EndProperty();
             if (!rpAsset.ValidateRendererDataList())
             {
                 EditorGUILayout.HelpBox(Styles.noRendererError, MessageType.Error);
