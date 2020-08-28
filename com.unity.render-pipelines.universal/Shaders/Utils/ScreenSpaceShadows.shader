@@ -10,8 +10,6 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
         // Shadow cascades require cascade index and shadowCoord to be computed on pixel.
         #define _MAIN_LIGHT_SHADOWS_CASCADE
 
-        #pragma prefer_hlslcc gles
-        #pragma exclude_renderers d3d11_9x
         //Keep compiler quiet about Shadows.hlsl.
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
