@@ -212,7 +212,7 @@ namespace UnityEditor.ShaderGraph
             }
             else if (propType == PropertyType.Cubemap)
             {
-                if (m_ClassData.textureValue == null)
+                if (m_ClassData.cubemapValue == null)
                 {
                     // there's no way to set the texture back to NULL
                     // and no way to delete the property either
