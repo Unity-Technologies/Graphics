@@ -95,7 +95,7 @@ namespace UnityEditor.ShaderGraph
             if (generationMode.IsPreview())
                 return;
 
-            switch (version)
+            switch (sgVersion)
             {
                 case 0:
                     sb.AppendLine(@"$precision4 {0} = IsGammaSpace() ? $precision4({1}, {2}, {3}, {4}) : $precision4(SRGBToLinear($precision3({1}, {2}, {3})), {4});"
@@ -144,7 +144,7 @@ namespace UnityEditor.ShaderGraph
             }
             if (color.mode == ColorMode.HDR)
             {
-                switch (version)
+                switch (sgVersion)
                 {
                     case 0:
                         break;

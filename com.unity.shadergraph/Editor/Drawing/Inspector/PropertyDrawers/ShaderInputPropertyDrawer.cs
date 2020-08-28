@@ -212,7 +212,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             if(property == null)
                 return;
 
-            if (property.version < property.latestVersion)
+            if (property.sgVersion < property.latestVersion)
             {
                 var typeString = property.propertyType.ToString();
                 var help = HelpBoxRow.TryGetDeprecatedHelpBoxRow($"{typeString} Property", () => property.ChangeVersion(property.latestVersion));

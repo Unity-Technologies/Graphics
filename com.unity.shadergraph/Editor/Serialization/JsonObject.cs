@@ -11,8 +11,8 @@ namespace UnityEditor.ShaderGraph.Serialization
         public virtual int latestVersion { get; } = 0;
 
         [SerializeField]
-        protected int m_Version = 0;
-        public virtual int version { get => m_Version; protected set => m_Version = value; }
+        protected int m_SGVersion = 0;
+        public virtual int sgVersion { get => m_SGVersion; protected set => m_SGVersion = value; }
 
         internal protected delegate void VersionChange(int newVersion);
         internal protected VersionChange onBeforeVersionChange;
@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Serialization
 
         internal void ChangeVersion(int newVersion)
         {
-            if (newVersion == version)
+            if (newVersion == sgVersion)
             {
                 return;
             }
@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph.Serialization
             }
 
             onBeforeVersionChange?.Invoke(newVersion);
-            version = newVersion;
+            sgVersion = newVersion;
             onAfterVersionChange?.Invoke();
         }
 

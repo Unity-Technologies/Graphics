@@ -112,7 +112,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public virtual string GetPropertyTypeString()
         {
-            return propertyType.ToString() + (version < latestVersion ? " (Deprecated)" : "");
+            return propertyType.ToString() + (sgVersion < latestVersion ? " (Deprecated)" : "");
         }
     }
     

@@ -37,7 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition
         DiffusionProfileSettings m_DiffusionProfileAsset;
 
         [SerializeField]
-        int m_LocalVersion;
+        int m_Version;
 
         DiffusionProfileSlotControlView view;
 
@@ -142,14 +142,14 @@ namespace UnityEditor.Rendering.HighDefinition
 #pragma warning disable 618
             // Once the profile is upgraded, we set the selected entry to 0 (which was previously none
             // in the diffusion profile index so it's fine if we don't upgrade it
-            if (m_LocalVersion == 0)
+            if (m_Version == 0)
             {
                 // We need to warn the user that we can't upgrade the diffusion profile but this upgrade code
                 // does not work currently :(
                 // Debug.LogError("Failed to upgrade the diffusion profile slot value, reseting to default value: " + hdAsset.diffusionProfileSettingsList[m_DiffusionProfile.selectedEntry] +
                 //     "\nTo remove this message save the shader graph with the new diffusion profile reference");
                 // m_DiffusionProfileAsset = hdAsset.diffusionProfileSettingsList[m_DiffusionProfile.selectedEntry];
-                m_LocalVersion = 1;
+                m_Version = 1;
                 // Sometimes the view is created after we upgrade the slot so we need to update it's value
                 view?.UpdateSlotValue();
             }

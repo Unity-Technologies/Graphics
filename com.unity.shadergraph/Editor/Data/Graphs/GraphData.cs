@@ -1665,7 +1665,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void OnAfterDeserialize(string json)
         {
-            if (version == 0)
+            if (sgVersion == 0)
             {
                 var graphData0 = JsonUtility.FromJson<GraphData0>(json);
 
@@ -1833,7 +1833,7 @@ namespace UnityEditor.ShaderGraph
             // In V2 we need to defer version set to in OnAfterMultiDeserialize
             // This is because we need access to m_OutputNode to convert it to Targets and Stacks
             // The JsonObject will not be fully deserialized until OnAfterMultiDeserialize
-            bool deferredUpgrades = version < 2;
+            bool deferredUpgrades = sgVersion < 2;
             if(!deferredUpgrades)
             {
                 ChangeVersion(latestVersion);
@@ -1843,9 +1843,9 @@ namespace UnityEditor.ShaderGraph
         public override void OnAfterMultiDeserialize(string json)
         {
             // Deferred upgrades
-            if(version != latestVersion)
+            if(sgVersion != latestVersion)
             {
-                if(version < 2)
+                if(sgVersion < 2)
                 {
                     var addedBlocks = ListPool<BlockFieldDescriptor>.Get();
 

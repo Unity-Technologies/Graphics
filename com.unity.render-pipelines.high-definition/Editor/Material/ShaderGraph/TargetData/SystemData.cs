@@ -119,11 +119,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        ShaderGraphVersion m_localVersion = MigrationDescription.LastVersion<ShaderGraphVersion>();
-        public ShaderGraphVersion localVersion
+        ShaderGraphVersion m_Version = MigrationDescription.LastVersion<ShaderGraphVersion>();
+        public ShaderGraphVersion version
         {
-            get => m_localVersion;
-            set => m_localVersion = value;
+            get => m_Version;
+            set => m_Version = value;
         }
 
         [SerializeField]

@@ -364,9 +364,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         public AbstractMaterialNode CopyNodeForGraph(AbstractMaterialNode oldNode)
         {
             var newNode = (AbstractMaterialNode)Activator.CreateInstance(oldNode.GetType());
-            if (ShaderGraphPreferences.allowDeprecatedBehaviors && oldNode.version != newNode.version)
+            if (ShaderGraphPreferences.allowDeprecatedBehaviors && oldNode.sgVersion != newNode.sgVersion)
             {
-                newNode.ChangeVersion(oldNode.version);
+                newNode.ChangeVersion(oldNode.sgVersion);
             }
             if (newNode is SubGraphNode subgraphNode)
             {

@@ -441,9 +441,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 title = subGraphNode.asset.name;
             else
             {
-                if (node.version < node.latestVersion)
+                if (node.sgVersion < node.latestVersion)
                 {
-                    title = node.name + $" (Deprecated V{node.version})";
+                    title = node.name + $" (Deprecated V{node.sgVersion})";
                 }
                 else
                 {

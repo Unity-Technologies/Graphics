@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal ColorShaderProperty(int version) : this()
         {
-            this.version = version;
+            this.sgVersion = version;
         }
         
         public override PropertyType propertyType => PropertyType.Color;
@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             return new ColorShaderProperty()
             {
-                version = version,
+                sgVersion = sgVersion,
                 displayName = displayName,
                 hidden = hidden,
                 value = value,
