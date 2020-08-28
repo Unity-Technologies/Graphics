@@ -3,9 +3,6 @@ project:
   folder: UniversalGraphicsTest
 test_platforms:
   - type: Standalone
-    extra_utr_flags:
-      - flag1
-      - flag2
   - type: playmode
   - type: editmode
   - type: playmode
@@ -30,9 +27,9 @@ platforms:
 #    apis: 
 #      - Vulkan
 #      - OpenGLES3
-#  - name: iPhone
-#    apis: 
-#      - Metal
+  - name: iPhone
+    apis: 
+      - Metal
 all:
   dependencies:
     - platform: Win

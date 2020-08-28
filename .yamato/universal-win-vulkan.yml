@@ -14,7 +14,7 @@ Universal_Win_Vulkan_standalone_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto flag1 flag2
+      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:
@@ -34,7 +34,7 @@ Build_Universal_Win_Vulkan_Player_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only flag1 flag2 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear"
+      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear"
     artifacts:
         logs:
             paths:
@@ -118,7 +118,7 @@ Universal_Win_Vulkan_standalone_fast-trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto flag1 flag2
+      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:
@@ -138,7 +138,7 @@ Build_Universal_Win_Vulkan_Player_fast-trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only flag1 flag2 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear"
+      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear"
     artifacts:
         logs:
             paths:
@@ -223,7 +223,7 @@ Universal_Win_Vulkan_standalone_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto flag1 flag2
+      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:
@@ -244,7 +244,7 @@ Build_Universal_Win_Vulkan_Player_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only flag1 flag2 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear"
+      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear"
     artifacts:
         logs:
             paths:

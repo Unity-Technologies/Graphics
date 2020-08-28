@@ -15,7 +15,7 @@ Universal_Linux_Vulkan_standalone_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor flag1 flag2 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:
@@ -81,7 +81,7 @@ Universal_Linux_Vulkan_standalone_fast-trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor flag1 flag2 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:
@@ -148,7 +148,7 @@ Universal_Linux_Vulkan_standalone_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor flag1 flag2 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --testproject=. --editor-location=.Editor --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
     artifacts:
         logs:
             paths:

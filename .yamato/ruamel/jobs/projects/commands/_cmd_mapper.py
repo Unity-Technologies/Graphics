@@ -30,7 +30,8 @@ cmd_map = {
         'standalone_build' : android.cmd_standalone_build
     },
     'iphone' : {
-        'not_standalone': iphone.cmd_not_standalone,
+        'editmode': iphone.cmd_editmode,
+        'playmode': iphone.cmd_playmode,
         'standalone' : iphone.cmd_standalone,
         'standalone_build' : iphone.cmd_standalone_build
     },
