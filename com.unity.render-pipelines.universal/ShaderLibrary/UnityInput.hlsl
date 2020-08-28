@@ -77,6 +77,13 @@ float4 _ZBufferParams;
 // w = 1.0 if camera is ortho, 0.0 if perspective
 float4 unity_OrthoParams;
 
+// scaleBias.x = flipSign
+// scaleBias.y = scale
+// scaleBias.z = bias
+// scaleBias.w = unused
+uniform float4 _ScaleBias;
+uniform float4 _ScaleBiasRt;
+
 float4 unity_CameraWorldClipPlanes[6];
 
 #if !defined(USING_STEREO_MATRICES)

@@ -109,9 +109,8 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
     input.vertexLighting = IN.fogFactorAndVertexLight.yzw;
 
     input.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, input.normalWS);
-    input.normalizedScreenSpaceUV = IN.clipPos.xy;
-
-    input.shadowMask = SAMPLE_SHADOWMASK(IN.uvMainAndLM.zw);
+    input.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.clipPos);
+    input.shadowMask = SAMPLE_SHADOWMASK(IN.uvMainAndLM.zw)
 }
 
 #ifndef TERRAIN_SPLAT_BASEPASS

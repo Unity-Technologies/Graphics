@@ -131,7 +131,6 @@ namespace UnityEngine.Rendering.Universal
 
             // Statics
             private static readonly int s_BaseMapID = Shader.PropertyToID("_BaseMap");
-            private static readonly int s_ScaleBiasID = Shader.PropertyToID("_ScaleBiasRt");
             private static readonly int s_SSAOParamsID = Shader.PropertyToID("_SSAOParams");
             private static readonly int s_SSAOTexture1ID = Shader.PropertyToID("_SSAO_OcclusionTexture1");
             private static readonly int s_SSAOTexture2ID = Shader.PropertyToID("_SSAO_OcclusionTexture2");
@@ -258,19 +257,6 @@ namespace UnityEngine.Rendering.Universal
                 using (new ProfilingScope(cmd, m_ProfilingSampler))
                 {
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, true);
-
-                    // Blit has logic to flip projection matrix when rendering to render texture.
-                    // Currently the y-flip is handled in CopyDepthPass.hlsl by checking _ProjectionParams.x
-                    // If you replace this Blit with a Draw* that sets projection matrix double check
-                    // to also update shader.
-                    // scaleBias.x = flipSign
-                    // scaleBias.y = scale
-                    // scaleBias.z = bias
-                    // scaleBias.w = unused
-                    float flipSign = (renderingData.cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
-                    Vector4 scaleBias = (flipSign < 0.0f) ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f) : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
-                    cmd.SetGlobalVector(s_ScaleBiasID, scaleBias);
-
                     PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
 
                     // Execute the SSAO
