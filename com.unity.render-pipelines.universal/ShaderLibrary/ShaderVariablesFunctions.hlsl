@@ -230,6 +230,39 @@ half3 MixFog(real3 fragColor, real fogFactor)
     return MixFogColor(fragColor, unity_FogColor.rgb, fogFactor);
 }
 
+void TransformScreenUV(inout float2 uv, float screenHeight)
+{
+    #if UNITY_UV_STARTS_AT_TOP
+    uv.y = screenHeight - (uv.y * _ScaleBiasRt.x + _ScaleBiasRt.y * screenHeight);
+    #endif
+}
+
+void TransformScreenUV(inout float2 uv)
+{
+    #if UNITY_UV_STARTS_AT_TOP
+    TransformScreenUV(uv, GetScaledScreenParams().y);
+    #endif
+}
+
+void TransformNormalizedScreenUV(inout float2 uv)
+{
+    #if UNITY_UV_STARTS_AT_TOP
+    TransformScreenUV(uv, 1.0);
+    #endif
+}
+
+float2 GetNormalizedScreenSpaceUV(float2 positionCS)
+{
+    float2 normalizedScreenSpaceUV = positionCS.xy * rcp(GetScaledScreenParams().xy);
+    TransformNormalizedScreenUV(normalizedScreenSpaceUV);
+    return normalizedScreenSpaceUV;
+}
+
+float2 GetNormalizedScreenSpaceUV(float4 positionCS)
+{
+    return GetNormalizedScreenSpaceUV(positionCS.xy);
+}
+
 #if defined(UNITY_SINGLE_PASS_STEREO)
     float2 TransformStereoScreenSpaceTex(float2 uv, float w)
     {
