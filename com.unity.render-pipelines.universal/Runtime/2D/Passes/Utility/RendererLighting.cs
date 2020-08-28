@@ -434,7 +434,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bitIndex++;
             var shapeBit = !isPoint ? 1u << bitIndex : 0u;
             bitIndex++;
-            var additiveBit = light.alphaBlendOnOverlap ? 0u : 1u << bitIndex;
+            var additiveBit = light.overlapOperation == Light2D.OverlapOperation.AlphaBlend ? 0u : 1u << bitIndex;
             bitIndex++;
             var spriteBit = light.lightType == Light2D.LightType.Sprite ? 1u << bitIndex : 0u;
             bitIndex++;
@@ -458,7 +458,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 material = CoreUtils.CreateEngineMaterial(isPoint ? rendererData.pointLightShader : rendererData.shapeLightShader);
 
-                if (!light.alphaBlendOnOverlap)
+                if (light.overlapOperation == Light2D.OverlapOperation.Additive)
                 {
                     SetBlendModes(material, BlendMode.One, BlendMode.One);
                     material.EnableKeyword(k_UseAdditiveBlendingKeyword);
