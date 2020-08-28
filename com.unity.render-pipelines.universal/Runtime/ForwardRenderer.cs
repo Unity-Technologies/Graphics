@@ -1,3 +1,5 @@
+using UnityEditor;
+using UnityEditor.Rendering.Universal;
 using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
@@ -34,6 +36,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 #if UNITY_EDITOR
         SceneViewDepthCopyPass m_SceneViewDepthCopyPass;
+        DebugShadowCascadesPass m_DebugShadowCascadesPass;
 #endif
 
         RenderTargetHandle m_ActiveCameraColorAttachment;
@@ -102,6 +105,7 @@ namespace UnityEngine.Rendering.Universal
 
 #if UNITY_EDITOR
             m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass(RenderPassEvent.AfterRendering + 9, m_CopyDepthMaterial);
+            m_DebugShadowCascadesPass = new DebugShadowCascadesPass();
 #endif
 
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
@@ -177,6 +181,7 @@ namespace UnityEngine.Rendering.Universal
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
             bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
             bool transparentsNeedSettingsPass = m_TransparentSettingsPass.Setup(ref renderingData);
+            bool debugShadowCascades = m_DebugShadowCascadesPass.Setup(ref renderingData);
 
             // Depth prepass is generated in the following cases:
             // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
@@ -275,6 +280,31 @@ namespace UnityEngine.Rendering.Universal
             if (additionalLightShadows)
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
 
+#if UNITY_EDITOR
+            if (renderingData.cameraData.isSceneViewCamera)
+            {
+                var sv = SceneView.currentDrawingSceneView;
+                // cameraData.
+                // DrawCameraMode drawCameraMode = SceneView.cameraMode;
+                // drawCameraMode = SceneViewDrawMode.GetDrawCameraMode(camera);
+
+                if (sv.cameraMode.drawMode == DrawCameraMode.ShadowCascades)
+                {
+                    //m_DebugShadowCascadesPass.Setup(baseDescriptor, colorHandle, depthHandle, clearFlag, camera.backgroundColor);
+                    if(debugShadowCascades)
+                        EnqueuePass(m_DebugShadowCascadesPass);
+                    return;
+                }
+            }
+#endif
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.hasValidOcclusionMesh)
+            {
+                m_XROcclusionMeshPass.Setup(m_ActiveCameraDepthAttachment);
+                EnqueuePass(m_XROcclusionMeshPass);
+            }
+#endif
             if (requiresDepthPrepass)
             {
                 if (renderPassInputs.requiresNormalsTexture)
