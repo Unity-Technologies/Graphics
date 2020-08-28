@@ -290,8 +290,6 @@ float FixedRand(uint seed)
 // Mesh sampling //
 ///////////////////
 
-#define WORKAROUND_GPU_HANG if (channelOffset == -1) offset = 0u;
-
 float   FetchBuffer(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load(offset << 2)); }
 float2  FetchBuffer2(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load2(offset << 2)); }
 float3  FetchBuffer3(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load3(offset << 2)); }
@@ -299,52 +297,65 @@ float4  FetchBuffer4(ByteAddressBuffer buffer, int offset) { return asfloat(buff
 
 float4 SampleMeshFloat4(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
 {
-    if (channelOffset == -1)
-        return float4(0.0f, 0.0f, 0.0f, 0.0f);
-    uint offset = vertexIndex * vertexStride + channelOffset;
-	WORKAROUND_GPU_HANG
-    return FetchBuffer4(vertices, offset);
+    float4 r = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    [branch]
+    if (channelOffset != -1)
+    {
+        uint offset = vertexIndex * vertexStride + channelOffset;
+        r = FetchBuffer4(vertices, offset);
+    }
+    return r;
 }
 
 float3 SampleMeshFloat3(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
 {
-    if (channelOffset == -1)
-        return float3(0.0f, 0.0f, 0.0f);
-    uint offset = vertexIndex * vertexStride + channelOffset;
-	WORKAROUND_GPU_HANG
-    return FetchBuffer3(vertices, offset);
+    float3 r = float3(0.0f, 0.0f, 0.0f);
+    [branch]
+    if (channelOffset != -1)
+    {
+        uint offset = vertexIndex * vertexStride + channelOffset;
+        r = FetchBuffer3(vertices, offset);
+    }
+    return r;
 }
 
 float2 SampleMeshFloat2(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
 {
-    if (channelOffset == -1)
-        return float2(0.0f, 0.0f);
-    uint offset = vertexIndex * vertexStride + channelOffset;
-	WORKAROUND_GPU_HANG
-    return FetchBuffer2(vertices, offset);
+    float2 r = float2(0.0f, 0.0f);
+    [branch]
+    if (channelOffset != -1)
+    {
+        uint offset = vertexIndex * vertexStride + channelOffset;
+        r = FetchBuffer2(vertices, offset);
+    }
+    return r;
 }
 
 float SampleMeshFloat(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
 {
-    if (channelOffset == -1)
-        return 0.0f;
-    uint offset = vertexIndex * vertexStride + channelOffset;
-	WORKAROUND_GPU_HANG
-    return FetchBuffer(vertices, offset);
+    float r = 0.0f;
+    [branch]
+    if (channelOffset != -1)
+    {
+        uint offset = vertexIndex * vertexStride + channelOffset;
+        r = FetchBuffer(vertices, offset);
+    }
+    return r;
 }
 
 float4 SampleMeshColor(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
 {
-    if (channelOffset == -1)
-        return float4(0.0f, 0.0f, 0.0f, 0.0f);
-    uint offset = vertexIndex * vertexStride + channelOffset;
-	WORKAROUND_GPU_HANG
-    uint colorByte = asuint(FetchBuffer(vertices, offset));
-    float4 colorSRGB = float4(uint4(colorByte, colorByte >> 8, colorByte >> 16, colorByte >> 24) & 255) / 255.0f;
-    return float4(pow(abs(colorSRGB.rgb), 2.2f), colorSRGB.a); //Approximative SRGBToLinear
+    float4 r = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    [branch]
+    if (channelOffset != -1)
+    {
+        uint offset = vertexIndex * vertexStride + channelOffset;
+        uint colorByte = asuint(FetchBuffer(vertices, offset));
+        float4 colorSRGB = float4(uint4(colorByte, colorByte >> 8, colorByte >> 16, colorByte >> 24) & 255) / 255.0f;
+        r = float4(pow(abs(colorSRGB.rgb), 2.2f), colorSRGB.a); //Approximative SRGBToLinear
+    }
+    return r;
 }
-
-#undef WORKAROUND_GPU_HANG
 
 ///////////////////////////
 // Color transformations //
