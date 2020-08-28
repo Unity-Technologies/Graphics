@@ -14,8 +14,7 @@ class Template_TestDependenciesJob():
     
         # define dependencies
         dependencies = [
-                f'{editor_filepath()}#{editor_job_id(editor["version"], platform["os"]) }',
-                f'{templates_filepath()}#{template_job_id_test(template["id"],platform["os"],editor["version"])}']
+                f'{editor_filepath()}#{editor_job_id(editor["version"], platform["os"]) }']
         dependencies.extend([f'{packages_filepath()}#{package_job_id_pack(dep)}' for dep in template["dependencies"]])
         
         
