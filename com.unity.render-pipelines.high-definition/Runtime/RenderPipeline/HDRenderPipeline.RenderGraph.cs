@@ -260,14 +260,13 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 GenerateDebugImageHistogram(m_RenderGraph, hdCamera, postProcessDest);
             }
-            // TODO RENDERGRAPH
-            //PushFullScreenExposureDebugTexture(cmd, m_IntermediateAfterPostProcessBuffer);
+            PushFullScreenExposureDebugTexture(m_RenderGraph, postProcessDest);
 
             RenderCustomPass(m_RenderGraph, hdCamera, postProcessDest, prepassOutput.depthBuffer, prepassOutput.normalBuffer, customPassCullingResults, CustomPassInjectionPoint.AfterPostProcess, aovRequest, aovBuffers);
 
             CopyXRDepth(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, backBuffer);
 
-            // In developer build, we always render post process in m_AfterPostProcessBuffer at (0,0) in which we will then render debug.
+            // In developer build, we always render post process in an intermediate buffer at (0,0) in which we will then render debug.
             // Because of this, we need another blit here to the final render target at the right viewport.
             if (!HDUtils.PostProcessIsFinalPass(hdCamera) || aovRequest.isValid)
             {
@@ -278,7 +277,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                                 postProcessDest,
                                                 prepassOutput.resolvedDepthBuffer,
                                                 prepassOutput.depthPyramidTexture,
-                                                m_DebugFullScreenTexture,
                                                 colorPickerTexture,
                                                 gpuLightListOutput,
                                                 shadowResult,

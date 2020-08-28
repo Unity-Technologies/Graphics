@@ -233,12 +233,65 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        class DebugExposureData
+        {
+            public DebugParameters debugParameters;
+            public Vector4 proceduralMeteringParams1;
+            public Vector4 proceduralMeteringParams2;
+            public TextureHandle colorBuffer;
+            public TextureHandle debugFullScreenTexture;
+            public TextureHandle output;
+            public TextureHandle currentExposure;
+            public TextureHandle previousExposure;
+            public TextureHandle debugExposureData;
+            public HableCurve customToneMapCurve;
+            public int lutSize;
+            public ComputeBuffer histogramBuffer;
+        }
+
+        TextureHandle RenderExposureDebug(RenderGraph renderGraph, HDCamera hdCamera, DebugParameters debugParameters, TextureHandle colorBuffer)
+        {
+            using (var builder = renderGraph.AddRenderPass<DebugExposureData>("Debug Exposure", out var passData))
+            {
+                m_PostProcessSystem.ComputeProceduralMeteringParams(hdCamera, out passData.proceduralMeteringParams1, out passData.proceduralMeteringParams2);
+
+                passData.debugParameters = debugParameters;
+                passData.colorBuffer = builder.ReadTexture(colorBuffer);
+                passData.debugFullScreenTexture = builder.ReadTexture(m_DebugFullScreenTexture);
+                passData.output = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "ExposureDebug" }));
+                passData.currentExposure = builder.ReadTexture(renderGraph.ImportTexture(m_PostProcessSystem.GetExposureTexture(hdCamera)));
+                passData.previousExposure = builder.ReadTexture(renderGraph.ImportTexture(m_PostProcessSystem.GetPreviousExposureTexture(hdCamera)));
+                passData.debugExposureData = builder.ReadTexture(renderGraph.ImportTexture(m_PostProcessSystem.GetExposureDebugData()));
+                passData.customToneMapCurve = m_PostProcessSystem.GetCustomToneMapCurve();
+                passData.lutSize = m_PostProcessSystem.GetLutSize();
+                passData.histogramBuffer = debugParameters.debugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView ? m_PostProcessSystem.GetDebugImageHistogramBuffer() : m_PostProcessSystem.GetHistogramBuffer();
+
+                builder.SetRenderFunc(
+                (DebugExposureData data, RenderGraphContext ctx) =>
+                {
+                    RenderExposureDebug(data.debugParameters, data.colorBuffer, data.debugFullScreenTexture,
+                                        data.previousExposure,
+                                        data.currentExposure,
+                                        data.debugExposureData,
+                                        data.output,
+                                        data.customToneMapCurve,
+                                        data.lutSize,
+                                        data.proceduralMeteringParams1,
+                                        data.proceduralMeteringParams2,
+                                        data.histogramBuffer, ctx.cmd);
+
+                });
+
+                return passData.output;
+            }
+        }
+
         TextureHandle RenderDebug(  RenderGraph                 renderGraph,
                                     HDCamera                    hdCamera,
                                     TextureHandle               colorBuffer,
                                     TextureHandle               depthBuffer,
                                     TextureHandle               depthPyramidTexture,
-                                    TextureHandle               fullScreenDebugTexture,
                                     TextureHandle               colorPickerDebugTexture,
                                     in BuildGPULightListOutput  lightLists,
                                     in ShadowResult             shadowResult,
@@ -253,7 +306,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (debugParameters.resolveFullScreenDebug)
             {
-                output = ResolveFullScreenDebug(renderGraph, debugParameters, fullScreenDebugTexture, depthPyramidTexture);
+                output = ResolveFullScreenDebug(renderGraph, debugParameters, m_DebugFullScreenTexture, depthPyramidTexture);
                 // If we have full screen debug, this is what we want color picked, so we replace color picker input texture with the new one.
                 if (debugParameters.colorPickerEnabled)
                     colorPickerDebugTexture = PushColorPickerDebugTexture(renderGraph, output);
@@ -261,13 +314,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_FullScreenDebugPushed = false;
             }
 
-            // TODO RENDERGRAPH (Needs post processing in Rendergraph to properly be implemented)
-            if(debugParameters.exposureDebugEnabled)
-            {
-                // For reference the following is what is called in the non-render-graph version.
-                // RenderExposureDebug(debugParams, m_CameraColorBuffer, m_DebugFullScreenTempBuffer,m_PostProcessSystem.GetPreviousExposureTexture(hdCamera), m_PostProcessSystem.GetExposureTexture(hdCamera),
-                //    m_PostProcessSystem.GetExposureDebugData(),m_IntermediateAfterPostProcessBuffer, m_PostProcessSystem.GetCustomToneMapCurve(), m_PostProcessSystem.GetLutSize(), m_PostProcessSystem.GetHistogramBuffer(), cmd);
-            }
+            if (debugParameters.exposureDebugEnabled)
+                output = RenderExposureDebug(renderGraph, hdCamera, debugParameters, colorBuffer);
 
             if (debugParameters.colorPickerEnabled)
                 output = ResolveColorPickerDebug(renderGraph, debugParameters, colorPickerDebugTexture);
@@ -410,6 +458,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // We need this flag because otherwise if no full screen debug is pushed (like for example if the corresponding pass is disabled), when we render the result in RenderDebug m_DebugFullScreenTempBuffer will contain potential garbage
             m_FullScreenDebugPushed = true;
+        }
+
+        void PushFullScreenExposureDebugTexture(RenderGraph renderGraph, TextureHandle input)
+        {
+            if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.exposureDebugMode != ExposureDebugMode.None)
+            {
+                PushFullScreenDebugTexture(renderGraph, input);
+            }
         }
 
         TextureHandle PushColorPickerDebugTexture(RenderGraph renderGraph, TextureHandle input)
