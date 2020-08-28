@@ -126,7 +126,7 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
-                    if (!shaderGraph.HasOutput(ShaderGraphVfxAsset.AlphaThresholdSlotId)) //alpha threshold isn't controlled by shadergraph
+                    if (!shaderGraph.alphaClipping) //alpha threshold isn't controlled by shadergraph
                         return true;
                 }
                 return false;
@@ -138,7 +138,7 @@ namespace UnityEditor.VFX
             get
             {
                 bool noShaderGraphAlphaThreshold = shaderGraph == null && useAlphaClipping;
-                bool ShaderGraphAlphaThreshold = shaderGraph != null && shaderGraph.HasOutput(ShaderGraphVfxAsset.AlphaThresholdSlotId);
+                bool ShaderGraphAlphaThreshold = shaderGraph != null && shaderGraph.alphaClipping;
                 return noShaderGraphAlphaThreshold || ShaderGraphAlphaThreshold;
             }
         }
@@ -540,7 +540,7 @@ namespace UnityEditor.VFX
                         callSG.builder.AppendLine(");");
 
                         var pixelPorts = currentRP.passInfos[kvPass.Key].pixelPorts;
-                        if (pixelPorts.Any(t => t == ShaderGraphVfxAsset.AlphaThresholdSlotId) && shaderGraph.HasOutput(ShaderGraphVfxAsset.AlphaThresholdSlotId))
+                        if (pixelPorts.Any(t => t == ShaderGraphVfxAsset.AlphaThresholdSlotId) && shaderGraph.alphaClipping)
                         {
                             callSG.builder.AppendLine(
 @"#if (USE_ALPHA_TEST || WRITE_MOTION_VECTOR_IN_FORWARD) && defined(VFX_VARYING_ALPHATHRESHOLD)

@@ -150,6 +150,7 @@ The version number for this package has increased due to a version update of a r
 - Correct VFXSettings display in Shader Graph compatible outputs
 - No more NullReference on sub-outputs after domain reload
 - Fix typo in strip tangent computation
+- Handle correctly disabled alphaTreshold material slot in shaderGraph.
 
 ## [7.1.1] - 2019-09-05
 ### Added
