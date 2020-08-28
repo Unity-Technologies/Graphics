@@ -260,6 +260,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 [branch] if (dot(L, L) < light.radius2)
                 {
                     Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, materialReceiveShadowsOff);
+                    MixRealtimeAndBakedShadows(unityLight, posWS.xyz, shadowMask);
                     color += LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS, materialSpecularHighlightsOff);
                 }
             }
@@ -282,6 +283,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 [branch] if (dot(L, L) < light.radius2)
                 {
                     Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, materialReceiveShadowsOff);
+                    MixRealtimeAndBakedShadows(unityLight, posWS.xyz, shadowMask);
 
                     half3 attenuatedLightColor = unityLight.color * (unityLight.distanceAttenuation * unityLight.shadowAttenuation);
                     half3 diffuseColor = LightingLambert(attenuatedLightColor, unityLight.direction, inputData.normalWS);
@@ -330,6 +332,8 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             #pragma multi_compile_fragment _LIT
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #pragma multi_compile_fragment _ _DEFERRED_SUBTRACTIVE_LIGHTING
+            #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
 
             #pragma vertex Vertex
             #pragma fragment PunctualLightShading
@@ -364,6 +368,8 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             #pragma multi_compile_fragment _SIMPLELIT
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #pragma multi_compile_fragment _ _DEFERRED_SUBTRACTIVE_LIGHTING
+            #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
 
             #pragma vertex Vertex
             #pragma fragment PunctualLightShading

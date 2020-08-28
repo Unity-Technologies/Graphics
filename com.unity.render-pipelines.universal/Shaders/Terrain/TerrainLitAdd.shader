@@ -113,7 +113,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
             //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
             #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
-            //#pragma multi_compile _ SHADOWS_SHADOWMASK
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
 
             // -------------------------------------
             // Unity defined keywords

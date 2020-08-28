@@ -288,7 +288,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         // This may return different values depending on what lights are rendered for a given frame.
-        internal bool UseShadowMask { get { return this.MixedLightingSetup == MixedLightingSetup.Subtractive; } }
+        internal bool UseShadowMask { get { return this.MixedLightingSetup != MixedLightingSetup.None; } }
         //
         internal bool UseRenderPass { get; set; }
         //
@@ -498,7 +498,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     // Setup global keywords.
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._GBUFFER_NORMALS_OCT, this.AccurateGbufferNormals);
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, renderingData.lightData.supportsMixedLighting && this.MixedLightingSetup == MixedLightingSetup.Subtractive);
+
+                    bool isShadowMask = renderingData.lightData.supportsMixedLighting && MixedLightingSetup == MixedLightingSetup.ShadowMask;
+                    bool isShadowMaskAlways = isShadowMask && QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask;
+                    bool isSubtractive = renderingData.lightData.supportsMixedLighting && this.MixedLightingSetup == MixedLightingSetup.Subtractive;
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightmapShadowMixing, isSubtractive || isShadowMaskAlways);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ShadowsShadowMask, isShadowMask);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, isSubtractive); // Backward compatibility
                 }
 
                 context.ExecuteCommandBuffer(cmd);
@@ -648,14 +654,20 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 Light light = visibleLights[lightIndex].light;
 
-                // TODO: Add support to shadow mask
-                if (light != null
-                 && light.bakingOutput.mixedLightingMode == MixedLightingMode.Subtractive
-                 && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed
-                 && light.shadows != LightShadows.None)
+                if (light != null &&
+                    light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed &&
+                    light.shadows != LightShadows.None &&
+                    this.MixedLightingSetup == MixedLightingSetup.None)
                 {
-                    this.MixedLightingSetup = MixedLightingSetup.Subtractive;
-                    break;
+                    switch (light.bakingOutput.mixedLightingMode)
+                    {
+                        case MixedLightingMode.Subtractive:
+                            this.MixedLightingSetup = MixedLightingSetup.Subtractive;
+                            break;
+                        case MixedLightingMode.Shadowmask:
+                            this.MixedLightingSetup = MixedLightingSetup.ShadowMask;
+                            break;
+                    }
                 }
             }
             // Once the mixed lighting mode has been discovered, we know how  many MRTs we need for the gbuffer.
@@ -732,7 +744,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             // Disable any global keywords setup in SetupLights().
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._GBUFFER_NORMALS_OCT, false);
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, false);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive); // Backward compatibility
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.LightmapShadowMixing);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.ShadowsShadowMask);
 
             for (int tilerIndex = 0; tilerIndex < m_Tilers.Length; ++ tilerIndex)
             {
@@ -1013,7 +1027,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // This does 2 things:
                 // - baked geometry are skipped (do not receive dynamic lighting)
                 // - non-baked geometry (== non-static geometry) use shadowMask/occlusionProbes to emulate baked shadows influences.
-                if (renderingData.lightData.supportsMixedLighting && this.MixedLightingSetup == MixedLightingSetup.Subtractive)
+                if (renderingData.lightData.supportsMixedLighting && this.UseShadowMask)
                     cmd.EnableShaderKeyword(ShaderKeywordStrings._DEFERRED_SUBTRACTIVE_LIGHTING);
 
                 // This must be set for each eye in XR mode multipass.
@@ -1023,7 +1037,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 RenderStencilLights(context, cmd, ref renderingData);
 
-                if (renderingData.lightData.supportsMixedLighting && this.MixedLightingSetup == MixedLightingSetup.Subtractive)
+                if (renderingData.lightData.supportsMixedLighting && this.UseShadowMask)
                     cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_SUBTRACTIVE_LIGHTING);
 
                 // Legacy fog (Windows -> Rendering -> Lighting Settings -> Fog)
@@ -1476,6 +1490,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 cmd.SetGlobalVector(ShaderConstants._LightColor, lightColor); // VisibleLight.finalColor already returns color in active color space
                 cmd.SetGlobalVector(ShaderConstants._LightDirection, lightDir);
+                cmd.SetGlobalVector(ShaderConstants._LightOcclusionProbInfo, lightOcclusionChannel);
                 cmd.SetGlobalInt(ShaderConstants._LightFlags, lightFlags);
 
                 // Lighting pass.

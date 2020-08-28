@@ -180,6 +180,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             unityLight.direction = _LightDirection;
             unityLight.color = _LightColor.rgb;
             unityLight.distanceAttenuation = 1.0;
+            unityLight.occlusionProbeChannels = _LightOcclusionProbInfo;
             if (materialReceiveShadowsOff)
                 unityLight.shadowAttenuation = 1.0;
             else
@@ -205,6 +206,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             light.shadowLightIndex = _ShadowLightIndex;
             unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, materialReceiveShadowsOff);
         #endif
+
+        MixRealtimeAndBakedShadows(unityLight, posWS.xyz, shadowMask);
 
         half3 color = 0.0.xxx;
 
@@ -302,6 +305,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #pragma multi_compile_fragment _ _DEFERRED_SUBTRACTIVE_LIGHTING
+            #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -340,6 +345,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #pragma multi_compile_fragment _ _DEFERRED_SUBTRACTIVE_LIGHTING
+            #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -380,6 +387,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #pragma multi_compile_fragment _ _DEFERRED_SUBTRACTIVE_LIGHTING
+            #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -420,6 +429,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #pragma multi_compile_fragment _ _DEFERRED_SUBTRACTIVE_LIGHTING
+            #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading

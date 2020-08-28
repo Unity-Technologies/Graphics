@@ -7,7 +7,8 @@
 // inspired from [builtin_shaders]/CGIncludes/UnityGBuffer.cginc
 
 // Non-static meshes with real-time lighting need to write shadow mask, which in that case stores per-object occlusion probe values.
-#if !defined(LIGHTMAP_ON) && defined(_MIXED_LIGHTING_SUBTRACTIVE)
+// TODO: Update comment
+#if defined(LIGHTMAP_SHADOW_MIXING) || defined(SHADOWS_SHADOWMASK)
 #define USE_SHADOWMASK 1
 #else
 #define USE_SHADOWMASK 0
@@ -89,7 +90,7 @@ FragmentOutput SurfaceDataToGbuffer(SurfaceData surfaceData, InputData inputData
     output.GBuffer2 = half4(packedNormalWS, packedSmoothness);                           // encoded-normal  encoded-normal  encoded-normal  packed-smoothness
     output.GBuffer3 = half4(globalIllumination, 0);                                      // GI              GI              GI              [not_available] (lighting buffer)
     #if USE_SHADOWMASK
-    output.GBuffer4 = unity_ProbesOcclusion;
+    output.GBuffer4 = inputData.shadowMask;
     #endif
 
     return output;
@@ -166,7 +167,7 @@ FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half sm
     output.GBuffer2 = half4(packedNormalWS, packedSmoothness);                       // encoded-normal  encoded-normal  encoded-normal  smoothness
     output.GBuffer3 = half4(globalIllumination, 0);                                  // GI              GI              GI              [not_available] (lighting buffer)
     #if USE_SHADOWMASK
-    output.GBuffer4 = unity_ProbesOcclusion;
+    output.GBuffer4 = inputData.shadowMask;
     #endif
 
     return output;
