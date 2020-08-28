@@ -34,6 +34,8 @@ namespace UnityEngine.Rendering.Universal
         internal static XRSystem m_XRSystem = new XRSystem();
 #endif
 
+        static SkyManager s_SkyManager;
+
         public static float maxShadowBias
         {
             get => 10.0f;
@@ -99,6 +101,10 @@ namespace UnityEngine.Rendering.Universal
             CameraCaptureBridge.enabled = true;
 
             RenderingUtils.ClearSystemInfoCache();
+
+            if (s_SkyManager == null)
+                s_SkyManager = new SkyManager();
+            s_SkyManager.Build();
         }
 
         protected override void Dispose(bool disposing)
@@ -115,6 +121,8 @@ namespace UnityEngine.Rendering.Universal
 #endif
             Lightmapping.ResetDelegate();
             CameraCaptureBridge.enabled = false;
+
+            s_SkyManager.Cleanup();
         }
 
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
@@ -170,7 +178,10 @@ namespace UnityEngine.Rendering.Universal
             }
 
             InitializeCameraData(camera, additionalCameraData, true, out var cameraData);
-            SkyManager.UpdateCurrentSkySettings(ref cameraData);
+
+            // TODO: Requires an updated VolumeManager.instance.stack. Might be wrong if called not from Render.
+            s_SkyManager.UpdateCurrentSkySettings(ref cameraData);
+
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             if (asset.useAdaptivePerformance)
                 ApplyAdaptivePerformance(ref cameraData);
@@ -199,8 +210,6 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="anyPostProcessingEnabled">True if at least one camera has post-processing enabled in the stack, false otherwise.</param>
         static void RenderSingleCamera(ScriptableRenderContext context, CameraData cameraData, bool anyPostProcessingEnabled)
         {
-            SetupPerCameraShaderConstants();
-
             Camera camera = cameraData.camera;
             var renderer = cameraData.renderer;
             if (renderer == null)
@@ -225,6 +234,10 @@ namespace UnityEngine.Rendering.Universal
             ProfilingSampler sampler = (asset.debugLevel >= PipelineDebugLevel.Profiling) ? new ProfilingSampler(camera.name) : _CameraProfilingSampler;
             using (new ProfilingScope(cmd, sampler)) // Enqueues a "BeginSample" command into the CommandBuffer cmd
             {
+                s_SkyManager.UpdateEnvironment(ref cameraData, cmd);
+                s_SkyManager.SetupAmbientProbe(ref cameraData);
+                SetupPerCameraShaderConstants();
+
                 renderer.Clear(cameraData.renderType);
                 renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
 
@@ -366,7 +379,7 @@ namespace UnityEngine.Rendering.Universal
                 VFX.VFXManager.PrepareCamera(baseCamera);
 #endif
                 UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
-                SkyManager.UpdateCurrentSkySettings(ref baseCameraData);
+                s_SkyManager.UpdateCurrentSkySettings(ref baseCameraData);
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
                 if (asset.useAdaptivePerformance)
                     ApplyAdaptivePerformance(ref baseCameraData);

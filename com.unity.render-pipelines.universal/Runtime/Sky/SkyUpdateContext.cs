@@ -5,8 +5,11 @@ namespace UnityEngine.Rendering.Universal
     internal class SkyUpdateContext
     {
         private SkySettings m_SkySettings;
+        public SkyRenderer  skyRenderer { get; private set; }
+        public int          cachedSkyRenderingContextId = -1;
 
-        public SkyRenderer skyRenderer { get; private set; }
+        public int          skyParametersHash = -1;
+        public float        currentUpdateTime = 0.0f;
 
         public SkySettings skySettings
         {

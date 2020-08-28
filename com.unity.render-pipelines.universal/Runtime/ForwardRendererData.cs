@@ -50,6 +50,9 @@ namespace UnityEngine.Rendering.Universal
             public Shader fallbackErrorPS;
 
             // Sky
+            [Reload("Skybox/Cubemap", ReloadAttribute.Package.Builtin)]
+            public Shader skyboxCubemapPS;
+
             [Reload("Runtime/Sky/HDRISky/HDRISky.shader")]
             public Shader skyHdriSkyPS;
 
