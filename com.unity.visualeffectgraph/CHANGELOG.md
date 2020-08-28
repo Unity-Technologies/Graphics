@@ -44,6 +44,7 @@ The version number for this package has increased due to a version update of a r
 - Compute culling of particle which have their alive attribute set to false in output
 - Mesh and lit mesh outputs can now have up to 4 differents meshes that can be set per Particle (Experimental)
 - Screen space per particle LOD on mesh and lit mesh outputs (Experimental)
+- Compare operator can take int and uint as inputs
 
 ### Fixed
 - Moved VFX Event Tester Window visibility to Component Play Controls SceneView Window
@@ -135,6 +136,8 @@ The version number for this package has increased due to a version update of a r
 - Make VisualEffect created from the GameObject menu have unique names [Case 1262989](https://issuetracker.unity3d.com/product/unity/issues/guid/1262989/)
 - Missing System Seed in new dynamic built-in operator.
 - Prefab highlight missing for initial event name toggle [Case 1263012](https://issuetracker.unity3d.com/product/unity/issues/guid/1263012/)
+- Correctly frame the whole graph, when opening the Visual Effect Editor
+- Optimize display of inspector when there is a lot of exposed VFX properties.
 - fixes the user created vfx default resources that were ignored unless loaded
 - fix crash when creating a loop in subgraph operators [Case 1251523](https://issuetracker.unity3d.com/product/unity/issues/guid/1251523/)
 - Normals with non uniform scales are correctly computed [Case 1246989](https://issuetracker.unity3d.com/product/unity/issues/guid/1246989/)
