@@ -672,8 +672,12 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.showMixedValue = settings.clearFlags.hasMultipleDifferentValues;
 
             EditorGUI.BeginChangeCheck();
-            BackgroundType selectedType = (BackgroundType)EditorGUILayout.IntPopup(Styles.backgroundType, (int)backgroundType,
+            Rect controlRect = EditorGUILayout.GetControlRect(true);
+            EditorGUI.BeginProperty(controlRect, Styles.backgroundType, settings.clearFlags);
+
+            BackgroundType selectedType = (BackgroundType)EditorGUI.IntPopup(controlRect, Styles.backgroundType, (int)backgroundType,
                 Styles.cameraBackgroundType, Styles.cameraBackgroundValues);
+            EditorGUI.EndProperty();
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -783,8 +787,11 @@ namespace UnityEditor.Rendering.Universal
             int selectedRendererOption = m_AdditionalCameraDataRendererProp.intValue;
             EditorGUI.BeginChangeCheck();
 
+            Rect controlRect = EditorGUILayout.GetControlRect(true);
+            EditorGUI.BeginProperty(controlRect, Styles.rendererType, m_AdditionalCameraDataRendererProp);
+
             EditorGUI.showMixedValue = m_AdditionalCameraDataRendererProp.hasMultipleDifferentValues;
-            int selectedRenderer = EditorGUILayout.IntPopup(Styles.rendererType, selectedRendererOption, rpAsset.rendererDisplayList, UniversalRenderPipeline.asset.rendererIndexList);
+            int selectedRenderer = EditorGUI.IntPopup(controlRect, Styles.rendererType, selectedRendererOption, rpAsset.rendererDisplayList, UniversalRenderPipeline.asset.rendererIndexList);
 
             if (!rpAsset.ValidateRendererDataList())
             {
