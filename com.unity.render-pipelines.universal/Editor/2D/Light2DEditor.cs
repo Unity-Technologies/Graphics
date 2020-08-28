@@ -292,8 +292,13 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             EditorGUI.BeginChangeCheck();
             EditorGUI.DelayedFloatField(minRect, minProperty, GUIContent.none);
-            if(EditorGUI.EndChangeCheck() && minProperty.floatValue > maxProperty.floatValue)
-                minProperty.floatValue = maxProperty.floatValue;
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (minProperty.floatValue > maxProperty.floatValue)
+                    minProperty.floatValue = maxProperty.floatValue;
+                else if (minProperty.floatValue < 0)
+                    minProperty.floatValue = 0;
+            }
 
             EditorGUI.BeginChangeCheck();
             EditorGUI.MinMaxSlider(sliderRect, ref min, ref max, 0f, 360f);
@@ -306,8 +311,13 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             EditorGUI.BeginChangeCheck();
             EditorGUI.DelayedFloatField(maxRect, m_PointOuterAngle, GUIContent.none);
-            if (EditorGUI.EndChangeCheck() && minProperty.floatValue > maxProperty.floatValue)
-                maxProperty.floatValue = minProperty.floatValue;
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (minProperty.floatValue > maxProperty.floatValue)
+                    maxProperty.floatValue = minProperty.floatValue;
+                else if (maxProperty.floatValue > 360)
+                    maxProperty.floatValue = 360;
+            }
 
 
             EditorGUI.EndProperty();
