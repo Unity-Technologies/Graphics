@@ -9,6 +9,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] float m_PointLightOuterAngle = 360.0f;
         [SerializeField] float m_PointLightInnerRadius = 0.0f;
         [SerializeField] float m_PointLightOuterRadius = 1.0f;
+        [SerializeField] float m_PointLightMaxOuterRadius = 1.0f;
 
         public float pointLightInnerAngle
         {

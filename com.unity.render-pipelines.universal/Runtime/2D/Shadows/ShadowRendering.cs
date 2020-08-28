@@ -54,10 +54,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static void RenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int layerToRender, Light2D light, float shadowIntensity, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture)
         {
-            cmdBuffer.SetGlobalFloat(k_ShadowIntensityID, 1 - light.shadowIntensity);
-            cmdBuffer.SetGlobalFloat(k_ShadowVolumeIntensityID, 1 - light.shadowVolumeIntensity);
+            cmdBuffer.SetGlobalFloat(k_ShadowIntensityID, light.shadowIntensity);
+            cmdBuffer.SetGlobalFloat(k_ShadowVolumeIntensityID, light.shadowVolumeIntensity);
 
-            if (shadowIntensity > 0)
+            if (shadowIntensity < 1)
             {
                 CreateShadowRenderTexture(pass, renderingData, cmdBuffer, light.blendStyleIndex);
 

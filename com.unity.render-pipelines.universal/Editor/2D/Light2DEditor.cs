@@ -54,8 +54,11 @@ namespace UnityEditor.Experimental.Rendering.Universal
         private static class Styles
         {
             public static readonly GUIContent InnerOuterSpotAngle = EditorGUIUtility.TrTextContent("Inner / Outer Spot Angle", "Controls the inner and outer angle in degrees, at the base of a Spot light's cone.");
+            public static GUIContent generalLightIntensity = EditorGUIUtility.TrTextContent("Min / Max Intensity", "Specify the light color's intensity");
+            public static GUIContent generalVolumeIntensity = EditorGUIUtility.TrTextContent("Min / Max Volumetric Intensity", "Specify the light's volumetric light volume intensity");
+            public static GUIContent generalRadius = EditorGUIUtility.TrTextContent("Min / Max Radius", "Specify the light's radius");
             public static readonly GUIContent SpotAngle = EditorGUIUtility.TrTextContent("Spot Angle", "Controls the angle in degrees at the base of a Spot light's cone.");
-
+            
             public static Texture lightCapTopRight = Resources.Load<Texture>("LightCapTopRight");
             public static Texture lightCapTopLeft = Resources.Load<Texture>("LightCapTopLeft");
             public static Texture lightCapBottomLeft = Resources.Load<Texture>("LightCapBottomLeft");
@@ -73,9 +76,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent generalFalloffSize = EditorGUIUtility.TrTextContent("Falloff", "Specify the falloff of the light");
             public static GUIContent generalFalloffIntensity = EditorGUIUtility.TrTextContent("Falloff Intensity", "Adjusts the falloff curve");
             public static GUIContent generalLightColor = EditorGUIUtility.TrTextContent("Color", "Specify the light color");
-            public static GUIContent generalLightIntensity = EditorGUIUtility.TrTextContent("Intensity", "Specify the light color's intensity");
             public static GUIContent generalUseNormalMap = EditorGUIUtility.TrTextContent("Use Normal Map", "Specify whether the light considers normal maps");
-            public static GUIContent generalVolumeIntensity = EditorGUIUtility.TrTextContent("Volume Intensity", "Specify the light's volumetric light volume intensity");
+            
             public static GUIContent generalBlendStyle = EditorGUIUtility.TrTextContent("Blend Style", "Specify the blend style");
             public static GUIContent generalLightOverlapMode = EditorGUIUtility.TrTextContent("Alpha Blend on Overlap", "Use alpha blending instead of additive blending when this light overlaps others");
             public static GUIContent generalLightOrder = EditorGUIUtility.TrTextContent("Light Order", "The relative order in which lights of the same blend style get rendered.");
@@ -122,12 +124,15 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SerializedProperty m_NormalMapQuality;
         SerializedProperty m_LightOrder;
         SerializedProperty m_AlphaBlendOnOverlap;
+        SerializedProperty m_LightIntensityMax;
+        SerializedProperty m_LightVolumeIntensityMax;
 
         // Point Light Properties
         SerializedProperty m_PointInnerAngle;
         SerializedProperty m_PointOuterAngle;
         SerializedProperty m_PointInnerRadius;
         SerializedProperty m_PointOuterRadius;
+        SerializedProperty m_PointMaxOuterRadius;
 
         // Shape Light Properties
         SerializedProperty m_ShapeLightParametricRadius;
@@ -182,12 +187,16 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_LightOrder = serializedObject.FindProperty("m_LightOrder");
             m_AlphaBlendOnOverlap = serializedObject.FindProperty("m_AlphaBlendOnOverlap");
 
+            m_LightIntensityMax = serializedObject.FindProperty("m_LightIntensityMax");
+            m_LightVolumeIntensityMax = serializedObject.FindProperty("m_LightVolumeIntensityMax");
+
             // Point Light
             m_PointInnerAngle = serializedObject.FindProperty("m_PointLightInnerAngle");
             m_PointOuterAngle = serializedObject.FindProperty("m_PointLightOuterAngle");
             m_PointInnerRadius = serializedObject.FindProperty("m_PointLightInnerRadius");
             m_PointOuterRadius = serializedObject.FindProperty("m_PointLightOuterRadius");
-            
+            m_PointMaxOuterRadius = serializedObject.FindProperty("m_PointLightMaxOuterRadius");
+
 
             // Shape Light
             m_ShapeLightParametricRadius = serializedObject.FindProperty("m_ShapeLightParametricRadius");
@@ -251,17 +260,24 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         void OnPointLight(SerializedObject serializedObject)
         {
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(m_PointInnerRadius, Styles.pointLightInnerRadius);
-            if (EditorGUI.EndChangeCheck())
-                m_PointInnerRadius.floatValue = Mathf.Max(0.0f, Mathf.Min(m_PointInnerRadius.floatValue, m_PointOuterRadius.floatValue));
+            //EditorGUI.BeginChangeCheck();
+            //EditorGUILayout.PropertyField(m_PointInnerRadius, Styles.pointLightInnerRadius);
+            //if (EditorGUI.EndChangeCheck())
+            //    m_PointInnerRadius.floatValue = Mathf.Max(0.0f, Mathf.Min(m_PointInnerRadius.floatValue, m_PointOuterRadius.floatValue));
 
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(m_PointOuterRadius, Styles.pointLightOuterRadius);
-            if (EditorGUI.EndChangeCheck())
-                m_PointOuterRadius.floatValue = Mathf.Max(m_PointInnerRadius.floatValue, m_PointOuterRadius.floatValue);
+            //EditorGUI.BeginChangeCheck();
+            //EditorGUILayout.PropertyField(m_PointOuterRadius, Styles.pointLightOuterRadius);
+            //if (EditorGUI.EndChangeCheck())
+            //    m_PointOuterRadius.floatValue = Mathf.Max(m_PointInnerRadius.floatValue, m_PointOuterRadius.floatValue);
 
-            DrawInnerAndOuterSpotAngle(m_PointInnerAngle, m_PointOuterAngle, Styles.InnerOuterSpotAngle);
+            float zero = 0;
+            float maxRadius = m_PointMaxOuterRadius.floatValue;
+            DrawCustomMinMaxSlider(m_PointInnerRadius, m_PointOuterRadius, ref zero, ref maxRadius, false, Styles.generalRadius);
+            m_PointMaxOuterRadius.floatValue = maxRadius;
+
+            float minAngle = 0;
+            float maxAngle = 360;
+            DrawCustomMinMaxSlider(m_PointInnerAngle, m_PointOuterAngle, ref minAngle, ref maxAngle, true, Styles.InnerOuterSpotAngle);
 
             EditorGUILayout.Slider(m_FalloffIntensity, 0, 1, Styles.generalFalloffIntensity);
 
@@ -269,7 +285,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         }
 
 
-        public void DrawInnerAndOuterSpotAngle(SerializedProperty minProperty, SerializedProperty maxProperty, GUIContent label)
+        public void DrawCustomMinMaxSlider(SerializedProperty minProperty, SerializedProperty maxProperty, ref float minConstraint, ref float maxConstraint, bool isMaxConstrained, GUIContent label)
         {
             float textFieldWidth = 45f;
 
@@ -296,12 +312,12 @@ namespace UnityEditor.Experimental.Rendering.Universal
             {
                 if (minProperty.floatValue > maxProperty.floatValue)
                     minProperty.floatValue = maxProperty.floatValue;
-                else if (minProperty.floatValue < 0)
-                    minProperty.floatValue = 0;
+                else if (minProperty.floatValue < minConstraint)
+                    minProperty.floatValue = minConstraint;
             }
 
             EditorGUI.BeginChangeCheck();
-            EditorGUI.MinMaxSlider(sliderRect, ref min, ref max, 0f, 360f);
+            EditorGUI.MinMaxSlider(sliderRect, ref min, ref max, minConstraint, maxConstraint);
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -310,13 +326,15 @@ namespace UnityEditor.Experimental.Rendering.Universal
             }
 
             EditorGUI.BeginChangeCheck();
-            EditorGUI.DelayedFloatField(maxRect, m_PointOuterAngle, GUIContent.none);
+            EditorGUI.DelayedFloatField(maxRect, maxProperty, GUIContent.none);
             if (EditorGUI.EndChangeCheck())
             {
                 if (minProperty.floatValue > maxProperty.floatValue)
                     maxProperty.floatValue = minProperty.floatValue;
-                else if (maxProperty.floatValue > 360)
-                    maxProperty.floatValue = 360;
+                else if (isMaxConstrained && maxProperty.floatValue > maxConstraint)
+                    maxProperty.floatValue = maxConstraint;
+
+                maxConstraint = maxProperty.floatValue;
             }
 
 
@@ -610,20 +628,20 @@ namespace UnityEditor.Experimental.Rendering.Universal
             EditorGUILayout.PropertyField(m_LightColor, Styles.generalLightColor);
 
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(m_LightIntensity, Styles.generalLightIntensity);
-            if (EditorGUI.EndChangeCheck())
-                m_LightIntensity.floatValue = Mathf.Max(m_LightIntensity.floatValue, 0);
+
+            float zero = 0;
+            float lightIntensityMax = m_LightIntensityMax.floatValue;
+            float lightVolumeIntensityMax = m_LightVolumeIntensityMax.floatValue;
+
+            DrawCustomMinMaxSlider(m_ShadowIntensity, m_LightIntensity, ref zero, ref lightIntensityMax, false, Styles.generalLightIntensity);
+            DrawCustomMinMaxSlider(m_ShadowVolumeIntensity, m_VolumetricIntensity, ref zero, ref lightVolumeIntensityMax, false, Styles.generalVolumeIntensity);
+
+            m_LightIntensityMax.floatValue = lightIntensityMax;
+            m_LightVolumeIntensityMax.floatValue = lightVolumeIntensityMax;
+
 
             if (m_LightType.intValue != (int)Light2D.LightType.Global)
             {
-                EditorGUILayout.Slider(m_ShadowIntensity, 0, 1, Styles.generalShadowIntensity);
-                EditorGUILayout.Slider(m_VolumetricIntensity, 0, 1, Styles.generalVolumeIntensity);
-                
-                EditorGUI.BeginDisabledGroup(m_VolumetricIntensity.floatValue <= 0);
-                EditorGUILayout.Slider(m_ShadowVolumeIntensity, 0, 1, Styles.generalShadowVolumeIntensity);
-                EditorGUI.EndDisabledGroup();
-
-                
                 EditorGUILayout.PropertyField(m_NormalMapQuality, Styles.generalNormalMapLightQuality);
 
                 EditorGUI.BeginDisabledGroup(m_NormalMapQuality.intValue == (int)Light2D.NormalMapQuality.Disabled);
